@@ -316,7 +316,7 @@ function PlacesPicker({
   const acFn = useServerFn(autocompletePlaces);
   const placeFn = useServerFn(getPlace);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounce = useRef<number>();
+  const debounce = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     inputRef.current?.focus();
