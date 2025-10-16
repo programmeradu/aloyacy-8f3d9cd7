@@ -1,33 +1,58 @@
+import { useMemo } from "react";
 import cyprusMap from "@/assets/cyprus-map.jpg";
+import { useRealtime } from "@/lib/useRealtime";
+import { NICOSIA_CENTER } from "@/lib/gtfs";
 
-type Pin = {
-  top: string;
-  left: string;
-  code: string;
-  tone: "aegean" | "ochre" | "olive";
-  live?: boolean;
-};
+// Map a lat/lng to 0–1 box coords, around a center with a span.
+function project(
+  lat: number,
+  lng: number,
+  center: { lat: number; lng: number },
+  spanKm = 8,
+) {
+  const dLat = (lat - center.lat) * 111;
+  const dLng = (lng - center.lng) * 111 * Math.cos((center.lat * Math.PI) / 180);
+  const x = 0.5 + dLng / spanKm;
+  const y = 0.5 - dLat / spanKm;
+  return { x, y };
+}
 
-const toneBg: Record<Pin["tone"], string> = {
+const TONES = ["aegean", "ochre", "olive"] as const;
+const toneBg: Record<(typeof TONES)[number], string> = {
   aegean: "bg-aegean-deep",
   ochre: "bg-ochre",
   olive: "bg-olive",
 };
 
-const pins: Pin[] = [
-  { top: "32%", left: "44%", code: "102", tone: "aegean", live: true },
-  { top: "58%", left: "62%", code: "615", tone: "ochre" },
-  { top: "70%", left: "30%", code: "30", tone: "olive" },
-];
+export function MapPreview({
+  height = "h-64",
+  center = NICOSIA_CENTER,
+  spanKm = 8,
+}: {
+  height?: string;
+  center?: { lat: number; lng: number };
+  spanKm?: number;
+}) {
+  const { data } = useRealtime();
 
-export function MapPreview({ height = "h-64" }: { height?: string }) {
+  const pins = useMemo(() => {
+    if (!data) return [];
+    return data.vehicles
+      .map((v) => {
+        const p = project(v.lat, v.lng, center, spanKm);
+        return { ...v, x: p.x, y: p.y };
+      })
+      .filter((p) => p.x > -0.05 && p.x < 1.05 && p.y > -0.05 && p.y < 1.05)
+      .slice(0, 14);
+  }, [data, center, spanKm]);
+
   return (
     <div
       className={`relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`}
     >
       <img
         src={cyprusMap}
-        alt="Map of Nicosia"
+        alt="Cyprus map"
         loading="lazy"
         width={1024}
         height={1024}
@@ -35,55 +60,45 @@ export function MapPreview({ height = "h-64" }: { height?: string }) {
       />
       <div className="absolute inset-0 grain opacity-60" aria-hidden />
 
-      {/* Subtle route trace */}
-      <svg
-        viewBox="0 0 400 260"
-        className="absolute inset-0 size-full"
-        preserveAspectRatio="none"
-        aria-hidden
+      {/* Center marker — "you" */}
+      <div
+        className="absolute -translate-x-1/2 -translate-y-1/2"
+        style={{ top: "50%", left: "50%" }}
       >
-        <path
-          d="M40,210 C120,180 160,120 200,110 S 320,90 380,40"
-          stroke="oklch(0.48 0.085 215)"
-          strokeWidth="1.4"
-          strokeDasharray="3 4"
-          fill="none"
-          opacity="0.55"
-        />
-      </svg>
+        <span className="absolute inset-0 -m-1 rounded-full bg-aegean-deep/30 animate-pulse-ring" />
+        <span className="relative block size-3 rounded-full bg-aegean-deep ring-[3px] ring-white shadow" />
+      </div>
 
-      {pins.map((p) => (
-        <div
-          key={p.code}
-          className="absolute -translate-x-1/2 -translate-y-full flex flex-col items-center"
-          style={{ top: p.top, left: p.left }}
-        >
+      {pins.map((p, i) => {
+        const tone = TONES[i % TONES.length];
+        return (
           <div
-            className={`mb-1 rounded-md px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-tight text-white shadow-sm ${toneBg[p.tone]}`}
+            key={p.id}
+            className="absolute -translate-x-1/2 -translate-y-full flex flex-col items-center"
+            style={{ top: `${p.y * 100}%`, left: `${p.x * 100}%` }}
           >
-            {p.code}
-          </div>
-          <div className="relative">
-            {p.live && (
-              <span
-                className={`absolute inset-0 rounded-full ${toneBg[p.tone]} opacity-60 animate-pulse-ring`}
-              />
-            )}
+            <div
+              className={`mb-1 rounded-md px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-tight text-white shadow-sm ${toneBg[tone]}`}
+              title={p.label}
+            >
+              {p.label || "•"}
+            </div>
             <span
-              className={`relative block size-3 rounded-full ring-2 ring-white shadow ${toneBg[p.tone]}`}
+              className={`relative block size-2.5 rounded-full ring-2 ring-white shadow ${toneBg[tone]}`}
+              style={{ transform: `rotate(${p.bearing}deg)` }}
             />
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 backdrop-blur-md ring-1 ring-line">
         <span className="size-1.5 rounded-full bg-aegean-deep animate-pulse" />
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink">
-          Live · Nicosia
+          {data ? `${data.vehicles.length} live` : "Connecting…"}
         </span>
       </div>
       <div className="absolute bottom-3 right-3 rounded-full bg-white/85 backdrop-blur-md ring-1 ring-line px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-        24°C · Sun
+        Nicosia · {spanKm}km
       </div>
     </div>
   );
