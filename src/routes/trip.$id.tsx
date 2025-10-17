@@ -1,0 +1,458 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { AppShell } from "@/components/AppShell";
+import { MapPreview } from "@/components/MapPreview";
+import { RouteChip } from "@/components/RouteChip";
+import { IconArrowLeft, IconBus, IconClock, IconPin } from "@/components/Icons";
+import { useRealtime } from "@/lib/useRealtime";
+import { useActiveTrip, clearActiveTrip } from "@/lib/trip-store";
+import { routeTone } from "@/lib/gtfs";
+import companionHero from "@/assets/companion-hero.jpg";
+
+export const Route = createFileRoute("/trip/$id")({
+  head: ({ params }) => ({
+    meta: [
+      { title: `Live trip · Aloya` },
+      {
+        name: "description",
+        content: `Door-to-door live guidance for trip ${params.id}.`,
+      },
+    ],
+  }),
+  component: TripCompanion,
+});
+
+type Phase =
+  | "leave-soon"
+  | "walking"
+  | "waiting"
+  | "on-bus"
+  | "alight-soon"
+  | "arrived";
+
+function TripCompanion() {
+  const navigate = useNavigate();
+  const active = useActiveTrip();
+  const { data: rt } = useRealtime();
+  const [tick, setTick] = useState(0);
+
+  // refresh every 5s for countdowns
+  useEffect(() => {
+    const t = window.setInterval(() => setTick((n) => n + 1), 5_000);
+    return () => window.clearInterval(t);
+  }, []);
+
+  const view = useMemo(() => {
+    if (!active) return null;
+    const now = Math.floor(Date.now() / 1000);
+    const bus = active.option.legs.find((l) => l.kind === "bus");
+    const walkIn = active.option.legs[0];
+    const walkOut = active.option.legs[active.option.legs.length - 1];
+    if (!bus || bus.kind !== "bus") return null;
+    if (walkIn.kind !== "walk" || walkOut.kind !== "walk") return null;
+
+    // Live re-read this trip from realtime feed.
+    const liveBoard = rt?.arrivals.find(
+      (a) => a.tripId === bus.tripId && a.stopId === bus.board.stopId,
+    );
+    const liveAlight = rt?.arrivals.find(
+      (a) => a.tripId === bus.tripId && a.stopId === bus.alight.stopId,
+    );
+    const boardUnix = liveBoard?.arrivalUnix ?? bus.board.departureUnix;
+    const alightUnix = liveAlight?.arrivalUnix ?? bus.alight.arrivalUnix;
+    const delaySec = liveBoard?.delaySec ?? bus.delaySec;
+
+    const leaveByUnix = boardUnix - walkIn.durationSec;
+    const minToLeave = Math.round((leaveByUnix - now) / 60);
+    const minToBoard = Math.round((boardUnix - now) / 60);
+    const minToAlight = Math.round((alightUnix - now) / 60);
+    const minToDoor = Math.round(
+      (alightUnix + walkOut.durationSec - now) / 60,
+    );
+
+    // Heuristic phase machine. Real GPS would refine this; we infer from time.
+    let phase: Phase = "leave-soon";
+    if (minToLeave > 1) phase = "leave-soon";
+    else if (minToBoard > 1) phase = "walking";
+    else if (now < boardUnix) phase = "waiting";
+    else if (minToAlight > 2) phase = "on-bus";
+    else if (minToAlight > -1) phase = "alight-soon";
+    else phase = "arrived";
+
+    return {
+      bus,
+      walkIn,
+      walkOut,
+      delaySec,
+      leaveByUnix,
+      boardUnix,
+      alightUnix,
+      minToLeave,
+      minToBoard,
+      minToAlight,
+      minToDoor,
+      phase,
+    };
+  }, [active, rt, tick]);
+
+  if (!active) {
+    return (
+      <AppShell>
+        <div className="px-6 pt-2 pb-4 animate-rise">
+          <Link
+            to="/trips"
+            className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink"
+          >
+            <IconArrowLeft className="size-4" />
+          </Link>
+        </div>
+        <section className="px-6 mt-6 animate-rise">
+          <h1 className="font-display text-[36px] leading-tight text-ink">
+            No active trip
+          </h1>
+          <p className="mt-3 text-[13px] text-ink-soft">
+            Plan a route and tap <span className="font-medium text-ink">Start</span>{" "}
+            on the option you want. We'll guide you from your front door to
+            theirs — countdown to leave, the bus on the move, and a gentle
+            nudge when it's time to step off.
+          </p>
+          <Link
+            to="/trips"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
+          >
+            Plan a trip
+          </Link>
+        </section>
+      </AppShell>
+    );
+  }
+
+  if (!view) return null;
+  const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard, minToAlight, minToDoor } = view;
+
+  return (
+    <AppShell>
+      <div className="px-6 pt-2 pb-4 flex items-center justify-between animate-rise">
+        <Link
+          to="/trips"
+          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink"
+        >
+          <IconArrowLeft className="size-4" />
+        </Link>
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+          Live companion
+        </span>
+        <button
+          onClick={() => {
+            clearActiveTrip();
+            navigate({ to: "/trips" });
+          }}
+          className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
+        >
+          End
+        </button>
+      </div>
+
+      {/* Hero phase card */}
+      <section className="px-6 animate-rise" style={{ animationDelay: "60ms" }}>
+        <article className="relative overflow-hidden rounded-[32px] bg-card ring-1 ring-line">
+          <img
+            src={companionHero}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            width={1280}
+            height={896}
+            className="pointer-events-none absolute inset-0 size-full object-cover opacity-[0.18] mix-blend-multiply"
+          />
+          <div className="relative p-6">
+            <PhaseLabel phase={phase} delaySec={delaySec} />
+            <PhaseHeadline
+              phase={phase}
+              minToLeave={minToLeave}
+              minToBoard={minToBoard}
+              minToAlight={minToAlight}
+              minToDoor={minToDoor}
+              boardName={bus.board.name}
+              alightName={bus.alight.name}
+            />
+            <PhaseSub
+              phase={phase}
+              walkInSec={walkIn.kind === "walk" ? walkIn.durationSec : 0}
+              walkOutSec={walkOut.kind === "walk" ? walkOut.durationSec : 0}
+              destName={active.to.label}
+              boardName={bus.board.name}
+              alightName={bus.alight.name}
+              minToDoor={minToDoor}
+            />
+          </div>
+        </article>
+      </section>
+
+      {/* Map */}
+      <section className="mt-5 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
+        <MapPreview
+          height="h-44"
+          center={{
+            lat: (active.from.lat + active.to.lat) / 2,
+            lng: (active.from.lng + active.to.lng) / 2,
+          }}
+          spanKm={
+            6 *
+            Math.max(
+              0.5,
+              Math.abs(active.from.lat - active.to.lat) * 111 / 6,
+            )
+          }
+        />
+      </section>
+
+      {/* Timeline */}
+      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
+        <div className="flex items-end justify-between mb-3">
+          <h2 className="font-display text-2xl text-ink">Your journey</h2>
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+            {Math.round(active.option.totalDurationSec / 60)} min total
+          </span>
+        </div>
+
+        <ol className="relative rounded-[28px] bg-card ring-1 ring-line p-5 space-y-5">
+          <TimelineRow
+            active={phase === "leave-soon" || phase === "walking"}
+            done={phase !== "leave-soon" && phase !== "walking"}
+            title={`Walk to ${bus.board.name}`}
+            sub={`${Math.round((walkIn.kind === "walk" ? walkIn.durationSec : 0) / 60)} min · ${Math.round((walkIn.kind === "walk" ? walkIn.distanceMeters : 0))} m`}
+          >
+            <IconPin className="size-3.5" />
+          </TimelineRow>
+
+          <TimelineRow
+            active={phase === "waiting" || phase === "on-bus" || phase === "alight-soon"}
+            done={phase === "arrived"}
+            title={
+              <>
+                Board <span className="text-aegean-deep">{bus.routeShort}</span> — {bus.routeLong}
+              </>
+            }
+            sub={`Alight at ${bus.alight.name}`}
+            accent={<RouteChip code={bus.routeShort} tone={routeTone(bus.routeId)} size="sm" />}
+          >
+            <IconBus className="size-3.5" />
+          </TimelineRow>
+
+          <TimelineRow
+            active={phase === "alight-soon" || phase === "arrived"}
+            done={false}
+            title={`Walk to ${active.to.label}`}
+            sub={`${Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60)} min · ${Math.round((walkOut.kind === "walk" ? walkOut.distanceMeters : 0))} m`}
+          >
+            <IconPin className="size-3.5" />
+          </TimelineRow>
+        </ol>
+      </section>
+
+      {/* Alight banner */}
+      {phase === "alight-soon" && (
+        <section className="mt-5 px-6 animate-rise">
+          <div className="rounded-[28px] bg-ochre-soft p-5 ring-1 ring-ochre/30">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+              Step off next
+            </p>
+            <p className="mt-1 font-display text-[26px] leading-tight text-ink">
+              {bus.alight.name}
+            </p>
+            <p className="mt-1 text-[13px] text-ink-soft">
+              Press the bell. Then it's a short walk to {active.to.label}.
+            </p>
+          </div>
+        </section>
+      )}
+    </AppShell>
+  );
+}
+
+function PhaseLabel({ phase, delaySec }: { phase: Phase; delaySec: number }) {
+  const tone =
+    phase === "arrived"
+      ? "text-olive"
+      : phase === "alight-soon"
+      ? "text-ochre"
+      : "text-aegean-deep";
+  const txt =
+    phase === "leave-soon"
+      ? "Get ready"
+      : phase === "walking"
+      ? "On your way"
+      : phase === "waiting"
+      ? "At the stop"
+      : phase === "on-bus"
+      ? "On board"
+      : phase === "alight-soon"
+      ? "Almost there"
+      : "Arrived";
+  const delay =
+    delaySec > 60
+      ? `${Math.round(delaySec / 60)} min late`
+      : delaySec < -60
+      ? `${Math.round(-delaySec / 60)} min early`
+      : "Right on time";
+  return (
+    <p className={`font-mono text-[10px] uppercase tracking-[0.24em] ${tone}`}>
+      {txt} <span className="text-ink-soft">— {delay}</span>
+    </p>
+  );
+}
+
+function PhaseHeadline({
+  phase,
+  minToLeave,
+  minToBoard,
+  minToAlight,
+  minToDoor,
+  boardName,
+  alightName,
+}: {
+  phase: Phase;
+  minToLeave: number;
+  minToBoard: number;
+  minToAlight: number;
+  minToDoor: number;
+  boardName: string;
+  alightName: string;
+}) {
+  const base = "mt-2 font-display text-[40px] leading-[1.04] text-ink text-balance";
+  if (phase === "leave-soon") {
+    return (
+      <h1 className={base}>
+        Leave in <span className="text-aegean-deep">{Math.max(0, minToLeave)}</span>
+        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">min</span>
+        <br />
+        <span className="italic text-olive-soft">walk to {boardName}.</span>
+      </h1>
+    );
+  }
+  if (phase === "walking") {
+    return (
+      <h1 className={base}>
+        Bus in <span className="text-aegean-deep">{Math.max(0, minToBoard)}</span>
+        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">min</span>
+        <br />
+        <span className="italic text-olive-soft">keep heading to {boardName}.</span>
+      </h1>
+    );
+  }
+  if (phase === "waiting") {
+    return (
+      <h1 className={base}>
+        Boards in <span className="text-aegean-deep">{Math.max(0, minToBoard)}</span>
+        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">min</span>
+        <br />
+        <span className="italic text-olive-soft">at {boardName}.</span>
+      </h1>
+    );
+  }
+  if (phase === "on-bus") {
+    return (
+      <h1 className={base}>
+        Off in <span className="text-aegean-deep">{Math.max(0, minToAlight)}</span>
+        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">min</span>
+        <br />
+        <span className="italic text-olive-soft">at {alightName}.</span>
+      </h1>
+    );
+  }
+  if (phase === "alight-soon") {
+    return (
+      <h1 className={base}>
+        Step off <span className="text-ochre">next</span>
+        <br />
+        <span className="italic text-olive-soft">{alightName}.</span>
+      </h1>
+    );
+  }
+  return (
+    <h1 className={base}>
+      You're <span className="text-olive">there</span>
+      <br />
+      <span className="italic text-olive-soft">{Math.max(0, minToDoor)} min walk left.</span>
+    </h1>
+  );
+}
+
+function PhaseSub({
+  phase,
+  walkInSec,
+  walkOutSec,
+  destName,
+  boardName,
+  alightName,
+  minToDoor,
+}: {
+  phase: Phase;
+  walkInSec: number;
+  walkOutSec: number;
+  destName: string;
+  boardName: string;
+  alightName: string;
+  minToDoor: number;
+}) {
+  const text =
+    phase === "leave-soon"
+      ? `It's a ${Math.round(walkInSec / 60)} min walk. We'll keep watching the bus while you go.`
+      : phase === "walking"
+      ? `${Math.round(walkInSec / 60)} min to ${boardName}. You're on schedule.`
+      : phase === "waiting"
+      ? `Stay near the curb at ${boardName}. We'll buzz when the doors are about to open.`
+      : phase === "on-bus"
+      ? `Sit back. ${Math.round(walkOutSec / 60)} min walk waiting at ${alightName}.`
+      : phase === "alight-soon"
+      ? `Pull the cord now. Then ${Math.round(walkOutSec / 60)} min on foot to ${destName}.`
+      : `You're ${minToDoor} min from ${destName}. Mind the path.`;
+  return (
+    <p className="mt-4 flex items-start gap-2 text-[13px] text-ink-soft leading-relaxed">
+      <IconClock className="mt-0.5 size-3.5 shrink-0 text-ink-soft" />
+      <span>{text}</span>
+    </p>
+  );
+}
+
+function TimelineRow({
+  active,
+  done,
+  title,
+  sub,
+  accent,
+  children,
+}: {
+  active: boolean;
+  done: boolean;
+  title: React.ReactNode;
+  sub: React.ReactNode;
+  accent?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex items-start gap-4">
+      <span
+        className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full ring-1 transition-colors ${
+          done
+            ? "bg-olive/10 text-olive ring-olive/20"
+            : active
+            ? "bg-aegean-deep text-white ring-aegean-deep"
+            : "bg-limestone-soft text-ink-soft ring-line"
+        }`}
+      >
+        {children}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className={`font-display text-lg leading-tight ${active ? "text-ink" : "text-ink-soft"}`}>
+          {title}
+        </p>
+        <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+          {sub}
+        </p>
+      </div>
+      {accent}
+    </li>
+  );
+}
