@@ -14,6 +14,7 @@ import { Route as TripsRouteImport } from './routes/trips'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
+import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 
 const WalletRoute = WalletRouteImport.update({
@@ -41,6 +42,11 @@ const StopStopIdRoute = StopStopIdRouteImport.update({
   path: '/stop/$stopId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSnapshotRoute = ApiPublicSnapshotRouteImport.update({
+  id: '/api/public/snapshot',
+  path: '/api/public/snapshot',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
   id: '/api/public/realtime',
   path: '/api/public/realtime',
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
+  '/api/public/snapshot': typeof ApiPublicSnapshotRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
+  '/api/public/snapshot': typeof ApiPublicSnapshotRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +79,7 @@ export interface FileRoutesById {
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
+  '/api/public/snapshot': typeof ApiPublicSnapshotRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +90,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/stop/$stopId'
     | '/api/public/realtime'
+    | '/api/public/snapshot'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +99,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/stop/$stopId'
     | '/api/public/realtime'
+    | '/api/public/snapshot'
   id:
     | '__root__'
     | '/'
@@ -97,6 +108,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/stop/$stopId'
     | '/api/public/realtime'
+    | '/api/public/snapshot'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +118,7 @@ export interface RootRouteChildren {
   WalletRoute: typeof WalletRoute
   StopStopIdRoute: typeof StopStopIdRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
+  ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -145,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StopStopIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/snapshot': {
+      id: '/api/public/snapshot'
+      path: '/api/public/snapshot'
+      fullPath: '/api/public/snapshot'
+      preLoaderRoute: typeof ApiPublicSnapshotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/realtime': {
       id: '/api/public/realtime'
       path: '/api/public/realtime'
@@ -162,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   WalletRoute: WalletRoute,
   StopStopIdRoute: StopStopIdRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
+  ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

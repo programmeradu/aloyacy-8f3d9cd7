@@ -14,7 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      delay_stats: {
+        Row: {
+          day_of_week: number
+          hour_of_day: number
+          mean_delay_sec: number
+          route_id: string
+          sample_count: number
+          stddev_delay_sec: number
+          stop_id: string
+          updated_at: string
+        }
+        Insert: {
+          day_of_week: number
+          hour_of_day: number
+          mean_delay_sec?: number
+          route_id: string
+          sample_count?: number
+          stddev_delay_sec?: number
+          stop_id: string
+          updated_at?: string
+        }
+        Update: {
+          day_of_week?: number
+          hour_of_day?: number
+          mean_delay_sec?: number
+          route_id?: string
+          sample_count?: number
+          stddev_delay_sec?: number
+          stop_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      observed_arrivals: {
+        Row: {
+          last_delay_sec: number
+          last_predicted_arrival: string
+          last_seen_at: string
+          passed_at: string | null
+          route_id: string
+          stop_id: string
+          trip_id: string
+        }
+        Insert: {
+          last_delay_sec?: number
+          last_predicted_arrival: string
+          last_seen_at?: string
+          passed_at?: string | null
+          route_id: string
+          stop_id: string
+          trip_id: string
+        }
+        Update: {
+          last_delay_sec?: number
+          last_predicted_arrival?: string
+          last_seen_at?: string
+          passed_at?: string | null
+          route_id?: string
+          stop_id?: string
+          trip_id?: string
+        }
+        Relationships: []
+      }
+      rt_snapshots: {
+        Row: {
+          captured_at: string
+          delay_sec: number
+          id: number
+          predicted_arrival: string
+          route_id: string
+          stop_id: string
+          trip_id: string
+        }
+        Insert: {
+          captured_at?: string
+          delay_sec?: number
+          id?: number
+          predicted_arrival: string
+          route_id: string
+          stop_id: string
+          trip_id: string
+        }
+        Update: {
+          captured_at?: string
+          delay_sec?: number
+          id?: number
+          predicted_arrival?: string
+          route_id?: string
+          stop_id?: string
+          trip_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
