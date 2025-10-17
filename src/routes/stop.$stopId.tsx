@@ -84,9 +84,8 @@ function StopDetail() {
       >
         <div className="flex items-end justify-between mb-3">
           <h2 className="font-display text-2xl text-ink">Departures</h2>
-          <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            <span className="size-1.5 rounded-full bg-aegean-deep animate-pulse" />
-            {isLoading ? "Loading" : "Live"}
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+            {isLoading ? "Loading" : "Live · smart eta"}
           </span>
         </div>
 
@@ -101,6 +100,8 @@ function StopDetail() {
           <div className="rounded-3xl bg-card ring-1 ring-line divide-y divide-line overflow-hidden">
             {departures.map((d, i) => {
               const route = getRoute(d.routeId);
+              const accent = confidenceAccent(d.eta);
+              const shifted = d.eta.etaMin !== d.eta.rawEtaMin;
               return (
                 <div
                   key={d.tripId + d.routeId + i}
@@ -114,25 +115,31 @@ function StopDetail() {
                     <p className="font-display text-lg leading-tight text-ink truncate">
                       {route?.long ?? "Route"}
                     </p>
-                    <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                      <IconBus className="size-3" />
-                      {d.delaySec === 0
-                        ? "On time"
-                        : d.delaySec > 0
-                        ? `+${Math.round(d.delaySec / 60)} min late`
-                        : `${Math.round(-d.delaySec / 60)} min early`}
+                    <p className="mt-1 flex items-center gap-2 text-[12px] text-ink-soft">
+                      <IconBus className="size-3 shrink-0" />
+                      <span className="truncate">{d.eta.blurb}</span>
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <p
                       className={`font-display text-3xl leading-none ${
                         i === 0 ? "text-aegean-deep" : "text-ink"
                       }`}
                     >
-                      {d.etaMin}
+                      {d.eta.etaMin}
                     </p>
                     <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
                       min
+                    </p>
+                    {shifted && (
+                      <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft line-through decoration-1">
+                        sched {d.eta.rawEtaMin}
+                      </p>
+                    )}
+                    <p
+                      className={`mt-1 font-mono text-[9px] uppercase tracking-[0.2em] ${accent}`}
+                    >
+                      {d.eta.confidence}
                     </p>
                   </div>
                 </div>
@@ -143,4 +150,10 @@ function StopDetail() {
       </section>
     </AppShell>
   );
+}
+
+function confidenceAccent(eta: SmartEta): string {
+  if (eta.confidence === "high") return "text-aegean-deep";
+  if (eta.confidence === "medium") return "text-ochre-sun";
+  return "text-ink-soft";
 }
