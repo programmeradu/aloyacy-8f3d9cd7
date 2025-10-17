@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
@@ -8,6 +8,12 @@ import { autocompletePlaces, getPlace, reverseLookup } from "@/lib/maps.function
 import { planTrip } from "@/lib/journey.functions";
 import type { JourneyOption } from "@/lib/journey.server";
 import { NICOSIA_CENTER, routeTone } from "@/lib/gtfs";
+import {
+  pushRecent,
+  setActiveTrip,
+  useRecents,
+  useSavedPlaces,
+} from "@/lib/trip-store";
 import planHero from "@/assets/plan-hero.jpg";
 
 export const Route = createFileRoute("/trips")({
