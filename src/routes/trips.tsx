@@ -476,9 +476,7 @@ function QuickPicks({
     </div>
   );
 }
-    </div>
-  );
-}
+
 
 function JourneyCard({
   option,
