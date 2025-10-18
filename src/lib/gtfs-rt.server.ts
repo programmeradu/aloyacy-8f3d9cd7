@@ -4,7 +4,9 @@
 
 import gr from "gtfs-realtime-bindings";
 
-const FEED_URL = "http://20.19.98.194:8328/Api/api/gtfs-realtime";
+// Cyprus upstream blocks Cloudflare Worker IPs, so we go through a tiny
+// Vercel Node function that fetches the raw protobuf and forwards it.
+const FEED_URL = "https://programmeradu-aloya-proxy.vercel.app/api/feed";
 
 export type LiveVehicle = {
   id: string;
