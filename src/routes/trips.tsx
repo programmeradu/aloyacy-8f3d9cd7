@@ -415,10 +415,24 @@ function PlacesPicker({
 function JourneyCard({
   option,
   highlight,
+  origin,
+  destination,
 }: {
   option: JourneyOption;
   highlight: boolean;
+  origin: Point;
+  destination: Point;
 }) {
+  const navigate = useNavigate();
+  function start() {
+    setActiveTrip({
+      startedAt: Date.now(),
+      option,
+      from: origin,
+      to: destination,
+    });
+    void navigate({ to: "/trip/$id", params: { id: option.id } });
+  }
   const bus = option.legs.find((l) => l.kind === "bus");
   if (!bus || bus.kind !== "bus") return null;
   const totalMin = Math.round(option.totalDurationSec / 60);
