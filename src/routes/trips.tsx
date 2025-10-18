@@ -196,10 +196,16 @@ function Plan() {
           </div>
         )}
 
-        {results && results.length > 0 && (
+        {results && results.length > 0 && origin && destination && (
           <div className="flex flex-col gap-3">
             {results.map((opt, i) => (
-              <JourneyCard key={opt.id} option={opt} highlight={i === 0} />
+              <JourneyCard
+                key={opt.id}
+                option={opt}
+                highlight={i === 0}
+                origin={origin}
+                destination={destination}
+              />
             ))}
           </div>
         )}
