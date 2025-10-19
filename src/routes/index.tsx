@@ -209,8 +209,8 @@ function Explore() {
           onPickStop={(stopId) =>
             navigate({ to: "/stop/$stopId", params: { stopId } })
           }
-          onPickRoute={(routeId) => navigate({ to: "/pulse", search: { route: routeId } as never })}
-          onPickVehicle={(routeId) => navigate({ to: "/pulse", search: { route: routeId } as never })}
+          onPickRoute={() => navigate({ to: "/pulse" })}
+          onPickVehicle={() => navigate({ to: "/pulse" })}
         />
       </div>
 
