@@ -202,7 +202,7 @@ function Explore() {
         </h1>
       </header>
 
-      <div className="px-6 mt-5 animate-rise" style={{ animationDelay: "80ms" }}>
+      <div className="relative z-50 px-6 mt-5 animate-rise" style={{ animationDelay: "80ms" }}>
         <SmartSearch
           query={query}
           setQuery={setQuery}
