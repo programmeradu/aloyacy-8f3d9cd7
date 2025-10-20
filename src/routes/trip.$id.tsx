@@ -222,23 +222,55 @@ function TripCompanion() {
         </article>
       </section>
 
-      {/* Map */}
+      {/* Live map */}
       <section className="mt-5 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MapPreview
-          height="h-44"
+          height="h-56"
           center={{
             lat: (active.from.lat + active.to.lat) / 2,
             lng: (active.from.lng + active.to.lng) / 2,
           }}
-          spanKm={
-            6 *
-            Math.max(
-              0.5,
-              Math.abs(active.from.lat - active.to.lat) * 111 / 6,
-            )
-          }
+          spanKm={1.5}
+          polyline={directions?.polyline}
+          markers={mapMarkers}
+          liveVehicles
         />
       </section>
+
+      {/* Turn-by-turn */}
+      {directions && directions.steps.length > 0 && (
+        <section
+          className="mt-6 px-6 animate-rise"
+          style={{ animationDelay: "150ms" }}
+        >
+          <div className="flex items-end justify-between mb-3">
+            <h2 className="font-display text-2xl text-ink">
+              {preBus ? "Walk to the stop" : "Walk to destination"}
+            </h2>
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+              {Math.round(directions.durationSec / 60)} min ·{" "}
+              {directions.distanceMeters >= 1000
+                ? `${(directions.distanceMeters / 1000).toFixed(1)} km`
+                : `${Math.round(directions.distanceMeters)} m`}
+            </span>
+          </div>
+          <ol className="space-y-3">
+            {directions.steps.map((s, i) => (
+              <TurnStep
+                key={i}
+                index={i + 1}
+                instruction={s.instruction}
+                distanceMeters={s.distanceMeters}
+                maneuver={s.maneuver}
+                lat={s.start.lat}
+                lng={s.start.lng}
+                heading={s.heading}
+                last={i === directions.steps.length - 1}
+              />
+            ))}
+          </ol>
+        </section>
+      )}
 
       {/* Timeline */}
       <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
