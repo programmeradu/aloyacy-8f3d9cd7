@@ -133,6 +133,36 @@ function TripCompanion() {
   if (!view) return null;
   const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard, minToAlight, minToDoor } = view;
 
+  // Live Google walking directions for the relevant leg
+  const preBus = phase === "leave-soon" || phase === "walking" || phase === "waiting";
+  const walkLeg = preBus ? walkIn : walkOut;
+  const walkFrom = walkLeg.kind === "walk" ? walkLeg.from : null;
+  const walkTo = walkLeg.kind === "walk" ? walkLeg.to : null;
+
+  const fetchDirections = useServerFn(getWalkingDirections);
+  const { data: dir } = useQuery({
+    queryKey: ["walk", walkFrom?.lat, walkFrom?.lng, walkTo?.lat, walkTo?.lng],
+    enabled: !!walkFrom && !!walkTo,
+    queryFn: () =>
+      fetchDirections({
+        data: { from: walkFrom!, to: walkTo! },
+      }),
+    staleTime: 10 * 60 * 1000,
+  });
+  const directions = dir?.directions ?? null;
+
+  const mapMarkers: MapMarker[] = useMemo(() => {
+    const out: MapMarker[] = [];
+    if (preBus) {
+      out.push({ lat: active.from.lat, lng: active.from.lng, kind: "origin", label: active.from.label });
+      out.push({ lat: bus.board.lat ?? walkIn.kind === "walk" ? (walkIn as { to: { lat: number; lng: number } }).to.lat : 0, lng: 0, kind: "stop" });
+    } else {
+      out.push({ lat: walkOut.kind === "walk" ? walkOut.from.lat : 0, lng: walkOut.kind === "walk" ? walkOut.from.lng : 0, kind: "stop", label: bus.alight.name });
+      out.push({ lat: active.to.lat, lng: active.to.lng, kind: "destination", label: active.to.label });
+    }
+    return out.filter((m) => m.lat && m.lng);
+  }, [preBus, active, bus, walkIn, walkOut]);
+
   return (
     <AppShell>
       <div className="px-6 pt-2 pb-4 flex items-center justify-between animate-rise">
