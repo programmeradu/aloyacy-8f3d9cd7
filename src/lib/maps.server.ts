@@ -150,3 +150,107 @@ export async function walkingRoute(
     polyline: r.polyline?.encodedPolyline ?? "",
   };
 }
+
+export type WalkStep = {
+  instruction: string; // plain text, no HTML
+  distanceMeters: number;
+  durationSec: number;
+  start: { lat: number; lng: number };
+  end: { lat: number; lng: number };
+  maneuver: string;
+  polyline: string;
+  /** suggested street-view heading from start → end, in degrees */
+  heading: number;
+};
+
+export type WalkDirections = {
+  durationSec: number;
+  distanceMeters: number;
+  polyline: string;
+  steps: WalkStep[];
+};
+
+function bearing(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const toDeg = (r: number) => (r * 180) / Math.PI;
+  const dLng = toRad(b.lng - a.lng);
+  const la1 = toRad(a.lat);
+  const la2 = toRad(b.lat);
+  const y = Math.sin(dLng) * Math.cos(la2);
+  const x =
+    Math.cos(la1) * Math.sin(la2) -
+    Math.sin(la1) * Math.cos(la2) * Math.cos(dLng);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+export async function walkingDirections(
+  from: { lat: number; lng: number },
+  to: { lat: number; lng: number },
+): Promise<WalkDirections | null> {
+  const res = await fetch(`${GATEWAY}/routes/directions/v2:computeRoutes`, {
+    method: "POST",
+    headers: authHeaders({
+      "X-Goog-FieldMask":
+        "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs.steps",
+    }),
+    body: JSON.stringify({
+      origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
+      destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
+      travelMode: "WALK",
+      languageCode: "en",
+      units: "METRIC",
+    }),
+  });
+  if (!res.ok) return null;
+  type Step = {
+    distanceMeters?: number;
+    staticDuration?: string;
+    polyline?: { encodedPolyline: string };
+    startLocation?: { latLng: { latitude: number; longitude: number } };
+    endLocation?: { latLng: { latitude: number; longitude: number } };
+    navigationInstruction?: { instructions?: string; maneuver?: string };
+  };
+  const json = (await res.json()) as {
+    routes?: {
+      duration: string;
+      distanceMeters: number;
+      polyline?: { encodedPolyline: string };
+      legs?: { steps?: Step[] }[];
+    }[];
+  };
+  const r = json.routes?.[0];
+  if (!r) return null;
+  const rawSteps = r.legs?.flatMap((l) => l.steps ?? []) ?? [];
+  const steps: WalkStep[] = rawSteps.map((s) => {
+    const start = {
+      lat: s.startLocation?.latLng.latitude ?? 0,
+      lng: s.startLocation?.latLng.longitude ?? 0,
+    };
+    const end = {
+      lat: s.endLocation?.latLng.latitude ?? 0,
+      lng: s.endLocation?.latLng.longitude ?? 0,
+    };
+    return {
+      instruction:
+        s.navigationInstruction?.instructions?.replace(/<[^>]+>/g, "") ??
+        "Continue",
+      distanceMeters: s.distanceMeters ?? 0,
+      durationSec: parseInt((s.staticDuration ?? "0s").replace("s", ""), 10) || 0,
+      start,
+      end,
+      maneuver: s.navigationInstruction?.maneuver ?? "straight",
+      polyline: s.polyline?.encodedPolyline ?? "",
+      heading: bearing(start, end),
+    };
+  });
+  return {
+    durationSec: parseInt(r.duration.replace("s", ""), 10) || 0,
+    distanceMeters: r.distanceMeters,
+    polyline: r.polyline?.encodedPolyline ?? "",
+    steps,
+  };
+}
+
