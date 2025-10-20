@@ -1,12 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
-import { MapPreview } from "@/components/MapPreview";
+import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconClock, IconPin } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { useActiveTrip, clearActiveTrip } from "@/lib/trip-store";
 import { routeTone } from "@/lib/gtfs";
+import { getWalkingDirections } from "@/lib/maps.functions";
 import companionHero from "@/assets/companion-hero.jpg";
 
 export const Route = createFileRoute("/trip/$id")({
