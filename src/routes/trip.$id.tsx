@@ -153,14 +153,14 @@ function TripCompanion() {
 
   const mapMarkers: MapMarker[] = useMemo(() => {
     const out: MapMarker[] = [];
-    if (preBus) {
-      out.push({ lat: active.from.lat, lng: active.from.lng, kind: "origin", label: active.from.label });
-      out.push({ lat: bus.board.lat ?? walkIn.kind === "walk" ? (walkIn as { to: { lat: number; lng: number } }).to.lat : 0, lng: 0, kind: "stop" });
-    } else {
-      out.push({ lat: walkOut.kind === "walk" ? walkOut.from.lat : 0, lng: walkOut.kind === "walk" ? walkOut.from.lng : 0, kind: "stop", label: bus.alight.name });
-      out.push({ lat: active.to.lat, lng: active.to.lng, kind: "destination", label: active.to.label });
+    if (preBus && walkIn.kind === "walk") {
+      out.push({ lat: walkIn.from.lat, lng: walkIn.from.lng, kind: "origin", label: active.from.label });
+      out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
+    } else if (!preBus && walkOut.kind === "walk") {
+      out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "stop", label: bus.alight.name });
+      out.push({ lat: walkOut.to.lat, lng: walkOut.to.lng, kind: "destination", label: active.to.label });
     }
-    return out.filter((m) => m.lat && m.lng);
+    return out;
   }, [preBus, active, bus, walkIn, walkOut]);
 
   return (
