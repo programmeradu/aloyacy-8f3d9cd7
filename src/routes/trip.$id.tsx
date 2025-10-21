@@ -134,11 +134,18 @@ function TripCompanion() {
   if (!view) return null;
   const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard, minToAlight, minToDoor } = view;
 
-  // Live Google walking directions for the relevant leg
-  const preBus = phase === "leave-soon" || phase === "walking" || phase === "waiting";
-  const walkLeg = preBus ? walkIn : walkOut;
-  const walkFrom = walkLeg.kind === "walk" ? walkLeg.from : null;
-  const walkTo = walkLeg.kind === "walk" ? walkLeg.to : null;
+  // Walking turn-by-turn only makes sense BEFORE boarding (walk to stop)
+  // and AFTER alighting (walk to destination). While on the bus we hide it
+  // entirely and lean on the live bus tracker + alight alert.
+  const walkingPhase: "to-stop" | "to-dest" | null =
+    phase === "leave-soon" || phase === "walking" || phase === "waiting"
+      ? "to-stop"
+      : phase === "arrived"
+        ? "to-dest"
+        : null;
+  const walkLeg = walkingPhase === "to-stop" ? walkIn : walkingPhase === "to-dest" ? walkOut : null;
+  const walkFrom = walkLeg && walkLeg.kind === "walk" ? walkLeg.from : null;
+  const walkTo = walkLeg && walkLeg.kind === "walk" ? walkLeg.to : null;
 
   const fetchDirections = useServerFn(getWalkingDirections);
   const { data: dir } = useQuery({
@@ -150,19 +157,23 @@ function TripCompanion() {
       }),
     staleTime: 10 * 60 * 1000,
   });
-  const directions = dir?.directions ?? null;
+  const directions = walkingPhase ? dir?.directions ?? null : null;
 
   const mapMarkers: MapMarker[] = useMemo(() => {
     const out: MapMarker[] = [];
-    if (preBus && walkIn.kind === "walk") {
+    if (walkingPhase === "to-stop" && walkIn.kind === "walk") {
       out.push({ lat: walkIn.from.lat, lng: walkIn.from.lng, kind: "origin", label: active.from.label });
       out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
-    } else if (!preBus && walkOut.kind === "walk") {
+    } else if (walkingPhase === "to-dest" && walkOut.kind === "walk") {
       out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "stop", label: bus.alight.name });
       out.push({ lat: walkOut.to.lat, lng: walkOut.to.lng, kind: "destination", label: active.to.label });
+    } else {
+      // On the bus: show board + alight stops so the user can watch the bus advance.
+      out.push({ lat: bus.board.lat ?? active.from.lat, lng: bus.board.lng ?? active.from.lng, kind: "stop", label: bus.board.name });
+      out.push({ lat: bus.alight.lat ?? active.to.lat, lng: bus.alight.lng ?? active.to.lng, kind: "destination", label: bus.alight.name });
     }
     return out;
-  }, [preBus, active, bus, walkIn, walkOut]);
+  }, [walkingPhase, active, bus, walkIn, walkOut]);
 
   return (
     <AppShell>
