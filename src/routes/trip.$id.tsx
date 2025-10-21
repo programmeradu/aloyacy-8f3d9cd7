@@ -1,12 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
-import { MapPreview } from "@/components/MapPreview";
+import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconClock, IconPin } from "@/components/Icons";
+import { StreetViewPane } from "@/components/StreetViewPane";
 import { useRealtime } from "@/lib/useRealtime";
 import { useActiveTrip, clearActiveTrip } from "@/lib/trip-store";
 import { routeTone } from "@/lib/gtfs";
+import { getWalkingDirections } from "@/lib/maps.functions";
 import companionHero from "@/assets/companion-hero.jpg";
 
 export const Route = createFileRoute("/trip/$id")({
@@ -130,6 +134,36 @@ function TripCompanion() {
   if (!view) return null;
   const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard, minToAlight, minToDoor } = view;
 
+  // Live Google walking directions for the relevant leg
+  const preBus = phase === "leave-soon" || phase === "walking" || phase === "waiting";
+  const walkLeg = preBus ? walkIn : walkOut;
+  const walkFrom = walkLeg.kind === "walk" ? walkLeg.from : null;
+  const walkTo = walkLeg.kind === "walk" ? walkLeg.to : null;
+
+  const fetchDirections = useServerFn(getWalkingDirections);
+  const { data: dir } = useQuery({
+    queryKey: ["walk", walkFrom?.lat, walkFrom?.lng, walkTo?.lat, walkTo?.lng],
+    enabled: !!walkFrom && !!walkTo,
+    queryFn: () =>
+      fetchDirections({
+        data: { from: walkFrom!, to: walkTo! },
+      }),
+    staleTime: 10 * 60 * 1000,
+  });
+  const directions = dir?.directions ?? null;
+
+  const mapMarkers: MapMarker[] = useMemo(() => {
+    const out: MapMarker[] = [];
+    if (preBus && walkIn.kind === "walk") {
+      out.push({ lat: walkIn.from.lat, lng: walkIn.from.lng, kind: "origin", label: active.from.label });
+      out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
+    } else if (!preBus && walkOut.kind === "walk") {
+      out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "stop", label: bus.alight.name });
+      out.push({ lat: walkOut.to.lat, lng: walkOut.to.lng, kind: "destination", label: active.to.label });
+    }
+    return out;
+  }, [preBus, active, bus, walkIn, walkOut]);
+
   return (
     <AppShell>
       <div className="px-6 pt-2 pb-4 flex items-center justify-between animate-rise">
@@ -189,23 +223,55 @@ function TripCompanion() {
         </article>
       </section>
 
-      {/* Map */}
+      {/* Live map */}
       <section className="mt-5 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MapPreview
-          height="h-44"
+          height="h-56"
           center={{
             lat: (active.from.lat + active.to.lat) / 2,
             lng: (active.from.lng + active.to.lng) / 2,
           }}
-          spanKm={
-            6 *
-            Math.max(
-              0.5,
-              Math.abs(active.from.lat - active.to.lat) * 111 / 6,
-            )
-          }
+          spanKm={1.5}
+          polyline={directions?.polyline}
+          markers={mapMarkers}
+          liveVehicles
         />
       </section>
+
+      {/* Turn-by-turn */}
+      {directions && directions.steps.length > 0 && (
+        <section
+          className="mt-6 px-6 animate-rise"
+          style={{ animationDelay: "150ms" }}
+        >
+          <div className="flex items-end justify-between mb-3">
+            <h2 className="font-display text-2xl text-ink">
+              {preBus ? "Walk to the stop" : "Walk to destination"}
+            </h2>
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+              {Math.round(directions.durationSec / 60)} min ·{" "}
+              {directions.distanceMeters >= 1000
+                ? `${(directions.distanceMeters / 1000).toFixed(1)} km`
+                : `${Math.round(directions.distanceMeters)} m`}
+            </span>
+          </div>
+          <ol className="space-y-3">
+            {directions.steps.map((s, i) => (
+              <TurnStep
+                key={i}
+                index={i + 1}
+                instruction={s.instruction}
+                distanceMeters={s.distanceMeters}
+                maneuver={s.maneuver}
+                lat={s.start.lat}
+                lng={s.start.lng}
+                heading={s.heading}
+                last={i === directions.steps.length - 1}
+              />
+            ))}
+          </ol>
+        </section>
+      )}
 
       {/* Timeline */}
       <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
@@ -453,6 +519,58 @@ function TimelineRow({
         </p>
       </div>
       {accent}
+    </li>
+  );
+}
+
+function TurnStep({
+  index,
+  instruction,
+  distanceMeters,
+  maneuver,
+  lat,
+  lng,
+  heading,
+  last,
+}: {
+  index: number;
+  instruction: string;
+  distanceMeters: number;
+  maneuver: string;
+  lat: number;
+  lng: number;
+  heading: number;
+  last: boolean;
+}) {
+  const dist =
+    distanceMeters >= 1000
+      ? `${(distanceMeters / 1000).toFixed(1)} km`
+      : `${Math.round(distanceMeters)} m`;
+  return (
+    <li className="overflow-hidden rounded-[24px] bg-card ring-1 ring-line">
+      <div className="relative aspect-[16/9]">
+        <StreetViewPane lat={lat} lng={lng} heading={heading} className="absolute inset-0" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
+        <div className="absolute left-3 top-3 flex items-center gap-2">
+          <span className="rounded-full bg-white/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
+            {index.toString().padStart(2, "0")}
+          </span>
+          <span className="rounded-full bg-ink/85 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-limestone">
+            {(maneuver || "straight").replace(/-/g, " ")}
+          </span>
+        </div>
+        <div className="absolute bottom-3 right-3 rounded-full bg-white/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
+          {dist}
+        </div>
+      </div>
+      <div className="flex items-start gap-3 p-4">
+        <span className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+          {last ? "Arrive" : "Then"}
+        </span>
+        <p className="flex-1 font-display text-lg leading-snug text-ink">
+          {instruction}
+        </p>
+      </div>
     </li>
   );
 }
