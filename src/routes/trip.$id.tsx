@@ -546,23 +546,11 @@ function TurnStep({
     distanceMeters >= 1000
       ? `${(distanceMeters / 1000).toFixed(1)} km`
       : `${Math.round(distanceMeters)} m`;
-  const svUrl = `/api/public/streetview?lat=${lat}&lng=${lng}&heading=${Math.round(
-    heading,
-  )}&size=480x300&fov=85`;
   return (
     <li className="overflow-hidden rounded-[24px] bg-card ring-1 ring-line">
-      <div className="relative aspect-[16/9] bg-limestone-soft">
-        <img
-          src={svUrl}
-          alt=""
-          aria-hidden
-          loading="lazy"
-          className="absolute inset-0 size-full object-cover"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).style.display = "none";
-          }}
-        />
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
+      <div className="relative aspect-[16/9]">
+        <StreetViewPane lat={lat} lng={lng} heading={heading} className="absolute inset-0" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
         <div className="absolute left-3 top-3 flex items-center gap-2">
           <span className="rounded-full bg-white/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
             {index.toString().padStart(2, "0")}
