@@ -16,7 +16,6 @@ import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
-import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 
@@ -55,11 +54,6 @@ const StopStopIdRoute = StopStopIdRouteImport.update({
   path: '/stop/$stopId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicStreetviewRoute = ApiPublicStreetviewRouteImport.update({
-  id: '/api/public/streetview',
-  path: '/api/public/streetview',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicSnapshotRoute = ApiPublicSnapshotRouteImport.update({
   id: '/api/public/snapshot',
   path: '/api/public/snapshot',
@@ -81,7 +75,6 @@ export interface FileRoutesByFullPath {
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
-  '/api/public/streetview': typeof ApiPublicStreetviewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -93,7 +86,6 @@ export interface FileRoutesByTo {
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
-  '/api/public/streetview': typeof ApiPublicStreetviewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -106,7 +98,6 @@ export interface FileRoutesById {
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
-  '/api/public/streetview': typeof ApiPublicStreetviewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -120,7 +111,6 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/snapshot'
-    | '/api/public/streetview'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -132,7 +122,6 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/snapshot'
-    | '/api/public/streetview'
   id:
     | '__root__'
     | '/'
@@ -144,7 +133,6 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/snapshot'
-    | '/api/public/streetview'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -157,7 +145,6 @@ export interface RootRouteChildren {
   TripIdRoute: typeof TripIdRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
-  ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -211,13 +198,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StopStopIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/streetview': {
-      id: '/api/public/streetview'
-      path: '/api/public/streetview'
-      fullPath: '/api/public/streetview'
-      preLoaderRoute: typeof ApiPublicStreetviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/snapshot': {
       id: '/api/public/snapshot'
       path: '/api/public/snapshot'
@@ -245,8 +225,17 @@ const rootRouteChildren: RootRouteChildren = {
   TripIdRoute: TripIdRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
-  ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
