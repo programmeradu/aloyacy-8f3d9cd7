@@ -18,9 +18,10 @@ function b64urlEncode(bytes: Uint8Array | ArrayBuffer): string {
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function concat(...arrs: Uint8Array[]): Uint8Array {
+function concat(...arrs: Uint8Array[]): Uint8Array<ArrayBuffer> {
   const len = arrs.reduce((n, a) => n + a.length, 0);
-  const out = new Uint8Array(len);
+  const buf = new ArrayBuffer(len);
+  const out = new Uint8Array(buf);
   let off = 0;
   for (const a of arrs) {
     out.set(a, off);
@@ -29,12 +30,30 @@ function concat(...arrs: Uint8Array[]): Uint8Array {
   return out;
 }
 
-function u16be(n: number): Uint8Array {
-  return new Uint8Array([(n >> 8) & 0xff, n & 0xff]);
+function utf8(s: string): Uint8Array<ArrayBuffer> {
+  const enc = new TextEncoder().encode(s);
+  const buf = new ArrayBuffer(enc.length);
+  const out = new Uint8Array(buf);
+  out.set(enc);
+  return out;
 }
 
-function u32be(n: number): Uint8Array {
-  return new Uint8Array([(n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff]);
+function u16be(n: number): Uint8Array<ArrayBuffer> {
+  const buf = new ArrayBuffer(2);
+  const v = new Uint8Array(buf);
+  v[0] = (n >> 8) & 0xff;
+  v[1] = n & 0xff;
+  return v;
+}
+
+function u32be(n: number): Uint8Array<ArrayBuffer> {
+  const buf = new ArrayBuffer(4);
+  const v = new Uint8Array(buf);
+  v[0] = (n >>> 24) & 0xff;
+  v[1] = (n >>> 16) & 0xff;
+  v[2] = (n >>> 8) & 0xff;
+  v[3] = n & 0xff;
+  return v;
 }
 
 // ---------- VAPID JWT (ES256) ----------
