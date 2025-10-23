@@ -195,7 +195,7 @@ function Explore() {
         </div>
 
         <h1 className="font-display text-[40px] leading-[1.05] text-balance text-ink">
-          Kalimera.
+          {mounted ? getGreeting().word : "Kalimera."}
           <br />
           <span className="italic text-olive-soft">
             Where in {headerArea} today?
