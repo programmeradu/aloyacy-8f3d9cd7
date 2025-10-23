@@ -104,49 +104,51 @@ async function signVapidJwt(opts: {
     exp: now + (opts.expiresInSec ?? 12 * 60 * 60),
     sub: opts.subject,
   };
-  const enc = (obj: unknown) =>
-    b64urlEncode(new TextEncoder().encode(JSON.stringify(obj)));
+  const enc = (obj: unknown) => b64urlEncode(utf8(JSON.stringify(obj)));
   const unsigned = `${enc(header)}.${enc(payload)}`;
   const key = await importVapidKeypair(opts.publicKey, opts.privateKey);
   const sig = await crypto.subtle.sign(
     { name: "ECDSA", hash: "SHA-256" },
     key,
-    new TextEncoder().encode(unsigned),
+    utf8(unsigned),
   );
   return `${unsigned}.${b64urlEncode(sig)}`;
 }
 
 // ---------- HKDF ----------
 async function hkdf(
-  salt: Uint8Array,
-  ikm: Uint8Array,
-  info: Uint8Array,
+  salt: Uint8Array<ArrayBuffer>,
+  ikm: Uint8Array<ArrayBuffer>,
+  info: Uint8Array<ArrayBuffer>,
   length: number,
-): Promise<Uint8Array> {
+): Promise<Uint8Array<ArrayBuffer>> {
   const baseKey = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
   const bits = await crypto.subtle.deriveBits(
     { name: "HKDF", hash: "SHA-256", salt, info },
     baseKey,
     length * 8,
   );
-  return new Uint8Array(bits);
+  const buf = new ArrayBuffer(bits.byteLength);
+  const out = new Uint8Array(buf);
+  out.set(new Uint8Array(bits));
+  return out;
 }
 
 // ---------- aes128gcm content encoding (RFC 8188 / 8291) ----------
 async function encryptAes128Gcm(opts: {
-  payload: Uint8Array;
-  uaPublicKey: Uint8Array; // 65-byte uncompressed
-  uaAuthSecret: Uint8Array; // 16 bytes
-}): Promise<Uint8Array> {
+  payload: Uint8Array<ArrayBuffer>;
+  uaPublicKey: Uint8Array<ArrayBuffer>; // 65-byte uncompressed
+  uaAuthSecret: Uint8Array<ArrayBuffer>; // 16 bytes
+}): Promise<Uint8Array<ArrayBuffer>> {
   // Generate ephemeral ECDH keypair.
   const ephKeypair = await crypto.subtle.generateKey(
     { name: "ECDH", namedCurve: "P-256" },
     true,
     ["deriveBits"],
   );
-  const asPublicRaw = new Uint8Array(
-    await crypto.subtle.exportKey("raw", ephKeypair.publicKey),
-  );
+  const exported = await crypto.subtle.exportKey("raw", ephKeypair.publicKey);
+  const asPublicRaw = new Uint8Array(new ArrayBuffer(exported.byteLength));
+  asPublicRaw.set(new Uint8Array(exported));
   if (asPublicRaw.length !== 65) throw new Error("bad ephemeral pub");
 
   // Import UA public key.
@@ -163,47 +165,38 @@ async function encryptAes128Gcm(opts: {
     ephKeypair.privateKey,
     256,
   );
-  const ecdhSecret = new Uint8Array(ecdhSecretBits);
+  const ecdhSecret = new Uint8Array(new ArrayBuffer(ecdhSecretBits.byteLength));
+  ecdhSecret.set(new Uint8Array(ecdhSecretBits));
 
   // PRK_key = HKDF(auth_secret, ecdh_secret, "WebPush: info\0" || ua_pub || as_pub, 32)
-  const keyInfo = concat(
-    new TextEncoder().encode("WebPush: info\0"),
-    opts.uaPublicKey,
-    asPublicRaw,
-  );
+  const keyInfo = concat(utf8("WebPush: info\0"), opts.uaPublicKey, asPublicRaw);
   const ikm = await hkdf(opts.uaAuthSecret, ecdhSecret, keyInfo, 32);
 
   // Salt (16 random bytes).
-  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const salt = new Uint8Array(new ArrayBuffer(16));
+  crypto.getRandomValues(salt);
 
   // CEK = HKDF(salt, ikm, "Content-Encoding: aes128gcm\0", 16)
-  const cek = await hkdf(
-    salt,
-    ikm,
-    new TextEncoder().encode("Content-Encoding: aes128gcm\0"),
-    16,
-  );
+  const cek = await hkdf(salt, ikm, utf8("Content-Encoding: aes128gcm\0"), 16);
   // Nonce = HKDF(salt, ikm, "Content-Encoding: nonce\0", 12)
-  const nonce = await hkdf(
-    salt,
-    ikm,
-    new TextEncoder().encode("Content-Encoding: nonce\0"),
-    12,
-  );
+  const nonce = await hkdf(salt, ikm, utf8("Content-Encoding: nonce\0"), 12);
 
   // Plaintext + delimiter (0x02 = last record) padding to fit one record.
-  const padded = concat(opts.payload, new Uint8Array([0x02]));
+  const delim = new Uint8Array(new ArrayBuffer(1));
+  delim[0] = 0x02;
+  const padded = concat(opts.payload, delim);
   const aesKey = await crypto.subtle.importKey("raw", cek, { name: "AES-GCM" }, false, [
     "encrypt",
   ]);
-  const ct = new Uint8Array(
-    await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, aesKey, padded),
-  );
+  const ctBits = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, aesKey, padded);
+  const ct = new Uint8Array(new ArrayBuffer(ctBits.byteLength));
+  ct.set(new Uint8Array(ctBits));
 
   // Build the aes128gcm header: salt(16) || rs(4 BE) || idlen(1) || keyid(idlen)
   const rs = padded.length + 16; // include GCM tag
-  const header = concat(salt, u32be(Math.max(rs, ct.length)), new Uint8Array([asPublicRaw.length]), asPublicRaw);
-  // u16be unused but kept for future expansion
+  const idlen = new Uint8Array(new ArrayBuffer(1));
+  idlen[0] = asPublicRaw.length;
+  const header = concat(salt, u32be(Math.max(rs, ct.length)), idlen, asPublicRaw);
   void u16be;
   return concat(header, ct);
 }
