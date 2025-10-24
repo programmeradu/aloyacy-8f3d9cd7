@@ -261,8 +261,14 @@ function TripCompanion() {
         />
       </section>
 
-      {/* Turn-by-turn */}
-      {directions && directions.steps.length > 0 && (
+      {/* Live HUD: Start button, current walking step, hurry banner,
+          on-board prompt, missed-bus rescue, alight & arrived cards. */}
+      <div className="mt-6">
+        <JourneyHUD trip={active} live={live} steps={directions?.steps ?? null} />
+      </div>
+
+      {/* Static turn-by-turn — only shown when live tracking is OFF. */}
+      {!live.active && directions && directions.steps.length > 0 && (
         <section
           className="mt-6 px-6 animate-rise"
           style={{ animationDelay: "150ms" }}
