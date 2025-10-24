@@ -71,23 +71,30 @@ async function dispatchToDevice(deviceId: string, payload: WebPushPayload) {
 
   let sent = 0;
   let expired = 0;
+  let lastError: string | null = null;
   for (const s of subs) {
-    const r = await sendWebPush({
-      subscription: { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
-      payload,
-      vapidPublicKey: VAPID_PUBLIC_KEY,
-      vapidPrivateKey: priv,
-      vapidSubject: sub,
-    });
-    if (r.ok) sent++;
-    else if (r.expired) {
-      expired++;
-      await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
-    } else {
-      console.warn("[push] send failed", r.status, r.error);
+    try {
+      const r = await sendWebPush({
+        subscription: { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
+        payload,
+        vapidPublicKey: VAPID_PUBLIC_KEY,
+        vapidPrivateKey: priv,
+        vapidSubject: sub,
+      });
+      if (r.ok) sent++;
+      else if (r.expired) {
+        expired++;
+        await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
+      } else {
+        lastError = `Push provider responded ${r.status}: ${r.error ?? "unknown error"}`;
+        console.warn("[push] send failed", r.status, r.error);
+      }
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : String(e);
+      console.error("[push] dispatch threw", e);
     }
   }
-  return { sent, expired };
+  return { sent, expired, error: lastError };
 }
 
 export const sendTestPush = createServerFn({ method: "POST" })
