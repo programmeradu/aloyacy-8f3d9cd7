@@ -161,6 +161,12 @@ function TripCompanion() {
   });
   const directions = walkingPhase ? dir?.directions ?? null : null;
 
+  const live = useJourney({
+    active,
+    walkingSteps: directions?.steps ?? null,
+    walkingPhase,
+  });
+
   const mapMarkers: MapMarker[] = useMemo(() => {
     const out: MapMarker[] = [];
     if (walkingPhase === "to-stop" && walkIn.kind === "walk") {
