@@ -71,10 +71,16 @@ async function importVapidKeypair(
 ): Promise<CryptoKey> {
   const pub = b64urlDecode(publicKeyB64Url);
   if (pub.length !== 65 || pub[0] !== 0x04)
-    throw new Error("VAPID public key must be 65-byte uncompressed P-256 point");
+    throw new Error("VAPID public key must be a 65-byte uncompressed P-256 point (base64url).");
+  const d = b64urlDecode(privateKeyB64Url);
+  if (d.length !== 32) {
+    throw new Error(
+      `VAPID_PRIVATE_KEY must decode to exactly 32 bytes (got ${d.length}). ` +
+        `Use the base64url-encoded raw private scalar (not PEM, not hex, not the JSON keypair).`,
+    );
+  }
   const x = pub.slice(1, 33);
   const y = pub.slice(33, 65);
-  const d = b64urlDecode(privateKeyB64Url);
   const jwk: JsonWebKey = {
     kty: "EC",
     crv: "P-256",
