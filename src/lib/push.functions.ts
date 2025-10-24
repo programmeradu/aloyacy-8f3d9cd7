@@ -103,7 +103,18 @@ export const sendTestPush = createServerFn({ method: "POST" })
 
 const tripAlertSchema = z.object({
   deviceId: z.string().min(8).max(128),
-  kind: z.enum(["board-soon", "alight-soon", "press-stop", "arrived", "delayed"]),
+  kind: z.enum([
+    "board-soon",
+    "hurry-soft",
+    "hurry-urgent",
+    "at-stop",
+    "confirm-onboard",
+    "missed-bus",
+    "alight-soon",
+    "press-stop",
+    "arrived",
+    "delayed",
+  ]),
   routeShort: z.string().max(16).optional(),
   stopName: z.string().max(160).optional(),
   minutes: z.number().min(0).max(120).optional(),
@@ -120,6 +131,29 @@ export const sendTripAlert = createServerFn({ method: "POST" })
       "board-soon": {
         title: `${bus} arrives in ${min} min`,
         body: `Head to ${stop}.`,
+      },
+      "hurry-soft": {
+        title: `Pick up the pace`,
+        body: `${bus} reaches ${stop} in ${min} min.`,
+      },
+      "hurry-urgent": {
+        title: `Hurry — ${bus} is arriving`,
+        body: `Only ${min} min to ${stop}.`,
+        requireInteraction: true,
+      },
+      "at-stop": {
+        title: `You're at ${stop}`,
+        body: `Wait near the curb. ${bus} arrives in ${min} min.`,
+      },
+      "confirm-onboard": {
+        title: `On ${bus}?`,
+        body: `Tap to confirm you're aboard.`,
+        requireInteraction: true,
+      },
+      "missed-bus": {
+        title: `${bus} has left ${stop}`,
+        body: `Tap to find the next ride.`,
+        requireInteraction: true,
       },
       "alight-soon": {
         title: `${stop} in ${min} min`,
