@@ -97,18 +97,29 @@ export function NotificationsCard() {
     setMessage(null);
     try {
       const res = await test({ data: { deviceId: getDeviceId() } });
-      setMessage(
-        res.sent > 0
-          ? "Test notification sent. Check your device."
-          : "No active subscriptions found.",
-      );
+      if (res.sent > 0) {
+        setMessage("Test ping sent. Check your device.");
+      } else if (res.error) {
+        setMessage(res.error);
+      } else {
+        setMessage("No active subscriptions found.");
+      }
     } catch (e) {
       console.error(e);
-      setMessage("Could not send test notification.");
+      setMessage(e instanceof Error ? e.message : "Could not send test notification.");
     } finally {
       setPending(false);
     }
   }
+
+  async function onToggle() {
+    if (pending) return;
+    if (status === "on") return disable();
+    if (status === "off" || status === "denied") return enable();
+  }
+
+  const interactive = status === "on" || status === "off" || status === "denied";
+  const isOn = status === "on";
 
   const copy = {
     unknown: { line: "Checking notification status…", tone: "ink-soft" as const },
@@ -137,7 +148,13 @@ export function NotificationsCard() {
   return (
     <article className="relative overflow-hidden rounded-[28px] bg-paper ring-1 ring-line">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aegean/40 to-transparent" />
-      <div className="px-6 py-6">
+      <div
+        className={[
+          "pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full blur-3xl transition-opacity duration-700",
+          isOn ? "bg-aegean/20 opacity-100" : "bg-ink/5 opacity-60",
+        ].join(" ")}
+      />
+      <div className="relative px-6 py-6">
         <div className="flex items-baseline justify-between gap-4">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
@@ -149,44 +166,109 @@ export function NotificationsCard() {
           </div>
           <span
             className={[
-              "font-mono text-[10px] uppercase tracking-[0.22em]",
-              status === "on" ? "text-olive" : "text-ink-soft",
+              "font-mono text-[10px] uppercase tracking-[0.22em] transition-colors",
+              isOn ? "text-olive" : status === "denied" ? "text-ochre" : "text-ink-soft",
             ].join(" ")}
           >
-            {status === "on" ? "Live" : status === "denied" ? "Blocked" : "Off"}
+            {isOn ? "Live" : status === "denied" ? "Blocked" : "Off"}
           </span>
         </div>
 
         <p className={`mt-3 text-sm leading-relaxed text-${copy.tone}`}>{copy.line}</p>
 
-        <div className="mt-5 flex flex-wrap gap-2">
-          {status === "on" ? (
-            <>
-              <button
-                onClick={sendTest}
-                disabled={pending}
-                className="rounded-full bg-aegean px-5 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-paper transition hover:bg-aegean-deep disabled:opacity-50"
-              >
-                Send test ping
-              </button>
-              <button
-                onClick={disable}
-                disabled={pending}
-                className="rounded-full px-5 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-soft ring-1 ring-line transition hover:text-ink disabled:opacity-50"
-              >
-                Turn off
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={enable}
-              disabled={pending || status === "unsupported" || status === "preview"}
-              className="rounded-full bg-ink px-5 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-paper transition hover:bg-ink/85 disabled:opacity-40"
+        {/* Premium toggle */}
+        <div className="mt-6 flex items-center gap-5">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isOn}
+            aria-label={isOn ? "Turn notifications off" : "Turn notifications on"}
+            onClick={onToggle}
+            disabled={!interactive || pending}
+            className={[
+              "group relative h-14 w-[112px] shrink-0 rounded-full outline-none",
+              "ring-1 transition-all duration-500 ease-out",
+              "focus-visible:ring-2 focus-visible:ring-aegean focus-visible:ring-offset-2 focus-visible:ring-offset-paper",
+              isOn
+                ? "bg-gradient-to-r from-aegean to-aegean-deep ring-aegean-deep/40 shadow-[0_18px_40px_-18px_oklch(0.55_0.12_215/.55)]"
+                : "bg-limestone ring-line",
+              !interactive || pending ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+            ].join(" ")}
+          >
+            {/* Tick marks inside the track */}
+            <span
+              aria-hidden
+              className={[
+                "absolute left-4 top-1/2 -translate-y-1/2 font-mono text-[9px] uppercase tracking-[0.22em] transition-opacity duration-300",
+                isOn ? "text-paper/90 opacity-100" : "opacity-0",
+              ].join(" ")}
             >
-              {pending ? "Enabling…" : "Enable notifications"}
-            </button>
-          )}
+              On
+            </span>
+            <span
+              aria-hidden
+              className={[
+                "absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[9px] uppercase tracking-[0.22em] transition-opacity duration-300",
+                isOn ? "opacity-0" : "text-ink-soft opacity-100",
+              ].join(" ")}
+            >
+              Off
+            </span>
+            {/* Knob */}
+            <span
+              aria-hidden
+              className={[
+                "absolute top-1/2 h-11 w-11 -translate-y-1/2 rounded-full",
+                "bg-paper shadow-[0_8px_20px_-6px_oklch(0.2_0.02_240/.35),0_2px_4px_oklch(0.2_0.02_240/.18)]",
+                "transition-all duration-500 ease-[cubic-bezier(.32,.72,0,1)]",
+                "ring-1 ring-ink/5",
+                isOn ? "left-[calc(100%-2.875rem)]" : "left-[0.375rem]",
+                pending ? "scale-95" : "group-active:scale-95",
+              ].join(" ")}
+            >
+              {/* Inner medallion: aegean dot when on, olive ring when off */}
+              <span
+                className={[
+                  "absolute inset-0 m-auto h-2 w-2 rounded-full transition-colors duration-500",
+                  isOn ? "bg-aegean-deep" : "bg-ink-soft/40",
+                ].join(" ")}
+              />
+              {pending && (
+                <span className="absolute inset-1 rounded-full border-2 border-ink/15 border-t-aegean-deep animate-spin" />
+              )}
+            </span>
+          </button>
+
+          <div className="min-w-0">
+            <p className="font-display text-lg text-ink leading-tight">
+              {isOn ? "Notifications on" : "Notifications off"}
+            </p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft mt-1">
+              {pending
+                ? "Working…"
+                : isOn
+                  ? "Tap to silence"
+                  : status === "denied"
+                    ? "Unblock in browser"
+                    : status === "preview" || status === "unsupported"
+                      ? "Unavailable here"
+                      : "Tap to enable"}
+            </p>
+          </div>
         </div>
+
+        {/* Secondary action */}
+        {isOn && (
+          <div className="mt-5">
+            <button
+              onClick={sendTest}
+              disabled={pending}
+              className="font-mono text-[11px] uppercase tracking-[0.22em] text-aegean-deep underline-offset-4 transition hover:underline disabled:opacity-50"
+            >
+              Send a test ping
+            </button>
+          </div>
+        )}
 
         {message && (
           <p className="mt-4 font-mono text-[11px] tracking-wide text-ink-soft">{message}</p>
