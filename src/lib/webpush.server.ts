@@ -20,6 +20,10 @@ function b64urlEncode(bytes: Uint8Array | ArrayBuffer): string {
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function concat(...arrs: Uint8Array[]): Uint8Array<ArrayBuffer> {
   const len = arrs.reduce((n, a) => n + a.length, 0);
   const buf = new ArrayBuffer(len);
@@ -89,13 +93,22 @@ async function importVapidKeypair(
     d: b64urlEncode(d),
     ext: true,
   };
-  return crypto.subtle.importKey(
-    "jwk",
-    jwk,
-    { name: "ECDSA", namedCurve: "P-256" },
-    false,
-    ["sign"],
-  );
+  try {
+    return await crypto.subtle.importKey(
+      "jwk",
+      jwk,
+      { name: "ECDSA", namedCurve: "P-256" },
+      false,
+      ["sign"],
+    );
+  } catch (error) {
+    if (getErrorMessage(error).includes("Invalid EC key in JSON Web Key")) {
+      throw new Error(
+        "Push notifications are misconfigured: the VAPID public key in src/lib/vapid.ts does not match the VAPID_PRIVATE_KEY secret. Generate a fresh VAPID key pair and update both values together.",
+      );
+    }
+    throw error;
+  }
 }
 
 async function signVapidJwt(opts: {
