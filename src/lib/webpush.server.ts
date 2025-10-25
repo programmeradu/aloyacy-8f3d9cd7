@@ -2,8 +2,10 @@
 // Uses only Web Crypto so it works on Cloudflare Workers / workerd.
 
 function b64urlDecode(input: string): Uint8Array<ArrayBuffer> {
-  const pad = "=".repeat((4 - (input.length % 4)) % 4);
-  const b64 = (input + pad).replace(/-/g, "+").replace(/_/g, "/");
+  // Normalize: trim whitespace/newlines, strip existing padding, convert b64url → b64
+  const clean = input.replace(/\s+/g, "").replace(/=+$/, "");
+  const pad = "=".repeat((4 - (clean.length % 4)) % 4);
+  const b64 = (clean + pad).replace(/-/g, "+").replace(/_/g, "/");
   const bin = atob(b64);
   const buf = new ArrayBuffer(bin.length);
   const out = new Uint8Array(buf);
@@ -69,10 +71,16 @@ async function importVapidKeypair(
 ): Promise<CryptoKey> {
   const pub = b64urlDecode(publicKeyB64Url);
   if (pub.length !== 65 || pub[0] !== 0x04)
-    throw new Error("VAPID public key must be 65-byte uncompressed P-256 point");
+    throw new Error("VAPID public key must be a 65-byte uncompressed P-256 point (base64url).");
+  const d = b64urlDecode(privateKeyB64Url);
+  if (d.length !== 32) {
+    throw new Error(
+      `VAPID_PRIVATE_KEY must decode to exactly 32 bytes (got ${d.length}). ` +
+        `Use the base64url-encoded raw private scalar (not PEM, not hex, not the JSON keypair).`,
+    );
+  }
   const x = pub.slice(1, 33);
   const y = pub.slice(33, 65);
-  const d = b64urlDecode(privateKeyB64Url);
   const jwk: JsonWebKey = {
     kty: "EC",
     crv: "P-256",
