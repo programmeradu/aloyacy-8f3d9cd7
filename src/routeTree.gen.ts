@@ -15,6 +15,7 @@ import { Route as SavedRouteImport } from './routes/saved'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TripIdRouteImport } from './routes/trip.$id'
+import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
@@ -49,6 +50,11 @@ const TripIdRoute = TripIdRouteImport.update({
   path: '/trip/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TripInfoTripIdRoute = TripInfoTripIdRouteImport.update({
+  id: '/trip-info/$tripId',
+  path: '/trip-info/$tripId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StopStopIdRoute = StopStopIdRouteImport.update({
   id: '/stop/$stopId',
   path: '/stop/$stopId',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
+  '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
+  '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
+  '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/stop/$stopId'
+    | '/trip-info/$tripId'
     | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/snapshot'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/stop/$stopId'
+    | '/trip-info/$tripId'
     | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/snapshot'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/stop/$stopId'
+    | '/trip-info/$tripId'
     | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/snapshot'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
   StopStopIdRoute: typeof StopStopIdRoute
+  TripInfoTripIdRoute: typeof TripInfoTripIdRoute
   TripIdRoute: typeof TripIdRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TripIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trip-info/$tripId': {
+      id: '/trip-info/$tripId'
+      path: '/trip-info/$tripId'
+      fullPath: '/trip-info/$tripId'
+      preLoaderRoute: typeof TripInfoTripIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stop/$stopId': {
       id: '/stop/$stopId'
       path: '/stop/$stopId'
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
   StopStopIdRoute: StopStopIdRoute,
+  TripInfoTripIdRoute: TripInfoTripIdRoute,
   TripIdRoute: TripIdRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
@@ -229,3 +250,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
