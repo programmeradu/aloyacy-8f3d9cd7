@@ -68,6 +68,8 @@ export function MapPreview({
   liveVehicles = true,
   focusTripId,
   focusRouteId,
+  restrictTripIds,
+  liveLabel,
   fitToContent,
 }: Props) {
   const { api, error } = useGoogleMaps();
