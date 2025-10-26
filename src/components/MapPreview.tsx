@@ -239,9 +239,13 @@ export function MapPreview({
               ? liveCount
                 ? "Your bus — live"
                 : "Locating your bus"
-              : liveCount
-                ? `${liveCount} live`
-                : "Connecting"}
+              : restricted
+                ? liveCount
+                  ? liveLabel?.active ?? `${liveCount} serving · live`
+                  : liveLabel?.empty ?? "No buses here right now"
+                : liveCount
+                  ? `${liveCount} live`
+                  : "Connecting"}
           </span>
         </div>
       )}
