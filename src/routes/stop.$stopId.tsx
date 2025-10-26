@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
-import { MapPreview } from "@/components/MapPreview";
+import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
-import { IconArrowLeft, IconBus } from "@/components/Icons";
+import { IconArrowLeft, IconBus, IconArrowUpRight } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { useLearnedStats } from "@/lib/useLearnedStats";
 import { smartEta, type SmartEta } from "@/lib/predictor";
@@ -75,7 +75,24 @@ function StopDetail() {
       </header>
 
       <section className="px-6 animate-rise" style={{ animationDelay: "120ms" }}>
-        <MapPreview height="h-44" center={center} spanKm={3} />
+        <MapPreview
+          height="h-56"
+          center={center}
+          spanKm={2}
+          markers={
+            stop
+              ? ([
+                  { lat: stop.lat, lng: stop.lng, kind: "origin", label: stop.name },
+                ] as MapMarker[])
+              : undefined
+          }
+          restrictTripIds={departures.map((d) => d.tripId)}
+          liveLabel={{
+            active: `${departures.length} buses serving this stop`,
+            empty: "No buses near this stop right now",
+          }}
+          fitToContent={false}
+        />
       </section>
 
       <section
@@ -103,9 +120,12 @@ function StopDetail() {
               const accent = confidenceAccent(d.eta);
               const shifted = d.eta.etaMin !== d.eta.rawEtaMin;
               return (
-                <div
+                <Link
                   key={d.tripId + d.routeId + i}
-                  className="flex items-center gap-4 p-4"
+                  to="/trip-info/$tripId"
+                  params={{ tripId: d.tripId }}
+                  search={{ from: stopId }}
+                  className="group flex items-center gap-4 p-4 transition-colors hover:bg-limestone-soft/60"
                 >
                   <RouteChip
                     code={route?.short ?? "?"}
@@ -142,7 +162,10 @@ function StopDetail() {
                       {d.eta.confidence}
                     </p>
                   </div>
-                </div>
+                  <span className="ml-1 flex size-7 shrink-0 items-center justify-center rounded-full bg-limestone-soft text-ink-soft transition-colors group-hover:bg-aegean-deep group-hover:text-white">
+                    <IconArrowUpRight className="size-3.5" />
+                  </span>
+                </Link>
               );
             })}
           </div>
