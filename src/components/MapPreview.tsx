@@ -166,6 +166,7 @@ export function MapPreview({
   // Realtime vehicles overlay. When focused on a single trip, only that bus
   // is rendered (and rendered prominently) — the rest of the fleet is hidden.
   const allVehicles = liveVehicles ? rt?.vehicles : undefined;
+  const restrictKey = restrictTripIds ? restrictTripIds.join(",") : "";
   const vehicles = useMemo(() => {
     if (!allVehicles) return undefined;
     if (focusTripId || focusRouteId) {
@@ -174,10 +175,15 @@ export function MapPreview({
       if (focusRouteId) return allVehicles.filter((v) => v.routeId === focusRouteId);
       return [];
     }
+    if (restrictTripIds && restrictTripIds.length) {
+      const set = new Set(restrictTripIds);
+      return allVehicles.filter((v) => set.has(v.tripId));
+    }
     return allVehicles;
-  }, [allVehicles, focusTripId, focusRouteId]);
+  }, [allVehicles, focusTripId, focusRouteId, restrictKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const focused = !!(focusTripId || focusRouteId);
+  const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
 
   useEffect(() => {
     const m = mapRef.current;
@@ -206,7 +212,7 @@ export function MapPreview({
     }
   }, [api, vehicles, focused]);
 
-  const liveCount = focused ? vehicles?.length ?? 0 : rt?.vehicles.length ?? 0;
+  const liveCount = focused || restricted ? vehicles?.length ?? 0 : rt?.vehicles.length ?? 0;
   const placeLabel = useMemo(() => {
     // Sub-degree → meters; round to avoid janky decimals.
     const km = spanKm;
