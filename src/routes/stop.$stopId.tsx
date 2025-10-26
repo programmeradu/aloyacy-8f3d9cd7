@@ -120,9 +120,12 @@ function StopDetail() {
               const accent = confidenceAccent(d.eta);
               const shifted = d.eta.etaMin !== d.eta.rawEtaMin;
               return (
-                <div
+                <Link
                   key={d.tripId + d.routeId + i}
-                  className="flex items-center gap-4 p-4"
+                  to="/trip-info/$tripId"
+                  params={{ tripId: d.tripId }}
+                  search={{ from: stopId }}
+                  className="group flex items-center gap-4 p-4 transition-colors hover:bg-limestone-soft/60"
                 >
                   <RouteChip
                     code={route?.short ?? "?"}
@@ -159,7 +162,10 @@ function StopDetail() {
                       {d.eta.confidence}
                     </p>
                   </div>
-                </div>
+                  <span className="ml-1 flex size-7 shrink-0 items-center justify-center rounded-full bg-limestone-soft text-ink-soft transition-colors group-hover:bg-aegean-deep group-hover:text-white">
+                    <IconArrowUpRight className="size-3.5" />
+                  </span>
+                </Link>
               );
             })}
           </div>
