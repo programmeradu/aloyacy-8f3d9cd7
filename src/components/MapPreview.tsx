@@ -26,6 +26,11 @@ type Props = {
    *  Falls back to routeId match when no tripId matches the feed snapshot. */
   focusTripId?: string;
   focusRouteId?: string;
+  /** If set, only render live vehicles whose tripId is in this list.
+   *  Use to restrict the map to the buses relevant to a given stop/route. */
+  restrictTripIds?: string[];
+  /** Override the bottom-left live-count pill label. */
+  liveLabel?: { active?: string; empty?: string };
   /** Fit map to markers + polyline. Defaults to true when any are provided. */
   fitToContent?: boolean;
 };
