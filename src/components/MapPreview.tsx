@@ -189,32 +189,86 @@ export function MapPreview({
   const focused = !!(focusTripId || focusRouteId);
   const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
 
+  // -------------------------------------------------------------------
+  // Premium gliding bus overlay. Each vehicle is its own DOM overlay that
+  // tweens position + bearing between feed refreshes (rAF every frame),
+  // giving the Uber-style smooth glide instead of teleporting on each poll.
+  // -------------------------------------------------------------------
   useEffect(() => {
     const m = mapRef.current;
     if (!api || !m) return;
-    const layer = layerRef.current;
-    layer.vehicles.forEach((v) => v.setMap(null));
-    layer.vehicles = [];
-    if (!vehicles) return;
-    for (const v of vehicles.slice(0, focused ? 1 : 40)) {
-      const marker = new api.maps.Marker({
-        position: { lat: v.lat, lng: v.lng },
-        map: m,
-        title: v.label || undefined,
-        icon: {
-          path: "M0,-6 L4,4 L0,2 L-4,4 Z",
-          fillColor: focused ? "#d99645" : "#2d8a9e",
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: focused ? 2.5 : 1.5,
-          scale: focused ? 1.9 : 1.2,
-          rotation: v.bearing ?? 0,
-        },
-        zIndex: focused ? 200 : 10,
-      });
-      layer.vehicles.push(marker);
+
+    const layer = busLayerRef.current;
+    const now = performance.now();
+
+    if (!vehicles) {
+      // Clear all buses when source goes away (e.g. liveVehicles=false).
+      layer.forEach((b) => b.destroy());
+      layer.clear();
+      return;
     }
-  }, [api, vehicles, focused]);
+
+    const seen = new Set<string>();
+    const sliceLimit = focused ? 1 : 40;
+    const slice = vehicles.slice(0, sliceLimit);
+    const sizePx = focused ? 64 : restricted ? 56 : 44;
+
+    for (const v of slice) {
+      seen.add(v.id);
+      const existing = layer.get(v.id);
+      const targetLat = v.lat;
+      const targetLng = v.lng;
+      const targetBearing = v.bearing ?? 0;
+
+      if (existing) {
+        existing.setTarget(targetLat, targetLng, targetBearing, now);
+        existing.setSize(sizePx);
+        existing.setFocused(focused);
+      } else {
+        const bus = new AnimatedBus(
+          api,
+          m,
+          { lat: targetLat, lng: targetLng },
+          targetBearing,
+          sizePx,
+          focused,
+          v.label || `Bus ${v.id}`,
+        );
+        layer.set(v.id, bus);
+      }
+    }
+
+    // Remove buses no longer in the feed.
+    for (const [id, bus] of layer) {
+      if (!seen.has(id)) {
+        bus.destroy();
+        layer.delete(id);
+      }
+    }
+
+    // Drive the animation loop while we have any bus.
+    if (rafRef.current == null && layer.size > 0) {
+      const tick = (t: number) => {
+        const m2 = mapRef.current;
+        if (!m2 || busLayerRef.current.size === 0) {
+          rafRef.current = null;
+          return;
+        }
+        busLayerRef.current.forEach((b) => b.tick(t));
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    }
+  }, [api, vehicles, focused, restricted]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      busLayerRef.current.forEach((b) => b.destroy());
+      busLayerRef.current.clear();
+    };
+  }, []);
 
   const liveCount = focused || restricted ? vehicles?.length ?? 0 : rt?.vehicles.length ?? 0;
   const placeLabel = useMemo(() => {
