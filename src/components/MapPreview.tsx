@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
 import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
+import busPremium from "@/assets/bus-premium.png";
 
 export type MapMarker = {
   lat: number;
@@ -79,8 +80,11 @@ export function MapPreview({
   const layerRef = useRef<{
     polyline?: google.maps.Polyline;
     markers: google.maps.Marker[];
-    vehicles: google.maps.Marker[];
-  }>({ markers: [], vehicles: [] });
+  }>({ markers: [] });
+  // Per-vehicle OverlayView state lives outside React so animation can keep
+  // tweening smoothly between feed refreshes without rerendering.
+  const busLayerRef = useRef<Map<string, AnimatedBus>>(new Map());
+  const rafRef = useRef<number | null>(null);
 
   // Initialize map once API is ready
   useEffect(() => {
@@ -185,32 +189,86 @@ export function MapPreview({
   const focused = !!(focusTripId || focusRouteId);
   const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
 
+  // -------------------------------------------------------------------
+  // Premium gliding bus overlay. Each vehicle is its own DOM overlay that
+  // tweens position + bearing between feed refreshes (rAF every frame),
+  // giving the Uber-style smooth glide instead of teleporting on each poll.
+  // -------------------------------------------------------------------
   useEffect(() => {
     const m = mapRef.current;
     if (!api || !m) return;
-    const layer = layerRef.current;
-    layer.vehicles.forEach((v) => v.setMap(null));
-    layer.vehicles = [];
-    if (!vehicles) return;
-    for (const v of vehicles.slice(0, focused ? 1 : 40)) {
-      const marker = new api.maps.Marker({
-        position: { lat: v.lat, lng: v.lng },
-        map: m,
-        title: v.label || undefined,
-        icon: {
-          path: "M0,-6 L4,4 L0,2 L-4,4 Z",
-          fillColor: focused ? "#d99645" : "#2d8a9e",
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: focused ? 2.5 : 1.5,
-          scale: focused ? 1.9 : 1.2,
-          rotation: v.bearing ?? 0,
-        },
-        zIndex: focused ? 200 : 10,
-      });
-      layer.vehicles.push(marker);
+
+    const layer = busLayerRef.current;
+    const now = performance.now();
+
+    if (!vehicles) {
+      // Clear all buses when source goes away (e.g. liveVehicles=false).
+      layer.forEach((b) => b.destroy());
+      layer.clear();
+      return;
     }
-  }, [api, vehicles, focused]);
+
+    const seen = new Set<string>();
+    const sliceLimit = focused ? 1 : 40;
+    const slice = vehicles.slice(0, sliceLimit);
+    const sizePx = focused ? 64 : restricted ? 56 : 44;
+
+    for (const v of slice) {
+      seen.add(v.id);
+      const existing = layer.get(v.id);
+      const targetLat = v.lat;
+      const targetLng = v.lng;
+      const targetBearing = v.bearing ?? 0;
+
+      if (existing) {
+        existing.setTarget(targetLat, targetLng, targetBearing, now);
+        existing.setSize(sizePx);
+        existing.setFocused(focused);
+      } else {
+        const bus = new AnimatedBus(
+          api,
+          m,
+          { lat: targetLat, lng: targetLng },
+          targetBearing,
+          sizePx,
+          focused,
+          v.label || `Bus ${v.id}`,
+        );
+        layer.set(v.id, bus);
+      }
+    }
+
+    // Remove buses no longer in the feed.
+    for (const [id, bus] of layer) {
+      if (!seen.has(id)) {
+        bus.destroy();
+        layer.delete(id);
+      }
+    }
+
+    // Drive the animation loop while we have any bus.
+    if (rafRef.current == null && layer.size > 0) {
+      const tick = (t: number) => {
+        const m2 = mapRef.current;
+        if (!m2 || busLayerRef.current.size === 0) {
+          rafRef.current = null;
+          return;
+        }
+        busLayerRef.current.forEach((b) => b.tick(t));
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    }
+  }, [api, vehicles, focused, restricted]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      busLayerRef.current.forEach((b) => b.destroy());
+      busLayerRef.current.clear();
+    };
+  }, []);
 
   const liveCount = focused || restricted ? vehicles?.length ?? 0 : rt?.vehicles.length ?? 0;
   const placeLabel = useMemo(() => {
@@ -254,4 +312,187 @@ export function MapPreview({
       </div>
     </div>
   );
+}
+
+/* ============================================================
+ * AnimatedBus — a Google Maps OverlayView that renders a premium
+ * top-down bus image and tweens its position + bearing smoothly
+ * between live feed updates (~20s refresh). Uses CSS transforms
+ * so movement is GPU-accelerated, with shortest-arc rotation.
+ * ============================================================ */
+const TWEEN_MS = 5500; // feed updates roughly every 20s; tween across most of it
+const EASE = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
+
+class AnimatedBus {
+  private api: typeof google;
+  private map: google.maps.Map;
+  private label: string;
+  private size: number;
+  private focused: boolean;
+
+  // tween state
+  private fromLat: number;
+  private fromLng: number;
+  private fromBearing: number;
+  private toLat: number;
+  private toLng: number;
+  private toBearing: number;
+  private bearingDelta = 0;
+  private tweenStart = 0;
+  private tweenDur = TWEEN_MS;
+  private currentBearing: number;
+
+  // overlay
+  private overlay: google.maps.OverlayView;
+  private el: HTMLDivElement;
+  private img: HTMLImageElement;
+  private glow: HTMLDivElement;
+
+  constructor(
+    api: typeof google,
+    map: google.maps.Map,
+    pos: { lat: number; lng: number },
+    bearing: number,
+    size: number,
+    focused: boolean,
+    label: string,
+  ) {
+    this.api = api;
+    this.map = map;
+    this.label = label;
+    this.size = size;
+    this.focused = focused;
+    this.fromLat = this.toLat = pos.lat;
+    this.fromLng = this.toLng = pos.lng;
+    this.fromBearing = this.toBearing = bearing;
+    this.currentBearing = bearing;
+
+    // Build DOM
+    const el = document.createElement("div");
+    el.style.position = "absolute";
+    el.style.willChange = "transform";
+    el.style.pointerEvents = "none";
+    el.style.transformOrigin = "center center";
+    el.title = label;
+
+    const glow = document.createElement("div");
+    glow.style.position = "absolute";
+    glow.style.inset = "0";
+    glow.style.borderRadius = "50%";
+    glow.style.background =
+      "radial-gradient(circle, color-mix(in oklab, #d99645 35%, transparent) 0%, transparent 65%)";
+    glow.style.opacity = focused ? "0.95" : "0";
+    glow.style.transition = "opacity 240ms ease";
+    glow.style.transform = "scale(1.6)";
+
+    const img = document.createElement("img");
+    img.src = busPremium;
+    img.alt = "";
+    img.draggable = false;
+    img.style.position = "absolute";
+    img.style.inset = "0";
+    img.style.width = "100%";
+    img.style.height = "100%";
+    img.style.objectFit = "contain";
+    img.style.filter = focused
+      ? "drop-shadow(0 6px 10px rgba(20,20,20,0.35))"
+      : "drop-shadow(0 3px 6px rgba(20,20,20,0.28))";
+    img.style.transition = "filter 240ms ease";
+
+    el.appendChild(glow);
+    el.appendChild(img);
+
+    this.el = el;
+    this.img = img;
+    this.glow = glow;
+    this.applySize();
+
+    // Build OverlayView
+    const self = this;
+    class BusOverlay extends api.maps.OverlayView {
+      onAdd() {
+        const panes = this.getPanes();
+        panes?.overlayMouseTarget.appendChild(self.el);
+      }
+      draw() {
+        const projection = this.getProjection();
+        if (!projection) return;
+        const pt = projection.fromLatLngToDivPixel(
+          new api.maps.LatLng(self.fromLat, self.fromLng),
+        );
+        if (!pt) return;
+        self.el.style.transform = `translate3d(${pt.x - self.size / 2}px, ${pt.y - self.size / 2}px, 0)`;
+        self.img.style.transform = `rotate(${self.currentBearing}deg)`;
+      }
+      onRemove() {
+        self.el.parentNode?.removeChild(self.el);
+      }
+    }
+    this.overlay = new BusOverlay();
+    this.overlay.setMap(map);
+  }
+
+  private applySize() {
+    this.el.style.width = `${this.size}px`;
+    this.el.style.height = `${this.size}px`;
+    this.el.style.zIndex = String(this.focused ? 1200 : 1000);
+  }
+
+  setSize(size: number) {
+    if (size === this.size) return;
+    this.size = size;
+    this.applySize();
+  }
+
+  setFocused(focused: boolean) {
+    if (focused === this.focused) return;
+    this.focused = focused;
+    this.glow.style.opacity = focused ? "0.95" : "0";
+    this.img.style.filter = focused
+      ? "drop-shadow(0 6px 10px rgba(20,20,20,0.35))"
+      : "drop-shadow(0 3px 6px rgba(20,20,20,0.28))";
+    this.applySize();
+  }
+
+  setTarget(lat: number, lng: number, bearing: number, nowMs: number) {
+    // Snap "from" to wherever we currently are before starting the next tween.
+    this.fromLat = this.toLat;
+    this.fromLng = this.toLng;
+    this.fromBearing = this.currentBearing;
+    this.toLat = lat;
+    this.toLng = lng;
+    this.toBearing = bearing;
+    // shortest-arc delta in [-180, 180]
+    let delta = ((bearing - this.currentBearing + 540) % 360) - 180;
+    this.bearingDelta = delta;
+    this.tweenStart = nowMs;
+  }
+
+  tick(nowMs: number) {
+    const t = Math.min(1, (nowMs - this.tweenStart) / this.tweenDur);
+    const e = EASE(t);
+    const lat = lerp(this.fromLat, this.toLat, e);
+    const lng = lerp(this.fromLng, this.toLng, e);
+    const projection = this.overlay.getProjection();
+    if (!projection) return;
+    const pt = projection.fromLatLngToDivPixel(new this.api.maps.LatLng(lat, lng));
+    if (!pt) return;
+    this.currentBearing = this.fromBearing + this.bearingDelta * e;
+    this.el.style.transform = `translate3d(${pt.x - this.size / 2}px, ${pt.y - this.size / 2}px, 0)`;
+    this.img.style.transform = `rotate(${this.currentBearing}deg)`;
+    if (t >= 1) {
+      this.fromLat = this.toLat;
+      this.fromLng = this.toLng;
+      this.fromBearing = this.toBearing;
+      this.bearingDelta = 0;
+    }
+  }
+
+  destroy() {
+    this.overlay.setMap(null);
+  }
+}
+
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
 }
