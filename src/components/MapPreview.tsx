@@ -542,7 +542,7 @@ class AnimatedBus {
     if (!pt) return;
     this.currentBearing = this.fromBearing + this.bearingDelta * e;
     this.el.style.transform = `translate3d(${pt.x - this.size / 2}px, ${pt.y - this.size / 2}px, 0)`;
-    this.img.style.transform = `rotate(${this.currentBearing}deg)`;
+    this.rotor.style.transform = `rotate(${this.currentBearing}deg)`;
     if (t >= 1) {
       this.fromLat = this.toLat;
       this.fromLng = this.toLng;
