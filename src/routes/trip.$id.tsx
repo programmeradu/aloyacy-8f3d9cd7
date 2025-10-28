@@ -134,7 +134,9 @@ function TripCompanion() {
   }
 
   if (!view) return null;
-  const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard, minToAlight, minToDoor } = view;
+  const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard } = view;
+  let { minToAlight, minToDoor } = view;
+
 
   // Walking turn-by-turn only makes sense BEFORE boarding (walk to stop)
   // and AFTER alighting (walk to destination). While on the bus we hide it
@@ -166,6 +168,17 @@ function TripCompanion() {
     walkingSteps: directions?.steps ?? null,
     walkingPhase,
   });
+  // Override schedule-based ETAs with GPS-fused estimate once on board.
+  if (live.active && live.fusedSecsToAlight > 0 && (phase === "on-bus" || phase === "alight-soon")) {
+    minToAlight = Math.round(live.fusedSecsToAlight / 60);
+    const walkOutSec = walkOut.kind === "walk" ? walkOut.durationSec : 0;
+    minToDoor = Math.round((live.fusedSecsToAlight + walkOutSec) / 60);
+  }
+
+  const vehicleOverrides = live.fusedVehicle
+    ? { [live.fusedVehicle.tripId]: live.fusedVehicle }
+    : undefined;
+
 
   const mapMarkers: MapMarker[] = useMemo(() => {
     const out: MapMarker[] = [];
@@ -258,7 +271,9 @@ function TripCompanion() {
           liveVehicles
           focusTripId={bus.tripId}
           focusRouteId={bus.routeId}
+          vehicleOverrides={vehicleOverrides}
         />
+
       </section>
 
       {/* Live HUD: Start button, current walking step, hurry banner,
