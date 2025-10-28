@@ -134,7 +134,9 @@ function TripCompanion() {
   }
 
   if (!view) return null;
-  const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard, minToAlight, minToDoor } = view;
+  const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard } = view;
+  let { minToAlight, minToDoor } = view;
+
 
   // Walking turn-by-turn only makes sense BEFORE boarding (walk to stop)
   // and AFTER alighting (walk to destination). While on the bus we hide it
