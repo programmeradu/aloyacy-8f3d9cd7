@@ -231,7 +231,11 @@ export function MapPreview({
     const seen = new Set<string>();
     const sliceLimit = focused ? 1 : 40;
     const slice = vehicles.slice(0, sliceLimit);
-    const sizePx = focused ? 64 : restricted ? 56 : 44;
+    const sizePx = focused ? 64 : restricted ? 48 : 16;
+    // Premium top-down bus asset only for focused/restricted close-ups.
+    // Wide fleet views (home, region overview) use lightweight directional
+    // triangles so the map stays legible.
+    const variant: "premium" | "triangle" = focused || restricted ? "premium" : "triangle";
 
     for (const v of slice) {
       seen.add(v.id);
@@ -241,6 +245,7 @@ export function MapPreview({
       const targetBearing = v.bearing ?? 0;
 
       if (existing) {
+        existing.setVariant(variant);
         existing.setTarget(targetLat, targetLng, targetBearing, now);
         existing.setSize(sizePx);
         existing.setFocused(focused);
@@ -253,10 +258,12 @@ export function MapPreview({
           sizePx,
           focused,
           v.label || `Bus ${v.id}`,
+          variant,
         );
         layer.set(v.id, bus);
       }
     }
+
 
     // Remove buses no longer in the feed.
     for (const [id, bus] of layer) {
@@ -349,6 +356,7 @@ class AnimatedBus {
   private label: string;
   private size: number;
   private focused: boolean;
+  private variant: "premium" | "triangle";
 
   // tween state
   private fromLat: number;
@@ -365,8 +373,7 @@ class AnimatedBus {
   // overlay
   private overlay: google.maps.OverlayView;
   private el: HTMLDivElement;
-  private img: HTMLImageElement;
-  private glow: HTMLDivElement;
+  private rotor: HTMLDivElement; // the element we rotate (img or svg)
 
   constructor(
     api: typeof google,
@@ -376,12 +383,14 @@ class AnimatedBus {
     size: number,
     focused: boolean,
     label: string,
+    variant: "premium" | "triangle" = "premium",
   ) {
     this.api = api;
     this.map = map;
     this.label = label;
     this.size = size;
     this.focused = focused;
+    this.variant = variant;
     this.fromLat = this.toLat = pos.lat;
     this.fromLng = this.toLng = pos.lng;
     this.fromBearing = this.toBearing = bearing;
@@ -395,36 +404,18 @@ class AnimatedBus {
     el.style.transformOrigin = "center center";
     el.title = label;
 
-    const glow = document.createElement("div");
-    glow.style.position = "absolute";
-    glow.style.inset = "0";
-    glow.style.borderRadius = "50%";
-    glow.style.background =
-      "radial-gradient(circle, color-mix(in oklab, #d99645 35%, transparent) 0%, transparent 65%)";
-    glow.style.opacity = focused ? "0.95" : "0";
-    glow.style.transition = "opacity 240ms ease";
-    glow.style.transform = "scale(1.6)";
+    const rotor = document.createElement("div");
+    rotor.style.position = "absolute";
+    rotor.style.inset = "0";
+    rotor.style.width = "100%";
+    rotor.style.height = "100%";
+    rotor.style.transformOrigin = "center center";
 
-    const img = document.createElement("img");
-    img.src = busPremium;
-    img.alt = "";
-    img.draggable = false;
-    img.style.position = "absolute";
-    img.style.inset = "0";
-    img.style.width = "100%";
-    img.style.height = "100%";
-    img.style.objectFit = "contain";
-    img.style.filter = focused
-      ? "drop-shadow(0 6px 10px rgba(20,20,20,0.35))"
-      : "drop-shadow(0 3px 6px rgba(20,20,20,0.28))";
-    img.style.transition = "filter 240ms ease";
-
-    el.appendChild(glow);
-    el.appendChild(img);
+    el.appendChild(rotor);
 
     this.el = el;
-    this.img = img;
-    this.glow = glow;
+    this.rotor = rotor;
+    this.renderVariant();
     this.applySize();
 
     // Build OverlayView
@@ -442,7 +433,7 @@ class AnimatedBus {
         );
         if (!pt) return;
         self.el.style.transform = `translate3d(${pt.x - self.size / 2}px, ${pt.y - self.size / 2}px, 0)`;
-        self.img.style.transform = `rotate(${self.currentBearing}deg)`;
+        self.rotor.style.transform = `rotate(${self.currentBearing}deg)`;
       }
       onRemove() {
         self.el.parentNode?.removeChild(self.el);
@@ -452,10 +443,57 @@ class AnimatedBus {
     this.overlay.setMap(map);
   }
 
+  private renderVariant() {
+    this.rotor.innerHTML = "";
+    if (this.variant === "premium") {
+      const glow = document.createElement("div");
+      glow.style.position = "absolute";
+      glow.style.inset = "0";
+      glow.style.borderRadius = "50%";
+      glow.style.background =
+        "radial-gradient(circle, color-mix(in oklab, #d99645 35%, transparent) 0%, transparent 65%)";
+      glow.style.opacity = this.focused ? "0.95" : "0";
+      glow.style.transition = "opacity 240ms ease";
+      glow.style.transform = "scale(1.6)";
+
+      const img = document.createElement("img");
+      img.src = busPremium;
+      img.alt = "";
+      img.draggable = false;
+      img.style.position = "absolute";
+      img.style.inset = "0";
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "contain";
+      img.style.filter = this.focused
+        ? "drop-shadow(0 6px 10px rgba(20,20,20,0.35))"
+        : "drop-shadow(0 3px 6px rgba(20,20,20,0.28))";
+      this.rotor.appendChild(glow);
+      this.rotor.appendChild(img);
+    } else {
+      // Lightweight directional triangle. Points "up" by default — the rotor
+      // applies the bearing, matching the premium asset's convention.
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.style.width = "100%";
+      svg.style.height = "100%";
+      svg.style.filter = "drop-shadow(0 1px 2px rgba(20,20,20,0.35))";
+      const tri = document.createElementNS(svgNS, "path");
+      tri.setAttribute("d", "M12 3 L19 19 L12 16 L5 19 Z");
+      tri.setAttribute("fill", "#2d8a9e"); // aegean-deep
+      tri.setAttribute("stroke", "#ffffff");
+      tri.setAttribute("stroke-width", "1.5");
+      tri.setAttribute("stroke-linejoin", "round");
+      svg.appendChild(tri);
+      this.rotor.appendChild(svg);
+    }
+  }
+
   private applySize() {
     this.el.style.width = `${this.size}px`;
     this.el.style.height = `${this.size}px`;
-    this.el.style.zIndex = String(this.focused ? 1200 : 1000);
+    this.el.style.zIndex = String(this.focused ? 1200 : this.variant === "premium" ? 1000 : 900);
   }
 
   setSize(size: number) {
@@ -464,13 +502,17 @@ class AnimatedBus {
     this.applySize();
   }
 
+  setVariant(variant: "premium" | "triangle") {
+    if (variant === this.variant) return;
+    this.variant = variant;
+    this.renderVariant();
+    this.applySize();
+  }
+
   setFocused(focused: boolean) {
     if (focused === this.focused) return;
     this.focused = focused;
-    this.glow.style.opacity = focused ? "0.95" : "0";
-    this.img.style.filter = focused
-      ? "drop-shadow(0 6px 10px rgba(20,20,20,0.35))"
-      : "drop-shadow(0 3px 6px rgba(20,20,20,0.28))";
+    if (this.variant === "premium") this.renderVariant();
     this.applySize();
   }
 
@@ -496,10 +538,11 @@ class AnimatedBus {
     const projection = this.overlay.getProjection();
     if (!projection) return;
     const pt = projection.fromLatLngToDivPixel(new this.api.maps.LatLng(lat, lng));
+
     if (!pt) return;
     this.currentBearing = this.fromBearing + this.bearingDelta * e;
     this.el.style.transform = `translate3d(${pt.x - this.size / 2}px, ${pt.y - this.size / 2}px, 0)`;
-    this.img.style.transform = `rotate(${this.currentBearing}deg)`;
+    this.rotor.style.transform = `rotate(${this.currentBearing}deg)`;
     if (t >= 1) {
       this.fromLat = this.toLat;
       this.fromLng = this.toLng;
