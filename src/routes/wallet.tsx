@@ -41,6 +41,20 @@ function WalletRoute() {
     window.addEventListener("aloya:motionpass", sync);
     window.addEventListener("storage", sync);
     return () => {
+function WalletRoute() {
+  const [pass, setPass] = useState<MotionPass>(() => readPass());
+  const [editing, setEditing] = useState<"none" | SheetMode>("none");
+  const [syncing, setSyncing] = useState(false);
+
+  const loginFn = useServerFn(jccLogin);
+  const refreshFn = useServerFn(jccRefresh);
+  const syncFn = useServerFn(jccSync);
+
+  useEffect(() => {
+    const sync = () => setPass(readPass());
+    window.addEventListener("aloya:motionpass", sync);
+    window.addEventListener("storage", sync);
+    return () => {
       window.removeEventListener("aloya:motionpass", sync);
       window.removeEventListener("storage", sync);
     };
@@ -52,6 +66,102 @@ function WalletRoute() {
   };
 
   const hasCard = pass.number.replace(/\D/g, "").length >= 8;
+  const linked = !!pass.jcc;
+
+  // ----- JCC sync flow -----
+  async function runSync(opts?: { silent?: boolean }) {
+    const current = readPass();
+    if (!current.jcc || !current.number) return;
+    setSyncing(true);
+    try {
+      let tokens = {
+        accessToken: current.jcc.accessToken,
+        refreshToken: current.jcc.refreshToken,
+        expiresAt: current.jcc.expiresAt,
+      };
+
+      // Proactive refresh if token expires within 60s.
+      if (tokens.expiresAt - Date.now() < 60_000) {
+        const r = await refreshFn({ data: { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken } });
+        if (!r.ok) {
+          update({ ...current, jcc: { ...current.jcc, expiresAt: 0 } });
+          if (!opts?.silent) toast.error("Session expired — please link again.");
+          return;
+        }
+        tokens = r.tokens;
+        update({ ...current, jcc: { ...current.jcc, ...tokens } });
+      }
+
+      const cardUid = current.number.replace(/\D/g, "");
+      let res = await syncFn({ data: { accessToken: tokens.accessToken, cardUid, period: "Last30" } });
+
+      // One reactive refresh on 401.
+      if (!res.ok && res.code === "expired") {
+        const r = await refreshFn({ data: { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken } });
+        if (!r.ok) {
+          update({ ...current, jcc: { ...current.jcc, expiresAt: 0 } });
+          if (!opts?.silent) toast.error("Session expired — please link again.");
+          return;
+        }
+        tokens = r.tokens;
+        update({ ...current, jcc: { ...current.jcc, ...tokens } });
+        res = await syncFn({ data: { accessToken: tokens.accessToken, cardUid, period: "Last30" } });
+      }
+
+      if (!res.ok) {
+        if (!opts?.silent) toast.error(("error" in res && res.error) || "Sync failed.");
+        return;
+      }
+
+      update({
+        ...current,
+        jcc: { ...current.jcc, ...tokens },
+        balanceEur: res.balanceEur,
+        balanceUpdatedAt: res.syncedAt,
+        lastSyncAt: res.syncedAt,
+        passName: res.passName,
+        transactions: res.transactions,
+      });
+      if (!opts?.silent) toast.success(`Synced — ${res.transactions.length} transactions`);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  // Auto-sync once on mount if linked and stale (>10 min).
+  const autoSyncedRef = useRef(false);
+  useEffect(() => {
+    if (autoSyncedRef.current) return;
+    if (linked && hasCard && Date.now() - pass.lastSyncAt > 10 * 60_000) {
+      autoSyncedRef.current = true;
+      void runSync({ silent: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linked, hasCard]);
+
+  async function handleLink(email: string, password: string): Promise<string | null> {
+    const r = await loginFn({ data: { email, password } });
+    if (!r.ok) return r.error;
+    const current = readPass();
+    update({
+      ...current,
+      holder: current.holder || `${r.profile.firstName} ${r.profile.lastName}`.trim(),
+      jcc: {
+        email: r.profile.email,
+        displayName: `${r.profile.firstName} ${r.profile.lastName}`.trim() || r.profile.email,
+        ...r.tokens,
+        linkedAt: Date.now(),
+      },
+    });
+    // fire-and-forget initial sync
+    setTimeout(() => void runSync(), 50);
+    return null;
+  }
+
+  function handleUnlink() {
+    update(clearJccLink(readPass()));
+    toast("Unlinked from JCC.");
+  }
 
   return (
     <AppShell>
