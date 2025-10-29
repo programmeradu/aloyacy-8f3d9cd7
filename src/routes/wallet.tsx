@@ -638,11 +638,13 @@ function PassSheet({
   pass,
   onClose,
   onSave,
+  onLink,
 }: {
-  mode: "card" | "balance" | "topup";
+  mode: SheetMode;
   pass: MotionPass;
   onClose: () => void;
   onSave: (p: MotionPass) => void;
+  onLink: (email: string, password: string) => Promise<string | null>;
 }) {
   const [number, setNumber] = useState(pass.number);
   const [holder, setHolder] = useState(pass.holder ?? "");
@@ -650,20 +652,30 @@ function PassSheet({
     pass.balanceEur > 0 ? pass.balanceEur.toFixed(2) : "",
   );
   const [topup, setTopup] = useState("");
+  const [email, setEmail] = useState(pass.jcc?.email ?? "");
+  const [password, setPassword] = useState("");
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [linking, setLinking] = useState(false);
 
   const title =
-    mode === "card" ? "Your Motion card" : mode === "balance" ? "Update balance" : "Log a top-up";
+    mode === "card"
+      ? "Your Motion card"
+      : mode === "balance"
+        ? "Update balance"
+        : mode === "topup"
+          ? "Log a top-up"
+          : "Link JCC Smart";
 
-  function save() {
+  async function save() {
     if (mode === "card") {
-      const clean = number.replace(/\D/g, "").slice(0, 10);
+      const clean = number.replace(/\D/g, "").slice(0, 16);
       onSave({ ...pass, number: clean, holder: holder.trim() });
     } else if (mode === "balance") {
       const v = parseFloat(balance);
       if (!isNaN(v) && v >= 0) {
         onSave({ ...pass, balanceEur: v, balanceUpdatedAt: Date.now() });
       }
-    } else {
+    } else if (mode === "topup") {
       const v = parseFloat(topup);
       if (!isNaN(v) && v > 0) {
         const now = Date.now();
@@ -671,11 +683,21 @@ function PassSheet({
           ...pass,
           balanceEur: pass.balanceEur + v,
           balanceUpdatedAt: now,
-          topups: [
-            ...pass.topups,
-            { id: String(now), amountEur: v, at: now },
-          ],
+          topups: [...pass.topups, { id: String(now), amountEur: v, at: now }],
         });
+      }
+    } else if (mode === "link") {
+      if (!email || !password) {
+        setLinkError("Email and password are required.");
+        return;
+      }
+      setLinking(true);
+      setLinkError(null);
+      const err = await onLink(email.trim(), password);
+      setLinking(false);
+      if (err) {
+        setLinkError(err);
+        return;
       }
     }
     onClose();
@@ -702,7 +724,7 @@ function PassSheet({
 
         {mode === "card" && (
           <div className="space-y-4">
-            <Field label="Card number (10 digits)">
+            <Field label="Card number">
               <input
                 inputMode="numeric"
                 autoFocus
@@ -777,16 +799,52 @@ function PassSheet({
           </div>
         )}
 
+        {mode === "link" && (
+          <div className="space-y-4">
+            <p className="text-[12px] text-ink-soft -mt-1">
+              We log in to JCC Smart on your behalf and pull your bus card
+              balance + recent activity. We keep only the session token on this
+              device — never your password.
+            </p>
+            <Field label="JCC Smart email">
+              <input
+                type="email"
+                autoFocus
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[15px] text-ink focus:outline-none focus:ring-aegean-deep/40"
+              />
+            </Field>
+            <Field label="Password">
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[15px] text-ink focus:outline-none focus:ring-aegean-deep/40"
+              />
+            </Field>
+            {linkError && (
+              <p className="text-[12px] text-destructive">{linkError}</p>
+            )}
+          </div>
+        )}
+
         <button
           onClick={save}
-          className="mt-6 w-full rounded-2xl bg-ink py-4 font-mono text-[11px] uppercase tracking-[0.22em] text-limestone hover:bg-ink/90 transition-colors"
+          disabled={linking}
+          className="mt-6 w-full rounded-2xl bg-ink py-4 font-mono text-[11px] uppercase tracking-[0.22em] text-limestone hover:bg-ink/90 transition-colors disabled:opacity-60"
         >
-          Save
+          {mode === "link" ? (linking ? "Linking…" : "Link account") : "Save"}
         </button>
       </div>
     </div>
   );
 }
+
 
 function Field({
   label,
