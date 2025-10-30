@@ -705,7 +705,9 @@ function PassSheet({
   const [email, setEmail] = useState(pass.jcc?.email ?? "");
   const [password, setPassword] = useState("");
   const [linkError, setLinkError] = useState<string | null>(null);
+  const [linking, setLinking] = useState(false);
   const nfc = useNfcScan();
+
 
   const title =
     mode === "card"
