@@ -28,24 +28,18 @@ export type JccLink = {
 };
 
 export type MotionPass = {
-  // The 10-16 digit cardUID printed on the back of the card (JCC's
-  // BusFare APIs accept up to 16 digits).
   number: string;
-  // Holder's display name (optional, just for the front of the card).
   holder?: string;
-  // Latest balance — either manually entered or synced from JCC.
+  // Tier label printed on the card face (e.g. "18+ Standard", "65+", "Student").
+  tier?: string;
+  // Valid-until date as printed on the card (DD/MM/YYYY).
+  validUntil?: string;
   balanceEur: number;
-  // Unix ms timestamp the balance was last updated.
   balanceUpdatedAt: number;
-  // Manual top-up log (kept for offline use).
   topups: { id: string; amountEur: number; at: number }[];
-  // Optional JCC account link. Present once the user has linked.
   jcc?: JccLink;
-  // Snapshot of JCC transactions from the last sync.
   transactions: MotionTxSnapshot[];
-  // Unix ms of the last successful sync.
   lastSyncAt: number;
-  // Pass name (e.g. "30 DAYS Z01-03 (UDF) PERSONALIZED") if known.
   passName?: string;
 };
 
