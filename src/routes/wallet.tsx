@@ -633,34 +633,6 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
     </button>
   );
 }
-}
-
-function NfcChip() {
-  return (
-    <svg
-      viewBox="0 0 36 28"
-      aria-hidden
-      style={{ width: "clamp(32px, 10cqw, 48px)", height: "auto" }}
-    >
-      <defs>
-        <linearGradient id="chip-g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#f0d28a" />
-          <stop offset="55%" stopColor="#c79a4a" />
-          <stop offset="100%" stopColor="#8a6a2c" />
-        </linearGradient>
-      </defs>
-      <rect x="1" y="1" width="34" height="26" rx="4" fill="url(#chip-g)" stroke="#6b5320" strokeWidth="0.5" />
-      <g stroke="#6b5320" strokeWidth="0.6" fill="none">
-        <path d="M12 1 V8 H1" />
-        <path d="M24 1 V8 H35" />
-        <path d="M12 27 V20 H1" />
-        <path d="M24 27 V20 H35" />
-        <path d="M12 14 H24" />
-        <path d="M18 8 V20" />
-      </g>
-    </svg>
-  );
-}
 
 /* ============================================================
  * Tiles + sheet
