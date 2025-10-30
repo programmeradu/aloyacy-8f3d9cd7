@@ -965,3 +965,81 @@ function fullDate(ts: number): string {
     minute: "2-digit",
   });
 }
+
+/* ============================================================
+ * NFC tap-to-scan block (Android Chrome only). Falls back to a
+ * one-line explainer on iOS / unsupported browsers so the user
+ * always knows why the button isn't there.
+ * ============================================================ */
+function NfcScanBlock({
+  nfc,
+  onUid,
+}: {
+  nfc: ReturnType<typeof useNfcScan>;
+  onUid: (digits: string) => void;
+}) {
+  if (!nfc.supported) {
+    return (
+      <div className="rounded-2xl ring-1 ring-line bg-card px-4 py-3">
+        <p className="font-mono uppercase tracking-[0.22em] text-[10px] text-ink-soft">
+          Tap to scan
+        </p>
+        <p className="mt-1 text-[12px] text-ink-soft">
+          Available on Android with Chrome. Type the 14-digit UID from the back
+          of your card below.
+        </p>
+      </div>
+    );
+  }
+
+  const scanning = nfc.status === "scanning";
+
+  async function run() {
+    const uid = await nfc.scan();
+    if (uid?.digits) {
+      onUid(uid.digits);
+      toast.success("Card scanned", { description: `UID ${uid.digits}` });
+    }
+  }
+
+  return (
+    <div className="rounded-2xl ring-1 ring-aegean-deep/30 bg-aegean-soft/40 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-mono uppercase tracking-[0.22em] text-[10px] text-aegean-deep">
+            Tap card to scan
+          </p>
+          <p className="mt-1 text-[12px] text-ink-soft">
+            {scanning
+              ? "Hold your Motion card against the back of your phone…"
+              : "Skip typing. Tap your card to fill in the 14-digit UID."}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={scanning ? nfc.stop : run}
+          className="shrink-0 rounded-full bg-ink text-limestone px-4 py-2 text-[12px] font-medium hover:bg-ink/90"
+        >
+          {scanning ? "Cancel" : "Scan"}
+        </button>
+      </div>
+      {scanning && (
+        <div className="mt-3 flex items-center gap-3">
+          <span className="relative flex size-3">
+            <span className="absolute inline-flex size-full rounded-full bg-aegean-deep opacity-60 animate-pulse-ring" />
+            <span className="relative inline-flex size-3 rounded-full bg-aegean-deep" />
+          </span>
+          <span className="font-mono text-[11px] text-aegean-deep">Listening for NFC…</span>
+        </div>
+      )}
+      {nfc.status === "error" && nfc.error && (
+        <p className="mt-2 text-[12px] text-destructive">{nfc.error}</p>
+      )}
+      {nfc.status === "success" && nfc.lastUid && (
+        <p className="mt-2 font-mono text-[11px] text-olive">
+          Read UID {nfc.lastUid.digits}
+        </p>
+      )}
+    </div>
+  );
+}
