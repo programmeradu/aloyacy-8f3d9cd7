@@ -796,11 +796,14 @@ function PassSheet({
 
         {mode === "link" && (
           <div className="space-y-4">
-            <p className="text-[12px] text-ink-soft -mt-1">
-              We log in to JCC Smart on your behalf and pull your bus card
-              balance + recent activity. We keep only the session token on this
-              device — never your password.
-            </p>
+            <div className="flex items-center gap-3 -mt-1">
+              <JccLogo className="h-10 w-10 shrink-0 rounded-lg ring-1 ring-line bg-white" />
+              <p className="text-[12px] text-ink-soft">
+                We log in to JCC Smart on your behalf and pull your bus card
+                balance + recent activity. We keep only the session token on
+                this device — never your password.
+              </p>
+            </div>
             <Field label="JCC Smart email">
               <input
                 type="email"
