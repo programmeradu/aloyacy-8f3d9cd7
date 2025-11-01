@@ -233,13 +233,16 @@ function WalletRoute() {
           <section className="mt-4 px-6 animate-rise" style={{ animationDelay: "220ms" }}>
             {linked ? (
               <div className="rounded-[20px] bg-card ring-1 ring-line px-4 py-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                    Linked to JCC Smart
-                  </p>
-                  <p className="mt-1 text-[13px] text-ink truncate">
-                    {pass.passName || "Auto-sync enabled"}
-                  </p>
+                <div className="flex items-center gap-3 min-w-0">
+                  <JccLogo className="h-9 w-9 shrink-0 rounded-md ring-1 ring-line bg-white" />
+                  <div className="min-w-0">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+                      Linked to JCC Smart
+                    </p>
+                    <p className="mt-1 text-[13px] text-ink truncate">
+                      {pass.passName || "Auto-sync enabled"}
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={handleUnlink}
@@ -251,17 +254,20 @@ function WalletRoute() {
             ) : (
               <button
                 onClick={() => setEditing("link")}
-                className="w-full rounded-[20px] bg-aegean-deep text-limestone px-4 py-3 flex items-center justify-between hover:bg-aegean-deep/90 transition-colors"
+                className="w-full rounded-[20px] bg-aegean-deep text-limestone px-4 py-3 flex items-center justify-between gap-3 hover:bg-aegean-deep/90 transition-colors"
               >
-                <span className="text-left">
-                  <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
-                    Auto-sync
-                  </span>
-                  <span className="block text-[14px] mt-0.5">
-                    Link your JCC Smart account
+                <span className="flex items-center gap-3 text-left min-w-0">
+                  <JccLogo className="h-9 w-9 shrink-0 rounded-md ring-1 ring-limestone/20 bg-white" />
+                  <span className="min-w-0">
+                    <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
+                      Auto-sync
+                    </span>
+                    <span className="block text-[14px] mt-0.5 truncate">
+                      Link your JCC Smart account
+                    </span>
                   </span>
                 </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em]">
+                <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em]">
                   Connect
                 </span>
               </button>
@@ -790,11 +796,14 @@ function PassSheet({
 
         {mode === "link" && (
           <div className="space-y-4">
-            <p className="text-[12px] text-ink-soft -mt-1">
-              We log in to JCC Smart on your behalf and pull your bus card
-              balance + recent activity. We keep only the session token on this
-              device — never your password.
-            </p>
+            <div className="flex items-center gap-3 -mt-1">
+              <JccLogo className="h-10 w-10 shrink-0 rounded-lg ring-1 ring-line bg-white" />
+              <p className="text-[12px] text-ink-soft">
+                We log in to JCC Smart on your behalf and pull your bus card
+                balance + recent activity. We keep only the session token on
+                this device — never your password.
+              </p>
+            </div>
             <Field label="JCC Smart email">
               <input
                 type="email"
@@ -951,5 +960,32 @@ function NfcScanBlock({
         </p>
       )}
     </div>
+  );
+}
+
+// JCC Smart logo via logo.dev (publishable key, safe to ship client-side).
+// Falls back to a clean monogram tile if the image fails to load.
+function JccLogo({ className }: { className?: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div
+        className={`flex items-center justify-center font-display text-ink ${className ?? ""}`}
+      >
+        <span className="text-[11px] tracking-tight">JCC</span>
+      </div>
+    );
+  }
+  return (
+    <img
+      src="https://img.logo.dev/jccsmart.com?token=pk_DFEjHHL4QteaMOzcFuSlwg&size=120&format=png"
+      alt="JCC Smart"
+      width={40}
+      height={40}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      className={`object-contain p-1 ${className ?? ""}`}
+    />
   );
 }
