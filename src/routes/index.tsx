@@ -21,6 +21,7 @@ import {
 } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { useGeolocation } from "@/lib/useGeolocation";
+import { useTick } from "@/hooks/use-tick";
 import { getCurrentWeather } from "@/lib/weather.functions";
 import {
   STOPS,
