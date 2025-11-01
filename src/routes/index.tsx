@@ -46,6 +46,8 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Mediterranean-light transit, redesigned.",
       },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f1f21805-9e1e-4941-99d9-ecf6d4a5a633" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f1f21805-9e1e-4941-99d9-ecf6d4a5a633" },
     ],
   }),
   component: Explore,
