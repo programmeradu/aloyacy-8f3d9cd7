@@ -40,13 +40,7 @@ function TripCompanion() {
   const navigate = useNavigate();
   const active = useActiveTrip();
   const { data: rt } = useRealtime();
-  const [tick, setTick] = useState(0);
-
-  // refresh every 5s for countdowns
-  useEffect(() => {
-    const t = window.setInterval(() => setTick((n) => n + 1), 5_000);
-    return () => window.clearInterval(t);
-  }, []);
+  const tick = useTick(5_000);
 
   const view = useMemo(() => {
     if (!active) return null;
