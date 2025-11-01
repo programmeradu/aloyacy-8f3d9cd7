@@ -84,8 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Aloya — Cyprus transit, beautifully" },
       { name: "twitter:description", content: "A calm, intelligent navigation system for Cyprus buses." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f1f21805-9e1e-4941-99d9-ecf6d4a5a633" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f1f21805-9e1e-4941-99d9-ecf6d4a5a633" },
+      // og:image is set per-route at leaf level so the hero of each page becomes its share image.
     ],
     links: [
       { rel: "stylesheet", href: appCss },
