@@ -21,6 +21,7 @@ import {
 } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { useGeolocation } from "@/lib/useGeolocation";
+import { useTick } from "@/hooks/use-tick";
 import { getCurrentWeather } from "@/lib/weather.functions";
 import {
   STOPS,
@@ -71,12 +72,9 @@ function Explore() {
 
   // Live local clock (Cyprus is Europe/Nicosia). Gated on mount to avoid SSR hydration mismatch.
   const [mounted, setMounted] = useState(false);
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    setMounted(true);
-    const t = setInterval(() => setNow(new Date()), 30_000);
-    return () => clearInterval(t);
-  }, []);
+  useEffect(() => setMounted(true), []);
+  useTick(30_000); // re-render every 30s to refresh time-of-day label
+  const now = new Date();
   const dayLabel = mounted ? DAY_NAMES[now.getDay()] : "—";
 
   // Weather — keyed on quantized coords so it doesn't refetch on every GPS jitter
