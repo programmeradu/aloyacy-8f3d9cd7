@@ -12,7 +12,7 @@ import { getStop, getRoute, routeTone } from "@/lib/gtfs";
 export const Route = createFileRoute("/stop/$stopId")({
   head: ({ params }) => ({
     meta: [
-      { title: `Stop ${params.stopId} · Aloya` },
+      { title: `Stop ${params.stopId} — Aloya` },
       { name: "description", content: "Live departures from this Cyprus bus stop." },
     ],
   }),
@@ -58,7 +58,7 @@ function StopDetail() {
           <IconArrowLeft className="size-4" />
         </Link>
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          Stop · {stop?.code ?? stopId}
+          Stop {stop?.code ?? stopId}
         </span>
         <span className="size-10" />
       </div>
@@ -69,7 +69,7 @@ function StopDetail() {
         </h1>
         <p className="mt-2 text-[13px] text-ink-soft">
           {stop
-            ? `${stop.agency === "IC" ? "Intercity service" : "Urban service"} · ${stop.lat.toFixed(4)}, ${stop.lng.toFixed(4)}`
+            ? `${stop.agency === "IC" ? "Intercity service" : "Urban service"} — ${stop.lat.toFixed(4)}, ${stop.lng.toFixed(4)}`
             : "Stop not in current dataset"}
         </p>
       </header>
@@ -102,7 +102,7 @@ function StopDetail() {
         <div className="flex items-end justify-between mb-3">
           <h2 className="font-display text-2xl text-ink">Departures</h2>
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            {isLoading ? "Loading" : "Live · smart eta"}
+            {isLoading ? "Loading" : "Live, smart eta"}
           </span>
         </div>
 

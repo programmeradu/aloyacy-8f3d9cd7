@@ -14,7 +14,7 @@ export const Route = createFileRoute("/trip-info/$tripId")({
   validateSearch: searchSchema,
   head: ({ params }) => ({
     meta: [
-      { title: `Trip ${params.tripId} · Aloya` },
+      { title: `Trip ${params.tripId} — Aloya` },
       { name: "description", content: "Live trip detail: stops, ETAs and where the bus is right now." },
     ],
   }),
@@ -128,9 +128,9 @@ function TripInfo() {
             </h1>
             <p className="mt-2 text-[13px] text-ink-soft">
               {trip.stops.length} stops
-              {totalKm ? ` · ${totalKm.toFixed(1)} km of route` : ""}
+              {totalKm ? ` — ${totalKm.toFixed(1)} km of route` : ""}
               {trip.stops[trip.stops.length - 1]?.meta
-                ? ` · ends at ${trip.stops[trip.stops.length - 1].meta!.name}`
+                ? ` — ends at ${trip.stops[trip.stops.length - 1].meta!.name}`
                 : ""}
             </p>
           </header>
@@ -183,7 +183,7 @@ function TripInfo() {
             <div className="flex items-end justify-between mb-3">
               <h2 className="font-display text-2xl text-ink">All stops</h2>
               <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                Live · scheduled clock
+                Live, scheduled clock
               </span>
             </div>
 
@@ -219,8 +219,8 @@ function TripInfo() {
                       <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
                         {s.next && <IconBus className="size-3 text-ochre" />}
                         {s.meta?.code ? `Stop ${s.meta.code}` : `#${s.index + 1}`}
-                        {s.next && " · approaching"}
-                        {isHighlight && " · you are here"}
+                        {s.next && " — approaching"}
+                        {isHighlight && " — you are here"}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
