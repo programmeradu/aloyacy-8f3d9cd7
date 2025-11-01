@@ -591,7 +591,7 @@ function JourneyCard({
                     Walk to {leg.to.label}
                   </p>
                   <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                    {Math.max(1, Math.round(leg.durationSec / 60))} min · {Math.round(leg.distanceMeters)} m
+                    {Math.max(1, Math.round(leg.durationSec / 60))} min — {Math.round(leg.distanceMeters)} m
                   </p>
                 </>
               ) : (
