@@ -11,7 +11,7 @@ import pulseHero from "@/assets/pulse-hero.jpg";
 export const Route = createFileRoute("/pulse")({
   head: () => ({
     meta: [
-      { title: "Pulse · Aloya" },
+      { title: "Pulse — Aloya" },
       {
         name: "description",
         content:
@@ -54,7 +54,7 @@ function Pulse() {
           className="pointer-events-none absolute inset-x-0 top-[-4%] mx-auto w-[88%] opacity-[0.22] mix-blend-multiply"
         />
         <p className="relative font-mono text-[10px] uppercase tracking-[0.24em] text-ink-soft">
-          Network · learned in real time
+          Network, learned in real time
         </p>
         <h1 className="relative font-display text-[40px] leading-[1.04] mt-1.5 text-ink text-balance">
           The island,

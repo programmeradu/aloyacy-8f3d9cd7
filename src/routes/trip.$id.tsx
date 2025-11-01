@@ -18,7 +18,7 @@ import companionHero from "@/assets/companion-hero.jpg";
 export const Route = createFileRoute("/trip/$id")({
   head: ({ params }) => ({
     meta: [
-      { title: `Live trip · Aloya` },
+      { title: `Live trip — Aloya` },
       {
         name: "description",
         content: `Door-to-door live guidance for trip ${params.id}.`,
@@ -293,7 +293,7 @@ function TripCompanion() {
               {walkingPhase === "to-stop" ? "Walk to the stop" : "Walk to destination"}
             </h2>
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-              {Math.round(directions.durationSec / 60)} min ·{" "}
+              {Math.round(directions.durationSec / 60)} min —{" "}
               {directions.distanceMeters >= 1000
                 ? `${(directions.distanceMeters / 1000).toFixed(1)} km`
                 : `${Math.round(directions.distanceMeters)} m`}
@@ -331,7 +331,7 @@ function TripCompanion() {
             active={phase === "leave-soon" || phase === "walking"}
             done={phase !== "leave-soon" && phase !== "walking"}
             title={`Walk to ${bus.board.name}`}
-            sub={`${Math.round((walkIn.kind === "walk" ? walkIn.durationSec : 0) / 60)} min · ${Math.round((walkIn.kind === "walk" ? walkIn.distanceMeters : 0))} m`}
+            sub={`${Math.round((walkIn.kind === "walk" ? walkIn.durationSec : 0) / 60)} min — ${Math.round((walkIn.kind === "walk" ? walkIn.distanceMeters : 0))} m`}
           >
             <IconPin className="size-3.5" />
           </TimelineRow>
@@ -354,7 +354,7 @@ function TripCompanion() {
             active={phase === "alight-soon" || phase === "arrived"}
             done={false}
             title={`Walk to ${active.to.label}`}
-            sub={`${Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60)} min · ${Math.round((walkOut.kind === "walk" ? walkOut.distanceMeters : 0))} m`}
+            sub={`${Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60)} min — ${Math.round((walkOut.kind === "walk" ? walkOut.distanceMeters : 0))} m`}
           >
             <IconPin className="size-3.5" />
           </TimelineRow>
@@ -374,7 +374,7 @@ function TripCompanion() {
           >
             <div className="flex items-center justify-between">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-                {phase === "alight-soon" ? "Press the stop button now" : `Get ready · ${Math.max(0, minToAlight)} min`}
+                {phase === "alight-soon" ? "Press the stop button now" : `Get ready — ${Math.max(0, minToAlight)} min`}
               </p>
               {phase === "alight-soon" && (
                 <span className="relative flex size-2.5">

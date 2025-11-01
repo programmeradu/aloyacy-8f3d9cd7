@@ -46,6 +46,8 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Mediterranean-light transit, redesigned.",
       },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f1f21805-9e1e-4941-99d9-ecf6d4a5a633" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f1f21805-9e1e-4941-99d9-ecf6d4a5a633" },
     ],
   }),
   component: Explore,
@@ -189,7 +191,7 @@ function Explore() {
             <WxIcon className={`size-3.5 ${wxTone}`} />
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
               {dayLabel}
-              {mounted && weather ? ` · ${weather.tempC}°` : ""}
+              {mounted && weather ? ` — ${weather.tempC}°` : ""}
             </span>
           </div>
         </div>
@@ -286,7 +288,7 @@ function Explore() {
                 <IconPin className="size-3 text-ink-soft/60" />
               )}
               {geo.source === "live"
-                ? "Around you · live feed"
+                ? "Around you, live feed"
                 : geo.source === "cached"
                   ? "Last known location"
                   : "Around Nicosia centre"}
@@ -502,7 +504,7 @@ function SmartSearch({
                         <div className="min-w-0 flex-1">
                           <p className="text-[14px] text-ink truncate">{r.name}</p>
                           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                            Route · {r.liveCount > 0 ? `${r.liveCount} live` : "no live buses"}
+                            {r.liveCount > 0 ? `${r.liveCount} live` : "no live buses"}
                           </p>
                         </div>
                         <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
@@ -523,10 +525,10 @@ function SmartSearch({
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="text-[14px] text-ink truncate">
-                            Bus {r.label} <span className="text-ink-soft">· line {r.routeCode}</span>
+                            Bus {r.label} <span className="text-ink-soft">line {r.routeCode}</span>
                           </p>
                           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                            Live · {r.sub}
+                            {r.sub}
                           </p>
                         </div>
                         <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
@@ -547,7 +549,7 @@ function SmartSearch({
                       <div className="min-w-0 flex-1">
                         <p className="text-[14px] text-ink truncate">{r.name}</p>
                         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                          Stop · {r.sub}
+                          {r.sub}
                         </p>
                       </div>
                       <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />

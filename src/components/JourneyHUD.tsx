@@ -132,7 +132,7 @@ function HurryBanner({ urgent, live }: { urgent: boolean; live: LiveJourney }) {
           )}
         </div>
         <p className="mt-1 font-display text-[26px] leading-tight text-ink">
-          {fmtMinutes(live.secsToBoard)} to bus · {fmtMinutes(live.walkingEtaSec)}{" "}
+          {fmtMinutes(live.secsToBoard)} to bus — {fmtMinutes(live.walkingEtaSec)}{" "}
           on foot
         </p>
         <p className="mt-1 text-[13px] text-ink-soft">
@@ -161,7 +161,7 @@ function LiveStepCard({ live, steps }: { live: LiveJourney; steps: WalkStep[] })
             {live.phase === "walking-to-dest" ? "Walking to destination" : "Walking to stop"}
           </p>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            {fmtMeters(live.metersToDestination)} · {fmtMinutes(live.walkingEtaSec)}
+            {fmtMeters(live.metersToDestination)} — {fmtMinutes(live.walkingEtaSec)}
           </p>
         </div>
 
@@ -169,7 +169,7 @@ function LiveStepCard({ live, steps }: { live: LiveJourney; steps: WalkStep[] })
           {step.instruction}
         </p>
         <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-soft">
-          {fmtMeters(live.metersToStepEnd)} · {(step.maneuver || "straight").replace(/-/g, " ")}
+          {fmtMeters(live.metersToStepEnd)} — {(step.maneuver || "straight").replace(/-/g, " ")}
         </p>
 
         {next && !isFinal && (
@@ -355,7 +355,7 @@ function RidingCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
     <section className="px-6 animate-rise">
       <div className="rounded-[28px] bg-card ring-1 ring-line p-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
-          On board · BUS {bus.routeShort}
+          On board — BUS {bus.routeShort}
         </p>
         <p className="mt-2 font-display text-[26px] leading-tight text-ink">
           Off in {fmtMinutes(live.secsToAlight)} at {bus.alight.name}.

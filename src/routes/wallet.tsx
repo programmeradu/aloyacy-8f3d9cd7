@@ -23,7 +23,7 @@ type SheetMode = "card" | "balance" | "topup" | "link";
 export const Route = createFileRoute("/wallet")({
   head: () => ({
     meta: [
-      { title: "Motion Pass · Aloya" },
+      { title: "Motion Pass — Aloya" },
       {
         name: "description",
         content:
