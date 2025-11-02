@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -15,8 +15,13 @@ import { MotionCard } from "@/components/wallet/MotionCard";
 import { JccLogo } from "@/components/wallet/JccLogo";
 import { ActionTile, Fare } from "@/components/wallet/Tiles";
 import { TopupHistory, TransactionList } from "@/components/wallet/History";
-import { PassSheet, type SheetMode } from "@/components/wallet/PassSheet";
+import type { SheetMode } from "@/components/wallet/PassSheet";
 import { timeAgo } from "@/components/wallet/utils";
+
+// Lazy: the editor sheet only mounts when the user taps to edit.
+const PassSheet = lazy(() =>
+  import("@/components/wallet/PassSheet").then((m) => ({ default: m.PassSheet })),
+);
 
 export const Route = createFileRoute("/wallet")({
   head: () => ({
