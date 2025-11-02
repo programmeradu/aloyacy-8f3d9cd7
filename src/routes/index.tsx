@@ -183,16 +183,17 @@ function Explore() {
   return (
     <AppShell>
       <header className="px-6 pt-3 pb-2 animate-rise">
-        <div className="mb-7 flex items-center justify-between">
+        <div className="mb-7 flex items-start justify-between">
           <Logo />
-          <div className="flex items-center gap-1.5 rounded-full bg-card px-2.5 py-1.5 ring-1 ring-line">
-            <WxIcon className={`size-3.5 ${wxTone}`} />
-            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-              {dayLabel}
-              {mounted && weather ? ` — ${weather.tempC}°` : ""}
-            </span>
-          </div>
+          <WeatherStamp
+            dayLabel={dayLabel}
+            tempC={mounted && weather ? weather.tempC : null}
+            iconKey={weather?.iconKey}
+            Icon={WxIcon}
+            tone={wxTone}
+          />
         </div>
+
 
         <h1 className="font-display text-[40px] leading-[1.05] text-balance text-ink">
           {mounted ? getGreeting().word : "Kalimera."}
