@@ -3,21 +3,40 @@
 // every 1-2 minutes. No PII, no writes outside transit data.
 
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fetchRealtime } from "@/lib/gtfs-rt.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, X-Cron-Secret",
 };
+
+// No query params expected. Strict reject keeps the surface tiny.
+const QuerySchema = z.object({}).strict();
+
+function badRequest(message: string) {
+  return new Response(JSON.stringify({ ok: false, error: message }), {
+    status: 400,
+    headers: { "Content-Type": "application/json", ...CORS },
+  });
+}
+
+async function guard(request: Request): Promise<Response | null> {
+  const url = new URL(request.url);
+  const params = Object.fromEntries(url.searchParams.entries());
+  const parsed = QuerySchema.safeParse(params);
+  if (!parsed.success) return badRequest("Unexpected query parameters.");
+  return null;
+}
 
 export const Route = createFileRoute("/api/public/snapshot")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
-      GET: async () => ingest(),
-      POST: async () => ingest(),
+      GET: async ({ request }) => (await guard(request)) ?? ingest(),
+      POST: async ({ request }) => (await guard(request)) ?? ingest(),
     },
   },
 });
