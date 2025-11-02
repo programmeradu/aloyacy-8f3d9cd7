@@ -319,13 +319,15 @@ function WalletRoute() {
       )}
 
       {editing !== "none" && (
-        <PassSheet
-          mode={editing}
-          pass={pass}
-          onClose={() => setEditing("none")}
-          onSave={update}
-          onLink={handleLink}
-        />
+        <Suspense fallback={null}>
+          <PassSheet
+            mode={editing}
+            pass={pass}
+            onClose={() => setEditing("none")}
+            onSave={update}
+            onLink={handleLink}
+          />
+        </Suspense>
       )}
     </AppShell>
   );
