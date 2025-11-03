@@ -33,6 +33,9 @@ import {
   distanceKm,
 } from "@/lib/gtfs";
 import { getGreeting } from "@/lib/greeting";
+import statBus from "@/assets/stat-bus.png";
+import statDial from "@/assets/stat-dial.png";
+import statRoad from "@/assets/stat-road.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -262,18 +265,25 @@ function Explore() {
           label="Live buses"
           value={liveCount ? String(liveCount) : "—"}
           tone="aegean"
+          vignette={statBus}
+          vignetteClass="-right-3 -bottom-2 w-[78%] opacity-[0.22] rotate-[-2deg]"
         />
         <QuickStat
           label="On-time"
           value={onTimePct !== null ? `${onTimePct}%` : "—"}
           tone="olive"
+          vignette={statDial}
+          vignetteClass="-right-5 -bottom-5 w-[70%] opacity-[0.18]"
         />
         <QuickStat
           label="Next ride"
           value={stops[0]?.etaMin != null ? `${stops[0].etaMin}′` : "—"}
           tone="ochre"
+          vignette={statRoad}
+          vignetteClass="-right-4 -bottom-3 w-[78%] opacity-[0.28]"
         />
       </section>
+
 
       <section
         className="mt-8 px-6 animate-rise"
@@ -318,10 +328,14 @@ function QuickStat({
   label,
   value,
   tone,
+  vignette,
+  vignetteClass,
 }: {
   label: string;
   value: string;
   tone: "aegean" | "ochre" | "olive";
+  vignette?: string;
+  vignetteClass?: string;
 }) {
   const c = {
     aegean: "text-aegean-deep",
@@ -329,14 +343,26 @@ function QuickStat({
     olive: "text-olive",
   }[tone];
   return (
-    <div className="rounded-2xl bg-card p-3 ring-1 ring-line">
-      <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
-        {label}
-      </p>
-      <p className={`mt-1 font-display text-2xl leading-none ${c}`}>{value}</p>
+    <div className="relative overflow-hidden rounded-2xl bg-card p-3 ring-1 ring-line">
+      {vignette && (
+        <img
+          src={vignette}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          className={`pointer-events-none select-none absolute ${vignetteClass ?? ""}`}
+        />
+      )}
+      <div className="relative">
+        <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
+          {label}
+        </p>
+        <p className={`mt-1 font-display text-2xl leading-none ${c}`}>{value}</p>
+      </div>
     </div>
   );
 }
+
 
 /* ───────────────────────── Smart search ───────────────────────── */
 
