@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { RouteChip } from "./RouteChip";
 import { IconArrowUpRight } from "./Icons";
+import oliveSprig from "@/assets/stop-olive-sprig.png";
 
 type Tone = "aegean" | "ochre" | "olive";
 
@@ -20,9 +21,20 @@ export function StopCard({ stop }: { stop: Stop }) {
     <Link
       to="/stop/$stopId"
       params={{ stopId: stop.id }}
-      className="group block rounded-3xl bg-card p-5 ring-1 ring-line transition-all hover:ring-aegean/30 hover:-translate-y-0.5"
+      className="group relative block overflow-hidden rounded-3xl bg-card p-5 ring-1 ring-line transition-all hover:ring-aegean/30 hover:-translate-y-0.5"
     >
-      <div className="flex items-start justify-between gap-4">
+      {/* Painted olive sprig — Cyprus signifier, low opacity, doesn't compete */}
+      <img
+        src={oliveSprig}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className={`pointer-events-none select-none absolute -right-6 -bottom-8 w-44 rotate-[14deg] transition-opacity ${
+          stop.highlight ? "opacity-[0.16]" : "opacity-[0.10]"
+        } group-hover:opacity-[0.22]`}
+      />
+
+      <div className="relative flex items-start justify-between gap-4">
         <div className="min-w-0 flex flex-col gap-3">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/70">
