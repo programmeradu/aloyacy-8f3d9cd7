@@ -1,9 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { RouteChip } from "./RouteChip";
 import { IconArrowUpRight } from "./Icons";
-import oliveSprig from "@/assets/stop-olive-sprig.png";
+import stopShelter from "@/assets/stop-shelter.png";
+import stopPole from "@/assets/stop-pole.png";
+import stopTerminal from "@/assets/stop-terminal.png";
 
 type Tone = "aegean" | "ochre" | "olive";
+export type StopKind = "shelter" | "pole" | "terminal";
 
 export type Stop = {
   id: string;
@@ -13,31 +16,53 @@ export type Stop = {
   etaMin: number;
   routes: { code: string; tone: Tone }[];
   highlight?: boolean;
+  kind?: StopKind;
+};
+
+// Per-archetype vignette tuning: each painted asset has a different silhouette,
+// so it needs its own size/anchor/mask to read cleanly in the bottom-right.
+const VIGNETTES: Record<
+  StopKind,
+  { src: string; className: string; mask: string }
+> = {
+  shelter: {
+    src: stopShelter,
+    className: "-right-4 -bottom-3 w-40",
+    mask: "radial-gradient(110% 110% at 100% 100%, #000 35%, transparent 78%)",
+  },
+  pole: {
+    src: stopPole,
+    className: "-right-2 -bottom-2 w-16",
+    mask: "radial-gradient(120% 120% at 100% 100%, #000 45%, transparent 82%)",
+  },
+  terminal: {
+    src: stopTerminal,
+    className: "-right-6 -bottom-2 w-48",
+    mask: "radial-gradient(110% 110% at 100% 100%, #000 35%, transparent 78%)",
+  },
 };
 
 export function StopCard({ stop }: { stop: Stop }) {
   const tone = stop.highlight ? "text-aegean-deep" : "text-olive/40";
+  const v = VIGNETTES[stop.kind ?? "shelter"];
   return (
     <Link
       to="/stop/$stopId"
       params={{ stopId: stop.id }}
       className="group relative block overflow-hidden rounded-3xl bg-card p-5 ring-1 ring-line transition-all hover:ring-aegean/30 hover:-translate-y-0.5"
     >
-      {/* Painted olive sprig — Cyprus signifier, anchored bottom-left so it doesn't fight the ETA column */}
+      {/* Painted stop archetype — shelter / pole / terminal, anchored bottom-right */}
       <img
-        src={oliveSprig}
+        src={v.src}
         alt=""
         aria-hidden="true"
         loading="lazy"
-        className={`pointer-events-none select-none absolute -left-6 -bottom-8 w-40 -rotate-[18deg] transition-opacity ${
-          stop.highlight ? "opacity-[0.32]" : "opacity-[0.22]"
-        } group-hover:opacity-[0.4]`}
-        style={{
-          maskImage:
-            "radial-gradient(110% 100% at 0% 100%, #000 40%, transparent 78%)",
-          WebkitMaskImage:
-            "radial-gradient(110% 100% at 0% 100%, #000 40%, transparent 78%)",
-        }}
+        width={1024}
+        height={1024}
+        className={`pointer-events-none select-none absolute transition-opacity ${v.className} ${
+          stop.highlight ? "opacity-[0.4]" : "opacity-[0.28]"
+        } group-hover:opacity-[0.5]`}
+        style={{ maskImage: v.mask, WebkitMaskImage: v.mask }}
       />
 
       <div className="relative flex items-start justify-between gap-4">
