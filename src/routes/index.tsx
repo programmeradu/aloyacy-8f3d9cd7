@@ -32,6 +32,7 @@ import {
   routeTone,
   distanceKm,
   stopKind,
+} from "@/lib/gtfs";
 import { getGreeting } from "@/lib/greeting";
 import statBus from "@/assets/stat-bus.png";
 import statDial from "@/assets/stat-dial.png";
