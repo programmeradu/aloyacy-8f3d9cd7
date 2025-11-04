@@ -266,21 +266,21 @@ function Explore() {
           value={liveCount ? String(liveCount) : "—"}
           tone="aegean"
           vignette={statBus}
-          vignetteClass="right-0 bottom-0 w-[90%] opacity-[0.55] rotate-[-2deg]"
+          vignetteClass="right-0 bottom-0 w-[62%] opacity-[0.55] rotate-[-3deg] translate-x-2 translate-y-1"
         />
         <QuickStat
           label="On-time"
           value={onTimePct !== null ? `${onTimePct}%` : "—"}
           tone="olive"
           vignette={statDial}
-          vignetteClass="-right-1 -bottom-1 w-[78%] opacity-[0.45]"
+          vignetteClass="right-0 bottom-0 w-[58%] opacity-[0.5] translate-x-2 translate-y-2"
         />
         <QuickStat
           label="Next ride"
           value={stops[0]?.etaMin != null ? `${stops[0].etaMin}′` : "—"}
           tone="ochre"
           vignette={statRoad}
-          vignetteClass="right-0 bottom-0 w-[92%] opacity-[0.6]"
+          vignetteClass="right-0 bottom-0 w-[68%] opacity-[0.6] translate-x-2 translate-y-1"
         />
       </section>
 
@@ -343,7 +343,7 @@ function QuickStat({
     olive: "text-olive",
   }[tone];
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-card p-3 ring-1 ring-line">
+    <div className="relative overflow-hidden rounded-2xl bg-card ring-1 ring-line min-h-[88px]">
       {vignette && (
         <img
           src={vignette}
@@ -351,13 +351,19 @@ function QuickStat({
           aria-hidden="true"
           loading="lazy"
           className={`pointer-events-none select-none absolute ${vignetteClass ?? ""}`}
+          style={{
+            maskImage:
+              "radial-gradient(120% 100% at 100% 100%, oklch(0 0 0) 35%, transparent 78%)",
+            WebkitMaskImage:
+              "radial-gradient(120% 100% at 100% 100%, oklch(0 0 0) 35%, transparent 78%)",
+          }}
         />
       )}
-      <div className="relative">
+      <div className="relative p-3 flex flex-col h-full">
         <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
           {label}
         </p>
-        <p className={`mt-1 font-display text-2xl leading-none ${c}`}>{value}</p>
+        <p className={`mt-auto pt-3 font-display text-2xl leading-none ${c}`}>{value}</p>
       </div>
     </div>
   );
