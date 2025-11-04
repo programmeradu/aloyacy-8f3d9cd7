@@ -266,21 +266,21 @@ function Explore() {
           value={liveCount ? String(liveCount) : "—"}
           tone="aegean"
           vignette={statBus}
-          vignetteClass="right-0 bottom-0 w-[90%] opacity-[0.55] rotate-[-2deg]"
+          vignetteClass="right-0 bottom-0 w-[62%] opacity-[0.55] rotate-[-3deg] translate-x-2 translate-y-1"
         />
         <QuickStat
           label="On-time"
           value={onTimePct !== null ? `${onTimePct}%` : "—"}
           tone="olive"
           vignette={statDial}
-          vignetteClass="-right-1 -bottom-1 w-[78%] opacity-[0.45]"
+          vignetteClass="right-0 bottom-0 w-[58%] opacity-[0.5] translate-x-2 translate-y-2"
         />
         <QuickStat
           label="Next ride"
           value={stops[0]?.etaMin != null ? `${stops[0].etaMin}′` : "—"}
           tone="ochre"
           vignette={statRoad}
-          vignetteClass="right-0 bottom-0 w-[92%] opacity-[0.6]"
+          vignetteClass="right-0 bottom-0 w-[68%] opacity-[0.6] translate-x-2 translate-y-1"
         />
       </section>
 
