@@ -343,7 +343,7 @@ function QuickStat({
     olive: "text-olive",
   }[tone];
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-card ring-1 ring-line min-h-[88px]">
+    <div className="relative overflow-hidden rounded-2xl bg-card ring-1 ring-line">
       {vignette && (
         <img
           src={vignette}
@@ -353,17 +353,17 @@ function QuickStat({
           className={`pointer-events-none select-none absolute ${vignetteClass ?? ""}`}
           style={{
             maskImage:
-              "radial-gradient(120% 100% at 100% 100%, oklch(0 0 0) 35%, transparent 78%)",
+              "radial-gradient(110% 110% at 100% 100%, #000 30%, transparent 75%)",
             WebkitMaskImage:
-              "radial-gradient(120% 100% at 100% 100%, oklch(0 0 0) 35%, transparent 78%)",
+              "radial-gradient(110% 110% at 100% 100%, #000 30%, transparent 75%)",
           }}
         />
       )}
-      <div className="relative p-3 flex flex-col h-full">
+      <div className="relative p-3">
         <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
           {label}
         </p>
-        <p className={`mt-auto pt-3 font-display text-2xl leading-none ${c}`}>{value}</p>
+        <p className={`mt-1 font-display text-2xl leading-none ${c}`}>{value}</p>
       </div>
     </div>
   );
