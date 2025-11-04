@@ -150,6 +150,7 @@ function Explore() {
         etaMin: nextEta,
         routes,
         highlight: idx === 0,
+        kind: stopKind(s),
       };
     });
   }, [rt, geo.coords]);
