@@ -66,3 +66,14 @@ export function routeTone(routeId: string | undefined): "aegean" | "ochre" | "ol
 
 // Pretty city / area name for the stop list
 export const NICOSIA_CENTER = { lat: 35.1740, lng: 33.3650 };
+
+// Heuristic stop classification — GTFS bundle has no location_type, so we
+// derive a visual archetype from agency + name patterns. Used to pick a
+// painted vignette per stop card.
+export type StopKind = "shelter" | "pole" | "terminal";
+const TERMINAL_RE = /\b(station|terminal|interchange|airport|port|depot)\b/i;
+export function stopKind(stop: { name: string; agency: string }): StopKind {
+  if (TERMINAL_RE.test(stop.name)) return "terminal";
+  if (stop.agency === "IC") return "pole";
+  return "shelter";
+}
