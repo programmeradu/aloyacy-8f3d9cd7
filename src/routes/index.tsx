@@ -444,6 +444,7 @@ function searchAll(
       out.push({
         kind: "vehicle",
         id: v.id,
+        tripId: v.tripId,
         routeId: v.routeId,
         routeCode: r?.short ?? "—",
         label: v.label || `Bus ${v.id}`,
