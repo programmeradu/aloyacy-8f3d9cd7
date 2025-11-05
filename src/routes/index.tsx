@@ -256,7 +256,7 @@ function Explore() {
         className="px-6 mt-6 animate-rise"
         style={{ animationDelay: "200ms" }}
       >
-        <MapPreview />
+        <MapPreview hideLiveBadge placeName={headerArea} />
       </section>
 
       <section
