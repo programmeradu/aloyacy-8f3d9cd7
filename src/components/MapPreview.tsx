@@ -81,6 +81,8 @@ export function MapPreview({
   restrictTripIds,
   vehicleOverrides,
   liveLabel,
+  hideLiveBadge,
+  placeName,
   fitToContent,
 }: Props) {
 
