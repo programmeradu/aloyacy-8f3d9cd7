@@ -71,7 +71,7 @@ export const NICOSIA_CENTER = { lat: 35.1740, lng: 33.3650 };
 // derive a visual archetype from agency + name patterns. Used to pick a
 // painted vignette per stop card.
 export type StopKind = "shelter" | "pole" | "terminal";
-const TERMINAL_RE = /\b(station|terminal|interchange|airport|port|depot)\b/i;
+const TERMINAL_RE = /\b(station|terminal|interchange|airport|port|depot|square|stadium|hospital)\b/i;
 export function stopKind(stop: { name: string; agency: string }): StopKind {
   if (TERMINAL_RE.test(stop.name)) return "terminal";
   if (stop.agency === "IC") return "pole";
