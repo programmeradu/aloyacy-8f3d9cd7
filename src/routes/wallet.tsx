@@ -248,15 +248,11 @@ function WalletRoute() {
               eyebrow="Balance"
               value={`€${pass.balanceEur.toFixed(2)}`}
               foot={
-                linked
-                  ? pass.lastSyncAt
-                    ? `Synced ${timeAgo(pass.lastSyncAt)}`
-                    : "Tap Sync below"
-                  : pass.balanceUpdatedAt
-                    ? `Updated ${timeAgo(pass.balanceUpdatedAt)}`
-                    : "Tap to set"
+                pass.balanceUpdatedAt
+                  ? `Live ${timeAgo(pass.balanceUpdatedAt)}`
+                  : "Tap to refresh"
               }
-              onClick={() => (linked ? void runSync() : setEditing("balance"))}
+              onClick={() => void runPublicSync()}
             />
             {linked ? (
               <ActionTile
