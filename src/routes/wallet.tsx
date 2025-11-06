@@ -131,12 +131,50 @@ function WalletRoute() {
     }
   }
 
-  // Auto-sync once on mount if linked and stale (>10 min).
+  // Public sync — uses the unauthenticated publictransport.com.cy endpoints.
+  // Runs whenever there's a card number, even without a JCC link. Refreshes
+  // the live balance and the list of eligible passes for renewal.
+  async function runPublicSync() {
+    const current = readPass();
+    const cardUid = current.number.replace(/\D/g, "");
+    if (cardUid.length < 6) return;
+    const [verify, opts] = await Promise.all([
+      verifyFn({ data: { cardNumber: cardUid } }),
+      optionsFn({ data: { cardNumber: cardUid } }),
+    ]);
+    const next: MotionPass = { ...readPass() };
+    let changed = false;
+    if (verify.ok) {
+      next.balanceEur = verify.balanceEur;
+      next.balanceUpdatedAt = verify.syncedAt;
+      next.cardType = verify.cardType;
+      changed = true;
+    }
+    if (opts.ok) {
+      next.passes = opts.passes;
+      next.passesUpdatedAt = opts.syncedAt;
+      // GetCardTopup also returns balance — trust the larger of the two.
+      if (!verify.ok) {
+        next.balanceEur = opts.balanceEur;
+        next.balanceUpdatedAt = opts.syncedAt;
+      }
+      changed = true;
+    }
+    if (changed) update(next);
+  }
+
+  // Auto-sync once on mount.
+  // 1) Public (no auth) — always runs if there's a card and it's stale (>5 min).
+  // 2) JCC (linked) — pulls transactions if stale (>10 min).
   const autoSyncedRef = useRef(false);
   useEffect(() => {
     if (autoSyncedRef.current) return;
-    if (linked && hasCard && Date.now() - pass.lastSyncAt > 10 * 60_000) {
-      autoSyncedRef.current = true;
+    if (!hasCard) return;
+    autoSyncedRef.current = true;
+    if (Date.now() - pass.balanceUpdatedAt > 5 * 60_000) {
+      void runPublicSync();
+    }
+    if (linked && Date.now() - pass.lastSyncAt > 10 * 60_000) {
       void runSync({ silent: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
