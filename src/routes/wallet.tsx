@@ -50,6 +50,8 @@ function WalletRoute() {
   const loginFn = useServerFn(jccLogin);
   const refreshFn = useServerFn(jccRefresh);
   const syncFn = useServerFn(jccSync);
+  const verifyFn = useServerFn(verifyMotionCard);
+  const optionsFn = useServerFn(getMotionCardOptions);
 
   useEffect(() => {
     const sync = () => setPass(readPass());
