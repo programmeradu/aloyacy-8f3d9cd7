@@ -218,8 +218,15 @@ function Explore() {
           onPickStop={(stopId) =>
             navigate({ to: "/stop/$stopId", params: { stopId } })
           }
-          onPickRoute={() => navigate({ to: "/pulse" })}
-          onPickVehicle={() => navigate({ to: "/pulse" })}
+          onPickRoute={(routeId) => {
+            const v = rt?.vehicles.find((x) => x.routeId === routeId && x.tripId);
+            if (v) navigate({ to: "/trip-info/$tripId", params: { tripId: v.tripId } });
+            else navigate({ to: "/pulse" });
+          }}
+          onPickVehicle={(tripId) => {
+            if (tripId) navigate({ to: "/trip-info/$tripId", params: { tripId } });
+            else navigate({ to: "/pulse" });
+          }}
         />
       </div>
 
@@ -392,6 +399,7 @@ type SearchResult =
   | {
       kind: "vehicle";
       id: string;
+      tripId: string;
       routeId: string;
       routeCode: string;
       label: string;
@@ -400,7 +408,7 @@ type SearchResult =
 
 function searchAll(
   raw: string,
-  vehicles: { id: string; routeId: string; label: string; lat: number; lng: number }[],
+  vehicles: { id: string; tripId: string; routeId: string; label: string; lat: number; lng: number }[],
   origin: { lat: number; lng: number },
 ): SearchResult[] {
   const q = raw.trim().toLowerCase();
@@ -443,6 +451,7 @@ function searchAll(
       out.push({
         kind: "vehicle",
         id: v.id,
+        tripId: v.tripId,
         routeId: v.routeId,
         routeCode: r?.short ?? "—",
         label: v.label || `Bus ${v.id}`,
@@ -481,7 +490,7 @@ function SmartSearch({
   results: SearchResult[];
   onPickStop: (stopId: string) => void;
   onPickRoute: (routeId: string) => void;
-  onPickVehicle: (routeId: string) => void;
+  onPickVehicle: (tripId: string) => void;
 }) {
   const [focused, setFocused] = useState(false);
   const open = focused && query.trim().length > 0;
@@ -551,7 +560,7 @@ function SmartSearch({
                     <li key={`v-${r.id}`}>
                       <button
                         onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => onPickVehicle(r.routeId)}
+                        onClick={() => onPickVehicle(r.tripId)}
                         className="group w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-limestone-soft transition-colors"
                       >
                         <span className="flex size-9 items-center justify-center rounded-xl bg-aegean-soft/60 text-aegean-deep">
