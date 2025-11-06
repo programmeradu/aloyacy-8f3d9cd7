@@ -560,7 +560,7 @@ function SmartSearch({
                     <li key={`v-${r.id}`}>
                       <button
                         onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => onPickVehicle(r.routeId)}
+                        onClick={() => onPickVehicle(r.tripId)}
                         className="group w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-limestone-soft transition-colors"
                       >
                         <span className="flex size-9 items-center justify-center rounded-xl bg-aegean-soft/60 text-aegean-deep">
