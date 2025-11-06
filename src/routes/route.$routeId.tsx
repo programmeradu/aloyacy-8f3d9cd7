@@ -1,0 +1,302 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
+import { AppShell } from "@/components/AppShell";
+import { MapPreview, type MapMarker } from "@/components/MapPreview";
+import { RouteChip } from "@/components/RouteChip";
+import { IconArrowLeft, IconBus } from "@/components/Icons";
+import { useRealtime } from "@/lib/useRealtime";
+import { getRoute, getStop, routeTone } from "@/lib/gtfs";
+import routeVignette from "@/assets/route-vignette.jpg";
+
+export const Route = createFileRoute("/route/$routeId")({
+  head: ({ params }) => ({
+    meta: [
+      { title: `Route ${params.routeId} — Aloya` },
+      { name: "description", content: "Route overview: live buses, next departure and every stop on the line." },
+    ],
+  }),
+  component: RoutePage,
+});
+
+function fmtClock(unix: number) {
+  return new Date(unix * 1000).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function minutesFromNow(unix: number) {
+  const m = Math.round((unix - Date.now() / 1000) / 60);
+  if (m <= 0) return "due";
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
+}
+
+function RoutePage() {
+  const { routeId } = Route.useParams();
+  const { data: rt, isLoading } = useRealtime();
+  const route = getRoute(routeId);
+
+  const data = useMemo(() => {
+    if (!rt) return null;
+
+    // Group arrivals by trip
+    const tripMap = new Map<string, typeof rt.arrivals>();
+    for (const a of rt.arrivals) {
+      if (a.routeId !== routeId) continue;
+      const arr = tripMap.get(a.tripId) ?? [];
+      arr.push(a);
+      tripMap.set(a.tripId, arr);
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const trips = Array.from(tripMap.entries())
+      .map(([tripId, arrs]) => {
+        const sorted = [...arrs].sort((x, y) => x.arrivalUnix - y.arrivalUnix);
+        const upcoming = sorted.find((s) => s.arrivalUnix >= now - 30) ?? sorted[sorted.length - 1];
+        return {
+          tripId,
+          arrivals: sorted,
+          firstStop: sorted[0],
+          lastStop: sorted[sorted.length - 1],
+          nextArrival: upcoming,
+        };
+      })
+      .sort((a, b) => a.nextArrival.arrivalUnix - b.nextArrival.arrivalUnix);
+
+    const vehicles = rt.vehicles.filter((v) => v.routeId === routeId);
+
+    // Unique ordered stop list: take the longest trip as canonical sequence.
+    const longest = trips.reduce(
+      (best, t) => (t.arrivals.length > (best?.arrivals.length ?? 0) ? t : best),
+      trips[0],
+    );
+    const stopIds = longest
+      ? Array.from(new Set(longest.arrivals.map((a) => a.stopId)))
+      : [];
+
+    return { trips, vehicles, stopIds, longest };
+  }, [rt, routeId]);
+
+  const markers: MapMarker[] = useMemo(() => {
+    if (!data) return [];
+    return data.stopIds
+      .map((id) => getStop(id))
+      .filter((s): s is NonNullable<ReturnType<typeof getStop>> => !!s)
+      .map((s, i, arr) => ({
+        lat: s.lat,
+        lng: s.lng,
+        label: s.name,
+        kind: i === 0 ? "origin" : i === arr.length - 1 ? "destination" : "stop",
+        tone: "aegean",
+      }));
+  }, [data]);
+
+  const tone = routeTone(routeId);
+  const tripIds = data?.trips.map((t) => t.tripId) ?? [];
+
+  return (
+    <AppShell>
+      <div className="px-6 pt-2 pb-4 flex items-center justify-between animate-rise">
+        <Link
+          to="/"
+          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink"
+        >
+          <IconArrowLeft className="size-4" />
+        </Link>
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+          Route overview
+        </span>
+        <span className="size-10" />
+      </div>
+
+      <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
+        <div className="flex items-center gap-3">
+          <RouteChip code={route?.short ?? routeId} tone={tone} />
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+            {route?.agency === "IC" ? "Intercity" : "Nicosia"} line
+          </span>
+        </div>
+        <h1 className="mt-3 font-display text-[36px] leading-[1.05] text-ink text-balance">
+          {route?.long ?? `Route ${routeId}`}
+        </h1>
+        <p className="mt-2 text-[13px] text-ink-soft">
+          {data?.vehicles.length
+            ? `${data.vehicles.length} bus${data.vehicles.length === 1 ? "" : "es"} running now`
+            : "No buses reporting right now"}
+          {data?.stopIds.length ? ` — ${data.stopIds.length} stops on the line` : ""}
+        </p>
+      </header>
+
+      {/* Editorial vignette + map stacked */}
+      <section className="px-6 animate-rise" style={{ animationDelay: "120ms" }}>
+        {data?.vehicles.length || data?.stopIds.length ? (
+          <MapPreview
+            height="h-56"
+            spanKm={data.vehicles.length ? 8 : 12}
+            markers={markers}
+            restrictTripIds={tripIds.length ? tripIds : undefined}
+            liveLabel={{
+              active: "Live buses on this line",
+              empty: "No live buses on this line",
+            }}
+          />
+        ) : (
+          <div className="relative h-56 rounded-[28px] overflow-hidden ring-1 ring-line">
+            <img
+              src={routeVignette}
+              alt=""
+              width={1536}
+              height={768}
+              loading="lazy"
+              className="absolute inset-0 size-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-limestone/80 via-limestone/10 to-transparent" />
+            <div className="absolute bottom-4 left-5 right-5">
+              <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
+                Service window
+              </p>
+              <p className="mt-1 font-display text-[20px] leading-tight text-ink">
+                {isLoading ? "Checking the line…" : "This line is quiet right now"}
+              </p>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Next departure card */}
+      {data?.trips.length ? (
+        <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "160ms" }}>
+          <Link
+            to="/trip-info/$tripId"
+            params={{ tripId: data.trips[0].tripId }}
+            className="block rounded-[28px] bg-ink text-limestone p-5 ring-1 ring-ink/10 transition-transform active:scale-[0.99]"
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/60">
+                Next departure
+              </p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+                {minutesFromNow(data.trips[0].nextArrival.arrivalUnix)}
+              </p>
+            </div>
+            <p className="mt-3 font-display text-[28px] leading-[1.05] text-limestone text-balance">
+              {getStop(data.trips[0].nextArrival.stopId)?.name ?? "Upcoming stop"}
+            </p>
+            <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-limestone/70">
+              {fmtClock(data.trips[0].nextArrival.arrivalUnix)} — ends at{" "}
+              {getStop(data.trips[0].lastStop.stopId)?.name ?? "terminus"}
+            </p>
+          </Link>
+        </section>
+      ) : null}
+
+      {/* Upcoming runs */}
+      {data && data.trips.length > 1 ? (
+        <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "200ms" }}>
+          <div className="flex items-end justify-between mb-3">
+            <h2 className="font-display text-2xl text-ink">Today's runs</h2>
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+              From the live feed
+            </span>
+          </div>
+          <ol className="rounded-[28px] bg-card ring-1 ring-line overflow-hidden">
+            {data.trips.slice(1, 6).map((t) => {
+              const live = data.vehicles.some((v) => v.tripId === t.tripId);
+              return (
+                <Link
+                  key={t.tripId}
+                  to="/trip-info/$tripId"
+                  params={{ tripId: t.tripId }}
+                  className="flex items-center gap-4 px-5 py-3.5 border-b border-line last:border-b-0 transition-colors hover:bg-limestone-soft/60"
+                >
+                  <div className="font-display text-2xl text-ink tabular-nums w-16">
+                    {fmtClock(t.nextArrival.arrivalUnix)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display text-[16px] leading-tight text-ink truncate">
+                      {getStop(t.nextArrival.stopId)?.name ?? "Next stop"}
+                    </p>
+                    <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                      {live && <IconBus className="size-3 text-ochre" />}
+                      {live ? "live now" : "scheduled"}
+                      {" — to "}
+                      {getStop(t.lastStop.stopId)?.name.split(/[·\-,]/)[0].trim() ?? "terminus"}
+                    </p>
+                  </div>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                    {minutesFromNow(t.nextArrival.arrivalUnix)}
+                  </span>
+                </Link>
+              );
+            })}
+          </ol>
+        </section>
+      ) : null}
+
+      {/* Stops on the line */}
+      {data && data.stopIds.length ? (
+        <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "240ms" }}>
+          <div className="flex items-end justify-between mb-3">
+            <h2 className="font-display text-2xl text-ink">Stops on this line</h2>
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+              {data.stopIds.length} stops
+            </span>
+          </div>
+          <ol className="rounded-[28px] bg-card ring-1 ring-line overflow-hidden">
+            {data.stopIds.map((id, i) => {
+              const s = getStop(id);
+              if (!s) return null;
+              const isEdge = i === 0 || i === data.stopIds.length - 1;
+              return (
+                <Link
+                  key={id}
+                  to="/stop/$stopId"
+                  params={{ stopId: id }}
+                  className="relative flex items-center gap-4 px-5 py-3.5 border-b border-line last:border-b-0 transition-colors hover:bg-limestone-soft/60"
+                >
+                  <div className="relative flex flex-col items-center">
+                    <span
+                      className={`size-2.5 rounded-full ${
+                        isEdge ? "bg-ochre" : "bg-aegean-deep/70"
+                      }`}
+                    />
+                    {i < data.stopIds.length - 1 && (
+                      <span className="absolute top-3 h-12 w-px bg-line" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display text-[16px] leading-tight text-ink truncate">
+                      {s.name}
+                    </p>
+                    <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                      {i === 0
+                        ? "origin"
+                        : i === data.stopIds.length - 1
+                          ? "terminus"
+                          : `stop ${i + 1}`}
+                      {s.code ? ` — #${s.code}` : ""}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </ol>
+        </section>
+      ) : !isLoading ? (
+        <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "240ms" }}>
+          <div className="rounded-[28px] bg-card ring-1 ring-line p-6">
+            <p className="font-display text-[20px] leading-tight text-ink">
+              Stops appear when the line is active
+            </p>
+            <p className="mt-2 text-[13px] text-ink-soft">
+              The operator publishes stop sequences alongside live trips. When the first
+              bus of the day reports in, we'll show the full line here.
+            </p>
+          </div>
+        </section>
+      ) : null}
+    </AppShell>
+  );
+}
