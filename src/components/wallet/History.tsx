@@ -30,7 +30,7 @@ export function TopupHistory({ pass }: { pass: MotionPass }) {
                     {fullDate(t.at)}
                   </p>
                 </div>
-                <span className="font-display text-2xl text-ink tabular-nums">
+                <span className="font-sans font-medium text-[18px] text-ink tabular-nums tracking-[-0.02em]">
                   +€{t.amountEur.toFixed(2)}
                 </span>
               </li>
