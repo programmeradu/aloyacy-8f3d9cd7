@@ -80,7 +80,7 @@ export function TransactionList({ transactions }: { transactions: MotionTxSnapsh
                   </p>
                 </div>
                 <span
-                  className={`font-display text-xl tabular-nums shrink-0 ${
+                  className={`font-sans font-medium text-[16px] tabular-nums tracking-[-0.02em] shrink-0 ${
                     isPositive ? "text-aegean-deep" : "text-ink"
                   }`}
                 >
