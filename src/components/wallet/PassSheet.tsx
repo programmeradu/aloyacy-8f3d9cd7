@@ -153,14 +153,14 @@ export function PassSheet({
           <div className="space-y-4">
             <Field label="Balance in EUR">
               <div className="flex items-center bg-card rounded-2xl ring-1 ring-line px-4 py-3 focus-within:ring-aegean-deep/40">
-                <span className="font-display text-2xl text-ink-soft mr-2">€</span>
+                <span className="font-sans font-medium text-[22px] text-ink-soft mr-2 tabular-nums">€</span>
                 <input
                   inputMode="decimal"
                   autoFocus
                   value={balance}
                   onChange={(e) => setBalance(e.target.value.replace(",", "."))}
                   placeholder="0.00"
-                  className="w-full bg-transparent font-display text-2xl text-ink focus:outline-none"
+                  className="w-full bg-transparent font-sans font-medium text-[22px] text-ink tabular-nums tracking-[-0.02em] focus:outline-none"
                 />
               </div>
             </Field>
@@ -175,14 +175,14 @@ export function PassSheet({
           <div className="space-y-4">
             <Field label="Top-up amount">
               <div className="flex items-center bg-card rounded-2xl ring-1 ring-line px-4 py-3 focus-within:ring-aegean-deep/40">
-                <span className="font-display text-2xl text-ink-soft mr-2">€</span>
+                <span className="font-sans font-medium text-[22px] text-ink-soft mr-2 tabular-nums">€</span>
                 <input
                   inputMode="decimal"
                   autoFocus
                   value={topup}
                   onChange={(e) => setTopup(e.target.value.replace(",", "."))}
                   placeholder="10.00"
-                  className="w-full bg-transparent font-display text-2xl text-ink focus:outline-none"
+                  className="w-full bg-transparent font-sans font-medium text-[22px] text-ink tabular-nums tracking-[-0.02em] focus:outline-none"
                 />
               </div>
             </Field>
@@ -191,7 +191,7 @@ export function PassSheet({
                 <button
                   key={v}
                   onClick={() => setTopup(v.toFixed(2))}
-                  className="flex-1 rounded-xl bg-card ring-1 ring-line py-2 font-display text-lg text-ink hover:ring-aegean-deep/30"
+                  className="flex-1 rounded-xl bg-card ring-1 ring-line py-2 font-sans font-medium text-[15px] text-ink tabular-nums hover:ring-aegean-deep/30"
                 >
                   €{v}
                 </button>
