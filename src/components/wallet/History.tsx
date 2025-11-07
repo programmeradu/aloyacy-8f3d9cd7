@@ -30,7 +30,7 @@ export function TopupHistory({ pass }: { pass: MotionPass }) {
                     {fullDate(t.at)}
                   </p>
                 </div>
-                <span className="font-display text-2xl text-ink tabular-nums">
+                <span className="font-sans font-medium text-[18px] text-ink tabular-nums tracking-[-0.02em]">
                   +€{t.amountEur.toFixed(2)}
                 </span>
               </li>
@@ -80,7 +80,7 @@ export function TransactionList({ transactions }: { transactions: MotionTxSnapsh
                   </p>
                 </div>
                 <span
-                  className={`font-display text-xl tabular-nums shrink-0 ${
+                  className={`font-sans font-medium text-[16px] tabular-nums tracking-[-0.02em] shrink-0 ${
                     isPositive ? "text-aegean-deep" : "text-ink"
                   }`}
                 >
