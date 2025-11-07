@@ -4,6 +4,9 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { ROUTES } from "@/lib/gtfs";
+
+const KNOWN_ROUTE_IDS = new Set(ROUTES.map((r) => r.id));
 
 export type PulseRouteStat = {
   routeId: string;
@@ -17,6 +20,7 @@ export type PulseSnapshot = {
   totalSamples: number;
   onTimePct: number;
   routesTracked: number;
+  excludedUnknown: number; // route_ids in the feed not in our static timetable
   hottest: PulseRouteStat[]; // running late
   coldest: PulseRouteStat[]; // running early
   steadiest: PulseRouteStat[]; // closest to zero with high sample count
