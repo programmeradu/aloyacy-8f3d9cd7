@@ -318,6 +318,14 @@ function WalletRoute() {
             )}
           </section>
 
+          {/* Eligible passes for renewal (from public top-up portal) */}
+          {pass.passes && pass.passes.length > 0 && (
+            <div className="mt-6">
+              <RenewPasses cardNumber={pass.number} passes={pass.passes} />
+            </div>
+          )}
+
+
           {/* Fare reference */}
           <section
             className="mt-6 px-6 animate-rise"
