@@ -21,7 +21,7 @@ export function ActionTile({
         {eyebrow}
       </p>
       <p
-        className={`mt-2 font-display text-[28px] leading-none ${tone === "aegean" ? "text-aegean-deep italic" : "text-ink"}`}
+        className={`mt-2 font-sans font-medium text-[26px] leading-none tabular-nums tracking-[-0.02em] ${tone === "aegean" ? "text-aegean-deep" : "text-ink"}`}
       >
         {value}
       </p>
