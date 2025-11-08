@@ -111,6 +111,7 @@ function Explore() {
   const stops: Stop[] = useMemo(() => {
     const near = nearestStops(geo.coords, 5);
     const t = Math.floor(Date.now() / 1000);
+    // Index arrivals by stop for the route-chip list (cheap, no snap needed).
     const arrByStop = new Map<string, { routeId: string; eta: number }[]>();
     if (rt) {
       for (const a of rt.arrivals) {
@@ -126,7 +127,21 @@ function Explore() {
       const arrivals = (arrByStop.get(s.id) ?? []).sort(
         (a, b) => a.eta - b.eta,
       );
-      const nextEta = arrivals[0]?.eta ?? null;
+
+      // Smart ETA: snap the running vehicle onto its trip's stop polyline,
+      // factor in dwell + ping freshness + speed. Falls back gracefully to
+      // operator prediction when no vehicle is matched.
+      const smart = rt
+        ? smartEtaForStop({
+            stopId: s.id,
+            arrivals: rt.arrivals,
+            vehicles: rt.vehicles,
+            nowSec: t,
+            agency: s.agency,
+          })
+        : null;
+      const nextEta = smart ? smart.etaMin : arrivals[0]?.eta ?? null;
+
       const seen = new Set<string>();
       const routes = arrivals
         .filter((a) =>
@@ -148,6 +163,8 @@ function Explore() {
             ? "Intercity"
             : `${(s.distanceKm * 1000).toFixed(0)} m away`,
         etaMin: nextEta,
+        etaConfidence: smart?.confidence,
+        etaBlurb: smart?.blurb,
         routes,
         highlight: idx === 0,
         kind: stopKind(s),
