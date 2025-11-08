@@ -4,6 +4,9 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { ROUTES } from "@/lib/gtfs";
+
+const KNOWN_ROUTE_IDS = new Set(ROUTES.map((r) => r.id));
 
 export type PulseRouteStat = {
   routeId: string;
@@ -17,6 +20,7 @@ export type PulseSnapshot = {
   totalSamples: number;
   onTimePct: number;
   routesTracked: number;
+  excludedUnknown: number; // route_ids in the feed not in our static timetable
   hottest: PulseRouteStat[]; // running late
   coldest: PulseRouteStat[]; // running early
   steadiest: PulseRouteStat[]; // closest to zero with high sample count
@@ -35,6 +39,7 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
       totalSamples: 0,
       onTimePct: 0,
       routesTracked: 0,
+      excludedUnknown: 0,
       hottest: [],
       coldest: [],
       steadiest: [],
@@ -42,11 +47,17 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
   }
 
   // Collapse per-hour buckets into per-route weighted means.
+  // Drop rows whose route_id isn't in our static timetable — they'd render as "?".
   const agg = new Map<
     string,
     { sumDelayWeighted: number; sampleCount: number }
   >();
+  const excludedRoutes = new Set<string>();
   for (const row of data) {
+    if (!KNOWN_ROUTE_IDS.has(row.route_id)) {
+      excludedRoutes.add(row.route_id);
+      continue;
+    }
     const cur = agg.get(row.route_id) ?? { sumDelayWeighted: 0, sampleCount: 0 };
     cur.sumDelayWeighted += row.mean_delay_sec * row.sample_count;
     cur.sampleCount += row.sample_count;
@@ -93,6 +104,7 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
     totalSamples,
     onTimePct,
     routesTracked: stats.length,
+    excludedUnknown: excludedRoutes.size,
     hottest,
     coldest,
     steadiest,

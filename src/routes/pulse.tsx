@@ -1,9 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { RouteChip } from "@/components/RouteChip";
 import { IconWaves } from "@/components/Icons";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { getPulse, type PulseRouteStat } from "@/lib/pulse.functions";
 import { getRoute, routeTone } from "@/lib/gtfs";
 import pulseHero from "@/assets/pulse-hero.jpg";
@@ -15,7 +21,7 @@ export const Route = createFileRoute("/pulse")({
       {
         name: "description",
         content:
-          "Network reliability for Cyprus buses, learned in real time. On-time percentage, hot and steady routes, refreshed every minute.",
+          "Network reliability for Cyprus buses, learned in real time. Reliability index, hot and steady routes, refreshed every minute.",
       },
       { property: "og:title", content: "Aloya Pulse — the island's transit, in motion" },
       {
@@ -40,6 +46,7 @@ function Pulse() {
   const totalSamples = data?.totalSamples ?? 0;
   const onTimePct = data?.onTimePct ?? 0;
   const routesTracked = data?.routesTracked ?? 0;
+  const excluded = data?.excludedUnknown ?? 0;
 
   return (
     <AppShell>
@@ -65,27 +72,27 @@ function Pulse() {
 
       <section className="px-6 mt-2 animate-rise" style={{ animationDelay: "80ms" }}>
         <div className="rounded-[32px] bg-card p-6 ring-1 ring-line">
-          <div className="flex items-end justify-between">
-            <div>
+          <div className="flex items-end justify-between gap-4">
+            <div className="min-w-0">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                Right now
+                Reliability index
               </p>
               <p className="mt-1.5 font-display text-[80px] leading-none text-aegean-deep tabular-nums">
                 {isLoading ? "—" : onTimePct}
                 <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] align-top text-ink-soft">
-                  %
+                  /100
                 </span>
               </p>
-              <p className="mt-2 text-[13px] text-ink-soft max-w-[28ch]">
-                of stops served within two minutes of the schedule, blended across the whole live network.
+              <p className="mt-2 text-[13px] text-ink-soft max-w-[30ch]">
+                A blended score across the live network. 100 = on the dot, 0 = five minutes off or worse.
               </p>
             </div>
-            <IconWaves className="size-12 text-aegean" />
+            <IconWaves className="size-12 text-aegean shrink-0" />
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <Stat label="Routes learned" value={routesTracked} />
-            <Stat label="Samples blended" value={totalSamples} />
+            <Stat label="Trips logged" value={totalSamples} />
           </div>
         </div>
       </section>
@@ -115,6 +122,8 @@ function Pulse() {
         showDelay={false}
       />
 
+      <HowItWorks excluded={excluded} />
+
       <div className="px-6 pt-6 pb-2">
         <p className="text-center font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
           Updated every minute from the live feed
@@ -130,7 +139,7 @@ function Stat({ label, value }: { label: string; value: number }) {
       <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
         {label}
       </p>
-      <p className="mt-1 font-display text-2xl leading-none text-ink tabular-nums">
+      <p className="mt-1 font-sans font-medium text-2xl leading-none text-ink tabular-nums tracking-[-0.02em]">
         {value.toLocaleString()}
       </p>
     </div>
@@ -169,21 +178,41 @@ function Section({
           {rows.map((r) => {
             const route = getRoute(r.routeId);
             const delayMin = Math.round(r.meanDelaySec / 60);
+            const longName = route?.long ?? r.routeId;
+            // Responsive sizes: long names shrink so they fit on one line at 390px wide.
+            const nameClass =
+              longName.length > 44
+                ? "text-[13px] leading-snug"
+                : longName.length > 30
+                ? "text-[15px] leading-snug"
+                : "text-[17px] leading-snug";
+            const delayAbs = Math.abs(delayMin);
+            const delayClass =
+              delayAbs >= 100
+                ? "text-[18px]"
+                : delayAbs >= 10
+                ? "text-[22px]"
+                : "text-[26px]";
             return (
-              <div key={r.routeId} className="flex items-center gap-4 p-4">
+              <Link
+                key={r.routeId}
+                to="/route/$routeId"
+                params={{ routeId: r.routeId }}
+                className="flex items-center gap-3 p-4 transition-colors hover:bg-limestone-soft active:bg-limestone-soft/80"
+              >
                 <RouteChip code={route?.short ?? "?"} tone={routeTone(r.routeId)} />
                 <div className="min-w-0 flex-1">
-                  <p className="font-display text-lg leading-tight text-ink truncate">
-                    {route?.long ?? r.routeId}
+                  <p className={`font-display text-ink truncate ${nameClass}`}>
+                    {longName}
                   </p>
                   <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                    {r.sampleCount.toLocaleString()} samples
+                    {r.sampleCount.toLocaleString()} trips logged
                   </p>
                 </div>
                 <div className="text-right shrink-0">
                   {showDelay ? (
                     <p
-                      className={`font-display text-2xl leading-none tabular-nums ${
+                      className={`font-sans font-medium leading-none tabular-nums tracking-[-0.02em] ${delayClass} ${
                         accent === "ochre"
                           ? "text-ochre"
                           : accent === "olive"
@@ -198,19 +227,90 @@ function Section({
                       </span>
                     </p>
                   ) : (
-                    <p className="font-display text-2xl leading-none text-aegean-deep tabular-nums">
+                    <p className="font-sans font-medium text-[24px] leading-none text-aegean-deep tabular-nums tracking-[-0.02em]">
                       {r.onTimePct}
                       <span className="ml-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
-                        %
+                        /100
                       </span>
                     </p>
                   )}
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
       )}
     </section>
+  );
+}
+
+function HowItWorks({ excluded }: { excluded: number }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="mt-10 px-6 animate-rise" style={{ animationDelay: "260ms" }}>
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger className="w-full flex items-center justify-between rounded-3xl bg-card ring-1 ring-line px-5 py-4 text-left">
+          <span>
+            <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+              The honest part
+            </span>
+            <span className="block font-display text-xl mt-0.5 text-ink">
+              How this is calculated
+            </span>
+          </span>
+          <span className="font-mono text-[11px] text-ink-soft">
+            {open ? "Close" : "Open"}
+          </span>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-3 rounded-3xl bg-limestone-soft p-5 ring-1 ring-line space-y-4 text-[13px] leading-relaxed text-ink">
+          <Item label="Reliability index">
+            For each route we average the live delay across every trip we've
+            observed, weighted by how many trips we have. We map that to a 0—100
+            score where on the dot is 100 and five minutes off (early or late)
+            is 0. It's a smooth proxy, not a strict on-time percentage.
+          </Item>
+          <Item label="Trips logged">
+            One trip logged = one arrival event we pulled from the live feed
+            for that route. More trips means a more trustworthy score.
+          </Item>
+          <Item label="Routes learned">
+            Distinct routes with at least three trips observed in any
+            hour-of-day bucket. Quiet routes appear once we've seen enough of them.
+          </Item>
+          <Item label="Running late / early">
+            Routes whose weighted mean delay is more than 30 seconds off the
+            schedule, with at least five trips logged.
+          </Item>
+          <Item label="Most reliable">
+            Routes with at least eight trips logged, sorted by how close their
+            mean delay sits to zero.
+          </Item>
+          <Item label="Limits to keep in mind">
+            Delays come from each operator's live feed — if their data is off,
+            ours will be too. Buckets are in UTC, not Cyprus local time, so the
+            "at this hour" framing is approximate.
+            {excluded > 0 ? (
+              <>
+                {" "}
+                <strong className="font-medium">{excluded}</strong>{" "}
+                {excluded === 1 ? "route is" : "routes are"} hidden here because
+                they're not in our bundled timetable yet.
+              </>
+            ) : null}
+          </Item>
+        </CollapsibleContent>
+      </Collapsible>
+    </section>
+  );
+}
+
+function Item({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
+        {label}
+      </p>
+      <p className="mt-1">{children}</p>
+    </div>
   );
 }
