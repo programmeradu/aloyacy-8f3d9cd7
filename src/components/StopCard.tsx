@@ -7,6 +7,7 @@ import stopTerminal from "@/assets/stop-terminal.png";
 
 type Tone = "aegean" | "ochre" | "olive";
 export type StopKind = "shelter" | "pole" | "terminal";
+export type EtaConfidence = "live" | "predicted" | "scheduled";
 
 export type Stop = {
   id: string;
@@ -14,6 +15,10 @@ export type Stop = {
   name: string;
   towards: string;
   etaMin: number | null;
+  /** Source/freshness of the displayed ETA. Drives the colour chip. */
+  etaConfidence?: EtaConfidence;
+  /** Optional short label ("live", "stale ping", "scheduled"). */
+  etaBlurb?: string;
   routes: { code: string; tone: Tone }[];
   highlight?: boolean;
   kind?: StopKind;
