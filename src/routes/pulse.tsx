@@ -179,60 +179,66 @@ function Section({
             const route = getRoute(r.routeId);
             const delayMin = Math.round(r.meanDelaySec / 60);
             const longName = route?.long ?? r.routeId;
-            // Responsive sizes: long names shrink so they fit on one line at 390px wide.
+            // Allow names to wrap to 2 lines; shrink type when it's a long name.
             const nameClass =
-              longName.length > 44
-                ? "text-[13px] leading-snug"
-                : longName.length > 30
-                ? "text-[15px] leading-snug"
-                : "text-[17px] leading-snug";
+              longName.length > 38
+                ? "text-[12.5px] leading-[1.25]"
+                : longName.length > 26
+                ? "text-[14px] leading-[1.25]"
+                : "text-[16px] leading-[1.25]";
             const delayAbs = Math.abs(delayMin);
             const delayClass =
               delayAbs >= 100
-                ? "text-[18px]"
+                ? "text-[20px]"
                 : delayAbs >= 10
-                ? "text-[22px]"
-                : "text-[26px]";
+                ? "text-[24px]"
+                : "text-[28px]";
             return (
               <Link
                 key={r.routeId}
                 to="/route/$routeId"
                 params={{ routeId: r.routeId }}
-                className="flex items-center gap-3 p-4 transition-colors hover:bg-limestone-soft active:bg-limestone-soft/80"
+                className="flex items-center gap-2.5 px-3.5 py-3 transition-colors hover:bg-limestone-soft active:bg-limestone-soft/80"
               >
                 <RouteChip code={route?.short ?? "?"} tone={routeTone(r.routeId)} />
                 <div className="min-w-0 flex-1">
-                  <p className={`font-display text-ink truncate ${nameClass}`}>
+                  <p
+                    className={`font-display text-ink line-clamp-2 break-words ${nameClass}`}
+                  >
                     {longName}
                   </p>
-                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
                     {r.sampleCount.toLocaleString()} trips logged
                   </p>
                 </div>
-                <div className="text-right shrink-0">
+                <div className="shrink-0 flex flex-col items-end leading-none">
                   {showDelay ? (
-                    <p
-                      className={`font-sans font-medium leading-none tabular-nums tracking-[-0.02em] ${delayClass} ${
-                        accent === "ochre"
-                          ? "text-ochre"
-                          : accent === "olive"
-                          ? "text-olive"
-                          : "text-aegean-deep"
-                      }`}
-                    >
-                      {delayMin > 0 ? "+" : ""}
-                      {delayMin}
-                      <span className="ml-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
+                    <>
+                      <span
+                        className={`font-sans font-medium tabular-nums tracking-[-0.02em] ${delayClass} ${
+                          accent === "ochre"
+                            ? "text-ochre"
+                            : accent === "olive"
+                            ? "text-olive"
+                            : "text-aegean-deep"
+                        }`}
+                      >
+                        {delayMin > 0 ? "+" : ""}
+                        {delayMin}
+                      </span>
+                      <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
                         min
                       </span>
-                    </p>
+                    </>
                   ) : (
-                    <p className="font-sans font-medium text-[24px] leading-none text-aegean-deep tabular-nums tracking-[-0.02em]">
-                      {r.onTimePct}
-                      <span className="ml-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
+                    <>
+                      <span className="font-sans font-medium text-[26px] tabular-nums tracking-[-0.02em] text-aegean-deep">
+                        {r.onTimePct}
+                      </span>
+                      <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
                         /100
                       </span>
-                    </p>
+                    </>
                   )}
                 </div>
               </Link>
