@@ -464,6 +464,7 @@ class AnimatedBus {
     variant: "premium" | "triangle" = "premium",
     path: { lat: number; lng: number }[] | null = null,
     stale = false,
+    speedMps = 0,
   ) {
     this.api = api;
     this.map = map;
