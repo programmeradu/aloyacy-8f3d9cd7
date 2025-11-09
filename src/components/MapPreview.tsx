@@ -641,7 +641,7 @@ class AnimatedBus {
     }
   }
 
-  setTarget(lat: number, lng: number, bearing: number, nowMs: number) {
+  setTarget(lat: number, lng: number, bearing: number, nowMs: number, speedMps = 0) {
     // Snap "from" to wherever we currently are before starting the next tween.
     this.fromLat = this.toLat;
     this.fromLng = this.toLng;
@@ -665,6 +665,20 @@ class AnimatedBus {
         this.toAlong = Math.max(from.along, to.along);
         this.usePath = true;
       }
+    }
+
+    // Tween duration scales with distance + live speed so a stopped bus
+    // visibly stops and a fast bus moves faster. Clamp into a sane range
+    // (next feed refresh is ~20s, so cap < that).
+    const distM = this.usePath
+      ? Math.max(0, this.toAlong - this.fromAlong)
+      : haversineM({ lat: this.fromLat, lng: this.fromLng }, { lat, lng });
+    if (speedMps < 0.5 || distM < 3) {
+      // Bus is stopped (or barely moved) — short, gentle settle.
+      this.tweenDur = 1200;
+    } else {
+      const dur = (distM / speedMps) * 1000;
+      this.tweenDur = Math.max(1500, Math.min(18_000, dur));
     }
   }
 
