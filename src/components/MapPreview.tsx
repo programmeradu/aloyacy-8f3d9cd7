@@ -1,7 +1,7 @@
 /// <reference types="google.maps" />
 import { useEffect, useMemo, useRef } from "react";
 import { useRealtime } from "@/lib/useRealtime";
-import { NICOSIA_CENTER } from "@/lib/gtfs";
+import { NICOSIA_CENTER, getStop } from "@/lib/gtfs";
 import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
 import busPremium from "@/assets/bus-premium.png";
 
@@ -216,6 +216,34 @@ export function MapPreview({
   const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
 
   // -------------------------------------------------------------------
+  // Per-trip stop polylines. The GTFS-RT feed gives us a vehicle's tripId
+  // + that trip's ordered stop sequence (via arrivals). Using stop coords
+  // as a proxy for the route shape, the bus glides between stops instead
+  // of cutting straight through buildings. Cheap to build, keeps the map
+  // honest.
+  // -------------------------------------------------------------------
+  const tripPaths = useMemo(() => {
+    if (!rt) return new Map<string, { lat: number; lng: number }[]>();
+    const byTrip = new Map<string, { stopId: string; t: number }[]>();
+    for (const a of rt.arrivals) {
+      const arr = byTrip.get(a.tripId) ?? [];
+      arr.push({ stopId: a.stopId, t: a.arrivalUnix });
+      byTrip.set(a.tripId, arr);
+    }
+    const out = new Map<string, { lat: number; lng: number }[]>();
+    for (const [tripId, stops] of byTrip) {
+      stops.sort((x, y) => x.t - y.t);
+      const poly: { lat: number; lng: number }[] = [];
+      for (const s of stops) {
+        const meta = getStop(s.stopId);
+        if (meta) poly.push({ lat: meta.lat, lng: meta.lng });
+      }
+      if (poly.length >= 2) out.set(tripId, poly);
+    }
+    return out;
+  }, [rt]);
+
+  // -------------------------------------------------------------------
   // Premium gliding bus overlay. Each vehicle is its own DOM overlay that
   // tweens position + bearing between feed refreshes (rAF every frame),
   // giving the Uber-style smooth glide instead of teleporting on each poll.
@@ -226,6 +254,7 @@ export function MapPreview({
 
     const layer = busLayerRef.current;
     const now = performance.now();
+    const nowSec = Math.floor(Date.now() / 1000);
 
     if (!vehicles) {
       // Clear all buses when source goes away (e.g. liveVehicles=false).
@@ -249,12 +278,17 @@ export function MapPreview({
       const targetLat = v.lat;
       const targetLng = v.lng;
       const targetBearing = v.bearing ?? 0;
+      const path = tripPaths.get(v.tripId) ?? null;
+      const ageSec = v.timestamp ? Math.max(0, nowSec - v.timestamp) : 0;
+      const stale = ageSec > 90;
 
       if (existing) {
         existing.setVariant(variant);
+        existing.setPath(path);
         existing.setTarget(targetLat, targetLng, targetBearing, now);
         existing.setSize(sizePx);
         existing.setFocused(focused);
+        existing.setStale(stale);
       } else {
         const bus = new AnimatedBus(
           api,
@@ -265,6 +299,8 @@ export function MapPreview({
           focused,
           v.label || `Bus ${v.id}`,
           variant,
+          path,
+          stale,
         );
         layer.set(v.id, bus);
       }
@@ -292,7 +328,7 @@ export function MapPreview({
       };
       rafRef.current = requestAnimationFrame(tick);
     }
-  }, [api, vehicles, focused, restricted]);
+  }, [api, vehicles, focused, restricted, tripPaths]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -363,6 +399,7 @@ class AnimatedBus {
   private size: number;
   private focused: boolean;
   private variant: "premium" | "triangle";
+  private stale = false;
 
   // tween state
   private fromLat: number;
@@ -376,10 +413,20 @@ class AnimatedBus {
   private tweenDur = TWEEN_MS;
   private currentBearing: number;
 
+  // polyline glide
+  private path: { lat: number; lng: number }[] | null = null;
+  // cumulative metres along path at each vertex — built lazily.
+  private cum: number[] = [];
+  // distance-along values for the current tween's from / to snap points.
+  private fromAlong = 0;
+  private toAlong = 0;
+  private usePath = false;
+
   // overlay
   private overlay: google.maps.OverlayView;
   private el: HTMLDivElement;
   private rotor: HTMLDivElement; // the element we rotate (img or svg)
+  private halo: HTMLDivElement;  // freshness ring shown when ping is stale
 
   constructor(
     api: typeof google,
@@ -390,6 +437,8 @@ class AnimatedBus {
     focused: boolean,
     label: string,
     variant: "premium" | "triangle" = "premium",
+    path: { lat: number; lng: number }[] | null = null,
+    stale = false,
   ) {
     this.api = api;
     this.map = map;
@@ -397,6 +446,7 @@ class AnimatedBus {
     this.size = size;
     this.focused = focused;
     this.variant = variant;
+    this.stale = stale;
     this.fromLat = this.toLat = pos.lat;
     this.fromLng = this.toLng = pos.lng;
     this.fromBearing = this.toBearing = bearing;
@@ -410,6 +460,16 @@ class AnimatedBus {
     el.style.transformOrigin = "center center";
     el.title = label;
 
+    const halo = document.createElement("div");
+    halo.style.position = "absolute";
+    halo.style.inset = "-18%";
+    halo.style.borderRadius = "50%";
+    halo.style.border = "2px solid color-mix(in oklab, #d99645 65%, transparent)";
+    halo.style.background = "radial-gradient(circle, color-mix(in oklab, #d99645 18%, transparent) 0%, transparent 70%)";
+    halo.style.opacity = "0";
+    halo.style.transition = "opacity 240ms ease";
+    halo.style.pointerEvents = "none";
+
     const rotor = document.createElement("div");
     rotor.style.position = "absolute";
     rotor.style.inset = "0";
@@ -417,12 +477,16 @@ class AnimatedBus {
     rotor.style.height = "100%";
     rotor.style.transformOrigin = "center center";
 
+    el.appendChild(halo);
     el.appendChild(rotor);
 
     this.el = el;
+    this.halo = halo;
     this.rotor = rotor;
     this.renderVariant();
     this.applySize();
+    this.applyStale();
+    this.setPath(path);
 
     // Build OverlayView
     const self = this;
@@ -502,6 +566,11 @@ class AnimatedBus {
     this.el.style.zIndex = String(this.focused ? 1200 : this.variant === "premium" ? 1000 : 900);
   }
 
+  private applyStale() {
+    this.halo.style.opacity = this.stale ? "1" : "0";
+    this.rotor.style.filter = this.stale ? "grayscale(0.35) opacity(0.7)" : "";
+  }
+
   setSize(size: number) {
     if (size === this.size) return;
     this.size = size;
@@ -513,6 +582,7 @@ class AnimatedBus {
     this.variant = variant;
     this.renderVariant();
     this.applySize();
+    this.applyStale();
   }
 
   setFocused(focused: boolean) {
@@ -520,6 +590,29 @@ class AnimatedBus {
     this.focused = focused;
     if (this.variant === "premium") this.renderVariant();
     this.applySize();
+    this.applyStale();
+  }
+
+  setStale(stale: boolean) {
+    if (stale === this.stale) return;
+    this.stale = stale;
+    this.applyStale();
+  }
+
+  /** Provide the trip's stop polyline so we glide along it instead of
+   *  straight-lerping through buildings. Pass null to revert to lerp. */
+  setPath(path: { lat: number; lng: number }[] | null) {
+    if (!path || path.length < 2) {
+      this.path = null;
+      this.cum = [];
+      return;
+    }
+    if (this.path === path) return;
+    this.path = path;
+    this.cum = [0];
+    for (let i = 1; i < path.length; i++) {
+      this.cum.push(this.cum[i - 1] + haversineM(path[i - 1], path[i]));
+    }
   }
 
   setTarget(lat: number, lng: number, bearing: number, nowMs: number) {
@@ -534,19 +627,51 @@ class AnimatedBus {
     let delta = ((bearing - this.currentBearing + 540) % 360) - 180;
     this.bearingDelta = delta;
     this.tweenStart = nowMs;
+
+    // If we have a path, snap both endpoints; require forward motion
+    // along the line, else fall back to straight lerp for this hop.
+    this.usePath = false;
+    if (this.path && this.path.length >= 2) {
+      const from = snapAlong({ lat: this.fromLat, lng: this.fromLng }, this.path, this.cum);
+      const to = snapAlong({ lat: this.toLat, lng: this.toLng }, this.path, this.cum);
+      if (from && to && to.along >= from.along - 25) {
+        this.fromAlong = from.along;
+        this.toAlong = Math.max(from.along, to.along);
+        this.usePath = true;
+      }
+    }
   }
 
   tick(nowMs: number) {
     const t = Math.min(1, (nowMs - this.tweenStart) / this.tweenDur);
     const e = EASE(t);
-    const lat = lerp(this.fromLat, this.toLat, e);
-    const lng = lerp(this.fromLng, this.toLng, e);
+    let lat: number, lng: number;
+    let pathBearing: number | null = null;
+
+    if (this.usePath && this.path) {
+      const along = lerp(this.fromAlong, this.toAlong, e);
+      const sample = sampleAlong(this.path, this.cum, along);
+      lat = sample.lat;
+      lng = sample.lng;
+      pathBearing = sample.bearing;
+    } else {
+      lat = lerp(this.fromLat, this.toLat, e);
+      lng = lerp(this.fromLng, this.toLng, e);
+    }
+
     const projection = this.overlay.getProjection();
     if (!projection) return;
     const pt = projection.fromLatLngToDivPixel(new this.api.maps.LatLng(lat, lng));
-
     if (!pt) return;
-    this.currentBearing = this.fromBearing + this.bearingDelta * e;
+
+    // Prefer the path-derived bearing when gliding along a polyline — it
+    // matches the visible direction of travel even if the feed's bearing
+    // is stale or coarse.
+    if (pathBearing != null) {
+      this.currentBearing = pathBearing;
+    } else {
+      this.currentBearing = this.fromBearing + this.bearingDelta * e;
+    }
     this.el.style.transform = `translate3d(${pt.x - this.size / 2}px, ${pt.y - this.size / 2}px, 0)`;
     this.rotor.style.transform = `rotate(${this.currentBearing}deg)`;
     if (t >= 1) {
@@ -564,4 +689,83 @@ class AnimatedBus {
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
+}
+
+// --- polyline helpers (local equirectangular, plenty accurate at Cyprus scale) ---
+
+function haversineM(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371000;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const la1 = (a.lat * Math.PI) / 180;
+  const la2 = (b.lat * Math.PI) / 180;
+  const x =
+    Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+
+function snapAlong(
+  p: { lat: number; lng: number },
+  path: { lat: number; lng: number }[],
+  cum: number[],
+): { along: number; segIndex: number } | null {
+  if (path.length < 2) return null;
+  const mPerLat = 110_540;
+  const mPerLng = 111_320 * Math.cos((p.lat * Math.PI) / 180);
+  const toXY = (q: { lat: number; lng: number }) => ({
+    x: (q.lng - p.lng) * mPerLng,
+    y: (q.lat - p.lat) * mPerLat,
+  });
+  let bestSeg = 0;
+  let bestDist2 = Infinity;
+  let bestT = 0;
+  const xy = path.map(toXY);
+  for (let i = 0; i < xy.length - 1; i++) {
+    const a = xy[i];
+    const b = xy[i + 1];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy;
+    if (len2 === 0) continue;
+    let t = -(a.x * dx + a.y * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    const fx = a.x + t * dx;
+    const fy = a.y + t * dy;
+    const d2 = fx * fx + fy * fy;
+    if (d2 < bestDist2) {
+      bestDist2 = d2;
+      bestSeg = i;
+      bestT = t;
+    }
+  }
+  const segLen = cum[bestSeg + 1] - cum[bestSeg];
+  return { along: cum[bestSeg] + segLen * bestT, segIndex: bestSeg };
+}
+
+function sampleAlong(
+  path: { lat: number; lng: number }[],
+  cum: number[],
+  along: number,
+): { lat: number; lng: number; bearing: number } {
+  const total = cum[cum.length - 1];
+  const clamped = Math.max(0, Math.min(total, along));
+  // Binary search would be marginal here; paths are short. Linear is fine.
+  let i = 0;
+  for (; i < cum.length - 1; i++) {
+    if (clamped <= cum[i + 1]) break;
+  }
+  const a = path[i];
+  const b = path[Math.min(path.length - 1, i + 1)];
+  const segLen = Math.max(1e-6, cum[i + 1] - cum[i]);
+  const t = (clamped - cum[i]) / segLen;
+  const lat = a.lat + (b.lat - a.lat) * t;
+  const lng = a.lng + (b.lng - a.lng) * t;
+  // Bearing from a → b (degrees clockwise from north)
+  const φ1 = (a.lat * Math.PI) / 180;
+  const φ2 = (b.lat * Math.PI) / 180;
+  const Δλ = ((b.lng - a.lng) * Math.PI) / 180;
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  const bearing = ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+  return { lat, lng, bearing };
 }
