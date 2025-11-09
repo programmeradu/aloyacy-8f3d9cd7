@@ -217,22 +217,45 @@ export function MapPreview({
   const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
 
   // -------------------------------------------------------------------
-  // Per-trip stop polylines. The GTFS-RT feed gives us a vehicle's tripId
-  // + that trip's ordered stop sequence (via arrivals). Using stop coords
-  // as a proxy for the route shape, the bus glides between stops instead
-  // of cutting straight through buildings. Cheap to build, keeps the map
-  // honest.
+  // Per-trip path used to glide buses along the route. We prefer the real
+  // GTFS shape polyline (follows roads), and fall back to a stop-derived
+  // polyline (straight stop-to-stop lines, but still better than direct
+  // ping-to-ping) when the shape isn't available for that trip.
   // -------------------------------------------------------------------
+  useEffect(() => { prefetchShapes(); }, []);
+  // Bump this state once the shape index finishes loading so the path
+  // memo recomputes and switches buses from stop-fallback to real shape.
+  const [shapesReady, setShapesReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { getShapeForTrip } = await import("@/lib/shapes");
+      // Touch any trip to ensure the index has loaded.
+      await getShapeForTrip("__warmup__").catch(() => {});
+      if (!cancelled) setShapesReady(true);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const tripPaths = useMemo(() => {
-    if (!rt) return new Map<string, { lat: number; lng: number }[]>();
+    const out = new Map<string, { lat: number; lng: number }[]>();
+    if (!rt) return out;
+    // 1) Real GTFS shapes per vehicle (if loaded).
+    if (shapesReady) {
+      for (const v of rt.vehicles) {
+        const shape = getShapeForTripSync(v.tripId, v.routeId);
+        if (shape) out.set(v.tripId, shape);
+      }
+    }
+    // 2) Fallback: stop-derived polylines from arrivals.
     const byTrip = new Map<string, { stopId: string; t: number }[]>();
     for (const a of rt.arrivals) {
       const arr = byTrip.get(a.tripId) ?? [];
       arr.push({ stopId: a.stopId, t: a.arrivalUnix });
       byTrip.set(a.tripId, arr);
     }
-    const out = new Map<string, { lat: number; lng: number }[]>();
     for (const [tripId, stops] of byTrip) {
+      if (out.has(tripId)) continue; // real shape already wins
       stops.sort((x, y) => x.t - y.t);
       const poly: { lat: number; lng: number }[] = [];
       for (const s of stops) {
@@ -242,7 +265,7 @@ export function MapPreview({
       if (poly.length >= 2) out.set(tripId, poly);
     }
     return out;
-  }, [rt]);
+  }, [rt, shapesReady]);
 
   // -------------------------------------------------------------------
   // Premium gliding bus overlay. Each vehicle is its own DOM overlay that
