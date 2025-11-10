@@ -1,8 +1,9 @@
 /// <reference types="google.maps" />
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER, getStop } from "@/lib/gtfs";
 import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
+import { prefetchShapes, getShapeForTripSync } from "@/lib/shapes";
 import busPremium from "@/assets/bus-premium.png";
 
 export type MapMarker = {
@@ -216,22 +217,45 @@ export function MapPreview({
   const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
 
   // -------------------------------------------------------------------
-  // Per-trip stop polylines. The GTFS-RT feed gives us a vehicle's tripId
-  // + that trip's ordered stop sequence (via arrivals). Using stop coords
-  // as a proxy for the route shape, the bus glides between stops instead
-  // of cutting straight through buildings. Cheap to build, keeps the map
-  // honest.
+  // Per-trip path used to glide buses along the route. We prefer the real
+  // GTFS shape polyline (follows roads), and fall back to a stop-derived
+  // polyline (straight stop-to-stop lines, but still better than direct
+  // ping-to-ping) when the shape isn't available for that trip.
   // -------------------------------------------------------------------
+  useEffect(() => { prefetchShapes(); }, []);
+  // Bump this state once the shape index finishes loading so the path
+  // memo recomputes and switches buses from stop-fallback to real shape.
+  const [shapesReady, setShapesReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { getShapeForTrip } = await import("@/lib/shapes");
+      // Touch any trip to ensure the index has loaded.
+      await getShapeForTrip("__warmup__").catch(() => {});
+      if (!cancelled) setShapesReady(true);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const tripPaths = useMemo(() => {
-    if (!rt) return new Map<string, { lat: number; lng: number }[]>();
+    const out = new Map<string, { lat: number; lng: number }[]>();
+    if (!rt) return out;
+    // 1) Real GTFS shapes per vehicle (if loaded).
+    if (shapesReady) {
+      for (const v of rt.vehicles) {
+        const shape = getShapeForTripSync(v.tripId, v.routeId);
+        if (shape) out.set(v.tripId, shape);
+      }
+    }
+    // 2) Fallback: stop-derived polylines from arrivals.
     const byTrip = new Map<string, { stopId: string; t: number }[]>();
     for (const a of rt.arrivals) {
       const arr = byTrip.get(a.tripId) ?? [];
       arr.push({ stopId: a.stopId, t: a.arrivalUnix });
       byTrip.set(a.tripId, arr);
     }
-    const out = new Map<string, { lat: number; lng: number }[]>();
     for (const [tripId, stops] of byTrip) {
+      if (out.has(tripId)) continue; // real shape already wins
       stops.sort((x, y) => x.t - y.t);
       const poly: { lat: number; lng: number }[] = [];
       for (const s of stops) {
@@ -241,7 +265,7 @@ export function MapPreview({
       if (poly.length >= 2) out.set(tripId, poly);
     }
     return out;
-  }, [rt]);
+  }, [rt, shapesReady]);
 
   // -------------------------------------------------------------------
   // Premium gliding bus overlay. Each vehicle is its own DOM overlay that
@@ -285,7 +309,7 @@ export function MapPreview({
       if (existing) {
         existing.setVariant(variant);
         existing.setPath(path);
-        existing.setTarget(targetLat, targetLng, targetBearing, now);
+        existing.setTarget(targetLat, targetLng, targetBearing, now, v.speed ?? 0);
         existing.setSize(sizePx);
         existing.setFocused(focused);
         existing.setStale(stale);
@@ -301,6 +325,7 @@ export function MapPreview({
           variant,
           path,
           stale,
+          v.speed ?? 0,
         );
         layer.set(v.id, bus);
       }
@@ -439,6 +464,7 @@ class AnimatedBus {
     variant: "premium" | "triangle" = "premium",
     path: { lat: number; lng: number }[] | null = null,
     stale = false,
+    speedMps = 0,
   ) {
     this.api = api;
     this.map = map;
@@ -615,7 +641,7 @@ class AnimatedBus {
     }
   }
 
-  setTarget(lat: number, lng: number, bearing: number, nowMs: number) {
+  setTarget(lat: number, lng: number, bearing: number, nowMs: number, speedMps = 0) {
     // Snap "from" to wherever we currently are before starting the next tween.
     this.fromLat = this.toLat;
     this.fromLng = this.toLng;
@@ -639,6 +665,20 @@ class AnimatedBus {
         this.toAlong = Math.max(from.along, to.along);
         this.usePath = true;
       }
+    }
+
+    // Tween duration scales with distance + live speed so a stopped bus
+    // visibly stops and a fast bus moves faster. Clamp into a sane range
+    // (next feed refresh is ~20s, so cap < that).
+    const distM = this.usePath
+      ? Math.max(0, this.toAlong - this.fromAlong)
+      : haversineM({ lat: this.fromLat, lng: this.fromLng }, { lat, lng });
+    if (speedMps < 0.5 || distM < 3) {
+      // Bus is stopped (or barely moved) — short, gentle settle.
+      this.tweenDur = 1200;
+    } else {
+      const dur = (distM / speedMps) * 1000;
+      this.tweenDur = Math.max(1500, Math.min(18_000, dur));
     }
   }
 
