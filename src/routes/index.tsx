@@ -109,8 +109,12 @@ function Explore() {
   );
 
   // Geolocation-driven nearby stops with live ETAs
+  const nearStops = useMemo(() => nearestStops(geo.coords, 5), [geo.coords]);
+  const nearStopIds = useMemo(() => nearStops.map((s) => s.id), [nearStops]);
+  const { data: learnedByStop } = useLearnedStatsBulk(nearStopIds);
+
   const stops: Stop[] = useMemo(() => {
-    const near = nearestStops(geo.coords, 5);
+    const near = nearStops;
     const t = Math.floor(Date.now() / 1000);
     // Index arrivals by stop for the route-chip list (cheap, no snap needed).
     const arrByStop = new Map<string, { routeId: string; eta: number }[]>();
@@ -130,8 +134,7 @@ function Explore() {
       );
 
       // Smart ETA: snap the running vehicle onto its trip's stop polyline,
-      // factor in dwell + ping freshness + speed. Falls back gracefully to
-      // operator prediction when no vehicle is matched.
+      // factor in dwell + ping freshness + speed + learned per-route bias.
       const smart = rt
         ? smartEtaForStop({
             stopId: s.id,
@@ -139,9 +142,11 @@ function Explore() {
             vehicles: rt.vehicles,
             nowSec: t,
             agency: s.agency,
+            learnedByRoute: learnedByStop?.get(s.id),
           })
         : null;
       const nextEta = smart ? smart.etaMin : arrivals[0]?.eta ?? null;
+
 
       const seen = new Set<string>();
       const routes = arrivals
