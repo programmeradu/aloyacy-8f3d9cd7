@@ -178,30 +178,41 @@ export function smartEtaForStop(input: SmartEtaInput): SmartEta | null {
   }
   const targetIdx = polyVerts.findIndex((v) => v.stopId === input.stopId);
 
+  // Learned bias for this route+stop at this hour/dow. Only trust it
+  // when we have a meaningful sample (>= 5 observations).
+  const learned = input.learnedByRoute?.[next.routeId];
+  const learnedBiasSec =
+    learned && learned.sampleCount >= 5 ? learned.meanDelaySec : 0;
+
   // No vehicle, or trip path too thin to reason about → fall back to operator.
   if (!vehicle || polyVerts.length < 2 || targetIdx < 0) {
+    // Even without a vehicle we can apply learned bias to the operator's number.
+    const adjusted = Math.max(0, operatorEtaSec + learnedBiasSec * 0.6);
     return {
-      etaSec: operatorEtaSec,
-      etaMin: operatorEtaMin,
+      etaSec: adjusted,
+      etaMin: Math.max(0, Math.round(adjusted / 60)),
       operatorEtaMin,
       confidence: vehicle ? "predicted" : "scheduled",
       pingAgeSec: vehicle ? Math.max(0, now - vehicle.timestamp) : Infinity,
       stopsAway: null,
       blurb: vehicle ? "predicted" : "scheduled",
+      learnedBiasSec,
     };
   }
 
   const pingAgeSec = Math.max(0, now - vehicle.timestamp);
   const snap = snapDistanceAlong({ lat: vehicle.lat, lng: vehicle.lng }, polyVerts);
   if (!snap) {
+    const adjusted = Math.max(0, operatorEtaSec + learnedBiasSec * 0.6);
     return {
-      etaSec: operatorEtaSec,
-      etaMin: operatorEtaMin,
+      etaSec: adjusted,
+      etaMin: Math.max(0, Math.round(adjusted / 60)),
       operatorEtaMin,
       confidence: "predicted",
       pingAgeSec,
       stopsAway: null,
       blurb: "predicted",
+      learnedBiasSec,
     };
   }
 
@@ -209,9 +220,6 @@ export function smartEtaForStop(input: SmartEtaInput): SmartEta | null {
   const remainingM = Math.max(0, targetAlong - snap.along);
 
   // How many *intermediate* stops between the snapped point and the target?
-  // segIndex is the segment the bus is currently on; the next stop ahead is
-  // polyVerts[segIndex + 1]. Stops strictly between (segIndex+1) and targetIdx-1
-  // are dwell stops we'll pause at.
   const stopsAway = Math.max(0, targetIdx - snap.segIndex - 1);
   const dwellPerStop = input.agency === "IC" ? DWELL_SEC_INTERCITY : DWELL_SEC_URBAN;
   const dwellSec = stopsAway * dwellPerStop;
@@ -230,14 +238,17 @@ export function smartEtaForStop(input: SmartEtaInput): SmartEta | null {
   // Blend with operator prediction when our ping is stale — they may have
   // newer information than we do.
   if (pingAgeSec > PING_STALE_SEC) {
-    // 70% operator, 30% ours.
     etaSec = 0.7 * operatorEtaSec + 0.3 * etaSec;
   } else if (pingAgeSec > PING_FRESH_SEC) {
-    // 50/50.
     etaSec = 0.5 * operatorEtaSec + 0.5 * etaSec;
   }
 
-  // Sanity clamp — never show negative, never claim 0 min when distance > 100m.
+  // Add learned systematic bias. We scale it down a bit because our
+  // distance + speed model already reflects part of "running late" via
+  // observed speed — applying the full bias would double-count.
+  etaSec += learnedBiasSec * 0.6;
+
+  // Sanity clamp.
   etaSec = Math.max(0, etaSec);
   if (remainingM > 100 && etaSec < 30) etaSec = 30;
 
@@ -254,6 +265,17 @@ export function smartEtaForStop(input: SmartEtaInput): SmartEta | null {
     blurb = pingAgeSec > 240 ? "stale ping" : "predicted";
   }
 
+  // Surface the learned bias in the blurb when it's material and we
+  // weren't already saying something more urgent.
+  if (
+    blurb === "live" || blurb === "predicted"
+  ) {
+    const biasMin = Math.round(learnedBiasSec / 60);
+    if (learned && learned.sampleCount >= 8 && Math.abs(biasMin) >= 2) {
+      blurb = biasMin > 0 ? `usually ${biasMin} min late` : `usually ${-biasMin} min early`;
+    }
+  }
+
   return {
     etaSec,
     etaMin: Math.max(0, Math.round(etaSec / 60)),
@@ -262,5 +284,6 @@ export function smartEtaForStop(input: SmartEtaInput): SmartEta | null {
     pingAgeSec,
     stopsAway,
     blurb,
+    learnedBiasSec,
   };
 }
