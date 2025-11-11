@@ -349,6 +349,33 @@ export function MapPreview({
           return;
         }
         busLayerRef.current.forEach((b) => b.tick(t));
+        // Stop-pulse detection: any bus that's at-stop (speed≈0, near current
+        // tween target) within ~30m of a rendered stop marker triggers a pulse
+        // on that marker. Cheap O(buses × stops) — both are small.
+        const stopMarkers = layerRef.current.markers;
+        if (stopMarkers.length) {
+          const active = new Set<google.maps.Marker>();
+          busLayerRef.current.forEach((b) => {
+            if (!b.isBoarding()) return;
+            const pos = b.getPos();
+            for (const mk of stopMarkers) {
+              const p = mk.getPosition();
+              if (!p) continue;
+              if (haversineM(pos, { lat: p.lat(), lng: p.lng() }) < 30) active.add(mk);
+            }
+          });
+          // Toggle a CSS class on each marker via icon scale tweak.
+          for (const mk of stopMarkers) {
+            const on = active.has(mk);
+            const wasOn = (mk as unknown as { __pulse?: boolean }).__pulse;
+            if (on === !!wasOn) continue;
+            (mk as unknown as { __pulse?: boolean }).__pulse = on;
+            const icon = mk.getIcon() as google.maps.Symbol | undefined;
+            if (icon && typeof icon === "object" && "scale" in icon) {
+              mk.setIcon({ ...icon, scale: on ? (icon.scale ?? 6) * 1.6 : (icon.scale ?? 6) / 1.6 });
+            }
+          }
+        }
         rafRef.current = requestAnimationFrame(tick);
       };
       rafRef.current = requestAnimationFrame(tick);
