@@ -5,8 +5,8 @@ import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconArrowUpRight } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
-import { useLearnedStats } from "@/lib/useLearnedStats";
-import { smartEta, type SmartEta } from "@/lib/predictor";
+import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
+import { smartEtaForStop, type SmartEta } from "@/lib/eta";
 import { getStop, getRoute, routeTone } from "@/lib/gtfs";
 
 export const Route = createFileRoute("/stop/$stopId")({
@@ -23,28 +23,34 @@ function StopDetail() {
   const { stopId } = Route.useParams();
   const stop = getStop(stopId);
   const { data: rt, isLoading } = useRealtime();
-  const { data: learnedMap } = useLearnedStats([stopId]);
+  const { data: learnedByStop } = useLearnedStatsBulk([stopId]);
 
   const departures = useMemo(() => {
     if (!rt) return [];
     const now = Math.floor(Date.now() / 1000);
-    const learned = learnedMap?.get(stopId);
-    return rt.arrivals
-      .filter((a) => a.stopId === stopId)
+    const learnedByRoute = learnedByStop?.get(stopId);
+    // Distinct upcoming trips at this stop, soonest first.
+    const seen = new Set<string>();
+    const here = rt.arrivals
+      .filter((a) => a.stopId === stopId && a.arrivalUnix >= now - 30)
+      .sort((a, b) => a.arrivalUnix - b.arrivalUnix)
+      .filter((a) => (seen.has(a.tripId) ? false : (seen.add(a.tripId), true)));
+    return here
       .map((a) => {
-        const scheduledUnix = a.arrivalUnix - a.delaySec;
-        const eta = smartEta({
-          scheduledArrivalUnix: scheduledUnix,
-          liveDelaySec: a.delaySec,
-          learned: learned?.get(a.routeId) ?? null,
-          nowUnix: now,
+        const eta = smartEtaForStop({
+          stopId,
+          arrivals: rt.arrivals.filter((x) => x.tripId === a.tripId || x.stopId === stopId),
+          vehicles: rt.vehicles,
+          nowSec: now,
+          agency: stop?.agency,
+          learnedByRoute,
         });
         return { ...a, eta };
       })
-      .filter((a) => a.eta.etaMin <= 180)
-      .sort((a, b) => a.eta.etaMin - b.eta.etaMin)
+      .filter((d): d is typeof d & { eta: SmartEta } => d.eta != null && d.eta.etaMin <= 180)
       .slice(0, 8);
-  }, [rt, stopId, learnedMap]);
+  }, [rt, stopId, learnedByStop, stop?.agency]);
+
 
   const center = stop ? { lat: stop.lat, lng: stop.lng } : undefined;
 
