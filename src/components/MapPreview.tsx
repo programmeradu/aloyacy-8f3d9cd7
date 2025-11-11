@@ -428,9 +428,11 @@ export function MapPreview({
           </span>
         </div>
       )}
-      <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-white/85 backdrop-blur-md ring-1 ring-line px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-        {placeName ?? `Cyprus \u2002—\u2002 ${placeLabel}`}
-      </div>
+      {placeName && (
+        <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-white/85 backdrop-blur-md ring-1 ring-line px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+          {placeName}
+        </div>
+      )}
     </div>
   );
 }
