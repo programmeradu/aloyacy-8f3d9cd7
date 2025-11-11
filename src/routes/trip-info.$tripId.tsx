@@ -258,13 +258,14 @@ function TripInfo() {
 
 function Insight({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-card p-3 ring-1 ring-line">
+    <div className="rounded-2xl bg-card p-3 ring-1 ring-line min-w-0">
       <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
         {label}
       </p>
-      <p className="mt-1 font-display text-[18px] leading-tight text-ink truncate">
+      <p className="mt-1 font-display text-[16px] leading-[1.15] text-ink text-pretty line-clamp-2 break-words">
         {value}
       </p>
     </div>
   );
 }
+
