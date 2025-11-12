@@ -974,3 +974,176 @@ function ensureBoardingKeyframes() {
   }`;
   document.head.appendChild(style);
 }
+
+/* ============================================================
+ * UserHereOverlay — Google-Maps-style "blue dot" for the rider's
+ * own location, with an optional translucent heading cone when a
+ * compass or GPS heading is available. Lightweight DOM overlay so
+ * it composites smoothly with the gliding bus markers.
+ * ============================================================ */
+class UserHereOverlay {
+  private overlay: google.maps.OverlayView;
+  private el: HTMLDivElement;
+  private cone: HTMLDivElement;
+  private accuracyHalo: HTMLDivElement;
+  private lat: number;
+  private lng: number;
+  private heading: number | null;
+  private accuracyM: number;
+
+  constructor(
+    api: typeof google,
+    map: google.maps.Map,
+    init: { lat: number; lng: number; headingDeg?: number | null; accuracyM?: number },
+  ) {
+    this.lat = init.lat;
+    this.lng = init.lng;
+    this.heading = init.headingDeg ?? null;
+    this.accuracyM = init.accuracyM ?? 25;
+    ensureUserHerePulseKeyframes();
+
+    const el = document.createElement("div");
+    el.style.position = "absolute";
+    el.style.pointerEvents = "none";
+    el.style.willChange = "transform";
+    el.style.transformOrigin = "center center";
+
+    // Accuracy halo — soft fill scaled by GPS accuracy.
+    const accuracyHalo = document.createElement("div");
+    accuracyHalo.style.position = "absolute";
+    accuracyHalo.style.left = "50%";
+    accuracyHalo.style.top = "50%";
+    accuracyHalo.style.borderRadius = "50%";
+    accuracyHalo.style.background =
+      "radial-gradient(circle, color-mix(in oklab, #2d8a9e 22%, transparent) 0%, color-mix(in oklab, #2d8a9e 8%, transparent) 60%, transparent 100%)";
+    accuracyHalo.style.transform = "translate(-50%, -50%)";
+
+    // Heading cone — translucent wedge, points "up" (rotated by heading).
+    const cone = document.createElement("div");
+    cone.style.position = "absolute";
+    cone.style.left = "50%";
+    cone.style.top = "50%";
+    cone.style.width = "120px";
+    cone.style.height = "120px";
+    cone.style.transformOrigin = "50% 50%";
+    cone.style.background =
+      "conic-gradient(from -30deg at 50% 50%, transparent 0deg, color-mix(in oklab, #2d8a9e 55%, transparent) 30deg, color-mix(in oklab, #2d8a9e 0%, transparent) 60deg, transparent 60deg)";
+    cone.style.maskImage =
+      "radial-gradient(circle at 50% 50%, black 12%, rgba(0,0,0,0.85) 35%, transparent 65%)";
+    // Webkit fallback for the mask.
+    (cone.style as unknown as { webkitMaskImage: string }).webkitMaskImage =
+      "radial-gradient(circle at 50% 50%, black 12%, rgba(0,0,0,0.85) 35%, transparent 65%)";
+    cone.style.transform = "translate(-50%, -50%) rotate(0deg)";
+    cone.style.opacity = this.heading == null ? "0" : "1";
+    cone.style.transition = "opacity 240ms ease";
+
+    // Pulsing soft outer ring.
+    const pulse = document.createElement("div");
+    pulse.style.position = "absolute";
+    pulse.style.left = "50%";
+    pulse.style.top = "50%";
+    pulse.style.width = "36px";
+    pulse.style.height = "36px";
+    pulse.style.borderRadius = "50%";
+    pulse.style.transform = "translate(-50%, -50%)";
+    pulse.style.background = "color-mix(in oklab, #2d8a9e 30%, transparent)";
+    pulse.style.animation = "aloya-here-pulse 1800ms ease-out infinite";
+
+    // Core dot — white ring + aegean center, classic "you" marker.
+    const dot = document.createElement("div");
+    dot.style.position = "absolute";
+    dot.style.left = "50%";
+    dot.style.top = "50%";
+    dot.style.width = "18px";
+    dot.style.height = "18px";
+    dot.style.borderRadius = "50%";
+    dot.style.transform = "translate(-50%, -50%)";
+    dot.style.background = "#2d8a9e";
+    dot.style.border = "3px solid #ffffff";
+    dot.style.boxShadow = "0 2px 6px rgba(20,20,20,0.35)";
+
+    el.appendChild(accuracyHalo);
+    el.appendChild(cone);
+    el.appendChild(pulse);
+    el.appendChild(dot);
+
+    this.el = el;
+    this.cone = cone;
+    this.accuracyHalo = accuracyHalo;
+    this.applyAccuracy(map);
+    this.applyHeading();
+
+    const self = this;
+    class HereOverlay extends api.maps.OverlayView {
+      onAdd() {
+        const panes = this.getPanes();
+        panes?.floatPane.appendChild(self.el);
+      }
+      draw() {
+        const projection = this.getProjection();
+        if (!projection) return;
+        const pt = projection.fromLatLngToDivPixel(
+          new api.maps.LatLng(self.lat, self.lng),
+        );
+        if (!pt) return;
+        self.el.style.transform = `translate3d(${pt.x}px, ${pt.y}px, 0)`;
+        self.applyAccuracy(self["map"]);
+      }
+      onRemove() {
+        self.el.parentNode?.removeChild(self.el);
+      }
+    }
+    // Stash map ref for accuracy scaling on each draw.
+    (this as unknown as { map: google.maps.Map }).map = map;
+    this.overlay = new HereOverlay();
+    this.overlay.setMap(map);
+  }
+
+  update(next: { lat: number; lng: number; headingDeg?: number | null; accuracyM?: number }) {
+    this.lat = next.lat;
+    this.lng = next.lng;
+    this.heading = next.headingDeg ?? null;
+    this.accuracyM = next.accuracyM ?? this.accuracyM;
+    this.applyHeading();
+    this.overlay.draw();
+  }
+
+  private applyHeading() {
+    if (this.heading == null) {
+      this.cone.style.opacity = "0";
+    } else {
+      this.cone.style.opacity = "1";
+      this.cone.style.transform = `translate(-50%, -50%) rotate(${this.heading}deg)`;
+    }
+  }
+
+  private applyAccuracy(map: google.maps.Map) {
+    // Convert accuracy in metres to pixels at current zoom.
+    const proj = map.getProjection();
+    if (!proj) return;
+    const zoom = map.getZoom() ?? 14;
+    const scale = 2 ** zoom;
+    const metersPerPixel =
+      (156543.03392 * Math.cos((this.lat * Math.PI) / 180)) / scale;
+    const px = Math.max(24, Math.min(160, this.accuracyM / metersPerPixel));
+    this.accuracyHalo.style.width = `${px * 2}px`;
+    this.accuracyHalo.style.height = `${px * 2}px`;
+  }
+
+  destroy() {
+    this.overlay.setMap(null);
+  }
+}
+
+let userHerePulseKeyframesInjected = false;
+function ensureUserHerePulseKeyframes() {
+  if (userHerePulseKeyframesInjected || typeof document === "undefined") return;
+  userHerePulseKeyframesInjected = true;
+  const style = document.createElement("style");
+  style.textContent = `@keyframes aloya-here-pulse {
+    0%   { transform: translate(-50%, -50%) scale(0.6); opacity: 0.6; }
+    80%  { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+  }`;
+  document.head.appendChild(style);
+}
