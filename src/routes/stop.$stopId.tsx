@@ -139,9 +139,10 @@ function StopDetail() {
                     tone={routeTone(d.routeId)}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="font-display text-lg leading-tight text-ink truncate">
+                    <p className="font-display text-lg leading-[1.15] text-ink text-pretty line-clamp-2 break-words">
                       {route?.long ?? "Route"}
                     </p>
+
                     <p className="mt-1 flex items-center gap-2 text-[12px] text-ink-soft">
                       <IconBus className="size-3 shrink-0" />
                       <span className="truncate">{d.eta.blurb}</span>
