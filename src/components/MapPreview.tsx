@@ -1019,24 +1019,32 @@ class UserHereOverlay {
       "radial-gradient(circle, color-mix(in oklab, #2d8a9e 22%, transparent) 0%, color-mix(in oklab, #2d8a9e 8%, transparent) 60%, transparent 100%)";
     accuracyHalo.style.transform = "translate(-50%, -50%)";
 
-    // Heading cone — translucent wedge, points "up" (rotated by heading).
+    // Heading cone — SVG wedge so it renders crisply across engines and is
+    // never killed by mask-image quirks. Points "up" (north); the outer
+    // <div> rotates by the heading. A subtle gradient fades the tip out so
+    // it reads as direction-of-travel, not a hard cone.
     const cone = document.createElement("div");
     cone.style.position = "absolute";
     cone.style.left = "50%";
     cone.style.top = "50%";
-    cone.style.width = "120px";
-    cone.style.height = "120px";
+    cone.style.width = "140px";
+    cone.style.height = "140px";
     cone.style.transformOrigin = "50% 50%";
-    cone.style.background =
-      "conic-gradient(from -30deg at 50% 50%, transparent 0deg, color-mix(in oklab, #2d8a9e 55%, transparent) 30deg, color-mix(in oklab, #2d8a9e 0%, transparent) 60deg, transparent 60deg)";
-    cone.style.maskImage =
-      "radial-gradient(circle at 50% 50%, black 12%, rgba(0,0,0,0.85) 35%, transparent 65%)";
-    // Webkit fallback for the mask.
-    (cone.style as unknown as { webkitMaskImage: string }).webkitMaskImage =
-      "radial-gradient(circle at 50% 50%, black 12%, rgba(0,0,0,0.85) 35%, transparent 65%)";
     cone.style.transform = "translate(-50%, -50%) rotate(0deg)";
     cone.style.opacity = this.heading == null ? "0" : "1";
-    cone.style.transition = "opacity 240ms ease";
+    cone.style.transition = "opacity 240ms ease, transform 320ms ease";
+    cone.innerHTML = `
+      <svg viewBox="0 0 140 140" width="140" height="140" style="display:block;">
+        <defs>
+          <linearGradient id="aloya-cone-grad" x1="0.5" y1="1" x2="0.5" y2="0">
+            <stop offset="0%" stop-color="#2d8a9e" stop-opacity="0.85"/>
+            <stop offset="60%" stop-color="#2d8a9e" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#2d8a9e" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M70 70 L26 6 Q70 -8 114 6 Z" fill="url(#aloya-cone-grad)"/>
+      </svg>
+    `;
 
     // Pulsing soft outer ring.
     const pulse = document.createElement("div");
