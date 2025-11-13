@@ -175,9 +175,25 @@ function TripCompanion() {
     ? { [live.fusedVehicle.tripId]: live.fusedVehicle }
     : undefined;
 
-  // Compass heading (works while stationary, complements GPS heading which
-  // only fires above ~2 m/s). Prefer compass; fall back to GPS heading.
+  // Compass heading (works while stationary). GPS heading is only valid
+  // while moving > ~2 m/s. As a third fallback we derive a bearing from
+  // two recent fixes >5 m apart — covers desktop dev and indoor pre-walk
+  // scenarios where neither sensor is reporting.
   const compass = useCompass(live.active);
+  const prevFixRef = useRef<{ lat: number; lng: number; t: number } | null>(null);
+  const derivedHeadingRef = useRef<number | null>(null);
+  if (live.fix) {
+    const prev = prevFixRef.current;
+    if (!prev) {
+      prevFixRef.current = { lat: live.fix.lat, lng: live.fix.lng, t: live.fix.timestamp };
+    } else if (live.fix.timestamp !== prev.t) {
+      const dM = haversineMeters(prev, live.fix);
+      if (dM > 5) {
+        derivedHeadingRef.current = bearingDeg(prev, live.fix);
+        prevFixRef.current = { lat: live.fix.lat, lng: live.fix.lng, t: live.fix.timestamp };
+      }
+    }
+  }
   const userLocation = live.fix
     ? {
         lat: live.fix.lat,
@@ -186,7 +202,9 @@ function TripCompanion() {
         headingDeg:
           compass.headingDeg != null
             ? compass.headingDeg
-            : live.fix.headingDeg,
+            : live.fix.headingDeg != null
+              ? live.fix.headingDeg
+              : derivedHeadingRef.current,
       }
     : null;
 
