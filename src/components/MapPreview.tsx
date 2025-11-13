@@ -1027,22 +1027,21 @@ class UserHereOverlay {
     cone.style.position = "absolute";
     cone.style.left = "50%";
     cone.style.top = "50%";
-    cone.style.width = "140px";
-    cone.style.height = "140px";
+    cone.style.width = "64px";
+    cone.style.height = "64px";
     cone.style.transformOrigin = "50% 50%";
     cone.style.transform = "translate(-50%, -50%) rotate(0deg)";
     cone.style.opacity = this.heading == null ? "0" : "1";
     cone.style.transition = "opacity 240ms ease, transform 320ms ease";
     cone.innerHTML = `
-      <svg viewBox="0 0 140 140" width="140" height="140" style="display:block;">
+      <svg viewBox="0 0 64 64" width="64" height="64" style="display:block;">
         <defs>
           <linearGradient id="aloya-cone-grad" x1="0.5" y1="1" x2="0.5" y2="0">
-            <stop offset="0%" stop-color="#2d8a9e" stop-opacity="0.85"/>
-            <stop offset="60%" stop-color="#2d8a9e" stop-opacity="0.35"/>
+            <stop offset="0%" stop-color="#2d8a9e" stop-opacity="0.9"/>
             <stop offset="100%" stop-color="#2d8a9e" stop-opacity="0"/>
           </linearGradient>
         </defs>
-        <path d="M70 70 L26 6 Q70 -8 114 6 Z" fill="url(#aloya-cone-grad)"/>
+        <path d="M32 32 L24 10 Q32 6 40 10 Z" fill="url(#aloya-cone-grad)"/>
       </svg>
     `;
 
@@ -1051,8 +1050,8 @@ class UserHereOverlay {
     pulse.style.position = "absolute";
     pulse.style.left = "50%";
     pulse.style.top = "50%";
-    pulse.style.width = "36px";
-    pulse.style.height = "36px";
+    pulse.style.width = "22px";
+    pulse.style.height = "22px";
     pulse.style.borderRadius = "50%";
     pulse.style.transform = "translate(-50%, -50%)";
     pulse.style.background = "color-mix(in oklab, #2d8a9e 30%, transparent)";
@@ -1063,13 +1062,13 @@ class UserHereOverlay {
     dot.style.position = "absolute";
     dot.style.left = "50%";
     dot.style.top = "50%";
-    dot.style.width = "18px";
-    dot.style.height = "18px";
+    dot.style.width = "12px";
+    dot.style.height = "12px";
     dot.style.borderRadius = "50%";
     dot.style.transform = "translate(-50%, -50%)";
     dot.style.background = "#2d8a9e";
-    dot.style.border = "3px solid #ffffff";
-    dot.style.boxShadow = "0 2px 6px rgba(20,20,20,0.35)";
+    dot.style.border = "2px solid #ffffff";
+    dot.style.boxShadow = "0 1px 4px rgba(20,20,20,0.35)";
 
     el.appendChild(accuracyHalo);
     el.appendChild(cone);
