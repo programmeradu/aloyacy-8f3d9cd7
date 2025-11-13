@@ -12,6 +12,7 @@ import { useActiveTrip, clearActiveTrip } from "@/lib/trip-store";
 import { routeTone } from "@/lib/gtfs";
 import { getWalkingDirections } from "@/lib/maps.functions";
 import { useJourney } from "@/lib/useJourney";
+import { useCompass } from "@/lib/useCompass";
 import { JourneyHUD } from "@/components/JourneyHUD";
 import { useTick } from "@/hooks/use-tick";
 import companionHero from "@/assets/companion-hero.jpg";
@@ -174,6 +175,22 @@ function TripCompanion() {
     ? { [live.fusedVehicle.tripId]: live.fusedVehicle }
     : undefined;
 
+  // Compass heading (works while stationary, complements GPS heading which
+  // only fires above ~2 m/s). Prefer compass; fall back to GPS heading.
+  const compass = useCompass(live.active);
+  const userLocation = live.fix
+    ? {
+        lat: live.fix.lat,
+        lng: live.fix.lng,
+        accuracyM: live.fix.accuracyM,
+        headingDeg:
+          compass.headingDeg != null
+            ? compass.headingDeg
+            : live.fix.headingDeg,
+      }
+    : null;
+
+
 
   const mapMarkers: MapMarker[] = useMemo(() => {
     const out: MapMarker[] = [];
@@ -267,6 +284,7 @@ function TripCompanion() {
           focusTripId={bus.tripId}
           focusRouteId={bus.routeId}
           vehicleOverrides={vehicleOverrides}
+          userLocation={userLocation}
         />
 
       </section>
@@ -612,6 +630,7 @@ function TurnStep({
           liveVehicles={false}
           markers={[{ lat, lng, kind: "pin", tone: "aegean", label: instruction }]}
           fitToContent={false}
+          fullscreenable={false}
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
         <div className="absolute left-3 top-3 flex items-center gap-2">
