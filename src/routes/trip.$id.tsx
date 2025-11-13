@@ -284,6 +284,7 @@ function TripCompanion() {
           focusTripId={bus.tripId}
           focusRouteId={bus.routeId}
           vehicleOverrides={vehicleOverrides}
+          userLocation={userLocation}
         />
 
       </section>
