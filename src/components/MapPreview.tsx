@@ -803,56 +803,100 @@ class AnimatedBus {
     this.applyStale();
   }
 
-  /** Provide the trip's stop polyline so we glide along it instead of
-   *  straight-lerping through buildings. Pass null to revert to lerp. */
+  /** Provide the trip's road-following polyline so we glide along it instead
+   *  of straight-lerping through buildings. Pass null to revert to lerp.
+   *  The path is densified to ≤25 m segments so curvature reads smoothly. */
   setPath(path: { lat: number; lng: number }[] | null) {
     if (!path || path.length < 2) {
+      this.srcPath = null;
       this.path = null;
       this.cum = [];
+      this.pathTotal = 0;
+      this.usePath = false;
       return;
     }
-    if (this.path === path) return;
-    this.path = path;
+    if (this.srcPath === path) return;
+    this.srcPath = path;
+    const dense = densifyPath(path, DENSIFY_MAX_M);
+    this.path = dense;
     this.cum = [0];
-    for (let i = 1; i < path.length; i++) {
-      this.cum.push(this.cum[i - 1] + haversineM(path[i - 1], path[i]));
+    for (let i = 1; i < dense.length; i++) {
+      this.cum.push(this.cum[i - 1] + haversineM(dense[i - 1], dense[i]));
     }
+    this.pathTotal = this.cum[this.cum.length - 1];
+    // Initialise the kinematic position from wherever we are right now,
+    // so the first frame after path arrives doesn't snap to the start.
+    const snap = snapAlong({ lat: this.curLat, lng: this.curLng }, dense, this.cum);
+    if (snap && snap.perpM <= MAX_SNAP_M) {
+      this.displayedAlong = snap.along;
+    } else {
+      this.displayedAlong = 0;
+    }
+    this.correctionVel = 0;
   }
 
+  /** Called whenever a fresh GTFS-RT ping lands for this vehicle.
+   *  In path mode we treat the ping as a noisy observation: snap it to the
+   *  polyline, reject it outright if it's too far off the line (urban GPS
+   *  drift), or compute the prediction error and schedule a smooth bleed.
+   *  In lerp mode we fall back to the original ease-tween. */
   setTarget(lat: number, lng: number, bearing: number, nowMs: number, speedMps = 0) {
-    // Snap "from" to wherever we currently are before starting the next tween.
-    this.fromLat = this.toLat;
-    this.fromLng = this.toLng;
-    this.fromBearing = this.currentBearing;
     this.toLat = lat;
     this.toLng = lng;
     this.toBearing = bearing;
-    // shortest-arc delta in [-180, 180]
-    let delta = ((bearing - this.currentBearing + 540) % 360) - 180;
-    this.bearingDelta = delta;
-    this.tweenStart = nowMs;
 
-    // If we have a path, snap both endpoints; require forward motion
-    // along the line, else fall back to straight lerp for this hop.
-    this.usePath = false;
     if (this.path && this.path.length >= 2) {
-      const from = snapAlong({ lat: this.fromLat, lng: this.fromLng }, this.path, this.cum);
-      const to = snapAlong({ lat: this.toLat, lng: this.toLng }, this.path, this.cum);
-      if (from && to && to.along >= from.along - 25) {
-        this.fromAlong = from.along;
-        this.toAlong = Math.max(from.along, to.along);
+      const snap = snapAlong({ lat, lng }, this.path, this.cum);
+      if (snap && snap.perpM <= MAX_SNAP_M) {
+        const pingAlong = snap.along;
+        const err = pingAlong - this.displayedAlong;
+
+        if (Math.abs(err) > TELEPORT_M) {
+          // Driver detoured, started a new run, or feed reset — snap.
+          this.displayedAlong = pingAlong;
+          this.correctionVel = 0;
+        } else {
+          // Smooth correction: distribute the error over SETTLE_S seconds.
+          this.correctionVel = err / SETTLE_S;
+        }
+
+        // EMA-smooth the speed so noisy zero / spike samples don't visibly
+        // jolt the glide between feed refreshes.
+        this.speedMps =
+          this.speedMps === 0 && speedMps > 0
+            ? speedMps
+            : this.speedMps * (1 - SPEED_SMOOTH) + speedMps * SPEED_SMOOTH;
+
         this.usePath = true;
+        this.setBoarding(this.speedMps < 0.5);
+        return;
+      }
+      // Ping fell off the polyline. Distrust it: keep gliding on the line
+      // with what we already know, but bleed off any pending correction so
+      // we don't keep drifting on stale error. Slowly fade speed so the
+      // bus eventually parks if the GPS stays bad.
+      if (this.usePath) {
+        this.correctionVel = 0;
+        this.speedMps *= 0.75;
+        if (this.speedMps < 0.4) this.setBoarding(true);
+        return;
       }
     }
 
-    // Tween duration scales with distance + live speed so a stopped bus
-    // visibly stops and a fast bus moves faster. Clamp into a sane range
-    // (next feed refresh is ~20s, so cap < that).
-    const distM = this.usePath
-      ? Math.max(0, this.toAlong - this.fromAlong)
-      : haversineM({ lat: this.fromLat, lng: this.fromLng }, { lat, lng });
+    // -------- Off-path fallback: original ease-tween between pings -------
+    this.usePath = false;
+    this.fromLat = this.curLat;
+    this.fromLng = this.curLng;
+    this.fromBearing = this.currentBearing;
+    const delta = ((bearing - this.currentBearing + 540) % 360) - 180;
+    this.bearingDelta = delta;
+    this.tweenStart = nowMs;
+
+    const distM = haversineM(
+      { lat: this.fromLat, lng: this.fromLng },
+      { lat, lng },
+    );
     if (speedMps < 0.5 || distM < 3) {
-      // Bus is stopped (or barely moved) — short, gentle settle.
       this.tweenDur = 1200;
       this.setBoarding(true);
     } else {
@@ -880,20 +924,47 @@ class AnimatedBus {
   }
 
   tick(nowMs: number) {
-    const t = Math.min(1, (nowMs - this.tweenStart) / this.tweenDur);
-    const e = EASE(t);
-    let lat: number, lng: number;
-    let pathBearing: number | null = null;
+    // Cap dt so a backgrounded tab doesn't fling the bus on resume.
+    if (this.lastTickMs === 0) this.lastTickMs = nowMs;
+    const dt = Math.min(0.1, Math.max(0, (nowMs - this.lastTickMs) / 1000));
+    this.lastTickMs = nowMs;
+
+    let lat: number;
+    let lng: number;
+    let targetBearing: number | null = null;
 
     if (this.usePath && this.path) {
-      const along = lerp(this.fromAlong, this.toAlong, e);
-      const sample = sampleAlong(this.path, this.cum, along);
+      // Dead-reckon forward at the smoothed speed + any pending correction.
+      this.displayedAlong += (this.speedMps + this.correctionVel) * dt;
+      this.displayedAlong = Math.max(0, Math.min(this.pathTotal, this.displayedAlong));
+      // Exponential decay on the correction velocity.
+      this.correctionVel *= Math.exp(-dt / CORRECTION_TAU);
+      if (Math.abs(this.correctionVel) < 0.01) this.correctionVel = 0;
+
+      const sample = sampleAlong(this.path, this.cum, this.displayedAlong);
       lat = sample.lat;
       lng = sample.lng;
-      pathBearing = sample.bearing;
+      targetBearing = sample.bearing;
     } else {
+      // Off-path: original ease-tween.
+      const t = Math.min(1, (nowMs - this.tweenStart) / this.tweenDur);
+      const e = EASE(t);
       lat = lerp(this.fromLat, this.toLat, e);
       lng = lerp(this.fromLng, this.toLng, e);
+      targetBearing = this.fromBearing + this.bearingDelta * e;
+      if (t >= 1) {
+        this.fromLat = this.toLat;
+        this.fromLng = this.toLng;
+        this.fromBearing = this.toBearing;
+        this.bearingDelta = 0;
+      }
+    }
+
+    // Low-pass the bearing so tight turns sweep instead of snap.
+    if (targetBearing != null) {
+      const diff = ((targetBearing - this.currentBearing + 540) % 360) - 180;
+      const k = Math.min(1, dt * BEARING_SLEW_PER_S);
+      this.currentBearing = (this.currentBearing + diff * k + 360) % 360;
     }
 
     this.curLat = lat;
@@ -903,24 +974,8 @@ class AnimatedBus {
     if (!projection) return;
     const pt = projection.fromLatLngToDivPixel(new this.api.maps.LatLng(lat, lng));
     if (!pt) return;
-
-
-    // Prefer the path-derived bearing when gliding along a polyline — it
-    // matches the visible direction of travel even if the feed's bearing
-    // is stale or coarse.
-    if (pathBearing != null) {
-      this.currentBearing = pathBearing;
-    } else {
-      this.currentBearing = this.fromBearing + this.bearingDelta * e;
-    }
     this.el.style.transform = `translate3d(${pt.x - this.size / 2}px, ${pt.y - this.size / 2}px, 0)`;
     this.rotor.style.transform = `rotate(${this.currentBearing}deg)`;
-    if (t >= 1) {
-      this.fromLat = this.toLat;
-      this.fromLng = this.toLng;
-      this.fromBearing = this.toBearing;
-      this.bearingDelta = 0;
-    }
   }
 
   destroy() {
