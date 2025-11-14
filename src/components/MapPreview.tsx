@@ -488,12 +488,15 @@ export function MapPreview({
     return km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`;
   }, [spanKm]);
 
+  // Use :fullscreen pseudo-class via inline style fallback. When the wrapper
+  // is the browser's fullscreenElement, it's already full viewport — but the
+  // rounded corners + ring would look odd, so we drop those when expanded.
   const wrapperClass = expanded
-    ? "fixed inset-0 z-[100] w-screen h-screen rounded-none ring-0 bg-limestone-soft"
+    ? "relative w-full h-full overflow-hidden bg-limestone-soft"
     : `relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`;
 
-  const content = (
-    <div className={`${wrapperClass} relative overflow-hidden`}>
+  return (
+    <div ref={wrapperRef} className={wrapperClass}>
       <div ref={hostRef} className="absolute inset-0" />
       {error && (
         <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
@@ -528,7 +531,7 @@ export function MapPreview({
       {fullscreenable && !error && (
         <button
           type="button"
-          onClick={() => setExpanded((v) => !v)}
+          onClick={toggleFullscreen}
           aria-label={expanded ? "Close fullscreen map" : "Expand map"}
           className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-md ring-1 ring-line text-ink shadow-sm transition-colors hover:bg-white"
         >
@@ -537,10 +540,6 @@ export function MapPreview({
       )}
     </div>
   );
-
-  return expanded && typeof document !== "undefined"
-    ? createPortal(content, document.body)
-    : content;
 }
 
 /* ============================================================
