@@ -544,12 +544,24 @@ export function MapPreview({
 
 /* ============================================================
  * AnimatedBus — a Google Maps OverlayView that renders a premium
- * top-down bus image and tweens its position + bearing smoothly
- * between live feed updates (~20s refresh). Uses CSS transforms
- * so movement is GPU-accelerated, with shortest-arc rotation.
+ * top-down bus image and glides it smoothly between live feed
+ * updates (~20 s refresh). For trips with a known shape polyline
+ * we run a small kinematic model — dead-reckon along the line at
+ * the smoothed feed speed, then bleed off prediction error when a
+ * new ping arrives — so the marker behaves like Uber/Lyft instead
+ * of teleporting on every refresh. Off-path buses fall back to a
+ * straight ease-tween between pings.
  * ============================================================ */
-const TWEEN_MS = 5500; // feed updates roughly every 20s; tween across most of it
+const TWEEN_MS = 5500;                  // off-path fallback tween length
+const MAX_SNAP_M = 45;                  // reject pings further than this off the polyline
+const TELEPORT_M = 250;                 // above this prediction error, snap instead of bleed
+const SETTLE_S = 1.5;                   // target time to absorb a prediction error
+const CORRECTION_TAU = 0.6;             // exp-decay constant for the correction velocity
+const DENSIFY_MAX_M = 25;               // max segment length after densification
+const SPEED_SMOOTH = 0.55;              // EMA weight on the freshest speed sample
+const BEARING_SLEW_PER_S = 6;           // radians-equivalent slew rate for bearing follow
 const EASE = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
+
 
 class AnimatedBus {
   private api: typeof google;
