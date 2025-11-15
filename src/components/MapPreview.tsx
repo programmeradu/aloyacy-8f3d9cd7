@@ -1004,7 +1004,7 @@ function snapAlong(
   p: { lat: number; lng: number },
   path: { lat: number; lng: number }[],
   cum: number[],
-): { along: number; segIndex: number } | null {
+): { along: number; segIndex: number; perpM: number } | null {
   if (path.length < 2) return null;
   const mPerLat = 110_540;
   const mPerLng = 111_320 * Math.cos((p.lat * Math.PI) / 180);
@@ -1035,7 +1035,38 @@ function snapAlong(
     }
   }
   const segLen = cum[bestSeg + 1] - cum[bestSeg];
-  return { along: cum[bestSeg] + segLen * bestT, segIndex: bestSeg };
+  return {
+    along: cum[bestSeg] + segLen * bestT,
+    segIndex: bestSeg,
+    perpM: Math.sqrt(bestDist2),
+  };
+}
+
+/** Subdivide any segment longer than `maxSegM` into evenly-spaced points.
+ *  Linear-in-degrees is plenty for sub-25m steps at Cyprus latitudes. */
+function densifyPath(
+  path: { lat: number; lng: number }[],
+  maxSegM: number,
+): { lat: number; lng: number }[] {
+  if (path.length < 2) return path.slice();
+  const out: { lat: number; lng: number }[] = [path[0]];
+  for (let i = 1; i < path.length; i++) {
+    const a = path[i - 1];
+    const b = path[i];
+    const d = haversineM(a, b);
+    if (d > maxSegM) {
+      const steps = Math.ceil(d / maxSegM);
+      for (let j = 1; j < steps; j++) {
+        const t = j / steps;
+        out.push({
+          lat: a.lat + (b.lat - a.lat) * t,
+          lng: a.lng + (b.lng - a.lng) * t,
+        });
+      }
+    }
+    out.push(b);
+  }
+  return out;
 }
 
 function sampleAlong(
