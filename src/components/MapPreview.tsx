@@ -101,6 +101,7 @@ export function MapPreview({
   fullscreenable = true,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const [fallbackOverlay, setFallbackOverlay] = useState(false);
 
   const { api, error } = useGoogleMaps();
   const { data: rt } = useRealtime();
@@ -137,6 +138,19 @@ export function MapPreview({
   const toggleFullscreen = async () => {
     const wrap = wrapperRef.current;
     if (!wrap) return;
+    // Detect native Fullscreen API support on this element.
+    const canNativeFs =
+      typeof wrap.requestFullscreen === "function" &&
+      typeof document.exitFullscreen === "function" &&
+      // iOS Safari exposes neither on Element; double-check the document flag.
+      document.fullscreenEnabled !== false;
+
+    if (!canNativeFs) {
+      // iOS Safari / older WebKit: use in-page fixed overlay.
+      setFallbackOverlay((v) => !v);
+      setExpanded((v) => !v);
+      return;
+    }
     try {
       if (!document.fullscreenElement) {
         await wrap.requestFullscreen();
@@ -144,17 +158,19 @@ export function MapPreview({
         await document.exitFullscreen();
       }
     } catch {
-      // Fallback: in-page fixed overlay if the browser blocks fullscreen
-      // (e.g. iOS Safari, which doesn't support Element.requestFullscreen).
+      setFallbackOverlay((v) => !v);
       setExpanded((v) => !v);
     }
   };
 
   useEffect(() => {
-    const onChange = () => setExpanded(!!document.fullscreenElement);
+    const onChange = () => {
+      const isFs = !!document.fullscreenElement;
+      setExpanded((prev) => (fallbackOverlay ? prev : isFs));
+    };
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
-  }, []);
+  }, [fallbackOverlay]);
 
   // Update center / zoom when no fit content is needed
   useEffect(() => {
@@ -492,7 +508,9 @@ export function MapPreview({
   // is the browser's fullscreenElement, it's already full viewport — but the
   // rounded corners + ring would look odd, so we drop those when expanded.
   const wrapperClass = expanded
-    ? "relative w-full h-full overflow-hidden bg-limestone-soft"
+    ? fallbackOverlay
+      ? "fixed inset-0 z-[100] w-screen h-screen overflow-hidden bg-limestone-soft"
+      : "relative w-full h-full overflow-hidden bg-limestone-soft"
     : `relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`;
 
   return (
