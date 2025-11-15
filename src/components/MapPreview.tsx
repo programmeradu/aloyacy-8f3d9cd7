@@ -101,6 +101,7 @@ export function MapPreview({
   fullscreenable = true,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const [fallbackOverlay, setFallbackOverlay] = useState(false);
 
   const { api, error } = useGoogleMaps();
   const { data: rt } = useRealtime();
