@@ -639,25 +639,40 @@ function TurnStep({
     distanceMeters >= 1000
       ? `${(distanceMeters / 1000).toFixed(1)} km`
       : `${Math.round(distanceMeters)} m`;
+  const maneuverLabel = (maneuver || "straight").replace(/[-_]/g, " ");
+  const sv = `/api/public/streetview?lat=${lat}&lng=${lng}&heading=${Math.round(
+    heading,
+  )}&w=640&h=360&fov=85`;
+  const [svFailed, setSvFailed] = useState(false);
   return (
     <li className="overflow-hidden rounded-[24px] bg-card ring-1 ring-line">
-      <div className="relative aspect-[16/9]">
-        <MapPreview
-          height="absolute inset-0"
-          center={{ lat, lng }}
-          spanKm={0.3}
-          liveVehicles={false}
-          markers={[{ lat, lng, kind: "pin", tone: "aegean", label: instruction }]}
-          fitToContent={false}
-          fullscreenable={false}
-        />
+      <div className="relative aspect-[16/9] bg-limestone-soft">
+        {svFailed ? (
+          <MapPreview
+            height="absolute inset-0"
+            center={{ lat, lng }}
+            spanKm={0.3}
+            liveVehicles={false}
+            markers={[{ lat, lng, kind: "pin", tone: "aegean", label: instruction }]}
+            fitToContent={false}
+            fullscreenable={false}
+          />
+        ) : (
+          <img
+            src={sv}
+            alt={`Street view: ${instruction}`}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+            onError={() => setSvFailed(true)}
+          />
+        )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
         <div className="absolute left-3 top-3 flex items-center gap-2">
           <span className="rounded-full bg-white/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
             {index.toString().padStart(2, "0")}
           </span>
           <span className="rounded-full bg-ink/85 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-limestone">
-            {(maneuver || "straight").replace(/-/g, " ")}
+            {maneuverLabel}
           </span>
         </div>
         <div className="absolute bottom-3 right-3 rounded-full bg-white/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
