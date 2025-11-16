@@ -110,8 +110,23 @@ export const Route = createFileRoute("/api/public/streetview")({
           return new Response("No imagery", { status: 404 });
         }
 
-        // 3. Stream the JPEG back so the browser doesn't need a Mapillary
-        //    token and we keep one cacheable origin.
+        // Meta mode: return image id + the public viewer token so the client
+        // can boot mapillary-js without baking the secret into the bundle.
+        if (meta === "1") {
+          return new Response(
+            JSON.stringify({ imageId: best.id, token }),
+            {
+              status: 200,
+              headers: {
+                "Content-Type": "application/json",
+                "Cache-Control": "public, max-age=3600",
+              },
+            },
+          );
+        }
+
+        // Default: stream the JPEG back so the browser doesn't need a
+        // Mapillary token for thumbnails and we keep one cacheable origin.
         const img = await fetch(best.thumb_1024_url);
         if (!img.ok) {
           return new Response(
