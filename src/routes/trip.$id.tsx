@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconClock, IconPin } from "@/components/Icons";
-// StreetViewPane removed — replaced by an on-brand mini map per step.
+import { StreetViewSheet } from "@/components/StreetViewSheet";
 import { useRealtime } from "@/lib/useRealtime";
 import { useActiveTrip, clearActiveTrip } from "@/lib/trip-store";
 import { routeTone } from "@/lib/gtfs";
@@ -644,9 +644,17 @@ function TurnStep({
     heading,
   )}&w=640&h=360&fov=85`;
   const [svFailed, setSvFailed] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const canOpenViewer = !svFailed;
   return (
     <li className="overflow-hidden rounded-[24px] bg-card ring-1 ring-line">
-      <div className="relative aspect-[16/9] bg-limestone-soft">
+      <button
+        type="button"
+        disabled={!canOpenViewer}
+        onClick={() => canOpenViewer && setViewerOpen(true)}
+        className="group relative block aspect-[16/9] w-full bg-limestone-soft text-left disabled:cursor-default"
+        aria-label={canOpenViewer ? `Open street view: ${instruction}` : instruction}
+      >
         {svFailed ? (
           <MapPreview
             height="absolute inset-0"
@@ -662,7 +670,7 @@ function TurnStep({
             src={sv}
             alt={`Street view: ${instruction}`}
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
             onError={() => setSvFailed(true)}
           />
         )}
@@ -678,7 +686,12 @@ function TurnStep({
         <div className="absolute bottom-3 right-3 rounded-full bg-white/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
           {dist}
         </div>
-      </div>
+        {canOpenViewer && (
+          <span className="absolute bottom-3 left-3 rounded-full bg-aegean px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-limestone opacity-0 transition group-hover:opacity-100">
+            Tap to look around
+          </span>
+        )}
+      </button>
       <div className="flex items-start gap-3 p-4">
         <span className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
           {last ? "Arrive" : "Then"}
@@ -687,6 +700,14 @@ function TurnStep({
           {instruction}
         </p>
       </div>
+      <StreetViewSheet
+        open={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        lat={lat}
+        lng={lng}
+        heading={heading}
+        label={instruction}
+      />
     </li>
   );
 }

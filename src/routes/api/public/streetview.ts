@@ -16,6 +16,9 @@ const QuerySchema = z.object({
   // Search radius in metres. Mapillary defaults are tight; 80m matches the
   // walking-step granularity well.
   radius: z.coerce.number().min(10).max(500).default(80),
+  // When "1", return JSON metadata (image id + viewer token) instead of the
+  // JPEG bytes — used by the interactive viewer sheet.
+  meta: z.enum(["0", "1"]).default("0"),
 });
 
 type MapillaryImage = {
@@ -43,7 +46,7 @@ export const Route = createFileRoute("/api/public/streetview")({
         if (!parsed.success) {
           return new Response("Bad request", { status: 400 });
         }
-        const { lat, lng, heading, radius } = parsed.data;
+        const { lat, lng, heading, radius, meta } = parsed.data;
 
         const token = process.env.MAPILLARY_ACCESS_TOKEN;
         if (!token) {
@@ -107,8 +110,23 @@ export const Route = createFileRoute("/api/public/streetview")({
           return new Response("No imagery", { status: 404 });
         }
 
-        // 3. Stream the JPEG back so the browser doesn't need a Mapillary
-        //    token and we keep one cacheable origin.
+        // Meta mode: return image id + the public viewer token so the client
+        // can boot mapillary-js without baking the secret into the bundle.
+        if (meta === "1") {
+          return new Response(
+            JSON.stringify({ imageId: best.id, token }),
+            {
+              status: 200,
+              headers: {
+                "Content-Type": "application/json",
+                "Cache-Control": "public, max-age=3600",
+              },
+            },
+          );
+        }
+
+        // Default: stream the JPEG back so the browser doesn't need a
+        // Mapillary token for thumbnails and we keep one cacheable origin.
         const img = await fetch(best.thumb_1024_url);
         if (!img.ok) {
           return new Response(
