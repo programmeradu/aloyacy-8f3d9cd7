@@ -1,22 +1,36 @@
-// Server-side proxy for Google Street View Static imagery. The browser key
-// can't sign these requests (referrer-restricted, no streetview scope), so
-// we pipe them through the Lovable connector gateway. Cached aggressively
-// since imagery for a given lat/lng/heading is effectively immutable.
+// Server-side proxy for street-level imagery. We use Mapillary (free,
+// crowdsourced) because the managed Google Maps connector key doesn't
+// include the Street View Static API scope. Returns a JPEG that the client
+// can drop straight into an <img>. 404 when no nearby coverage exists —
+// the caller falls back to a styled mini map.
 
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-const GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
+const GRAPH = "https://graph.mapillary.com";
 
 const QuerySchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
-  heading: z.coerce.number().min(0).max(360).default(0),
-  pitch: z.coerce.number().min(-90).max(90).default(0),
-  fov: z.coerce.number().min(10).max(120).default(80),
-  w: z.coerce.number().int().min(64).max(640).default(600),
-  h: z.coerce.number().int().min(64).max(640).default(360),
+  heading: z.coerce.number().min(0).max(360).optional(),
+  // Search radius in metres. Mapillary defaults are tight; 80m matches the
+  // walking-step granularity well.
+  radius: z.coerce.number().min(10).max(500).default(80),
 });
+
+type MapillaryImage = {
+  id: string;
+  thumb_1024_url?: string;
+  compass_angle?: number;
+  computed_compass_angle?: number;
+  captured_at?: number;
+  geometry?: { type: "Point"; coordinates: [number, number] };
+};
+
+function angularDelta(a: number, b: number) {
+  const d = Math.abs(((a - b + 540) % 360) - 180);
+  return d;
+}
 
 export const Route = createFileRoute("/api/public/streetview")({
   server: {
@@ -29,41 +43,78 @@ export const Route = createFileRoute("/api/public/streetview")({
         if (!parsed.success) {
           return new Response("Bad request", { status: 400 });
         }
-        const { lat, lng, heading, pitch, fov, w, h } = parsed.data;
+        const { lat, lng, heading, radius } = parsed.data;
 
-        const lk = process.env.LOVABLE_API_KEY;
-        const gk = process.env.GOOGLE_MAPS_API_KEY;
-        if (!lk || !gk) {
-          return new Response("Maps connector not configured", { status: 503 });
+        const token = process.env.MAPILLARY_ACCESS_TOKEN;
+        if (!token) {
+          return new Response("MAPILLARY_ACCESS_TOKEN not configured", {
+            status: 503,
+          });
         }
-        const headers = {
-          Authorization: `Bearer ${lk}`,
-          "X-Connection-Api-Key": gk,
-        };
 
-        // 1. Check that imagery exists within ~80m of the requested point.
-        const metaUrl =
-          `${GATEWAY}/maps/api/streetview/metadata` +
-          `?location=${lat},${lng}&radius=80&source=outdoor`;
-        const meta = await fetch(metaUrl, { headers });
-        if (!meta.ok) {
-          return new Response("Upstream metadata error", { status: 502 });
+        // 1. Find candidate images near the point using a small bbox.
+        //    ~1 deg lat ≈ 111km. Convert radius (m) to degrees.
+        const dLat = radius / 111_000;
+        const dLng = radius / (111_000 * Math.cos((lat * Math.PI) / 180) || 1);
+        const bbox = [lng - dLng, lat - dLat, lng + dLng, lat + dLat].join(",");
+        const fields = [
+          "id",
+          "thumb_1024_url",
+          "compass_angle",
+          "computed_compass_angle",
+          "captured_at",
+          "geometry",
+        ].join(",");
+
+        const searchUrl =
+          `${GRAPH}/images?bbox=${bbox}&limit=20&fields=${fields}`;
+        const search = await fetch(searchUrl, {
+          headers: { Authorization: `OAuth ${token}` },
+        });
+        if (!search.ok) {
+          return new Response(
+            `Mapillary search failed: ${search.status}`,
+            { status: 502 },
+          );
         }
-        const metaJson = (await meta.json()) as { status?: string };
-        if (metaJson.status !== "OK") {
-          // No panorama nearby — let the client fall back to the mini map.
+        const searchJson = (await search.json()) as { data?: MapillaryImage[] };
+        const candidates = (searchJson.data ?? []).filter((i) => i.thumb_1024_url);
+        if (candidates.length === 0) {
           return new Response("No imagery", { status: 404 });
         }
 
-        // 2. Fetch the actual image.
-        const imgUrl =
-          `${GATEWAY}/maps/api/streetview` +
-          `?size=${w}x${h}&location=${lat},${lng}` +
-          `&heading=${heading}&pitch=${pitch}&fov=${fov}` +
-          `&radius=80&source=outdoor&return_error_code=true`;
-        const img = await fetch(imgUrl, { headers });
+        // 2. Rank: prefer images whose compass angle is close to the walking
+        //    heading (so the photo points the same way the user is walking)
+        //    and that are recent.
+        const now = Date.now() / 1000;
+        const ranked = candidates
+          .map((img) => {
+            const angle =
+              img.computed_compass_angle ?? img.compass_angle ?? 0;
+            const headingScore =
+              heading == null ? 0 : angularDelta(angle, heading); // lower is better
+            const ageDays = img.captured_at
+              ? (now - img.captured_at / 1000) / 86400
+              : 365 * 5;
+            // Weight: heading match dominates, recency is a tiebreaker.
+            const score = headingScore + Math.min(ageDays, 365 * 5) * 0.02;
+            return { img, score };
+          })
+          .sort((a, b) => a.score - b.score);
+
+        const best = ranked[0].img;
+        if (!best.thumb_1024_url) {
+          return new Response("No imagery", { status: 404 });
+        }
+
+        // 3. Stream the JPEG back so the browser doesn't need a Mapillary
+        //    token and we keep one cacheable origin.
+        const img = await fetch(best.thumb_1024_url);
         if (!img.ok) {
-          return new Response("Upstream image error", { status: 502 });
+          return new Response(
+            `Mapillary thumbnail fetch failed: ${img.status}`,
+            { status: 502 },
+          );
         }
         const buf = await img.arrayBuffer();
         return new Response(buf, {
@@ -71,6 +122,7 @@ export const Route = createFileRoute("/api/public/streetview")({
           headers: {
             "Content-Type": img.headers.get("Content-Type") ?? "image/jpeg",
             "Cache-Control": "public, max-age=86400, immutable",
+            "X-Mapillary-Image-Id": best.id,
           },
         });
       },
