@@ -144,7 +144,12 @@ export function StreetViewSheet({
 
   return createPortal(
     <div className="fixed inset-0 z-[200] bg-ink">
-      <div ref={hostRef} className="absolute inset-0 bg-ink" />
+      <div
+        ref={hostRef}
+        className="absolute inset-0 bg-ink"
+        style={{ width: "100%", height: "100%" }}
+      />
+
       {!meta && !error && (
         <div className="absolute inset-0 grid place-items-center">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
