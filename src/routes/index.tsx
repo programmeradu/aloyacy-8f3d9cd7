@@ -168,7 +168,9 @@ function Explore() {
         towards:
           s.agency === "IC"
             ? "Intercity"
-            : `${(s.distanceKm * 1000).toFixed(0)} m away`,
+            : s.distanceKm >= 1
+              ? `${s.distanceKm.toFixed(s.distanceKm >= 10 ? 0 : 1)} km away`
+              : `${Math.round(s.distanceKm * 1000)} m away`,
         etaMin: nextEta,
         etaConfidence: smart?.confidence,
         etaBlurb: smart?.blurb,
