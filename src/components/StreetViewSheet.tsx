@@ -61,19 +61,34 @@ export function StreetViewSheet({
   useEffect(() => {
     if (!open || !meta || !hostRef.current) return;
     let cancelled = false;
-    let viewer: { remove: () => void } | null = null;
+    let viewer: { remove: () => void; resize: () => void } | null = null;
+    let resizeObs: ResizeObserver | null = null;
 
-    (async () => {
-      const mly = await import("mapillary-js");
-      // CSS is shipped alongside the module — inject it once.
-      const cssId = "mapillary-js-css";
-      if (!document.getElementById(cssId)) {
+    const ensureCss = () =>
+      new Promise<void>((resolve) => {
+        const cssId = "mapillary-js-css";
+        const existing = document.getElementById(cssId) as
+          | HTMLLinkElement
+          | null;
+        if (existing) {
+          if (existing.sheet) return resolve();
+          existing.addEventListener("load", () => resolve(), { once: true });
+          existing.addEventListener("error", () => resolve(), { once: true });
+          return;
+        }
         const link = document.createElement("link");
         link.id = cssId;
         link.rel = "stylesheet";
         link.href = "https://unpkg.com/mapillary-js@4.1.2/dist/mapillary.css";
+        link.addEventListener("load", () => resolve(), { once: true });
+        link.addEventListener("error", () => resolve(), { once: true });
         document.head.appendChild(link);
-      }
+      });
+
+    const handleResize = () => viewer?.resize();
+
+    (async () => {
+      const [mly] = await Promise.all([import("mapillary-js"), ensureCss()]);
       if (cancelled || !hostRef.current) return;
       viewer = new mly.Viewer({
         accessToken: meta.token,
@@ -85,12 +100,25 @@ export function StreetViewSheet({
           direction: true,
           zoom: true,
         },
-      }) as unknown as { remove: () => void };
+      }) as unknown as { remove: () => void; resize: () => void };
       viewerRef.current = viewer;
+
+      // iOS Safari often mounts the WebGL canvas before layout settles —
+      // poke resize on next frame, after a beat, and whenever the host
+      // box or orientation changes.
+      requestAnimationFrame(() => viewer?.resize());
+      setTimeout(() => viewer?.resize(), 300);
+      if (typeof ResizeObserver !== "undefined" && hostRef.current) {
+        resizeObs = new ResizeObserver(() => viewer?.resize());
+        resizeObs.observe(hostRef.current);
+      }
+      window.addEventListener("orientationchange", handleResize);
     })();
 
     return () => {
       cancelled = true;
+      window.removeEventListener("orientationchange", handleResize);
+      if (resizeObs) resizeObs.disconnect();
       if (viewer) {
         try {
           viewer.remove();
@@ -116,7 +144,12 @@ export function StreetViewSheet({
 
   return createPortal(
     <div className="fixed inset-0 z-[200] bg-ink">
-      <div ref={hostRef} className="absolute inset-0 bg-ink" />
+      <div
+        ref={hostRef}
+        className="absolute inset-0 bg-ink"
+        style={{ width: "100%", height: "100%" }}
+      />
+
       {!meta && !error && (
         <div className="absolute inset-0 grid place-items-center">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
