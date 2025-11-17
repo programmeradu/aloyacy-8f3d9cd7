@@ -1,5 +1,9 @@
 import sunVignette from "@/assets/weather-sun.png";
 import moonVignette from "@/assets/weather-moon.png";
+import cloudVignette from "@/assets/weather-cloud.png";
+import rainVignette from "@/assets/weather-rain.png";
+import stormVignette from "@/assets/weather-storm.png";
+import windVignette from "@/assets/weather-wind.png";
 
 type IconComp = React.ComponentType<{ className?: string }>;
 
@@ -14,6 +18,10 @@ interface Props {
 const VIGNETTES: Record<string, string> = {
   sun: sunVignette,
   moon: moonVignette,
+  cloud: cloudVignette,
+  rain: rainVignette,
+  storm: stormVignette,
+  wind: windVignette,
 };
 
 /**
