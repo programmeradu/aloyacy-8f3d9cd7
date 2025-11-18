@@ -430,32 +430,38 @@ function QuickPicks({
     <div className="border-t border-line p-4 space-y-4">
       {saved.length > 0 && (
         <div>
-          <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
-            Pinned
-          </p>
+          <div className="mb-2 flex items-center gap-2 text-ink-soft">
+            <IconPin className="size-3.5" strokeWidth={1.4} />
+            <span className="h-px flex-1 bg-line" />
+          </div>
           <div className="flex flex-wrap gap-2">
-            {saved.map((p) => (
-              <button
-                key={p.id}
-                onClick={() =>
-                  onChoose({ lat: p.lat, lng: p.lng, label: p.name })
-                }
-                className="rounded-full bg-limestone-soft px-3.5 py-2 text-[12px] text-ink hover:bg-aegean-soft/60"
-              >
-                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft mr-1.5">
-                  {p.label}
-                </span>
-                {p.name.length > 24 ? `${p.name.slice(0, 24)}…` : p.name}
-              </button>
-            ))}
+            {saved.map((p) => {
+              const Glyph = labelGlyph(p.label);
+              return (
+                <button
+                  key={p.id}
+                  onClick={() =>
+                    onChoose({ lat: p.lat, lng: p.lng, label: p.name })
+                  }
+                  className="group inline-flex items-center gap-2 rounded-full bg-limestone-soft px-3.5 py-2 text-[12px] text-ink transition-colors hover:bg-aegean-soft/60"
+                  aria-label={`${p.label}: ${p.name}`}
+                >
+                  <Glyph className="size-3.5 text-aegean-deep" strokeWidth={1.4} />
+                  <span>
+                    {p.name.length > 24 ? `${p.name.slice(0, 24)}…` : p.name}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
       {recents.length > 0 && role === "to" && (
         <div>
-          <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
-            Recent
-          </p>
+          <div className="mb-2 flex items-center gap-2 text-ink-soft">
+            <IconClock className="size-3.5" strokeWidth={1.4} />
+            <span className="h-px flex-1 bg-line" />
+          </div>
           <ul className="divide-y divide-line">
             {recents.slice(0, 5).map((r) => (
               <li key={r.id}>
