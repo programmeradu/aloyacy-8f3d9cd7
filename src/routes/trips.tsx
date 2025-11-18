@@ -416,6 +416,15 @@ function PlacesPicker({
   );
 }
 
+// Contextual glyph for a saved place based on its user-chosen label.
+function labelGlyph(label: string) {
+  const l = label.trim().toLowerCase();
+  if (/(home|house|maison|σπίτι)/.test(l)) return IconHome;
+  if (/(work|office|job|γραφεί)/.test(l)) return IconBriefcase;
+  if (/(fav|love|star|heart|αγαπ)/.test(l)) return IconStar;
+  return IconPin;
+}
+
 function QuickPicks({
   role,
   onChoose,
