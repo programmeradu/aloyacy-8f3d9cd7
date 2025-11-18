@@ -91,6 +91,30 @@ export const IconPin = ({ className, strokeWidth = 1.5 }: IconProps) => (
   </svg>
 );
 
+// Bespoke five-point star, thin-line editorial weight. Used as the
+// "favourite" glyph in the trip planner.
+export const IconStar = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83L12 3.6z" />
+  </svg>
+);
+
+// House glyph — pitched roof + door. For "home" labelled saved places.
+export const IconHome = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 10.5L12 4l8 6.5V20a.5.5 0 0 1-.5.5h-5V14h-5v6.5h-5A.5.5 0 0 1 4 20v-9.5z" />
+  </svg>
+);
+
+// Briefcase glyph for "work" / "office".
+export const IconBriefcase = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3.5" y="7.5" width="17" height="12" rx="1.5" />
+    <path d="M9 7.5V5.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    <path d="M3.5 12.5h17" />
+  </svg>
+);
+
 export const IconArrowLeft = ({ className, strokeWidth = 1.5 }: IconProps) => (
   <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
     <path d="M15 6l-6 6 6 6" />
