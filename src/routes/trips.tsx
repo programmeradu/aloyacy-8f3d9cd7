@@ -104,7 +104,7 @@ function Plan() {
 
   return (
     <AppShell>
-      <header className="relative px-6 pt-2 pb-5 overflow-hidden animate-rise">
+      <header className="relative px-6 pt-2 pb-5 animate-rise">
         <img
           src={planHero}
           alt=""
