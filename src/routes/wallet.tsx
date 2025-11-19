@@ -235,23 +235,8 @@ function WalletRoute() {
       {/* The Pass */}
       <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MotionCard pass={pass} onTap={() => setEditing("card")} />
-        {hasCard && (
-          <a
-            href="/wallet/pass"
-            className="mt-3 w-full inline-flex items-center justify-between gap-3 rounded-[20px] bg-ink text-limestone px-4 py-3 hover:bg-ink/90 transition-colors"
-          >
-            <span className="flex flex-col text-left">
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
-                Wallet
-              </span>
-              <span className="mt-0.5 text-[14px]">Add to wallet</span>
-            </span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/80">
-              Show QR
-            </span>
-          </a>
-        )}
       </section>
+
 
 
       {hasCard ? (
