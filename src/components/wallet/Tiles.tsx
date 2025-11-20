@@ -41,13 +41,29 @@ export function Fare({
   label,
   value,
   sub,
+  image,
+  imageAlt,
 }: {
   label: string;
   value: string;
   sub: string;
+  image?: string;
+  imageAlt?: string;
 }) {
   return (
     <div className="p-4">
+      {image && (
+        <div className="aspect-[4/3] w-full overflow-hidden rounded-[14px] ring-1 ring-line bg-limestone mb-3">
+          <img
+            src={image}
+            alt={imageAlt ?? ""}
+            loading="lazy"
+            width={512}
+            height={384}
+            className="size-full object-cover"
+          />
+        </div>
+      )}
       <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
         {label}
       </p>
