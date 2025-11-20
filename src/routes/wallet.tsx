@@ -263,6 +263,9 @@ function WalletRoute() {
                 foot={pass.jcc?.displayName || pass.jcc?.email || "Connected"}
                 onClick={() => void runSync()}
                 tone="aegean"
+                adornment={
+                  <JccLogo className="h-7 w-7 rounded-md ring-1 ring-line bg-white" />
+                }
               />
             ) : (
               <ActionTile
