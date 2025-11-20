@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 // Small presentational tiles used on the wallet landing.
 export function ActionTile({
   eyebrow,
@@ -5,21 +7,26 @@ export function ActionTile({
   foot,
   onClick,
   tone = "default",
+  adornment,
 }: {
   eyebrow: string;
   value: string;
   foot: string;
   onClick: () => void;
   tone?: "default" | "aegean";
+  adornment?: ReactNode;
 }) {
   return (
     <button
       onClick={onClick}
-      className="text-left rounded-[24px] bg-card ring-1 ring-line p-4 hover:ring-aegean-deep/30 transition-all"
+      className="text-left rounded-[24px] bg-card ring-1 ring-line p-4 hover:ring-aegean-deep/30 transition-all w-full"
     >
-      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-        {eyebrow}
-      </p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+          {eyebrow}
+        </p>
+        {adornment && <div className="shrink-0">{adornment}</div>}
+      </div>
       <p
         className={`mt-2 font-sans font-medium text-[26px] leading-none tabular-nums tracking-[-0.02em] ${tone === "aegean" ? "text-aegean-deep" : "text-ink"}`}
       >
