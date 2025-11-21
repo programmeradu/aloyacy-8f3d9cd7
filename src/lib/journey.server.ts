@@ -398,6 +398,3 @@ export async function planJourney(
   // Stable user-facing ordering: by total duration with directness factored in.
   return picked.sort((a, b) => score(a) - score(b));
 }
-
-// Re-export for client use (kept stable for legacy imports).
-export { WALK_M_PER_S };
