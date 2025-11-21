@@ -620,10 +620,13 @@ function JourneyCard({
                     Ride to {leg.alight.name}
                   </p>
                   <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                    {departTime} → {arriveTime}
+                    {leg.scheduled
+                      ? `~${Math.max(1, Math.round((leg.alight.arrivalUnix - leg.board.departureUnix) / 60))} min ride — scheduled`
+                      : `${departTime} → ${arriveTime}`}
                   </p>
                 </>
               )}
+
             </div>
             {leg.kind === "bus" && (
               <IconClock className="size-4 text-ink-soft mt-1.5" />
