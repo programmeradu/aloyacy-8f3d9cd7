@@ -44,6 +44,11 @@ function TripCompanion() {
   const active = useActiveTrip();
   const { data: rt } = useRealtime();
   const tick = useTick(5_000);
+  // Wait for localStorage hydration before deciding the trip is "gone".
+  // Without this, SSR (which has no localStorage) flashes "No active trip"
+  // for one render after the user reopens the tab.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
 
   const view = useMemo(() => {
     if (!active) return null;
@@ -97,6 +102,10 @@ function TripCompanion() {
       phase,
     };
   }, [active, rt, tick]);
+
+  if (!active && !hydrated) {
+    return <AppShell><div className="px-6 pt-10" /></AppShell>;
+  }
 
   if (!active) {
     return (
