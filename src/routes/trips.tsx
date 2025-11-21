@@ -536,12 +536,13 @@ function JourneyCard({
     [option.arrivalUnix],
   );
 
-  const delayLabel =
-    bus.delaySec > 60
-      ? `${Math.round(bus.delaySec / 60)} min late`
-      : bus.delaySec < -60
-      ? `${Math.round(-bus.delaySec / 60)} min early`
-      : "On time";
+  const delayLabel = bus.scheduled
+    ? "Scheduled"
+    : bus.delaySec > 60
+    ? `${Math.round(bus.delaySec / 60)} min late`
+    : bus.delaySec < -60
+    ? `${Math.round(-bus.delaySec / 60)} min early`
+    : "On time";
 
   return (
     <article
@@ -554,7 +555,9 @@ function JourneyCard({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
-            {highlight ? "Fastest live" : "Alternative"} — leaves in {departIn} min
+            {bus.scheduled
+              ? "Scheduled route — check timetable"
+              : `${highlight ? "Fastest live" : "Alternative"} — leaves in ${departIn} min`}
           </p>
           <h3 className="mt-1 font-display text-[26px] leading-tight text-ink text-pretty">
             Board at <span className="text-aegean-deep">{bus.board.name}</span>
@@ -575,7 +578,9 @@ function JourneyCard({
         <p className="text-[12px] text-ink-soft truncate">{bus.routeLong}</p>
         <span
           className={`font-mono text-[10px] uppercase tracking-[0.16em] ${
-            bus.delaySec > 60
+            bus.scheduled
+              ? "text-ink-soft"
+              : bus.delaySec > 60
               ? "text-ochre"
               : bus.delaySec < -60
               ? "text-olive"
@@ -585,6 +590,7 @@ function JourneyCard({
           {delayLabel}
         </span>
       </div>
+
 
       <ol className="mt-5 space-y-3">
         {option.legs.map((leg, i) => (
@@ -614,10 +620,13 @@ function JourneyCard({
                     Ride to {leg.alight.name}
                   </p>
                   <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                    {departTime} → {arriveTime}
+                    {leg.scheduled
+                      ? `~${Math.max(1, Math.round((leg.alight.arrivalUnix - leg.board.departureUnix) / 60))} min ride — scheduled`
+                      : `${departTime} → ${arriveTime}`}
                   </p>
                 </>
               )}
+
             </div>
             {leg.kind === "bus" && (
               <IconClock className="size-4 text-ink-soft mt-1.5" />
