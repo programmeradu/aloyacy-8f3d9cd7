@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      active_trips: {
+        Row: {
+          alerts_sent: string[]
+          alight_name: string | null
+          alight_stop_id: string | null
+          alight_unix: number | null
+          board_name: string | null
+          board_stop_id: string | null
+          board_unix: number | null
+          device_id: string
+          route_short: string | null
+          started_at: string
+          trip_id: string
+          updated_at: string
+          walk_in_sec: number
+          walk_out_sec: number
+        }
+        Insert: {
+          alerts_sent?: string[]
+          alight_name?: string | null
+          alight_stop_id?: string | null
+          alight_unix?: number | null
+          board_name?: string | null
+          board_stop_id?: string | null
+          board_unix?: number | null
+          device_id: string
+          route_short?: string | null
+          started_at?: string
+          trip_id: string
+          updated_at?: string
+          walk_in_sec?: number
+          walk_out_sec?: number
+        }
+        Update: {
+          alerts_sent?: string[]
+          alight_name?: string | null
+          alight_stop_id?: string | null
+          alight_unix?: number | null
+          board_name?: string | null
+          board_stop_id?: string | null
+          board_unix?: number | null
+          device_id?: string
+          route_short?: string | null
+          started_at?: string
+          trip_id?: string
+          updated_at?: string
+          walk_in_sec?: number
+          walk_out_sec?: number
+        }
+        Relationships: []
+      }
       delay_stats: {
         Row: {
           day_of_week: number
