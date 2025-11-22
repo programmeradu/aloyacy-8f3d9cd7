@@ -1,5 +1,6 @@
 /// <reference types="google.maps" />
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER, getStop } from "@/lib/gtfs";
 import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
@@ -497,6 +498,19 @@ export function MapPreview({
     };
   }, [expanded]);
 
+  // After expanding/collapsing (incl. re-parenting via portal), the Maps
+  // container has new dimensions. Trigger a resize so tiles re-render.
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m || !api) return;
+    const c = m.getCenter();
+    const id = window.setTimeout(() => {
+      api.maps.event.trigger(m, "resize");
+      if (c) m.setCenter(c);
+    }, 60);
+    return () => window.clearTimeout(id);
+  }, [expanded, fallbackOverlay, api]);
+
   const liveCount = focused || restricted ? vehicles?.length ?? 0 : rt?.vehicles.length ?? 0;
   const placeLabel = useMemo(() => {
     // Sub-degree → meters; round to avoid janky decimals.
@@ -559,6 +573,14 @@ export function MapPreview({
     </div>
   );
 
+  // When using the in-page fallback overlay (iOS Safari, no native
+  // Fullscreen API), portal to document.body so ancestor `transform`
+  // containing blocks (e.g. `animate-rise` sections) don't trap the
+  // "fixed inset-0" wrapper inside a local stacking context — which
+  // would let the bottom nav and other app chrome paint over it.
+  if (expanded && fallbackOverlay && typeof document !== "undefined") {
+    return createPortal(content, document.body);
+  }
   return content;
 }
 
