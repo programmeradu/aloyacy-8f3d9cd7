@@ -67,12 +67,51 @@ function write<T>(key: string, value: T | null) {
 // ---------- active trip ----------
 export function setActiveTrip(trip: ActiveTrip) {
   write(ACTIVE_KEY, trip);
+  // Mirror to the server so background push alerts can be scheduled even
+  // when the tab is hidden or the app is closed. Fire-and-forget: this
+  // must never block the UI start-trip flow.
+  void syncActiveTripToServer(trip).catch((e) =>
+    console.warn("[trip-store] server sync failed", e),
+  );
 }
 export function clearActiveTrip() {
   write<null>(ACTIVE_KEY, null);
+  void clearActiveTripOnServer().catch(() => {});
 }
 export function getActiveTrip(): ActiveTrip | null {
   return read<ActiveTrip>(ACTIVE_KEY);
+}
+
+async function syncActiveTripToServer(trip: ActiveTrip) {
+  if (typeof window === "undefined") return;
+  const { upsertActiveTrip } = await import("./trip-sync.functions");
+  const { getDeviceId } = await import("./pwa");
+  const bus = trip.option.legs.find((l) => l.kind === "bus");
+  const walkIn = trip.option.legs[0];
+  const walkOut = trip.option.legs[trip.option.legs.length - 1];
+  if (!bus || bus.kind !== "bus") return;
+  await upsertActiveTrip({
+    data: {
+      deviceId: getDeviceId(),
+      tripId: trip.option.id,
+      routeShort: bus.routeShort,
+      boardStopId: bus.board.stopId,
+      boardName: bus.board.name,
+      boardUnix: bus.board.departureUnix,
+      alightStopId: bus.alight.stopId,
+      alightName: bus.alight.name,
+      alightUnix: bus.alight.arrivalUnix,
+      walkInSec: walkIn?.kind === "walk" ? walkIn.durationSec : 0,
+      walkOutSec: walkOut?.kind === "walk" ? walkOut.durationSec : 0,
+    },
+  });
+}
+
+async function clearActiveTripOnServer() {
+  if (typeof window === "undefined") return;
+  const { removeActiveTrip } = await import("./trip-sync.functions");
+  const { getDeviceId } = await import("./pwa");
+  await removeActiveTrip({ data: { deviceId: getDeviceId() } });
 }
 export function patchActiveTripLive(patch: Partial<LiveTripState>) {
   const cur = getActiveTrip();
