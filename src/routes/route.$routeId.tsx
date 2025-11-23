@@ -77,7 +77,63 @@ function RoutePage() {
       ? Array.from(new Set(longest.arrivals.map((a) => a.stopId)))
       : [];
 
-    return { trips, vehicles, stopIds, longest };
+    // For each live vehicle, determine which stop in the canonical sequence
+    // it is at (<120m) or approaching (next scheduled stop on its trip).
+    const now2 = Math.floor(Date.now() / 1000);
+    type BusOnLine = {
+      vehicleId: string;
+      tripId: string;
+      stopIndex: number;
+      status: "at" | "approaching" | "departing";
+      speed: number;
+    };
+    const busesOnLine: BusOnLine[] = [];
+    for (const v of vehicles) {
+      // Find nearest stop in the canonical sequence
+      let nearestIdx = -1;
+      let nearestDist = Infinity;
+      for (let i = 0; i < stopIds.length; i++) {
+        const stop = getStop(stopIds[i]);
+        if (!stop) continue;
+        const d = distanceM({ lat: v.lat, lng: v.lng }, stop);
+        if (d < nearestDist) {
+          nearestDist = d;
+          nearestIdx = i;
+        }
+      }
+      if (nearestIdx === -1) continue;
+
+      // If close enough → at that stop. Otherwise approaching the next
+      // stop the bus is scheduled to reach on its own trip.
+      if (nearestDist < 120) {
+        const isOrigin = nearestIdx === 0;
+        busesOnLine.push({
+          vehicleId: v.id,
+          tripId: v.tripId,
+          stopIndex: nearestIdx,
+          status: isOrigin && v.speed < 1 ? "departing" : "at",
+          speed: v.speed,
+        });
+      } else {
+        const tripArrivals = tripMap.get(v.tripId) ?? [];
+        const nextScheduled = [...tripArrivals]
+          .sort((a, b) => a.arrivalUnix - b.arrivalUnix)
+          .find((a) => a.arrivalUnix >= now2 - 30);
+        const targetStopId = nextScheduled?.stopId;
+        const targetIdx = targetStopId
+          ? stopIds.indexOf(targetStopId)
+          : nearestIdx;
+        busesOnLine.push({
+          vehicleId: v.id,
+          tripId: v.tripId,
+          stopIndex: targetIdx >= 0 ? targetIdx : nearestIdx,
+          status: "approaching",
+          speed: v.speed,
+        });
+      }
+    }
+
+    return { trips, vehicles, stopIds, longest, busesOnLine };
   }, [rt, routeId]);
 
   const markers: MapMarker[] = useMemo(() => {
