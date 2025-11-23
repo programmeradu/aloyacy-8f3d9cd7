@@ -222,32 +222,87 @@ function RoutePage() {
         )}
       </section>
 
-      {/* Next departure card */}
-      {data?.trips.length ? (
-        <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "160ms" }}>
-          <Link
-            to="/trip-info/$tripId"
-            params={{ tripId: data.trips[0].tripId }}
-            className="block rounded-[28px] bg-ink text-limestone p-5 ring-1 ring-ink/10 transition-transform active:scale-[0.99]"
-          >
-            <div className="flex items-center justify-between">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/60">
-                Next departure
+      {/* Next departure / Live status card */}
+      {data?.trips.length ? (() => {
+        const firstTrip = data.trips[0];
+        const liveBus = data.busesOnLine.find((b) => b.tripId === firstTrip.tripId);
+        const nextStopName =
+          getStop(firstTrip.nextArrival.stopId)?.name ?? "Upcoming stop";
+
+        let kicker = "Next departure";
+        let kickerTone = "text-limestone/60";
+        let bigText = nextStopName;
+        let footer = `${fmtClock(firstTrip.nextArrival.arrivalUnix)} — ends at ${
+          getStop(firstTrip.lastStop.stopId)?.name ?? "terminus"
+        }`;
+        let pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
+
+        if (liveBus) {
+          const atStop = getStop(data.stopIds[liveBus.stopIndex]);
+          if (liveBus.status === "departing") {
+            kicker = "About to depart";
+            kickerTone = "text-ochre";
+            bigText = atStop?.name ?? nextStopName;
+            footer = `Boarding at origin — bound for ${
+              getStop(firstTrip.lastStop.stopId)?.name ?? "terminus"
+            }`;
+            pillText = "boarding";
+          } else if (liveBus.status === "at") {
+            kicker = "Bus at stop";
+            kickerTone = "text-ochre";
+            bigText = atStop?.name ?? nextStopName;
+            footer = `Doors open — next stop ${nextStopName}`;
+            pillText = "at stop";
+          } else {
+            // approaching / in motion
+            const kmh = Math.round(liveBus.speed * 3.6);
+            kicker = kmh > 3 ? "Bus in motion" : "Bus en route";
+            kickerTone = "text-ochre";
+            bigText = `Heading to ${nextStopName}`;
+            footer =
+              (kmh > 3 ? `${kmh} km/h — ` : "") +
+              `arriving ${fmtClock(firstTrip.nextArrival.arrivalUnix)} · ends at ${
+                getStop(firstTrip.lastStop.stopId)?.name ?? "terminus"
+              }`;
+            pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
+          }
+        }
+
+        return (
+          <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "160ms" }}>
+            <Link
+              to="/trip-info/$tripId"
+              params={{ tripId: firstTrip.tripId }}
+              className="block rounded-[28px] bg-ink text-limestone p-5 ring-1 ring-ink/10 transition-transform active:scale-[0.99]"
+            >
+              <div className="flex items-center justify-between">
+                <p className={`font-mono text-[10px] uppercase tracking-[0.22em] ${kickerTone}`}>
+                  {liveBus ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="relative inline-flex">
+                        <span className="size-1.5 rounded-full bg-ochre" />
+                        <span className="absolute inset-0 size-1.5 rounded-full bg-ochre animate-ping opacity-70" />
+                      </span>
+                      {kicker}
+                    </span>
+                  ) : (
+                    kicker
+                  )}
+                </p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+                  {pillText}
+                </p>
+              </div>
+              <p className="mt-3 font-display text-[28px] leading-[1.05] text-limestone text-balance">
+                {bigText}
               </p>
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-                {minutesFromNow(data.trips[0].nextArrival.arrivalUnix)}
+              <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-limestone/70">
+                {footer}
               </p>
-            </div>
-            <p className="mt-3 font-display text-[28px] leading-[1.05] text-limestone text-balance">
-              {getStop(data.trips[0].nextArrival.stopId)?.name ?? "Upcoming stop"}
-            </p>
-            <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-limestone/70">
-              {fmtClock(data.trips[0].nextArrival.arrivalUnix)} — ends at{" "}
-              {getStop(data.trips[0].lastStop.stopId)?.name ?? "terminus"}
-            </p>
-          </Link>
-        </section>
-      ) : null}
+            </Link>
+          </section>
+        );
+      })() : null}
 
       {/* Upcoming runs */}
       {data && data.trips.length > 1 ? (
