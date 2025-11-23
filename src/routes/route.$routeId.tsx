@@ -6,6 +6,7 @@ import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { getRoute, getStop, routeTone } from "@/lib/gtfs";
+import { distanceM } from "@/lib/geo";
 import routeVignette from "@/assets/route-vignette.jpg";
 
 export const Route = createFileRoute("/route/$routeId")({
@@ -76,7 +77,63 @@ function RoutePage() {
       ? Array.from(new Set(longest.arrivals.map((a) => a.stopId)))
       : [];
 
-    return { trips, vehicles, stopIds, longest };
+    // For each live vehicle, determine which stop in the canonical sequence
+    // it is at (<120m) or approaching (next scheduled stop on its trip).
+    const now2 = Math.floor(Date.now() / 1000);
+    type BusOnLine = {
+      vehicleId: string;
+      tripId: string;
+      stopIndex: number;
+      status: "at" | "approaching" | "departing";
+      speed: number;
+    };
+    const busesOnLine: BusOnLine[] = [];
+    for (const v of vehicles) {
+      // Find nearest stop in the canonical sequence
+      let nearestIdx = -1;
+      let nearestDist = Infinity;
+      for (let i = 0; i < stopIds.length; i++) {
+        const stop = getStop(stopIds[i]);
+        if (!stop) continue;
+        const d = distanceM({ lat: v.lat, lng: v.lng }, stop);
+        if (d < nearestDist) {
+          nearestDist = d;
+          nearestIdx = i;
+        }
+      }
+      if (nearestIdx === -1) continue;
+
+      // If close enough → at that stop. Otherwise approaching the next
+      // stop the bus is scheduled to reach on its own trip.
+      if (nearestDist < 120) {
+        const isOrigin = nearestIdx === 0;
+        busesOnLine.push({
+          vehicleId: v.id,
+          tripId: v.tripId,
+          stopIndex: nearestIdx,
+          status: isOrigin && v.speed < 1 ? "departing" : "at",
+          speed: v.speed,
+        });
+      } else {
+        const tripArrivals = tripMap.get(v.tripId) ?? [];
+        const nextScheduled = [...tripArrivals]
+          .sort((a, b) => a.arrivalUnix - b.arrivalUnix)
+          .find((a) => a.arrivalUnix >= now2 - 30);
+        const targetStopId = nextScheduled?.stopId;
+        const targetIdx = targetStopId
+          ? stopIds.indexOf(targetStopId)
+          : nearestIdx;
+        busesOnLine.push({
+          vehicleId: v.id,
+          tripId: v.tripId,
+          stopIndex: targetIdx >= 0 ? targetIdx : nearestIdx,
+          status: "approaching",
+          speed: v.speed,
+        });
+      }
+    }
+
+    return { trips, vehicles, stopIds, longest, busesOnLine };
   }, [rt, routeId]);
 
   const markers: MapMarker[] = useMemo(() => {
@@ -165,32 +222,87 @@ function RoutePage() {
         )}
       </section>
 
-      {/* Next departure card */}
-      {data?.trips.length ? (
-        <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "160ms" }}>
-          <Link
-            to="/trip-info/$tripId"
-            params={{ tripId: data.trips[0].tripId }}
-            className="block rounded-[28px] bg-ink text-limestone p-5 ring-1 ring-ink/10 transition-transform active:scale-[0.99]"
-          >
-            <div className="flex items-center justify-between">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/60">
-                Next departure
+      {/* Next departure / Live status card */}
+      {data?.trips.length ? (() => {
+        const firstTrip = data.trips[0];
+        const liveBus = data.busesOnLine.find((b) => b.tripId === firstTrip.tripId);
+        const nextStopName =
+          getStop(firstTrip.nextArrival.stopId)?.name ?? "Upcoming stop";
+
+        let kicker = "Next departure";
+        let kickerTone = "text-limestone/60";
+        let bigText = nextStopName;
+        let footer = `${fmtClock(firstTrip.nextArrival.arrivalUnix)} — ends at ${
+          getStop(firstTrip.lastStop.stopId)?.name ?? "terminus"
+        }`;
+        let pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
+
+        if (liveBus) {
+          const atStop = getStop(data.stopIds[liveBus.stopIndex]);
+          if (liveBus.status === "departing") {
+            kicker = "About to depart";
+            kickerTone = "text-ochre";
+            bigText = atStop?.name ?? nextStopName;
+            footer = `Boarding at origin — bound for ${
+              getStop(firstTrip.lastStop.stopId)?.name ?? "terminus"
+            }`;
+            pillText = "boarding";
+          } else if (liveBus.status === "at") {
+            kicker = "Bus at stop";
+            kickerTone = "text-ochre";
+            bigText = atStop?.name ?? nextStopName;
+            footer = `Doors open — next stop ${nextStopName}`;
+            pillText = "at stop";
+          } else {
+            // approaching / in motion
+            const kmh = Math.round(liveBus.speed * 3.6);
+            kicker = kmh > 3 ? "Bus in motion" : "Bus en route";
+            kickerTone = "text-ochre";
+            bigText = `Heading to ${nextStopName}`;
+            footer =
+              (kmh > 3 ? `${kmh} km/h — ` : "") +
+              `arriving ${fmtClock(firstTrip.nextArrival.arrivalUnix)} · ends at ${
+                getStop(firstTrip.lastStop.stopId)?.name ?? "terminus"
+              }`;
+            pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
+          }
+        }
+
+        return (
+          <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "160ms" }}>
+            <Link
+              to="/trip-info/$tripId"
+              params={{ tripId: firstTrip.tripId }}
+              className="block rounded-[28px] bg-ink text-limestone p-5 ring-1 ring-ink/10 transition-transform active:scale-[0.99]"
+            >
+              <div className="flex items-center justify-between">
+                <p className={`font-mono text-[10px] uppercase tracking-[0.22em] ${kickerTone}`}>
+                  {liveBus ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="relative inline-flex">
+                        <span className="size-1.5 rounded-full bg-ochre" />
+                        <span className="absolute inset-0 size-1.5 rounded-full bg-ochre animate-ping opacity-70" />
+                      </span>
+                      {kicker}
+                    </span>
+                  ) : (
+                    kicker
+                  )}
+                </p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+                  {pillText}
+                </p>
+              </div>
+              <p className="mt-3 font-display text-[28px] leading-[1.05] text-limestone text-balance">
+                {bigText}
               </p>
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-                {minutesFromNow(data.trips[0].nextArrival.arrivalUnix)}
+              <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-limestone/70">
+                {footer}
               </p>
-            </div>
-            <p className="mt-3 font-display text-[28px] leading-[1.05] text-limestone text-balance">
-              {getStop(data.trips[0].nextArrival.stopId)?.name ?? "Upcoming stop"}
-            </p>
-            <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-limestone/70">
-              {fmtClock(data.trips[0].nextArrival.arrivalUnix)} — ends at{" "}
-              {getStop(data.trips[0].lastStop.stopId)?.name ?? "terminus"}
-            </p>
-          </Link>
-        </section>
-      ) : null}
+            </Link>
+          </section>
+        );
+      })() : null}
 
       {/* Upcoming runs */}
       {data && data.trips.length > 1 ? (
@@ -249,34 +361,71 @@ function RoutePage() {
               const s = getStop(id);
               if (!s) return null;
               const isEdge = i === 0 || i === data.stopIds.length - 1;
+              const busHere = data.busesOnLine.find(
+                (b) => b.stopIndex === i && (b.status === "at" || b.status === "departing"),
+              );
+              const busApproaching = data.busesOnLine.find(
+                (b) => b.stopIndex === i && b.status === "approaching",
+              );
+              const liveLabel = busHere
+                ? busHere.status === "departing"
+                  ? "Bus departing now"
+                  : "Bus at this stop"
+                : busApproaching
+                  ? "Bus approaching"
+                  : null;
               return (
                 <Link
                   key={id}
                   to="/stop/$stopId"
                   params={{ stopId: id }}
-                  className="relative flex items-center gap-4 px-5 py-3.5 border-b border-line last:border-b-0 transition-colors hover:bg-limestone-soft/60"
+                  className={`relative flex items-center gap-4 px-5 py-3.5 border-b border-line last:border-b-0 transition-colors hover:bg-limestone-soft/60 ${
+                    liveLabel ? "bg-ochre/5" : ""
+                  }`}
                 >
                   <div className="relative flex flex-col items-center">
-                    <span
-                      className={`size-2.5 rounded-full ${
-                        isEdge ? "bg-ochre" : "bg-aegean-deep/70"
-                      }`}
-                    />
+                    {busHere ? (
+                      <span className="relative flex size-4 items-center justify-center">
+                        <span className="absolute inset-0 rounded-full bg-ochre/30 animate-ping" />
+                        <span className="relative flex size-4 items-center justify-center rounded-full bg-ochre ring-2 ring-limestone">
+                          <IconBus className="size-2.5 text-ink" />
+                        </span>
+                      </span>
+                    ) : busApproaching ? (
+                      <span className="relative flex size-3 items-center justify-center">
+                        <span className="absolute inset-0 rounded-full bg-ochre/40 animate-ping" />
+                        <span className="relative size-2.5 rounded-full bg-ochre ring-2 ring-limestone" />
+                      </span>
+                    ) : (
+                      <span
+                        className={`size-2.5 rounded-full ${
+                          isEdge ? "bg-ochre" : "bg-aegean-deep/70"
+                        }`}
+                      />
+                    )}
                     {i < data.stopIds.length - 1 && (
-                      <span className="absolute top-3 h-12 w-px bg-line" />
+                      <span className="absolute top-4 h-12 w-px bg-line" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-display text-[16px] leading-tight text-ink truncate">
                       {s.name}
                     </p>
-                    <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
-                      {i === 0
-                        ? "origin"
-                        : i === data.stopIds.length - 1
-                          ? "terminus"
-                          : `stop ${i + 1}`}
-                      {s.code ? ` — #${s.code}` : ""}
+                    <p
+                      className={`mt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] truncate ${
+                        liveLabel ? "text-ochre" : "text-ink-soft"
+                      }`}
+                    >
+                      {liveLabel ?? (
+                        <>
+                          {i === 0
+                            ? "origin"
+                            : i === data.stopIds.length - 1
+                              ? "terminus"
+                              : `stop ${i + 1}`}
+                          {s.code ? ` — #${s.code}` : ""}
+                        </>
+                      )}
                     </p>
                   </div>
                 </Link>
