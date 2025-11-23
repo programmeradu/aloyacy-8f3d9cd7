@@ -6,6 +6,7 @@ import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { getRoute, getStop, routeTone } from "@/lib/gtfs";
+import { distanceM } from "@/lib/geo";
 import routeVignette from "@/assets/route-vignette.jpg";
 
 export const Route = createFileRoute("/route/$routeId")({
