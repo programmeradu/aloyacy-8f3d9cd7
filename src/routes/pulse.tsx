@@ -10,7 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { getPulse, type PulseRouteStat } from "@/lib/pulse.functions";
+import { getPulse, getLivePulse, type PulseRouteStat } from "@/lib/pulse.functions";
 import { getRoute, routeTone } from "@/lib/gtfs";
 import pulseHero from "@/assets/pulse-hero.jpg";
 
