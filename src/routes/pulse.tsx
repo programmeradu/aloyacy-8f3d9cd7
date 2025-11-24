@@ -36,11 +36,18 @@ export const Route = createFileRoute("/pulse")({
 
 function Pulse() {
   const fn = useServerFn(getPulse);
+  const liveFn = useServerFn(getLivePulse);
   const { data, isLoading } = useQuery({
     queryKey: ["pulse"],
     queryFn: () => fn(),
     refetchInterval: 60_000,
     staleTime: 30_000,
+  });
+  const { data: live } = useQuery({
+    queryKey: ["pulse-live"],
+    queryFn: () => liveFn(),
+    refetchInterval: 30_000,
+    staleTime: 20_000,
   });
 
   const totalSamples = data?.totalSamples ?? 0;
