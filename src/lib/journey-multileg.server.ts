@@ -214,31 +214,80 @@ function buildRideLeg(trip: TripSlice, boardIdx: number, alightIdx: number): Rid
 }
 
 // ---- The search -----------------------------------------------------------
+export type MultiLegDiagnostics = {
+  originStopCount: number;
+  destStopCount: number;
+  nearestOriginStopKm: number | null;
+  nearestDestStopKm: number | null;
+  liveTripCount: number;
+  liveArrivalCount: number;
+  originTripCount: number;
+  destTripCount: number;
+  directRawCount: number;
+  transferRawCount: number;
+  validCount: number;
+  keptCount: number;
+  prunedMediocre: number;
+  reasons: string[];
+};
+
 export async function planMultiLegJourney(
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
-): Promise<Itinerary[]> {
+  opts?: { collectDiagnostics?: boolean },
+): Promise<{ itineraries: Itinerary[]; diagnostics?: MultiLegDiagnostics }> {
   const t0 = Date.now();
   const now = Math.floor(Date.now() / 1000);
+  const diag: MultiLegDiagnostics = {
+    originStopCount: 0,
+    destStopCount: 0,
+    nearestOriginStopKm: null,
+    nearestDestStopKm: null,
+    liveTripCount: 0,
+    liveArrivalCount: 0,
+    originTripCount: 0,
+    destTripCount: 0,
+    directRawCount: 0,
+    transferRawCount: 0,
+    validCount: 0,
+    keptCount: 0,
+    prunedMediocre: 0,
+    reasons: [],
+  };
 
   // 1) Origin / destination candidate stops.
-  const originStops = STOPS.map((s) => ({ ...s, distanceKm: distanceKm(from, s) }))
+  const byOrigin = STOPS.map((s) => ({ ...s, distanceKm: distanceKm(from, s) }))
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+  const byDest = STOPS.map((s) => ({ ...s, distanceKm: distanceKm(to, s) }))
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+  diag.nearestOriginStopKm = byOrigin[0]?.distanceKm ?? null;
+  diag.nearestDestStopKm = byDest[0]?.distanceKm ?? null;
+
+  const originStops = byOrigin
     .filter((s) => s.distanceKm <= MAX_ACCESS_WALK_KM)
-    .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, TOP_ORIGIN_STOPS);
-
-  const destStops = STOPS.map((s) => ({ ...s, distanceKm: distanceKm(to, s) }))
+  const destStops = byDest
     .filter((s) => s.distanceKm <= MAX_EGRESS_WALK_KM)
-    .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, TOP_DEST_STOPS);
+  diag.originStopCount = originStops.length;
+  diag.destStopCount = destStops.length;
 
-  if (originStops.length === 0 || destStops.length === 0) return [];
+  if (originStops.length === 0) diag.reasons.push(`No stop within ${MAX_ACCESS_WALK_KM}km of origin (nearest ${diag.nearestOriginStopKm?.toFixed(2)}km)`);
+  if (destStops.length === 0) diag.reasons.push(`No stop within ${MAX_EGRESS_WALK_KM}km of destination (nearest ${diag.nearestDestStopKm?.toFixed(2)}km)`);
+  if (originStops.length === 0 || destStops.length === 0) {
+    return { itineraries: [], diagnostics: opts?.collectDiagnostics ? diag : undefined };
+  }
 
-  const originStopMap = new Map(originStops.map((s) => [s.id, s]));
   const destStopMap = new Map(destStops.map((s) => [s.id, s]));
 
   // 2) Build trip index from the live feed.
   const { trips, tripsByStop } = await buildTripIndex();
+  diag.liveTripCount = trips.size;
+  let arrivalTotal = 0;
+  for (const t of trips.values()) arrivalTotal += t.stops.length;
+  diag.liveArrivalCount = arrivalTotal;
+  for (const o of originStops) diag.originTripCount += (tripsByStop.get(o.id) ?? []).length;
+  for (const d of destStops) diag.destTripCount += (tripsByStop.get(d.id) ?? []).length;
 
   // 3) Static topology indexes (for pruning transfer candidates).
   const stopRoutes = getStopRoutes();
