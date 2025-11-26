@@ -1,20 +1,20 @@
 // Ingest Cyprus GTFS static feeds → compact, query-ready JSON in public/data/schedule/.
 //
-// Why this exists: the live GTFS-RT feed only contains trips active in the
-// next ~30–60 min. Intercity trips (Larnaca → Limassol, Nicosia → Paphos)
-// don't fit in that window, so a realtime-only planner can never propose
-// them. Citymapper/Google Maps solve this by indexing the *schedule* and
-// using realtime as a delay overlay. This script builds that index.
-//
 // Output (all written to public/data/schedule/):
-//   feeds.json        — feed metadata + agency info
-//   routes.json       — routeId → { short, long, color, feedId, type }
-//   services.json     — serviceId → { feedId, dates: ["YYYYMMDD", ...] }
-//   trips.json        — tripId → { routeId, serviceId, direction, headsign, feedId }
-//   stop-times.json   — tripId → [stopId, depSec, arrSec, seq][]  (compact arrays)
-//   stop-trips.json   — stopId → [tripId, depSec, routeId][] sorted by depSec
+//   feeds.json                — feed metadata
+//   stops.json                — stopId → { name, lat, lng, feedId }   (merged across all feeds)
+//   routes.json               — routeId → { short, long, color, feedId, type }
+//   services.json             — serviceId → { feedId, dates }
+//   trips.json                — tripId → { routeId, serviceId, direction, headsign, feedId }
+//   stop-times.json           — tripId → [stopId, depSec, arrSec, seq][]   (global, fallback)
+//   stop-trips.json           — stopId → [tripId, depSec, routeId][]       (global, sorted)
+//   by-date/YYYYMMDD/stop-trips.json — same shape, only trips active that date
+//   by-date/YYYYMMDD/stop-times.json — same shape, only those trips
+//   by-date/index.json        — list of dates produced + per-shard sizes
 //
-// Total target: < 25 MB raw, < 8 MB gzipped. Verified by the script itself.
+// The per-date shards are the hot path for RAPTOR on the Worker — each is
+// ~2–5 MB raw vs 50 MB for the global indexes, so a request can fetch only
+// the day it needs and stay well within Worker memory.
 
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
