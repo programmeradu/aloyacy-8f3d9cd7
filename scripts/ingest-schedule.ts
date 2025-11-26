@@ -96,6 +96,24 @@ for (const feedId of FEED_IDS) {
   const dir = `${TMP}/feed${feedId}`;
   console.log(`[ingest] parsing feed ${feedId}`);
 
+  // stops.txt
+  {
+    const { header, rows } = parseCsv(readFileSync(`${dir}/stops.txt`, "utf-8"));
+    const iId = col(header, "stop_id");
+    const iName = col(header, "stop_name");
+    const iLat = col(header, "stop_lat");
+    const iLng = col(header, "stop_lon");
+    for (const r of rows) {
+      const id = r[iId];
+      if (!id || stops[id]) continue; // first feed wins on duplicates
+      const lat = Number(r[iLat]);
+      const lng = Number(r[iLng]);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+      stops[id] = { name: r[iName] ?? "", lat, lng, feedId };
+    }
+  }
+
+
   // routes.txt
   {
     const { header, rows } = parseCsv(readFileSync(`${dir}/routes.txt`, "utf-8"));
