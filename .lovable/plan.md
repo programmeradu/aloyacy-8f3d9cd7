@@ -35,31 +35,49 @@ Before writing the search, build the data layer it stands on.
 
 Exit criteria: given any two stops, we can ask "is this a valid walking link?" and get a real distance + duration + polyline in < 200 ms (cached) or < 800 ms (cold, via Google).
 
-## Phase 2 — The search algorithm
+## Phase 2a — Realtime-only 1-transfer search (DONE, structurally limited)
 
-A bounded **modified RAPTOR** / **time-dependent Dijkstra** hybrid — the algorithm class real transit planners use. Implemented in `src/lib/journey.server.ts` as a new function alongside (not replacing) the current direct-route planner.
+First-cut connection-scan against the live GTFS-RT feed. Works for urban trips (Aglandjia → UCY returns 3 sensible direct options) but cannot represent intercity journeys because the realtime feed only contains trips active in the next ~30–60 min — a full Nicosia → Paphos trip never fits the window. Funnel diagnostics added at `/debug/multileg` confirmed this empirically across three intercity presets.
 
-Node space: `(stop_id, arrival_time)`. Edges:
-- **Ride edges**: from a stop to every downstream stop on each route serving it, using realistic departure (schedule + learned mean delay for that route × stop × hour bucket from `delay_stats`).
-- **Walk edges**: from a stop to its precomputed transfer candidates, weighted by `walk_links.duration_sec`.
-- **Stay edges**: waiting at a stop for the next departure on a different route.
+## Phase 2b — Schedule ingestion (DONE)
 
-Constraints baked in:
-- Max 2 transfers.
-- Max total journey 90 min.
-- Max walking per leg 1.2 km; max total walking 2.0 km.
-- Min transfer buffer 90 s (configurable per route reliability — unreliable routes get larger buffers).
+Real timetable data is now indexed in `public/data/schedule/`. The script `scripts/ingest-schedule.ts` downloads all 7 Cyprus GTFS feeds (Nicosia, Intercity, Limassol, Larnaca, Paphos, Famagusta, school), parses `routes.txt` + `trips.txt` + `stop_times.txt` + `calendar_dates.txt`, and emits 6 compact JSON files:
 
-Output: ranked list of `Itinerary` objects, each a sequence of `Leg`s where a leg is either `{ kind: 'ride', routeId, boardStopId, alightStopId, boardTimeSec, alightTimeSec, realisticDelaySec }` or `{ kind: 'walk', fromStopId, toStopId, durationSec, polyline }`.
+- `feeds.json`, `routes.json`, `services.json`, `trips.json` — small lookup tables
+- `stop-times.json` — `tripId → [stopId, depSec, arrSec, seq][]`
+- `stop-trips.json` — `stopId → [tripId, depSec, routeId][]` sorted by depSec (the hot lookup for RAPTOR)
 
-Ranking score per itinerary:
+**Scale**: 34,691 trips, 1,002,151 stop_times rows, 8.9 MB total gzipped across the six files.
+
+**Known follow-up for Phase 2c**: the schedule references stops missing from `src/data/stops.json` — the static stops index was built from a limited set. Phase 2c will merge feed `stops.txt` into the runtime stops index.
+
+## Phase 2c — Schedule-based RAPTOR + realtime delay overlay
+
+A bounded **RAPTOR** (Round-bAsed Public Transit Optimized Router) — the algorithm class Google Maps, Citymapper, and Apple Transit all use. Implemented in `src/lib/journey-multileg.server.ts` as a new `planMultiLegScheduled` function alongside (not replacing) the existing realtime-only path. The dispatcher prefers scheduled results when they exist and falls back to realtime for last-mile freshness.
+
+Inputs: origin/dest lat-lng + departure timestamp (`now` or future).
+
+Per round:
+- **Round 0**: walk from origin to nearby stops (≤ 1.2 km, capped at N).
+- **Round k**: for each stop reached in round k-1, scan all trips departing after the arrival time, mark every downstream stop as reachable in round k.
+- **Transfer**: after each round, walk from reached stops to nearby stops (precomputed transfer candidates from Phase 1).
+- Terminates at round 3 (max 2 transfers, mirroring the original quality bar).
+
+**Realtime delay overlay**: when a scheduled itinerary is returned, match each ride leg's `tripId` against the live GTFS-RT feed. If a `LiveArrival` exists for the board stop, use the realtime predicted time instead of the scheduled time. Otherwise fall back to scheduled + learned mean delay from `delay_stats`. Each leg carries a `source: 'live' | 'predicted' | 'scheduled'` tag the UI surfaces honestly.
+
+Constraints baked in (unchanged from original plan):
+- Max 2 transfers; max total journey 180 min (raised from 90 since intercity exists); max walking per leg 1.2 km, max total 2.0 km; min transfer buffer 90 s.
+
+Ranking score per itinerary (unchanged):
 ```
 score = totalRealisticDuration
-      + reliabilityPenalty(legs)      // larger when transfers depend on unreliable routes
-      + transferPenalty * numTransfers // small constant, breaks ties in favor of fewer transfers
+      + reliabilityPenalty(legs)
+      + transferPenalty * numTransfers
 ```
 
-Exit criteria: for a worst-case Cyprus query, search returns in < 1.5 s and produces 3—5 candidate itineraries (mix of direct and transfer) that a human would call sensible.
+The "no-mediocrity" filter (transfer must beat best direct by ≥ 3 min or ≥ 15 %) carries over verbatim.
+
+Exit criteria: all 4 `/debug/multileg` presets return sensible itineraries; intercity trips (Nicosia → Paphos, Larnaca → Limassol) work; 95th-percentile server time stays under 1.5 s on warm isolate.
 
 ## Phase 3 — Planner UI for multi-leg results
 
