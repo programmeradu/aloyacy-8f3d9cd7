@@ -214,31 +214,80 @@ function buildRideLeg(trip: TripSlice, boardIdx: number, alightIdx: number): Rid
 }
 
 // ---- The search -----------------------------------------------------------
+export type MultiLegDiagnostics = {
+  originStopCount: number;
+  destStopCount: number;
+  nearestOriginStopKm: number | null;
+  nearestDestStopKm: number | null;
+  liveTripCount: number;
+  liveArrivalCount: number;
+  originTripCount: number;
+  destTripCount: number;
+  directRawCount: number;
+  transferRawCount: number;
+  validCount: number;
+  keptCount: number;
+  prunedMediocre: number;
+  reasons: string[];
+};
+
 export async function planMultiLegJourney(
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
-): Promise<Itinerary[]> {
+  opts?: { collectDiagnostics?: boolean },
+): Promise<{ itineraries: Itinerary[]; diagnostics?: MultiLegDiagnostics }> {
   const t0 = Date.now();
   const now = Math.floor(Date.now() / 1000);
+  const diag: MultiLegDiagnostics = {
+    originStopCount: 0,
+    destStopCount: 0,
+    nearestOriginStopKm: null,
+    nearestDestStopKm: null,
+    liveTripCount: 0,
+    liveArrivalCount: 0,
+    originTripCount: 0,
+    destTripCount: 0,
+    directRawCount: 0,
+    transferRawCount: 0,
+    validCount: 0,
+    keptCount: 0,
+    prunedMediocre: 0,
+    reasons: [],
+  };
 
   // 1) Origin / destination candidate stops.
-  const originStops = STOPS.map((s) => ({ ...s, distanceKm: distanceKm(from, s) }))
+  const byOrigin = STOPS.map((s) => ({ ...s, distanceKm: distanceKm(from, s) }))
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+  const byDest = STOPS.map((s) => ({ ...s, distanceKm: distanceKm(to, s) }))
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+  diag.nearestOriginStopKm = byOrigin[0]?.distanceKm ?? null;
+  diag.nearestDestStopKm = byDest[0]?.distanceKm ?? null;
+
+  const originStops = byOrigin
     .filter((s) => s.distanceKm <= MAX_ACCESS_WALK_KM)
-    .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, TOP_ORIGIN_STOPS);
-
-  const destStops = STOPS.map((s) => ({ ...s, distanceKm: distanceKm(to, s) }))
+  const destStops = byDest
     .filter((s) => s.distanceKm <= MAX_EGRESS_WALK_KM)
-    .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, TOP_DEST_STOPS);
+  diag.originStopCount = originStops.length;
+  diag.destStopCount = destStops.length;
 
-  if (originStops.length === 0 || destStops.length === 0) return [];
+  if (originStops.length === 0) diag.reasons.push(`No stop within ${MAX_ACCESS_WALK_KM}km of origin (nearest ${diag.nearestOriginStopKm?.toFixed(2)}km)`);
+  if (destStops.length === 0) diag.reasons.push(`No stop within ${MAX_EGRESS_WALK_KM}km of destination (nearest ${diag.nearestDestStopKm?.toFixed(2)}km)`);
+  if (originStops.length === 0 || destStops.length === 0) {
+    return { itineraries: [], diagnostics: opts?.collectDiagnostics ? diag : undefined };
+  }
 
-  const originStopMap = new Map(originStops.map((s) => [s.id, s]));
   const destStopMap = new Map(destStops.map((s) => [s.id, s]));
 
   // 2) Build trip index from the live feed.
   const { trips, tripsByStop } = await buildTripIndex();
+  diag.liveTripCount = trips.size;
+  let arrivalTotal = 0;
+  for (const t of trips.values()) arrivalTotal += t.stops.length;
+  diag.liveArrivalCount = arrivalTotal;
+  for (const o of originStops) diag.originTripCount += (tripsByStop.get(o.id) ?? []).length;
+  for (const d of destStops) diag.destTripCount += (tripsByStop.get(d.id) ?? []).length;
 
   // 3) Static topology indexes (for pruning transfer candidates).
   const stopRoutes = getStopRoutes();
@@ -293,6 +342,7 @@ export async function planMultiLegJourney(
 
       const legs: Leg[] = waitLeg ? [access, waitLeg, ride, egress] : [access, ride, egress];
       itineraries.push(finalise(legs, now, "live"));
+      diag.directRawCount++;
     }
   }
 
@@ -423,6 +473,7 @@ export async function planMultiLegJourney(
               egress,
             ];
             itineraries.push(finalise(legs, now, "live"));
+            diag.transferRawCount++;
           }
         }
       }
@@ -431,6 +482,16 @@ export async function planMultiLegJourney(
 
   // ---- Filter, dedupe, rank --------------------------------------------
   const valid = itineraries.filter((it) => it.totalDurationSec <= MAX_TOTAL_JOURNEY_SEC);
+  diag.validCount = valid.length;
+  if (itineraries.length > 0 && valid.length === 0) {
+    const min = Math.min(...itineraries.map((it) => it.totalDurationSec));
+    diag.reasons.push(`All ${itineraries.length} candidates exceed ${Math.round(MAX_TOTAL_JOURNEY_SEC / 60)}min cap (shortest: ${Math.round(min / 60)}min)`);
+  }
+  if (itineraries.length === 0) {
+    if (diag.originTripCount === 0) diag.reasons.push(`No live trips visible at any origin stop (feed window is ~60min)`);
+    else if (diag.destTripCount === 0) diag.reasons.push(`No live trips visible reaching any destination stop`);
+    else diag.reasons.push(`Origin and dest both have live trips, but no single-trip or 1-transfer path connects them in the feed window`);
+  }
 
   // Dedupe by (route1, board1, alight1, route2, board2, alight2) — keep cheapest.
   const dedup = new Map<string, Itinerary>();
@@ -453,6 +514,7 @@ export async function planMultiLegJourney(
     );
 
   let kept: Itinerary[] = [...dedup.values()];
+  const beforePrune = kept.length;
   if (bestDirect) {
     kept = kept.filter((it) => {
       if (it.transfers === 0) return true;
@@ -461,18 +523,17 @@ export async function planMultiLegJourney(
       return margin >= 180 || pct >= 0.15;
     });
   }
+  diag.prunedMediocre = beforePrune - kept.length;
 
   kept.sort((a, b) => a.score - b.score);
   const top = kept.slice(0, TOP_K_RESULTS);
+  diag.keptCount = top.length;
 
   // ---- Lazy-upgrade walking geometry for the top picks ----------------
   await Promise.all(
     top.slice(0, VERIFY_WALKS_FOR_TOP).map(async (it) => {
       for (const leg of it.legs) {
         if (leg.kind !== "walk") continue;
-        // Only verify walks between two known stops (transfers and egress
-        // from a stop). Pure origin-walk from arbitrary lat/lng skips for now;
-        // the legacy planner will catch those in Phase 3.
         if (!leg.from.stopId || !leg.to.stopId) continue;
         const real = await getWalkLink(leg.from.stopId, leg.to.stopId);
         if (real.verified && real.distanceM < 99_000) {
@@ -482,7 +543,6 @@ export async function planMultiLegJourney(
           leg.polyline = real.polyline;
         }
       }
-      // Recompute totals after the swap.
       recomputeTotals(it);
     }),
   );
@@ -494,7 +554,7 @@ export async function planMultiLegJourney(
   if (elapsed > 1500) {
     console.warn(`[multileg] search took ${elapsed}ms — over budget`);
   }
-  return top;
+  return { itineraries: top, diagnostics: opts?.collectDiagnostics ? diag : undefined };
 }
 
 // ---- Itinerary assembly helpers ------------------------------------------
