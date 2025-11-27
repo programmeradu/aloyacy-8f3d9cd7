@@ -48,27 +48,22 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     const t0 = Date.now();
     const mode = data.mode ?? "both";
 
-    const tasks: Promise<unknown>[] = [];
-    let liveResult: { itineraries: Itinerary[]; diagnostics?: MultiLegDiagnostics } | null = null;
-    let schedResult: { itineraries: Itinerary[]; diagnostics: ScheduledDiagnostics } | null = null;
+    type LiveR = { itineraries: Itinerary[]; diagnostics?: MultiLegDiagnostics } | null;
+    type SchedR = { itineraries: Itinerary[]; diagnostics: ScheduledDiagnostics } | null;
 
-    if (mode === "live" || mode === "both") {
-      tasks.push(
-        planMultiLegJourney(data.from, data.to, { collectDiagnostics: data.debug ?? false })
-          .then((r) => { liveResult = r; })
-          .catch((e) => { console.warn("[multileg] live failed:", (e as Error).message); }),
-      );
-    }
-    if (mode === "scheduled" || mode === "both") {
-      tasks.push(
-        planMultiLegScheduled(data.from, data.to)
-          .then((r) => { schedResult = r; })
-          .catch((e) => { console.warn("[multileg] scheduled failed:", (e as Error).message); }),
-      );
-    }
-    await Promise.all(tasks);
+    const livePromise: Promise<LiveR> =
+      mode === "live" || mode === "both"
+        ? planMultiLegJourney(data.from, data.to, { collectDiagnostics: data.debug ?? false })
+            .catch((e: unknown) => { console.warn("[multileg] live failed:", (e as Error).message); return null; })
+        : Promise.resolve(null);
+    const schedPromise: Promise<SchedR> =
+      mode === "scheduled" || mode === "both"
+        ? planMultiLegScheduled(data.from, data.to)
+            .catch((e: unknown) => { console.warn("[multileg] scheduled failed:", (e as Error).message); return null; })
+        : Promise.resolve(null);
 
-    // Merge → dedupe → no-mediocrity prune.
+    const [liveResult, schedResult] = await Promise.all([livePromise, schedPromise]);
+
     const merged: Itinerary[] = [
       ...(liveResult?.itineraries ?? []),
       ...(schedResult?.itineraries ?? []),
