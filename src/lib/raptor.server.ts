@@ -25,8 +25,8 @@ import { serviceDateToUnix } from "./schedule-loader.server";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
 
 const MAX_ROUNDS = 3; // 1 ride + 2 optional transfer rides
-const MAX_ACCESS_WALK_KM = 1.2;
-const MAX_EGRESS_WALK_KM = 1.2;
+const MAX_ACCESS_WALK_KM = 2.0;
+const MAX_EGRESS_WALK_KM = 2.0;
 const MAX_TRANSFER_WALK_M = 600;
 const TOP_ORIGIN_STOPS = 8;
 const TOP_DEST_STOPS = 8;
