@@ -46,9 +46,13 @@ function originUrl(path: string): string {
 
 async function fetchJson<T>(path: string): Promise<T> {
   const url = originUrl(path);
-  const res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
-  if (!res.ok) throw new Error(`schedule asset ${path} → ${res.status}`);
-  return (await res.json()) as T;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
+    if (!res.ok) throw new Error(`schedule asset ${path} → ${res.status} (url=${url})`);
+    return (await res.json()) as T;
+  } catch (err) {
+    throw new Error(`fetch schedule asset ${path} failed: ${(err as Error).message} (url=${url})`);
+  }
 }
 
 export async function loadStops(): Promise<Record<string, ScheduleStop>> {
