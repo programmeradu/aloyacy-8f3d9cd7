@@ -3,12 +3,12 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { planMultiLeg } from "@/lib/multileg.functions";
-import type { Itinerary, RideLeg, WalkLeg, WaitLeg } from "@/lib/itinerary-types";
+import type { Itinerary, RideLeg } from "@/lib/itinerary-types";
 
 export const Route = createFileRoute("/debug/multileg")({
   head: () => ({
     meta: [
-      { title: "Multi-leg planner — Phase 2a checkpoint" },
+      { title: "Multi-leg planner — Phase 2c checkpoint" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
