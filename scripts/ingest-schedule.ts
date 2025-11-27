@@ -1,20 +1,20 @@
 // Ingest Cyprus GTFS static feeds → compact, query-ready JSON in public/data/schedule/.
 //
-// Why this exists: the live GTFS-RT feed only contains trips active in the
-// next ~30–60 min. Intercity trips (Larnaca → Limassol, Nicosia → Paphos)
-// don't fit in that window, so a realtime-only planner can never propose
-// them. Citymapper/Google Maps solve this by indexing the *schedule* and
-// using realtime as a delay overlay. This script builds that index.
-//
 // Output (all written to public/data/schedule/):
-//   feeds.json        — feed metadata + agency info
-//   routes.json       — routeId → { short, long, color, feedId, type }
-//   services.json     — serviceId → { feedId, dates: ["YYYYMMDD", ...] }
-//   trips.json        — tripId → { routeId, serviceId, direction, headsign, feedId }
-//   stop-times.json   — tripId → [stopId, depSec, arrSec, seq][]  (compact arrays)
-//   stop-trips.json   — stopId → [tripId, depSec, routeId][] sorted by depSec
+//   feeds.json                — feed metadata
+//   stops.json                — stopId → { name, lat, lng, feedId }   (merged across all feeds)
+//   routes.json               — routeId → { short, long, color, feedId, type }
+//   services.json             — serviceId → { feedId, dates }
+//   trips.json                — tripId → { routeId, serviceId, direction, headsign, feedId }
+//   stop-times.json           — tripId → [stopId, depSec, arrSec, seq][]   (global, fallback)
+//   stop-trips.json           — stopId → [tripId, depSec, routeId][]       (global, sorted)
+//   by-date/YYYYMMDD/stop-trips.json — same shape, only trips active that date
+//   by-date/YYYYMMDD/stop-times.json — same shape, only those trips
+//   by-date/index.json        — list of dates produced + per-shard sizes
 //
-// Total target: < 25 MB raw, < 8 MB gzipped. Verified by the script itself.
+// The per-date shards are the hot path for RAPTOR on the Worker — each is
+// ~2–5 MB raw vs 50 MB for the global indexes, so a request can fetch only
+// the day it needs and stay well within Worker memory.
 
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -82,17 +82,37 @@ function hmsToSec(s: string): number {
 type RouteOut = { short: string; long: string; color: string; feedId: number; type: number };
 type ServiceOut = { feedId: number; dates: string[] };
 type TripOut = { routeId: string; serviceId: string; direction: 0 | 1; headsign: string; feedId: number };
+type StopOut = { name: string; lat: number; lng: number; feedId: number };
 // stop_times row: [stopId, depSec, arrSec, seq] — array form keeps JSON small
 type StopTimeRow = [string, number, number, number];
 
 const routes: Record<string, RouteOut> = {};
 const services: Record<string, ServiceOut> = {};
 const trips: Record<string, TripOut> = {};
+const stops: Record<string, StopOut> = {};
 const stopTimes: Record<string, StopTimeRow[]> = {};
 
 for (const feedId of FEED_IDS) {
   const dir = `${TMP}/feed${feedId}`;
   console.log(`[ingest] parsing feed ${feedId}`);
+
+  // stops.txt
+  {
+    const { header, rows } = parseCsv(readFileSync(`${dir}/stops.txt`, "utf-8"));
+    const iId = col(header, "stop_id");
+    const iName = col(header, "stop_name");
+    const iLat = col(header, "stop_lat");
+    const iLng = col(header, "stop_lon");
+    for (const r of rows) {
+      const id = r[iId];
+      if (!id || stops[id]) continue; // first feed wins on duplicates
+      const lat = Number(r[iLat]);
+      const lng = Number(r[iLng]);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+      stops[id] = { name: r[iName] ?? "", lat, lng, feedId };
+    }
+  }
+
 
   // routes.txt
   {
@@ -196,6 +216,7 @@ const feedsMeta = FEED_IDS.map((id) => ({ id, source: `${BASE}${id}_google_trans
 function write(name: string, data: unknown) {
   const json = JSON.stringify(data);
   const path = join(OUT, name);
+  mkdirSync(join(path, ".."), { recursive: true });
   writeFileSync(path, json);
   const gz = gzipSync(json, { level: 9 });
   writeFileSync(`${path}.gz`, gz);
@@ -207,6 +228,7 @@ function write(name: string, data: unknown) {
 
 const sizes = [
   write("feeds.json", feedsMeta),
+  write("stops.json", stops),
   write("routes.json", routes),
   write("services.json", services),
   write("trips.json", trips),
@@ -214,8 +236,77 @@ const sizes = [
   write("stop-trips.json", stopTrips),
 ];
 
+// --- 6. Per-date shards ---------------------------------------------------
+// For every date in the next SHARD_DAYS, emit the slice of stop-times and
+// stop-trips containing only trips whose service is active on that date.
+// This is what the Worker actually loads at request time.
+
+const SHARD_DAYS = 14;
+const today = new Date();
+const dates: string[] = [];
+for (let i = 0; i < SHARD_DAYS; i++) {
+  const d = new Date(today);
+  d.setUTCDate(today.getUTCDate() + i);
+  dates.push(
+    `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`,
+  );
+}
+
+// Reverse index: date → Set<serviceId>
+const servicesByDate = new Map<string, Set<string>>();
+for (const [sid, svc] of Object.entries(services)) {
+  for (const d of svc.dates) {
+    if (!dates.includes(d)) continue;
+    let set = servicesByDate.get(d);
+    if (!set) {
+      set = new Set();
+      servicesByDate.set(d, set);
+    }
+    set.add(sid);
+  }
+}
+
+const shardIndex: Record<string, { trips: number; rows: number; stopTimesKb: number; stopTripsKb: number }> = {};
+
+for (const date of dates) {
+  const activeSvc = servicesByDate.get(date) ?? new Set();
+  const activeTrips = new Set<string>();
+  for (const [tid, t] of Object.entries(trips)) {
+    if (activeSvc.has(t.serviceId)) activeTrips.add(tid);
+  }
+
+  const shardStopTimes: Record<string, StopTimeRow[]> = {};
+  const shardStopTrips: Record<string, [string, number, string][]> = {};
+  let rowCount = 0;
+  for (const tid of activeTrips) {
+    const list = stopTimes[tid];
+    if (!list) continue;
+    shardStopTimes[tid] = list;
+    rowCount += list.length;
+    const routeId = trips[tid]?.routeId ?? "";
+    for (const [sid, dep] of list) {
+      (shardStopTrips[sid] ??= []).push([tid, dep, routeId]);
+    }
+  }
+  for (const sid of Object.keys(shardStopTrips)) {
+    shardStopTrips[sid].sort((a, b) => a[1] - b[1]);
+  }
+
+  const stRes = write(`by-date/${date}/stop-times.json`, shardStopTimes);
+  const trRes = write(`by-date/${date}/stop-trips.json`, shardStopTrips);
+  shardIndex[date] = {
+    trips: activeTrips.size,
+    rows: rowCount,
+    stopTimesKb: Math.round(stRes.raw / 1024),
+    stopTripsKb: Math.round(trRes.raw / 1024),
+  };
+}
+
+write("by-date/index.json", shardIndex);
+
 const totalRaw = sizes.reduce((a, b) => a + b.raw, 0);
 const totalGz = sizes.reduce((a, b) => a + b.gz, 0);
 console.log(
-  `[ingest] DONE  trips=${Object.keys(trips).length}  stop_times rows=${Object.values(stopTimes).reduce((a, b) => a + b.length, 0)}  total raw=${(totalRaw / 1024 / 1024).toFixed(1)} MB  gz=${(totalGz / 1024 / 1024).toFixed(1)} MB`
+  `[ingest] DONE  trips=${Object.keys(trips).length}  stops=${Object.keys(stops).length}  stop_times rows=${Object.values(stopTimes).reduce((a, b) => a + b.length, 0)}  global raw=${(totalRaw / 1024 / 1024).toFixed(1)} MB  gz=${(totalGz / 1024 / 1024).toFixed(1)} MB`,
 );
+console.log(`[ingest] per-date shards: ${dates.length} days`);
