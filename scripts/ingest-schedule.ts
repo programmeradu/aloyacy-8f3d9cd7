@@ -95,6 +95,7 @@ const stopTimes: Record<string, StopTimeRow[]> = {};
 for (const feedId of FEED_IDS) {
   const dir = `${TMP}/feed${feedId}`;
   console.log(`[ingest] parsing feed ${feedId}`);
+  const ns = (raw: string) => `${feedId}:${raw}`; // namespace all IDs
 
   // stops.txt
   {
@@ -104,15 +105,14 @@ for (const feedId of FEED_IDS) {
     const iLat = col(header, "stop_lat");
     const iLng = col(header, "stop_lon");
     for (const r of rows) {
-      const id = r[iId];
-      if (!id || stops[id]) continue; // first feed wins on duplicates
+      if (!r[iId]) continue;
+      const id = ns(r[iId]);
       const lat = Number(r[iLat]);
       const lng = Number(r[iLng]);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
       stops[id] = { name: r[iName] ?? "", lat, lng, feedId };
     }
   }
-
 
   // routes.txt
   {
@@ -123,7 +123,7 @@ for (const feedId of FEED_IDS) {
     const iColor = header.indexOf("route_color");
     const iType = col(header, "route_type");
     for (const r of rows) {
-      routes[r[iId]] = {
+      routes[ns(r[iId])] = {
         short: r[iShort] ?? "",
         long: r[iLong] ?? "",
         color: iColor >= 0 ? r[iColor] ?? "" : "",
@@ -140,8 +140,8 @@ for (const feedId of FEED_IDS) {
     const iDate = col(header, "date");
     const iEx = col(header, "exception_type");
     for (const r of rows) {
-      if (r[iEx] !== "1") continue; // 1 = added; 2 = removed (rare here)
-      const sid = r[iSvc];
+      if (r[iEx] !== "1") continue;
+      const sid = ns(r[iSvc]);
       const svc = (services[sid] ??= { feedId, dates: [] });
       svc.dates.push(r[iDate]);
     }
@@ -159,9 +159,9 @@ for (const feedId of FEED_IDS) {
     const iHead = col(header, "trip_headsign");
     const iDir = col(header, "direction_id");
     for (const r of rows) {
-      trips[r[iTrip]] = {
-        routeId: r[iRoute],
-        serviceId: r[iSvc],
+      trips[ns(r[iTrip])] = {
+        routeId: ns(r[iRoute]),
+        serviceId: ns(r[iSvc]),
         direction: (Number(r[iDir]) || 0) as 0 | 1,
         headsign: r[iHead] ?? "",
         feedId,
@@ -179,11 +179,11 @@ for (const feedId of FEED_IDS) {
     const iStop = col(header, "stop_id");
     const iSeq = col(header, "stop_sequence");
     for (const r of rows) {
-      const tripId = r[iTrip];
+      const tripId = ns(r[iTrip]);
       const arr = hmsToSec(r[iArr]);
       const dep = hmsToSec(r[iDep]);
       const list = (stopTimes[tripId] ??= []);
-      list.push([r[iStop], dep, arr, Number(r[iSeq])]);
+      list.push([ns(r[iStop]), dep, arr, Number(r[iSeq])]);
     }
   }
 }
