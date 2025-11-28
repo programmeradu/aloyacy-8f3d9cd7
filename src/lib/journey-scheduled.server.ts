@@ -47,6 +47,9 @@ export async function planMultiLegScheduled(
     const rt = await fetchRealtime();
     liveArrivalCount = rt.arrivals.length;
     // Index live arrivals by (tripId, stopId) for O(1) lookup.
+    // RT feed uses raw GTFS IDs; our scheduled legs have feed-namespaced IDs
+    // ("10:6117"). Strip the namespace before matching.
+    const stripNs = (id: string) => id.includes(":") ? id.slice(id.indexOf(":") + 1) : id;
     const byKey = new Map<string, { arrivalUnix: number; delaySec: number }>();
     for (const a of rt.arrivals) {
       byKey.set(`${a.tripId}|${a.stopId}`, { arrivalUnix: a.arrivalUnix, delaySec: a.delaySec });
@@ -55,8 +58,9 @@ export async function planMultiLegScheduled(
       let anyLive = false;
       for (const leg of it.legs) {
         if (leg.kind !== "ride") continue;
-        const board = byKey.get(`${leg.tripId}|${leg.board.stopId}`);
-        const alight = byKey.get(`${leg.tripId}|${leg.alight.stopId}`);
+        const rawTrip = stripNs(leg.tripId);
+        const board = byKey.get(`${rawTrip}|${stripNs(leg.board.stopId)}`);
+        const alight = byKey.get(`${rawTrip}|${stripNs(leg.alight.stopId)}`);
         if (board) {
           leg.board.departureUnix = board.arrivalUnix;
           leg.delaySec = board.delaySec;
