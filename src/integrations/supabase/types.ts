@@ -24,8 +24,11 @@ export type Database = {
           board_stop_id: string | null
           board_unix: number | null
           device_id: string
+          itinerary_id: string | null
+          legs: Json | null
           route_short: string | null
           started_at: string
+          total_arrival_unix: number | null
           trip_id: string
           updated_at: string
           walk_in_sec: number
@@ -40,8 +43,11 @@ export type Database = {
           board_stop_id?: string | null
           board_unix?: number | null
           device_id: string
+          itinerary_id?: string | null
+          legs?: Json | null
           route_short?: string | null
           started_at?: string
+          total_arrival_unix?: number | null
           trip_id: string
           updated_at?: string
           walk_in_sec?: number
@@ -56,8 +62,11 @@ export type Database = {
           board_stop_id?: string | null
           board_unix?: number | null
           device_id?: string
+          itinerary_id?: string | null
+          legs?: Json | null
           route_short?: string | null
           started_at?: string
+          total_arrival_unix?: number | null
           trip_id?: string
           updated_at?: string
           walk_in_sec?: number
