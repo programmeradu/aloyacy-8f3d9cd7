@@ -236,10 +236,10 @@ function Plan() {
 
         {results && results.length > 0 && origin && destination && (
           <div className="flex flex-col gap-3">
-            {results.map((opt, i) => (
-              <JourneyCard
-                key={opt.id}
-                option={opt}
+            {results.map((it, i) => (
+              <ItineraryRow
+                key={it.id}
+                itinerary={it}
                 highlight={i === 0}
                 origin={origin}
                 destination={destination}
