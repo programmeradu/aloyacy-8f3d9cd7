@@ -1,14 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
-import { RouteChip } from "@/components/RouteChip";
+import { ItineraryCard } from "@/components/ItineraryCard";
 import { IconArrowUpRight, IconBriefcase, IconClock, IconHome, IconPin, IconSearch, IconStar } from "@/components/Icons";
 import { autocompletePlaces, getPlace, reverseLookup } from "@/lib/maps.functions";
-import { planTrip } from "@/lib/journey.functions";
+import { planMultiLeg } from "@/lib/multileg.functions";
+import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
-import { NICOSIA_CENTER, routeTone } from "@/lib/gtfs";
+import { NICOSIA_CENTER } from "@/lib/gtfs";
 import {
   pushRecent,
   setActiveTrip,
