@@ -1,14 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
-import { RouteChip } from "@/components/RouteChip";
+import { ItineraryCard } from "@/components/ItineraryCard";
 import { IconArrowUpRight, IconBriefcase, IconClock, IconHome, IconPin, IconSearch, IconStar } from "@/components/Icons";
 import { autocompletePlaces, getPlace, reverseLookup } from "@/lib/maps.functions";
-import { planTrip } from "@/lib/journey.functions";
+import { planMultiLeg } from "@/lib/multileg.functions";
+import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
-import { NICOSIA_CENTER, routeTone } from "@/lib/gtfs";
+import { NICOSIA_CENTER } from "@/lib/gtfs";
 import {
   pushRecent,
   setActiveTrip,
@@ -39,11 +40,11 @@ function Plan() {
   const [origin, setOrigin] = useState<Point | null>(null);
   const [destination, setDestination] = useState<Point | null>(null);
   const [active, setActive] = useState<"from" | "to" | null>("to");
-  const [results, setResults] = useState<JourneyOption[] | null>(null);
+  const [results, setResults] = useState<Itinerary[] | null>(null);
   const [planning, setPlanning] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
 
-  const planFn = useServerFn(planTrip);
+  const planFn = useServerFn(planMultiLeg);
   const reverseFn = useServerFn(reverseLookup);
   const fetchSuggestions = useServerFn(getTripSuggestions);
 
@@ -75,7 +76,6 @@ function Plan() {
         }
       },
       () => {
-        // Fall back to Nicosia centre silently.
         setOrigin({
           lat: NICOSIA_CENTER.lat,
           lng: NICOSIA_CENTER.lng,
@@ -92,8 +92,7 @@ function Plan() {
     setResults(null);
     try {
       const res = await planFn({ data: { from: o, to: d } });
-      if (res.error) setPlanError(res.error);
-      setResults(res.options);
+      setResults(res.itineraries);
     } catch (e) {
       setPlanError(e instanceof Error ? e.message : "Plan failed");
     } finally {
@@ -237,10 +236,10 @@ function Plan() {
 
         {results && results.length > 0 && origin && destination && (
           <div className="flex flex-col gap-3">
-            {results.map((opt, i) => (
-              <JourneyCard
-                key={opt.id}
-                option={opt}
+            {results.map((it, i) => (
+              <ItineraryRow
+                key={it.id}
+                itinerary={it}
                 highlight={i === 0}
                 origin={origin}
                 destination={destination}
@@ -570,19 +569,29 @@ function QuickPicks({
 }
 
 
-function JourneyCard({
-  option,
+// Bridge component: renders an Itinerary card and wires "Start this trip" to
+// the existing single-ride trip companion. Multi-ride itineraries surface a
+// disabled "Multi-leg tracking — Phase 4" affordance until the live-tracking
+// rewrite lands.
+function ItineraryRow({
+  itinerary,
   highlight,
   origin,
   destination,
 }: {
-  option: JourneyOption;
+  itinerary: Itinerary;
   highlight: boolean;
   origin: Point;
   destination: Point;
 }) {
   const navigate = useNavigate();
+  const rides = itinerary.legs.filter((l): l is RideLeg => l.kind === "ride");
+  const isSingleRide = rides.length === 1;
+
   function start() {
+    if (!isSingleRide) return;
+    const option = itineraryToJourneyOption(itinerary);
+    if (!option) return;
     setActiveTrip({
       startedAt: Date.now(),
       option,
@@ -591,139 +600,69 @@ function JourneyCard({
     });
     void navigate({ to: "/trip/$id", params: { id: option.id } });
   }
-  const bus = option.legs.find((l) => l.kind === "bus");
-  if (!bus || bus.kind !== "bus") return null;
-  const totalMin = Math.round(option.totalDurationSec / 60);
-  const departIn = Math.max(0, Math.round((option.departureUnix - Date.now() / 1000) / 60));
-  const departTime = useMemo(
-    () =>
-      new Date(option.departureUnix * 1000).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }),
-    [option.departureUnix],
-  );
-  const arriveTime = useMemo(
-    () =>
-      new Date(option.arrivalUnix * 1000).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }),
-    [option.arrivalUnix],
-  );
-
-  const delayLabel = bus.scheduled
-    ? "Scheduled"
-    : bus.delaySec > 60
-    ? `${Math.round(bus.delaySec / 60)} min late`
-    : bus.delaySec < -60
-    ? `${Math.round(-bus.delaySec / 60)} min early`
-    : "On time";
 
   return (
-    <article
-      className={`rounded-[28px] p-5 transition-all ${
-        highlight
-          ? "bg-card ring-2 ring-aegean-deep/40 shadow-[0_18px_50px_-30px_rgba(15,60,80,0.35)]"
-          : "bg-card ring-1 ring-line"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
-            {bus.scheduled
-              ? "Scheduled route — check timetable"
-              : `${highlight ? "Fastest live" : "Alternative"} — leaves in ${departIn} min`}
-          </p>
-          <h3 className="mt-1 font-display text-[26px] leading-tight text-ink text-pretty">
-            Board at <span className="text-aegean-deep">{bus.board.name}</span>
-          </h3>
-        </div>
-        <div className="text-right shrink-0">
-          <p className={`font-display text-4xl leading-none ${highlight ? "text-aegean-deep" : "text-ink"}`}>
-            {totalMin}
-            <span className="ml-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-              min
-            </span>
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-3">
-        <RouteChip code={bus.routeShort} tone={routeTone(bus.routeId)} />
-        <p className="text-[12px] text-ink-soft truncate">{bus.routeLong}</p>
-        <span
-          className={`font-mono text-[10px] uppercase tracking-[0.16em] ${
-            bus.scheduled
-              ? "text-ink-soft"
-              : bus.delaySec > 60
-              ? "text-ochre"
-              : bus.delaySec < -60
-              ? "text-olive"
-              : "text-aegean-deep"
-          }`}
-        >
-          {delayLabel}
-        </span>
-      </div>
-
-
-      <ol className="mt-5 space-y-3">
-        {option.legs.map((leg, i) => (
-          <li key={i} className="flex items-start gap-3">
-            <span
-              className={`mt-1 flex size-6 shrink-0 items-center justify-center rounded-full font-mono text-[10px] ${
-                leg.kind === "bus"
-                  ? "bg-aegean-deep text-white"
-                  : "bg-limestone-soft text-ink-soft ring-1 ring-line"
-              }`}
-            >
-              {i + 1}
-            </span>
-            <div className="min-w-0 flex-1">
-              {leg.kind === "walk" ? (
-                <>
-                  <p className="text-[13px] text-ink">
-                    Walk to {leg.to.label}
-                  </p>
-                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                    {Math.max(1, Math.round(leg.durationSec / 60))} min — {Math.round(leg.distanceMeters)} m
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-[13px] text-ink">
-                    Ride to {leg.alight.name}
-                  </p>
-                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                    {leg.scheduled
-                      ? `~${Math.max(1, Math.round((leg.alight.arrivalUnix - leg.board.departureUnix) / 60))} min ride — scheduled`
-                      : `${departTime} → ${arriveTime}`}
-                  </p>
-                </>
-              )}
-
-            </div>
-            {leg.kind === "bus" && (
-              <IconClock className="size-4 text-ink-soft mt-1.5" />
-            )}
-          </li>
-        ))}
-      </ol>
-
-      <button
-        onClick={start}
-        className={`mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors ${
-          highlight
-            ? "bg-ink text-limestone hover:bg-ink/90"
-            : "bg-limestone-soft text-ink hover:bg-limestone-soft/70"
-        }`}
-      >
-        Start this trip
-        <IconArrowUpRight className="size-3.5" />
-      </button>
-    </article>
+    <ItineraryCard
+      itinerary={itinerary}
+      highlight={highlight}
+      onStart={isSingleRide ? start : undefined}
+      startDisabled={!isSingleRide}
+      startLabel={
+        isSingleRide
+          ? "Start this trip"
+          : `${itinerary.transfers} change${itinerary.transfers > 1 ? "s" : ""} · tracking soon`
+      }
+    />
   );
+}
+
+// Map a single-ride Itinerary into the legacy JourneyOption shape that
+// trip.$id and trip-store still expect. Drops Wait legs (they're implicit
+// in the schedule). Phase 4 will replace this bridge with native multi-leg.
+function itineraryToJourneyOption(it: Itinerary): JourneyOption | null {
+  const ride = it.legs.find((l): l is RideLeg => l.kind === "ride");
+  if (!ride) return null;
+  const legs: JourneyOption["legs"] = [];
+  for (const leg of it.legs) {
+    if (leg.kind === "walk") {
+      const w = leg as WalkLeg;
+      legs.push({
+        kind: "walk",
+        from: { lat: w.from.lat, lng: w.from.lng, label: w.from.name },
+        to: { lat: w.to.lat, lng: w.to.lng, label: w.to.name },
+        durationSec: w.durationSec,
+        distanceMeters: w.distanceMeters,
+      });
+    } else if (leg.kind === "ride") {
+      legs.push({
+        kind: "bus",
+        routeId: leg.routeId,
+        routeShort: leg.routeShort,
+        routeLong: leg.routeLong,
+        tripId: leg.tripId,
+        board: {
+          stopId: leg.board.stopId,
+          name: leg.board.name,
+          departureUnix: leg.board.departureUnix,
+        },
+        alight: {
+          stopId: leg.alight.stopId,
+          name: leg.alight.name,
+          arrivalUnix: leg.alight.arrivalUnix,
+        },
+        delaySec: leg.delaySec,
+        scheduled: !leg.live,
+      });
+    }
+    // wait legs are dropped — companion derives waiting from board time
+  }
+  return {
+    id: it.id,
+    totalDurationSec: it.totalDurationSec,
+    departureUnix: it.departureUnix,
+    arrivalUnix: it.arrivalUnix,
+    legs,
+    transfers: it.transfers,
+    scheduled: it.source !== "live",
+  };
 }
