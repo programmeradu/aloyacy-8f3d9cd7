@@ -48,8 +48,16 @@ type AlertKind =
   | "connection-delayed";  // next leg is running > 5 min late
 
 
+type SingleLegKind =
+  | "board-soon"
+  | "hurry-soft"
+  | "at-stop"
+  | "alight-soon"
+  | "arrived"
+  | "delayed";
+
 function buildPayload(
-  kind: AlertKind,
+  kind: SingleLegKind,
   row: ActiveTripRow,
   minutes: number,
 ): WebPushPayload {
