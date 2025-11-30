@@ -15,6 +15,8 @@ import { fetchRealtime } from "@/lib/gtfs-rt.server";
 import { sendWebPush, type WebPushPayload } from "@/lib/webpush.server";
 import { VAPID_PUBLIC_KEY } from "@/lib/vapid";
 
+import type { Leg, RideLeg } from "@/lib/itinerary-types";
+
 type ActiveTripRow = {
   device_id: string;
   trip_id: string;
@@ -28,6 +30,8 @@ type ActiveTripRow = {
   walk_in_sec: number;
   walk_out_sec: number;
   alerts_sent: string[];
+  legs: Leg[] | null;
+  total_arrival_unix: number | null;
 };
 
 type AlertKind =
@@ -36,7 +40,13 @@ type AlertKind =
   | "at-stop"
   | "alight-soon"
   | "arrived"
-  | "delayed";
+  | "delayed"
+  // Multi-leg additions:
+  | "alight-leg"          // get off at next stop, for ride leg i
+  | "walk-to-transfer"    // walk this way to next stop, after alighting leg i
+  | "connection-approaching" // next bus is < ~90s out at transfer stop
+  | "connection-delayed";  // next leg is running > 5 min late
+
 
 function buildPayload(
   kind: AlertKind,
