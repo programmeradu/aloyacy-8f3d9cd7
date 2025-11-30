@@ -41,15 +41,28 @@ type Phase =
   | "arrived";
 
 function TripCompanion() {
-  const navigate = useNavigate();
   const active = useActiveTrip();
-  const { data: rt } = useRealtime();
-  const tick = useTick(5_000);
   // Wait for localStorage hydration before deciding the trip is "gone".
-  // Without this, SSR (which has no localStorage) flashes "No active trip"
-  // for one render after the user reopens the tab.
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
+
+  // Multi-leg itineraries (≥ 2 ride legs) get the leg-aware companion.
+  if (active && isMultiLeg(active.itinerary)) {
+    return <MultiLegCompanion active={active} />;
+  }
+  return <SingleLegCompanion active={active} hydrated={hydrated} />;
+}
+
+function SingleLegCompanion({
+  active,
+  hydrated,
+}: {
+  active: ReturnType<typeof useActiveTrip>;
+  hydrated: boolean;
+}) {
+  const navigate = useNavigate();
+  const { data: rt } = useRealtime();
+  const tick = useTick(5_000);
 
   const fetchDirections = useServerFn(getWalkingDirections);
 
