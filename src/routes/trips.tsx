@@ -589,7 +589,10 @@ function ItineraryRow({
   const isSingleRide = rides.length === 1;
 
   function start() {
-    if (!isSingleRide) return;
+    // Single-ride: use the legacy JourneyOption path so the existing
+    // single-leg companion + push pipeline keeps working byte-identically.
+    // Multi-ride: also populate the full itinerary + legState so the
+    // MultiLegCompanion picks it up at /trip/$id.
     const option = itineraryToJourneyOption(itinerary);
     if (!option) return;
     setActiveTrip({
@@ -597,6 +600,10 @@ function ItineraryRow({
       option,
       from: origin,
       to: destination,
+      itinerary: isSingleRide ? undefined : itinerary,
+      legState: isSingleRide
+        ? undefined
+        : { currentLegIndex: 0, perLeg: { 0: { enteredAt: Date.now() } } },
     });
     void navigate({ to: "/trip/$id", params: { id: option.id } });
   }
@@ -605,13 +612,8 @@ function ItineraryRow({
     <ItineraryCard
       itinerary={itinerary}
       highlight={highlight}
-      onStart={isSingleRide ? start : undefined}
-      startDisabled={!isSingleRide}
-      startLabel={
-        isSingleRide
-          ? "Start this trip"
-          : `${itinerary.transfers} change${itinerary.transfers > 1 ? "s" : ""} · tracking soon`
-      }
+      onStart={start}
+      startLabel="Start this trip"
     />
   );
 }
