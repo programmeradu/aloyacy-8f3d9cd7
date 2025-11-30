@@ -48,7 +48,7 @@ export const upsertActiveTrip = createServerFn({ method: "POST" })
           walk_in_sec: data.walkInSec,
           walk_out_sec: data.walkOutSec,
           alerts_sent: [],
-          legs: data.legs ?? null,
+          legs: (data.legs ?? null) as never,
           itinerary_id: data.itineraryId ?? null,
           total_arrival_unix: data.totalArrivalUnix ?? null,
           started_at: new Date().toISOString(),
