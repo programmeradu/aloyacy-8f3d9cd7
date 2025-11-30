@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { JourneyOption } from "./journey.server";
+import type { Itinerary, RideLeg } from "./itinerary-types";
 
 const ACTIVE_KEY = "aloya:active-trip";
 const SAVED_KEY = "aloya:saved-places";
@@ -38,12 +39,37 @@ export type LiveTripState = {
   alightedAt?: number;
 };
 
+/** Per-leg live state for multi-leg trips. Indexed by leg position in
+ *  `itinerary.legs` (NOT just ride legs — walk + wait count toward index). */
+export type LegLiveState = {
+  enteredAt?: number;          // when phase machine moved into this leg
+  onBoardConfirmedAt?: number; // ride legs only
+  alightedAt?: number;         // ride legs only
+  missedAt?: number;           // ride legs only
+  completedAt?: number;        // any leg, when machine advanced past it
+};
+
+export type MultiLegState = {
+  /** Index into itinerary.legs (0..N-1). */
+  currentLegIndex: number;
+  /** Per-leg manual confirmations + timestamps. */
+  perLeg: Record<number, LegLiveState>;
+};
+
 export type ActiveTrip = {
   startedAt: number;
   option: JourneyOption;
   from: { lat: number; lng: number; label: string };
   to: { lat: number; lng: number; label: string };
   live?: LiveTripState;
+  /** Full multi-leg itinerary. Present for every trip started after Phase 4,
+   *  including single-ride ones (1 ride leg + walks). The legacy `option`
+   *  field is still populated for single-ride trips so the existing journey
+   *  hook keeps working unchanged. */
+  itinerary?: Itinerary;
+  /** Multi-leg phase state. Only present (and only used) when itinerary has
+   *  ≥ 2 ride legs. */
+  legState?: MultiLegState;
 };
 
 // ---------- raw helpers ----------
@@ -103,6 +129,13 @@ async function syncActiveTripToServer(trip: ActiveTrip) {
       alightUnix: bus.alight.arrivalUnix,
       walkInSec: walkIn?.kind === "walk" ? walkIn.durationSec : 0,
       walkOutSec: walkOut?.kind === "walk" ? walkOut.durationSec : 0,
+      // Multi-leg payload: serialize the full itinerary so the background
+      // cron can fire per-leg alerts (alight from leg 0, board leg 1, etc.).
+      // Single-leg trips include this too — the cron will treat them as a
+      // 1-ride itinerary, which produces the same alerts as the legacy path.
+      itineraryId: trip.itinerary?.id,
+      totalArrivalUnix: trip.itinerary?.arrivalUnix,
+      legs: trip.itinerary?.legs,
     },
   });
 }
@@ -122,6 +155,64 @@ export function patchActiveTripLive(patch: Partial<LiveTripState>) {
     ...patch,
   };
   setActiveTrip({ ...cur, live });
+}
+
+// ---------- multi-leg helpers ----------
+
+/** Returns the ride legs in order. Walk + wait legs are excluded. */
+export function rideLegsOf(it: Itinerary): RideLeg[] {
+  return it.legs.filter((l): l is RideLeg => l.kind === "ride");
+}
+
+/** True when an itinerary needs the multi-leg companion experience. */
+export function isMultiLeg(it: Itinerary | undefined): boolean {
+  if (!it) return false;
+  return rideLegsOf(it).length >= 2;
+}
+
+/** Initialise multi-leg state for a freshly started trip. Starts at leg 0
+ *  (typically the access walk). */
+export function initialLegState(): MultiLegState {
+  return {
+    currentLegIndex: 0,
+    perLeg: { 0: { enteredAt: Date.now() } },
+  };
+}
+
+/** Patch the per-leg state for the *current* leg. */
+export function patchCurrentLeg(patch: Partial<LegLiveState>) {
+  const cur = getActiveTrip();
+  if (!cur || !cur.legState) return;
+  const idx = cur.legState.currentLegIndex;
+  const next: MultiLegState = {
+    ...cur.legState,
+    perLeg: {
+      ...cur.legState.perLeg,
+      [idx]: { ...cur.legState.perLeg[idx], ...patch },
+    },
+  };
+  setActiveTrip({ ...cur, legState: next });
+}
+
+/** Advance the phase machine to the next leg. Marks the current leg as
+ *  completed and stamps `enteredAt` on the new leg. Idempotent at end. */
+export function advanceToNextLeg() {
+  const cur = getActiveTrip();
+  if (!cur || !cur.legState || !cur.itinerary) return;
+  const total = cur.itinerary.legs.length;
+  const idx = cur.legState.currentLegIndex;
+  if (idx >= total - 1) return;
+  const completed = { ...cur.legState.perLeg[idx], completedAt: Date.now() };
+  const nextIdx = idx + 1;
+  const next: MultiLegState = {
+    currentLegIndex: nextIdx,
+    perLeg: {
+      ...cur.legState.perLeg,
+      [idx]: completed,
+      [nextIdx]: { ...cur.legState.perLeg[nextIdx], enteredAt: Date.now() },
+    },
+  };
+  setActiveTrip({ ...cur, legState: next });
 }
 
 // ---------- saved places ----------
