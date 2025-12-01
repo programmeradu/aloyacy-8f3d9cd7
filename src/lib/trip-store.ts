@@ -117,11 +117,12 @@ export function getActiveTrip(): ActiveTrip | null {
   // the expected arrival time (when known).
   const now = Date.now();
   const ageMs = t.startedAt ? now - t.startedAt : 0;
-  const expectedArrivalMs =
-    (t.itinerary?.arrivalUnix ?? 0) * 1000 ||
+  const legacyArrivalUnix =
     (t.option?.legs?.[t.option.legs.length - 1] as { arrivalUnix?: number } | undefined)
-      ?.arrivalUnix ??
-    0;
+      ?.arrivalUnix ?? 0;
+  const expectedArrivalMs =
+    ((t.itinerary?.arrivalUnix ?? 0) * 1000) ||
+    legacyArrivalUnix * 1000;
   const pastArrival =
     expectedArrivalMs > 0 && now - expectedArrivalMs > ARRIVAL_GRACE_MS;
   if (ageMs > MAX_TRIP_AGE_MS || pastArrival) {
