@@ -37,6 +37,7 @@ export type MultiLegPhase =
   | "alight-soon"
   | "walking-to-transfer"
   | "waiting-for-connection"
+  | "missed-connection"
   | "walking-to-destination"
   | "arrived";
 
@@ -73,11 +74,22 @@ export type MultiLegLive = {
   /** Meters to the current leg's spatial target (board stop / transfer
    *  stop / destination). */
   metersToTarget: number;
+  /** Fused position of the current ride's bus (GPS fallback when feed lost). */
+  fusedCurrentVehicle: { lat: number; lng: number; bearing: number; tripId: string } | null;
+  /** True while on-board the current ride but its tripId is not in the feed. */
+  vehicleLost: boolean;
+  /** True when the realtime feed itself is stale. */
+  feedStale: boolean;
+  /** True when the next ride's vehicle has not started reporting yet. */
+  nextVehicleTracked: boolean;
 };
 
 const STOP_ARRIVAL_RADIUS_M = 30;
 const DEST_ARRIVAL_RADIUS_M = 30;
 const CONNECTION_LATE_S = 5 * 60;
+const RIDING_SPEED_MPS = 5;
+/** How long after the scheduled connection departure we call it "missed". */
+const MISSED_CONNECTION_BUFFER_S = 90;
 
 export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   const itin = active?.itinerary ?? null;
@@ -85,7 +97,8 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   const started = !!active?.live?.startedAt;
 
   const { fix } = useGeoWatch(started);
-  const { data: rt } = useRealtime();
+  const { data: rt, isStale: feedStale } = useRealtime();
+
 
   const result = useMemo<MultiLegLive>(() => {
     const baseInactive: MultiLegLive = {
@@ -105,9 +118,14 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       nextBoardSource: "scheduled",
       nextBoardLate: false,
       metersToTarget: 0,
+      fusedCurrentVehicle: null,
+      vehicleLost: false,
+      feedStale,
+      nextVehicleTracked: false,
     };
 
     if (!itin || !legState || !started) return baseInactive;
+
 
     const now = Math.floor(Date.now() / 1000);
     const idx = Math.min(legState.currentLegIndex, itin.legs.length - 1);
@@ -216,6 +234,55 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       }
     }
 
+    // ---- GPS vehicle fallback (on-board, current ride) --------------------
+    // When the rider is on board the current ride but its tripId disappears
+    // from the live feed, drive the bus marker from their phone GPS.
+    const currentVehicle =
+      currentRideLeg
+        ? rt?.vehicles.find((v) => v.tripId === currentRideLeg.tripId) ?? null
+        : null;
+    const onBoardCurrent =
+      !!per.onBoardConfirmedAt &&
+      !per.alightedAt &&
+      currentLeg?.kind === "ride";
+    let fusedCurrentVehicle: MultiLegLive["fusedCurrentVehicle"] = null;
+    let vehicleLost = false;
+    if (currentRideLeg) {
+      if (currentVehicle) {
+        fusedCurrentVehicle = {
+          lat: currentVehicle.lat,
+          lng: currentVehicle.lng,
+          bearing: currentVehicle.bearing ?? 0,
+          tripId: currentRideLeg.tripId,
+        };
+      } else if (onBoardCurrent && fix) {
+        // Feed lost it — fall back to rider GPS. The rider IS the bus.
+        vehicleLost = true;
+        fusedCurrentVehicle = {
+          lat: fix.lat,
+          lng: fix.lng,
+          bearing: fix.headingDeg ?? 0,
+          tripId: currentRideLeg.tripId,
+        };
+      }
+    }
+    const nextVehicleTracked = nextRideLeg
+      ? !!rt?.vehicles.find((v) => v.tripId === nextRideLeg.tripId)
+      : false;
+
+    // ---- Missed-connection detection --------------------------------------
+    // We're waiting at the transfer stop, the scheduled (or live) departure
+    // has passed by MISSED_CONNECTION_BUFFER_S, and rider hasn't confirmed
+    // boarding the next ride. Surface a rescue path.
+    if (
+      (phase === "waiting-for-connection" || phase === "walking-to-transfer") &&
+      nextRideLeg &&
+      nextBoardUnix > 0 &&
+      now - nextBoardUnix > MISSED_CONNECTION_BUFFER_S
+    ) {
+      phase = "missed-connection";
+    }
+
     return {
       active: true,
       fix,
@@ -233,8 +300,12 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       nextBoardSource,
       nextBoardLate,
       metersToTarget,
+      fusedCurrentVehicle,
+      vehicleLost,
+      feedStale,
+      nextVehicleTracked,
     };
-  }, [itin, legState, started, fix, rt]);
+  }, [itin, legState, started, fix, rt, feedStale]);
 
   // ---- Auto-advance the phase machine for walk/wait legs ------------------
   // Ride legs require explicit user tap ("I'm on board", "I'm off"); walks

@@ -74,6 +74,24 @@ export type Database = {
         }
         Relationships: []
       }
+      alert_counters: {
+        Row: {
+          count: number
+          kind: string
+          last_fired_at: string
+        }
+        Insert: {
+          count?: number
+          kind: string
+          last_fired_at?: string
+        }
+        Update: {
+          count?: number
+          kind?: string
+          last_fired_at?: string
+        }
+        Relationships: []
+      }
       delay_stats: {
         Row: {
           day_of_week: number
@@ -283,7 +301,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      bump_alert_counter: { Args: { p_kind: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

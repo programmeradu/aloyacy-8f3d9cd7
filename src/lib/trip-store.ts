@@ -91,6 +91,11 @@ function write<T>(key: string, value: T | null) {
 }
 
 // ---------- active trip ----------
+// Auto-expire windows: if the rider stops interacting after the trip
+// "should" be done, we don't want the next session reopening a ghost trip.
+const MAX_TRIP_AGE_MS = 6 * 60 * 60 * 1000;          // 6h hard cap from start
+const ARRIVAL_GRACE_MS = 2 * 60 * 60 * 1000;          // 2h after expected arrival
+
 export function setActiveTrip(trip: ActiveTrip) {
   write(ACTIVE_KEY, trip);
   // Mirror to the server so background push alerts can be scheduled even
@@ -105,7 +110,27 @@ export function clearActiveTrip() {
   void clearActiveTripOnServer().catch(() => {});
 }
 export function getActiveTrip(): ActiveTrip | null {
-  return read<ActiveTrip>(ACTIVE_KEY);
+  const t = read<ActiveTrip>(ACTIVE_KEY);
+  if (!t) return null;
+  // Hygiene: drop stale trips so the companion never resurrects a journey
+  // that should already be done. Bounded by both the absolute trip age and
+  // the expected arrival time (when known).
+  const now = Date.now();
+  const ageMs = t.startedAt ? now - t.startedAt : 0;
+  const legacyArrivalUnix =
+    (t.option?.legs?.[t.option.legs.length - 1] as { arrivalUnix?: number } | undefined)
+      ?.arrivalUnix ?? 0;
+  const expectedArrivalMs =
+    ((t.itinerary?.arrivalUnix ?? 0) * 1000) ||
+    legacyArrivalUnix * 1000;
+  const pastArrival =
+    expectedArrivalMs > 0 && now - expectedArrivalMs > ARRIVAL_GRACE_MS;
+  if (ageMs > MAX_TRIP_AGE_MS || pastArrival) {
+    write<null>(ACTIVE_KEY, null);
+    void clearActiveTripOnServer().catch(() => {});
+    return null;
+  }
+  return t;
 }
 
 async function syncActiveTripToServer(trip: ActiveTrip) {
