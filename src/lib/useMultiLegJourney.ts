@@ -270,6 +270,37 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       ? !!rt?.vehicles.find((v) => v.tripId === nextRideLeg.tripId)
       : false;
 
+    // ---- ETA distance floor (on-board only) -------------------------------
+    // The schedule-based countdown ticks down even when the bus is dwelling
+    // at a stop. Clamp it by what's physically possible given the remaining
+    // distance to the alight point, so the ETA freezes when we're not
+    // actually getting closer.
+    let fusedSecsToCurrentAlight = secsToCurrentAlight;
+    if (onBoardCurrent && fusedCurrentVehicle && currentRideLeg) {
+      const alightLoc = { lat: currentRideLeg.alight.lat, lng: currentRideLeg.alight.lng };
+      const distToAlight = distanceM(fusedCurrentVehicle, alightLoc);
+      const FLOOR_SPEED_MPS = 11; // ~40 km/h optimistic urban+intercity
+      const minPossibleEta = Math.round(distToAlight / FLOOR_SPEED_MPS);
+      const gpsSpeed = fix?.speedMps ?? 0;
+      if (vehicleLost) {
+        const speed = gpsSpeed > 2 ? gpsSpeed : 6;
+        fusedSecsToCurrentAlight = Math.max(
+          minPossibleEta,
+          Math.round(distToAlight / speed),
+        );
+      } else if (gpsSpeed > 2) {
+        const gpsEta = Math.round(distToAlight / Math.max(3, gpsSpeed));
+        fusedSecsToCurrentAlight = Math.max(
+          minPossibleEta,
+          Math.round(0.6 * gpsEta + 0.4 * secsToCurrentAlight),
+        );
+      } else {
+        // Bus stopped — freeze ETA at the distance floor.
+        fusedSecsToCurrentAlight = Math.max(minPossibleEta, secsToCurrentAlight);
+      }
+      fusedSecsToCurrentAlight = Math.max(0, fusedSecsToCurrentAlight);
+    }
+
     // ---- Missed-connection detection --------------------------------------
     // We're waiting at the transfer stop, the scheduled (or live) departure
     // has passed by MISSED_CONNECTION_BUFFER_S, and rider hasn't confirmed
