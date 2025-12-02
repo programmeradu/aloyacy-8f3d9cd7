@@ -60,16 +60,30 @@ self.addEventListener("push", (event) => {
   } = payload;
 
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      tag,
-      icon,
-      badge,
-      data: { url },
-      requireInteraction,
-      silent,
-      vibrate,
-    }),
+    (async () => {
+      // Speak the alert via any open client (SW has no speechSynthesis).
+      try {
+        const clients = await self.clients.matchAll({
+          type: "window",
+          includeUncontrolled: true,
+        });
+        const spoken = [title, body].filter(Boolean).join(". ");
+        for (const c of clients) {
+          c.postMessage({ type: "aloya-speak", text: spoken });
+        }
+      } catch {}
+
+      await self.registration.showNotification(title, {
+        body,
+        tag,
+        icon,
+        badge,
+        data: { url },
+        requireInteraction,
+        silent,
+        vibrate,
+      });
+    })(),
   );
 });
 
