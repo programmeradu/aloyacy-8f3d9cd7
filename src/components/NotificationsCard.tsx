@@ -7,6 +7,13 @@ import {
   unsubscribePush,
 } from "@/lib/pwa";
 import { saveSubscription, sendTestPush, removeSubscription } from "@/lib/push.functions";
+import {
+  isSpeechEnabled,
+  isSpeechSupported,
+  primeSpeech,
+  setSpeechEnabled,
+  speak,
+} from "@/lib/speech";
 
 type Status = "unknown" | "unsupported" | "preview" | "denied" | "off" | "on";
 
@@ -15,6 +22,8 @@ export function NotificationsCard() {
   const [endpoint, setEndpoint] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [speechOn, setSpeechOn] = useState(false);
+  const speechSupported = isSpeechSupported();
 
   const save = useServerFn(saveSubscription);
   const test = useServerFn(sendTestPush);
@@ -46,7 +55,21 @@ export function NotificationsCard() {
 
   useEffect(() => {
     void detect();
+    setSpeechOn(isSpeechEnabled());
   }, [detect]);
+
+  function toggleSpeech() {
+    const next = !speechOn;
+    setSpeechEnabled(next);
+    setSpeechOn(next);
+    if (next) {
+      // Must run from the click handler to unlock iOS speech.
+      primeSpeech();
+      speak("Spoken alerts are on.");
+    } else if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+  }
 
   async function enable() {
     setPending(true);
