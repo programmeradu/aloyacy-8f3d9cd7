@@ -100,6 +100,39 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   const { fix } = useGeoWatch(started);
   const { data: rt, isStale: feedStale } = useRealtime();
 
+  // Compute on-board + current ride / alight target outside the main memo
+  // so we can feed them to the Google Routes drive-ETA hook (which can't
+  // run inside useMemo).
+  const driveInputs = useMemo(() => {
+    if (!itin || !legState) return { onBoard: false, busPos: null, alightLoc: null, tripId: null };
+    const idx = Math.min(legState.currentLegIndex, itin.legs.length - 1);
+    const currentLeg = itin.legs[idx];
+    const per = legState.perLeg[idx] ?? {};
+    if (!currentLeg || currentLeg.kind !== "ride") {
+      return { onBoard: false, busPos: null, alightLoc: null, tripId: null };
+    }
+    const onBoard = !!per.onBoardConfirmedAt && !per.alightedAt;
+    if (!onBoard) return { onBoard: false, busPos: null, alightLoc: null, tripId: null };
+    const v = rt?.vehicles.find((x) => x.tripId === currentLeg.tripId);
+    const busPos = v
+      ? { lat: v.lat, lng: v.lng }
+      : fix
+        ? { lat: fix.lat, lng: fix.lng }
+        : null;
+    return {
+      onBoard,
+      busPos,
+      alightLoc: { lat: currentLeg.alight.lat, lng: currentLeg.alight.lng },
+      tripId: currentLeg.tripId,
+    };
+  }, [itin, legState, rt, fix]);
+  const drive = useDriveEta({
+    enabled: driveInputs.onBoard && !!driveInputs.busPos && !!driveInputs.alightLoc,
+    from: driveInputs.busPos,
+    to: driveInputs.alightLoc,
+  });
+
+
 
   const result = useMemo<MultiLegLive>(() => {
     const baseInactive: MultiLegLive = {
