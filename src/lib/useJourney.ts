@@ -349,7 +349,7 @@ export function useJourney(opts: {
       vehicleLost,
       feedStale,
     };
-  }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps, feedStale]);
+  }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps, feedStale, drive.etaSec, onBoard]);
 
 
   // ---- Push alerting on phase transition -----------------------------------
