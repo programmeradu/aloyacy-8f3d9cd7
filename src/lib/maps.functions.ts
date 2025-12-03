@@ -57,3 +57,14 @@ export const getWalkingDirections = createServerFn({ method: "POST" })
       return { directions: null };
     }
   });
+
+const Pt = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) });
+
+export const getDriveEta = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z.object({ from: Pt, to: Pt }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const route = await drivingRoute(data.from, data.to);
+    return { route };
+  });
