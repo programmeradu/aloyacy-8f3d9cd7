@@ -374,7 +374,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       feedStale,
       nextVehicleTracked,
     };
-  }, [itin, legState, started, fix, rt, feedStale]);
+  }, [itin, legState, started, fix, rt, feedStale, drive.etaSec, driveInputs.tripId]);
 
   // ---- Auto-advance the phase machine for walk/wait legs ------------------
   // Ride legs require explicit user tap ("I'm on board", "I'm off"); walks
