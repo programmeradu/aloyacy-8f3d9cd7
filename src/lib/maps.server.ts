@@ -254,3 +254,43 @@ export async function walkingDirections(
   };
 }
 
+/** Live drive ETA from the bus's current position to the alight stop, using
+ *  Google Routes API with traffic-aware routing. Cheap field mask — only
+ *  duration + distance. Returns null on any error so callers can fall back
+ *  to schedule + distance floor. */
+export async function drivingRoute(
+  from: { lat: number; lng: number },
+  to: { lat: number; lng: number },
+): Promise<{ durationSec: number; distanceMeters: number } | null> {
+  try {
+    const res = await fetch(`${GATEWAY}/routes/directions/v2:computeRoutes`, {
+      method: "POST",
+      headers: authHeaders({
+        "X-Goog-FieldMask": "routes.duration,routes.distanceMeters",
+      }),
+      body: JSON.stringify({
+        origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
+        destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
+        travelMode: "DRIVE",
+        routingPreference: "TRAFFIC_AWARE",
+        languageCode: "en",
+        units: "METRIC",
+      }),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      routes?: { duration: string; distanceMeters: number }[];
+    };
+    const r = json.routes?.[0];
+    if (!r) return null;
+    return {
+      durationSec: parseInt(r.duration.replace("s", ""), 10) || 0,
+      distanceMeters: r.distanceMeters,
+    };
+  } catch (e) {
+    console.warn("drivingRoute failed", e);
+    return null;
+  }
+}
+
+
