@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useRealtime } from "./useRealtime";
 import { useGeoWatch, type LiveFix } from "./useGeoWatch";
+import { useDriveEta } from "./useDriveEta";
 import { distanceM, projectOnSteps, WALK_M_PER_S, type WalkStep } from "./geo";
 import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
 import { getDeviceId } from "./pwa";
