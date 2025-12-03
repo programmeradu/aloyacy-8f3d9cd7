@@ -295,40 +295,37 @@ export function useJourney(opts: {
         };
       }
 
-      // ETA fusion: prefer GPS / distance whenever we have a vehicle
-      // position, not only when "provably riding". This fixes the bug where
-      // the countdown keeps ticking down while the bus is dwelling at a
-      // stop — the schedule says we should be closer by now, but distance
-      // says otherwise. Honest answer: distance wins.
-      const alightLoc =
+      // ETA fusion (in priority order):
+      //   1. Google Routes API drive ETA — traffic-aware, road-following,
+      //      authoritative. Decayed between refetches so the countdown
+      //      still ticks down naturally.
+      //   2. GPS speed + straight-line distance — when we're "provably
+      //      riding with bus".
+      //   3. Distance-floored schedule — when stopped/dwelling, so the
+      //      number never drops below what's physically possible.
+      const fusionAlightLoc =
         walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
-      if (alightLoc && fusedVehicle) {
-        const distToAlight = distanceM(fusedVehicle, alightLoc);
-        // Optimistic urban+intercity cruise speed (~40 km/h). Used as a
-        // *floor* — the ETA can never drop below what's physically possible
-        // given the remaining distance, even if the schedule disagrees.
-        const FLOOR_SPEED_MPS = 11;
+      if (fusionAlightLoc && fusedVehicle) {
+        const distToAlight = distanceM(fusedVehicle, fusionAlightLoc);
+        const FLOOR_SPEED_MPS = 11; // ~40 km/h optimistic urban+intercity
         const minPossibleEta = Math.round(distToAlight / FLOOR_SPEED_MPS);
 
-        if (ridingWithBus && gpsSpeed > 2) {
-          // Bus is moving with rider → blend live GPS speed with schedule.
+        if (drive.etaSec != null) {
+          // Google Routes is the source of truth when available.
+          fusedSecsToAlight = Math.max(minPossibleEta, drive.etaSec);
+        } else if (ridingWithBus && gpsSpeed > 2) {
           const gpsEta = Math.round(distToAlight / Math.max(3, gpsSpeed));
           fusedSecsToAlight = Math.max(
             minPossibleEta,
             Math.round(0.6 * gpsEta + 0.4 * secsToAlight),
           );
         } else if (vehicleLost) {
-          // Feed gone, rider GPS is the only truth.
           const speed = gpsSpeed > 2 ? gpsSpeed : 6;
           fusedSecsToAlight = Math.max(
             minPossibleEta,
             Math.round(distToAlight / speed),
           );
         } else {
-          // Stopped at a light / dwelling at a stop / traffic. Trust the
-          // schedule as a soft hint but clamp by the distance floor so the
-          // number stops decreasing once we're "already as close as we can
-          // be" for the time elapsed.
           fusedSecsToAlight = Math.max(minPossibleEta, secsToAlight);
         }
         fusedSecsToAlight = Math.max(0, fusedSecsToAlight);
