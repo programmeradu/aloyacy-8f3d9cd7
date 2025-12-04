@@ -245,7 +245,10 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
         // long enough that a stale GPS fix isn't the trigger. Without these
         // guards, "I'm off" can flip straight to "arrived" if the destination
         // address happens to be close to the alight stop or if GPS still
-        // reports the rider's last on-board position.
+        // reports the rider's last on-board position. The rider can always
+        // tap "I'm here" to force the arrived state (perLeg.arrivedAt).
+        const manualArrived =
+          phase === "walking-to-destination" && !!legState.perLeg[idx]?.arrivedAt;
         const within =
           fix &&
           metersToTarget <
@@ -263,11 +266,12 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
           const waitedEnough = secsInLeg > 45;
           arrivedHere = walkedAway || waitedEnough;
         }
-        if (arrivedHere) {
+        if (manualArrived || arrivedHere) {
           if (phase === "walking-to-destination") phase = "arrived";
           else if (phase === "walking-to-board") phase = "waiting-to-board";
           // walking-to-transfer → next leg (wait or ride) handled via effect.
         }
+
       } else if (currentLeg.kind === "wait") {
 
         phase = "waiting-for-connection";
