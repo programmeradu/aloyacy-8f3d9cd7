@@ -46,8 +46,10 @@ export type LegLiveState = {
   onBoardConfirmedAt?: number; // ride legs only
   alightedAt?: number;         // ride legs only
   missedAt?: number;           // ride legs only
+  arrivedAt?: number;          // final egress walk — rider tapped "I'm here"
   completedAt?: number;        // any leg, when machine advanced past it
 };
+
 
 export type MultiLegState = {
   /** Index into itinerary.legs (0..N-1). */
