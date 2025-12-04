@@ -239,18 +239,41 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
         else phase = "walking-to-transfer";
 
         // Auto-advance on arrival.
-        const arrivedHere =
+        // For the final egress walk we require BOTH proximity to the
+        // destination AND evidence the rider has actually walked — either
+        // moved meaningfully away from the alight stop, or stayed in the leg
+        // long enough that a stale GPS fix isn't the trigger. Without these
+        // guards, "I'm off" can flip straight to "arrived" if the destination
+        // address happens to be close to the alight stop or if GPS still
+        // reports the rider's last on-board position. The rider can always
+        // tap "I'm here" to force the arrived state (perLeg.arrivedAt).
+        const manualArrived =
+          phase === "walking-to-destination" && !!legState.perLeg[idx]?.arrivedAt;
+        const within =
           fix &&
           metersToTarget <
             (phase === "walking-to-destination"
               ? DEST_ARRIVAL_RADIUS_M
               : STOP_ARRIVAL_RADIUS_M);
-        if (arrivedHere) {
+        let arrivedHere = within;
+        if (within && phase === "walking-to-destination") {
+          const enteredAt = legState.perLeg[idx]?.enteredAt ?? 0;
+          const secsInLeg = enteredAt ? (Date.now() - enteredAt) / 1000 : 0;
+          const distFromAlightStop = fix
+            ? distanceM(fix, { lat: currentLeg.from.lat, lng: currentLeg.from.lng })
+            : 0;
+          const walkedAway = distFromAlightStop > 40;
+          const waitedEnough = secsInLeg > 45;
+          arrivedHere = walkedAway || waitedEnough;
+        }
+        if (manualArrived || arrivedHere) {
           if (phase === "walking-to-destination") phase = "arrived";
           else if (phase === "walking-to-board") phase = "waiting-to-board";
           // walking-to-transfer → next leg (wait or ride) handled via effect.
         }
+
       } else if (currentLeg.kind === "wait") {
+
         phase = "waiting-for-connection";
       } else {
         // ride
@@ -533,9 +556,13 @@ export function multiLegMarkAlighted() {
   patchCurrentLeg({ alightedAt: Date.now() });
   // The auto-advance effect will move to the next leg on the next tick.
 }
+export function multiLegMarkArrived() {
+  patchCurrentLeg({ arrivedAt: Date.now() });
+}
 export function multiLegMarkMissed() {
   patchCurrentLeg({ missedAt: Date.now() });
 }
+
 
 // Type re-exports for convenience.
 export type { Leg, RideLeg, WalkLeg, WaitLeg };
