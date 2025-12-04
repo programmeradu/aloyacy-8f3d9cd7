@@ -32,7 +32,8 @@ import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-type
 
 // ---- Tunables (all explicit so we can audit any change) -------------------
 const MAX_ACCESS_WALK_KM = 2.0; // origin → first board stop
-const MAX_EGRESS_WALK_KM = 2.0; // last alight → destination
+const MAX_EGRESS_WALK_KM = 2.0; // last alight → destination (transfers)
+const MAX_DIRECT_EGRESS_WALK_KM = 3.0; // wider net for no-transfer rides
 const MAX_TRANSFER_WALK_M = 600; // walking between transfer stops
 const TOP_ORIGIN_STOPS = 6;
 const TOP_DEST_STOPS = 6;
@@ -269,16 +270,22 @@ export async function planMultiLegJourney(
   const destStops = byDest
     .filter((s) => s.distanceKm <= MAX_EGRESS_WALK_KM)
     .slice(0, TOP_DEST_STOPS);
+  // Wider set used ONLY by the direct (no-transfer) pass so a direct ride
+  // that drops you a longer-than-usual walk away still surfaces as an option.
+  const directDestStops = byDest
+    .filter((s) => s.distanceKm <= MAX_DIRECT_EGRESS_WALK_KM)
+    .slice(0, TOP_DEST_STOPS + 4);
   diag.originStopCount = originStops.length;
   diag.destStopCount = destStops.length;
 
   if (originStops.length === 0) diag.reasons.push(`No stop within ${MAX_ACCESS_WALK_KM}km of origin (nearest ${diag.nearestOriginStopKm?.toFixed(2)}km)`);
-  if (destStops.length === 0) diag.reasons.push(`No stop within ${MAX_EGRESS_WALK_KM}km of destination (nearest ${diag.nearestDestStopKm?.toFixed(2)}km)`);
-  if (originStops.length === 0 || destStops.length === 0) {
+  if (destStops.length === 0 && directDestStops.length === 0) diag.reasons.push(`No stop within ${MAX_DIRECT_EGRESS_WALK_KM}km of destination (nearest ${diag.nearestDestStopKm?.toFixed(2)}km)`);
+  if (originStops.length === 0 || (destStops.length === 0 && directDestStops.length === 0)) {
     return { itineraries: [], diagnostics: opts?.collectDiagnostics ? diag : undefined };
   }
 
   const destStopMap = new Map(destStops.map((s) => [s.id, s]));
+  const directDestStopMap = new Map(directDestStops.map((s) => [s.id, s]));
 
   // 2) Build trip index from the live feed.
   const { trips, tripsByStop } = await buildTripIndex();
@@ -306,12 +313,14 @@ export async function planMultiLegJourney(
       const boardIdx = trip.indexOf.get(o.id)!;
       const board = trip.stops[boardIdx];
 
-      // Find earliest dest-candidate downstream.
+      // Find earliest dest-candidate downstream. Uses the wider direct-only
+      // dest set so a no-transfer ride that drops you a slightly longer walk
+      // away still surfaces (and the user can choose it over a transfer).
       let bestAlightIdx = -1;
-      let bestAlightStop: (typeof destStops)[number] | null = null;
+      let bestAlightStop: (typeof directDestStops)[number] | null = null;
       for (let i = boardIdx + 1; i < trip.stops.length; i++) {
         const sid = trip.stops[i].stopId;
-        const d = destStopMap.get(sid);
+        const d = directDestStopMap.get(sid);
         if (d) {
           bestAlightIdx = i;
           bestAlightStop = d;
