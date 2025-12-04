@@ -270,16 +270,22 @@ export async function planMultiLegJourney(
   const destStops = byDest
     .filter((s) => s.distanceKm <= MAX_EGRESS_WALK_KM)
     .slice(0, TOP_DEST_STOPS);
+  // Wider set used ONLY by the direct (no-transfer) pass so a direct ride
+  // that drops you a longer-than-usual walk away still surfaces as an option.
+  const directDestStops = byDest
+    .filter((s) => s.distanceKm <= MAX_DIRECT_EGRESS_WALK_KM)
+    .slice(0, TOP_DEST_STOPS + 4);
   diag.originStopCount = originStops.length;
   diag.destStopCount = destStops.length;
 
   if (originStops.length === 0) diag.reasons.push(`No stop within ${MAX_ACCESS_WALK_KM}km of origin (nearest ${diag.nearestOriginStopKm?.toFixed(2)}km)`);
-  if (destStops.length === 0) diag.reasons.push(`No stop within ${MAX_EGRESS_WALK_KM}km of destination (nearest ${diag.nearestDestStopKm?.toFixed(2)}km)`);
-  if (originStops.length === 0 || destStops.length === 0) {
+  if (destStops.length === 0 && directDestStops.length === 0) diag.reasons.push(`No stop within ${MAX_DIRECT_EGRESS_WALK_KM}km of destination (nearest ${diag.nearestDestStopKm?.toFixed(2)}km)`);
+  if (originStops.length === 0 || (destStops.length === 0 && directDestStops.length === 0)) {
     return { itineraries: [], diagnostics: opts?.collectDiagnostics ? diag : undefined };
   }
 
   const destStopMap = new Map(destStops.map((s) => [s.id, s]));
+  const directDestStopMap = new Map(directDestStops.map((s) => [s.id, s]));
 
   // 2) Build trip index from the live feed.
   const { trips, tripsByStop } = await buildTripIndex();
