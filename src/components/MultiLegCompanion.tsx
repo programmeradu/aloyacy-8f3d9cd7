@@ -24,6 +24,7 @@ import { startLiveTracking } from "@/lib/useJourney";
 import { useResumeRefresh, useInvalidateRealtime } from "@/lib/useRealtime";
 import { requestCompassPermission } from "@/lib/useCompass";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "@/lib/itinerary-types";
+import { WalkGuidance } from "@/components/WalkGuidance";
 import companionHero from "@/assets/companion-hero.jpg";
 
 function fmtMin(s: number) {
