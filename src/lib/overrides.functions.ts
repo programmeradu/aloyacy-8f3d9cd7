@@ -45,28 +45,3 @@ export const logTripOverride = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Server-only helper used by the planner. Returns the number of
- *  "skipped-transfer" overrides recorded for an OD bucket in the last 30
- *  days. The planner adds N × 90 s of penalty to multi-ride itinerary
- *  scores when this is ≥ 3. */
-export async function getSkippedTransferCount(
-  from: { lat: number; lng: number },
-  to: { lat: number; lng: number },
-): Promise<number> {
-  const round = (n: number) => Math.round(n * 1000) / 1000;
-  const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
-  const { count, error } = await supabaseAdmin
-    .from("trip_overrides")
-    .select("id", { count: "exact", head: true })
-    .eq("kind", "skipped-transfer")
-    .gte("recorded_at", since)
-    .eq("from_lat", round(from.lat))
-    .eq("from_lng", round(from.lng))
-    .eq("to_lat", round(to.lat))
-    .eq("to_lng", round(to.lng));
-  if (error) {
-    console.warn("[overrides] count failed", error.message);
-    return 0;
-  }
-  return count ?? 0;
-}
