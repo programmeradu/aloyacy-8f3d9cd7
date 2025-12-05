@@ -24,6 +24,7 @@ import { startLiveTracking } from "@/lib/useJourney";
 import { useResumeRefresh, useInvalidateRealtime } from "@/lib/useRealtime";
 import { requestCompassPermission } from "@/lib/useCompass";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "@/lib/itinerary-types";
+import { WalkGuidance } from "@/components/WalkGuidance";
 import companionHero from "@/assets/companion-hero.jpg";
 
 function fmtMin(s: number) {
@@ -164,6 +165,23 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
       <div className="mt-6">
         <MultiLegActions live={live} active={active} />
       </div>
+
+      {/* Turn-by-turn for any walk leg — initial, transfer, or final. */}
+      {live.currentLeg?.kind === "walk" && (
+        <WalkGuidance
+          from={{ lat: live.currentLeg.from.lat, lng: live.currentLeg.from.lng }}
+          to={{ lat: live.currentLeg.to.lat, lng: live.currentLeg.to.lng }}
+          title={
+            live.phase === "walking-to-board"
+              ? "Walk to the first stop"
+              : live.phase === "walking-to-transfer"
+                ? `Walk to bus ${live.nextRideLeg?.routeShort ?? ""}`
+                : live.phase === "walking-to-destination"
+                  ? "Walk to your destination"
+                  : "Walk"
+          }
+        />
+      )}
 
       {/* Timeline of every leg with current highlighted */}
       <section className="mt-7 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
