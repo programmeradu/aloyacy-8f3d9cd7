@@ -557,6 +557,14 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     result.nextRideLeg,
   ]);
 
+  // ---- Crowdsourced bus position: report rider GPS while on board --------
+  useRiderFixReporter({
+    enabled: result.active && !!result.currentRideLeg && driveInputs.onBoard,
+    fix: result.fix,
+    tripId: result.currentRideLeg?.tripId ?? null,
+    routeId: result.currentRideLeg?.routeId,
+  });
+
   return result;
 }
 
