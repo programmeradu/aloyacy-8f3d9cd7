@@ -188,6 +188,45 @@ export type Database = {
         }
         Relationships: []
       }
+      rider_vehicle_fixes: {
+        Row: {
+          accuracy_m: number | null
+          bearing: number | null
+          device_id: string
+          id: number
+          lat: number
+          lng: number
+          reported_at: string
+          route_id: string | null
+          speed_mps: number | null
+          trip_id: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          bearing?: number | null
+          device_id: string
+          id?: number
+          lat: number
+          lng: number
+          reported_at?: string
+          route_id?: string | null
+          speed_mps?: number | null
+          trip_id: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          bearing?: number | null
+          device_id?: string
+          id?: number
+          lat?: number
+          lng?: number
+          reported_at?: string
+          route_id?: string | null
+          speed_mps?: number | null
+          trip_id?: string
+        }
+        Relationships: []
+      }
       rt_snapshots: {
         Row: {
           captured_at: string
@@ -266,6 +305,51 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_overrides: {
+        Row: {
+          actual_legs: Json | null
+          device_id: string
+          dow: number
+          from_lat: number
+          from_lng: number
+          hour: number
+          id: string
+          kind: string
+          planned_legs: Json
+          recorded_at: string
+          to_lat: number
+          to_lng: number
+        }
+        Insert: {
+          actual_legs?: Json | null
+          device_id: string
+          dow: number
+          from_lat: number
+          from_lng: number
+          hour: number
+          id?: string
+          kind: string
+          planned_legs: Json
+          recorded_at?: string
+          to_lat: number
+          to_lng: number
+        }
+        Update: {
+          actual_legs?: Json | null
+          device_id?: string
+          dow?: number
+          from_lat?: number
+          from_lng?: number
+          hour?: number
+          id?: string
+          kind?: string
+          planned_legs?: Json
+          recorded_at?: string
+          to_lat?: number
+          to_lng?: number
+        }
+        Relationships: []
+      }
       walk_links: {
         Row: {
           computed_at: string
@@ -302,6 +386,7 @@ export type Database = {
     }
     Functions: {
       bump_alert_counter: { Args: { p_kind: string }; Returns: undefined }
+      cleanup_rider_fixes: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

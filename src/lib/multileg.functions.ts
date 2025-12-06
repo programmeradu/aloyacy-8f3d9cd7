@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { planMultiLegJourney, type MultiLegDiagnostics } from "./journey-multileg.server";
 import { planMultiLegScheduled, type ScheduledDiagnostics } from "./journey-scheduled.server";
+import { getSkippedTransferCount } from "./overrides.server";
 import type { Itinerary, RideLeg } from "./itinerary-types";
 
 const PointSchema = z.object({
@@ -103,6 +104,19 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       });
     }
     const prunedMediocre = afterDedup - kept.length;
+
+    // Learning loop: penalise transfer itineraries when riders have
+    // repeatedly skipped the transfer for this exact OD pair. Each prior
+    // skip adds 90 s of effective penalty, capped at 6 min, so a stubborn
+    // transfer can still win if it's genuinely faster.
+    const skips = await getSkippedTransferCount(data.from, data.to).catch(() => 0);
+    if (skips >= 3) {
+      const bias = Math.min(skips * 90, 360);
+      for (const it of kept) {
+        if (it.transfers > 0) it.score += bias;
+      }
+    }
+
     kept.sort((a, b) => a.score - b.score);
     const top = kept.slice(0, TOP_K);
 
