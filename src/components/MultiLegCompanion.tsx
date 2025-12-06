@@ -47,10 +47,37 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const itin = active.itinerary!;
   const live = useMultiLegJourney(active);
   const tripId = active.option.id;
+  const [earlyAlightOpen, setEarlyAlightOpen] = useState(false);
 
   // Force a fresh realtime fetch when rider returns to the tab after >30s away.
   const invalidateRt = useInvalidateRealtime();
   useResumeRefresh(invalidateRt, 30);
+
+  // Shortcut detector: prompt to walk the rest when destination is in reach.
+  const isOnFinalWalk =
+    live.currentLeg?.kind === "walk" &&
+    live.currentLegIndex === itin.legs.length - 1;
+  const shortcut = useShortcutDetector({
+    active,
+    fix: live.fix,
+    currentLegIndex: live.currentLegIndex,
+    isOnFinalWalk,
+  });
+
+  // "I'm off" handler — if the rider is well clear of the planned alight
+  // stop, they got off at the wrong place. Open the re-route sheet instead
+  // of marking alighted (which would auto-advance to the wrong walk leg).
+  const EARLY_ALIGHT_THRESHOLD_M = 150;
+  const handleImOff = () => {
+    const alight = live.currentRideLeg?.alight;
+    const dist =
+      live.fix && alight ? distanceM(live.fix, { lat: alight.lat, lng: alight.lng }) : 0;
+    if (dist > EARLY_ALIGHT_THRESHOLD_M) {
+      setEarlyAlightOpen(true);
+    } else {
+      multiLegMarkAlighted();
+    }
+  };
 
   // Map center / span — fit to whole itinerary footprint.
   const bounds = useMemo(() => boundsFor(itin), [itin]);
