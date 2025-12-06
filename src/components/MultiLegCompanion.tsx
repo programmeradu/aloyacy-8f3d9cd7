@@ -194,8 +194,27 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
 
       {/* Action HUD */}
       <div className="mt-6">
-        <MultiLegActions live={live} active={active} />
+        <MultiLegActions live={live} active={active} onImOff={handleImOff} />
       </div>
+
+      {/* Skip-ahead prompt when destination is in reach. */}
+      {shortcut.shouldPrompt && live.fix && (
+        <ShortcutPrompt
+          active={active}
+          fix={{ lat: live.fix.lat, lng: live.fix.lng }}
+          distanceM={shortcut.distanceM}
+          onDismiss={shortcut.dismiss}
+        />
+      )}
+
+      {/* Early-alight re-route sheet. */}
+      {earlyAlightOpen && live.fix && (
+        <EarlyAlightSheet
+          active={active}
+          fix={{ lat: live.fix.lat, lng: live.fix.lng }}
+          onClose={() => setEarlyAlightOpen(false)}
+        />
+      )}
 
       {/* Turn-by-turn for any walk leg — initial, transfer, or final. */}
       {live.currentLeg?.kind === "walk" && (
