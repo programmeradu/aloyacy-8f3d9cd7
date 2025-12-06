@@ -239,14 +239,13 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
         else phase = "walking-to-transfer";
 
         // Auto-advance on arrival.
-        // For the final egress walk we require BOTH proximity to the
-        // destination AND evidence the rider has actually walked — either
-        // moved meaningfully away from the alight stop, or stayed in the leg
-        // long enough that a stale GPS fix isn't the trigger. Without these
-        // guards, "I'm off" can flip straight to "arrived" if the destination
-        // address happens to be close to the alight stop or if GPS still
-        // reports the rider's last on-board position. The rider can always
-        // tap "I'm here" to force the arrived state (perLeg.arrivedAt).
+        // For the final egress walk we require the rider to actually walk:
+        // GPS must be close to the destination AND meaningfully away from
+        // the alight stop AND a brief settle window must have elapsed.
+        // Without all three, "I'm off" can flip straight to "arrived" — GPS
+        // often still reports the on-board position for several seconds, or
+        // the destination sits near the alight stop. The rider can always
+        // tap "I'm here" to force arrival (perLeg.arrivedAt).
         const manualArrived =
           phase === "walking-to-destination" && !!legState.perLeg[idx]?.arrivedAt;
         const within =
@@ -256,15 +255,15 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
               ? DEST_ARRIVAL_RADIUS_M
               : STOP_ARRIVAL_RADIUS_M);
         let arrivedHere = within;
-        if (within && phase === "walking-to-destination") {
+        if (phase === "walking-to-destination") {
           const enteredAt = legState.perLeg[idx]?.enteredAt ?? 0;
           const secsInLeg = enteredAt ? (Date.now() - enteredAt) / 1000 : 0;
           const distFromAlightStop = fix
             ? distanceM(fix, { lat: currentLeg.from.lat, lng: currentLeg.from.lng })
             : 0;
-          const walkedAway = distFromAlightStop > 40;
-          const waitedEnough = secsInLeg > 45;
-          arrivedHere = walkedAway || waitedEnough;
+          const walkedAway = distFromAlightStop > 50;
+          const settled = secsInLeg > 20;
+          arrivedHere = !!within && walkedAway && settled;
         }
         if (manualArrived || arrivedHere) {
           if (phase === "walking-to-destination") phase = "arrived";
