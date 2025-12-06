@@ -454,7 +454,7 @@ function PhaseSub({
 
 // ---- Action HUD ----------------------------------------------------------
 
-function MultiLegActions({ live, active }: { live: MultiLegLive; active: ActiveTrip }) {
+function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active: ActiveTrip; onImOff: () => void }) {
   const navigate = useNavigate();
   if (!live.active) {
     return (
