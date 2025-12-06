@@ -520,7 +520,7 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
             {live.currentRideLeg?.alight.name}
           </p>
           <button
-            onClick={() => multiLegMarkAlighted()}
+            onClick={onImOff}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
           >
             I'm off
