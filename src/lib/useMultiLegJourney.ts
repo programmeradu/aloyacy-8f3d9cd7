@@ -29,6 +29,7 @@ import {
 import type { Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
 import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
+import { useRiderFixReporter } from "./useRiderFixReporter";
 
 export type MultiLegPhase =
   | "idle"
@@ -555,6 +556,14 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     result.currentRideLeg,
     result.nextRideLeg,
   ]);
+
+  // ---- Crowdsourced bus position: report rider GPS while on board --------
+  useRiderFixReporter({
+    enabled: result.active && !!result.currentRideLeg && driveInputs.onBoard,
+    fix: result.fix,
+    tripId: result.currentRideLeg?.tripId ?? null,
+    routeId: result.currentRideLeg?.routeId,
+  });
 
   return result;
 }

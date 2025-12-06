@@ -25,6 +25,10 @@ import { useResumeRefresh, useInvalidateRealtime } from "@/lib/useRealtime";
 import { requestCompassPermission } from "@/lib/useCompass";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "@/lib/itinerary-types";
 import { WalkGuidance } from "@/components/WalkGuidance";
+import { ShortcutPrompt } from "@/components/ShortcutPrompt";
+import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
+import { useShortcutDetector } from "@/lib/useShortcutDetector";
+import { distanceM } from "@/lib/geo";
 import companionHero from "@/assets/companion-hero.jpg";
 
 function fmtMin(s: number) {
@@ -43,10 +47,37 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const itin = active.itinerary!;
   const live = useMultiLegJourney(active);
   const tripId = active.option.id;
+  const [earlyAlightOpen, setEarlyAlightOpen] = useState(false);
 
   // Force a fresh realtime fetch when rider returns to the tab after >30s away.
   const invalidateRt = useInvalidateRealtime();
   useResumeRefresh(invalidateRt, 30);
+
+  // Shortcut detector: prompt to walk the rest when destination is in reach.
+  const isOnFinalWalk =
+    live.currentLeg?.kind === "walk" &&
+    live.currentLegIndex === itin.legs.length - 1;
+  const shortcut = useShortcutDetector({
+    active,
+    fix: live.fix,
+    currentLegIndex: live.currentLegIndex,
+    isOnFinalWalk,
+  });
+
+  // "I'm off" handler — if the rider is well clear of the planned alight
+  // stop, they got off at the wrong place. Open the re-route sheet instead
+  // of marking alighted (which would auto-advance to the wrong walk leg).
+  const EARLY_ALIGHT_THRESHOLD_M = 150;
+  const handleImOff = () => {
+    const alight = live.currentRideLeg?.alight;
+    const dist =
+      live.fix && alight ? distanceM(live.fix, { lat: alight.lat, lng: alight.lng }) : 0;
+    if (dist > EARLY_ALIGHT_THRESHOLD_M) {
+      setEarlyAlightOpen(true);
+    } else {
+      multiLegMarkAlighted();
+    }
+  };
 
   // Map center / span — fit to whole itinerary footprint.
   const bounds = useMemo(() => boundsFor(itin), [itin]);
@@ -163,8 +194,27 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
 
       {/* Action HUD */}
       <div className="mt-6">
-        <MultiLegActions live={live} active={active} />
+        <MultiLegActions live={live} active={active} onImOff={handleImOff} />
       </div>
+
+      {/* Skip-ahead prompt when destination is in reach. */}
+      {shortcut.shouldPrompt && live.fix && (
+        <ShortcutPrompt
+          active={active}
+          fix={{ lat: live.fix.lat, lng: live.fix.lng }}
+          distanceM={shortcut.distanceM}
+          onDismiss={shortcut.dismiss}
+        />
+      )}
+
+      {/* Early-alight re-route sheet. */}
+      {earlyAlightOpen && live.fix && (
+        <EarlyAlightSheet
+          active={active}
+          fix={{ lat: live.fix.lat, lng: live.fix.lng }}
+          onClose={() => setEarlyAlightOpen(false)}
+        />
+      )}
 
       {/* Turn-by-turn for any walk leg — initial, transfer, or final. */}
       {live.currentLeg?.kind === "walk" && (
@@ -404,7 +454,7 @@ function PhaseSub({
 
 // ---- Action HUD ----------------------------------------------------------
 
-function MultiLegActions({ live, active }: { live: MultiLegLive; active: ActiveTrip }) {
+function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active: ActiveTrip; onImOff: () => void }) {
   const navigate = useNavigate();
   if (!live.active) {
     return (
@@ -470,7 +520,7 @@ function MultiLegActions({ live, active }: { live: MultiLegLive; active: ActiveT
             {live.currentRideLeg?.alight.name}
           </p>
           <button
-            onClick={() => multiLegMarkAlighted()}
+            onClick={onImOff}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
           >
             I'm off
