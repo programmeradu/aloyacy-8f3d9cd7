@@ -102,22 +102,25 @@ async function blendStat<T extends Record<string, unknown>>(
   meanField: string,
   sample: { mean: number; count: number },
 ): Promise<void> {
-  const filter = supabaseAdmin.from(table).select(`${meanField}, sample_count`);
-  let q = filter;
-  for (const [k, v] of Object.entries(key)) q = q.eq(k, v as never);
+  // Dynamic table names defeat the generated Database type; the writes go
+  // through service-role and are validated by the column types at runtime.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabaseAdmin as any;
+  let q = db.from(table).select(`${meanField}, sample_count`);
+  for (const [k, v] of Object.entries(key)) q = q.eq(k, v);
   const { data } = await q.maybeSingle();
   const prevMean = (data as Record<string, number> | null)?.[meanField] ?? 0;
   const prevN = (data as { sample_count?: number } | null)?.sample_count ?? 0;
   const newN = prevN + sample.count;
   if (newN === 0) return;
   const newMean = (prevMean * prevN + sample.mean * sample.count) / newN;
-  await supabaseAdmin.from(table).upsert(
+  await db.from(table).upsert(
     {
       ...key,
       [meanField]: newMean,
       sample_count: newN,
       updated_at: new Date().toISOString(),
-    } as never,
+    },
     { onConflict: Object.keys(key).join(",") },
   );
 }
