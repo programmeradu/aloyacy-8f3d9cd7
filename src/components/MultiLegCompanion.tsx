@@ -28,6 +28,7 @@ import { WalkGuidance } from "@/components/WalkGuidance";
 import { ShortcutPrompt } from "@/components/ShortcutPrompt";
 import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
 import { useShortcutDetector } from "@/lib/useShortcutDetector";
+import { useTrainingSignals } from "@/lib/useTrainingSignals";
 import { distanceM } from "@/lib/geo";
 import companionHero from "@/assets/companion-hero.jpg";
 
