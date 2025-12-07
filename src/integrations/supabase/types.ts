@@ -744,6 +744,14 @@ export type Database = {
     Functions: {
       bump_alert_counter: { Args: { p_kind: string }; Returns: undefined }
       cleanup_rider_fixes: { Args: never; Returns: undefined }
+      pulse_route_stats: {
+        Args: never
+        Returns: {
+          route_id: string
+          sample_count: number
+          sum_delay_weighted: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
