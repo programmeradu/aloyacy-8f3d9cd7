@@ -125,6 +125,135 @@ export type Database = {
         }
         Relationships: []
       }
+      dwell_stats: {
+        Row: {
+          day_of_week: number
+          hour_of_day: number
+          id: number
+          mean_dwell_sec: number
+          route_id: string
+          sample_count: number
+          stop_id: string
+          updated_at: string
+        }
+        Insert: {
+          day_of_week: number
+          hour_of_day: number
+          id?: number
+          mean_dwell_sec?: number
+          route_id: string
+          sample_count?: number
+          stop_id: string
+          updated_at?: string
+        }
+        Update: {
+          day_of_week?: number
+          hour_of_day?: number
+          id?: number
+          mean_dwell_sec?: number
+          route_id?: string
+          sample_count?: number
+          stop_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      feed_truth_delta: {
+        Row: {
+          day_of_week: number
+          hour_of_day: number
+          id: number
+          mean_delta_m: number
+          mean_delta_sec: number
+          route_id: string
+          sample_count: number
+          updated_at: string
+        }
+        Insert: {
+          day_of_week: number
+          hour_of_day: number
+          id?: number
+          mean_delta_m?: number
+          mean_delta_sec?: number
+          route_id: string
+          sample_count?: number
+          updated_at?: string
+        }
+        Update: {
+          day_of_week?: number
+          hour_of_day?: number
+          id?: number
+          mean_delta_m?: number
+          mean_delta_sec?: number
+          route_id?: string
+          sample_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      headway_observations: {
+        Row: {
+          bunching_count: number
+          day_of_week: number
+          hour_of_day: number
+          id: number
+          observed_headway_sec: number
+          route_id: string
+          sample_count: number
+          scheduled_headway_sec: number
+          stop_id: string
+          updated_at: string
+        }
+        Insert: {
+          bunching_count?: number
+          day_of_week: number
+          hour_of_day: number
+          id?: number
+          observed_headway_sec?: number
+          route_id: string
+          sample_count?: number
+          scheduled_headway_sec?: number
+          stop_id: string
+          updated_at?: string
+        }
+        Update: {
+          bunching_count?: number
+          day_of_week?: number
+          hour_of_day?: number
+          id?: number
+          observed_headway_sec?: number
+          route_id?: string
+          sample_count?: number
+          scheduled_headway_sec?: number
+          stop_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      model_versions: {
+        Row: {
+          created_at: string
+          id: number
+          is_active: boolean
+          name: string
+          params: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          is_active?: boolean
+          name: string
+          params?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          is_active?: boolean
+          name?: string
+          params?: Json
+        }
+        Relationships: []
+      }
       observed_arrivals: {
         Row: {
           last_delay_sec: number
@@ -227,6 +356,30 @@ export type Database = {
         }
         Relationships: []
       }
+      route_crowding: {
+        Row: {
+          device_count: number
+          id: number
+          route_id: string
+          trip_id: string
+          window_start: string
+        }
+        Insert: {
+          device_count?: number
+          id?: number
+          route_id: string
+          trip_id: string
+          window_start: string
+        }
+        Update: {
+          device_count?: number
+          id?: number
+          route_id?: string
+          trip_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       rt_snapshots: {
         Row: {
           captured_at: string
@@ -254,6 +407,135 @@ export type Database = {
           route_id?: string
           stop_id?: string
           trip_id?: string
+        }
+        Relationships: []
+      }
+      segment_runtimes: {
+        Row: {
+          day_of_week: number
+          from_stop_id: string
+          hour_of_day: number
+          id: number
+          mean_runtime_sec: number
+          route_id: string
+          sample_count: number
+          stddev_runtime_sec: number
+          to_stop_id: string
+          updated_at: string
+        }
+        Insert: {
+          day_of_week: number
+          from_stop_id: string
+          hour_of_day: number
+          id?: number
+          mean_runtime_sec?: number
+          route_id: string
+          sample_count?: number
+          stddev_runtime_sec?: number
+          to_stop_id: string
+          updated_at?: string
+        }
+        Update: {
+          day_of_week?: number
+          from_stop_id?: string
+          hour_of_day?: number
+          id?: number
+          mean_runtime_sec?: number
+          route_id?: string
+          sample_count?: number
+          stddev_runtime_sec?: number
+          to_stop_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      training_events: {
+        Row: {
+          device_id: string
+          id: number
+          kind: string
+          payload: Json
+          processed_at: string | null
+          recorded_at: string
+        }
+        Insert: {
+          device_id: string
+          id?: number
+          kind: string
+          payload?: Json
+          processed_at?: string | null
+          recorded_at?: string
+        }
+        Update: {
+          device_id?: string
+          id?: number
+          kind?: string
+          payload?: Json
+          processed_at?: string | null
+          recorded_at?: string
+        }
+        Relationships: []
+      }
+      training_runs: {
+        Row: {
+          finished_at: string | null
+          id: number
+          ok: boolean
+          started_at: string
+          stats: Json
+        }
+        Insert: {
+          finished_at?: string | null
+          id?: number
+          ok?: boolean
+          started_at?: string
+          stats?: Json
+        }
+        Update: {
+          finished_at?: string | null
+          id?: number
+          ok?: boolean
+          started_at?: string
+          stats?: Json
+        }
+        Relationships: []
+      }
+      transfer_outcomes: {
+        Row: {
+          at_stop_id: string
+          attempts: number
+          day_of_week: number
+          from_route: string
+          hour_of_day: number
+          id: number
+          planned_wait_sec: number
+          successes: number
+          to_route: string
+          updated_at: string
+        }
+        Insert: {
+          at_stop_id: string
+          attempts?: number
+          day_of_week: number
+          from_route: string
+          hour_of_day: number
+          id?: number
+          planned_wait_sec?: number
+          successes?: number
+          to_route: string
+          updated_at?: string
+        }
+        Update: {
+          at_stop_id?: string
+          attempts?: number
+          day_of_week?: number
+          from_route?: string
+          hour_of_day?: number
+          id?: number
+          planned_wait_sec?: number
+          successes?: number
+          to_route?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -302,6 +584,30 @@ export type Database = {
           to_label?: string
           to_lat?: number
           to_lng?: number
+        }
+        Relationships: []
+      }
+      trip_no_shows: {
+        Row: {
+          detected_at: string
+          id: number
+          route_id: string
+          service_date: string
+          trip_id: string
+        }
+        Insert: {
+          detected_at?: string
+          id?: number
+          route_id: string
+          service_date: string
+          trip_id: string
+        }
+        Update: {
+          detected_at?: string
+          id?: number
+          route_id?: string
+          service_date?: string
+          trip_id?: string
         }
         Relationships: []
       }
@@ -377,6 +683,57 @@ export type Database = {
           id?: string
           polyline?: string
           to_stop_id?: string
+        }
+        Relationships: []
+      }
+      walk_pace_stats: {
+        Row: {
+          device_id: string
+          mean_mps: number
+          sample_count: number
+          updated_at: string
+        }
+        Insert: {
+          device_id: string
+          mean_mps?: number
+          sample_count?: number
+          updated_at?: string
+        }
+        Update: {
+          device_id?: string
+          mean_mps?: number
+          sample_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      weather_delay_coupling: {
+        Row: {
+          condition: string
+          hour_of_day: number
+          id: number
+          mean_extra_delay_sec: number
+          route_id: string
+          sample_count: number
+          updated_at: string
+        }
+        Insert: {
+          condition: string
+          hour_of_day: number
+          id?: number
+          mean_extra_delay_sec?: number
+          route_id: string
+          sample_count?: number
+          updated_at?: string
+        }
+        Update: {
+          condition?: string
+          hour_of_day?: number
+          id?: number
+          mean_extra_delay_sec?: number
+          route_id?: string
+          sample_count?: number
+          updated_at?: string
         }
         Relationships: []
       }
