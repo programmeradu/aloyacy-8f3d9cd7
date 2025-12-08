@@ -245,7 +245,7 @@ export function useJourney(opts: {
       // Missed-bus detection. Only fire when we're CONFIDENT the rider is
       // not on this bus: vehicle has cleared the stop, the rider isn't
       // moving at bus speed, and the rider's own GPS isn't near the vehicle.
-      if (vehicle && bus && !ridingByGps) {
+      if (vehicle && bus && !ridingByGps && boardLoc) {
         const busFromStop = distanceM(vehicle, boardLoc);
         const riderFarFromBus = !fix || distanceM(fix, vehicle) > 250;
         const riderStillNearStop = !!fix && distToBoardStop < 60;
