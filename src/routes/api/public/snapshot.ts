@@ -24,14 +24,26 @@ function badRequest(message: string) {
 }
 
 async function guard(request: Request): Promise<Response | null> {
-  // When CRON_SECRET is configured, require it on every call. This keeps
-  // the endpoint locked down to the scheduled cron caller and prevents
-  // anonymous abuse of the upstream fetch + service-role DB writes.
-  const expected = process.env.CRON_SECRET;
+  // Accept the vault-managed scheduler secret first, then the env fallback.
+  // This keeps the snapshot cron aligned with the existing scheduled job.
+  let expected = process.env.CRON_SECRET ?? null;
+  try {
+    const { data } = await supabaseAdmin
+      .schema("vault" as never)
+      .from("decrypted_secrets" as never)
+      .select("decrypted_secret")
+      .eq("name", "aloya_cron_secret")
+      .maybeSingle();
+    const vaultSecret = (data as { decrypted_secret?: string } | null)?.decrypted_secret;
+    if (vaultSecret) expected = vaultSecret;
+  } catch {
+    // ignore vault lookup failures and fall back to env
+  }
+
   if (expected) {
     const url = new URL(request.url);
     const provided =
-      request.headers.get("X-Cron-Secret") ?? url.searchParams.get("cron_secret");
+      request.headers.get("X-Cron-Secret") ?? request.headers.get("x-cron-secret") ?? url.searchParams.get("cron_secret");
     if (!provided || provided !== expected) {
       return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
         status: 401,
