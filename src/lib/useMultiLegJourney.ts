@@ -92,6 +92,11 @@ const CONNECTION_LATE_S = 5 * 60;
 const RIDING_SPEED_MPS = 5;
 /** How long after the scheduled connection departure we call it "missed". */
 const MISSED_CONNECTION_BUFFER_S = 90;
+/** Sustained-riding window before we auto-confirm boarding from GPS alone. */
+const SUSTAINED_RIDING_MS = 12_000;
+/** How far past the board stop the rider must travel before we treat their
+ *  motion as "definitely on a bus". */
+const RIDING_DISPLACEMENT_M = 80;
 
 export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   const itin = active?.itinerary ?? null;
