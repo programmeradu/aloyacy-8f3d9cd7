@@ -9,6 +9,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { planMultiLegJourney, type MultiLegDiagnostics } from "./journey-multileg.server";
 import { planMultiLegScheduled, type ScheduledDiagnostics } from "./journey-scheduled.server";
+import {
+  loadPlannerLearningContext,
+  rescoreItineraryWithLearning,
+} from "./planner-learning.server";
 import { getSkippedTransferCount } from "./overrides.server";
 import type { Itinerary, RideLeg } from "./itinerary-types";
 
@@ -69,6 +73,8 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       ...(liveResult?.itineraries ?? []),
       ...(schedResult?.itineraries ?? []),
     ];
+    const learning = await loadPlannerLearningContext(merged).catch(() => null);
+    for (const it of merged) rescoreItineraryWithLearning(it, learning);
     const mergedRaw = merged.length;
 
     // Dedupe by (signature). Prefer "live" or "mixed" over "estimated".
