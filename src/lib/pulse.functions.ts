@@ -3,9 +3,7 @@
 // Read-only, public. Safe to expose without auth.
 
 import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { ROUTES } from "@/lib/gtfs";
-import { fetchRealtime } from "@/lib/gtfs-rt.server";
 
 const KNOWN_ROUTE_IDS = new Set(ROUTES.map((r) => r.id));
 
@@ -28,6 +26,9 @@ export type PulseSnapshot = {
 };
 
 export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
+  const [{ supabaseAdmin }] = await Promise.all([
+    import("@/integrations/supabase/client.server"),
+  ]);
   const freshThresholdIso = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
   const { data: freshness } = await supabaseAdmin
     .from("delay_stats")
@@ -112,6 +113,7 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
 
 async function buildPulseFromRealtime(): Promise<PulseSnapshot> {
   try {
+    const [{ fetchRealtime }] = await Promise.all([import("@/lib/gtfs-rt.server")]);
     const rt = await fetchRealtime();
     if (!rt.arrivals.length) {
       return {
@@ -205,6 +207,9 @@ export type LivePulse = {
 };
 
 export const getLivePulse = createServerFn({ method: "GET" }).handler(async () => {
+  const [{ supabaseAdmin }] = await Promise.all([
+    import("@/integrations/supabase/client.server"),
+  ]);
   const WINDOW_MIN = 60;
   const sinceIso = new Date(Date.now() - WINDOW_MIN * 60_000).toISOString();
   const PAGE = 1000;
