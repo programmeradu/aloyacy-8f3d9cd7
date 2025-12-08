@@ -76,8 +76,12 @@ const EMPTY_CONTEXT: PlannerLearningContext = {
   headwayByKey: new Map(),
 };
 
-function uniq(values: Array<string | number | undefined | null>) {
-  return [...new Set(values.filter((v): v is string | number => v !== undefined && v !== null))];
+function uniqStrings(values: Array<string | undefined | null>) {
+  return [...new Set(values.filter((v): v is string => typeof v === "string" && v.length > 0))];
+}
+
+function uniqNumbers(values: Array<number | undefined | null>) {
+  return [...new Set(values.filter((v): v is number => typeof v === "number"))];
 }
 
 function timeParts(unix: number) {
@@ -110,17 +114,17 @@ export async function loadPlannerLearningContext(
   const rides = itineraries.flatMap((it) => it.legs.filter((leg): leg is RideLeg => leg.kind === "ride"));
   if (rides.length === 0) return EMPTY_CONTEXT;
 
-  const routeIds = uniq(rides.map((ride) => ride.routeId));
-  const stopIds = uniq(
+  const routeIds = uniqStrings(rides.map((ride) => ride.routeId));
+  const stopIds = uniqStrings(
     rides.flatMap((ride) => [ride.board.stopId, ride.alight.stopId]),
   );
-  const hours = uniq(
+  const hours = uniqNumbers(
     rides.flatMap((ride) => [
       timeParts(ride.board.departureUnix).hour,
       timeParts(ride.alight.arrivalUnix).hour,
     ]),
   );
-  const dows = uniq(
+  const dows = uniqNumbers(
     rides.flatMap((ride) => [
       timeParts(ride.board.departureUnix).dow,
       timeParts(ride.alight.arrivalUnix).dow,
