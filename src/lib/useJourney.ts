@@ -198,13 +198,14 @@ export function useJourney(opts: {
     } else if (live?.missedAt) {
       phase = "missed-bus";
     } else {
-      // Pre-board phase
+      // Pre-board phase. The bus leg only stores stopId/name, so use the
+      // walk-in leg's `to` coordinate as the board-stop location.
       const boardLoc =
         walkIn?.kind === "walk"
           ? { lat: walkIn.to.lat, lng: walkIn.to.lng }
-          : { lat: bus.board.lat, lng: bus.board.lng };
-      const distToBoardStop = fix ? distanceM(fix, boardLoc) : Infinity;
-      const atStop = fix && distToBoardStop < ARRIVAL_RADIUS_M;
+          : null;
+      const distToBoardStop = fix && boardLoc ? distanceM(fix, boardLoc) : Infinity;
+      const atStop = !!fix && !!boardLoc && distToBoardStop < ARRIVAL_RADIUS_M;
 
       // Rider's GPS-based riding signal — works even when the GTFS-RT feed
       // has no vehicle for this tripId (very common at night).
