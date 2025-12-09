@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as TripsRouteImport } from './routes/trips'
 import { Route as SavedRouteImport } from './routes/saved'
+import { Route as QaRouteImport } from './routes/qa'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TripIdRouteImport } from './routes/trip.$id'
@@ -41,6 +42,11 @@ const TripsRoute = TripsRouteImport.update({
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
   path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaRoute = QaRouteImport.update({
+  id: '/qa',
+  path: '/qa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PulseRoute = PulseRouteImport.update({
@@ -122,6 +128,7 @@ const ApiPublicHooksTrainRoute = ApiPublicHooksTrainRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/pulse': typeof PulseRoute
+  '/qa': typeof QaRoute
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/pulse': typeof PulseRoute
+  '/qa': typeof QaRoute
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/pulse': typeof PulseRoute
+  '/qa': typeof QaRoute
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/pulse'
+    | '/qa'
     | '/saved'
     | '/trips'
     | '/wallet'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/pulse'
+    | '/qa'
     | '/saved'
     | '/trips'
     | '/wallet'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/pulse'
+    | '/qa'
     | '/saved'
     | '/trips'
     | '/wallet'
@@ -246,6 +258,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PulseRoute: typeof PulseRoute
+  QaRoute: typeof QaRoute
   SavedRoute: typeof SavedRoute
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
@@ -285,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/saved'
       fullPath: '/saved'
       preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa': {
+      id: '/qa'
+      path: '/qa'
+      fullPath: '/qa'
+      preLoaderRoute: typeof QaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pulse': {
@@ -398,6 +418,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PulseRoute: PulseRoute,
+  QaRoute: QaRoute,
   SavedRoute: SavedRoute,
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,

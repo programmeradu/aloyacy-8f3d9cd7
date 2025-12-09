@@ -12,6 +12,10 @@ const Kind = z.enum([
   "transfer-made",
   "transfer-missed",
   "no-show-reported",
+  "phase-transition",
+  "boarding-prompt-shown",
+  "boarding-prompt-confirmed",
+  "missed-bus-false-positive",
 ]);
 
 const Schema = z.object({
