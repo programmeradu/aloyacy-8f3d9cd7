@@ -92,6 +92,11 @@ const CONNECTION_LATE_S = 5 * 60;
 const RIDING_SPEED_MPS = 5;
 /** How long after the scheduled connection departure we call it "missed". */
 const MISSED_CONNECTION_BUFFER_S = 90;
+/** Sustained-riding window before we auto-confirm boarding from GPS alone. */
+const SUSTAINED_RIDING_MS = 12_000;
+/** How far past the board stop the rider must travel before we treat their
+ *  motion as "definitely on a bus". */
+const RIDING_DISPLACEMENT_M = 80;
 
 export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   const itin = active?.itinerary ?? null;
@@ -458,6 +463,61 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       if (per?.alightedAt) advanceToNextLeg();
     }
   }, [result.active, result.currentLegIndex, result.currentLeg, result.fix, result.metersToTarget, itin, legState]);
+
+  // ---- GPS-based auto-confirm boarding on ride legs ----------------------
+  // Mirrors useJourney: if the rider's GPS shows sustained bus-speed motion
+  // AND they've left the board stop while a ride leg is active but unconfirmed,
+  // mark them on-board automatically. Covers the feed-blackout failure mode.
+  const ridingStartedAtRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!result.active || !legState) {
+      ridingStartedAtRef.current = null;
+      return;
+    }
+    const leg = result.currentLeg;
+    if (!leg || leg.kind !== "ride") {
+      ridingStartedAtRef.current = null;
+      return;
+    }
+    const per = legState.perLeg[result.currentLegIndex];
+    if (per?.onBoardConfirmedAt || per?.alightedAt || per?.missedAt) {
+      ridingStartedAtRef.current = null;
+      return;
+    }
+    const speed = result.fix?.speedMps ?? 0;
+    if (speed <= RIDING_SPEED_MPS) {
+      ridingStartedAtRef.current = null;
+      return;
+    }
+    const boardLoc = result.currentRideLeg
+      ? { lat: result.currentRideLeg.board.lat, lng: result.currentRideLeg.board.lng }
+      : null;
+    const departed =
+      !!result.fix &&
+      !!boardLoc &&
+      distanceM(result.fix, boardLoc) > RIDING_DISPLACEMENT_M;
+    if (!departed) {
+      ridingStartedAtRef.current = null;
+      return;
+    }
+    if (ridingStartedAtRef.current == null) {
+      ridingStartedAtRef.current = Date.now();
+      return;
+    }
+    if (Date.now() - ridingStartedAtRef.current >= SUSTAINED_RIDING_MS) {
+      patchCurrentLeg({ onBoardConfirmedAt: Date.now() });
+      ridingStartedAtRef.current = null;
+    }
+  }, [
+    result.active,
+    result.currentLegIndex,
+    result.currentLeg,
+    result.currentRideLeg,
+    result.fix,
+    legState,
+  ]);
+
+
 
   // ---- Push alerts on phase transition ------------------------------------
   // Idempotent via a per-(legIdx,kind) key set. The server-side cron also
