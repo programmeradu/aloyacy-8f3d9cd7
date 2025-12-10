@@ -96,19 +96,24 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       const email = (claims as { email?: string })?.email;
       const customerId = await resolveOrCreateCustomer(stripe, { userId, email });
 
-      const session = await stripe.checkout.sessions.create({
+      const sessionParams = {
         mode: "subscription",
         ui_mode: "embedded_page",
         return_url: `${data.returnUrl}?session_id={CHECKOUT_SESSION_ID}`,
         customer: customerId,
         line_items: [{ price: price.id, quantity: 1 }],
         allow_promotion_codes: true,
+        // Full compliance handling: Stripe handles tax + fraud + disputes
+        // + support (+3.5%). Cast — the dahlia API supports this but the
+        // installed SDK types don't yet declare it.
         managed_payments: { enabled: true },
         metadata: { user_id: userId, plan_key: data.planKey },
         subscription_data: {
           metadata: { user_id: userId, plan_key: data.planKey },
         },
-      });
+      } as unknown as Parameters<typeof stripe.checkout.sessions.create>[0];
+
+      const session = await stripe.checkout.sessions.create(sessionParams);
 
       if (!session.client_secret)
         return { error: "Stripe did not return a checkout secret." };
