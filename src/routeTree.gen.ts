@@ -28,6 +28,7 @@ import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/str
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
 
 const WalletRoute = WalletRouteImport.update({
@@ -125,6 +126,12 @@ const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
   path: '/api/public/realtime',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTrainRoute = ApiPublicHooksTrainRouteImport.update({
   id: '/api/public/hooks/train',
   path: '/api/public/hooks/train',
@@ -152,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -174,6 +182,7 @@ export interface FileRoutesByTo {
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -197,6 +206,7 @@ export interface FileRoutesById {
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/api/public/stripe-webhook'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/train'
+    | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/api/public/stripe-webhook'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/train'
+    | '/api/public/payments/webhook'
   id:
     | '__root__'
     | '/'
@@ -265,6 +277,7 @@ export interface FileRouteTypes {
     | '/api/public/stripe-webhook'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/train'
+    | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -288,6 +301,7 @@ export interface RootRouteChildren {
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -425,6 +439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRealtimeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/train': {
       id: '/api/public/hooks/train'
       path: '/api/public/hooks/train'
@@ -456,6 +477,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
