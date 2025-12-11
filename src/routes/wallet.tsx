@@ -26,6 +26,7 @@ import fareUrban from "@/assets/fare-urban.jpg";
 import fareNight from "@/assets/fare-night.jpg";
 import fareIntercity from "@/assets/fare-intercity.jpg";
 import { ProUpsellCard } from "@/components/ProUpsell";
+import { ProAccountCard } from "@/components/ProAccountCard";
 
 // Lazy: the editor sheet only mounts when the user taps to edit.
 const PassSheet = lazy(() =>
@@ -336,6 +337,7 @@ function WalletRoute() {
 
           {/* Aloya Pro upsell */}
           <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "220ms" }}>
+            <ProAccountCard />
             <ProUpsellCard />
           </section>
 
