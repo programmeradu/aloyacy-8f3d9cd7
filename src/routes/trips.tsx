@@ -235,17 +235,7 @@ function Plan() {
         )}
 
         {results && results.length > 0 && origin && destination && (
-          <div className="flex flex-col gap-3">
-            {results.map((it, i) => (
-              <ItineraryRow
-                key={it.id}
-                itinerary={it}
-                highlight={i === 0}
-                origin={origin}
-                destination={destination}
-              />
-            ))}
-          </div>
+          <ItineraryResults results={results} origin={origin} destination={destination} />
         )}
       </section>
     </AppShell>
