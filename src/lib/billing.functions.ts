@@ -13,15 +13,52 @@ const CheckoutInput = z.object({
   returnUrl: z.string().url(),
 });
 
-type CheckoutResult = { url: string } | { error: string };
+type CheckoutResult = { clientSecret: string } | { error: string };
 
-async function findPriceByPlanKey(stripe: ReturnType<typeof createStripeClient>, planKey: string) {
-  // Lovable's product creation stamps `lovable_external_id` on price metadata.
+async function findPriceByPlanKey(
+  stripe: ReturnType<typeof createStripeClient>,
+  planKey: string,
+) {
+  if (!/^[a-zA-Z0-9_-]+$/.test(planKey)) throw new Error("Invalid planKey");
   const prices = await stripe.prices.search({
     query: `active:'true' AND metadata['lovable_external_id']:'${planKey}'`,
     limit: 1,
   });
   return prices.data[0] ?? null;
+}
+
+// Resolve a Stripe Customer that carries metadata.user_id. Searches by
+// metadata first (across devices), then by email, then creates a fresh one.
+async function resolveOrCreateCustomer(
+  stripe: ReturnType<typeof createStripeClient>,
+  options: { userId: string; email?: string },
+): Promise<string> {
+  if (!/^[a-zA-Z0-9_-]+$/.test(options.userId)) throw new Error("Invalid userId");
+
+  const found = await stripe.customers.search({
+    query: `metadata['user_id']:'${options.userId}'`,
+    limit: 1,
+  });
+  if (found.data.length) return found.data[0].id;
+
+  if (options.email) {
+    const existing = await stripe.customers.list({ email: options.email, limit: 1 });
+    if (existing.data.length) {
+      const c = existing.data[0];
+      if (c.metadata?.user_id !== options.userId) {
+        await stripe.customers.update(c.id, {
+          metadata: { ...c.metadata, user_id: options.userId },
+        });
+      }
+      return c.id;
+    }
+  }
+
+  const created = await stripe.customers.create({
+    ...(options.email && { email: options.email }),
+    metadata: { user_id: options.userId },
+  });
+  return created.id;
 }
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
@@ -30,50 +67,57 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<CheckoutResult> => {
     const { supabase, userId, claims } = context;
     const env = data.environment as StripeEnv;
-    const stripe = createStripeClient(env);
 
     try {
-      const price = await findPriceByPlanKey(stripe, data.planKey);
-      if (!price) return { error: "Plan not available right now." };
+      const stripe = createStripeClient(env);
 
-      // Reuse existing Stripe customer if we already have one for this user/env.
+      // Reject if user already has an active subscription in this env.
       const { data: existing } = await supabase
         .from("subscriptions")
-        .select("stripe_customer_id, status, current_period_end")
+        .select("status, current_period_end")
         .eq("user_id", userId)
         .eq("environment", env)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (existing?.status === "active" || existing?.status === "trialing") {
+      if (
+        existing &&
+        (existing.status === "active" || existing.status === "trialing") &&
+        (!existing.current_period_end ||
+          new Date(existing.current_period_end as string) > new Date())
+      ) {
         return { error: "You already have an active Pro subscription." };
       }
 
-      const customerId =
-        existing?.stripe_customer_id ??
-        (await stripe.customers.create({
-          email: (claims as { email?: string })?.email,
-          metadata: { user_id: userId },
-        })).id;
+      const price = await findPriceByPlanKey(stripe, data.planKey);
+      if (!price) return { error: "Plan not available right now." };
 
-      const session = await stripe.checkout.sessions.create({
+      const email = (claims as { email?: string })?.email;
+      const customerId = await resolveOrCreateCustomer(stripe, { userId, email });
+
+      const sessionParams = {
         mode: "subscription",
+        ui_mode: "embedded_page",
+        return_url: `${data.returnUrl}?session_id={CHECKOUT_SESSION_ID}`,
         customer: customerId,
         line_items: [{ price: price.id, quantity: 1 }],
-        success_url: `${data.returnUrl}?pro=success`,
-        cancel_url: `${data.returnUrl}?pro=cancelled`,
         allow_promotion_codes: true,
-        automatic_tax: { enabled: true },
-        customer_update: { address: "auto", name: "auto" },
+        // Full compliance handling: Stripe handles tax + fraud + disputes
+        // + support (+3.5%). Cast — the dahlia API supports this but the
+        // installed SDK types don't yet declare it.
+        managed_payments: { enabled: true },
+        metadata: { user_id: userId, plan_key: data.planKey },
         subscription_data: {
           metadata: { user_id: userId, plan_key: data.planKey },
         },
-        metadata: { user_id: userId, plan_key: data.planKey },
-      });
+      } as unknown as Parameters<typeof stripe.checkout.sessions.create>[0];
 
-      if (!session.url) return { error: "Could not start checkout." };
-      return { url: session.url };
+      const session = await stripe.checkout.sessions.create(sessionParams);
+
+      if (!session.client_secret)
+        return { error: "Stripe did not return a checkout secret." };
+      return { clientSecret: session.client_secret };
     } catch (error) {
       return { error: getStripeErrorMessage(error) };
     }
@@ -107,7 +151,7 @@ export const createPortalSession = createServerFn({ method: "POST" })
     try {
       const stripe = createStripeClient(env);
       const portal = await stripe.billingPortal.sessions.create({
-        customer: sub.stripe_customer_id,
+        customer: sub.stripe_customer_id as string,
         return_url: data.returnUrl,
       });
       return { url: portal.url };

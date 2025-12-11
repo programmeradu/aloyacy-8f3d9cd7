@@ -8,37 +8,7 @@ import {
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 function parseEnv(url: URL): StripeEnv {
-  const v = url.searchParams.get("env");
-  return v === "live" ? "live" : "sandbox";
-}
-
-async function upsertFromSubscription(sub: Stripe.Subscription, env: StripeEnv) {
-  const userId =
-    (sub.metadata?.user_id as string | undefined) ??
-    ((await fetchUserIdFromCustomer(sub.customer as string, env)) ?? null);
-  if (!userId) return;
-
-  const item = sub.items.data[0];
-  const price = item?.price;
-  const planKey = (price?.metadata?.lovable_external_id as string | undefined) ?? null;
-  const periodEnd = (item as unknown as { current_period_end?: number })?.current_period_end;
-
-  await supabaseAdmin.from("subscriptions").upsert(
-    {
-      user_id: userId,
-      stripe_customer_id: sub.customer as string,
-      stripe_subscription_id: sub.id,
-      status: sub.status,
-      price_id: price?.id ?? null,
-      product_id: typeof price?.product === "string" ? price.product : price?.product?.id ?? null,
-      plan_key: planKey,
-      current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
-      cancel_at_period_end: sub.cancel_at_period_end,
-      environment: env,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "stripe_subscription_id" },
-  );
+  return url.searchParams.get("env") === "live" ? "live" : "sandbox";
 }
 
 async function fetchUserIdFromCustomer(customerId: string, env: StripeEnv) {
@@ -52,15 +22,52 @@ async function fetchUserIdFromCustomer(customerId: string, env: StripeEnv) {
   }
 }
 
-export const Route = createFileRoute("/api/public/stripe-webhook")({
+async function upsertFromSubscription(sub: Stripe.Subscription, env: StripeEnv) {
+  const userId =
+    (sub.metadata?.user_id as string | undefined) ??
+    (await fetchUserIdFromCustomer(sub.customer as string, env)) ??
+    null;
+  if (!userId) {
+    console.warn("[stripe-webhook] subscription without user_id", sub.id);
+    return;
+  }
+
+  const item = sub.items.data[0];
+  const price = item?.price;
+  const planKey =
+    (price?.metadata?.lovable_external_id as string | undefined) ??
+    (price?.lookup_key as string | undefined) ??
+    null;
+  const periodEnd =
+    (item as unknown as { current_period_end?: number })?.current_period_end ??
+    (sub as unknown as { current_period_end?: number }).current_period_end;
+
+  await supabaseAdmin.from("subscriptions").upsert(
+    {
+      user_id: userId,
+      stripe_customer_id: sub.customer as string,
+      stripe_subscription_id: sub.id,
+      status: sub.status,
+      price_id: price?.id ?? null,
+      product_id:
+        typeof price?.product === "string" ? price.product : price?.product?.id ?? null,
+      plan_key: planKey,
+      current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+      cancel_at_period_end: sub.cancel_at_period_end,
+      environment: env,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "stripe_subscription_id" },
+  );
+}
+
+export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const url = new URL(request.url);
-        const env = parseEnv(url);
+        const env = parseEnv(new URL(request.url));
         const signature = request.headers.get("stripe-signature");
         const body = await request.text();
-
         if (!signature) return new Response("Missing signature", { status: 400 });
 
         const stripe = createStripeClient(env);
@@ -102,9 +109,9 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
             default:
               break;
           }
-          return new Response("ok");
+          return Response.json({ received: true });
         } catch (err) {
-          console.error("Webhook handler error", err);
+          console.error("[stripe-webhook] handler error", err);
           return new Response("Handler error", { status: 500 });
         }
       },

@@ -22,12 +22,13 @@ import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
 import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
 import { Route as DebugGraphRouteImport } from './routes/debug.graph'
 import { Route as DebugEtaRouteImport } from './routes/debug.eta'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
-import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
 
 const WalletRoute = WalletRouteImport.update({
@@ -95,14 +96,14 @@ const DebugEtaRoute = DebugEtaRouteImport.update({
   path: '/debug/eta',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
   id: '/api/public/trip-alerts',
   path: '/api/public/trip-alerts',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
-  id: '/api/public/stripe-webhook',
-  path: '/api/public/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicStreetviewRoute = ApiPublicStreetviewRouteImport.update({
@@ -125,6 +126,12 @@ const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
   path: '/api/public/realtime',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTrainRoute = ApiPublicHooksTrainRouteImport.update({
   id: '/api/public/hooks/train',
   path: '/api/public/hooks/train',
@@ -138,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
@@ -149,9 +157,9 @@ export interface FileRoutesByFullPath {
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
-  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -160,6 +168,7 @@ export interface FileRoutesByTo {
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
@@ -171,9 +180,9 @@ export interface FileRoutesByTo {
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
-  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -183,6 +192,7 @@ export interface FileRoutesById {
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
@@ -194,9 +204,9 @@ export interface FileRoutesById {
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
-  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/trips'
     | '/wallet'
+    | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
@@ -218,9 +229,9 @@ export interface FileRouteTypes {
     | '/api/public/rider-fix'
     | '/api/public/snapshot'
     | '/api/public/streetview'
-    | '/api/public/stripe-webhook'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/train'
+    | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/trips'
     | '/wallet'
+    | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
@@ -240,9 +252,9 @@ export interface FileRouteTypes {
     | '/api/public/rider-fix'
     | '/api/public/snapshot'
     | '/api/public/streetview'
-    | '/api/public/stripe-webhook'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/train'
+    | '/api/public/payments/webhook'
   id:
     | '__root__'
     | '/'
@@ -251,6 +263,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/trips'
     | '/wallet'
+    | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
@@ -262,9 +275,9 @@ export interface FileRouteTypes {
     | '/api/public/rider-fix'
     | '/api/public/snapshot'
     | '/api/public/streetview'
-    | '/api/public/stripe-webhook'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/train'
+    | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -274,6 +287,7 @@ export interface RootRouteChildren {
   SavedRoute: typeof SavedRoute
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
+  CheckoutReturnRoute: typeof CheckoutReturnRoute
   DebugEtaRoute: typeof DebugEtaRoute
   DebugGraphRoute: typeof DebugGraphRoute
   DebugMultilegRoute: typeof DebugMultilegRoute
@@ -285,9 +299,9 @@ export interface RootRouteChildren {
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
-  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -383,18 +397,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DebugEtaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/trip-alerts': {
       id: '/api/public/trip-alerts'
       path: '/api/public/trip-alerts'
       fullPath: '/api/public/trip-alerts'
       preLoaderRoute: typeof ApiPublicTripAlertsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/stripe-webhook': {
-      id: '/api/public/stripe-webhook'
-      path: '/api/public/stripe-webhook'
-      fullPath: '/api/public/stripe-webhook'
-      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/streetview': {
@@ -425,6 +439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRealtimeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/train': {
       id: '/api/public/hooks/train'
       path: '/api/public/hooks/train'
@@ -442,6 +463,7 @@ const rootRouteChildren: RootRouteChildren = {
   SavedRoute: SavedRoute,
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
+  CheckoutReturnRoute: CheckoutReturnRoute,
   DebugEtaRoute: DebugEtaRoute,
   DebugGraphRoute: DebugGraphRoute,
   DebugMultilegRoute: DebugMultilegRoute,
@@ -453,9 +475,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
-  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
