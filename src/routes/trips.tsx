@@ -666,6 +666,9 @@ function ItineraryResults({
       )}
     </div>
   );
+}
+
+
 
 // Map a single-ride Itinerary into the legacy JourneyOption shape that
 // trip.$id and trip-store still expect. Drops Wait legs (they're implicit
