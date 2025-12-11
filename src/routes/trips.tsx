@@ -608,6 +608,65 @@ function ItineraryRow({
   );
 }
 
+// Splits direct trips (free) from transfer trips (Pro). Renders all directs,
+// then either renders transfers inline (Pro) or wraps them in a single
+// ProGate that unlocks all multi-leg results at once.
+function ItineraryResults({
+  results,
+  origin,
+  destination,
+}: {
+  results: Itinerary[];
+  origin: Point;
+  destination: Point;
+}) {
+  const direct = results.filter((it) => it.transfers === 0);
+  const transfers = results.filter((it) => it.transfers > 0);
+
+  return (
+    <div className="flex flex-col gap-3">
+      {direct.map((it, i) => (
+        <ItineraryRow
+          key={it.id}
+          itinerary={it}
+          highlight={i === 0 && direct.length > 0}
+          origin={origin}
+          destination={destination}
+        />
+      ))}
+      {transfers.length > 0 && (
+        <ProGate
+          feature={`${transfers.length} faster route${transfers.length > 1 ? "s" : ""} with transfers`}
+          preview={
+            <div className="flex flex-col gap-3 p-3">
+              {transfers.slice(0, 2).map((it) => (
+                <ItineraryRow
+                  key={it.id}
+                  itinerary={it}
+                  highlight={false}
+                  origin={origin}
+                  destination={destination}
+                />
+              ))}
+            </div>
+          }
+        >
+          <div className="flex flex-col gap-3">
+            {transfers.map((it) => (
+              <ItineraryRow
+                key={it.id}
+                itinerary={it}
+                highlight={direct.length === 0}
+                origin={origin}
+                destination={destination}
+              />
+            ))}
+          </div>
+        </ProGate>
+      )}
+    </div>
+  );
+
 // Map a single-ride Itinerary into the legacy JourneyOption shape that
 // trip.$id and trip-store still expect. Drops Wait legs (they're implicit
 // in the schedule). Phase 4 will replace this bridge with native multi-leg.
