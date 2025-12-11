@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { registerServiceWorker } from "@/lib/pwa";
 import { speak } from "@/lib/speech";
 import { Toaster } from "@/components/ui/sonner";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 function NotFoundComponent() {
   return (
@@ -131,6 +132,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <PaymentTestModeBanner />
       <Outlet />
       <Toaster position="top-center" />
     </QueryClientProvider>
