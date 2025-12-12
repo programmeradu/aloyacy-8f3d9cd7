@@ -2,6 +2,7 @@
 // Kept tiny on purpose: NetworkFirst for HTML so new deploys reach users.
 
 const CACHE = "aloya-v1";
+const SCHEDULE_CACHE = "aloya-schedule-v1"; // preserved across SW updates
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -11,16 +12,41 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       const names = await caches.keys();
-      await Promise.all(names.filter((n) => n !== CACHE).map((n) => caches.delete(n)));
+      await Promise.all(
+        names
+          .filter((n) => n !== CACHE && n !== SCHEDULE_CACHE)
+          .map((n) => caches.delete(n)),
+      );
       await self.clients.claim();
     })(),
   );
 });
 
-// Network-first for navigations. Never serve a stale HTML shell.
+// Cache-first for offline schedule shards. The downloader pre-populates the
+// cache; this listener serves cached responses immediately and falls back to
+// network if missing.
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
+  const url = new URL(req.url);
+
+  if (url.origin === self.location.origin && url.pathname.startsWith("/data/schedule/")) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(SCHEDULE_CACHE);
+        const cached = await cache.match(req);
+        if (cached) return cached;
+        try {
+          const fresh = await fetch(req);
+          return fresh;
+        } catch {
+          return new Response("Offline", { status: 503 });
+        }
+      })(),
+    );
+    return;
+  }
+
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
