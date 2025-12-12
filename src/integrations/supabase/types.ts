@@ -92,6 +92,57 @@ export type Database = {
         }
         Relationships: []
       }
+      commute_patterns: {
+        Row: {
+          count: number
+          dow_mask: number
+          from_h3: string
+          from_label: string | null
+          from_lat: number | null
+          from_lng: number | null
+          id: number
+          last_seen: string
+          time_bucket: number
+          to_h3: string
+          to_label: string | null
+          to_lat: number | null
+          to_lng: number | null
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          dow_mask?: number
+          from_h3: string
+          from_label?: string | null
+          from_lat?: number | null
+          from_lng?: number | null
+          id?: number
+          last_seen?: string
+          time_bucket: number
+          to_h3: string
+          to_label?: string | null
+          to_lat?: number | null
+          to_lng?: number | null
+          user_id: string
+        }
+        Update: {
+          count?: number
+          dow_mask?: number
+          from_h3?: string
+          from_label?: string | null
+          from_lat?: number | null
+          from_lng?: number | null
+          id?: number
+          last_seen?: string
+          time_bucket?: number
+          to_h3?: string
+          to_label?: string | null
+          to_lat?: number | null
+          to_lng?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       delay_stats: {
         Row: {
           day_of_week: number
@@ -120,6 +171,39 @@ export type Database = {
           route_id?: string
           sample_count?: number
           stddev_delay_sec?: number
+          stop_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dwell_observations: {
+        Row: {
+          day_of_week: number
+          hour_of_day: number
+          id: number
+          mean_dwell_sec: number
+          route_id: string
+          sample_count: number
+          stop_id: string
+          updated_at: string
+        }
+        Insert: {
+          day_of_week: number
+          hour_of_day: number
+          id?: number
+          mean_dwell_sec?: number
+          route_id: string
+          sample_count?: number
+          stop_id: string
+          updated_at?: string
+        }
+        Update: {
+          day_of_week?: number
+          hour_of_day?: number
+          id?: number
+          mean_dwell_sec?: number
+          route_id?: string
+          sample_count?: number
           stop_id?: string
           updated_at?: string
         }
@@ -380,6 +464,36 @@ export type Database = {
         }
         Relationships: []
       }
+      route_load_estimates: {
+        Row: {
+          id: number
+          load_index: number
+          rider_count: number
+          route_id: string
+          trip_id: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          id?: number
+          load_index?: number
+          rider_count?: number
+          route_id: string
+          trip_id: string
+          updated_at?: string
+          window_start: string
+        }
+        Update: {
+          id?: number
+          load_index?: number
+          rider_count?: number
+          route_id?: string
+          trip_id?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       rt_snapshots: {
         Row: {
           captured_at: string
@@ -407,6 +521,48 @@ export type Database = {
           route_id?: string
           stop_id?: string
           trip_id?: string
+        }
+        Relationships: []
+      }
+      scheduled_departures: {
+        Row: {
+          arrive_by_unix: number
+          created_at: string
+          id: string
+          last_check_at: string | null
+          notified_at: string | null
+          plan_json: Json
+          push_subscription_id: string | null
+          remind_at_unix: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arrive_by_unix: number
+          created_at?: string
+          id?: string
+          last_check_at?: string | null
+          notified_at?: string | null
+          plan_json: Json
+          push_subscription_id?: string | null
+          remind_at_unix: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arrive_by_unix?: number
+          created_at?: string
+          id?: string
+          last_check_at?: string | null
+          notified_at?: string | null
+          plan_json?: Json
+          push_subscription_id?: string | null
+          remind_at_unix?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -444,6 +600,42 @@ export type Database = {
           route_id?: string
           sample_count?: number
           stddev_runtime_sec?: number
+          to_stop_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      segment_speeds: {
+        Row: {
+          day_of_week: number
+          from_stop_id: string
+          hour_of_day: number
+          id: number
+          mean_mps: number
+          route_id: string
+          sample_count: number
+          to_stop_id: string
+          updated_at: string
+        }
+        Insert: {
+          day_of_week: number
+          from_stop_id: string
+          hour_of_day: number
+          id?: number
+          mean_mps?: number
+          route_id: string
+          sample_count?: number
+          to_stop_id: string
+          updated_at?: string
+        }
+        Update: {
+          day_of_week?: number
+          from_stop_id?: string
+          hour_of_day?: number
+          id?: number
+          mean_mps?: number
+          route_id?: string
+          sample_count?: number
           to_stop_id?: string
           updated_at?: string
         }
