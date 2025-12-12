@@ -11,6 +11,8 @@ import {
 } from "@/lib/trip-store";
 import coast from "@/assets/coast-hero.jpg";
 import { NotificationsCard } from "@/components/NotificationsCard";
+import { ProGate } from "@/components/ProGate";
+import { useProPaywall } from "@/lib/useProPaywall";
 
 export const Route = createFileRoute("/saved")({
   head: () => ({
@@ -27,18 +29,21 @@ const TONE_CYCLE: SavedPlace["tone"][] = ["aegean", "ochre", "olive"];
 function Saved() {
   const saved = useSavedPlaces();
   const recents = useRecents();
+  const { isPro, requirePro, paywall } = useProPaywall();
 
   function pinRecent(r: { id: string; name: string; lat: number; lng: number }, label: string) {
-    const tone = TONE_CYCLE[saved.length % 3];
-    upsertSavedPlace({
-      id: r.id,
-      label,
-      name: r.name,
-      lat: r.lat,
-      lng: r.lng,
-      tone,
-      pinned: true,
-      createdAt: Date.now(),
+    requirePro(() => {
+      const tone = TONE_CYCLE[saved.length % 3];
+      upsertSavedPlace({
+        id: r.id,
+        label,
+        name: r.name,
+        lat: r.lat,
+        lng: r.lng,
+        tone,
+        pinned: true,
+        createdAt: Date.now(),
+      });
     });
   }
 
@@ -149,8 +154,15 @@ function Saved() {
       </section>
 
       <section className="mt-8 px-6 pb-12 animate-rise" style={{ animationDelay: "260ms" }}>
-        <NotificationsCard />
+        {isPro ? (
+          <NotificationsCard />
+        ) : (
+          <ProGate feature="Quiet alerts for boarding, stops, and delays">
+            <NotificationsCard />
+          </ProGate>
+        )}
       </section>
+      {paywall}
     </AppShell>
   );
 }
