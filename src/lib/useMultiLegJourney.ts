@@ -18,7 +18,8 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useRealtime } from "./useRealtime";
-import { useGeoWatch, type LiveFix } from "./useGeoWatch";
+import type { LiveFix } from "./useGeoWatch";
+import { useFusedFix } from "./useFusedFix";
 import { distanceM } from "./geo";
 import { useDriveEta } from "./useDriveEta";
 import {
@@ -30,6 +31,7 @@ import type { Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
 import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
 import { useRiderFixReporter } from "./useRiderFixReporter";
+import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
 
 export type MultiLegPhase =
   | "idle"
