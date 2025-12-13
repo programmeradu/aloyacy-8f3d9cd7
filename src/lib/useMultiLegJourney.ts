@@ -107,7 +107,18 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   const legState = active?.legState ?? null;
   const started = !!active?.live?.startedAt;
 
-  const { fix } = useGeoWatch(started);
+  const { fix: fusedFix } = useFusedFix({ enabled: started });
+  const fix: LiveFix | null = useMemo(() => {
+    if (!fusedFix) return null;
+    return {
+      lat: fusedFix.lat,
+      lng: fusedFix.lng,
+      accuracyM: fusedFix.uncertaintyM,
+      speedMps: fusedFix.speedMps,
+      headingDeg: fusedFix.bearingDeg,
+      timestamp: fusedFix.timestamp,
+    };
+  }, [fusedFix]);
   const { data: rt, isStale: feedStale } = useRealtime();
 
   // Compute on-board + current ride / alight target outside the main memo
