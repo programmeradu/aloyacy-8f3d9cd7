@@ -7,6 +7,7 @@ import { Logo } from "@/components/Logo";
 import { WeatherStamp } from "@/components/WeatherStamp";
 import { MapPreview } from "@/components/MapPreview";
 import { StopCard, type Stop } from "@/components/StopCard";
+import { NLPlannerCard } from "@/components/NLPlannerCard";
 import { RouteChip } from "@/components/RouteChip";
 import {
   IconSearch,
