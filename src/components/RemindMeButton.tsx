@@ -61,7 +61,7 @@ export function RemindMeButton({
                   kind: "ride",
                   routeId: r.routeId,
                   routeShort: r.routeShort,
-                  durationSec: r.durationSec,
+                  durationSec: Math.max(0, r.alight.arrivalUnix - r.board.departureUnix),
                 };
               }
               if (l.kind === "walk") {
