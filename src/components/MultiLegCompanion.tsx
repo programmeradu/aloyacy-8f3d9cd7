@@ -176,6 +176,48 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
         )}
 
+      {/* Wrong-stop adaptive hint while walking to board */}
+      {live.active && live.rerouteHint?.kind === "switch-boarding" && (
+        <section className="px-6 mt-3 animate-rise">
+          <div className="rounded-[22px] bg-aegean-soft/50 ring-1 ring-aegean/30 px-4 py-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
+              Boarding adjusted
+            </p>
+            <p className="mt-1 text-[13px] text-ink">
+              You're closer to {live.rerouteHint.newStopName}. Same bus stops here — board from this stop instead.
+            </p>
+          </div>
+        </section>
+      )}
+      {live.active && live.rerouteHint?.kind === "offer-replan" && (
+        <section className="px-6 mt-3 animate-rise">
+          <div className="rounded-[22px] bg-ochre-soft/60 ring-1 ring-ochre/30 px-4 py-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+              Different stop
+            </p>
+            <p className="mt-1 text-[13px] text-ink">
+              {live.rerouteHint.reason}
+            </p>
+            <button
+              onClick={() => setEarlyAlightOpen(true)}
+              className="mt-2 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-[12px] text-limestone"
+            >
+              Re-plan from here
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Crowd / comfort prediction during ride or wait */}
+      {live.active &&
+        (live.phase === "riding" || live.phase === "alight-soon" || live.phase === "waiting-to-board") &&
+        live.currentRideLeg && (
+          <CrowdHint
+            routeId={live.currentRideLeg.routeId}
+            tripId={live.currentRideLeg.tripId}
+          />
+        )}
+
       {/* Live map with current (+ next) vehicle */}
       <section className="mt-5 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MapPreview
