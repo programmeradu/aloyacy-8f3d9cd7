@@ -20,6 +20,7 @@ import { getTripSuggestions, type TripSuggestion } from "@/lib/suggestions.funct
 import { getDeviceId } from "@/lib/pwa";
 import planHero from "@/assets/plan-hero.jpg";
 import { ProGate } from "@/components/ProGate";
+import { RemindMeButton } from "@/components/RemindMeButton";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
