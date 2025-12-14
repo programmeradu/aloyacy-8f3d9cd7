@@ -8,6 +8,7 @@ import { WeatherStamp } from "@/components/WeatherStamp";
 import { MapPreview } from "@/components/MapPreview";
 import { StopCard, type Stop } from "@/components/StopCard";
 import { NLPlannerCard } from "@/components/NLPlannerCard";
+import { CommuteSuggestionCard } from "@/components/CommuteSuggestionCard";
 import { RouteChip } from "@/components/RouteChip";
 import {
   IconSearch,
@@ -328,6 +329,14 @@ function Explore() {
       >
         <NLPlannerCard />
       </section>
+
+      <section
+        className="mt-5 px-6 animate-rise"
+        style={{ animationDelay: "310ms" }}
+      >
+        <CommuteSuggestionCard />
+      </section>
+
 
       <section
         className="mt-8 px-6 animate-rise"
