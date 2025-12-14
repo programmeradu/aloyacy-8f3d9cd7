@@ -601,12 +601,21 @@ function ItineraryRow({
   }
 
   return (
-    <ItineraryCard
-      itinerary={itinerary}
-      highlight={highlight}
-      onStart={start}
-      startLabel="Start this trip"
-    />
+    <div className="flex flex-col gap-2">
+      <ItineraryCard
+        itinerary={itinerary}
+        highlight={highlight}
+        onStart={start}
+        startLabel="Start this trip"
+      />
+      <div className="px-1">
+        <RemindMeButton
+          itinerary={itinerary}
+          origin={origin}
+          destination={destination}
+        />
+      </div>
+    </div>
   );
 }
 
