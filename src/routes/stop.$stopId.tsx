@@ -219,3 +219,17 @@ function confidenceAccent(eta: SmartEta): string {
   if (eta.confidence === "predicted") return "text-ochre";
   return "text-ink-soft";
 }
+
+/** Only show the v2 band when it materially differs from the headline minute. */
+function bandIsInformative(v2: SmartEtaV2, headlineMin: number): boolean {
+  if (!v2.band.includes("–")) return false;
+  // Hide trivial 1-minute spreads (e.g. "7–8 min") next to "8".
+  const m = v2.band.match(/^(\d+)–(\d+)/);
+  if (!m) return true;
+  const lo = Number(m[1]);
+  const hi = Number(m[2]);
+  if (hi - lo <= 1) return false;
+  // Hide when both edges round to the headline (visual noise).
+  if (Math.abs(lo - headlineMin) <= 1 && Math.abs(hi - headlineMin) <= 1) return false;
+  return true;
+}
