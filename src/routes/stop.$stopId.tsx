@@ -194,6 +194,11 @@ function StopDetail() {
                     >
                       {d.eta.confidence}
                     </p>
+                    {d.etaV2 && bandIsInformative(d.etaV2, d.eta.etaMin) && (
+                      <p className="mt-1 font-mono text-[9.5px] tracking-[0.04em] text-ink-soft/80">
+                        {d.etaV2.band}
+                      </p>
+                    )}
                   </div>
                   <span className="ml-1 flex size-7 shrink-0 items-center justify-center rounded-full bg-limestone-soft text-ink-soft transition-colors group-hover:bg-aegean-deep group-hover:text-white">
                     <IconArrowUpRight className="size-3.5" />
