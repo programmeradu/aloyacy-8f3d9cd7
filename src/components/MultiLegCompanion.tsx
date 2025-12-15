@@ -52,6 +52,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const live = useMultiLegJourney(active);
   const tripId = active.option.id;
   const [earlyAlightOpen, setEarlyAlightOpen] = useState(false);
+  const disruption = useDisruptionWatch(active, live);
 
   // Force a fresh realtime fetch when rider returns to the tab after >30s away.
   const invalidateRt = useInvalidateRealtime();
