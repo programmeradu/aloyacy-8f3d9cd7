@@ -22,7 +22,7 @@ const LogSchema = z.object({
   to: PointSchema,
   plannedLegs: z.array(z.unknown()).max(20),
   actualLegs: z.array(z.unknown()).max(20).optional(),
-  kind: z.enum(["skipped-transfer", "early-alight", "manual-arrived"]),
+  kind: z.string().min(1).max(64),
 });
 
 export const logTripOverride = createServerFn({ method: "POST" })
