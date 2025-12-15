@@ -6,7 +6,9 @@ import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconArrowUpRight } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
+import { useEtaStats } from "@/lib/useEtaStats";
 import { smartEtaForStop, type SmartEta } from "@/lib/eta";
+import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getStop, getRoute, routeTone } from "@/lib/gtfs";
 
 export const Route = createFileRoute("/stop/$stopId")({
@@ -24,6 +26,17 @@ function StopDetail() {
   const stop = getStop(stopId);
   const { data: rt, isLoading } = useRealtime();
   const { data: learnedByStop } = useLearnedStatsBulk([stopId]);
+
+  // Route IDs serving this stop right now — fed to ETA v2 stats fetcher.
+  const routeIdsHere = useMemo(() => {
+    if (!rt) return [] as string[];
+    const set = new Set<string>();
+    for (const a of rt.arrivals) {
+      if (a.stopId === stopId) set.add(a.routeId);
+    }
+    return Array.from(set);
+  }, [rt, stopId]);
+  const etaStats = useEtaStats(routeIdsHere);
 
   const departures = useMemo(() => {
     if (!rt) return [];
@@ -45,11 +58,23 @@ function StopDetail() {
           agency: stop?.agency,
           learnedByRoute,
         });
-        return { ...a, eta };
+        const etaV2 = smartEtaV2({
+          stopId,
+          arrivals: rt.arrivals,
+          vehicles: rt.vehicles,
+          nowSec: now,
+          agency: stop?.agency,
+          segments: etaStats.segments,
+          dwells: etaStats.dwells,
+        });
+        return { ...a, eta, etaV2 };
       })
-      .filter((d): d is typeof d & { eta: SmartEta } => d.eta != null && d.eta.etaMin <= 180)
+      .filter(
+        (d): d is typeof d & { eta: SmartEta } =>
+          d.eta != null && d.eta.etaMin <= 180,
+      )
       .slice(0, 8);
-  }, [rt, stopId, learnedByStop, stop?.agency]);
+  }, [rt, stopId, learnedByStop, stop?.agency, etaStats]);
 
 
   const center = stop ? { lat: stop.lat, lng: stop.lng } : undefined;
@@ -169,6 +194,11 @@ function StopDetail() {
                     >
                       {d.eta.confidence}
                     </p>
+                    {d.etaV2 && bandIsInformative(d.etaV2, d.eta.etaMin) && (
+                      <p className="mt-1 font-mono text-[9.5px] tracking-[0.04em] text-ink-soft/80">
+                        {d.etaV2.band}
+                      </p>
+                    )}
                   </div>
                   <span className="ml-1 flex size-7 shrink-0 items-center justify-center rounded-full bg-limestone-soft text-ink-soft transition-colors group-hover:bg-aegean-deep group-hover:text-white">
                     <IconArrowUpRight className="size-3.5" />
@@ -188,4 +218,18 @@ function confidenceAccent(eta: SmartEta): string {
   if (eta.confidence === "live") return "text-aegean-deep";
   if (eta.confidence === "predicted") return "text-ochre";
   return "text-ink-soft";
+}
+
+/** Only show the v2 band when it materially differs from the headline minute. */
+function bandIsInformative(v2: SmartEtaV2, headlineMin: number): boolean {
+  if (!v2.band.includes("–")) return false;
+  // Hide trivial 1-minute spreads (e.g. "7–8 min") next to "8".
+  const m = v2.band.match(/^(\d+)–(\d+)/);
+  if (!m) return true;
+  const lo = Number(m[1]);
+  const hi = Number(m[2]);
+  if (hi - lo <= 1) return false;
+  // Hide when both edges round to the headline (visual noise).
+  if (Math.abs(lo - headlineMin) <= 1 && Math.abs(hi - headlineMin) <= 1) return false;
+  return true;
 }
