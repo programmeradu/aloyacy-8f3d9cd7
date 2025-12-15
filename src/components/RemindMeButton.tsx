@@ -93,6 +93,11 @@ export function RemindMeButton({
             ? "Saving…"
             : "Remind me to leave"}
       </button>
+      {state === "saved" && (
+        <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">
+          We'll re-check weather &amp; traffic and ping you a little earlier if needed.
+        </p>
+      )}
       {err && (
         <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ochre">
           {err}
