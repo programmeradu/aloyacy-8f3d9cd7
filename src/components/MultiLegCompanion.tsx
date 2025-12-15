@@ -28,6 +28,8 @@ import { WalkGuidance } from "@/components/WalkGuidance";
 import { ShortcutPrompt } from "@/components/ShortcutPrompt";
 import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
 import { CrowdHint } from "@/components/CrowdHint";
+import { DisruptionBanner } from "@/components/DisruptionBanner";
+import { useDisruptionWatch } from "@/lib/useDisruptionWatch";
 import { useShortcutDetector } from "@/lib/useShortcutDetector";
 import { useTrainingSignals } from "@/lib/useTrainingSignals";
 import { distanceM } from "@/lib/geo";
