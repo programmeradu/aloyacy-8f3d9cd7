@@ -182,7 +182,10 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         )}
 
       {/* Proactive disruption assistant */}
-      <DisruptionBanner signal={disruption} />
+      <DisruptionBanner
+        signal={disruption}
+        onReplan={live.fix ? () => setLiveReplanOpen(true) : undefined}
+      />
 
 
 
