@@ -1,10 +1,13 @@
 // Inline HUD card surfacing crowd / comfort prediction for the
 // active ride. Polls /api route every 90 s; renders nothing when
-// we have no data for this route. Editorial tone, no emojis.
+// we have no data for this route. On intercity rides we additionally
+// fold in current weather at the alight stop so the rider gets one
+// consolidated comfort line ("Busy — and rain at arrival.").
 
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getRouteLoad, type CrowdLevel } from "@/lib/crowd.functions";
+import { getCurrentWeather, type CurrentWeather } from "@/lib/weather.functions";
 
 const COPY: Record<CrowdLevel, { tag: string; line: string; tone: string }> = {
   quiet: {
@@ -29,34 +32,80 @@ const COPY: Record<CrowdLevel, { tag: string; line: string; tone: string }> = {
   },
 };
 
+function weatherClause(w: CurrentWeather | null | undefined): string | null {
+  if (!w) return null;
+  if (w.iconKey === "storm") return "Storms at arrival — bring cover.";
+  if (w.iconKey === "rain") return "Rain at arrival — bring cover.";
+  if (w.iconKey === "wind") return "Windy at arrival.";
+  if (w.tempC >= 33) return `Hot at arrival (${w.tempC}°).`;
+  if (w.tempC <= 8) return `Cold at arrival (${w.tempC}°).`;
+  return null;
+}
+
 export function CrowdHint({
   routeId,
   tripId,
+  weatherAt,
 }: {
   routeId: string;
   tripId?: string;
+  /** When provided, fetch current weather here and fold into the comfort line. */
+  weatherAt?: { lat: number; lng: number } | null;
 }) {
   const fetchLoad = useServerFn(getRouteLoad);
+  const fetchWeather = useServerFn(getCurrentWeather);
+
   const { data } = useQuery({
     queryKey: ["crowd", routeId, tripId ?? ""],
     queryFn: () => fetchLoad({ data: { routeId, tripId } }),
     staleTime: 90_000,
     refetchInterval: 90_000,
   });
-  if (!data?.level) return null;
-  const c = COPY[data.level];
+
+  const { data: weather } = useQuery({
+    queryKey: ["crowd-weather", weatherAt?.lat.toFixed(2), weatherAt?.lng.toFixed(2)],
+    enabled: !!weatherAt,
+    queryFn: () =>
+      weatherAt
+        ? fetchWeather({ data: { lat: weatherAt.lat, lng: weatherAt.lng } })
+        : Promise.resolve(null),
+    staleTime: 10 * 60_000,
+  });
+
+  const wClause = weatherClause(weather ?? null);
+  if (!data?.level && !wClause) return null;
+
+  // Crowd-only render path (no useful weather signal).
+  if (!data?.level && wClause) {
+    return (
+      <section className="px-6 mt-3 animate-rise">
+        <div className="rounded-[22px] ring-1 bg-aegean-soft/40 ring-aegean/25 px-4 py-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
+            Comfort
+          </p>
+          <p className="mt-1 text-[13px] text-ink">{wClause}</p>
+        </div>
+      </section>
+    );
+  }
+
+  const c = COPY[data!.level!];
+  const toneBg = c.tone.replace(/text-\S+/, "");
+  const toneText = c.tone.match(/text-\S+/)?.[0] ?? "text-ink";
+
   return (
     <section className="px-6 mt-3 animate-rise">
-      <div
-        className={`rounded-[22px] ring-1 px-4 py-3 ${c.tone.replace(/text-\S+/, "")}`}
-      >
-        <p className={`font-mono text-[10px] uppercase tracking-[0.22em] ${c.tone.match(/text-\S+/)?.[0] ?? "text-ink"}`}>
+      <div className={`rounded-[22px] ring-1 px-4 py-3 ${toneBg}`}>
+        <p className={`font-mono text-[10px] uppercase tracking-[0.22em] ${toneText}`}>
           {c.tag}
         </p>
-        <p className="mt-1 text-[13px] text-ink">{c.line}</p>
-        {data.sample > 1 && (
+        <p className="mt-1 text-[13px] text-ink">
+          {c.line}
+          {wClause && <span className="text-ink-soft"> {wClause}</span>}
+        </p>
+        {data!.sample > 1 && (
           <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            From {data.sample} recent riders
+            From {data!.sample} recent riders
           </p>
         )}
       </div>
