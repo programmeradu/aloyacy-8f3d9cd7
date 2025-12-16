@@ -9,6 +9,8 @@ import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "@/components/AuthSheet";
 import { scheduleDeparture } from "@/lib/scheduled-departures.functions";
 import { IconClock } from "@/components/Icons";
+import { useProPaywall } from "@/lib/useProPaywall";
+
 
 export function RemindMeButton({
   itinerary,
@@ -21,6 +23,7 @@ export function RemindMeButton({
 }) {
   const { user } = useAuth();
   const schedule = useServerFn(scheduleDeparture);
+  const { isPro, requirePro, paywall } = useProPaywall();
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [authOpen, setAuthOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -34,11 +37,7 @@ export function RemindMeButton({
   // Remind 5 min before the rider should actually leave
   const remindAtUnix = itinerary.departureUnix - walkSec - 5 * 60;
 
-  async function onClick() {
-    if (!user) {
-      setAuthOpen(true);
-      return;
-    }
+  async function doSchedule() {
     setState("saving");
     setErr(null);
     try {
