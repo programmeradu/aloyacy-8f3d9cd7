@@ -8,6 +8,7 @@ import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconClock, IconPin } from "@/components/Icons";
 import { StreetViewSheet } from "@/components/StreetViewSheet";
 import { TurnStep } from "@/components/WalkGuidance";
+import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
 import { useRealtime } from "@/lib/useRealtime";
 import { useActiveTrip, clearActiveTrip, isMultiLeg } from "@/lib/trip-store";
 import { MultiLegCompanion } from "@/components/MultiLegCompanion";
