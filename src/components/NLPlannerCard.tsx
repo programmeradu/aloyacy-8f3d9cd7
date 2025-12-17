@@ -2,10 +2,11 @@
 // Larnaca airport from my place" and we parse it into a structured
 // intent, then hand off to /trips with prefilled fields.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { parseTripIntent, type TripIntent } from "@/lib/ai-planner.functions";
+import { track, trackImpression } from "@/lib/analytics";
 import { IconArrowUpRight, IconSearch } from "@/components/Icons";
 
 const EXAMPLES = [
@@ -22,12 +23,17 @@ export function NLPlannerCard() {
   const [intent, setIntent] = useState<TripIntent | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    trackImpression("ui:nl-planner.impression");
+  }, []);
+
   async function submit(value: string) {
     const t = value.trim();
     if (t.length < 3) return;
     setBusy(true);
     setError(null);
     setIntent(null);
+    track("ai:nl-planner.submit", { length: t.length });
     try {
       const tz = -new Date().getTimezoneOffset();
       const result = await parse({
@@ -38,11 +44,19 @@ export function NLPlannerCard() {
         },
       });
       if (!result || result.confidence < 0.3 || !result.to) {
+        track("ai:nl-planner.parse-failed", { confidence: result?.confidence ?? 0 });
         setError("I couldn't read that as a trip. Try a place name.");
         return;
       }
+      track("ai:nl-planner.parsed", {
+        confidence: result.confidence,
+        hasFrom: !!result.from,
+        hasArriveBy: !!result.arriveByISO,
+        hasLeaveBy: !!result.leaveByISO,
+      });
       setIntent(result);
     } catch {
+      track("ai:nl-planner.error");
       setError("Something went wrong. Try again.");
     } finally {
       setBusy(false);
@@ -51,6 +65,7 @@ export function NLPlannerCard() {
 
   function go() {
     if (!intent?.to) return;
+    track("ui:nl-planner.plan-tap");
     try {
       sessionStorage.setItem("aloya:nl-intent", JSON.stringify(intent));
     } catch {}

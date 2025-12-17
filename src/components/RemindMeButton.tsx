@@ -2,7 +2,7 @@
 // minutes before the rider needs to start walking to make this trip.
 // Shown only when the trip departs at least 20 min from now.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import { useAuth } from "@/lib/useAuth";
@@ -10,6 +10,7 @@ import { AuthSheet } from "@/components/AuthSheet";
 import { scheduleDeparture } from "@/lib/scheduled-departures.functions";
 import { IconClock } from "@/components/Icons";
 import { useProPaywall } from "@/lib/useProPaywall";
+import { track, trackImpression } from "@/lib/analytics";
 
 
 export function RemindMeButton({
@@ -29,6 +30,11 @@ export function RemindMeButton({
   const [err, setErr] = useState<string | null>(null);
 
   const departIn = Math.round((itinerary.departureUnix - Date.now() / 1000) / 60);
+  useEffect(() => {
+    if (departIn >= 20) {
+      trackImpression("ui:remind-me.impression", { isPro, departIn });
+    }
+  }, [departIn, isPro]);
   if (departIn < 20) return null;
 
   // How long the rider needs before bus departure (first walk leg + 3 min buffer)
@@ -72,13 +78,16 @@ export function RemindMeButton({
         },
       });
       setState("saved");
+      track("ui:remind-me.saved", { departIn });
     } catch (e) {
+      track("ui:remind-me.error");
       setErr(e instanceof Error ? e.message : "Could not schedule reminder");
       setState("error");
     }
   }
 
   function handleClick() {
+    track("ui:remind-me.tap", { isPro, departIn });
     if (!user) {
       setAuthOpen(true);
       return;

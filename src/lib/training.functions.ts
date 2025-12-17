@@ -7,7 +7,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const Kind = z.enum([
+const KnownKind = z.enum([
   "walk-complete",
   "transfer-made",
   "transfer-missed",
@@ -16,6 +16,15 @@ const Kind = z.enum([
   "boarding-prompt-shown",
   "boarding-prompt-confirmed",
   "missed-bus-false-positive",
+]);
+
+// Accept either a known training-pipeline kind, or any `ui:*` / `ai:*`
+// telemetry event from rider-facing surfaces. Keeps the schema strict for
+// the learner while letting the UI track tap/impression events without
+// schema churn.
+const Kind = z.union([
+  KnownKind,
+  z.string().regex(/^(ui|ai):[a-z0-9-]+(\.[a-z0-9-]+)*$/).max(64),
 ]);
 
 const Schema = z.object({
