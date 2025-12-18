@@ -140,6 +140,8 @@ export function useJourney(opts: {
       missedSuggested: false,
       vehicleLost: false,
       feedStale,
+      vehicleNotTracked: false,
+      rerouteHint: null,
     };
 
 
