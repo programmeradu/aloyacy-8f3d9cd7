@@ -394,6 +394,42 @@ function SingleLegCompanion({
 
       </section>
 
+      {/* Honest feed/vehicle/reroute banners */}
+      {live.active && live.feedStale && (
+        <div className="mt-3"><StaleFeedBanner variant="feed-stale" /></div>
+      )}
+      {live.active && !live.feedStale && live.vehicleLost && (
+        <div className="mt-3"><StaleFeedBanner variant="vehicle-lost" /></div>
+      )}
+      {live.active && !live.feedStale && !live.vehicleLost && live.vehicleNotTracked && (
+        <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
+      )}
+      {live.active && live.rerouteHint?.kind === "switch-boarding" && (
+        <section className="px-6 mt-3 animate-rise">
+          <div className="rounded-[22px] bg-aegean-soft/50 ring-1 ring-aegean/30 px-4 py-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
+              Boarding adjusted
+            </p>
+            <p className="mt-1 text-[13px] text-ink">
+              You're closer to {live.rerouteHint.newStopName}. Same bus stops here — board from this stop instead.
+            </p>
+          </div>
+        </section>
+      )}
+      {live.active && live.rerouteHint?.kind === "offer-replan" && (
+        <section className="px-6 mt-3 animate-rise">
+          <div className="rounded-[22px] bg-ochre-soft/60 ring-1 ring-ochre/30 px-4 py-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+              Different stop
+            </p>
+            <p className="mt-1 text-[13px] text-ink">
+              {live.rerouteHint.reason}
+            </p>
+          </div>
+        </section>
+      )}
+
+
       {/* Live HUD: Start button, current walking step, hurry banner,
           on-board prompt, missed-bus rescue, alight & arrived cards. */}
       <div className="mt-6">
