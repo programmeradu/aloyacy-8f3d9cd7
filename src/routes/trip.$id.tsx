@@ -9,6 +9,7 @@ import { IconArrowLeft, IconBus, IconClock, IconPin } from "@/components/Icons";
 import { StreetViewSheet } from "@/components/StreetViewSheet";
 import { TurnStep } from "@/components/WalkGuidance";
 import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
+import { StaleFeedBanner } from "@/components/StaleFeedBanner";
 import { useRealtime } from "@/lib/useRealtime";
 import { useActiveTrip, clearActiveTrip, isMultiLeg } from "@/lib/trip-store";
 import { MultiLegCompanion } from "@/components/MultiLegCompanion";
@@ -259,8 +260,33 @@ function SingleLegCompanion({
   }
 
   if (!view) return null;
-  const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard } = view;
-  let { minToAlight, minToDoor } = view;
+  const { bus, walkIn, walkOut, delaySec, phase: schedulePhase, minToLeave } = view;
+  let { minToAlight, minToDoor, minToBoard } = view;
+
+  // GPS-truth phase overrides the schedule-based one once live tracking is on,
+  // so the hero card stops contradicting the HUD ("AT THE STOP" while the
+  // HUD shouts "HURRY — 4 min on foot").
+  const liveToHero: Record<string, Phase> = {
+    "walking-to-stop": "walking",
+    "hurry-soft": "walking",
+    "hurry-urgent": "walking",
+    "at-stop": "waiting",
+    "boarding": "waiting",
+    "missed-bus": "walking",
+    "on-bus": "on-bus",
+    "alight-soon": "alight-soon",
+    "walking-to-dest": "arrived",
+    "arrived": "arrived",
+  };
+  const phase: Phase =
+    live.active && live.phase !== "idle"
+      ? liveToHero[live.phase] ?? schedulePhase
+      : schedulePhase;
+
+  // Prefer the GPS-driven secsToBoard so the hero countdown matches the HUD.
+  if (live.active && live.secsToBoard > 0 && (phase === "walking" || phase === "waiting")) {
+    minToBoard = Math.max(0, Math.round(live.secsToBoard / 60));
+  }
 
   // Override schedule-based ETAs with GPS-fused estimate once on board.
   if (live.active && live.fusedSecsToAlight > 0 && (phase === "on-bus" || phase === "alight-soon")) {
@@ -367,6 +393,42 @@ function SingleLegCompanion({
         />
 
       </section>
+
+      {/* Honest feed/vehicle/reroute banners */}
+      {live.active && live.feedStale && (
+        <div className="mt-3"><StaleFeedBanner variant="feed-stale" /></div>
+      )}
+      {live.active && !live.feedStale && live.vehicleLost && (
+        <div className="mt-3"><StaleFeedBanner variant="vehicle-lost" /></div>
+      )}
+      {live.active && !live.feedStale && !live.vehicleLost && live.vehicleNotTracked && (
+        <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
+      )}
+      {live.active && live.rerouteHint?.kind === "switch-boarding" && (
+        <section className="px-6 mt-3 animate-rise">
+          <div className="rounded-[22px] bg-aegean-soft/50 ring-1 ring-aegean/30 px-4 py-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
+              Boarding adjusted
+            </p>
+            <p className="mt-1 text-[13px] text-ink">
+              You're closer to {live.rerouteHint.newStopName}. Same bus stops here — board from this stop instead.
+            </p>
+          </div>
+        </section>
+      )}
+      {live.active && live.rerouteHint?.kind === "offer-replan" && (
+        <section className="px-6 mt-3 animate-rise">
+          <div className="rounded-[22px] bg-ochre-soft/60 ring-1 ring-ochre/30 px-4 py-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+              Different stop
+            </p>
+            <p className="mt-1 text-[13px] text-ink">
+              {live.rerouteHint.reason}
+            </p>
+          </div>
+        </section>
+      )}
+
 
       {/* Live HUD: Start button, current walking step, hurry banner,
           on-board prompt, missed-bus rescue, alight & arrived cards. */}
