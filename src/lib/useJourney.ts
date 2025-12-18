@@ -203,7 +203,7 @@ export function useJourney(opts: {
     );
     const boardUnix = liveBoard?.arrivalUnix ?? bus.board.departureUnix;
     const alightUnix = liveAlight?.arrivalUnix ?? bus.alight.arrivalUnix;
-    const secsToBoard = boardUnix - now;
+    let secsToBoard = boardUnix - now;
     const secsToAlight = alightUnix - now;
 
     // Walking projection
@@ -237,6 +237,21 @@ export function useJourney(opts: {
     // Bus position (live)
     const vehicle = rt?.vehicles.find((v) => v.tripId === bus.tripId);
     const distToBus = fix && vehicle ? distanceM(fix, vehicle) : Infinity;
+
+    // Vehicle-position-based ETA floor. The GTFS-RT stop_time_update for the
+    // board stop is often wildly optimistic when delay propagation hasn't
+    // caught up (feed says "2 min" while the bus is still 6 stops upstream).
+    // Cross-check with the actual vehicle position on the route sequence.
+    if (vehicle && !live?.onBoardConfirmedAt && !live?.alightedAt) {
+      const vehEta = vehicleBasedSecsToBoard(
+        { lat: vehicle.lat, lng: vehicle.lng },
+        bus.routeId,
+        bus.board.stopId,
+      );
+      if (vehEta != null && vehEta > secsToBoard + 60) {
+        secsToBoard = vehEta;
+      }
+    }
 
     // ---- Phase resolution ---------------------------------------------------
     let phase: LivePhase = "walking-to-stop";
