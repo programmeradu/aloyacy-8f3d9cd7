@@ -12,6 +12,50 @@ import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
 import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
 import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
+import { getStop } from "./gtfs";
+import ROUTE_SEQUENCES from "@/data/route_sequences.json";
+
+const SEQUENCES = ROUTE_SEQUENCES as Record<string, string[]>;
+
+// Rough urban-bus heuristics for the vehicle-position-based ETA floor.
+// Used only when the GTFS-RT feed's stop_time_update for the board stop
+// disagrees with the bus's actual location (very common at night and when
+// delay propagation hasn't caught up).
+const AVG_INTER_STOP_S = 75;
+const AVG_BUS_MPS = 7; // ~25 km/h average urban with stops
+
+function vehicleBasedSecsToBoard(
+  vehicle: { lat: number; lng: number },
+  routeId: string,
+  boardStopId: string,
+): number | null {
+  // Find every directional sequence for this route that contains the board.
+  let best: { stopsLeft: number; metersToNearest: number } | null = null;
+  for (const key of Object.keys(SEQUENCES)) {
+    if (!key.startsWith(routeId + "|")) continue;
+    const seq = SEQUENCES[key];
+    const boardIdx = seq.indexOf(boardStopId);
+    if (boardIdx <= 0) continue;
+    let nearestIdx = -1;
+    let nearestD = Infinity;
+    for (let i = 0; i <= boardIdx; i++) {
+      const s = getStop(seq[i]);
+      if (!s) continue;
+      const d = distanceM(vehicle, { lat: s.lat, lng: s.lng });
+      if (d < nearestD) {
+        nearestD = d;
+        nearestIdx = i;
+      }
+    }
+    if (nearestIdx < 0 || nearestIdx > boardIdx) continue;
+    const stopsLeft = boardIdx - nearestIdx;
+    if (!best || stopsLeft < best.stopsLeft) {
+      best = { stopsLeft, metersToNearest: nearestD };
+    }
+  }
+  if (!best) return null;
+  return Math.round(best.metersToNearest / AVG_BUS_MPS + best.stopsLeft * AVG_INTER_STOP_S);
+}
 
 // How long the rider's GPS must show sustained bus-speed motion before we
 // auto-confirm boarding without an explicit tap. Guards against a single
