@@ -5,7 +5,8 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useRealtime } from "./useRealtime";
-import { useGeoWatch, type LiveFix } from "./useGeoWatch";
+import { useFusedFix } from "./useFusedFix";
+import type { LiveFix } from "./useGeoWatch";
 import { useDriveEta } from "./useDriveEta";
 import { distanceM, projectOnSteps, WALK_M_PER_S, type WalkStep } from "./geo";
 import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
@@ -13,8 +14,10 @@ import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
 import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
 import { getStop } from "./gtfs";
+import { getShapeForTripSync, prefetchShapes, type LatLng } from "./shapes";
 import ROUTE_SEQUENCES from "@/data/route_sequences.json";
 import { useTick } from "@/hooks/use-tick";
+
 
 const SEQUENCES = ROUTE_SEQUENCES as Record<string, string[]>;
 
