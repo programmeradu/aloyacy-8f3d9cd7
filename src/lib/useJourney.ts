@@ -481,7 +481,7 @@ export function useJourney(opts: {
       vehicleNotTracked,
       rerouteHint,
     };
-  }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps, feedStale, drive.etaSec, onBoard]);
+  }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps, feedStale, drive.etaSec, onBoard, tick]);
 
 
   // ---- GPS-based auto-confirm boarding -------------------------------------
