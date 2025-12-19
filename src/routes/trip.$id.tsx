@@ -301,7 +301,7 @@ function SingleLegCompanion({
           ...live.fusedVehicle,
           routeId: bus.routeId,
           label: `Bus ${bus.routeShort}`,
-          source: live.vehicleLost ? "synthetic" : "feed+rider",
+          source: (live.vehicleLost ? "synthetic" : "feed+rider") as "synthetic" | "feed+rider",
         },
       }
     : undefined;
