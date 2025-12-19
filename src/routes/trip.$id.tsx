@@ -149,12 +149,15 @@ function SingleLegCompanion({
 
   // Compute walking phase/leg defensively so hook order stays stable when
   // the active trip is cleared (e.g. user taps "End").
+  const alightedAt = active?.live?.alightedAt ?? null;
   const walkingPhase: "to-stop" | "to-dest" | null = view
-    ? view.phase === "leave-soon" || view.phase === "walking" || view.phase === "waiting"
-      ? "to-stop"
-      : view.phase === "arrived"
-        ? "to-dest"
-        : null
+    ? alightedAt
+      ? "to-dest"
+      : view.phase === "leave-soon" || view.phase === "walking" || view.phase === "waiting"
+        ? "to-stop"
+        : view.phase === "arrived" || view.phase === "alight-soon"
+          ? "to-dest"
+          : null
     : null;
   const walkLeg = view
     ? walkingPhase === "to-stop"
