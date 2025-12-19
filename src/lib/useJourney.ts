@@ -14,6 +14,7 @@ import { sendTripAlert } from "./push.functions";
 import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
 import { getStop } from "./gtfs";
 import ROUTE_SEQUENCES from "@/data/route_sequences.json";
+import { useTick } from "@/hooks/use-tick";
 
 const SEQUENCES = ROUTE_SEQUENCES as Record<string, string[]>;
 
