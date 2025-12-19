@@ -132,6 +132,11 @@ export function useJourney(opts: {
 
   const { fix } = useGeoWatch(started);
   const { data: rt, isStale: feedStale } = useRealtime();
+  // Re-derive ETAs every 5s so countdowns stay fresh even when GPS/feed are
+  // briefly idle. Without this, secsToAlight & secsToBoard freeze between
+  // GPS fixes, causing the trip hero (which ticks on its own 5s clock) and
+  // RidingCard (which uses live.fusedSecsToAlight) to drift by ~1 minute.
+  const tick = useTick(5_000);
 
 
   const bus = useMemo(() => {
