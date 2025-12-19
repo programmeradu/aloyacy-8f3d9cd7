@@ -357,6 +357,7 @@ function MissedBusCard({ trip }: { trip: ActiveTrip }) {
 function RidingCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
   const bus = trip.option.legs.find((l) => l.kind === "bus");
   if (!bus || bus.kind !== "bus") return null;
+  const eta = live.fusedSecsToAlight > 0 ? live.fusedSecsToAlight : live.secsToAlight;
   return (
     <section className="px-6 animate-rise">
       <div className="rounded-[28px] bg-card ring-1 ring-line p-5">
@@ -364,12 +365,14 @@ function RidingCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
           On board — BUS {bus.routeShort}
         </p>
         <p className="mt-2 font-display text-[26px] leading-tight text-ink">
-          Off in {fmtMinutes(live.secsToAlight)} at {bus.alight.name}.
+          Off in {fmtMinutes(eta)} at {bus.alight.name}.
         </p>
         <p className="mt-2 flex items-start gap-2 text-[13px] text-ink-soft">
           <IconClock className="mt-0.5 size-3.5 shrink-0" />
           <span>
-            Sit back. We'll buzz when it's time to press the stop button.
+            {live.vehicleLost
+              ? "Feed lost the bus, so we're using your phone as the bus and keeping the stop countdown on your movement."
+              : "Sit back. We'll buzz when it's time to press the stop button."}
           </span>
         </p>
         {live.phase === "alight-soon" && (
