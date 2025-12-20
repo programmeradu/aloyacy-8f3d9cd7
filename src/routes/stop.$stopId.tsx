@@ -52,15 +52,7 @@ function StopDetail() {
       .filter((a) => (seen.has(a.tripId) ? false : (seen.add(a.tripId), true)));
     return here
       .map((a) => {
-        const eta = smartEtaForStop({
-          stopId,
-          arrivals: rt.arrivals.filter((x) => x.tripId === a.tripId || x.stopId === stopId),
-          vehicles: rt.vehicles,
-          nowSec: now,
-          agency: stop?.agency,
-          learnedByRoute,
-        });
-        const etaV2 = smartEtaV2({
+        const eta = smartEtaV2({
           stopId,
           arrivals: rt.arrivals,
           vehicles: rt.vehicles,
@@ -69,12 +61,12 @@ function StopDetail() {
           segments: etaStats.segments,
           dwells: etaStats.dwells,
           shape: getShapeForTripSync(a.tripId, a.routeId),
+          learnedByRoute,
         });
-        return { ...a, eta, etaV2 };
+        return { ...a, eta };
       })
-
       .filter(
-        (d): d is typeof d & { eta: SmartEta } =>
+        (d): d is typeof d & { eta: SmartEtaV2 } =>
           d.eta != null && d.eta.etaMin <= 180,
       )
       .slice(0, 8);
