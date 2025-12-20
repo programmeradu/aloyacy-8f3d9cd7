@@ -32,6 +32,77 @@ export function bearingDeg(from: LatLng, to: LatLng): number {
 // Average urban walking pace (m/s). Same constant the planner uses.
 export const WALK_M_PER_S = 1.35;
 
+// ---- snap-to-polyline ------------------------------------------------------
+// Equirectangular projection around the query point — accurate enough for
+// snapping a phone GPS / bus ping to a route shape (sub-metre over a few km).
+
+export type SnapResult = {
+  /** Nearest point on the polyline. */
+  snapped: LatLng;
+  /** Index of the segment (path[i] → path[i+1]) the snap fell on. */
+  segIndex: number;
+  /** 0..1 position along that segment. */
+  tAlong: number;
+  /** Perpendicular distance from `point` to the polyline, in metres. */
+  crossM: number;
+  /** Cumulative distance along the polyline from path[0] to `snapped`, in metres. */
+  alongM: number;
+};
+
+export function snapToPolyline(
+  point: LatLng,
+  path: LatLng[],
+): SnapResult | null {
+  if (path.length < 2) return null;
+  const M_LAT = 110_540;
+  const M_LNG = 111_320 * Math.cos((point.lat * Math.PI) / 180);
+  const toXY = (q: LatLng) => ({
+    x: (q.lng - point.lng) * M_LNG,
+    y: (q.lat - point.lat) * M_LAT,
+  });
+  const xy = path.map(toXY);
+  let best: { segIndex: number; t: number; fx: number; fy: number; d2: number } | null = null;
+  let cum = 0;
+  let cumAtBest = 0;
+  for (let i = 0; i < xy.length - 1; i++) {
+    const a = xy[i];
+    const b = xy[i + 1];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const segLen = Math.hypot(dx, dy);
+    if (segLen === 0) continue;
+    let t = -(a.x * dx + a.y * dy) / (segLen * segLen);
+    t = Math.max(0, Math.min(1, t));
+    const fx = a.x + t * dx;
+    const fy = a.y + t * dy;
+    const d2 = fx * fx + fy * fy;
+    if (!best || d2 < best.d2) {
+      best = { segIndex: i, t, fx, fy, d2 };
+      cumAtBest = cum + t * segLen;
+    }
+    cum += segLen;
+  }
+  if (!best) return null;
+  return {
+    snapped: {
+      lat: point.lat + best.fy / M_LAT,
+      lng: point.lng + best.fx / M_LNG,
+    },
+    segIndex: best.segIndex,
+    tAlong: best.t,
+    crossM: Math.sqrt(best.d2),
+    alongM: cumAtBest,
+  };
+}
+
+/** Cumulative length of a polyline in metres. */
+export function polylineLengthM(path: LatLng[]): number {
+  let sum = 0;
+  for (let i = 0; i < path.length - 1; i++) sum += distanceM(path[i], path[i + 1]);
+  return sum;
+}
+
+
 export type WalkStep = {
   instruction: string;
   distanceMeters: number;
