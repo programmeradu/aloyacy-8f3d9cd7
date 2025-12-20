@@ -133,13 +133,44 @@ export function useJourney(opts: {
   const live = active?.live;
   const started = !!live?.startedAt;
 
-  const { fix } = useGeoWatch(started);
+  // Active polyline for snap-to-route: walking step polyline pre-board,
+  // the GTFS trip shape once riding. Recomputed cheaply per render.
+  useEffect(() => { prefetchShapes(); }, []);
+  const bus0 = active?.option.legs.find((l) => l.kind === "bus");
+  const onBoardEarly = !!live?.onBoardConfirmedAt && !live?.alightedAt;
+  const activePath: LatLng[] | null = useMemo(() => {
+    if (onBoardEarly && bus0 && bus0.kind === "bus") {
+      return getShapeForTripSync(bus0.tripId, bus0.routeId);
+    }
+    if (walkingSteps && walkingSteps.length > 0) {
+      const pts: LatLng[] = walkingSteps.map((s) => s.start);
+      const last = walkingSteps[walkingSteps.length - 1];
+      if (last.end) pts.push(last.end);
+      return pts.length >= 2 ? pts : null;
+    }
+    return null;
+  }, [onBoardEarly, bus0, walkingSteps]);
+
+  const { fix: fused } = useFusedFix({ enabled: started, activePath });
+  // Adapt to the existing LiveFix shape so downstream consumers are unchanged.
+  const fix: LiveFix | null = useMemo(() => {
+    if (!fused) return null;
+    return {
+      lat: fused.lat,
+      lng: fused.lng,
+      accuracyM: fused.uncertaintyM,
+      speedMps: fused.speedMps,
+      headingDeg: fused.bearingDeg,
+      timestamp: fused.timestamp,
+    };
+  }, [fused]);
   const { data: rt, isStale: feedStale } = useRealtime();
   // Re-derive ETAs every 5s so countdowns stay fresh even when GPS/feed are
   // briefly idle. Without this, secsToAlight & secsToBoard freeze between
   // GPS fixes, causing the trip hero (which ticks on its own 5s clock) and
   // RidingCard (which uses live.fusedSecsToAlight) to drift by ~1 minute.
   const tick = useTick(5_000);
+
 
 
   const bus = useMemo(() => {
