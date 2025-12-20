@@ -39,6 +39,7 @@ function StopDetail() {
     return Array.from(set);
   }, [rt, stopId]);
   const etaStats = useEtaStats(routeIdsHere);
+  useEffect(() => { prefetchShapes(); }, []);
 
   const departures = useMemo(() => {
     if (!rt) return [];
@@ -68,9 +69,11 @@ function StopDetail() {
           agency: stop?.agency,
           segments: etaStats.segments,
           dwells: etaStats.dwells,
+          shape: getShapeForTripSync(a.tripId, a.routeId),
         });
         return { ...a, eta, etaV2 };
       })
+
       .filter(
         (d): d is typeof d & { eta: SmartEta } =>
           d.eta != null && d.eta.etaMin <= 180,
