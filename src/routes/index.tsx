@@ -23,7 +23,8 @@ import {
   IconPin,
 } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
-import { smartEtaForStop } from "@/lib/eta";
+import { smartEtaV2 } from "@/lib/eta-v2";
+import { getShapeForTripSync } from "@/lib/shapes";
 import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { useTick } from "@/hooks/use-tick";
