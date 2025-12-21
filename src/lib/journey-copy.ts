@@ -24,11 +24,12 @@ export function fmtBand(lowerMin: number, upperMin: number): string {
   return `${lo}\u2013${hi} min`; // en-dash
 }
 
-/** Format an absolute Unix time (seconds) as local "HH:MM". */
+/** Format an absolute Unix time (seconds) as 24h "HH:MM". */
 export function fmtClock(unixSec: number): string {
   return new Date(unixSec * 1000).toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   });
 }
 
