@@ -69,18 +69,24 @@ const SUSTAINED_RIDING_MS = 12_000;
 // motion as "definitely on a bus, not jogging at the curb".
 const RIDING_DISPLACEMENT_M = 80;
 
-export type LivePhase =
-  | "idle" // start button shown
+import type { JourneyPhase } from "./journey-phase";
+export type { JourneyPhase } from "./journey-phase";
+
+/** @deprecated use JourneyPhase from "@/lib/journey-phase" */
+export type LivePhase = Extract<
+  JourneyPhase,
+  | "idle"
   | "walking-to-stop"
   | "at-stop"
   | "hurry-soft"
   | "hurry-urgent"
-  | "boarding" // bus at stop, on-board prompt visible
+  | "boarding"
   | "missed-bus"
   | "on-bus"
   | "alight-soon"
   | "walking-to-dest"
-  | "arrived";
+  | "arrived"
+>;
 
 export type LiveJourney = {
   active: boolean;
