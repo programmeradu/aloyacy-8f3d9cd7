@@ -18,14 +18,11 @@ import type { ActiveTrip } from "@/lib/trip-store";
 import { setActiveTrip, clearActiveTrip } from "@/lib/trip-store";
 import { planTrip } from "@/lib/journey.functions";
 import type { WalkStep } from "@/lib/geo";
+import { fmtEta as fmtMinutes } from "@/lib/journey-copy";
 
 function fmtMeters(m: number): string {
   if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
   return `${Math.round(m)} m`;
-}
-
-function fmtMinutes(s: number): string {
-  return `${Math.max(0, Math.round(s / 60))} min`;
 }
 
 export function JourneyHUD({
