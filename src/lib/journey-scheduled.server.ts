@@ -13,6 +13,7 @@
 import { loadScheduleForDate, todayLocalDate } from "./schedule-loader.server";
 import { planRaptor, type RaptorDiagnostics } from "./raptor.server";
 import { fetchRealtime } from "./gtfs-rt.server";
+import { refineAllItineraries } from "./walk-refine.server";
 import type { Itinerary, RideLeg } from "./itinerary-types";
 
 export type ScheduledDiagnostics = RaptorDiagnostics & {
@@ -21,6 +22,9 @@ export type ScheduledDiagnostics = RaptorDiagnostics & {
   loadMs: number;
   raptorMs: number;
   overlayMs: number;
+  walkRefineMs: number;
+  walkLegsVerified: number;
+  itinerariesDroppedAfterRefine: number;
 };
 
 export async function planMultiLegScheduled(
@@ -85,8 +89,34 @@ export async function planMultiLegScheduled(
   }
   const overlayMs = Date.now() - tOv0;
 
+  // ---- Walk refinement (Google Routes) ----------------------------------
+  // Replace RAPTOR's haversine × 1.35 walk estimates with real walking
+  // durations. Stop-pair walks hit the cached `walk_links` table; access
+  // and egress walks call Google Routes directly. Itineraries that become
+  // physically infeasible (verified access walk overruns board time) are
+  // dropped here, not surfaced to the rider.
+  const tRef0 = Date.now();
+  const beforeCount = itineraries.length;
+  const refinedItineraries = await refineAllItineraries(itineraries);
+  const walkRefineMs = Date.now() - tRef0;
+  const walkLegsVerified = refinedItineraries.reduce(
+    (acc, it) => acc + it.legs.filter((l) => l.kind === "walk" && l.verified).length,
+    0,
+  );
+  const itinerariesDroppedAfterRefine = beforeCount - refinedItineraries.length;
+
   return {
-    itineraries,
-    diagnostics: { ...diagnostics, liveArrivalCount, legsOverlaid, loadMs, raptorMs, overlayMs },
+    itineraries: refinedItineraries,
+    diagnostics: {
+      ...diagnostics,
+      liveArrivalCount,
+      legsOverlaid,
+      loadMs,
+      raptorMs,
+      overlayMs,
+      walkRefineMs,
+      walkLegsVerified,
+      itinerariesDroppedAfterRefine,
+    },
   };
 }
