@@ -36,17 +36,18 @@ Executed strictly in this order so each step lands on a stable base.
 - Move the segment-projection math from `eta-v2.ts` + `geo-fusion.ts` into `geo.ts` as `snapToPolyline(point, path) → { snapped, segIndex, tAlong, distM }`.
 - Both ETA and fusion import from there.
 
-### 6. Extract `fuseBusPosition()` + merge phase enums
-- New `src/lib/bus-fusion.ts`: takes `{ vehicle, riderFix, onBus, shape }` and returns the single best `{ lat, lng, speedMps, source: "feed"|"rider"|"blend" }` used by both `useJourney` and `useMultiLegJourney`.
-- Unify `LivePhase` and `MultiLegPhase` into one `JourneyPhase` enum in `src/lib/journey-phase.ts`. Both hooks emit the same strings.
+### 6. Extract `fuseBusPosition()` + merge phase enums  ✅ DONE
+- `src/lib/bus-fusion.ts` — pure `fuseBusPosition({ vehicle, riderFix, onBus, shape })` returns `{ lat, lng, bearing, speedMps, source, feedAgeSec }` with feed-vs-rider priority + shape snap.
+- `src/lib/journey-phase.ts` — unified `JourneyPhase` superset. Both hooks re-export it; legacy `LivePhase` / `MultiLegPhase` kept as `Extract<>` aliases for back-compat.
 
 ---
 
 ## 🟡 Polish + best-in-class libraries
 
-### 7. `src/lib/journey-copy.ts` — unified UX strings
-- Export `EtaStatus`, `JourneyPhase` (re-export), `PHASE_COPY[phase]`, `fmtEta(min)`, `fmtBand(lower, upper)`.
-- Replace every ad-hoc `"≈8 min"` / `"8 min"` / `Off in N` string in `JourneyHUD`, `MultiLegCompanion`, `StopCard`, `trip.$id.tsx`, `LiveReplanSheet`, `EarlyAlightSheet`.
+### 7. `src/lib/journey-copy.ts` — unified UX strings  ✅ DONE
+- Exports `fmtEta`, `fmtEtaMin`, `fmtBand`, `fmtClock`, `PHASE_COPY`, `ETA_STATUS_LABEL`, `EtaStatus`.
+- `JourneyHUD` + `MultiLegCompanion` now import `fmtEta` / `fmtClock` instead of local duplicates.
+- Remaining call sites (`StopCard`, `LiveReplanSheet`, `EarlyAlightSheet`) can adopt incrementally — no behavior change required.
 
 ### 8. Replace RAPTOR walk math with Google Routes (walking)
 - `raptor.server.ts` access/egress legs: call Google Routes `computeRoutes` (mode WALK) via the connector gateway, cache per `(stopId|placeId)` pair in `walk_links` table.

@@ -35,18 +35,8 @@ import { useDisruptionWatch } from "@/lib/useDisruptionWatch";
 import { useShortcutDetector } from "@/lib/useShortcutDetector";
 import { useTrainingSignals } from "@/lib/useTrainingSignals";
 import { distanceM } from "@/lib/geo";
+import { fmtEta as fmtMin, fmtClock as fmtTime } from "@/lib/journey-copy";
 import companionHero from "@/assets/companion-hero.jpg";
-
-function fmtMin(s: number) {
-  return `${Math.max(0, Math.round(s / 60))} min`;
-}
-function fmtTime(unix: number) {
-  return new Date(unix * 1000).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
 
 export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const navigate = useNavigate();
