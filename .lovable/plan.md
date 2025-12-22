@@ -55,9 +55,9 @@ Executed strictly in this order so each step lands on a stable base.
 - Heuristic `WALK_M_PER_S` / `WALK_DETOUR` stays in `raptor.server.ts` as the search-time estimate (calling Google for every candidate stop pair would be cost-prohibitive); refinement is where Google becomes the source of truth.
 - Diagnostics now expose `walkRefineMs`, `walkLegsVerified`, `itinerariesDroppedAfterRefine`.
 
-### 9. Replace hand-rolled polyline decode with `@mapbox/polyline`
-- `bun add @mapbox/polyline`.
-- `shapes.ts` `decodePolyline` becomes a one-line wrapper around the lib (preserves the same `LatLng[]` return).
+### 9. Replace hand-rolled polyline decode with `@mapbox/polyline` ✅
+- Installed `@mapbox/polyline` + `@types/mapbox__polyline`.
+- `src/lib/shapes.ts` `decodePolyline` now wraps `polyline.decode` (same `LatLng[]` return, handles empty strings safely).
 
 ### 10. Marker clustering on fleet overview
 - `bun add @googlemaps/markerclusterer`.
