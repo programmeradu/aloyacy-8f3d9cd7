@@ -49,10 +49,11 @@ Executed strictly in this order so each step lands on a stable base.
 - `JourneyHUD` + `MultiLegCompanion` now import `fmtEta` / `fmtClock` instead of local duplicates.
 - Remaining call sites (`StopCard`, `LiveReplanSheet`, `EarlyAlightSheet`) can adopt incrementally — no behavior change required.
 
-### 8. Replace RAPTOR walk math with Google Routes (walking)
-- `raptor.server.ts` access/egress legs: call Google Routes `computeRoutes` (mode WALK) via the connector gateway, cache per `(stopId|placeId)` pair in `walk_links` table.
-- Remove the flat `WALK_M_PER_S` / `WALK_DETOUR` arithmetic; treat Google's duration + distance as truth.
-- Falls back to current haversine×1.35 only on API failure.
+### 8. Replace RAPTOR walk math with Google Routes (walking)  ✅ DONE
+- New `src/lib/walk-refine.server.ts` runs a post-RAPTOR pass over the top-K itineraries: stop↔stop walks resolve via the cached `walk_links` table (`getWalkLink`), arbitrary place↔stop walks call Google Routes directly (`walkingRoute`).
+- Verified durations re-cascade through the leg chain; wait legs collapse/grow to fill new gaps; any itinerary the rider can no longer physically catch is dropped.
+- Heuristic `WALK_M_PER_S` / `WALK_DETOUR` stays in `raptor.server.ts` as the search-time estimate (calling Google for every candidate stop pair would be cost-prohibitive); refinement is where Google becomes the source of truth.
+- Diagnostics now expose `walkRefineMs`, `walkLegsVerified`, `itinerariesDroppedAfterRefine`.
 
 ### 9. Replace hand-rolled polyline decode with `@mapbox/polyline`
 - `bun add @mapbox/polyline`.
