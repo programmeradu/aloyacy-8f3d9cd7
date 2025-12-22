@@ -13,6 +13,7 @@
 import { loadScheduleForDate, todayLocalDate } from "./schedule-loader.server";
 import { planRaptor, type RaptorDiagnostics } from "./raptor.server";
 import { fetchRealtime } from "./gtfs-rt.server";
+import { refineAllItineraries } from "./walk-refine.server";
 import type { Itinerary, RideLeg } from "./itinerary-types";
 
 export type ScheduledDiagnostics = RaptorDiagnostics & {
@@ -21,6 +22,9 @@ export type ScheduledDiagnostics = RaptorDiagnostics & {
   loadMs: number;
   raptorMs: number;
   overlayMs: number;
+  walkRefineMs: number;
+  walkLegsVerified: number;
+  itinerariesDroppedAfterRefine: number;
 };
 
 export async function planMultiLegScheduled(
