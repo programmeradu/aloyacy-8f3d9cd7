@@ -176,6 +176,24 @@ export type Database = {
         }
         Relationships: []
       }
+      device_auth: {
+        Row: {
+          created_at: string
+          device_id: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          token_hash?: string
+        }
+        Relationships: []
+      }
       dwell_observations: {
         Row: {
           day_of_week: number
