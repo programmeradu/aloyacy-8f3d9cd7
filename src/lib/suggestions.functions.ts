@@ -40,6 +40,9 @@ const RecordSchema = DeviceAuth.extend({
 export const recordTripHistory = createServerFn({ method: "POST" })
   .inputValidator((input) => RecordSchema.parse(input))
   .handler(async ({ data }) => {
+    if (!(await verifyDeviceToken(data.deviceId, data.deviceToken))) {
+      return { ok: false as const, error: "unauthorized" };
+    }
     const now = new Date();
     const { error } = await supabaseAdmin.from("trip_history").insert({
       device_id: data.deviceId,
