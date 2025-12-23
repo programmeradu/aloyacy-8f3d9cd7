@@ -90,6 +90,8 @@ function clusterIcon(count: number): google.maps.Symbol {
     strokeWeight: 3,
     scale,
   };
+}
+
 
 function spanToZoom(spanKm: number) {
   // Rough mercator-ish: zoom 12 ~ 8km span at Nicosia latitude
