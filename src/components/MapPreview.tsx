@@ -78,6 +78,19 @@ function dot(color: string, size = 11, ring = 3): google.maps.Symbol {
   };
 }
 
+/** Editorial cluster bubble — limestone fill, ink ring, ochre halo at scale. */
+function clusterIcon(count: number): google.maps.Symbol {
+  // Bubble grows logarithmically so 20 and 200 don't render at the same size.
+  const scale = 13 + Math.min(10, Math.log2(Math.max(2, count)) * 2.5);
+  return {
+    path: google.maps.SymbolPath.CIRCLE,
+    fillColor: "#1c5566",
+    fillOpacity: 0.92,
+    strokeColor: "#f6f1e4",
+    strokeWeight: 3,
+    scale,
+  };
+
 function spanToZoom(spanKm: number) {
   // Rough mercator-ish: zoom 12 ~ 8km span at Nicosia latitude
   const z = Math.round(12 - Math.log2(spanKm / 8));
