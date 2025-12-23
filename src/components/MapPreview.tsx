@@ -1,6 +1,7 @@
 /// <reference types="google.maps" />
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { MarkerClusterer, SuperClusterAlgorithm } from "@googlemaps/markerclusterer";
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER, getStop } from "@/lib/gtfs";
 import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
@@ -77,6 +78,21 @@ function dot(color: string, size = 11, ring = 3): google.maps.Symbol {
   };
 }
 
+/** Editorial cluster bubble — limestone fill, ink ring, ochre halo at scale. */
+function clusterIcon(count: number): google.maps.Symbol {
+  // Bubble grows logarithmically so 20 and 200 don't render at the same size.
+  const scale = 13 + Math.min(10, Math.log2(Math.max(2, count)) * 2.5);
+  return {
+    path: google.maps.SymbolPath.CIRCLE,
+    fillColor: "#1c5566",
+    fillOpacity: 0.92,
+    strokeColor: "#f6f1e4",
+    strokeWeight: 3,
+    scale,
+  };
+}
+
+
 function spanToZoom(spanKm: number) {
   // Rough mercator-ish: zoom 12 ~ 8km span at Nicosia latitude
   const z = Math.round(12 - Math.log2(spanKm / 8));
@@ -112,6 +128,7 @@ export function MapPreview({
   const layerRef = useRef<{
     polyline?: google.maps.Polyline;
     markers: google.maps.Marker[];
+    clusterer?: MarkerClusterer;
   }>({ markers: [] });
   // Per-vehicle OverlayView state lives outside React so animation can keep
   // tweening smoothly between feed refreshes without rerendering.
@@ -194,6 +211,11 @@ export function MapPreview({
     const layer = layerRef.current;
 
     layer.polyline?.setMap(null);
+    // Tear down the previous clusterer first so its managed markers detach
+    // cleanly (clearMarkers removes them from the map for us).
+    layer.clusterer?.clearMarkers();
+    layer.clusterer?.setMap(null);
+    layer.clusterer = undefined;
     layer.markers.forEach((mk) => mk.setMap(null));
     layer.markers = [];
 
@@ -215,11 +237,17 @@ export function MapPreview({
       });
     }
 
+    // Bucket markers: anonymous "stop" pins are clusterable, while
+    // origin/destination/pin markers are anchors the rider must always see.
+    const clusterable: google.maps.Marker[] = [];
+
     (markers ?? []).forEach((mk) => {
       const color = TONE_COLOR[mk.tone ?? "aegean"];
+      const isStop = !mk.kind || mk.kind === "stop";
       const marker = new api.maps.Marker({
         position: { lat: mk.lat, lng: mk.lng },
-        map: m,
+        // Clustered markers get attached by the clusterer; anchors render directly.
+        map: isStop ? undefined : m,
         title: mk.label,
         icon:
           mk.kind === "origin"
@@ -230,9 +258,39 @@ export function MapPreview({
         zIndex: mk.kind === "origin" || mk.kind === "destination" ? 100 : 50,
       });
       layer.markers.push(marker);
+      if (isStop) clusterable.push(marker);
       bounds.extend(marker.getPosition()!);
       hasBounds = true;
     });
+
+    // Only spin up a clusterer when we actually have a dense set of stops.
+    // Below the threshold every marker stays individually visible so small
+    // multi-leg previews don't collapse 3 stops into a meaningless cluster.
+    if (clusterable.length >= 12) {
+      layer.clusterer = new MarkerClusterer({
+        map: m,
+        markers: clusterable,
+        algorithm: new SuperClusterAlgorithm({ radius: 80, maxZoom: 15 }),
+        renderer: {
+          render: ({ count, position }) =>
+            new api.maps.Marker({
+              position,
+              icon: clusterIcon(count),
+              label: {
+                text: String(count),
+                color: "#f6f1e4",
+                fontFamily: "Geist, system-ui, sans-serif",
+                fontSize: "12px",
+                fontWeight: "600",
+              },
+              zIndex: 60,
+            }),
+        },
+      });
+    } else {
+      // No clusterer: attach the stop markers directly to the map.
+      clusterable.forEach((mk) => mk.setMap(m));
+    }
 
     const shouldFit = fitToContent ?? hasBounds;
     if (shouldFit && hasBounds) {
