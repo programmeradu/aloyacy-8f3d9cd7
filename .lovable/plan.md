@@ -59,9 +59,11 @@ Executed strictly in this order so each step lands on a stable base.
 - Installed `@mapbox/polyline` + `@types/mapbox__polyline`.
 - `src/lib/shapes.ts` `decodePolyline` now wraps `polyline.decode` (same `LatLng[]` return, handles empty strings safely).
 
-### 10. Marker clustering on fleet overview
-- `bun add @googlemaps/markerclusterer`.
-- Wrap the vehicle markers in `pulse.tsx` (fleet map) and the multi-stop preview in `MapPreview.tsx` with `MarkerClusterer` so dense Nicosia views stop overlapping.
+### 10. Marker clustering on dense stop previews ✅
+- Installed `@googlemaps/markerclusterer`.
+- `MapPreview.tsx` now buckets markers: anonymous "stop" pins are clustered via `MarkerClusterer` + `SuperClusterAlgorithm` (radius 80, maxZoom 15); origin/destination/pin anchors render directly so they're never collapsed.
+- Clusterer only spins up when ≥12 stop markers are passed (small multi-leg previews stay unclustered). Cluster bubble uses ink fill + limestone ring, scaled logarithmically by count.
+- Bus vehicles use `OverlayView` (not `Marker`), so they are intentionally excluded from clustering — the editorial bus blip stays the hero element on the map.
 
 ---
 
