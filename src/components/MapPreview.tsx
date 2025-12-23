@@ -113,6 +113,7 @@ export function MapPreview({
   const layerRef = useRef<{
     polyline?: google.maps.Polyline;
     markers: google.maps.Marker[];
+    clusterer?: MarkerClusterer;
   }>({ markers: [] });
   // Per-vehicle OverlayView state lives outside React so animation can keep
   // tweening smoothly between feed refreshes without rerendering.
