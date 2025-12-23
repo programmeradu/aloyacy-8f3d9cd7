@@ -79,9 +79,7 @@ export type TripSuggestion = {
   score: number;
 };
 
-const QuerySchema = z.object({
-  deviceId: z.string().min(8).max(128),
-});
+const QuerySchema = DeviceAuth;
 
 // Bucket coordinates to ~110m so "the same destination" clusters together.
 function bucket(n: number) {
@@ -91,6 +89,9 @@ function bucket(n: number) {
 export const getTripSuggestions = createServerFn({ method: "POST" })
   .inputValidator((input) => QuerySchema.parse(input))
   .handler(async ({ data }): Promise<{ suggestions: TripSuggestion[] }> => {
+    if (!(await verifyDeviceToken(data.deviceId, data.deviceToken))) {
+      return { suggestions: [] };
+    }
     // Pull last 90 days of history for this device.
     const since = new Date(Date.now() - 90 * 86_400_000).toISOString();
     const { data: rows, error } = await supabaseAdmin
