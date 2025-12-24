@@ -2,6 +2,36 @@ import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+// Run the device→user link at most once per page load per user id, regardless
+// of how many components mount `useAuth`.
+const linkedUsers = new Set<string>();
+
+async function linkDeviceIfPossible(session: Session | null) {
+  if (typeof window === "undefined") return;
+  const uid = session?.user?.id;
+  if (!uid || linkedUsers.has(uid)) return;
+  linkedUsers.add(uid);
+  try {
+    const [{ linkDeviceToUser }, { getDeviceId, getDeviceToken }] =
+      await Promise.all([
+        import("./suggestions.functions"),
+        import("./pwa"),
+      ]);
+    const token = await getDeviceToken();
+    if (!token) return;
+    await linkDeviceToUser({
+      data: {
+        deviceId: getDeviceId(),
+        deviceToken: token,
+        accessToken: session.access_token,
+      },
+    });
+  } catch {
+    // Best-effort backfill; silently ignore failures.
+    linkedUsers.delete(uid);
+  }
+}
+
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -12,9 +42,15 @@ export function useAuth() {
       if (!mounted) return;
       setSession(data.session);
       setLoading(false);
+      void linkDeviceIfPossible(data.session);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, s) => setSession(s),
+      (event, s) => {
+        setSession(s);
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+          void linkDeviceIfPossible(s);
+        }
+      },
     );
     return () => {
       mounted = false;

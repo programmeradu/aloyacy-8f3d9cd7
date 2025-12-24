@@ -669,16 +669,20 @@ export function useJourney(opts: {
       // Persist the completed trip so it can power personalized suggestions.
       fireOnce("history", () => {
         void (async () => {
-          const [{ recordTripHistory }, { getDeviceToken }] = await Promise.all([
+          const [{ recordTripHistory }, { getDeviceToken, getAccessToken }] = await Promise.all([
             import("./suggestions.functions"),
             import("./pwa"),
           ]);
-          const token = await getDeviceToken();
+          const [token, accessToken] = await Promise.all([
+            getDeviceToken(),
+            getAccessToken(),
+          ]);
           if (!token) return;
           await recordTripHistory({
             data: {
               deviceId,
               deviceToken: token,
+              accessToken,
               from: { lat: active!.from.lat, lng: active!.from.lng, label: active!.from.label },
               to: { lat: active!.to.lat, lng: active!.to.lng, label: active!.to.label },
               routeShort: bus.routeShort,
