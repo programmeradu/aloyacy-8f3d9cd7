@@ -9,7 +9,22 @@ import { ensureDeviceToken, verifyDeviceToken } from "./device-auth.server";
 const DeviceAuth = z.object({
   deviceId: z.string().min(8).max(128),
   deviceToken: z.string().min(20).max(128),
+  // Optional Supabase access token. When present and valid, trip history is
+  // also keyed to the user id, so the user sees their history on any device
+  // after signing in.
+  accessToken: z.string().min(20).max(4096).optional().nullable(),
 });
+
+async function resolveUserId(accessToken?: string | null): Promise<string | null> {
+  if (!accessToken) return null;
+  try {
+    const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+    if (error || !data.user) return null;
+    return data.user.id;
+  } catch {
+    return null;
+  }
+}
 
 export const claimDeviceToken = createServerFn({ method: "POST" })
   .inputValidator((input) =>
@@ -19,6 +34,27 @@ export const claimDeviceToken = createServerFn({ method: "POST" })
     const result = await ensureDeviceToken(data.deviceId);
     if (!result.ok) return { ok: false as const, error: result.error };
     return { ok: true as const, token: result.token };
+  });
+
+// ---------- link device → user (on sign-in) ----------
+export const linkDeviceToUser = createServerFn({ method: "POST" })
+  .inputValidator((input) => DeviceAuth.parse(input))
+  .handler(async ({ data }) => {
+    if (!(await verifyDeviceToken(data.deviceId, data.deviceToken))) {
+      return { ok: false as const, error: "unauthorized" };
+    }
+    const userId = await resolveUserId(data.accessToken);
+    if (!userId) return { ok: false as const, error: "no_user" };
+    const { error } = await supabaseAdmin
+      .from("trip_history")
+      .update({ user_id: userId })
+      .eq("device_id", data.deviceId)
+      .is("user_id", null);
+    if (error) {
+      console.error("linkDeviceToUser failed", error);
+      return { ok: false as const, error: error.message };
+    }
+    return { ok: true as const };
   });
 
 // ---------- record ----------
@@ -43,9 +79,11 @@ export const recordTripHistory = createServerFn({ method: "POST" })
     if (!(await verifyDeviceToken(data.deviceId, data.deviceToken))) {
       return { ok: false as const, error: "unauthorized" };
     }
+    const userId = await resolveUserId(data.accessToken);
     const now = new Date();
     const { error } = await supabaseAdmin.from("trip_history").insert({
       device_id: data.deviceId,
+      user_id: userId,
       from_lat: data.from.lat,
       from_lng: data.from.lng,
       from_label: data.from.label,
@@ -92,17 +130,22 @@ export const getTripSuggestions = createServerFn({ method: "POST" })
     if (!(await verifyDeviceToken(data.deviceId, data.deviceToken))) {
       return { suggestions: [] };
     }
-    // Pull last 90 days of history for this device.
+    const userId = await resolveUserId(data.accessToken);
+    // Pull last 90 days of history. When signed in, include rows from any
+    // device this user has used; otherwise stay scoped to this device.
     const since = new Date(Date.now() - 90 * 86_400_000).toISOString();
-    const { data: rows, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("trip_history")
       .select(
         "from_lat,from_lng,from_label,to_lat,to_lng,to_label,recorded_at,dow,hour",
       )
-      .eq("device_id", data.deviceId)
       .gte("recorded_at", since)
       .order("recorded_at", { ascending: false })
       .limit(200);
+    query = userId
+      ? query.or(`user_id.eq.${userId},device_id.eq.${data.deviceId}`)
+      : query.eq("device_id", data.deviceId);
+    const { data: rows, error } = await query;
 
     if (error) {
       console.error("getTripSuggestions failed", error);
