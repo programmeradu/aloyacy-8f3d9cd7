@@ -80,6 +80,19 @@ export async function getDeviceToken(): Promise<string | null> {
   return tokenInflight;
 }
 
+/** Current Supabase access token, if signed in. Used to scope trip history
+ *  to the user so it follows them across devices. */
+export async function getAccessToken(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // ---------- push subscription ----------
 function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
