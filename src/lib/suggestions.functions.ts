@@ -1,10 +1,28 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { ensureDeviceToken, verifyDeviceToken } from "./device-auth.server";
+
+// Anonymous device IDs are not secrets — anyone who learns one could read
+// or write that device's trip history. Every read/write requires the
+// device-bound bearer token issued by `claimDeviceToken` on first use.
+const DeviceAuth = z.object({
+  deviceId: z.string().min(8).max(128),
+  deviceToken: z.string().min(20).max(128),
+});
+
+export const claimDeviceToken = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z.object({ deviceId: z.string().min(8).max(128) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const result = await ensureDeviceToken(data.deviceId);
+    if (!result.ok) return { ok: false as const, error: result.error };
+    return { ok: true as const, token: result.token };
+  });
 
 // ---------- record ----------
-const RecordSchema = z.object({
-  deviceId: z.string().min(8).max(128),
+const RecordSchema = DeviceAuth.extend({
   from: z.object({
     lat: z.number().min(-90).max(90),
     lng: z.number().min(-180).max(180),
@@ -22,6 +40,9 @@ const RecordSchema = z.object({
 export const recordTripHistory = createServerFn({ method: "POST" })
   .inputValidator((input) => RecordSchema.parse(input))
   .handler(async ({ data }) => {
+    if (!(await verifyDeviceToken(data.deviceId, data.deviceToken))) {
+      return { ok: false as const, error: "unauthorized" };
+    }
     const now = new Date();
     const { error } = await supabaseAdmin.from("trip_history").insert({
       device_id: data.deviceId,
@@ -58,9 +79,7 @@ export type TripSuggestion = {
   score: number;
 };
 
-const QuerySchema = z.object({
-  deviceId: z.string().min(8).max(128),
-});
+const QuerySchema = DeviceAuth;
 
 // Bucket coordinates to ~110m so "the same destination" clusters together.
 function bucket(n: number) {
@@ -70,6 +89,9 @@ function bucket(n: number) {
 export const getTripSuggestions = createServerFn({ method: "POST" })
   .inputValidator((input) => QuerySchema.parse(input))
   .handler(async ({ data }): Promise<{ suggestions: TripSuggestion[] }> => {
+    if (!(await verifyDeviceToken(data.deviceId, data.deviceToken))) {
+      return { suggestions: [] };
+    }
     // Pull last 90 days of history for this device.
     const since = new Date(Date.now() - 90 * 86_400_000).toISOString();
     const { data: rows, error } = await supabaseAdmin

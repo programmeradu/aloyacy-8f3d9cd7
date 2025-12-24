@@ -28,8 +28,17 @@ export const autocompletePlaces = createServerFn({ method: "POST" })
     }
   });
 
+// Google Place IDs are URL-safe base64-ish strings (letters, digits, _ and -),
+// typically prefixed with `ChIJ`. Constrain the format so the value can never
+// path-traverse out of the `/places/v1/places/{placeId}` URL slot.
+const PlaceIdSchema = z
+  .string()
+  .min(1)
+  .max(300)
+  .regex(/^[A-Za-z0-9_-]+$/, "Invalid place ID");
+
 export const getPlace = createServerFn({ method: "POST" })
-  .inputValidator((input) => z.object({ placeId: z.string().min(1) }).parse(input))
+  .inputValidator((input) => z.object({ placeId: PlaceIdSchema }).parse(input))
   .handler(async ({ data }) => resolvePlace(data.placeId));
 
 export const reverseLookup = createServerFn({ method: "POST" })

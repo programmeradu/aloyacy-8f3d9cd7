@@ -40,6 +40,8 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
 // ---------- device id ----------
 const DEVICE_KEY = "aloya:device-id";
+const DEVICE_TOKEN_KEY = "aloya:device-token";
+
 export function getDeviceId(): string {
   if (typeof window === "undefined") return "ssr";
   let id = localStorage.getItem(DEVICE_KEY);
@@ -48,6 +50,34 @@ export function getDeviceId(): string {
     localStorage.setItem(DEVICE_KEY, id);
   }
   return id;
+}
+
+/** Bearer token bound to this device. Issued once on first call; cached
+ *  in localStorage thereafter. Returns null if the device was already
+ *  claimed elsewhere (e.g. localStorage cleared) — callers should treat
+ *  history reads/writes as unavailable in that case. */
+let tokenInflight: Promise<string | null> | null = null;
+export async function getDeviceToken(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  const cached = localStorage.getItem(DEVICE_TOKEN_KEY);
+  if (cached) return cached;
+  if (tokenInflight) return tokenInflight;
+  tokenInflight = (async () => {
+    try {
+      const { claimDeviceToken } = await import("./suggestions.functions");
+      const res = await claimDeviceToken({ data: { deviceId: getDeviceId() } });
+      if (res.ok) {
+        localStorage.setItem(DEVICE_TOKEN_KEY, res.token);
+        return res.token;
+      }
+      return null;
+    } catch {
+      return null;
+    } finally {
+      tokenInflight = null;
+    }
+  })();
+  return tokenInflight;
 }
 
 // ---------- push subscription ----------

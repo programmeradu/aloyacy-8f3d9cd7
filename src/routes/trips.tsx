@@ -52,7 +52,12 @@ function Plan() {
 
   const { data: suggData } = useQuery({
     queryKey: ["trip-suggestions"],
-    queryFn: () => fetchSuggestions({ data: { deviceId: getDeviceId() } }),
+    queryFn: async () => {
+      const { getDeviceToken } = await import("@/lib/pwa");
+      const token = await getDeviceToken();
+      if (!token) return { suggestions: [] };
+      return fetchSuggestions({ data: { deviceId: getDeviceId(), deviceToken: token } });
+    },
     staleTime: 5 * 60 * 1000,
     enabled: typeof window !== "undefined",
   });
