@@ -812,6 +812,7 @@ export type Database = {
           to_label: string
           to_lat: number
           to_lng: number
+          user_id: string | null
         }
         Insert: {
           device_id: string
@@ -827,6 +828,7 @@ export type Database = {
           to_label: string
           to_lat: number
           to_lng: number
+          user_id?: string | null
         }
         Update: {
           device_id?: string
@@ -842,6 +844,7 @@ export type Database = {
           to_label?: string
           to_lat?: number
           to_lng?: number
+          user_id?: string | null
         }
         Relationships: []
       }
