@@ -14,6 +14,7 @@ import { registerServiceWorker } from "@/lib/pwa";
 import { speak } from "@/lib/speech";
 import { Toaster } from "@/components/ui/sonner";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { useUserDataRealtime } from "@/lib/useUserDataRealtime";
 
 function NotFoundComponent() {
   return (
@@ -132,9 +133,16 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <RealtimeBridge />
       <PaymentTestModeBanner />
       <Outlet />
       <Toaster position="top-center" />
     </QueryClientProvider>
   );
+}
+
+// Lives inside QueryClientProvider so it can grab the queryClient via hook.
+function RealtimeBridge() {
+  useUserDataRealtime();
+  return null;
 }
