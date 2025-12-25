@@ -14,6 +14,7 @@ import { registerServiceWorker } from "@/lib/pwa";
 import { speak } from "@/lib/speech";
 import { Toaster } from "@/components/ui/sonner";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { useUserDataRealtime } from "@/lib/useUserDataRealtime";
 
 function NotFoundComponent() {
   return (
