@@ -836,10 +836,14 @@ class AnimatedBus {
         panes?.overlayMouseTarget.appendChild(self.el);
       }
       draw() {
+        // Render at the currently-animated position, NOT the last ping's
+        // origin. Without this, every Maps pan/zoom/idle event resets the
+        // bus to fromLat/fromLng and the next rAF frame snaps it forward —
+        // a visible hop on every gesture.
         const projection = this.getProjection();
         if (!projection) return;
         const pt = projection.fromLatLngToDivPixel(
-          new api.maps.LatLng(self.fromLat, self.fromLng),
+          new api.maps.LatLng(self.curLat, self.curLng),
         );
         if (!pt) return;
         self.el.style.transform = `translate3d(${pt.x - self.size / 2}px, ${pt.y - self.size / 2}px, 0)`;
