@@ -733,6 +733,13 @@ class AnimatedBus {
   private displayedAlong = 0;
   // Smoothed ground speed (m/s), EMA-blended from feed pings.
   private speedMps = 0;
+  // Last ping snapshot — used to derive ground speed when the feed itself
+  // reports speed = 0 (common for the Cyprus GTFS-RT feed). Without this
+  // the kinematic model parks the bus between pings and then has to catch
+  // up in one tween, which reads as a 20-second teleport.
+  private lastPingMs = 0;
+  private lastPingLat = 0;
+  private lastPingLng = 0;
   // Extra m/s added to dead-reckoning to bleed off a prediction error from
   // the most recent ping. Decays exponentially toward zero.
   private correctionVel = 0;
