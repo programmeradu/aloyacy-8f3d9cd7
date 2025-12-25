@@ -264,7 +264,6 @@ function Plan() {
                 origin ??
                 ({ lat: s.fromLat, lng: s.fromLng, label: s.fromLabel } as Point);
               if (!origin) setOrigin(o);
-              if (!origin) setOrigin(o);
             }}
           />
         )}
