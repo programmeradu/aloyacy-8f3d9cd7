@@ -733,6 +733,13 @@ class AnimatedBus {
   private displayedAlong = 0;
   // Smoothed ground speed (m/s), EMA-blended from feed pings.
   private speedMps = 0;
+  // Last ping snapshot — used to derive ground speed when the feed itself
+  // reports speed = 0 (common for the Cyprus GTFS-RT feed). Without this
+  // the kinematic model parks the bus between pings and then has to catch
+  // up in one tween, which reads as a 20-second teleport.
+  private lastPingMs = 0;
+  private lastPingLat = 0;
+  private lastPingLng = 0;
   // Extra m/s added to dead-reckoning to bleed off a prediction error from
   // the most recent ping. Decays exponentially toward zero.
   private correctionVel = 0;
@@ -836,10 +843,14 @@ class AnimatedBus {
         panes?.overlayMouseTarget.appendChild(self.el);
       }
       draw() {
+        // Render at the currently-animated position, NOT the last ping's
+        // origin. Without this, every Maps pan/zoom/idle event resets the
+        // bus to fromLat/fromLng and the next rAF frame snaps it forward —
+        // a visible hop on every gesture.
         const projection = this.getProjection();
         if (!projection) return;
         const pt = projection.fromLatLngToDivPixel(
-          new api.maps.LatLng(self.fromLat, self.fromLng),
+          new api.maps.LatLng(self.curLat, self.curLng),
         );
         if (!pt) return;
         self.el.style.transform = `translate3d(${pt.x - self.size / 2}px, ${pt.y - self.size / 2}px, 0)`;
@@ -981,6 +992,24 @@ class AnimatedBus {
     this.toLng = lng;
     this.toBearing = bearing;
 
+    // Derive ground speed from successive pings when the feed itself
+    // doesn't supply one (Cyprus GTFS-RT often reports speed = 0).
+    let estSpeed = speedMps;
+    if (estSpeed <= 0.1 && this.lastPingMs > 0) {
+      const dtSec = (nowMs - this.lastPingMs) / 1000;
+      if (dtSec > 1 && dtSec < 120) {
+        const d = haversineM(
+          { lat: this.lastPingLat, lng: this.lastPingLng },
+          { lat, lng },
+        );
+        // Clamp to a sane urban-bus envelope to ignore GPS jitter.
+        estSpeed = Math.max(0, Math.min(22, d / dtSec));
+      }
+    }
+    this.lastPingMs = nowMs;
+    this.lastPingLat = lat;
+    this.lastPingLng = lng;
+
     if (this.path && this.path.length >= 2) {
       const snap = snapAlong({ lat, lng }, this.path, this.cum);
       if (snap && snap.perpM <= MAX_SNAP_M) {
@@ -999,9 +1028,9 @@ class AnimatedBus {
         // EMA-smooth the speed so noisy zero / spike samples don't visibly
         // jolt the glide between feed refreshes.
         this.speedMps =
-          this.speedMps === 0 && speedMps > 0
-            ? speedMps
-            : this.speedMps * (1 - SPEED_SMOOTH) + speedMps * SPEED_SMOOTH;
+          this.speedMps === 0 && estSpeed > 0
+            ? estSpeed
+            : this.speedMps * (1 - SPEED_SMOOTH) + estSpeed * SPEED_SMOOTH;
 
         this.usePath = true;
         this.setBoarding(this.speedMps < 0.5);
@@ -1032,12 +1061,14 @@ class AnimatedBus {
       { lat: this.fromLat, lng: this.fromLng },
       { lat, lng },
     );
-    if (speedMps < 0.5 || distM < 3) {
+    // Off-path: tween length = distance / speed, so the bus glides for the
+    // full inter-ping interval instead of arriving early and parking.
+    if (estSpeed < 0.5 || distM < 3) {
       this.tweenDur = 1200;
       this.setBoarding(true);
     } else {
-      const dur = (distM / speedMps) * 1000;
-      this.tweenDur = Math.max(1500, Math.min(18_000, dur));
+      const dur = (distM / estSpeed) * 1000;
+      this.tweenDur = Math.max(1500, Math.min(22_000, dur));
       this.setBoarding(false);
     }
   }
