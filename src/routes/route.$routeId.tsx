@@ -39,7 +39,7 @@ function RoutePage() {
   const { data: rt, isLoading } = useRealtime();
   const route = getRoute(routeId);
   const agency = route?.agency;
-  const stopOf = (id: string) => getStop(id, agency);
+  const stopOf = (id: string) => stopOf(id, agency);
 
   const data = useMemo(() => {
     if (!rt) return null;
@@ -95,7 +95,7 @@ function RoutePage() {
       let nearestIdx = -1;
       let nearestDist = Infinity;
       for (let i = 0; i < stopIds.length; i++) {
-        const stop = getStop(stopIds[i]);
+        const stop = stopOf(stopIds[i]);
         if (!stop) continue;
         const d = distanceM({ lat: v.lat, lng: v.lng }, stop);
         if (d < nearestDist) {
@@ -141,7 +141,7 @@ function RoutePage() {
   const markers: MapMarker[] = useMemo(() => {
     if (!data) return [];
     return data.stopIds
-      .map((id) => getStop(id))
+      .map((id) => stopOf(id))
       .filter((s): s is NonNullable<ReturnType<typeof getStop>> => !!s)
       .map((s, i, arr) => ({
         lat: s.lat,
@@ -229,24 +229,24 @@ function RoutePage() {
         const firstTrip = data.trips[0];
         const liveBus = data.busesOnLine.find((b) => b.tripId === firstTrip.tripId);
         const nextStopName =
-          getStop(firstTrip.nextArrival.stopId)?.name ?? "Upcoming stop";
+          stopOf(firstTrip.nextArrival.stopId)?.name ?? "Upcoming stop";
 
         let kicker = "Next departure";
         let kickerTone = "text-limestone/60";
         let bigText = nextStopName;
         let footer = `${fmtClock(firstTrip.nextArrival.arrivalUnix)} — ends at ${
-          getStop(firstTrip.lastStop.stopId)?.name ?? "terminus"
+          stopOf(firstTrip.lastStop.stopId)?.name ?? "terminus"
         }`;
         let pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
 
         if (liveBus) {
-          const atStop = getStop(data.stopIds[liveBus.stopIndex]);
+          const atStop = stopOf(data.stopIds[liveBus.stopIndex]);
           if (liveBus.status === "departing") {
             kicker = "About to depart";
             kickerTone = "text-ochre";
             bigText = atStop?.name ?? nextStopName;
             footer = `Boarding at origin — bound for ${
-              getStop(firstTrip.lastStop.stopId)?.name ?? "terminus"
+              stopOf(firstTrip.lastStop.stopId)?.name ?? "terminus"
             }`;
             pillText = "boarding";
           } else if (liveBus.status === "at") {
@@ -264,7 +264,7 @@ function RoutePage() {
             footer =
               (kmh > 3 ? `${kmh} km/h — ` : "") +
               `arriving ${fmtClock(firstTrip.nextArrival.arrivalUnix)} · ends at ${
-                getStop(firstTrip.lastStop.stopId)?.name ?? "terminus"
+                stopOf(firstTrip.lastStop.stopId)?.name ?? "terminus"
               }`;
             pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
           }
@@ -330,13 +330,13 @@ function RoutePage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-display text-[16px] leading-tight text-ink truncate">
-                      {getStop(t.nextArrival.stopId)?.name ?? "Next stop"}
+                      {stopOf(t.nextArrival.stopId)?.name ?? "Next stop"}
                     </p>
                     <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
                       {live && <IconBus className="size-3 text-ochre" />}
                       {live ? "live now" : "scheduled"}
                       {" — to "}
-                      {getStop(t.lastStop.stopId)?.name.split(/[·\-,]/)[0].trim() ?? "terminus"}
+                      {stopOf(t.lastStop.stopId)?.name.split(/[·\-,]/)[0].trim() ?? "terminus"}
                     </p>
                   </div>
                   <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
@@ -360,7 +360,7 @@ function RoutePage() {
           </div>
           <ol className="rounded-[28px] bg-card ring-1 ring-line overflow-hidden">
             {data.stopIds.map((id, i) => {
-              const s = getStop(id);
+              const s = stopOf(id);
               if (!s) return null;
               const isEdge = i === 0 || i === data.stopIds.length - 1;
               const busHere = data.busesOnLine.find(
