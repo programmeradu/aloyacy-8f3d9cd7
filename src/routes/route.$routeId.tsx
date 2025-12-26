@@ -39,7 +39,7 @@ function RoutePage() {
   const { data: rt, isLoading } = useRealtime();
   const route = getRoute(routeId);
   const agency = route?.agency;
-  const stopOf = (id: string) => stopOf(id, agency);
+  const stopOf = (id: string) => getStop(id, agency);
 
   const data = useMemo(() => {
     if (!rt) return null;
