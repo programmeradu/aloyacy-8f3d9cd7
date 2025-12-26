@@ -22,10 +22,26 @@ export const STOPS: StaticStop[] = stopsData as StaticStop[];
 export const ROUTES: StaticRoute[] = routesData as StaticRoute[];
 
 const ROUTE_BY_ID = new Map(ROUTES.map((r) => [r.id, r]));
-const STOP_BY_ID = new Map(STOPS.map((s) => [s.id, s]));
+// First-match map (legacy: callers without agency context).
+const STOP_BY_ID = new Map<string, StaticStop>();
+// Agency-disambiguated map for stops whose local IDs collide across feeds.
+const STOP_BY_AGENCY_ID = new Map<string, StaticStop>();
+for (const s of STOPS) {
+  if (!STOP_BY_ID.has(s.id)) STOP_BY_ID.set(s.id, s);
+  STOP_BY_AGENCY_ID.set(`${s.agency}:${s.id}`, s);
+}
 
 export const getRoute = (id: string) => ROUTE_BY_ID.get(id);
-export const getStop = (id: string) => STOP_BY_ID.get(id);
+/** Lookup a stop by local ID. Pass `agency` when known (≈344 stop IDs
+ *  collide across operator feeds, so agency-scoped lookup is required to
+ *  resolve the correct one for routes outside Nicosia). */
+export const getStop = (id: string, agency?: string) => {
+  if (agency) {
+    const hit = STOP_BY_AGENCY_ID.get(`${agency}:${id}`);
+    if (hit) return hit;
+  }
+  return STOP_BY_ID.get(id);
+};
 
 // Haversine, km
 export function distanceKm(
