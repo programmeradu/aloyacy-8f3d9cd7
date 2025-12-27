@@ -445,6 +445,7 @@ type SearchResult =
       id: string;
       code: string;
       name: string;
+      city: string;
       liveCount: number;
     }
   | {
@@ -457,6 +458,19 @@ type SearchResult =
       sub: string;
     };
 
+const AGENCY_CITY: Record<string, string> = {
+  NPT: "Nicosia",
+  LMS: "Limassol",
+  PFO: "Paphos",
+  LCA: "Larnaca",
+  FAM: "Famagusta",
+  IC: "Intercity",
+  SPC: "Intercity",
+};
+const AGENCY_RANK: Record<string, number> = {
+  NPT: 0, LMS: 1, LCA: 2, PFO: 3, FAM: 4, IC: 5, SPC: 6,
+};
+
 function searchAll(
   raw: string,
   vehicles: { id: string; tripId: string; routeId: string; label: string; lat: number; lng: number }[],
@@ -466,13 +480,21 @@ function searchAll(
   if (q.length < 1) return [];
   const out: SearchResult[] = [];
 
-  // Routes
-  const matchedRoutes = ROUTES.filter(
+  // Routes — keep all matches across cities; rank exact short matches first, then by agency.
+  const allMatched = ROUTES.filter(
     (r) =>
       r.short.toLowerCase() === q ||
       r.short.toLowerCase().startsWith(q) ||
       r.long.toLowerCase().includes(q),
-  ).slice(0, 4);
+  );
+  const matchedRoutes = allMatched
+    .map((r) => {
+      const exact = r.short.toLowerCase() === q ? 0 : r.short.toLowerCase().startsWith(q) ? 1 : 2;
+      return { r, exact, rank: AGENCY_RANK[r.agency] ?? 9 };
+    })
+    .sort((a, b) => a.exact - b.exact || a.rank - b.rank)
+    .slice(0, 8)
+    .map((x) => x.r);
   for (const r of matchedRoutes) {
     const live = vehicles.filter((v) => v.routeId === r.id).length;
     out.push({
@@ -480,6 +502,7 @@ function searchAll(
       id: r.id,
       code: r.short,
       name: r.long,
+      city: AGENCY_CITY[r.agency] ?? r.agency,
       liveCount: live,
     });
   }
@@ -525,7 +548,7 @@ function searchAll(
     });
   }
 
-  return out.slice(0, 10);
+  return out.slice(0, 18);
 }
 
 function SmartSearch({
@@ -598,7 +621,7 @@ function SmartSearch({
                         <div className="min-w-0 flex-1">
                           <p className="text-[14px] text-ink truncate">{r.name}</p>
                           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                            {r.liveCount > 0 ? `${r.liveCount} live` : "no live buses"}
+                            {r.city} · {r.liveCount > 0 ? `${r.liveCount} live` : "no live buses"}
                           </p>
                         </div>
                         <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
