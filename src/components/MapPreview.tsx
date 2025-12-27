@@ -266,7 +266,11 @@ export function MapPreview({
     // Only spin up a clusterer when we actually have a dense set of stops.
     // Below the threshold every marker stays individually visible so small
     // multi-leg previews don't collapse 3 stops into a meaningless cluster.
-    if (clusterable.length >= 12) {
+    // Clustering is for dense fleet/overview maps. On a single-route view
+    // (restricted) or an inline trip preview (focused) the rider expects to
+    // see every stop on the line — folding them into anonymous "5" / "7"
+    // bubbles is confusing. Always render stops individually in those modes.
+    if (clusterable.length >= 12 && !restricted && !focused) {
       layer.clusterer = new MarkerClusterer({
         map: m,
         markers: clusterable,
