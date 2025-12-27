@@ -621,7 +621,7 @@ function SmartSearch({
                         <div className="min-w-0 flex-1">
                           <p className="text-[14px] text-ink truncate">{r.name}</p>
                           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                            {r.liveCount > 0 ? `${r.liveCount} live` : "no live buses"}
+                            {r.city} · {r.liveCount > 0 ? `${r.liveCount} live` : "no live buses"}
                           </p>
                         </div>
                         <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
