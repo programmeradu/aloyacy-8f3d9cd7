@@ -486,6 +486,11 @@ export function MapPreview({
           stale,
           v.speed ?? 0,
         );
+        // Prime the kinematic model: enables path-mode (usePath=true) and
+        // records lastPingMs so the next genuine ping yields a real dt for
+        // speed estimation. Without this the bus parks in lerp-mode forever
+        // until the second poll, then snaps forward in one big tween.
+        bus.setTarget(targetLat, targetLng, targetBearing, now, v.speed ?? 0);
         bus.setLastTs(v.timestamp ?? 0);
         layer.set(v.id, bus);
       }
