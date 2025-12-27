@@ -548,7 +548,7 @@ function searchAll(
     });
   }
 
-  return out.slice(0, 10);
+  return out.slice(0, 18);
 }
 
 function SmartSearch({
