@@ -119,6 +119,7 @@ export function MapPreview({
   fitToContent,
   userLocation,
   fullscreenable = true,
+  debug = false,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [fallbackOverlay, setFallbackOverlay] = useState(false);
