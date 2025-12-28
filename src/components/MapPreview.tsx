@@ -507,12 +507,12 @@ export function MapPreview({
           stale,
           v.speed ?? 0,
         );
-        // Prime the kinematic model: enables path-mode (usePath=true) and
-        // records lastPingMs so the next genuine ping yields a real dt for
-        // speed estimation. Without this the bus parks in lerp-mode forever
-        // until the second poll, then snaps forward in one big tween.
-        bus.setTarget(targetLat, targetLng, targetBearing, now, v.speed ?? 0);
-        bus.setLastTs(v.timestamp ?? 0);
+        // Record the first ping WITHOUT firing setTarget — that path forces
+        // lerp mode + boarding=true (because distM=0 against itself), which
+        // would freeze the bus until a second fresh ping arrives. prime()
+        // just stores the ping snapshot so the NEXT genuine ping can derive
+        // ground speed from distance/dt and immediately go path-mode.
+        bus.prime(targetLat, targetLng, now, v.timestamp ?? 0);
         layer.set(v.id, bus);
       }
     }
