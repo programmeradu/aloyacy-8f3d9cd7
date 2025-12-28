@@ -1191,6 +1191,24 @@ class AnimatedBus {
     this.lastTs = ts;
   }
 
+  /** Record the first ping for a freshly created bus without committing it
+   *  to lerp/boarding mode. Sets the speed-derivation baseline so the next
+   *  real ping can compute distance/dt and immediately glide. */
+  prime(lat: number, lng: number, nowMs: number, ts: number) {
+    this.lastPingMs = nowMs;
+    this.lastPingLat = lat;
+    this.lastPingLng = lng;
+    this.lastTs = ts;
+    // If we already have a path, snap our along-position so the next ping's
+    // path branch starts from the right place instead of along=0.
+    if (this.path && this.path.length >= 2) {
+      const snap = snapAlong({ lat, lng }, this.path, this.cum);
+      if (snap && snap.perpM <= MAX_SNAP_M) {
+        this.displayedAlong = snap.along;
+      }
+    }
+  }
+
   /** Telemetry snapshot used by the /qa stress-test overlay. */
   getDebug(nowMs: number) {
     const pingAgeMs = this.lastPingMs > 0 ? Math.max(0, nowMs - this.lastPingMs) : -1;
