@@ -102,6 +102,17 @@ function spanToZoom(spanKm: number) {
   return Math.max(6, Math.min(17, z));
 }
 
+function vehicleOverlayKey(v: {
+  id: string;
+  tripId?: string | null;
+  routeId?: string | null;
+  label?: string | null;
+}) {
+  if (v.tripId) return `trip:${v.tripId}`;
+  if (v.routeId && v.label) return `route:${v.routeId}:label:${v.label}`;
+  return `entity:${v.id}`;
+}
+
 export function MapPreview({
   height = "h-64",
   center = NICOSIA_CENTER,
@@ -471,8 +482,9 @@ export function MapPreview({
     const variant: "premium" | "triangle" = focused || restricted ? "premium" : "triangle";
 
     for (const v of slice) {
-      seen.add(v.id);
-      const existing = layer.get(v.id);
+      const overlayKey = vehicleOverlayKey(v);
+      seen.add(overlayKey);
+      const existing = layer.get(overlayKey);
       const targetLat = v.lat;
       const targetLng = v.lng;
       const targetBearing = v.bearing ?? 0;
@@ -512,8 +524,15 @@ export function MapPreview({
         // would freeze the bus until a second fresh ping arrives. prime()
         // just stores the ping snapshot so the NEXT genuine ping can derive
         // ground speed from distance/dt and immediately go path-mode.
-        bus.prime(targetLat, targetLng, now, v.timestamp ?? 0);
-        layer.set(v.id, bus);
+        bus.prime(
+          targetLat,
+          targetLng,
+          targetBearing,
+          now,
+          v.timestamp ?? 0,
+          v.speed ?? 0,
+        );
+        layer.set(overlayKey, bus);
       }
     }
 
@@ -1194,19 +1213,37 @@ class AnimatedBus {
   /** Record the first ping for a freshly created bus without committing it
    *  to lerp/boarding mode. Sets the speed-derivation baseline so the next
    *  real ping can compute distance/dt and immediately glide. */
-  prime(lat: number, lng: number, nowMs: number, ts: number) {
+  prime(
+    lat: number,
+    lng: number,
+    bearing: number,
+    nowMs: number,
+    ts: number,
+    speedMps = 0,
+  ) {
     this.lastPingMs = nowMs;
     this.lastPingLat = lat;
     this.lastPingLng = lng;
     this.lastTs = ts;
+    this.currentBearing = bearing;
+    this.toBearing = bearing;
     // If we already have a path, snap our along-position so the next ping's
     // path branch starts from the right place instead of along=0.
     if (this.path && this.path.length >= 2) {
       const snap = snapAlong({ lat, lng }, this.path, this.cum);
       if (snap && snap.perpM <= MAX_SNAP_M) {
         this.displayedAlong = snap.along;
+        const seededSpeed = Math.max(0, Math.min(22, speedMps));
+        if (seededSpeed > 0.5) {
+          this.speedMps = seededSpeed;
+          this.usePath = true;
+          this.setBoarding(false);
+          return;
+        }
       }
     }
+    this.speedMps = Math.max(0, Math.min(22, speedMps));
+    this.setBoarding(this.speedMps < 0.5);
   }
 
   /** Telemetry snapshot used by the /qa stress-test overlay. */
