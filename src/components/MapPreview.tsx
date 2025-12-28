@@ -507,12 +507,12 @@ export function MapPreview({
           stale,
           v.speed ?? 0,
         );
-        // Prime the kinematic model: enables path-mode (usePath=true) and
-        // records lastPingMs so the next genuine ping yields a real dt for
-        // speed estimation. Without this the bus parks in lerp-mode forever
-        // until the second poll, then snaps forward in one big tween.
-        bus.setTarget(targetLat, targetLng, targetBearing, now, v.speed ?? 0);
-        bus.setLastTs(v.timestamp ?? 0);
+        // Record the first ping WITHOUT firing setTarget — that path forces
+        // lerp mode + boarding=true (because distM=0 against itself), which
+        // would freeze the bus until a second fresh ping arrives. prime()
+        // just stores the ping snapshot so the NEXT genuine ping can derive
+        // ground speed from distance/dt and immediately go path-mode.
+        bus.prime(targetLat, targetLng, now, v.timestamp ?? 0);
         layer.set(v.id, bus);
       }
     }
@@ -1189,6 +1189,24 @@ class AnimatedBus {
 
   setLastTs(ts: number) {
     this.lastTs = ts;
+  }
+
+  /** Record the first ping for a freshly created bus without committing it
+   *  to lerp/boarding mode. Sets the speed-derivation baseline so the next
+   *  real ping can compute distance/dt and immediately glide. */
+  prime(lat: number, lng: number, nowMs: number, ts: number) {
+    this.lastPingMs = nowMs;
+    this.lastPingLat = lat;
+    this.lastPingLng = lng;
+    this.lastTs = ts;
+    // If we already have a path, snap our along-position so the next ping's
+    // path branch starts from the right place instead of along=0.
+    if (this.path && this.path.length >= 2) {
+      const snap = snapAlong({ lat, lng }, this.path, this.cum);
+      if (snap && snap.perpM <= MAX_SNAP_M) {
+        this.displayedAlong = snap.along;
+      }
+    }
   }
 
   /** Telemetry snapshot used by the /qa stress-test overlay. */
