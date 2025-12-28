@@ -7,6 +7,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
 import { getQaStats, type QaStats } from "@/lib/qa.functions";
+import { MapPreview } from "@/components/MapPreview";
+import { useRealtime } from "@/lib/useRealtime";
 
 export const Route = createFileRoute("/qa")({
   component: QaPage,
