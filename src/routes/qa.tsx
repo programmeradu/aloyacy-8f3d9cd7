@@ -274,7 +274,60 @@ function DashboardBody({ data }: { data: QaStats }) {
           </div>
         </div>
       </section>
+
+      <BusGlideStressTest />
     </>
+  );
+}
+
+function BusGlideStressTest() {
+  const { data: rt } = useRealtime();
+  const liveCount = rt?.vehicles.length ?? 0;
+  return (
+    <section className="px-6 pt-12">
+      <Heading
+        kicker="Stress test"
+        title="Bus glide telemetry — live feed"
+      />
+      <p className="mt-3 text-[13px] text-ink-soft max-w-2xl">
+        Every animated vehicle on the map. The overlay shows ping age (ochre
+        when {">"} 30s), animation mode (path = gliding on the GTFS shape,
+        lerp = straight-line fallback), smoothed speed, distance covered along
+        the path, and any active prediction correction. Watch for: ping ages
+        that never reset, lerp-mode buses that should be on-path, or sustained
+        correction values which indicate the feed and our model are
+        disagreeing.
+      </p>
+      <div className="mt-5 grid grid-cols-3 gap-4">
+        <Stat
+          label="Vehicles in feed"
+          value={String(liveCount)}
+          sub="all agencies, all routes"
+          tone="aegean"
+        />
+        <Stat
+          label="Feed refresh"
+          value="20s"
+          sub="proxied via /api/public/realtime"
+          tone="olive"
+        />
+        <Stat
+          label="Animation"
+          value="60fps"
+          sub="rAF tween + dead-reckon"
+          tone="olive"
+        />
+      </div>
+      <div className="mt-5">
+        <MapPreview
+          height="h-[640px]"
+          spanKm={40}
+          debug
+          fullscreenable
+          liveLabel={{ active: `${liveCount} buses live`, empty: "No live buses" }}
+        />
+      </div>
+    </section>
   );
 }
 
