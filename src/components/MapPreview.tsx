@@ -1127,43 +1127,50 @@ class AnimatedBus {
 
     if (this.path && this.path.length >= 2) {
       const snap = snapAlong({ lat, lng }, this.path, this.cum);
-      if (snap && snap.perpM <= MAX_SNAP_M) {
-        const pingAlong = snap.along;
+      // Accept the snap if it's within the tight band (high-quality fix)
+      // OR within the loose attach band when we already trust the path
+      // (the path is more reliable than a noisy GPS sample). Either way
+      // we stay on the polyline — never drop to cross-map lerp when a
+      // path exists, since that's what draws lines through buildings.
+      const tightOk = snap && snap.perpM <= MAX_SNAP_M;
+      const looseOk = snap && snap.perpM <= PATH_ATTACH_M;
+
+      if (tightOk || looseOk) {
+        const pingAlong = snap!.along;
         const err = pingAlong - this.displayedAlong;
 
         if (Math.abs(err) > TELEPORT_M) {
-          // Driver detoured, started a new run, or feed reset — snap.
-          this.displayedAlong = pingAlong;
-          this.correctionVel = 0;
+          // Driver detoured, started a new run, or feed reset. Don't hard
+          // snap (that's a visible teleport) — settle quickly instead.
+          this.correctionVel = err / FAST_SETTLE_S;
         } else {
           // Smooth correction: distribute the error over SETTLE_S seconds.
           this.correctionVel = err / SETTLE_S;
         }
 
-        // EMA-smooth the speed so noisy zero / spike samples don't visibly
-        // jolt the glide between feed refreshes.
+        // Trust speed more when the ping was on-path; less when it was loose.
+        const weight = tightOk ? SPEED_SMOOTH : SPEED_SMOOTH * 0.4;
         this.speedMps =
           this.speedMps === 0 && estSpeed > 0
             ? estSpeed
-            : this.speedMps * (1 - SPEED_SMOOTH) + estSpeed * SPEED_SMOOTH;
+            : this.speedMps * (1 - weight) + estSpeed * weight;
 
         this.usePath = true;
         this.setBoarding(this.speedMps < 0.5);
         return;
       }
-      // Ping fell off the polyline. Distrust it: keep gliding on the line
-      // with what we already know, but bleed off any pending correction so
-      // we don't keep drifting on stale error. Slowly fade speed so the
-      // bus eventually parks if the GPS stays bad.
-      if (this.usePath) {
-        this.correctionVel = 0;
-        this.speedMps *= 0.75;
-        if (this.speedMps < 0.4) this.setBoarding(true);
-        return;
-      }
+      // Ping is wildly off the polyline (>PATH_ATTACH_M). Distrust the
+      // sample entirely and keep gliding on the line with what we know.
+      // Bleed correction; fade speed so the bus eventually parks if GPS
+      // stays bad.
+      this.correctionVel = 0;
+      this.speedMps *= 0.75;
+      if (this.speedMps < 0.4) this.setBoarding(true);
+      this.usePath = true;
+      return;
     }
 
-    // -------- Off-path fallback: original ease-tween between pings -------
+    // -------- Off-path fallback (no shape available): ease-tween --------
     this.usePath = false;
     this.fromLat = this.curLat;
     this.fromLng = this.curLng;
