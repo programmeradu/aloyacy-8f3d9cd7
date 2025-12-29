@@ -1241,7 +1241,7 @@ class AnimatedBus {
     // path branch starts from the right place instead of along=0.
     if (this.path && this.path.length >= 2) {
       const snap = snapAlong({ lat, lng }, this.path, this.cum);
-      if (snap && snap.perpM <= MAX_SNAP_M) {
+      if (snap && snap.perpM <= PATH_ATTACH_M) {
         this.displayedAlong = snap.along;
         const seededSpeed = Math.max(0, Math.min(22, speedMps));
         if (seededSpeed > 0.5) {
