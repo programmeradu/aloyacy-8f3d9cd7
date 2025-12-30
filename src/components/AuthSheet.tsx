@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { requestEmailOtp } from "@/lib/otp.functions";
 
 export function AuthSheet({
   open,
@@ -17,6 +19,7 @@ export function AuthSheet({
   const [stage, setStage] = useState<"email" | "code">("email");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const sendOtp = useServerFn(requestEmailOtp);
 
   if (!open) return null;
 
@@ -25,16 +28,12 @@ export function AuthSheet({
     setBusy(true);
     setError(null);
     try {
-      const { error: err } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          // Omit emailRedirectTo so Supabase sends the 6-digit code
-          // template instead of a magic-link redirect (which would open a
-          // browser tab outside the PWA and create a separate session).
-          shouldCreateUser: true,
-        },
-      });
-      if (err) throw err;
+      // Use our project-specific OTP delivery (server generates the code via
+      // the Supabase Admin API and emails it via Resend). This bypasses the
+      // default Supabase auth email sender entirely so the code is always
+      // present in the email regardless of template configuration.
+      const r = await sendOtp({ data: { email: email.trim() } });
+      if (!r.ok) throw new Error(r.error);
       setStage("code");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send code");
