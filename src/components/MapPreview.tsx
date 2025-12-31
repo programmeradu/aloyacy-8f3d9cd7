@@ -1,7 +1,8 @@
 /// <reference types="google.maps" />
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { MarkerClusterer, SuperClusterAlgorithm } from "@googlemaps/markerclusterer";
+import markerClustererPkg, { type MarkerClusterer as MarkerClustererType } from "@googlemaps/markerclusterer";
+const { MarkerClusterer, SuperClusterAlgorithm } = markerClustererPkg;
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER, getStop, getRoute } from "@/lib/gtfs";
 import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
@@ -143,7 +144,7 @@ export function MapPreview({
   const layerRef = useRef<{
     polyline?: google.maps.Polyline;
     markers: google.maps.Marker[];
-    clusterer?: MarkerClusterer;
+    clusterer?: MarkerClustererType;
   }>({ markers: [] });
   // Per-vehicle OverlayView state lives outside React so animation can keep
   // tweening smoothly between feed refreshes without rerendering.
