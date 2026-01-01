@@ -60,12 +60,14 @@ export function useProSubscription() {
     };
   }, [user]);
 
+  // Business rule: cancellation revokes Pro immediately — no end-of-period
+  // grace. If the customer cancels (status=canceled or cancel_at_period_end),
+  // Pro features lock instantly even if Stripe is still in the billed window.
   const isActive = (() => {
     if (!sub) return false;
+    if (sub.cancel_at_period_end) return false;
     const endOk = !sub.current_period_end || new Date(sub.current_period_end) > new Date();
-    if (ACTIVE_STATUSES.has(sub.status) && endOk) return true;
-    if (sub.status === "canceled" && endOk) return true;
-    return false;
+    return ACTIVE_STATUSES.has(sub.status) && endOk;
   })();
 
   return { isPro: isActive, sub, loading };
