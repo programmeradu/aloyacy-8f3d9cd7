@@ -127,7 +127,35 @@ function Plan() {
     return () => window.clearTimeout(t);
   }, [results, planQuery]);
 
-  // Try to seed origin from geolocation once.
+  // If the user arrived from the NL planner or a learned-commute card, the
+  // resolved Points were stashed in sessionStorage. Apply them once on mount;
+  // they take precedence over the geolocation default.
+  const consumedNlPlanRef = useRef(false);
+  useEffect(() => {
+    if (consumedNlPlanRef.current || typeof window === "undefined") return;
+    consumedNlPlanRef.current = true;
+    try {
+      const raw = sessionStorage.getItem("aloya:nl-plan");
+      if (!raw) return;
+      sessionStorage.removeItem("aloya:nl-plan");
+      const plan = JSON.parse(raw) as {
+        from: Point | null;
+        to: Point;
+        leaveByISO?: string | null;
+        arriveByISO?: string | null;
+      };
+      if (plan?.to) {
+        setDestination(plan.to);
+        pushRecent({ name: plan.to.label, lat: plan.to.lat, lng: plan.to.lng });
+      }
+      if (plan?.from) {
+        setOrigin(plan.from);
+        setActive(null);
+      }
+    } catch {}
+  }, []);
+
+  // Try to seed origin from geolocation once (skipped if NL plan provided one).
   useEffect(() => {
     if (origin || typeof window === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
