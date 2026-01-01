@@ -1,76 +1,170 @@
-// Natural-language trip planner card. Users type "tomorrow morning to
-// Larnaca airport from my place" and we parse it into a structured
-// intent, then hand off to /trips with prefilled fields.
+// Natural-language trip planner card.
+//
+// What it actually does (not for show):
+// 1. Parse free text → structured TripIntent via the AI gateway.
+// 2. Geocode the parsed "to" (and "from" when given as a real place) using
+//    Google Places via our maps server fns — biased to Cyprus/Nicosia.
+// 3. Stash the resolved Points (plus optional leaveBy/arriveBy) into
+//    sessionStorage and navigate to /trips, which picks them up on mount
+//    and feeds them directly into planMultiLeg.
+//
+// Vague self-references ("my place", "home", "work", "current location")
+// are treated as "use device location" — /trips already detects that.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { parseTripIntent, type TripIntent } from "@/lib/ai-planner.functions";
+import { autocompletePlaces, getPlace } from "@/lib/maps.functions";
 import { track, trackImpression } from "@/lib/analytics";
+import { NICOSIA_CENTER } from "@/lib/gtfs";
 import { IconArrowUpRight, IconSearch } from "@/components/Icons";
 
 const EXAMPLES = [
   "to Larnaca airport tomorrow 7am",
   "leave at 8:30 to the University",
-  "get me to Eleftheria Square in 20 min",
+  "Eleftheria Square in 20 min",
 ];
+
+const SELF_REFS = new Set([
+  "my place",
+  "home",
+  "my home",
+  "work",
+  "my work",
+  "office",
+  "my office",
+  "current location",
+  "my location",
+  "here",
+]);
+
+type ResolvedPoint = { lat: number; lng: number; label: string };
 
 export function NLPlannerCard() {
   const navigate = useNavigate();
   const parse = useServerFn(parseTripIntent);
+  const acFn = useServerFn(autocompletePlaces);
+  const placeFn = useServerFn(getPlace);
+
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState<"idle" | "parsing" | "locating" | "ready">(
+    "idle",
+  );
   const [intent, setIntent] = useState<TripIntent | null>(null);
+  const [resolved, setResolved] = useState<{
+    from: ResolvedPoint | null; // null = use device location
+    to: ResolvedPoint;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     trackImpression("ui:nl-planner.impression");
+    return () => abortRef.current?.abort();
   }, []);
+
+  async function geocodeOne(
+    query: string,
+  ): Promise<ResolvedPoint | null> {
+    const ac = await acFn({ data: { query, bias: NICOSIA_CENTER } });
+    const first = ac.suggestions?.[0];
+    if (!first) return null;
+    const place = await placeFn({ data: { placeId: first.placeId } });
+    return { lat: place.lat, lng: place.lng, label: place.name || first.primary };
+  }
 
   async function submit(value: string) {
     const t = value.trim();
     if (t.length < 3) return;
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
     setBusy(true);
     setError(null);
     setIntent(null);
+    setResolved(null);
+    setStage("parsing");
     track("ai:nl-planner.submit", { length: t.length });
+
     try {
       const tz = -new Date().getTimezoneOffset();
       const result = await parse({
-        data: {
-          text: t,
-          nowISO: new Date().toISOString(),
-          tzOffsetMin: tz,
-        },
+        data: { text: t, nowISO: new Date().toISOString(), tzOffsetMin: tz },
       });
       if (!result || result.confidence < 0.3 || !result.to) {
-        track("ai:nl-planner.parse-failed", { confidence: result?.confidence ?? 0 });
+        track("ai:nl-planner.parse-failed", {
+          confidence: result?.confidence ?? 0,
+        });
         setError("I couldn't read that as a trip. Try a place name.");
+        setStage("idle");
         return;
       }
+      setIntent(result);
       track("ai:nl-planner.parsed", {
         confidence: result.confidence,
         hasFrom: !!result.from,
         hasArriveBy: !!result.arriveByISO,
         hasLeaveBy: !!result.leaveByISO,
       });
-      setIntent(result);
-    } catch {
+
+      // Geocode the destination (required) and origin (optional, only if it's
+      // a real place — self-references fall back to device location).
+      setStage("locating");
+      const toQuery = result.to;
+      const fromRaw = result.from?.trim().toLowerCase();
+      const fromIsSelf = !result.from || (fromRaw && SELF_REFS.has(fromRaw));
+
+      const [destination, originMaybe] = await Promise.all([
+        geocodeOne(toQuery),
+        fromIsSelf || !result.from ? Promise.resolve(null) : geocodeOne(result.from),
+      ]);
+
+      if (!destination) {
+        track("ai:nl-planner.geocode-failed", { which: "to" });
+        setError(`I couldn't find "${toQuery}" in Cyprus. Try a more specific name.`);
+        setStage("idle");
+        return;
+      }
+
+      setResolved({ from: originMaybe, to: destination });
+      setStage("ready");
+      track("ai:nl-planner.geocoded", { hasFrom: !!originMaybe });
+    } catch (err) {
+      console.warn("[nl-planner] failed", err);
       track("ai:nl-planner.error");
       setError("Something went wrong. Try again.");
+      setStage("idle");
     } finally {
       setBusy(false);
     }
   }
 
   function go() {
-    if (!intent?.to) return;
+    if (!resolved) return;
     track("ui:nl-planner.plan-tap");
     try {
-      sessionStorage.setItem("aloya:nl-intent", JSON.stringify(intent));
+      sessionStorage.setItem(
+        "aloya:nl-plan",
+        JSON.stringify({
+          from: resolved.from,
+          to: resolved.to,
+          leaveByISO: intent?.leaveByISO ?? null,
+          arriveByISO: intent?.arriveByISO ?? null,
+          rawText: text.trim(),
+        }),
+      );
     } catch {}
     navigate({ to: "/trips" });
   }
+
+  const stageLabel =
+    stage === "parsing"
+      ? "Reading…"
+      : stage === "locating"
+        ? "Finding stops…"
+        : "Plan";
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-aegean-pale via-card to-card ring-1 ring-line">
@@ -107,11 +201,11 @@ export function NLPlannerCard() {
             disabled={busy || text.trim().length < 3}
             className="rounded-2xl bg-ink text-bg font-mono text-[11px] uppercase tracking-[0.16em] px-4 disabled:opacity-50"
           >
-            {busy ? "…" : "Plan"}
+            {busy ? stageLabel : "Plan"}
           </button>
         </form>
 
-        {!intent && !busy && (
+        {!intent && !busy && !resolved && (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {EXAMPLES.map((ex) => (
               <button
@@ -133,19 +227,19 @@ export function NLPlannerCard() {
           <p className="mt-3 text-[12px] text-ochre font-sans">{error}</p>
         )}
 
-        {intent && (
+        {resolved && (
           <div className="mt-4 rounded-2xl bg-bg ring-1 ring-line p-3 animate-rise">
             <div className="flex items-baseline justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
                   Got it
                 </p>
-                <p className="font-display text-lg text-ink leading-tight mt-0.5">
-                  {intent.from ?? "Your location"}
+                <p className="font-display text-lg text-ink leading-tight mt-0.5 truncate">
+                  {resolved.from?.label ?? "Your location"}
                   <span className="text-ink-soft mx-1.5">to</span>
-                  {intent.to}
+                  {resolved.to.label}
                 </p>
-                {(intent.arriveByISO || intent.leaveByISO) && (
+                {(intent?.arriveByISO || intent?.leaveByISO) && (
                   <p className="font-mono text-[11px] text-aegean-deep mt-1">
                     {intent.arriveByISO
                       ? `Arrive by ${formatWhen(intent.arriveByISO)}`
