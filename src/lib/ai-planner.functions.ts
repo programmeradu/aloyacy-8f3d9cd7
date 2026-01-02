@@ -94,14 +94,7 @@ export const parseTripIntent = createServerFn({ method: "POST" })
               content: buildUserPrompt(data.text, data.nowISO, data.tzOffsetMin),
             },
           ],
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: "trip_intent",
-              strict: true,
-              schema: responseSchemaJSON,
-            },
-          },
+          response_format: { type: "json_object" },
         }),
       });
       if (!res.ok) {
