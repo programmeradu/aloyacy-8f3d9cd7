@@ -85,7 +85,7 @@ export const parseTripIntent = createServerFn({ method: "POST" })
         },
         signal: AbortSignal.timeout(10_000),
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
+          model: "google/gemini-2.5-flash",
           temperature: 0.2,
           messages: [
             { role: "system", content: SYSTEM },
