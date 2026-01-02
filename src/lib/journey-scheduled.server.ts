@@ -30,10 +30,12 @@ export type ScheduledDiagnostics = RaptorDiagnostics & {
 export async function planMultiLegScheduled(
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
-  opts?: { departureUnix?: number },
+  opts?: { departureUnix?: number; date?: string },
 ): Promise<{ itineraries: Itinerary[]; diagnostics: ScheduledDiagnostics }> {
   const departureUnix = opts?.departureUnix ?? Math.floor(Date.now() / 1000);
-  const date = todayLocalDate();
+  // Derive service date from the departure time (Cyprus local), so "tomorrow 7am"
+  // loads tomorrow's shard, not today's.
+  const date = opts?.date ?? localDateForUnix(departureUnix);
 
   const tLoad0 = Date.now();
   const schedule = await loadScheduleForDate(date);
