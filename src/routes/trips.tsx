@@ -44,6 +44,10 @@ function Plan() {
   const [origin, setOrigin] = useState<Point | null>(null);
   const [destination, setDestination] = useState<Point | null>(null);
   const [active, setActive] = useState<"from" | "to" | null>("to");
+  const [timeIntent, setTimeIntent] = useState<{
+    leaveByISO: string | null;
+    arriveByISO: string | null;
+  } | null>(null);
 
   const planFn = useServerFn(planMultiLeg);
   const reverseFn = useServerFn(reverseLookup);
