@@ -44,6 +44,10 @@ function Plan() {
   const [origin, setOrigin] = useState<Point | null>(null);
   const [destination, setDestination] = useState<Point | null>(null);
   const [active, setActive] = useState<"from" | "to" | null>("to");
+  const [timeIntent, setTimeIntent] = useState<{
+    leaveByISO: string | null;
+    arriveByISO: string | null;
+  } | null>(null);
 
   const planFn = useServerFn(planMultiLeg);
   const reverseFn = useServerFn(reverseLookup);
@@ -86,11 +90,21 @@ function Plan() {
       origin?.lng,
       destination?.lat,
       destination?.lng,
+      timeIntent?.leaveByISO ?? null,
+      timeIntent?.arriveByISO ?? null,
       rtTick,
     ],
     queryFn: async () => {
       if (!origin || !destination) return { itineraries: [] as Itinerary[] };
-      const res = await planFn({ data: { from: origin, to: destination } });
+      const departAtUnix = timeIntent?.leaveByISO
+        ? Math.floor(new Date(timeIntent.leaveByISO).getTime() / 1000)
+        : undefined;
+      const arriveByUnix = timeIntent?.arriveByISO
+        ? Math.floor(new Date(timeIntent.arriveByISO).getTime() / 1000)
+        : undefined;
+      const res = await planFn({
+        data: { from: origin, to: destination, departAtUnix, arriveByUnix },
+      });
       return res;
     },
     enabled: !!origin && !!destination,
@@ -151,6 +165,12 @@ function Plan() {
       if (plan?.from) {
         setOrigin(plan.from);
         setActive(null);
+      }
+      if (plan?.leaveByISO || plan?.arriveByISO) {
+        setTimeIntent({
+          leaveByISO: plan.leaveByISO ?? null,
+          arriveByISO: plan.arriveByISO ?? null,
+        });
       }
     } catch {}
   }, []);
@@ -243,6 +263,13 @@ function Plan() {
             }}
           />
         </div>
+
+        <TimeIntentChip
+          intent={timeIntent}
+          onChange={setTimeIntent}
+          onClear={() => setTimeIntent(null)}
+        />
+
 
         {active && (
           <PlacesPicker
@@ -809,4 +836,66 @@ function itineraryToJourneyOption(it: Itinerary): JourneyOption | null {
     transfers: it.transfers,
     scheduled: it.source !== "live",
   };
+}
+
+// ── Time intent chip ──────────────────────────────────────────────────────
+// Surfaces a leave-by / arrive-by request from the NL planner so the user
+// knows the trip search is honouring it, and can clear or flip it.
+
+function TimeIntentChip({
+  intent,
+  onChange,
+  onClear,
+}: {
+  intent: { leaveByISO: string | null; arriveByISO: string | null } | null;
+  onChange: (i: { leaveByISO: string | null; arriveByISO: string | null }) => void;
+  onClear: () => void;
+}) {
+  if (!intent || (!intent.leaveByISO && !intent.arriveByISO)) return null;
+  const iso = intent.arriveByISO ?? intent.leaveByISO!;
+  const mode: "arrive" | "leave" = intent.arriveByISO ? "arrive" : "leave";
+  const label = formatIntentLabel(iso);
+  return (
+    <div className="mt-3 flex items-center gap-2 rounded-full bg-aegean-soft/50 ring-1 ring-aegean-soft px-3 py-2">
+      <IconClock className="size-3.5 text-aegean-deep shrink-0" />
+      <button
+        type="button"
+        onClick={() =>
+          onChange(
+            mode === "arrive"
+              ? { leaveByISO: iso, arriveByISO: null }
+              : { leaveByISO: null, arriveByISO: iso },
+          )
+        }
+        className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-aegean-deep hover:text-ink transition"
+        aria-label="Toggle between leave-by and arrive-by"
+      >
+        {mode === "arrive" ? "Arrive by" : "Leave"} {label}
+      </button>
+      <span className="flex-1" />
+      <button
+        type="button"
+        onClick={onClear}
+        className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft hover:text-ink transition"
+        aria-label="Clear time and plan for now"
+      >
+        Now
+      </button>
+    </div>
+  );
+}
+
+function formatIntentLabel(iso: string): string {
+  try {
+    const d = new Date(iso);
+    const today = new Date();
+    const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    if (d.toDateString() === today.toDateString()) return time;
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    if (d.toDateString() === tomorrow.toDateString()) return `tomorrow ${time}`;
+    return `${d.toLocaleDateString([], { weekday: "short" })} ${time}`;
+  } catch {
+    return iso;
+  }
 }
