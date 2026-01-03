@@ -33,7 +33,8 @@ const TOP_DEST_STOPS = 8;
 const MIN_TRANSFER_BUFFER_SEC = 90;
 const MAX_TOTAL_JOURNEY_SEC = 180 * 60; // intercity-friendly
 const TOP_K_RESULTS = 5;
-const SEARCH_HORIZON_SEC = 4 * 3600; // ignore trips departing > 4h ahead
+const DEFAULT_SEARCH_HORIZON_SEC = 4 * 3600; // "leave now" — 4h is plenty
+const EXPLICIT_SEARCH_HORIZON_SEC = 24 * 3600; // when an explicit time is set, scan a full day
 const WALK_M_PER_S = 1.35;
 const WALK_DETOUR = 1.35;
 
@@ -100,7 +101,9 @@ export async function planRaptor(
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
   departureUnix: number,
+  opts?: { searchHorizonSec?: number },
 ): Promise<{ itineraries: Itinerary[]; diagnostics: RaptorDiagnostics }> {
+  const SEARCH_HORIZON_SEC = opts?.searchHorizonSec ?? DEFAULT_SEARCH_HORIZON_SEC;
   const { date, stops, routes, trips, stopTrips, stopTimes } = schedule;
   const diag: RaptorDiagnostics = {
     date,

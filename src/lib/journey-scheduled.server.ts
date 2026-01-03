@@ -35,10 +35,16 @@ export type ScheduledDiagnostics = RaptorDiagnostics & {
   itinerariesDroppedAfterRefine: number;
 };
 
+export class NoScheduleAvailableError extends Error {
+  constructor(public date: string) {
+    super(`No timetable shard for ${date}`);
+  }
+}
+
 export async function planMultiLegScheduled(
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
-  opts?: { departureUnix?: number; date?: string },
+  opts?: { departureUnix?: number; date?: string; explicitTime?: boolean },
 ): Promise<{ itineraries: Itinerary[]; diagnostics: ScheduledDiagnostics }> {
   const departureUnix = opts?.departureUnix ?? Math.floor(Date.now() / 1000);
   // Derive service date from the departure time (Cyprus local), so "tomorrow 7am"
@@ -46,11 +52,27 @@ export async function planMultiLegScheduled(
   const date = opts?.date ?? localDateForUnix(departureUnix);
 
   const tLoad0 = Date.now();
-  const schedule = await loadScheduleForDate(date);
+  let schedule;
+  try {
+    schedule = await loadScheduleForDate(date);
+  } catch (err) {
+    const msg = (err as Error).message || "";
+    // Loader reports "→ 404" when the shard isn't published yet.
+    if (/→\s*404/.test(msg) || /404/.test(msg)) {
+      throw new NoScheduleAvailableError(date);
+    }
+    throw err;
+  }
   const loadMs = Date.now() - tLoad0;
 
   const tRap0 = Date.now();
-  const { itineraries, diagnostics } = await planRaptor(schedule, from, to, departureUnix);
+  const { itineraries, diagnostics } = await planRaptor(
+    schedule,
+    from,
+    to,
+    departureUnix,
+    opts?.explicitTime ? { searchHorizonSec: 24 * 3600 } : undefined,
+  );
   const raptorMs = Date.now() - tRap0;
 
   // ---- Realtime overlay --------------------------------------------------
