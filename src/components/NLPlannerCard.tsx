@@ -16,10 +16,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { parseTripIntent, type TripIntent } from "@/lib/ai-planner.functions";
 import { autocompletePlaces, getPlace } from "@/lib/maps.functions";
+import { getNlSuggestions } from "@/lib/nl-suggestions.functions";
 import { track, trackImpression } from "@/lib/analytics";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
+import { getDeviceId, getDeviceToken } from "@/lib/pwa";
 import {
   IconArrowUp,
   IconClose,
@@ -28,10 +31,11 @@ import {
   IconClockSmall,
 } from "@/components/Icons";
 
-const EXAMPLES = [
+// Generic cold-start fallbacks. Used only when the server-side suggestion
+// fetch fails entirely; the hook below populates real, dynamic chips.
+const FALLBACK_EXAMPLES = [
+  "to Eleftheria Square in 20 min",
   "to Larnaca airport tomorrow 7am",
-  "leave at 8:30 to the University",
-  "Eleftheria Square in 20 min",
 ];
 
 const SELF_REFS = new Set([
@@ -169,6 +173,7 @@ export function NLPlannerCard() {
   const parse = useServerFn(parseTripIntent);
   const acFn = useServerFn(autocompletePlaces);
   const placeFn = useServerFn(getPlace);
+  const suggestFn = useServerFn(getNlSuggestions);
 
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -180,9 +185,46 @@ export function NLPlannerCard() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const recRef = useRef<SpeechRec | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // Best-effort geolocation, never blocks rendering. Powers location-aware
+  // suggestions; absence just degrades them to time-of-day defaults.
+  useEffect(() => {
+    if (typeof window === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { timeout: 4000, maximumAge: 5 * 60_000 },
+    );
+  }, []);
+
+  const suggestionsQuery = useQuery({
+    queryKey: ["nl-suggestions", coords?.lat ?? null, coords?.lng ?? null, new Date().getHours()],
+    queryFn: async () => {
+      const token = await getDeviceToken().catch(() => null);
+      if (!token) return { suggestions: [] };
+      const now = new Date();
+      return suggestFn({
+        data: {
+          deviceId: getDeviceId(),
+          deviceToken: token,
+          lat: coords?.lat ?? null,
+          lng: coords?.lng ?? null,
+          hour: now.getHours(),
+          dow: now.getDay(),
+        },
+      });
+    },
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
+    enabled: typeof window !== "undefined",
+  });
+  const examples =
+    suggestionsQuery.data?.suggestions?.map((s) => s.text) ??
+    (suggestionsQuery.isLoading ? [] : FALLBACK_EXAMPLES);
 
   useEffect(() => {
     trackImpression("ui:nl-planner.impression");
@@ -442,27 +484,38 @@ export function NLPlannerCard() {
           )}
         </form>
 
-        {/* Examples — only when idle */}
+        {/* Dynamic suggestions — only when idle */}
         {!intent && !busy && !resolved && !error && (
           <div className="mt-4">
             <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft mb-2">
-              Try
+              {suggestionsQuery.data?.suggestions?.[0]?.reason === "personal"
+                ? "For you"
+                : suggestionsQuery.data?.suggestions?.[0]?.reason === "trending"
+                  ? "Trending now"
+                  : "Try"}
             </p>
             <div className="flex flex-col gap-1.5">
-              {EXAMPLES.map((ex) => (
-                <button
-                  key={ex}
-                  type="button"
-                  onClick={() => {
-                    setText(ex);
-                    submit(ex);
-                  }}
-                  className="group text-left rounded-xl bg-background ring-1 ring-line px-3 py-2 hover:ring-aegean-deep hover:bg-card transition flex items-center justify-between gap-2"
-                >
-                  <span className="font-sans text-[13px] text-ink">{ex}</span>
-                  <IconArrowUp className="size-3 text-ink-soft rotate-45 group-hover:text-aegean-deep transition" />
-                </button>
-              ))}
+              {suggestionsQuery.isLoading && examples.length === 0
+                ? Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-10 rounded-xl bg-background ring-1 ring-line animate-pulse"
+                    />
+                  ))
+                : examples.map((ex: string) => (
+                    <button
+                      key={ex}
+                      type="button"
+                      onClick={() => {
+                        setText(ex);
+                        submit(ex);
+                      }}
+                      className="group text-left rounded-xl bg-background ring-1 ring-line px-3 py-2 hover:ring-aegean-deep hover:bg-card transition flex items-center justify-between gap-2"
+                    >
+                      <span className="font-sans text-[13px] text-ink">{ex}</span>
+                      <IconArrowUp className="size-3 text-ink-soft rotate-45 group-hover:text-aegean-deep transition" />
+                    </button>
+                  ))}
             </div>
           </div>
         )}

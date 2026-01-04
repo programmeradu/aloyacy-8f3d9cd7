@@ -42,7 +42,7 @@ for (const id of FEED_IDS) {
     );
   }
   if (!existsSync(`${dir}/stop_times.txt`)) {
-    execSync(`nix run nixpkgs#unzip -- -oq "${zip}" -d "${dir}"`, { stdio: "inherit" });
+    execSync(`unzip -oq "${zip}" -d "${dir}"`, { stdio: "inherit" });
   }
 }
 
