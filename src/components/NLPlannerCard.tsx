@@ -16,10 +16,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { parseTripIntent, type TripIntent } from "@/lib/ai-planner.functions";
 import { autocompletePlaces, getPlace } from "@/lib/maps.functions";
+import { getNlSuggestions } from "@/lib/nl-suggestions.functions";
 import { track, trackImpression } from "@/lib/analytics";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
+import { getDeviceId, getDeviceToken } from "@/lib/pwa";
 import {
   IconArrowUp,
   IconClose,
@@ -28,10 +31,11 @@ import {
   IconClockSmall,
 } from "@/components/Icons";
 
-const EXAMPLES = [
+// Generic cold-start fallbacks. Used only when the server-side suggestion
+// fetch fails entirely; the hook below populates real, dynamic chips.
+const FALLBACK_EXAMPLES = [
+  "to Eleftheria Square in 20 min",
   "to Larnaca airport tomorrow 7am",
-  "leave at 8:30 to the University",
-  "Eleftheria Square in 20 min",
 ];
 
 const SELF_REFS = new Set([
