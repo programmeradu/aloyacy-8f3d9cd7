@@ -30,6 +30,7 @@ import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
+import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
 import { Route as ApiPublicHooksDepartureTickRouteImport } from './routes/api/public/hooks/departure-tick'
 
 const WalletRoute = WalletRouteImport.update({
@@ -138,6 +139,12 @@ const ApiPublicHooksTrainRoute = ApiPublicHooksTrainRouteImport.update({
   path: '/api/public/hooks/train',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksIngestScheduleRoute =
+  ApiPublicHooksIngestScheduleRouteImport.update({
+    id: '/api/public/hooks/ingest-schedule',
+    path: '/api/public/hooks/ingest-schedule',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksDepartureTickRoute =
   ApiPublicHooksDepartureTickRouteImport.update({
     id: '/api/public/hooks/departure-tick',
@@ -166,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
+  '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -190,6 +198,7 @@ export interface FileRoutesByTo {
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
+  '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -215,6 +224,7 @@ export interface FileRoutesById {
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
+  '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/departure-tick'
+    | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/departure-tick'
+    | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
   id:
@@ -289,6 +301,7 @@ export interface FileRouteTypes {
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/departure-tick'
+    | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -314,6 +327,7 @@ export interface RootRouteChildren {
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
   ApiPublicHooksDepartureTickRoute: typeof ApiPublicHooksDepartureTickRoute
+  ApiPublicHooksIngestScheduleRoute: typeof ApiPublicHooksIngestScheduleRoute
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -467,6 +481,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTrainRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/ingest-schedule': {
+      id: '/api/public/hooks/ingest-schedule'
+      path: '/api/public/hooks/ingest-schedule'
+      fullPath: '/api/public/hooks/ingest-schedule'
+      preLoaderRoute: typeof ApiPublicHooksIngestScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/departure-tick': {
       id: '/api/public/hooks/departure-tick'
       path: '/api/public/hooks/departure-tick'
@@ -498,19 +519,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
   ApiPublicHooksDepartureTickRoute: ApiPublicHooksDepartureTickRoute,
+  ApiPublicHooksIngestScheduleRoute: ApiPublicHooksIngestScheduleRoute,
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
