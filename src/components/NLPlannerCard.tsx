@@ -484,27 +484,38 @@ export function NLPlannerCard() {
           )}
         </form>
 
-        {/* Examples — only when idle */}
+        {/* Dynamic suggestions — only when idle */}
         {!intent && !busy && !resolved && !error && (
           <div className="mt-4">
             <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft mb-2">
-              Try
+              {suggestionsQuery.data?.suggestions?.[0]?.reason === "personal"
+                ? "For you"
+                : suggestionsQuery.data?.suggestions?.[0]?.reason === "trending"
+                  ? "Trending now"
+                  : "Try"}
             </p>
             <div className="flex flex-col gap-1.5">
-              {EXAMPLES.map((ex) => (
-                <button
-                  key={ex}
-                  type="button"
-                  onClick={() => {
-                    setText(ex);
-                    submit(ex);
-                  }}
-                  className="group text-left rounded-xl bg-background ring-1 ring-line px-3 py-2 hover:ring-aegean-deep hover:bg-card transition flex items-center justify-between gap-2"
-                >
-                  <span className="font-sans text-[13px] text-ink">{ex}</span>
-                  <IconArrowUp className="size-3 text-ink-soft rotate-45 group-hover:text-aegean-deep transition" />
-                </button>
-              ))}
+              {suggestionsQuery.isLoading && examples.length === 0
+                ? Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-10 rounded-xl bg-background ring-1 ring-line animate-pulse"
+                    />
+                  ))
+                : examples.map((ex: string) => (
+                    <button
+                      key={ex}
+                      type="button"
+                      onClick={() => {
+                        setText(ex);
+                        submit(ex);
+                      }}
+                      className="group text-left rounded-xl bg-background ring-1 ring-line px-3 py-2 hover:ring-aegean-deep hover:bg-card transition flex items-center justify-between gap-2"
+                    >
+                      <span className="font-sans text-[13px] text-ink">{ex}</span>
+                      <IconArrowUp className="size-3 text-ink-soft rotate-45 group-hover:text-aegean-deep transition" />
+                    </button>
+                  ))}
             </div>
           </div>
         )}
