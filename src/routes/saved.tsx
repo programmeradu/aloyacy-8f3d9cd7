@@ -11,8 +11,8 @@ import {
 } from "@/lib/trip-store";
 import coast from "@/assets/coast-hero.jpg";
 import { NotificationsCard } from "@/components/NotificationsCard";
-import { ProGate } from "@/components/ProGate";
 import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
+import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
 import { useProPaywall } from "@/lib/useProPaywall";
 
 export const Route = createFileRoute("/saved")({
@@ -154,25 +154,20 @@ function Saved() {
         )}
       </section>
 
-      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "260ms" }}>
-        {isPro ? (
-          <NotificationsCard />
-        ) : (
-          <ProGate feature="Quiet alerts for boarding, stops, and delays">
+      {isPro ? (
+        <>
+          <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "260ms" }}>
             <NotificationsCard />
-          </ProGate>
-        )}
-      </section>
-
-      <section className="mt-6 px-6 pb-12 animate-rise" style={{ animationDelay: "320ms" }}>
-        {isPro ? (
-          <OfflineSchedulesCard />
-        ) : (
-          <ProGate feature="Offline timetables for trips without signal">
+          </section>
+          <section className="mt-6 px-6 pb-12 animate-rise" style={{ animationDelay: "320ms" }}>
             <OfflineSchedulesCard />
-          </ProGate>
-        )}
-      </section>
+          </section>
+        </>
+      ) : (
+        <section className="mt-8 px-6 pb-12 animate-rise" style={{ animationDelay: "260ms" }}>
+          <ProFeaturesUpsell />
+        </section>
+      )}
       {paywall}
     </AppShell>
   );
