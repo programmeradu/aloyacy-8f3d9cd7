@@ -118,7 +118,7 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
                         )}
                       </div>
                       <div className="text-right">
-                        <p className="font-serif text-xl text-ink">{p.price}</p>
+                        <p className="font-display text-xl text-ink">{p.price}</p>
                         <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
                           {p.cadence}
                         </p>
@@ -144,7 +144,8 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
               <p className="mt-6 text-center text-[11px] leading-relaxed text-ink-soft/80">
                 Cancel anytime. Secure checkout by Stripe. Free features stay free, forever.
               </p>
-            </div>
+              </div>
+            </>
           ) : (
             <div className="px-2 pb-6 pt-2">
               <button
