@@ -3,6 +3,7 @@ import { PRO_PLANS, type PlanId } from "@/lib/billing";
 import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "./AuthSheet";
 import { StripeEmbeddedCheckoutPane } from "./StripeEmbeddedCheckout";
+import proHero from "@/assets/pro-hero.jpg";
 
 const FEATURES: { title: string; body: string }[] = [
   {
@@ -55,21 +56,31 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
         onClick={onClose}
       >
         <div
-          className="max-h-[94dvh] w-full max-w-[440px] overflow-y-auto rounded-t-3xl bg-limestone ring-1 ring-line"
+          className="no-scrollbar max-h-[94dvh] w-full max-w-[440px] overflow-y-auto rounded-t-3xl bg-limestone ring-1 ring-line"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="sticky top-0 z-10 bg-limestone/95 px-6 pt-3 backdrop-blur">
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
-          </div>
-
           {stage === "plan" ? (
-            <div className="px-6 pb-8">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre-deep">
-                Aloya Pro
-              </p>
-              <h2 className="mt-2 font-serif text-[2rem] leading-tight text-ink">
-                The whole island,<br />in your pocket.
-              </h2>
+            <>
+              {/* Editorial hero */}
+              <div className="relative h-56 w-full overflow-hidden">
+                <img
+                  src={proHero}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-limestone/10 to-limestone" />
+                <div className="absolute left-1/2 top-3 h-1 w-10 -translate-x-1/2 rounded-full bg-white/70 backdrop-blur" />
+                <div className="absolute bottom-3 left-6 right-6">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ink/80">
+                    Aloya Pro
+                  </p>
+                </div>
+              </div>
+
+              <div className="px-6 pb-10 -mt-2">
+                <h2 className="font-display text-[2.1rem] leading-[1.05] tracking-tight text-ink">
+                  The whole island,<br />in your pocket.
+                </h2>
               <p className="mt-3 text-sm leading-relaxed text-ink-soft">
                 Aloya stays free for everyday rides. Pro adds the features that turn it
                 into a proper navigator — for the cost of two coffees a month.
