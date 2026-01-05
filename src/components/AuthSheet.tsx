@@ -71,7 +71,7 @@ export function AuthSheet({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-line" />
-        <h2 className="font-serif text-2xl text-ink">{title}</h2>
+        <h2 className="font-display text-2xl text-ink">{title}</h2>
         <p className="mt-1 text-sm text-ink-soft">
           {stage === "email"
             ? subtitle
