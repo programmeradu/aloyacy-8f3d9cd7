@@ -48,67 +48,84 @@ export function ProAccountCard() {
     await supabase.auth.signOut();
   }
 
-  return (
-    <div className="relative overflow-hidden rounded-3xl bg-ink px-6 py-7 text-limestone shadow-[0_18px_60px_-24px_rgba(28,30,26,0.5)]">
-      <span className="absolute -right-12 -top-12 size-44 rounded-full bg-aegean-aqua/30 blur-2xl" />
-      <span className="absolute -left-10 bottom-0 size-32 rounded-full bg-ochre-sun/30 blur-3xl" />
+  const renewLabel = renewsAt
+    ? renewsAt.toLocaleDateString(undefined, { day: "numeric", month: "short" })
+    : null;
 
-      <div className="relative">
-        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-ochre-sun">
-          Aloya Pro · Active
-        </p>
-        <p className="mt-3 font-display text-[1.7rem] leading-[1.05]">
+  return (
+    <article className="relative overflow-hidden rounded-2xl bg-ink text-limestone ring-1 ring-ink/60">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-60"
+        style={{
+          background:
+            "radial-gradient(120% 90% at 100% 0%, color-mix(in oklab, var(--color-aegean) 22%, transparent) 0%, transparent 55%), radial-gradient(80% 60% at 0% 120%, color-mix(in oklab, var(--color-ochre) 14%, transparent) 0%, transparent 60%)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-limestone/30 to-transparent"
+      />
+
+      <div className="relative px-4 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="font-display text-[11px] font-medium leading-none tracking-[0.14em] text-limestone/70">
+            Aloya<span className="text-ochre"> Pro</span>
+          </p>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-limestone/[0.08] px-2 py-0.5 text-[10px] font-medium tracking-tight text-limestone/80 ring-1 ring-limestone/15">
+            <span className="h-1.5 w-1.5 rounded-full bg-aegean" />
+            Active
+          </span>
+        </div>
+
+        <p className="mt-3 font-display text-[18px] leading-[1.2] tracking-tight text-limestone">
           Every feature unlocked.
         </p>
 
-        <dl className="mt-6 grid grid-cols-2 gap-y-3 font-mono text-[11px] uppercase tracking-[0.14em] text-limestone/70">
-          <dt>Plan</dt>
-          <dd className="text-right text-limestone">{planLabel}</dd>
-          {sub?.cancel_at_period_end ? (
-            <>
-              <dt>Ends</dt>
-              <dd className="text-right text-limestone">
-                {renewsAt?.toLocaleDateString(undefined, { day: "numeric", month: "short" })}
-              </dd>
-            </>
-          ) : renewsAt ? (
-            <>
-              <dt>Renews</dt>
-              <dd className="text-right text-limestone">
-                {renewsAt.toLocaleDateString(undefined, { day: "numeric", month: "short" })}
-              </dd>
-            </>
-          ) : null}
+        <dl className="mt-3 divide-y divide-limestone/10 border-y border-limestone/10 text-[12.5px]">
+          <div className="flex items-center justify-between py-2">
+            <dt className="text-limestone/55">Plan</dt>
+            <dd className="text-limestone tabular-nums">{planLabel}</dd>
+          </div>
+          {renewLabel && (
+            <div className="flex items-center justify-between py-2">
+              <dt className="text-limestone/55">
+                {sub?.cancel_at_period_end ? "Ends" : "Renews"}
+              </dt>
+              <dd className="text-limestone tabular-nums">{renewLabel}</dd>
+            </div>
+          )}
           {user?.email && (
-            <>
-              <dt>Account</dt>
-              <dd className="truncate text-right text-limestone">{user.email}</dd>
-            </>
+            <div className="flex items-center justify-between gap-3 py-2">
+              <dt className="shrink-0 text-limestone/55">Account</dt>
+              <dd
+                className="min-w-0 truncate text-right text-limestone"
+                title={user.email}
+              >
+                {user.email}
+              </dd>
+            </div>
           )}
         </dl>
 
-        {error && <p className="mt-4 text-[11px] text-ochre-sun">{error}</p>}
+        {error && <p className="mt-3 text-[11px] text-ochre">{error}</p>}
 
-        <div className="mt-6 flex gap-2">
+        <div className="mt-4 flex items-center gap-2">
           <button
             onClick={manage}
             disabled={busy}
-            className="flex-1 rounded-2xl bg-limestone py-3 text-sm font-medium text-ink disabled:opacity-50"
+            className="flex-1 rounded-full bg-limestone px-4 py-2.5 text-[12.5px] font-medium tracking-tight text-ink transition hover:bg-limestone/90 active:scale-[0.98] disabled:opacity-50"
           >
-            {busy ? "Opening…" : "Manage subscription"}
+            {busy ? "Opening…" : "Manage"}
           </button>
           <button
             onClick={signOut}
-            className="rounded-2xl bg-white/10 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-limestone/80 ring-1 ring-white/15"
+            className="rounded-full bg-limestone/[0.08] px-4 py-2.5 text-[12.5px] font-medium tracking-tight text-limestone/80 ring-1 ring-limestone/15 transition hover:bg-limestone/[0.12]"
           >
             Sign out
           </button>
         </div>
-
-        <p className="mt-3 text-center text-[10px] text-limestone/50">
-          Opens Stripe's billing portal in a new tab.
-        </p>
       </div>
-    </div>
+    </article>
   );
 }
