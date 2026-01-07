@@ -112,22 +112,99 @@ async function pushMotionCard(userId: string): Promise<void> {
   if (error) console.warn("[cloud-sync] motion push:", error.message);
 }
 
+// ── Saved places ──────────────────────────────────────────────────────────
+// Local model is freeform (label + tone + pinned). Cloud model constrains
+// `kind` to home/work/custom. We map any label matching /home|work/i to the
+// corresponding cloud kind so the unique (user_id, kind) index works; all
+// others land as "custom" keyed by the local id (stored in `address` as a
+// stable marker — there's no dedicated client-id column).
+function placeKind(p: SavedPlace): "home" | "work" | "custom" {
+  const l = p.label.toLowerCase();
+  if (l === "home") return "home";
+  if (l === "work" || l === "office") return "work";
+  return "custom";
+}
+
+async function pushSavedPlaces(userId: string): Promise<void> {
+  const local = listSavedPlaces();
+  if (!local.length) return;
+  // Upsert each place by (user_id, kind) for home/work, otherwise by id.
+  // We translate local UUID-ish id into the row id so re-syncs are stable.
+  const rows = local.map((p) => ({
+    id: /^[0-9a-f-]{36}$/i.test(p.id) ? p.id : undefined,
+    user_id: userId,
+    kind: placeKind(p),
+    label: p.label.slice(0, 80),
+    lat: p.lat,
+    lng: p.lng,
+    address: p.name,
+  }));
+  const { error } = await supabase.from("saved_places").upsert(rows);
+  if (error) console.warn("[cloud-sync] saved push:", error.message);
+}
+
+async function pullSavedPlaces(userId: string): Promise<void> {
+  const { data, error } = await supabase
+    .from("saved_places")
+    .select("*")
+    .eq("user_id", userId);
+  if (error || !data) return;
+  if (!data.length) {
+    // Cloud empty — migrate local up if any.
+    if (listSavedPlaces().length) await pushSavedPlaces(userId);
+    return;
+  }
+  // Last-write-wins: trust cloud as authoritative for now; do not overwrite
+  // local if every cloud row is older than the local mtime equivalent. We
+  // don't store local mtimes per-place, so prefer cloud when it exists.
+  const mapped: SavedPlace[] = data.map((r) => ({
+    id: r.id,
+    label: r.label,
+    name: r.address || r.label,
+    lat: r.lat,
+    lng: r.lng,
+    tone: r.kind === "home" ? "aegean" : r.kind === "work" ? "ochre" : "olive",
+    pinned: r.kind === "home" || r.kind === "work",
+    createdAt: new Date(r.created_at).getTime(),
+  }));
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem("aloya:saved-places", JSON.stringify(mapped));
+    window.dispatchEvent(
+      new CustomEvent("aloya:store", { detail: { key: "aloya:saved-places" } }),
+    );
+  }
+}
+
 // ── Lifecycle ─────────────────────────────────────────────────────────────
 /** Initial pull for a freshly-signed-in user. Idempotent per user_id. */
 export async function pullAll(userId: string): Promise<void> {
   if (lastPushedUserId === userId) return;
   lastPushedUserId = userId;
-  await pullMotionCard(userId).catch((e) =>
-    console.warn("[cloud-sync] pull motion:", (e as Error).message),
-  );
+  await Promise.all([
+    pullMotionCard(userId).catch((e) =>
+      console.warn("[cloud-sync] pull motion:", (e as Error).message),
+    ),
+    pullSavedPlaces(userId).catch((e) =>
+      console.warn("[cloud-sync] pull saved:", (e as Error).message),
+    ),
+  ]);
 }
 
+let savedPushTimer: number | null = null;
 /** Debounced push triggered by a local change. */
 export function schedulePush(userId: string): void {
   if (typeof window === "undefined") return;
   if (pushTimer != null) window.clearTimeout(pushTimer);
   pushTimer = window.setTimeout(() => {
     void pushMotionCard(userId);
+  }, 1500);
+}
+
+function scheduleSavedPush(userId: string): void {
+  if (typeof window === "undefined") return;
+  if (savedPushTimer != null) window.clearTimeout(savedPushTimer);
+  savedPushTimer = window.setTimeout(() => {
+    void pushSavedPlaces(userId);
   }, 1500);
 }
 
@@ -140,15 +217,31 @@ export function startCloudSync(userId: string): () => void {
   const onMotionChange = () => schedulePush(userId);
   window.addEventListener("aloya:motionpass", onMotionChange);
 
-  const onFocus = () => void pullMotionCard(userId);
+  const onStoreChange = (e: Event) => {
+    const detail = (e as CustomEvent<{ key: string }>).detail;
+    if (!detail || detail.key === "aloya:saved-places") {
+      scheduleSavedPush(userId);
+    }
+  };
+  window.addEventListener("aloya:store", onStoreChange);
+
+  const onFocus = () => {
+    void pullMotionCard(userId);
+    void pullSavedPlaces(userId);
+  };
   window.addEventListener("focus", onFocus);
 
   return () => {
     window.removeEventListener("aloya:motionpass", onMotionChange);
+    window.removeEventListener("aloya:store", onStoreChange);
     window.removeEventListener("focus", onFocus);
     if (pushTimer != null) {
       window.clearTimeout(pushTimer);
       pushTimer = null;
+    }
+    if (savedPushTimer != null) {
+      window.clearTimeout(savedPushTimer);
+      savedPushTimer = null;
     }
   };
 }
