@@ -82,9 +82,15 @@ async function pullMotionCard(userId: string): Promise<void> {
     .select("*")
     .eq("user_id", userId)
     .maybeSingle();
-  if (!data) return;
-  const row = data as MotionRow;
   const local = readPass();
+  if (!data) {
+    // Cloud is empty — migrate the local card up if there is one.
+    if (local.number && local.number.replace(/\D/g, "").length >= 6) {
+      await pushMotionCard(userId);
+    }
+    return;
+  }
+  const row = data as MotionRow;
   const cloudUpdated = new Date(row.updated_at).getTime();
   // If local is fresher, skip pull (push will run separately).
   const localUpdated = Math.max(local.balanceUpdatedAt, local.lastSyncAt);
