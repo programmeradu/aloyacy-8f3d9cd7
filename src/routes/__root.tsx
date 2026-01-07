@@ -14,6 +14,9 @@ import { registerServiceWorker } from "@/lib/pwa";
 import { speak } from "@/lib/speech";
 import { Toaster } from "@/components/ui/sonner";
 import { useUserDataRealtime } from "@/lib/useUserDataRealtime";
+import { bootstrapAnonymousAuth } from "@/lib/anon-auth";
+import { startCloudSync } from "@/lib/cloud-sync";
+import { useAuth } from "@/lib/useAuth";
 
 function NotFoundComponent() {
   return (
@@ -127,6 +130,7 @@ function RootComponent() {
 
   useEffect(() => {
     void registerServiceWorker();
+    void bootstrapAnonymousAuth();
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
     const onMessage = (event: MessageEvent) => {
       const data = event.data as { type?: string; text?: string } | null;
@@ -139,6 +143,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <RealtimeBridge />
+      <CloudSyncBridge />
       <Outlet />
       <Toaster position="top-center" />
     </QueryClientProvider>
@@ -148,5 +153,15 @@ function RootComponent() {
 // Lives inside QueryClientProvider so it can grab the queryClient via hook.
 function RealtimeBridge() {
   useUserDataRealtime();
+  return null;
+}
+
+// Pulls + pushes user-scoped data once we have a session (anonymous or linked).
+function CloudSyncBridge() {
+  const { user } = useAuth();
+  useEffect(() => {
+    if (!user) return;
+    return startCloudSync(user.id);
+  }, [user]);
   return null;
 }
