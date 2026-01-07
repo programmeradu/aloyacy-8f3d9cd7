@@ -14,6 +14,9 @@ import { registerServiceWorker } from "@/lib/pwa";
 import { speak } from "@/lib/speech";
 import { Toaster } from "@/components/ui/sonner";
 import { useUserDataRealtime } from "@/lib/useUserDataRealtime";
+import { bootstrapAnonymousAuth } from "@/lib/anon-auth";
+import { startCloudSync } from "@/lib/cloud-sync";
+import { useAuth } from "@/lib/useAuth";
 
 function NotFoundComponent() {
   return (
