@@ -145,6 +145,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <RealtimeBridge />
       <CloudSyncBridge />
+      <OnboardingGate />
       <Outlet />
       <Toaster position="top-center" />
     </QueryClientProvider>
