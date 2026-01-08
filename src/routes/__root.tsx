@@ -17,6 +17,7 @@ import { useUserDataRealtime } from "@/lib/useUserDataRealtime";
 import { bootstrapAnonymousAuth } from "@/lib/anon-auth";
 import { startCloudSync } from "@/lib/cloud-sync";
 import { useAuth } from "@/lib/useAuth";
+import { OnboardingGate } from "@/components/OnboardingGate";
 
 function NotFoundComponent() {
   return (
