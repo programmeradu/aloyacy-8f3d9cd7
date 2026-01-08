@@ -30,8 +30,8 @@ export function setLocale(next: Locale): void {
 import { en } from "./dictionaries/en";
 import { el } from "./dictionaries/el";
 
-export type Dictionary = typeof en;
-export type DictKey = keyof Dictionary;
+export type Dictionary = Record<keyof typeof en, string>;
+export type DictKey = keyof typeof en;
 
 const dicts: Record<Locale, Dictionary> = { en, el };
 
