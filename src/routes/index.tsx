@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
 import { Logo } from "@/components/Logo";
 import { WeatherStamp } from "@/components/WeatherStamp";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { MapPreview } from "@/components/MapPreview";
 import { StopCard, type Stop } from "@/components/StopCard";
 import { NLPlannerCard } from "@/components/NLPlannerCard";
@@ -223,15 +224,18 @@ function Explore() {
   return (
     <AppShell>
       <header className="px-6 pt-3 pb-2 animate-rise">
-        <div className="mb-7 flex items-start justify-between">
+        <div className="mb-7 flex items-start justify-between gap-3">
           <Logo />
-          <WeatherStamp
-            dayLabel={dayLabel}
-            tempC={mounted && weather ? weather.tempC : null}
-            iconKey={weather?.iconKey}
-            Icon={WxIcon}
-            tone={wxTone}
-          />
+          <div className="flex items-center gap-2">
+            <LocaleSwitcher />
+            <WeatherStamp
+              dayLabel={dayLabel}
+              tempC={mounted && weather ? weather.tempC : null}
+              iconKey={weather?.iconKey}
+              Icon={WxIcon}
+              tone={wxTone}
+            />
+          </div>
         </div>
 
 

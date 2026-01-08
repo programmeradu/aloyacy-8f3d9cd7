@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as TripsRouteImport } from './routes/trips'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as QaRouteImport } from './routes/qa'
 import { Route as PulseRouteImport } from './routes/pulse'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
@@ -43,6 +45,11 @@ const TripsRoute = TripsRouteImport.update({
   path: '/trips',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
   path: '/saved',
@@ -56,6 +63,11 @@ const QaRoute = QaRouteImport.update({
 const PulseRoute = PulseRouteImport.update({
   id: '/pulse',
   path: '/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -154,9 +166,11 @@ const ApiPublicHooksDepartureTickRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
   '/saved': typeof SavedRoute
+  '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -179,9 +193,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
   '/saved': typeof SavedRoute
+  '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -205,9 +221,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
   '/saved': typeof SavedRoute
+  '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -232,9 +250,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/privacy'
     | '/pulse'
     | '/qa'
     | '/saved'
+    | '/terms'
     | '/trips'
     | '/wallet'
     | '/checkout/return'
@@ -257,9 +277,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/privacy'
     | '/pulse'
     | '/qa'
     | '/saved'
+    | '/terms'
     | '/trips'
     | '/wallet'
     | '/checkout/return'
@@ -282,9 +304,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/privacy'
     | '/pulse'
     | '/qa'
     | '/saved'
+    | '/terms'
     | '/trips'
     | '/wallet'
     | '/checkout/return'
@@ -308,9 +332,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PrivacyRoute: typeof PrivacyRoute
   PulseRoute: typeof PulseRoute
   QaRoute: typeof QaRoute
   SavedRoute: typeof SavedRoute
+  TermsRoute: typeof TermsRoute
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -348,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TripsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/saved': {
       id: '/saved'
       path: '/saved'
@@ -367,6 +400,13 @@ declare module '@tanstack/react-router' {
       path: '/pulse'
       fullPath: '/pulse'
       preLoaderRoute: typeof PulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -500,9 +540,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PrivacyRoute: PrivacyRoute,
   PulseRoute: PulseRoute,
   QaRoute: QaRoute,
   SavedRoute: SavedRoute,
+  TermsRoute: TermsRoute,
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
