@@ -15,7 +15,8 @@ import {
 import { saveSubscription } from "@/lib/push.functions";
 import imgLocation from "@/assets/welcome-location.jpg";
 import imgNotifications from "@/assets/welcome-notifications.jpg";
-import imgCard from "@/assets/welcome-card.jpg";
+import { MotionCard } from "@/components/wallet/MotionCard";
+import type { MotionPass } from "@/lib/motion-pass";
 
 export const Route = createFileRoute("/welcome")({
   head: () => ({
