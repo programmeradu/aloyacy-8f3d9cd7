@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as TripsRouteImport } from './routes/trips'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -35,6 +36,11 @@ import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hoo
 import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
 import { Route as ApiPublicHooksDepartureTickRouteImport } from './routes/api/public/hooks/departure-tick'
 
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/welcome': typeof WelcomeRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/welcome': typeof WelcomeRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/welcome': typeof WelcomeRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
@@ -257,6 +266,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trips'
     | '/wallet'
+    | '/welcome'
     | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trips'
     | '/wallet'
+    | '/welcome'
     | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trips'
     | '/wallet'
+    | '/welcome'
     | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
@@ -339,6 +351,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
+  WelcomeRoute: typeof WelcomeRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DebugEtaRoute: typeof DebugEtaRoute
   DebugGraphRoute: typeof DebugGraphRoute
@@ -360,6 +373,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/wallet': {
       id: '/wallet'
       path: '/wallet'
@@ -547,6 +567,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
+  WelcomeRoute: WelcomeRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   DebugEtaRoute: DebugEtaRoute,
   DebugGraphRoute: DebugGraphRoute,
