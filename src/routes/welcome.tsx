@@ -15,7 +15,8 @@ import {
 import { saveSubscription } from "@/lib/push.functions";
 import imgLocation from "@/assets/welcome-location.jpg";
 import imgNotifications from "@/assets/welcome-notifications.jpg";
-import imgCard from "@/assets/welcome-card.jpg";
+import { MotionCard } from "@/components/wallet/MotionCard";
+import type { MotionPass } from "@/lib/motion-pass";
 
 export const Route = createFileRoute("/welcome")({
   head: () => ({
@@ -234,13 +235,30 @@ function CardStep({ onFinish }: { onFinish: () => void }) {
     onFinish();
   };
 
+  const previewPass: MotionPass = {
+    number: digits || "0000000000000000",
+    holder: "",
+    tier: "18+ Standard",
+    validUntil: "—/—/——",
+    balanceEur: 0,
+    balanceUpdatedAt: 0,
+    topups: [],
+    transactions: [],
+    lastSyncAt: 0,
+  };
+
   return (
     <StepShell
       eyebrow={t("welcome.card.eyebrow")}
       title={t("welcome.card.title")}
       body={t("welcome.card.body")}
-      image={imgCard}
-      imageAlt="A hand holding a transit card up to a glowing reader, painterly"
+      visual={
+        <div className="px-6 py-8">
+          <div className="mx-auto w-full max-w-[320px] pointer-events-none">
+            <MotionCard pass={previewPass} onTap={() => {}} />
+          </div>
+        </div>
+      }
       primary={
         <>
           <label className="block">
@@ -284,27 +302,35 @@ function StepShell({
   body,
   image,
   imageAlt,
+  visual,
   primary,
   secondary,
 }: {
   eyebrow: string;
   title: string;
   body: string;
-  image: string;
-  imageAlt: string;
+  image?: string;
+  imageAlt?: string;
+  visual?: React.ReactNode;
   primary: React.ReactNode;
   secondary: React.ReactNode;
 }) {
   return (
     <>
       <div className="mt-5 overflow-hidden rounded-[28px] border border-ink/8 bg-white/40 shadow-[0_30px_60px_-40px_rgba(20,20,20,0.25)]">
-        <img
-          src={image}
-          alt={imageAlt}
-          width={1024}
-          height={1280}
-          className="aspect-[4/5] w-full object-cover"
-        />
+        {visual ? (
+          <div className="flex aspect-[4/5] w-full items-center justify-center">
+            {visual}
+          </div>
+        ) : (
+          <img
+            src={image}
+            alt={imageAlt}
+            width={1024}
+            height={1280}
+            className="aspect-[4/5] w-full object-cover"
+          />
+        )}
       </div>
 
       <div className="mt-6">
