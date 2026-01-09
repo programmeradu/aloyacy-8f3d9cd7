@@ -302,27 +302,35 @@ function StepShell({
   body,
   image,
   imageAlt,
+  visual,
   primary,
   secondary,
 }: {
   eyebrow: string;
   title: string;
   body: string;
-  image: string;
-  imageAlt: string;
+  image?: string;
+  imageAlt?: string;
+  visual?: React.ReactNode;
   primary: React.ReactNode;
   secondary: React.ReactNode;
 }) {
   return (
     <>
       <div className="mt-5 overflow-hidden rounded-[28px] border border-ink/8 bg-white/40 shadow-[0_30px_60px_-40px_rgba(20,20,20,0.25)]">
-        <img
-          src={image}
-          alt={imageAlt}
-          width={1024}
-          height={1280}
-          className="aspect-[4/5] w-full object-cover"
-        />
+        {visual ? (
+          <div className="flex aspect-[4/5] w-full items-center justify-center">
+            {visual}
+          </div>
+        ) : (
+          <img
+            src={image}
+            alt={imageAlt}
+            width={1024}
+            height={1280}
+            className="aspect-[4/5] w-full object-cover"
+          />
+        )}
       </div>
 
       <div className="mt-6">
