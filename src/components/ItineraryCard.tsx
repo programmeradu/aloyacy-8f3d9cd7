@@ -77,10 +77,10 @@ export function ItineraryCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
-            {highlight ? "Fastest realistic" : "Alternative"} — {sourceLabel}
+          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-ink-soft">
+            {sourceLabel}
           </p>
-          <h3 className="mt-1 font-display text-[26px] leading-tight text-ink text-pretty">
+          <h3 className="mt-1.5 font-display text-[24px] font-semibold leading-tight text-ink text-pretty">
             {itinerary.transfers === 0 ? (
               <>
                 Board at{" "}
@@ -99,16 +99,16 @@ export function ItineraryCard({
         </div>
         <div className="text-right shrink-0">
           <p
-            className={`font-display text-4xl leading-none tabular-nums ${
+            className={`font-display text-[40px] font-semibold leading-none tabular-nums ${
               highlight ? "text-aegean-deep" : "text-ink"
             }`}
           >
             {totalMin}
-            <span className="ml-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+            <span className="ml-1 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-ink-soft">
               min
             </span>
           </p>
-          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
+          <p className="mt-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-ink-soft tabular-nums">
             arr {fmtTime(itinerary.arrivalUnix)}
           </p>
         </div>
@@ -119,7 +119,7 @@ export function ItineraryCard({
         {rides.map((r, i) => (
           <span key={i} className="inline-flex items-center gap-2">
             {i > 0 ? (
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
+              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-ink-soft">
                 change
               </span>
             ) : null}
@@ -127,7 +127,7 @@ export function ItineraryCard({
           </span>
         ))}
         <span
-          className={`ml-auto font-mono text-[10px] uppercase tracking-[0.18em] ${
+          className={`ml-auto font-mono text-[10px] font-medium uppercase tracking-[0.18em] ${
             reliability.tone === "ochre"
               ? "text-ochre"
               : reliability.tone === "olive"
@@ -144,11 +144,10 @@ export function ItineraryCard({
       {/* Timeline (collapsible) */}
       <button
         onClick={() => setExpanded((x) => !x)}
-        className="mt-4 flex w-full items-center justify-between font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft hover:text-ink"
+        className="mt-4 flex w-full items-center justify-between font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
       >
         <span>
-          {itinerary.legs.length} step{itinerary.legs.length === 1 ? "" : "s"} ·{" "}
-          walk {Math.round(itinerary.totalWalkMeters)} m
+          {Math.round(itinerary.totalWalkMeters)} m walk
         </span>
         <span>{expanded ? "Hide" : "Details"}</span>
       </button>
@@ -156,44 +155,46 @@ export function ItineraryCard({
       {expanded ? (
         <ol className="mt-3 border-l border-line ml-2 pl-4 space-y-3">
           {itinerary.legs.map((leg, i) => (
-            <li key={i} className="text-[12.5px] leading-snug">
+            <li key={i} className="text-[13px] leading-snug">
               {leg.kind === "ride" ? (
                 <div>
-                  <p className="text-ink">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-aegean-deep mr-2 tabular-nums">
+                  <p className="text-ink font-medium">
+                    <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-aegean-deep mr-2 tabular-nums">
                       {leg.routeShort}
                     </span>
-                    {leg.board.name}
+                    {leg.board.name.split(",")[0]}
                     <span className="text-ink-soft"> → </span>
-                    {leg.alight.name}
+                    {leg.alight.name.split(",")[0]}
                   </p>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mt-0.5 tabular-nums">
+                  <p className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-ink-soft mt-1 tabular-nums">
                     {fmtTime(leg.board.departureUnix)} —{" "}
                     {fmtTime(leg.alight.arrivalUnix)} · {leg.stopCount} stops
-                    {leg.live ? " · live" : leg.delaySec ? " · predicted" : ""}
+                    {leg.live ? " · live" : ""}
                   </p>
                 </div>
               ) : leg.kind === "walk" ? (
-                <p className="text-ink-soft">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] mr-2 text-ink tabular-nums">
-                    walk {leg.verified ? "" : "≈"}
-                    {fmtMin(leg.durationSec)}
+                <p className="text-ink">
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] mr-2 text-ink tabular-nums">
+                    walk {fmtMin(leg.durationSec)}
                   </span>
-                  {leg.from.name} → {leg.to.name}
-                  <span className="text-ink-soft/70"> · {leg.distanceMeters} m</span>
+                  <span className="text-ink-soft">
+                    {leg.from.name.split(",")[0]} → {leg.to.name.split(",")[0]}
+                  </span>
                 </p>
               ) : (
-                <p className="text-ink-soft">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] mr-2 text-ink tabular-nums">
+                <p className="text-ink">
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] mr-2 text-ink tabular-nums">
                     wait {fmtMin(leg.durationSec)}
                   </span>
-                  at {leg.name}
+                  <span className="text-ink-soft">at {leg.name.split(",")[0]}</span>
                 </p>
               )}
             </li>
           ))}
         </ol>
       ) : null}
+
+
 
       <button
         onClick={onStart}
