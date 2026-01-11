@@ -129,10 +129,11 @@ function Saved() {
                 </div>
                 <button
                   onClick={() => removeSavedPlace(p.id)}
-                  className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft hover:text-ink"
+                  className="inline-flex items-center gap-1 rounded-full bg-limestone-soft px-3 py-1.5 font-sans text-[12px] font-semibold text-ink ring-1 ring-line hover:bg-card"
                 >
                   Unpin
                 </button>
+
               </div>
             ))}
           </div>
