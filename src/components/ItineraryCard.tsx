@@ -105,11 +105,11 @@ export function ItineraryCard({
             }`}
           >
             {totalMin}
-            <span className="ml-1 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-ink-soft">
+            <span className="ml-1 font-sans text-[12px] font-semibold text-ink-soft">
               min
             </span>
           </p>
-          <p className="mt-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-ink-soft tabular-nums">
+          <p className="mt-1.5 font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
             arr {fmtTime(itinerary.arrivalUnix)}
           </p>
         </div>
@@ -120,7 +120,7 @@ export function ItineraryCard({
         {rides.map((r, i) => (
           <span key={i} className="inline-flex items-center gap-2">
             {i > 0 ? (
-              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-ink-soft">
+              <span className="font-sans text-[12px] font-semibold text-ink-soft">
                 change
               </span>
             ) : null}
@@ -128,7 +128,7 @@ export function ItineraryCard({
           </span>
         ))}
         <span
-          className={`ml-auto font-mono text-[10px] font-medium uppercase tracking-[0.18em] ${
+          className={`ml-auto font-sans text-[12px] font-semibold ${
             reliability.tone === "ochre"
               ? "text-ochre"
               : reliability.tone === "olive"
@@ -143,15 +143,30 @@ export function ItineraryCard({
       </div>
 
       {/* Timeline (collapsible) */}
-      <button
-        onClick={() => setExpanded((x) => !x)}
-        className="mt-4 flex w-full items-center justify-between font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
-      >
-        <span>
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <span className="font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
           {Math.round(itinerary.totalWalkMeters)} m walk
         </span>
-        <span>{expanded ? "Hide" : "Details"}</span>
-      </button>
+        <button
+          type="button"
+          onClick={() => setExpanded((x) => !x)}
+          aria-expanded={expanded}
+          className="inline-flex items-center gap-1.5 rounded-full bg-limestone-soft px-3 py-1.5 font-sans text-[12px] font-semibold text-ink ring-1 ring-line hover:bg-limestone-soft/70 transition-colors"
+        >
+          {expanded ? "Hide details" : "Show details"}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`size-3.5 transition-transform ${expanded ? "rotate-180" : ""}`}
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+      </div>
 
       {expanded ? (
         <ol className="mt-3 border-l border-line ml-2 pl-4 space-y-3">
@@ -160,14 +175,14 @@ export function ItineraryCard({
               {leg.kind === "ride" ? (
                 <div>
                   <p className="text-ink font-medium">
-                    <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-aegean-deep mr-2 tabular-nums">
+                    <span className="font-sans text-[12px] font-bold text-aegean-deep mr-2 tabular-nums">
                       {leg.routeShort}
                     </span>
                     {leg.board.name.split(",")[0]}
                     <span className="text-ink-soft"> → </span>
                     {leg.alight.name.split(",")[0]}
                   </p>
-                  <p className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-ink-soft mt-1 tabular-nums">
+                  <p className="font-sans text-[12px] font-semibold text-ink-soft mt-1 tabular-nums">
                     {fmtTime(leg.board.departureUnix)} —{" "}
                     {fmtTime(leg.alight.arrivalUnix)} · {leg.stopCount} stops
                     {leg.live ? " · live" : ""}
@@ -175,8 +190,8 @@ export function ItineraryCard({
                 </div>
               ) : leg.kind === "walk" ? (
                 <p className="text-ink">
-                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] mr-2 text-ink tabular-nums">
-                    walk {fmtMin(leg.durationSec)}
+                  <span className="font-sans text-[12px] font-bold mr-2 text-ink tabular-nums">
+                    Walk {fmtMin(leg.durationSec)}
                   </span>
                   <span className="text-ink-soft">
                     {leg.from.name.split(",")[0]} → {leg.to.name.split(",")[0]}
@@ -184,8 +199,8 @@ export function ItineraryCard({
                 </p>
               ) : (
                 <p className="text-ink">
-                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] mr-2 text-ink tabular-nums">
-                    wait {fmtMin(leg.durationSec)}
+                  <span className="font-sans text-[12px] font-bold mr-2 text-ink tabular-nums">
+                    Wait {fmtMin(leg.durationSec)}
                   </span>
                   <span className="text-ink-soft">at {leg.name.split(",")[0]}</span>
                 </p>
@@ -200,15 +215,16 @@ export function ItineraryCard({
       <button
         onClick={onStart}
         disabled={startDisabled || !onStart}
-        className={`mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 font-sans text-[15px] font-semibold tracking-tight transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
           highlight
             ? "bg-ink text-limestone hover:bg-ink/90"
             : "bg-limestone-soft text-ink hover:bg-limestone-soft/70"
         }`}
       >
         {startLabel}
-        {!startDisabled ? <IconArrowUpRight className="size-3.5" /> : null}
+        {!startDisabled ? <IconArrowUpRight className="size-4" /> : null}
       </button>
+
     </article>
   );
 }
