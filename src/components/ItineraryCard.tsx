@@ -77,7 +77,7 @@ export function ItineraryCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-ink-soft">
+          <p className="font-sans text-[12px] font-semibold text-ink-soft">
             {sourceLabel}
           </p>
           <h3 className="mt-1.5 font-display text-[24px] font-semibold leading-tight text-ink text-pretty">
@@ -90,6 +90,7 @@ export function ItineraryCard({
               <>
                 {itinerary.transfers === 1 ? "One change" : `${itinerary.transfers} changes`}{" "}
                 via{" "}
+
                 <span className="text-aegean-deep">
                   {firstRide?.alight.name}
                 </span>
