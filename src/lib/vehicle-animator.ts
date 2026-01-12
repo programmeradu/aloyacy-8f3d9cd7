@@ -50,11 +50,14 @@ type Track = {
   targetSetAt: number;
 };
 
-const EXTRAPOLATE_BUDGET_MS = 8_000;
+// Keep extrapolation tight so the bus never glides off the road when feed
+// lags. Tween catches up to the last known ping; after that we hold position
+// until the next ping rather than dead-reckoning into the wrong street.
+const EXTRAPOLATE_BUDGET_MS = 1_500;
 const TWEEN_MIN_MS = 800;
-const TWEEN_MAX_MS = 6_000;
-const SPEED_FLOOR_MPS = 2;
-const SPEED_CEILING_MPS = 22;
+const TWEEN_MAX_MS = 4_000;
+const SPEED_FLOOR_MPS = 0;
+const SPEED_CEILING_MPS = 14;
 
 function shortestArcEase(from: number, to: number, t: number): number {
   let delta = ((to - from + 540) % 360) - 180;

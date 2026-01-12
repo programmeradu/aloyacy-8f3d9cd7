@@ -701,12 +701,11 @@ export function MapPreview({
         </div>
       )}
       {liveVehicles && !hideLiveBadge && (
-        <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 backdrop-blur-md ring-1 ring-line">
-          <span className="size-1.5 rounded-full bg-aegean-deep animate-pulse" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink">
+        <div className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-white/90 px-3.5 py-1.5 backdrop-blur-md ring-1 ring-line">
+          <span className="font-sans text-[12px] font-semibold tracking-tight text-ink">
             {focused
               ? liveCount
-                ? liveLabel?.active ?? "Your bus — live"
+                ? liveLabel?.active ?? "Your bus, live"
                 : liveLabel?.empty ?? "Locating your bus"
               : restricted
                 ? liveCount
