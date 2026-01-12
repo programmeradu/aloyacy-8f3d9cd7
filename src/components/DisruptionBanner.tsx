@@ -58,24 +58,26 @@ export function DisruptionBanner({
 
   return (
     <section className="px-6 mt-3 animate-rise">
-      <div className={`rounded-[22px] px-4 py-3 ${palette.wrap}`}>
+      <div className={`rounded-[24px] px-5 py-4 ${palette.wrap}`}>
         <p
-          className={`font-mono text-[10px] uppercase tracking-[0.22em] ${palette.eyebrow}`}
+          className={`font-sans text-[11px] font-semibold uppercase tracking-[0.16em] ${palette.eyebrow}`}
         >
           {labelFor(signal.kind)}
         </p>
-        <p className="mt-1 font-display text-[18px] leading-snug text-ink">
+        <p className="mt-1.5 font-display text-[20px] font-semibold leading-tight tracking-tight text-ink">
           {signal.title}
         </p>
-        <p className="mt-1 text-[12.5px] text-ink-soft">{signal.body}</p>
+        <p className="mt-1 font-sans text-[13.5px] leading-relaxed text-ink-soft">
+          {signal.body}
+        </p>
         {signal.suggestReplan && (
           <button
             type="button"
             onClick={handleReplan}
-            className="mt-3 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-[12px] text-limestone"
+            className="mt-3.5 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 font-sans text-[13px] font-semibold tracking-tight text-limestone"
           >
             Find a faster route
-            <IconArrowUpRight className="size-3" />
+            <IconArrowUpRight className="size-3.5" />
           </button>
         )}
       </div>
