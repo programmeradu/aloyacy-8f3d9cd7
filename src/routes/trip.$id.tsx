@@ -507,7 +507,7 @@ function SingleLegCompanion({
       <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
         <div className="flex items-end justify-between mb-3">
           <h2 className="font-display text-2xl text-ink">Your journey</h2>
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+          <span className="font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
             {Math.round(active.option.totalDurationSec / 60)} min total
           </span>
         </div>
@@ -758,10 +758,10 @@ function TimelineRow({
         {children}
       </span>
       <div className="min-w-0 flex-1">
-        <p className={`font-display text-lg leading-tight ${active ? "text-ink" : "text-ink-soft"}`}>
+        <p className={`font-display text-[19px] font-semibold leading-tight ${active ? "text-ink" : "text-ink-soft"}`}>
           {title}
         </p>
-        <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+        <p className="mt-1 font-sans text-[13px] font-medium text-ink-soft leading-snug">
           {sub}
         </p>
       </div>
