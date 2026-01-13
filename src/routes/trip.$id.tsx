@@ -611,7 +611,7 @@ function PhaseLabel({ phase, delaySec }: { phase: Phase; delaySec: number }) {
       : "Right on time";
   return (
     <p className={`font-sans text-[12px] font-semibold tracking-tight ${tone}`}>
-      {txt} <span className="text-ink-soft/80 font-medium tabular-nums">· {delay}</span>
+      {txt} <span className="text-ink-soft/80 font-medium tabular-nums">— {delay}</span>
     </p>
   );
 }
