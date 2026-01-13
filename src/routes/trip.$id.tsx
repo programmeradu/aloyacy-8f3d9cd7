@@ -342,9 +342,9 @@ function SingleLegCompanion({
             clearActiveTrip();
             navigate({ to: "/trips" });
           }}
-          className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
+          className="rounded-full bg-ink px-4 py-2 font-sans text-[12px] font-semibold tracking-tight text-limestone shadow-sm hover:bg-ink/90 active:scale-[0.98] transition"
         >
-          End
+          End trip
         </button>
       </div>
 
