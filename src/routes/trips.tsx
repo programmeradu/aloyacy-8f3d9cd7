@@ -490,7 +490,7 @@ function FieldRow({
         )}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
+        <p className="font-sans text-[11px] font-semibold tracking-tight text-ink-soft">
           {label}
         </p>
         <p
@@ -507,7 +507,7 @@ function FieldRow({
             e.stopPropagation();
             onClear();
           }}
-          className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
+          className="rounded-full bg-limestone-soft px-3 py-1.5 font-sans text-[11px] font-semibold tracking-tight text-ink-soft hover:bg-ink hover:text-limestone transition-colors"
         >
           Clear
         </span>
