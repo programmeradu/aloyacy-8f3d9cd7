@@ -610,8 +610,8 @@ function PhaseLabel({ phase, delaySec }: { phase: Phase; delaySec: number }) {
       ? `${Math.round(-delaySec / 60)} min early`
       : "Right on time";
   return (
-    <p className={`font-mono text-[10px] uppercase tracking-[0.24em] ${tone}`}>
-      {txt} <span className="text-ink-soft">— {delay}</span>
+    <p className={`font-sans text-[12px] font-semibold tracking-tight ${tone}`}>
+      {txt} <span className="text-ink-soft/80 font-medium tabular-nums">· {delay}</span>
     </p>
   );
 }
