@@ -181,10 +181,11 @@ function Explore() {
         name: s.name,
         towards:
           s.agency === "IC"
-            ? t("home.intercity")
+            ? tt("home.intercity")
             : s.distanceKm >= 1
-              ? t("common.kmAway", { km: s.distanceKm.toFixed(s.distanceKm >= 10 ? 0 : 1) })
-              : t("common.mAway", { m: Math.round(s.distanceKm * 1000) }),
+              ? tt("common.kmAway", { km: s.distanceKm.toFixed(s.distanceKm >= 10 ? 0 : 1) })
+              : tt("common.mAway", { m: Math.round(s.distanceKm * 1000) }),
+
 
         etaMin: nextEta,
         etaConfidence: smart?.freshness,
