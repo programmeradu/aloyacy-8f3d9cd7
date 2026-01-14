@@ -225,18 +225,19 @@ function Explore() {
     <AppShell>
       <header className="px-6 pt-3 pb-2 animate-rise">
         <div className="mb-7 flex items-start justify-between gap-3">
-          <Logo />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-start gap-1.5">
+            <Logo />
             <LocaleSwitcher />
-            <WeatherStamp
-              dayLabel={dayLabel}
-              tempC={mounted && weather ? weather.tempC : null}
-              iconKey={weather?.iconKey}
-              Icon={WxIcon}
-              tone={wxTone}
-            />
           </div>
+          <WeatherStamp
+            dayLabel={dayLabel}
+            tempC={mounted && weather ? weather.tempC : null}
+            iconKey={weather?.iconKey}
+            Icon={WxIcon}
+            tone={wxTone}
+          />
         </div>
+
 
 
         <h1 className="font-display text-[40px] leading-[1.05] text-balance text-ink">
