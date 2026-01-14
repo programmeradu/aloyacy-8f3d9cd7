@@ -43,6 +43,8 @@ import { getGreeting } from "@/lib/greeting";
 import statBus from "@/assets/stat-bus.png";
 import statDial from "@/assets/stat-dial.png";
 import statRoad from "@/assets/stat-road.png";
+import { useI18n } from "@/lib/i18n";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
