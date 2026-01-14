@@ -43,6 +43,8 @@ export const en = {
   "home.noLive": "no live buses",
   "home.someLive": "{n} live",
 
+  // locale switcher
+  "locale.label": "Language",
   "locale.english": "English",
   "locale.greek": "Ελληνικά",
 
