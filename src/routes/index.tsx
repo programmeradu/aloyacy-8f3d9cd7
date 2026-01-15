@@ -320,26 +320,27 @@ function Explore() {
         style={{ animationDelay: "260ms" }}
       >
         <QuickStat
-          label="Live buses"
+          label={tt("home.liveBuses")}
           value={liveCount ? String(liveCount) : "—"}
           tone="aegean"
           vignette={statBus}
           vignetteClass="right-1 bottom-1 w-[52%] opacity-[0.7] rotate-[-3deg]"
         />
         <QuickStat
-          label="On-time"
+          label={tt("home.onTime")}
           value={onTimePct !== null ? `${onTimePct}%` : "—"}
           tone="olive"
           vignette={statDial}
           vignetteClass="right-1 bottom-1 w-[46%] opacity-[0.6]"
         />
         <QuickStat
-          label="Next ride"
+          label={tt("home.nextRide")}
           value={stops[0]?.etaMin != null ? `${stops[0].etaMin}′` : "—"}
           tone="ochre"
           vignette={statRoad}
           vignetteClass="right-1 bottom-1 w-[56%] opacity-[0.75]"
         />
+
       </section>
 
 
