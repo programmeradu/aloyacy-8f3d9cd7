@@ -127,7 +127,11 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           <IconArrowLeft className="size-4" />
         </Link>
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          {itin.transfers === 1 ? "One change" : `${itin.transfers} changes`} · ride {Math.max(1, live.rideOrdinal)} of {live.totalRides}
+          {t("ml.rideOfN", {
+            label: itin.transfers === 1 ? t("ml.changesOne") : t("ml.changesN", { n: itin.transfers }),
+            n: Math.max(1, live.rideOrdinal),
+            total: live.totalRides,
+          })}
         </span>
         <button
           onClick={() => {
@@ -136,7 +140,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           }}
           className="rounded-full bg-ink px-4 py-2 font-sans text-[12px] font-semibold tracking-tight text-limestone shadow-sm hover:bg-ink/90 active:scale-[0.98] transition"
         >
-          End trip
+          {t("trip.endTrip")}
         </button>
       </div>
 
