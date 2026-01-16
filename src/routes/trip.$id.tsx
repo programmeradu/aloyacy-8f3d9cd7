@@ -426,10 +426,10 @@ function SingleLegCompanion({
         <section className="px-6 mt-3 animate-rise">
           <div className="rounded-[22px] bg-aegean-soft/50 ring-1 ring-aegean/30 px-4 py-3">
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
-              Boarding adjusted
+              {t("ml.boardingAdjusted")}
             </p>
             <p className="mt-1 text-[13px] text-ink">
-              You're closer to {live.rerouteHint.newStopName}. Same bus stops here — board from this stop instead.
+              {t("ml.boardingAdjustedBody", { name: live.rerouteHint.newStopName })}
             </p>
           </div>
         </section>
@@ -438,7 +438,7 @@ function SingleLegCompanion({
         <section className="px-6 mt-3 animate-rise">
           <div className="rounded-[22px] bg-ochre-soft/60 ring-1 ring-ochre/30 px-4 py-3">
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-              Different stop
+              {t("ml.differentStop")}
             </p>
             <p className="mt-1 text-[13px] text-ink">
               {live.rerouteHint.reason}
