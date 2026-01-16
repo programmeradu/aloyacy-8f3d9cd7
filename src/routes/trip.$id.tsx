@@ -65,6 +65,7 @@ function SingleLegCompanion({
   hydrated: boolean;
 }) {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { data: rt } = useRealtime();
   const tick = useTick(5_000);
 
