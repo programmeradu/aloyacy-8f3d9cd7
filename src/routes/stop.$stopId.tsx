@@ -24,6 +24,7 @@ export const Route = createFileRoute("/stop/$stopId")({
 });
 
 function StopDetail() {
+  const { t } = useI18n();
   const { stopId } = Route.useParams();
   const stop = getStop(stopId);
   const { data: rt, isLoading } = useRealtime();
