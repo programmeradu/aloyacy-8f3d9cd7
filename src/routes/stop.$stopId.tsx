@@ -117,8 +117,10 @@ function StopDetail() {
           }
           restrictTripIds={departures.map((d) => d.tripId)}
           liveLabel={{
-            active: `${departures.length} buses serving this stop`,
-            empty: "No buses near this stop right now",
+            active: departures.length === 1
+              ? t("stop.busesServingOne")
+              : t("stop.busesServingN", { n: departures.length }),
+            empty: t("stop.noBusesNear"),
           }}
           fitToContent={false}
         />
@@ -129,17 +131,17 @@ function StopDetail() {
         style={{ animationDelay: "180ms" }}
       >
         <div className="flex items-end justify-between mb-3">
-          <h2 className="font-display text-2xl text-ink">Departures</h2>
+          <h2 className="font-display text-2xl text-ink">{t("stop.departures")}</h2>
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            {isLoading ? "Loading" : "Live, smart eta"}
+            {isLoading ? t("stop.loading") : t("stop.liveSmart")}
           </span>
         </div>
 
         {departures.length === 0 ? (
           <div className="rounded-3xl bg-card p-6 text-center ring-1 ring-line">
-            <p className="font-display text-lg text-ink">No upcoming departures</p>
+            <p className="font-display text-lg text-ink">{t("stop.noUpcomingTitle")}</p>
             <p className="mt-1 text-[12px] text-ink-soft">
-              The live feed has nothing scheduled for this stop in the next 3 hours.
+              {t("stop.noUpcomingBody")}
             </p>
           </div>
         ) : (
