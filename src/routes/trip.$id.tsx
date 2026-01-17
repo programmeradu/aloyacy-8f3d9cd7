@@ -584,7 +584,6 @@ function SingleLegCompanion({
 }
 
 function PhaseLabel({ phase, delaySec }: { phase: Phase; delaySec: number }) {
-function PhaseLabel({ phase, delaySec }: { phase: Phase; delaySec: number }) {
   const { t } = useI18n();
   const tone =
     phase === "arrived"
