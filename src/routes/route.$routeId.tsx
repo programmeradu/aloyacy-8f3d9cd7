@@ -27,13 +27,6 @@ function fmtClock(unix: number) {
   });
 }
 
-function minutesFromNow(unix: number) {
-  const m = Math.round((unix - Date.now() / 1000) / 60);
-  if (m <= 0) return "due";
-  if (m < 60) return `${m} min`;
-  const h = Math.floor(m / 60);
-  return `${h}h ${m % 60}m`;
-}
 
 function useMinutesFromNow() {
   const { t } = useI18n();
