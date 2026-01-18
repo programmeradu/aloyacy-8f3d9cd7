@@ -172,7 +172,7 @@ function RoutePage() {
           <IconArrowLeft className="size-4" />
         </Link>
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          Route overview
+          {t("route.overview")}
         </span>
         <span className="size-10" />
       </div>
@@ -181,17 +181,19 @@ function RoutePage() {
         <div className="flex items-center gap-3">
           <RouteChip code={route?.short ?? routeId} tone={tone} />
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-            {route?.agency === "IC" ? "Intercity" : "Nicosia"} line
+            {t("route.lineSuffix", { agency: route?.agency === "IC" ? t("route.intercity") : t("route.nicosia") })}
           </span>
         </div>
         <h1 className="mt-3 font-display text-[36px] leading-[1.05] text-ink text-balance">
-          {route?.long ?? `Route ${routeId}`}
+          {route?.long ?? t("route.fallbackName", { id: routeId })}
         </h1>
         <p className="mt-2 text-[13px] text-ink-soft">
           {data?.vehicles.length
-            ? `${data.vehicles.length} bus${data.vehicles.length === 1 ? "" : "es"} running now`
-            : "No buses reporting right now"}
-          {data?.stopIds.length ? ` — ${data.stopIds.length} stops on the line` : ""}
+            ? data.vehicles.length === 1
+              ? t("route.busesRunningOne")
+              : t("route.busesRunningN", { n: data.vehicles.length })
+            : t("route.noBusesReporting")}
+          {data?.stopIds.length ? t("route.stopsOnLineSuffix", { n: data.stopIds.length }) : ""}
         </p>
       </header>
 
