@@ -35,7 +35,20 @@ function minutesFromNow(unix: number) {
   return `${h}h ${m % 60}m`;
 }
 
+function useMinutesFromNow() {
+  const { t } = useI18n();
+  return (unix: number) => {
+    const m = Math.round((unix - Date.now() / 1000) / 60);
+    if (m <= 0) return t("route.due");
+    if (m < 60) return t("route.minShort", { m });
+    const h = Math.floor(m / 60);
+    return t("route.hourMin", { h, m: m % 60 });
+  };
+}
+
 function RoutePage() {
+  const { t } = useI18n();
+  const minutesFromNow = useMinutesFromNow();
   const { routeId } = Route.useParams();
   const { data: rt, isLoading } = useRealtime();
   const route = getRoute(routeId);
