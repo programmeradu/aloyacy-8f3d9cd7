@@ -362,9 +362,9 @@ function RoutePage() {
       {data && data.stopIds.length ? (
         <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "240ms" }}>
           <div className="flex items-end justify-between mb-3">
-            <h2 className="font-display text-2xl text-ink">Stops on this line</h2>
+            <h2 className="font-display text-2xl text-ink">{t("route.stopsOnThis")}</h2>
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-              {data.stopIds.length} stops
+              {t("route.stopsCount", { n: data.stopIds.length })}
             </span>
           </div>
           <ol className="rounded-[28px] bg-card ring-1 ring-line overflow-hidden">
@@ -380,10 +380,10 @@ function RoutePage() {
               );
               const liveLabel = busHere
                 ? busHere.status === "departing"
-                  ? "Bus departing now"
-                  : "Bus at this stop"
+                  ? t("route.busDepartingNow")
+                  : t("route.busAtThisStop")
                 : busApproaching
-                  ? "Bus approaching"
+                  ? t("route.busApproaching")
                   : null;
               return (
                 <Link
