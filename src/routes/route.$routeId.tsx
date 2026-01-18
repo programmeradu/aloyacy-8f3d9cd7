@@ -8,6 +8,7 @@ import { useRealtime } from "@/lib/useRealtime";
 import { getRoute, getStop, routeTone } from "@/lib/gtfs";
 import { distanceM } from "@/lib/geo";
 import routeVignette from "@/assets/route-vignette.jpg";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/route/$routeId")({
   head: ({ params }) => ({
@@ -26,15 +27,21 @@ function fmtClock(unix: number) {
   });
 }
 
-function minutesFromNow(unix: number) {
-  const m = Math.round((unix - Date.now() / 1000) / 60);
-  if (m <= 0) return "due";
-  if (m < 60) return `${m} min`;
-  const h = Math.floor(m / 60);
-  return `${h}h ${m % 60}m`;
+
+function useMinutesFromNow() {
+  const { t } = useI18n();
+  return (unix: number) => {
+    const m = Math.round((unix - Date.now() / 1000) / 60);
+    if (m <= 0) return t("route.due");
+    if (m < 60) return t("route.minShort", { m });
+    const h = Math.floor(m / 60);
+    return t("route.hourMin", { h, m: m % 60 });
+  };
 }
 
 function RoutePage() {
+  const { t } = useI18n();
+  const minutesFromNow = useMinutesFromNow();
   const { routeId } = Route.useParams();
   const { data: rt, isLoading } = useRealtime();
   const route = getRoute(routeId);
@@ -165,7 +172,7 @@ function RoutePage() {
           <IconArrowLeft className="size-4" />
         </Link>
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          Route overview
+          {t("route.overview")}
         </span>
         <span className="size-10" />
       </div>
@@ -174,17 +181,19 @@ function RoutePage() {
         <div className="flex items-center gap-3">
           <RouteChip code={route?.short ?? routeId} tone={tone} />
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-            {route?.agency === "IC" ? "Intercity" : "Nicosia"} line
+            {t("route.lineSuffix", { agency: route?.agency === "IC" ? t("route.intercity") : t("route.nicosia") })}
           </span>
         </div>
         <h1 className="mt-3 font-display text-[36px] leading-[1.05] text-ink text-balance">
-          {route?.long ?? `Route ${routeId}`}
+          {route?.long ?? t("route.fallbackName", { id: routeId })}
         </h1>
         <p className="mt-2 text-[13px] text-ink-soft">
           {data?.vehicles.length
-            ? `${data.vehicles.length} bus${data.vehicles.length === 1 ? "" : "es"} running now`
-            : "No buses reporting right now"}
-          {data?.stopIds.length ? ` — ${data.stopIds.length} stops on the line` : ""}
+            ? data.vehicles.length === 1
+              ? t("route.busesRunningOne")
+              : t("route.busesRunningN", { n: data.vehicles.length })
+            : t("route.noBusesReporting")}
+          {data?.stopIds.length ? t("route.stopsOnLineSuffix", { n: data.stopIds.length }) : ""}
         </p>
       </header>
 
@@ -197,8 +206,8 @@ function RoutePage() {
             markers={markers}
             restrictTripIds={tripIds.length ? tripIds : undefined}
             liveLabel={{
-              active: "Live buses on this line",
-              empty: "No live buses on this line",
+              active: t("route.liveOnLine"),
+              empty: t("route.noLiveOnLine"),
             }}
           />
         ) : (
@@ -214,10 +223,10 @@ function RoutePage() {
             <div className="absolute inset-0 bg-gradient-to-t from-limestone/80 via-limestone/10 to-transparent" />
             <div className="absolute bottom-4 left-5 right-5">
               <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
-                Service window
+                {t("route.serviceWindow")}
               </p>
               <p className="mt-1 font-display text-[20px] leading-tight text-ink">
-                {isLoading ? "Checking the line…" : "This line is quiet right now"}
+                {isLoading ? t("route.checking") : t("route.quiet")}
               </p>
             </div>
           </div>
@@ -229,43 +238,43 @@ function RoutePage() {
         const firstTrip = data.trips[0];
         const liveBus = data.busesOnLine.find((b) => b.tripId === firstTrip.tripId);
         const nextStopName =
-          stopOf(firstTrip.nextArrival.stopId)?.name ?? "Upcoming stop";
+          stopOf(firstTrip.nextArrival.stopId)?.name ?? t("route.upcomingStop");
+        const terminusName = stopOf(firstTrip.lastStop.stopId)?.name ?? t("route.terminus");
 
-        let kicker = "Next departure";
+        let kicker = t("route.nextDeparture");
         let kickerTone = "text-limestone/60";
         let bigText = nextStopName;
-        let footer = `${fmtClock(firstTrip.nextArrival.arrivalUnix)} — ends at ${
-          stopOf(firstTrip.lastStop.stopId)?.name ?? "terminus"
-        }`;
+        let footer = t("route.endsAt", {
+          time: fmtClock(firstTrip.nextArrival.arrivalUnix),
+          terminus: terminusName,
+        });
         let pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
 
         if (liveBus) {
           const atStop = stopOf(data.stopIds[liveBus.stopIndex]);
           if (liveBus.status === "departing") {
-            kicker = "About to depart";
+            kicker = t("route.aboutToDepart");
             kickerTone = "text-ochre";
             bigText = atStop?.name ?? nextStopName;
-            footer = `Boarding at origin — bound for ${
-              stopOf(firstTrip.lastStop.stopId)?.name ?? "terminus"
-            }`;
-            pillText = "boarding";
+            footer = t("route.boardingOrigin", { terminus: terminusName });
+            pillText = t("route.boardingPill");
           } else if (liveBus.status === "at") {
-            kicker = "Bus at stop";
+            kicker = t("route.busAtStop");
             kickerTone = "text-ochre";
             bigText = atStop?.name ?? nextStopName;
-            footer = `Doors open — next stop ${nextStopName}`;
-            pillText = "at stop";
+            footer = t("route.doorsOpen", { name: nextStopName });
+            pillText = t("route.atStopPill");
           } else {
-            // approaching / in motion
             const kmh = Math.round(liveBus.speed * 3.6);
-            kicker = kmh > 3 ? "Bus in motion" : "Bus en route";
+            kicker = kmh > 3 ? t("route.busInMotion") : t("route.busEnRoute");
             kickerTone = "text-ochre";
-            bigText = `Heading to ${nextStopName}`;
+            bigText = t("route.headingTo", { name: nextStopName });
             footer =
-              (kmh > 3 ? `${kmh} km/h — ` : "") +
-              `arriving ${fmtClock(firstTrip.nextArrival.arrivalUnix)} · ends at ${
-                stopOf(firstTrip.lastStop.stopId)?.name ?? "terminus"
-              }`;
+              (kmh > 3 ? t("route.kmhPrefix", { kmh }) : "") +
+              t("route.arrivingEnds", {
+                time: fmtClock(firstTrip.nextArrival.arrivalUnix),
+                terminus: terminusName,
+              });
             pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
           }
         }
@@ -310,37 +319,37 @@ function RoutePage() {
       {data && data.trips.length > 1 ? (
         <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "200ms" }}>
           <div className="flex items-end justify-between mb-3">
-            <h2 className="font-display text-2xl text-ink">Today's runs</h2>
+            <h2 className="font-display text-2xl text-ink">{t("route.todaysRuns")}</h2>
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-              From the live feed
+              {t("route.fromLive")}
             </span>
           </div>
           <ol className="rounded-[28px] bg-card ring-1 ring-line overflow-hidden">
-            {data.trips.slice(1, 6).map((t) => {
-              const live = data.vehicles.some((v) => v.tripId === t.tripId);
+            {data.trips.slice(1, 6).map((trip) => {
+              const live = data.vehicles.some((v) => v.tripId === trip.tripId);
               return (
                 <Link
-                  key={t.tripId}
+                  key={trip.tripId}
                   to="/trip-info/$tripId"
-                  params={{ tripId: t.tripId }}
+                  params={{ tripId: trip.tripId }}
                   className="flex items-center gap-4 px-5 py-3.5 border-b border-line last:border-b-0 transition-colors hover:bg-limestone-soft/60"
                 >
                   <div className="font-display text-2xl text-ink tabular-nums w-16">
-                    {fmtClock(t.nextArrival.arrivalUnix)}
+                    {fmtClock(trip.nextArrival.arrivalUnix)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-display text-[16px] leading-tight text-ink truncate">
-                      {stopOf(t.nextArrival.stopId)?.name ?? "Next stop"}
+                      {stopOf(trip.nextArrival.stopId)?.name ?? t("route.nextStop")}
                     </p>
                     <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
                       {live && <IconBus className="size-3 text-ochre" />}
-                      {live ? "live now" : "scheduled"}
-                      {" — to "}
-                      {stopOf(t.lastStop.stopId)?.name.split(/[·\-,]/)[0].trim() ?? "terminus"}
+                      {live ? t("route.liveNow") : t("route.scheduled")}
+                      {" — "}
+                      {t("route.toName", { name: stopOf(trip.lastStop.stopId)?.name.split(/[·\-,]/)[0].trim() ?? t("route.terminus") })}
                     </p>
                   </div>
                   <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                    {minutesFromNow(t.nextArrival.arrivalUnix)}
+                    {minutesFromNow(trip.nextArrival.arrivalUnix)}
                   </span>
                 </Link>
               );
@@ -353,9 +362,9 @@ function RoutePage() {
       {data && data.stopIds.length ? (
         <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "240ms" }}>
           <div className="flex items-end justify-between mb-3">
-            <h2 className="font-display text-2xl text-ink">Stops on this line</h2>
+            <h2 className="font-display text-2xl text-ink">{t("route.stopsOnThis")}</h2>
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-              {data.stopIds.length} stops
+              {t("route.stopsCount", { n: data.stopIds.length })}
             </span>
           </div>
           <ol className="rounded-[28px] bg-card ring-1 ring-line overflow-hidden">
@@ -371,10 +380,10 @@ function RoutePage() {
               );
               const liveLabel = busHere
                 ? busHere.status === "departing"
-                  ? "Bus departing now"
-                  : "Bus at this stop"
+                  ? t("route.busDepartingNow")
+                  : t("route.busAtThisStop")
                 : busApproaching
-                  ? "Bus approaching"
+                  ? t("route.busApproaching")
                   : null;
               return (
                 <Link
@@ -421,10 +430,10 @@ function RoutePage() {
                       {liveLabel ?? (
                         <>
                           {i === 0
-                            ? "origin"
+                            ? t("route.origin")
                             : i === data.stopIds.length - 1
-                              ? "terminus"
-                              : `stop ${i + 1}`}
+                              ? t("route.terminus")
+                              : t("route.stopN", { n: i + 1 })}
                           {s.code ? ` — #${s.code}` : ""}
                         </>
                       )}
@@ -439,11 +448,10 @@ function RoutePage() {
         <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "240ms" }}>
           <div className="rounded-[28px] bg-card ring-1 ring-line p-6">
             <p className="font-display text-[20px] leading-tight text-ink">
-              Stops appear when the line is active
+              {t("route.stopsAppearTitle")}
             </p>
             <p className="mt-2 text-[13px] text-ink-soft">
-              The operator publishes stop sequences alongside live trips. When the first
-              bus of the day reports in, we'll show the full line here.
+              {t("route.stopsAppearBody")}
             </p>
           </div>
         </section>
