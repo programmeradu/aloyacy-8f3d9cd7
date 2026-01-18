@@ -238,43 +238,43 @@ function RoutePage() {
         const firstTrip = data.trips[0];
         const liveBus = data.busesOnLine.find((b) => b.tripId === firstTrip.tripId);
         const nextStopName =
-          stopOf(firstTrip.nextArrival.stopId)?.name ?? "Upcoming stop";
+          stopOf(firstTrip.nextArrival.stopId)?.name ?? t("route.upcomingStop");
+        const terminusName = stopOf(firstTrip.lastStop.stopId)?.name ?? t("route.terminus");
 
-        let kicker = "Next departure";
+        let kicker = t("route.nextDeparture");
         let kickerTone = "text-limestone/60";
         let bigText = nextStopName;
-        let footer = `${fmtClock(firstTrip.nextArrival.arrivalUnix)} — ends at ${
-          stopOf(firstTrip.lastStop.stopId)?.name ?? "terminus"
-        }`;
+        let footer = t("route.endsAt", {
+          time: fmtClock(firstTrip.nextArrival.arrivalUnix),
+          terminus: terminusName,
+        });
         let pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
 
         if (liveBus) {
           const atStop = stopOf(data.stopIds[liveBus.stopIndex]);
           if (liveBus.status === "departing") {
-            kicker = "About to depart";
+            kicker = t("route.aboutToDepart");
             kickerTone = "text-ochre";
             bigText = atStop?.name ?? nextStopName;
-            footer = `Boarding at origin — bound for ${
-              stopOf(firstTrip.lastStop.stopId)?.name ?? "terminus"
-            }`;
-            pillText = "boarding";
+            footer = t("route.boardingOrigin", { terminus: terminusName });
+            pillText = t("route.boardingPill");
           } else if (liveBus.status === "at") {
-            kicker = "Bus at stop";
+            kicker = t("route.busAtStop");
             kickerTone = "text-ochre";
             bigText = atStop?.name ?? nextStopName;
-            footer = `Doors open — next stop ${nextStopName}`;
-            pillText = "at stop";
+            footer = t("route.doorsOpen", { name: nextStopName });
+            pillText = t("route.atStopPill");
           } else {
-            // approaching / in motion
             const kmh = Math.round(liveBus.speed * 3.6);
-            kicker = kmh > 3 ? "Bus in motion" : "Bus en route";
+            kicker = kmh > 3 ? t("route.busInMotion") : t("route.busEnRoute");
             kickerTone = "text-ochre";
-            bigText = `Heading to ${nextStopName}`;
+            bigText = t("route.headingTo", { name: nextStopName });
             footer =
-              (kmh > 3 ? `${kmh} km/h — ` : "") +
-              `arriving ${fmtClock(firstTrip.nextArrival.arrivalUnix)} · ends at ${
-                stopOf(firstTrip.lastStop.stopId)?.name ?? "terminus"
-              }`;
+              (kmh > 3 ? t("route.kmhPrefix", { kmh }) : "") +
+              t("route.arrivingEnds", {
+                time: fmtClock(firstTrip.nextArrival.arrivalUnix),
+                terminus: terminusName,
+              });
             pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
           }
         }
