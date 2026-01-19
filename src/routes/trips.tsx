@@ -432,7 +432,7 @@ function PersonalSuggestions({
         );
       })}
       <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-        Learned from your past trips
+        {t("trips.learnedFromPast")}
       </p>
     </div>
   );
