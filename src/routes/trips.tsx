@@ -291,18 +291,18 @@ function Plan() {
           <h2 className="font-display text-2xl text-ink">
             {results === null && !planning
               ? personalSuggestions.length > 0
-                ? "Your usuals"
-                : "Suggestions"
-              : "Best routes"}
+                ? t("trips.yourUsuals")
+                : t("trips.suggestions")
+              : t("trips.bestRoutes")}
           </h2>
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
             {planning
-              ? "Computing"
+              ? t("trips.statusComputing")
               : results
-                ? "Live blended"
+                ? t("trips.statusLive")
                 : personalSuggestions.length > 0
-                  ? "Learned"
-                  : "Idle"}
+                  ? t("trips.statusLearned")
+                  : t("trips.statusIdle")}
           </span>
         </div>
 
@@ -338,23 +338,20 @@ function Plan() {
           <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
             {planQuery.data?.noScheduleAvailable ? (
               <>
-                <p className="font-display text-xl text-ink">No timetable for that date</p>
+                <p className="font-display text-xl text-ink">{t("trips.noScheduleTitle")}</p>
                 <p className="mt-1.5 text-[13px] text-ink-soft">
-                  We don't have published bus schedules for{" "}
-                  {planQuery.data.requestedDate
-                    ? formatYYYYMMDD(planQuery.data.requestedDate)
-                    : "that day"}{" "}
-                  yet. Timetables are loaded for the next 14 days — try a date
-                  inside that window.
+                  {t("trips.noScheduleBody", {
+                    date: planQuery.data.requestedDate
+                      ? formatYYYYMMDD(planQuery.data.requestedDate)
+                      : t("trips.noScheduleDay"),
+                  })}
                 </p>
               </>
             ) : (
               <>
-                <p className="font-display text-xl text-ink">No live route found</p>
+                <p className="font-display text-xl text-ink">{t("trips.noRouteTitle")}</p>
                 <p className="mt-1.5 text-[13px] text-ink-soft">
-                  We couldn't see a bus serving both your start and end stops in
-                  the next hour. Try a destination closer to a known route, or
-                  check again in a few minutes.
+                  {t("trips.noRouteBody")}
                 </p>
               </>
             )}
