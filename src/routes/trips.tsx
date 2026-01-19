@@ -373,16 +373,14 @@ function EmptyState({
   origin: Point | null;
   destination: Point | null;
 }) {
+  const { t } = useI18n();
   return (
     <div className="rounded-[28px] bg-card p-6 ring-1 ring-line">
       <p className="font-display text-lg text-ink leading-tight text-balance">
-        {origin && !destination
-          ? "Where would you like to go?"
-          : "Pick a starting point and a destination, anywhere on the island."}
+        {origin && !destination ? t("trips.emptyTitleA") : t("trips.emptyTitleB")}
       </p>
       <p className="mt-2 text-[13px] text-ink-soft leading-relaxed">
-        We'll walk you to the nearest stop, board a real bus from the live feed,
-        and walk you to the front door. No more guessing which line passes by.
+        {t("trips.emptyBody")}
       </p>
     </div>
   );
