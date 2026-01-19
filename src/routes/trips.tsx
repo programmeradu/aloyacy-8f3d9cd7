@@ -42,6 +42,7 @@ export const Route = createFileRoute("/trips")({
 type Point = { lat: number; lng: number; label: string };
 
 function Plan() {
+  const { t } = useI18n();
   const [origin, setOrigin] = useState<Point | null>(null);
   const [destination, setDestination] = useState<Point | null>(null);
   const [active, setActive] = useState<"from" | "to" | null>("to");
