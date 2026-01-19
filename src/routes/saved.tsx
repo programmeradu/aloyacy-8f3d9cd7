@@ -54,10 +54,10 @@ function Saved() {
     <AppShell>
       <header className="px-6 pt-2 pb-5 animate-rise">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          Your atlas
+          {t("saved.kicker")}
         </p>
         <h1 className="font-display text-4xl mt-2 text-ink">
-          The places that <span className="italic text-aegean-deep">matter</span>.
+          {t("saved.titlePrefix")} <span className="italic text-aegean-deep">{t("saved.titleEmph")}</span>.
         </h1>
       </header>
 
@@ -65,7 +65,7 @@ function Saved() {
         <div className="relative h-56 w-full overflow-hidden rounded-[28px] ring-1 ring-line">
           <img
             src={coast}
-            alt="Cypriot coastline"
+            alt={t("saved.coastAlt")}
             loading="lazy"
             width={1024}
             height={640}
@@ -74,32 +74,31 @@ function Saved() {
           <div className="absolute inset-0 bg-gradient-to-t from-ink/65 via-ink/15 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-5 text-limestone">
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] opacity-80">
-              {saved.length} pinned
+              {t("saved.heroPinned", { n: saved.length })}
             </p>
             <h3 className="mt-1 font-display text-3xl italic leading-tight">
-              Coastal weekends
+              {t("saved.heroTitle")}
             </h3>
             <p className="mt-1 text-[12px] opacity-80 max-w-[26ch]">
-              Pin a place once. Plan a trip to it from any screen, instantly.
+              {t("saved.heroBody")}
             </p>
           </div>
         </div>
       </section>
 
       <section className="mt-7 px-6 animate-rise" style={{ animationDelay: "140ms" }}>
-        <h2 className="font-display text-2xl text-ink mb-4">Pinned</h2>
+        <h2 className="font-display text-2xl text-ink mb-4">{t("saved.pinned")}</h2>
         {saved.length === 0 ? (
           <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
-            <p className="font-display text-lg text-ink">No pins yet</p>
+            <p className="font-display text-lg text-ink">{t("saved.noPinsTitle")}</p>
             <p className="mt-1 text-[13px] text-ink-soft">
-              Plan a trip and pin the destination, or pick one from your recent
-              journeys below.
+              {t("saved.noPinsBody")}
             </p>
             <Link
               to="/trips"
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-[12px] text-limestone"
             >
-              Plan a trip
+              {t("saved.planTrip")}
               <IconArrowUpRight className="size-3.5" />
             </Link>
           </div>
