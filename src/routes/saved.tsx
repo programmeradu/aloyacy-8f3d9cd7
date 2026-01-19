@@ -182,8 +182,9 @@ function RecentRow({
   r: { id: string; name: string; lat: number; lng: number; lastUsed: number };
   onPin: (r: { id: string; name: string; lat: number; lng: number }, label: string) => void;
 }) {
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
-  const [label, setLabel] = useState("Favourite");
+  const [label, setLabel] = useState(t("saved.favourite"));
   const when = new Date(r.lastUsed).toLocaleDateString([], {
     month: "short",
     day: "numeric",
@@ -206,16 +207,16 @@ function RecentRow({
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             className="w-24 rounded-lg bg-limestone-soft px-2 py-1 text-[12px] outline-none ring-1 ring-line"
-            placeholder="Home"
+            placeholder={t("saved.placeholderHome")}
           />
           <button
             onClick={() => {
-              onPin(r, label.trim() || "Favourite");
+              onPin(r, label.trim() || t("saved.favourite"));
               setEditing(false);
             }}
             className="inline-flex items-center rounded-full bg-aegean-deep px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone"
           >
-            Save
+            {t("saved.save")}
           </button>
         </div>
       ) : (
@@ -223,7 +224,7 @@ function RecentRow({
           onClick={() => setEditing(true)}
           className="inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone hover:bg-ink/90"
         >
-          Pin
+          {t("saved.pin")}
         </button>
 
       )}
