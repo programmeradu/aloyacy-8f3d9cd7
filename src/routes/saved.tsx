@@ -132,7 +132,7 @@ function Saved() {
                   onClick={() => removeSavedPlace(p.id)}
                   className="inline-flex items-center gap-1 rounded-full bg-limestone-soft px-3 py-1.5 font-sans text-[12px] font-semibold text-ink ring-1 ring-line hover:bg-card"
                 >
-                  Unpin
+                  {t("saved.unpin")}
                 </button>
 
               </div>
@@ -142,10 +142,10 @@ function Saved() {
       </section>
 
       <section className="mt-8 px-6 pb-2 animate-rise" style={{ animationDelay: "200ms" }}>
-        <h2 className="font-display text-2xl text-ink mb-4">Recent</h2>
+        <h2 className="font-display text-2xl text-ink mb-4">{t("saved.recent")}</h2>
         {recents.length === 0 ? (
           <div className="rounded-3xl bg-card p-5 ring-1 ring-line text-[13px] text-ink-soft">
-            Your last few destinations will appear here.
+            {t("saved.recentEmpty")}
           </div>
         ) : (
           <div className="rounded-3xl bg-card ring-1 ring-line divide-y divide-line overflow-hidden">
