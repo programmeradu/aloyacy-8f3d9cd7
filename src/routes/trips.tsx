@@ -768,6 +768,7 @@ function ItineraryResults({
   origin: Point;
   destination: Point;
 }) {
+  const { t } = useI18n();
   const direct = results.filter((it) => it.transfers === 0);
   const transfers = results.filter((it) => it.transfers > 0);
 
@@ -784,7 +785,7 @@ function ItineraryResults({
       ))}
       {transfers.length > 0 && (
         <ProGate
-          feature={`${transfers.length} faster route${transfers.length > 1 ? "s" : ""} with transfers`}
+          feature={transfers.length === 1 ? t("trips.fasterOne") : t("trips.fasterN", { n: transfers.length })}
           preview={
             <div className="flex flex-col gap-3 p-3">
               {transfers.slice(0, 2).map((it) => (
