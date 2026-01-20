@@ -673,7 +673,7 @@ function QuickPicks({
       {recents.length > 0 && role === "to" && (
         <div>
           <div className="mb-2 text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            Recent
+            {t("trips.recent")}
           </div>
           <ul className="divide-y divide-line">
             {recents.slice(0, 5).map((r) => (
