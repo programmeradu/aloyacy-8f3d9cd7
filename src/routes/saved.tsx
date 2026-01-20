@@ -14,6 +14,7 @@ import { NotificationsCard } from "@/components/NotificationsCard";
 import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
 import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
 import { useProPaywall } from "@/lib/useProPaywall";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/saved")({
   head: () => ({
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/saved")({
 const TONE_CYCLE: SavedPlace["tone"][] = ["aegean", "ochre", "olive"];
 
 function Saved() {
+  const { t } = useI18n();
   const saved = useSavedPlaces();
   const recents = useRecents();
   const { isPro, requirePro, paywall } = useProPaywall();
@@ -52,10 +54,10 @@ function Saved() {
     <AppShell>
       <header className="px-6 pt-2 pb-5 animate-rise">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          Your atlas
+          {t("saved.kicker")}
         </p>
         <h1 className="font-display text-4xl mt-2 text-ink">
-          The places that <span className="italic text-aegean-deep">matter</span>.
+          {t("saved.titlePrefix")} <span className="italic text-aegean-deep">{t("saved.titleEmph")}</span>.
         </h1>
       </header>
 
@@ -63,7 +65,7 @@ function Saved() {
         <div className="relative h-56 w-full overflow-hidden rounded-[28px] ring-1 ring-line">
           <img
             src={coast}
-            alt="Cypriot coastline"
+            alt={t("saved.coastAlt")}
             loading="lazy"
             width={1024}
             height={640}
@@ -72,32 +74,31 @@ function Saved() {
           <div className="absolute inset-0 bg-gradient-to-t from-ink/65 via-ink/15 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-5 text-limestone">
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] opacity-80">
-              {saved.length} pinned
+              {t("saved.heroPinned", { n: saved.length })}
             </p>
             <h3 className="mt-1 font-display text-3xl italic leading-tight">
-              Coastal weekends
+              {t("saved.heroTitle")}
             </h3>
             <p className="mt-1 text-[12px] opacity-80 max-w-[26ch]">
-              Pin a place once. Plan a trip to it from any screen, instantly.
+              {t("saved.heroBody")}
             </p>
           </div>
         </div>
       </section>
 
       <section className="mt-7 px-6 animate-rise" style={{ animationDelay: "140ms" }}>
-        <h2 className="font-display text-2xl text-ink mb-4">Pinned</h2>
+        <h2 className="font-display text-2xl text-ink mb-4">{t("saved.pinned")}</h2>
         {saved.length === 0 ? (
           <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
-            <p className="font-display text-lg text-ink">No pins yet</p>
+            <p className="font-display text-lg text-ink">{t("saved.noPinsTitle")}</p>
             <p className="mt-1 text-[13px] text-ink-soft">
-              Plan a trip and pin the destination, or pick one from your recent
-              journeys below.
+              {t("saved.noPinsBody")}
             </p>
             <Link
               to="/trips"
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-[12px] text-limestone"
             >
-              Plan a trip
+              {t("saved.planTrip")}
               <IconArrowUpRight className="size-3.5" />
             </Link>
           </div>
@@ -131,7 +132,7 @@ function Saved() {
                   onClick={() => removeSavedPlace(p.id)}
                   className="inline-flex items-center gap-1 rounded-full bg-limestone-soft px-3 py-1.5 font-sans text-[12px] font-semibold text-ink ring-1 ring-line hover:bg-card"
                 >
-                  Unpin
+                  {t("saved.unpin")}
                 </button>
 
               </div>
@@ -141,10 +142,10 @@ function Saved() {
       </section>
 
       <section className="mt-8 px-6 pb-2 animate-rise" style={{ animationDelay: "200ms" }}>
-        <h2 className="font-display text-2xl text-ink mb-4">Recent</h2>
+        <h2 className="font-display text-2xl text-ink mb-4">{t("saved.recent")}</h2>
         {recents.length === 0 ? (
           <div className="rounded-3xl bg-card p-5 ring-1 ring-line text-[13px] text-ink-soft">
-            Your last few destinations will appear here.
+            {t("saved.recentEmpty")}
           </div>
         ) : (
           <div className="rounded-3xl bg-card ring-1 ring-line divide-y divide-line overflow-hidden">
@@ -181,8 +182,9 @@ function RecentRow({
   r: { id: string; name: string; lat: number; lng: number; lastUsed: number };
   onPin: (r: { id: string; name: string; lat: number; lng: number }, label: string) => void;
 }) {
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
-  const [label, setLabel] = useState("Favourite");
+  const [label, setLabel] = useState(t("saved.favourite"));
   const when = new Date(r.lastUsed).toLocaleDateString([], {
     month: "short",
     day: "numeric",
@@ -205,16 +207,16 @@ function RecentRow({
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             className="w-24 rounded-lg bg-limestone-soft px-2 py-1 text-[12px] outline-none ring-1 ring-line"
-            placeholder="Home"
+            placeholder={t("saved.placeholderHome")}
           />
           <button
             onClick={() => {
-              onPin(r, label.trim() || "Favourite");
+              onPin(r, label.trim() || t("saved.favourite"));
               setEditing(false);
             }}
             className="inline-flex items-center rounded-full bg-aegean-deep px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone"
           >
-            Save
+            {t("saved.save")}
           </button>
         </div>
       ) : (
@@ -222,7 +224,7 @@ function RecentRow({
           onClick={() => setEditing(true)}
           className="inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone hover:bg-ink/90"
         >
-          Pin
+          {t("saved.pin")}
         </button>
 
       )}
