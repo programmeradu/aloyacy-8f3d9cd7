@@ -636,6 +636,7 @@ function QuickPicks({
   role: "from" | "to";
   onChoose: (p: Point) => void;
 }) {
+  const { t } = useI18n();
   const saved = useSavedPlaces();
   const recents = useRecents();
   if (saved.length === 0 && recents.length === 0) return null;
