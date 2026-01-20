@@ -524,6 +524,7 @@ function PlacesPicker({
   bias: { lat: number; lng: number };
   onPick: (p: Point, role: "from" | "to") => void;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<
     { placeId: string; primary: string; secondary: string }[]
