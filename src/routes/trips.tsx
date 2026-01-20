@@ -743,7 +743,7 @@ function ItineraryRow({
         itinerary={itinerary}
         highlight={highlight}
         onStart={start}
-        startLabel="Start this trip"
+        startLabel={t("trips.startThis")}
       />
       <div className="px-1">
         <RemindMeButton
