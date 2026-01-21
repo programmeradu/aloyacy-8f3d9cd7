@@ -48,6 +48,7 @@ export function LongFinalWalkHint({
   destinationLabel?: string;
   className?: string;
 }) {
+  const { t } = useI18n();
   const show = distanceMeters >= LONG_WALK_THRESHOLD_M;
 
   useEffect(() => {
@@ -59,10 +60,7 @@ export function LongFinalWalkHint({
     }
   }, [show, distanceMeters, durationSec]);
 
-  const line = useMemo(
-    () => buildLine(distanceMeters, durationSec, destinationLabel),
-    [distanceMeters, durationSec, destinationLabel],
-  );
+  const line = useBuildLine(distanceMeters, durationSec, destinationLabel);
 
   if (!show) return null;
 
@@ -73,11 +71,11 @@ export function LongFinalWalkHint({
     <section className="px-6 mt-3 animate-rise">
       <article className="rounded-[26px] bg-ochre-soft/55 ring-1 ring-ochre/30 px-5 py-4">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-          Last stretch — long on foot
+          {t("lfw.kicker")}
         </p>
         <h3 className="mt-1.5 font-display text-[22px] leading-[1.15] text-ink text-balance">
-          Roughly <span className="text-ochre">{km} km</span> left
-          {destinationLabel ? <> to {destinationLabel}</> : null}.
+          {t("lfw.headPrefix")} <span className="text-ochre">{km} km</span>{" "}
+          {destinationLabel ? t("lfw.headTo", { dest: destinationLabel }) : t("lfw.head")}
         </h3>
         <p className="mt-2 text-[13px] leading-relaxed text-ink-soft">{line}</p>
         <div className="mt-3">
@@ -92,7 +90,7 @@ export function LongFinalWalkHint({
             }
             className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-[12px] text-limestone hover:bg-ink/90"
           >
-            Open walk in Google Maps
+            {t("lfw.openMaps")}
             <IconArrowUpRight className="size-3.5" />
           </a>
         </div>
