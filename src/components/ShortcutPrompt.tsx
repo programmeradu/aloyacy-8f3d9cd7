@@ -7,6 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { collapseToFinalWalk, type ActiveTrip } from "@/lib/trip-store";
 import { logTripOverride } from "@/lib/overrides.functions";
 import { getDeviceId } from "@/lib/pwa";
+import { useI18n } from "@/lib/i18n";
 
 export function ShortcutPrompt({
   active,
@@ -19,21 +20,19 @@ export function ShortcutPrompt({
   distanceM: number;
   onDismiss: () => void;
 }) {
+  const { t } = useI18n();
   const logOverride = useServerFn(logTripOverride);
 
   return (
     <section className="px-6 mt-4 animate-rise">
       <div className="rounded-[28px] bg-ochre-soft ring-1 ring-ochre/40 p-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-          Skip ahead?
+          {t("shortcut.kicker")}
         </p>
         <p className="mt-2 font-display text-[22px] leading-tight text-ink">
-          You're {Math.round(distanceM)} m from {active.to.label}.
+          {t("shortcut.title", { m: Math.round(distanceM), dest: active.to.label })}
         </p>
-        <p className="mt-2 text-[13px] text-ink-soft">
-          A short walk is faster than waiting for the next bus. Want to skip
-          the rest and walk straight there?
-        </p>
+        <p className="mt-2 text-[13px] text-ink-soft">{t("shortcut.body")}</p>
         <div className="mt-4 flex gap-2">
           <button
             onClick={() => {
@@ -50,13 +49,13 @@ export function ShortcutPrompt({
             }}
             className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
           >
-            Walk the rest
+            {t("shortcut.walkRest")}
           </button>
           <button
             onClick={onDismiss}
             className="inline-flex items-center gap-2 rounded-full ring-1 ring-line bg-card px-5 py-3 text-[13px] text-ink-soft"
           >
-            Stay on plan
+            {t("shortcut.stayOnPlan")}
           </button>
         </div>
       </div>
