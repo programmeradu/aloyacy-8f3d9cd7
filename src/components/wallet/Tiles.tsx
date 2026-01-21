@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useI18n } from "@/lib/i18n";
 
 // Small presentational tiles used on the wallet landing.
 export function ActionTile({
@@ -53,11 +54,12 @@ export function Fare({
   /** "light" = limestone wash with ink text; "dark" = dim wash with cream text (for already-dark images). */
   tone?: "light" | "dark";
 }) {
+  const { t } = useI18n();
   const isDark = tone === "dark";
   return (
     <article
       className="relative h-[92px] overflow-hidden rounded-[16px] ring-1 ring-line"
-      aria-label={`${label} fare ${value}`}
+      aria-label={t("wallet.fareAria", { label, value })}
     >
       {image && (
         <img
@@ -101,4 +103,3 @@ export function Fare({
     </article>
   );
 }
-
