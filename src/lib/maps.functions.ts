@@ -55,12 +55,15 @@ export const getWalkingDirections = createServerFn({ method: "POST" })
       .object({
         from: z.object({ lat: z.number(), lng: z.number() }),
         to: z.object({ lat: z.number(), lng: z.number() }),
+        locale: z.enum(["en", "el"]).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data }) => {
     try {
-      return { directions: await walkingDirections(data.from, data.to) };
+      return {
+        directions: await walkingDirections(data.from, data.to, data.locale ?? "en"),
+      };
     } catch (e) {
       console.error("walking directions failed", e);
       return { directions: null };
