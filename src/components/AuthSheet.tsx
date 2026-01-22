@@ -2,18 +2,20 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { requestEmailOtp } from "@/lib/otp.functions";
+import { useI18n } from "@/lib/i18n";
 
 export function AuthSheet({
   open,
   onClose,
-  title = "Sign in to continue",
-  subtitle = "We'll email you a 6-digit code. No password.",
+  title,
+  subtitle,
 }: {
   open: boolean;
   onClose: () => void;
   title?: string;
   subtitle?: string;
 }) {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [stage, setStage] = useState<"email" | "code">("email");
@@ -23,20 +25,19 @@ export function AuthSheet({
 
   if (!open) return null;
 
+  const titleText = title ?? t("auth.title");
+  const subtitleText = subtitle ?? t("auth.subtitle");
+
   async function sendCode(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      // Use our project-specific OTP delivery (server generates the code via
-      // the Supabase Admin API and emails it via Resend). This bypasses the
-      // default Supabase auth email sender entirely so the code is always
-      // present in the email regardless of template configuration.
       const r = await sendOtp({ data: { email: email.trim() } });
       if (!r.ok) throw new Error(r.error);
       setStage("code");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not send code");
+      setError(err instanceof Error ? err.message : t("auth.errSend"));
     } finally {
       setBusy(false);
     }
@@ -55,7 +56,7 @@ export function AuthSheet({
       if (err) throw err;
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid or expired code");
+      setError(err instanceof Error ? err.message : t("auth.errVerify"));
     } finally {
       setBusy(false);
     }
@@ -71,11 +72,11 @@ export function AuthSheet({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-line" />
-        <h2 className="font-display text-2xl text-ink">{title}</h2>
+        <h2 className="font-display text-2xl text-ink">{titleText}</h2>
         <p className="mt-1 text-sm text-ink-soft">
           {stage === "email"
-            ? subtitle
-            : `Enter the 6-digit code we sent to ${email}.`}
+            ? subtitleText
+            : t("auth.codeSentTo", { email })}
         </p>
 
         {stage === "email" ? (
@@ -86,7 +87,7 @@ export function AuthSheet({
               autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder={t("auth.emailPlaceholder")}
               className="w-full rounded-2xl border border-line bg-white px-4 py-3 text-base text-ink placeholder:text-ink-soft/60 focus:border-aegean-deep focus:outline-none"
             />
             {error && <p className="text-xs text-ochre-deep">{error}</p>}
@@ -95,14 +96,14 @@ export function AuthSheet({
               disabled={busy || !email}
               className="w-full rounded-2xl bg-ink py-3 text-sm font-medium text-limestone disabled:opacity-50"
             >
-              {busy ? "Sending…" : "Send me the code"}
+              {busy ? t("auth.sending") : t("auth.send")}
             </button>
             <button
               type="button"
               onClick={onClose}
               className="w-full py-2 text-xs font-mono uppercase tracking-[0.16em] text-ink-soft"
             >
-              Not now
+              {t("auth.notNow")}
             </button>
           </form>
         ) : (
@@ -117,7 +118,7 @@ export function AuthSheet({
               maxLength={10}
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-              placeholder="Enter code"
+              placeholder={t("auth.codePlaceholder")}
               className="w-full rounded-2xl border border-line bg-white px-4 py-3 text-center font-mono text-2xl tracking-[0.4em] text-ink placeholder:text-ink-soft/40 focus:border-aegean-deep focus:outline-none"
             />
             {error && <p className="text-xs text-ochre-deep">{error}</p>}
@@ -126,7 +127,7 @@ export function AuthSheet({
               disabled={busy || code.length < 6}
               className="w-full rounded-2xl bg-ink py-3 text-sm font-medium text-limestone disabled:opacity-50"
             >
-              {busy ? "Verifying…" : "Verify & continue"}
+              {busy ? t("auth.verifying") : t("auth.verify")}
             </button>
             <button
               type="button"
@@ -137,7 +138,7 @@ export function AuthSheet({
               }}
               className="w-full py-2 text-xs font-mono uppercase tracking-[0.16em] text-ink-soft"
             >
-              Use a different email
+              {t("auth.useDifferentEmail")}
             </button>
           </form>
         )}
