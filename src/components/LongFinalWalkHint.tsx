@@ -10,34 +10,28 @@
 import { useEffect, useMemo } from "react";
 import { IconArrowUpRight } from "@/components/Icons";
 import { track } from "@/lib/analytics";
+import { useI18n } from "@/lib/i18n";
 
 type LatLng = { lat: number; lng: number };
 
 const LONG_WALK_THRESHOLD_M = 1200;
 
-function buildLine(distanceM: number, durationSec: number, dest?: string) {
-  const km = distanceM / 1000;
-  const min = Math.max(1, Math.round(durationSec / 60));
-  const hour = new Date().getHours();
-  const where = dest ? `to ${dest}` : "to your destination";
-
-  // Tiered, personalized phrasing — no two riders see the same generic line.
-  if (km >= 2.5) {
-    return `That's a real hike ${where} — about ${min} min on foot from here. No bus gets closer, so take it slow or save it for another time.`;
-  }
-  if (km >= 1.8) {
-    if (hour >= 21 || hour < 6) {
-      return `Around ${min} min walking ${where}, and it's getting late. The route's below if you'd like to follow it.`;
+function useBuildLine(distanceM: number, durationSec: number, dest?: string) {
+  const { t } = useI18n();
+  return useMemo(() => {
+    const km = distanceM / 1000;
+    const min = Math.max(1, Math.round(durationSec / 60));
+    const hour = new Date().getHours();
+    const where = dest ? t("lfw.toDest", { dest }) : t("lfw.toYourDest");
+    if (km >= 2.5) return t("lfw.line.hike", { min, where });
+    if (km >= 1.8) {
+      if (hour >= 21 || hour < 6) return t("lfw.line.longNight", { min, where });
+      return t("lfw.line.long", { min, where });
     }
-    return `You're about ${min} min on foot ${where} — a proper walk. Stretch out and follow the route below.`;
-  }
-  if (hour >= 12 && hour < 16) {
-    return `Roughly ${min} min walking ${where}. Bit warm out — take water if you have it. Turn-by-turn is just below.`;
-  }
-  if (hour >= 21 || hour < 6) {
-    return `About ${min} min walking ${where} from here. Quiet streets at this hour — the route's below.`;
-  }
-  return `About ${min} min walking ${where} from here — no bus gets closer. The turn-by-turn is just below.`;
+    if (hour >= 12 && hour < 16) return t("lfw.line.warm", { min, where });
+    if (hour >= 21 || hour < 6) return t("lfw.line.night", { min, where });
+    return t("lfw.line.default", { min, where });
+  }, [distanceM, durationSec, dest, t]);
 }
 
 export function LongFinalWalkHint({
@@ -54,6 +48,7 @@ export function LongFinalWalkHint({
   destinationLabel?: string;
   className?: string;
 }) {
+  const { t } = useI18n();
   const show = distanceMeters >= LONG_WALK_THRESHOLD_M;
 
   useEffect(() => {
@@ -65,10 +60,7 @@ export function LongFinalWalkHint({
     }
   }, [show, distanceMeters, durationSec]);
 
-  const line = useMemo(
-    () => buildLine(distanceMeters, durationSec, destinationLabel),
-    [distanceMeters, durationSec, destinationLabel],
-  );
+  const line = useBuildLine(distanceMeters, durationSec, destinationLabel);
 
   if (!show) return null;
 
@@ -79,11 +71,11 @@ export function LongFinalWalkHint({
     <section className="px-6 mt-3 animate-rise">
       <article className="rounded-[26px] bg-ochre-soft/55 ring-1 ring-ochre/30 px-5 py-4">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-          Last stretch — long on foot
+          {t("lfw.kicker")}
         </p>
         <h3 className="mt-1.5 font-display text-[22px] leading-[1.15] text-ink text-balance">
-          Roughly <span className="text-ochre">{km} km</span> left
-          {destinationLabel ? <> to {destinationLabel}</> : null}.
+          {t("lfw.headPrefix")} <span className="text-ochre">{km} km</span>{" "}
+          {destinationLabel ? t("lfw.headTo", { dest: destinationLabel }) : t("lfw.head")}
         </h3>
         <p className="mt-2 text-[13px] leading-relaxed text-ink-soft">{line}</p>
         <div className="mt-3">
@@ -98,7 +90,7 @@ export function LongFinalWalkHint({
             }
             className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-[12px] text-limestone hover:bg-ink/90"
           >
-            Open walk in Google Maps
+            {t("lfw.openMaps")}
             <IconArrowUpRight className="size-3.5" />
           </a>
         </div>

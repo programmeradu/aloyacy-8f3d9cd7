@@ -7,6 +7,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { DisruptionSignal } from "@/lib/useDisruptionWatch";
 import { track, trackImpression } from "@/lib/analytics";
 import { IconArrowUpRight } from "./Icons";
+import { useI18n, type DictKey } from "@/lib/i18n";
 
 export function DisruptionBanner({
   signal,
@@ -15,6 +16,7 @@ export function DisruptionBanner({
   signal: DisruptionSignal | null;
   onReplan?: () => void;
 }) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   useEffect(() => {
     if (signal) {
@@ -62,7 +64,7 @@ export function DisruptionBanner({
         <p
           className={`font-sans text-[11px] font-semibold uppercase tracking-[0.16em] ${palette.eyebrow}`}
         >
-          {labelFor(signal.kind)}
+          {t(labelKeyFor(signal.kind))}
         </p>
         <p className="mt-1.5 font-display text-[20px] font-semibold leading-tight tracking-tight text-ink">
           {signal.title}
@@ -76,7 +78,7 @@ export function DisruptionBanner({
             onClick={handleReplan}
             className="mt-3.5 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 font-sans text-[13px] font-semibold tracking-tight text-limestone"
           >
-            Find a faster route
+            {t("disruption.fasterRoute")}
             <IconArrowUpRight className="size-3.5" />
           </button>
         )}
@@ -85,15 +87,15 @@ export function DisruptionBanner({
   );
 }
 
-function labelFor(kind: DisruptionSignal["kind"]): string {
+function labelKeyFor(kind: DisruptionSignal["kind"]): DictKey {
   switch (kind) {
     case "running-late":
-      return "Heads up";
+      return "disruption.label.runningLate";
     case "connection-at-risk":
-      return "Tight connection";
+      return "disruption.label.connectionAtRisk";
     case "missed-connection":
-      return "Plan B";
+      return "disruption.label.missedConnection";
     case "vehicle-lost-feed":
-      return "Tracking";
+      return "disruption.label.vehicleLostFeed";
   }
 }
