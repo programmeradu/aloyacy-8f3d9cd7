@@ -277,7 +277,7 @@ export function NLPlannerCard() {
 
       if (!merged.to || merged.confidence < 0.3) {
         track("ai:nl-planner.parse-failed", { confidence: merged.confidence });
-        setError("Try something like \u201cto Larnaca airport tomorrow 7am\u201d.");
+        setError(t("nl.err.parse"));
         setStage("idle");
         return;
       }
