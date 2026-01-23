@@ -263,7 +263,7 @@ export function NLPlannerCard() {
     try {
       // Run AI + heuristic in parallel. Heuristic is instant; AI takes ~1-2s.
       const aiResult = await parse({
-        data: { text: t, nowISO: new Date().toISOString(), tzOffsetMin: tzMin },
+        data: { text: q, nowISO: new Date().toISOString(), tzOffsetMin: tzMin },
       }).catch(() => null);
 
       // Merge: prefer AI place names if present, fall back to heuristic.
