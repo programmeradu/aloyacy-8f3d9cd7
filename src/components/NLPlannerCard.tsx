@@ -171,6 +171,7 @@ function createRecognizer(): SpeechRec | null {
 
 export function NLPlannerCard() {
   const navigate = useNavigate();
+  const { t, locale } = useI18n();
   const parse = useServerFn(parseTripIntent);
   const acFn = useServerFn(autocompletePlaces);
   const placeFn = useServerFn(getPlace);
