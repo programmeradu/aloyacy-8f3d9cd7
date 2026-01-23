@@ -445,7 +445,7 @@ export function NLPlannerCard() {
               <button
                 type="button"
                 onClick={reset}
-                aria-label="Clear"
+                aria-label={t("nl.aria.clear")}
                 className="mr-1 grid place-items-center size-7 rounded-full text-ink-soft hover:text-ink hover:bg-line transition"
               >
                 <IconClose className="size-3.5" />
