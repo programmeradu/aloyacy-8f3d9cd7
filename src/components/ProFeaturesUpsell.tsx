@@ -1,25 +1,17 @@
 import { useState } from "react";
 import { PaywallSheet } from "./PaywallSheet";
+import { useI18n } from "@/lib/i18n";
 
 /**
  * Combined Pro upsell shown to non-Pro users on the Saved screen.
- * Replaces the two separate blurred ProGate cards (notifications + offline
- * schedules) so the CTA is never truncated and the surface feels intentional.
  */
 export function ProFeaturesUpsell() {
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
 
   const features = [
-    {
-      k: "01",
-      t: "Quiet alerts",
-      d: "Boarding, stops, and delays — only when it matters.",
-    },
-    {
-      k: "02",
-      t: "Offline timetables",
-      d: "The next 7 days of bus schedules, even without signal.",
-    },
+    { k: "01", t: t("upsell.feat.alerts.t"), d: t("upsell.feat.alerts.d") },
+    { k: "02", t: t("upsell.feat.offline.t"), d: t("upsell.feat.offline.d") },
   ];
 
   return (
@@ -35,11 +27,12 @@ export function ProFeaturesUpsell() {
         />
         <div className="relative px-6 py-7">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-            Aloya Pro
+            {t("upsell.kicker")}
           </p>
           <h3 className="mt-2 font-display text-2xl leading-tight text-ink text-balance">
-            Ride <span className="italic text-aegean-deep">calmly</span>,
-            online or off
+            {t("upsell.title1")}{" "}
+            <span className="italic text-aegean-deep">{t("upsell.title2")}</span>
+            {t("upsell.title3")}
           </h3>
 
           <ul className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -67,10 +60,10 @@ export function ProFeaturesUpsell() {
               onClick={() => setOpen(true)}
               className="rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium tracking-tight text-limestone transition hover:bg-ink/90"
             >
-              Unlock from €1.99/wk
+              {t("upsell.cta")}
             </button>
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-              Cancel anytime
+              {t("upsell.cancel")}
             </span>
           </div>
         </div>

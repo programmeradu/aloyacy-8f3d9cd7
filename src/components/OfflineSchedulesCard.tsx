@@ -8,15 +8,18 @@ import {
   type DownloadProgress,
   type OfflineStatus,
 } from "@/lib/offline-schedules";
+import { useI18n } from "@/lib/i18n";
 
 const DAYS_AHEAD = 7;
 
 export function OfflineSchedulesCard() {
+  const { t } = useI18n();
   const [status, setStatus] = useState<OfflineStatus | null>(null);
   const [supported, setSupported] = useState(true);
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
 
   useEffect(() => {
     setSupported(isOfflineCacheSupported());
