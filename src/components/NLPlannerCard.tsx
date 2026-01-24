@@ -482,7 +482,7 @@ export function NLPlannerCard() {
           {busy && (
             <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-aegean-deep flex items-center gap-1.5">
               <span className="inline-block size-1 rounded-full bg-aegean-deep animate-pulse" />
-              {stage === "parsing" ? "Reading what you mean\u2026" : "Finding stops in Cyprus\u2026"}
+              {stage === "parsing" ? t("nl.stage.parsing") : t("nl.stage.locating")}
             </p>
           )}
         </form>
