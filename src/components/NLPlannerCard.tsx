@@ -492,10 +492,10 @@ export function NLPlannerCard() {
           <div className="mt-4">
             <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft mb-2">
               {suggestionsQuery.data?.suggestions?.[0]?.reason === "personal"
-                ? "For you"
+                ? t("nl.sugg.personal")
                 : suggestionsQuery.data?.suggestions?.[0]?.reason === "trending"
-                  ? "Trending now"
-                  : "Try"}
+                  ? t("nl.sugg.trending")
+                  : t("nl.sugg.try")}
             </p>
             <div className="flex flex-col gap-1.5">
               {suggestionsQuery.isLoading && examples.length === 0
