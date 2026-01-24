@@ -93,10 +93,11 @@ export function NotificationsCard() {
       });
       setEndpoint(r.subscription.endpoint);
       setStatus("on");
-      setMessage("Notifications enabled.");
+      setMessage(t("notif.msg.enabled"));
     } catch (e) {
       console.error(e);
-      setMessage("Could not enable notifications.");
+      setMessage(t("notif.msg.errEnable"));
+
     } finally {
       setPending(false);
     }
