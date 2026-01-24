@@ -14,11 +14,14 @@ import {
   setSpeechEnabled,
   speak,
 } from "@/lib/speech";
+import { useI18n } from "@/lib/i18n";
 
 type Status = "unknown" | "unsupported" | "preview" | "denied" | "off" | "on";
 
 export function NotificationsCard() {
+  const { t } = useI18n();
   const [status, setStatus] = useState<Status>("unknown");
+
   const [endpoint, setEndpoint] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);

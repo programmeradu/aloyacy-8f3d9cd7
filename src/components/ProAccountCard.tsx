@@ -5,10 +5,12 @@ import { createPortalSession } from "@/lib/billing.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { useProSubscription } from "@/lib/usePro";
 import { useAuth } from "@/lib/useAuth";
+import { useI18n } from "@/lib/i18n";
 
 export function ProAccountCard() {
   const { isPro, sub, loading } = useProSubscription();
   const { user } = useAuth();
+  const { t, locale } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const portalFn = useServerFn(createPortalSession);
@@ -20,10 +22,10 @@ export function ProAccountCard() {
     : null;
   const planLabel =
     sub?.plan_key === "pro_weekly"
-      ? "Weekly · €1.99"
+      ? t("proacc.plan.weekly")
       : sub?.plan_key === "pro_monthly"
-        ? "Monthly · €6.99"
-        : "Aloya Pro";
+        ? t("proacc.plan.monthly")
+        : t("proacc.plan.default");
 
   async function manage() {
     setBusy(true);
@@ -38,7 +40,7 @@ export function ProAccountCard() {
       if ("error" in result) throw new Error(result.error);
       window.open(result.url, "_blank", "noopener,noreferrer");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not open billing");
+      setError(err instanceof Error ? err.message : t("proacc.errPortal"));
     } finally {
       setBusy(false);
     }
@@ -49,7 +51,10 @@ export function ProAccountCard() {
   }
 
   const renewLabel = renewsAt
-    ? renewsAt.toLocaleDateString(undefined, { day: "numeric", month: "short" })
+    ? renewsAt.toLocaleDateString(locale === "el" ? "el-GR" : undefined, {
+        day: "numeric",
+        month: "short",
+      })
     : null;
 
   return (
@@ -70,34 +75,34 @@ export function ProAccountCard() {
       <div className="relative px-4 py-4">
         <div className="flex items-center justify-between gap-3">
           <p className="font-display text-[11px] font-medium leading-none tracking-[0.14em] text-limestone/70">
-            Aloya<span className="text-ochre"> Pro</span>
+            {t("proacc.brand")}<span className="text-ochre">{t("proacc.brand2")}</span>
           </p>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-limestone/[0.08] px-2 py-0.5 text-[10px] font-medium tracking-tight text-limestone/80 ring-1 ring-limestone/15">
             <span className="h-1.5 w-1.5 rounded-full bg-aegean" />
-            Active
+            {t("proacc.active")}
           </span>
         </div>
 
         <p className="mt-3 font-display text-[18px] leading-[1.2] tracking-tight text-limestone">
-          Every feature unlocked.
+          {t("proacc.headline")}
         </p>
 
         <dl className="mt-3 divide-y divide-limestone/10 border-y border-limestone/10 text-[12.5px]">
           <div className="flex items-center justify-between py-2">
-            <dt className="text-limestone/55">Plan</dt>
+            <dt className="text-limestone/55">{t("proacc.plan")}</dt>
             <dd className="text-limestone tabular-nums">{planLabel}</dd>
           </div>
           {renewLabel && (
             <div className="flex items-center justify-between py-2">
               <dt className="text-limestone/55">
-                {sub?.cancel_at_period_end ? "Ends" : "Renews"}
+                {sub?.cancel_at_period_end ? t("proacc.ends") : t("proacc.renews")}
               </dt>
               <dd className="text-limestone tabular-nums">{renewLabel}</dd>
             </div>
           )}
           {user?.email && (
             <div className="flex items-center justify-between gap-3 py-2">
-              <dt className="shrink-0 text-limestone/55">Account</dt>
+              <dt className="shrink-0 text-limestone/55">{t("proacc.account")}</dt>
               <dd
                 className="min-w-0 truncate text-right text-limestone"
                 title={user.email}
@@ -116,13 +121,13 @@ export function ProAccountCard() {
             disabled={busy}
             className="flex-1 rounded-full bg-limestone px-4 py-2.5 text-[12.5px] font-medium tracking-tight text-ink transition hover:bg-limestone/90 active:scale-[0.98] disabled:opacity-50"
           >
-            {busy ? "Opening…" : "Manage"}
+            {busy ? t("proacc.opening") : t("proacc.manage")}
           </button>
           <button
             onClick={signOut}
             className="rounded-full bg-limestone/[0.08] px-4 py-2.5 text-[12.5px] font-medium tracking-tight text-limestone/80 ring-1 ring-limestone/15 transition hover:bg-limestone/[0.12]"
           >
-            Sign out
+            {t("proacc.signOut")}
           </button>
         </div>
       </div>
