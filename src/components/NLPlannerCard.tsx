@@ -534,7 +534,7 @@ export function NLPlannerCard() {
         {resolved && (
           <div className="mt-4 rounded-2xl bg-background ring-1 ring-aegean-deep/30 p-4 animate-rise">
             <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-aegean-deep">
-              Got it
+              {t("nl.got")}
             </p>
 
             <div className="mt-2 flex items-start gap-3">
@@ -545,13 +545,13 @@ export function NLPlannerCard() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-sans text-[11px] uppercase tracking-[0.16em] text-ink-soft">
-                  From
+                  {t("nl.from")}
                 </p>
                 <p className="font-display text-[18px] leading-tight text-ink truncate">
-                  {resolved.from?.label ?? "Your location"}
+                  {resolved.from?.label ?? t("nl.yourLocation")}
                 </p>
                 <p className="font-sans text-[11px] uppercase tracking-[0.16em] text-ink-soft mt-2">
-                  To
+                  {t("nl.to")}
                 </p>
                 <p className="font-display text-[18px] leading-tight text-ink truncate">
                   {resolved.to.label}
@@ -563,8 +563,8 @@ export function NLPlannerCard() {
               <div className="mt-3 flex items-center gap-1.5 font-mono text-[11px] text-aegean-deep">
                 <IconClockSmall className="size-3.5" />
                 {intent.arriveByISO
-                  ? `Arrive by ${formatWhen(intent.arriveByISO)}`
-                  : `Leave ${formatWhen(intent.leaveByISO!)}`}
+                  ? t("nl.arriveBy", { time: formatWhen(intent.arriveByISO, t, locale) })
+                  : t("nl.leaveAt", { time: formatWhen(intent.leaveByISO!, t, locale) })}
               </div>
             )}
 
@@ -574,14 +574,14 @@ export function NLPlannerCard() {
                 onClick={reset}
                 className="flex-1 rounded-full ring-1 ring-line bg-card text-ink font-mono text-[10px] uppercase tracking-[0.18em] py-2.5 hover:ring-ink transition"
               >
-                Edit
+                {t("nl.edit")}
               </button>
               <button
                 type="button"
                 onClick={go}
                 className="flex-[2] flex items-center justify-center gap-1.5 rounded-full bg-ink text-card font-mono text-[10px] uppercase tracking-[0.18em] py-2.5 hover:bg-aegean-deep transition"
               >
-                Plan this trip
+                {t("nl.plan")}
                 <IconArrowUp className="size-3 rotate-90" />
               </button>
             </div>
