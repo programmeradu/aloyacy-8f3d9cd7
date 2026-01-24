@@ -30,6 +30,7 @@ import {
   IconNav,
   IconClockSmall,
 } from "@/components/Icons";
+import { useI18n } from "@/lib/i18n";
 
 // Generic cold-start fallbacks. Used only when the server-side suggestion
 // fetch fails entirely; the hook below populates real, dynamic chips.
@@ -170,6 +171,7 @@ function createRecognizer(): SpeechRec | null {
 
 export function NLPlannerCard() {
   const navigate = useNavigate();
+  const { t, locale } = useI18n();
   const parse = useServerFn(parseTripIntent);
   const acFn = useServerFn(autocompletePlaces);
   const placeFn = useServerFn(getPlace);
@@ -243,8 +245,8 @@ export function NLPlannerCard() {
   }
 
   async function submit(value: string) {
-    const t = value.trim();
-    if (t.length < 3) return;
+    const q = value.trim();
+    if (q.length < 3) return;
     abortRef.current?.abort();
     abortRef.current = new AbortController();
 
@@ -253,15 +255,15 @@ export function NLPlannerCard() {
     setIntent(null);
     setResolved(null);
     setStage("parsing");
-    track("ai:nl-planner.submit", { length: t.length });
+    track("ai:nl-planner.submit", { length: q.length });
 
     const tzMin = -new Date().getTimezoneOffset();
-    const heuristic = extractHeuristicIntent(t, tzMin);
+    const heuristic = extractHeuristicIntent(q, tzMin);
 
     try {
       // Run AI + heuristic in parallel. Heuristic is instant; AI takes ~1-2s.
       const aiResult = await parse({
-        data: { text: t, nowISO: new Date().toISOString(), tzOffsetMin: tzMin },
+        data: { text: q, nowISO: new Date().toISOString(), tzOffsetMin: tzMin },
       }).catch(() => null);
 
       // Merge: prefer AI place names if present, fall back to heuristic.
@@ -275,7 +277,7 @@ export function NLPlannerCard() {
 
       if (!merged.to || merged.confidence < 0.3) {
         track("ai:nl-planner.parse-failed", { confidence: merged.confidence });
-        setError("Try something like \u201cto Larnaca airport tomorrow 7am\u201d.");
+        setError(t("nl.err.parse"));
         setStage("idle");
         return;
       }
@@ -299,7 +301,7 @@ export function NLPlannerCard() {
 
       if (!destination) {
         track("ai:nl-planner.geocode-failed", { which: "to" });
-        setError(`Couldn\u2019t find \u201c${merged.to}\u201d in Cyprus.`);
+        setError(t("nl.err.geocode", { q: merged.to }));
         setStage("idle");
         return;
       }
@@ -310,7 +312,7 @@ export function NLPlannerCard() {
     } catch (err) {
       console.warn("[nl-planner] failed", err);
       track("ai:nl-planner.error");
-      setError("Something went wrong. Try again.");
+      setError(t("nl.err.generic"));
       setStage("idle");
     } finally {
       setBusy(false);
@@ -324,9 +326,10 @@ export function NLPlannerCard() {
     }
     const rec = createRecognizer();
     if (!rec) {
-      setError("Voice input isn\u2019t supported on this browser.");
+      setError(t("nl.err.voice"));
       return;
     }
+    rec.lang = locale === "el" ? "el-GR" : "en-US";
     recRef.current = rec;
     rec.onresult = (e) => {
       const transcript = Array.from(e.results)
@@ -397,19 +400,19 @@ export function NLPlannerCard() {
       <div className="relative p-5">
         <div className="flex items-center gap-2">
           <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-aegean-deep">
-            Ask Aloya
+            {t("nl.kicker")}
           </span>
           <span className="h-px flex-1 bg-line" />
           <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
-            Plain words
+            {t("nl.kicker2")}
           </span>
         </div>
 
         <h2 className="font-display text-[2rem] leading-[1.05] text-ink mt-2">
-          Where to today?
+          {t("nl.title")}
         </h2>
         <p className="font-sans text-[12.5px] text-ink-soft mt-1.5">
-          Say it like you would to a friend. Times, days, landmarks — all fair game.
+          {t("nl.sub")}
         </p>
 
         {/* Composer */}
@@ -431,8 +434,8 @@ export function NLPlannerCard() {
                 setText(e.target.value);
                 if (error) setError(null);
               }}
-              placeholder={listening ? "Listening\u2026" : "to Larnaca airport tomorrow 7am"}
-              aria-label="Describe your trip"
+              placeholder={listening ? t("nl.listening") : t("nl.placeholder")}
+              aria-label={t("nl.aria.describe")}
               className="flex-1 bg-transparent outline-none font-sans text-[14.5px] text-ink placeholder:text-ink-soft/60 px-2.5 py-3"
               autoComplete="off"
               maxLength={500}
@@ -442,7 +445,7 @@ export function NLPlannerCard() {
               <button
                 type="button"
                 onClick={reset}
-                aria-label="Clear"
+                aria-label={t("nl.aria.clear")}
                 className="mr-1 grid place-items-center size-7 rounded-full text-ink-soft hover:text-ink hover:bg-line transition"
               >
                 <IconClose className="size-3.5" />
@@ -451,7 +454,7 @@ export function NLPlannerCard() {
             <button
               type="button"
               onClick={startVoice}
-              aria-label={listening ? "Stop listening" : "Voice input"}
+              aria-label={listening ? t("nl.aria.voiceStop") : t("nl.aria.voice")}
               aria-pressed={listening}
               className={`mr-1 grid place-items-center size-9 rounded-full transition ${
                 listening
@@ -464,7 +467,7 @@ export function NLPlannerCard() {
             <button
               type="submit"
               disabled={!canSubmit}
-              aria-label="Plan trip"
+              aria-label={t("nl.aria.plan")}
               className="mr-1.5 grid place-items-center size-10 rounded-full bg-ink text-card transition disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:bg-aegean-deep enabled:active:scale-95"
             >
               {busy ? (
@@ -479,7 +482,7 @@ export function NLPlannerCard() {
           {busy && (
             <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-aegean-deep flex items-center gap-1.5">
               <span className="inline-block size-1 rounded-full bg-aegean-deep animate-pulse" />
-              {stage === "parsing" ? "Reading what you mean\u2026" : "Finding stops in Cyprus\u2026"}
+              {stage === "parsing" ? t("nl.stage.parsing") : t("nl.stage.locating")}
             </p>
           )}
         </form>
@@ -489,10 +492,10 @@ export function NLPlannerCard() {
           <div className="mt-4">
             <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft mb-2">
               {suggestionsQuery.data?.suggestions?.[0]?.reason === "personal"
-                ? "For you"
+                ? t("nl.sugg.personal")
                 : suggestionsQuery.data?.suggestions?.[0]?.reason === "trending"
-                  ? "Trending now"
-                  : "Try"}
+                  ? t("nl.sugg.trending")
+                  : t("nl.sugg.try")}
             </p>
             <div className="flex flex-col gap-1.5">
               {suggestionsQuery.isLoading && examples.length === 0
@@ -531,7 +534,7 @@ export function NLPlannerCard() {
         {resolved && (
           <div className="mt-4 rounded-2xl bg-background ring-1 ring-aegean-deep/30 p-4 animate-rise">
             <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-aegean-deep">
-              Got it
+              {t("nl.got")}
             </p>
 
             <div className="mt-2 flex items-start gap-3">
@@ -542,13 +545,13 @@ export function NLPlannerCard() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-sans text-[11px] uppercase tracking-[0.16em] text-ink-soft">
-                  From
+                  {t("nl.from")}
                 </p>
                 <p className="font-display text-[18px] leading-tight text-ink truncate">
-                  {resolved.from?.label ?? "Your location"}
+                  {resolved.from?.label ?? t("nl.yourLocation")}
                 </p>
                 <p className="font-sans text-[11px] uppercase tracking-[0.16em] text-ink-soft mt-2">
-                  To
+                  {t("nl.to")}
                 </p>
                 <p className="font-display text-[18px] leading-tight text-ink truncate">
                   {resolved.to.label}
@@ -560,8 +563,8 @@ export function NLPlannerCard() {
               <div className="mt-3 flex items-center gap-1.5 font-mono text-[11px] text-aegean-deep">
                 <IconClockSmall className="size-3.5" />
                 {intent.arriveByISO
-                  ? `Arrive by ${formatWhen(intent.arriveByISO)}`
-                  : `Leave ${formatWhen(intent.leaveByISO!)}`}
+                  ? t("nl.arriveBy", { time: formatWhen(intent.arriveByISO, t, locale) })
+                  : t("nl.leaveAt", { time: formatWhen(intent.leaveByISO!, t, locale) })}
               </div>
             )}
 
@@ -571,14 +574,14 @@ export function NLPlannerCard() {
                 onClick={reset}
                 className="flex-1 rounded-full ring-1 ring-line bg-card text-ink font-mono text-[10px] uppercase tracking-[0.18em] py-2.5 hover:ring-ink transition"
               >
-                Edit
+                {t("nl.edit")}
               </button>
               <button
                 type="button"
                 onClick={go}
                 className="flex-[2] flex items-center justify-center gap-1.5 rounded-full bg-ink text-card font-mono text-[10px] uppercase tracking-[0.18em] py-2.5 hover:bg-aegean-deep transition"
               >
-                Plan this trip
+                {t("nl.plan")}
                 <IconArrowUp className="size-3 rotate-90" />
               </button>
             </div>
@@ -589,16 +592,20 @@ export function NLPlannerCard() {
   );
 }
 
-function formatWhen(iso: string): string {
+type TFn = (key: import("@/lib/i18n").DictKey, vars?: Record<string, string | number>) => string;
+
+function formatWhen(iso: string, t: TFn, locale: string): string {
   try {
+    const tag = locale === "el" ? "el-GR" : undefined;
     const d = new Date(iso);
     const today = new Date();
-    const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-    if (d.toDateString() === today.toDateString()) return `at ${time}`;
+    const time = d.toLocaleTimeString(tag, { hour: "numeric", minute: "2-digit" });
+    if (d.toDateString() === today.toDateString()) return t("nl.when.atTime", { time });
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    if (d.toDateString() === tomorrow.toDateString()) return `tomorrow ${time}`;
-    return `${d.toLocaleDateString([], { weekday: "short" })} ${time}`;
+    if (d.toDateString() === tomorrow.toDateString()) return t("nl.when.tomorrow", { time });
+    const dow = d.toLocaleDateString(tag, { weekday: "short" });
+    return t("nl.when.dow", { dow, time });
   } catch {
     return iso;
   }
