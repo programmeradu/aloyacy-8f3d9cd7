@@ -29,7 +29,7 @@ export function OfflineSchedulesCard() {
   async function download() {
     setPending(true);
     setMessage(null);
-    setProgress({ total: 0, done: 0, currentLabel: "Preparing…" });
+    setProgress({ total: 0, done: 0, currentLabel: t("offline.progress.prep") });
     try {
       const s = await downloadOfflineSchedules({
         daysAhead: DAYS_AHEAD,
@@ -38,12 +38,12 @@ export function OfflineSchedulesCard() {
       setStatus(s);
       setMessage(
         s.dates.length
-          ? `Cached ${s.dates.length} days, ${formatBytes(s.bytes)}.`
-          : "No days were cached. Check your connection.",
+          ? t("offline.msg.cached", { n: s.dates.length, size: formatBytes(s.bytes) })
+          : t("offline.msg.empty"),
       );
     } catch (e) {
       console.error(e);
-      setMessage(e instanceof Error ? e.message : "Download failed.");
+      setMessage(e instanceof Error ? e.message : t("offline.msg.fail"));
     } finally {
       setPending(false);
       setProgress(null);
@@ -55,11 +55,12 @@ export function OfflineSchedulesCard() {
     try {
       await clearOfflineSchedules();
       setStatus(null);
-      setMessage("Offline cache cleared.");
+      setMessage(t("offline.msg.cleared"));
     } finally {
       setPending(false);
     }
   }
+
 
   const pct = progress && progress.total > 0
     ? Math.round((progress.done / progress.total) * 100)
