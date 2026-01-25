@@ -111,7 +111,7 @@ export function NotificationsCard() {
       await unsubscribePush();
       setEndpoint(null);
       setStatus("off");
-      setMessage("Notifications turned off.");
+      setMessage(t("notif.msg.off"));
     } catch (e) {
       console.error(e);
     } finally {
