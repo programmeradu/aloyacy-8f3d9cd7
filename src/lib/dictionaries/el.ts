@@ -185,7 +185,7 @@ export const el: Record<keyof typeof en, string> = {
   "nav.explore": "Εξερεύνηση",
   "nav.trips": "Διαδρομές",
   "nav.pulse": "Παλμός",
-  "nav.saved": "Αποθηκευμένα",
+  "nav.saved": "Αγαπημένα",
   "nav.pass": "Κάρτα",
 
   "home.whereToday": "Πού θα πάτε σήμερα στη {area};",
