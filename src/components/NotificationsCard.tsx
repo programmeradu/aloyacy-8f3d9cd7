@@ -14,11 +14,14 @@ import {
   setSpeechEnabled,
   speak,
 } from "@/lib/speech";
+import { useI18n } from "@/lib/i18n";
 
 type Status = "unknown" | "unsupported" | "preview" | "denied" | "off" | "on";
 
 export function NotificationsCard() {
+  const { t } = useI18n();
   const [status, setStatus] = useState<Status>("unknown");
+
   const [endpoint, setEndpoint] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -63,13 +66,13 @@ export function NotificationsCard() {
     setSpeechEnabled(next);
     setSpeechOn(next);
     if (next) {
-      // Must run from the click handler to unlock iOS speech.
       primeSpeech();
-      speak("Spoken alerts are on.");
+      speak(t("notif.speech.priming"));
     } else if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
   }
+
 
   async function enable() {
     setPending(true);
@@ -90,10 +93,11 @@ export function NotificationsCard() {
       });
       setEndpoint(r.subscription.endpoint);
       setStatus("on");
-      setMessage("Notifications enabled.");
+      setMessage(t("notif.msg.enabled"));
     } catch (e) {
       console.error(e);
-      setMessage("Could not enable notifications.");
+      setMessage(t("notif.msg.errEnable"));
+
     } finally {
       setPending(false);
     }
@@ -107,7 +111,7 @@ export function NotificationsCard() {
       await unsubscribePush();
       setEndpoint(null);
       setStatus("off");
-      setMessage("Notifications turned off.");
+      setMessage(t("notif.msg.off"));
     } catch (e) {
       console.error(e);
     } finally {
@@ -121,15 +125,16 @@ export function NotificationsCard() {
     try {
       const res = await test({ data: { deviceId: getDeviceId() } });
       if (res.sent > 0) {
-        setMessage("Test ping sent. Check your device.");
+        setMessage(t("notif.msg.sent"));
       } else if (res.error) {
         setMessage(res.error);
       } else {
-        setMessage("No active subscriptions found.");
+        setMessage(t("notif.msg.none"));
       }
     } catch (e) {
       console.error(e);
-      setMessage(e instanceof Error ? e.message : "Could not send test notification.");
+      setMessage(e instanceof Error ? e.message : t("notif.msg.errTest"));
+
     } finally {
       setPending(false);
     }
@@ -145,28 +150,14 @@ export function NotificationsCard() {
   const isOn = status === "on";
 
   const copy = {
-    unknown: { line: "Checking notification status…", tone: "ink-soft" as const },
-    unsupported: {
-      line: "This browser does not support push notifications.",
-      tone: "ink-soft" as const,
-    },
-    preview: {
-      line: "Notifications work on the installed app. Open the published site or add Aloya to your home screen.",
-      tone: "ink-soft" as const,
-    },
-    denied: {
-      line: "Notifications are blocked. Allow them in your browser settings to receive bus alerts.",
-      tone: "ochre" as const,
-    },
-    off: {
-      line: "Turn on quiet alerts for boarding, alighting, and delays.",
-      tone: "ink-soft" as const,
-    },
-    on: {
-      line: "On. We will only ping for boarding, alighting, and disruptions.",
-      tone: "olive" as const,
-    },
+    unknown: { line: t("notif.line.unknown"), tone: "ink-soft" as const },
+    unsupported: { line: t("notif.line.unsupported"), tone: "ink-soft" as const },
+    preview: { line: t("notif.line.preview"), tone: "ink-soft" as const },
+    denied: { line: t("notif.line.denied"), tone: "ochre" as const },
+    off: { line: t("notif.line.off"), tone: "ink-soft" as const },
+    on: { line: t("notif.line.on"), tone: "olive" as const },
   }[status];
+
 
   return (
     <article className="relative overflow-hidden rounded-[28px] bg-paper ring-1 ring-line">
@@ -181,10 +172,10 @@ export function NotificationsCard() {
         <div className="flex items-baseline justify-between gap-4">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-              03 — Quiet alerts
+              {t("notif.kicker")}
             </p>
             <h3 className="font-display text-2xl mt-1 text-ink">
-              Aloya, only when it <span className="italic text-aegean-deep">matters</span>
+              {t("notif.title1")} <span className="italic text-aegean-deep">{t("notif.title2")}</span>
             </h3>
           </div>
           <span
@@ -193,7 +184,7 @@ export function NotificationsCard() {
               isOn ? "text-olive" : status === "denied" ? "text-ochre" : "text-ink-soft",
             ].join(" ")}
           >
-            {isOn ? "Live" : status === "denied" ? "Blocked" : "Off"}
+            {isOn ? t("notif.status.live") : status === "denied" ? t("notif.status.blocked") : t("notif.status.off")}
           </span>
         </div>
 
@@ -205,7 +196,7 @@ export function NotificationsCard() {
             type="button"
             role="switch"
             aria-checked={isOn}
-            aria-label={isOn ? "Turn notifications off" : "Turn notifications on"}
+            aria-label={isOn ? t("notif.aria.off") : t("notif.aria.on")}
             onClick={onToggle}
             disabled={!interactive || pending}
             className={[
@@ -218,7 +209,6 @@ export function NotificationsCard() {
               !interactive || pending ? "cursor-not-allowed opacity-50" : "cursor-pointer",
             ].join(" ")}
           >
-            {/* Tick marks inside the track */}
             <span
               aria-hidden
               className={[
@@ -226,7 +216,7 @@ export function NotificationsCard() {
                 isOn ? "text-paper/90 opacity-100" : "opacity-0",
               ].join(" ")}
             >
-              On
+              {t("notif.knob.on")}
             </span>
             <span
               aria-hidden
@@ -235,9 +225,8 @@ export function NotificationsCard() {
                 isOn ? "opacity-0" : "text-ink-soft opacity-100",
               ].join(" ")}
             >
-              Off
+              {t("notif.knob.off")}
             </span>
-            {/* Knob */}
             <span
               aria-hidden
               className={[
@@ -249,7 +238,6 @@ export function NotificationsCard() {
                 pending ? "scale-95" : "group-active:scale-95",
               ].join(" ")}
             >
-              {/* Inner medallion: aegean dot when on, olive ring when off */}
               <span
                 className={[
                   "absolute inset-0 m-auto h-2 w-2 rounded-full transition-colors duration-500",
@@ -264,23 +252,22 @@ export function NotificationsCard() {
 
           <div className="min-w-0">
             <p className="font-display text-lg text-ink leading-tight">
-              {isOn ? "Notifications on" : "Notifications off"}
+              {isOn ? t("notif.label.on") : t("notif.label.off")}
             </p>
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft mt-1">
               {pending
-                ? "Working…"
+                ? t("notif.hint.working")
                 : isOn
-                  ? "Tap to silence"
+                  ? t("notif.hint.silence")
                   : status === "denied"
-                    ? "Unblock in browser"
+                    ? t("notif.hint.unblock")
                     : status === "preview" || status === "unsupported"
-                      ? "Unavailable here"
-                      : "Tap to enable"}
+                      ? t("notif.hint.unavailable")
+                      : t("notif.hint.enable")}
             </p>
           </div>
         </div>
 
-        {/* Secondary action */}
         {isOn && (
           <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
             <button
@@ -288,7 +275,7 @@ export function NotificationsCard() {
               disabled={pending}
               className="font-mono text-[11px] uppercase tracking-[0.22em] text-aegean-deep underline-offset-4 transition hover:underline disabled:opacity-50"
             >
-              Send a test ping
+              {t("notif.test")}
             </button>
             {speechSupported && (
               <button
@@ -299,7 +286,7 @@ export function NotificationsCard() {
                   speechOn ? "text-olive" : "text-ink-soft",
                 ].join(" ")}
               >
-                {speechOn ? "Speak alerts: on" : "Speak alerts: off"}
+                {speechOn ? t("notif.speech.on") : t("notif.speech.off")}
               </button>
             )}
           </div>
@@ -311,10 +298,11 @@ export function NotificationsCard() {
 
         <ul className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
           {[
-            { k: "01", t: "Board soon", d: "Head to your stop" },
-            { k: "02", t: "Stop coming", d: "Press the button" },
-            { k: "03", t: "Delays", d: "If the bus is late" },
+            { k: "01", t: t("notif.feat.board.t"), d: t("notif.feat.board.d") },
+            { k: "02", t: t("notif.feat.stop.t"), d: t("notif.feat.stop.d") },
+            { k: "03", t: t("notif.feat.delay.t"), d: t("notif.feat.delay.d") },
           ].map((x) => (
+
             <li
               key={x.k}
               className="rounded-2xl bg-limestone/60 px-4 py-3 ring-1 ring-line/60"

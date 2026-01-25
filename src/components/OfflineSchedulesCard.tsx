@@ -8,15 +8,18 @@ import {
   type DownloadProgress,
   type OfflineStatus,
 } from "@/lib/offline-schedules";
+import { useI18n } from "@/lib/i18n";
 
 const DAYS_AHEAD = 7;
 
 export function OfflineSchedulesCard() {
+  const { t } = useI18n();
   const [status, setStatus] = useState<OfflineStatus | null>(null);
   const [supported, setSupported] = useState(true);
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
 
   useEffect(() => {
     setSupported(isOfflineCacheSupported());
@@ -26,7 +29,7 @@ export function OfflineSchedulesCard() {
   async function download() {
     setPending(true);
     setMessage(null);
-    setProgress({ total: 0, done: 0, currentLabel: "Preparing…" });
+    setProgress({ total: 0, done: 0, currentLabel: t("offline.progress.prep") });
     try {
       const s = await downloadOfflineSchedules({
         daysAhead: DAYS_AHEAD,
@@ -35,12 +38,12 @@ export function OfflineSchedulesCard() {
       setStatus(s);
       setMessage(
         s.dates.length
-          ? `Cached ${s.dates.length} days, ${formatBytes(s.bytes)}.`
-          : "No days were cached. Check your connection.",
+          ? t("offline.msg.cached", { n: s.dates.length, size: formatBytes(s.bytes) })
+          : t("offline.msg.empty"),
       );
     } catch (e) {
       console.error(e);
-      setMessage(e instanceof Error ? e.message : "Download failed.");
+      setMessage(e instanceof Error ? e.message : t("offline.msg.fail"));
     } finally {
       setPending(false);
       setProgress(null);
@@ -52,11 +55,12 @@ export function OfflineSchedulesCard() {
     try {
       await clearOfflineSchedules();
       setStatus(null);
-      setMessage("Offline cache cleared.");
+      setMessage(t("offline.msg.cleared"));
     } finally {
       setPending(false);
     }
   }
+
 
   const pct = progress && progress.total > 0
     ? Math.round((progress.done / progress.total) * 100)
@@ -78,25 +82,24 @@ export function OfflineSchedulesCard() {
         <div className="flex items-baseline justify-between gap-4">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-              04 — Offline schedules
+              {t("offline.kicker")}
             </p>
             <h3 className="font-display text-2xl mt-1 text-ink">
-              Timetables, even <span className="italic text-olive">without signal</span>
+              {t("offline.title1")} <span className="italic text-olive">{t("offline.title2")}</span>
             </h3>
           </div>
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-            {status ? "Cached" : "Off"}
+            {status ? t("offline.status.cached") : t("offline.status.off")}
           </span>
         </div>
 
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-          Download the next {DAYS_AHEAD} days of bus timetables. Around 12 MB on device.
-          Refresh weekly to keep service changes current.
+          {t("offline.body", { days: DAYS_AHEAD })}
         </p>
 
         {!supported && (
           <p className="mt-3 font-mono text-[11px] tracking-wide text-ochre">
-            This browser does not support offline cache.
+            {t("offline.unsupported")}
           </p>
         )}
 
@@ -104,13 +107,13 @@ export function OfflineSchedulesCard() {
           <dl className="mt-5 grid grid-cols-3 gap-3">
             <div className="rounded-2xl bg-limestone/60 px-4 py-3 ring-1 ring-line/60">
               <dt className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                Days
+                {t("offline.stat.days")}
               </dt>
               <dd className="mt-1 font-display text-2xl text-ink">{status.dates.length}</dd>
             </div>
             <div className="rounded-2xl bg-limestone/60 px-4 py-3 ring-1 ring-line/60">
               <dt className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                Size
+                {t("offline.stat.size")}
               </dt>
               <dd className="mt-1 font-display text-2xl text-ink">
                 {formatBytes(status.bytes)}
@@ -118,7 +121,7 @@ export function OfflineSchedulesCard() {
             </div>
             <div className="rounded-2xl bg-limestone/60 px-4 py-3 ring-1 ring-line/60">
               <dt className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                Updated
+                {t("offline.stat.updated")}
               </dt>
               <dd className="mt-1 font-display text-sm text-ink leading-tight">
                 {lastWhen}
@@ -148,7 +151,7 @@ export function OfflineSchedulesCard() {
             disabled={pending || !supported}
             className="rounded-full bg-ink px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-limestone transition hover:bg-ink/90 disabled:opacity-50"
           >
-            {pending ? "Working…" : status ? "Refresh cache" : "Download timetables"}
+            {pending ? t("offline.cta.working") : status ? t("offline.cta.refresh") : t("offline.cta.download")}
           </button>
           {status && (
             <button
@@ -157,7 +160,7 @@ export function OfflineSchedulesCard() {
               disabled={pending}
               className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft underline-offset-4 transition hover:text-ink hover:underline disabled:opacity-50"
             >
-              Clear cache
+              {t("offline.cta.clear")}
             </button>
           )}
         </div>
@@ -167,6 +170,7 @@ export function OfflineSchedulesCard() {
             {message}
           </p>
         )}
+
       </div>
     </article>
   );
