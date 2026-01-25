@@ -182,8 +182,8 @@ export const el: Record<keyof typeof en, string> = {
   "ml.timeline.walkSub": "{min} · {d} μ",
   "ml.timeline.waitSub": "{min} στη στάση",
 
-  "nav.explore": "Εξερεύνηση",
-  "nav.trips": "Διαδρομές",
+  "nav.explore": "Χάρτης",
+  "nav.trips": "Ταξίδια",
   "nav.pulse": "Παλμός",
   "nav.saved": "Αγαπημένα",
   "nav.pass": "Κάρτα",
