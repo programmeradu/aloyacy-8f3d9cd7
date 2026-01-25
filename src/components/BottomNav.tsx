@@ -33,7 +33,7 @@ export function BottomNav() {
                   <span className="absolute inset-x-2 inset-y-0 -z-10 rounded-full bg-aegean-soft/40" />
                 )}
                 <Icon className="size-[18px]" strokeWidth={active ? 1.7 : 1.4} />
-                <span className="font-mono text-[9px] uppercase tracking-[0.16em] [:lang(el)_&]:tracking-[0.04em] max-w-full truncate-1 px-1">
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] [:lang(el)_&]:tracking-[0.01em] max-w-full truncate-1">
                   {t(labelKey)}
                 </span>
               </Link>
