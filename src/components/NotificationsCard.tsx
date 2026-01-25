@@ -125,15 +125,16 @@ export function NotificationsCard() {
     try {
       const res = await test({ data: { deviceId: getDeviceId() } });
       if (res.sent > 0) {
-        setMessage("Test ping sent. Check your device.");
+        setMessage(t("notif.msg.sent"));
       } else if (res.error) {
         setMessage(res.error);
       } else {
-        setMessage("No active subscriptions found.");
+        setMessage(t("notif.msg.none"));
       }
     } catch (e) {
       console.error(e);
-      setMessage(e instanceof Error ? e.message : "Could not send test notification.");
+      setMessage(e instanceof Error ? e.message : t("notif.msg.errTest"));
+
     } finally {
       setPending(false);
     }
