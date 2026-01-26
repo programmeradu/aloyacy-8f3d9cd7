@@ -8,6 +8,7 @@ import type { Itinerary, RideLeg } from "@/lib/itinerary-types";
 import { routeTone } from "@/lib/gtfs";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowUpRight } from "@/components/Icons";
+import { useI18n } from "@/lib/i18n";
 
 function fmtMin(sec: number) {
   const m = Math.max(1, Math.round(sec / 60));
