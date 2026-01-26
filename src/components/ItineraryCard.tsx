@@ -37,6 +37,7 @@ export function ItineraryCard({
   startDisabled?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useI18n();
 
   const rides = useMemo(
     () => itinerary.legs.filter((l): l is RideLeg => l.kind === "ride"),
@@ -53,18 +54,18 @@ export function ItineraryCard({
   const reliability = useMemo(() => {
     const totalDelay = rides.reduce((s, r) => s + (r.delaySec || 0), 0);
     if (rides.every((r) => r.live)) {
-      if (totalDelay > 90) return { tone: "ochre", text: `+${Math.round(totalDelay / 60)} min usual` };
-      if (totalDelay < -90) return { tone: "olive", text: `${Math.round(totalDelay / 60)} min usual` };
-      return { tone: "aegean", text: "on time" };
+      if (totalDelay > 90) return { tone: "ochre", text: t("itin.usualPlus", { m: Math.round(totalDelay / 60) }) };
+      if (totalDelay < -90) return { tone: "olive", text: t("itin.usualMinus", { m: Math.round(totalDelay / 60) }) };
+      return { tone: "aegean", text: t("itin.onTime") };
     }
-    if (itinerary.source === "mixed") return { tone: "aegean", text: "live + sched" };
-    return { tone: "ink-soft", text: "scheduled" };
-  }, [rides, itinerary.source]);
+    if (itinerary.source === "mixed") return { tone: "aegean", text: t("itin.liveSched") };
+    return { tone: "ink-soft", text: t("itin.scheduled") };
+  }, [rides, itinerary.source, t]);
 
   const sourceLabel =
     itinerary.source === "live"
-      ? `Leaves in ${departIn} min`
-      : `Leaves ${fmtTime(itinerary.departureUnix)}`;
+      ? t("itin.leavesIn", { n: departIn })
+      : t("itin.leavesAt", { t: fmtTime(itinerary.departureUnix) });
 
 
   return (
