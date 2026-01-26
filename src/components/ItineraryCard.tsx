@@ -85,13 +85,13 @@ export function ItineraryCard({
           <h3 className="mt-1.5 font-display text-[24px] font-semibold leading-tight text-ink text-pretty">
             {itinerary.transfers === 0 ? (
               <>
-                Board at{" "}
+                {t("itin.boardAtPrefix")}{" "}
                 <span className="text-aegean-deep">{firstRide?.board.name}</span>
               </>
             ) : (
               <>
-                {itinerary.transfers === 1 ? "One change" : `${itinerary.transfers} changes`}{" "}
-                via{" "}
+                {itinerary.transfers === 1 ? t("itin.oneChange") : t("itin.changes", { n: itinerary.transfers })}{" "}
+                {t("itin.via")}{" "}
 
                 <span className="text-aegean-deep">
                   {firstRide?.alight.name}
@@ -108,11 +108,11 @@ export function ItineraryCard({
           >
             {totalMin}
             <span className="ml-1 font-sans text-[12px] font-semibold text-ink-soft">
-              min
+              {t("itin.min")}
             </span>
           </p>
           <p className="mt-1.5 font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
-            arr {fmtTime(itinerary.arrivalUnix)}
+            {t("itin.arr", { t: fmtTime(itinerary.arrivalUnix) })}
           </p>
         </div>
       </div>
