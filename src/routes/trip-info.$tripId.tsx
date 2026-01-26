@@ -7,15 +7,21 @@ import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconPin } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { getStop, getRoute, routeTone, distanceKm } from "@/lib/gtfs";
+import { useI18n } from "@/lib/i18n";
+import { en } from "@/lib/dictionaries/en";
 
 const searchSchema = z.object({ from: z.string().optional() });
+
+function fmtMeta(template: string, vars: Record<string, string>) {
+  return template.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+}
 
 export const Route = createFileRoute("/trip-info/$tripId")({
   validateSearch: searchSchema,
   head: ({ params }) => ({
     meta: [
-      { title: `Trip ${params.tripId} — Aloya` },
-      { name: "description", content: "Live trip detail: stops, ETAs and where the bus is right now." },
+      { title: fmtMeta(en["tripInfo.meta.title"], { id: params.tripId }) },
+      { name: "description", content: en["tripInfo.meta.desc"] },
     ],
   }),
   component: TripInfo,
@@ -30,6 +36,7 @@ function TripInfo() {
   const { tripId } = Route.useParams();
   const { from: highlightStopId } = Route.useSearch();
   const { data: rt, isLoading } = useRealtime();
+  const { t } = useI18n();
 
   const trip = useMemo(() => {
     if (!rt) return null;
@@ -41,7 +48,6 @@ function TripInfo() {
     const route = getRoute(routeId);
     const vehicle = rt.vehicles.find((v) => v.tripId === tripId);
 
-    // Find which stop the bus is approaching: first arrival in future.
     const now = Math.floor(Date.now() / 1000);
     const nextIdx = arrivals.findIndex((a) => a.arrivalUnix >= now - 30);
 
@@ -96,7 +102,7 @@ function TripInfo() {
           <IconArrowLeft className="size-4" />
         </Link>
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          Live trip
+          {t("tripInfo.live")}
         </span>
         <span className="size-10" />
       </div>
@@ -104,11 +110,10 @@ function TripInfo() {
       {!trip ? (
         <section className="px-6 mt-6 animate-rise">
           <h1 className="font-display text-[36px] leading-tight text-ink">
-            {isLoading ? "Loading trip…" : "Trip not on the live feed"}
+            {isLoading ? t("tripInfo.loading") : t("tripInfo.notLive.title")}
           </h1>
           <p className="mt-3 text-[13px] text-ink-soft">
-            This vehicle isn't reporting right now. It may have finished its run,
-            or the operator's feed dropped briefly. Try again in a moment.
+            {t("tripInfo.notLive.body")}
           </p>
         </section>
       ) : (
@@ -120,17 +125,17 @@ function TripInfo() {
                 tone={routeTone(trip.routeId)}
               />
               <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                {trip.vehicle?.label ? `Bus ${trip.vehicle.label}` : "Live trip"}
+                {trip.vehicle?.label ? t("tripInfo.busLabel", { label: trip.vehicle.label }) : t("tripInfo.live")}
               </span>
             </div>
             <h1 className="mt-3 font-display text-[36px] leading-[1.05] text-ink text-balance">
-              {trip.route?.long ?? "Route"}
+              {trip.route?.long ?? t("tripInfo.unknownRoute")}
             </h1>
             <p className="mt-2 text-[13px] text-ink-soft">
-              {trip.stops.length} stops
-              {totalKm ? ` — ${totalKm.toFixed(1)} km of route` : ""}
+              {t("tripInfo.stopsCount", { n: trip.stops.length })}
+              {totalKm ? t("tripInfo.kmOfRoute", { km: totalKm.toFixed(1) }) : ""}
               {trip.stops[trip.stops.length - 1]?.meta
-                ? ` — ends at ${trip.stops[trip.stops.length - 1].meta!.name}`
+                ? t("tripInfo.endsAt", { name: trip.stops[trip.stops.length - 1].meta!.name })
                 : ""}
             </p>
           </header>
@@ -142,16 +147,15 @@ function TripInfo() {
               markers={markers}
               restrictTripIds={[tripId]}
               liveLabel={{
-                active: "Bus on this trip — live",
-                empty: "Bus position not reporting",
+                active: t("tripInfo.busActive"),
+                empty: t("tripInfo.busEmpty"),
               }}
             />
           </section>
 
-          {/* Smart insights */}
           <section className="mt-6 px-6 grid grid-cols-3 gap-2 animate-rise" style={{ animationDelay: "160ms" }}>
             <Insight
-              label="Next stop"
+              label={t("tripInfo.nextStop")}
               value={
                 trip.nextIdx === -1
                   ? "—"
@@ -160,7 +164,7 @@ function TripInfo() {
             />
 
             <Insight
-              label="Eta there"
+              label={t("tripInfo.etaThere")}
               value={
                 trip.nextIdx === -1
                   ? "—"
@@ -168,23 +172,22 @@ function TripInfo() {
               }
             />
             <Insight
-              label="Running"
+              label={t("tripInfo.runningLabel")}
               value={(() => {
-                if (trip.nextIdx === -1) return "Finished";
+                if (trip.nextIdx === -1) return t("tripInfo.finished");
                 const d = trip.stops[trip.nextIdx].delaySec;
-                if (d > 60) return `${Math.round(d / 60)}m late`;
-                if (d < -60) return `${Math.round(-d / 60)}m early`;
-                return "On time";
+                if (d > 60) return t("tripInfo.mLate", { m: Math.round(d / 60) });
+                if (d < -60) return t("tripInfo.mEarly", { m: Math.round(-d / 60) });
+                return t("tripInfo.onTime");
               })()}
             />
           </section>
 
-          {/* Stop sequence */}
           <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "200ms" }}>
             <div className="flex items-end justify-between mb-3">
-              <h2 className="font-display text-2xl text-ink">All stops</h2>
+              <h2 className="font-display text-2xl text-ink">{t("tripInfo.allStops")}</h2>
               <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                Live, scheduled clock
+                {t("tripInfo.liveScheduled")}
               </span>
             </div>
 
@@ -215,14 +218,14 @@ function TripInfo() {
                       <p className={`font-display text-[17px] leading-tight text-pretty line-clamp-2 break-words ${
                         s.passed ? "text-ink-soft line-through decoration-1" : "text-ink"
                       }`}>
-                        {s.meta?.name ?? `Stop ${s.stopId}`}
+                        {s.meta?.name ?? t("tripInfo.stopFallback", { id: s.stopId })}
                       </p>
 
                       <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
                         {s.next && <IconBus className="size-3 text-ochre" />}
-                        {s.meta?.code ? `Stop ${s.meta.code}` : `#${s.index + 1}`}
-                        {s.next && " — approaching"}
-                        {isHighlight && " — you are here"}
+                        {s.meta?.code ? t("tripInfo.stopCode", { code: s.meta.code }) : t("tripInfo.stopIndex", { n: s.index + 1 })}
+                        {s.next && t("tripInfo.approaching")}
+                        {isHighlight && t("tripInfo.youAreHere")}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
@@ -246,10 +249,7 @@ function TripInfo() {
 
             <p className="mt-4 flex items-start gap-2 text-[12px] text-ink-soft">
               <IconPin className="size-3.5 mt-0.5 shrink-0 text-ink-soft/70" />
-              <span>
-                Stop times are pulled live from the operator's feed and adjusted for the
-                bus's reported delay. Tap any stop to open its live departures.
-              </span>
+              <span>{t("tripInfo.feedFoot")}</span>
             </p>
           </section>
         </>
@@ -270,4 +270,3 @@ function Insight({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
