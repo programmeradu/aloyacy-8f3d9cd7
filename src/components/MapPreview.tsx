@@ -707,12 +707,12 @@ export function MapPreview({
           <span className="font-sans text-[12px] font-semibold tracking-tight text-ink">
             {focused
               ? liveCount
-                ? liveLabel?.active ?? "Your bus, live"
-                : liveLabel?.empty ?? "Locating your bus"
+                ? liveLabel?.active ?? t("map.live.active")
+                : liveLabel?.empty ?? t("map.live.locating")
               : restricted
                 ? liveCount
                   ? liveLabel?.active ?? `${liveCount} serving, live`
-                  : liveLabel?.empty ?? "No buses here right now"
+                  : liveLabel?.empty ?? t("map.live.none")
                 : liveCount
                   ? `${liveCount} live`
                   : "Connecting"}
