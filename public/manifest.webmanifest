@@ -1,17 +1,36 @@
 {
   "name": "Aloya — Cyprus transit, beautifully",
   "short_name": "Aloya",
-  "description": "A calm, intelligent navigation system for Cyprus buses.",
+  "description": "A calm, intelligent navigation system for Cyprus buses. Live ETAs, nearby stops, smart routing across the island.",
   "start_url": "/",
   "scope": "/",
+  "id": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f5efe0",
   "theme_color": "#f5efe0",
+  "lang": "en",
+  "dir": "ltr",
   "categories": ["travel", "navigation", "utilities"],
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    {
+      "src": "/og/og-home.jpg",
+      "sizes": "1200x630",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Aloya home"
+    },
+    {
+      "src": "/og/og-pulse.jpg",
+      "sizes": "1200x630",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Network pulse"
+    }
   ]
 }
