@@ -8,6 +8,7 @@ import type { Itinerary, RideLeg } from "@/lib/itinerary-types";
 import { routeTone } from "@/lib/gtfs";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowUpRight } from "@/components/Icons";
+import { useI18n } from "@/lib/i18n";
 
 function fmtMin(sec: number) {
   const m = Math.max(1, Math.round(sec / 60));
@@ -36,6 +37,7 @@ export function ItineraryCard({
   startDisabled?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useI18n();
 
   const rides = useMemo(
     () => itinerary.legs.filter((l): l is RideLeg => l.kind === "ride"),
@@ -52,18 +54,18 @@ export function ItineraryCard({
   const reliability = useMemo(() => {
     const totalDelay = rides.reduce((s, r) => s + (r.delaySec || 0), 0);
     if (rides.every((r) => r.live)) {
-      if (totalDelay > 90) return { tone: "ochre", text: `+${Math.round(totalDelay / 60)} min usual` };
-      if (totalDelay < -90) return { tone: "olive", text: `${Math.round(totalDelay / 60)} min usual` };
-      return { tone: "aegean", text: "on time" };
+      if (totalDelay > 90) return { tone: "ochre", text: t("itin.usualPlus", { m: Math.round(totalDelay / 60) }) };
+      if (totalDelay < -90) return { tone: "olive", text: t("itin.usualMinus", { m: Math.round(totalDelay / 60) }) };
+      return { tone: "aegean", text: t("itin.onTime") };
     }
-    if (itinerary.source === "mixed") return { tone: "aegean", text: "live + sched" };
-    return { tone: "ink-soft", text: "scheduled" };
-  }, [rides, itinerary.source]);
+    if (itinerary.source === "mixed") return { tone: "aegean", text: t("itin.liveSched") };
+    return { tone: "ink-soft", text: t("itin.scheduled") };
+  }, [rides, itinerary.source, t]);
 
   const sourceLabel =
     itinerary.source === "live"
-      ? `Leaves in ${departIn} min`
-      : `Leaves ${fmtTime(itinerary.departureUnix)}`;
+      ? t("itin.leavesIn", { n: departIn })
+      : t("itin.leavesAt", { t: fmtTime(itinerary.departureUnix) });
 
 
   return (
@@ -83,13 +85,13 @@ export function ItineraryCard({
           <h3 className="mt-1.5 font-display text-[24px] font-semibold leading-tight text-ink text-pretty">
             {itinerary.transfers === 0 ? (
               <>
-                Board at{" "}
+                {t("itin.boardAtPrefix")}{" "}
                 <span className="text-aegean-deep">{firstRide?.board.name}</span>
               </>
             ) : (
               <>
-                {itinerary.transfers === 1 ? "One change" : `${itinerary.transfers} changes`}{" "}
-                via{" "}
+                {itinerary.transfers === 1 ? t("itin.oneChange") : t("itin.changes", { n: itinerary.transfers })}{" "}
+                {t("itin.via")}{" "}
 
                 <span className="text-aegean-deep">
                   {firstRide?.alight.name}
@@ -106,11 +108,11 @@ export function ItineraryCard({
           >
             {totalMin}
             <span className="ml-1 font-sans text-[12px] font-semibold text-ink-soft">
-              min
+              {t("itin.min")}
             </span>
           </p>
           <p className="mt-1.5 font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
-            arr {fmtTime(itinerary.arrivalUnix)}
+            {t("itin.arr", { t: fmtTime(itinerary.arrivalUnix) })}
           </p>
         </div>
       </div>
@@ -121,7 +123,7 @@ export function ItineraryCard({
           <span key={i} className="inline-flex items-center gap-2">
             {i > 0 ? (
               <span className="font-sans text-[12px] font-semibold text-ink-soft">
-                change
+                {t("itin.change")}
               </span>
             ) : null}
             <RouteChip code={r.routeShort} tone={routeTone(r.routeId)} />
@@ -145,7 +147,7 @@ export function ItineraryCard({
       {/* Timeline (collapsible) */}
       <div className="mt-4 flex items-center justify-between gap-3">
         <span className="font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
-          {Math.round(itinerary.totalWalkMeters)} m walk
+          {t("itin.metersWalk", { m: Math.round(itinerary.totalWalkMeters) })}
         </span>
         <button
           type="button"
@@ -153,7 +155,7 @@ export function ItineraryCard({
           aria-expanded={expanded}
           className="inline-flex items-center gap-1.5 rounded-full bg-limestone-soft px-3 py-1.5 font-sans text-[12px] font-semibold text-ink ring-1 ring-line hover:bg-limestone-soft/70 transition-colors"
         >
-          {expanded ? "Hide details" : "Show details"}
+          {expanded ? t("itin.hideDetails") : t("itin.showDetails")}
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -184,14 +186,15 @@ export function ItineraryCard({
                   </p>
                   <p className="font-sans text-[12px] font-semibold text-ink-soft mt-1 tabular-nums">
                     {fmtTime(leg.board.departureUnix)} —{" "}
-                    {fmtTime(leg.alight.arrivalUnix)} · {leg.stopCount} stops
-                    {leg.live ? " · live" : ""}
+                    {fmtTime(leg.alight.arrivalUnix)} · {leg.live
+                      ? t("itin.stopsLive", { n: leg.stopCount })
+                      : t("itin.stops", { n: leg.stopCount })}
                   </p>
                 </div>
               ) : leg.kind === "walk" ? (
                 <p className="text-ink">
                   <span className="font-sans text-[12px] font-bold mr-2 text-ink tabular-nums">
-                    Walk {fmtMin(leg.durationSec)}
+                    {t("itin.walk")} {fmtMin(leg.durationSec)}
                   </span>
                   <span className="text-ink-soft">
                     {leg.from.name.split(",")[0]} → {leg.to.name.split(",")[0]}
@@ -200,9 +203,9 @@ export function ItineraryCard({
               ) : (
                 <p className="text-ink">
                   <span className="font-sans text-[12px] font-bold mr-2 text-ink tabular-nums">
-                    Wait {fmtMin(leg.durationSec)}
+                    {t("itin.wait")} {fmtMin(leg.durationSec)}
                   </span>
-                  <span className="text-ink-soft">at {leg.name.split(",")[0]}</span>
+                  <span className="text-ink-soft">{t("itin.at")} {leg.name.split(",")[0]}</span>
                 </p>
               )}
             </li>

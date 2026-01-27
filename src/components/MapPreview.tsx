@@ -9,6 +9,7 @@ import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
 import { prefetchShapes, getShapeForTripSync } from "@/lib/shapes";
 import busPremium from "@/assets/bus-premium.png";
 import { IconExpand, IconClose } from "@/components/Icons";
+import { useI18n } from "@/lib/i18n";
 
 const { MarkerClusterer, SuperClusterAlgorithm } = markerClustererPkg;
 
@@ -140,6 +141,7 @@ export function MapPreview({
 
   const { api, error } = useGoogleMaps();
   const { data: rt } = useRealtime();
+  const { t } = useI18n();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -705,12 +707,12 @@ export function MapPreview({
           <span className="font-sans text-[12px] font-semibold tracking-tight text-ink">
             {focused
               ? liveCount
-                ? liveLabel?.active ?? "Your bus, live"
-                : liveLabel?.empty ?? "Locating your bus"
+                ? liveLabel?.active ?? t("map.live.active")
+                : liveLabel?.empty ?? t("map.live.locating")
               : restricted
                 ? liveCount
                   ? liveLabel?.active ?? `${liveCount} serving, live`
-                  : liveLabel?.empty ?? "No buses here right now"
+                  : liveLabel?.empty ?? t("map.live.none")
                 : liveCount
                   ? `${liveCount} live`
                   : "Connecting"}

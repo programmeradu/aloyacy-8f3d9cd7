@@ -12,23 +12,17 @@ import {
 } from "@/components/ui/collapsible";
 import { getPulse, type PulseRouteStat } from "@/lib/pulse.functions";
 import { getRoute, routeTone } from "@/lib/gtfs";
+import { useI18n, type DictKey } from "@/lib/i18n";
+import { en } from "@/lib/dictionaries/en";
 import pulseHero from "@/assets/pulse-hero.jpg";
 
 export const Route = createFileRoute("/pulse")({
   head: () => ({
     meta: [
-      { title: "Pulse — Aloya" },
-      {
-        name: "description",
-        content:
-          "Network reliability for Cyprus buses, learned in real time. Reliability index, hot and steady routes, refreshed every minute.",
-      },
-      { property: "og:title", content: "Aloya Pulse — the island's transit, in motion" },
-      {
-        property: "og:description",
-        content:
-          "Real reliability for Cyprus public transport, learned from the live feed.",
-      },
+      { title: en["pulse.meta.title"] },
+      { name: "description", content: en["pulse.meta.desc"] },
+      { property: "og:title", content: en["pulse.og.title"] },
+      { property: "og:description", content: en["pulse.og.desc"] },
     ],
   }),
   component: Pulse,
@@ -36,6 +30,7 @@ export const Route = createFileRoute("/pulse")({
 
 function Pulse() {
   const fn = useServerFn(getPulse);
+  const { t } = useI18n();
   const { data, isLoading } = useQuery({
     queryKey: ["pulse"],
     queryFn: () => fn(),
@@ -61,12 +56,12 @@ function Pulse() {
           className="pointer-events-none absolute inset-x-0 top-[-4%] mx-auto w-[88%] opacity-[0.22] mix-blend-multiply"
         />
         <p className="relative font-mono text-[10px] uppercase tracking-[0.24em] text-ink-soft">
-          Network, learned in real time
+          {t("pulse.kicker")}
         </p>
         <h1 className="relative font-display text-[40px] leading-[1.04] mt-1.5 text-ink text-balance">
-          The island,
+          {t("pulse.title1")}
           <br />
-          <span className="italic text-aegean-deep">in motion.</span>
+          <span className="italic text-aegean-deep">{t("pulse.title2")}</span>
         </h1>
       </header>
 
@@ -75,50 +70,50 @@ function Pulse() {
           <div className="flex items-end justify-between gap-4">
             <div className="min-w-0">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                Reliability index
+                {t("pulse.reliabilityIndex")}
               </p>
               <p className="mt-1.5 font-display text-[80px] leading-none text-aegean-deep tabular-nums">
                 {isLoading ? "—" : onTimePct}
                 <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] align-top text-ink-soft">
-                  /100
+                  {t("pulse.outOf")}
                 </span>
               </p>
               <p className="mt-2 text-[13px] text-ink-soft max-w-[30ch]">
-                A blended score across the live network. 100 = on the dot, 0 = five minutes off or worse.
+                {t("pulse.reliabilityDesc")}
               </p>
             </div>
             <IconWaves className="size-12 text-aegean shrink-0" />
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3">
-            <Stat label="Routes learned" value={routesTracked} />
-            <Stat label="Trips logged" value={totalSamples} />
+            <Stat label={t("pulse.routesLearned")} value={routesTracked} />
+            <Stat label={t("pulse.tripsLogged")} value={totalSamples} />
           </div>
         </div>
       </section>
 
 
       <Section
-        title="Running late"
-        kicker="Higher delay learned at this hour"
+        title={t("pulse.runningLate")}
+        kicker={t("pulse.runningLate.kicker")}
         rows={data?.hottest ?? []}
-        empty="Nothing dragging today. The network's calm."
+        empty={t("pulse.runningLate.empty")}
         accent="ochre"
       />
 
       <Section
-        title="Running early"
-        kicker="Beating schedule — leave a minute sooner"
+        title={t("pulse.runningEarly")}
+        kicker={t("pulse.runningEarly.kicker")}
         rows={data?.coldest ?? []}
-        empty="No routes are leaving ahead of schedule."
+        empty={t("pulse.runningEarly.empty")}
         accent="olive"
       />
 
       <Section
-        title="Most reliable"
-        kicker="Closest to the printed timetable"
+        title={t("pulse.mostReliable")}
+        kicker={t("pulse.mostReliable.kicker")}
         rows={data?.steadiest ?? []}
-        empty="We need more data. Check back tomorrow."
+        empty={t("pulse.mostReliable.empty")}
         accent="aegean"
         showDelay={false}
       />
@@ -127,7 +122,7 @@ function Pulse() {
 
       <div className="px-6 pt-6 pb-2">
         <p className="text-center font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
-          Updated every minute from the live feed
+          {t("pulse.updated")}
         </p>
       </div>
     </AppShell>
@@ -163,6 +158,7 @@ function Section({
   accent: "ochre" | "olive" | "aegean";
   showDelay?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
       <div className="mb-3">
@@ -181,7 +177,6 @@ function Section({
             const route = getRoute(r.routeId);
             const delayMin = Math.round(r.meanDelaySec / 60);
             const longName = route?.long ?? r.routeId;
-            // Allow names to wrap to 2 lines; shrink type when it's a long name.
             const nameClass =
               longName.length > 38
                 ? "text-[12.5px] leading-[1.25]"
@@ -210,7 +205,7 @@ function Section({
                     {longName}
                   </p>
                   <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
-                    {r.sampleCount.toLocaleString()} trips logged
+                    {t("pulse.tripsLoggedShort", { n: r.sampleCount.toLocaleString() })}
                   </p>
                 </div>
                 <div className="shrink-0 flex flex-col items-end leading-none">
@@ -229,7 +224,7 @@ function Section({
                         {delayMin}
                       </span>
                       <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
-                        min
+                        {t("pulse.min")}
                       </span>
                     </>
                   ) : (
@@ -238,7 +233,7 @@ function Section({
                         {r.onTimePct}
                       </span>
                       <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
-                        /100
+                        {t("pulse.outOf")}
                       </span>
                     </>
                   )}
@@ -254,55 +249,40 @@ function Section({
 
 function HowItWorks({ excluded }: { excluded: number }) {
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
+  const items: { labelKey: DictKey; bodyKey: DictKey }[] = [
+    { labelKey: "pulse.item.reliability.label", bodyKey: "pulse.item.reliability.body" },
+    { labelKey: "pulse.item.trips.label", bodyKey: "pulse.item.trips.body" },
+    { labelKey: "pulse.item.routes.label", bodyKey: "pulse.item.routes.body" },
+    { labelKey: "pulse.item.lateEarly.label", bodyKey: "pulse.item.lateEarly.body" },
+    { labelKey: "pulse.item.mostReliable.label", bodyKey: "pulse.item.mostReliable.body" },
+  ];
   return (
     <section className="mt-10 px-6 animate-rise" style={{ animationDelay: "260ms" }}>
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger className="w-full flex items-center justify-between rounded-3xl bg-card ring-1 ring-line px-5 py-4 text-left">
           <span>
             <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-              The honest part
+              {t("pulse.honest")}
             </span>
             <span className="block font-display text-xl mt-0.5 text-ink">
-              How this is calculated
+              {t("pulse.howCalc")}
             </span>
           </span>
           <span className="font-mono text-[11px] text-ink-soft">
-            {open ? "Close" : "Open"}
+            {open ? t("pulse.close") : t("pulse.open")}
           </span>
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-3 rounded-3xl bg-limestone-soft p-5 ring-1 ring-line space-y-4 text-[13px] leading-relaxed text-ink">
-          <Item label="Reliability index">
-            For each route we average the live delay across every trip we've
-            observed, weighted by how many trips we have. We map that to a 0—100
-            score where on the dot is 100 and five minutes off (early or late)
-            is 0. It's a smooth proxy, not a strict on-time percentage.
-          </Item>
-          <Item label="Trips logged">
-            One trip logged = one arrival event we pulled from the live feed
-            for that route. More trips means a more trustworthy score.
-          </Item>
-          <Item label="Routes learned">
-            Distinct routes with at least three trips observed in any
-            hour-of-day bucket. Quiet routes appear once we've seen enough of them.
-          </Item>
-          <Item label="Running late / early">
-            Routes whose weighted mean delay is more than 30 seconds off the
-            schedule, with at least five trips logged.
-          </Item>
-          <Item label="Most reliable">
-            Routes with at least eight trips logged, sorted by how close their
-            mean delay sits to zero.
-          </Item>
-          <Item label="Limits to keep in mind">
-            Delays come from each operator's live feed — if their data is off,
-            ours will be too. Buckets are in UTC, not Cyprus local time, so the
-            "at this hour" framing is approximate.
+          {items.map((it) => (
+            <Item key={it.labelKey} label={t(it.labelKey)}>{t(it.bodyKey)}</Item>
+          ))}
+          <Item label={t("pulse.item.limits.label")}>
+            {t("pulse.item.limits.body")}
             {excluded > 0 ? (
               <>
                 {" "}
-                <strong className="font-medium">{excluded}</strong>{" "}
-                {excluded === 1 ? "route is" : "routes are"} hidden here because
-                they're not in our bundled timetable yet.
+                {t(excluded === 1 ? "pulse.excluded.one" : "pulse.excluded.many", { n: excluded })}
               </>
             ) : null}
           </Item>
