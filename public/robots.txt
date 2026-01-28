@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /debug/
+Disallow: /qa
+Disallow: /checkout/
+
+Sitemap: https://aloyacy.lovable.app/sitemap.xml
