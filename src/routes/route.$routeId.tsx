@@ -11,12 +11,24 @@ import routeVignette from "@/assets/route-vignette.jpg";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/route/$routeId")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `Route ${params.routeId} — Aloya` },
-      { name: "description", content: "Route overview: live buses, next departure and every stop on the line." },
-    ],
-  }),
+  head: ({ params }) => {
+    const title = `Route ${params.routeId} — Aloya`;
+    const desc = `Live buses, next departure and every stop on Cyprus bus route ${params.routeId}.`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: `https://aloyacy.lovable.app/route/${params.routeId}` },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+      ],
+      links: [{ rel: "canonical", href: `https://aloyacy.lovable.app/route/${params.routeId}` }],
+    };
+  },
   component: RoutePage,
 });
 
