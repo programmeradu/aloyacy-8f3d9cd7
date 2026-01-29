@@ -14,12 +14,24 @@ import { useI18n } from "@/lib/i18n";
 
 
 export const Route = createFileRoute("/stop/$stopId")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `Stop ${params.stopId} — Aloya` },
-      { name: "description", content: "Live departures from this Cyprus bus stop." },
-    ],
-  }),
+  head: ({ params }) => {
+    const title = `Stop ${params.stopId} — Aloya`;
+    const desc = `Live departures, routes and next bus times for stop ${params.stopId} in Cyprus.`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: `https://aloyacy.lovable.app/stop/${params.stopId}` },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+      ],
+      links: [{ rel: "canonical", href: `https://aloyacy.lovable.app/stop/${params.stopId}` }],
+    };
+  },
   component: StopDetail,
 });
 
