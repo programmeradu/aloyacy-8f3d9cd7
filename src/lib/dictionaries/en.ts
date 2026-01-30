@@ -368,9 +368,9 @@ export const en = {
 
   // trips (planner)
   "trips.kicker": "Door to door",
- "trips.titlePrefix": "Plan a bus trip across",
- "trips.titleEmph": "Cyprus",
- "trips.titleSuffix": "Door-to-door routes, live times, every stop.",
+ "trips.titlePrefix": "Tell us",
+ "trips.titleEmph": "where",
+ "trips.titleSuffix": "We'll find the way.",
   "trips.from": "From",
   "trips.to": "To",
   "trips.detecting": "Detecting your location…",
