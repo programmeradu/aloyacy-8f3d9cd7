@@ -23,6 +23,7 @@ import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
 import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
+import { Route as GuideGettingAroundCyprusRouteImport } from './routes/guide.getting-around-cyprus'
 import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
 import { Route as DebugGraphRouteImport } from './routes/debug.graph'
 import { Route as DebugEtaRouteImport } from './routes/debug.eta'
@@ -108,6 +109,12 @@ const RouteRouteIdRoute = RouteRouteIdRouteImport.update({
   path: '/route/$routeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuideGettingAroundCyprusRoute =
+  GuideGettingAroundCyprusRouteImport.update({
+    id: '/guide/getting-around-cyprus',
+    path: '/guide/getting-around-cyprus',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DebugMultilegRoute = DebugMultilegRouteImport.update({
   id: '/debug/multileg',
   path: '/debug/multileg',
@@ -198,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
+  '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -228,6 +236,7 @@ export interface FileRoutesByTo {
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
+  '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -259,6 +268,7 @@ export interface FileRoutesById {
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
+  '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
+    | '/guide/getting-around-cyprus'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -321,6 +332,7 @@ export interface FileRouteTypes {
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
+    | '/guide/getting-around-cyprus'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -351,6 +363,7 @@ export interface FileRouteTypes {
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
+    | '/guide/getting-around-cyprus'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -382,6 +395,7 @@ export interface RootRouteChildren {
   DebugEtaRoute: typeof DebugEtaRoute
   DebugGraphRoute: typeof DebugGraphRoute
   DebugMultilegRoute: typeof DebugMultilegRoute
+  GuideGettingAroundCyprusRoute: typeof GuideGettingAroundCyprusRoute
   RouteRouteIdRoute: typeof RouteRouteIdRoute
   StopStopIdRoute: typeof StopStopIdRoute
   TripInfoTripIdRoute: typeof TripInfoTripIdRoute
@@ -495,6 +509,13 @@ declare module '@tanstack/react-router' {
       path: '/route/$routeId'
       fullPath: '/route/$routeId'
       preLoaderRoute: typeof RouteRouteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/getting-around-cyprus': {
+      id: '/guide/getting-around-cyprus'
+      path: '/guide/getting-around-cyprus'
+      fullPath: '/guide/getting-around-cyprus'
+      preLoaderRoute: typeof GuideGettingAroundCyprusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/debug/multileg': {
@@ -614,6 +635,7 @@ const rootRouteChildren: RootRouteChildren = {
   DebugEtaRoute: DebugEtaRoute,
   DebugGraphRoute: DebugGraphRoute,
   DebugMultilegRoute: DebugMultilegRoute,
+  GuideGettingAroundCyprusRoute: GuideGettingAroundCyprusRoute,
   RouteRouteIdRoute: RouteRouteIdRoute,
   StopStopIdRoute: StopStopIdRoute,
   TripInfoTripIdRoute: TripInfoTripIdRoute,
