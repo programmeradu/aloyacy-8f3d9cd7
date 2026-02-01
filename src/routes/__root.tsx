@@ -82,6 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#f5efe0" },
+      { name: "google-site-verification", content: "vaq7RPTnoz5Tyh1x6ffIMjOIVocFBq8o1EQDbWQapwk" },
       { title: "Aloya — Cyprus transit, beautifully" },
       { name: "description", content: "A calm, intelligent navigation system for Cyprus buses." },
       { property: "og:site_name", content: "Aloya" },
