@@ -6,7 +6,10 @@ import { track } from "@/lib/analytics";
 
 export const Route = createFileRoute("/checkout/return")({
   head: () => ({
-    meta: [{ title: "Welcome to Pro — Aloya" }],
+    meta: [
+      { title: "Welcome to Pro — Aloya" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
   }),
   validateSearch: (search: Record<string, unknown>) => ({
     session_id: typeof search.session_id === "string" ? search.session_id : undefined,
