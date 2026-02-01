@@ -133,6 +133,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               inLanguage: ["en", "el"],
             },
             {
+              "@type": "TransitAgency",
+              "@id": "https://aloyacy.lovable.app/#transitagency",
+              name: "Aloya",
+              url: "https://aloyacy.lovable.app/",
+              logo: "https://aloyacy.lovable.app/icon-512.png",
+              description: "Unified live bus information, planning and ticketing across Cyprus — covering OSEL (Nicosia), EMEL (Limassol), Zenon (Larnaca), OSYPA (Paphos) and Intercity services.",
+              areaServed: { "@type": "Country", name: "Cyprus" },
+              sameAs: [
+                "https://motionbuscard.org.cy/",
+              ],
+            },
+            {
               "@type": "MobileApplication",
               name: "Aloya",
               operatingSystem: "Web, iOS, Android",

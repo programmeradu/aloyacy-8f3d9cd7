@@ -45,7 +45,12 @@ export const Route = createFileRoute("/trips")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://aloyacy.lovable.app/og/og-trips.jpg" },
     ],
-    links: [{ rel: "canonical", href: "https://aloyacy.lovable.app/trips" }],
+    links: [
+      { rel: "canonical", href: "https://aloyacy.lovable.app/trips" },
+      { rel: "alternate", hrefLang: "en", href: "https://aloyacy.lovable.app/trips" },
+      { rel: "alternate", hrefLang: "el", href: "https://aloyacy.lovable.app/trips" },
+      { rel: "alternate", hrefLang: "x-default", href: "https://aloyacy.lovable.app/trips" },
+    ],
   }),
   component: Plan,
 });
