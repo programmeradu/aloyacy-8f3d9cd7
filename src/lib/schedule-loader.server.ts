@@ -48,7 +48,7 @@ function candidateUrls(path: string): string[] {
     // not in a request context
   }
   if (process.env.PUBLIC_SITE_URL) urls.push(new URL(path, process.env.PUBLIC_SITE_URL).toString());
-  urls.push(new URL(path, "https://aloyacy.live").toString());
+  urls.push(new URL(path, "https://app.aloyacy.live").toString());
   urls.push(new URL(path, "https://project--cb91f9c9-a30e-4540-948c-0683f1088d6c-dev.lovable.app").toString());
   return [...new Set(urls)];
 }

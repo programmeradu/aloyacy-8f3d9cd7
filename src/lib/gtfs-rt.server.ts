@@ -60,7 +60,7 @@ async function fetchUpstream(): Promise<{
     headers: {
       Accept: "application/octet-stream",
       "User-Agent":
-        "Mozilla/5.0 (Aloya/1.0; +https://aloyacy.live) AppleWebKit/537.36",
+        "Mozilla/5.0 (Aloya/1.0; +https://app.aloyacy.live) AppleWebKit/537.36",
     },
     signal: AbortSignal.timeout(15_000),
   });
