@@ -6,4 +6,4 @@ Disallow: /debug/
 Disallow: /qa
 Disallow: /checkout/
 
-Sitemap: https://aloyacy.online/sitemap.xml
+Sitemap: https://aloyacy.live/sitemap.xml
