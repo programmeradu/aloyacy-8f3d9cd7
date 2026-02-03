@@ -88,8 +88,17 @@ export const Route = createFileRoute("/")({
 
 function IndexRoute() {
   const { marketing } = Route.useLoaderData();
-  return marketing ? <MarketingLanding /> : <Explore />;
+  // Defensive: trust the actual hostname on the client. Only aloyacy.live and
+  // www.aloyacy.live ever render the marketing landing — every other host
+  // (app.aloyacy.live, lovable previews, localhost) gets the app.
+  const showMarketing = (() => {
+    if (typeof window === "undefined") return marketing;
+    const h = window.location.hostname.toLowerCase();
+    return h === "aloyacy.live" || h === "www.aloyacy.live";
+  })();
+  return showMarketing ? <MarketingLanding /> : <Explore />;
 }
+
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WEATHER_ICONS = {
