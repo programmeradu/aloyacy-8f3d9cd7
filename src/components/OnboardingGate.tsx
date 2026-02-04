@@ -23,6 +23,7 @@ export function OnboardingGate() {
     if (typeof window !== "undefined") {
       const h = window.location.hostname.toLowerCase();
       if (h === "aloyacy.live" || h === "www.aloyacy.live") return;
+      if (h === "aloya.cy" || h === "www.aloya.cy") return;
     }
     const cached = isOnboardedCached();
     if (cached === true) return;
