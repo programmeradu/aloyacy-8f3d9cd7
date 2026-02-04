@@ -25,10 +25,7 @@ export function AuthSheet({
   const sendOtp = useServerFn(requestEmailOtp);
   const linkOtp = useServerFn(linkEmailAndRequestOtp);
   const { isAnonymous } = useAuth();
-  // True when we used the legacy sign-in flow (not identity-linking), so
-  // verifyOtp must use type:'email' against a magiclink-issued code that
-  // will swap the anon session for the existing account.
-  const [didFallback, setDidFallback] = useState(false);
+
 
   if (!open) return null;
 
