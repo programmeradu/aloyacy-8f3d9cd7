@@ -36,7 +36,6 @@ export function AuthSheet({
     e.preventDefault();
     setBusy(true);
     setError(null);
-    setDidFallback(false);
     try {
       const trimmed = email.trim();
       // Anonymous users: try to LINK the email to the existing uid so
@@ -50,7 +49,6 @@ export function AuthSheet({
         // Email already belongs to another account — fall back to plain
         // sign-in, which will swap the anon session for that account.
         if (r.code === "email_taken") {
-          setDidFallback(true);
           const r2 = await sendOtp({ data: { email: trimmed } });
           if (!r2.ok) throw new Error(r2.error);
           setStage("code");
@@ -59,7 +57,6 @@ export function AuthSheet({
         throw new Error(r.error);
       }
       // Already permanent (rare here) — plain sign-in.
-      setDidFallback(true);
       const r = await sendOtp({ data: { email: trimmed } });
       if (!r.ok) throw new Error(r.error);
       setStage("code");
