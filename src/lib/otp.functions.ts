@@ -14,6 +14,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
 
@@ -132,3 +133,93 @@ export const requestEmailOtp = createServerFn({ method: "POST" })
       };
     }
   });
+
+/**
+ * Identity-linking variant of requestEmailOtp. Used when an anonymous
+ * Supabase user wants to attach an email without losing their user_id (and
+ * the cloud data/Pro entitlement keyed to it).
+ *
+ * Flow:
+ *  1. Middleware confirms the bearer belongs to a real (anon) user.
+ *  2. We attach the email to that user via admin.updateUserById with
+ *     email_confirm:true so Supabase does NOT send its own confirmation.
+ *  3. We generate a magiclink OTP for that email (which now belongs to
+ *     the same uid) and deliver it via Resend with our branded template.
+ *  4. Client verifies with supabase.auth.verifyOtp({type:'email'}) — the
+ *     session stays on the same uid, just now with an email identity.
+ *
+ * If the email is already in use by another account, we return
+ * `code: 'email_taken'` so the client can fall back to the plain
+ * `requestEmailOtp` flow (which signs them into the existing account,
+ * swapping out the anon session).
+ */
+export const linkEmailAndRequestOtp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      email: z.string().email().max(254),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const email = data.email.trim().toLowerCase();
+    const userId = context.userId;
+
+    // Refuse to "link" on a permanent account — that path would replace
+    // the existing email and lose the original identity.
+    const isAnon =
+      (context.claims as { is_anonymous?: boolean }).is_anonymous === true;
+    if (!isAnon) {
+      return { ok: false as const, code: "not_anonymous" as const, error: "Already signed in." };
+    }
+
+    const now = Date.now();
+    const prev = lastSentAt.get(email) ?? 0;
+    if (now - prev < MIN_INTERVAL_MS) {
+      const wait = Math.ceil((MIN_INTERVAL_MS - (now - prev)) / 1000);
+      return {
+        ok: true as const,
+        throttled: true as const,
+        message: `Code already sent. Try again in ${wait}s.`,
+      };
+    }
+    lastSentAt.set(email, now);
+
+    try {
+      // Attach the email to the anon user. email_confirm:true skips
+      // Supabase's built-in confirmation email — we deliver our own OTP.
+      const upd = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        email,
+        email_confirm: true,
+      });
+      if (upd.error) {
+        lastSentAt.delete(email);
+        const msg = upd.error.message.toLowerCase();
+        if (msg.includes("already") || msg.includes("registered") || msg.includes("exists") || msg.includes("duplicate")) {
+          return { ok: false as const, code: "email_taken" as const, error: "Email is already in use." };
+        }
+        return { ok: false as const, code: "update_failed" as const, error: upd.error.message };
+      }
+
+      // Now generate a magiclink OTP for the (newly emailed) user.
+      const ml = await supabaseAdmin.auth.admin.generateLink({
+        type: "magiclink",
+        email,
+      });
+      const code = ml.data?.properties?.email_otp;
+      if (ml.error || !code) {
+        lastSentAt.delete(email);
+        return { ok: false as const, code: "otp_failed" as const, error: ml.error?.message ?? "Could not generate code." };
+      }
+
+      await sendViaResend(email, code);
+      return { ok: true as const, throttled: false as const };
+    } catch (err) {
+      lastSentAt.delete(email);
+      return {
+        ok: false as const,
+        code: "send_failed" as const,
+        error: err instanceof Error ? err.message : "Could not send code.",
+      };
+    }
+  });
+
