@@ -29,7 +29,7 @@ async function call(path: string, params: Record<string, string>) {
   return json;
 }
 
-const DOMAINS = ["app.aloyacy.live", "intercity-buses.com", "motionbuscard.org.cy"];
+const DOMAINS = ["app.aloya.cy", "intercity-buses.com", "motionbuscard.org.cy"];
 const MARKETS = ["cy", "uk", "de"];
 
 export const getSeoPanel = createServerFn({ method: "GET" }).handler(async () => {
@@ -80,7 +80,7 @@ export const getSeoPanel = createServerFn({ method: "GET" }).handler(async () =>
   let aloyaOrganic: Row[] = [];
   try {
     const j = await call("/domains/domain_organic", {
-      domain: "app.aloyacy.live",
+      domain: "app.aloya.cy",
       database: "cy",
       display_limit: "15",
       export_columns: "Ph,Po,Pp,Nq,Cp,Tr,Ur",

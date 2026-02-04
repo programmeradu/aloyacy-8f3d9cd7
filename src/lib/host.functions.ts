@@ -4,7 +4,7 @@ import { getRequest } from "@tanstack/react-start/server";
 /**
  * Host-based routing for a single project serving two domains:
  *   aloyacy.live          → marketing site
- *   app.aloyacy.live      → the app itself
+ *   app.aloya.cy      → the app itself
  *
  * Anything else (Lovable preview URLs, *.lovable.app, localhost) is
  * treated as the app so devs see the real product by default.
@@ -12,8 +12,8 @@ import { getRequest } from "@tanstack/react-start/server";
 export function isMarketingHostname(host: string | null | undefined): boolean {
   if (!host) return false;
   const h = host.toLowerCase().split(":")[0];
-  if (h === "aloyacy.live" || h === "www.aloyacy.live") return true;
   if (h === "aloya.cy" || h === "www.aloya.cy") return true;
+  if (h === "aloyacy.live" || h === "www.aloyacy.live") return true;
   return false;
 }
 
