@@ -11,6 +11,15 @@ import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 const hostRedirectMiddleware = createMiddleware().server(async ({ next }) => {
   try {
     const req = getRequest();
+    const url = new URL(req.url);
+    // Never redirect internal email infra routes or the public unsubscribe
+    // page — these must stay reachable on any host (including preview).
+    if (
+      url.pathname.startsWith("/lovable/") ||
+      url.pathname === "/email/unsubscribe"
+    ) {
+      return next();
+    }
     const host = (
       req.headers.get("x-forwarded-host") ||
       req.headers.get("host") ||
@@ -18,7 +27,6 @@ const hostRedirectMiddleware = createMiddleware().server(async ({ next }) => {
     )
       .toLowerCase()
       .split(":")[0];
-    const url = new URL(req.url);
     let target: string | null = null;
     if (host === "app.aloyacy.live") target = `https://app.aloya.cy${url.pathname}${url.search}`;
     else if (host === "aloyacy.live" || host === "www.aloyacy.live")
