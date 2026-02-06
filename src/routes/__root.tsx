@@ -112,6 +112,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     scripts: [
       {
+        src: "https://www.googletagmanager.com/gtag/js?id=G-LFCE839KSF",
+        async: true,
+      },
+      {
+        children:
+          "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-LFCE839KSF',{send_page_view:false});",
+      },
+      {
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
@@ -181,6 +189,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
 
   useEffect(() => {
     void registerServiceWorker();
@@ -193,6 +202,22 @@ function RootComponent() {
     navigator.serviceWorker.addEventListener("message", onMessage);
     return () => navigator.serviceWorker.removeEventListener("message", onMessage);
   }, []);
+
+  // GA4 SPA pageview tracking on every route change.
+  useEffect(() => {
+    const send = () => {
+      const w = window as unknown as { gtag?: (...args: unknown[]) => void };
+      if (typeof w.gtag !== "function") return;
+      w.gtag("event", "page_view", {
+        page_path: window.location.pathname + window.location.search,
+        page_location: window.location.href,
+        page_title: document.title,
+      });
+    };
+    send();
+    const unsub = router.subscribe("onResolved", send);
+    return () => unsub();
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
