@@ -51,5 +51,3 @@ export function ProGate({ feature, children, preview }: ProGateProps) {
     </div>
   );
 }
-
-}
