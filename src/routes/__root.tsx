@@ -18,6 +18,8 @@ import { bootstrapAnonymousAuth } from "@/lib/anon-auth";
 import { startCloudSync } from "@/lib/cloud-sync";
 import { useAuth } from "@/lib/useAuth";
 import { OnboardingGate } from "@/components/OnboardingGate";
+import { PaywallSheet } from "@/components/PaywallSheet";
+import { paywallStore, usePaywallOpen } from "@/lib/paywall-store";
 
 function NotFoundComponent() {
   return (
@@ -225,10 +227,17 @@ function RootComponent() {
       <CloudSyncBridge />
       <OnboardingGate />
       <Outlet />
+      <GlobalPaywall />
       <Toaster position="top-center" />
     </QueryClientProvider>
   );
 }
+
+function GlobalPaywall() {
+  const open = usePaywallOpen();
+  return <PaywallSheet open={open} onClose={() => paywallStore.close()} />;
+}
+
 
 // Lives inside QueryClientProvider so it can grab the queryClient via hook.
 function RealtimeBridge() {
