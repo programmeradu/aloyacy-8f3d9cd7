@@ -18,6 +18,8 @@ import { bootstrapAnonymousAuth } from "@/lib/anon-auth";
 import { startCloudSync } from "@/lib/cloud-sync";
 import { useAuth } from "@/lib/useAuth";
 import { OnboardingGate } from "@/components/OnboardingGate";
+import { PaywallSheet } from "@/components/PaywallSheet";
+import { paywallStore, usePaywallOpen } from "@/lib/paywall-store";
 
 function NotFoundComponent() {
   return (
