@@ -31,11 +31,16 @@ export const IconRoute = ({ className, strokeWidth = 1.5 }: IconProps) => (
 );
 
 export const IconOlive = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  // Bespoke "cairn": three stacked Mediterranean stones — a wayside marker
+  // for saved places. Unique to Aloya; no generic bookmark/heart/pin.
   <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3c-3 3-4 6-4 9 0 4 2 7 4 9 2-2 4-5 4-9 0-3-1-6-4-9z" />
-    <path d="M12 8v13" />
+    <path d="M9 19.5c0-1.2 1.4-2.2 3-2.2s3 1 3 2.2" />
+    <ellipse cx="12" cy="15.5" rx="4.6" ry="1.9" />
+    <ellipse cx="12" cy="10.5" rx="3.6" ry="1.7" />
+    <ellipse cx="12" cy="6" rx="2.4" ry="1.4" />
   </svg>
 );
+
 
 export const IconTicket = ({ className, strokeWidth = 1.5 }: IconProps) => (
   <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
