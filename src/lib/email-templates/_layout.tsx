@@ -32,16 +32,26 @@ export const colors = {
   olive: '#3e4634',
 }
 
-const headerImg = 'https://aloya.cy/email/header.jpg'
+const ASSET_HOST = 'https://aloya.cy'
 
 interface LayoutProps {
   preview: string
   eyebrow: string
   headline: string
+  /** CDN-relative path, e.g. "/__l5e/assets-v1/.../foo.jpg" */
+  heroImage: string
+  heroAlt?: string
   children: React.ReactNode
 }
 
-export const Layout = ({ preview, eyebrow, headline, children }: LayoutProps) => (
+export const Layout = ({
+  preview,
+  eyebrow,
+  headline,
+  heroImage,
+  heroAlt = '',
+  children,
+}: LayoutProps) => (
   <Html lang="en" dir="ltr">
     <Head>
       <meta name="color-scheme" content="light only" />
