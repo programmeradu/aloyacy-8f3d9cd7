@@ -7,12 +7,19 @@ const base = (className?: string) =>
   `inline-block ${className ?? ""}`;
 
 export const IconCompass = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  // Bespoke "wayfinder": a half-sun rising over a curved horizon — a
+  // Mediterranean-coded explore mark. Not the typical compass dial.
   <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M9 15l2-6 4-2-2 6-4 2z" />
-    <circle cx="12" cy="12" r="0.6" fill="currentColor" />
+    <path d="M4 15.5c2.2-2 5-3 8-3s5.8 1 8 3" />
+    <path d="M6.5 15.5a5.5 5.5 0 0 1 11 0" />
+    <path d="M12 5.5v2.2" />
+    <path d="M6.5 8l1.4 1.6" />
+    <path d="M17.5 8l-1.4 1.6" />
+    <path d="M3.2 12.6l1.8.4" />
+    <path d="M20.8 12.6l-1.8.4" />
   </svg>
 );
+
 
 export const IconRoute = ({ className, strokeWidth = 1.5 }: IconProps) => (
   <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -24,11 +31,16 @@ export const IconRoute = ({ className, strokeWidth = 1.5 }: IconProps) => (
 );
 
 export const IconOlive = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  // Bespoke "cairn": three stacked Mediterranean stones — a wayside marker
+  // for saved places. Unique to Aloya; no generic bookmark/heart/pin.
   <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3c-3 3-4 6-4 9 0 4 2 7 4 9 2-2 4-5 4-9 0-3-1-6-4-9z" />
-    <path d="M12 8v13" />
+    <path d="M9 19.5c0-1.2 1.4-2.2 3-2.2s3 1 3 2.2" />
+    <ellipse cx="12" cy="15.5" rx="4.6" ry="1.9" />
+    <ellipse cx="12" cy="10.5" rx="3.6" ry="1.7" />
+    <ellipse cx="12" cy="6" rx="2.4" ry="1.4" />
   </svg>
 );
+
 
 export const IconTicket = ({ className, strokeWidth = 1.5 }: IconProps) => (
   <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -204,12 +216,13 @@ export const IconClockSmall = ({ className, strokeWidth = 1.5 }: IconProps) => (
 // outline when inactive, filled when active. Outer shape filled with
 // currentColor, inner glyph cut with the surface color for contrast.
 export const IconCompassFilled = ({ className }: IconProps) => (
-  <svg viewBox="0 0 24 24" className={base(className)} fill="currentColor">
-    <circle cx="12" cy="12" r="9.25" />
-    <path d="M9.2 14.8l1.9-5.6 5.6-1.9-1.9 5.6-5.6 1.9z" fill="var(--color-limestone)" />
-    <circle cx="12" cy="12" r="0.9" fill="currentColor" />
+  <svg viewBox="0 0 24 24" className={base(className)} fill="none">
+    <path d="M3.5 16c2.4-2.4 5.3-3.6 8.5-3.6s6.1 1.2 8.5 3.6" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M6.5 15.5a5.5 5.5 0 0 1 11 0z" fill="currentColor" />
+    <path d="M12 5.2v2.4M6.2 7.8l1.5 1.7M17.8 7.8l-1.5 1.7M2.8 12.4l2 .5M21.2 12.4l-2 .5" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" />
   </svg>
 );
+
 
 export const IconRouteFilled = ({ className }: IconProps) => (
   <svg viewBox="0 0 24 24" className={base(className)} fill="none" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round">
@@ -229,10 +242,13 @@ export const IconWavesFilled = ({ className }: IconProps) => (
 
 export const IconOliveFilled = ({ className }: IconProps) => (
   <svg viewBox="0 0 24 24" className={base(className)} fill="currentColor">
-    <path d="M12 3c-3 3-4 6-4 9 0 4 2 7 4 9 2-2 4-5 4-9 0-3-1-6-4-9z" />
-    <path d="M12 8.5v12.5" stroke="var(--color-limestone)" strokeWidth={1.4} strokeLinecap="round" fill="none" />
+    <ellipse cx="12" cy="15.5" rx="4.6" ry="1.9" />
+    <ellipse cx="12" cy="10.5" rx="3.6" ry="1.7" />
+    <ellipse cx="12" cy="6" rx="2.4" ry="1.4" />
+    <path d="M7.4 15.5h9.2M8.4 10.5h7.2M9.6 6h4.8" stroke="var(--color-limestone)" strokeWidth={0.9} strokeLinecap="round" fill="none" opacity="0.5" />
   </svg>
 );
+
 
 export const IconTicketFilled = ({ className }: IconProps) => (
   <svg viewBox="0 0 24 24" className={base(className)} fill="currentColor">
