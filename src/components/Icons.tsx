@@ -242,10 +242,13 @@ export const IconWavesFilled = ({ className }: IconProps) => (
 
 export const IconOliveFilled = ({ className }: IconProps) => (
   <svg viewBox="0 0 24 24" className={base(className)} fill="currentColor">
-    <path d="M12 3c-3 3-4 6-4 9 0 4 2 7 4 9 2-2 4-5 4-9 0-3-1-6-4-9z" />
-    <path d="M12 8.5v12.5" stroke="var(--color-limestone)" strokeWidth={1.4} strokeLinecap="round" fill="none" />
+    <ellipse cx="12" cy="15.5" rx="4.6" ry="1.9" />
+    <ellipse cx="12" cy="10.5" rx="3.6" ry="1.7" />
+    <ellipse cx="12" cy="6" rx="2.4" ry="1.4" />
+    <path d="M7.4 15.5h9.2M8.4 10.5h7.2M9.6 6h4.8" stroke="var(--color-limestone)" strokeWidth={0.9} strokeLinecap="round" fill="none" opacity="0.5" />
   </svg>
 );
+
 
 export const IconTicketFilled = ({ className }: IconProps) => (
   <svg viewBox="0 0 24 24" className={base(className)} fill="currentColor">
