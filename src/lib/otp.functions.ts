@@ -194,7 +194,18 @@ export const linkEmailAndRequestOtp = createServerFn({ method: "POST" })
       if (upd.error) {
         lastSentAt.delete(email);
         const msg = upd.error.message.toLowerCase();
-        if (msg.includes("already") || msg.includes("registered") || msg.includes("exists") || msg.includes("duplicate")) {
+        const errCode = (upd.error as { code?: string }).code ?? "";
+        const status = (upd.error as { status?: number }).status ?? 0;
+        if (
+          errCode === "email_exists" ||
+          errCode === "user_already_exists" ||
+          status === 422 ||
+          msg.includes("already") ||
+          msg.includes("registered") ||
+          msg.includes("exists") ||
+          msg.includes("duplicate") ||
+          msg.includes("in use")
+        ) {
           return { ok: false as const, code: "email_taken" as const, error: "Email is already in use." };
         }
         return { ok: false as const, code: "update_failed" as const, error: upd.error.message };
