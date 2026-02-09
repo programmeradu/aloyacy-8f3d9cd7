@@ -24,6 +24,8 @@ export const InviteEmail = ({
     preview="You've been invited to Aloya."
     eyebrow="Personal invitation"
     headline="Come ride with us across Cyprus."
+    heroImage="/__l5e/assets-v1/9ef7fea9-4058-4df1-ab28-52be4a0c2ee7/email-invite.jpg"
+    heroAlt="Cream postcard tied with twine and a bougainvillea bloom"
   >
     <Text style={bodyText}>
       Someone thought you'd love Aloya — and we agree. Accept the
