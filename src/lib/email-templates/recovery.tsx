@@ -20,6 +20,8 @@ export const RecoveryEmail = ({ confirmationUrl }: RecoveryEmailProps) => (
     preview="Reset your Aloya password."
     eyebrow="Password recovery"
     headline="Let's get you back on the bus."
+    heroImage="/__l5e/assets-v1/279fd398-e436-46ff-9192-5dd24a82ecee/email-recovery.jpg"
+    heroAlt="Brass compass on linen, ceramic bowl of sea salt"
   >
     <Text style={bodyText}>
       We received a request to reset the password on your Aloya

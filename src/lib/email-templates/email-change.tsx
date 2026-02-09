@@ -29,6 +29,8 @@ export const EmailChangeEmail = ({
     preview="Confirm your new Aloya email."
     eyebrow="Account change"
     headline="Confirm your new email address."
+    heroImage="/__l5e/assets-v1/cb0c64e1-d68a-48dc-aaa4-53dc4213b4ef/email-change.jpg"
+    heroAlt="Two cream envelopes joined by an olive sprig on limestone"
   >
     <Text style={bodyText}>
       You requested to change the email on your Aloya account.
