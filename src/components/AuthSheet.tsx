@@ -46,9 +46,11 @@ export function AuthSheet({
           setStage("code");
           return;
         }
-        // Email already belongs to another account — fall back to plain
-        // sign-in, which will swap the anon session for that account.
-        if (r.code === "email_taken") {
+        // Email already belongs to another account, OR this session is no
+        // longer anonymous (e.g. a prior link attempt promoted it). Either
+        // way, fall back to plain sign-in so the user lands on the existing
+        // account that owns this email.
+        if (r.code === "email_taken" || r.code === "not_anonymous") {
           const r2 = await sendOtp({ data: { email: trimmed } });
           if (!r2.ok) throw new Error(r2.error);
           setStage("code");
