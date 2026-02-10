@@ -1,27 +1,23 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useProSubscription } from "./usePro";
-import { PaywallSheet } from "@/components/PaywallSheet";
+import { paywallStore } from "./paywall-store";
 
 /**
  * Imperative paywall helper. `requirePro(fn)` runs fn() if user is Pro,
- * otherwise opens the paywall sheet. Render `paywall` once in the tree.
+ * otherwise opens the global paywall sheet mounted in __root.
  */
 export function useProPaywall() {
   const { isPro, loading } = useProSubscription();
-  const [open, setOpen] = useState(false);
 
   const requirePro = useCallback(
     (fn: () => void) => {
-      if (isPro) {
-        fn();
-      } else {
-        setOpen(true);
-      }
+      if (isPro) fn();
+      else paywallStore.open();
     },
     [isPro],
   );
 
-  const paywall = <PaywallSheet open={open} onClose={() => setOpen(false)} />;
+  const openPaywall = useCallback(() => paywallStore.open(), []);
 
-  return { isPro, loading, requirePro, openPaywall: () => setOpen(true), paywall };
+  return { isPro, loading, requirePro, openPaywall };
 }
