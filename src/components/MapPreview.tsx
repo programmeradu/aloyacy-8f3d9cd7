@@ -776,14 +776,6 @@ export function MapPreview({
     </div>
   );
 
-  // When using the in-page fallback overlay (iOS Safari, no native
-  // Fullscreen API), portal to document.body so ancestor `transform`
-  // containing blocks (e.g. `animate-rise` sections) don't trap the
-  // "fixed inset-0" wrapper inside a local stacking context — which
-  // would let the bottom nav and other app chrome paint over it.
-  if (expanded && fallbackOverlay && typeof document !== "undefined") {
-    return createPortal(content, document.body);
-  }
   return content;
 }
 
