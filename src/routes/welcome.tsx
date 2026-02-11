@@ -78,7 +78,7 @@ function WelcomePage() {
 
       <main className="mx-auto flex min-h-[100dvh] max-w-md flex-col px-5 pb-8 pt-20">
         {/* Stepper */}
-        <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-ink/45">
+        <div className="flex items-center gap-2 font-eyebrow text-[11px] uppercase tracking-[0.22em] text-ink/45">
           <span className="tabular-nums">{String(step + 1).padStart(2, "0")}</span>
           <span className="block h-px flex-1 bg-ink/10" />
           <span className="tabular-nums">{String(TOTAL).padStart(2, "0")}</span>
@@ -98,7 +98,7 @@ function WelcomePage() {
         </div>
 
         {/* Footer legal */}
-        <footer className="mt-6 flex items-center justify-center gap-4 font-mono text-[10px] uppercase tracking-[0.2em] text-ink/40">
+        <footer className="mt-6 flex items-center justify-center gap-4 font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink/40">
           <a href="/privacy" className="hover:text-ink/70">{t("privacy.title")}</a>
           <span aria-hidden className="block h-px w-3 bg-ink/15" />
           <a href="/terms" className="hover:text-ink/70">{t("terms.title")}</a>
@@ -153,7 +153,7 @@ function LocationStep({ onNext }: { onNext: () => void }) {
         <button
           type="button"
           onClick={onNext}
-          className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink/55 hover:text-ink"
+          className="font-eyebrow text-[11px] uppercase tracking-[0.22em] text-ink/55 hover:text-ink"
         >
           {t("welcome.loc.skip")}
         </button>
@@ -211,7 +211,7 @@ function NotificationsStep({ onNext }: { onNext: () => void }) {
         <button
           type="button"
           onClick={onNext}
-          className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink/55 hover:text-ink"
+          className="font-eyebrow text-[11px] uppercase tracking-[0.22em] text-ink/55 hover:text-ink"
         >
           {t("welcome.notif.skip")}
         </button>
@@ -269,7 +269,7 @@ function CardStep({ onFinish }: { onFinish: () => void }) {
         <button
           type="button"
           onClick={onFinish}
-          className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink/55 hover:text-ink"
+          className="font-eyebrow text-[11px] uppercase tracking-[0.22em] text-ink/55 hover:text-ink"
         >
           {t("welcome.card.skip")}
         </button>
@@ -317,7 +317,7 @@ function StepShell({
       </div>
 
       <div className="mt-6">
-        <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-aegean">
+        <p className="font-eyebrow text-[11px] uppercase tracking-[0.24em] text-aegean">
           {eyebrow}
         </p>
         <h1 className="mt-2 font-display text-[28px] leading-[1.08] tracking-tight text-balance text-ink">
