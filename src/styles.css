@@ -117,6 +117,14 @@
   * { scrollbar-width: none; -ms-overflow-style: none; }
   .font-mono { font-family: var(--font-mono); font-weight: 600; }
   .font-display { font-weight: 600; }
+  /* Eyebrow / kicker label — tiny uppercase, must read strongly on mobile.
+   * Geist 700 (not JetBrains Mono, which goes spindly at 9-11px tracked wide). */
+  .font-eyebrow {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+  }
+  :lang(el) .font-eyebrow { letter-spacing: 0.08em; }
   .grain {
     background-image: radial-gradient(oklch(0.22 0.012 110 / 0.035) 1px, transparent 1px);
     background-size: 3px 3px;

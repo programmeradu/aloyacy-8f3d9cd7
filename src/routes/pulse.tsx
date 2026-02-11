@@ -69,7 +69,7 @@ function Pulse() {
           height={896}
           className="pointer-events-none absolute inset-x-0 top-[-4%] mx-auto w-[88%] opacity-[0.22] mix-blend-multiply"
         />
-        <p className="relative font-mono text-[10px] uppercase tracking-[0.24em] text-ink-soft">
+        <p className="relative font-eyebrow text-[10px] uppercase tracking-[0.24em] text-ink-soft">
           {t("pulse.kicker")}
         </p>
         <h1 className="relative font-display text-[40px] leading-[1.04] mt-1.5 text-ink text-balance">
@@ -83,12 +83,12 @@ function Pulse() {
         <div className="rounded-[32px] bg-card p-6 ring-1 ring-line">
           <div className="flex items-end justify-between gap-4">
             <div className="min-w-0">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+              <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
                 {t("pulse.reliabilityIndex")}
               </p>
               <p className="mt-1.5 font-display text-[80px] leading-none text-aegean-deep tabular-nums">
                 {isLoading ? "—" : onTimePct}
-                <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] align-top text-ink-soft">
+                <span className="ml-1 font-eyebrow text-[12px] uppercase tracking-[0.18em] align-top text-ink-soft">
                   {t("pulse.outOf")}
                 </span>
               </p>
@@ -135,7 +135,7 @@ function Pulse() {
       <HowItWorks excluded={excluded} />
 
       <div className="px-6 pt-6 pb-2">
-        <p className="text-center font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
+        <p className="text-center font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink-soft">
           {t("pulse.updated")}
         </p>
       </div>
@@ -146,7 +146,7 @@ function Pulse() {
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-2xl bg-limestone-soft p-3">
-      <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
+      <p className="font-eyebrow text-[9px] uppercase tracking-[0.18em] text-ink-soft">
         {label}
       </p>
       <p className="mt-1 font-sans font-medium text-2xl leading-none text-ink tabular-nums tracking-[-0.02em]">
@@ -176,7 +176,7 @@ function Section({
   return (
     <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
       <div className="mb-3">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+        <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
           {kicker}
         </p>
         <h2 className="font-display text-2xl mt-1 text-ink">{title}</h2>
@@ -218,7 +218,7 @@ function Section({
                   >
                     {longName}
                   </p>
-                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                  <p className="mt-0.5 font-eyebrow text-[10px] uppercase tracking-[0.16em] text-ink-soft">
                     {t("pulse.tripsLoggedShort", { n: r.sampleCount.toLocaleString() })}
                   </p>
                 </div>
@@ -237,7 +237,7 @@ function Section({
                         {delayMin > 0 ? "+" : ""}
                         {delayMin}
                       </span>
-                      <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
+                      <span className="mt-1 font-eyebrow text-[9px] uppercase tracking-[0.18em] text-ink-soft">
                         {t("pulse.min")}
                       </span>
                     </>
@@ -246,7 +246,7 @@ function Section({
                       <span className="font-sans font-medium text-[26px] tabular-nums tracking-[-0.02em] text-aegean-deep">
                         {r.onTimePct}
                       </span>
-                      <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
+                      <span className="mt-1 font-eyebrow text-[9px] uppercase tracking-[0.18em] text-ink-soft">
                         {t("pulse.outOf")}
                       </span>
                     </>
@@ -276,7 +276,7 @@ function HowItWorks({ excluded }: { excluded: number }) {
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger className="w-full flex items-center justify-between rounded-3xl bg-card ring-1 ring-line px-5 py-4 text-left">
           <span>
-            <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+            <span className="block font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
               {t("pulse.honest")}
             </span>
             <span className="block font-display text-xl mt-0.5 text-ink">
@@ -309,7 +309,7 @@ function HowItWorks({ excluded }: { excluded: number }) {
 function Item({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
+      <p className="font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft">
         {label}
       </p>
       <p className="mt-1">{children}</p>
