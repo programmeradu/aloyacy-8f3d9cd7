@@ -1,87 +1,76 @@
+## Why this needs a rebuild, not a polish
 
-# Strategic build plan — five phases, shipped in order
+The current page asks riders to stare at absolute numbers (`56/100`, `42%`, `+0 min`) without telling them what those numbers *mean for their day*. Leading rider-facing pulse pages (TfL Go, Transit App, MBTA, TransitPulse AU, Citymapper) all share one move: they replace raw values with **contextual comparisons**, **confidence signals**, and **scoped relevance**. That's the gap.
 
-Account-free by default. A Supabase **anonymous user** is created silently on first launch so cloud sync, push, and trip history work without a sign-up wall. The user is only prompted to add an email/password (or Google) when they tap **Upgrade to Pro** — at that point the anonymous account is *linked* to the real identity, preserving all their data.
-
-Inspector mode is dropped from scope.
+Plan below is grounded in research on those products plus the data fields we already have (`onTimePct`, `meanDelaySec`, `sampleCount`, `routesTracked`, `latePct/onTimePct/earlyPct`, `medianDelaySec`, `observations`).
 
 ---
 
-## Phase 1 — Schedule ingest fix (the silent killer)
+## The new Pulse page — section by section
 
-The bug: `public/data/schedule/by-date/` ends 2026-06-05; today is 2026-06-08. Every future-time plan returns empty.
+### 1. Weather-report headline (replaces the dial as the lead)
+Editorial verdict instead of a number-first hero.
 
-1. **New server route** `src/routes/api/public/hooks/ingest-schedule.ts` — downloads the 7 Cyprus GTFS feeds, builds per-date shards for today + next 13 days, uploads to the existing `schedule` Storage bucket. Auth via `apikey` anon-key header.
-2. **`src/lib/schedule-loader.server.ts`** — try Storage public URL first, fall back to bundled `/data/schedule/...`. Fresh data without redeploys.
-3. **pg_cron** daily at 03:00 Cyprus time hitting the hook.
-4. **Run once now** via `invoke-server-function` so today works immediately.
-5. **`raptor.server.ts` + `journey-scheduled.server.ts`** — `searchHorizonSec` parameter: 4h default, 24h when `departAtUnix`/`arriveByUnix` passed; anchor scan at `departureUnix`.
-6. **`multileg.functions.ts`** — distinguish shard-404 from "no itineraries"; surface `noScheduleAvailable` + `requestedDate`.
-7. **`trips.tsx`** — inline notice when no timetable exists for the requested date.
-8. **`nl-suggestions.functions.ts` (exists, currently static) + `NLPlannerCard.tsx`** — dynamic chips: personal repeat, time-of-day intent, trending nearby, tomorrow-anchor, POI fallback. Refetch every 10 min and on geolocation change.
+> **"Mostly smooth across Cyprus today."**
+> *Network is running 74% on time — 6 points better than this week's average. Route 30 is the rough spot.*
 
-## Phase 2 — Anonymous cloud sync (no sign-up wall)
+Composition: oversized display sentence, mood word (`Smooth` / `Choppy` / `Rough` / `Storming`) in aegean italic, supporting one-liner in ink-soft. Reads like a Bloomberg/FT lede, not a metric.
 
-Goal: trip history, saved places, Motion card, Pro entitlement, push subs follow the rider across devices — without ever asking them to create an account.
+### 2. Reliability arc — but with a "typical" ghost
+Keep the arc, but layer a **muted baseline arc** showing the historical typical OTP. The gap between baseline and today's fill is the story. Add a delta chip: `+6 vs typical` (olive) or `-9 vs typical` (ochre). No more naked 56/100.
 
-1. **Enable anonymous sign-ins** via `configure_auth` (`external_anonymous_users_enabled: true`).
-2. **`src/lib/anon-auth.ts`** — on `__root.tsx` mount, if no session, `supabase.auth.signInAnonymously()`. Idempotent. Single guard.
-3. **Schema migration** — new tables, all `user_id uuid references auth.users` + RLS scoped to `auth.uid()`:
-   - `saved_places` (label, lat, lng, kind)
-   - `trip_history_cloud` (mirror of local format)
-   - `motion_card` (one row per user — number, holder, jcc tokens encrypted, balance cache)
-   - `user_settings` (locale, notif prefs, onboarding completion)
-   - GRANTs to `authenticated` only; `service_role ALL`.
-4. **Sync engine** `src/lib/cloud-sync.ts` — debounced two-way sync between localStorage and Supabase. Last-write-wins on `updated_at`. Runs on focus + every 60s + on local change.
-5. **Pro entitlement** — existing `subscriptions` table already keyed by user_id; `usePro` reads from it via `getProStatus` server fn. Anonymous user already has a `user_id`, so Stripe checkout passes it as `client_reference_id`.
-6. **Upgrade-flow account linking** — when user taps Upgrade to Pro:
-   - `PaywallSheet` first asks: *"Save your card to your phone or your account?"* If account: collect email + password OR Google.
-   - Call `supabase.auth.updateUser({ email, password })` (links anon → permanent). Or `linkIdentity({ provider: 'google' })`. All cloud data preserved automatically because `user_id` is unchanged.
-   - Then proceed to Stripe checkout.
-7. **`useAuth.ts`** — expose `{ user, isAnonymous, isPermanent, upgradeWithEmail, upgradeWithGoogle }`. Never show a sign-in wall anywhere else.
+### 3. Bespoke hero illustration (new asset)
+Generate a **mediterranean isometric scene**: ochre buses tracing across a stylized Cyprus coastline at the hour-of-day matching the rider's current time (dawn / midday / dusk / night) — picked at render via simple time gate. Hand-painted gouache style consistent with brand. Four scenes total (one per phase). Sits behind the headline as a quiet anchor, not screaming for attention.
 
-## Phase 3 — Onboarding (3 screens)
+### 4. Network Flow ribbon — upgraded to a "river"
+Replace the flat segmented bar with an **SVG flow ribbon**: three streams (late / on-time / early) that widen and narrow horizontally based on share, with a subtle animated current. Median drift annotation hangs off the on-time stream. Feels alive, not a progress bar.
 
-Lazy-mounted route `/welcome`, redirects to `/` after completion. Stored in `user_settings.onboarded_at`. Shown on first launch only.
+### 5. "Today vs typical" hour-strip (new — uses live + historical)
+24-cell horizontal strip showing **how the network felt each hour today** (color = mean delay per hour). At the current hour, a vertical "you are here" marker. Cells before are filled; cells after are ghosted. Single most-actionable view: *"the morning was rough, it's clearing up now."*
 
-1. **Screen 1 — Location.** Bespoke illustration (Cyprus coastline, generated). One CTA: "Use my location". Skip link.
-2. **Screen 2 — Notifications.** "We'll only ping you about your trip." Subscribe via existing `push.functions.ts`. Skip link.
-3. **Screen 3 — Motion card (optional).** "Add now or later." Routes to `/wallet` or `/`. Skip always available.
+### 6. Route ranking — single dot-strip, not three lists
+Collapse the three list-cards into **one ranked dot-strip**:
+- X axis = mean delay (early ← 0 → late), zero line in the middle.
+- Each route = a labeled dot. Color encodes late/on-time/early. **Dot size encodes sample count** (confidence). Tap → route page.
+- Top filter chips: `All • Late • Early • Steadiest • Near me`.
+This visualization, with size-as-confidence, is the single most insightful thing we can build from our data: riders see at a glance which routes are trustworthy AND outliers, not just sorted lists.
 
-Each screen: editorial typography, generated asset, no icon library.
+### 7. "So what" insight chips (new server fn additions)
+Two to three rotating chips above the route ranking, computed server-side from existing data:
+- *"3 routes near you are running 4+ min late right now"* (uses geolocation + live)
+- *"Route 230 is steadier before 09:15"* (hour-of-day bucketed mean delay)
+- *"Network is calmer than usual for a Wednesday"* (day-of-week historical compare)
+These are the editorial layer that turns data into a decision.
 
-## Phase 4 — Greek localization (English + Greek; Turkish deferred)
+### 8. Confidence footnote everywhere
+Every metric gets a quiet `· based on N live observations` micro-label. Removes the "where did this come from?" doubt.
 
-1. **`src/lib/i18n.ts`** — lightweight typed dictionary, no library. `t(key, vars?)` reads from `dictionaries/{en,el}.ts`. Locale from `user_settings.locale`, fallback to `navigator.language`, default `en`.
-2. **Extract strings** — sweep components for hardcoded copy, replace with `t(...)`. Prioritized: home, trips, wallet, journey HUD, paywall, onboarding.
-3. **`LocaleSwitcher`** — small text toggle "EN / EL" in the home header.
-4. **`<html lang>`** updated in `__root.tsx` based on locale.
-
-Turkish noted as future Phase 4.5.
-
-## Phase 5 — Privacy + Terms
-
-1. **`/privacy`** and **`/terms`** route files — static MDX-style content in TSX, real legal copy tailored to Cyprus + GDPR + Apple/Google/Stripe requirements (data collected, third parties, retention, contact, jurisdiction).
-2. **Footer links** in onboarding screen 1 and paywall sheet.
-3. **Cookie/consent banner** — minimal, GDPR-compliant, dismissable, stored locally.
-4. **`<head>` metadata** for both routes; canonical URLs.
+### 9. Route portraits (illustration system)
+Each route in the ranking gets a **tiny 28×28 line-art icon** representing its character (coast / mountain / city / village) instead of just a colored chip. Generated once as a sprite. Makes the list feel like meeting characters, not reading a spreadsheet.
 
 ---
 
 ## Technical notes
 
-- **Supabase anonymous auth.** Native Supabase feature. Each device gets a permanent `user_id` on first launch; that id survives across sessions via the existing localStorage session persistence. Linking via `updateUser` or `linkIdentity` upgrades the same row in `auth.users` — no data migration needed.
-- **Stripe + anonymous users.** `client_reference_id = user_id` on Checkout Session; webhook writes to `subscriptions` keyed by that id. Already wired this way.
-- **JCC tokens.** Currently in localStorage. Phase 2 stores them server-side encrypted via `pgsodium` (or via Supabase Vault if simpler). Decision: store client-side encrypted with a device-bound key, server only sees ciphertext. Keeps zero-trust posture.
-- **Sync conflict policy.** Last-write-wins by `updated_at`; if same timestamp, server wins. Acceptable for the data shapes here.
-- **Bundle impact.** Greek dictionary adds ~15KB. Cloud sync adds ~3KB. Onboarding lazy-loaded.
+- **New server fn**: `getPulseInsights` — returns 2-3 ranked insight chips from existing `delay_stats` (hour-of-day buckets) + live snapshot. Pure read, no schema changes.
+- **New server fn**: `getPulseHourStrip` — returns 24 hourly mean-delay buckets for today's network. Aggregates `rt_snapshots` by `extract(hour from captured_at)`. Cacheable 5 min.
+- **New assets** (imagegen):
+  - 4× hero scenes (dawn/midday/dusk/night Cyprus + buses), gouache style
+  - 1× sprite or 6× route portrait illustrations (coast/mountain/city/village/intercity/airport)
+- **New components**: `WeatherHeadline`, `ReliabilityArcWithGhost`, `FlowRiver` (SVG), `HourStrip`, `RouteDotStrip`, `InsightChip`, `RoutePortrait`.
+- **Removed**: `Section` × 3 (replaced by single `RouteDotStrip` with filter chips), the flat segmented `NetworkFlow` (replaced by `FlowRiver`).
+- **i18n**: all new strings added to `en.ts` + `el.ts` in same change. Mood words ("Smooth", "Choppy", "Rough", "Storming") carefully localized.
+- **Typography**: stays Bricolage + Geist + JetBrains Mono. No new fonts. `font-eyebrow` retained.
+- **Color**: stays within existing limestone / aegean / ochre / olive / ink tokens. No new tokens needed.
 
-## Order of execution
+---
 
-Phase 1 ships first (fixes the live bug). Phase 2 second (unlocks everything else). Phases 3 → 5 can ship in parallel after that but I'll do them in order for review hygiene.
+## What it feels like after
 
-## Open question
+The page reads top-to-bottom as: **mood → today vs typical → why → what to do**. A rider can answer "should I leave now?" in under 4 seconds without parsing a single percentage. That's the bar.
 
-**Anonymous user storage of JCC tokens** — client-encrypted (zero-trust, slightly more complex) vs server-side via Vault (simpler, requires trust)? I'll default to **client-encrypted with a device key** unless you say otherwise.
+---
 
-Approve and I'll start Phase 1 immediately.
+## What I need from you
+
+Just an approval to build. I'll generate the illustrations, write the server fns, build the components, wire i18n, and verify on mobile viewport before handing back.
