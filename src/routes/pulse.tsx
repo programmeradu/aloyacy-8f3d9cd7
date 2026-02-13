@@ -211,7 +211,7 @@ function WeatherHero({
 }) {
   const hasData = !isLoading && totalSamples > 0;
   const mood = t(moodKey(onTimePct, hasData));
-  void splitMood;
+  
 
   let sub = t("pulse.weather.subQuiet");
   if (hasData) {
