@@ -286,12 +286,6 @@ function WeatherHero({
   );
 }
 
-function splitMood(s: string): [string, string] {
-  const i = s.indexOf(" ");
-  if (i < 0) return [s, ""];
-  return [s.slice(0, i), s.slice(i + 1)];
-}
-
 function DeltaBadge({ delta, label }: { delta: number; label: string }) {
   const sign = delta > 0 ? "+" : delta < 0 ? "−" : "";
   const tone = delta >= 1 ? "olive" : delta <= -1 ? "ochre" : "ink-soft";
