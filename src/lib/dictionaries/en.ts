@@ -898,7 +898,14 @@ export const en = {
  "pulse.insight.steadyRoute": "Route {code} is the steadiest — right on the dot.",
  "pulse.insight.calmer": "Network is calmer than usual.",
  "pulse.insight.busier": "Heavier delays than a typical {weekday}.",
- "pulse.insight.tooQuiet": "Too quiet to read the network yet.",
+  "pulse.insight.tooQuiet": "Too quiet to read the network yet.",
+  "today.kicker": "Cyprus today",
+  "today.tiles.kicker": "On the island right now",
+  "today.verdict.kicker": "Editor's note",
+  "today.fact.local": "Did you know",
+  "today.fact.tourist": "For visitors",
+
+
 
   // Trip Info
   "tripInfo.meta.title": "Trip {id} — Aloya",
