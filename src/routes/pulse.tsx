@@ -138,6 +138,9 @@ function Pulse() {
 
   return (
     <AppShell>
+      {/* ───────── Cyprus Today editorial hero ───────── */}
+      {today && <TodayEditorial briefing={today} locale={locale} t={t} />}
+
       {/* ───────── Weather hero ───────── */}
       <WeatherHero
         isLoading={isLoading}
@@ -148,6 +151,7 @@ function Pulse() {
         observations={live?.observations ?? 0}
         t={t}
       />
+
 
       {/* ───────── Insight chips ───────── */}
       {insights.length > 0 && (
