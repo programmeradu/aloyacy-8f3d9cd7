@@ -981,3 +981,155 @@ function Item({ label, children }: { label: string; children: React.ReactNode })
     </div>
   );
 }
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Cyprus Today — editorial hero, tiles, verdict, fact                         */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function TodayEditorial({
+  briefing,
+  locale,
+  t,
+}: {
+  briefing: TodayBriefing;
+  locale: "en" | "el";
+  t: T;
+}) {
+  const isEl = locale === "el";
+  const hero = THEME_HERO[briefing.heroKey] ?? todayCalm;
+  const headline = isEl ? briefing.headline.el : briefing.headline.en;
+  const lede = isEl ? briefing.lede.el : briefing.lede.en;
+  const verdict = isEl ? briefing.verdict.el : briefing.verdict.en;
+  const weekday = isEl ? briefing.weekday.el : briefing.weekday.en;
+  const factText = isEl ? briefing.fact.el : briefing.fact.en;
+  const factKicker =
+    briefing.fact.tag === "local" ? t("today.fact.local") : t("today.fact.tourist");
+
+  // Pretty date — "Tuesday · 10 June"
+  const niceDate = (() => {
+    const [, m, d] = briefing.date.split("-");
+    const months = isEl
+      ? ["Ιαν","Φεβ","Μάρ","Απρ","Μάι","Ιούν","Ιούλ","Αύγ","Σεπ","Οκτ","Νοέ","Δεκ"]
+      : ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${weekday} · ${parseInt(d, 10)} ${months[parseInt(m, 10) - 1]}`;
+  })();
+
+  return (
+    <section className="px-6 pt-3 animate-rise">
+      <p className="font-eyebrow text-[10px] uppercase tracking-[0.24em] text-ink-soft">
+        {t("today.kicker")}
+      </p>
+
+      {/* ───────── Hero card ───────── */}
+      <article className="relative mt-3 overflow-hidden rounded-[34px] bg-card ring-1 ring-line">
+        {/* Hero illustration — full bleed top */}
+        <div className="relative aspect-[16/10] w-full overflow-hidden">
+          <img
+            src={hero}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover select-none"
+          />
+          {/* Bottom gradient to anchor the date strip */}
+          <div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 h-2/3 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--color-card) 30%, transparent) 55%, var(--color-card) 100%)",
+            }}
+          />
+          {/* Date eyebrow over hero */}
+          <p className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-card/90 backdrop-blur-sm px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ink ring-1 ring-line">
+            {niceDate}
+          </p>
+        </div>
+
+        {/* Editorial body */}
+        <div className="relative px-6 pt-4 pb-6">
+          <h2 className="font-display text-[30px] leading-[1.05] text-ink text-balance">
+            {headline}
+          </h2>
+          <p className="mt-3 text-[14.5px] leading-relaxed text-ink-soft text-pretty">
+            {lede}
+          </p>
+        </div>
+      </article>
+
+      {/* ───────── Today tiles ───────── */}
+      {briefing.tiles.length > 0 && (
+        <div className="mt-6">
+          <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft mb-3">
+            {t("today.tiles.kicker")}
+          </p>
+          <div className="grid gap-3">
+            {briefing.tiles.map((tile, i) => (
+              <TodayTileCard key={i} tile={tile} isEl={isEl} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ───────── Verdict pull-quote ───────── */}
+      <div className="mt-6 rounded-[26px] bg-aegean-deep/[0.04] ring-1 ring-aegean-deep/15 px-6 py-5 relative overflow-hidden">
+        <span
+          aria-hidden
+          className="absolute -top-3 left-4 font-display text-[72px] leading-none text-aegean-deep/15 select-none"
+        >
+          “
+        </span>
+        <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-aegean-deep mb-2">
+          {t("today.verdict.kicker")}
+        </p>
+        <p className="font-display text-[18px] leading-snug text-ink text-balance">
+          {verdict}
+        </p>
+      </div>
+
+      {/* ───────── Fact strip ───────── */}
+      <div className="mt-4 flex items-start gap-3 rounded-2xl bg-limestone-soft px-4 py-3 ring-1 ring-line">
+        <span className="mt-1 h-5 w-[3px] rounded-full shrink-0 bg-ochre" />
+        <div className="min-w-0">
+          <p className="font-eyebrow text-[9px] uppercase tracking-[0.22em] text-ochre">
+            {factKicker}
+          </p>
+          <p className="mt-1 text-[13.5px] leading-snug text-ink">{factText}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TodayTileCard({ tile, isEl }: { tile: TodayBriefing["tiles"][number]; isEl: boolean }) {
+  const accentBar =
+    tile.accent === "ochre"
+      ? "bg-ochre"
+      : tile.accent === "aegean"
+      ? "bg-aegean-deep"
+      : tile.accent === "olive"
+      ? "bg-olive"
+      : "bg-ink";
+  const accentText =
+    tile.accent === "ochre"
+      ? "text-ochre"
+      : tile.accent === "aegean"
+      ? "text-aegean-deep"
+      : tile.accent === "olive"
+      ? "text-olive"
+      : "text-ink";
+
+  return (
+    <article className="relative overflow-hidden rounded-[22px] bg-card ring-1 ring-line p-5">
+      <span aria-hidden className={`absolute left-0 top-5 bottom-5 w-[3px] rounded-r-full ${accentBar}`} />
+      <p className={`font-eyebrow text-[9.5px] uppercase tracking-[0.24em] ${accentText}`}>
+        {isEl ? tile.kickerEl : tile.kicker}
+      </p>
+      <h3 className="mt-1.5 font-display text-[17px] leading-tight text-ink text-balance">
+        {isEl ? tile.titleEl : tile.title}
+      </h3>
+      <p className="mt-2 text-[13px] leading-snug text-ink-soft text-pretty">
+        {isEl ? tile.detailEl : tile.detail}
+      </p>
+    </article>
+  );
+}
