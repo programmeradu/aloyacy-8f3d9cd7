@@ -68,7 +68,8 @@ function Pulse() {
   const fn = useServerFn(getPulse);
   const liveFn = useServerFn(getLivePulse);
   const hourFn = useServerFn(getPulseHourStrip);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["pulse"],
