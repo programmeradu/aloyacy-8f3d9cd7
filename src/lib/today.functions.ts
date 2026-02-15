@@ -233,17 +233,53 @@ function cruiseInPort(d: Date): { count: number } | null {
   return null;
 }
 
-export const getTodayBriefing = createServerFn({ method: "GET" }).handler(
-  async (): Promise<TodayBriefing> => {
+export const getTodayBriefing = createServerFn({ method: "GET" })
+  .inputValidator((data: TodayInput | undefined): TodayInput => {
+    const v = data ?? {};
+    const num = (n: unknown) => (typeof n === "number" && Number.isFinite(n) ? n : undefined);
+    return {
+      lat: num(v.lat),
+      lng: num(v.lng),
+      destLat: num(v.destLat),
+      destLng: num(v.destLng),
+      destCity:
+        typeof v.destCity === "string" && v.destCity.length > 0 && v.destCity.length < 64
+          ? v.destCity
+          : undefined,
+    };
+  })
+  .handler(async ({ data }): Promise<TodayBriefing> => {
     const d = cyprusNow();
-    const weather = await fetchCyprusWeather();
+
+    // Resolve focus: trip destination > rider location > island default.
+    let focus: TodayBriefing["focus"] = { city: "Cyprus", cityEl: "Κύπρος", scope: "island" };
+    let wxLat = 35.1856;
+    let wxLng = 33.3823;
+    if (data.destCity) {
+      const c = CITY_COORDS.find((x) => x.key === data.destCity) ?? CITY_COORDS[0];
+      focus = { city: c.key, cityEl: c.el, scope: "trip" };
+      wxLat = data.destLat ?? c.lat;
+      wxLng = data.destLng ?? c.lng;
+    } else if (data.destLat != null && data.destLng != null) {
+      const c = nearestCity(data.destLat, data.destLng);
+      focus = { city: c.key, cityEl: c.el, scope: "trip" };
+      wxLat = data.destLat;
+      wxLng = data.destLng;
+    } else if (data.lat != null && data.lng != null) {
+      const c = nearestCity(data.lat, data.lng);
+      focus = { city: c.key, cityEl: c.el, scope: "city" };
+      wxLat = data.lat;
+      wxLng = data.lng;
+    }
+
+    const weather = await fetchCyprusWeather(wxLat, wxLng);
     const weekday = { en: WEEKDAY_EN[d.getUTCDay()], el: WEEKDAY_EL[d.getUTCDay()] };
 
     // ─── Rank signals into a single theme ─────────────────────────────────
     const holiday = publicHoliday(d);
     const nd = nameDayToday(d);
     const festival = activeFestival(d);
-    const fixture = isLikelyMatchday(d);
+    const fixture = isLikelyMatchday(d, focus.scope !== "island" ? focus.city : undefined);
     const cruise = cruiseInPort(d);
     const isHot = weather && weather.tempC >= 35;
     const isStorm = weather && (weather.iconKey === "storm" || weather.iconKey === "rain");
