@@ -194,9 +194,19 @@ function TodayEditorial({
                 "linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--color-card) 30%, transparent) 55%, var(--color-card) 100%)",
             }}
           />
-          <p className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-card/90 backdrop-blur-sm px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ink ring-1 ring-line">
-            {niceDate}
-          </p>
+          <div className="absolute left-5 top-5 right-5 flex items-center justify-between gap-2">
+            <p className="inline-flex items-center gap-2 rounded-full bg-card/90 backdrop-blur-sm px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ink ring-1 ring-line">
+              {niceDate}
+            </p>
+            {briefing.focus.scope !== "island" && (
+              <p className="inline-flex items-center gap-1.5 rounded-full bg-ink/85 backdrop-blur-sm px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-card ring-1 ring-ink/40">
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ochre" />
+                {briefing.focus.scope === "trip"
+                  ? isEl ? `Προς ${briefing.focus.cityEl}` : `Heading to ${briefing.focus.city}`
+                  : isEl ? `Στη ${briefing.focus.cityEl}` : `Around ${briefing.focus.city}`}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="relative px-6 pt-4 pb-6">
