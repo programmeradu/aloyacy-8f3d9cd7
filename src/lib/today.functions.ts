@@ -476,5 +476,4 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
       fact,
       focus,
     };
-  },
-);
+  });
