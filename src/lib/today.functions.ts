@@ -55,7 +55,44 @@ export type TodayBriefing = {
   verdict: { en: string; el: string };
   /** Rotating fun fact. */
   fact: { en: string; el: string; tag: "local" | "tourist" };
+  /** Editorial focus — which city/area this briefing centres on. */
+  focus: { city: string; cityEl: string; scope: "island" | "city" | "trip" };
 };
+
+export type TodayInput = {
+  /** Rider's current coords — used for localised weather. */
+  lat?: number;
+  lng?: number;
+  /** Active trip destination — biases briefing toward the destination city. */
+  destLat?: number;
+  destLng?: number;
+  /** Optional explicit destination city label, e.g. "Limassol". */
+  destCity?: string;
+};
+
+const CITY_COORDS: Array<{ key: string; el: string; lat: number; lng: number }> = [
+  { key: "Nicosia", el: "Λευκωσία", lat: 35.1856, lng: 33.3823 },
+  { key: "Limassol", el: "Λεμεσός", lat: 34.7071, lng: 33.0226 },
+  { key: "Larnaca", el: "Λάρνακα", lat: 34.9229, lng: 33.6233 },
+  { key: "Paphos", el: "Πάφος", lat: 34.7768, lng: 32.4245 },
+  { key: "Ayia Napa", el: "Αγία Νάπα", lat: 34.9882, lng: 34.0036 },
+  { key: "Paralimni", el: "Παραλίμνι", lat: 35.0382, lng: 33.9728 },
+];
+
+function nearestCity(lat: number, lng: number): { key: string; el: string } {
+  let best = CITY_COORDS[0];
+  let bestD = Infinity;
+  for (const c of CITY_COORDS) {
+    const dx = c.lat - lat;
+    const dy = c.lng - lng;
+    const d = dx * dx + dy * dy;
+    if (d < bestD) {
+      bestD = d;
+      best = c;
+    }
+  }
+  return { key: best.key, el: best.el };
+}
 
 const WEEKDAY_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const WEEKDAY_EL = ["Κυριακή", "Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"];
