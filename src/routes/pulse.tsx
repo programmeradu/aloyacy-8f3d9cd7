@@ -63,9 +63,41 @@ function Pulse() {
   const liveFn = useServerFn(getLivePulse);
   const hourFn = useServerFn(getPulseHourStrip);
 
+  // ── Location awareness ───────────────────────────────────────────────────
+  const active = useActiveTrip();
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    let cancelled = false;
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        if (cancelled) return;
+        setCoords({ lat: p.coords.latitude, lng: p.coords.longitude });
+      },
+      () => {},
+      { enableHighAccuracy: false, timeout: 6000, maximumAge: 5 * 60_000 },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Build briefing input — trip destination takes precedence, fall back to user coords.
+  const briefingInput = useMemo(() => {
+    const dest = active?.to;
+    const round = (n: number) => Math.round(n * 100) / 100; // ~1 km bucket → cache-friendly
+    return {
+      lat: coords ? round(coords.lat) : undefined,
+      lng: coords ? round(coords.lng) : undefined,
+      destLat: dest ? round(dest.lat) : undefined,
+      destLng: dest ? round(dest.lng) : undefined,
+    };
+  }, [coords, active?.to]);
+
   const { data: today } = useQuery({
-    queryKey: ["today-briefing"],
-    queryFn: () => todayFn(),
+    queryKey: ["today-briefing", briefingInput],
+    queryFn: () => todayFn({ data: briefingInput }),
     refetchInterval: 10 * 60_000,
     staleTime: 9 * 60_000,
   });
