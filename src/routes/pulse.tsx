@@ -9,6 +9,7 @@ import { useI18n, type DictKey } from "@/lib/i18n";
 import { en } from "@/lib/dictionaries/en";
 import { getTodayBriefing, type TodayBriefing, type TodayTheme } from "@/lib/today.functions";
 import { useActiveTrip } from "@/lib/trip-store";
+import pulseNetworkBand from "@/assets/pulse-network-band.jpg";
 import todayDerby from "@/assets/today-derby.jpg";
 import todayHeatwave from "@/assets/today-heatwave.jpg";
 import todayCruise from "@/assets/today-cruise.jpg";
@@ -351,61 +352,102 @@ function RoadPulseCard({
   const hasData = observations > 0;
   const medianMin = Math.round(medianSec / 60);
 
+  // Observation density across the day — for a horizontal "activity comb".
+  const maxCount = Math.max(1, ...buckets.map((b) => b.sampleCount));
+  const totalToday = buckets.reduce((s, b) => s + b.sampleCount, 0);
+
   return (
-    <article className="relative overflow-hidden rounded-[28px] bg-card ring-1 ring-line p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-            {t("pulse.flow.kicker")}
-          </p>
-          <h2 className="mt-1 font-display text-[22px] leading-tight text-ink">
-            {t("pulse.flow.title")}
-          </h2>
-        </div>
-        <div className="text-right">
-          <div className="flex items-baseline gap-1 justify-end">
-            <span className="font-display text-[40px] leading-none text-aegean-deep tabular-nums tracking-[-0.02em]">
-              {hasData ? onTimePct : "—"}
-            </span>
-            <span className="font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink-soft pb-1">
-              %
-            </span>
+    <article className="relative overflow-hidden rounded-[28px] bg-card ring-1 ring-line">
+      {/* Editorial illustration band — always visible, even when no live signal */}
+      <div className="relative aspect-[16/7] w-full overflow-hidden">
+        <img
+          src={pulseNetworkBand}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          width={1920}
+          height={1080}
+          className="absolute inset-0 h-full w-full object-cover select-none"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-3/5 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--color-card) 40%, transparent) 55%, var(--color-card) 100%)",
+          }}
+        />
+        <div className="absolute left-5 right-5 top-5 flex items-start justify-between gap-3">
+          <div>
+            <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+              {t("pulse.flow.kicker")}
+            </p>
+            <h2 className="mt-1 font-display text-[22px] leading-tight text-ink text-balance max-w-[10ch]">
+              {t("pulse.flow.title")}
+            </h2>
           </div>
-          <p className="mt-1 font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft">
-            {t("pulse.flow.onTime")}
-          </p>
+          <div className="rounded-2xl bg-card/90 backdrop-blur-sm ring-1 ring-line px-3 py-2 text-right">
+            <div className="flex items-baseline gap-1 justify-end">
+              <span className="font-display text-[34px] leading-none text-aegean-deep tabular-nums tracking-[-0.02em]">
+                {hasData ? onTimePct : "—"}
+              </span>
+              <span className="font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink-soft pb-1">
+                %
+              </span>
+            </div>
+            <p className="mt-1 font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft">
+              {t("pulse.flow.onTime")}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Proportion bar — late / on-time / early */}
-      {hasData && (
-        <div className="mt-5">
-          <div className="flex h-2 w-full overflow-hidden rounded-full">
-            <span style={{ width: `${latePct}%` }} className="bg-ochre" />
-            <span style={{ width: `${onTimePct}%` }} className="bg-aegean-deep" />
-            <span style={{ width: `${earlyPct}%` }} className="bg-olive" />
+      <div className="relative px-6 pb-6 pt-1">
+        {/* Proportion bar — late / on-time / early */}
+        {hasData ? (
+          <>
+            <div className="flex h-2 w-full overflow-hidden rounded-full">
+              <span style={{ width: `${latePct}%` }} className="bg-ochre" />
+              <span style={{ width: `${onTimePct}%` }} className="bg-aegean-deep" />
+              <span style={{ width: `${earlyPct}%` }} className="bg-olive" />
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <PulseLeg color="ochre" label={t("pulse.flow.late")} pct={latePct} />
+              <PulseLeg color="aegean" label={t("pulse.flow.onTime")} pct={onTimePct} />
+              <PulseLeg color="olive" label={t("pulse.flow.early")} pct={earlyPct} />
+            </div>
+          </>
+        ) : (
+          <div className="rounded-2xl bg-limestone-soft ring-1 ring-line px-4 py-3">
+            <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ink-soft">
+              {t("pulse.flow.empty")}
+            </p>
+            <p className="mt-1.5 text-[13px] leading-snug text-ink">
+              Buses are between runs. The network wakes back up at first morning departure.
+            </p>
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            <PulseLeg color="ochre" label={t("pulse.flow.late")} pct={latePct} />
-            <PulseLeg color="aegean" label={t("pulse.flow.onTime")} pct={onTimePct} />
-            <PulseLeg color="olive" label={t("pulse.flow.early")} pct={earlyPct} />
-          </div>
-        </div>
-      )}
+        )}
 
-      {/* 24h sparkline */}
-      {buckets.length > 0 && (
-        <div className="mt-6">
-          <Sparkline buckets={buckets} nowHour={nowHour} />
-          <p className="mt-2 font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
-            {hasData
-              ? `${observations.toLocaleString()} live · ${
-                  medianMin > 0 ? "+" : ""
-                }${medianMin}m ${t("pulse.flow.median").toLowerCase()}`
-              : t("pulse.flow.empty")}
-          </p>
-        </div>
-      )}
+        {/* 24h sparkline + activity comb */}
+        {buckets.length > 0 && (
+          <div className="mt-6">
+            <Sparkline buckets={buckets} nowHour={nowHour} />
+            <ActivityComb buckets={buckets} nowHour={nowHour} maxCount={maxCount} />
+            <div className="mt-2 flex items-baseline justify-between">
+              <p className="font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
+                {hasData
+                  ? `${observations.toLocaleString()} live · ${
+                      medianMin > 0 ? "+" : ""
+                    }${medianMin}m ${t("pulse.flow.median").toLowerCase()}`
+                  : `${totalToday.toLocaleString()} samples today`}
+              </p>
+              <p className="font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
+                00 · 06 · 12 · 18
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </article>
   );
 }
@@ -434,6 +476,39 @@ function PulseLeg({
           %
         </span>
       </span>
+    </div>
+  );
+}
+
+function ActivityComb({
+  buckets,
+  nowHour,
+  maxCount,
+}: {
+  buckets: HourBucket[];
+  nowHour: number;
+  maxCount: number;
+}) {
+  return (
+    <div className="mt-2 flex h-7 items-end gap-[2px]" aria-hidden>
+      {buckets.map((b, i) => {
+        const h = b.sampleCount === 0 ? 2 : 4 + Math.round((b.sampleCount / maxCount) * 22);
+        const isNow = i === nowHour;
+        const isEmpty = b.sampleCount === 0;
+        return (
+          <span
+            key={i}
+            className={`flex-1 rounded-[2px] ${
+              isNow
+                ? "bg-ink"
+                : isEmpty
+                ? "bg-line"
+                : "bg-aegean-deep/35"
+            }`}
+            style={{ height: `${h}px` }}
+          />
+        );
+      })}
     </div>
   );
 }
