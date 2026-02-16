@@ -10,7 +10,7 @@ import { fetchRealtime } from "@/lib/gtfs-rt.server";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, X-Cron-Secret",
+  "Access-Control-Allow-Headers": "Content-Type, apikey, Authorization, X-Cron-Secret",
 };
 
 // No query params expected. Strict reject keeps the surface tiny.
@@ -24,32 +24,15 @@ function badRequest(message: string) {
 }
 
 async function guard(request: Request): Promise<Response | null> {
-  // Accept the vault-managed scheduler secret first, then the env fallback.
-  // This keeps the snapshot cron aligned with the existing scheduled job.
-  let expected = process.env.CRON_SECRET ?? null;
-  try {
-    const { data } = await supabaseAdmin
-      .schema("vault" as never)
-      .from("decrypted_secrets" as never)
-      .select("decrypted_secret")
-      .eq("name", "aloya_cron_secret")
-      .maybeSingle();
-    const vaultSecret = (data as { decrypted_secret?: string } | null)?.decrypted_secret;
-    if (vaultSecret) expected = vaultSecret;
-  } catch {
-    // ignore vault lookup failures and fall back to env
-  }
-
-  if (expected) {
-    const url = new URL(request.url);
-    const provided =
-      request.headers.get("X-Cron-Secret") ?? request.headers.get("x-cron-secret") ?? url.searchParams.get("cron_secret");
-    if (!provided || provided !== expected) {
-      return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...CORS },
-      });
-    }
+  const apikey = request.headers.get("apikey");
+  const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  const validApiKey = apikey && apikey === process.env.SUPABASE_PUBLISHABLE_KEY;
+  const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
+  if (!validApiKey && !validCron) {
+    return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...CORS },
+    });
   }
   const url = new URL(request.url);
   const params = Object.fromEntries(
