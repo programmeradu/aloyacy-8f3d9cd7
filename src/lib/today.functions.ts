@@ -55,7 +55,44 @@ export type TodayBriefing = {
   verdict: { en: string; el: string };
   /** Rotating fun fact. */
   fact: { en: string; el: string; tag: "local" | "tourist" };
+  /** Editorial focus — which city/area this briefing centres on. */
+  focus: { city: string; cityEl: string; scope: "island" | "city" | "trip" };
 };
+
+export type TodayInput = {
+  /** Rider's current coords — used for localised weather. */
+  lat?: number;
+  lng?: number;
+  /** Active trip destination — biases briefing toward the destination city. */
+  destLat?: number;
+  destLng?: number;
+  /** Optional explicit destination city label, e.g. "Limassol". */
+  destCity?: string;
+};
+
+const CITY_COORDS: Array<{ key: string; el: string; lat: number; lng: number }> = [
+  { key: "Nicosia", el: "Λευκωσία", lat: 35.1856, lng: 33.3823 },
+  { key: "Limassol", el: "Λεμεσός", lat: 34.7071, lng: 33.0226 },
+  { key: "Larnaca", el: "Λάρνακα", lat: 34.9229, lng: 33.6233 },
+  { key: "Paphos", el: "Πάφος", lat: 34.7768, lng: 32.4245 },
+  { key: "Ayia Napa", el: "Αγία Νάπα", lat: 34.9882, lng: 34.0036 },
+  { key: "Paralimni", el: "Παραλίμνι", lat: 35.0382, lng: 33.9728 },
+];
+
+function nearestCity(lat: number, lng: number): { key: string; el: string } {
+  let best = CITY_COORDS[0];
+  let bestD = Infinity;
+  for (const c of CITY_COORDS) {
+    const dx = c.lat - lat;
+    const dy = c.lng - lng;
+    const d = dx * dx + dy * dy;
+    if (d < bestD) {
+      bestD = d;
+      best = c;
+    }
+  }
+  return { key: best.key, el: best.el };
+}
 
 const WEEKDAY_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const WEEKDAY_EL = ["Κυριακή", "Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"];
@@ -96,14 +133,13 @@ function seededPick<T>(arr: T[], seed: number): T {
 
 type Weather = { tempC: number; condition: string; iconKey: string } | null;
 
-async function fetchCyprusWeather(): Promise<Weather> {
-  // Nicosia centre as proxy for "the island" weather.
+async function fetchCyprusWeather(lat = 35.1856, lng = 33.3823): Promise<Weather> {
   try {
     const lk = process.env.LOVABLE_API_KEY;
     const gk = process.env.GOOGLE_MAPS_API_KEY;
     if (!lk || !gk) return null;
     const url =
-      "https://connector-gateway.lovable.dev/google_maps/weather/v1/currentConditions:lookup?location.latitude=35.1856&location.longitude=33.3823&unitsSystem=METRIC&languageCode=en";
+      `https://connector-gateway.lovable.dev/google_maps/weather/v1/currentConditions:lookup?location.latitude=${lat}&location.longitude=${lng}&unitsSystem=METRIC&languageCode=en`;
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${lk}`, "X-Connection-Api-Key": gk },
       signal: AbortSignal.timeout(6000),
@@ -129,21 +165,22 @@ async function fetchCyprusWeather(): Promise<Weather> {
 }
 
 type EventsJson = typeof events;
-type NameDaysJson = typeof nameDays;
 
-function isLikelyMatchday(d: Date): { venue: string; venueEl: string; city: string; cityEl: string; routes: string[] } | null {
-  // Heuristic when no live CFA data: Cyprus League games are mostly Sat/Sun
-  // evenings, with midweek Champions League nights on Wed/Tue.
-  const dow = d.getUTCDay(); // 0 Sun .. 6 Sat
+function isLikelyMatchday(
+  d: Date,
+  preferCity?: string,
+): { venue: string; venueEl: string; city: string; cityEl: string; routes: string[] } | null {
+  const dow = d.getUTCDay();
   const seed = dayOfYear(d);
   const isWeekendNight = dow === 0 || dow === 6;
   const isMidweek = dow === 2 || dow === 3;
   if (!isWeekendNight && !isMidweek) return null;
-  // Deterministic ~60% chance on weekends, ~25% midweek.
   const threshold = isWeekendNight ? 60 : 25;
   const score = (seed * 9301 + 49297) % 100;
   if (score >= threshold) return null;
-  const venue = seededPick(events.fixturesPattern.venues, seed);
+  const venues = events.fixturesPattern.venues;
+  const biased = preferCity ? venues.find((v) => v.city === preferCity) : undefined;
+  const venue = biased ?? seededPick(venues, seed);
   return {
     venue: venue.name,
     venueEl: venue.nameEl,
@@ -196,17 +233,53 @@ function cruiseInPort(d: Date): { count: number } | null {
   return null;
 }
 
-export const getTodayBriefing = createServerFn({ method: "GET" }).handler(
-  async (): Promise<TodayBriefing> => {
+export const getTodayBriefing = createServerFn({ method: "GET" })
+  .inputValidator((data: TodayInput | undefined): TodayInput => {
+    const v = data ?? {};
+    const num = (n: unknown) => (typeof n === "number" && Number.isFinite(n) ? n : undefined);
+    return {
+      lat: num(v.lat),
+      lng: num(v.lng),
+      destLat: num(v.destLat),
+      destLng: num(v.destLng),
+      destCity:
+        typeof v.destCity === "string" && v.destCity.length > 0 && v.destCity.length < 64
+          ? v.destCity
+          : undefined,
+    };
+  })
+  .handler(async ({ data }): Promise<TodayBriefing> => {
     const d = cyprusNow();
-    const weather = await fetchCyprusWeather();
+
+    // Resolve focus: trip destination > rider location > island default.
+    let focus: TodayBriefing["focus"] = { city: "Cyprus", cityEl: "Κύπρος", scope: "island" };
+    let wxLat = 35.1856;
+    let wxLng = 33.3823;
+    if (data.destCity) {
+      const c = CITY_COORDS.find((x) => x.key === data.destCity) ?? CITY_COORDS[0];
+      focus = { city: c.key, cityEl: c.el, scope: "trip" };
+      wxLat = data.destLat ?? c.lat;
+      wxLng = data.destLng ?? c.lng;
+    } else if (data.destLat != null && data.destLng != null) {
+      const c = nearestCity(data.destLat, data.destLng);
+      focus = { city: c.key, cityEl: c.el, scope: "trip" };
+      wxLat = data.destLat;
+      wxLng = data.destLng;
+    } else if (data.lat != null && data.lng != null) {
+      const c = nearestCity(data.lat, data.lng);
+      focus = { city: c.key, cityEl: c.el, scope: "city" };
+      wxLat = data.lat;
+      wxLng = data.lng;
+    }
+
+    const weather = await fetchCyprusWeather(wxLat, wxLng);
     const weekday = { en: WEEKDAY_EN[d.getUTCDay()], el: WEEKDAY_EL[d.getUTCDay()] };
 
     // ─── Rank signals into a single theme ─────────────────────────────────
     const holiday = publicHoliday(d);
     const nd = nameDayToday(d);
     const festival = activeFestival(d);
-    const fixture = isLikelyMatchday(d);
+    const fixture = isLikelyMatchday(d, focus.scope !== "island" ? focus.city : undefined);
     const cruise = cruiseInPort(d);
     const isHot = weather && weather.tempC >= 35;
     const isStorm = weather && (weather.iconKey === "storm" || weather.iconKey === "rain");
@@ -401,6 +474,6 @@ export const getTodayBriefing = createServerFn({ method: "GET" }).handler(
       tiles: tiles.slice(0, 3),
       verdict,
       fact,
+      focus,
     };
-  },
-);
+  });
