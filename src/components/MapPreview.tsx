@@ -733,7 +733,7 @@ export function MapPreview({
   // rounded corners + ring would look odd, so we drop those when expanded.
   const wrapperClass = expanded
     ? fallbackOverlay
-      ? "fixed inset-0 z-[100] w-screen h-screen overflow-hidden bg-limestone-soft"
+      ? "fixed inset-0 z-[2147483000] w-screen h-screen overflow-hidden bg-limestone-soft"
       : "relative w-full h-full overflow-hidden bg-limestone-soft"
     : `relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`;
 
