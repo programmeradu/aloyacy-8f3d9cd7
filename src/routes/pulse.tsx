@@ -435,14 +435,22 @@ function RoadPulseCard({
             <ActivityComb buckets={buckets} nowHour={nowHour} maxCount={maxCount} />
             <div className="mt-2 flex items-baseline justify-between">
               <p className="font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
-                {hasData
-                  ? `${observations.toLocaleString()} live · ${
-                      medianMin > 0 ? "+" : ""
-                    }${medianMin}m ${t("pulse.flow.median").toLowerCase()}`
-                  : `${totalToday.toLocaleString()} samples today`}
+                {hasData ? (
+                  <>
+                    <span>{observations.toLocaleString()} live</span>
+                    <span className="mx-2 inline-block h-2 w-px translate-y-[1px] bg-line" aria-hidden />
+                    <span>{medianMin > 0 ? "+" : ""}{medianMin}m {t("pulse.flow.median").toLowerCase()}</span>
+                  </>
+                ) : (
+                  `${totalToday.toLocaleString()} samples today`
+                )}
               </p>
               <p className="font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
-                00 · 06 · 12 · 18
+                <span>00</span>
+                <span className="ml-6">06</span>
+                <span className="ml-6">12</span>
+                <span className="ml-6">18</span>
+                <span className="ml-3 text-ink-soft/60">h</span>
               </p>
             </div>
           </div>
