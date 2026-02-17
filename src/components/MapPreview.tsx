@@ -1,5 +1,6 @@
 /// <reference types="google.maps" />
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import * as markerClustererPkg from "@googlemaps/markerclusterer";
 import type { MarkerClusterer as MarkerClustererType } from "@googlemaps/markerclusterer";
 import { useRealtime } from "@/lib/useRealtime";
@@ -732,7 +733,7 @@ export function MapPreview({
   // rounded corners + ring would look odd, so we drop those when expanded.
   const wrapperClass = expanded
     ? fallbackOverlay
-      ? "fixed inset-0 z-[100] w-screen h-screen overflow-hidden bg-limestone-soft"
+      ? "fixed inset-0 z-[2147483000] w-screen h-screen overflow-hidden bg-limestone-soft"
       : "relative w-full h-full overflow-hidden bg-limestone-soft"
     : `relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`;
 
@@ -821,6 +822,13 @@ export function MapPreview({
     </div>
   );
 
+  // On iOS Safari (no native Fullscreen API), portal to document.body so the
+  // overlay escapes every ancestor stacking context — transforms, filters,
+  // isolation, opacity, sticky/fixed parents — that would otherwise trap the
+  // fixed wrapper underneath sibling chrome.
+  if (expanded && fallbackOverlay && typeof document !== "undefined") {
+    return createPortal(content, document.body);
+  }
   return content;
 }
 
