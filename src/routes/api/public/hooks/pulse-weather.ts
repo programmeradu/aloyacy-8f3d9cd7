@@ -167,7 +167,7 @@ async function ingest() {
 
   const { error } = await supabaseAdmin
     .from("pulse_signals")
-    .upsert(upserts, { onConflict: "key,scope" });
+    .upsert(upserts as never, { onConflict: "key,scope" });
 
   if (error) return json({ ok: false, error: error.message }, 500);
   return json({ ok: true, zones: rows.length, errors });
