@@ -112,14 +112,17 @@ async function ingest() {
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         url: targetUrl,
-        formats: ["json", "markdown"],
-        jsonOptions: {
-          schema: JSON_SCHEMA,
-          prompt:
-            "Extract upcoming Cyprus First Division football fixtures (future matches only, not finished ones). Include both team names, kickoff datetime if available, venue, host city, and competition name.",
-        },
         onlyMainContent: true,
         waitFor: 1500,
+        formats: [
+          "markdown",
+          {
+            type: "json",
+            schema: JSON_SCHEMA,
+            prompt:
+              "Extract upcoming Cyprus First Division football fixtures (future matches only, not finished ones). Include both team names, kickoff datetime if available, venue, host city, and competition name.",
+          },
+        ],
       }),
     });
     if (!res.ok) throw new Error(`Firecrawl ${res.status}: ${await res.text()}`);
