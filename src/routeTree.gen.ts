@@ -40,9 +40,12 @@ import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/em
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
 import { Route as ApiPublicHooksPulseWeatherRouteImport } from './routes/api/public/hooks/pulse-weather'
+import { Route as ApiPublicHooksPulseNewsRouteImport } from './routes/api/public/hooks/pulse-news'
 import { Route as ApiPublicHooksPulseMetWarningsRouteImport } from './routes/api/public/hooks/pulse-met-warnings'
 import { Route as ApiPublicHooksPulseMarineRouteImport } from './routes/api/public/hooks/pulse-marine'
+import { Route as ApiPublicHooksPulseFootballRouteImport } from './routes/api/public/hooks/pulse-football'
 import { Route as ApiPublicHooksPulseFlightsRouteImport } from './routes/api/public/hooks/pulse-flights'
+import { Route as ApiPublicHooksPulseEventsRouteImport } from './routes/api/public/hooks/pulse-events'
 import { Route as ApiPublicHooksPulseCruisesRouteImport } from './routes/api/public/hooks/pulse-cruises'
 import { Route as ApiPublicHooksPulseAirRouteImport } from './routes/api/public/hooks/pulse-air'
 import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
@@ -207,6 +210,11 @@ const ApiPublicHooksPulseWeatherRoute =
     path: '/api/public/hooks/pulse-weather',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPulseNewsRoute = ApiPublicHooksPulseNewsRouteImport.update({
+  id: '/api/public/hooks/pulse-news',
+  path: '/api/public/hooks/pulse-news',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksPulseMetWarningsRoute =
   ApiPublicHooksPulseMetWarningsRouteImport.update({
     id: '/api/public/hooks/pulse-met-warnings',
@@ -219,10 +227,22 @@ const ApiPublicHooksPulseMarineRoute =
     path: '/api/public/hooks/pulse-marine',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPulseFootballRoute =
+  ApiPublicHooksPulseFootballRouteImport.update({
+    id: '/api/public/hooks/pulse-football',
+    path: '/api/public/hooks/pulse-football',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksPulseFlightsRoute =
   ApiPublicHooksPulseFlightsRouteImport.update({
     id: '/api/public/hooks/pulse-flights',
     path: '/api/public/hooks/pulse-flights',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPulseEventsRoute =
+  ApiPublicHooksPulseEventsRouteImport.update({
+    id: '/api/public/hooks/pulse-events',
+    path: '/api/public/hooks/pulse-events',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksPulseCruisesRoute =
@@ -279,9 +299,12 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
   '/api/public/hooks/pulse-cruises': typeof ApiPublicHooksPulseCruisesRoute
+  '/api/public/hooks/pulse-events': typeof ApiPublicHooksPulseEventsRoute
   '/api/public/hooks/pulse-flights': typeof ApiPublicHooksPulseFlightsRoute
+  '/api/public/hooks/pulse-football': typeof ApiPublicHooksPulseFootballRoute
   '/api/public/hooks/pulse-marine': typeof ApiPublicHooksPulseMarineRoute
   '/api/public/hooks/pulse-met-warnings': typeof ApiPublicHooksPulseMetWarningsRoute
+  '/api/public/hooks/pulse-news': typeof ApiPublicHooksPulseNewsRoute
   '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -319,9 +342,12 @@ export interface FileRoutesByTo {
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
   '/api/public/hooks/pulse-cruises': typeof ApiPublicHooksPulseCruisesRoute
+  '/api/public/hooks/pulse-events': typeof ApiPublicHooksPulseEventsRoute
   '/api/public/hooks/pulse-flights': typeof ApiPublicHooksPulseFlightsRoute
+  '/api/public/hooks/pulse-football': typeof ApiPublicHooksPulseFootballRoute
   '/api/public/hooks/pulse-marine': typeof ApiPublicHooksPulseMarineRoute
   '/api/public/hooks/pulse-met-warnings': typeof ApiPublicHooksPulseMetWarningsRoute
+  '/api/public/hooks/pulse-news': typeof ApiPublicHooksPulseNewsRoute
   '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -360,9 +386,12 @@ export interface FileRoutesById {
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
   '/api/public/hooks/pulse-cruises': typeof ApiPublicHooksPulseCruisesRoute
+  '/api/public/hooks/pulse-events': typeof ApiPublicHooksPulseEventsRoute
   '/api/public/hooks/pulse-flights': typeof ApiPublicHooksPulseFlightsRoute
+  '/api/public/hooks/pulse-football': typeof ApiPublicHooksPulseFootballRoute
   '/api/public/hooks/pulse-marine': typeof ApiPublicHooksPulseMarineRoute
   '/api/public/hooks/pulse-met-warnings': typeof ApiPublicHooksPulseMetWarningsRoute
+  '/api/public/hooks/pulse-news': typeof ApiPublicHooksPulseNewsRoute
   '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -402,9 +431,12 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
     | '/api/public/hooks/pulse-cruises'
+    | '/api/public/hooks/pulse-events'
     | '/api/public/hooks/pulse-flights'
+    | '/api/public/hooks/pulse-football'
     | '/api/public/hooks/pulse-marine'
     | '/api/public/hooks/pulse-met-warnings'
+    | '/api/public/hooks/pulse-news'
     | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
@@ -442,9 +474,12 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
     | '/api/public/hooks/pulse-cruises'
+    | '/api/public/hooks/pulse-events'
     | '/api/public/hooks/pulse-flights'
+    | '/api/public/hooks/pulse-football'
     | '/api/public/hooks/pulse-marine'
     | '/api/public/hooks/pulse-met-warnings'
+    | '/api/public/hooks/pulse-news'
     | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
@@ -482,9 +517,12 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
     | '/api/public/hooks/pulse-cruises'
+    | '/api/public/hooks/pulse-events'
     | '/api/public/hooks/pulse-flights'
+    | '/api/public/hooks/pulse-football'
     | '/api/public/hooks/pulse-marine'
     | '/api/public/hooks/pulse-met-warnings'
+    | '/api/public/hooks/pulse-news'
     | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
@@ -523,9 +561,12 @@ export interface RootRouteChildren {
   ApiPublicHooksIngestScheduleRoute: typeof ApiPublicHooksIngestScheduleRoute
   ApiPublicHooksPulseAirRoute: typeof ApiPublicHooksPulseAirRoute
   ApiPublicHooksPulseCruisesRoute: typeof ApiPublicHooksPulseCruisesRoute
+  ApiPublicHooksPulseEventsRoute: typeof ApiPublicHooksPulseEventsRoute
   ApiPublicHooksPulseFlightsRoute: typeof ApiPublicHooksPulseFlightsRoute
+  ApiPublicHooksPulseFootballRoute: typeof ApiPublicHooksPulseFootballRoute
   ApiPublicHooksPulseMarineRoute: typeof ApiPublicHooksPulseMarineRoute
   ApiPublicHooksPulseMetWarningsRoute: typeof ApiPublicHooksPulseMetWarningsRoute
+  ApiPublicHooksPulseNewsRoute: typeof ApiPublicHooksPulseNewsRoute
   ApiPublicHooksPulseWeatherRoute: typeof ApiPublicHooksPulseWeatherRoute
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -753,6 +794,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPulseWeatherRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/pulse-news': {
+      id: '/api/public/hooks/pulse-news'
+      path: '/api/public/hooks/pulse-news'
+      fullPath: '/api/public/hooks/pulse-news'
+      preLoaderRoute: typeof ApiPublicHooksPulseNewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/pulse-met-warnings': {
       id: '/api/public/hooks/pulse-met-warnings'
       path: '/api/public/hooks/pulse-met-warnings'
@@ -767,11 +815,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPulseMarineRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/pulse-football': {
+      id: '/api/public/hooks/pulse-football'
+      path: '/api/public/hooks/pulse-football'
+      fullPath: '/api/public/hooks/pulse-football'
+      preLoaderRoute: typeof ApiPublicHooksPulseFootballRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/pulse-flights': {
       id: '/api/public/hooks/pulse-flights'
       path: '/api/public/hooks/pulse-flights'
       fullPath: '/api/public/hooks/pulse-flights'
       preLoaderRoute: typeof ApiPublicHooksPulseFlightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pulse-events': {
+      id: '/api/public/hooks/pulse-events'
+      path: '/api/public/hooks/pulse-events'
+      fullPath: '/api/public/hooks/pulse-events'
+      preLoaderRoute: typeof ApiPublicHooksPulseEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/pulse-cruises': {
@@ -835,9 +897,12 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksIngestScheduleRoute: ApiPublicHooksIngestScheduleRoute,
   ApiPublicHooksPulseAirRoute: ApiPublicHooksPulseAirRoute,
   ApiPublicHooksPulseCruisesRoute: ApiPublicHooksPulseCruisesRoute,
+  ApiPublicHooksPulseEventsRoute: ApiPublicHooksPulseEventsRoute,
   ApiPublicHooksPulseFlightsRoute: ApiPublicHooksPulseFlightsRoute,
+  ApiPublicHooksPulseFootballRoute: ApiPublicHooksPulseFootballRoute,
   ApiPublicHooksPulseMarineRoute: ApiPublicHooksPulseMarineRoute,
   ApiPublicHooksPulseMetWarningsRoute: ApiPublicHooksPulseMetWarningsRoute,
+  ApiPublicHooksPulseNewsRoute: ApiPublicHooksPulseNewsRoute,
   ApiPublicHooksPulseWeatherRoute: ApiPublicHooksPulseWeatherRoute,
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
