@@ -101,8 +101,8 @@ async function ingest() {
   const apiKey = process.env.FIRECRAWL_API_KEY;
   if (!apiKey) return json({ ok: false, error: "FIRECRAWL_API_KEY not configured" }, 500);
 
-  // soccerway is structured, public, multilingual — easier than CFA's own site.
-  const targetUrl = "https://int.soccerway.com/national/cyprus/first-division/20242025/regular-season/r79123/";
+  // soccerway league index redirects to the current season automatically.
+  const targetUrl = "https://int.soccerway.com/national/cyprus/first-division/";
   const fetchedAt = new Date().toISOString();
 
   let scrape: { json?: { fixtures?: unknown }; markdown?: string; data?: { json?: { fixtures?: unknown }; markdown?: string } };
