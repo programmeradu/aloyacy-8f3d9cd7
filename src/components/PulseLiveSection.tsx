@@ -42,15 +42,6 @@ export function PulseLiveSection({
 
   return (
     <section className="px-6 mt-10 animate-rise" style={{ animationDelay: "200ms" }}>
-      <header className="flex items-baseline justify-between gap-3 mb-4">
-        <p className="font-eyebrow text-[10px] uppercase tracking-[0.24em] text-ink-soft">
-          {isEl ? "Ζωντανά Σήματα" : "Live signals"}
-        </p>
-        <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
-          {isEl ? "γύρω από" : "around"}&nbsp;
-          <span className="text-ink">{focusLabel}</span>
-        </p>
-      </header>
 
       {bundle.metWarnings && bundle.metWarnings.count > 0 && (
         <MetWarningCard payload={bundle.metWarnings} isEl={isEl} />
