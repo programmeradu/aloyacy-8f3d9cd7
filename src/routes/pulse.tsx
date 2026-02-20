@@ -215,8 +215,7 @@ function TodayEditorial({
               {niceDate}
             </p>
             {briefing.focus.scope !== "island" && (
-              <p className="inline-flex items-center gap-1.5 rounded-full bg-ink/85 backdrop-blur-sm px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-card ring-1 ring-ink/40">
-                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ochre" />
+              <p className="inline-flex items-center rounded-full bg-ink/85 backdrop-blur-sm px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-card ring-1 ring-ink/40">
                 {briefing.focus.scope === "trip"
                   ? isEl ? `Προς ${briefing.focus.cityEl}` : `Heading to ${briefing.focus.city}`
                   : isEl ? `Στη ${briefing.focus.cityEl}` : `Around ${briefing.focus.city}`}
