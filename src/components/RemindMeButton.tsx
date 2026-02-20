@@ -100,6 +100,9 @@ export function RemindMeButton({
         },
       });
       setState("saved");
+      try {
+        window.localStorage.setItem(sigKey, String(itinerary.departureUnix));
+      } catch {}
       track("ui:remind-me.saved", { departIn });
     } catch (e) {
       track("ui:remind-me.error");
