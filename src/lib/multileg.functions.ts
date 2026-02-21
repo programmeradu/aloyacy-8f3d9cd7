@@ -55,6 +55,38 @@ export type MultiLegResult = {
 const TOP_K = 5;
 const MAX_TOTAL_JOURNEY_SEC = 300 * 60;
 const FUTURE_THRESHOLD_SEC = 20 * 60; // beyond this, skip live and use scheduled only
+const AIRPORT_RE = /\b(airport|terminal)\b/i;
+const AIRPORT_EXTRA_TRANSFER_MIN_SAVINGS_SEC = 45 * 60;
+
+function isAirportQuery(point: { label?: string }): boolean {
+  return AIRPORT_RE.test(point.label ?? "");
+}
+
+function pruneAirportTransferNoise(itineraries: Itinerary[]): Itinerary[] {
+  if (itineraries.length <= 1) return itineraries;
+
+  let kept = [...itineraries];
+  const maxTransfers = Math.max(...kept.map((it) => it.transfers));
+
+  for (let transfers = 1; transfers <= maxTransfers; transfers++) {
+    const bestSimpler = kept
+      .filter((it) => it.transfers < transfers)
+      .reduce<Itinerary | null>(
+        (best, it) => (!best || it.totalDurationSec < best.totalDurationSec ? it : best),
+        null,
+      );
+
+    if (!bestSimpler) continue;
+
+    kept = kept.filter((it) => {
+      if (it.transfers < transfers) return true;
+      const timeSavedVsSimpler = bestSimpler.totalDurationSec - it.totalDurationSec;
+      return timeSavedVsSimpler >= AIRPORT_EXTRA_TRANSFER_MIN_SAVINGS_SEC;
+    });
+  }
+
+  return kept;
+}
 
 export const planMultiLeg = createServerFn({ method: "POST" })
   .inputValidator((input) => InputSchema.parse(input))
@@ -158,7 +190,17 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       }
     }
 
-    kept.sort((a, b) => a.score - b.score);
+    const airportQuery = isAirportQuery(data.to);
+    if (airportQuery) {
+      kept = pruneAirportTransferNoise(kept);
+    }
+
+    kept.sort((a, b) => {
+      if (airportQuery && a.transfers !== b.transfers) {
+        return a.transfers - b.transfers;
+      }
+      return a.score - b.score;
+    });
     const top = kept.slice(0, TOP_K);
 
     return {
