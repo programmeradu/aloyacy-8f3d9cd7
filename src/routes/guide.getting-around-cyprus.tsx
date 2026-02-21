@@ -81,6 +81,9 @@ const CONTENT: Record<Locale, GuideContent> = {
       ["Limassol", "EMEL — green & white. Hub: New Port / Anexartisias."],
       ["Larnaca", "Zenon — orange & white. Hub: Finikoudes seafront."],
       ["Paphos", "OSYPA — green & yellow. Hub: Karavella station."],
+      ["Famagusta district", "OSEA — serving Ayia Napa, Paralimni, Protaras."],
+      ["Airports", "Intercity coaches direct from Larnaca (LCA) and Paphos (PFO) to every major city, day and night."],
+      ["Park & Ride", "Pame Express — free shuttle between GSP stadium parking and central Nicosia."],
     ],
     s4Title: "Fares, in one paragraph",
     s4: (
