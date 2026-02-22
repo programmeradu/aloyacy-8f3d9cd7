@@ -436,7 +436,7 @@ export function NLPlannerCard() {
               }}
               placeholder={listening ? t("nl.listening") : t("nl.placeholder")}
               aria-label={t("nl.aria.describe")}
-              className="flex-1 bg-transparent outline-none font-sans text-[14.5px] text-ink placeholder:text-ink-soft/60 px-2.5 py-3"
+              className="flex-1 bg-transparent outline-none font-sans font-medium text-[14.5px] text-ink placeholder:text-ink-soft/60 placeholder:font-medium px-2.5 py-3"
               autoComplete="off"
               maxLength={500}
               disabled={listening}
