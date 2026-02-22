@@ -572,14 +572,14 @@ export function NLPlannerCard() {
               <button
                 type="button"
                 onClick={reset}
-                className="flex-1 rounded-full ring-1 ring-line bg-card text-ink font-mono font-bold text-[10px] uppercase tracking-[0.18em] py-2.5 hover:ring-ink transition"
+                className="flex-1 rounded-full ring-1 ring-line bg-card text-ink font-eyebrow text-[10px] uppercase py-2.5 hover:ring-ink transition"
               >
                 {t("nl.edit")}
               </button>
               <button
                 type="button"
                 onClick={go}
-                className="flex-[2] flex items-center justify-center gap-1.5 rounded-full bg-ink text-card font-mono font-bold text-[10px] uppercase tracking-[0.18em] py-2.5 hover:bg-aegean-deep transition"
+                className="flex-[2] flex items-center justify-center gap-1.5 rounded-full bg-ink text-card font-eyebrow text-[10px] uppercase py-2.5 hover:bg-aegean-deep transition"
               >
                 {t("nl.plan")}
                 <IconArrowUp className="size-3 rotate-90" />
