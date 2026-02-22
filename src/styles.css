@@ -115,7 +115,19 @@
   /* App-wide: hide scrollbars but preserve scrolling. Mobile-app feel. */
   *::-webkit-scrollbar { display: none; width: 0; height: 0; }
   * { scrollbar-width: none; -ms-overflow-style: none; }
-  .font-mono { font-family: var(--font-mono); font-weight: 600; }
+  /* font-mono now aliases the eyebrow/sans treatment so it never renders as
+   * thin JetBrains Mono across the app. Use font-numeric for tabular figures. */
+  .font-mono {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+  }
+  .font-numeric {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
   .font-display { font-weight: 600; }
   /* Eyebrow / kicker label — tiny uppercase, must read strongly on mobile.
    * Geist 700 (not JetBrains Mono, which goes spindly at 9-11px tracked wide). */
@@ -142,7 +154,7 @@
 
 /* Greek-specific typographic tightening so long words still breathe. */
 :lang(el) .font-display { letter-spacing: -0.012em; }
-:lang(el) .font-mono { letter-spacing: 0.12em; }
+:lang(el) .font-mono { letter-spacing: 0.06em; }
 
 @keyframes pulse-ring {
   0% { transform: scale(0.9); opacity: 0.7; }
