@@ -544,13 +544,13 @@ export function NLPlannerCard() {
                 <span className="size-2 rounded-full bg-ochre" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-sans text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+                <p className="font-sans font-semibold text-[11px] uppercase tracking-[0.16em] text-ink-soft">
                   {t("nl.from")}
                 </p>
                 <p className="font-display text-[18px] leading-tight text-ink truncate">
                   {resolved.from?.label ?? t("nl.yourLocation")}
                 </p>
-                <p className="font-sans text-[11px] uppercase tracking-[0.16em] text-ink-soft mt-2">
+                <p className="font-sans font-semibold text-[11px] uppercase tracking-[0.16em] text-ink-soft mt-2">
                   {t("nl.to")}
                 </p>
                 <p className="font-display text-[18px] leading-tight text-ink truncate">
