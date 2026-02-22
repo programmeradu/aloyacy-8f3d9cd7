@@ -525,7 +525,7 @@ export function NLPlannerCard() {
 
         {/* Error */}
         {error && (
-          <div className="mt-3 rounded-xl bg-ochre-soft/60 px-3 py-2 font-sans text-[12.5px] text-ink">
+          <div className="mt-3 rounded-xl bg-ochre-soft/60 px-3 py-2 font-sans font-medium text-[12.5px] text-ink">
             {error}
           </div>
         )}
