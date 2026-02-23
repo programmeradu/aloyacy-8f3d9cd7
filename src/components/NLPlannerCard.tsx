@@ -398,8 +398,19 @@ export function NLPlannerCard() {
         style={{ background: "var(--ochre-soft)" }}
       />
 
+      {/* Editorial illustration — Cyprus map fragment with a single bus route */}
+      <img
+        src={nlIllustration}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        width={1024}
+        height={1024}
+        className="pointer-events-none absolute -top-4 -right-6 size-40 sm:size-48 object-cover object-center opacity-90 mix-blend-multiply select-none [mask-image:radial-gradient(circle_at_60%_40%,black_55%,transparent_78%)]"
+      />
+
       <div className="relative p-5">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pr-28 sm:pr-36">
           <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-aegean-deep">
             {t("nl.kicker")}
           </span>
@@ -409,10 +420,10 @@ export function NLPlannerCard() {
           </span>
         </div>
 
-        <h2 className="font-display text-[2rem] leading-[1.05] text-ink mt-2">
+        <h2 className="font-display text-[2rem] leading-[1.05] text-ink mt-2 pr-24 sm:pr-32">
           {t("nl.title")}
         </h2>
-        <p className="font-sans font-medium text-[12.5px] text-ink-soft mt-1.5">
+        <p className="font-sans font-medium text-[12.5px] text-ink-soft mt-1.5 pr-24 sm:pr-32">
           {t("nl.sub")}
         </p>
 
