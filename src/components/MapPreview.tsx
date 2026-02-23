@@ -1,6 +1,5 @@
 /// <reference types="google.maps" />
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import * as markerClustererPkg from "@googlemaps/markerclusterer";
 import type { MarkerClusterer as MarkerClustererType } from "@googlemaps/markerclusterer";
 import { useRealtime } from "@/lib/useRealtime";
@@ -822,13 +821,11 @@ export function MapPreview({
     </div>
   );
 
-  // On iOS Safari (no native Fullscreen API), portal to document.body so the
-  // overlay escapes every ancestor stacking context — transforms, filters,
-  // isolation, opacity, sticky/fixed parents — that would otherwise trap the
-  // fixed wrapper underneath sibling chrome.
-  if (expanded && fallbackOverlay && typeof document !== "undefined") {
-    return createPortal(content, document.body);
-  }
+  // Keep the same mounted Google Maps host node during the iOS fallback.
+  // Re-portaling this subtree creates a new host div, which can leave the
+  // Maps canvas attached to the old detached node and paint only the blank
+  // limestone overlay. We already neutralize transformed ancestors above, so
+  // the fixed wrapper can stay in place without being portaled.
   return content;
 }
 
