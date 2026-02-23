@@ -1,5 +1,5 @@
 /// <reference types="google.maps" />
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as markerClustererPkg from "@googlemaps/markerclusterer";
 import type { MarkerClusterer as MarkerClustererType } from "@googlemaps/markerclusterer";
 import { useRealtime } from "@/lib/useRealtime";
@@ -143,6 +143,9 @@ export function MapPreview({
   const { t } = useI18n();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const fallbackShellRef = useRef<HTMLDivElement | null>(null);
+  const originalParentRef = useRef<HTMLElement | null>(null);
+  const originalNextSiblingRef = useRef<Node | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const layerRef = useRef<{
     polyline?: google.maps.Polyline;
@@ -184,8 +187,9 @@ export function MapPreview({
 
     if (!canNativeFs) {
       // iOS Safari / older WebKit: use in-page fixed overlay.
-      setFallbackOverlay((v) => !v);
-      setExpanded((v) => !v);
+      const nextExpanded = !expanded;
+      setFallbackOverlay(nextExpanded);
+      setExpanded(nextExpanded);
       return;
     }
     try {
@@ -195,8 +199,9 @@ export function MapPreview({
         await document.exitFullscreen();
       }
     } catch {
-      setFallbackOverlay((v) => !v);
-      setExpanded((v) => !v);
+      const nextExpanded = !expanded;
+      setFallbackOverlay(nextExpanded);
+      setExpanded(nextExpanded);
     }
   };
 
