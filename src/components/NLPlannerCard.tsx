@@ -415,9 +415,6 @@ export function NLPlannerCard() {
             {t("nl.kicker")}
           </span>
           <span className="h-px flex-1 bg-line" />
-          <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
-            {t("nl.kicker2")}
-          </span>
         </div>
 
         <h2 className="font-display text-[2rem] leading-[1.05] text-ink mt-2 pr-24 sm:pr-32">
