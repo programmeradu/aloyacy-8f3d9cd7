@@ -219,18 +219,36 @@ function nameDayToday(d: Date): { name: string; nameEl: string; scale: string } 
   return map[key] ?? null;
 }
 
-// Cruise schedule — without scraping, use a realistic weekly pattern.
-// Limassol typically receives ships Mon/Wed/Fri April-October.
-function cruiseInPort(d: Date): { count: number } | null {
-  const month = d.getUTCMonth() + 1;
-  const isSeason = month >= 4 && month <= 10;
-  if (!isSeason) return null;
-  const dow = d.getUTCDay();
-  if (dow === 1 || dow === 3 || dow === 5) {
-    const seed = dayOfYear(d);
-    return { count: 1 + (seed % 2) };
+// Cruise schedule — read the real Limassol port-calls feed from pulse_signals
+// (populated by /api/public/hooks/pulse-cruises). Returns null when the feed
+// is stale or reports zero ships, so the home page never invents a cruise day.
+type CruiseToday = { count: number; summary: string | null; totalPassengers: number | null } | null;
+
+async function cruiseInPortLive(): Promise<CruiseToday> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("pulse_signals")
+      .select("payload, fetched_at, ttl_seconds")
+      .eq("key", "cruises")
+      .eq("scope", "port-limassol")
+      .order("fetched_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!data) return null;
+    const ttlMs = (Number(data.ttl_seconds) || 86_400) * 1000;
+    if (Date.now() - Date.parse(data.fetched_at as string) > ttlMs) return null;
+    const p = (data.payload ?? {}) as { count?: number; summary?: string; totalPassengers?: number };
+    const count = Number(p.count) || 0;
+    if (count <= 0) return null;
+    return {
+      count,
+      summary: typeof p.summary === "string" ? p.summary : null,
+      totalPassengers: typeof p.totalPassengers === "number" ? p.totalPassengers : null,
+    };
+  } catch {
+    return null;
   }
-  return null;
 }
 
 export const getTodayBriefing = createServerFn({ method: "GET" })
