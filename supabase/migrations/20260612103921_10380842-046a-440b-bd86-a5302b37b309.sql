@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_rt_snapshots_captured_at ON public.rt_snapshots USING btree (captured_at DESC);
