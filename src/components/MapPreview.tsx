@@ -143,7 +143,6 @@ export function MapPreview({
   const { t } = useI18n();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const fallbackShellRef = useRef<HTMLDivElement | null>(null);
   const originalParentRef = useRef<HTMLElement | null>(null);
   const originalNextSiblingRef = useRef<Node | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -215,26 +214,27 @@ export function MapPreview({
   }, [fallbackOverlay]);
 
   useLayoutEffect(() => {
-    const host = hostRef.current;
-    const shell = fallbackShellRef.current;
-    if (!host || !shell) return;
+    const wrap = wrapperRef.current;
+    if (!wrap) return;
 
     if (expanded && fallbackOverlay) {
       if (!originalParentRef.current) {
-        originalParentRef.current = host.parentElement;
-        originalNextSiblingRef.current = host.nextSibling;
+        originalParentRef.current = wrap.parentElement;
+        originalNextSiblingRef.current = wrap.nextSibling;
       }
-      if (host.parentElement !== shell) shell.appendChild(host);
+      if (wrap.parentElement !== document.body) {
+        document.body.appendChild(wrap);
+      }
       return;
     }
 
     const parent = originalParentRef.current;
-    if (!parent || host.parentElement === parent) return;
+    if (!parent || wrap.parentElement === parent) return;
     const nextSibling = originalNextSiblingRef.current;
     if (nextSibling && nextSibling.parentNode === parent) {
-      parent.insertBefore(host, nextSibling);
+      parent.insertBefore(wrap, nextSibling);
     } else {
-      parent.appendChild(host);
+      parent.appendChild(wrap);
     }
   }, [expanded, fallbackOverlay]);
 
