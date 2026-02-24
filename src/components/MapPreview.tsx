@@ -766,8 +766,9 @@ export function MapPreview({
     : `relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`;
 
   const content = (
-    <div ref={wrapperRef} className={wrapperClass}>
-      <div ref={hostRef} className="absolute inset-0" />
+    <>
+      <div ref={wrapperRef} className={wrapperClass}>
+        {!fallbackOverlay && <div ref={hostRef} className="absolute inset-0" />}
       {error && (
         <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
@@ -847,7 +848,17 @@ export function MapPreview({
           })}
         </div>
       )}
-    </div>
+      </div>
+
+      {fallbackOverlay && (
+        <div
+          aria-hidden={!expanded}
+          className={expanded ? "fixed inset-0 z-[2147483646] bg-limestone-soft" : "hidden"}
+        >
+          <div ref={fallbackShellRef} className="absolute inset-0" />
+        </div>
+      )}
+    </>
   );
 
   // Keep the same mounted Google Maps host node during the iOS fallback.
