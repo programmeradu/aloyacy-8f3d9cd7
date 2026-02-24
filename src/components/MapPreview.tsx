@@ -40,7 +40,17 @@ type Props = {
   /** Override the live position/bearing of specific vehicles by tripId.
    *  Used by the on-board journey to fuse the user's GPS into the bus blip
    *  so the marker glides with the rider's phone instead of the lagging feed. */
-  vehicleOverrides?: Record<string, { lat: number; lng: number; bearing?: number; routeId?: string; label?: string; source?: "feed" | "rider" | "feed+rider" | "synthetic" }>;
+  vehicleOverrides?: Record<
+    string,
+    {
+      lat: number;
+      lng: number;
+      bearing?: number;
+      routeId?: string;
+      label?: string;
+      source?: "feed" | "rider" | "feed+rider" | "synthetic";
+    }
+  >;
   /** Override the bottom-left live-count pill label. */
   liveLabel?: { active?: string; empty?: string };
   /** Hide the bottom-left live-count pill (still renders vehicles). */
@@ -64,7 +74,6 @@ type Props = {
    *  mode, speed, correction). For internal /qa stress testing only. */
   debug?: boolean;
 };
-
 
 const TONE_COLOR: Record<NonNullable<MapMarker["tone"]>, string> = {
   aegean: "#2d8a9e",
@@ -97,7 +106,6 @@ function clusterIcon(count: number): google.maps.Symbol {
     scale,
   };
 }
-
 
 function spanToZoom(spanKm: number) {
   // Rough mercator-ish: zoom 12 ~ 8km span at Nicosia latitude
@@ -242,9 +250,7 @@ export function MapPreview({
   useEffect(() => {
     const m = mapRef.current;
     if (!m) return;
-    const hasContent =
-      (polyline && polyline.length > 0) ||
-      (markers && markers.length > 0);
+    const hasContent = (polyline && polyline.length > 0) || (markers && markers.length > 0);
     const shouldFit = fitToContent ?? hasContent;
     if (!shouldFit) {
       m.setCenter(center);
@@ -356,7 +362,10 @@ export function MapPreview({
   const restrictKey = restrictTripIds ? restrictTripIds.join(",") : "";
   const overrideKey = vehicleOverrides
     ? Object.entries(vehicleOverrides)
-        .map(([k, v]) => `${k}:${v.lat.toFixed(5)},${v.lng.toFixed(5)},${Math.round(v.bearing ?? 0)},${v.routeId ?? ""},${v.source ?? ""}`)
+        .map(
+          ([k, v]) =>
+            `${k}:${v.lat.toFixed(5)},${v.lng.toFixed(5)},${Math.round(v.bearing ?? 0)},${v.routeId ?? ""},${v.source ?? ""}`,
+        )
         .join("|")
     : "";
   const vehicles = useMemo(() => {
@@ -399,9 +408,10 @@ export function MapPreview({
     if (focusTripId || focusRouteId) {
       const byTrip = focusTripId ? base.filter((v) => v.tripId === focusTripId) : [];
       if (byTrip.length) return apply(byTrip);
-      const focusedFallback = focusTripId && vehicleOverrides?.[focusTripId]
-        ? apply([]).filter((v) => v.tripId === focusTripId)
-        : [];
+      const focusedFallback =
+        focusTripId && vehicleOverrides?.[focusTripId]
+          ? apply([]).filter((v) => v.tripId === focusTripId)
+          : [];
       if (focusedFallback.length) return focusedFallback;
       if (focusRouteId) {
         const byRoute = apply(base.filter((v) => v.routeId === focusRouteId));
@@ -417,7 +427,6 @@ export function MapPreview({
     return apply(base);
   }, [allVehicles, focusTripId, focusRouteId, restrictKey, overrideKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-
   const focused = !!(focusTripId || focusRouteId);
   const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
 
@@ -427,7 +436,9 @@ export function MapPreview({
   // polyline (straight stop-to-stop lines, but still better than direct
   // ping-to-ping) when the shape isn't available for that trip.
   // -------------------------------------------------------------------
-  useEffect(() => { prefetchShapes(); }, []);
+  useEffect(() => {
+    prefetchShapes();
+  }, []);
   // Bump this state once the shape index finishes loading so the path
   // memo recomputes and switches buses from stop-fallback to real shape.
   const [shapesReady, setShapesReady] = useState(false);
@@ -439,7 +450,9 @@ export function MapPreview({
       await getShapeForTrip("__warmup__").catch(() => {});
       if (!cancelled) setShapesReady(true);
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const tripPaths = useMemo(() => {
@@ -557,18 +570,10 @@ export function MapPreview({
         // would freeze the bus until a second fresh ping arrives. prime()
         // just stores the ping snapshot so the NEXT genuine ping can derive
         // ground speed from distance/dt and immediately go path-mode.
-        bus.prime(
-          targetLat,
-          targetLng,
-          targetBearing,
-          now,
-          v.timestamp ?? 0,
-          v.speed ?? 0,
-        );
+        bus.prime(targetLat, targetLng, targetBearing, now, v.timestamp ?? 0, v.speed ?? 0);
         layer.set(overlayKey, bus);
       }
     }
-
 
     // Remove buses no longer in the feed.
     for (const [id, bus] of layer) {
@@ -610,7 +615,10 @@ export function MapPreview({
             (mk as unknown as { __pulse?: boolean }).__pulse = on;
             const icon = mk.getIcon() as google.maps.Symbol | undefined;
             if (icon && typeof icon === "object" && "scale" in icon) {
-              mk.setIcon({ ...icon, scale: on ? (icon.scale ?? 6) * 1.6 : (icon.scale ?? 6) / 1.6 });
+              mk.setIcon({
+                ...icon,
+                scale: on ? (icon.scale ?? 6) * 1.6 : (icon.scale ?? 6) / 1.6,
+              });
             }
           }
         }
@@ -634,7 +642,13 @@ export function MapPreview({
     } else {
       userHereRef.current.update(userLocation);
     }
-  }, [api, userLocation?.lat, userLocation?.lng, userLocation?.headingDeg, userLocation?.accuracyM]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    api,
+    userLocation?.lat,
+    userLocation?.lng,
+    userLocation?.headingDeg,
+    userLocation?.accuracyM,
+  ]);
 
   // Trigger a Maps resize whenever the container size changes (fullscreen
   // toggle). Without this Google Maps caches the old bounds and renders blank
@@ -721,7 +735,6 @@ export function MapPreview({
     };
   }, [expanded, fallbackOverlay]);
 
-
   // After expanding/collapsing (incl. re-parenting via portal), the Maps
   // container has new dimensions. Trigger a resize so tiles re-render.
   useEffect(() => {
@@ -735,7 +748,7 @@ export function MapPreview({
     return () => window.clearTimeout(id);
   }, [expanded, fallbackOverlay, api]);
 
-  const liveCount = focused || restricted ? vehicles?.length ?? 0 : rt?.vehicles.length ?? 0;
+  const liveCount = focused || restricted ? (vehicles?.length ?? 0) : (rt?.vehicles.length ?? 0);
   const placeLabel = useMemo(() => {
     // Sub-degree → meters; round to avoid janky decimals.
     const km = spanKm;
@@ -780,12 +793,12 @@ export function MapPreview({
           <span className="font-sans text-[12px] font-semibold tracking-tight text-ink">
             {focused
               ? liveCount
-                ? liveLabel?.active ?? t("map.live.active")
-                : liveLabel?.empty ?? t("map.live.locating")
+                ? (liveLabel?.active ?? t("map.live.active"))
+                : (liveLabel?.empty ?? t("map.live.locating"))
               : restricted
                 ? liveCount
-                  ? liveLabel?.active ?? `${liveCount} serving, live`
-                  : liveLabel?.empty ?? t("map.live.none")
+                  ? (liveLabel?.active ?? `${liveCount} serving, live`)
+                  : (liveLabel?.empty ?? t("map.live.none"))
                 : liveCount
                   ? `${liveCount} live`
                   : "Connecting"}
@@ -813,9 +826,7 @@ export function MapPreview({
             <span className="uppercase tracking-[0.22em] text-limestone/60">Glide telemetry</span>
             <span className="text-ochre">{debugRows.length}</span>
           </div>
-          {debugRows.length === 0 && (
-            <p className="text-limestone/50">no animated buses</p>
-          )}
+          {debugRows.length === 0 && <p className="text-limestone/50">no animated buses</p>}
           {debugRows.map((r) => {
             const age = r.pingAgeMs < 0 ? "—" : `${(r.pingAgeMs / 1000).toFixed(1)}s`;
             const ageWarn = r.pingAgeMs > 30_000;
@@ -827,7 +838,9 @@ export function MapPreview({
                 </div>
                 <div className="flex items-center justify-between gap-2 text-limestone/60">
                   <span>
-                    <span className={r.mode === "path" ? "text-aegean" : "text-ochre"}>{r.mode}</span>
+                    <span className={r.mode === "path" ? "text-aegean" : "text-ochre"}>
+                      {r.mode}
+                    </span>
                     {r.boarding ? " · stop" : r.stale ? " · stale" : ""}
                   </span>
                   <span>{r.speedKmh.toFixed(0)} km/h</span>
@@ -838,9 +851,7 @@ export function MapPreview({
                       ? `${(r.alongM / 1000).toFixed(2)}/${(r.pathTotalM / 1000).toFixed(2)} km`
                       : "no shape"}
                   </span>
-                  <span>
-                    {r.correctionVel !== 0 ? `±${r.correctionVel.toFixed(1)}m/s` : "—"}
-                  </span>
+                  <span>{r.correctionVel !== 0 ? `±${r.correctionVel.toFixed(1)}m/s` : "—"}</span>
                 </div>
               </div>
             );
@@ -868,18 +879,17 @@ export function MapPreview({
  * of teleporting on every refresh. Off-path buses fall back to a
  * straight ease-tween between pings.
  * ============================================================ */
-const TWEEN_MS = 5500;                  // off-path fallback tween length
-const MAX_SNAP_M = 90;                  // accept pings within this of the polyline (urban GPS noise)
-const PATH_ATTACH_M = 180;              // even noisier pings still snap to path if one exists
-const TELEPORT_M = 400;                 // above this prediction error, fast-settle instead of bleed
-const SETTLE_S = 1.5;                   // target time to absorb a normal prediction error
-const FAST_SETTLE_S = 0.4;              // settle time for large jumps (replaces hard snap)
-const CORRECTION_TAU = 0.6;             // exp-decay constant for the correction velocity
-const DENSIFY_MAX_M = 25;               // max segment length after densification
-const SPEED_SMOOTH = 0.55;              // EMA weight on the freshest speed sample
-const BEARING_SLEW_PER_S = 6;           // radians-equivalent slew rate for bearing follow
+const TWEEN_MS = 5500; // off-path fallback tween length
+const MAX_SNAP_M = 90; // accept pings within this of the polyline (urban GPS noise)
+const PATH_ATTACH_M = 180; // even noisier pings still snap to path if one exists
+const TELEPORT_M = 400; // above this prediction error, fast-settle instead of bleed
+const SETTLE_S = 1.5; // target time to absorb a normal prediction error
+const FAST_SETTLE_S = 0.4; // settle time for large jumps (replaces hard snap)
+const CORRECTION_TAU = 0.6; // exp-decay constant for the correction velocity
+const DENSIFY_MAX_M = 25; // max segment length after densification
+const SPEED_SMOOTH = 0.55; // EMA weight on the freshest speed sample
+const BEARING_SLEW_PER_S = 6; // radians-equivalent slew rate for bearing follow
 const EASE = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
-
 
 class AnimatedBus {
   private api: typeof google;
@@ -938,7 +948,7 @@ class AnimatedBus {
   private overlay: google.maps.OverlayView;
   private el: HTMLDivElement;
   private rotor: HTMLDivElement; // the element we rotate (img or svg)
-  private halo: HTMLDivElement;  // freshness ring shown when ping is stale
+  private halo: HTMLDivElement; // freshness ring shown when ping is stale
   private boardingRing: HTMLDivElement; // pulsing ring when bus is stopped at a stop
   private boarding = false;
   // current rendered position (used by stop-pulse detection)
@@ -985,7 +995,8 @@ class AnimatedBus {
     halo.style.inset = "-18%";
     halo.style.borderRadius = "50%";
     halo.style.border = "2px solid color-mix(in oklab, #d99645 65%, transparent)";
-    halo.style.background = "radial-gradient(circle, color-mix(in oklab, #d99645 18%, transparent) 0%, transparent 70%)";
+    halo.style.background =
+      "radial-gradient(circle, color-mix(in oklab, #d99645 18%, transparent) 0%, transparent 70%)";
     halo.style.opacity = "0";
     halo.style.transition = "opacity 240ms ease";
     halo.style.pointerEvents = "none";
@@ -1037,9 +1048,7 @@ class AnimatedBus {
         // a visible hop on every gesture.
         const projection = this.getProjection();
         if (!projection) return;
-        const pt = projection.fromLatLngToDivPixel(
-          new api.maps.LatLng(self.curLat, self.curLng),
-        );
+        const pt = projection.fromLatLngToDivPixel(new api.maps.LatLng(self.curLat, self.curLng));
         if (!pt) return;
         self.el.style.transform = `translate3d(${pt.x - self.size / 2}px, ${pt.y - self.size / 2}px, 0)`;
         self.rotor.style.transform = `rotate(${self.currentBearing}deg)`;
@@ -1187,10 +1196,7 @@ class AnimatedBus {
     if (estSpeed <= 0.1 && this.lastPingMs > 0) {
       const dtSec = (nowMs - this.lastPingMs) / 1000;
       if (dtSec > 1 && dtSec < 120) {
-        const d = haversineM(
-          { lat: this.lastPingLat, lng: this.lastPingLng },
-          { lat, lng },
-        );
+        const d = haversineM({ lat: this.lastPingLat, lng: this.lastPingLng }, { lat, lng });
         // Clamp to a sane urban-bus envelope to ignore GPS jitter.
         estSpeed = Math.max(0, Math.min(22, d / dtSec));
       }
@@ -1253,10 +1259,7 @@ class AnimatedBus {
     this.bearingDelta = delta;
     this.tweenStart = nowMs;
 
-    const distM = haversineM(
-      { lat: this.fromLat, lng: this.fromLng },
-      { lat, lng },
-    );
+    const distM = haversineM({ lat: this.fromLat, lng: this.fromLng }, { lat, lng });
     // Off-path: tween length = distance / speed, so the bus glides for the
     // full inter-ping interval instead of arriving early and parking.
     if (estSpeed < 0.5 || distM < 3) {
@@ -1273,9 +1276,7 @@ class AnimatedBus {
     if (on === this.boarding) return;
     this.boarding = on;
     this.boardingRing.style.opacity = on ? "1" : "0";
-    this.boardingRing.style.animation = on
-      ? "aloya-board-pulse 1600ms ease-out infinite"
-      : "none";
+    this.boardingRing.style.animation = on ? "aloya-board-pulse 1600ms ease-out infinite" : "none";
   }
 
   isBoarding() {
@@ -1297,14 +1298,7 @@ class AnimatedBus {
   /** Record the first ping for a freshly created bus without committing it
    *  to lerp/boarding mode. Sets the speed-derivation baseline so the next
    *  real ping can compute distance/dt and immediately glide. */
-  prime(
-    lat: number,
-    lng: number,
-    bearing: number,
-    nowMs: number,
-    ts: number,
-    speedMps = 0,
-  ) {
+  prime(lat: number, lng: number, bearing: number, nowMs: number, ts: number, speedMps = 0) {
     this.lastPingMs = nowMs;
     this.lastPingLat = lat;
     this.lastPingLng = lng;
@@ -1423,8 +1417,7 @@ function haversineM(a: { lat: number; lng: number }, b: { lat: number; lng: numb
   const dLng = ((b.lng - a.lng) * Math.PI) / 180;
   const la1 = (a.lat * Math.PI) / 180;
   const la2 = (b.lat * Math.PI) / 180;
-  const x =
-    Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
@@ -1655,9 +1648,7 @@ class UserHereOverlay {
       draw() {
         const projection = this.getProjection();
         if (!projection) return;
-        const pt = projection.fromLatLngToDivPixel(
-          new api.maps.LatLng(self.lat, self.lng),
-        );
+        const pt = projection.fromLatLngToDivPixel(new api.maps.LatLng(self.lat, self.lng));
         if (!pt) return;
         self.el.style.transform = `translate3d(${pt.x}px, ${pt.y}px, 0)`;
         self.applyAccuracy(self.map);
@@ -1695,8 +1686,7 @@ class UserHereOverlay {
     if (!proj) return;
     const zoom = map.getZoom() ?? 14;
     const scale = 2 ** zoom;
-    const metersPerPixel =
-      (156543.03392 * Math.cos((this.lat * Math.PI) / 180)) / scale;
+    const metersPerPixel = (156543.03392 * Math.cos((this.lat * Math.PI) / 180)) / scale;
     const px = Math.max(24, Math.min(160, this.accuracyM / metersPerPixel));
     this.accuracyHalo.style.width = `${px * 2}px`;
     this.accuracyHalo.style.height = `${px * 2}px`;
