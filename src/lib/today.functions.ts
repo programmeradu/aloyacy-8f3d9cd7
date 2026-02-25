@@ -219,18 +219,36 @@ function nameDayToday(d: Date): { name: string; nameEl: string; scale: string } 
   return map[key] ?? null;
 }
 
-// Cruise schedule — without scraping, use a realistic weekly pattern.
-// Limassol typically receives ships Mon/Wed/Fri April-October.
-function cruiseInPort(d: Date): { count: number } | null {
-  const month = d.getUTCMonth() + 1;
-  const isSeason = month >= 4 && month <= 10;
-  if (!isSeason) return null;
-  const dow = d.getUTCDay();
-  if (dow === 1 || dow === 3 || dow === 5) {
-    const seed = dayOfYear(d);
-    return { count: 1 + (seed % 2) };
+// Cruise schedule — read the real Limassol port-calls feed from pulse_signals
+// (populated by /api/public/hooks/pulse-cruises). Returns null when the feed
+// is stale or reports zero ships, so the home page never invents a cruise day.
+type CruiseToday = { count: number; summary: string | null; totalPassengers: number | null } | null;
+
+async function cruiseInPortLive(): Promise<CruiseToday> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("pulse_signals")
+      .select("payload, fetched_at, ttl_seconds")
+      .eq("key", "cruises")
+      .eq("scope", "port-limassol")
+      .order("fetched_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!data) return null;
+    const ttlMs = (Number(data.ttl_seconds) || 86_400) * 1000;
+    if (Date.now() - Date.parse(data.fetched_at as string) > ttlMs) return null;
+    const p = (data.payload ?? {}) as { count?: number; summary?: string; totalPassengers?: number };
+    const count = Number(p.count) || 0;
+    if (count <= 0) return null;
+    return {
+      count,
+      summary: typeof p.summary === "string" ? p.summary : null,
+      totalPassengers: typeof p.totalPassengers === "number" ? p.totalPassengers : null,
+    };
+  } catch {
+    return null;
   }
-  return null;
 }
 
 export const getTodayBriefing = createServerFn({ method: "GET" })
@@ -280,7 +298,7 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
     const nd = nameDayToday(d);
     const festival = activeFestival(d);
     const fixture = isLikelyMatchday(d, focus.scope !== "island" ? focus.city : undefined);
-    const cruise = cruiseInPort(d);
+    const cruise = await cruiseInPortLive();
     const isHot = weather && weather.tempC >= 35;
     const isStorm = weather && (weather.iconKey === "storm" || weather.iconKey === "rain");
 
@@ -328,11 +346,11 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
       };
     } else if (theme === "cruise" && cruise) {
       headline = {
-        en: cruise.count > 1 ? "Two ships in Limassol port." : "Cruise day in Limassol.",
-        el: cruise.count > 1 ? "Δύο πλοία στο λιμάνι της Λεμεσού." : "Μέρα κρουαζιέρας στη Λεμεσό.",
+        en: cruise.count > 1 ? `${cruise.count} ships in Limassol port.` : "Cruise day in Limassol.",
+        el: cruise.count > 1 ? `${cruise.count} πλοία στο λιμάνι της Λεμεσού.` : "Μέρα κρουαζιέρας στη Λεμεσό.",
       };
       lede = {
-        en: "Old town and seafront buses run busier than usual through the afternoon.",
+        en: cruise.summary ?? "Old town and seafront buses run busier than usual through the afternoon.",
         el: "Τα λεωφορεία στην παλιά πόλη και στην παραλιακή φορτώνουν περισσότερο τα απογεύματα.",
       };
     } else if (theme === "heatwave" && weather) {
@@ -386,7 +404,7 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
         kickerEl: "ΣΤΟ ΛΙΜΑΝΙ",
         title: cruise.count > 1 ? `${cruise.count} cruise ships` : "Cruise ship docked",
         titleEl: cruise.count > 1 ? `${cruise.count} κρουαζιερόπλοια` : "Κρουαζιερόπλοιο στο λιμάνι",
-        detail: "Limassol seafront and old town routes busier from midday.",
+        detail: cruise.summary ?? "Limassol seafront and old town routes busier from midday.",
         detailEl: "Οι γραμμές της παραλιακής και της παλιάς πόλης Λεμεσού φορτώνουν από το μεσημέρι.",
         accent: "aegean",
       });
