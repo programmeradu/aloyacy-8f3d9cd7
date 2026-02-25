@@ -7,6 +7,7 @@ import { createServerFn } from "@tanstack/react-start";
 import facts from "@/data/cyprus-facts.json";
 import nameDays from "@/data/cyprus-name-days.json";
 import events from "@/data/cyprus-events.json";
+import greekWords from "@/data/cyprus-greek-words.json";
 
 export type TodayTheme =
   | "derby"
