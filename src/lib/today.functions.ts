@@ -346,11 +346,11 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
       };
     } else if (theme === "cruise" && cruise) {
       headline = {
-        en: cruise.count > 1 ? "Two ships in Limassol port." : "Cruise day in Limassol.",
-        el: cruise.count > 1 ? "Δύο πλοία στο λιμάνι της Λεμεσού." : "Μέρα κρουαζιέρας στη Λεμεσό.",
+        en: cruise.count > 1 ? `${cruise.count} ships in Limassol port.` : "Cruise day in Limassol.",
+        el: cruise.count > 1 ? `${cruise.count} πλοία στο λιμάνι της Λεμεσού.` : "Μέρα κρουαζιέρας στη Λεμεσό.",
       };
       lede = {
-        en: "Old town and seafront buses run busier than usual through the afternoon.",
+        en: cruise.summary ?? "Old town and seafront buses run busier than usual through the afternoon.",
         el: "Τα λεωφορεία στην παλιά πόλη και στην παραλιακή φορτώνουν περισσότερο τα απογεύματα.",
       };
     } else if (theme === "heatwave" && weather) {
