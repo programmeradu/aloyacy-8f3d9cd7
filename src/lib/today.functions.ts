@@ -24,6 +24,7 @@ export type TodayTileKind =
   | "cruise"
   | "holiday"
   | "nameday"
+  | "rhythm"
   | "weather-sun"
   | "weather-rain"
   | "weather-cloud";
