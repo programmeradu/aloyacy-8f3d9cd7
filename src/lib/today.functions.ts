@@ -252,6 +252,7 @@ async function cruiseInPortLive(): Promise<CruiseToday> {
     };
   } catch {
     return null;
+  }
 }
 
 // Weekday rhythm — a stock "what normally happens around now" note per
