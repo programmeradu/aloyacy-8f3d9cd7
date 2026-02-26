@@ -620,62 +620,154 @@ function Sparkline({ buckets, nowHour }: { buckets: HourBucket[]; nowHour: numbe
   );
 }
 
-// Bespoke olive-branch + amphora corner illustration for the Greek word card.
-function GreekWordGlyph({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden>
+// Word→category map. Each Greek word in src/data/cyprus-greek-words.json gets a
+// motif that fits its meaning, so the illustration changes day-to-day.
+type GreekCategory = "greeting" | "courtesy" | "transit" | "food" | "place" | "vibe";
+const GREEK_CATEGORY: Record<string, GreekCategory> = {
+  "Καλημέρα": "greeting", "Καλησπέρα": "greeting", "Γεια σου": "greeting",
+  "Καλώς ήρθες": "greeting", "Καληνύχτα": "greeting",
+  "Ευχαριστώ": "courtesy", "Παρακαλώ": "courtesy", "Συγγνώμη": "courtesy",
+  "Ναι": "courtesy", "Όχι": "courtesy",
+  "Στάση": "transit", "Λεωφορείο": "transit", "Εισιτήριο": "transit", "Ένα λεπτό": "transit",
+  "Καφές": "food", "Χαλλούμι": "food", "Σούβλα": "food", "Νόστιμο": "food",
+  "Φέρτε μου": "food", "Λογαριασμό": "food", "Στην υγειά σου": "food",
+  "Παραλία": "place", "Νερό": "place", "Πού είναι;": "place",
+};
+
+function GreekWordGlyph({ word, className }: { word: string; className?: string }) {
+  const cat: GreekCategory = GREEK_CATEGORY[word] ?? "vibe";
+  const common = {
+    viewBox: "0 0 128 128",
+    fill: "none" as const,
+    xmlns: "http://www.w3.org/2000/svg",
+    className,
+    "aria-hidden": true as const,
+  };
+  const wash = (
+    <>
       <defs>
-        <radialGradient id="gw-sun" cx="70%" cy="30%" r="60%">
-          <stop offset="0%" stopColor="var(--color-ochre)" stopOpacity="0.45" />
+        <radialGradient id={`gw-${cat}`} cx="70%" cy="30%" r="60%">
+          <stop offset="0%" stopColor="var(--color-ochre)" stopOpacity="0.4" />
           <stop offset="100%" stopColor="var(--color-ochre)" stopOpacity="0" />
         </radialGradient>
       </defs>
-      <rect width="128" height="128" fill="url(#gw-sun)" />
-      {/* Amphora silhouette */}
-      <path
-        d="M70 28 Q70 22 76 22 Q82 22 82 28 L82 34 Q96 40 96 58 Q96 78 84 92 L84 100 L68 100 L68 92 Q56 78 56 58 Q56 40 70 34 Z"
-        fill="var(--color-olive)"
-        opacity="0.18"
-      />
-      <path
-        d="M70 28 Q70 22 76 22 Q82 22 82 28"
-        stroke="var(--color-olive)"
-        strokeWidth="1.4"
-        opacity="0.7"
-        fill="none"
-      />
-      {/* Olive branch */}
-      <path
-        d="M14 86 Q44 70 78 78"
-        stroke="var(--color-olive)"
-        strokeWidth="1.6"
-        fill="none"
-        opacity="0.8"
-        strokeLinecap="round"
-      />
-      {[
-        { x: 22, y: 80, r: -28 },
-        { x: 34, y: 74, r: -18 },
-        { x: 48, y: 72, r: -8 },
-        { x: 62, y: 74, r: 6 },
-        { x: 74, y: 78, r: 14 },
-      ].map((l, i) => (
-        <ellipse
-          key={i}
-          cx={l.x}
-          cy={l.y - 4}
-          rx="6"
-          ry="2.6"
-          fill="var(--color-olive)"
-          opacity={0.55 + (i % 2) * 0.2}
-          transform={`rotate(${l.r} ${l.x} ${l.y - 4})`}
-        />
-      ))}
-      {/* Olives */}
-      <circle cx="40" cy="84" r="2.2" fill="var(--color-ink)" opacity="0.55" />
-      <circle cx="58" cy="84" r="2.2" fill="var(--color-ink)" opacity="0.45" />
-    </svg>
+      <rect width="128" height="128" fill={`url(#gw-${cat})`} />
+    </>
   );
+
+  switch (cat) {
+    case "greeting":
+      // Sun rising over rolling hills.
+      return (
+        <svg {...common}>
+          {wash}
+          <circle cx="86" cy="46" r="18" fill="var(--color-ochre)" opacity="0.85" />
+          <circle cx="86" cy="46" r="26" stroke="var(--color-ochre)" strokeWidth="1" fill="none" opacity="0.35" />
+          <path d="M0 92 Q32 70 60 86 Q92 104 128 80 L128 128 L0 128 Z" fill="var(--color-olive)" opacity="0.2" />
+          <path d="M0 104 Q40 88 76 100 Q104 110 128 96 L128 128 L0 128 Z" fill="var(--color-olive)" opacity="0.55" />
+        </svg>
+      );
+
+    case "courtesy":
+      // Laurel wreath — two opposing arcs of leaves.
+      return (
+        <svg {...common}>
+          {wash}
+          {[-1, 1].map((s) => (
+            <g key={s} transform={`translate(64 70) scale(${s} 1)`}>
+              <path d="M0 -32 Q24 -20 26 0 Q24 22 0 32" stroke="var(--color-olive)" strokeWidth="1.4" fill="none" opacity="0.6" />
+              {[-24, -10, 4, 18].map((y, i) => (
+                <ellipse key={i} cx="24" cy={y} rx="7" ry="3.2" fill="var(--color-olive)"
+                  opacity={0.55 + (i % 2) * 0.2}
+                  transform={`rotate(${-30 + i * 18} 24 ${y})`} />
+              ))}
+            </g>
+          ))}
+          <circle cx="64" cy="70" r="3" fill="var(--color-olive)" opacity="0.8" />
+        </svg>
+      );
+
+    case "transit":
+      // Stylised bus side-on.
+      return (
+        <svg {...common}>
+          {wash}
+          <rect x="20" y="50" width="80" height="38" rx="8" fill="var(--color-aegean-deep)" opacity="0.85" />
+          <rect x="26" y="56" width="20" height="14" rx="2" fill="var(--color-card)" opacity="0.9" />
+          <rect x="50" y="56" width="20" height="14" rx="2" fill="var(--color-card)" opacity="0.9" />
+          <rect x="74" y="56" width="20" height="14" rx="2" fill="var(--color-card)" opacity="0.9" />
+          <rect x="20" y="80" width="80" height="3" fill="var(--color-ink)" opacity="0.25" />
+          <circle cx="36" cy="92" r="7" fill="var(--color-ink)" opacity="0.85" />
+          <circle cx="36" cy="92" r="2.6" fill="var(--color-card)" />
+          <circle cx="86" cy="92" r="7" fill="var(--color-ink)" opacity="0.85" />
+          <circle cx="86" cy="92" r="2.6" fill="var(--color-card)" />
+        </svg>
+      );
+
+    case "food":
+      // Cyprus coffee cup with rising steam.
+      return (
+        <svg {...common}>
+          {wash}
+          <path d="M40 70 L88 70 L84 100 Q84 106 78 106 L50 106 Q44 106 44 100 Z" fill="var(--color-olive)" opacity="0.85" />
+          <path d="M88 76 Q102 76 102 86 Q102 96 88 96" stroke="var(--color-olive)" strokeWidth="2.5" fill="none" opacity="0.7" />
+          <ellipse cx="64" cy="70" rx="24" ry="4" fill="var(--color-ink)" opacity="0.25" />
+          {[52, 64, 76].map((x, i) => (
+            <path
+              key={i}
+              d={`M${x} 60 Q${x + 4} 50 ${x} 40 Q${x - 4} 30 ${x} 22`}
+              stroke="var(--color-ink)"
+              strokeWidth="1.5"
+              fill="none"
+              opacity={0.4 - i * 0.08}
+              strokeLinecap="round"
+            />
+          ))}
+        </svg>
+      );
+
+    case "place":
+      // Beach: sun on water with three wave lines.
+      return (
+        <svg {...common}>
+          {wash}
+          <circle cx="90" cy="40" r="14" fill="var(--color-ochre)" opacity="0.85" />
+          {[64, 78, 92, 106].map((y, i) => (
+            <path
+              key={y}
+              d={`M0 ${y} Q16 ${y - 4} 32 ${y} T64 ${y} T96 ${y} T128 ${y}`}
+              stroke="var(--color-aegean-deep)"
+              strokeWidth="1.6"
+              fill="none"
+              opacity={0.7 - i * 0.12}
+            />
+          ))}
+        </svg>
+      );
+
+    case "vibe":
+    default:
+      // Olive branch + amphora (original).
+      return (
+        <svg {...common}>
+          {wash}
+          <path d="M70 28 Q70 22 76 22 Q82 22 82 28 L82 34 Q96 40 96 58 Q96 78 84 92 L84 100 L68 100 L68 92 Q56 78 56 58 Q56 40 70 34 Z"
+            fill="var(--color-olive)" opacity="0.2" />
+          <path d="M70 28 Q70 22 76 22 Q82 22 82 28" stroke="var(--color-olive)" strokeWidth="1.4" opacity="0.7" fill="none" />
+          <path d="M14 86 Q44 70 78 78" stroke="var(--color-olive)" strokeWidth="1.6" fill="none" opacity="0.8" strokeLinecap="round" />
+          {[
+            { x: 22, y: 80, r: -28 }, { x: 34, y: 74, r: -18 }, { x: 48, y: 72, r: -8 },
+            { x: 62, y: 74, r: 6 }, { x: 74, y: 78, r: 14 },
+          ].map((l, i) => (
+            <ellipse key={i} cx={l.x} cy={l.y - 4} rx="6" ry="2.6" fill="var(--color-olive)"
+              opacity={0.55 + (i % 2) * 0.2}
+              transform={`rotate(${l.r} ${l.x} ${l.y - 4})`} />
+          ))}
+          <circle cx="40" cy="84" r="2.2" fill="var(--color-ink)" opacity="0.55" />
+          <circle cx="58" cy="84" r="2.2" fill="var(--color-ink)" opacity="0.45" />
+        </svg>
+      );
+  }
 }
 
 // Tap-to-hear Greek pronunciation. Uses Web Speech API with el-GR voice when available.
