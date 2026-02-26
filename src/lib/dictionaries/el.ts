@@ -890,6 +890,7 @@ export const el: Record<keyof typeof en, string> = {
   "today.verdict.kicker": "Σημείωση συντάκτη",
   "today.fact.local": "Το ήξερες;",
   "today.fact.tourist": "Για επισκέπτες",
+  "today.greek.kicker": "Ελληνική λέξη της ημέρας",
 
 
   // Trip Info
