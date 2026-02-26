@@ -904,6 +904,7 @@ export const en = {
   "today.verdict.kicker": "Editor's note",
   "today.fact.local": "Did you know",
   "today.fact.tourist": "For visitors",
+  "today.greek.kicker": "Greek word of the day",
 
 
 
