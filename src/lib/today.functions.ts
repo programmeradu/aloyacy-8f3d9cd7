@@ -322,7 +322,6 @@ const RHYTHM: Record<string, Record<number, RhythmNote>> = {
     6: { title: "Saturday rush", titleEl: "Σαββατιάτικη φόρα", detail: "Beaches, markets and tavernas peak. Parking premium near the coast.", detailEl: "Παραλίες, αγορές, ταβέρνες στο φουλ." },
   },
 };
-}
 
 export const getTodayBriefing = createServerFn({ method: "GET" })
   .inputValidator((data: TodayInput | undefined): TodayInput => {
