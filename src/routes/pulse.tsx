@@ -291,20 +291,24 @@ function TodayEditorial({
       <article className="relative mt-4 overflow-hidden rounded-[22px] bg-card ring-1 ring-line">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-gradient-to-bl from-olive/10 to-transparent"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-bl from-olive/12 via-transparent to-ochre/5"
         />
+        <GreekWordGlyph className="pointer-events-none absolute -right-3 -top-3 h-32 w-32" />
         <div className="relative p-5">
           <div className="flex items-baseline justify-between gap-3">
             <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.24em] text-olive">
               {t("today.greek.kicker")}
             </p>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-              {briefing.greekWord.translit}
+              /{briefing.greekWord.translit}/
             </p>
           </div>
-          <p className="mt-3 font-display text-[34px] leading-none text-ink">
-            {briefing.greekWord.el}
-          </p>
+          <div className="mt-3 flex items-end gap-3">
+            <p className="font-display text-[34px] leading-none text-ink">
+              {briefing.greekWord.el}
+            </p>
+            <SpeakGreekButton text={briefing.greekWord.el} />
+          </div>
           <p className="mt-2 font-display text-[15px] text-olive">
             {briefing.greekWord.en}
           </p>
