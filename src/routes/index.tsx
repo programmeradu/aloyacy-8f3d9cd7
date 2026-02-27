@@ -46,20 +46,12 @@ import statRoad from "@/assets/stat-road.png";
 import { useI18n } from "@/lib/i18n";
 
 
-import { getIsMarketingHost } from "@/lib/host.functions";
-import { MarketingLanding } from "@/components/MarketingLanding";
-
 export const Route = createFileRoute("/")({
-  loader: async () => ({ marketing: await getIsMarketingHost() }),
-  head: ({ loaderData }) => {
-    const marketing = loaderData?.marketing ?? false;
-    const url = marketing ? "https://aloya.cy/" : "https://app.aloya.cy/";
-    const title = marketing
-      ? "Aloya — Cyprus bus, redrawn"
-      : "Aloya — Cyprus bus, the way it should feel";
-    const description = marketing
-      ? "A calm, intelligent navigation system for every bus in Cyprus. Live ETAs, smart routing, Motion-card ready."
-      : "Plan, track and ride Cyprus buses with a calm, intelligent interface. Live ETAs, nearby stops, smart routing across the island.";
+  head: () => {
+    const url = "https://app.aloya.cy/";
+    const title = "Aloya — Cyprus bus, the way it should feel";
+    const description =
+      "Plan, track and ride Cyprus buses with a calm, intelligent interface. Live ETAs, nearby stops, smart routing across the island.";
     return {
       meta: [
         { title },
@@ -87,16 +79,7 @@ export const Route = createFileRoute("/")({
 });
 
 function IndexRoute() {
-  const { marketing } = Route.useLoaderData();
-  // Defensive: trust the actual hostname on the client. Only aloyacy.live and
-  // www.aloya.cy ever render the marketing landing — every other host
-  // (app.aloya.cy, lovable previews, localhost) gets the app.
-  const showMarketing = (() => {
-    if (typeof window === "undefined") return marketing;
-    const h = window.location.hostname.toLowerCase();
-    return h === "aloya.cy" || h === "www.aloya.cy" || h === "aloya.cy" || h === "www.aloya.cy";
-  })();
-  return showMarketing ? <MarketingLanding /> : <Explore />;
+  return <Explore />;
 }
 
 
