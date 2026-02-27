@@ -747,24 +747,57 @@ function GreekWordGlyph({ word, className }: { word: string; className?: string 
 
     case "vibe":
     default:
-      // Olive branch + amphora (original).
+      // Single olive sprig — curved stem with paired leaves and three olives.
       return (
         <svg {...common}>
           {wash}
-          <path d="M70 28 Q70 22 76 22 Q82 22 82 28 L82 34 Q96 40 96 58 Q96 78 84 92 L84 100 L68 100 L68 92 Q56 78 56 58 Q56 40 70 34 Z"
-            fill="var(--color-olive)" opacity="0.2" />
-          <path d="M70 28 Q70 22 76 22 Q82 22 82 28" stroke="var(--color-olive)" strokeWidth="1.4" opacity="0.7" fill="none" />
-          <path d="M14 86 Q44 70 78 78" stroke="var(--color-olive)" strokeWidth="1.6" fill="none" opacity="0.8" strokeLinecap="round" />
-          {[
-            { x: 22, y: 80, r: -28 }, { x: 34, y: 74, r: -18 }, { x: 48, y: 72, r: -8 },
-            { x: 62, y: 74, r: 6 }, { x: 74, y: 78, r: 14 },
-          ].map((l, i) => (
-            <ellipse key={i} cx={l.x} cy={l.y - 4} rx="6" ry="2.6" fill="var(--color-olive)"
-              opacity={0.55 + (i % 2) * 0.2}
-              transform={`rotate(${l.r} ${l.x} ${l.y - 4})`} />
-          ))}
-          <circle cx="40" cy="84" r="2.2" fill="var(--color-ink)" opacity="0.55" />
-          <circle cx="58" cy="84" r="2.2" fill="var(--color-ink)" opacity="0.45" />
+          <g transform="translate(64 64) rotate(-22)">
+            {/* Stem */}
+            <path
+              d="M-44 36 Q-10 8 38 -32"
+              stroke="var(--color-olive)"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.85"
+            />
+            {/* Paired leaves along the stem */}
+            {[
+              { t: 0.15, side: 1 },
+              { t: 0.32, side: -1 },
+              { t: 0.5, side: 1 },
+              { t: 0.68, side: -1 },
+              { t: 0.85, side: 1 },
+            ].map(({ t, side }, i) => {
+              // Quadratic bezier point + tangent
+              const p0 = { x: -44, y: 36 };
+              const p1 = { x: -10, y: 8 };
+              const p2 = { x: 38, y: -32 };
+              const x = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x;
+              const y = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y;
+              const tx = 2 * (1 - t) * (p1.x - p0.x) + 2 * t * (p2.x - p1.x);
+              const ty = 2 * (1 - t) * (p1.y - p0.y) + 2 * t * (p2.y - p1.y);
+              const ang = (Math.atan2(ty, tx) * 180) / Math.PI + side * 55;
+              const lx = x + Math.cos((ang * Math.PI) / 180) * 10;
+              const ly = y + Math.sin((ang * Math.PI) / 180) * 10;
+              return (
+                <ellipse
+                  key={i}
+                  cx={lx}
+                  cy={ly}
+                  rx="11"
+                  ry="3.6"
+                  fill="var(--color-olive)"
+                  opacity={0.5 + (i % 2) * 0.25}
+                  transform={`rotate(${ang} ${lx} ${ly})`}
+                />
+              );
+            })}
+            {/* Olives */}
+            <circle cx="-18" cy="14" r="3" fill="var(--color-ink)" opacity="0.65" />
+            <circle cx="4" cy="-2" r="3" fill="var(--color-ink)" opacity="0.55" />
+            <circle cx="22" cy="-18" r="3" fill="var(--color-ink)" opacity="0.7" />
+          </g>
         </svg>
       );
   }
