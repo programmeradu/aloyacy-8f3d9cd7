@@ -6,11 +6,16 @@ import { readPass, writePass, formatCardNumber, type MotionPass } from "@/lib/mo
 
 /* ============================================================
  * Card Scan Sheet — live camera + on-device OCR (Tesseract.js).
- * Continuously samples frames from the rear camera, recognises text,
- * and extracts the Motion card number, holder name, and valid-until
- * date. Detected fields highlight in real time and auto-save once
- * confidence locks in.
+ *
+ * Two-sided capture:
+ *   • FRONT  → cardholder name + valid-until date
+ *   • BACK   → 14–16 digit UID (anything shorter is rejected)
+ *
+ * The user picks a side; the scanner only looks for the fields that
+ * live on that side, then auto-advances / auto-closes when done.
  * ============================================================ */
+
+type Side = "front" | "back";
 
 type Detected = {
   number?: string;
@@ -18,10 +23,9 @@ type Detected = {
   validUntil?: string;
 };
 
-const CARD_RE = /\b(\d{2}\s?\d{4}\s?\d{4})\b/;
-const LONG_DIGITS_RE = /\b(\d{10,16})\b/;
+// UID is 14–16 consecutive digits (spaces tolerated between groups).
+const UID_RE = /(?:\d[\s-]?){14,16}/;
 const DATE_RE = /\b(\d{2}\/\d{2}\/\d{2,4})\b/;
-// Heuristic for a printed holder line: 2–4 uppercase tokens, letters only.
 const NAME_RE = /\b([A-Z]{2,}(?:\s+[A-Z]{2,}){1,3})\b/;
 
 export function CardScanSheet({ onClose }: { onClose: () => void }) {
@@ -29,12 +33,40 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const workerRef = useRef<any>(null);
   const runningRef = useRef(true);
+  const sideRef = useRef<Side>("front");
+  const accRef = useRef<Detected>({});
+  const hitsRef = useRef({ number: 0, holder: 0, validUntil: 0 });
+  const [side, setSide] = useState<Side>("front");
   const [detected, setDetected] = useState<Detected>({});
   const [status, setStatus] = useState<"loading" | "scanning" | "locked" | "error">("loading");
   const [errMsg, setErrMsg] = useState<string>("");
-  const savedRef = useRef(false);
+  const frontDoneRef = useRef(false);
+  const backDoneRef = useRef(false);
 
-  // Start camera + OCR worker
+  function switchSide(next: Side) {
+    sideRef.current = next;
+    setSide(next);
+    // reset per-side hit counters so we don't cross-contaminate
+    hitsRef.current = { number: 0, holder: 0, validUntil: 0 };
+  }
+
+  function finishIfComplete() {
+    if (!frontDoneRef.current || !backDoneRef.current) return;
+    const acc = accRef.current;
+    if (!acc.number) return;
+    const current = readPass();
+    const next: MotionPass = {
+      ...current,
+      number: formatCardNumber(acc.number),
+      holder: acc.holder ?? current.holder,
+      validUntil: acc.validUntil ?? current.validUntil,
+    };
+    writePass(next);
+    setStatus("locked");
+    toast.success("Card captured");
+    setTimeout(() => onClose(), 800);
+  }
+
   useEffect(() => {
     let stream: MediaStream | null = null;
 
@@ -48,10 +80,8 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play().catch(() => {});
         }
-        // Load tesseract dynamically (heavy module).
         const Tesseract = await import("tesseract.js");
         const worker = await Tesseract.createWorker("eng", 1, {
-          // Use CDN for worker assets — bundling them is brittle on edge runtimes.
           workerPath: "https://unpkg.com/tesseract.js@v7.0.0/dist/worker.min.js",
           corePath: "https://unpkg.com/tesseract.js-core@v6.0.0",
           langPath: "https://tessdata.projectnaptha.com/4.0.0",
@@ -70,8 +100,6 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
     }
 
     async function loop() {
-      const acc: Detected = {};
-      let hits = { number: 0, holder: 0, validUntil: 0 };
       while (runningRef.current) {
         await new Promise((r) => setTimeout(r, 900));
         if (!runningRef.current) break;
@@ -79,7 +107,6 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
         const c = canvasRef.current;
         const w = workerRef.current;
         if (!v || !c || !w || v.readyState < 2) continue;
-        // Sample a centred ROI (card-shaped band) at modest resolution.
         const vw = v.videoWidth;
         const vh = v.videoHeight;
         if (!vw || !vh) continue;
@@ -95,49 +122,65 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
         try {
           const { data } = await w.recognize(c);
           const text: string = (data?.text ?? "").toUpperCase();
-          // Card number
-          const numMatch = text.match(CARD_RE) || text.match(LONG_DIGITS_RE);
-          if (numMatch) {
-            const digits = numMatch[1].replace(/\s/g, "");
-            if (digits.length >= 8) {
-              if (acc.number === digits) hits.number++;
-              else { acc.number = digits; hits.number = 1; }
+          const acc = accRef.current;
+          const hits = hitsRef.current;
+          const currentSide = sideRef.current;
+
+          if (currentSide === "back") {
+            // UID — must be 14–16 digits, contiguous (after stripping separators).
+            const m = text.match(UID_RE);
+            if (m) {
+              const digits = m[0].replace(/\D/g, "");
+              if (digits.length >= 14 && digits.length <= 16) {
+                if (acc.number === digits) hits.number++;
+                else { acc.number = digits; hits.number = 1; }
+                if (hits.number >= 2 && !backDoneRef.current) {
+                  backDoneRef.current = true;
+                  if (!frontDoneRef.current) {
+                    toast.success("Back captured — flip to the front");
+                    switchSide("front");
+                  } else {
+                    finishIfComplete();
+                  }
+                }
+              }
+            }
+          } else {
+            // FRONT — name + date
+            if (!acc.validUntil || hits.validUntil < 2) {
+              const dateMatch = text.match(DATE_RE);
+              if (dateMatch) {
+                if (acc.validUntil === dateMatch[1]) hits.validUntil++;
+                else { acc.validUntil = dateMatch[1]; hits.validUntil = 1; }
+              }
+            }
+            if (!acc.holder || hits.holder < 2) {
+              const cleaned = text
+                .split("\n")
+                .filter((l) => !/MOTION|VALID|CARD|BUS|CYPRUS|ΜΕΧΡΙ|ΙΣΧΥΕΙ/.test(l))
+                .join("\n");
+              const nameMatch = cleaned.match(NAME_RE);
+              if (nameMatch) {
+                const candidate = nameMatch[1].trim();
+                if (acc.holder === candidate) hits.holder++;
+                else { acc.holder = candidate; hits.holder = 1; }
+              }
+            }
+            const nameOk = !!acc.holder && hits.holder >= 2;
+            const dateOk = !!acc.validUntil && hits.validUntil >= 2;
+            if ((nameOk || dateOk) && (nameOk && dateOk || hits.holder + hits.validUntil >= 4)) {
+              if (!frontDoneRef.current) {
+                frontDoneRef.current = true;
+                if (!backDoneRef.current) {
+                  toast.success("Front captured — flip to the back");
+                  switchSide("back");
+                } else {
+                  finishIfComplete();
+                }
+              }
             }
           }
-          // Date
-          const dateMatch = text.match(DATE_RE);
-          if (dateMatch) {
-            if (acc.validUntil === dateMatch[1]) hits.validUntil++;
-            else { acc.validUntil = dateMatch[1]; hits.validUntil = 1; }
-          }
-          // Name (skip lines that contain known label words)
-          const cleaned = text
-            .split("\n")
-            .filter((l) => !/MOTION|VALID|CARD|BUS|CYPRUS|ΜΕΧΡΙ|ΙΣΧΥΕΙ/.test(l))
-            .join("\n");
-          const nameMatch = cleaned.match(NAME_RE);
-          if (nameMatch) {
-            const candidate = nameMatch[1].trim();
-            if (acc.holder === candidate) hits.holder++;
-            else { acc.holder = candidate; hits.holder = 1; }
-          }
           setDetected({ ...acc });
-          // Auto-save when we have a card number confirmed twice.
-          if (!savedRef.current && acc.number && hits.number >= 2) {
-            savedRef.current = true;
-            const current = readPass();
-            const next: MotionPass = {
-              ...current,
-              number: formatCardNumber(acc.number),
-              holder: hits.holder >= 2 && acc.holder ? acc.holder : current.holder,
-              validUntil: hits.validUntil >= 2 && acc.validUntil ? acc.validUntil : current.validUntil,
-            };
-            writePass(next);
-            setStatus("locked");
-            toast.success("Card captured");
-            setTimeout(() => onClose(), 900);
-            break;
-          }
         } catch {
           // ignore single-frame errors
         }
@@ -155,9 +198,13 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
 
   if (typeof document === "undefined") return null;
 
+  const sideHint =
+    side === "front"
+      ? "Front · name & valid-until"
+      : "Back · 14–16 digit UID";
+
   return createPortal(
     <div className="fixed inset-0 z-[120] bg-ink/95 backdrop-blur-sm flex flex-col">
-      {/* Header */}
       <div className="flex items-center justify-between px-5 pt-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
           Scan your card
@@ -171,7 +218,25 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
-      {/* Live viewfinder */}
+      {/* Side toggle */}
+      <div className="mx-5 mt-3 grid grid-cols-2 gap-1 rounded-full bg-limestone/10 p-1 ring-1 ring-limestone/15">
+        {(["front", "back"] as const).map((s) => {
+          const active = side === s;
+          const done = s === "front" ? frontDoneRef.current : backDoneRef.current;
+          return (
+            <button
+              key={s}
+              onClick={() => switchSide(s)}
+              className={`rounded-full px-3 py-2 font-mono text-[10px] uppercase tracking-[0.22em] transition ${
+                active ? "bg-ochre text-ink" : "text-limestone/70"
+              }`}
+            >
+              {s} {done ? "✓" : ""}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="relative flex-1 mx-5 my-4 overflow-hidden rounded-[24px] ring-1 ring-limestone/20 bg-black">
         <video
           ref={videoRef}
@@ -182,7 +247,6 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
         />
         <canvas ref={canvasRef} className="hidden" />
 
-        {/* Corner brackets framing the card aspect (1.586:1) */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-6">
           <div className="relative w-full max-w-[420px] aspect-[1.586/1]">
             {(["tl","tr","bl","br"] as const).map((p) => (
@@ -202,7 +266,6 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
                 }}
               />
             ))}
-            {/* Scan line sweep */}
             {status === "scanning" && (
               <span
                 className="absolute left-2 right-2 h-px bg-ochre/80 shadow-[0_0_12px_2px_var(--color-ochre)]"
@@ -212,20 +275,21 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        {/* Status pill */}
         <div className="absolute top-3 left-1/2 -translate-x-1/2 rounded-full bg-ink/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-limestone backdrop-blur">
           {status === "loading" && "Starting camera"}
-          {status === "scanning" && "Reading…"}
+          {status === "scanning" && sideHint}
           {status === "locked" && "Captured"}
           {status === "error" && (errMsg || "Camera unavailable")}
         </div>
       </div>
 
-      {/* Detected fields — live overlays */}
       <div className="px-5 pb-7 space-y-2">
-        <FieldRow label="Card number" value={detected.number ? formatCardNumber(detected.number) : ""} />
-        <FieldRow label="Name" value={detected.holder ?? ""} />
-        <FieldRow label="Valid until" value={detected.validUntil ?? ""} />
+        <FieldRow
+          label="UID (back · 14–16 digits)"
+          value={detected.number ? formatCardNumber(detected.number) : ""}
+        />
+        <FieldRow label="Name (front)" value={detected.holder ?? ""} />
+        <FieldRow label="Valid until (front)" value={detected.validUntil ?? ""} />
         <p className="pt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50">
           Hold steady · entire card in frame
         </p>
