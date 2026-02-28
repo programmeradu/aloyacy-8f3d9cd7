@@ -256,3 +256,14 @@ export const IconTicketFilled = ({ className }: IconProps) => (
     <path d="M14 6.5v11" stroke="var(--color-limestone)" strokeWidth={1.4} strokeLinecap="round" strokeDasharray="1.5 2.5" fill="none" />
   </svg>
 );
+
+export const IconScanCard = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  // Bespoke scan mark: viewfinder corner brackets framing a horizontal scan line.
+  <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 8V6a2 2 0 0 1 2-2h2" />
+    <path d="M20 8V6a2 2 0 0 0-2-2h-2" />
+    <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+    <path d="M20 16v2a2 2 0 0 1-2 2h-2" />
+    <path d="M5.5 12h13" />
+  </svg>
+);
