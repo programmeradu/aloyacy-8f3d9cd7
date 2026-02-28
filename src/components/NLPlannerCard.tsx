@@ -225,9 +225,10 @@ export function NLPlannerCard() {
     refetchOnWindowFocus: false,
     enabled: typeof window !== "undefined",
   });
+  // Always fall back to FALLBACK_EXAMPLES until real data arrives, so SSR
+  // and the first client render produce identical HTML (avoids React #418).
   const examples =
-    suggestionsQuery.data?.suggestions?.map((s) => s.text) ??
-    (suggestionsQuery.isLoading ? [] : FALLBACK_EXAMPLES);
+    suggestionsQuery.data?.suggestions?.map((s) => s.text) ?? FALLBACK_EXAMPLES;
 
   useEffect(() => {
     trackImpression("ui:nl-planner.impression");
