@@ -322,15 +322,22 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
       ? `≈${etaMin} min`
       : `${lowerMin}–${upperMin} min`;
 
-  // Freshness tier — drives the headline colour chip.
-  let freshness: EtaFreshness;
-  if (!vehicle) {
-    freshness = "scheduled";
-  } else if (pingAgeSec <= PING_FRESH_SEC && stopsAway <= NEAR_STOPS_LIVE) {
-    freshness = "live";
-  } else {
-    freshness = "predicted";
-  }
+  // Freshness — shared classifier is source of truth. Map its rich `tier`
+  // back to the legacy three-value `freshness` field for back-compat (ghost
+  // collapses to "scheduled" so older consumers visibly demote, not lie).
+  const cls = classifyFreshness({
+    hasVehicle: !!vehicle,
+    pingAgeSec,
+    agency: input.agency,
+    stopsAway,
+    modelSamples: avgSamples,
+  });
+  const freshness: EtaFreshness =
+    cls.tier === "ghost" || cls.tier === "scheduled"
+      ? "scheduled"
+      : cls.tier === "predicted"
+        ? "predicted"
+        : "live";
 
   return {
     etaSec: p50,
@@ -338,15 +345,17 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     lowerSec,
     upperSec,
     stopsAway,
-    confidence,
+    confidence: cls.confidence,
     freshness,
+    tier: cls.tier,
     operatorEtaMin,
-    blurb: blurbFor(freshness, pingAgeSec, learned, learnedBiasSec),
+    blurb: blurbFor(cls.tier, pingAgeSec, learned, learnedBiasSec),
     learnedBiasSec,
     band,
     pingAgeSec,
   };
 }
+
 
 function blurbFor(
   freshness: EtaFreshness,
