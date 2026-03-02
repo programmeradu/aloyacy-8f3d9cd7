@@ -37,6 +37,12 @@ import {
   type LatLng,
 } from "./geo";
 import type { LearnedBias } from "./learned-types";
+import {
+  classifyFreshness,
+  thresholdsFor,
+  type FreshnessTier,
+} from "./freshness";
+
 
 export type SegmentSpeedKey = string; // `${routeId}|${fromStopId}|${toStopId}`
 export type DwellKey = string; // `${routeId}|${stopId}`
