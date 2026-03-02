@@ -6,7 +6,7 @@
 // honest "live feed lost" banner instead of silently freezing the map.
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import type { RealtimeSnapshot } from "./gtfs-rt.server";
 
 const STALE_THRESHOLD_SEC = 60;
@@ -30,8 +30,16 @@ export function useRealtime() {
   const staleSec = fetchedAt > 0 ? Math.max(0, now - fetchedAt) : Infinity;
   const isStale = !!q.data?.stale || staleSec > STALE_THRESHOLD_SEC;
 
-  return { ...q, isStale, staleSec };
+  // Trips with an active arrival but no fresh vehicle position. Any
+  // consumer can ask "is this a ghost?" without re-deriving the logic.
+  const ghostTripIds = useMemo(
+    () => new Set(q.data?.ghostTripIds ?? []),
+    [q.data?.ghostTripIds],
+  );
+
+  return { ...q, isStale, staleSec, ghostTripIds };
 }
+
 
 /** Hook returning a function that forces a fresh realtime fetch.
  *  Used on visibilitychange "visible" after the rider returned to the app. */
