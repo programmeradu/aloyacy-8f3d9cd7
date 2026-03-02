@@ -45,12 +45,17 @@ export type RealtimeSnapshot = {
   fetchedAt: number;
   vehicles: LiveVehicle[];
   arrivals: LiveArrival[];
+  /** Trip IDs with an active arrival in the next 30 min but no fresh vehicle
+   *  position (≥ 180 s old, or none at all). Consumers downgrade these trips
+   *  from "live" to scheduled/ghost across every surface. */
+  ghostTripIds?: string[];
   /** True when the upstream feed could not be reached and this snapshot is
    *  an empty fallback. UI surfaces an honest "live feed lost" banner. */
   stale?: boolean;
   /** Diagnostic message accompanying `stale: true`. Not surfaced to users. */
   error?: string;
 };
+
 
 async function fetchUpstream(): Promise<{
   vehicles: LiveVehicle[];
