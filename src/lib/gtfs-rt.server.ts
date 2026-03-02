@@ -181,10 +181,37 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
     }
   }
 
+  const mergedVehicles = [...byTrip.values()];
+
+  // Ghost detection: any trip with an upcoming arrival in the next 30 min
+  // that has no fresh vehicle position (≥180 s old, or none). Tagged here
+  // so every consumer reads one truth — see src/lib/freshness.ts.
+  const GHOST_AGE_SEC = 180;
+  const SOON_WINDOW_SEC = 30 * 60;
+  const ghostTripIds: string[] = [];
+  const tripsWithUpcoming = new Set<string>();
+  for (const a of arrivals) {
+    if (a.arrivalUnix >= now - 30 && a.arrivalUnix <= now + SOON_WINDOW_SEC) {
+      tripsWithUpcoming.add(a.tripId);
+    }
+  }
+  for (const tripId of tripsWithUpcoming) {
+    const v = byTrip.get(tripId);
+    if (!v) {
+      ghostTripIds.push(tripId);
+      continue;
+    }
+    if (v.timestamp && now - v.timestamp >= GHOST_AGE_SEC) {
+      ghostTripIds.push(tripId);
+    }
+  }
+
   return {
     fetchedAt: now,
-    vehicles: [...byTrip.values()],
+    vehicles: mergedVehicles,
     arrivals,
+    ghostTripIds,
   };
 }
+
 
