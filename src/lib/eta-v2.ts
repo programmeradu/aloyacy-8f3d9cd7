@@ -358,24 +358,29 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
 
 
 function blurbFor(
-  freshness: EtaFreshness,
+  tier: FreshnessTier,
   pingAgeSec: number,
   learned: LearnedBias | undefined,
   learnedBiasSec: number,
 ): string {
-  // Surface a learned-pattern blurb when the sample is meaningful.
+  // Surface a learned-pattern blurb when the sample is meaningful and we
+  // still have some live signal to back it.
   const biasMin = Math.round(learnedBiasSec / 60);
   if (
     learned &&
     learned.sampleCount >= LEARNED_BLURB_MIN_SAMPLES &&
     Math.abs(biasMin) >= 2 &&
-    (freshness === "live" || freshness === "predicted")
+    (tier === "live" || tier === "rider-confirmed" || tier === "predicted")
   ) {
     return biasMin > 0
       ? `usually ${biasMin} min late`
       : `usually ${-biasMin} min early`;
   }
-  if (freshness === "scheduled") return "scheduled";
-  if (pingAgeSec > 240) return "stale ping";
-  return freshness;
+  if (tier === "ghost") return "no gps — using schedule";
+  if (tier === "scheduled") return "scheduled";
+  if (tier === "rider-confirmed") return "rider-confirmed";
+  if (tier === "predicted" && pingAgeSec > 240) return "stale ping";
+  return tier;
+}
+
 }
