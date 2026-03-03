@@ -426,15 +426,19 @@ function SingleLegCompanion({
       </section>
 
       {/* Honest feed/vehicle/reroute banners */}
-      {live.active && live.feedStale && (
+      {live.active && live.tripGhost && !live.vehicleLost && (
+        <div className="mt-3"><StaleFeedBanner variant="ghost-bus" /></div>
+      )}
+      {live.active && !live.tripGhost && live.feedStale && (
         <div className="mt-3"><StaleFeedBanner variant="feed-stale" /></div>
       )}
-      {live.active && !live.feedStale && live.vehicleLost && (
+      {live.active && !live.feedStale && !live.tripGhost && live.vehicleLost && (
         <div className="mt-3"><StaleFeedBanner variant="vehicle-lost" /></div>
       )}
-      {live.active && !live.feedStale && !live.vehicleLost && live.vehicleNotTracked && (
+      {live.active && !live.feedStale && !live.vehicleLost && !live.tripGhost && live.vehicleNotTracked && (
         <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
       )}
+
       {live.active && live.rerouteHint?.kind === "switch-boarding" && (
         <section className="px-6 mt-3 animate-rise">
           <div className="rounded-[22px] bg-aegean-soft/50 ring-1 ring-aegean/30 px-4 py-3">
