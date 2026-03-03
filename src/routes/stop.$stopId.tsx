@@ -218,6 +218,3 @@ function StopDetail() {
     </AppShell>
   );
 }
-
-  return true;
-}
