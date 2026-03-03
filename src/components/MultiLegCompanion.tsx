@@ -165,10 +165,13 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
       </section>
 
       {/* Resilience banners */}
+      {live.active && live.tripGhost && !live.vehicleLost && (
+        <div className="mt-3"><StaleFeedBanner variant="ghost-bus" /></div>
+      )}
       {live.active && live.vehicleLost && (
         <div className="mt-3"><StaleFeedBanner variant="vehicle-lost" /></div>
       )}
-      {live.active && !live.vehicleLost && live.feedStale && (
+      {live.active && !live.vehicleLost && !live.tripGhost && live.feedStale && (
         <div className="mt-3"><StaleFeedBanner variant="feed-stale" /></div>
       )}
       {live.active &&
@@ -177,6 +180,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         !live.nextVehicleTracked && (
           <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
         )}
+
 
       {/* Proactive disruption assistant */}
       <DisruptionBanner
