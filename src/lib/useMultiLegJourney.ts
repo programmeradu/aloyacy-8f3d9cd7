@@ -91,8 +91,11 @@ export type MultiLegLive = {
   vehicleLost: boolean;
   /** True when the realtime feed itself is stale. */
   feedStale: boolean;
+  /** True when the current ride's trip is flagged ghost (no fresh GPS ≥ 180s). */
+  tripGhost: boolean;
   /** True when the next ride's vehicle has not started reporting yet. */
   nextVehicleTracked: boolean;
+
   /** Wrong-stop adaptive hint while walking to the planned board stop. */
   rerouteHint: RerouteHint;
 };
@@ -183,7 +186,9 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       fusedCurrentVehicle: null,
       vehicleLost: false,
       feedStale,
+      tripGhost: false,
       nextVehicleTracked: false,
+
       rerouteHint: null,
     };
 
@@ -452,7 +457,14 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       fusedCurrentVehicle,
       vehicleLost,
       feedStale,
+      tripGhost: !!(
+        currentRideLeg &&
+        rt?.ghostTripIds &&
+        rt.ghostTripIds.includes(currentRideLeg.tripId)
+      ),
+
       nextVehicleTracked,
+
       rerouteHint,
     };
   }, [itin, legState, started, fix, rt, feedStale, drive.etaSec, driveInputs.tripId]);

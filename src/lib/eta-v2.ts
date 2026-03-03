@@ -37,6 +37,12 @@ import {
   type LatLng,
 } from "./geo";
 import type { LearnedBias } from "./learned-types";
+import {
+  classifyFreshness,
+  type FreshnessTier,
+} from "./freshness";
+
+
 
 export type SegmentSpeedKey = string; // `${routeId}|${fromStopId}|${toStopId}`
 export type DwellKey = string; // `${routeId}|${stopId}`
@@ -66,8 +72,10 @@ export type SmartEtaV2 = {
   stopsAway: number;
   /** Confidence of the *band width* (sample coverage + freshness). */
   confidence: "high" | "medium" | "low";
-  /** Source tier for the colour chip — "live" (fresh ping + close), "predicted" (vehicle but stale/far), "scheduled" (no vehicle). */
+  /** Legacy source tier — kept for back-compat. New code reads `tier`. */
   freshness: EtaFreshness;
+  /** Rich trust tier used by EtaPill: live / rider-confirmed / predicted / ghost / scheduled. */
+  tier: FreshnessTier;
   /** What the operator's tripUpdate said — for the strikethrough hint. */
   operatorEtaMin: number;
   /** Short label for the chip e.g. "live", "stale ping", "usually 2 min late". */
@@ -80,14 +88,14 @@ export type SmartEtaV2 = {
   pingAgeSec: number;
 };
 
+
 const URBAN_FALLBACK_MPS = 18 / 3.6;
 const INTERCITY_FALLBACK_MPS = 40 / 3.6;
 const URBAN_DWELL_SEC = 20;
 const INTERCITY_DWELL_SEC = 10;
 const MIN_SAMPLES_TRUST = 5;
-const PING_FRESH_SEC = 60;
 const PING_STALE_SEC = 90;
-const NEAR_STOPS_LIVE = 5;
+
 const LEARNED_BIAS_WEIGHT = 0.6;
 const LEARNED_BIAS_MIN_SAMPLES = 5;
 const LEARNED_BLURB_MIN_SAMPLES = 8;
@@ -146,22 +154,36 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
       operatorEtaSec + learnedBiasSec * LEARNED_BIAS_WEIGHT,
     );
     const adjMin = Math.max(0, Math.round(adjusted / 60));
-    const freshness: EtaFreshness = vehicle ? "predicted" : "scheduled";
+    const cls = classifyFreshness({
+      hasVehicle: !!vehicle,
+      pingAgeSec,
+      agency: input.agency,
+      stopsAway: 0,
+      modelSamples: 0,
+    });
+    const freshness: EtaFreshness =
+      cls.tier === "ghost" || cls.tier === "scheduled"
+        ? "scheduled"
+        : cls.tier === "predicted"
+          ? "predicted"
+          : "live";
     return {
       etaSec: adjusted,
       etaMin: adjMin,
       lowerSec: adjusted,
       upperSec: adjusted,
       stopsAway: 0,
-      confidence: "low",
+      confidence: cls.confidence,
       freshness,
+      tier: cls.tier,
       operatorEtaMin,
-      blurb: blurbFor(freshness, pingAgeSec, learned, learnedBiasSec),
+      blurb: blurbFor(cls.tier, pingAgeSec, learned, learnedBiasSec),
       learnedBiasSec,
       band: `≈${adjMin} min`,
       pingAgeSec,
     };
   }
+
 
   // ----- Snap the bus to the route geometry --------------------------------
   // Shape mode: snap vehicle + every stop vertex onto the real polyline and
@@ -299,15 +321,22 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
       ? `≈${etaMin} min`
       : `${lowerMin}–${upperMin} min`;
 
-  // Freshness tier — drives the headline colour chip.
-  let freshness: EtaFreshness;
-  if (!vehicle) {
-    freshness = "scheduled";
-  } else if (pingAgeSec <= PING_FRESH_SEC && stopsAway <= NEAR_STOPS_LIVE) {
-    freshness = "live";
-  } else {
-    freshness = "predicted";
-  }
+  // Freshness — shared classifier is source of truth. Map its rich `tier`
+  // back to the legacy three-value `freshness` field for back-compat (ghost
+  // collapses to "scheduled" so older consumers visibly demote, not lie).
+  const cls = classifyFreshness({
+    hasVehicle: !!vehicle,
+    pingAgeSec,
+    agency: input.agency,
+    stopsAway,
+    modelSamples: avgSamples,
+  });
+  const freshness: EtaFreshness =
+    cls.tier === "ghost" || cls.tier === "scheduled"
+      ? "scheduled"
+      : cls.tier === "predicted"
+        ? "predicted"
+        : "live";
 
   return {
     etaSec: p50,
@@ -315,35 +344,41 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     lowerSec,
     upperSec,
     stopsAway,
-    confidence,
+    confidence: cls.confidence,
     freshness,
+    tier: cls.tier,
     operatorEtaMin,
-    blurb: blurbFor(freshness, pingAgeSec, learned, learnedBiasSec),
+    blurb: blurbFor(cls.tier, pingAgeSec, learned, learnedBiasSec),
     learnedBiasSec,
     band,
     pingAgeSec,
   };
 }
 
+
 function blurbFor(
-  freshness: EtaFreshness,
+  tier: FreshnessTier,
   pingAgeSec: number,
   learned: LearnedBias | undefined,
   learnedBiasSec: number,
 ): string {
-  // Surface a learned-pattern blurb when the sample is meaningful.
+  // Surface a learned-pattern blurb when the sample is meaningful and we
+  // still have some live signal to back it.
   const biasMin = Math.round(learnedBiasSec / 60);
   if (
     learned &&
     learned.sampleCount >= LEARNED_BLURB_MIN_SAMPLES &&
     Math.abs(biasMin) >= 2 &&
-    (freshness === "live" || freshness === "predicted")
+    (tier === "live" || tier === "rider-confirmed" || tier === "predicted")
   ) {
     return biasMin > 0
       ? `usually ${biasMin} min late`
       : `usually ${-biasMin} min early`;
   }
-  if (freshness === "scheduled") return "scheduled";
-  if (pingAgeSec > 240) return "stale ping";
-  return freshness;
+  if (tier === "ghost") return "no gps — using schedule";
+  if (tier === "scheduled") return "scheduled";
+  if (tier === "rider-confirmed") return "rider-confirmed";
+  if (tier === "predicted" && pingAgeSec > 240) return "stale ping";
+  return tier;
 }
+

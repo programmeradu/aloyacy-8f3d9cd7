@@ -7,7 +7,7 @@
 
 import { useI18n, type DictKey } from "@/lib/i18n";
 
-type Variant = "feed-stale" | "vehicle-lost" | "next-not-tracked";
+type Variant = "feed-stale" | "vehicle-lost" | "next-not-tracked" | "ghost-bus";
 
 const META: Record<Variant, { label: DictKey; detail: DictKey; tone: string }> = {
   "feed-stale": {
@@ -25,7 +25,13 @@ const META: Record<Variant, { label: DictKey; detail: DictKey; tone: string }> =
     detail: "stale.nextNotTracked.detail",
     tone: "bg-card ring-line text-ink-soft",
   },
+  "ghost-bus": {
+    label: "stale.ghostBus.label",
+    detail: "stale.ghostBus.detail",
+    tone: "bg-ochre-soft/70 ring-ochre/40 text-ink",
+  },
 };
+
 
 export function StaleFeedBanner({ variant }: { variant: Variant }) {
   const { t } = useI18n();

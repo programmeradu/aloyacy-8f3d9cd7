@@ -205,7 +205,10 @@ function Explore() {
 
         etaMin: nextEta,
         etaConfidence: smart?.freshness,
+        etaTier: smart?.tier,
+        etaConfidenceLevel: smart?.confidence,
         etaBlurb: smart?.blurb,
+
         routes,
         highlight: idx === 0,
         kind: stopKind(s),

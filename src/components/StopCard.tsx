@@ -5,9 +5,16 @@ import stopShelter from "@/assets/stop-shelter.png";
 import stopPole from "@/assets/stop-pole.png";
 import stopTerminal from "@/assets/stop-terminal.png";
 import { useI18n } from "@/lib/i18n";
+import {
+  confidenceDot,
+  tierAccent,
+  type FreshnessConfidence,
+  type FreshnessTier,
+} from "@/lib/freshness";
 
 type Tone = "aegean" | "ochre" | "olive";
 export type StopKind = "shelter" | "pole" | "terminal";
+/** Legacy three-value freshness. Use `etaTier` for richer surfacing. */
 export type EtaConfidence = "live" | "predicted" | "scheduled";
 
 export type Stop = {
@@ -18,6 +25,10 @@ export type Stop = {
   etaMin: number | null;
   /** Source/freshness of the displayed ETA. Drives the colour chip. */
   etaConfidence?: EtaConfidence;
+  /** Rich trust tier — preferred over `etaConfidence` when available. */
+  etaTier?: FreshnessTier;
+  /** Confidence of the ETA model (sample coverage). */
+  etaConfidenceLevel?: FreshnessConfidence;
   /** Optional short label ("live", "stale ping", "scheduled"). */
   etaBlurb?: string;
   routes: { code: string; tone: Tone }[];
@@ -46,10 +57,28 @@ const VIGNETTES: Record<
   },
 };
 
+function tierFromLegacy(
+  tier: FreshnessTier | undefined,
+  legacy: EtaConfidence | undefined,
+): FreshnessTier {
+  if (tier) return tier;
+  if (legacy === "live") return "live";
+  if (legacy === "predicted") return "predicted";
+  return "scheduled";
+}
+
 export function StopCard({ stop }: { stop: Stop }) {
   const { t } = useI18n();
-  const tone = stop.highlight ? "text-aegean-deep" : "text-olive/40";
   const v = VIGNETTES[stop.kind ?? "shelter"];
+  const tier = tierFromLegacy(stop.etaTier, stop.etaConfidence);
+  const isGhost = tier === "ghost";
+  const accent = stop.highlight && (tier === "live" || tier === "rider-confirmed")
+    ? "text-aegean-deep"
+    : tierAccent(tier);
+  const showTierChip = stop.etaMin != null;
+  // Ghost: replace the number with "—" so we never claim live time we lack.
+  const displayMin = stop.etaMin == null || isGhost ? null : stop.etaMin;
+
   return (
     <Link
       to="/stop/$stopId"
@@ -88,41 +117,34 @@ export function StopCard({ stop }: { stop: Stop }) {
         </div>
 
         <div className="flex flex-col items-end gap-1">
-          {stop.etaMin === null ? (
+          {displayMin === null ? (
             <>
-              <span className={`font-display text-5xl leading-none ${tone}`}>
+              <span className={`font-display text-5xl leading-none ${accent}`}>
                 —
               </span>
               <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/70 text-right max-w-[7rem]">
-                {t("stopCard.noLiveBus")}
+                {isGhost ? t("eta.tier.ghost") : t("stopCard.noLiveBus")}
               </span>
             </>
           ) : (
             <>
-              <div className="flex items-baseline">
-                <span
-                  className={`font-display text-5xl leading-none ${
-                    stop.etaConfidence === "scheduled"
-                      ? "text-ink-soft/60"
-                      : stop.etaConfidence === "predicted"
-                        ? "text-olive"
-                        : tone
-                  }`}
-                >
-                  {stop.etaMin}
-                </span>
-              </div>
+              <span className={`font-display text-5xl leading-none ${accent}`}>
+                {displayMin}
+              </span>
               <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/70">
                 {t("stopCard.minAway")}
               </span>
-              {stop.etaBlurb && stop.etaConfidence !== "live" && (
-                <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-ink-soft/60">
-                  {stop.etaBlurb}
-                </span>
-              )}
             </>
           )}
-          <span className="mt-2 flex size-7 items-center justify-center rounded-full bg-limestone-soft text-ink-soft transition-colors group-hover:bg-aegean-deep group-hover:text-white">
+          {showTierChip && (
+            <TierChip
+              tier={tier}
+              confidence={stop.etaConfidenceLevel}
+              blurb={stop.etaBlurb}
+              t={t}
+            />
+          )}
+          <span className="mt-1 flex size-7 items-center justify-center rounded-full bg-limestone-soft text-ink-soft transition-colors group-hover:bg-aegean-deep group-hover:text-white">
             <IconArrowUpRight className="size-3.5" />
           </span>
         </div>
@@ -130,3 +152,42 @@ export function StopCard({ stop }: { stop: Stop }) {
     </Link>
   );
 }
+
+function TierChip({
+  tier,
+  confidence,
+  blurb,
+  t,
+}: {
+  tier: FreshnessTier;
+  confidence?: FreshnessConfidence;
+  blurb?: string;
+  t: (k: never) => string;
+}) {
+  const dot = confidenceDot(confidence ?? "low");
+  const showConfidence =
+    !!confidence && (tier === "live" || tier === "rider-confirmed" || tier === "predicted");
+  // i18n keys are typed against the dictionary; cast here is intentional —
+  // every tier value maps to an existing key.
+  const tierLabel = t(`eta.tier.${tier === "rider-confirmed" ? "rider" : tier}` as never);
+  return (
+    <div className="mt-1 flex flex-col items-end gap-0.5">
+      <span className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
+        <span className={`size-1.5 rounded-full ${dot}`} aria-hidden />
+        <span>{tierLabel}</span>
+        {showConfidence && (
+          <>
+            <span className="text-ink-soft/40">·</span>
+            <span>{t(`eta.conf.${confidence === "medium" ? "med" : confidence}` as never)}</span>
+          </>
+        )}
+      </span>
+      {blurb && tier !== "live" && tier !== "rider-confirmed" && (
+        <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-ink-soft/60 text-right max-w-[10rem]">
+          {blurb}
+        </span>
+      )}
+    </div>
+  );
+}
+
