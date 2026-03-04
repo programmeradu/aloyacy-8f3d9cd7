@@ -76,14 +76,19 @@ export function classifyFreshness(input: FreshnessInput): FreshnessResult {
 
   const age = Math.max(0, input.pingAgeSec);
 
+  // Rider-confirmed within the trust window wins over "stale ping" /
+  // "ghost" — one rider physically seeing the bus is stronger evidence
+  // than the absence of a fresh GTFS-RT row. Confidence degrades with
+  // sighting age but the tier stays rider-confirmed up to the ghost
+  // cutoff, so we never falsely demote a freshly-confirmed trip.
+  if (input.riderConfirmed && age < T.ghost) {
+    const conf: FreshnessConfidence = age < T.fresh ? "high" : "medium";
+    return { tier: "rider-confirmed", confidence: conf, token: "rider" };
+  }
+
   // Stale ≥ ghost threshold → demote to ghost regardless of model quality.
   if (age >= T.ghost) {
     return { tier: "ghost", confidence: "low", token: "no gps" };
-  }
-
-  // Rider-confirmed within fresh window → strong.
-  if (input.riderConfirmed && age < T.fresh) {
-    return { tier: "rider-confirmed", confidence: "high", token: "rider" };
   }
 
   // Fresh ping + close to the rider → live.

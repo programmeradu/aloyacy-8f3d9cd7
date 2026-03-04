@@ -545,6 +545,14 @@ export const el: Record<keyof typeof en, string> = {
   "eta.minLabel": "λεπτά",
   "eta.opShort": "οπ {m} λεπ",
 
+  // rider-confirmed sighting — "I see this bus" CTA
+  "sighting.kicker": "Το βλέπετε το λεωφορείο;",
+  "sighting.cta": "Επιβεβαίωση — το βλέπω τώρα",
+  "sighting.help": "Πατήστε αν το λεωφορείο είναι στη στάση. Το πάτημα σας το ανεβάζει από «χωρίς GPS» για όλους.",
+  "sighting.sending": "Αποστολή…",
+  "sighting.thanksLabel": "Ευχαριστούμε — επιβεβαιωμένο",
+  "sighting.thanksDetail": "Οι άλλοι επιβάτες θα δουν αυτή τη διαδρομή ως επιβεβαιωμένη για το επόμενο λεπτό.",
+
 
   // crowd hint
   "crowd.tag": "Άνεση",

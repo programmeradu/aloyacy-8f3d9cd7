@@ -92,6 +92,39 @@ export type Database = {
         }
         Relationships: []
       }
+      bus_sightings: {
+        Row: {
+          device_id: string
+          id: number
+          lat: number
+          lng: number
+          reported_at: string
+          route_id: string | null
+          stop_id: string | null
+          trip_id: string
+        }
+        Insert: {
+          device_id: string
+          id?: number
+          lat: number
+          lng: number
+          reported_at?: string
+          route_id?: string | null
+          stop_id?: string | null
+          trip_id: string
+        }
+        Update: {
+          device_id?: string
+          id?: number
+          lat?: number
+          lng?: number
+          reported_at?: string
+          route_id?: string | null
+          stop_id?: string | null
+          trip_id?: string
+        }
+        Relationships: []
+      }
       commute_patterns: {
         Row: {
           count: number
@@ -1319,6 +1352,7 @@ export type Database = {
     }
     Functions: {
       bump_alert_counter: { Args: { p_kind: string }; Returns: undefined }
+      cleanup_bus_sightings: { Args: never; Returns: undefined }
       cleanup_pulse_signals: { Args: never; Returns: undefined }
       cleanup_rider_fixes: { Args: never; Returns: undefined }
       delete_email: {

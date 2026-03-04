@@ -41,14 +41,26 @@ export type LiveArrival = {
   delaySec: number;
 };
 
+export type RiderConfirmedTrip = {
+  tripId: string;
+  /** Seconds since the most recent rider sighting. */
+  ageSec: number;
+};
+
 export type RealtimeSnapshot = {
   fetchedAt: number;
   vehicles: LiveVehicle[];
   arrivals: LiveArrival[];
   /** Trip IDs with an active arrival in the next 30 min but no fresh vehicle
    *  position (≥ 180 s old, or none at all). Consumers downgrade these trips
-   *  from "live" to scheduled/ghost across every surface. */
+   *  from "live" to scheduled/ghost across every surface. Trips confirmed by
+   *  a recent rider sighting are excluded — they live in `riderConfirmedTrips`
+   *  instead. */
   ghostTripIds?: string[];
+  /** Trips a rider physically confirmed they can see within the last ~90 s.
+   *  Used by the freshness classifier to upgrade trips from ghost/predicted
+   *  to the `rider-confirmed` tier. */
+  riderConfirmedTrips?: RiderConfirmedTrip[];
   /** True when the upstream feed could not be reached and this snapshot is
    *  an empty fallback. UI surfaces an honest "live feed lost" banner. */
   stale?: boolean;
@@ -139,11 +151,34 @@ async function fetchRiderFixes(): Promise<LiveVehicle[]> {
   return out;
 }
 
+async function fetchSightings(): Promise<RiderConfirmedTrip[]> {
+  // Trust window: 90 s. After that we let the trip fall back to whatever
+  // the feed (or absence of feed) actually says.
+  const WINDOW_SEC = 90;
+  const cutoff = new Date(Date.now() - WINDOW_SEC * 1000).toISOString();
+  const { data, error } = await supabaseAdmin
+    .from("bus_sightings")
+    .select("trip_id, reported_at")
+    .gte("reported_at", cutoff)
+    .order("reported_at", { ascending: false })
+    .limit(500);
+  if (error || !data) return [];
+  const now = Date.now();
+  const seen = new Map<string, number>(); // tripId → most recent age (sec)
+  for (const row of data) {
+    if (seen.has(row.trip_id)) continue;
+    const age = Math.max(0, Math.floor((now - new Date(row.reported_at).getTime()) / 1000));
+    seen.set(row.trip_id, age);
+  }
+  return Array.from(seen, ([tripId, ageSec]) => ({ tripId, ageSec }));
+}
+
 export async function fetchRealtime(): Promise<RealtimeSnapshot> {
   const now = Math.floor(Date.now() / 1000);
-  const [upstreamResult, riderFixes] = await Promise.all([
+  const [upstreamResult, riderFixes, sightings] = await Promise.all([
     fetchUpstream().catch((e) => ({ error: e as Error })),
     fetchRiderFixes().catch(() => [] as LiveVehicle[]),
+    fetchSightings().catch(() => [] as RiderConfirmedTrip[]),
   ]);
 
   if ("error" in upstreamResult) {
@@ -152,6 +187,7 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
       fetchedAt: now,
       vehicles: riderFixes,
       arrivals: [],
+      riderConfirmedTrips: sightings,
       stale: riderFixes.length === 0,
       error: upstreamResult.error.message,
     };
@@ -188,6 +224,7 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
   // so every consumer reads one truth — see src/lib/freshness.ts.
   const GHOST_AGE_SEC = 180;
   const SOON_WINDOW_SEC = 30 * 60;
+  const confirmedSet = new Set(sightings.map((s) => s.tripId));
   const ghostTripIds: string[] = [];
   const tripsWithUpcoming = new Set<string>();
   for (const a of arrivals) {
@@ -196,6 +233,9 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
     }
   }
   for (const tripId of tripsWithUpcoming) {
+    // Rider-confirmed trips are NOT ghosts — at least one rider physically
+    // sees this bus right now, so we trust it even without a fresh feed row.
+    if (confirmedSet.has(tripId)) continue;
     const v = byTrip.get(tripId);
     if (!v) {
       ghostTripIds.push(tripId);
@@ -211,6 +251,7 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
     vehicles: mergedVehicles,
     arrivals,
     ghostTripIds,
+    riderConfirmedTrips: sightings,
   };
 }
 
