@@ -6,6 +6,7 @@ import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus } from "@/components/Icons";
 import { StaleFeedBanner } from "@/components/StaleFeedBanner";
 import { EtaPill } from "@/components/EtaPill";
+import { SightingButton } from "@/components/SightingButton";
 import { useRealtime } from "@/lib/useRealtime";
 import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useEtaStats } from "@/lib/useEtaStats";
@@ -46,7 +47,7 @@ function StopDetail() {
   const { t } = useI18n();
   const { stopId } = Route.useParams();
   const stop = getStop(stopId);
-  const { data: rt, isLoading } = useRealtime();
+  const { data: rt, isLoading, riderConfirmedAge } = useRealtime();
   const { data: learnedByStop } = useLearnedStatsBulk([stopId]);
 
   // Route IDs serving this stop right now — fed to ETA v2 stats fetcher.
@@ -83,6 +84,7 @@ function StopDetail() {
           dwells: etaStats.dwells,
           shape: getShapeForTripSync(a.tripId, a.routeId),
           learnedByRoute,
+          riderConfirmedAgeSec: riderConfirmedAge.get(a.tripId),
         });
         return { ...a, eta };
       })
@@ -91,7 +93,7 @@ function StopDetail() {
           d.eta != null && d.eta.etaMin <= 180,
       )
       .slice(0, 8);
-  }, [rt, stopId, learnedByStop, stop?.agency, etaStats]);
+  }, [rt, stopId, learnedByStop, stop?.agency, etaStats, riderConfirmedAge]);
 
 
   const center = stop ? { lat: stop.lat, lng: stop.lng } : undefined;
