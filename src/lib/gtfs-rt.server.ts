@@ -151,11 +151,34 @@ async function fetchRiderFixes(): Promise<LiveVehicle[]> {
   return out;
 }
 
+async function fetchSightings(): Promise<RiderConfirmedTrip[]> {
+  // Trust window: 90 s. After that we let the trip fall back to whatever
+  // the feed (or absence of feed) actually says.
+  const WINDOW_SEC = 90;
+  const cutoff = new Date(Date.now() - WINDOW_SEC * 1000).toISOString();
+  const { data, error } = await supabaseAdmin
+    .from("bus_sightings")
+    .select("trip_id, reported_at")
+    .gte("reported_at", cutoff)
+    .order("reported_at", { ascending: false })
+    .limit(500);
+  if (error || !data) return [];
+  const now = Date.now();
+  const seen = new Map<string, number>(); // tripId → most recent age (sec)
+  for (const row of data) {
+    if (seen.has(row.trip_id)) continue;
+    const age = Math.max(0, Math.floor((now - new Date(row.reported_at).getTime()) / 1000));
+    seen.set(row.trip_id, age);
+  }
+  return Array.from(seen, ([tripId, ageSec]) => ({ tripId, ageSec }));
+}
+
 export async function fetchRealtime(): Promise<RealtimeSnapshot> {
   const now = Math.floor(Date.now() / 1000);
-  const [upstreamResult, riderFixes] = await Promise.all([
+  const [upstreamResult, riderFixes, sightings] = await Promise.all([
     fetchUpstream().catch((e) => ({ error: e as Error })),
     fetchRiderFixes().catch(() => [] as LiveVehicle[]),
+    fetchSightings().catch(() => [] as RiderConfirmedTrip[]),
   ]);
 
   if ("error" in upstreamResult) {
@@ -164,6 +187,7 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
       fetchedAt: now,
       vehicles: riderFixes,
       arrivals: [],
+      riderConfirmedTrips: sightings,
       stale: riderFixes.length === 0,
       error: upstreamResult.error.message,
     };

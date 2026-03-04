@@ -32,6 +32,7 @@ import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
+import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sighting'
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -167,6 +168,11 @@ const ApiPublicSnapshotRoute = ApiPublicSnapshotRouteImport.update({
   path: '/api/public/snapshot',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSightingRoute = ApiPublicSightingRouteImport.update({
+  id: '/api/public/sighting',
+  path: '/api/public/sighting',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicRiderFixRoute = ApiPublicRiderFixRouteImport.update({
   id: '/api/public/rider-fix',
   path: '/api/public/rider-fix',
@@ -292,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
+  '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
@@ -335,6 +342,7 @@ export interface FileRoutesByTo {
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
+  '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
@@ -379,6 +387,7 @@ export interface FileRoutesById {
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
+  '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
@@ -424,6 +433,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
+    | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
@@ -467,6 +477,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
+    | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
@@ -510,6 +521,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
+    | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
@@ -554,6 +566,7 @@ export interface RootRouteChildren {
   TripIdRoute: typeof TripIdRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
+  ApiPublicSightingRoute: typeof ApiPublicSightingRoute
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
@@ -738,6 +751,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSnapshotRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/sighting': {
+      id: '/api/public/sighting'
+      path: '/api/public/sighting'
+      fullPath: '/api/public/sighting'
+      preLoaderRoute: typeof ApiPublicSightingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/rider-fix': {
       id: '/api/public/rider-fix'
       path: '/api/public/rider-fix'
@@ -890,6 +910,7 @@ const rootRouteChildren: RootRouteChildren = {
   TripIdRoute: TripIdRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
+  ApiPublicSightingRoute: ApiPublicSightingRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
