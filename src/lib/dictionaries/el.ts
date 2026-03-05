@@ -521,6 +521,8 @@ export const el: Record<keyof typeof en, string> = {
   "disruption.label.connectionAtRisk": "Στενή ανταπόκριση",
   "disruption.label.missedConnection": "Εναλλακτικό σχέδιο",
   "disruption.label.vehicleLostFeed": "Παρακολούθηση",
+  "disruption.label.ghostPreBoard": "Φάντασμα λεωφορείο",
+  "disruption.label.latePreBoard": "Καθυστέρηση",
   "disruption.fasterRoute": "Βρες πιο γρήγορη διαδρομή",
 
   // stale feed banner
@@ -622,6 +624,14 @@ export const el: Record<keyof typeof en, string> = {
   "replan.lostFeed.eyebrow": "Αλλαγή διαδρομής",
   "replan.lostFeed.title": "Ξανασχεδιάστε από εκεί που είστε.",
   "replan.lostFeed.sub": "Νέες επιλογές από την τρέχουσα θέση σας.",
+  "replan.ghostPreBoard.eyebrow": "Φάντασμα λεωφορείο",
+  "replan.ghostPreBoard.title": "Αυτό το λεωφορείο δεν στέλνει σήμα.",
+  "replan.ghostPreBoard.sub": "Διάλεξε εφεδρεία για να μην μείνεις εκτεθειμένος αν δεν εμφανιστεί.",
+  "replan.latePreBoard.eyebrow": "Καθυστέρηση",
+  "replan.latePreBoard.title": "Το λεωφορείό σου αργεί.",
+  "replan.latePreBoard.sub": "Να τι είναι πιο γρήγορο από την τρέχουσα θέση σου.",
+  "replan.walkInstead": "Ή πήγαινε με τα πόδια σε περίπου {mins}",
+  "replan.walkInsteadCta": "Με τα πόδια",
   "alight.eyebrow": "Κατέβηκες νωρίς",
   "alight.title": "Να μερικές νέες επιλογές από εκεί που είστε.",
   "alight.empty": "Δεν βρέθηκαν λεωφορεία — το καλύτερο είναι να συνεχίσετε με τα πόδια.",
