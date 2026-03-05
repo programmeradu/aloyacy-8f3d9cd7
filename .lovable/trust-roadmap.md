@@ -26,10 +26,11 @@ Goal: every ETA shown in Aloya carries a credible confidence signal, and no ride
 - `confirmSighting` server fn; "I see this bus" pill on `StopCard` (within ~120m of stop) and `JourneyHUD` (on-bus).
 - One confirmation upgrades trip to `rider-confirmed` tier for 90s — recovers ghosted trips when GPS feed lags.
 
-### 1.4 Reliability Scores per Route/Stop
-- Background sampler writes RT snapshots to `rt_samples` (Cloud, 14-day rolling).
-- Server fn computes per-route and per-stop on-time % (±2min) and ghost rate.
-- Surfaces: small badge on route detail ("On time 78% last 14 days"), filter in Pulse, weighting in route ranking.
+### 1.4 Reliability Scores per Route — SHIPPED
+- `getRouteReliability` server fn (`src/lib/reliability.functions.ts`) reads `delay_stats` and converts each (route, stop, hour, dow) bucket into a P(|delay|≤120s) estimate using a normal CDF, with a 30s stddev floor to prevent fake-perfect scores.
+- Aggregates weighted by `sample_count`; tier thresholds: ≥80% high, 60–79 medium, <60 low, <30 samples = unknown.
+- `<ReliabilityBadge>` (compact + stack variants) surfaces on route detail page header. EN/EL copy ("On time 78% · Avg 42s late · 1,204 observations").
+- Per-stop reliability + Pulse filter integration deferred to a later pass.
 
 ### 1.5 Smart Alternatives on Failure
 - Trigger: trip becomes `ghost` OR predicted delay >8min OR cancellation alert.
