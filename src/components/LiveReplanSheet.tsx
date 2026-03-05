@@ -102,6 +102,16 @@ const COPY: Record<DisruptionKind, { eyebrow: DictKey; title: DictKey; sub: Dict
     title: "replan.lostFeed.title",
     sub: "replan.lostFeed.sub",
   },
+  "ghost-pre-board": {
+    eyebrow: "replan.ghostPreBoard.eyebrow",
+    title: "replan.ghostPreBoard.title",
+    sub: "replan.ghostPreBoard.sub",
+  },
+  "late-pre-board": {
+    eyebrow: "replan.latePreBoard.eyebrow",
+    title: "replan.latePreBoard.title",
+    sub: "replan.latePreBoard.sub",
+  },
 };
 
 export function LiveReplanSheet({
