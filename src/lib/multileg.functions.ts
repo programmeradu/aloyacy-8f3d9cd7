@@ -203,6 +203,8 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       return a.score - b.score;
     });
     const top = kept.slice(0, TOP_K);
+    // Wave 2.4 — attach "Why this route?" rationale tags to each top option.
+    annotateRationales(top);
 
     return {
       itineraries: top,
