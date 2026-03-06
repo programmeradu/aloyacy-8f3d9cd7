@@ -4,11 +4,32 @@
 // are first-class.
 
 import { useMemo, useState } from "react";
-import type { Itinerary, RideLeg } from "@/lib/itinerary-types";
+import type { Itinerary, RationaleTag, RideLeg } from "@/lib/itinerary-types";
 import { routeTone } from "@/lib/gtfs";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowUpRight } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
+
+function rationaleToCopy(tag: RationaleTag, t: (k: string, v?: Record<string, string | number>) => string): string {
+  switch (tag.kind) {
+    case "fastest":
+      return t("rationale.fastest", { m: tag.minutesEarlier });
+    case "no-changes":
+      return t("rationale.noChanges");
+    case "fewer-changes":
+      return tag.n === 1 ? t("rationale.fewerChangesOne") : t("rationale.fewerChanges");
+    case "less-walking":
+      return t("rationale.lessWalking", { m: tag.metersSaved });
+    case "all-live":
+      return t("rationale.allLive");
+    case "more-reliable":
+      return t("rationale.moreReliable");
+    case "leaves-sooner":
+      return t("rationale.leavesSooner", { m: tag.minutesSooner });
+    case "best-overall":
+      return t("rationale.bestOverall");
+  }
+}
 
 function fmtMin(sec: number) {
   const m = Math.max(1, Math.round(sec / 60));
