@@ -72,4 +72,26 @@ export type Itinerary = {
   score: number;
   /** Diagnostic: where the times came from. */
   source: "live" | "mixed" | "estimated";
+  /**
+   * Wave 2.4 — "Why this route?" tags. Computed by comparing this itinerary
+   * against its peers in the same result set. UI is responsible for
+   * localising each tag into a one-line rationale.
+   * Empty/undefined means: no peer-relative distinction worth surfacing.
+   */
+  rationale?: RationaleTag[];
 };
+
+/**
+ * Discriminated union of contrastive reasons one itinerary stands out vs.
+ * its peers. Each tag carries the numeric delta when relevant so copy can
+ * be precise ("Arrives 6 min earlier") instead of vague ("Faster").
+ */
+export type RationaleTag =
+  | { kind: "fastest"; minutesEarlier: number }
+  | { kind: "no-changes" }
+  | { kind: "fewer-changes"; n: number }
+  | { kind: "less-walking"; metersSaved: number }
+  | { kind: "all-live" }
+  | { kind: "more-reliable" }
+  | { kind: "leaves-sooner"; minutesSooner: number }
+  | { kind: "best-overall" };
