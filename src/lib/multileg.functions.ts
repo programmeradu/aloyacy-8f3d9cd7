@@ -16,12 +16,22 @@ import {
 import { getSkippedTransferCount } from "./overrides.server";
 import type { Itinerary, RideLeg } from "./itinerary-types";
 import { annotateRationales } from "./itinerary-rationale";
+import { applyAccessibilityWeights } from "./accessibility-weights";
 
 const PointSchema = z.object({
   lat: z.number().min(34).max(36),
   lng: z.number().min(32).max(35),
   label: z.string().max(200).optional(),
 });
+
+const A11ySchema = z
+  .object({
+    stepFree: z.boolean().optional(),
+    preferShade: z.boolean().optional(),
+    lowFloor: z.boolean().optional(),
+    maxWalkMeters: z.number().int().min(100).max(3000).nullable().optional(),
+  })
+  .optional();
 
 const InputSchema = z.object({
   from: PointSchema,
@@ -32,6 +42,8 @@ const InputSchema = z.object({
   departAtUnix: z.number().int().positive().optional(),
   /** Unix seconds. Plan trips arriving at/before this time. */
   arriveByUnix: z.number().int().positive().optional(),
+  /** Wave 2.2 — accessibility weighting. Soft re-ranking only. */
+  a11y: A11ySchema,
 });
 
 export type MultiLegResult = {
@@ -203,6 +215,24 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       return a.score - b.score;
     });
     const top = kept.slice(0, TOP_K);
+
+    // Wave 2.2 — accessibility weighting. Re-rank the top set so caps and
+    // amenity preferences nudge the order without filtering anything out.
+    if (data.a11y) {
+      applyAccessibilityWeights(top, {
+        stepFree: !!data.a11y.stepFree,
+        preferShade: !!data.a11y.preferShade,
+        lowFloor: !!data.a11y.lowFloor,
+        maxWalkMeters: data.a11y.maxWalkMeters ?? null,
+      });
+      top.sort((a, b) => {
+        if (airportQuery && a.transfers !== b.transfers) {
+          return a.transfers - b.transfers;
+        }
+        return a.score - b.score;
+      });
+    }
+
     // Wave 2.4 — attach "Why this route?" rationale tags to each top option.
     annotateRationales(top);
 

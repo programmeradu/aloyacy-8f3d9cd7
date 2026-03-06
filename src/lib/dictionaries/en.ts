@@ -1029,4 +1029,24 @@ export const en = {
   "rationale.moreReliable": "Smaller delays right now",
   "rationale.leavesSooner": "Leaves {m} min sooner",
   "rationale.bestOverall": "Best balance of time, transfers and walking",
+
+  // Wave 2.2 — Accessibility preferences
+  "a11y.eyebrow": "Accessibility",
+  "a11y.title": "How you ride",
+  "a11y.lede": "These preferences quietly re-rank your trip options — they never hide a route.",
+  "a11y.stepFree.label": "Step-free routing",
+  "a11y.stepFree.help": "Prefer stops we know are level with the curb. Stops without amenity data stay neutral.",
+  "a11y.shade.label": "Prefer shaded waits",
+  "a11y.shade.help": "Pushes options that wait at sheltered stops up the list, useful in Cyprus summer.",
+  "a11y.cap.label": "Walking cap per trip",
+  "a11y.cap.help": "Itineraries that exceed this drop in the ranking. We still show them so you can decide.",
+  "a11y.cap.none": "No cap",
+  "a11y.cap.noneShort": "None",
+  "a11y.cap.value": "{m} m",
+
+  // Wave 2.2 — Stop amenity chips
+  "amenity.shelter": "Shelter",
+  "amenity.shade": "Shade",
+  "amenity.seating": "Seating",
+  "amenity.stepFree": "Step-free",
 } as const;
