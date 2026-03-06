@@ -4,11 +4,37 @@
 // are first-class.
 
 import { useMemo, useState } from "react";
-import type { Itinerary, RideLeg } from "@/lib/itinerary-types";
+import type { Itinerary, RationaleTag, RideLeg } from "@/lib/itinerary-types";
 import { routeTone } from "@/lib/gtfs";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowUpRight } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
+
+// Rationale tag → i18n key (with optional vars). Keeping the keys as
+// string literals here ensures the dictionary type guards still fire.
+type T = (key: never, vars?: Record<string, string | number>) => string;
+function rationaleToCopy(tag: RationaleTag, t: T): string {
+  switch (tag.kind) {
+    case "fastest":
+      return t("rationale.fastest" as never, { m: tag.minutesEarlier });
+    case "no-changes":
+      return t("rationale.noChanges" as never);
+    case "fewer-changes":
+      return tag.n === 1
+        ? t("rationale.fewerChangesOne" as never)
+        : t("rationale.fewerChanges" as never);
+    case "less-walking":
+      return t("rationale.lessWalking" as never, { m: tag.metersSaved });
+    case "all-live":
+      return t("rationale.allLive" as never);
+    case "more-reliable":
+      return t("rationale.moreReliable" as never);
+    case "leaves-sooner":
+      return t("rationale.leavesSooner" as never, { m: tag.minutesSooner });
+    case "best-overall":
+      return t("rationale.bestOverall" as never);
+  }
+}
 
 function fmtMin(sec: number) {
   const m = Math.max(1, Math.round(sec / 60));
@@ -143,6 +169,20 @@ export function ItineraryCard({
           {reliability.text}
         </span>
       </div>
+
+      {/* Wave 2.4 — "Why this route?" rationale */}
+      {itinerary.rationale && itinerary.rationale.length > 0 ? (
+        <div className="mt-3 rounded-2xl bg-limestone-soft/60 px-3.5 py-2.5 ring-1 ring-line/70">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-soft">
+            {t("rationale.eyebrow")}
+          </p>
+          <p className="mt-1 font-sans text-[13px] font-semibold leading-snug text-ink text-pretty">
+            {itinerary.rationale
+              .map((tag) => rationaleToCopy(tag, t))
+              .join(" — ")}
+          </p>
+        </div>
+      ) : null}
 
       {/* Timeline (collapsible) */}
       <div className="mt-4 flex items-center justify-between gap-3">
