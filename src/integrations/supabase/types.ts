@@ -1231,6 +1231,7 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          accessibility_prefs: Json
           consent_analytics: boolean
           consent_cookies_at: string | null
           created_at: string
@@ -1242,6 +1243,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          accessibility_prefs?: Json
           consent_analytics?: boolean
           consent_cookies_at?: string | null
           created_at?: string
@@ -1253,6 +1255,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          accessibility_prefs?: Json
           consent_analytics?: boolean
           consent_cookies_at?: string | null
           created_at?: string
