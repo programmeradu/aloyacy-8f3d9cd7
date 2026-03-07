@@ -213,6 +213,7 @@ function Explore() {
         routes,
         highlight: idx === 0,
         kind: stopKind(s),
+        amenities: getStopAmenities(s.id),
       };
     });
   }, [rt, nearStops, learnedByStop, riderConfirmedAge]);
