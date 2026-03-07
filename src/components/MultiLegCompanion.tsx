@@ -297,7 +297,10 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
       )}
 
 
-      {/* Turn-by-turn for any walk leg — initial, transfer, or final. */}
+      {/* Turn-by-turn for any walk leg — initial, transfer, or final.
+          LiveWalkBanner gives the rider the imminent maneuver + meters
+          countdown once GPS is live; WalkGuidance carries the full step
+          list (with Street View imagery) below it. */}
       {live.currentLeg?.kind === "walk" && (
         <>
           {live.phase === "walking-to-destination" && (
@@ -309,6 +312,20 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
               destinationLabel={active.to.label}
             />
           )}
+          <LiveWalkBanner
+            from={{ lat: live.currentLeg.from.lat, lng: live.currentLeg.from.lng }}
+            to={{ lat: live.currentLeg.to.lat, lng: live.currentLeg.to.lng }}
+            fix={live.fix}
+            title={
+              live.phase === "walking-to-board"
+                ? t("ml.walk.toFirst")
+                : live.phase === "walking-to-transfer"
+                  ? t("ml.walk.toBus", { code: live.nextRideLeg?.routeShort ?? "" })
+                  : live.phase === "walking-to-destination"
+                    ? t("ml.walk.toDest")
+                    : t("ml.walk.generic")
+            }
+          />
           <WalkGuidance
             from={{ lat: live.currentLeg.from.lat, lng: live.currentLeg.from.lng }}
             to={{ lat: live.currentLeg.to.lat, lng: live.currentLeg.to.lng }}
