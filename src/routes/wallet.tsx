@@ -355,6 +355,7 @@ function WalletRoute() {
           <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "220ms" }}>
             <ProAccountCard />
             <ProUpsellCard />
+            <AccessibilityPrefsCard />
           </section>
 
           {/* Fare reference */}
