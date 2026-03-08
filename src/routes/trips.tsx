@@ -26,6 +26,8 @@ import { useAuth } from "@/lib/useAuth";
 import { useI18n } from "@/lib/i18n";
 import { useAccessibilityPrefs } from "@/lib/useAccessibilityPrefs";
 import { isActive as isA11yActive } from "@/lib/accessibility-prefs";
+import { suggestParkAndRide } from "@/lib/park-and-ride.functions";
+import { ParkAndRideCard } from "@/components/ParkAndRideCard";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
