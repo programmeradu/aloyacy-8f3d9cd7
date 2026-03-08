@@ -399,6 +399,19 @@ export const el: Record<keyof typeof en, string> = {
   "trips.intentTomorrow": "αύριο {time}",
   "trips.planFailed": "Ο σχεδιασμός απέτυχε",
 
+  // park & ride (Wave 2.3)
+  "pnr.eyebrowFaster": "Park & ride — {m} λεπτά γρηγορότερα",
+  "pnr.eyebrowComfort": "Park & ride — λιγότερο περπάτημα",
+  "pnr.eyebrowOnly": "Park & ride — η καλύτερη επιλογή εδώ",
+  "pnr.totalShort": "{m} λεπτά σύνολο",
+  "pnr.title": "Οδηγείστε στο {hub}, μετά λεωφορείο.",
+  "pnr.driveLabel": "Οδήγηση",
+  "pnr.busLabel": "Λεωφορείο",
+  "pnr.driveSub": "{km} χλμ · ζωντανή κίνηση",
+  "pnr.busSubRoute": "Γραμμή {route} από {stop}",
+  "pnr.busSubNoRoute": "Από {stop}",
+  "pnr.openDrive": "Άνοιγμα οδηγιών οδήγησης",
+
   // saved
   "saved.kicker": "Ο άτλας σας",
   "saved.titlePrefix": "Τα μέρη που",

@@ -1,0 +1,173 @@
+// Wave 2.3 — Park & Ride suggestion engine.
+//
+// For trips originating outside the Nicosia urban core and ending inside
+// it, surface a "drive to {hub}, bus from there" alternative when it
+// genuinely beats — or makes more comfortable — the bus-only plan.
+//
+// Honesty rules:
+//   - Use Google Routes (TRAFFIC_AWARE) for the drive leg. Never haversine
+//     + average speed; we'd be lying about traffic.
+//   - Reuse the real multi-leg planner for the bus leg from the hub. Same
+//     accuracy contract as a normal trip.
+//   - Suppress when bus-only is already good enough — never push driving for
+//     its own sake.
+
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { drivingRoute } from "./maps.server";
+import { planMultiLegJourney } from "./journey-multileg.server";
+import { distanceM } from "./geo";
+
+const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) =>
+  distanceM(a, b) / 1000;
+import { PARK_AND_RIDE_HUBS } from "@/data/park-and-ride";
+import type { Itinerary, RideLeg } from "./itinerary-types";
+
+const Pt = z.object({
+  lat: z.number().min(34).max(36),
+  lng: z.number().min(32).max(35),
+  label: z.string().max(200).optional(),
+});
+
+const NICOSIA_CENTER = { lat: 35.1740, lng: 33.3650 };
+const PARK_BUFFER_SEC = 180; // find a spot + walk to the bay
+const MIN_SAVING_SEC = 5 * 60; // be conservative; 5+ min beats "marginal"
+const COMFORT_WALK_THRESHOLD_M = 800;
+const COMFORT_PARITY_SEC = 120; // P&R can be up to 2 min slower in comfort mode
+
+export type ParkAndRideSuggestion = {
+  hub: {
+    id: string;
+    label: string;
+    note?: string;
+    lat: number;
+    lng: number;
+  };
+  driveSec: number;
+  driveMeters: number;
+  bus: {
+    firstRoute: string | null;
+    boardName: string;
+    durationSec: number;
+    arrivalUnix: number;
+  };
+  totalSec: number;
+  busOnlySec: number | null;
+  savingsSec: number;
+  reason: "faster" | "comfort" | "no-bus-only";
+};
+
+export const suggestParkAndRide = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        from: Pt,
+        to: Pt,
+        /** Bus-only plan's total duration in seconds, if one exists. */
+        busOnlyDurationSec: z.number().int().positive().nullable().optional(),
+        /** Walking distance from origin to the first bus stop, in metres. */
+        busOnlyAccessWalkM: z.number().int().min(0).nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }): Promise<ParkAndRideSuggestion | null> => {
+    const { from, to } = data;
+    const fromKmCenter = distanceKm(from, NICOSIA_CENTER);
+    const toKmCenter = distanceKm(to, NICOSIA_CENTER);
+    const odKm = distanceKm(from, to);
+
+    // Gates: only suggest when geography actually warrants it.
+    if (fromKmCenter < 5) return null; // origin already urban
+    if (toKmCenter > 8) return null; // destination not in Nicosia core
+    if (odKm < 6) return null; // overhead never wins on short hops
+
+    // Find hubs that meaningfully intercept the trip.
+    const candidates = PARK_AND_RIDE_HUBS.map((hub) => ({
+      hub,
+      toHubKm: distanceKm(from, hub),
+      hubToDestKm: distanceKm(hub, to),
+    }))
+      // Must be closer to destination than origin (real interception).
+      .filter((c) => c.hubToDestKm < odKm - 2)
+      // Must be a real drive (≥ 2 km) and never beyond the destination.
+      .filter((c) => c.toHubKm >= 2 && c.toHubKm < odKm)
+      // Hub close enough to destination to be useful by bus (≤ 9 km).
+      .filter((c) => c.hubToDestKm <= 9 && c.hubToDestKm >= 1)
+      .sort((a, b) => a.hubToDestKm - b.hubToDestKm)
+      .slice(0, 2);
+
+    if (candidates.length === 0) return null;
+
+    const evals = await Promise.all(
+      candidates.map(async (c) => {
+        const [drive, busPlan] = await Promise.all([
+          drivingRoute(from, { lat: c.hub.lat, lng: c.hub.lng }),
+          planMultiLegJourney(
+            { lat: c.hub.lat, lng: c.hub.lng, label: c.hub.label },
+            to,
+          ).catch(() => ({ itineraries: [] as Itinerary[] })),
+        ]);
+        if (!drive || drive.durationSec <= 0) return null;
+        const bestBus = busPlan.itineraries
+          .filter((it) => it.transfers <= 1)
+          .sort((a, b) => a.score - b.score)[0];
+        if (!bestBus) return null;
+        const totalSec =
+          drive.durationSec + PARK_BUFFER_SEC + bestBus.totalDurationSec;
+        return { c, drive, bestBus, totalSec };
+      }),
+    );
+
+    const ranked = evals
+      .filter((e): e is NonNullable<typeof e> => !!e)
+      .sort((a, b) => a.totalSec - b.totalSec);
+    const top = ranked[0];
+    if (!top) return null;
+
+    const busOnly = data.busOnlyDurationSec ?? null;
+    const accessWalk = data.busOnlyAccessWalkM ?? null;
+
+    let reason: ParkAndRideSuggestion["reason"];
+    let savings = 0;
+
+    if (busOnly == null) {
+      reason = "no-bus-only";
+    } else if (busOnly - top.totalSec >= MIN_SAVING_SEC) {
+      reason = "faster";
+      savings = busOnly - top.totalSec;
+    } else if (
+      accessWalk != null &&
+      accessWalk >= COMFORT_WALK_THRESHOLD_M &&
+      top.totalSec <= busOnly + COMFORT_PARITY_SEC
+    ) {
+      reason = "comfort";
+    } else {
+      return null;
+    }
+
+    const firstRide = top.bestBus.legs.find(
+      (l): l is RideLeg => l.kind === "ride",
+    );
+
+    return {
+      hub: {
+        id: top.c.hub.id,
+        label: top.c.hub.label,
+        note: top.c.hub.note,
+        lat: top.c.hub.lat,
+        lng: top.c.hub.lng,
+      },
+      driveSec: top.drive.durationSec,
+      driveMeters: top.drive.distanceMeters,
+      bus: {
+        firstRoute: firstRide?.routeShort ?? null,
+        boardName: firstRide?.board.name ?? top.c.hub.label,
+        durationSec: top.bestBus.totalDurationSec,
+        arrivalUnix: top.bestBus.arrivalUnix,
+      },
+      totalSec: top.totalSec,
+      busOnlySec: busOnly,
+      savingsSec: savings,
+      reason,
+    };
+  });
