@@ -16,7 +16,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { drivingRoute } from "./maps.server";
 import { planMultiLegJourney } from "./journey-multileg.server";
-import { distanceKm } from "./geo";
+import { distanceM } from "./geo";
+
+const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) =>
+  distanceM(a, b) / 1000;
 import { PARK_AND_RIDE_HUBS } from "@/data/park-and-ride";
 import type { Itinerary, RideLeg } from "./itinerary-types";
 
