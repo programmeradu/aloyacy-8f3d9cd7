@@ -31,11 +31,13 @@ export type ParkAndRideHub = {
 };
 
 export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
+  // ── Nicosia catchment ─────────────────────────────────────────────────
   {
     id: "gsp-stadium",
     name: "gsp-stadium",
     label: "GSP Stadium",
     note: "Large free surface lots, easy in-and-out.",
+    city: "nicosia",
     lat: 35.1665,
     lng: 33.3168,
   },
@@ -44,6 +46,7 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     name: "engomi-ucy",
     label: "Engomi / UCY ring",
     note: "Free street parking around the campus ring.",
+    city: "nicosia",
     lat: 35.1497,
     lng: 33.3201,
   },
@@ -52,6 +55,7 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     name: "strovolos-hall",
     label: "Strovolos Municipal Hall",
     note: "Free municipal lots, frequent inbound buses.",
+    city: "nicosia",
     lat: 35.1431,
     lng: 33.3463,
   },
@@ -60,6 +64,7 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     name: "mall-of-cyprus",
     label: "Mall of Cyprus",
     note: "Covered free parking, intercity + urban links.",
+    city: "nicosia",
     lat: 35.1170,
     lng: 33.3560,
   },
@@ -68,10 +73,53 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     name: "lakatamia-hub",
     label: "Lakatamia transport hub",
     note: "Park-and-ride friendly, southern catchment.",
+    city: "nicosia",
     lat: 35.1100,
     lng: 33.3290,
   },
+
+  // ── Limassol catchment (Wave 2.5) ─────────────────────────────────────
+  {
+    id: "my-mall-limassol",
+    name: "my-mall-limassol",
+    label: "My Mall Limassol",
+    note: "Massive free parking on the western approach.",
+    city: "limassol",
+    lat: 34.6754,
+    lng: 33.0103,
+  },
+  {
+    id: "limassol-mall",
+    name: "limassol-mall",
+    label: "Limassol Mall",
+    note: "Free covered parking, frequent inbound EMEL routes.",
+    city: "limassol",
+    lat: 34.6856,
+    lng: 33.0420,
+  },
+  {
+    id: "polemidia-junction",
+    name: "polemidia-junction",
+    label: "Polemidia junction",
+    note: "Street parking by the inbound bus stops.",
+    city: "limassol",
+    lat: 34.7037,
+    lng: 32.9874,
+  },
+  {
+    id: "limassol-newport",
+    name: "limassol-newport",
+    label: "Limassol New Port",
+    note: "Large open lots, fast bus link into the centre.",
+    city: "limassol",
+    lat: 34.6470,
+    lng: 33.0070,
+  },
 ];
+
+export function hubsForCity(cityId: CityId): ParkAndRideHub[] {
+  return PARK_AND_RIDE_HUBS.filter((h) => h.city === cityId);
+}
 
 export function findHub(id: string): ParkAndRideHub | undefined {
   return PARK_AND_RIDE_HUBS.find((h) => h.id === id);
