@@ -418,7 +418,14 @@ function Plan() {
         {active && (
           <PlacesPicker
             role={active}
-            bias={origin ?? NICOSIA_CENTER}
+            // Wave 2.5 — bias autocomplete to the rider's actual city.
+            // A Limassol rider typing "Mall" should get Limassol Mall first,
+            // not Nicosia Mall. Falls back to Nicosia centre at cold start.
+            bias={
+              origin
+                ? nearestCity(origin.lat, origin.lng).center
+                : NICOSIA_CENTER
+            }
             onPick={onPick}
           />
         )}
