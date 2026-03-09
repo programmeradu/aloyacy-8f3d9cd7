@@ -11,6 +11,7 @@ import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
+import { nearestCity } from "@/lib/cities";
 import {
   pushRecent,
   setActiveTrip,

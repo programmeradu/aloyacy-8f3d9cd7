@@ -23,6 +23,7 @@ import { autocompletePlaces, getPlace } from "@/lib/maps.functions";
 import { getNlSuggestions } from "@/lib/nl-suggestions.functions";
 import { track, trackImpression } from "@/lib/analytics";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
+import { nearestCity } from "@/lib/cities";
 import { getDeviceId, getDeviceToken } from "@/lib/pwa";
 import {
   IconArrowUp,
@@ -239,7 +240,24 @@ export function NLPlannerCard() {
   }, []);
 
   async function geocodeOne(query: string): Promise<ResolvedPoint | null> {
-    const ac = await acFn({ data: { query, bias: NICOSIA_CENTER } });
+    // Wave 2.5 — bias autocomplete to the rider's last-known city. A
+    // Limassol rider typing "Old Port" should land on Limassol's Old Port,
+    // not be funnelled into Nicosia results.
+    const bias = (() => {
+      try {
+        const raw =
+          typeof window !== "undefined" ? localStorage.getItem("aloya:geo") : null;
+        if (!raw) return NICOSIA_CENTER;
+        const parsed = JSON.parse(raw) as { lat?: number; lng?: number };
+        if (typeof parsed.lat !== "number" || typeof parsed.lng !== "number") {
+          return NICOSIA_CENTER;
+        }
+        return nearestCity(parsed.lat, parsed.lng).center;
+      } catch {
+        return NICOSIA_CENTER;
+      }
+    })();
+    const ac = await acFn({ data: { query, bias } });
     const first = ac.suggestions?.[0];
     if (!first) return null;
     const place = await placeFn({ data: { placeId: first.placeId } });
