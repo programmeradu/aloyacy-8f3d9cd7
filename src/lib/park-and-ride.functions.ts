@@ -17,11 +17,14 @@ import { z } from "zod";
 import { drivingRoute } from "./maps.server";
 import { planMultiLegJourney } from "./journey-multileg.server";
 import { distanceM } from "./geo";
-
-const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) =>
-  distanceM(a, b) / 1000;
-import { PARK_AND_RIDE_HUBS } from "@/data/park-and-ride";
+import { hubsForCity } from "@/data/park-and-ride";
+import { nearestCity, distanceKm as cityDistanceKm } from "./cities";
 import type { Itinerary, RideLeg } from "./itinerary-types";
+
+const distanceKm = (
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+) => distanceM(a, b) / 1000;
 
 const Pt = z.object({
   lat: z.number().min(34).max(36),
@@ -29,7 +32,6 @@ const Pt = z.object({
   label: z.string().max(200).optional(),
 });
 
-const NICOSIA_CENTER = { lat: 35.1740, lng: 33.3650 };
 const PARK_BUFFER_SEC = 180; // find a spot + walk to the bay
 const MIN_SAVING_SEC = 5 * 60; // be conservative; 5+ min beats "marginal"
 const COMFORT_WALK_THRESHOLD_M = 800;
@@ -72,21 +74,42 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }): Promise<ParkAndRideSuggestion | null> => {
     const { from, to } = data;
-    const fromKmCenter = distanceKm(from, NICOSIA_CENTER);
-    const toKmCenter = distanceKm(to, NICOSIA_CENTER);
+
+    // Wave 2.5 — pick the destination's city as the suggestion frame. The
+    // rider parks somewhere inbound from their origin, so the hub set must
+    // be the hubs that serve the destination's city, not the origin's.
+    const destCity = nearestCity(to.lat, to.lng);
+    const fromCity = nearestCity(from.lat, from.lng);
+    const fromKmCenter = cityDistanceKm(from, destCity.center);
+    const toKmCenter = cityDistanceKm(to, destCity.center);
     const odKm = distanceKm(from, to);
 
-    // Gates: only suggest when geography actually warrants it.
-    if (fromKmCenter < 5) return null; // origin already urban
-    if (toKmCenter > 8) return null; // destination not in Nicosia core
-    if (odKm < 6) return null; // overhead never wins on short hops
+    // Geometry gates: only suggest when P&R can plausibly help.
+    // 1) Origin must be outside the destination city's urban core. If the
+    //    rider's already downtown there, driving is pointless.
+    if (fromKmCenter < destCity.coreRadiusKm) return null;
+    // 2) Destination must be inside the destination city's near-core
+    //    (coreRadius + a 3 km buffer for districts like Mesa Geitonia).
+    if (toKmCenter > destCity.coreRadiusKm + 3) return null;
+    // 3) Trip must be long enough for the drive + park overhead to win.
+    if (odKm < 6) return null;
+    // 4) Don't suggest P&R for intra-city trips inside the SAME city core —
+    //    a Limassol→Limassol trip from Polemidia to Anexartisias is better
+    //    served by the regular bus plan.
+    if (fromCity.id === destCity.id && fromKmCenter < destCity.coreRadiusKm + 2) {
+      return null;
+    }
+
+    const cityHubs = hubsForCity(destCity.id);
+    if (cityHubs.length === 0) return null;
 
     // Find hubs that meaningfully intercept the trip.
-    const candidates = PARK_AND_RIDE_HUBS.map((hub) => ({
-      hub,
-      toHubKm: distanceKm(from, hub),
-      hubToDestKm: distanceKm(hub, to),
-    }))
+    const candidates = cityHubs
+      .map((hub) => ({
+        hub,
+        toHubKm: distanceKm(from, hub),
+        hubToDestKm: distanceKm(hub, to),
+      }))
       // Must be closer to destination than origin (real interception).
       .filter((c) => c.hubToDestKm < odKm - 2)
       // Must be a real drive (≥ 2 km) and never beyond the destination.
