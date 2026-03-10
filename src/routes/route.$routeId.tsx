@@ -366,6 +366,15 @@ function RoutePage() {
         );
       })() : null}
 
+      {/* Wave 3 — Cross-island intercity intelligence (IC only) */}
+      {isIntercity && (
+        <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
+          <IntercityPatternsCard insights={intercity} isLoading={intercityLoading} />
+        </section>
+      )}
+
+
+
       {/* Upcoming runs */}
       {data && data.trips.length > 1 ? (
         <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "200ms" }}>
