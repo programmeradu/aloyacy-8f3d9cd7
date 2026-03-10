@@ -6,11 +6,13 @@ import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
 import { ReliabilityBadge } from "@/components/ReliabilityBadge";
+import { IntercityPatternsCard } from "@/components/IntercityPatternsCard";
 import { IconArrowLeft, IconBus } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { getRoute, getStop, routeTone } from "@/lib/gtfs";
 import { distanceM } from "@/lib/geo";
 import { getRouteReliability } from "@/lib/reliability.functions";
+import { getIntercityInsights } from "@/lib/intercity-intel.functions";
 import routeVignette from "@/assets/route-vignette.jpg";
 import { useI18n } from "@/lib/i18n";
 
@@ -75,6 +77,16 @@ function RoutePage() {
     staleTime: 5 * 60_000,
   });
   const rel = reliability?.[0];
+
+  // Wave 3 — intercity intelligence (IC-only)
+  const isIntercity = agency === "IC";
+  const fetchIntercity = useServerFn(getIntercityInsights);
+  const { data: intercity, isLoading: intercityLoading } = useQuery({
+    queryKey: ["intercity-insights", routeId],
+    queryFn: () => fetchIntercity({ data: { routeId } }),
+    staleTime: 30 * 60_000,
+    enabled: isIntercity,
+  });
 
   const data = useMemo(() => {
     if (!rt) return null;
@@ -353,6 +365,15 @@ function RoutePage() {
           </section>
         );
       })() : null}
+
+      {/* Wave 3 — Cross-island intercity intelligence (IC only) */}
+      {isIntercity && (
+        <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
+          <IntercityPatternsCard insights={intercity} isLoading={intercityLoading} />
+        </section>
+      )}
+
+
 
       {/* Upcoming runs */}
       {data && data.trips.length > 1 ? (
