@@ -26,6 +26,7 @@ import { requestCompassPermission } from "@/lib/useCompass";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "@/lib/itinerary-types";
 import { WalkGuidance } from "@/components/WalkGuidance";
 import { LiveWalkBanner } from "@/components/LiveWalkBanner";
+import { SightingButton } from "@/components/SightingButton";
 import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
 import { ShortcutPrompt } from "@/components/ShortcutPrompt";
 import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
