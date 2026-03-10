@@ -21,10 +21,15 @@ Goal: every ETA shown in Aloya carries a credible confidence signal, and no ride
 - `eta-v2.ts` returns confidence band; UI replaced ad-hoc ETA rendering.
 - Copy: "4 min · high confidence" vs "~7 min · low confidence" vs "no gps · scheduled 12:34".
 
-### 1.3 Rider-Confirmed Sightings — NEXT
-- Lovable Cloud table `bus_sightings` (RLS, rate-limited 1/60s/user/trip).
-- `confirmSighting` server fn; "I see this bus" pill on `StopCard` (within ~120m of stop) and `JourneyHUD` (on-bus).
-- One confirmation upgrades trip to `rider-confirmed` tier for 90s — recovers ghosted trips when GPS feed lags.
+### 1.3 Rider-Confirmed Sightings — SHIPPED 2026-06-21
+- Lovable Cloud table `bus_sightings` (RLS, rate-limited 45s/device/trip server-side, 60s local cooldown). Auto-cleaned after 10 min via `cleanup_bus_sightings()`.
+- `POST /api/public/sighting` endpoint validates Cyprus bounds, dedups, inserts a row, fires cleanup. No auth — device-scoped trust model.
+- Realtime snapshot folds recent sightings into `riderConfirmedTrips`, removes the trip from `ghostTripIds`, and the shared `classifyFreshness` upgrades the trip to `rider-confirmed` tier for the ghost window (90s urban / 5min IC).
+- `SightingButton` component (full 44px row, localStorage cooldown, no GPS prompt — uses stop coords). Surfaced on:
+  - `stop.$stopId` next to every ghost-tier departure.
+  - `JourneyHUD` `AtStopCard` when the rider's own trip is ghost / not-tracked / feed-stale while waiting at the board stop.
+  - `MultiLegCompanion` next to ghost/vehicle-lost banners for the current ride leg, and next to "next-not-tracked" for the upcoming connection while walking-to-transfer / waiting-for-connection.
+- EN/EL `sighting.*` copy already in dictionaries from earlier groundwork.
 
 ### 1.4 Reliability Scores per Route — SHIPPED
 - `getRouteReliability` server fn (`src/lib/reliability.functions.ts`) reads `delay_stats` and converts each (route, stop, hour, dow) bucket into a P(|delay|≤120s) estimate using a normal CDF, with a 30s stddev floor to prevent fake-perfect scores.
