@@ -211,8 +211,9 @@ function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
   const { t } = useI18n();
   const bus = trip.option.legs.find((l) => l.kind === "bus");
   if (!bus || bus.kind !== "bus") return null;
+  const needsSighting = live.tripGhost || live.vehicleNotTracked || live.feedStale;
   return (
-    <section className="px-6 animate-rise">
+    <section className="px-6 animate-rise space-y-3">
       <div className="rounded-[28px] bg-olive-soft/40 ring-1 ring-olive/25 p-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive">
           {t("hud.atStop.label")}
@@ -224,6 +225,15 @@ function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
           {t("hud.atStop.body", { name: bus.board.name })}
         </p>
       </div>
+      {needsSighting && (
+        <SightingButton
+          tripId={bus.tripId}
+          routeId={bus.routeId}
+          stopId={bus.board.stopId}
+          lat={bus.board.lat}
+          lng={bus.board.lng}
+        />
+      )}
     </section>
   );
 }
