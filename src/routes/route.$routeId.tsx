@@ -78,6 +78,16 @@ function RoutePage() {
   });
   const rel = reliability?.[0];
 
+  // Wave 3 — intercity intelligence (IC-only)
+  const isIntercity = agency === "IC";
+  const fetchIntercity = useServerFn(getIntercityInsights);
+  const { data: intercity, isLoading: intercityLoading } = useQuery({
+    queryKey: ["intercity-insights", routeId],
+    queryFn: () => fetchIntercity({ data: { routeId } }),
+    staleTime: 30 * 60_000,
+    enabled: isIntercity,
+  });
+
   const data = useMemo(() => {
     if (!rt) return null;
 
