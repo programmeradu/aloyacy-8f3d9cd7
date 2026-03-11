@@ -29,6 +29,8 @@ import { useAccessibilityPrefs } from "@/lib/useAccessibilityPrefs";
 import { isActive as isA11yActive } from "@/lib/accessibility-prefs";
 import { suggestParkAndRide } from "@/lib/park-and-ride.functions";
 import { ParkAndRideCard } from "@/components/ParkAndRideCard";
+import { suggestLastMileChain } from "@/lib/last-mile-chain.functions";
+import { LastMileChainCard } from "@/components/LastMileChainCard";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
