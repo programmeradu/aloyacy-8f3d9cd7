@@ -579,6 +579,7 @@ function Plan() {
               <ParkAndRideCard suggestion={pnr} origin={{ lat: origin.lat, lng: origin.lng }} />
             )}
             <ItineraryResults results={results} origin={origin} destination={destination} />
+            {lastMileChain && <LastMileChainCard suggestion={lastMileChain} />}
           </div>
         )}
       </section>
