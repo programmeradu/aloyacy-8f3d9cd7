@@ -21,6 +21,8 @@ import { planTrip } from "@/lib/journey.functions";
 import type { WalkStep } from "@/lib/geo";
 import { fmtEta as fmtMinutes } from "@/lib/journey-copy";
 import { useI18n } from "@/lib/i18n";
+import { SightingButton } from "@/components/SightingButton";
+import { getStop } from "@/lib/gtfs";
 
 function fmtMeters(m: number): string {
   if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
@@ -210,8 +212,9 @@ function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
   const { t } = useI18n();
   const bus = trip.option.legs.find((l) => l.kind === "bus");
   if (!bus || bus.kind !== "bus") return null;
+  const needsSighting = live.tripGhost || live.vehicleNotTracked || live.feedStale;
   return (
-    <section className="px-6 animate-rise">
+    <section className="px-6 animate-rise space-y-3">
       <div className="rounded-[28px] bg-olive-soft/40 ring-1 ring-olive/25 p-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive">
           {t("hud.atStop.label")}
@@ -223,6 +226,19 @@ function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
           {t("hud.atStop.body", { name: bus.board.name })}
         </p>
       </div>
+      {needsSighting && (() => {
+        const s = getStop(bus.board.stopId);
+        if (!s) return null;
+        return (
+          <SightingButton
+            tripId={bus.tripId}
+            routeId={bus.routeId}
+            stopId={bus.board.stopId}
+            lat={s.lat}
+            lng={s.lng}
+          />
+        );
+      })()}
     </section>
   );
 }
