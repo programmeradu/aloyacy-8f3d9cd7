@@ -418,6 +418,28 @@ export const en = {
   "pnr.busSubNoRoute": "From {stop}",
   "pnr.openDrive": "Open driving directions",
 
+  // chain — last-mile taxi / rideshare handoff (Wave 3)
+  "chain.eyebrowLongLate": "Last-mile handoff — after-hours",
+  "chain.eyebrowLateNight": "Last-mile handoff — after dark",
+  "chain.eyebrowLongWalk": "Last-mile handoff",
+  "chain.titleAfterHours": "Take a taxi the rest of the way to {name}.",
+  "chain.titleLongWalk": "Skip the long walk to {name}.",
+  "chain.toFallback": "your destination",
+  "chain.fromLine": "From {name} — the bus drops you here.",
+  "chain.vsWalk": "vs {m} min walk",
+  "chain.driveLabel": "Drive",
+  "chain.driveSub": "live traffic",
+  "chain.distanceLabel": "Distance",
+  "chain.distanceSub": "from the stop",
+  "chain.fareLabel": "Fare",
+  "chain.tariffDay": "Day tariff",
+  "chain.tariffNight": "Night tariff (20:30–06:00)",
+  "chain.openBolt": "Open in Bolt",
+  "chain.callDispatcher": "Call a taxi",
+  "chain.openMaps": "Open in Maps",
+  "chain.disclaimer": "Estimate · regulated Cyprus tariff, ±15%",
+
+
   // saved
   "saved.kicker": "Your atlas",
   "saved.titlePrefix": "The places that",
