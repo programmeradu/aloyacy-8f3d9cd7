@@ -130,9 +130,17 @@ Goal: chain modes intelligently when the bus-only answer is poor.
 - Shared day-name dictionary (`day.short.*` / `day.long.*`) added in EN + EL — first time the app renders day-of-week names, useful beyond this feature.
 - React Query staleTime 30 min, enabled only when `agency === "IC"` — no useless calls for urban routes.
 
+### Trip chaining (last-mile taxi handoff) — SHIPPED 2026-06-21
+- New `suggestLastMileChain` server fn (`src/lib/last-mile-chain.functions.ts`). Triggers when the final walk to the destination is ≥1500 m, **or** ≥800 m and the rider arrives between 21:00–06:00 Cyprus time (Intl.DateTimeFormat with Asia/Nicosia, DST-safe).
+- Real driving ETA + distance via `drivingRoute` (Google Routes, TRAFFIC_AWARE). No haversine fallback — if Google fails we don't show the card. Also suppresses when driving distance < 600 m (walk is obviously fine).
+- Fare estimate uses Cyprus's regulated taxi tariff: flag-fall €3.42 + €0.85/km day or €1.05/km night (20:30–06:00), €5 minimum, ±15% range, rounded to nearest €0.50.
+- `LastMileChainCard` component: editorial three-column ribbon (Drive / Distance / Fare), three CTAs — Open in Bolt (universal deep link with pickup + destination coords), Call a taxi (tel: link to Travel Express Cyprus 24/7 dispatcher), Open in Maps. Bilingual EN/EL copy under `chain.*`.
+- Two surfaces:
+  - `/trips` planning page renders the card below the top itinerary so the rider sees the handoff before committing.
+  - `MultiLegCompanion` pre-fetches the suggestion when the itinerary's final walk is ≥800 m and shows the card during `walking-to-destination` phase — alongside the existing `LongFinalWalkHint`, so the rider can switch to a taxi the moment they alight.
+
 ### Still planned
-- Trip chaining (bus → bike → walk; taxi handoff for last mile after-hours).
-- Bike-share integration (Nextbike Cyprus where coverage justifies).
+- Bike-share integration — OUT OF SCOPE for Cyprus (no city-scale network).
 - Scooter integration (Bolt / Lime if launched in CY).
 - Group trips (shared planning links, live ETAs to multiple riders).
 
