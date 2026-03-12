@@ -446,6 +446,19 @@ export const el: Record<keyof typeof en, string> = {
   "bike.openRoute": "Διαδρομή στους Χάρτες",
   "bike.disclaimer": "Ζωντανή διαθεσιμότητα — ανανέωση κάθε 10 λεπτά",
 
+  // bolt scooters (μόνο Λευκωσία)
+  "bolt.eyebrowFaster": "Με πατίνι — κερδίζεις {m} λεπτά",
+  "bolt.eyebrowAlt": "Με πατίνι — χωρίς λεωφορείο",
+  "bolt.totalLine": "{m} λεπτά συνολικά",
+  "bolt.title": "Ένα πατίνι Bolt στη Λευκωσία ταιριάζει εδώ.",
+  "bolt.pickupMeta": "{walk} περπάτημα — ζώνη {slots} θέσεων",
+  "bolt.dropoffMeta": "{walk} μέχρι το τέλος — ζώνη {slots} θέσεων",
+  "bolt.rideLine": "{m} λεπτά διαδρομή — {km} χλμ",
+  "bolt.ridePace": "Αστικός ρυθμός, όριο 20 χλμ/ώρα",
+  "bolt.openBolt": "Άνοιγμα Bolt",
+  "bolt.openRoute": "Διαδρομή στους Χάρτες",
+  "bolt.disclaimer": "Επιβεβαίωσε διαθέσιμο πατίνι στην εφαρμογή Bolt πριν ξεκινήσεις",
+
 
   // saved
   "saved.kicker": "Ο άτλας σας",
