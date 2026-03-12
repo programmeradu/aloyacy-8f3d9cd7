@@ -29,6 +29,8 @@ import { useAccessibilityPrefs } from "@/lib/useAccessibilityPrefs";
 import { isActive as isA11yActive } from "@/lib/accessibility-prefs";
 import { suggestParkAndRide } from "@/lib/park-and-ride.functions";
 import { ParkAndRideCard } from "@/components/ParkAndRideCard";
+import { suggestLastMileChain } from "@/lib/last-mile-chain.functions";
+import { LastMileChainCard } from "@/components/LastMileChainCard";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
@@ -213,6 +215,70 @@ function Plan() {
     refetchOnWindowFocus: false,
   });
   const pnr = pnrQuery.data ?? null;
+
+  // Wave 3 — Last-mile chain (taxi handoff). Only relevant when the top
+  // itinerary's final walk is meaningfully long, or when the arrival is
+  // after-hours. We extract the final walk leg and arrival time from the
+  // top result and ask the server. Server applies the real trigger gates
+  // and only returns a suggestion when it would actually help.
+  const chainFn = useServerFn(suggestLastMileChain);
+  const topItin: Itinerary | null = (results?.[0] as Itinerary | undefined) ?? null;
+  const finalWalkInfo = (() => {
+    if (!topItin) return null;
+    const legs = topItin.legs;
+    for (let i = legs.length - 1; i >= 0; i--) {
+      const l = legs[i];
+      if (l.kind === "walk") {
+        const wl = l as WalkLeg;
+        // Only meaningful when the walk follows a ride (i.e. egress walk).
+        const hasPriorRide = legs.slice(0, i).some((p) => p.kind === "ride");
+        if (!hasPriorRide) return null;
+        return {
+          walkMeters: Math.round(wl.distanceMeters),
+          alight: { lat: wl.from.lat, lng: wl.from.lng, name: wl.from.name },
+        };
+      }
+    }
+    return null;
+  })();
+  const chainQuery = useQuery({
+    queryKey: [
+      "lastMileChain",
+      destination?.lat,
+      destination?.lng,
+      finalWalkInfo?.alight.lat,
+      finalWalkInfo?.alight.lng,
+      finalWalkInfo?.walkMeters,
+      topItin?.arrivalUnix ?? null,
+    ],
+    queryFn: async () => {
+      if (!destination || !finalWalkInfo || !topItin) return null;
+      // Cheap client gate: skip server call unless walk is at least
+      // moderately long. Server re-checks with the full rule set.
+      if (finalWalkInfo.walkMeters < 800) return null;
+      try {
+        return await chainFn({
+          data: {
+            alight: finalWalkInfo.alight,
+            destination: {
+              lat: destination.lat,
+              lng: destination.lng,
+              name: destination.label,
+            },
+            arrivalUnix: topItin.arrivalUnix,
+            finalWalkMeters: finalWalkInfo.walkMeters,
+          },
+        });
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!destination && !!finalWalkInfo && !!topItin,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const lastMileChain = chainQuery.data ?? null;
+
 
   // Force a re-plan the moment the top result's bus has just departed —
   // the static refetchInterval would otherwise leave a stale "next bus" on
@@ -513,6 +579,7 @@ function Plan() {
               <ParkAndRideCard suggestion={pnr} origin={{ lat: origin.lat, lng: origin.lng }} />
             )}
             <ItineraryResults results={results} origin={origin} destination={destination} />
+            {lastMileChain && <LastMileChainCard suggestion={lastMileChain} />}
           </div>
         )}
       </section>
