@@ -31,6 +31,8 @@ import { suggestParkAndRide } from "@/lib/park-and-ride.functions";
 import { ParkAndRideCard } from "@/components/ParkAndRideCard";
 import { suggestLastMileChain } from "@/lib/last-mile-chain.functions";
 import { LastMileChainCard } from "@/components/LastMileChainCard";
+import { suggestBikeShare } from "@/lib/bikeshare.functions";
+import { BikeShareCard } from "@/components/BikeShareCard";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
@@ -278,6 +280,39 @@ function Plan() {
     refetchOnWindowFocus: false,
   });
   const lastMileChain = chainQuery.data ?? null;
+
+  // Wave 3 — Bike-share alternative (Nextbike). Short to mid-distance
+  // intra-city trips where docked bikes + free racks are within a short
+  // walk on both ends, and the cycle beats the bus by ≥ 3 min.
+  const bikeFn = useServerFn(suggestBikeShare);
+  const bikeQuery = useQuery({
+    queryKey: [
+      "bikeShare",
+      origin?.lat,
+      origin?.lng,
+      destination?.lat,
+      destination?.lng,
+      busOnlyTop?.totalDurationSec ?? null,
+    ],
+    queryFn: async () => {
+      if (!origin || !destination) return null;
+      try {
+        return await bikeFn({
+          data: {
+            from: { lat: origin.lat, lng: origin.lng },
+            to: { lat: destination.lat, lng: destination.lng },
+            busOnlyDurationSec: busOnlyTop?.totalDurationSec ?? null,
+          },
+        });
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!origin && !!destination,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const bikeShare = bikeQuery.data ?? null;
 
 
   // Force a re-plan the moment the top result's bus has just departed —
@@ -578,6 +613,7 @@ function Plan() {
             {pnr && (
               <ParkAndRideCard suggestion={pnr} origin={{ lat: origin.lat, lng: origin.lng }} />
             )}
+            {bikeShare && <BikeShareCard suggestion={bikeShare} />}
             <ItineraryResults results={results} origin={origin} destination={destination} />
             {lastMileChain && <LastMileChainCard suggestion={lastMileChain} />}
           </div>
