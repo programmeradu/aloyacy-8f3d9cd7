@@ -56,7 +56,22 @@ export type ParkAndRideSuggestion = {
   totalSec: number;
   busOnlySec: number | null;
   savingsSec: number;
-  reason: "faster" | "comfort" | "no-bus-only";
+  reason: "faster" | "comfort" | "no-bus-only" | "traffic-jam";
+  /** Live-traffic intelligence for the direct-drive alternative. Present
+   *  whenever we successfully measured the all-the-way drive; the UI uses
+   *  this to render a "why" line ("A1 inbound is 14 min slower than usual"). */
+  liveTraffic?: {
+    /** Live, traffic-aware end-to-end drive (origin → destination). */
+    directDriveSec: number;
+    /** Free-flow end-to-end drive, same route, no traffic. */
+    freeFlowSec: number;
+    /** directDriveSec − freeFlowSec, never negative. */
+    delaySec: number;
+    /** delay / freeFlow. 0.30 → "30% slower than usual." */
+    severity: number;
+    /** True when severity ≥ 0.30 AND delay ≥ 4 min — worth surfacing. */
+    notable: boolean;
+  };
 };
 
 export const suggestParkAndRide = createServerFn({ method: "POST" })
