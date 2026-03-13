@@ -411,6 +411,9 @@ export const el: Record<keyof typeof en, string> = {
   "pnr.busSubRoute": "Γραμμή {route} από {stop}",
   "pnr.busSubNoRoute": "Από {stop}",
   "pnr.openDrive": "Άνοιγμα οδηγιών οδήγησης",
+  "pnr.eyebrowTraffic": "Park & ride — {m} λεπτά γρηγορότερα τώρα",
+  "pnr.whyLabel": "Γιατί το προτείνουμε",
+  "pnr.whyTrafficLine": "Η κίνηση τώρα κάνει την απευθείας οδήγηση {delay} λεπτά πιο αργή από το συνηθισμένο ({pct}%). Με αυτοκίνητο μέχρι μέσα θα έπαιρνε γύρω στα {direct} λεπτά.",
 
   // chain — μετάβαση με ταξί για το τελευταίο κομμάτι (Wave 3)
   "chain.eyebrowLongLate": "Τελευταίο κομμάτι — μετά τις 21:00",

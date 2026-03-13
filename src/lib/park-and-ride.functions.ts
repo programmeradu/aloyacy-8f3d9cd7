@@ -56,7 +56,22 @@ export type ParkAndRideSuggestion = {
   totalSec: number;
   busOnlySec: number | null;
   savingsSec: number;
-  reason: "faster" | "comfort" | "no-bus-only";
+  reason: "faster" | "comfort" | "no-bus-only" | "traffic-jam";
+  /** Live-traffic intelligence for the direct-drive alternative. Present
+   *  whenever we successfully measured the all-the-way drive; the UI uses
+   *  this to render a "why" line ("A1 inbound is 14 min slower than usual"). */
+  liveTraffic?: {
+    /** Live, traffic-aware end-to-end drive (origin → destination). */
+    directDriveSec: number;
+    /** Free-flow end-to-end drive, same route, no traffic. */
+    freeFlowSec: number;
+    /** directDriveSec − freeFlowSec, never negative. */
+    delaySec: number;
+    /** delay / freeFlow. 0.30 → "30% slower than usual." */
+    severity: number;
+    /** True when severity ≥ 0.30 AND delay ≥ 4 min — worth surfacing. */
+    notable: boolean;
+  };
 };
 
 export const suggestParkAndRide = createServerFn({ method: "POST" })
@@ -121,31 +136,56 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
 
     if (candidates.length === 0) return null;
 
-    const evals = await Promise.all(
-      candidates.map(async (c) => {
-        const [drive, busPlan] = await Promise.all([
-          drivingRoute(from, { lat: c.hub.lat, lng: c.hub.lng }),
-          planMultiLegJourney(
-            { lat: c.hub.lat, lng: c.hub.lng, label: c.hub.label },
-            to,
-          ).catch(() => ({ itineraries: [] as Itinerary[] })),
-        ]);
-        if (!drive || drive.durationSec <= 0) return null;
-        const bestBus = busPlan.itineraries
-          .filter((it) => it.transfers <= 1)
-          .sort((a, b) => a.score - b.score)[0];
-        if (!bestBus) return null;
-        const totalSec =
-          drive.durationSec + PARK_BUFFER_SEC + bestBus.totalDurationSec;
-        return { c, drive, bestBus, totalSec };
-      }),
-    );
+    // Run the candidate hub evaluations + the direct-drive traffic probe in
+    // parallel. The direct-drive call is what powers the "why we're
+    // suggesting this" line: if the full origin → destination drive is in
+    // the red right now, P&R is a defensible call even when raw minutes are
+    // close.
+    const [evals, directDrive] = await Promise.all([
+      Promise.all(
+        candidates.map(async (c) => {
+          const [drive, busPlan] = await Promise.all([
+            drivingRoute(from, { lat: c.hub.lat, lng: c.hub.lng }),
+            planMultiLegJourney(
+              { lat: c.hub.lat, lng: c.hub.lng, label: c.hub.label },
+              to,
+            ).catch(() => ({ itineraries: [] as Itinerary[] })),
+          ]);
+          if (!drive || drive.durationSec <= 0) return null;
+          const bestBus = busPlan.itineraries
+            .filter((it) => it.transfers <= 1)
+            .sort((a, b) => a.score - b.score)[0];
+          if (!bestBus) return null;
+          const totalSec =
+            drive.durationSec + PARK_BUFFER_SEC + bestBus.totalDurationSec;
+          return { c, drive, bestBus, totalSec };
+        }),
+      ),
+      drivingRoute(from, to),
+    ]);
 
     const ranked = evals
       .filter((e): e is NonNullable<typeof e> => !!e)
       .sort((a, b) => a.totalSec - b.totalSec);
     const top = ranked[0];
     if (!top) return null;
+
+    // Build the live-traffic intelligence block (if Google answered).
+    let liveTraffic: ParkAndRideSuggestion["liveTraffic"] | undefined;
+    if (directDrive && directDrive.staticDurationSec > 0) {
+      const delaySec = Math.max(
+        0,
+        directDrive.durationSec - directDrive.staticDurationSec,
+      );
+      const severity = delaySec / directDrive.staticDurationSec;
+      liveTraffic = {
+        directDriveSec: directDrive.durationSec,
+        freeFlowSec: directDrive.staticDurationSec,
+        delaySec,
+        severity,
+        notable: severity >= 0.3 && delaySec >= 4 * 60,
+      };
+    }
 
     const busOnly = data.busOnlyDurationSec ?? null;
     const accessWalk = data.busOnlyAccessWalkM ?? null;
@@ -164,6 +204,16 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
       top.totalSec <= busOnly + COMFORT_PARITY_SEC
     ) {
       reason = "comfort";
+    } else if (
+      // Wave 3 — live-traffic escape hatch. Even when the static minutes
+      // don't quite clear our "faster" bar, surface P&R if the direct drive
+      // is genuinely jammed AND P&R still beats it. This is where "Aloya
+      // saw the A1 was red" becomes visible to the rider.
+      liveTraffic?.notable &&
+      liveTraffic.directDriveSec - top.totalSec >= MIN_SAVING_SEC
+    ) {
+      reason = "traffic-jam";
+      savings = liveTraffic.directDriveSec - top.totalSec;
     } else {
       return null;
     }
@@ -192,5 +242,6 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
       busOnlySec: busOnly,
       savingsSec: savings,
       reason,
+      liveTraffic,
     };
   });
