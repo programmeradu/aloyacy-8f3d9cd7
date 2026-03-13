@@ -464,6 +464,18 @@ export const en = {
   "bolt.openBolt": "Open Bolt",
   "bolt.openRoute": "Route in Maps",
   "bolt.disclaimer": "Confirm a live scooter in the Bolt app before you walk",
+  "kapnos.eyebrow": "Kapnos airport coach — direct",
+  "kapnos.title": "Take the {route} shuttle",
+  "kapnos.walkMeta": "{walk} walk to the stop",
+  "kapnos.rideLine": "Departs {depart} — arrives {arrive} ({m} min)",
+  "kapnos.priceFromLabel": "From {price} — book on Kapnos",
+  "kapnos.nextDeparturesLabel": "Next departures",
+  "kapnos.arrivesAt": "arr. {time}",
+  "kapnos.seatsLeft": "{n} seats",
+  "kapnos.soldOut": "Sold out",
+  "kapnos.bookCta": "Book on Kapnos",
+  "kapnos.timetableCta": "Full timetable",
+  "kapnos.disclaimer": "Live availability and booking are handled by Kapnos",
 
 
 

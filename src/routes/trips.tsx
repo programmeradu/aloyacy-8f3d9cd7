@@ -34,6 +34,8 @@ import { LastMileChainCard } from "@/components/LastMileChainCard";
 import { suggestBikeShare } from "@/lib/bikeshare.functions";
 import { BikeShareCard } from "@/components/BikeShareCard";
 import { suggestBoltScooter } from "@/lib/bolt-scooter.functions";
+import { suggestKapnos } from "@/lib/kapnos.functions";
+import { KapnosShuttleCard } from "@/components/KapnosShuttleCard";
 import { BoltScooterCard } from "@/components/BoltScooterCard";
 
 export const Route = createFileRoute("/trips")({
@@ -348,6 +350,30 @@ function Plan() {
   });
   const boltScooter = boltQuery.data ?? null;
 
+  // Wave 3 — Kapnos Airport Shuttle (only fires when one endpoint is at
+  // LCA or PFO airport AND the other is near a Kapnos city station).
+  const kapnosFn = useServerFn(suggestKapnos);
+  const kapnosQuery = useQuery({
+    queryKey: ["kapnos", origin?.lat, origin?.lng, destination?.lat, destination?.lng],
+    queryFn: async () => {
+      if (!origin || !destination) return null;
+      try {
+        return await kapnosFn({
+          data: {
+            from: { lat: origin.lat, lng: origin.lng },
+            to: { lat: destination.lat, lng: destination.lng },
+          },
+        });
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!origin && !!destination,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const kapnos = kapnosQuery.data ?? null;
+
 
 
 
@@ -621,31 +647,35 @@ function Plan() {
         )}
 
         {results && results.length === 0 && !planning && (
-          <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
-            {planQuery.data?.noScheduleAvailable ? (
-              <>
-                <p className="font-display text-xl text-ink">{t("trips.noScheduleTitle")}</p>
-                <p className="mt-1.5 text-[13px] text-ink-soft">
-                  {t("trips.noScheduleBody", {
-                    date: planQuery.data.requestedDate
-                      ? formatYYYYMMDD(planQuery.data.requestedDate)
-                      : t("trips.noScheduleDay"),
-                  })}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="font-display text-xl text-ink">{t("trips.noRouteTitle")}</p>
-                <p className="mt-1.5 text-[13px] text-ink-soft">
-                  {t("trips.noRouteBody")}
-                </p>
-              </>
-            )}
+          <div className="flex flex-col gap-3">
+            {kapnos && <KapnosShuttleCard suggestion={kapnos} />}
+            <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
+              {planQuery.data?.noScheduleAvailable ? (
+                <>
+                  <p className="font-display text-xl text-ink">{t("trips.noScheduleTitle")}</p>
+                  <p className="mt-1.5 text-[13px] text-ink-soft">
+                    {t("trips.noScheduleBody", {
+                      date: planQuery.data.requestedDate
+                        ? formatYYYYMMDD(planQuery.data.requestedDate)
+                        : t("trips.noScheduleDay"),
+                    })}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-display text-xl text-ink">{t("trips.noRouteTitle")}</p>
+                  <p className="mt-1.5 text-[13px] text-ink-soft">
+                    {t("trips.noRouteBody")}
+                  </p>
+                </>
+              )}
+            </div>
           </div>
         )}
 
         {results && results.length > 0 && origin && destination && (
           <div className="flex flex-col gap-3">
+            {kapnos && <KapnosShuttleCard suggestion={kapnos} />}
             {pnr && (
               <ParkAndRideCard suggestion={pnr} origin={{ lat: origin.lat, lng: origin.lng }} />
             )}
