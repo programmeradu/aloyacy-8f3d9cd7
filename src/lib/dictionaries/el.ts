@@ -458,6 +458,18 @@ export const el: Record<keyof typeof en, string> = {
   "bolt.openBolt": "Άνοιγμα Bolt",
   "bolt.openRoute": "Διαδρομή στους Χάρτες",
   "bolt.disclaimer": "Επιβεβαίωσε διαθέσιμο πατίνι στην εφαρμογή Bolt πριν ξεκινήσεις",
+  "kapnos.eyebrow": "Λεωφορείο αεροδρομίου Kapnos — απευθείας",
+  "kapnos.title": "Πάρε το shuttle {route}",
+  "kapnos.walkMeta": "{walk} περπάτημα ως τη στάση",
+  "kapnos.rideLine": "Αναχώρηση {depart} — άφιξη {arrive} ({m} λεπτά)",
+  "kapnos.priceFromLabel": "Από {price} — κράτηση στην Kapnos",
+  "kapnos.nextDeparturesLabel": "Επόμενες αναχωρήσεις",
+  "kapnos.arrivesAt": "άφ. {time}",
+  "kapnos.seatsLeft": "{n} θέσεις",
+  "kapnos.soldOut": "Εξαντλήθηκε",
+  "kapnos.bookCta": "Κράτηση στην Kapnos",
+  "kapnos.timetableCta": "Πλήρες δρομολόγιο",
+  "kapnos.disclaimer": "Η διαθεσιμότητα και η κράτηση γίνονται από την Kapnos",
 
 
   // saved
