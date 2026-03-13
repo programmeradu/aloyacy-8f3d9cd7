@@ -255,19 +255,24 @@ export async function walkingDirections(
   };
 }
 
-/** Live drive ETA from the bus's current position to the alight stop, using
- *  Google Routes API with traffic-aware routing. Cheap field mask — only
- *  duration + distance. Returns null on any error so callers can fall back
- *  to schedule + distance floor. */
+/** Live drive ETA using Google Routes API with traffic-aware routing.
+ *  Also returns `staticDurationSec` (free-flow, no traffic) so callers can
+ *  measure how much live traffic is hurting this leg right now — the basis
+ *  for "why we're suggesting Park & Ride: A1 is in the red" reasoning. */
 export async function drivingRoute(
   from: { lat: number; lng: number },
   to: { lat: number; lng: number },
-): Promise<{ durationSec: number; distanceMeters: number } | null> {
+): Promise<{
+  durationSec: number;
+  staticDurationSec: number;
+  distanceMeters: number;
+} | null> {
   try {
     const res = await fetch(`${GATEWAY}/routes/directions/v2:computeRoutes`, {
       method: "POST",
       headers: authHeaders({
-        "X-Goog-FieldMask": "routes.duration,routes.distanceMeters",
+        "X-Goog-FieldMask":
+          "routes.duration,routes.staticDuration,routes.distanceMeters",
       }),
       body: JSON.stringify({
         origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
@@ -280,12 +285,19 @@ export async function drivingRoute(
     });
     if (!res.ok) return null;
     const json = (await res.json()) as {
-      routes?: { duration: string; distanceMeters: number }[];
+      routes?: {
+        duration: string;
+        staticDuration?: string;
+        distanceMeters: number;
+      }[];
     };
     const r = json.routes?.[0];
     if (!r) return null;
+    const live = parseInt(r.duration.replace("s", ""), 10) || 0;
+    const free = parseInt((r.staticDuration ?? r.duration).replace("s", ""), 10) || live;
     return {
-      durationSec: parseInt(r.duration.replace("s", ""), 10) || 0,
+      durationSec: live,
+      staticDurationSec: free,
       distanceMeters: r.distanceMeters,
     };
   } catch (e) {
