@@ -34,6 +34,8 @@ import { LastMileChainCard } from "@/components/LastMileChainCard";
 import { suggestBikeShare } from "@/lib/bikeshare.functions";
 import { BikeShareCard } from "@/components/BikeShareCard";
 import { suggestBoltScooter } from "@/lib/bolt-scooter.functions";
+import { suggestKapnos } from "@/lib/kapnos.functions";
+import { KapnosShuttleCard } from "@/components/KapnosShuttleCard";
 import { BoltScooterCard } from "@/components/BoltScooterCard";
 
 export const Route = createFileRoute("/trips")({
@@ -347,6 +349,30 @@ function Plan() {
     refetchOnWindowFocus: false,
   });
   const boltScooter = boltQuery.data ?? null;
+
+  // Wave 3 — Kapnos Airport Shuttle (only fires when one endpoint is at
+  // LCA or PFO airport AND the other is near a Kapnos city station).
+  const kapnosFn = useServerFn(suggestKapnos);
+  const kapnosQuery = useQuery({
+    queryKey: ["kapnos", origin?.lat, origin?.lng, destination?.lat, destination?.lng],
+    queryFn: async () => {
+      if (!origin || !destination) return null;
+      try {
+        return await kapnosFn({
+          data: {
+            from: { lat: origin.lat, lng: origin.lng },
+            to: { lat: destination.lat, lng: destination.lng },
+          },
+        });
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!origin && !!destination,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const kapnos = kapnosQuery.data ?? null;
 
 
 
