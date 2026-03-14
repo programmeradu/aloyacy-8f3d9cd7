@@ -15,6 +15,10 @@ function fmtWalk(m: number): string {
   return `${(m / 1000).toFixed(1)} km`;
 }
 
+// Above ~1.2 km nobody actually walks with luggage. Switch the label to a
+// "city bus or taxi" framing so the suggestion stays honest about effort.
+const WALKABLE_M = 1_200;
+
 function fmtTimeLocal(s: string, locale: string): string {
   // s = "YYYY-MM-DD HH:MM:SS" Cyprus local. Display HH:MM directly — it's
   // already the rider's wall-clock time at the stop.
