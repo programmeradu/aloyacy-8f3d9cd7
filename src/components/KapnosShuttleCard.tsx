@@ -124,7 +124,12 @@ export function KapnosShuttleCard({
               {suggestion.dropoff.name}
             </p>
             <p className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.16em] text-ink-soft tabular-nums">
-              {t("kapnos.walkMeta", { walk: fmtWalk(suggestion.dropoff.distanceM) })}
+              {t(
+                suggestion.dropoff.distanceM > WALKABLE_M
+                  ? "kapnos.transferMeta"
+                  : "kapnos.walkMeta",
+                { walk: fmtWalk(suggestion.dropoff.distanceM) },
+              )}
             </p>
           </div>
         </li>
