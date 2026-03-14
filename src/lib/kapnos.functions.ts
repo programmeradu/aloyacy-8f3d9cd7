@@ -248,44 +248,50 @@ export const suggestKapnos = createServerFn({ method: "POST" })
     }
     if (candidates.length === 0) return null;
     candidates.sort((a, b) => a.score - b.score);
-    const best = candidates[0];
 
-    // Build the next N departures still in the future (Cyprus local).
-    const upcoming = best.route.trips
-      .filter((t) => t.departLocal && t.departLocal > now)
-      .slice(0, SUGGEST_COUNT);
-    if (upcoming.length === 0) return null;
+    // Walk candidates in order of best (closest) → worst, returning the
+    // first one that actually has upcoming departures. The previous
+    // implementation locked onto candidates[0] and returned null whenever
+    // that route's last bus had already left, even if another viable
+    // Kapnos route still had seats for tonight.
+    for (const best of candidates) {
+      const upcoming = best.route.trips
+        .filter((t) => t.departLocal && t.departLocal > now)
+        .slice(0, SUGGEST_COUNT);
+      if (upcoming.length === 0) continue;
 
-    const rideSec = parseRangeToSec(best.dropoff.rangeFromStart);
-    const departures: KapnosDeparture[] = upcoming.map((t) => ({
-      tripId: t.tripId,
-      departLocal: t.departLocal,
-      arriveLocal: addLocalSeconds(t.departLocal, rideSec),
-      seatsAvailable: t.seatsAvailable,
-      priceFrom: t.priceFromFormatted || t.priceFromRaw,
-    }));
+      const rideSec = parseRangeToSec(best.dropoff.rangeFromStart);
+      const departures: KapnosDeparture[] = upcoming.map((t) => ({
+        tripId: t.tripId,
+        departLocal: t.departLocal,
+        arriveLocal: addLocalSeconds(t.departLocal, rideSec),
+        seatsAvailable: t.seatsAvailable,
+        priceFrom: t.priceFromFormatted || t.priceFromRaw,
+      }));
 
-    const out: KapnosSuggestion = {
-      routeId: best.route.id,
-      routeCode: best.route.code,
-      routeName: best.route.name,
-      pickup: {
-        name: best.pickup.name,
-        lat: best.pickup.lat,
-        lng: best.pickup.lng,
-        distanceM: Math.round(best.pickupDist),
-      },
-      dropoff: {
-        name: best.dropoff.name,
-        lat: best.dropoff.lat,
-        lng: best.dropoff.lng,
-        distanceM: Math.round(best.dropoffDist),
-      },
-      rideSec,
-      airportIsOrigin: best.airportIsOrigin,
-      departures,
-      bookingUrl: "https://kapnosairportshuttle.com/",
-      routeUrl: "https://kapnosairportshuttle.com/timetables",
-    };
-    return out;
+      const out: KapnosSuggestion = {
+        routeId: best.route.id,
+        routeCode: best.route.code,
+        routeName: best.route.name,
+        pickup: {
+          name: best.pickup.name,
+          lat: best.pickup.lat,
+          lng: best.pickup.lng,
+          distanceM: Math.round(best.pickupDist),
+        },
+        dropoff: {
+          name: best.dropoff.name,
+          lat: best.dropoff.lat,
+          lng: best.dropoff.lng,
+          distanceM: Math.round(best.dropoffDist),
+        },
+        rideSec,
+        airportIsOrigin: best.airportIsOrigin,
+        departures,
+        bookingUrl: "https://kapnosairportshuttle.com/",
+        routeUrl: "https://kapnosairportshuttle.com/timetables",
+      };
+      return out;
+    }
+    return null;
   });
