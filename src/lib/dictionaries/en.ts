@@ -470,6 +470,7 @@ export const en = {
   "kapnos.eyebrow": "Kapnos airport coach — direct",
   "kapnos.title": "Take the {route} shuttle",
   "kapnos.walkMeta": "{walk} walk to the stop",
+  "kapnos.transferMeta": "{walk} from here — take a city bus or taxi to the stop",
   "kapnos.rideLine": "Departs {depart} — arrives {arrive} ({m} min)",
   "kapnos.priceFromLabel": "From {price} — book on Kapnos",
   "kapnos.nextDeparturesLabel": "Next departures",

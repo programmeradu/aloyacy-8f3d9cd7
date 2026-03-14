@@ -15,6 +15,10 @@ function fmtWalk(m: number): string {
   return `${(m / 1000).toFixed(1)} km`;
 }
 
+// Above ~1.2 km nobody actually walks with luggage. Switch the label to a
+// "city bus or taxi" framing so the suggestion stays honest about effort.
+const WALKABLE_M = 1_200;
+
 function fmtTimeLocal(s: string, locale: string): string {
   // s = "YYYY-MM-DD HH:MM:SS" Cyprus local. Display HH:MM directly — it's
   // already the rider's wall-clock time at the stop.
@@ -85,7 +89,12 @@ export function KapnosShuttleCard({
               {suggestion.pickup.name}
             </p>
             <p className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.16em] text-ink-soft tabular-nums">
-              {t("kapnos.walkMeta", { walk: fmtWalk(suggestion.pickup.distanceM) })}
+              {t(
+                suggestion.pickup.distanceM > WALKABLE_M
+                  ? "kapnos.transferMeta"
+                  : "kapnos.walkMeta",
+                { walk: fmtWalk(suggestion.pickup.distanceM) },
+              )}
             </p>
           </div>
         </li>
@@ -115,7 +124,12 @@ export function KapnosShuttleCard({
               {suggestion.dropoff.name}
             </p>
             <p className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.16em] text-ink-soft tabular-nums">
-              {t("kapnos.walkMeta", { walk: fmtWalk(suggestion.dropoff.distanceM) })}
+              {t(
+                suggestion.dropoff.distanceM > WALKABLE_M
+                  ? "kapnos.transferMeta"
+                  : "kapnos.walkMeta",
+                { walk: fmtWalk(suggestion.dropoff.distanceM) },
+              )}
             </p>
           </div>
         </li>

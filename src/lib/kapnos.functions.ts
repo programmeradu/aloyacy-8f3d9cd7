@@ -26,8 +26,14 @@ import { distanceM } from "./geo";
 const FEED_URL =
   "https://kapnos.ecoachmanager.com/coachtrip/api/trip-type-all";
 
-const MAX_AIRPORT_WALK_M = 2_500; // airports are large; 2.5 km is acceptable
-const MAX_CITY_WALK_M = 2_500;    // city station to door — still bus-fareable
+const MAX_AIRPORT_WALK_M = 3_000; // airports are large; 3 km covers terminal+forecourt
+// Kapnos has only ONE coach stop per city (Nicosia/Larnaca/Paphos/Ayia Napa),
+// so the "city walk" is really "how far the rider is from that single coach
+// stop". Tight radii (≤3 km) miss most real trips — Nicosia alone spans
+// 8–10 km end-to-end. We use a city catchment that covers the whole urban
+// area; the card itself shows the walking distance so the rider can decide
+// whether to bus/taxi to the coach stop.
+const MAX_CITY_WALK_M = 10_000;
 const SUGGEST_COUNT = 3;          // next N departures
 
 const CACHE_TTL_MS = 10 * 60_000;
@@ -242,44 +248,50 @@ export const suggestKapnos = createServerFn({ method: "POST" })
     }
     if (candidates.length === 0) return null;
     candidates.sort((a, b) => a.score - b.score);
-    const best = candidates[0];
 
-    // Build the next N departures still in the future (Cyprus local).
-    const upcoming = best.route.trips
-      .filter((t) => t.departLocal && t.departLocal > now)
-      .slice(0, SUGGEST_COUNT);
-    if (upcoming.length === 0) return null;
+    // Walk candidates in order of best (closest) → worst, returning the
+    // first one that actually has upcoming departures. The previous
+    // implementation locked onto candidates[0] and returned null whenever
+    // that route's last bus had already left, even if another viable
+    // Kapnos route still had seats for tonight.
+    for (const best of candidates) {
+      const upcoming = best.route.trips
+        .filter((t) => t.departLocal && t.departLocal > now)
+        .slice(0, SUGGEST_COUNT);
+      if (upcoming.length === 0) continue;
 
-    const rideSec = parseRangeToSec(best.dropoff.rangeFromStart);
-    const departures: KapnosDeparture[] = upcoming.map((t) => ({
-      tripId: t.tripId,
-      departLocal: t.departLocal,
-      arriveLocal: addLocalSeconds(t.departLocal, rideSec),
-      seatsAvailable: t.seatsAvailable,
-      priceFrom: t.priceFromFormatted || t.priceFromRaw,
-    }));
+      const rideSec = parseRangeToSec(best.dropoff.rangeFromStart);
+      const departures: KapnosDeparture[] = upcoming.map((t) => ({
+        tripId: t.tripId,
+        departLocal: t.departLocal,
+        arriveLocal: addLocalSeconds(t.departLocal, rideSec),
+        seatsAvailable: t.seatsAvailable,
+        priceFrom: t.priceFromFormatted || t.priceFromRaw,
+      }));
 
-    const out: KapnosSuggestion = {
-      routeId: best.route.id,
-      routeCode: best.route.code,
-      routeName: best.route.name,
-      pickup: {
-        name: best.pickup.name,
-        lat: best.pickup.lat,
-        lng: best.pickup.lng,
-        distanceM: Math.round(best.pickupDist),
-      },
-      dropoff: {
-        name: best.dropoff.name,
-        lat: best.dropoff.lat,
-        lng: best.dropoff.lng,
-        distanceM: Math.round(best.dropoffDist),
-      },
-      rideSec,
-      airportIsOrigin: best.airportIsOrigin,
-      departures,
-      bookingUrl: "https://kapnosairportshuttle.com/",
-      routeUrl: "https://kapnosairportshuttle.com/timetables",
-    };
-    return out;
+      const out: KapnosSuggestion = {
+        routeId: best.route.id,
+        routeCode: best.route.code,
+        routeName: best.route.name,
+        pickup: {
+          name: best.pickup.name,
+          lat: best.pickup.lat,
+          lng: best.pickup.lng,
+          distanceM: Math.round(best.pickupDist),
+        },
+        dropoff: {
+          name: best.dropoff.name,
+          lat: best.dropoff.lat,
+          lng: best.dropoff.lng,
+          distanceM: Math.round(best.dropoffDist),
+        },
+        rideSec,
+        airportIsOrigin: best.airportIsOrigin,
+        departures,
+        bookingUrl: "https://kapnosairportshuttle.com/",
+        routeUrl: "https://kapnosairportshuttle.com/timetables",
+      };
+      return out;
+    }
+    return null;
   });
