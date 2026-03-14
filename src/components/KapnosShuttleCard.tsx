@@ -1,47 +1,44 @@
 // Wave 3 — Kapnos Airport Shuttle suggestion card.
 //
-// Cyprus public buses don't serve LCA or PFO directly. Kapnos is the
-// scheduled coach network locals actually use. When one trip endpoint is
-// at an airport, we show this card as a first-class alternative with the
-// next three real departures (live from Kapnos's booking API) and an
-// honest seat-availability read. We don't sell tickets; we deep-link to
-// Kapnos's own booking page where the rider completes the purchase.
+// Compact, expandable layout. Branded with the operator's own mark so
+// riders recognise the service immediately. When the coach stop isn't a
+// reasonable walk, we plan the city-bus first/last mile for them instead
+// of telling them to "take a city bus or taxi".
 
 import { useI18n } from "@/lib/i18n";
 import type { KapnosSuggestion } from "@/lib/kapnos.functions";
+import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
+import kapnosLogo from "@/assets/kapnos-logo.png.asset.json";
+
+const WALKABLE_M = 1_200;
 
 function fmtWalk(m: number): string {
   if (m < 950) return `${Math.round(m / 10) * 10} m`;
   return `${(m / 1000).toFixed(1)} km`;
 }
 
-// Above ~1.2 km nobody actually walks with luggage. Switch the label to a
-// "city bus or taxi" framing so the suggestion stays honest about effort.
-const WALKABLE_M = 1_200;
+function fmtTime(s: string): string {
+  return (s.split(" ")[1] ?? "").slice(0, 5);
+}
 
-function fmtTimeLocal(s: string, locale: string): string {
-  // s = "YYYY-MM-DD HH:MM:SS" Cyprus local. Display HH:MM directly — it's
-  // already the rider's wall-clock time at the stop.
-  const time = s.split(" ")[1] ?? "";
-  return time.slice(0, 5);
+function fmtMin(sec: number): number {
+  return Math.max(1, Math.round(sec / 60));
 }
 
 function fmtDateChip(s: string, locale: string): string {
   const [date] = s.split(" ");
   const [Y, M, D] = date.split("-").map((n) => parseInt(n, 10));
-  // Compare against today in Cyprus to label "today / tomorrow".
-  const fmt = new Intl.DateTimeFormat("sv-SE", {
+  const today = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Asia/Nicosia",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  });
-  const today = fmt.format(new Date()); // "YYYY-MM-DD"
-  if (today === date) return ""; // omit; common case
+  }).format(new Date());
+  if (today === date) return "";
   const [tY, tM, tD] = today.split("-").map((n) => parseInt(n, 10));
-  const a = Date.UTC(Y, M - 1, D);
-  const b = Date.UTC(tY, tM - 1, tD);
-  const diffDays = Math.round((a - b) / 86_400_000);
+  const diffDays = Math.round(
+    (Date.UTC(Y, M - 1, D) - Date.UTC(tY, tM - 1, tD)) / 86_400_000,
+  );
   if (diffDays === 1) return locale === "el" ? "αύριο" : "tomorrow";
   return new Intl.DateTimeFormat(locale === "el" ? "el-CY" : "en-GB", {
     day: "numeric",
@@ -49,162 +46,295 @@ function fmtDateChip(s: string, locale: string): string {
   }).format(new Date(Date.UTC(Y, M - 1, D)));
 }
 
-function fmtMin(sec: number): number {
-  return Math.max(1, Math.round(sec / 60));
+/** Strip "(CO1) " / "(A01) " stop-code prefixes for tighter display. */
+function shortStop(name: string): string {
+  return name.replace(/^\([A-Z0-9]+\)\s*/i, "").trim();
+}
+
+/** Convert the route name "NICOSIA > LARNACA" → "Nicosia → Larnaca". */
+function prettyRoute(name: string): string {
+  return name
+    .split(/\s*>\s*/)
+    .map((p) => p.charAt(0) + p.slice(1).toLowerCase())
+    .join(" → ");
+}
+
+function MiniItinerary({ itin }: { itin: Itinerary }) {
+  const rides = itin.legs.filter((l): l is RideLeg => l.kind === "ride");
+  const totalMin = fmtMin(itin.totalDurationSec);
+  const walkM = Math.round(itin.totalWalkMeters);
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        {rides.map((r, i) => (
+          <span
+            key={`${r.tripId}-${i}`}
+            className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-aegean-deep tabular-nums"
+          >
+            {r.routeShort}
+            {i < rides.length - 1 ? (
+              <span className="ml-2 text-ink-soft">→</span>
+            ) : null}
+          </span>
+        ))}
+        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft tabular-nums">
+          · {totalMin} min · {fmtWalk(walkM)}
+        </span>
+      </div>
+      <p className="font-sans text-[12px] leading-snug text-ink-soft">
+        {rides.length > 0
+          ? `${shortStop(rides[0].board.name)} → ${shortStop(
+              rides[rides.length - 1].alight.name,
+            )}`
+          : (() => {
+              const w = itin.legs.find((l): l is WalkLeg => l.kind === "walk");
+              return w ? `${shortStop(w.from.name)} → ${shortStop(w.to.name)}` : "";
+            })()}
+      </p>
+    </div>
+  );
 }
 
 export function KapnosShuttleCard({
   suggestion,
+  firstMile,
+  lastMile,
+  firstMileLoading,
+  lastMileLoading,
 }: {
   suggestion: KapnosSuggestion;
+  firstMile?: Itinerary | null;
+  lastMile?: Itinerary | null;
+  firstMileLoading?: boolean;
+  lastMileLoading?: boolean;
 }) {
   const { t, locale } = useI18n();
   const rideMin = fmtMin(suggestion.rideSec);
   const next = suggestion.departures[0];
-  const nextDepart = fmtTimeLocal(next.departLocal, locale);
-  const nextArrive = fmtTimeLocal(next.arriveLocal, locale);
+  const nextDepart = fmtTime(next.departLocal);
+  const nextArrive = fmtTime(next.arriveLocal);
+  const dayChip = fmtDateChip(next.departLocal, locale);
+
+  const pickupFar = suggestion.pickup.distanceM > WALKABLE_M;
+  const dropoffFar = suggestion.dropoff.distanceM > WALKABLE_M;
 
   return (
-    <article className="rounded-[28px] bg-card ring-1 ring-line p-5 flex flex-col gap-4 animate-rise">
-      <header className="flex items-baseline justify-between gap-3">
-        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-aegean-deep">
-          {t("kapnos.eyebrow")}
-        </p>
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
+    <article className="rounded-[24px] bg-card ring-1 ring-line p-4 flex flex-col gap-3 animate-rise">
+      {/* Header: operator logo + route code */}
+      <header className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <img
+            src={kapnosLogo.url}
+            alt="Kapnos Airport Shuttle"
+            className="h-7 w-7 rounded-md object-contain bg-white ring-1 ring-line/60 p-0.5"
+            loading="lazy"
+          />
+          <div className="min-w-0">
+            <p className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep leading-tight">
+              {t("kapnos.eyebrow")}
+            </p>
+            <p className="font-display text-[15px] leading-tight text-ink truncate">
+              {prettyRoute(suggestion.routeName)}
+            </p>
+          </div>
+        </div>
+        <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft tabular-nums shrink-0">
           {suggestion.routeCode}
         </p>
       </header>
 
-      <h3 className="font-display text-[22px] leading-[1.15] text-ink text-balance">
-        {t("kapnos.title", { route: suggestion.routeName })}
-      </h3>
+      {/* Headline summary line — next coach, condensed */}
+      <div className="rounded-2xl bg-aegean-soft/40 px-3.5 py-2.5 flex items-baseline justify-between gap-3 flex-wrap">
+        <div className="flex items-baseline gap-2 min-w-0">
+          <span className="font-display text-[18px] text-ink tabular-nums">
+            {nextDepart}
+          </span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+            →
+          </span>
+          <span className="font-display text-[18px] text-ink tabular-nums">
+            {nextArrive}
+          </span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
+            {rideMin} min
+          </span>
+          {dayChip ? (
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ochre-deep">
+              {dayChip}
+            </span>
+          ) : null}
+        </div>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
+          {t("kapnos.fromPrice", { price: next.priceFrom })}
+        </span>
+      </div>
 
-      <ol className="flex flex-col gap-2.5">
-        <li className="rounded-2xl bg-limestone-soft/60 p-3.5 flex items-start gap-3">
-          <span className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-ochre-deep tabular-nums">
+      {/* Compact 3-step rail: pickup · ride · dropoff */}
+      <ol className="flex flex-col gap-1.5">
+        <li className="flex items-baseline gap-2.5 min-w-0">
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-ochre-deep tabular-nums shrink-0 w-5">
             01
           </span>
-          <div className="flex-1 min-w-0">
-            <p className="font-display text-[15px] leading-tight text-ink">
-              {suggestion.pickup.name}
-            </p>
-            <p className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.16em] text-ink-soft tabular-nums">
-              {t(
-                suggestion.pickup.distanceM > WALKABLE_M
-                  ? "kapnos.transferMeta"
-                  : "kapnos.walkMeta",
-                { walk: fmtWalk(suggestion.pickup.distanceM) },
-              )}
-            </p>
-          </div>
+          <span className="font-sans text-[13px] text-ink truncate flex-1">
+            {shortStop(suggestion.pickup.name)}
+          </span>
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft tabular-nums shrink-0">
+            {fmtWalk(suggestion.pickup.distanceM)}
+          </span>
         </li>
-        <li className="rounded-2xl bg-aegean-soft/40 p-3.5 flex items-start gap-3">
-          <span className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep tabular-nums">
+        <li className="flex items-baseline gap-2.5 min-w-0">
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep tabular-nums shrink-0 w-5">
             02
           </span>
-          <div className="flex-1">
-            <p className="font-display text-[15px] leading-tight text-ink tabular-nums">
-              {t("kapnos.rideLine", {
-                depart: nextDepart,
-                arrive: nextArrive,
-                m: rideMin,
-              })}
-            </p>
-            <p className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.16em] text-ink-soft">
-              {t("kapnos.priceFromLabel", { price: next.priceFrom })}
-            </p>
-          </div>
+          <span className="font-sans text-[13px] text-ink-soft truncate flex-1">
+            {t("kapnos.coachLeg", { m: rideMin })}
+          </span>
         </li>
-        <li className="rounded-2xl bg-limestone-soft/60 p-3.5 flex items-start gap-3">
-          <span className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-ochre-deep tabular-nums">
+        <li className="flex items-baseline gap-2.5 min-w-0">
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-ochre-deep tabular-nums shrink-0 w-5">
             03
           </span>
-          <div className="flex-1 min-w-0">
-            <p className="font-display text-[15px] leading-tight text-ink">
-              {suggestion.dropoff.name}
-            </p>
-            <p className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.16em] text-ink-soft tabular-nums">
-              {t(
-                suggestion.dropoff.distanceM > WALKABLE_M
-                  ? "kapnos.transferMeta"
-                  : "kapnos.walkMeta",
-                { walk: fmtWalk(suggestion.dropoff.distanceM) },
-              )}
-            </p>
-          </div>
+          <span className="font-sans text-[13px] text-ink truncate flex-1">
+            {shortStop(suggestion.dropoff.name)}
+          </span>
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft tabular-nums shrink-0">
+            {fmtWalk(suggestion.dropoff.distanceM)}
+          </span>
         </li>
       </ol>
 
-      <section className="rounded-2xl ring-1 ring-line/60 p-3 flex flex-col gap-1.5">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          {t("kapnos.nextDeparturesLabel")}
-        </p>
-        <ul className="flex flex-col">
-          {suggestion.departures.map((d, idx) => {
-            const dayChip = fmtDateChip(d.departLocal, locale);
-            const seatsLow = d.seatsAvailable > 0 && d.seatsAvailable <= 8;
-            const sold = d.seatsAvailable <= 0;
-            return (
-              <li
-                key={d.tripId}
-                className={`flex items-baseline justify-between gap-3 py-1.5 ${
-                  idx === 0 ? "" : "border-t border-line/40"
-                }`}
-              >
-                <div className="flex items-baseline gap-2 min-w-0">
-                  <span className="font-display text-[15px] text-ink tabular-nums">
-                    {fmtTimeLocal(d.departLocal, locale)}
-                  </span>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
-                    {t("kapnos.arrivesAt", { time: fmtTimeLocal(d.arriveLocal, locale) })}
-                  </span>
-                  {dayChip && (
-                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ochre-deep">
-                      {dayChip}
-                    </span>
-                  )}
-                </div>
-                <span
-                  className={`font-mono text-[10px] uppercase tracking-[0.18em] tabular-nums ${
-                    sold
-                      ? "text-red-700"
-                      : seatsLow
-                        ? "text-ochre-deep"
-                        : "text-ink-soft"
-                  }`}
+      {/* First-mile plan: only when the rider isn't already at the coach stop */}
+      {pickupFar ? (
+        <details className="group rounded-2xl ring-1 ring-line/60 px-3.5 py-2.5 [&[open]>summary>span.chev]:rotate-180">
+          <summary className="flex items-center justify-between gap-3 cursor-pointer list-none">
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
+              {t("kapnos.firstMile.title", {
+                stop: shortStop(suggestion.pickup.name),
+              })}
+            </span>
+            <span className="chev font-mono text-[10px] text-ink-soft transition-transform">
+              ▾
+            </span>
+          </summary>
+          <div className="mt-2.5">
+            {firstMileLoading ? (
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                {t("kapnos.firstMile.loading")}
+              </p>
+            ) : firstMile ? (
+              <MiniItinerary itin={firstMile} />
+            ) : (
+              <p className="font-sans text-[12px] text-ink-soft leading-snug">
+                {t("kapnos.firstMile.none")}
+              </p>
+            )}
+          </div>
+        </details>
+      ) : null}
+
+      {/* Last-mile plan from airport-side coach stop */}
+      {dropoffFar ? (
+        <details className="group rounded-2xl ring-1 ring-line/60 px-3.5 py-2.5 [&[open]>summary>span.chev]:rotate-180">
+          <summary className="flex items-center justify-between gap-3 cursor-pointer list-none">
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
+              {t("kapnos.lastMile.title", {
+                stop: shortStop(suggestion.dropoff.name),
+              })}
+            </span>
+            <span className="chev font-mono text-[10px] text-ink-soft transition-transform">
+              ▾
+            </span>
+          </summary>
+          <div className="mt-2.5">
+            {lastMileLoading ? (
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                {t("kapnos.lastMile.loading")}
+              </p>
+            ) : lastMile ? (
+              <MiniItinerary itin={lastMile} />
+            ) : (
+              <p className="font-sans text-[12px] text-ink-soft leading-snug">
+                {t("kapnos.lastMile.none")}
+              </p>
+            )}
+          </div>
+        </details>
+      ) : null}
+
+      {/* Collapsed: full timetable + book CTAs + disclaimer */}
+      <details className="group [&[open]>summary>span.chev]:rotate-180">
+        <summary className="flex items-center justify-between gap-3 cursor-pointer list-none rounded-2xl bg-limestone-soft/60 px-3.5 py-2.5">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
+            {t("kapnos.moreLabel")}
+          </span>
+          <span className="chev font-mono text-[10px] text-ink-soft transition-transform">
+            ▾
+          </span>
+        </summary>
+        <div className="mt-3 flex flex-col gap-3">
+          <ul className="flex flex-col rounded-2xl ring-1 ring-line/60 divide-y divide-line/40">
+            {suggestion.departures.map((d) => {
+              const chip = fmtDateChip(d.departLocal, locale);
+              const seatsLow = d.seatsAvailable > 0 && d.seatsAvailable <= 8;
+              const sold = d.seatsAvailable <= 0;
+              return (
+                <li
+                  key={d.tripId}
+                  className="flex items-baseline justify-between gap-3 px-3 py-2"
                 >
-                  {sold
-                    ? t("kapnos.soldOut")
-                    : t("kapnos.seatsLeft", { n: d.seatsAvailable })}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      <div className="flex flex-wrap gap-2">
-        <a
-          href={suggestion.bookingUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-full bg-ink px-4 py-2.5 font-sans text-[13px] font-semibold text-limestone transition-colors hover:bg-ochre-deep"
-        >
-          {t("kapnos.bookCta")}
-        </a>
-        <a
-          href={suggestion.routeUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-full bg-card ring-1 ring-line px-4 py-2.5 font-sans text-[13px] font-semibold text-ink transition-colors hover:ring-aegean/40"
-        >
-          {t("kapnos.timetableCta")}
-        </a>
-      </div>
-
-      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/70">
-        {t("kapnos.disclaimer")}
-      </p>
+                  <div className="flex items-baseline gap-2 min-w-0">
+                    <span className="font-display text-[14px] text-ink tabular-nums">
+                      {fmtTime(d.departLocal)}
+                    </span>
+                    <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
+                      {t("kapnos.arrivesAt", { time: fmtTime(d.arriveLocal) })}
+                    </span>
+                    {chip ? (
+                      <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ochre-deep">
+                        {chip}
+                      </span>
+                    ) : null}
+                  </div>
+                  <span
+                    className={`font-mono text-[9.5px] uppercase tracking-[0.18em] tabular-nums ${
+                      sold
+                        ? "text-red-700"
+                        : seatsLow
+                          ? "text-ochre-deep"
+                          : "text-ink-soft"
+                    }`}
+                  >
+                    {sold
+                      ? t("kapnos.soldOut")
+                      : t("kapnos.seatsLeft", { n: d.seatsAvailable })}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={suggestion.bookingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full bg-ink px-4 py-2 font-sans text-[12.5px] font-semibold text-limestone transition-colors hover:bg-ochre-deep"
+            >
+              {t("kapnos.bookCta")}
+            </a>
+            <a
+              href={suggestion.routeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full bg-card ring-1 ring-line px-4 py-2 font-sans text-[12.5px] font-semibold text-ink transition-colors hover:ring-aegean/40"
+            >
+              {t("kapnos.timetableCta")}
+            </a>
+          </div>
+          <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft/70">
+            {t("kapnos.disclaimer")}
+          </p>
+        </div>
+      </details>
     </article>
   );
 }
