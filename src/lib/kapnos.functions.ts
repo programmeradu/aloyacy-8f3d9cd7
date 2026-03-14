@@ -26,8 +26,14 @@ import { distanceM } from "./geo";
 const FEED_URL =
   "https://kapnos.ecoachmanager.com/coachtrip/api/trip-type-all";
 
-const MAX_AIRPORT_WALK_M = 2_500; // airports are large; 2.5 km is acceptable
-const MAX_CITY_WALK_M = 2_500;    // city station to door — still bus-fareable
+const MAX_AIRPORT_WALK_M = 3_000; // airports are large; 3 km covers terminal+forecourt
+// Kapnos has only ONE coach stop per city (Nicosia/Larnaca/Paphos/Ayia Napa),
+// so the "city walk" is really "how far the rider is from that single coach
+// stop". Tight radii (≤3 km) miss most real trips — Nicosia alone spans
+// 8–10 km end-to-end. We use a city catchment that covers the whole urban
+// area; the card itself shows the walking distance so the rider can decide
+// whether to bus/taxi to the coach stop.
+const MAX_CITY_WALK_M = 10_000;
 const SUGGEST_COUNT = 3;          // next N departures
 
 const CACHE_TTL_MS = 10 * 60_000;
