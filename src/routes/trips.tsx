@@ -743,7 +743,15 @@ function Plan() {
 
         {results && results.length === 0 && !planning && (
           <div className="flex flex-col gap-3">
-            {kapnos && <KapnosShuttleCard suggestion={kapnos} />}
+            {kapnos && (
+              <KapnosShuttleCard
+                suggestion={kapnos}
+                firstMile={firstMileItin}
+                lastMile={lastMileItin}
+                firstMileLoading={kapnosPickupFar && firstMileQuery.isFetching && !firstMileItin}
+                lastMileLoading={kapnosDropoffFar && lastMileQuery.isFetching && !lastMileItin}
+              />
+            )}
             <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
               {planQuery.data?.noScheduleAvailable ? (
                 <>
@@ -770,7 +778,15 @@ function Plan() {
 
         {results && results.length > 0 && origin && destination && (
           <div className="flex flex-col gap-3">
-            {kapnos && <KapnosShuttleCard suggestion={kapnos} />}
+            {kapnos && (
+              <KapnosShuttleCard
+                suggestion={kapnos}
+                firstMile={firstMileItin}
+                lastMile={lastMileItin}
+                firstMileLoading={kapnosPickupFar && firstMileQuery.isFetching && !firstMileItin}
+                lastMileLoading={kapnosDropoffFar && lastMileQuery.isFetching && !lastMileItin}
+              />
+            )}
             {pnr && (
               <ParkAndRideCard suggestion={pnr} origin={{ lat: origin.lat, lng: origin.lng }} />
             )}
