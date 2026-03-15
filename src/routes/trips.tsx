@@ -353,8 +353,20 @@ function Plan() {
   // Wave 3 — Kapnos Airport Shuttle (only fires when one endpoint is at
   // LCA or PFO airport AND the other is near a Kapnos city station).
   const kapnosFn = useServerFn(suggestKapnos);
+  const kapnosAfterUnix = timeIntent?.leaveByISO
+    ? Math.floor(new Date(timeIntent.leaveByISO).getTime() / 1000)
+    : undefined;
+  const kapnosBeforeUnix = timeIntent?.arriveByISO
+    ? Math.floor(new Date(timeIntent.arriveByISO).getTime() / 1000)
+    : undefined;
   const kapnosQuery = useQuery({
-    queryKey: ["kapnos", origin?.lat, origin?.lng, destination?.lat, destination?.lng],
+    queryKey: [
+      "kapnos",
+      origin?.lat, origin?.lng,
+      destination?.lat, destination?.lng,
+      kapnosAfterUnix ?? null,
+      kapnosBeforeUnix ?? null,
+    ],
     queryFn: async () => {
       if (!origin || !destination) return null;
       try {
@@ -362,6 +374,8 @@ function Plan() {
           data: {
             from: { lat: origin.lat, lng: origin.lng },
             to: { lat: destination.lat, lng: destination.lng },
+            afterUnix: kapnosAfterUnix,
+            beforeUnix: kapnosBeforeUnix,
           },
         });
       } catch {
