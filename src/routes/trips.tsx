@@ -374,6 +374,101 @@ function Plan() {
   });
   const kapnos = kapnosQuery.data ?? null;
 
+  // Wave 3 — Plan the city-bus FIRST mile to the Kapnos coach stop when the
+  // rider is too far to walk. We don't tell people "take a bus or taxi" —
+  // we plan the bus for them, same as any other journey.
+  const KAPNOS_WALKABLE_M = 1_200;
+  const kapnosPickupFar =
+    !!kapnos && kapnos.pickup.distanceM > KAPNOS_WALKABLE_M;
+  const kapnosDropoffFar =
+    !!kapnos && kapnos.dropoff.distanceM > KAPNOS_WALKABLE_M;
+
+  const firstMileQuery = useQuery({
+    queryKey: [
+      "kapnos.firstMile",
+      origin?.lat,
+      origin?.lng,
+      kapnos?.pickup.lat,
+      kapnos?.pickup.lng,
+      a11yKey,
+    ],
+    queryFn: async () => {
+      if (!origin || !kapnos || !kapnosPickupFar) return null;
+      try {
+        const res = await planFn({
+          data: {
+            from: { lat: origin.lat, lng: origin.lng, label: origin.label },
+            to: {
+              lat: kapnos.pickup.lat,
+              lng: kapnos.pickup.lng,
+              label: kapnos.pickup.name,
+            },
+            a11y: a11yOn
+              ? {
+                  stepFree: a11yPrefs.stepFree,
+                  preferShade: a11yPrefs.preferShade,
+                  lowFloor: a11yPrefs.lowFloor,
+                  maxWalkMeters: a11yPrefs.maxWalkMeters,
+                }
+              : undefined,
+          },
+        });
+        return res.itineraries[0] ?? null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!origin && !!kapnos && kapnosPickupFar,
+    staleTime: 2 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const firstMileItin = firstMileQuery.data ?? null;
+
+  const lastMileQuery = useQuery({
+    queryKey: [
+      "kapnos.lastMile",
+      kapnos?.dropoff.lat,
+      kapnos?.dropoff.lng,
+      destination?.lat,
+      destination?.lng,
+      a11yKey,
+    ],
+    queryFn: async () => {
+      if (!destination || !kapnos || !kapnosDropoffFar) return null;
+      try {
+        const res = await planFn({
+          data: {
+            from: {
+              lat: kapnos.dropoff.lat,
+              lng: kapnos.dropoff.lng,
+              label: kapnos.dropoff.name,
+            },
+            to: {
+              lat: destination.lat,
+              lng: destination.lng,
+              label: destination.label,
+            },
+            a11y: a11yOn
+              ? {
+                  stepFree: a11yPrefs.stepFree,
+                  preferShade: a11yPrefs.preferShade,
+                  lowFloor: a11yPrefs.lowFloor,
+                  maxWalkMeters: a11yPrefs.maxWalkMeters,
+                }
+              : undefined,
+          },
+        });
+        return res.itineraries[0] ?? null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!destination && !!kapnos && kapnosDropoffFar,
+    staleTime: 2 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const lastMileItin = lastMileQuery.data ?? null;
+
 
 
 
@@ -648,7 +743,15 @@ function Plan() {
 
         {results && results.length === 0 && !planning && (
           <div className="flex flex-col gap-3">
-            {kapnos && <KapnosShuttleCard suggestion={kapnos} />}
+            {kapnos && (
+              <KapnosShuttleCard
+                suggestion={kapnos}
+                firstMile={firstMileItin}
+                lastMile={lastMileItin}
+                firstMileLoading={kapnosPickupFar && firstMileQuery.isFetching && !firstMileItin}
+                lastMileLoading={kapnosDropoffFar && lastMileQuery.isFetching && !lastMileItin}
+              />
+            )}
             <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
               {planQuery.data?.noScheduleAvailable ? (
                 <>
@@ -675,7 +778,15 @@ function Plan() {
 
         {results && results.length > 0 && origin && destination && (
           <div className="flex flex-col gap-3">
-            {kapnos && <KapnosShuttleCard suggestion={kapnos} />}
+            {kapnos && (
+              <KapnosShuttleCard
+                suggestion={kapnos}
+                firstMile={firstMileItin}
+                lastMile={lastMileItin}
+                firstMileLoading={kapnosPickupFar && firstMileQuery.isFetching && !firstMileItin}
+                lastMileLoading={kapnosDropoffFar && lastMileQuery.isFetching && !lastMileItin}
+              />
+            )}
             {pnr && (
               <ParkAndRideCard suggestion={pnr} origin={{ lat: origin.lat, lng: origin.lng }} />
             )}

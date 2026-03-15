@@ -480,6 +480,15 @@ export const en = {
   "kapnos.bookCta": "Book on Kapnos",
   "kapnos.timetableCta": "Full timetable",
   "kapnos.disclaimer": "Live availability and booking are handled by Kapnos",
+  "kapnos.fromPrice": "from {price}",
+  "kapnos.coachLeg": "Kapnos coach — {m} min nonstop",
+  "kapnos.firstMile.title": "Plan bus to {stop}",
+  "kapnos.firstMile.loading": "Planning your bus to the coach stop…",
+  "kapnos.firstMile.none": "No direct city bus found — taxi or rideshare to the coach stop is your best bet.",
+  "kapnos.lastMile.title": "Plan bus from {stop}",
+  "kapnos.lastMile.loading": "Planning your bus onward…",
+  "kapnos.lastMile.none": "No direct city bus from the coach stop — taxi or rideshare is your best bet.",
+  "kapnos.moreLabel": "More departures & booking",
 
 
 
