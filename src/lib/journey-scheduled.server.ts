@@ -13,7 +13,7 @@
 import { loadScheduleForDate, todayLocalDate } from "./schedule-loader.server";
 
 /** Cyprus-local YYYYMMDD for a given unix second timestamp. */
-function localDateForUnix(unix: number): string {
+export function localDateForUnix(unix: number): string {
   // UTC+3 approximation matches todayLocalDate().
   const d = new Date(unix * 1000 + 3 * 3600 * 1000);
   return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
