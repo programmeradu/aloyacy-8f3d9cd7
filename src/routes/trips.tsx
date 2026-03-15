@@ -383,6 +383,35 @@ function Plan() {
   const kapnosDropoffFar =
     !!kapnos && kapnos.dropoff.distanceM > KAPNOS_WALKABLE_M;
 
+  // Convert Kapnos "YYYY-MM-DD HH:mm:ss" (Cyprus local wall-clock) → unix seconds.
+  // Uses Intl to resolve the Asia/Nicosia offset for that specific date so DST is
+  // handled correctly without hardcoding +2/+3.
+  const cyprusLocalToUnix = (local: string): number | undefined => {
+    const m = local.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+    if (!m) return undefined;
+    const Y = +m[1], Mo = +m[2], D = +m[3], H = +m[4], Mi = +m[5], S = +(m[6] ?? 0);
+    const guess = Date.UTC(Y, Mo - 1, D, H, Mi, S);
+    const dtf = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Nicosia",
+      hourCycle: "h23",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    });
+    const parts = dtf.formatToParts(new Date(guess));
+    const get = (t: string) => +parts.find((p) => p.type === t)!.value;
+    const asCy = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+    const offset = asCy - guess; // ms Cyprus is ahead of UTC
+    return Math.floor((guess - offset) / 1000);
+  };
+
+  // Tie the first-mile bus search to the coach we're trying to catch (arriveBy
+  // = coach departure). Last-mile starts when the coach arrives. This is what
+  // makes a "leave tomorrow 6am" trip plan against tomorrow's coach instead of
+  // searching at the current moment.
+  const kapnosNext = kapnos?.departures[0];
+  const coachDepartUnix = kapnosNext ? cyprusLocalToUnix(kapnosNext.departLocal) : undefined;
+  const coachArriveUnix = kapnosNext ? cyprusLocalToUnix(kapnosNext.arriveLocal) : undefined;
+
   const firstMileQuery = useQuery({
     queryKey: [
       "kapnos.firstMile",
@@ -390,6 +419,7 @@ function Plan() {
       origin?.lng,
       kapnos?.pickup.lat,
       kapnos?.pickup.lng,
+      coachDepartUnix ?? null,
       a11yKey,
     ],
     queryFn: async () => {
@@ -403,6 +433,7 @@ function Plan() {
               lng: kapnos.pickup.lng,
               label: kapnos.pickup.name,
             },
+            arriveByUnix: coachDepartUnix,
             a11y: a11yOn
               ? {
                   stepFree: a11yPrefs.stepFree,
@@ -431,6 +462,7 @@ function Plan() {
       kapnos?.dropoff.lng,
       destination?.lat,
       destination?.lng,
+      coachArriveUnix ?? null,
       a11yKey,
     ],
     queryFn: async () => {
@@ -448,6 +480,7 @@ function Plan() {
               lng: destination.lng,
               label: destination.label,
             },
+            departAtUnix: coachArriveUnix,
             a11y: a11yOn
               ? {
                   stepFree: a11yPrefs.stepFree,
