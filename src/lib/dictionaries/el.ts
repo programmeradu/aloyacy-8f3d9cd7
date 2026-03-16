@@ -479,9 +479,13 @@ export const el: Record<keyof typeof en, string> = {
   "kapnos.firstMile.title": "Διαδρομή με αστικό προς {stop}",
   "kapnos.firstMile.loading": "Σχεδιάζουμε τη διαδρομή σας προς τη στάση…",
   "kapnos.firstMile.none": "Δεν βρέθηκε απευθείας αστικό — προτείνουμε ταξί ή ride-share ως τη στάση.",
+  "kapnos.firstMile.openPlan": "Πλήρης διαδρομή προς τη στάση",
+  "kapnos.firstMile.tapHint": "Πατήστε για αναλυτικές οδηγίες",
   "kapnos.lastMile.title": "Διαδρομή με αστικό από {stop}",
   "kapnos.lastMile.loading": "Σχεδιάζουμε τη συνέχεια της διαδρομής σας…",
   "kapnos.lastMile.none": "Δεν βρέθηκε απευθείας αστικό από τη στάση — προτείνουμε ταξί ή ride-share.",
+  "kapnos.lastMile.openPlan": "Πλήρης διαδρομή από τη στάση",
+  "kapnos.lastMile.tapHint": "Πατήστε για αναλυτικές οδηγίες",
   "kapnos.moreLabel": "Περισσότερες αναχωρήσεις & κράτηση",
 
 

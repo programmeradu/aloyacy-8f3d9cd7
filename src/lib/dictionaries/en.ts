@@ -485,9 +485,13 @@ export const en = {
   "kapnos.firstMile.title": "Plan bus to {stop}",
   "kapnos.firstMile.loading": "Planning your bus to the coach stop…",
   "kapnos.firstMile.none": "No direct city bus found — taxi or rideshare to the coach stop is your best bet.",
+  "kapnos.firstMile.openPlan": "Open full plan to coach stop",
+  "kapnos.firstMile.tapHint": "Tap to open full directions",
   "kapnos.lastMile.title": "Plan bus from {stop}",
   "kapnos.lastMile.loading": "Planning your bus onward…",
   "kapnos.lastMile.none": "No direct city bus from the coach stop — taxi or rideshare is your best bet.",
+  "kapnos.lastMile.openPlan": "Open full plan from coach stop",
+  "kapnos.lastMile.tapHint": "Tap to open full directions",
   "kapnos.moreLabel": "More departures & booking",
 
 
