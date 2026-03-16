@@ -223,11 +223,36 @@ export function KapnosShuttleCard({
                 {t("kapnos.firstMile.loading")}
               </p>
             ) : firstMile ? (
-              <MiniItinerary itin={firstMile} />
+              onPlanFirstMile ? (
+                <button
+                  type="button"
+                  onClick={onPlanFirstMile}
+                  className="group/btn w-full text-left rounded-xl -m-1 p-1 transition-colors hover:bg-aegean-soft/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aegean/40"
+                  aria-label={t("kapnos.firstMile.openPlan")}
+                >
+                  <MiniItinerary itin={firstMile} />
+                  <p className="mt-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-aegean-deep">
+                    {t("kapnos.firstMile.openPlan")} →
+                  </p>
+                </button>
+              ) : (
+                <MiniItinerary itin={firstMile} />
+              )
             ) : (
-              <p className="font-sans text-[12px] text-ink-soft leading-snug">
-                {t("kapnos.firstMile.none")}
-              </p>
+              <div className="flex flex-col gap-2">
+                <p className="font-sans text-[12px] text-ink-soft leading-snug">
+                  {t("kapnos.firstMile.none")}
+                </p>
+                {onPlanFirstMile ? (
+                  <button
+                    type="button"
+                    onClick={onPlanFirstMile}
+                    className="self-start rounded-full bg-ink px-3.5 py-1.5 font-sans text-[12px] font-semibold text-limestone transition-colors hover:bg-ochre-deep"
+                  >
+                    {t("kapnos.firstMile.openPlan")} →
+                  </button>
+                ) : null}
+              </div>
             )}
           </div>
         </details>
@@ -252,11 +277,36 @@ export function KapnosShuttleCard({
                 {t("kapnos.lastMile.loading")}
               </p>
             ) : lastMile ? (
-              <MiniItinerary itin={lastMile} />
+              onPlanLastMile ? (
+                <button
+                  type="button"
+                  onClick={onPlanLastMile}
+                  className="group/btn w-full text-left rounded-xl -m-1 p-1 transition-colors hover:bg-aegean-soft/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aegean/40"
+                  aria-label={t("kapnos.lastMile.openPlan")}
+                >
+                  <MiniItinerary itin={lastMile} />
+                  <p className="mt-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-aegean-deep">
+                    {t("kapnos.lastMile.openPlan")} →
+                  </p>
+                </button>
+              ) : (
+                <MiniItinerary itin={lastMile} />
+              )
             ) : (
-              <p className="font-sans text-[12px] text-ink-soft leading-snug">
-                {t("kapnos.lastMile.none")}
-              </p>
+              <div className="flex flex-col gap-2">
+                <p className="font-sans text-[12px] text-ink-soft leading-snug">
+                  {t("kapnos.lastMile.none")}
+                </p>
+                {onPlanLastMile ? (
+                  <button
+                    type="button"
+                    onClick={onPlanLastMile}
+                    className="self-start rounded-full bg-ink px-3.5 py-1.5 font-sans text-[12px] font-semibold text-limestone transition-colors hover:bg-ochre-deep"
+                  >
+                    {t("kapnos.lastMile.openPlan")} →
+                  </button>
+                ) : null}
+              </div>
             )}
           </div>
         </details>
