@@ -584,7 +584,7 @@ function Plan() {
   // refines via getCurrentPosition. Falls back to Nicosia centre only after the
   // browser hard-fails (denied / unavailable / final timeout).
   useEffect(() => {
-    if (origin || typeof window === "undefined") return;
+    if (origin || nlSeededOriginRef.current || typeof window === "undefined") return;
     let cancelled = false;
 
     const applyFix = async (latitude: number, longitude: number) => {
