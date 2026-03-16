@@ -842,6 +842,16 @@ function Plan() {
                 lastMile={lastMileItin}
                 firstMileLoading={kapnosPickupFar && firstMileQuery.isFetching && !firstMileItin}
                 lastMileLoading={kapnosDropoffFar && lastMileQuery.isFetching && !lastMileItin}
+                onPlanFirstMile={() => {
+                  setDestination({ lat: kapnos.pickup.lat, lng: kapnos.pickup.lng, label: kapnos.pickup.name });
+                  setActive(null);
+                  if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                onPlanLastMile={() => {
+                  setOrigin({ lat: kapnos.dropoff.lat, lng: kapnos.dropoff.lng, label: kapnos.dropoff.name });
+                  setActive(null);
+                  if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
               />
             )}
             {pnr && (
