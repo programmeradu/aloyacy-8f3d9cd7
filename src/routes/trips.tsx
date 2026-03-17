@@ -1318,7 +1318,7 @@ function ItineraryResults({
     <div className="flex flex-col gap-3">
       {direct.map((it, i) => (
         <ItineraryRow
-          key={it.id}
+          key={`${it.id}-direct-${it.departureUnix}-${i}`}
           itinerary={it}
           highlight={i === 0 && direct.length > 0}
           origin={origin}
@@ -1332,7 +1332,7 @@ function ItineraryResults({
             <div className="flex flex-col gap-3 p-3">
               {transfers.slice(0, 2).map((it) => (
                 <ItineraryRow
-                  key={it.id}
+                  key={`${it.id}-transfer-preview-${it.departureUnix}`}
                   itinerary={it}
                   highlight={false}
                   origin={origin}
@@ -1345,7 +1345,7 @@ function ItineraryResults({
           <div className="flex flex-col gap-3">
             {transfers.map((it) => (
               <ItineraryRow
-                key={it.id}
+                key={`${it.id}-transfer-${it.departureUnix}`}
                 itinerary={it}
                 highlight={direct.length === 0}
                 origin={origin}
