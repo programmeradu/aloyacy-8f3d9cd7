@@ -239,19 +239,10 @@ export function KapnosShuttleCard({
                 <MiniItinerary itin={firstMile} />
               )
             ) : (
-              <div className="flex flex-col gap-2">
+              <div>
                 <p className="font-sans text-[12px] text-ink-soft leading-snug">
                   {t("kapnos.firstMile.none")}
                 </p>
-                {onPlanFirstMile ? (
-                  <button
-                    type="button"
-                    onClick={onPlanFirstMile}
-                    className="self-start rounded-full bg-ink px-3.5 py-1.5 font-sans text-[12px] font-semibold text-limestone transition-colors hover:bg-ochre-deep"
-                  >
-                    {t("kapnos.firstMile.openPlan")} →
-                  </button>
-                ) : null}
               </div>
             )}
           </div>
@@ -293,19 +284,10 @@ export function KapnosShuttleCard({
                 <MiniItinerary itin={lastMile} />
               )
             ) : (
-              <div className="flex flex-col gap-2">
+              <div>
                 <p className="font-sans text-[12px] text-ink-soft leading-snug">
                   {t("kapnos.lastMile.none")}
                 </p>
-                {onPlanLastMile ? (
-                  <button
-                    type="button"
-                    onClick={onPlanLastMile}
-                    className="self-start rounded-full bg-ink px-3.5 py-1.5 font-sans text-[12px] font-semibold text-limestone transition-colors hover:bg-ochre-deep"
-                  >
-                    {t("kapnos.lastMile.openPlan")} →
-                  </button>
-                ) : null}
               </div>
             )}
           </div>
@@ -330,7 +312,7 @@ export function KapnosShuttleCard({
               const sold = d.seatsAvailable <= 0;
               return (
                 <li
-                  key={d.tripId}
+                  key={`${d.tripId}-${d.departLocal}-${d.arriveLocal}`}
                   className="flex items-baseline justify-between gap-3 px-3 py-2"
                 >
                   <div className="flex items-baseline gap-2 min-w-0">
