@@ -72,6 +72,7 @@ type Point = { lat: number; lng: number; label: string };
 
 function Plan() {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [origin, setOrigin] = useState<Point | null>(null);
   const [destination, setDestination] = useState<Point | null>(null);
   const [active, setActive] = useState<"from" | "to" | null>("to");
@@ -671,6 +672,24 @@ function Plan() {
     }
   }
 
+  function startPlannedItinerary(itinerary: Itinerary, from: Point, to: Point) {
+    const option = itineraryToJourneyOption(itinerary);
+    if (!option) return;
+    const rides = itinerary.legs.filter((l): l is RideLeg => l.kind === "ride");
+    const isSingleRide = rides.length === 1;
+    setActiveTrip({
+      startedAt: Date.now(),
+      option,
+      from,
+      to,
+      itinerary: isSingleRide ? undefined : itinerary,
+      legState: isSingleRide
+        ? undefined
+        : { currentLegIndex: 0, perLeg: { 0: { enteredAt: Date.now() } } },
+    });
+    void navigate({ to: "/trip/$id", params: { id: option.id } });
+  }
+
 
   return (
     <AppShell>
@@ -803,11 +822,19 @@ function Plan() {
                 firstMileLoading={kapnosPickupFar && firstMileQuery.isFetching && !firstMileItin}
                 lastMileLoading={kapnosDropoffFar && lastMileQuery.isFetching && !lastMileItin}
                 onPlanFirstMile={() => {
+                  if (firstMileItin && origin) {
+                    startPlannedItinerary(firstMileItin, origin, { lat: kapnos.pickup.lat, lng: kapnos.pickup.lng, label: kapnos.pickup.name });
+                    return;
+                  }
                   setDestination({ lat: kapnos.pickup.lat, lng: kapnos.pickup.lng, label: kapnos.pickup.name });
                   setActive(null);
                   if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 onPlanLastMile={() => {
+                  if (lastMileItin && destination) {
+                    startPlannedItinerary(lastMileItin, { lat: kapnos.dropoff.lat, lng: kapnos.dropoff.lng, label: kapnos.dropoff.name }, destination);
+                    return;
+                  }
                   setOrigin({ lat: kapnos.dropoff.lat, lng: kapnos.dropoff.lng, label: kapnos.dropoff.name });
                   setActive(null);
                   if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
@@ -848,11 +875,19 @@ function Plan() {
                 firstMileLoading={kapnosPickupFar && firstMileQuery.isFetching && !firstMileItin}
                 lastMileLoading={kapnosDropoffFar && lastMileQuery.isFetching && !lastMileItin}
                 onPlanFirstMile={() => {
+                  if (firstMileItin && origin) {
+                    startPlannedItinerary(firstMileItin, origin, { lat: kapnos.pickup.lat, lng: kapnos.pickup.lng, label: kapnos.pickup.name });
+                    return;
+                  }
                   setDestination({ lat: kapnos.pickup.lat, lng: kapnos.pickup.lng, label: kapnos.pickup.name });
                   setActive(null);
                   if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 onPlanLastMile={() => {
+                  if (lastMileItin && destination) {
+                    startPlannedItinerary(lastMileItin, { lat: kapnos.dropoff.lat, lng: kapnos.dropoff.lng, label: kapnos.dropoff.name }, destination);
+                    return;
+                  }
                   setOrigin({ lat: kapnos.dropoff.lat, lng: kapnos.dropoff.lng, label: kapnos.dropoff.name });
                   setActive(null);
                   if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
