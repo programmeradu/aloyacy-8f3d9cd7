@@ -1330,9 +1330,9 @@ function ItineraryResults({
           feature={transfers.length === 1 ? t("trips.fasterOne") : t("trips.fasterN", { n: transfers.length })}
           preview={
             <div className="flex flex-col gap-3 p-3">
-              {transfers.slice(0, 2).map((it) => (
+              {transfers.slice(0, 2).map((it, i) => (
                 <ItineraryRow
-                  key={`${it.id}-transfer-preview-${it.departureUnix}`}
+                  key={`${it.id}-transfer-preview-${it.departureUnix}-${i}`}
                   itinerary={it}
                   highlight={false}
                   origin={origin}
@@ -1343,9 +1343,9 @@ function ItineraryResults({
           }
         >
           <div className="flex flex-col gap-3">
-            {transfers.map((it) => (
+            {transfers.map((it, i) => (
               <ItineraryRow
-                key={`${it.id}-transfer-${it.departureUnix}`}
+                key={`${it.id}-transfer-${it.departureUnix}-${i}`}
                 itinerary={it}
                 highlight={direct.length === 0}
                 origin={origin}
