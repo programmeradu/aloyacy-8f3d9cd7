@@ -76,7 +76,7 @@ function Plan() {
   const navigate = useNavigate();
   const [origin, setOrigin] = useState<Point | null>(null);
   const [destination, setDestination] = useState<Point | null>(null);
-  const [active, setActive] = useState<"from" | "to" | null>("to");
+  const [active, setActive] = useState<"from" | "to" | null>(null);
   const [timeIntent, setTimeIntent] = useState<{
     leaveByISO: string | null;
     arriveByISO: string | null;
