@@ -1056,7 +1056,68 @@ function FieldRow({
   );
 }
 
-function PlacesPicker({
+function PlacesPickerSheet({
+  open,
+  role,
+  bias,
+  onClose,
+  onPick,
+}: {
+  open: boolean;
+  role: "from" | "to";
+  bias: { lat: number; lng: number };
+  onClose: () => void;
+  onPick: (p: Point, role: "from" | "to") => void;
+}) {
+  // Lock body scroll while the sheet is open so the underlying results
+  // page doesn't bleed through when the user is searching.
+  useEffect(() => {
+    if (!open || typeof document === "undefined") return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  if (!open || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex flex-col">
+      {/* Backdrop */}
+      <button
+        type="button"
+        aria-label="Close search"
+        onClick={onClose}
+        className="absolute inset-0 bg-ink/40 backdrop-blur-[2px] animate-fade-in"
+      />
+      {/* Sheet */}
+      <div className="relative mt-auto w-full rounded-t-[28px] bg-limestone ring-1 ring-line shadow-[0_-12px_40px_-12px_rgba(20,30,40,0.25)] max-h-[88vh] flex flex-col animate-slide-up">
+        <div className="flex items-center justify-between px-5 pt-4 pb-2">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+              {role === "from" ? "Set pickup" : "Set destination"}
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="flex size-9 items-center justify-center rounded-full bg-limestone-soft text-ink ring-1 ring-line"
+          >
+            <IconClose className="size-4" />
+          </button>
+        </div>
+        <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-line" />
+        <div className="flex-1 overflow-y-auto px-4 pb-[max(24px,env(safe-area-inset-bottom))]">
+          <PlacesPickerContent role={role} bias={bias} onPick={onPick} />
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function PlacesPickerContent({
   role,
   bias,
   onPick,
@@ -1077,7 +1138,10 @@ function PlacesPicker({
   const debounce = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    // Slight delay so the sheet finishes its slide-up before focusing,
+    // avoiding the mobile keyboard fighting the transition.
+    const id = window.setTimeout(() => inputRef.current?.focus(), 120);
+    return () => window.clearTimeout(id);
   }, []);
 
   useEffect(() => {
@@ -1111,7 +1175,7 @@ function PlacesPicker({
   }
 
   return (
-    <div className="mt-3 rounded-[24px] bg-card ring-1 ring-line overflow-hidden">
+    <div className="rounded-[20px] bg-card ring-1 ring-line overflow-hidden">
       <div className="relative flex items-center">
         <span className="absolute left-4 text-ink-soft">
           <IconSearch className="size-4" />
