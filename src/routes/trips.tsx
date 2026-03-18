@@ -746,20 +746,18 @@ function Plan() {
         />
 
 
-        {active && (
-          <PlacesPicker
-            role={active}
-            // Wave 2.5 — bias autocomplete to the rider's actual city.
-            // A Limassol rider typing "Mall" should get Limassol Mall first,
-            // not Nicosia Mall. Falls back to Nicosia centre at cold start.
-            bias={
-              origin
-                ? nearestCity(origin.lat, origin.lng).center
-                : NICOSIA_CENTER
-            }
-            onPick={onPick}
-          />
-        )}
+        <PlacesPickerSheet
+          open={active !== null}
+          role={active ?? "to"}
+          // Wave 2.5 — bias autocomplete to the rider's actual city.
+          bias={
+            origin
+              ? nearestCity(origin.lat, origin.lng).center
+              : NICOSIA_CENTER
+          }
+          onClose={() => setActive(null)}
+          onPick={onPick}
+        />
       </section>
 
       <section
