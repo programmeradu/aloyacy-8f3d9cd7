@@ -2,18 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
-import { RouteChip } from "@/components/RouteChip";
-import { IconArrowLeft, IconBus } from "@/components/Icons";
+import { IconArrowLeft } from "@/components/Icons";
 import { StaleFeedBanner } from "@/components/StaleFeedBanner";
-import { EtaPill } from "@/components/EtaPill";
+import { DepartureRow } from "@/components/DepartureRow";
 import { SightingButton } from "@/components/SightingButton";
 import { useRealtime } from "@/lib/useRealtime";
 import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useEtaStats } from "@/lib/useEtaStats";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
-import { getStop, getRoute, routeTone } from "@/lib/gtfs";
+import { getStop, getRoute } from "@/lib/gtfs";
 import { useI18n } from "@/lib/i18n";
+import heroAsset from "@/assets/stop-departures-hero.jpg";
 
 
 
@@ -156,12 +156,39 @@ function StopDetail() {
       )}
 
       <section
-        className="mt-8 px-6 animate-rise"
+        className="mt-10 px-6 animate-rise"
         style={{ animationDelay: "180ms" }}
       >
-        <div className="flex items-end justify-between mb-3">
-          <h2 className="font-display text-2xl text-ink">{t("stop.departures")}</h2>
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+        {/* Editorial hero strip for the departures block — sets the page
+            apart from a generic transit list. Image is decorative; the
+            kicker + heading carry the semantics. */}
+        <div className="relative overflow-hidden rounded-3xl ring-1 ring-line bg-card mb-5">
+          <div className="relative aspect-[16/6] w-full">
+            <img
+              src={heroAsset.url}
+              alt=""
+              loading="lazy"
+              width={1280}
+              height={512}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-card via-card/70 to-transparent" />
+            <div className="relative h-full flex flex-col justify-end p-5">
+              <span className="font-mono text-[9.5px] uppercase tracking-[0.24em] text-ink-soft">
+                {t("stop.heroEyebrow")}
+              </span>
+              <h2 className="mt-1 font-display text-[28px] leading-[1.05] text-ink">
+                {t("stop.nextDepartures")}
+              </h2>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-end justify-between mb-3 px-1">
+          <p className="text-[12.5px] leading-snug text-ink-soft max-w-[28rem] text-pretty">
+            {t("stop.heroNote")}
+          </p>
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-ink-soft shrink-0 pl-3">
             {isLoading ? t("stop.loading") : t("stop.liveSmart")}
           </span>
         </div>
@@ -174,47 +201,29 @@ function StopDetail() {
             </p>
           </div>
         ) : (
-          <div className="rounded-3xl bg-card ring-1 ring-line divide-y divide-line overflow-hidden">
+          <div className="space-y-3">
             {departures.map((d, i) => {
               const route = getRoute(d.routeId);
               const isGhost = d.eta.tier === "ghost";
               return (
                 <div key={d.tripId + d.routeId + i}>
-                  <Link
-                    to="/trip-info/$tripId"
-                    params={{ tripId: d.tripId }}
-                    search={{ from: stopId }}
-                    className="group flex items-start gap-4 p-4 transition-colors hover:bg-limestone-soft/60"
-                  >
-                    <RouteChip
-                      code={route?.short ?? "?"}
-                      tone={routeTone(d.routeId)}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-display text-lg leading-[1.15] text-ink text-pretty line-clamp-2 break-words">
-                        {route?.long ?? t("stop.routeFallback")}
-                      </p>
-                      <p className="mt-1 flex items-center gap-2 text-[12px] text-ink-soft">
-                        <IconBus className="size-3 shrink-0" />
-                        <span className="truncate">{d.eta.blurb}</span>
-                      </p>
-                    </div>
-                    <div className="shrink-0">
-                      <EtaPill
-                        data={{
-                          etaMin: isGhost ? null : d.eta.etaMin,
-                          band: d.eta.band,
-                          tier: d.eta.tier,
-                          confidence: d.eta.confidence,
-                          operatorEtaMin: d.eta.operatorEtaMin,
-                        }}
-                        variant="stack"
-                        align="right"
-                      />
-                    </div>
-                  </Link>
+                  <DepartureRow
+                    tripId={d.tripId}
+                    routeId={d.routeId}
+                    routeShort={route?.short ?? "?"}
+                    routeLong={route?.long ?? t("stop.routeFallback")}
+                    stopId={stopId}
+                    arrivalUnix={d.arrivalUnix}
+                    eta={{
+                      etaMin: isGhost ? null : d.eta.etaMin,
+                      band: d.eta.band,
+                      tier: d.eta.tier,
+                      confidence: d.eta.confidence,
+                      operatorEtaMin: d.eta.operatorEtaMin,
+                    }}
+                  />
                   {isGhost && stop && (
-                    <div className="px-4 pb-4 -mt-1">
+                    <div className="mt-2 px-1">
                       <SightingButton
                         tripId={d.tripId}
                         routeId={d.routeId}
