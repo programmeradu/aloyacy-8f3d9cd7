@@ -59,8 +59,8 @@ export function DepartureRow({
 }: DepartureRowProps) {
   const { t } = useI18n();
   const accent = tierAccent(eta.tier);
-  const dot = confidenceDot(eta.confidence);
   const tierLabel = t(TIER_KEYS[eta.tier]);
+
   const isLiveish =
     eta.tier === "live" ||
     eta.tier === "rider-confirmed" ||
