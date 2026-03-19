@@ -7,8 +7,9 @@
 //   - the band only when materially wider than ±1 min and not scheduled
 //   - the operator strikethrough only when a live/predicted/rider ETA disagrees
 //
-// Designed to feel bespoke against the limestone surface — generous gutters,
-// display numerals on a hairline rule, monospaced micro-meta.
+// Apple-grade layout: responsive grid that holds together from 320px up,
+// generous gutters, monospaced micro-meta, and a soft editorial accent
+// image bled into the right edge at low opacity — readable on every label.
 
 import { Link } from "@tanstack/react-router";
 import { RouteChip } from "@/components/RouteChip";
@@ -20,6 +21,7 @@ import {
   type FreshnessConfidence,
 } from "@/lib/freshness";
 import { useI18n, type DictKey } from "@/lib/i18n";
+import accentAsset from "@/assets/route-card-accent.jpg.asset.json";
 
 type DepartureRowProps = {
   tripId: string;
@@ -64,7 +66,10 @@ export function DepartureRow({
   const accent = tierAccent(eta.tier);
   const dot = confidenceDot(eta.confidence);
   const tierLabel = t(TIER_KEYS[eta.tier]);
-  const isLiveish = eta.tier === "live" || eta.tier === "rider-confirmed" || eta.tier === "predicted";
+  const isLiveish =
+    eta.tier === "live" ||
+    eta.tier === "rider-confirmed" ||
+    eta.tier === "predicted";
 
   const shifted =
     isLiveish &&
@@ -79,9 +84,6 @@ export function DepartureRow({
     bandIsInformative(eta.band, eta.etaMin);
 
   const clock = formatClock(arrivalUnix);
-
-  // Split a typical Cyprus long-name "A — B" into origin / destination so the
-  // headline reads as a directional journey instead of a label.
   const [origin, destination] = splitLongName(routeLong);
 
   return (
@@ -89,60 +91,78 @@ export function DepartureRow({
       to="/trip-info/$tripId"
       params={{ tripId }}
       search={{ from: stopId }}
-      className="group relative block rounded-3xl bg-card ring-1 ring-line p-5 transition-all hover:ring-aegean-deep/30 hover:-translate-y-[1px]"
+      className="group relative block overflow-hidden rounded-3xl bg-card ring-1 ring-line transition-all hover:ring-aegean-deep/30 hover:-translate-y-[1px]"
     >
-      {/* Top row: route chip + journey title + ETA numeral */}
-      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-4">
-        <div className="flex flex-col items-center gap-1.5 pt-0.5">
-          <RouteChip code={routeShort} tone={routeTone(routeId)} />
-          <span className="font-mono text-[8.5px] uppercase tracking-[0.22em] text-ink-soft/60">
-            {t("stop.routeKicker")}
-          </span>
-        </div>
+      {/* Editorial accent — sits behind content on the right, kept faint so
+          no text loses contrast. Hidden on the tightest widths. */}
+      <img
+        src={accentAsset.url}
+        alt=""
+        aria-hidden
+        loading="lazy"
+        width={1024}
+        height={512}
+        className="pointer-events-none absolute inset-y-0 right-0 hidden sm:block h-full w-[58%] object-cover object-right opacity-[0.18]"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-card via-card/95 to-card/60" />
 
-        <div className="min-w-0">
-          <p className="font-display text-[19px] leading-[1.15] text-ink text-pretty">
-            <span className="truncate">{origin}</span>
-            {destination && (
-              <>
-                <span className="mx-1.5 text-ink-soft/40 font-sans">→</span>
-                <span className="text-ink-soft">{destination}</span>
-              </>
-            )}
-          </p>
-          <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            {t("stop.scheduledAt", { time: clock })}
-          </p>
-        </div>
-
-        <div className="flex flex-col items-end text-right shrink-0">
-          <span className={`font-display text-[44px] leading-none tracking-tight ${accent}`}>
-            {eta.etaMin ?? "—"}
-          </span>
-          <span className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft/70">
-            {eta.etaMin != null ? t("eta.minLabel") : t("eta.tier.ghost")}
-          </span>
-        </div>
-      </div>
-
-      {/* Hairline + single meta strip — one place for tier, band, op-shift */}
-      <div className="mt-4 pt-3 border-t border-line/70 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft min-w-0">
-          <span className={`size-1.5 rounded-full ${dot}`} aria-hidden />
-          <span className={accent}>{tierLabel}</span>
-          {isLiveish && (
-            <>
-              <span className="text-ink-soft/30">·</span>
-              <span className="text-ink-soft/70 truncate">{t(CONFIDENCE_KEYS[eta.confidence])}</span>
-            </>
-          )}
-        </div>
-        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft/70 shrink-0">
-          {showBand && <span>{eta.band}</span>}
-          {shifted && (
-            <span className="line-through decoration-1 text-ink-soft/50">
-              {t("eta.opShort", { m: eta.operatorEtaMin! })}
+      <div className="relative p-4 sm:p-5">
+        {/* Top row: route chip · journey title · ETA numeral */}
+        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 sm:gap-4">
+          <div className="flex flex-col items-center gap-1.5">
+            <RouteChip code={routeShort} tone={routeTone(routeId)} />
+            <span className="font-mono text-[8.5px] uppercase tracking-[0.22em] text-ink-soft/70">
+              {t("stop.routeKicker")}
             </span>
+          </div>
+
+          <div className="min-w-0">
+            <p className="font-display text-[16px] sm:text-[19px] leading-[1.2] text-ink text-pretty">
+              <span className="break-words">{origin}</span>
+              {destination && (
+                <>
+                  <span className="mx-1.5 text-ink-soft/50 font-sans">→</span>
+                  <span className="text-ink-soft break-words">{destination}</span>
+                </>
+              )}
+            </p>
+            <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+              {t("stop.scheduledAt", { time: clock })}
+            </p>
+          </div>
+
+          <div className="flex flex-col items-end text-right shrink-0 pl-1">
+            <span
+              className={`font-display text-[36px] sm:text-[44px] leading-none tracking-tight tabular-nums ${accent}`}
+            >
+              {eta.etaMin ?? "—"}
+            </span>
+            <span className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft/80">
+              {eta.etaMin != null ? t("eta.minLabel") : t("eta.tier.ghost")}
+            </span>
+          </div>
+        </div>
+
+        {/* Hairline + meta strip — tier, confidence, band, op-shift */}
+        <div className="mt-4 pt-3 border-t border-line/70 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] min-w-0">
+            <span className={`size-1.5 rounded-full ${dot}`} aria-hidden />
+            <span className={accent}>{tierLabel}</span>
+            {isLiveish && (
+              <span className="text-ink-soft/70 truncate before:content-['—'] before:mx-1.5 before:text-ink-soft/40">
+                {t(CONFIDENCE_KEYS[eta.confidence])}
+              </span>
+            )}
+          </div>
+          {(showBand || shifted) && (
+            <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft/80 shrink-0">
+              {showBand && <span className="tabular-nums">{eta.band}</span>}
+              {shifted && (
+                <span className="line-through decoration-1 text-ink-soft/50 tabular-nums">
+                  {t("eta.opShort", { m: eta.operatorEtaMin! })}
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -157,18 +177,26 @@ function bandIsInformative(band: string, headlineMin: number | null): boolean {
   const lo = Number(m[1]);
   const hi = Number(m[2]);
   if (hi - lo <= 1) return false;
-  if (headlineMin != null && Math.abs(lo - headlineMin) <= 1 && Math.abs(hi - headlineMin) <= 1) return false;
+  if (
+    headlineMin != null &&
+    Math.abs(lo - headlineMin) <= 1 &&
+    Math.abs(hi - headlineMin) <= 1
+  )
+    return false;
   return true;
 }
 
 function formatClock(unix: number): string {
   const d = new Date(unix * 1000);
-  return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false });
+  return d.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 }
 
 function splitLongName(long: string): [string, string | null] {
   if (!long) return ["", null];
-  // Cyprus GTFS uses " - " or " — " between origin and destination.
   const parts = long.split(/\s+[—-]\s+/);
   if (parts.length >= 2) {
     return [parts[0].trim(), parts.slice(1).join(" — ").trim()];
