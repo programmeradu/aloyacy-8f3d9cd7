@@ -6,11 +6,12 @@ import stopPole from "@/assets/stop-pole.png";
 import stopTerminal from "@/assets/stop-terminal.png";
 import { useI18n } from "@/lib/i18n";
 import {
-  confidenceDot,
   tierAccent,
   type FreshnessConfidence,
   type FreshnessTier,
 } from "@/lib/freshness";
+import { ConfidenceIcon } from "@/components/ConfidenceIcon";
+
 
 type Tone = "aegean" | "ochre" | "olive";
 export type StopKind = "shelter" | "pole" | "terminal";
