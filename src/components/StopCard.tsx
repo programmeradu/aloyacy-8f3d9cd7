@@ -183,18 +183,21 @@ function TierChip({
   const tierLabel = t(`eta.tier.${tier === "rider-confirmed" ? "rider" : tier}` as never);
   return (
     <div className="mt-1 flex flex-col items-end gap-0.5">
-      <span className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
+      <span className="inline-flex items-center gap-1.5 leading-none font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft whitespace-nowrap">
         <span>{tierLabel}</span>
         {showConfidence && confidence && <ConfidenceIcon confidence={confidence} />}
       </span>
+
       {blurb &&
         tier !== "live" &&
         tier !== "rider-confirmed" &&
+        tier !== "scheduled" &&
         blurb.trim().toLowerCase() !== tierLabel.trim().toLowerCase() && (
           <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-ink-soft/60 text-right max-w-[10rem]">
             {blurb}
           </span>
         )}
+
 
     </div>
   );
