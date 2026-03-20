@@ -187,11 +187,15 @@ function TierChip({
         <span>{tierLabel}</span>
         {showConfidence && confidence && <ConfidenceIcon confidence={confidence} />}
       </span>
-      {blurb && tier !== "live" && tier !== "rider-confirmed" && (
-        <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-ink-soft/60 text-right max-w-[10rem]">
-          {blurb}
-        </span>
-      )}
+      {blurb &&
+        tier !== "live" &&
+        tier !== "rider-confirmed" &&
+        blurb.trim().toLowerCase() !== tierLabel.trim().toLowerCase() && (
+          <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-ink-soft/60 text-right max-w-[10rem]">
+            {blurb}
+          </span>
+        )}
+
     </div>
   );
 }
