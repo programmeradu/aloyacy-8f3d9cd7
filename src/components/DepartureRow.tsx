@@ -15,12 +15,12 @@ import { Link } from "@tanstack/react-router";
 import { RouteChip } from "@/components/RouteChip";
 import { routeTone } from "@/lib/gtfs";
 import {
-  confidenceDot,
   tierAccent,
   type FreshnessTier,
   type FreshnessConfidence,
 } from "@/lib/freshness";
 import { useI18n, type DictKey } from "@/lib/i18n";
+import { ConfidenceIcon } from "@/components/ConfidenceIcon";
 import accentAsset from "@/assets/route-card-accent.jpg.asset.json";
 
 type DepartureRowProps = {
@@ -47,11 +47,6 @@ const TIER_KEYS: Record<FreshnessTier, DictKey> = {
   scheduled: "eta.tier.scheduled",
 };
 
-const CONFIDENCE_KEYS: Record<FreshnessConfidence, DictKey> = {
-  high: "eta.conf.high",
-  medium: "eta.conf.med",
-  low: "eta.conf.low",
-};
 
 export function DepartureRow({
   tripId,
@@ -64,8 +59,8 @@ export function DepartureRow({
 }: DepartureRowProps) {
   const { t } = useI18n();
   const accent = tierAccent(eta.tier);
-  const dot = confidenceDot(eta.confidence);
   const tierLabel = t(TIER_KEYS[eta.tier]);
+
   const isLiveish =
     eta.tier === "live" ||
     eta.tier === "rider-confirmed" ||
@@ -102,9 +97,10 @@ export function DepartureRow({
         loading="lazy"
         width={1024}
         height={512}
-        className="pointer-events-none absolute inset-y-0 right-0 hidden sm:block h-full w-[58%] object-cover object-right opacity-[0.18]"
+        className="pointer-events-none absolute inset-y-0 right-0 h-full w-[62%] object-cover object-right opacity-[0.32] sm:opacity-[0.38] mix-blend-multiply"
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-card via-card/95 to-card/60" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-card via-card/80 to-transparent" />
+
 
       <div className="relative p-4 sm:p-5">
         {/* Top row: route chip · journey title · ETA numeral */}
@@ -146,14 +142,10 @@ export function DepartureRow({
         {/* Hairline + meta strip — tier, confidence, band, op-shift */}
         <div className="mt-4 pt-3 border-t border-line/70 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] min-w-0">
-            <span className={`size-1.5 rounded-full ${dot}`} aria-hidden />
             <span className={accent}>{tierLabel}</span>
-            {isLiveish && (
-              <span className="text-ink-soft/70 truncate before:content-['—'] before:mx-1.5 before:text-ink-soft/40">
-                {t(CONFIDENCE_KEYS[eta.confidence])}
-              </span>
-            )}
+            {isLiveish && <ConfidenceIcon confidence={eta.confidence} />}
           </div>
+
           {(showBand || shifted) && (
             <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft/80 shrink-0">
               {showBand && <span className="tabular-nums">{eta.band}</span>}
