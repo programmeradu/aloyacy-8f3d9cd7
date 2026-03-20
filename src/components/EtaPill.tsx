@@ -21,11 +21,12 @@
 
 import { useI18n, type DictKey } from "@/lib/i18n";
 import {
-  confidenceDot,
   tierAccent,
   type FreshnessTier,
   type FreshnessConfidence,
 } from "@/lib/freshness";
+import { ConfidenceIcon } from "@/components/ConfidenceIcon";
+
 
 export type EtaPillData = {
   /** Median ETA, in minutes. null when ghost / scheduled with no number. */
