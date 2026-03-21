@@ -11,6 +11,8 @@ import {
   type FreshnessTier,
 } from "@/lib/freshness";
 import { ConfidenceIcon } from "@/components/ConfidenceIcon";
+import { AmenityIcon } from "@/components/AmenityIcon";
+
 
 
 type Tone = "aegean" | "ochre" | "olive";
