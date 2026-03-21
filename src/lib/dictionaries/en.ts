@@ -318,6 +318,7 @@ export const en = {
   "stop.kicker": "Stop {code}",
   "stop.routeKicker": "Route",
   "stop.scheduledAt": "Scheduled · {time}",
+  "stop.fromLabel": "From {name}",
   "stop.nextDepartures": "Next departures",
   "stop.heroEyebrow": "At this stop",
   "stop.heroNote": "Live ETA fused from operator feeds, fresh vehicle pings, and rider sightings — surfaced as one honest number per departure.",
