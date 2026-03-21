@@ -113,15 +113,20 @@ export function DepartureRow({
           </div>
 
           <div className="min-w-0">
-            <p className="font-display text-[16px] sm:text-[19px] leading-[1.2] text-ink text-pretty">
-              <span className="break-words">{origin}</span>
-              {destination && (
-                <>
-                  <span className="mx-1.5 text-ink-soft/50 font-sans">→</span>
-                  <span className="text-ink-soft break-words">{destination}</span>
-                </>
-              )}
-            </p>
+            {destination ? (
+              <>
+                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft/70 truncate">
+                  {t("stop.fromLabel", { name: origin })}
+                </p>
+                <h3 className="mt-0.5 font-display text-[17px] sm:text-[20px] leading-[1.15] tracking-tight text-ink text-pretty line-clamp-2">
+                  {destination}
+                </h3>
+              </>
+            ) : (
+              <h3 className="font-display text-[17px] sm:text-[20px] leading-[1.15] tracking-tight text-ink text-pretty line-clamp-2">
+                {origin}
+              </h3>
+            )}
             <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
               {t("stop.scheduledAt", { time: clock })}
             </p>
