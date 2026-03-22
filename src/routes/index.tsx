@@ -26,6 +26,7 @@ import {
 import { useRealtime } from "@/lib/useRealtime";
 import { smartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync } from "@/lib/shapes";
+import { prefetchHeadsigns, getHeadsignSync } from "@/lib/headsigns";
 import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { useTick } from "@/hooks/use-tick";
