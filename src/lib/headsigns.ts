@@ -14,6 +14,15 @@ type HeadsignsIndex = Record<string, Bundle>;
 
 let cache: HeadsignsIndex | null = null;
 let inflight: Promise<HeadsignsIndex> | null = null;
+const listeners = new Set<() => void>();
+
+/** Subscribe to "headsigns finished loading" — React hook below uses this to
+ *  re-render dependent components once the lazy bundle resolves. */
+export function onHeadsignsLoaded(fn: () => void): () => void {
+  if (cache) { fn(); return () => {}; }
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
 
 async function loadIndex(): Promise<HeadsignsIndex> {
   if (cache) return cache;
@@ -22,10 +31,14 @@ async function loadIndex(): Promise<HeadsignsIndex> {
     .then((r) => (r.ok ? r.json() : {}))
     .then((j) => {
       cache = j as HeadsignsIndex;
+      for (const l of listeners) l();
+      listeners.clear();
       return cache!;
     })
     .catch(() => {
       cache = {};
+      for (const l of listeners) l();
+      listeners.clear();
       return cache!;
     });
   return inflight;
