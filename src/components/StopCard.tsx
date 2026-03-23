@@ -233,3 +233,68 @@ function AmenityRow({
 
 
 
+
+
+/**
+ * Renders the route list compactly. When a stop has many routes (4+), we
+ * collapse destination strings and show route chips in a wrapped grid so
+ * the card never grows past ~3 lines of route info. Routes with unique
+ * destinations keep their headsign inline; duplicates fall back to a
+ * chip-only row.
+ */
+function RouteList({ routes }: { routes: Stop["routes"] }) {
+  const MAX_ROWS = 3;
+  const withHeadsigns = routes.filter((r) => r.headsign);
+  const compactMode = routes.length > MAX_ROWS;
+
+  if (!compactMode) {
+    return (
+      <ul className="flex flex-col gap-1.5">
+        {routes.map((r, i) => (
+          <li
+            key={`${r.code}|${r.headsign ?? ""}|${i}`}
+            className="flex items-center gap-2 min-w-0"
+          >
+            <RouteChip code={r.code} tone={r.tone} size="sm" />
+            {r.headsign ? (
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft truncate">
+                <span className="text-ink-soft/50">→</span> {r.headsign}
+              </span>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // Compact: show all chips in a wrapped row, plus a single "destinations"
+  // summary line beneath listing up to 2 headsigns.
+  const destSummary = Array.from(
+    new Set(withHeadsigns.map((r) => r.headsign as string)),
+  ).slice(0, 2);
+  const extraDest = Math.max(
+    0,
+    new Set(withHeadsigns.map((r) => r.headsign)).size - destSummary.length,
+  );
+
+  return (
+    <div className="flex flex-col gap-1.5 min-w-0">
+      <ul className="flex flex-wrap items-center gap-1.5">
+        {routes.map((r, i) => (
+          <li key={`${r.code}|${r.headsign ?? ""}|${i}`}>
+            <RouteChip code={r.code} tone={r.tone} size="sm" />
+          </li>
+        ))}
+      </ul>
+      {destSummary.length > 0 && (
+        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft truncate">
+          <span className="text-ink-soft/50">→</span>{" "}
+          {destSummary.join(" · ")}
+          {extraDest > 0 ? (
+            <span className="text-ink-soft/60"> +{extraDest}</span>
+          ) : null}
+        </p>
+      )}
+    </div>
+  );
+}
