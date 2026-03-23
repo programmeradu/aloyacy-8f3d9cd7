@@ -28,6 +28,10 @@ type DepartureRowProps = {
   routeId: string;
   routeShort: string;
   routeLong: string;
+  /** Trip-level headsign from GTFS trips.txt, when available. Preferred over
+   *  parsing the route long name — disambiguates opposite directions of the
+   *  same route (e.g. "19 → Lakatamia" vs "19 → City Center"). */
+  headsign?: string | null;
   stopId: string;
   arrivalUnix: number;
   eta: {
@@ -53,6 +57,7 @@ export function DepartureRow({
   routeId,
   routeShort,
   routeLong,
+  headsign,
   stopId,
   arrivalUnix,
   eta,
@@ -79,7 +84,10 @@ export function DepartureRow({
     bandIsInformative(eta.band, eta.etaMin);
 
   const clock = formatClock(arrivalUnix);
-  const [origin, destination] = splitLongName(routeLong);
+  // Trip headsign is the truth source; fall back to parsing route long name.
+  const fallback = splitLongName(routeLong);
+  const origin = fallback[0];
+  const destination = (headsign && headsign.trim()) || fallback[1];
 
   return (
     <Link
@@ -115,8 +123,8 @@ export function DepartureRow({
           <div className="min-w-0">
             {destination ? (
               <>
-                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft/70 truncate">
-                  {t("stop.fromLabel", { name: origin })}
+                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-aegean-deep/80 truncate">
+                  {t("stop.headedTo")}
                 </p>
                 <h3 className="mt-0.5 font-display text-[17px] sm:text-[20px] leading-[1.15] tracking-tight text-ink text-pretty line-clamp-2">
                   {destination}
