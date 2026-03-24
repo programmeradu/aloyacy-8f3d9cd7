@@ -128,7 +128,9 @@ function StopDetail() {
         </button>
       </div>
 
+      <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
         <h1 className="font-display text-[40px] leading-[1.05] text-ink">
+
           {stop?.name ?? t("stop.unknown")}
         </h1>
         <p className="mt-2 text-[13px] text-ink-soft">
