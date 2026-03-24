@@ -176,6 +176,39 @@ export const IconClose = ({ className, strokeWidth = 1.5 }: IconProps) => (
   </svg>
 );
 
+export const IconShare = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  // Bespoke share mark: an outbound arc lifting away from a base — an open
+  // gesture rather than the generic node-graph share icon.
+  <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 14V4" />
+    <path d="M8 8l4-4 4 4" />
+    <path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" />
+  </svg>
+);
+
+export const IconWhatsApp = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  // Speech bubble with stylized tail — not the trademarked WA glyph.
+  <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 20l1.4-3.6A8 8 0 1 1 8 19.2L4 20z" />
+    <path d="M9 11c.6 1.4 1.6 2.4 3 3" />
+  </svg>
+);
+
+export const IconDownload = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 4v12" />
+    <path d="M7 11l5 5 5-5" />
+    <path d="M5 20h14" />
+  </svg>
+);
+
+export const IconLink = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 1 0-5.7-5.7L11.5 7" />
+    <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7L12.5 17" />
+  </svg>
+);
+
 export const IconCrosshair = ({ className, strokeWidth = 1.5 }: IconProps) => (
   <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="8" />
