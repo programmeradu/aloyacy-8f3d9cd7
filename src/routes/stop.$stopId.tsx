@@ -118,10 +118,16 @@ function StopDetail() {
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
           {t("stop.kicker", { code: stop?.code ?? stopId })}
         </span>
-        <span className="size-10" />
+        <button
+          type="button"
+          onClick={() => setShareOpen(true)}
+          aria-label={t("share.openLabel")}
+          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink hover:bg-limestone-soft transition-colors"
+        >
+          <IconShare className="size-4" />
+        </button>
       </div>
 
-      <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
         <h1 className="font-display text-[40px] leading-[1.05] text-ink">
           {stop?.name ?? t("stop.unknown")}
         </h1>
