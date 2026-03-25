@@ -249,7 +249,7 @@ export function ShareSheet({ open, onClose, ctx }: Props) {
             label={t("share.whatsapp")}
           />
           <ActionButton
-            onClick={handleDownload}
+            onClick={handleSave}
             icon={<IconDownload className="size-4" />}
             label={t("share.save")}
             disabled={!blob}
@@ -295,6 +295,12 @@ function ActionButton({
       <span>{label}</span>
     </button>
   );
+}
+
+function isLikelyMobile(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
 }
 
 function buildShareText(ctx: StopCardCtx): string {
