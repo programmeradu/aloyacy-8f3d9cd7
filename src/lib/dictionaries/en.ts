@@ -1215,6 +1215,8 @@ export const en = {
   "share.save": "Save image",
   "share.copyLink": "Copy link",
   "share.copied": "Copied",
-  "share.close": "Close",
-  "share.openLabel": "Share this stop",
+ "share.close": "Close",
+ "share.openLabel": "Share this stop",
+ "share.waFallback": "Image saved — attach it in WhatsApp",
+ "share.saved": "Saved to your device",
 } as const;
