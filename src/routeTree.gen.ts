@@ -35,6 +35,7 @@ import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snaps
 import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sighting'
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
+import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -183,6 +184,11 @@ const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
   path: '/api/public/realtime',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicIndexnowRoute = ApiPublicIndexnowRouteImport.update({
+  id: '/api/public/indexnow',
+  path: '/api/public/indexnow',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
     id: '/lovable/email/queue/process',
@@ -296,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
@@ -340,6 +347,7 @@ export interface FileRoutesByTo {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
@@ -385,6 +393,7 @@ export interface FileRoutesById {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
@@ -431,6 +440,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/api/public/indexnow'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/sighting'
@@ -475,6 +485,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/api/public/indexnow'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/sighting'
@@ -519,6 +530,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/api/public/indexnow'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/sighting'
@@ -564,6 +576,7 @@ export interface RootRouteChildren {
   StopStopIdRoute: typeof StopStopIdRoute
   TripInfoTripIdRoute: typeof TripInfoTripIdRoute
   TripIdRoute: typeof TripIdRoute
+  ApiPublicIndexnowRoute: typeof ApiPublicIndexnowRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
   ApiPublicSightingRoute: typeof ApiPublicSightingRoute
@@ -772,6 +785,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRealtimeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/indexnow': {
+      id: '/api/public/indexnow'
+      path: '/api/public/indexnow'
+      fullPath: '/api/public/indexnow'
+      preLoaderRoute: typeof ApiPublicIndexnowRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
       path: '/lovable/email/queue/process'
@@ -908,6 +928,7 @@ const rootRouteChildren: RootRouteChildren = {
   StopStopIdRoute: StopStopIdRoute,
   TripInfoTripIdRoute: TripInfoTripIdRoute,
   TripIdRoute: TripIdRoute,
+  ApiPublicIndexnowRoute: ApiPublicIndexnowRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
   ApiPublicSightingRoute: ApiPublicSightingRoute,
@@ -934,13 +955,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
