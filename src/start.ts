@@ -3,6 +3,20 @@ import { getRequest } from "@tanstack/react-start/server";
 
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+import { pingIndexNow } from "@/lib/indexnow";
+
+// Fire IndexNow once per Worker cold start (≈ once per deploy, since each
+// deploy spins up fresh Worker isolates). Guarded so a hot isolate handling
+// many requests only pings once. Skips non-production hosts.
+let indexNowPinged = false;
+function maybePingIndexNow(host: string) {
+  if (indexNowPinged) return;
+  if (host !== "app.aloya.cy") return;
+  indexNowPinged = true;
+  pingIndexNow(host)
+    .then((r) => console.log("[indexnow] ping", r.status, r.ok ? "ok" : "fail"))
+    .catch((e) => console.warn("[indexnow] ping error", e));
+}
 
 // 301 redirects to consolidate SEO on the canonical hosts:
 //   app.aloyacy.live          → app.aloya.cy   (app)
@@ -27,6 +41,7 @@ const hostRedirectMiddleware = createMiddleware().server(async ({ next }) => {
     )
       .toLowerCase()
       .split(":")[0];
+    maybePingIndexNow(host);
     let target: string | null = null;
     if (host === "app.aloyacy.live") target = `https://app.aloya.cy${url.pathname}${url.search}`;
     else if (host === "aloyacy.live" || host === "www.aloyacy.live")
