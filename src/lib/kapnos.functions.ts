@@ -226,7 +226,7 @@ export const suggestKapnos = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data }) => {
-    const routes = await fetchRoutes();
+    const routes = await fetchKapnosRoutes();
     if (routes.length === 0) return null;
     const nowLocal = nowCyprusLocal();
     // Honor the rider's requested time. If they asked to leave at 7am, never
