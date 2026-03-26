@@ -32,7 +32,23 @@ export function ShareSheet({ open, onClose, ctx }: Props) {
   const [blob, setBlob] = useState<Blob | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const renderedFor = useRef<string>("");
+
+  function flash(msg: string) {
+    setNotice(msg);
+    window.setTimeout(() => setNotice((cur) => (cur === msg ? null : cur)), 2600);
+  }
+
+  function makeFile(): File | null {
+    if (!blob) return null;
+    return new File([blob], `aloya-${ctx.stop.code}.jpg`, { type: "image/jpeg" });
+  }
+
+  function canShareFile(file: File): boolean {
+    const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+    return !!nav.canShare && nav.canShare({ files: [file] });
+  }
 
   // Render the card when the sheet opens (or context meaningfully changes).
   useEffect(() => {
@@ -81,54 +97,65 @@ export function ShareSheet({ open, onClose, ctx }: Props) {
   const shareText = buildShareText(ctx);
 
   async function handleNativeShare() {
-    if (!blob) return;
-    const file = new File([blob], `aloya-${ctx.stop.code}.jpg`, {
-      type: "image/jpeg",
-    });
-    const nav = navigator as Navigator & {
-      canShare?: (data: ShareData) => boolean;
-    };
-    const data: ShareData & { files?: File[] } = {
-      files: [file],
-      title: ctx.stop.name,
-      text: shareText,
-      url: ctx.url,
-    };
-    if (nav.canShare?.({ files: [file] })) {
+    const file = makeFile();
+    if (!file) return;
+    if (canShareFile(file)) {
       try {
-        await navigator.share(data);
+        await navigator.share({ files: [file], title: ctx.stop.name, text: shareText, url: ctx.url });
         return;
-      } catch {
-        /* user cancelled */
-        return;
-      }
+      } catch { return; }
     }
-    // Fallback: text-only share.
+    const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
     if (nav.canShare?.({ text: shareText, url: ctx.url })) {
+      try { await navigator.share({ text: shareText, url: ctx.url }); return; } catch { return; }
+    }
+    triggerDownload(file);
+  }
+
+  async function handleWhatsApp() {
+    const file = makeFile();
+    if (!file) return;
+    // Preferred path: native share sheet with image — user picks WhatsApp
+    // and the card lands as a real picture, not just a link preview.
+    if (canShareFile(file)) {
       try {
-        await navigator.share({ text: shareText, url: ctx.url });
+        await navigator.share({ files: [file], title: ctx.stop.name, text: shareText, url: ctx.url });
         return;
-      } catch {
-        /* cancelled */
+      } catch { return; }
+    }
+    // Fallback (desktop / unsupported): save the image locally, copy text to
+    // clipboard, then open WhatsApp Web so the user can paste + attach.
+    triggerDownload(file);
+    try { await navigator.clipboard.writeText(`${shareText}\n${ctx.url}`); } catch { /* noop */ }
+    const wa = `https://web.whatsapp.com/send?text=${encodeURIComponent(shareText + "\n" + ctx.url)}`;
+    window.open(wa, "_blank", "noopener,noreferrer");
+    flash(t("share.waFallback"));
+  }
+
+  async function handleSave() {
+    const file = makeFile();
+    if (!file) return;
+    // On mobile the OS share sheet exposes "Save Image" / "Save to Photos",
+    // which is the closest thing the web has to a Gallery permission prompt.
+    // Prefer it when available; otherwise fall back to a regular download.
+    if (canShareFile(file) && isLikelyMobile()) {
+      try {
+        await navigator.share({ files: [file], title: ctx.stop.name });
         return;
+      } catch (err) {
+        if ((err as DOMException)?.name === "AbortError") return;
+        // fall through to download
       }
     }
-    handleDownload();
+    triggerDownload(file);
+    flash(t("share.saved"));
   }
 
-  function handleWhatsApp() {
-    // wa.me can't accept an image, but we open it pre-filled with the
-    // rich text + link. The user can attach the saved image alongside.
-    const url = `https://wa.me/?text=${encodeURIComponent(shareText + "\n" + ctx.url)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
-
-  function handleDownload() {
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
+  function triggerDownload(file: File) {
+    const url = URL.createObjectURL(file);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `aloya-${ctx.stop.code}.jpg`;
+    a.download = file.name;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -218,11 +245,12 @@ export function ShareSheet({ open, onClose, ctx }: Props) {
           />
           <ActionButton
             onClick={handleWhatsApp}
-            icon={<IconWhatsApp className="size-4" />}
+            icon={<IconWhatsApp className="size-[18px] text-[#25D366]" />}
             label={t("share.whatsapp")}
+            disabled={!blob}
           />
           <ActionButton
-            onClick={handleDownload}
+            onClick={handleSave}
             icon={<IconDownload className="size-4" />}
             label={t("share.save")}
             disabled={!blob}
@@ -233,6 +261,16 @@ export function ShareSheet({ open, onClose, ctx }: Props) {
             label={copied ? t("share.copied") : t("share.copyLink")}
           />
         </div>
+
+        {notice ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mx-5 mb-5 -mt-2 rounded-xl bg-limestone-soft ring-1 ring-line px-3 py-2 text-[12px] text-ink-soft text-center animate-fade-in"
+          >
+            {notice}
+          </div>
+        ) : null}
       </div>
     </div>,
     document.body,
@@ -268,6 +306,12 @@ function ActionButton({
       <span>{label}</span>
     </button>
   );
+}
+
+function isLikelyMobile(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
 }
 
 function buildShareText(ctx: StopCardCtx): string {
