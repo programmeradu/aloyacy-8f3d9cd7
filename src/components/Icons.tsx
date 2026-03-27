@@ -103,6 +103,13 @@ export const IconPin = ({ className, strokeWidth = 1.5 }: IconProps) => (
   </svg>
 );
 
+// Stylised plane glyph — used for airport hub entries.
+export const IconPlane = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10.5 13.5L3 11l1.2-1.6 8 1.4 4.5-4.5a2.1 2.1 0 0 1 3 3L15.2 12.8l1.4 8L15 22l-2.5-7.5-3 3v2.2l-1.2.8-1.4-2.6L3.7 16.3l.8-1.2H6.7l3-3z" />
+  </svg>
+);
+
 // Bespoke five-point star, thin-line editorial weight. Used as the
 // "favourite" glyph in the trip planner.
 export const IconStar = ({ className, strokeWidth = 1.5 }: IconProps) => (
