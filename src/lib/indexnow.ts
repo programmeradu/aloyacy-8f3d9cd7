@@ -13,6 +13,8 @@ const PATHS = [
   "/privacy",
   "/terms",
   "/guide/getting-around-cyprus",
+  "/airport/lca",
+  "/airport/pfo",
 ];
 
 export function indexNowPayload(host = INDEXNOW_HOST) {

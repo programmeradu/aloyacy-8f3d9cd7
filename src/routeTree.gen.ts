@@ -28,6 +28,7 @@ import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
 import { Route as DebugGraphRouteImport } from './routes/debug.graph'
 import { Route as DebugEtaRouteImport } from './routes/debug.eta'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as AirportCodeRouteImport } from './routes/airport.$code'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
@@ -147,6 +148,11 @@ const DebugEtaRoute = DebugEtaRouteImport.update({
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AirportCodeRoute = AirportCodeRouteImport.update({
+  id: '/airport/$code',
+  path: '/airport/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminSeoRoute = AdminSeoRouteImport.update({
@@ -293,6 +299,7 @@ export interface FileRoutesByFullPath {
   '/wallet': typeof WalletRoute
   '/welcome': typeof WelcomeRoute
   '/admin/seo': typeof AdminSeoRoute
+  '/airport/$code': typeof AirportCodeRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
@@ -338,6 +345,7 @@ export interface FileRoutesByTo {
   '/wallet': typeof WalletRoute
   '/welcome': typeof WelcomeRoute
   '/admin/seo': typeof AdminSeoRoute
+  '/airport/$code': typeof AirportCodeRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
@@ -384,6 +392,7 @@ export interface FileRoutesById {
   '/wallet': typeof WalletRoute
   '/welcome': typeof WelcomeRoute
   '/admin/seo': typeof AdminSeoRoute
+  '/airport/$code': typeof AirportCodeRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
@@ -431,6 +440,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/welcome'
     | '/admin/seo'
+    | '/airport/$code'
     | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
@@ -476,6 +486,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/welcome'
     | '/admin/seo'
+    | '/airport/$code'
     | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
@@ -521,6 +532,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/welcome'
     | '/admin/seo'
+    | '/airport/$code'
     | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
@@ -567,6 +579,7 @@ export interface RootRouteChildren {
   WalletRoute: typeof WalletRoute
   WelcomeRoute: typeof WelcomeRoute
   AdminSeoRoute: typeof AdminSeoRoute
+  AirportCodeRoute: typeof AirportCodeRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DebugEtaRoute: typeof DebugEtaRoute
   DebugGraphRoute: typeof DebugGraphRoute
@@ -734,6 +747,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout/return'
       fullPath: '/checkout/return'
       preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/airport/$code': {
+      id: '/airport/$code'
+      path: '/airport/$code'
+      fullPath: '/airport/$code'
+      preLoaderRoute: typeof AirportCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/seo': {
@@ -919,6 +939,7 @@ const rootRouteChildren: RootRouteChildren = {
   WalletRoute: WalletRoute,
   WelcomeRoute: WelcomeRoute,
   AdminSeoRoute: AdminSeoRoute,
+  AirportCodeRoute: AirportCodeRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   DebugEtaRoute: DebugEtaRoute,
   DebugGraphRoute: DebugGraphRoute,
@@ -955,13 +976,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

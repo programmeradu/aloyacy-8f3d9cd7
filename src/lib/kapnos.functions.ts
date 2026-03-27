@@ -118,7 +118,7 @@ function isAirportPoint(name: string): boolean {
   return /airport|\(A\d/i.test(name);
 }
 
-async function fetchRoutes(): Promise<KapnosRoute[]> {
+export async function fetchKapnosRoutes(): Promise<KapnosRoute[]> {
   const now = Date.now();
   if (cache && now - cache.at < CACHE_TTL_MS) return cache.data;
   try {
@@ -226,7 +226,7 @@ export const suggestKapnos = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data }) => {
-    const routes = await fetchRoutes();
+    const routes = await fetchKapnosRoutes();
     if (routes.length === 0) return null;
     const nowLocal = nowCyprusLocal();
     // Honor the rider's requested time. If they asked to leave at 7am, never
