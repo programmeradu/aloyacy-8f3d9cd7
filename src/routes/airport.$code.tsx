@@ -1,176 +1,47 @@
-// Airport landing page — /airport/lca, /airport/pfo
+// Airport page — /airport/lca, /airport/pfo
 //
-// Public, indexable SEO page. Mixes editorial intro, live coach
-// departures (Kapnos feed), and an OpenSky flight-pulse snapshot. Built
-// for the "Larnaca airport bus to Nicosia" / "Paphos airport to Limassol"
-// search intent. Bilingual (en/el). Renders inside AppShell so the
-// bottom-nav stays consistent with the rest of the app.
+// Treats the airport as a stop: shows the Kapnos coach card at the top
+// (direct intercity departures with live seats), an optional flight
+// pulse, and then the urban-network DepartureRows from the airport's
+// GTFS stop — same UI as /stop/$stopId. SEO metadata + JSON-LD kept
+// for indexability; the long-form editorial article lives on the
+// marketing site, not here.
 
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { MapPreview, type MapMarker } from "@/components/MapPreview";
+import { IconArrowLeft, IconShare } from "@/components/Icons";
+import { DepartureRow } from "@/components/DepartureRow";
+import { SightingButton } from "@/components/SightingButton";
+import { ShareSheet } from "@/components/ShareSheet";
+import { StaleFeedBanner } from "@/components/StaleFeedBanner";
+import { useRealtime } from "@/lib/useRealtime";
+import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
+import { useEtaStats } from "@/lib/useEtaStats";
+import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
+import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
+import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
+import { getStop, getRoute } from "@/lib/gtfs";
 import { useI18n, type Locale } from "@/lib/i18n";
+import kapnosLogo from "@/assets/kapnos-logo.png.asset.json";
 import {
   AIRPORTS,
   getAirportPage,
   type AirportCode,
   type AirportPageData,
+  type AirportCoachLine,
+  type AirportFlights,
 } from "@/lib/airport.functions";
 
 const BASE = "https://app.aloya.cy";
 
-const COPY: Record<Locale, {
-  back: string;
-  eyebrow: (city: string) => string;
-  h1Top: (city: string) => string;
-  h1Bottom: string;
-  intro: (city: string) => string;
-  liveTitle: string;
-  liveQuiet: string;
-  liveArrivals: (n: number) => string;
-  liveDepartures: (n: number) => string;
-  liveStale: string;
-  coachTitle: string;
-  coachLead: string;
-  coachNone: string;
-  toLabel: string;
-  rideLabel: (m: number) => string;
-  fromLabel: string;
-  pickupLabel: string;
-  bookCta: string;
-  practicalTitle: string;
-  practicalParas: string[];
-  planTitle: string;
-  planLead: string;
-  planCta: string;
-  faqTitle: string;
-  faq: { q: string; a: string }[];
-  seatsLeft: (n: number) => string;
-  sold: string;
-  arrivalsHead: string;
-  departuresHead: string;
-  flightSrc: (src: string) => string;
-}> = {
-  en: {
-    back: "← Aloya",
-    eyebrow: (city) => `${city} airport`,
-    h1Top: (city) => `Arriving at ${city}`,
-    h1Bottom: "without a rental car.",
-    intro: (city) =>
-      `Every scheduled coach out of ${city} airport, with the next departures live from the operator's own booking system — plus how the airport is moving right now.`,
-    liveTitle: "Live now",
-    liveQuiet: "Quiet at the terminal in the next hour.",
-    liveArrivals: (n) => `${n} arriving in the next hour`,
-    liveDepartures: (n) => `${n} departing in the next hour`,
-    liveStale: "Flight feed unavailable — coach times below are still live.",
-    coachTitle: "Direct coaches",
-    coachLead:
-      "Direct Kapnos services from outside Arrivals. Live seat counts; we deep-link to the operator's checkout for the actual booking.",
-    coachNone:
-      "No upcoming Kapnos coaches in the next service window. Try the planner for a city-bus alternative.",
-    toLabel: "to",
-    rideLabel: (m) => `${m} min ride`,
-    fromLabel: "from",
-    pickupLabel: "Boards at",
-    bookCta: "Book on Kapnos",
-    practicalTitle: "The practical bits",
-    practicalParas: [
-      "Coaches board on the arrivals forecourt — turn left out of the doors. No reservation required if seats are open at the kerb, but pre-booking guarantees one for €1–€2 more.",
-      "Pay the driver in cash, tap a card, or tap your Motion Bus Card on connecting urban legs once you reach the city.",
-      "Children under 6 ride free. Most coaches accept one large suitcase per passenger at no extra charge.",
-    ],
-    planTitle: "Going elsewhere?",
-    planLead:
-      "If your destination isn't a direct coach city, plan a door-to-door route — Aloya stitches the airport coach with the urban network and shows live GPS the whole way.",
-    planCta: "Open the planner",
-    faqTitle: "Frequently asked",
-    faq: [],
-    seatsLeft: (n) => `${n} seats`,
-    sold: "Sold out",
-    arrivalsHead: "Arrivals",
-    departuresHead: "Departures",
-    flightSrc: (s) => `flights via ${s}`,
-  },
-  el: {
-    back: "← Aloya",
-    eyebrow: (city) => `αεροδρόμιο ${city}`,
-    h1Top: (city) => `Άφιξη στο ${city}`,
-    h1Bottom: "χωρίς αυτοκίνητο.",
-    intro: (city) =>
-      `Όλα τα προγραμματισμένα υπεραστικά από το αεροδρόμιο ${city}, με τις επόμενες αναχωρήσεις απευθείας από το σύστημα κρατήσεων του μεταφορέα — και πώς κινείται το τερματικό αυτή τη στιγμή.`,
-    liveTitle: "Τώρα ζωντανά",
-    liveQuiet: "Ήσυχα στο τερματικό την επόμενη ώρα.",
-    liveArrivals: (n) => `${n} αφίξεις την επόμενη ώρα`,
-    liveDepartures: (n) => `${n} αναχωρήσεις την επόμενη ώρα`,
-    liveStale: "Η ροή πτήσεων δεν είναι διαθέσιμη — οι ώρες λεωφορείων παρακάτω είναι ζωντανές.",
-    coachTitle: "Απευθείας υπεραστικά",
-    coachLead:
-      "Απευθείας δρομολόγια Kapnos έξω από τις Αφίξεις. Ζωντανές διαθέσιμες θέσεις· συνδέουμε απευθείας με το ταμείο του μεταφορέα.",
-    coachNone:
-      "Δεν υπάρχουν επόμενα δρομολόγια Kapnos. Δοκιμάστε τον σχεδιαστή για αστικό λεωφορείο.",
-    toLabel: "προς",
-    rideLabel: (m) => `${m} λεπτά διαδρομή`,
-    fromLabel: "από",
-    pickupLabel: "Αναχώρηση από",
-    bookCta: "Κράτηση στον Kapnos",
-    practicalTitle: "Τα πρακτικά",
-    practicalParas: [
-      "Τα υπεραστικά επιβιβάζουν στο προαύλιο των αφίξεων — αριστερά από τις πόρτες. Κράτηση δεν είναι απαραίτητη αν υπάρχουν θέσεις, αλλά η προκράτηση εξασφαλίζει θέση με €1–€2 επιπλέον.",
-      "Πληρώνετε στον οδηγό μετρητοίς, με κάρτα, ή σκανάρετε τη Motion Bus Card στα αστικά μέσα μόλις φτάσετε στην πόλη.",
-      "Παιδιά κάτω των 6 ταξιδεύουν δωρεάν. Τα περισσότερα λεωφορεία δέχονται μία μεγάλη βαλίτσα ανά επιβάτη χωρίς χρέωση.",
-    ],
-    planTitle: "Άλλος προορισμός;",
-    planLead:
-      "Αν ο προορισμός σας δεν εξυπηρετείται απευθείας, σχεδιάστε διαδρομή πόρτα-πόρτα — το Aloya συνδυάζει το υπεραστικό με το αστικό δίκτυο και δείχνει ζωντανό GPS όλη τη διαδρομή.",
-    planCta: "Άνοιγμα σχεδιαστή",
-    faqTitle: "Συχνές ερωτήσεις",
-    faq: [],
-    seatsLeft: (n) => `${n} θέσεις`,
-    sold: "Εξαντλήθηκαν",
-    arrivalsHead: "Αφίξεις",
-    departuresHead: "Αναχωρήσεις",
-    flightSrc: (s) => `πτήσεις μέσω ${s}`,
-  },
+// GTFS stop IDs for the two scheduled Cyprus airports.
+const AIRPORT_STOP: Record<AirportCode, string> = {
+  lca: "6117", // "Larnaka Airport"
+  pfo: "1813", // "Pafos Airport"
 };
-
-// FAQ — built per airport, per locale, with the city name baked in for SEO.
-function buildFaq(city: string, locale: Locale): { q: string; a: string }[] {
-  if (locale === "el") {
-    return [
-      {
-        q: `Πώς πάω από το αεροδρόμιο ${city} με λεωφορείο;`,
-        a: `Απευθείας υπεραστικά (Kapnos) ξεκινούν από το προαύλιο των αφίξεων προς Λευκωσία, Λεμεσό, Λάρνακα, Πάφο, Αγία Νάπα και Πρωταρά. Δείτε τις επόμενες αναχωρήσεις και κρατήστε θέση εδώ.`,
-      },
-      {
-        q: `Πόσο κοστίζει το λεωφορείο από το αεροδρόμιο ${city};`,
-        a: `Από €4 για κοντινές διαδρομές έως €11 για τη μεγαλύτερη διαδρομή (π.χ. Πάφος ↔ Λάρνακα). Παιδιά κάτω των 6 δωρεάν.`,
-      },
-      {
-        q: `Λειτουργούν τα λεωφορεία το βράδυ;`,
-        a: `Ναι, οι κύριες γραμμές συνδέονται με νυχτερινές πτήσεις. Οι ζωντανές αναχωρήσεις παραπάνω δείχνουν τι όντως ξεκινά απόψε — όχι το τυπικό πρόγραμμα.`,
-      },
-    ];
-  }
-  return [
-    {
-      q: `How do I get from ${city} airport by bus?`,
-      a: `Direct intercity coaches (Kapnos) board on the arrivals forecourt to Nicosia, Limassol, Larnaca, Paphos, Ayia Napa and Protaras. See the next live departures and reserve a seat above.`,
-    },
-    {
-      q: `How much does the bus from ${city} airport cost?`,
-      a: `From €4 for short hops up to €11 for the longest leg (e.g. Paphos ↔ Larnaca). Children under 6 travel free.`,
-    },
-    {
-      q: `Do the airport coaches run at night?`,
-      a: `Yes — the main lines connect overnight flights. The live departures above reflect what is actually running tonight, not just the published timetable.`,
-    },
-    {
-      q: `Can I pay on board?`,
-      a: `Yes, cash and contactless cards are accepted. Pre-booking via the operator guarantees a seat for €1–€2 more on busy nights.`,
-    },
-  ];
-}
 
 const ALLOWED: AirportCode[] = ["lca", "pfo"];
 
@@ -181,6 +52,98 @@ function airportQuery(code: AirportCode) {
     staleTime: 60_000,
   });
 }
+
+// FAQ kept for JSON-LD only — the visual article lives on the marketing site.
+function buildFaq(city: string): { q: string; a: string }[] {
+  return [
+    {
+      q: `How do I get from ${city} airport by bus?`,
+      a: `Direct intercity coaches (Kapnos) board on the arrivals forecourt to Nicosia, Limassol, Larnaca, Paphos, Ayia Napa and Protaras. Live next departures and urban-bus options are shown above.`,
+    },
+    {
+      q: `How much does the bus from ${city} airport cost?`,
+      a: `From €4 for short hops up to €11 for the longest leg (e.g. Paphos ↔ Larnaca). Children under 6 travel free.`,
+    },
+    {
+      q: `Do the airport coaches run at night?`,
+      a: `Yes — the main lines connect overnight flights. The live departures above reflect what is actually running tonight, not just the published timetable.`,
+    },
+  ];
+}
+
+const COPY: Record<Locale, {
+  kicker: (iata: string) => string;
+  coachTitle: string;
+  coachLead: string;
+  coachNone: string;
+  seatsLeft: (n: number) => string;
+  sold: string;
+  bookCta: string;
+  timetableCta: string;
+  pickup: string;
+  fromLabel: string;
+  flightTitle: string;
+  flightQuiet: string;
+  flightLine: (a: number, d: number) => string;
+  flightSrc: (s: string) => string;
+  arrivalsHead: string;
+  departuresHead: string;
+  localTitle: string;
+  localLive: string;
+  localLoading: string;
+  localEmptyTitle: string;
+  localEmptyBody: string;
+  notInDataset: string;
+}> = {
+  en: {
+    kicker: (iata) => `airport · ${iata}`,
+    coachTitle: "Direct coaches",
+    coachLead: "Kapnos services boarding at arrivals. Live seat counts, deep-link to the operator's checkout.",
+    coachNone: "No upcoming Kapnos coaches in the service window.",
+    seatsLeft: (n) => `${n} seats`,
+    sold: "Sold out",
+    bookCta: "Book on Kapnos",
+    timetableCta: "Timetable",
+    pickup: "Boards at",
+    fromLabel: "from",
+    flightTitle: "Live at the terminal",
+    flightQuiet: "Quiet at the terminal in the next hour.",
+    flightLine: (a, d) => `${a} arriving · ${d} departing · next 60 min`,
+    flightSrc: (s) => `flights via ${s}`,
+    arrivalsHead: "Arrivals",
+    departuresHead: "Departures",
+    localTitle: "Local buses from the airport stop",
+    localLive: "Live · smart ETA",
+    localLoading: "Loading…",
+    localEmptyTitle: "No upcoming buses at this stop.",
+    localEmptyBody: "Try the planner for a coach-first option, or check back closer to your flight.",
+    notInDataset: "Airport stop not in dataset.",
+  },
+  el: {
+    kicker: (iata) => `αεροδρόμιο · ${iata}`,
+    coachTitle: "Απευθείας υπεραστικά",
+    coachLead: "Δρομολόγια Kapnos από τις Αφίξεις. Ζωντανές θέσεις, κράτηση απευθείας στον μεταφορέα.",
+    coachNone: "Δεν υπάρχουν επόμενα δρομολόγια Kapnos αυτή τη στιγμή.",
+    seatsLeft: (n) => `${n} θέσεις`,
+    sold: "Εξαντλήθηκαν",
+    bookCta: "Κράτηση στον Kapnos",
+    timetableCta: "Πρόγραμμα",
+    pickup: "Επιβίβαση",
+    fromLabel: "από",
+    flightTitle: "Ζωντανά στο τερματικό",
+    flightQuiet: "Ήσυχα στο τερματικό την επόμενη ώρα.",
+    flightLine: (a, d) => `${a} αφίξεις · ${d} αναχωρήσεις · επόμενα 60′`,
+    flightSrc: (s) => `πτήσεις μέσω ${s}`,
+    arrivalsHead: "Αφίξεις",
+    departuresHead: "Αναχωρήσεις",
+    localTitle: "Αστικά λεωφορεία από τη στάση του αεροδρομίου",
+    localLive: "Ζωντανά · έξυπνο ETA",
+    localLoading: "Φόρτωση…",
+    localEmptyTitle: "Δεν υπάρχουν επόμενα λεωφορεία στη στάση.",
+    localEmptyBody: "Δοκιμάστε τον σχεδιαστή ή ελέγξτε ξανά πιο κοντά στην πτήση σας.",
+    notInDataset: "Η στάση του αεροδρομίου δεν είναι στο σύνολο δεδομένων.",
+  },
+};
 
 export const Route = createFileRoute("/airport/$code")({
   beforeLoad: ({ params }) => {
@@ -196,7 +159,7 @@ export const Route = createFileRoute("/airport/$code")({
     const a = AIRPORTS[code];
     if (!a) return { meta: [{ title: "Airport — Aloya" }] };
     const title = `${a.name} (${a.iata}) by Bus — Live Coaches & Routes`;
-    const description = `Live intercity coach departures from ${a.name} (${a.iata}). Direct buses to Nicosia, Limassol, Larnaca, Paphos, Ayia Napa and Protaras, with real seat availability.`;
+    const description = `Live intercity coach departures from ${a.name} (${a.iata}), plus urban-bus departures from the airport stop. Direct buses to Nicosia, Limassol, Larnaca, Paphos, Ayia Napa and Protaras with real seat availability.`;
     const canonical = `${BASE}/airport/${code}`;
     const og = `${BASE}/og/og-airport-${code}.jpg`;
     return {
@@ -238,7 +201,7 @@ export const Route = createFileRoute("/airport/$code")({
           children: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            mainEntity: buildFaq(a.city, "en").map((f) => ({
+            mainEntity: buildFaq(a.city).map((f) => ({
               "@type": "Question",
               name: f.q,
               acceptedAnswer: { "@type": "Answer", text: f.a },
@@ -253,11 +216,9 @@ export const Route = createFileRoute("/airport/$code")({
     const router = useRouter();
     return (
       <AppShell>
-        <div className="mx-auto max-w-2xl px-5 pt-10">
-          <p className="font-display text-[22px] text-ink">
-            Couldn't load airport data.
-          </p>
-          <p className="mt-2 text-[14px] text-ink/65">{error.message}</p>
+        <div className="px-6 pt-10">
+          <p className="font-display text-[22px] text-ink">Couldn't load airport data.</p>
+          <p className="mt-2 text-[14px] text-ink-soft">{error.message}</p>
           <button
             type="button"
             onClick={() => { router.invalidate(); reset(); }}
@@ -273,23 +234,22 @@ export const Route = createFileRoute("/airport/$code")({
     const { code } = Route.useParams();
     return (
       <AppShell>
-        <div className="mx-auto max-w-2xl px-5 pt-10">
-          <p className="font-eyebrow text-[11px] uppercase tracking-[0.26em] text-aegean">
+        <div className="px-6 pt-10">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-aegean-deep">
             Not in Cyprus
           </p>
           <h1 className="mt-3 font-display text-[34px] leading-tight text-ink">
-            We don't have an airport page for "{code}".
+            No airport page for "{code}".
           </h1>
-          <p className="mt-4 text-[15px] text-ink/70">
-            Cyprus has two scheduled airports — try{" "}
+          <p className="mt-4 text-[15px] text-ink-soft">
+            Try{" "}
             <Link to="/airport/$code" params={{ code: "lca" }} className="underline-offset-4 hover:underline">
               Larnaca (LCA)
             </Link>{" "}
             or{" "}
             <Link to="/airport/$code" params={{ code: "pfo" }} className="underline-offset-4 hover:underline">
               Paphos (PFO)
-            </Link>
-            .
+            </Link>.
           </p>
         </div>
       </AppShell>
@@ -306,191 +266,371 @@ function AirportPage() {
 }
 
 function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }) {
+  const { t } = useI18n();
   const c = COPY[locale];
-  const a = data.airport;
-  const city = locale === "el" ? a.cityEl : a.city;
-  const faq = buildFaq(city, locale);
-  const flights = data.flights;
+  const airport = data.airport;
+  const stopId = AIRPORT_STOP[airport.code];
+  const stop = getStop(stopId);
+  const [shareOpen, setShareOpen] = useState(false);
+
+  // --- live urban-bus departures (mirrors /stop/$stopId logic) ---
+  const { data: rt, isLoading, riderConfirmedAge } = useRealtime();
+  const { data: learnedByStop } = useLearnedStatsBulk([stopId]);
+  const routeIdsHere = useMemo(() => {
+    if (!rt) return [] as string[];
+    const set = new Set<string>();
+    for (const a of rt.arrivals) if (a.stopId === stopId) set.add(a.routeId);
+    return Array.from(set);
+  }, [rt, stopId]);
+  const etaStats = useEtaStats(routeIdsHere);
+  const [, forceHeadsigns] = useState(0);
+  useEffect(() => {
+    prefetchShapes();
+    prefetchHeadsigns();
+    return onHeadsignsLoaded(() => forceHeadsigns((n) => n + 1));
+  }, []);
+
+  const departures = useMemo(() => {
+    if (!rt) return [];
+    const now = Math.floor(Date.now() / 1000);
+    const learnedByRoute = learnedByStop?.get(stopId);
+    const seen = new Set<string>();
+    const here = rt.arrivals
+      .filter((a) => a.stopId === stopId && a.arrivalUnix >= now - 30)
+      .sort((a, b) => a.arrivalUnix - b.arrivalUnix)
+      .filter((a) => (seen.has(a.tripId) ? false : (seen.add(a.tripId), true)));
+    return here
+      .map((a) => {
+        const eta = smartEtaV2({
+          stopId,
+          arrivals: rt.arrivals,
+          vehicles: rt.vehicles,
+          nowSec: now,
+          agency: stop?.agency,
+          segments: etaStats.segments,
+          dwells: etaStats.dwells,
+          shape: getShapeForTripSync(a.tripId, a.routeId),
+          learnedByRoute,
+          riderConfirmedAgeSec: riderConfirmedAge.get(a.tripId),
+        });
+        return { ...a, eta };
+      })
+      .filter((d): d is typeof d & { eta: SmartEtaV2 } => d.eta != null && d.eta.etaMin <= 180)
+      .slice(0, 8);
+  }, [rt, stopId, learnedByStop, stop?.agency, etaStats, riderConfirmedAge]);
+
+  const center = stop ? { lat: stop.lat, lng: stop.lng } : { lat: airport.lat, lng: airport.lng };
+  const cityName = locale === "el" ? airport.cityEl : airport.city;
+  const airportName = locale === "el" ? airport.nameEl : airport.name;
 
   return (
     <AppShell>
-      <article className="mx-auto max-w-2xl px-5 pb-24 pt-6">
-        <header className="mb-8 flex items-center justify-between">
-          <Link
-            to="/"
-            className="font-eyebrow text-[11px] uppercase tracking-[0.22em] text-ink/60 hover:text-ink"
-          >
-            {c.back}
-          </Link>
-          <LocaleSwitcher />
-        </header>
+      <div className="px-6 pt-2 pb-4 flex items-center justify-between animate-rise">
+        <Link
+          to="/"
+          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink"
+        >
+          <IconArrowLeft className="size-4" />
+        </Link>
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+          {c.kicker(airport.iata)}
+        </span>
+        <button
+          type="button"
+          onClick={() => setShareOpen(true)}
+          aria-label={t("share.openLabel")}
+          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink hover:bg-limestone-soft transition-colors"
+        >
+          <IconShare className="size-4" />
+        </button>
+      </div>
 
-        <p className="font-eyebrow text-[11px] uppercase tracking-[0.26em] text-aegean">
-          {c.eyebrow(city)} · {a.iata}
+      <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
+        <h1 className="font-display text-[40px] leading-[1.05] text-ink">{airportName}</h1>
+        <p className="mt-2 text-[13px] text-ink-soft">
+          {cityName} — {airport.lat.toFixed(4)}, {airport.lng.toFixed(4)}
         </p>
-        <h1 className="mt-3 font-display text-[40px] leading-[1.02] tracking-tight text-ink">
-          {c.h1Top(city)}
-          <span className="block italic text-aegean-deep">{c.h1Bottom}</span>
-        </h1>
-        <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-ink/75">
-          {c.intro(city)}
-        </p>
+      </header>
 
-        <figure className="mt-10 -mx-5 sm:mx-0">
-          <img
-            src={`/og/og-airport-${a.code}.jpg`}
-            alt={`${a.name} arrivals forecourt at golden hour`}
-            width={1216}
-            height={640}
-            className="w-full aspect-[1216/640] object-cover"
-          />
-        </figure>
+      <section className="px-6 animate-rise" style={{ animationDelay: "120ms" }}>
+        <MapPreview
+          height="h-56"
+          center={center}
+          spanKm={3}
+          markers={[
+            { lat: airport.lat, lng: airport.lng, kind: "origin", label: airportName },
+          ] as MapMarker[]}
+          restrictTripIds={departures.map((d) => d.tripId)}
+          fitToContent={false}
+        />
+      </section>
 
-        {/* Live now — flight pulse */}
-        <Section eyebrow="01" title={c.liveTitle}>
-          {flights ? (
-            flights.arrivalsNext60 === 0 && flights.departuresNext60 === 0 ? (
-              <p className="text-[14px] text-ink/65">{c.liveQuiet}</p>
-            ) : (
-              <>
-                <p className="font-display text-[22px] leading-snug text-ink">
-                  {c.liveArrivals(flights.arrivalsNext60)}
-                  <span className="text-ink/35"> / </span>
-                  {c.liveDepartures(flights.departuresNext60)}
-                </p>
-                <div className="mt-5 grid grid-cols-2 gap-6 not-prose">
-                  <FlightCol head={c.arrivalsHead} rows={flights.arrivals} />
-                  <FlightCol head={c.departuresHead} rows={flights.departures} />
-                </div>
-                <p className="mt-4 font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink/40">
-                  {c.flightSrc(flights.source)}
-                </p>
-              </>
-            )
-          ) : (
-            <p className="text-[14px] text-ink/65">{c.liveStale}</p>
-          )}
-        </Section>
+      {/* Flight pulse — compact strip */}
+      <FlightPulse flights={data.flights} c={c} />
 
-        {/* Coach lines */}
-        <Section eyebrow="02" title={c.coachTitle}>
-          <p>{c.coachLead}</p>
-          {data.coachLines.length === 0 ? (
-            <p className="mt-4 text-[14px] text-ink/65">{c.coachNone}</p>
-          ) : (
-            <ul className="mt-5 grid grid-cols-1 gap-0 not-prose">
-              {data.coachLines.map((line) => (
-                <li key={`${line.routeId}-${line.destinationCity}`} className="border-t border-ink/10 py-5">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink/40">
-                        {a.iata} <span className="text-ink/30">→</span> {line.destinationCity}
-                      </p>
-                      <p className="mt-1 font-display text-[22px] leading-tight tracking-tight text-ink">
-                        {line.destinationCity}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink/55">
-                        {c.rideLabel(line.rideMin)}
-                      </p>
-                      {line.priceFrom ? (
-                        <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.16em] text-ink/65 tabular-nums">
-                          {c.fromLabel} {line.priceFrom}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <ul className="mt-3 flex flex-col gap-1.5">
-                    {line.nextDepartures.map((d) => {
-                      const sold = d.seatsAvailable <= 0;
-                      const low = d.seatsAvailable > 0 && d.seatsAvailable <= 8;
-                      return (
-                        <li
-                          key={`${d.tripId}-${d.depart}`}
-                          className="flex items-baseline justify-between gap-3 font-mono text-[12px] tabular-nums text-ink/80"
-                        >
-                          <span>
-                            <span className="text-ink">{d.depart}</span>
-                            <span className="text-ink/35"> → </span>
-                            <span className="text-ink/80">{d.arrive}</span>
-                            {d.dayChip ? (
-                              <span className="ml-2 font-eyebrow text-[9.5px] uppercase tracking-[0.18em] text-ochre-deep">
-                                {d.dayChip}
-                              </span>
-                            ) : null}
-                          </span>
-                          <span
-                            className={
-                              sold
-                                ? "text-red-700 font-eyebrow text-[9.5px] uppercase tracking-[0.18em]"
-                                : low
-                                  ? "text-ochre-deep font-eyebrow text-[9.5px] uppercase tracking-[0.18em]"
-                                  : "text-ink/45 font-eyebrow text-[9.5px] uppercase tracking-[0.18em]"
-                            }
-                          >
-                            {sold ? c.sold : c.seatsLeft(d.seatsAvailable)}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-
-                  <div className="mt-3 flex items-baseline justify-between gap-3">
-                    <p className="text-[12px] text-ink/55 truncate">
-                      <span className="font-eyebrow uppercase tracking-[0.18em] text-ink/40">
-                        {c.pickupLabel}:
-                      </span>{" "}
-                      {line.pickupName}
-                    </p>
-                    <a
-                      href="https://kapnosairportshuttle.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-aegean-deep hover:text-ink"
-                    >
-                      {c.bookCta} →
-                    </a>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Section>
-
-        <Section eyebrow="03" title={c.practicalTitle}>
-          {c.practicalParas.map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
-        </Section>
-
-        <Section eyebrow="04" title={c.planTitle}>
-          <p>{c.planLead}</p>
-          <Link
-            to="/trips"
-            className="mt-4 inline-flex items-baseline gap-3 font-display text-[24px] tracking-tight text-ink hover:text-aegean-deep"
-          >
-            {c.planCta}
-            <span aria-hidden className="text-aegean">→</span>
-          </Link>
-        </Section>
-
-        <Section eyebrow="05" title={c.faqTitle}>
-          <div className="mt-2 divide-y divide-ink/10">
-            {faq.map((f) => (
-              <details key={f.q} className="group py-4">
-                <summary className="cursor-pointer list-none font-display text-[17px] leading-snug tracking-tight text-ink marker:hidden">
-                  <span className="inline-block w-4 font-mono text-aegean">+</span>
-                  {f.q}
-                </summary>
-                <p className="mt-3 pl-4 text-[14px] leading-relaxed text-ink/75">{f.a}</p>
-              </details>
-            ))}
+      {/* Direct coaches (Kapnos) */}
+      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
+        <div className="flex items-end justify-between gap-4 mb-4">
+          <div className="min-w-0">
+            <span className="font-mono text-[9.5px] uppercase tracking-[0.24em] text-ink-soft">
+              01 — intercity
+            </span>
+            <h2 className="mt-1 font-display text-[22px] sm:text-[26px] leading-[1.1] text-ink">
+              {c.coachTitle}
+            </h2>
           </div>
-        </Section>
-      </article>
+          <img
+            src={kapnosLogo.url}
+            alt="Kapnos"
+            className="h-7 w-7 rounded-md object-contain bg-white ring-1 ring-line/60 p-0.5 shrink-0"
+            loading="lazy"
+          />
+        </div>
+        <p className="text-[13px] text-ink-soft mb-3">{c.coachLead}</p>
+
+        {data.coachLines.length === 0 ? (
+          <div className="rounded-3xl bg-card p-6 text-center ring-1 ring-line">
+            <p className="text-[13px] text-ink-soft">{c.coachNone}</p>
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {data.coachLines.map((line) => (
+              <CoachLineCard key={`${line.routeId}-${line.destinationCity}`} line={line} iata={airport.iata} c={c} />
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Ghost-bus banner for the soonest urban departure */}
+      {departures.length > 0 && departures[0].eta.tier === "ghost" && (
+        <div className="mt-4">
+          <StaleFeedBanner variant="ghost-bus" />
+        </div>
+      )}
+
+      {/* Local buses from the airport stop — same UI as /stop */}
+      <section className="mt-10 px-6 animate-rise" style={{ animationDelay: "220ms" }}>
+        <div className="flex items-end justify-between gap-4 mb-4">
+          <div className="min-w-0">
+            <span className="font-mono text-[9.5px] uppercase tracking-[0.24em] text-ink-soft">
+              02 — urban
+            </span>
+            <h2 className="mt-1 font-display text-[22px] sm:text-[26px] leading-[1.1] text-ink">
+              {c.localTitle}
+            </h2>
+          </div>
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-ink-soft shrink-0 pb-1">
+            {isLoading ? c.localLoading : c.localLive}
+          </span>
+        </div>
+
+        {!stop ? (
+          <div className="rounded-3xl bg-card p-6 text-center ring-1 ring-line">
+            <p className="text-[13px] text-ink-soft">{c.notInDataset}</p>
+          </div>
+        ) : departures.length === 0 ? (
+          <div className="rounded-3xl bg-card p-6 text-center ring-1 ring-line">
+            <p className="font-display text-lg text-ink">{c.localEmptyTitle}</p>
+            <p className="mt-1 text-[12px] text-ink-soft">{c.localEmptyBody}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {departures.map((d, i) => {
+              const route = getRoute(d.routeId);
+              const isGhost = d.eta.tier === "ghost";
+              const headsign = getHeadsignSync(d.tripId, d.routeId);
+              return (
+                <div key={d.tripId + d.routeId + i}>
+                  <DepartureRow
+                    tripId={d.tripId}
+                    routeId={d.routeId}
+                    routeShort={route?.short ?? "?"}
+                    routeLong={route?.long ?? ""}
+                    headsign={headsign}
+                    stopId={stopId}
+                    arrivalUnix={d.arrivalUnix}
+                    eta={{
+                      etaMin: isGhost ? null : d.eta.etaMin,
+                      band: d.eta.band,
+                      tier: d.eta.tier,
+                      confidence: d.eta.confidence,
+                      operatorEtaMin: d.eta.operatorEtaMin,
+                    }}
+                  />
+                  {isGhost && stop && (
+                    <div className="mt-2 px-1">
+                      <SightingButton
+                        tripId={d.tripId}
+                        routeId={d.routeId}
+                        stopId={stopId}
+                        lat={stop.lat}
+                        lng={stop.lng}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <div className="h-12" />
+
+      {stop && (
+        <ShareSheet
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          ctx={{
+            stop: { id: stop.id, code: stop.code, name: airportName, agency: stop.agency },
+            routes: Array.from(
+              new Map(
+                departures
+                  .map((d) => getRoute(d.routeId))
+                  .filter((r): r is NonNullable<typeof r> => !!r)
+                  .map((r) => [r.id, { short: r.short }]),
+              ).values(),
+            ),
+            nextEtaMin: departures[0]?.eta.etaMin ?? null,
+            nextHeadsign: departures[0]
+              ? getHeadsignSync(departures[0].tripId, departures[0].routeId)
+              : null,
+            locale,
+            url: `${BASE}/airport/${airport.code}`,
+          }}
+        />
+      )}
     </AppShell>
+  );
+}
+
+function CoachLineCard({
+  line,
+  iata,
+  c,
+}: {
+  line: AirportCoachLine;
+  iata: string;
+  c: (typeof COPY)["en"];
+}) {
+  return (
+    <li className="rounded-[24px] bg-card ring-1 ring-line p-4 flex flex-col gap-3">
+      <header className="flex items-baseline justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep">
+            {iata} → {line.destinationCity}
+          </p>
+          <p className="mt-1 font-display text-[22px] leading-tight text-ink truncate">
+            {line.destinationCity}
+          </p>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
+            {line.rideMin} min
+          </p>
+          {line.priceFrom ? (
+            <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/65 tabular-nums">
+              {c.fromLabel} {line.priceFrom}
+            </p>
+          ) : null}
+        </div>
+      </header>
+
+      <ul className="flex flex-col rounded-2xl ring-1 ring-line/60 divide-y divide-line/40">
+        {line.nextDepartures.map((d) => {
+          const sold = d.seatsAvailable <= 0;
+          const low = d.seatsAvailable > 0 && d.seatsAvailable <= 8;
+          return (
+            <li
+              key={`${d.tripId}-${d.depart}`}
+              className="flex items-baseline justify-between gap-3 px-3 py-2 font-mono text-[12px] tabular-nums"
+            >
+              <span className="flex items-baseline gap-2">
+                <span className="font-display text-[16px] text-ink">{d.depart}</span>
+                <span className="text-ink-soft">→</span>
+                <span className="text-ink/80">{d.arrive}</span>
+                {d.dayChip ? (
+                  <span className="ml-1 text-[9.5px] uppercase tracking-[0.18em] text-ochre-deep">
+                    {d.dayChip}
+                  </span>
+                ) : null}
+              </span>
+              <span
+                className={`text-[9.5px] uppercase tracking-[0.18em] ${
+                  sold ? "text-red-700" : low ? "text-ochre-deep" : "text-ink/55"
+                }`}
+              >
+                {sold ? c.sold : c.seatsLeft(d.seatsAvailable)}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-[12px] text-ink-soft truncate min-w-0">
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink/40">
+            {c.pickup}:
+          </span>{" "}
+          {line.pickupName}
+        </p>
+        <div className="flex gap-2 shrink-0">
+          <a
+            href="https://kapnosairportshuttle.com/timetables"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full bg-card ring-1 ring-line px-3 py-1.5 font-sans text-[12px] font-semibold text-ink hover:ring-aegean/40"
+          >
+            {c.timetableCta}
+          </a>
+          <a
+            href="https://kapnosairportshuttle.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full bg-ink px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone hover:bg-ochre-deep transition-colors"
+          >
+            {c.bookCta}
+          </a>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function FlightPulse({
+  flights,
+  c,
+}: {
+  flights: AirportFlights;
+  c: (typeof COPY)["en"];
+}) {
+  if (!flights) return null;
+  const quiet = flights.arrivalsNext60 === 0 && flights.departuresNext60 === 0;
+  return (
+    <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "150ms" }}>
+      <div className="rounded-3xl bg-aegean-soft/40 px-4 py-3.5 ring-1 ring-line/60">
+        <p className="font-mono text-[9.5px] uppercase tracking-[0.24em] text-aegean-deep">
+          {c.flightTitle}
+        </p>
+        <p className="mt-1 font-display text-[18px] leading-snug text-ink">
+          {quiet ? c.flightQuiet : c.flightLine(flights.arrivalsNext60, flights.departuresNext60)}
+        </p>
+        {!quiet && (flights.arrivals.length > 0 || flights.departures.length > 0) && (
+          <details className="mt-2 group [&[open]>summary>span.chev]:rotate-180">
+            <summary className="flex items-center justify-between gap-3 cursor-pointer list-none">
+              <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-ink-soft">
+                {c.flightSrc(flights.source)}
+              </span>
+              <span className="chev font-mono text-[10px] text-ink-soft transition-transform">▾</span>
+            </summary>
+            <div className="mt-3 grid grid-cols-2 gap-5">
+              <FlightCol head={c.arrivalsHead} rows={flights.arrivals} />
+              <FlightCol head={c.departuresHead} rows={flights.departures} />
+            </div>
+          </details>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -503,16 +643,13 @@ function FlightCol({
 }) {
   return (
     <div>
-      <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink/45">{head}</p>
+      <p className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-ink/45">{head}</p>
       <ul className="mt-2 flex flex-col gap-1">
         {rows.length === 0 ? (
           <li className="font-mono text-[11px] text-ink/40">—</li>
         ) : (
           rows.map((r, i) => (
-            <li
-              key={i}
-              className="flex items-baseline justify-between gap-2 font-mono text-[11.5px] tabular-nums text-ink/80"
-            >
+            <li key={i} className="flex items-baseline justify-between gap-2 font-mono text-[11px] tabular-nums text-ink/80">
               <span className="text-ink">{r.scheduled}</span>
               <span className="text-ink/55 truncate">
                 {r.callsign ?? "—"}
@@ -523,29 +660,5 @@ function FlightCol({
         )}
       </ul>
     </div>
-  );
-}
-
-function Section({
-  eyebrow,
-  title,
-  children,
-}: {
-  eyebrow: string;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mt-14">
-      <p className="font-eyebrow text-[10px] uppercase tracking-[0.26em] text-ink/40">
-        {eyebrow}
-      </p>
-      <h2 className="mt-2 font-display text-[26px] leading-tight tracking-tight text-ink">
-        {title}
-      </h2>
-      <div className="prose mt-4 max-w-none text-[15px] leading-relaxed text-ink/80 [&_p]:mt-3 [&_strong]:text-ink">
-        {children}
-      </div>
-    </section>
   );
 }
