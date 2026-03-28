@@ -720,6 +720,30 @@ function SmartSearch({
                     </li>
                   );
                 }
+                if (r.kind === "airport") {
+                  return (
+                    <li key={`a-${r.id}`}>
+                      <button
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => onPickAirport(r.id)}
+                        className="group w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-limestone-soft transition-colors"
+                      >
+                        <span className="flex size-9 items-center justify-center rounded-xl bg-aegean-soft/60 text-aegean-deep">
+                          <IconPlane className="size-4" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[14px] text-ink truncate">
+                            {r.name} <span className="text-ink-soft">{r.iata}</span>
+                          </p>
+                          <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
+                            {r.city} · Airport hub
+                          </p>
+                        </div>
+                        <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
+                      </button>
+                    </li>
+                  );
+                }
                 return (
                   <li key={`s-${r.id}`}>
                     <button
