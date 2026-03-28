@@ -318,8 +318,8 @@ function NextStopCard({
       >
         <defs>
           <linearGradient id="roadFade" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor="color-mix(in oklab, var(--ochre) 0.18, transparent)" />
-            <stop offset="100%" stopColor="color-mix(in oklab, var(--ochre) 0, transparent)" />
+            <stop offset="0%" stopColor="color-mix(in oklab, var(--ochre) 18%, transparent)" />
+            <stop offset="100%" stopColor="color-mix(in oklab, var(--ochre) 0%, transparent)" />
           </linearGradient>
         </defs>
         <path
@@ -332,12 +332,12 @@ function NextStopCard({
         <path
           d="M -20 130 Q 120 60 220 90 T 440 50"
           fill="none"
-          stroke="color-mix(in oklab, var(--ochre) 0.55, transparent)"
+          stroke="color-mix(in oklab, var(--ochre) 55%, transparent)"
           strokeWidth="1.2"
           strokeDasharray="6 8"
           strokeLinecap="round"
         />
-        <circle cx="350" cy="40" r="22" fill="color-mix(in oklab, var(--ochre) 0.14, transparent)" />
+        <circle cx="350" cy="40" r="22" fill="color-mix(in oklab, var(--ochre) 14%, transparent)" />
       </svg>
 
       <div className="relative flex items-start justify-between gap-4">
