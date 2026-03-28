@@ -622,6 +622,7 @@ function SmartSearch({
   onPickStop,
   onPickRoute,
   onPickVehicle,
+  onPickAirport,
 }: {
   query: string;
   setQuery: (s: string) => void;
@@ -629,6 +630,7 @@ function SmartSearch({
   onPickStop: (stopId: string) => void;
   onPickRoute: (routeId: string) => void;
   onPickVehicle: (tripId: string) => void;
+  onPickAirport: (code: AirportCode) => void;
 }) {
   const [focused, setFocused] = useState(false);
   const open = focused && query.trim().length > 0;
