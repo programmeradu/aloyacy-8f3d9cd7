@@ -316,6 +316,9 @@ function Explore() {
             const v = rt?.vehicles.find((x) => x.tripId === tripId);
             if (v?.routeId) navigate({ to: "/route/$routeId", params: { routeId: v.routeId } });
           }}
+          onPickAirport={(code) => {
+            navigate({ to: "/airport/$code", params: { code } });
+          }}
         />
       </div>
 
