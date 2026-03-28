@@ -318,8 +318,8 @@ function NextStopCard({
       >
         <defs>
           <linearGradient id="roadFade" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor="oklch(var(--ochre) / 0.18)" />
-            <stop offset="100%" stopColor="oklch(var(--ochre) / 0)" />
+            <stop offset="0%" stopColor="color-mix(in oklab, var(--ochre) 0.18, transparent)" />
+            <stop offset="100%" stopColor="color-mix(in oklab, var(--ochre) 0, transparent)" />
           </linearGradient>
         </defs>
         <path
@@ -332,12 +332,12 @@ function NextStopCard({
         <path
           d="M -20 130 Q 120 60 220 90 T 440 50"
           fill="none"
-          stroke="oklch(var(--ochre) / 0.55)"
+          stroke="color-mix(in oklab, var(--ochre) 0.55, transparent)"
           strokeWidth="1.2"
           strokeDasharray="6 8"
           strokeLinecap="round"
         />
-        <circle cx="350" cy="40" r="22" fill="oklch(var(--ochre) / 0.14)" />
+        <circle cx="350" cy="40" r="22" fill="color-mix(in oklab, var(--ochre) 0.14, transparent)" />
       </svg>
 
       <div className="relative flex items-start justify-between gap-4">
@@ -397,12 +397,12 @@ function EtaCard({
         viewBox="0 0 120 120"
         className="pointer-events-none absolute -right-6 -bottom-6 h-28 w-28 opacity-[0.18]"
       >
-        <circle cx="60" cy="60" r="46" fill="none" stroke="oklch(var(--aegean-deep))" strokeWidth="1.2" />
-        <circle cx="60" cy="60" r="36" fill="none" stroke="oklch(var(--aegean-deep))" strokeWidth="0.6" strokeDasharray="2 6" />
+        <circle cx="60" cy="60" r="46" fill="none" stroke="var(--aegean-deep)" strokeWidth="1.2" />
+        <circle cx="60" cy="60" r="36" fill="none" stroke="var(--aegean-deep)" strokeWidth="0.6" strokeDasharray="2 6" />
         <g transform={`rotate(${angle} 60 60)`}>
-          <line x1="60" y1="60" x2="60" y2="24" stroke="oklch(var(--aegean-deep))" strokeWidth="2" strokeLinecap="round" />
+          <line x1="60" y1="60" x2="60" y2="24" stroke="var(--aegean-deep)" strokeWidth="2" strokeLinecap="round" />
         </g>
-        <circle cx="60" cy="60" r="2.5" fill="oklch(var(--aegean-deep))" />
+        <circle cx="60" cy="60" r="2.5" fill="var(--aegean-deep)" />
       </svg>
       <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
         {label}
