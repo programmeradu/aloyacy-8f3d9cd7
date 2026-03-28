@@ -22,7 +22,9 @@ import {
   IconArrowUpRight,
   IconBus,
   IconPin,
+  IconPlane,
 } from "@/components/Icons";
+import { AIRPORTS, type AirportCode } from "@/lib/airport.functions";
 import { useRealtime } from "@/lib/useRealtime";
 import { smartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync } from "@/lib/shapes";
@@ -314,6 +316,9 @@ function Explore() {
             const v = rt?.vehicles.find((x) => x.tripId === tripId);
             if (v?.routeId) navigate({ to: "/route/$routeId", params: { routeId: v.routeId } });
           }}
+          onPickAirport={(code) => {
+            navigate({ to: "/airport/$code", params: { code } });
+          }}
         />
       </div>
 
@@ -510,7 +515,15 @@ type SearchResult =
       routeCode: string;
       label: string;
       sub: string;
+    }
+  | {
+      kind: "airport";
+      id: AirportCode;
+      iata: string;
+      name: string;
+      city: string;
     };
+
 
 const AGENCY_CITY: Record<string, string> = {
   NPT: "Nicosia",
@@ -533,6 +546,25 @@ function searchAll(
   const q = raw.trim().toLowerCase();
   if (q.length < 1) return [];
   const out: SearchResult[] = [];
+
+  // Airports — match IATA code, city, "airport", or full name.
+  for (const a of Object.values(AIRPORTS)) {
+    const hay = `${a.iata} ${a.name} ${a.nameEl} ${a.city} ${a.cityEl} airport αεροδρόμιο`.toLowerCase();
+    if (
+      a.iata.toLowerCase() === q ||
+      a.city.toLowerCase().startsWith(q) ||
+      hay.includes(q)
+    ) {
+      out.push({
+        kind: "airport",
+        id: a.code,
+        iata: a.iata,
+        name: a.name,
+        city: a.city,
+      });
+    }
+  }
+
 
   // Routes — keep all matches across cities; rank exact short matches first, then by agency.
   const allMatched = ROUTES.filter(
@@ -612,6 +644,7 @@ function SmartSearch({
   onPickStop,
   onPickRoute,
   onPickVehicle,
+  onPickAirport,
 }: {
   query: string;
   setQuery: (s: string) => void;
@@ -619,6 +652,7 @@ function SmartSearch({
   onPickStop: (stopId: string) => void;
   onPickRoute: (routeId: string) => void;
   onPickVehicle: (tripId: string) => void;
+  onPickAirport: (code: AirportCode) => void;
 }) {
   const [focused, setFocused] = useState(false);
   const open = focused && query.trim().length > 0;
@@ -703,6 +737,30 @@ function SmartSearch({
                           </p>
                           <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
                             {r.sub}
+                          </p>
+                        </div>
+                        <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
+                      </button>
+                    </li>
+                  );
+                }
+                if (r.kind === "airport") {
+                  return (
+                    <li key={`a-${r.id}`}>
+                      <button
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => onPickAirport(r.id)}
+                        className="group w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-limestone-soft transition-colors"
+                      >
+                        <span className="flex size-9 items-center justify-center rounded-xl bg-aegean-soft/60 text-aegean-deep">
+                          <IconPlane className="size-4" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[14px] text-ink truncate">
+                            {r.name} <span className="text-ink-soft">{r.iata}</span>
+                          </p>
+                          <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
+                            {r.city} · Airport hub
                           </p>
                         </div>
                         <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
