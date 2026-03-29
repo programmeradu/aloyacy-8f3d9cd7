@@ -171,28 +171,3 @@ function Toggle({
     </button>
   );
 }
-
-function CapPill({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`min-h-9 rounded-full px-2.5 font-mono text-[11px] font-semibold tabular-nums tracking-tight transition-colors ${
-        active
-          ? "bg-ink text-limestone"
-          : "bg-limestone-soft text-ink ring-1 ring-line hover:bg-limestone-soft/70"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
