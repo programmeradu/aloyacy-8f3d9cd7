@@ -1,8 +1,8 @@
 // Wave 2.2 — Accessibility Preferences card.
 //
-// Lives in /wallet. Editorial treatment matches ProAccountCard: ink-on-
-// limestone, big numerals for the walking cap slider, no generic icons.
-// Toggles are large enough for 44px tap targets without artifice.
+// Lives in /wallet. Compact editorial treatment: ink-on-limestone, mono
+// numerals, no generic icons. Toggles keep a 36px+ tap target without
+// dominating the page.
 
 import { useId } from "react";
 import { useAccessibilityPrefs } from "@/lib/useAccessibilityPrefs";
@@ -22,55 +22,49 @@ export function AccessibilityPrefsCard() {
       : t("a11y.cap.value", { m: prefs.maxWalkMeters });
 
   return (
-    <article className="mt-6 rounded-2xl bg-card p-5 ring-1 ring-line">
+    <article className="mt-6 rounded-2xl bg-card p-4 ring-1 ring-line">
       <header className="flex items-baseline justify-between gap-3">
-        <div>
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
+        <div className="min-w-0">
+          <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
             {t("a11y.eyebrow")}
           </p>
-          <h2 className="mt-1 font-display text-[20px] font-semibold leading-tight text-ink">
+          <h2 className="mt-0.5 font-display text-[16px] font-semibold leading-tight text-ink">
             {t("a11y.title")}
           </h2>
         </div>
+        <span className="shrink-0 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
+          {prefs.stepFree || prefs.preferShade || prefs.maxWalkMeters != null
+            ? t("a11y.status.on") ?? "on"
+            : t("a11y.status.off") ?? "off"}
+        </span>
       </header>
 
-      <p className="mt-2 font-sans text-[13px] leading-snug text-ink-soft">
-        {t("a11y.lede")}
-      </p>
-
-      <div className="mt-5 space-y-3">
+      <div className="mt-3 grid grid-cols-2 gap-2">
         <Toggle
           id={stepFreeId}
           label={t("a11y.stepFree.label")}
-          help={t("a11y.stepFree.help")}
           checked={prefs.stepFree}
           onChange={(v) => update({ stepFree: v })}
         />
         <Toggle
           id={shadeId}
           label={t("a11y.shade.label")}
-          help={t("a11y.shade.help")}
           checked={prefs.preferShade}
           onChange={(v) => update({ preferShade: v })}
         />
       </div>
 
-      {/* Walking cap — exposed as discrete steps + a calm "no cap" button.
-          We avoid a free-form slider so screen-reader and motor users don't
-          have to fight with imprecise input. */}
-      <section className="mt-6">
+      {/* Walking cap — discrete steps + a calm "no cap" pill. */}
+      <section className="mt-4 border-t border-line/70 pt-3">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="font-sans text-[13px] font-semibold text-ink">
+          <span className="font-sans text-[12px] font-semibold text-ink">
             {t("a11y.cap.label")}
           </span>
           <span className="font-mono text-[12px] font-semibold tabular-nums text-aegean-deep">
             {capLabel}
           </span>
         </div>
-        <p className="mt-1 font-sans text-[12px] leading-snug text-ink-soft">
-          {t("a11y.cap.help")}
-        </p>
-        <div className="mt-3 -mx-1 flex flex-wrap gap-1.5">
+        <div className="mt-2 -mx-0.5 flex flex-wrap gap-1">
           <CapPill
             active={prefs.maxWalkMeters == null}
             label={t("a11y.cap.noneShort")}
@@ -80,7 +74,7 @@ export function AccessibilityPrefsCard() {
             <CapPill
               key={m}
               active={prefs.maxWalkMeters === m}
-              label={`${m} m`}
+              label={`${m}m`}
               onClick={() => update({ maxWalkMeters: m })}
             />
           ))}
@@ -93,44 +87,43 @@ export function AccessibilityPrefsCard() {
 function Toggle({
   id,
   label,
-  help,
   checked,
   onChange,
 }: {
   id: string;
   label: string;
-  help: string;
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl bg-limestone-soft/60 p-3.5 ring-1 ring-line/60">
-      <label htmlFor={id} className="min-w-0 flex-1 cursor-pointer">
-        <span className="block font-sans text-[14px] font-semibold text-ink">
-          {label}
-        </span>
-        <span className="mt-0.5 block font-sans text-[12px] leading-snug text-ink-soft">
-          {help}
-        </span>
-      </label>
-      <button
-        id={id}
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${
-          checked ? "bg-aegean-deep" : "bg-ink/15"
-        } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aegean-deep/40 focus-visible:ring-offset-2 focus-visible:ring-offset-card`}
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`flex min-h-11 items-center justify-between gap-2 rounded-xl px-3 py-2 text-left ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aegean-deep/40 ${
+        checked
+          ? "bg-aegean-deep/10 ring-aegean-deep/40"
+          : "bg-limestone-soft/60 ring-line/60 hover:bg-limestone-soft"
+      }`}
+    >
+      <span className="min-w-0 truncate font-sans text-[13px] font-semibold text-ink">
+        {label}
+      </span>
+      <span
+        aria-hidden
+        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+          checked ? "bg-aegean-deep" : "bg-ink/20"
+        }`}
       >
         <span
-          aria-hidden
-          className={`inline-block size-5 transform rounded-full bg-limestone shadow-sm transition-transform ${
-            checked ? "translate-x-6" : "translate-x-1"
+          className={`inline-block size-4 transform rounded-full bg-limestone shadow-sm transition-transform ${
+            checked ? "translate-x-[18px]" : "translate-x-0.5"
           }`}
         />
-      </button>
-    </div>
+      </span>
+    </button>
   );
 }
 
@@ -148,7 +141,7 @@ function CapPill({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`min-h-11 rounded-full px-3.5 font-mono text-[12px] font-semibold tabular-nums tracking-tight transition-colors ${
+      className={`min-h-9 rounded-full px-2.5 font-mono text-[11px] font-semibold tabular-nums tracking-tight transition-colors ${
         active
           ? "bg-ink text-limestone"
           : "bg-limestone-soft text-ink ring-1 ring-line hover:bg-limestone-soft/70"
