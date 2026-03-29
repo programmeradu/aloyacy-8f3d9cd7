@@ -16,10 +16,26 @@ export function AccessibilityPrefsCard() {
   const stepFreeId = useId();
   const shadeId = useId();
 
-  const capLabel =
-    prefs.maxWalkMeters == null
-      ? t("a11y.cap.none")
-      : t("a11y.cap.value", { m: prefs.maxWalkMeters });
+  const currentCap = prefs.maxWalkMeters;
+  const capIndex = currentCap == null ? -1 : WALK_CAP_STEPS.indexOf(currentCap as typeof WALK_CAP_STEPS[number]);
+  const capOn = currentCap != null;
+
+  const decCap = () => {
+    if (!capOn) {
+      update({ maxWalkMeters: WALK_CAP_STEPS[WALK_CAP_STEPS.length - 1] });
+      return;
+    }
+    if (capIndex > 0) update({ maxWalkMeters: WALK_CAP_STEPS[capIndex - 1] });
+  };
+  const incCap = () => {
+    if (!capOn) {
+      update({ maxWalkMeters: WALK_CAP_STEPS[0] });
+      return;
+    }
+    if (capIndex >= 0 && capIndex < WALK_CAP_STEPS.length - 1) {
+      update({ maxWalkMeters: WALK_CAP_STEPS[capIndex + 1] });
+    }
+  };
 
   return (
     <article className="mt-6 rounded-2xl bg-card p-4 ring-1 ring-line">
@@ -33,9 +49,7 @@ export function AccessibilityPrefsCard() {
           </h2>
         </div>
         <span className="shrink-0 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
-          {prefs.stepFree || prefs.preferShade || prefs.maxWalkMeters != null
-            ? "on"
-            : "off"}
+          {prefs.stepFree || prefs.preferShade || capOn ? "on" : "off"}
         </span>
       </header>
 
@@ -54,35 +68,66 @@ export function AccessibilityPrefsCard() {
         />
       </div>
 
-      {/* Walking cap — discrete steps + a calm "no cap" pill. */}
-      <section className="mt-4 border-t border-line/70 pt-3">
-        <div className="flex items-baseline justify-between gap-3">
-          <span className="font-sans text-[12px] font-semibold text-ink">
+      {/* Walking cap — minimal stepper row. */}
+      <section className="mt-3 flex items-center justify-between gap-3 border-t border-line/70 pt-3">
+        <div className="min-w-0">
+          <p className="font-sans text-[12px] font-semibold leading-tight text-ink">
             {t("a11y.cap.label")}
-          </span>
-          <span className="font-mono text-[12px] font-semibold tabular-nums text-aegean-deep">
-            {capLabel}
-          </span>
+          </p>
+          <button
+            type="button"
+            onClick={() => update({ maxWalkMeters: capOn ? null : WALK_CAP_STEPS[2] })}
+            className="mt-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-soft underline-offset-2 hover:text-ink hover:underline"
+          >
+            {capOn ? t("a11y.cap.noneShort") : "set limit"}
+          </button>
         </div>
-        <div className="mt-2 -mx-0.5 flex flex-wrap gap-1">
-          <CapPill
-            active={prefs.maxWalkMeters == null}
-            label={t("a11y.cap.noneShort")}
-            onClick={() => update({ maxWalkMeters: null })}
+        <div className="flex items-center gap-1.5">
+          <StepBtn
+            onClick={decCap}
+            disabled={capOn && capIndex <= 0}
+            label="−"
+            aria="decrease walking cap"
           />
-          {WALK_CAP_STEPS.map((m) => (
-            <CapPill
-              key={m}
-              active={prefs.maxWalkMeters === m}
-              label={`${m}m`}
-              onClick={() => update({ maxWalkMeters: m })}
-            />
-          ))}
+          <span className="min-w-[64px] text-center font-mono text-[13px] font-semibold tabular-nums text-ink">
+            {capOn ? `${currentCap}m` : "—"}
+          </span>
+          <StepBtn
+            onClick={incCap}
+            disabled={capOn && capIndex >= WALK_CAP_STEPS.length - 1}
+            label="+"
+            aria="increase walking cap"
+          />
         </div>
       </section>
     </article>
   );
 }
+
+function StepBtn({
+  onClick,
+  disabled,
+  label,
+  aria,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  label: string;
+  aria: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={aria}
+      className="grid size-8 place-items-center rounded-full bg-limestone-soft font-mono text-[14px] font-semibold text-ink ring-1 ring-line transition-colors hover:bg-ink hover:text-limestone disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-limestone-soft disabled:hover:text-ink"
+    >
+      {label}
+    </button>
+  );
+}
+
 
 function Toggle({
   id,
