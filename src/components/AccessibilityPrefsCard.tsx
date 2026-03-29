@@ -108,7 +108,7 @@ function Toggle({
           : "bg-limestone-soft/60 ring-line/60 hover:bg-limestone-soft"
       }`}
     >
-      <span className="min-w-0 truncate font-sans text-[13px] font-semibold text-ink">
+      <span className="min-w-0 flex-1 font-sans text-[13px] font-semibold leading-snug text-ink">
         {label}
       </span>
       <span
