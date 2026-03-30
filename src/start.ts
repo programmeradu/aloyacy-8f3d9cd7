@@ -18,6 +18,12 @@ function maybePingIndexNow(host: string) {
     .catch((e) => console.warn("[indexnow] ping error", e));
 }
 
+function isCrawlerUserAgent(userAgent: string) {
+  return /bot|crawler|spider|crawling|googlebot|google-inspectiontool|google inspection tool|bingpreview|facebookexternalhit|linkedinbot|slackbot|twitterbot/i.test(
+    userAgent,
+  );
+}
+
 // 301 redirects to consolidate SEO on the canonical hosts:
 //   app.aloyacy.live          → app.aloya.cy   (app)
 //   aloyacy.live / www.*      → aloya.cy       (marketing)
@@ -42,6 +48,9 @@ const hostRedirectMiddleware = createMiddleware().server(async ({ next }) => {
       .toLowerCase()
       .split(":")[0];
     maybePingIndexNow(host);
+    if (url.pathname === "/welcome" && isCrawlerUserAgent(req.headers.get("user-agent") || "")) {
+      return new Response(null, { status: 302, headers: { Location: "/" } });
+    }
     let target: string | null = null;
     if (host === "app.aloyacy.live") target = `https://app.aloya.cy${url.pathname}${url.search}`;
     else if (host === "aloyacy.live" || host === "www.aloyacy.live")

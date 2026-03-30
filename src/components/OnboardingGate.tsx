@@ -12,7 +12,7 @@ const EXEMPT_PREFIXES = ["/welcome", "/privacy", "/terms", "/auth", "/api", "/ch
 
 function isCrawlerVisit() {
   if (typeof navigator === "undefined") return false;
-  return /bot|crawler|spider|crawling|googlebot|google inspection tool|bingpreview|facebookexternalhit|linkedinbot|slackbot|twitterbot/i.test(
+  return /bot|crawler|spider|crawling|googlebot|google-inspectiontool|google inspection tool|bingpreview|facebookexternalhit|linkedinbot|slackbot|twitterbot/i.test(
     navigator.userAgent,
   );
 }
