@@ -9,18 +9,12 @@ interface SitemapEntry {
   priority?: string;
 }
 
-// Public, indexable routes. Dynamic routes (/route/$routeId, /stop/$stopId,
-// /trip/$id, /trip-info/$tripId) and authenticated/internal surfaces are
-// intentionally omitted — they are user-scoped or not useful as search
-// landing pages.
+// Public, indexable landing/content routes only. App utility screens
+// (/pulse, /trips, /saved, /wallet), legal pages, dynamic trip/stop/route
+// pages, and internal surfaces are intentionally omitted so Google doesn't
+// waste crawl budget on personalized/thin app states.
 const entries: SitemapEntry[] = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
-  { path: "/pulse", changefreq: "daily", priority: "0.9" },
-  { path: "/trips", changefreq: "weekly", priority: "0.9" },
-  { path: "/saved", changefreq: "monthly", priority: "0.6" },
-  { path: "/wallet", changefreq: "monthly", priority: "0.7" },
-  { path: "/privacy", changefreq: "yearly", priority: "0.3" },
-  { path: "/terms", changefreq: "yearly", priority: "0.3" },
   { path: "/guide/getting-around-cyprus", changefreq: "monthly", priority: "0.8" },
   { path: "/airport/lca", changefreq: "daily", priority: "0.9" },
   { path: "/airport/pfo", changefreq: "daily", priority: "0.9" },
