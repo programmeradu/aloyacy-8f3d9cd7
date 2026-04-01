@@ -108,7 +108,7 @@ function parseFeed(xml: string): BoltZone[] {
   return out;
 }
 
-async function loadZones(): Promise<BoltZone[]> {
+export async function loadZones(): Promise<BoltZone[]> {
   if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.data;
   try {
     const res = await fetch(FEED_URL, {

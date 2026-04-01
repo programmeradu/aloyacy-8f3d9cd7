@@ -87,7 +87,7 @@ type Feed = { countries: Array<{ cities: FeedCity[] }> };
 let cache: { at: number; data: BikeStation[] } | null = null;
 const CACHE_TTL_MS = 60_000;
 
-async function loadStations(): Promise<BikeStation[]> {
+export async function loadStations(): Promise<BikeStation[]> {
   if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.data;
   try {
     const res = await fetch(FEED_URL, {
