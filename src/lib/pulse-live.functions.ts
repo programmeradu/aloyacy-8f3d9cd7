@@ -288,3 +288,135 @@ function emptyBundle(focusZone: (typeof PULSE_ZONES)[number]): PulseLiveBundle {
     fixtures: null,
   };
 }
+
+// ---------- Dust advisory (trip-level) -------------------------------------
+//
+// Reads the freshest air-quality row for the zone nearest the rider, and
+// returns a typed advisory only when there is something genuinely actionable
+// to say. Saharan dust episodes are the primary trigger; poor-band AQI is
+// the secondary trigger. Anything moderate-or-better returns `null` so the
+// banner never adds visual noise on calm days.
+//
+// Honesty rules:
+//   • Only fires when an actual fresh reading exists. Stale > 4h = null.
+//   • Never overstates: PM10 80–120 = "haze", 120–200 = "dust front",
+//     ≥ 200 = "heavy dust". European AQI 'poor' → covered-wait nudge.
+//   • Specific copy varies by walk distance so it stays useful, never generic.
+
+export type DustAdvisory = {
+  zone: PulseZone;
+  zoneLabel: string;
+  zoneLabelEl: string;
+  pm10: number | null;
+  band: "good" | "fair" | "moderate" | "poor" | "very-poor" | null;
+  severity: "haze" | "dust-front" | "heavy-dust" | "poor-air";
+  headline: string;
+  headlineEl: string;
+  advice: string;
+  adviceEl: string;
+  observedAt: string;
+};
+
+const DustInputSchema = z.object({
+  lat: z.number().min(34).max(36),
+  lng: z.number().min(32).max(35),
+  walkMeters: z.number().int().min(0).max(20_000).optional(),
+});
+
+export const getDustAdvisory = createServerFn({ method: "GET" })
+  .inputValidator((input: { lat: number; lng: number; walkMeters?: number }) =>
+    DustInputSchema.parse(input),
+  )
+  .handler(async ({ data }): Promise<DustAdvisory | null> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const zone = nearestZone(data.lat, data.lng);
+
+    const { data: rows, error } = await supabaseAdmin
+      .from("pulse_signals")
+      .select("scope, payload, fetched_at, ttl_seconds")
+      .eq("key", "air")
+      .in("scope", [zone.id, "island"])
+      .gte("fetched_at", new Date(Date.now() - 4 * 3600 * 1000).toISOString())
+      .order("fetched_at", { ascending: false });
+
+    if (error || !rows || rows.length === 0) return null;
+
+    type Row = { scope: string; payload: Record<string, unknown>; fetched_at: string };
+    const zonal = (rows as Row[]).find((r) => r.scope === zone.id);
+    const islandRow = (rows as Row[]).find((r) => r.scope === "island");
+    const row = zonal ?? islandRow;
+    if (!row) return null;
+
+    // Island rollup nests a `worst` zone — fall back to that when we only
+    // have the rollup and no per-zone reading.
+    const direct = row.payload as Record<string, unknown>;
+    const payload =
+      typeof direct.worst === "object" && direct.worst !== null
+        ? (direct.worst as Record<string, unknown>)
+        : direct;
+
+    const pm10 = typeof payload.pm10 === "number" ? (payload.pm10 as number) : null;
+    const aqi = typeof payload.europeanAqi === "number" ? (payload.europeanAqi as number) : null;
+    const band = (payload.band ?? null) as DustAdvisory["band"];
+
+    let severity: DustAdvisory["severity"] | null = null;
+    if ((pm10 ?? 0) >= 200) severity = "heavy-dust";
+    else if ((pm10 ?? 0) >= 120) severity = "dust-front";
+    else if ((pm10 ?? 0) >= 80) severity = "haze";
+    else if (band === "poor" || band === "very-poor") severity = "poor-air";
+    if (!severity) return null;
+
+    const walk = Math.round((data.walkMeters ?? 0));
+    const long = walk >= 400;
+
+    const headline =
+      severity === "heavy-dust"
+        ? `Heavy Saharan dust in ${zone.label}`
+        : severity === "dust-front"
+          ? `Dust front in ${zone.label}`
+          : severity === "haze"
+            ? `Saharan haze over ${zone.label}`
+            : `Poor air quality in ${zone.label}`;
+
+    const headlineEl =
+      severity === "heavy-dust"
+        ? `Πυκνή σκόνη Σαχάρας στη ${zone.labelEl}`
+        : severity === "dust-front"
+          ? `Μέτωπο σκόνης στη ${zone.labelEl}`
+          : severity === "haze"
+            ? `Σκόνη Σαχάρας στη ${zone.labelEl}`
+            : `Κακή ποιότητα αέρα στη ${zone.labelEl}`;
+
+    const pm10Str = pm10 != null ? `PM10 ${Math.round(pm10)}` : "Air monitor active";
+    const advice =
+      severity === "heavy-dust"
+        ? `${pm10Str} — mask up if sensitive, wait in a covered shelter${long ? `, and consider skipping the ${walk} m walk leg` : ""}.`
+        : severity === "dust-front"
+          ? `${pm10Str} — sensitive riders should wait under cover${long ? ` and shorten the ${walk} m walk if possible` : ""}.`
+          : severity === "haze"
+            ? `${pm10Str} — fine for most riders; cover the wait if you have asthma or allergies.`
+            : `Air rated poor — limit exertion outdoors${long ? `; the ${walk} m walk may feel heavy` : ""}.`;
+
+    const adviceEl =
+      severity === "heavy-dust"
+        ? `${pm10Str} — προτείνεται μάσκα και αναμονή σε καλυμμένο σημείο${long ? `· σκεφτείτε να αποφύγετε τα ${walk} μ. περπατήματος` : ""}.`
+        : severity === "dust-front"
+          ? `${pm10Str} — οι ευαίσθητοι επιβάτες ας περιμένουν υπό σκέπη${long ? ` και ας μειώσουν τα ${walk} μ. περπατήματος` : ""}.`
+          : severity === "haze"
+            ? `${pm10Str} — εντάξει για τους περισσότερους· καλυμμένη αναμονή για άσθμα ή αλλεργίες.`
+            : `Κακός αέρας — μειώστε την έντονη δραστηριότητα έξω${long ? `· τα ${walk} μ. περπατήματος ίσως είναι κουραστικά` : ""}.`;
+
+    return {
+      zone: zone.id,
+      zoneLabel: zone.label,
+      zoneLabelEl: zone.labelEl,
+      pm10,
+      band,
+      severity,
+      headline,
+      headlineEl,
+      advice,
+      adviceEl,
+      observedAt: row.fetched_at,
+    };
+  });

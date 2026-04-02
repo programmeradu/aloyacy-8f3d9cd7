@@ -391,6 +391,20 @@ function CruiseCard({
                 : `Next — ${next.shipName}${next.arrival ? ` arriving ${next.arrival}` : ""}.`
               : "")}
         </p>
+        {payload.totalPassengers >= 2000 && (
+          <p
+            className="mt-2 font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ochre"
+            role="status"
+          >
+            {payload.totalPassengers >= 4000
+              ? isEl
+                ? "Υψηλή κίνηση — αναμένετε γεμάτα δρομολόγια προς το παλιό λιμάνι και το κέντρο"
+                : "High surge — expect packed runs to Old Port and city centre"
+              : isEl
+                ? "Μέτρια κίνηση — δρομολόγια προς λιμάνι ίσως είναι γεμάτα"
+                : "Moderate surge — port-bound runs may be busy"}
+          </p>
+        )}
         {payload.ships.length > 1 && (
           <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
             {payload.ships.slice(0, 4).map((s, i) => (
