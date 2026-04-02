@@ -12,3 +12,6 @@ Aloya is a mobile-first transit companion for Cyprus. It fuses official GTFS dat
 
 ## Optional
 - [Welcome](/welcome): First-run onboarding
+
+## Open data
+- [GBFS feed](/api/public/gbfs.json): Unified GBFS 2.3 feed for Cyprus micromobility — Nextbike bikes (5 cities) + Bolt e-scooter zones (Nicosia). Free to consume, CORS open. Aloya is the aggregator; upstream sources are Nextbike Cyprus and CyNAP (Cyprus National Access Point).
