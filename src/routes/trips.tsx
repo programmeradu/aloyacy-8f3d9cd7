@@ -38,6 +38,8 @@ import { suggestBoltScooter } from "@/lib/bolt-scooter.functions";
 import { suggestKapnos } from "@/lib/kapnos.functions";
 import { KapnosShuttleCard } from "@/components/KapnosShuttleCard";
 import { BoltScooterCard } from "@/components/BoltScooterCard";
+import { getDustAdvisory } from "@/lib/pulse-live.functions";
+import { DustAdvisoryBanner } from "@/components/DustAdvisoryBanner";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
@@ -351,6 +353,26 @@ function Plan() {
     refetchOnWindowFocus: false,
   });
   const boltScooter = boltQuery.data ?? null;
+
+  // Trip-level Saharan-dust / air-quality advisory. Re-uses the pulse_signals
+  // air feed (already ingested every hour) — no extra API quota. Fires only
+  // when there is something actionable to say at the origin's nearest zone.
+  const dustFn = useServerFn(getDustAdvisory);
+  const dustQuery = useQuery({
+    queryKey: ["dust-advisory", origin?.lat, origin?.lng],
+    queryFn: async () => {
+      if (!origin) return null;
+      try {
+        return await dustFn({ data: { lat: origin.lat, lng: origin.lng } });
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!origin,
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const dustAdvisory = dustQuery.data ?? null;
 
   // Wave 3 — Kapnos Airport Shuttle (only fires when one endpoint is at
   // LCA or PFO airport AND the other is near a Kapnos city station).
@@ -866,7 +888,7 @@ function Plan() {
 
         {results && results.length > 0 && origin && destination && (
           <div className="flex flex-col gap-3">
-            {kapnos && (
+            {dustAdvisory && <DustAdvisoryBanner advisory={dustAdvisory} />}
               <KapnosShuttleCard
                 suggestion={kapnos}
                 firstMile={firstMileItin}
