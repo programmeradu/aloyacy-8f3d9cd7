@@ -135,6 +135,26 @@ export type FixturesPayload = {
 
 // ---------- Public response shape ------------------------------------------
 
+export type TrafficIncidentLite = {
+  id: string;
+  kind: "roadworks" | "closure" | "accident" | "congestion" | "weather" | "other";
+  severity: "low" | "medium" | "high";
+  road: string | null;
+  headline: string;
+  lat: number | null;
+  lng: number | null;
+  zone: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+};
+export type TrafficLivePayload = {
+  zone: string;
+  count: number;
+  highest: "low" | "medium" | "high";
+  incidents: TrafficIncidentLite[];
+  observedAt: string;
+};
+
 export type PulseLiveBundle = {
   generatedAt: number;
   /** Resolved focus zone — what the rider is "near". */
