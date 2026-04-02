@@ -285,6 +285,7 @@ export const getPulseLive = createServerFn({ method: "GET" })
       news,
       events,
       fixtures,
+      traffic,
     } satisfies PulseLiveBundle;
   });
 
