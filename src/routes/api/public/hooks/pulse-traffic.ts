@@ -263,7 +263,8 @@ function classifyKind(r: AnyNode): TrafficIncident["kind"] {
 
 function classifySeverity(r: AnyNode): TrafficIncident["severity"] {
   const s = String(r.severity ?? r.impact ?? "").toLowerCase();
-  if (s.includes("high") || s.includes("serious")) return "high";
+  if (s.includes("highest") || s.includes("serious")) return "high";
+  if (s.includes("high")) return "high";
   if (s.includes("low") || s.includes("none")) return "low";
   if (s.includes("medium")) return "medium";
   const probability = String(r.probabilityOfOccurrence ?? "").toLowerCase();
@@ -272,17 +273,21 @@ function classifySeverity(r: AnyNode): TrafficIncident["severity"] {
 }
 
 function extractPoint(r: AnyNode): [number | null, number | null] {
+  // DATEX v3 puts coords under locationReference; v2 uses groupOfLocations/location.
   const loc =
+    (r.locationReference as AnyNode | undefined) ??
     (r.groupOfLocations as AnyNode | undefined) ??
     (r.location as AnyNode | undefined) ??
     {};
   const point =
+    (loc.pointByCoordinates as AnyNode | undefined) ??
     (loc.locationContainedInGroup as AnyNode | undefined) ??
     (loc.alertCPoint as AnyNode | undefined) ??
     loc;
   const coords =
     (point.pointCoordinates as AnyNode | undefined) ??
-    ((point.pointByCoordinates as AnyNode | undefined)?.pointCoordinates as AnyNode | undefined);
+    ((point.pointByCoordinates as AnyNode | undefined)?.pointCoordinates as AnyNode | undefined) ??
+    point;
   const lat = numberOrNull(coords?.latitude);
   const lng = numberOrNull(coords?.longitude);
   if (lat == null || lng == null) return [null, null];
@@ -291,6 +296,14 @@ function extractPoint(r: AnyNode): [number | null, number | null] {
 }
 
 function extractHeadline(r: AnyNode): string | null {
+  // DATEX v3 (CyNAP): freeform Greek/English text under _situationRecordExtension.description
+  const ext = r._situationRecordExtension as AnyNode | undefined;
+  const extDesc = ext?.description;
+  if (typeof extDesc === "string" && extDesc.trim()) return extDesc.trim().slice(0, 240);
+  if (typeof (extDesc as AnyNode | undefined)?.["#text"] === "string") {
+    return String((extDesc as AnyNode)["#text"]).trim().slice(0, 240);
+  }
+  // DATEX v2 fallbacks
   const comments =
     (r.generalPublicComment as AnyNode | undefined) ??
     (r.nonGeneralPublicComment as AnyNode | undefined) ??
@@ -314,6 +327,7 @@ function extractHeadline(r: AnyNode): string | null {
 
 function extractRoad(r: AnyNode): string | null {
   const loc =
+    (r.locationReference as AnyNode | undefined) ??
     (r.groupOfLocations as AnyNode | undefined) ??
     (r.location as AnyNode | undefined) ??
     {};
