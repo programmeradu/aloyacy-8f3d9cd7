@@ -36,7 +36,8 @@ export function PulseLiveSection({
     bundle.cruises?.count ||
     bundle.flights.length > 0 ||
     bundle.events?.count ||
-    bundle.fixtures?.count;
+    bundle.fixtures?.count ||
+    bundle.traffic?.count;
 
   if (!hasAny) return null;
 
