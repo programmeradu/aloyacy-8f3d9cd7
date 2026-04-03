@@ -201,13 +201,13 @@ function parseDatex(xml: string): TrafficIncident[] {
     for (const rec of records) {
       const r = rec as AnyNode;
       const recId = String(r["@_id"] ?? `${id}-${out.length}`);
-      const kind = classifyKind(r);
+      const headline = extractHeadline(r) ?? "Traffic event reported";
+      const kind = classifyKind(r, headline);
       const severity = classifySeverity(r);
       const [lat, lng] = extractPoint(r);
       const validity =
         ((r.validity as AnyNode | undefined)?.validityTimeSpecification as AnyNode | undefined) ??
         (r.validityTimeSpecification as AnyNode | undefined);
-      const headline = extractHeadline(r) ?? "Traffic event reported";
       const road = extractRoad(r);
       out.push({
         id: recId,
