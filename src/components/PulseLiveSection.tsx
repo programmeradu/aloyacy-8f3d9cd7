@@ -652,4 +652,3 @@ function TrafficCard({
     </article>
   );
 }
-}
