@@ -135,6 +135,26 @@ export type FixturesPayload = {
 
 // ---------- Public response shape ------------------------------------------
 
+export type TrafficIncidentLite = {
+  id: string;
+  kind: "roadworks" | "closure" | "accident" | "congestion" | "weather" | "other";
+  severity: "low" | "medium" | "high";
+  road: string | null;
+  headline: string;
+  lat: number | null;
+  lng: number | null;
+  zone: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+};
+export type TrafficLivePayload = {
+  zone: string;
+  count: number;
+  highest: "low" | "medium" | "high";
+  incidents: TrafficIncidentLite[];
+  observedAt: string;
+};
+
 export type PulseLiveBundle = {
   generatedAt: number;
   /** Resolved focus zone — what the rider is "near". */
@@ -158,6 +178,7 @@ export type PulseLiveBundle = {
   news: NewsPayload | null;
   events: EventsPayload | null;
   fixtures: FixturesPayload | null;
+  traffic: TrafficLivePayload | null;
 };
 
 // ---------- Loader ----------------------------------------------------------
@@ -243,6 +264,7 @@ export const getPulseLive = createServerFn({ method: "GET" })
     const news = pick<NewsPayload>("news", ["island"]);
     const events = pick<EventsPayload>("events", ["island"]);
     const fixtures = pick<FixturesPayload>("football", ["island"]);
+    const traffic = pick<TrafficLivePayload>("traffic", [focusZone.id, "island"]);
 
     return {
       generatedAt: Math.floor(now / 1000),
@@ -263,6 +285,7 @@ export const getPulseLive = createServerFn({ method: "GET" })
       news,
       events,
       fixtures,
+      traffic,
     } satisfies PulseLiveBundle;
   });
 
@@ -286,6 +309,7 @@ function emptyBundle(focusZone: (typeof PULSE_ZONES)[number]): PulseLiveBundle {
     news: null,
     events: null,
     fixtures: null,
+    traffic: null,
   };
 }
 
