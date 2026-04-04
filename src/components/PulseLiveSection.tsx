@@ -617,6 +617,77 @@ function relativeAgo(iso: string, isEl: boolean): string {
 
 /* ────────────── Traffic — CyNAP DATEX II live incidents ─────────────── */
 
+type TrafficKind = NonNullable<PulseLiveBundle["traffic"]>["incidents"][number]["kind"];
+
+/** Tidy a raw road string from DATEX — strip prefixes, collapse whitespace. */
+function tidyRoad(road: string | null): string | null {
+  if (!road) return null;
+  const t = road
+    .replace(/^(Οδός|Λεωφόρος|Λεωφ\.?|Road|Street|Avenue|Ave\.?|Highway|Hwy\.?)\s+/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return t.length > 0 ? t : null;
+}
+
+/** Friendly rider-facing one-liner derived from kind + road, not raw DATEX prose. */
+function friendlyTrafficHeadline(
+  kind: TrafficKind,
+  road: string | null,
+  city: string,
+  isEl: boolean,
+): string {
+  const r = tidyRoad(road);
+  const where = r ? r : isEl ? `στην περιοχή ${city}` : `near ${city}`;
+  const onWhere = r ? (isEl ? `στον ${r}` : `on the ${r}`) : where;
+
+  if (isEl) {
+    switch (kind) {
+      case "roadworks":   return `Έργα οδοποιίας ${onWhere}`;
+      case "closure":     return r ? `Κλειστός δρόμος — ${r}` : `Κλειστός δρόμος ${where}`;
+      case "accident":    return `Ατύχημα ${onWhere}`;
+      case "congestion":  return `Πυκνή κίνηση ${onWhere}`;
+      case "weather":     return `Καιρικό συμβάν ${onWhere}`;
+      default:            return r ? `Συμβάν στον ${r}` : `Συμβάν ${where}`;
+    }
+  }
+  switch (kind) {
+    case "roadworks":   return `Roadworks ${onWhere}`;
+    case "closure":     return r ? `Road closed — ${r}` : `Road closed ${where}`;
+    case "accident":    return `Crash reported ${onWhere}`;
+    case "congestion":  return `Heavy traffic ${onWhere}`;
+    case "weather":     return `Weather-related delay ${onWhere}`;
+    default:            return r ? `Incident on the ${r}` : `Incident ${where}`;
+  }
+}
+
+/** Tiny secondary-line summary: "{kind} · {road or area}". */
+function friendlyTrafficLine(
+  kind: TrafficKind,
+  road: string | null,
+  city: string,
+  isEl: boolean,
+): string {
+  const r = tidyRoad(road);
+  if (isEl) {
+    const k = kind === "roadworks" ? "Έργα" : kind === "closure" ? "Κλειστός" : kind === "accident" ? "Ατύχημα" : kind === "congestion" ? "Κίνηση" : kind === "weather" ? "Καιρός" : "Συμβάν";
+    return r ? `${k} · ${r}` : `${k} · ${city}`;
+  }
+  const k = kind === "roadworks" ? "Roadworks" : kind === "closure" ? "Closed" : kind === "accident" ? "Crash" : kind === "congestion" ? "Heavy traffic" : kind === "weather" ? "Weather" : "Incident";
+  return r ? `${k} · ${r}` : `${k} · ${city}`;
+}
+
+/** Pick an editorial illustration that matches the dominant kind in view. */
+function pickTrafficImage(kind: TrafficKind): string {
+  switch (kind) {
+    case "roadworks":  return pulseTrafficRoadworksImg;
+    case "closure":    return pulseTrafficClosureImg;
+    case "congestion": return pulseTrafficCongestionImg;
+    case "accident":
+    case "weather":
+    default:           return pulseTrafficImg;
+  }
+}
+
 function TrafficCard({
   payload,
   city,
@@ -629,13 +700,6 @@ function TrafficCard({
   const top = payload.incidents[0];
   if (!top) return null;
 
-  const labelFor = (k: typeof top.kind) => {
-    if (isEl) {
-      return k === "roadworks" ? "Έργα" : k === "closure" ? "Κλειστός" : k === "accident" ? "Ατύχημα" : k === "congestion" ? "Κίνηση" : k === "weather" ? "Καιρός" : "Συμβάν";
-    }
-    return k === "roadworks" ? "Roadworks" : k === "closure" ? "Closure" : k === "accident" ? "Accident" : k === "congestion" ? "Congestion" : k === "weather" ? "Weather" : "Event";
-  };
-
   const severityTone =
     payload.highest === "high"
       ? "text-ochre"
@@ -647,13 +711,15 @@ function TrafficCard({
     ? payload.highest === "high" ? "Σοβαρό" : payload.highest === "medium" ? "Μέτριο" : "Ήπιο"
     : payload.highest === "high" ? "Severe" : payload.highest === "medium" ? "Notable" : "Minor";
 
+  const heroHeadline = friendlyTrafficHeadline(top.kind, top.road, city, isEl);
+  const heroImg = pickTrafficImage(top.kind);
   const rest = payload.incidents.slice(1, 4);
 
   return (
     <article className="relative mt-3 overflow-hidden rounded-[24px] bg-card ring-1 ring-line">
       <div className="relative aspect-[21/9] w-full overflow-hidden">
         <img
-          src={pulseTrafficImg}
+          src={heroImg}
           alt=""
           aria-hidden
           loading="lazy"
@@ -674,7 +740,7 @@ function TrafficCard({
         <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ochre">
           {(isEl ? "Κυκλοφορία · " : "Traffic · ") + city}
         </p>
-        <div className="mt-1 flex items-baseline gap-3">
+        <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <span className="font-display text-[34px] leading-none text-ink tabular-nums tracking-[-0.02em]">
             {payload.count}
           </span>
@@ -689,24 +755,16 @@ function TrafficCard({
         </div>
 
         <div className="mt-3 border-t border-line/60 pt-3">
-          <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink-soft">
-            {labelFor(top.kind)}{top.road ? ` · ${top.road}` : ""}
-          </p>
-          <h3 className="mt-1 font-display text-[18px] leading-tight text-ink text-balance">
-            {top.headline}
+          <h3 className="font-display text-[18px] leading-tight text-ink text-balance">
+            {heroHeadline}
           </h3>
         </div>
 
         {rest.length > 0 && (
           <ul className="mt-3 space-y-1.5">
             {rest.map((inc) => (
-              <li key={inc.id} className="flex items-baseline gap-3 text-[12.5px] leading-snug">
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft shrink-0 w-[78px]">
-                  {labelFor(inc.kind)}
-                </span>
-                <span className="text-ink-soft text-pretty truncate">
-                  {inc.road ? `${inc.road} — ` : ""}{inc.headline}
-                </span>
+              <li key={inc.id} className="text-[12.5px] leading-snug text-ink-soft text-pretty">
+                {friendlyTrafficLine(inc.kind, inc.road, city, isEl)}
               </li>
             ))}
           </ul>
@@ -719,6 +777,9 @@ function TrafficCard({
         )}
       </div>
     </article>
+  );
+}
+
   );
 }
 
