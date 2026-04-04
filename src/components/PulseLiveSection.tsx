@@ -14,6 +14,7 @@ import pulseNewsImg from "@/assets/pulse-news-kafenion.jpg";
 import pulseSeaImg from "@/assets/pulse-sea-card.jpg";
 import pulseSkyImg from "@/assets/pulse-sky-card.jpg";
 import pulseCruiseImg from "@/assets/pulse-cruise-card.jpg";
+import pulseTrafficImg from "@/assets/pulse-traffic-card.jpg";
 
 type Locale = "en" | "el";
 
