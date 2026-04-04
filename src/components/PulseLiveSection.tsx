@@ -10,6 +10,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { PulseLiveBundle } from "@/lib/pulse-live.functions";
+import { PULSE_ZONES, type PulseZone } from "@/lib/pulse-zones";
 import pulseNewsImg from "@/assets/pulse-news-kafenion.jpg";
 import pulseSeaImg from "@/assets/pulse-sea-card.jpg";
 import pulseSkyImg from "@/assets/pulse-sky-card.jpg";
