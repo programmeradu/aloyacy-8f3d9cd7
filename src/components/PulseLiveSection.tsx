@@ -926,7 +926,8 @@ function TrafficCard({
           <ul className="mt-3 space-y-1.5">
             {rest.map((inc) => (
               <li key={inc.id} className="text-[12.5px] leading-snug text-ink-soft text-pretty">
-                {specificFromFeed(inc.headline, isEl) ??
+                {parseStructured(inc.headline, isEl)?.line ??
+                  specificFromFeed(inc.headline, isEl) ??
                   friendlyTrafficLine(inc.kind, inc.road, inc.zone, city, isEl)}
               </li>
             ))}
