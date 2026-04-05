@@ -724,6 +724,27 @@ function friendlyTrafficHeadline(
   }
 }
 
+/** Generic feed strings we should NOT surface — fall back to synthesized copy. */
+const GENERIC_HEADLINE_RE = /^(traffic event reported|incident|συμβάν|γεγονός)\.?$/i;
+
+/**
+ * If the DATEX feed gave us a specific description that matches the active
+ * locale's script, prefer it over the synthesized one-liner. Returns null
+ * when the feed text is empty, generic, or in the wrong script.
+ */
+function specificFromFeed(headline: string | null, isEl: boolean): string | null {
+  if (!headline) return null;
+  const t = headline.trim().replace(/\s+/g, " ");
+  if (t.length < 12) return null;
+  if (GENERIC_HEADLINE_RE.test(t)) return null;
+  const hasGreek = GREEK_RE.test(t);
+  // Always allow road-code-bearing strings through (A1, B8 are locale-agnostic).
+  const hasCode = ROAD_CODE_RE.test(t);
+  if (isEl && !hasGreek && !hasCode) return null;
+  if (!isEl && hasGreek && !hasCode) return null;
+  return t.length > 160 ? t.slice(0, 157).trimEnd() + "…" : t;
+}
+
 /** Tiny secondary-line summary: "{kind} · {locale-aware place}". */
 function friendlyTrafficLine(
   kind: TrafficKind,
