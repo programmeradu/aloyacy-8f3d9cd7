@@ -18,6 +18,7 @@ import { bootstrapAnonymousAuth } from "@/lib/anon-auth";
 import { startCloudSync } from "@/lib/cloud-sync";
 import { useAuth } from "@/lib/useAuth";
 import { OnboardingGate } from "@/components/OnboardingGate";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { PaywallSheet } from "@/components/PaywallSheet";
 import { paywallStore, usePaywallOpen } from "@/lib/paywall-store";
 
@@ -227,6 +228,7 @@ function RootComponent() {
       <CloudSyncBridge />
       <OnboardingGate />
       <Outlet />
+      <InstallPrompt />
       <GlobalPaywall />
       <Toaster position="top-center" />
     </QueryClientProvider>
