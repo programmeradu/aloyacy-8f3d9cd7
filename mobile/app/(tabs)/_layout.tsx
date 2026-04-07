@@ -1,68 +1,78 @@
-import { SymbolView } from 'expo-symbols';
-import { Link, Tabs } from 'expo-router';
-import { Platform, Pressable } from 'react-native';
+import { Tabs } from "expo-router";
+import { View, Text, Platform } from "react-native";
+import { palette } from "@/constants/theme";
+import { HomeIcon, SearchIcon, SavedIcon, MoreIcon } from "@/components/TabIcon";
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+function TabLabel({ label, focused }: { label: string; focused: boolean }) {
+  return (
+    <Text
+      style={{
+        fontFamily: focused ? "Geist_700Bold" : "Geist_500Medium",
+        fontSize: 11,
+        letterSpacing: 0.2,
+        color: focused ? palette.ink : palette.inkSoft,
+        marginTop: 2,
+      }}
+    >
+      {label}
+    </Text>
+  );
+}
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
+        headerShown: false,
+        tabBarShowLabel: true,
+        tabBarStyle: {
+          backgroundColor: palette.white,
+          borderTopWidth: 1,
+          borderTopColor: palette.line,
+          height: Platform.OS === "ios" ? 84 : 68,
+          paddingTop: 8,
+          paddingBottom: Platform.OS === "ios" ? 28 : 12,
+          elevation: 0,
+        },
+        tabBarItemStyle: { paddingTop: 2 },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
-            />
+          tabBarIcon: ({ focused }) => (
+            <View>
+              <HomeIcon color={focused ? palette.ink : palette.inkSoft} />
+            </View>
           ),
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable style={{ marginRight: 15 }}>
-                {({ pressed }) => (
-                  <SymbolView
-                    name={{ ios: 'info.circle', android: 'info', web: 'info' }}
-                    size={25}
-                    tintColor={Colors[colorScheme].text}
-                    style={{ opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
+          tabBarLabel: ({ focused }) => <TabLabel label="Today" focused={focused} />,
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="search"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
-            />
+          tabBarIcon: ({ focused }) => (
+            <SearchIcon color={focused ? palette.ink : palette.inkSoft} />
           ),
+          tabBarLabel: ({ focused }) => <TabLabel label="Search" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="saved"
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <SavedIcon color={focused ? palette.ink : palette.inkSoft} />
+          ),
+          tabBarLabel: ({ focused }) => <TabLabel label="Saved" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <MoreIcon color={focused ? palette.ink : palette.inkSoft} />
+          ),
+          tabBarLabel: ({ focused }) => <TabLabel label="More" focused={focused} />,
         }}
       />
     </Tabs>
