@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { View, Text, Platform } from "react-native";
 import { palette } from "@/constants/theme";
-import { HomeIcon, SearchIcon, SavedIcon, MoreIcon } from "@/components/TabIcon";
+import { HomeIcon, SearchIcon, SavedIcon, MoreIcon, PlanIcon } from "@/components/TabIcon";
 
 function TabLabel({ label, focused }: { label: string; focused: boolean }) {
   return (
