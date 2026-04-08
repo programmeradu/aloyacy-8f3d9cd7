@@ -37,6 +37,7 @@ import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snaps
 import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sighting'
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
+import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
 import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
 import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -203,6 +204,11 @@ const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
   path: '/api/public/realtime',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
+  id: '/api/public/plan',
+  path: '/api/public/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicIndexnowRoute = ApiPublicIndexnowRouteImport.update({
   id: '/api/public/indexnow',
   path: '/api/public/indexnow',
@@ -365,6 +371,7 @@ export interface FileRoutesByFullPath {
   '/trip/$id': typeof TripIdRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
+  '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
@@ -419,6 +426,7 @@ export interface FileRoutesByTo {
   '/trip/$id': typeof TripIdRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
+  '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
@@ -474,6 +482,7 @@ export interface FileRoutesById {
   '/trip/$id': typeof TripIdRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
+  '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
@@ -530,6 +539,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
+    | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/sighting'
@@ -584,6 +594,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
+    | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/sighting'
@@ -638,6 +649,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
+    | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/sighting'
@@ -693,6 +705,7 @@ export interface RootRouteChildren {
   TripIdRoute: typeof TripIdRoute
   ApiPublicGbfsDotjsonRoute: typeof ApiPublicGbfsDotjsonRoute
   ApiPublicIndexnowRoute: typeof ApiPublicIndexnowRoute
+  ApiPublicPlanRoute: typeof ApiPublicPlanRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
   ApiPublicSightingRoute: typeof ApiPublicSightingRoute
@@ -922,6 +935,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRealtimeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/plan': {
+      id: '/api/public/plan'
+      path: '/api/public/plan'
+      fullPath: '/api/public/plan'
+      preLoaderRoute: typeof ApiPublicPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/indexnow': {
       id: '/api/public/indexnow'
       path: '/api/public/indexnow'
@@ -1117,6 +1137,7 @@ const rootRouteChildren: RootRouteChildren = {
   TripIdRoute: TripIdRoute,
   ApiPublicGbfsDotjsonRoute: ApiPublicGbfsDotjsonRoute,
   ApiPublicIndexnowRoute: ApiPublicIndexnowRoute,
+  ApiPublicPlanRoute: ApiPublicPlanRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
   ApiPublicSightingRoute: ApiPublicSightingRoute,
