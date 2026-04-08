@@ -49,6 +49,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="plan"
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <PlanIcon color={focused ? palette.ink : palette.inkSoft} />
+          ),
+          tabBarLabel: ({ focused }) => <TabLabel label="Plan" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="search"
         options={{
           tabBarIcon: ({ focused }) => (
