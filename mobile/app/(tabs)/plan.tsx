@@ -10,8 +10,14 @@ import {
   Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import { palette } from "@/constants/theme";
+import {
+  BikeShareCardMobile,
+  BoltScooterCardMobile,
+  LastMileChainCardMobile,
+} from "@/components/AltModeCards";
+import { fetchBikeShare, fetchBoltScooter, fetchLastMileChain } from "@/lib/wave3";
 import { useStopsBundle, useGeoFix } from "@/lib/hooks";
 import { distanceMeters, formatDistance } from "@/lib/format";
 import { fetchPlan, type PlanResult } from "@/lib/plan";
@@ -59,6 +65,82 @@ export default function PlanScreen() {
   });
 
   const result: PlanResult | undefined = plan.data;
+
+  // ── Wave 3 alternates ──────────────────────────────────────────────────
+  // Fire bike / scooter / chain in parallel once we have a plan to
+  // contrast against. Each fetcher returns `null` (not an error) when no
+  // honest suggestion exists, so the cards simply don't render.
+  const topItin = result?.itineraries?.[0];
+  const busOnlySec = topItin?.totalDurationSec ?? null;
+  const lastRide = useMemo(() => {
+    if (!topItin) return null;
+    for (let i = topItin.legs.length - 1; i >= 0; i -= 1) {
+      const leg = topItin.legs[i];
+      if (leg.kind === "ride") return leg;
+    }
+    return null;
+  }, [topItin]);
+  const finalWalkMeters = useMemo(() => {
+    if (!topItin) return null;
+    const last = topItin.legs[topItin.legs.length - 1];
+    return last && last.kind === "walk" ? last.distanceMeters : null;
+  }, [topItin]);
+
+  const altsEnabled = !!result && !!dest;
+  const alts = useQueries({
+    queries: [
+      {
+        queryKey: ["bike-share", effectiveOrigin, dest, busOnlySec],
+        queryFn: () =>
+          fetchBikeShare({
+            from: { lat: effectiveOrigin.lat, lng: effectiveOrigin.lng },
+            to: { lat: dest!.lat, lng: dest!.lng },
+            busOnlyDurationSec: busOnlySec,
+          }),
+        enabled: altsEnabled,
+        staleTime: 5 * 60_000,
+      },
+      {
+        queryKey: ["bolt-scooter", effectiveOrigin, dest, busOnlySec],
+        queryFn: () =>
+          fetchBoltScooter({
+            from: { lat: effectiveOrigin.lat, lng: effectiveOrigin.lng },
+            to: { lat: dest!.lat, lng: dest!.lng },
+            busOnlyDurationSec: busOnlySec,
+          }),
+        enabled: altsEnabled,
+        staleTime: 5 * 60_000,
+      },
+      {
+        queryKey: [
+          "last-mile-chain",
+          lastRide?.alight.stopId ?? "none",
+          dest,
+          topItin?.arrivalUnix ?? null,
+        ],
+        queryFn: () =>
+          fetchLastMileChain({
+            alight: lastRide
+              ? {
+                  lat: lastRide.alight.lat,
+                  lng: lastRide.alight.lng,
+                  name: lastRide.alight.name,
+                }
+              : { lat: dest!.lat, lng: dest!.lng, name: dest!.label },
+            destination: { lat: dest!.lat, lng: dest!.lng, name: dest!.label },
+            arrivalUnix: topItin?.arrivalUnix ?? null,
+            finalWalkMeters,
+          }),
+        enabled: altsEnabled && !!lastRide,
+        staleTime: 5 * 60_000,
+      },
+    ],
+  });
+  const bikeSuggestion = alts[0].data ?? null;
+  const scooterSuggestion = alts[1].data ?? null;
+  const chainSuggestion = alts[2].data ?? null;
+
+
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.limestone }}>
@@ -329,6 +411,24 @@ export default function PlanScreen() {
                 <ItineraryCard key={it.id} itinerary={it} />
               ))
             )}
+          </View>
+        )}
+
+        {result && (bikeSuggestion || scooterSuggestion || chainSuggestion) && (
+          <View style={{ paddingHorizontal: 20, paddingTop: 24, gap: 12 }}>
+            <Text
+              style={{
+                fontFamily: "JetBrainsMono_500Medium",
+                color: palette.inkSoft,
+                fontSize: 11,
+                letterSpacing: 0.4,
+              }}
+            >
+              OTHER WAYS
+            </Text>
+            {bikeSuggestion && <BikeShareCardMobile s={bikeSuggestion} />}
+            {scooterSuggestion && <BoltScooterCardMobile s={scooterSuggestion} />}
+            {chainSuggestion && <LastMileChainCardMobile s={chainSuggestion} />}
           </View>
         )}
       </ScrollView>
