@@ -413,6 +413,24 @@ export default function PlanScreen() {
             )}
           </View>
         )}
+
+        {result && (bikeSuggestion || scooterSuggestion || chainSuggestion) && (
+          <View style={{ paddingHorizontal: 20, paddingTop: 24, gap: 12 }}>
+            <Text
+              style={{
+                fontFamily: "JetBrainsMono_500Medium",
+                color: palette.inkSoft,
+                fontSize: 11,
+                letterSpacing: 0.4,
+              }}
+            >
+              OTHER WAYS
+            </Text>
+            {bikeSuggestion && <BikeShareCardMobile s={bikeSuggestion} />}
+            {scooterSuggestion && <BoltScooterCardMobile s={scooterSuggestion} />}
+            {chainSuggestion && <LastMileChainCardMobile s={chainSuggestion} />}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
