@@ -10,7 +10,7 @@ import type {
 } from "@/lib/wave3";
 
 // ── Shared atoms ──────────────────────────────────────────────────────────
-function Eyebrow({ children }: { children: string }) {
+function Eyebrow({ children }: { children: ReactNode }) {
   return (
     <Text
       style={{
