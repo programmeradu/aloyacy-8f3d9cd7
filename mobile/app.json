@@ -1,22 +1,36 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Aloya",
+    "slug": "aloya",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "aloya",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "cy.aloya.app",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification", "location"],
+        "NSLocationWhenInUseUsageDescription": "Aloya uses your location to show nearby stops and live walking ETAs.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Aloya uses your location to deliver on-trip alerts (board, alight, missed bus) even when the screen is off."
+      }
     },
     "android": {
+      "package": "cy.aloya.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -33,10 +47,22 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#3A7B8A",
+          "defaultChannel": "trip-alerts"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
     }
   }
 }
