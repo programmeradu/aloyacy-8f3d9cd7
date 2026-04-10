@@ -1,0 +1,160 @@
+import { useState } from "react";
+import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import { palette } from "@/constants/theme";
+import { Card } from "./Card";
+import { startProCheckout, type PlanKey } from "@/lib/wallet";
+
+const PLANS: { id: PlanKey; label: string; price: string; cadence: string; note?: string }[] = [
+  { id: "pro_weekly", label: "Weekly", price: "€1.99", cadence: "/week" },
+  { id: "pro_monthly", label: "Monthly", price: "€6.99", cadence: "/month", note: "Save 18%" },
+];
+
+export function GoProCard() {
+  const [email, setEmail] = useState("");
+  const [plan, setPlan] = useState<PlanKey>("pro_monthly");
+  const [busy, setBusy] = useState(false);
+
+  async function handlePay() {
+    if (!email.includes("@")) {
+      Alert.alert("Email required", "Enter the email tied to your Aloya account.");
+      return;
+    }
+    setBusy(true);
+    const res = await startProCheckout({ email: email.trim(), planKey: plan });
+    setBusy(false);
+    if (res.ok) {
+      Alert.alert("Welcome to Pro", "Your subscription is being activated.");
+    } else if (!res.canceled) {
+      Alert.alert("Checkout failed", res.message);
+    }
+  }
+
+  return (
+    <Card style={{ marginTop: 18, padding: 20 }}>
+      <Text
+        style={{
+          fontFamily: "JetBrainsMono_500Medium",
+          fontSize: 10,
+          color: palette.olive,
+          letterSpacing: 2,
+        }}
+      >
+        ALOYA PRO
+      </Text>
+      <Text
+        style={{
+          fontFamily: "BricolageGrotesque_800ExtraBold",
+          fontSize: 24,
+          color: palette.ink,
+          letterSpacing: -0.6,
+          marginTop: 6,
+          lineHeight: 28,
+        }}
+      >
+        Faster planning,{"\n"}quieter notifications.
+      </Text>
+
+      <View style={{ marginTop: 16, gap: 8 }}>
+        {PLANS.map((p) => {
+          const active = plan === p.id;
+          return (
+            <Pressable
+              key={p.id}
+              onPress={() => setPlan(p.id)}
+              style={{
+                borderWidth: 1,
+                borderColor: active ? palette.ink : palette.line,
+                borderRadius: 14,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                backgroundColor: "#fff",
+              }}
+            >
+              <View>
+                <Text style={{ fontFamily: "Geist_600SemiBold", fontSize: 14, color: palette.ink }}>
+                  {p.label}
+                </Text>
+                {p.note && (
+                  <Text
+                    style={{
+                      fontFamily: "JetBrainsMono_500Medium",
+                      fontSize: 9,
+                      color: palette.olive,
+                      letterSpacing: 1.4,
+                      marginTop: 2,
+                    }}
+                  >
+                    {p.note.toUpperCase()}
+                  </Text>
+                )}
+              </View>
+              <View style={{ alignItems: "flex-end" }}>
+                <Text
+                  style={{
+                    fontFamily: "BricolageGrotesque_700Bold",
+                    fontSize: 20,
+                    color: palette.ink,
+                  }}
+                >
+                  {p.price}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "JetBrainsMono_500Medium",
+                    fontSize: 9,
+                    color: palette.inkSoft ?? palette.ink,
+                    letterSpacing: 1.2,
+                  }}
+                >
+                  {p.cadence.toUpperCase()}
+                </Text>
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <TextInput
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="email-address"
+        placeholder="you@example.com"
+        placeholderTextColor="#9aa0a6"
+        value={email}
+        onChangeText={setEmail}
+        style={{
+          marginTop: 14,
+          borderWidth: 1,
+          borderColor: palette.line,
+          borderRadius: 12,
+          paddingHorizontal: 14,
+          paddingVertical: 12,
+          fontFamily: "Geist_500Medium",
+          fontSize: 14,
+          color: palette.ink,
+          backgroundColor: "#fff",
+        }}
+      />
+
+      <Pressable
+        disabled={busy}
+        onPress={handlePay}
+        style={{
+          marginTop: 12,
+          borderRadius: 14,
+          backgroundColor: palette.ink,
+          paddingVertical: 14,
+          alignItems: "center",
+          opacity: busy ? 0.6 : 1,
+        }}
+      >
+        <Text style={{ fontFamily: "Geist_600SemiBold", fontSize: 14, color: palette.limestone }}>
+          {busy ? "Opening payment sheet…" : "Continue to payment"}
+        </Text>
+      </Pressable>
+    </Card>
+  );
+}

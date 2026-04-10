@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { palette } from "@/constants/theme";
 import { Card } from "@/components/Card";
 import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
+import { GoProCard } from "@/components/GoProCard";
 
 const ROWS = [
   { label: "Language", value: "English" },
@@ -67,6 +68,7 @@ export default function MoreScreen() {
           </View>
         ))}
       </Card>
+      <GoProCard />
       <OfflineSchedulesCard />
     </ScrollView>
   );
