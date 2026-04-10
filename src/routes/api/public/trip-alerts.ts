@@ -13,6 +13,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fetchRealtime } from "@/lib/gtfs-rt.server";
 import { sendWebPush, type WebPushPayload } from "@/lib/webpush.server";
+import { sendExpoPush } from "@/lib/expopush.server";
 import { VAPID_PUBLIC_KEY } from "@/lib/vapid";
 
 import type { Leg, RideLeg } from "@/lib/itinerary-types";
@@ -119,37 +120,75 @@ function buildPayload(
 async function dispatch(deviceId: string, payload: WebPushPayload) {
   const priv = process.env.VAPID_PRIVATE_KEY;
   const sub = process.env.VAPID_SUBJECT || "mailto:notifications@aloya.app";
-  if (!priv) return { sent: 0, expired: 0 };
-
-  const { data: subs } = await supabaseAdmin
-    .from("push_subscriptions")
-    .select("endpoint, p256dh, auth")
-    .eq("device_id", deviceId);
-  if (!subs || subs.length === 0) return { sent: 0, expired: 0 };
 
   let sent = 0;
   let expired = 0;
-  for (const s of subs) {
-    try {
-      const r = await sendWebPush({
-        subscription: { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
-        payload,
-        vapidPublicKey: VAPID_PUBLIC_KEY,
-        vapidPrivateKey: priv,
-        vapidSubject: sub,
-      });
-      if (r.ok) sent++;
-      else if (r.expired) {
-        expired++;
-        await supabaseAdmin
-          .from("push_subscriptions")
-          .delete()
-          .eq("endpoint", s.endpoint);
+
+  // ---- Web push (browsers / installed PWAs) ----
+  if (priv) {
+    const { data: subs } = await supabaseAdmin
+      .from("push_subscriptions")
+      .select("endpoint, p256dh, auth")
+      .eq("device_id", deviceId);
+    if (subs && subs.length > 0) {
+      for (const s of subs) {
+        try {
+          const r = await sendWebPush({
+            subscription: { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
+            payload,
+            vapidPublicKey: VAPID_PUBLIC_KEY,
+            vapidPrivateKey: priv,
+            vapidSubject: sub,
+          });
+          if (r.ok) sent++;
+          else if (r.expired) {
+            expired++;
+            await supabaseAdmin
+              .from("push_subscriptions")
+              .delete()
+              .eq("endpoint", s.endpoint);
+          }
+        } catch (e) {
+          console.error("[trip-alerts] web push dispatch threw", e);
+        }
       }
-    } catch (e) {
-      console.error("[trip-alerts] dispatch threw", e);
     }
   }
+
+  // ---- Native push via Expo (iOS/Android) ----
+  try {
+    const { data: tokens } = await supabaseAdmin
+      .from("expo_push_tokens")
+      .select("expo_token")
+      .eq("device_id", deviceId);
+    if (tokens && tokens.length > 0) {
+      const r = await sendExpoPush(
+        tokens.map((t) => ({
+          to: t.expo_token,
+          title: payload.title,
+          body: payload.body,
+          channelId: "trip-alerts",
+          sound: "default",
+          priority: payload.requireInteraction ? "high" : "default",
+          data: { url: payload.url, tag: payload.tag },
+        })),
+      );
+      sent += r.ok;
+      if (r.expiredTokens.length) {
+        expired += r.expiredTokens.length;
+        await supabaseAdmin
+          .from("expo_push_tokens")
+          .delete()
+          .in("expo_token", r.expiredTokens);
+      }
+      if (r.errors.length) {
+        console.warn("[trip-alerts] expo push errors", r.errors.slice(0, 3));
+      }
+    }
+  } catch (e) {
+    console.error("[trip-alerts] expo dispatch threw", e);
+  }
+
   return { sent, expired };
 }
 
