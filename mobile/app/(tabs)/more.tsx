@@ -4,6 +4,7 @@ import { palette } from "@/constants/theme";
 import { Card } from "@/components/Card";
 import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
 import { GoProCard } from "@/components/GoProCard";
+import { AuthCard } from "@/components/AuthCard";
 
 const ROWS = [
   { label: "Language", value: "English" },
@@ -68,6 +69,7 @@ export default function MoreScreen() {
           </View>
         ))}
       </Card>
+      <AuthCard />
       <GoProCard />
       <OfflineSchedulesCard />
     </ScrollView>
