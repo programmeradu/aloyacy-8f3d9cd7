@@ -13,7 +13,8 @@
       "infoPlist": {
         "UIBackgroundModes": ["remote-notification", "location"],
         "NSLocationWhenInUseUsageDescription": "Aloya uses your location to show nearby stops and live walking ETAs.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Aloya uses your location to deliver on-trip alerts (board, alight, missed bus) even when the screen is off."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Aloya uses your location to deliver on-trip alerts (board, alight, missed bus) even when the screen is off.",
+        "NSCameraUsageDescription": "Aloya uses the camera only while you scan your Motion bus card so we can read the number, name, and expiry printed on it. No images are stored."
       }
     },
     "android": {
@@ -29,7 +30,8 @@
         "ACCESS_FINE_LOCATION",
         "POST_NOTIFICATIONS",
         "VIBRATE",
-        "RECEIVE_BOOT_COMPLETED"
+        "RECEIVE_BOOT_COMPLETED",
+        "CAMERA"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -53,6 +55,13 @@
         {
           "color": "#3A7B8A",
           "defaultChannel": "trip-alerts"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Aloya uses the camera only while you scan your Motion bus card.",
+          "recordAudioAndroid": false
         }
       ]
     ],
