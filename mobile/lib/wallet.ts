@@ -3,11 +3,12 @@
 // Flow:
 //   1. Ask the backend (`/api/public/mobile-payment-sheet`) for a
 //      { customer, ephemeralKey, paymentIntent, publishableKey } bundle.
+//      If a Supabase session exists we pass its access token so the server
+//      can tie the Stripe customer + subscription to auth.uid().
 //   2. Initialise the Stripe SDK with the returned publishable key.
-//   3. initPaymentSheet → presentPaymentSheet. The user pays via Apple Pay,
-//      Google Pay, card, Link, etc. — Stripe handles all the UI.
-//   4. Webhook (`/api/public/payments/webhook`) flips the subscription to
-//      active and the next app launch reads the entitlement.
+//   3. initPaymentSheet → presentPaymentSheet.
+//   4. Webhook flips the subscription to active; the entitlement is linked
+//      to the same user_id as the web flow.
 
 import {
   initPaymentSheet,
@@ -15,6 +16,7 @@ import {
   initStripe,
 } from "@stripe/stripe-react-native";
 import { API_BASE } from "./api";
+import { supabase } from "./supabase";
 
 export type PlanKey = "pro_weekly" | "pro_monthly";
 
@@ -24,6 +26,7 @@ type PrepResponse = {
   paymentIntent: string;
   publishableKey: string | null;
   subscriptionId: string;
+  linkedUserId: string | null;
 };
 
 let stripeReady = false;
@@ -39,20 +42,29 @@ async function ensureStripeInitialised(publishableKey: string) {
 }
 
 export type CheckoutResult =
-  | { ok: true; subscriptionId: string }
+  | { ok: true; subscriptionId: string; linkedUserId: string | null }
   | { ok: false; canceled?: boolean; message: string };
 
 export async function startProCheckout(opts: {
-  email: string;
+  email?: string;
   planKey: PlanKey;
 }): Promise<CheckoutResult> {
+  const { data: sess } = await supabase.auth.getSession();
+  const token = sess.session?.access_token ?? null;
+  const sessionEmail = sess.session?.user?.email ?? null;
+  const email = opts.email?.trim() || sessionEmail || undefined;
+
   let prep: PrepResponse;
   try {
     const res = await fetch(`${API_BASE}/api/public/mobile-payment-sheet`, {
       method: "POST",
-      headers: { "content-type": "application/json", Accept: "application/json" },
+      headers: {
+        "content-type": "application/json",
+        Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({
-        email: opts.email,
+        ...(email ? { email } : {}),
         planKey: opts.planKey,
         environment: "sandbox",
       }),
@@ -98,5 +110,9 @@ export async function startProCheckout(opts: {
     return { ok: false, canceled, message: present.error.message };
   }
 
-  return { ok: true, subscriptionId: prep.subscriptionId };
+  return {
+    ok: true,
+    subscriptionId: prep.subscriptionId,
+    linkedUserId: prep.linkedUserId,
+  };
 }
