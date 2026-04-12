@@ -18,7 +18,10 @@
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification", "location"],
+        "UIBackgroundModes": [
+          "remote-notification",
+          "location"
+        ],
         "NSLocationWhenInUseUsageDescription": "Aloya uses your location to show nearby stops and live walking ETAs.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Aloya uses your location to deliver on-trip alerts (board, alight, missed bus) even when the screen is off.",
         "NSCameraUsageDescription": "Aloya uses the camera only while you scan your Motion bus card so we can read the number, name, and expiry printed on it. No images are stored.",
@@ -40,7 +43,8 @@
         "POST_NOTIFICATIONS",
         "VIBRATE",
         "RECEIVE_BOOT_COMPLETED",
-        "CAMERA"
+        "CAMERA",
+        "android.permission.CAMERA"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -84,10 +88,11 @@
       "typedRoutes": true
     },
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "0fa01088-812a-4d3e-b487-32fa9ca55cdb"
+        "projectId": "dda858b2-7bf5-4983-9613-4960e7425b4f"
       }
     },
-    "owner": "aloya"
+    "owner": "algorithmxx"
   }
 }
