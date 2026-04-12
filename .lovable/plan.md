@@ -1,101 +1,52 @@
+# Aloya Mobile Parity Plan
 
-# Aloya Mobile (Rider) — Build Plan
+The web app (`src/`) is the floor. Mobile (`mobile/`) must mirror every shipped screen with the same APIs, the same states (loading / empty / error / offline / pro-gate), and the same editorial depth — then enhance with native (haptics, gestures, camera, NFC, push, sensors). No hardcoded data, no stubs, no stripped surfaces.
 
-A native iOS + Android rider app in `/mobile` (Expo SDK 56 + expo-router + NativeWind), sharing all business logic with the web app via a new `packages/core` workspace. Web behavior is unchanged: `src/lib/*` pure helpers become thin re-exports from `@aloya/core` so existing imports keep working.
-
-Scope: **rider-only** (no ministry/operator surfaces). Same backend (Lovable Cloud / Supabase), same realtime feed, same GTFS data, same trust waves shipped on web.
-
----
-
-## Wave 0 — Monorepo + shared core (foundation, ship first)
-
-Goal: web keeps working, mobile can import the same logic.
-
-- Convert the repo to a Bun workspaces monorepo at the root:
-  - `package.json` adds `"workspaces": ["packages/*", "mobile"]` (web stays at the root for zero-disruption deploy).
-  - New `packages/core` with its own `package.json` (name `@aloya/core`, type module, no React/RN/Vite deps — pure TS + zod + date-fns).
-- Move **pure, platform-agnostic** helpers from `src/lib/*` into `packages/core/src/`:
-  - `gtfs.ts`, `shapes.ts`, `geo.ts`, `geo-fusion.ts`, `freshness.ts`, `eta-v2.ts`, `headsigns.ts`, `journey-phase.ts`, `journey-copy.ts`, `itinerary-types.ts`, `itinerary-rationale.ts`, `learned-types.ts`, `accessibility-prefs.ts` (types only), `accessibility-weights.ts`, `cities.ts`, `pulse-zones.ts`, `motion-pass.ts`, `dictionaries/*`, `i18n` (storage adapter factory — see below).
-- `src/lib/<name>.ts` becomes a one-line re-export: `export * from "@aloya/core/<name>";`. Every existing `@/lib/...` import in the web app keeps working untouched.
-- Platform-specific helpers stay in `src/lib/` (browser-only: `pwa.ts`, `useGeolocation.ts`, `useGoogleMaps.ts`, `useNfc.ts`, `useQr.ts`, `cloud-sync.ts`, `analytics.ts`, anything reading `window`/`localStorage`/`document`/`navigator`). Mobile re-implements these against RN APIs.
-- Server-only files (`*.server.ts`, `*.functions.ts`) stay in `src/lib/`. Mobile calls them over HTTP via `/api/public/*` endpoints already in production.
-- Storage adapter pattern for things that need persistence (locale, settings cache, geo cache, trip store): `packages/core` exports a `setStorageAdapter({ getItem, setItem, removeItem })`. Web injects `localStorage` in `src/start.ts`; mobile injects `AsyncStorage` in `mobile/app/_layout.tsx`. Zero forks of the logic.
-
-Acceptance: `bun run build` (web) and `cd mobile && bunx expo start` both succeed; no behavioural diff in the web app.
+This plan is tracked in `.lovable/mobile-parity-plan.md` and updated after every wave.
 
 ---
 
-## Wave 1 — Rider shell + live ETAs
+## Wave A — Foundation primitives (unblocks everything)
 
-Goal: a rider on iOS/Android can find a stop, see departures, and trust the ETA — same trust signals as web.
+1. **Port `eta-v2`** → `mobile/lib/eta-v2.ts`. Copy `src/lib/eta-v2.ts` 1:1, swap server-fn imports for the existing fetch wrappers.
+2. **Port `freshness`** → `mobile/lib/freshness.ts` (pure TS, ~50 lines).
+3. **Port `trip-store`** → `mobile/lib/trip-store.ts` using AsyncStorage + Zustand (`useSavedPlaces`, `useRecents`, `setActiveTrip`, `clearActiveTrip`).
+4. **Build RN `DepartureRow`** → `mobile/components/DepartureRow.tsx` with tier chip, headsign, band, link to trip-info.
 
-- App shell: tab nav (Home, Trips, Saved, More) with NativeWind tokens mirroring `src/styles.css` (limestone bg, aegean, ochre, olive, ink). Bricolage Grotesque + Geist via `expo-font`. Light theme only.
-- Screens:
-  - `index` — Today: greeting (reuse `greeting.ts`), nearby stops, resume-trip pill, weather/dust chip.
-  - `stop/[stopId]` — departure board with `EtaPill`-equivalent native component (confidence dot + tier label, reusing `eta-v2` + `freshness` from `@aloya/core`).
-  - `route/[routeId]` — route detail with reliability badge.
-  - `search` — places + stops (Google Places via existing `maps.functions.ts` over HTTP).
-- Realtime: hits `https://aloyacy.lovable.app/api/public/realtime` (already public, CORS-open, 15 s cache). React Query with 15 s `staleTime`.
-- Geolocation via `expo-location` (foreground perm + watcher); mirrors `useGeolocation`/`useGeoWatch` API surface so screens reuse the same hook contract.
-- Auth: `expo-auth-session` for Google OAuth → same Supabase project. Anonymous-by-default like web (`anon-auth.ts`).
-- Sighting button (Wave 1.3 parity): native 44px row → `POST /api/public/sighting`.
+## Wave B — Close P0 screens
 
-Acceptance: search a stop, see departures, confidence labels match web one-to-one, tap a ghost departure → confirm sighting → tier upgrades within 15 s.
+5. **Stop screen rewire** (`mobile/app/stop/[stopId].tsx`) → SmartEtaV2 + `StaleFeedBanner` + `SightingButton` + ShareSheet.
+6. **Home screen rewire** (`mobile/app/(tabs)/index.tsx`) → live ETAs, RN `StopCard`, WeatherStamp, QuickStat tiles, NLPlannerCard, CommuteSuggestionCard, landmark chips.
+7. **Saved screen** (`mobile/app/(tabs)/saved.tsx`) → `useSavedPlaces`, `useRecents`, pin/unpin, `OfflineSchedulesCard`, pro-gate, NotificationsCard.
+8. **Plan screen** (`mobile/app/(tabs)/plan.tsx`) → Google Places autocomplete via `maps.functions`, time picker, `useQuery` + `refetchInterval`, ParkAndRideCard, KapnosShuttleCard, DustAdvisoryBanner, RemindMeButton, pro-gate.
 
----
+## Wave C — Map + deep screens
 
-## Wave 2 — Daily-use quality (rationale, a11y, multimodal walk, P&R, multi-city)
+9. **`MapView` primitive** (`mobile/components/MapView.tsx`) — Expo Maps + live vehicle overlay + polylines + clustering.
+10. **Trip-info screen** (`mobile/app/trip-info/[tripId].tsx`) — next-stop card, ETA card, status card, stop-list with delay, MapView.
+11. **Route screen finish** (`mobile/app/route/[routeId].tsx`) — vignette art, next-departure dark hero, runs list, stop-sequence with live bus dot, ReliabilityBadge, MapView.
+12. **Live Trip Companion** (`mobile/app/trip/[id].tsx`) — phase card, JourneyHUD, walk guidance, MapView with fusing, stale banners, MultiLegCompanion. Port `useJourney` + `useCompass` to Expo sensors.
+13. **Airport screen** (`mobile/app/airport/[code].tsx`) — Kapnos coach cards + SmartEtaV2 departures + ShareSheet.
 
-- Trip planner screen calls existing `planMultiLeg` server fn over HTTP (new `/api/public/plan` thin wrapper added to web — JSON in/out — guarded by `apikey` header so it stays internal).
-- `ItineraryCard` ported to RN — rationale tags, accessibility-weighted rerank already happens server-side via the shared planner.
-- WalkGuidance: `react-native-maps` polyline + Street View via `WebView` (reusing existing `/api/public/streetview` proxy).
-- Park & Ride card surfaces from the planner response; "Open driving directions" uses `Linking.openURL("comgooglemaps://...")` with Apple Maps fallback.
-- City auto-bias (`cities.ts`) shared from core — works identically on mobile.
-- Accessibility prefs stored locally via `AsyncStorage` and synced to `user_settings` when signed in (reuse `cloud-sync` HTTP surface).
+## Wave D — Editorial + onboarding + polish
 
-Acceptance: plan a Limassol trip on iOS, get the same itinerary + same rationale tags as web, P&R fires under the same conditions.
-
----
-
-## Wave 3 — Advanced multimodal (intercity intel, last-mile chain, bike-share, scooters)
-
-- Route detail surfaces `IntercityPatternsCard` for IC agency — pulls from `getIntercityInsights` HTTP wrapper.
-- `LastMileChainCard` shown on trip results + during walking-to-destination phase; Bolt deep link `bolt://`, Apple/Google Maps deep links, `tel:` for dispatcher.
-- Nextbike card + Bolt scooter card — same suggester logic, same honesty rules (never claim live scooter counts).
-- Background location for journey companion (`expo-location` background task) — opt-in, only active while a trip is in progress.
-
-Acceptance: parity with web Wave 3 for all four advanced features on iOS + Android.
+14. **Pulse / Today tab** (`mobile/app/(tabs)/pulse.tsx`) — Today editorial (hero, tiles, verdict, Greek word), RoadPulseCard, PulseLiveSection. Add as a new tab.
+15. **Wallet expansion** — balance, JCC sync, PassSheet, fare grid, transactions, ProAccountCard, AccessibilityPrefsCard. Promote to its own tab if needed.
+16. **Native onboarding** (`mobile/app/welcome.tsx`) — 3-step carousel using Expo Location + Notifications + MotionCard.
+17. **More tab wiring + global polish** — Language (Expo Localization + i18n port), Accessibility prefs, Notifications toggle, Privacy/Terms links, Reanimated `FadeInDown` entrance on every section.
 
 ---
 
-## Wave 4 — Push, offline, payments, polish
+## Working rules (per wave)
 
-- Push notifications via `expo-notifications` registered against existing `push.functions.ts` (table already exists). Pre-board alerts, ghost-bus, disruption replan.
-- Offline schedules: prefetch the static GTFS JSON bundle from `public/data/schedule/*` into `expo-file-system` on first launch, refresh weekly.
-- Wallet: passes already work over HTTP. Card scan uses `expo-camera` + Vision Camera for OCR (replace `tesseract.js` which is web-only).
-- Stripe via `@stripe/stripe-react-native` against the same backend (`stripe.server.ts`); embedded checkout opens in a `WebView` fallback where native sheet isn't applicable.
-- App Store + Play Store submission: EAS Build profiles, app icons/splash already in `mobile/assets/`, privacy strings, ATT prompt for analytics, App Store screenshots from real screens.
+- Read the web file of truth first; mirror its data shape and states exactly.
+- New mobile components match Mediterranean editorial direction — limestone bg, aegean/ochre/olive/ink, Bricolage + Geist + JetBrains Mono, no emojis, no bullet dots, no thin weights, no Lucide.
+- Every screen ships with loading + empty + error + offline + pro-gate states from day one.
+- After each wave, update this plan with status (✅ shipped / 🟡 partial / ⏳ next) and re-run an audit against the web counterpart.
+- Native enhancements (haptics, share sheet, sensors, NFC) layer on top — never substitute for parity.
 
-Acceptance: TestFlight + Play Internal Testing build with push, offline boot, payments, full trust waves working end-to-end.
+## Out of scope (already deferred)
 
----
-
-## Technical notes
-
-- **No business-logic fork.** Anything testable as a pure function lives in `packages/core` and is consumed by both web and mobile. Web’s `src/lib/<name>.ts` becomes `export * from "@aloya/core/<name>";` so route files, hooks, and components keep their `@/lib/...` imports unchanged.
-- **No new backend.** Mobile is a pure client of the existing Lovable Cloud + `/api/public/*` HTTP surface. Server functions stay server-only.
-- **Storage adapter** keeps `i18n`, `accessibility-prefs`, `trip-store`, `paywall-store`, `geo` cache from forking — they read/write through an injected adapter (localStorage on web, AsyncStorage on mobile).
-- **TypeScript** uses project references: `tsconfig.json` (web) and `mobile/tsconfig.json` both reference `packages/core/tsconfig.json`. Mobile path alias `@/*` stays mobile-local; shared imports use `@aloya/core/*`.
-- **Build**: web build flow is untouched (Vite + Cloudflare). Mobile uses EAS for native builds; Expo dev server runs out-of-tree.
-- **Lockfile**: single root `bun.lockb`; mobile's existing `package.json` becomes a workspace member, its deps hoist where compatible.
-
-## Risks + mitigations
-
-- *RN renderer for shadcn components*: shadcn doesn't run on RN. We rebuild the small set of UI primitives the rider needs natively (Card, Button, Sheet, Tabs) with NativeWind — explicitly NOT a port of every shadcn component.
-- *Google Maps key exposure*: mobile uses the existing `GOOGLE_MAPS_BROWSER_KEY` referrer-restricted for WebView, and a new mobile-restricted key for native Maps SDK (added via Connectors when Wave 2 lands).
-- *Background location review (App Store)*: only requested in Wave 4, only while a trip is active, with clear in-context prompt and disclosure copy.
-
-## Out of scope (for the whole mobile app)
-
-- Operator/ministry surfaces.
-- Anything not already shipped on web. Mobile follows web parity per wave — no new product invented here.
+- NFC tap-to-read (queued post-parity).
+- B2G / operator surfaces — citizen app only.
+- Long-form `/guide/getting-around-cyprus` editorial — web-only.
