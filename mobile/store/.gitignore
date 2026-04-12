@@ -1,0 +1,5 @@
+# Keep credentials out of the repo
+play-service-account.json
+*.p8
+*.p12
+*.mobileprovision

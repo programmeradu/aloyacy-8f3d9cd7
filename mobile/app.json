@@ -7,18 +7,27 @@
     "icon": "./assets/images/icon.png",
     "scheme": "aloya",
     "userInterfaceStyle": "automatic",
+    "runtimeVersion": { "policy": "appVersion" },
+    "updates": {
+      "url": "https://u.expo.dev/0fa01088-812a-4d3e-b487-32fa9ca55cdb",
+      "fallbackToCacheTimeout": 0
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "cy.aloya.app",
+      "buildNumber": "1",
       "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": ["remote-notification", "location"],
         "NSLocationWhenInUseUsageDescription": "Aloya uses your location to show nearby stops and live walking ETAs.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Aloya uses your location to deliver on-trip alerts (board, alight, missed bus) even when the screen is off.",
-        "NSCameraUsageDescription": "Aloya uses the camera only while you scan your Motion bus card so we can read the number, name, and expiry printed on it. No images are stored."
+        "NSCameraUsageDescription": "Aloya uses the camera only while you scan your Motion bus card so we can read the number, name, and expiry printed on it. No images are stored.",
+        "NSUserTrackingUsageDescription": "Aloya uses this only to measure which features help Cyprus riders catch the bus on time. You can decline and the app works the same."
       }
     },
     "android": {
       "package": "cy.aloya.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -63,6 +72,12 @@
           "cameraPermission": "Aloya uses the camera only while you scan your Motion bus card.",
           "recordAudioAndroid": false
         }
+      ],
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "Aloya uses this only to measure which features help Cyprus riders catch the bus on time. You can decline and the app works the same."
+        }
       ]
     ],
     "experiments": {
@@ -70,8 +85,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+        "projectId": "0fa01088-812a-4d3e-b487-32fa9ca55cdb"
       }
-    }
+    },
+    "owner": "aloya"
   }
 }
