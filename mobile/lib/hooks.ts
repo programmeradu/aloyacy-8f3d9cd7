@@ -1,16 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as Location from "expo-location";
 import { fetchRealtime, fetchStopsBundle } from "./api";
 import { setStops } from "./gtfs";
 
 export function useRealtime() {
-  return useQuery({
+  const q = useQuery({
     queryKey: ["realtime"],
     queryFn: fetchRealtime,
     refetchInterval: 15_000,
     staleTime: 10_000,
   });
+  const riderConfirmedAge = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of q.data?.riderConfirmedTrips ?? []) {
+      if (r && typeof r === "object" && "tripId" in r) m.set(r.tripId, r.ageSec);
+    }
+    return m;
+  }, [q.data?.riderConfirmedTrips]);
+  const ghostTripIds = useMemo(
+    () => new Set(q.data?.ghostTripIds ?? []),
+    [q.data?.ghostTripIds],
+  );
+  return { ...q, riderConfirmedAge, ghostTripIds };
 }
 
 export function useStopsBundle() {
