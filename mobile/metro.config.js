@@ -1,15 +1,29 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
-const { getDefaultConfig } = require('expo/metro-config');
+const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require("nativewind/metro");
-const path = require('path');
+const path = require("path");
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
 
-const sharedSrc = path.resolve(__dirname, '../src');
-config.watchFolders = [sharedSrc];
+const projectRoot = __dirname;
+const workspaceRoot = path.resolve(projectRoot, "..");
+const sharedSrc = path.resolve(workspaceRoot, "src");
+const sharedCore = path.resolve(workspaceRoot, "packages/core");
+
+// Watch the web source tree and the shared `@aloya/core` package so Metro
+// hot-reloads when shared code changes.
+config.watchFolders = [sharedSrc, sharedCore];
+
+// Resolve from both the mobile and root node_modules so workspace symlinks
+// (including `@aloya/core`) are picked up exactly once.
 config.resolver.nodeModulesPaths = [
-  path.resolve(__dirname, 'node_modules')
+  path.resolve(projectRoot, "node_modules"),
+  path.resolve(workspaceRoot, "node_modules"),
 ];
+
+// Allow `@aloya/core/*` package-exports to resolve through Metro.
+config.resolver.unstable_enablePackageExports = true;
+config.resolver.unstable_conditionNames = ["require", "import", "react-native", "default"];
 
 module.exports = withNativeWind(config, { input: "./global.css" });
