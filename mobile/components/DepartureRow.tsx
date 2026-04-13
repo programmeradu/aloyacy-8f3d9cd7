@@ -9,12 +9,10 @@
 // editorial typography, no truncation on the destination headline.
 
 import { Pressable, View, Text } from "react-native";
-import { router } from "expo-router";
 import { palette } from "@/constants/theme";
 import { RouteChip } from "@/components/RouteChip";
 import { ConfidenceIcon } from "@/components/ConfidenceIcon";
 import {
-  tierAccent,
   type FreshnessTier,
   type FreshnessConfidence,
 } from "@/lib/freshness";
@@ -38,6 +36,9 @@ type Props = {
     confidence: FreshnessConfidence;
     operatorEtaMin?: number;
   };
+  /** Tap target. Defaults to navigating to the trip-info screen via the
+   *  parent screen — caller decides because not every host wants this. */
+  onPress?: () => void;
 };
 
 const TIER_LABEL: Record<FreshnessTier, string> = {
@@ -67,8 +68,11 @@ export function DepartureRow({
   stopId,
   arrivalUnix,
   eta,
+  onPress,
 }: Props) {
-  void tierAccent; // re-export reference, keeps tree-shaking honest
+  void tripId;
+  void routeId;
+  void stopId;
   const tierColor = TIER_COLOR[eta.tier];
   const tierLabel = TIER_LABEL[eta.tier];
 
@@ -96,12 +100,8 @@ export function DepartureRow({
 
   return (
     <Pressable
-      onPress={() =>
-        router.push({
-          pathname: "/trip-info/[tripId]",
-          params: { tripId, from: stopId },
-        })
-      }
+      onPress={onPress}
+      disabled={!onPress}
       style={({ pressed }) => ({
         position: "relative",
         overflow: "hidden",
@@ -109,7 +109,7 @@ export function DepartureRow({
         backgroundColor: palette.white,
         borderWidth: 1,
         borderColor: palette.line,
-        transform: [{ translateY: pressed ? -1 : 0 }],
+        transform: [{ translateY: pressed && onPress ? -1 : 0 }],
       })}
     >
       <View style={{ padding: 18 }}>
