@@ -6,12 +6,14 @@ This plan is tracked in `.lovable/mobile-parity-plan.md` and updated after every
 
 ---
 
-## Wave A — Foundation primitives (unblocks everything)
+## Wave A — Foundation primitives (unblocks everything) ✅
 
-1. **Port `eta-v2`** → `mobile/lib/eta-v2.ts`. Copy `src/lib/eta-v2.ts` 1:1, swap server-fn imports for the existing fetch wrappers.
-2. **Port `freshness`** → `mobile/lib/freshness.ts` (pure TS, ~50 lines).
-3. **Port `trip-store`** → `mobile/lib/trip-store.ts` using AsyncStorage + Zustand (`useSavedPlaces`, `useRecents`, `setActiveTrip`, `clearActiveTrip`).
-4. **Build RN `DepartureRow`** → `mobile/components/DepartureRow.tsx` with tier chip, headsign, band, link to trip-info.
+1. ✅ **Port `eta-v2`** → `mobile/lib/eta-v2.ts` (uses `@aloya/core/geo` + `@aloya/core/freshness`, getStop resolved via runtime stop registry).
+2. ✅ **Port `freshness`** → `mobile/lib/freshness.ts` (re-export of `@aloya/core/freshness`).
+3. ✅ **Port `trip-store`** → `mobile/lib/trip-store.ts` (AsyncStorage + in-memory cache + emitter; multi-leg helpers included; hydrated at app boot).
+4. ✅ **Build RN `DepartureRow`** → `mobile/components/DepartureRow.tsx` + `mobile/components/ConfidenceIcon.tsx` (react-native-svg signal bars).
+
+Infra: `@aloya/core` wired as a workspace dep in `mobile/package.json`; metro now watches `packages/core` and resolves from root `node_modules`; `useStopsBundle` seeds the runtime stop registry; `hydrateTripStore()` runs on app boot.
 
 ## Wave B — Close P0 screens
 
