@@ -38,12 +38,17 @@ import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sight
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
+import { Route as ApiPublicPlacesAutocompleteRouteImport } from './routes/api/public/places-autocomplete'
+import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
+import { Route as ApiPublicParkAndRideRouteImport } from './routes/api/public/park-and-ride'
 import { Route as ApiPublicMobilePaymentSheetRouteImport } from './routes/api/public/mobile-payment-sheet'
 import { Route as ApiPublicLastMileChainRouteImport } from './routes/api/public/last-mile-chain'
+import { Route as ApiPublicKapnosRouteImport } from './routes/api/public/kapnos'
 import { Route as ApiPublicIntercityIntelRouteImport } from './routes/api/public/intercity-intel'
 import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
 import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
 import { Route as ApiPublicExpoPushRegisterRouteImport } from './routes/api/public/expo-push-register'
+import { Route as ApiPublicDustAdvisoryRouteImport } from './routes/api/public/dust-advisory'
 import { Route as ApiPublicBoltScooterRouteImport } from './routes/api/public/bolt-scooter'
 import { Route as ApiPublicBikeShareRouteImport } from './routes/api/public/bike-share'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -216,6 +221,22 @@ const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
   path: '/api/public/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPlacesAutocompleteRoute =
+  ApiPublicPlacesAutocompleteRouteImport.update({
+    id: '/api/public/places-autocomplete',
+    path: '/api/public/places-autocomplete',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPlaceRoute = ApiPublicPlaceRouteImport.update({
+  id: '/api/public/place',
+  path: '/api/public/place',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicParkAndRideRoute = ApiPublicParkAndRideRouteImport.update({
+  id: '/api/public/park-and-ride',
+  path: '/api/public/park-and-ride',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMobilePaymentSheetRoute =
   ApiPublicMobilePaymentSheetRouteImport.update({
     id: '/api/public/mobile-payment-sheet',
@@ -225,6 +246,11 @@ const ApiPublicMobilePaymentSheetRoute =
 const ApiPublicLastMileChainRoute = ApiPublicLastMileChainRouteImport.update({
   id: '/api/public/last-mile-chain',
   path: '/api/public/last-mile-chain',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKapnosRoute = ApiPublicKapnosRouteImport.update({
+  id: '/api/public/kapnos',
+  path: '/api/public/kapnos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicIntercityIntelRoute = ApiPublicIntercityIntelRouteImport.update({
@@ -248,6 +274,11 @@ const ApiPublicExpoPushRegisterRoute =
     path: '/api/public/expo-push-register',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicDustAdvisoryRoute = ApiPublicDustAdvisoryRouteImport.update({
+  id: '/api/public/dust-advisory',
+  path: '/api/public/dust-advisory',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicBoltScooterRoute = ApiPublicBoltScooterRouteImport.update({
   id: '/api/public/bolt-scooter',
   path: '/api/public/bolt-scooter',
@@ -415,12 +446,17 @@ export interface FileRoutesByFullPath {
   '/trip/$id': typeof TripIdRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
+  '/api/public/kapnos': typeof ApiPublicKapnosRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
+  '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
+  '/api/public/place': typeof ApiPublicPlaceRoute
+  '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -477,12 +513,17 @@ export interface FileRoutesByTo {
   '/trip/$id': typeof TripIdRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
+  '/api/public/kapnos': typeof ApiPublicKapnosRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
+  '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
+  '/api/public/place': typeof ApiPublicPlaceRoute
+  '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -540,12 +581,17 @@ export interface FileRoutesById {
   '/trip/$id': typeof TripIdRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
+  '/api/public/kapnos': typeof ApiPublicKapnosRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
+  '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
+  '/api/public/place': typeof ApiPublicPlaceRoute
+  '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -604,12 +650,17 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
+    | '/api/public/dust-advisory'
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
+    | '/api/public/kapnos'
     | '/api/public/last-mile-chain'
     | '/api/public/mobile-payment-sheet'
+    | '/api/public/park-and-ride'
+    | '/api/public/place'
+    | '/api/public/places-autocomplete'
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -666,12 +717,17 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
+    | '/api/public/dust-advisory'
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
+    | '/api/public/kapnos'
     | '/api/public/last-mile-chain'
     | '/api/public/mobile-payment-sheet'
+    | '/api/public/park-and-ride'
+    | '/api/public/place'
+    | '/api/public/places-autocomplete'
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -728,12 +784,17 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
+    | '/api/public/dust-advisory'
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
+    | '/api/public/kapnos'
     | '/api/public/last-mile-chain'
     | '/api/public/mobile-payment-sheet'
+    | '/api/public/park-and-ride'
+    | '/api/public/place'
+    | '/api/public/places-autocomplete'
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -791,12 +852,17 @@ export interface RootRouteChildren {
   TripIdRoute: typeof TripIdRoute
   ApiPublicBikeShareRoute: typeof ApiPublicBikeShareRoute
   ApiPublicBoltScooterRoute: typeof ApiPublicBoltScooterRoute
+  ApiPublicDustAdvisoryRoute: typeof ApiPublicDustAdvisoryRoute
   ApiPublicExpoPushRegisterRoute: typeof ApiPublicExpoPushRegisterRoute
   ApiPublicGbfsDotjsonRoute: typeof ApiPublicGbfsDotjsonRoute
   ApiPublicIndexnowRoute: typeof ApiPublicIndexnowRoute
   ApiPublicIntercityIntelRoute: typeof ApiPublicIntercityIntelRoute
+  ApiPublicKapnosRoute: typeof ApiPublicKapnosRoute
   ApiPublicLastMileChainRoute: typeof ApiPublicLastMileChainRoute
   ApiPublicMobilePaymentSheetRoute: typeof ApiPublicMobilePaymentSheetRoute
+  ApiPublicParkAndRideRoute: typeof ApiPublicParkAndRideRoute
+  ApiPublicPlaceRoute: typeof ApiPublicPlaceRoute
+  ApiPublicPlacesAutocompleteRoute: typeof ApiPublicPlacesAutocompleteRoute
   ApiPublicPlanRoute: typeof ApiPublicPlanRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
@@ -1035,6 +1101,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPlanRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/places-autocomplete': {
+      id: '/api/public/places-autocomplete'
+      path: '/api/public/places-autocomplete'
+      fullPath: '/api/public/places-autocomplete'
+      preLoaderRoute: typeof ApiPublicPlacesAutocompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/place': {
+      id: '/api/public/place'
+      path: '/api/public/place'
+      fullPath: '/api/public/place'
+      preLoaderRoute: typeof ApiPublicPlaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/park-and-ride': {
+      id: '/api/public/park-and-ride'
+      path: '/api/public/park-and-ride'
+      fullPath: '/api/public/park-and-ride'
+      preLoaderRoute: typeof ApiPublicParkAndRideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/mobile-payment-sheet': {
       id: '/api/public/mobile-payment-sheet'
       path: '/api/public/mobile-payment-sheet'
@@ -1047,6 +1134,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/last-mile-chain'
       fullPath: '/api/public/last-mile-chain'
       preLoaderRoute: typeof ApiPublicLastMileChainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/kapnos': {
+      id: '/api/public/kapnos'
+      path: '/api/public/kapnos'
+      fullPath: '/api/public/kapnos'
+      preLoaderRoute: typeof ApiPublicKapnosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/intercity-intel': {
@@ -1075,6 +1169,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/expo-push-register'
       fullPath: '/api/public/expo-push-register'
       preLoaderRoute: typeof ApiPublicExpoPushRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/dust-advisory': {
+      id: '/api/public/dust-advisory'
+      path: '/api/public/dust-advisory'
+      fullPath: '/api/public/dust-advisory'
+      preLoaderRoute: typeof ApiPublicDustAdvisoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/bolt-scooter': {
@@ -1279,12 +1380,17 @@ const rootRouteChildren: RootRouteChildren = {
   TripIdRoute: TripIdRoute,
   ApiPublicBikeShareRoute: ApiPublicBikeShareRoute,
   ApiPublicBoltScooterRoute: ApiPublicBoltScooterRoute,
+  ApiPublicDustAdvisoryRoute: ApiPublicDustAdvisoryRoute,
   ApiPublicExpoPushRegisterRoute: ApiPublicExpoPushRegisterRoute,
   ApiPublicGbfsDotjsonRoute: ApiPublicGbfsDotjsonRoute,
   ApiPublicIndexnowRoute: ApiPublicIndexnowRoute,
   ApiPublicIntercityIntelRoute: ApiPublicIntercityIntelRoute,
+  ApiPublicKapnosRoute: ApiPublicKapnosRoute,
   ApiPublicLastMileChainRoute: ApiPublicLastMileChainRoute,
   ApiPublicMobilePaymentSheetRoute: ApiPublicMobilePaymentSheetRoute,
+  ApiPublicParkAndRideRoute: ApiPublicParkAndRideRoute,
+  ApiPublicPlaceRoute: ApiPublicPlaceRoute,
+  ApiPublicPlacesAutocompleteRoute: ApiPublicPlacesAutocompleteRoute,
   ApiPublicPlanRoute: ApiPublicPlanRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
