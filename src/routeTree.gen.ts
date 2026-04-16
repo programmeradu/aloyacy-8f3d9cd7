@@ -35,6 +35,7 @@ import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/str
 import { Route as ApiPublicStopsRouteImport } from './routes/api/public/stops'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sighting'
+import { Route as ApiPublicRouteReliabilityRouteImport } from './routes/api/public/route-reliability'
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
@@ -206,6 +207,12 @@ const ApiPublicSightingRoute = ApiPublicSightingRouteImport.update({
   path: '/api/public/sighting',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicRouteReliabilityRoute =
+  ApiPublicRouteReliabilityRouteImport.update({
+    id: '/api/public/route-reliability',
+    path: '/api/public/route-reliability',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicRiderFixRoute = ApiPublicRiderFixRouteImport.update({
   id: '/api/public/rider-fix',
   path: '/api/public/rider-fix',
@@ -460,6 +467,7 @@ export interface FileRoutesByFullPath {
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
+  '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
@@ -527,6 +535,7 @@ export interface FileRoutesByTo {
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
+  '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
@@ -595,6 +604,7 @@ export interface FileRoutesById {
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
+  '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
@@ -664,6 +674,7 @@ export interface FileRouteTypes {
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
+    | '/api/public/route-reliability'
     | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/stops'
@@ -731,6 +742,7 @@ export interface FileRouteTypes {
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
+    | '/api/public/route-reliability'
     | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/stops'
@@ -798,6 +810,7 @@ export interface FileRouteTypes {
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
+    | '/api/public/route-reliability'
     | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/stops'
@@ -866,6 +879,7 @@ export interface RootRouteChildren {
   ApiPublicPlanRoute: typeof ApiPublicPlanRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
+  ApiPublicRouteReliabilityRoute: typeof ApiPublicRouteReliabilityRoute
   ApiPublicSightingRoute: typeof ApiPublicSightingRoute
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
   ApiPublicStopsRoute: typeof ApiPublicStopsRoute
@@ -1078,6 +1092,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/sighting'
       fullPath: '/api/public/sighting'
       preLoaderRoute: typeof ApiPublicSightingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/route-reliability': {
+      id: '/api/public/route-reliability'
+      path: '/api/public/route-reliability'
+      fullPath: '/api/public/route-reliability'
+      preLoaderRoute: typeof ApiPublicRouteReliabilityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/rider-fix': {
@@ -1394,6 +1415,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPlanRoute: ApiPublicPlanRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
+  ApiPublicRouteReliabilityRoute: ApiPublicRouteReliabilityRoute,
   ApiPublicSightingRoute: ApiPublicSightingRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStopsRoute: ApiPublicStopsRoute,
