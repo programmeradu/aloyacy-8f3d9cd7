@@ -227,7 +227,7 @@ export default function TripInfoScreen() {
           {/* Route hero */}
           <View style={{ paddingHorizontal: 20, marginBottom: 18 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-              <RouteChip code={trip.route?.short ?? "?"} />
+              <RouteChip short={trip.route?.short ?? "?"} color={trip.route?.color} />
               <Text
                 style={{
                   fontFamily: "JetBrainsMono_500Medium",
