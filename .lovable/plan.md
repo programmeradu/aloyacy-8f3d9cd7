@@ -25,7 +25,7 @@ Infra: `@aloya/core` wired as a workspace dep in `mobile/package.json`; metro no
 ## Wave C — Map + deep screens
 
 9. ✅ **`MapView` primitive** (`mobile/components/MapView.tsx`) — Expo Maps (Apple on iOS, Google on Android) + filtered live `useRealtime` vehicles (focusTripId / focusRouteId / restrictTripIds / vehicleOverrides parity with web), polyline decoder, grid clustering for dense stop pins, derived camera framing, user-location dot, limestone web fallback + empty overlay.
-10. **Trip-info screen** (`mobile/app/trip-info/[tripId].tsx`) — next-stop card, ETA card, status card, stop-list with delay, MapView.
+10. ✅ **Trip-info screen** (`mobile/app/trip-info/[tripId].tsx`) — same arrivals/nextIdx model as web, route hero + RouteChip + bus label + meta (stops · km · ends at), MapView scoped to this trip with tone-tagged stop markers (highlight/next/passed/upcoming), NextStop / ETA-clock / Status composite, full stop timeline with delay deltas, haptic stop-press, pull-to-refresh, feed-stale chip, deep-link back to `?from=` stop.
 11. **Route screen finish** (`mobile/app/route/[routeId].tsx`) — vignette art, next-departure dark hero, runs list, stop-sequence with live bus dot, ReliabilityBadge, MapView.
 12. **Live Trip Companion** (`mobile/app/trip/[id].tsx`) — phase card, JourneyHUD, walk guidance, MapView with fusing, stale banners, MultiLegCompanion. Port `useJourney` + `useCompass` to Expo sensors.
 13. **Airport screen** (`mobile/app/airport/[code].tsx`) — Kapnos coach cards + SmartEtaV2 departures + ShareSheet.
