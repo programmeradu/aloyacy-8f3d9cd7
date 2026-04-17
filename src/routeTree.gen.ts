@@ -475,6 +475,7 @@ export interface FileRoutesByFullPath {
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
+  '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
@@ -543,6 +544,7 @@ export interface FileRoutesByTo {
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
+  '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
@@ -612,6 +614,7 @@ export interface FileRoutesById {
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
+  '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
@@ -682,6 +685,7 @@ export interface FileRouteTypes {
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
+    | '/api/public/walk-directions'
     | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/stops'
@@ -750,6 +754,7 @@ export interface FileRouteTypes {
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
+    | '/api/public/walk-directions'
     | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/stops'
@@ -818,6 +823,7 @@ export interface FileRouteTypes {
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
+    | '/api/public/walk-directions'
     | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/stops'
@@ -1106,6 +1112,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/route-reliability'
       fullPath: '/api/public/route-reliability'
       preLoaderRoute: typeof ApiPublicRouteReliabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/walk-directions': {
+      id: '/api/public/walk-directions'
+      path: '/api/public/walk-directions'
+      fullPath: '/api/public/walk-directions'
+      preLoaderRoute: typeof ApiPublicWalkDirectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/rider-fix': {
@@ -1423,6 +1436,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
   ApiPublicRouteReliabilityRoute: ApiPublicRouteReliabilityRoute,
+  ApiPublicWalkDirectionsRoute: ApiPublicWalkDirectionsRoute,
   ApiPublicSightingRoute: ApiPublicSightingRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStopsRoute: ApiPublicStopsRoute,
