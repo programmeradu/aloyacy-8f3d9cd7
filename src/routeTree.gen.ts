@@ -30,13 +30,13 @@ import { Route as DebugEtaRouteImport } from './routes/debug.eta'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AirportCodeRouteImport } from './routes/airport.$code'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
+import { Route as ApiPublicWalkDirectionsRouteImport } from './routes/api/public/walk-directions'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicStopsRouteImport } from './routes/api/public/stops'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sighting'
 import { Route as ApiPublicRouteReliabilityRouteImport } from './routes/api/public/route-reliability'
-import { Route as ApiPublicWalkDirectionsRouteImport } from './routes/api/public/walk-directions'
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
@@ -183,6 +183,11 @@ const AdminSeoRoute = AdminSeoRouteImport.update({
   path: '/admin/seo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWalkDirectionsRoute = ApiPublicWalkDirectionsRouteImport.update({
+  id: '/api/public/walk-directions',
+  path: '/api/public/walk-directions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
   id: '/api/public/trip-alerts',
   path: '/api/public/trip-alerts',
@@ -212,12 +217,6 @@ const ApiPublicRouteReliabilityRoute =
   ApiPublicRouteReliabilityRouteImport.update({
     id: '/api/public/route-reliability',
     path: '/api/public/route-reliability',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicWalkDirectionsRoute =
-  ApiPublicWalkDirectionsRouteImport.update({
-    id: '/api/public/walk-directions',
-    path: '/api/public/walk-directions',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicRiderFixRoute = ApiPublicRiderFixRouteImport.update({
@@ -475,12 +474,12 @@ export interface FileRoutesByFullPath {
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
-  '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -544,12 +543,12 @@ export interface FileRoutesByTo {
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
-  '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -614,12 +613,12 @@ export interface FileRoutesById {
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
-  '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -685,12 +684,12 @@ export interface FileRouteTypes {
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
-    | '/api/public/walk-directions'
     | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
+    | '/api/public/walk-directions'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -754,12 +753,12 @@ export interface FileRouteTypes {
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
-    | '/api/public/walk-directions'
     | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
+    | '/api/public/walk-directions'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -823,12 +822,12 @@ export interface FileRouteTypes {
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
-    | '/api/public/walk-directions'
     | '/api/public/sighting'
     | '/api/public/snapshot'
     | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
+    | '/api/public/walk-directions'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -898,6 +897,7 @@ export interface RootRouteChildren {
   ApiPublicStopsRoute: typeof ApiPublicStopsRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
+  ApiPublicWalkDirectionsRoute: typeof ApiPublicWalkDirectionsRoute
   ApiPublicGbfsFree_bike_statusDotjsonRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   ApiPublicGbfsStation_informationDotjsonRoute: typeof ApiPublicGbfsStation_informationDotjsonRoute
   ApiPublicGbfsStation_statusDotjsonRoute: typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -1072,6 +1072,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSeoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/walk-directions': {
+      id: '/api/public/walk-directions'
+      path: '/api/public/walk-directions'
+      fullPath: '/api/public/walk-directions'
+      preLoaderRoute: typeof ApiPublicWalkDirectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/trip-alerts': {
       id: '/api/public/trip-alerts'
       path: '/api/public/trip-alerts'
@@ -1112,13 +1119,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/route-reliability'
       fullPath: '/api/public/route-reliability'
       preLoaderRoute: typeof ApiPublicRouteReliabilityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/walk-directions': {
-      id: '/api/public/walk-directions'
-      path: '/api/public/walk-directions'
-      fullPath: '/api/public/walk-directions'
-      preLoaderRoute: typeof ApiPublicWalkDirectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/rider-fix': {
@@ -1436,12 +1436,12 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
   ApiPublicRouteReliabilityRoute: ApiPublicRouteReliabilityRoute,
-  ApiPublicWalkDirectionsRoute: ApiPublicWalkDirectionsRoute,
   ApiPublicSightingRoute: ApiPublicSightingRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStopsRoute: ApiPublicStopsRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
+  ApiPublicWalkDirectionsRoute: ApiPublicWalkDirectionsRoute,
   ApiPublicGbfsFree_bike_statusDotjsonRoute:
     ApiPublicGbfsFree_bike_statusDotjsonRoute,
   ApiPublicGbfsStation_informationDotjsonRoute:
