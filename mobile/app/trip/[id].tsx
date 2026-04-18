@@ -61,7 +61,7 @@ export default function TripCompanionScreen() {
   useEffect(() => setHydrated(true), []);
 
   if (active && isMultiLeg(active.itinerary)) {
-    return <MultiLegNotice />;
+    return <MultiLegCompanion active={active} />;
   }
   return (
     <SingleLegCompanion
