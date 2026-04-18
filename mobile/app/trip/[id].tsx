@@ -29,6 +29,7 @@ import { MapView, type MapMarker, type VehicleOverride } from "@/components/MapV
 import { JourneyHUD } from "@/components/JourneyHUD";
 import { WalkGuidance } from "@/components/WalkGuidance";
 import { RouteChip } from "@/components/RouteChip";
+import { MultiLegCompanion } from "@/components/MultiLegCompanion";
 import {
   useActiveTrip,
   clearActiveTrip,
