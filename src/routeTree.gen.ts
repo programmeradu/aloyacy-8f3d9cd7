@@ -39,8 +39,8 @@ import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sight
 import { Route as ApiPublicRouteReliabilityRouteImport } from './routes/api/public/route-reliability'
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
-import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
 import { Route as ApiPublicPulseRouteImport } from './routes/api/public/pulse'
+import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
 import { Route as ApiPublicPlacesAutocompleteRouteImport } from './routes/api/public/places-autocomplete'
 import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
 import { Route as ApiPublicParkAndRideRouteImport } from './routes/api/public/park-and-ride'
@@ -231,14 +231,14 @@ const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
   path: '/api/public/realtime',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
-  id: '/api/public/plan',
-  path: '/api/public/plan',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicPulseRoute = ApiPublicPulseRouteImport.update({
   id: '/api/public/pulse',
   path: '/api/public/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
+  id: '/api/public/plan',
+  path: '/api/public/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPlacesAutocompleteRoute =
@@ -1161,18 +1161,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRealtimeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/plan': {
-      id: '/api/public/plan'
-      path: '/api/public/plan'
-      fullPath: '/api/public/plan'
-      preLoaderRoute: typeof ApiPublicPlanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/pulse': {
       id: '/api/public/pulse'
       path: '/api/public/pulse'
       fullPath: '/api/public/pulse'
       preLoaderRoute: typeof ApiPublicPulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/plan': {
+      id: '/api/public/plan'
+      path: '/api/public/plan'
+      fullPath: '/api/public/plan'
+      preLoaderRoute: typeof ApiPublicPlanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/places-autocomplete': {
