@@ -237,6 +237,11 @@ const ApiPublicPulseRoute = ApiPublicPulseRouteImport.update({
   path: '/api/public/pulse',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWalletRoute = ApiPublicWalletRouteImport.update({
+  id: '/api/public/wallet',
+  path: '/api/public/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
   id: '/api/public/plan',
   path: '/api/public/plan',
