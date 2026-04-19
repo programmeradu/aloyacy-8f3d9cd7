@@ -1,4 +1,4 @@
-import Svg, { Path, Circle } from "react-native-svg";
+import Svg, { Path, Circle, G } from "react-native-svg";
 
 type IconProps = { color: string; size?: number };
 
@@ -69,6 +69,27 @@ export function PlanIcon({ color, size = 24 }: IconProps) {
       />
       <Circle cx={5} cy={7} r={1.8} stroke={color} strokeWidth={1.8} />
       <Circle cx={19} cy={11} r={1.8} stroke={color} strokeWidth={1.8} />
+    </Svg>
+  );
+}
+
+/**
+ * Pulse — a horizon line with a rising sun and the network heartbeat.
+ * Bespoke to the Pulse tab; not repurposable from any generic icon set.
+ */
+export function PulseIcon({ color, size = 24 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <G>
+        <Path
+          d="M3 14h4l1.6-3.4L11.4 17l1.9-8 1.8 5.4L16.8 14H21"
+          stroke={color}
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Circle cx={18.5} cy={6.5} r={1.6} fill={color} />
+      </G>
     </Svg>
   );
 }
