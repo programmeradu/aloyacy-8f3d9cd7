@@ -30,6 +30,7 @@ import { Route as DebugEtaRouteImport } from './routes/debug.eta'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AirportCodeRouteImport } from './routes/airport.$code'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
+import { Route as ApiPublicWalletRouteImport } from './routes/api/public/wallet'
 import { Route as ApiPublicWalkDirectionsRouteImport } from './routes/api/public/walk-directions'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
@@ -40,7 +41,6 @@ import { Route as ApiPublicRouteReliabilityRouteImport } from './routes/api/publ
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPulseRouteImport } from './routes/api/public/pulse'
-import { Route as ApiPublicWalletRouteImport } from './routes/api/public/wallet'
 import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
 import { Route as ApiPublicPlacesAutocompleteRouteImport } from './routes/api/public/places-autocomplete'
 import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
@@ -186,6 +186,11 @@ const AdminSeoRoute = AdminSeoRouteImport.update({
   path: '/admin/seo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWalletRoute = ApiPublicWalletRouteImport.update({
+  id: '/api/public/wallet',
+  path: '/api/public/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWalkDirectionsRoute = ApiPublicWalkDirectionsRouteImport.update({
   id: '/api/public/walk-directions',
   path: '/api/public/walk-directions',
@@ -235,11 +240,6 @@ const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
 const ApiPublicPulseRoute = ApiPublicPulseRouteImport.update({
   id: '/api/public/pulse',
   path: '/api/public/pulse',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicWalletRoute = ApiPublicWalletRouteImport.update({
-  id: '/api/public/wallet',
-  path: '/api/public/wallet',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
@@ -337,9 +337,9 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicWalletOcrRoute = ApiPublicWalletOcrRouteImport.update({
-  id: '/api/public/wallet/ocr',
-  path: '/api/public/wallet/ocr',
-  getParentRoute: () => rootRouteImport,
+  id: '/ocr',
+  path: '/ocr',
+  getParentRoute: () => ApiPublicWalletRoute,
 } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
@@ -491,8 +491,6 @@ export interface FileRoutesByFullPath {
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
-  '/api/public/wallet': typeof ApiPublicWalletRoute
-  '/api/public/wallet': typeof ApiPublicWalletRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
@@ -502,6 +500,7 @@ export interface FileRoutesByFullPath {
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
+  '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -564,7 +563,6 @@ export interface FileRoutesByTo {
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
-  '/api/public/wallet': typeof ApiPublicWalletRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
@@ -574,6 +572,7 @@ export interface FileRoutesByTo {
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
+  '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -637,7 +636,6 @@ export interface FileRoutesById {
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
-  '/api/public/wallet': typeof ApiPublicWalletRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
@@ -647,6 +645,7 @@ export interface FileRoutesById {
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
+  '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -711,7 +710,6 @@ export interface FileRouteTypes {
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
     | '/api/public/pulse'
-    | '/api/public/wallet'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
@@ -721,6 +719,7 @@ export interface FileRouteTypes {
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
     | '/api/public/walk-directions'
+    | '/api/public/wallet'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -783,7 +782,6 @@ export interface FileRouteTypes {
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
     | '/api/public/pulse'
-    | '/api/public/wallet'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
@@ -793,6 +791,7 @@ export interface FileRouteTypes {
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
     | '/api/public/walk-directions'
+    | '/api/public/wallet'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -855,7 +854,6 @@ export interface FileRouteTypes {
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
     | '/api/public/pulse'
-    | '/api/public/wallet'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
@@ -865,6 +863,7 @@ export interface FileRouteTypes {
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
     | '/api/public/walk-directions'
+    | '/api/public/wallet'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -928,7 +927,6 @@ export interface RootRouteChildren {
   ApiPublicPlacesAutocompleteRoute: typeof ApiPublicPlacesAutocompleteRoute
   ApiPublicPlanRoute: typeof ApiPublicPlanRoute
   ApiPublicPulseRoute: typeof ApiPublicPulseRoute
-  ApiPublicWalletRoute: typeof ApiPublicWalletRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
   ApiPublicRouteReliabilityRoute: typeof ApiPublicRouteReliabilityRoute
@@ -938,6 +936,7 @@ export interface RootRouteChildren {
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
   ApiPublicWalkDirectionsRoute: typeof ApiPublicWalkDirectionsRoute
+  ApiPublicWalletRoute: typeof ApiPublicWalletRouteWithChildren
   ApiPublicGbfsFree_bike_statusDotjsonRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   ApiPublicGbfsStation_informationDotjsonRoute: typeof ApiPublicGbfsStation_informationDotjsonRoute
   ApiPublicGbfsStation_statusDotjsonRoute: typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -957,7 +956,6 @@ export interface RootRouteChildren {
   ApiPublicHooksPulseWeatherRoute: typeof ApiPublicHooksPulseWeatherRoute
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
-  ApiPublicWalletOcrRoute: typeof ApiPublicWalletOcrRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -1112,6 +1110,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSeoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/wallet': {
+      id: '/api/public/wallet'
+      path: '/api/public/wallet'
+      fullPath: '/api/public/wallet'
+      preLoaderRoute: typeof ApiPublicWalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/walk-directions': {
       id: '/api/public/walk-directions'
       path: '/api/public/walk-directions'
@@ -1180,13 +1185,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/pulse'
       fullPath: '/api/public/pulse'
       preLoaderRoute: typeof ApiPublicPulseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/wallet': {
-      id: '/api/public/wallet'
-      path: '/api/public/wallet'
-      fullPath: '/api/public/wallet'
-      preLoaderRoute: typeof ApiPublicWalletRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/plan': {
@@ -1317,10 +1315,10 @@ declare module '@tanstack/react-router' {
     }
     '/api/public/wallet/ocr': {
       id: '/api/public/wallet/ocr'
-      path: '/api/public/wallet/ocr'
+      path: '/ocr'
       fullPath: '/api/public/wallet/ocr'
       preLoaderRoute: typeof ApiPublicWalletOcrRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiPublicWalletRoute
     }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
@@ -1458,6 +1456,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ApiPublicWalletRouteChildren {
+  ApiPublicWalletOcrRoute: typeof ApiPublicWalletOcrRoute
+}
+
+const ApiPublicWalletRouteChildren: ApiPublicWalletRouteChildren = {
+  ApiPublicWalletOcrRoute: ApiPublicWalletOcrRoute,
+}
+
+const ApiPublicWalletRouteWithChildren = ApiPublicWalletRoute._addFileChildren(
+  ApiPublicWalletRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PrivacyRoute: PrivacyRoute,
@@ -1496,7 +1506,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPlacesAutocompleteRoute: ApiPublicPlacesAutocompleteRoute,
   ApiPublicPlanRoute: ApiPublicPlanRoute,
   ApiPublicPulseRoute: ApiPublicPulseRoute,
-  ApiPublicWalletRoute: ApiPublicWalletRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
   ApiPublicRouteReliabilityRoute: ApiPublicRouteReliabilityRoute,
@@ -1506,6 +1515,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
   ApiPublicWalkDirectionsRoute: ApiPublicWalkDirectionsRoute,
+  ApiPublicWalletRoute: ApiPublicWalletRouteWithChildren,
   ApiPublicGbfsFree_bike_statusDotjsonRoute:
     ApiPublicGbfsFree_bike_statusDotjsonRoute,
   ApiPublicGbfsStation_informationDotjsonRoute:
@@ -1530,7 +1540,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPulseWeatherRoute: ApiPublicHooksPulseWeatherRoute,
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
-  ApiPublicWalletOcrRoute: ApiPublicWalletOcrRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
