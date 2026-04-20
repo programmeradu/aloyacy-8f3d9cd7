@@ -93,3 +93,18 @@ export function PulseIcon({ color, size = 24 }: IconProps) {
     </Svg>
   );
 }
+
+export function WalletIcon({ color, size = 24 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4.5 7.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-9Z"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinejoin="round"
+      />
+      <Path d="M4.5 10.5h15" stroke={color} strokeWidth={1.8} />
+      <Circle cx={16.2} cy={14.4} r={1.15} fill={color} />
+    </Svg>
+  );
+}
