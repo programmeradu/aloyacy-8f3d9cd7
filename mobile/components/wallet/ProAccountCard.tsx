@@ -8,8 +8,6 @@ import * as WebBrowser from "expo-web-browser";
 import { palette } from "@/constants/theme";
 import { useProSubscription } from "@/lib/usePro";
 import { useSession, signOut } from "@/lib/auth";
-import { API_BASE } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
 
 export function ProAccountCard() {
   const { isPro, sub, loading } = useProSubscription();
