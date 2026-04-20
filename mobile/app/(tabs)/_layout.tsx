@@ -85,13 +85,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="more"
+        name="wallet"
         options={{
           tabBarIcon: ({ focused }) => (
-            <MoreIcon color={focused ? palette.ink : palette.inkSoft} />
+            <WalletIcon color={focused ? palette.ink : palette.inkSoft} />
           ),
-          tabBarLabel: ({ focused }) => <TabLabel label="More" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label="Wallet" focused={focused} />,
         }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{ href: null }}
       />
     </Tabs>
   );
