@@ -1,9 +1,11 @@
 import "../global.css";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ONBOARDED_KEY } from "./welcome";
 import { QueryClientProvider } from "@tanstack/react-query";
 import {
   useFonts,
