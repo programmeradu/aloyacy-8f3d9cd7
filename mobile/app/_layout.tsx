@@ -99,6 +99,25 @@ export default function RootLayout() {
     };
   }, [loaded]);
 
+  // First-launch onboarding gate. Runs once fonts are ready so the welcome
+  // screen paints in the correct type. AsyncStorage read is cheap; a missing
+  // flag means we've never shown onboarding and route to /welcome.
+  useEffect(() => {
+    if (!loaded) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const seen = await AsyncStorage.getItem(ONBOARDED_KEY);
+        if (!cancelled && !seen) router.replace("/welcome");
+      } catch {
+        // ignore — user just sees the app.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loaded]);
+
   if (!loaded) return null;
 
   return (
@@ -113,6 +132,10 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="welcome"
+            options={{ presentation: "fullScreenModal", animation: "fade" }}
+          />
           <Stack.Screen
             name="stop/[stopId]"
             options={{ presentation: "card" }}
