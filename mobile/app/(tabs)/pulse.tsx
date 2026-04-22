@@ -1072,7 +1072,7 @@ function MarineCard({ payload, city }: { payload: MarinePayload; city: string })
       ? palette.aegeanDeep
       : palette.ochre;
   return (
-    <SignalCard tone={palette.aegeanDeep} kicker={`Sea · ${city}`}>
+    <SignalCard tone={palette.aegeanDeep} kicker={`Sea · ${city}`} image={assets.pulse_sea_card}>
       <View style={{ flexDirection: "row", gap: 20, alignItems: "flex-end" }}>
         <StatFigure
           value={payload.seaTempC != null ? Math.round(payload.seaTempC).toString() : "—"}
