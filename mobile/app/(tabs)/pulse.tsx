@@ -1286,22 +1286,50 @@ function SignalCard({
   tone,
   kicker,
   children,
+  image,
+  imageTone = "light",
 }: {
   tone: string;
   kicker: string;
   children: React.ReactNode;
+  image?: { uri: string };
+  imageTone?: "light" | "dark";
 }) {
   return (
     <View
       style={{
         borderRadius: 22,
         padding: 20,
+        paddingLeft: 22,
         backgroundColor: palette.white,
         borderWidth: 1,
         borderColor: palette.line,
         overflow: "hidden",
       }}
     >
+      {image && (
+        <>
+          <Image
+            source={image}
+            resizeMode="cover"
+            style={StyleSheet.absoluteFillObject}
+          />
+          {/* Legibility wash — soft parchment gradient over the photo so the
+              typography reads at Apple-grade contrast on any imagery. */}
+          <View
+            pointerEvents="none"
+            style={[
+              StyleSheet.absoluteFillObject,
+              {
+                backgroundColor:
+                  imageTone === "dark"
+                    ? "rgba(15,26,32,0.62)"
+                    : "rgba(246,241,231,0.86)",
+              },
+            ]}
+          />
+        </>
+      )}
       <View
         style={{
           position: "absolute",
