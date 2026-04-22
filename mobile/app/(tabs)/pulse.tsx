@@ -1204,7 +1204,7 @@ function TrafficCard({ payload, city }: { payload: TrafficLivePayload; city: str
 
 function CruiseCard({ payload }: { payload: CruisesPayload }) {
   return (
-    <SignalCard tone={palette.aegeanDeep} kicker="Port · Limassol">
+    <SignalCard tone={palette.aegeanDeep} kicker="Port · Limassol" image={assets.pulse_cruise_card}>
       <View style={{ flexDirection: "row", gap: 20, alignItems: "flex-end" }}>
         <StatFigure value={String(payload.count)} unit="ships" label="Today" />
         <StatFigure
