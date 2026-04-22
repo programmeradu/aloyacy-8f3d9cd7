@@ -15,6 +15,8 @@ import {
   RefreshControl,
   ActivityIndicator,
   Linking,
+  Image,
+  StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
@@ -31,6 +33,7 @@ import Svg, {
 import { palette } from "@/constants/theme";
 import { useGeoFix } from "@/lib/hooks";
 import { fetchPulseBundle } from "@/lib/pulse";
+import { assets } from "@/lib/assets";
 import type {
   TodayBriefing,
   TodayTile,
@@ -1013,7 +1016,7 @@ function NewsCard({ payload }: { payload: NewsPayload }) {
   const item = items[i];
   if (!item) return null;
   return (
-    <SignalCard tone={palette.aegeanDeep} kicker={`News · ${item.source}`}>
+    <SignalCard tone={palette.aegeanDeep} kicker={`News · ${item.source}`} image={assets.pulse_news_kafenion}>
       <Pressable
         onPress={async () => {
           await Haptics.selectionAsync();
@@ -1069,7 +1072,7 @@ function MarineCard({ payload, city }: { payload: MarinePayload; city: string })
       ? palette.aegeanDeep
       : palette.ochre;
   return (
-    <SignalCard tone={palette.aegeanDeep} kicker={`Sea · ${city}`}>
+    <SignalCard tone={palette.aegeanDeep} kicker={`Sea · ${city}`} image={assets.pulse_sea_card}>
       <View style={{ flexDirection: "row", gap: 20, alignItems: "flex-end" }}>
         <StatFigure
           value={payload.seaTempC != null ? Math.round(payload.seaTempC).toString() : "—"}
@@ -1117,7 +1120,7 @@ function AirCard({ payload, city }: { payload: AirPayload; city: string }) {
       ? palette.ochre
       : "#B23A2E";
   return (
-    <SignalCard tone={bandColor} kicker={`Air · ${city}`}>
+    <SignalCard tone={bandColor} kicker={`Air · ${city}`} image={assets.pulse_sky_card}>
       <View style={{ flexDirection: "row", gap: 20, alignItems: "flex-end" }}>
         <StatFigure
           value={payload.europeanAqi != null ? Math.round(payload.europeanAqi).toString() : "—"}
@@ -1158,8 +1161,17 @@ function TrafficCard({ payload, city }: { payload: TrafficLivePayload; city: str
   const tone =
     payload.highest === "high" ? "#B23A2E" : payload.highest === "medium" ? palette.ochre : palette.olive;
   const list = payload.incidents.slice(0, 3);
+  // Mirror web PulseLiveSection: pick a variant photo per dominant incident kind.
+  const dominantKind = list[0]?.kind?.toLowerCase() ?? "";
+  const trafficImg = dominantKind.includes("roadwork")
+    ? assets.pulse_traffic_roadworks
+    : dominantKind.includes("closure") || dominantKind.includes("closed")
+    ? assets.pulse_traffic_closure
+    : dominantKind.includes("congest") || dominantKind.includes("jam")
+    ? assets.pulse_traffic_congestion
+    : assets.pulse_traffic_card;
   return (
-    <SignalCard tone={tone} kicker={`Roads · ${city}`}>
+    <SignalCard tone={tone} kicker={`Roads · ${city}`} image={trafficImg}>
       <Text style={{ fontFamily: DISPLAY_MED, fontSize: 17, lineHeight: 22, color: palette.ink }}>
         {payload.count} live incident{payload.count === 1 ? "" : "s"}
       </Text>
@@ -1192,7 +1204,7 @@ function TrafficCard({ payload, city }: { payload: TrafficLivePayload; city: str
 
 function CruiseCard({ payload }: { payload: CruisesPayload }) {
   return (
-    <SignalCard tone={palette.aegeanDeep} kicker="Port · Limassol">
+    <SignalCard tone={palette.aegeanDeep} kicker="Port · Limassol" image={assets.pulse_cruise_card}>
       <View style={{ flexDirection: "row", gap: 20, alignItems: "flex-end" }}>
         <StatFigure value={String(payload.count)} unit="ships" label="Today" />
         <StatFigure
@@ -1283,22 +1295,50 @@ function SignalCard({
   tone,
   kicker,
   children,
+  image,
+  imageTone = "light",
 }: {
   tone: string;
   kicker: string;
   children: React.ReactNode;
+  image?: { uri: string };
+  imageTone?: "light" | "dark";
 }) {
   return (
     <View
       style={{
         borderRadius: 22,
         padding: 20,
+        paddingLeft: 22,
         backgroundColor: palette.white,
         borderWidth: 1,
         borderColor: palette.line,
         overflow: "hidden",
       }}
     >
+      {image && (
+        <>
+          <Image
+            source={image}
+            resizeMode="cover"
+            style={StyleSheet.absoluteFill}
+          />
+          {/* Legibility wash — soft parchment gradient over the photo so the
+              typography reads at Apple-grade contrast on any imagery. */}
+          <View
+            pointerEvents="none"
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                backgroundColor:
+                  imageTone === "dark"
+                    ? "rgba(15,26,32,0.62)"
+                    : "rgba(246,241,231,0.86)",
+              },
+            ]}
+          />
+        </>
+      )}
       <View
         style={{
           position: "absolute",
