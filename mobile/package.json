@@ -21,6 +21,7 @@
     "expo-font": "~56.0.7",
     "expo-haptics": "^56.0.3",
     "expo-linking": "~56.0.14",
+    "expo-localization": "^57.0.0",
     "expo-location": "^56.0.18",
     "expo-maps": "^57.0.0",
     "expo-notifications": "^56.0.18",
