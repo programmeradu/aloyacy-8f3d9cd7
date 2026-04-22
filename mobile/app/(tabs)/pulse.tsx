@@ -33,6 +33,7 @@ import Svg, {
 import { palette } from "@/constants/theme";
 import { useGeoFix } from "@/lib/hooks";
 import { fetchPulseBundle } from "@/lib/pulse";
+import { assets } from "@/lib/assets";
 import type {
   TodayBriefing,
   TodayTile,
