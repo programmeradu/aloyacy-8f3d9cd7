@@ -1161,8 +1161,17 @@ function TrafficCard({ payload, city }: { payload: TrafficLivePayload; city: str
   const tone =
     payload.highest === "high" ? "#B23A2E" : payload.highest === "medium" ? palette.ochre : palette.olive;
   const list = payload.incidents.slice(0, 3);
+  // Mirror web PulseLiveSection: pick a variant photo per dominant incident kind.
+  const dominantKind = list[0]?.kind?.toLowerCase() ?? "";
+  const trafficImg = dominantKind.includes("roadwork")
+    ? assets.pulse_traffic_roadworks
+    : dominantKind.includes("closure") || dominantKind.includes("closed")
+    ? assets.pulse_traffic_closure
+    : dominantKind.includes("congest") || dominantKind.includes("jam")
+    ? assets.pulse_traffic_congestion
+    : assets.pulse_traffic_card;
   return (
-    <SignalCard tone={tone} kicker={`Roads · ${city}`}>
+    <SignalCard tone={tone} kicker={`Roads · ${city}`} image={trafficImg}>
       <Text style={{ fontFamily: DISPLAY_MED, fontSize: 17, lineHeight: 22, color: palette.ink }}>
         {payload.count} live incident{payload.count === 1 ? "" : "s"}
       </Text>
