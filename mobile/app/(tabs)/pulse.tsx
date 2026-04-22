@@ -1120,7 +1120,7 @@ function AirCard({ payload, city }: { payload: AirPayload; city: string }) {
       ? palette.ochre
       : "#B23A2E";
   return (
-    <SignalCard tone={bandColor} kicker={`Air · ${city}`}>
+    <SignalCard tone={bandColor} kicker={`Air · ${city}`} image={assets.pulse_sky_card}>
       <View style={{ flexDirection: "row", gap: 20, alignItems: "flex-end" }}>
         <StatFigure
           value={payload.europeanAqi != null ? Math.round(payload.europeanAqi).toString() : "—"}
