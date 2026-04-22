@@ -1321,14 +1321,14 @@ function SignalCard({
           <Image
             source={image}
             resizeMode="cover"
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
           />
           {/* Legibility wash — soft parchment gradient over the photo so the
               typography reads at Apple-grade contrast on any imagery. */}
           <View
             pointerEvents="none"
             style={[
-              StyleSheet.absoluteFillObject,
+              StyleSheet.absoluteFill,
               {
                 backgroundColor:
                   imageTone === "dark"
