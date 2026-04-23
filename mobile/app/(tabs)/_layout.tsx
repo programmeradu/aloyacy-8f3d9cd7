@@ -2,6 +2,7 @@ import { Tabs } from "expo-router";
 import { View, Text, Platform } from "react-native";
 import { palette } from "@/constants/theme";
 import { HomeIcon, SearchIcon, SavedIcon, PlanIcon, PulseIcon, WalletIcon } from "@/components/TabIcon";
+import { useLocale, type I18nKey } from "@/lib/i18n";
 
 function TabLabel({ label, focused }: { label: string; focused: boolean }) {
   return (
