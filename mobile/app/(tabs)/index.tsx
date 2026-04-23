@@ -1,0 +1,516 @@
+import { useMemo, useCallback, useState } from "react";
+import {
+  ScrollView,
+  View,
+  Text,
+  Pressable,
+  ActivityIndicator,
+  RefreshControl,
+  Image,
+  StyleSheet,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import Svg, { Circle, Path } from "react-native-svg";
+import { palette } from "@/constants/theme";
+import { StopCard, type StopCardData, type StopCardRoute } from "@/components/StopCard";
+import { MapView } from "@/components/MapView";
+import { useGeoFix, useStopsBundle, useRealtime } from "@/lib/hooks";
+import { distanceMeters, formatDistance, timeOfDayGreeting } from "@/lib/format";
+import { smartEtaV2 } from "@/lib/eta-v2";
+import { assets } from "@/lib/assets";
+import type { Stop } from "@/lib/api";
+
+const FALLBACK = { lat: 35.1856, lng: 33.3823 };
+
+function toneForRoute(id: string): "aegean" | "ochre" | "olive" {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  const v = Math.abs(h) % 3;
+  return v === 0 ? "aegean" : v === 1 ? "ochre" : "olive";
+}
+
+function areaFromStop(stop?: Stop | null) {
+  if (!stop) return "Cyprus";
+  return stop.name.split(/[·\-,]/)[0].trim() || "Cyprus";
+}
+
+export default function TodayScreen() {
+  const insets = useSafeAreaInsets();
+  const { fix, status } = useGeoFix();
+  const bundle = useStopsBundle();
+  const rt = useRealtime();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const here = fix ?? FALLBACK;
+  const usingFallback = !fix;
+
+  const nearby: (Stop & { d: number })[] = useMemo(() => {
+    if (!bundle.data) return [];
+    return bundle.data.stops
+      .map((s) => ({ ...s, d: distanceMeters(here, s) }))
+      .sort((a, b) => a.d - b.d)
+      .slice(0, 6);
+  }, [bundle.data, here.lat, here.lng]);
+
+  const stopCards: StopCardData[] = useMemo(() => {
+    const arrivals = rt.data?.arrivals ?? [];
+    const vehicles = rt.data?.vehicles ?? [];
+    const routesMeta = bundle.data?.routes ?? {};
+    const nowSec = Math.floor(Date.now() / 1000);
+    const arrByStop = new Map<string, { routeId: string; tripId: string; etaMin: number }[]>();
+
+    for (const a of arrivals) {
+      const eta = Math.max(0, Math.round((a.arrivalUnix - nowSec) / 60));
+      if (eta > 120) continue;
+      const arr = arrByStop.get(a.stopId) ?? [];
+      arr.push({ routeId: a.routeId, tripId: a.tripId, etaMin: eta });
+      arrByStop.set(a.stopId, arr);
+    }
+
+    return nearby.map((s, idx) => {
+      const arr = (arrByStop.get(s.id) ?? []).sort((a, b) => a.etaMin - b.etaMin);
+      const smart = smartEtaV2({
+        stopId: s.id,
+        arrivals,
+        vehicles,
+        nowSec,
+        agency: s.agency,
+        riderConfirmedAgeSec: arr[0] ? rt.riderConfirmedAge.get(arr[0].tripId) : undefined,
+      });
+
+      const seen = new Set<string>();
+      const routes: StopCardRoute[] = arr
+        .filter((a) => {
+          if (seen.has(a.routeId)) return false;
+          seen.add(a.routeId);
+          return true;
+        })
+        .slice(0, 3)
+        .map((a) => {
+          const meta = routesMeta[a.routeId];
+          return {
+            code: meta?.short ?? a.routeId,
+            tone: toneForRoute(a.routeId),
+            color: meta?.color,
+            headsign: null,
+          };
+        });
+
+      if (routes.length === 0) routes.push({ code: "—", tone: "olive", headsign: null });
+
+      return {
+        id: s.id,
+        code: s.code || s.id,
+        name: s.name,
+        towards: s.agency === "IC" ? "Intercity" : formatDistance(s.d),
+        etaMin: smart?.etaMin ?? arr[0]?.etaMin ?? null,
+        etaTier: smart?.tier,
+        etaConfidenceLevel: smart?.confidence,
+        etaBlurb: smart?.blurb,
+        routes,
+        highlight: idx === 0,
+      } satisfies StopCardData;
+    });
+  }, [nearby, rt.data, rt.riderConfirmedAge, bundle.data]);
+
+  const liveCount = rt.data?.vehicles.length ?? 0;
+  const onTimePct = useMemo(() => {
+    const sampled = rt.data?.arrivals.slice(0, 400) ?? [];
+    if (!sampled.length) return null;
+    const ok = sampled.filter((a) => Math.abs(a.delaySec) <= 120).length;
+    return Math.round((ok / sampled.length) * 100);
+  }, [rt.data]);
+
+  const landmarkChips = nearby.slice(0, 4);
+  const mapMarkers = nearby.map((s) => ({
+    lat: s.lat,
+    lng: s.lng,
+    label: s.code || s.name,
+    tone: "aegean" as const,
+    kind: "stop" as const,
+  }));
+  const area = areaFromStop(nearby[0]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([rt.refetch(), bundle.refetch()]);
+    setRefreshing(false);
+  }, [rt, bundle]);
+
+  return (
+    <ScrollView
+      style={{ flex: 1, backgroundColor: palette.limestone }}
+      contentContainerStyle={{
+        paddingTop: insets.top + 10,
+        paddingBottom: insets.bottom + 34,
+      }}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={palette.aegeanDeep} />
+      }
+    >
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.logo}>ALOYA CY</Text>
+          <Text style={styles.locale}>EN  ΕΛ  RU</Text>
+        </View>
+        <View style={styles.weatherStamp}>
+          <Text style={styles.weatherDay}>WED</Text>
+          <WeatherGlyph />
+        </View>
+      </View>
+
+      <View style={styles.heroWrap}>
+        <Text style={styles.heroTitle}>
+          {timeOfDayGreeting()}.{"\n"}
+          <Text style={styles.heroItalic}>Where to in {area}?</Text>
+        </Text>
+      </View>
+
+      <View style={styles.searchWrap}>
+        <Pressable
+          onPress={() => router.push("/search")}
+          style={({ pressed }) => [styles.smartSearch, pressed && { transform: [{ scale: 0.99 }] }]}
+        >
+          <SearchGlyph />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.searchPlaceholder}>Search stops, routes, buses, airports</Text>
+            <Text style={styles.searchHint}>Tap to search the full live network</Text>
+          </View>
+        </Pressable>
+      </View>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chipsRow}
+      >
+        {landmarkChips.length === 0 ? (
+          <Text style={styles.locating}>Locating nearby stops</Text>
+        ) : (
+          landmarkChips.map((s, i) => (
+            <Pressable key={s.id} onPress={() => router.push(`/stop/${s.id}`)} style={[styles.chip, i % 3 === 1 && styles.chipOlive, i % 3 === 2 && styles.chipOchre]}>
+              <Text style={[styles.chipText, i % 3 === 1 && styles.chipTextOlive, i % 3 === 2 && styles.chipTextOchre]} numberOfLines={1}>
+                {areaFromStop(s)}
+              </Text>
+            </Pressable>
+          ))
+        )}
+      </ScrollView>
+
+      <View style={styles.mapBand}>
+        <MapView
+          height={238}
+          center={here}
+          markers={mapMarkers}
+          userLocation={fix ? { lat: fix.lat, lng: fix.lng } : null}
+          liveVehicles
+          spanKm={9}
+        />
+        <View pointerEvents="none" style={styles.mapOverlay}>
+          <Text style={styles.mapKicker}>{usingFallback ? "Nicosia preview" : "Around you"}</Text>
+          <Text style={styles.mapTitle}>{area}</Text>
+        </View>
+      </View>
+
+      <View style={styles.statsGrid}>
+        <QuickStat label="Live buses" value={liveCount ? String(liveCount) : "—"} tone="aegean" image={assets.stat_bus} />
+        <QuickStat label="On time" value={onTimePct !== null ? `${onTimePct}%` : "—"} tone="olive" image={assets.stat_dial} />
+        <QuickStat label="Next ride" value={stopCards[0]?.etaMin != null ? `${stopCards[0].etaMin}′` : "—"} tone="ochre" image={assets.stat_road} />
+      </View>
+
+      <View style={styles.editorialCard}>
+        <Image source={assets.nl_planner_illustration} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        <View style={styles.editorialWash} />
+        <View style={styles.editorialContent}>
+          <Text style={styles.editorialKicker}>Natural planner</Text>
+          <Text style={styles.editorialTitle}>Tell Aloya where you’re going.</Text>
+          <Text style={styles.editorialBody}>Use routes, stop codes, landmarks, airports, or live bus labels from one search surface.</Text>
+        </View>
+      </View>
+
+      <View style={styles.sectionHead}>
+        <View>
+          <Text style={styles.sectionKicker}>
+            {status === "ready" ? "Around you" : status === "denied" ? "Location off" : "Live network"}
+          </Text>
+          <Text style={styles.sectionTitle}>Nearby stops</Text>
+        </View>
+        <Pressable onPress={() => router.push("/plan")}>
+          <Text style={styles.planLink}>Plan trip</Text>
+        </Pressable>
+      </View>
+
+      <View style={{ paddingHorizontal: 20 }}>
+        {bundle.isLoading ? (
+          <View style={{ paddingVertical: 40, alignItems: "center" }}>
+            <ActivityIndicator color={palette.aegeanDeep} />
+          </View>
+        ) : stopCards.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>No stops nearby</Text>
+            <Text style={styles.emptyBody}>Move closer to a bus route to see live arrivals.</Text>
+          </View>
+        ) : (
+          <View style={{ gap: 10 }}>
+            {stopCards.map((s) => (
+              <StopCard key={s.id} stop={s} />
+            ))}
+          </View>
+        )}
+      </View>
+    </ScrollView>
+  );
+}
+
+function QuickStat({ label, value, tone, image }: { label: string; value: string; tone: "aegean" | "ochre" | "olive"; image: { uri: string } }) {
+  const color = tone === "aegean" ? palette.aegeanDeep : tone === "ochre" ? palette.ochre : palette.olive;
+  return (
+    <View style={styles.statCard}>
+      <Image source={image} style={styles.statImage} resizeMode="contain" />
+      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={[styles.statValue, { color }]}>{value}</Text>
+    </View>
+  );
+}
+
+function SearchGlyph() {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Circle cx={11} cy={11} r={6.2} stroke={palette.ink} strokeWidth={2} />
+      <Path d="m15.7 15.7 4 4" stroke={palette.ink} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function WeatherGlyph() {
+  return (
+    <Svg width={28} height={28} viewBox="0 0 28 28" fill="none">
+      <Circle cx={14} cy={14} r={5.5} fill={palette.ochre} />
+      <Path d="M14 2.5v4M14 21.5v4M2.5 14h4M21.5 14h4M5.9 5.9l2.8 2.8M19.3 19.3l2.8 2.8M22.1 5.9l-2.8 2.8M8.7 19.3l-2.8 2.8" stroke={palette.ochre} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: {
+    paddingHorizontal: 22,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  logo: {
+    fontFamily: "BricolageGrotesque_800ExtraBold",
+    fontSize: 24,
+    letterSpacing: 0.4,
+    color: palette.ink,
+  },
+  locale: {
+    marginTop: 4,
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 10,
+    letterSpacing: 2,
+    color: palette.inkSoft,
+  },
+  weatherStamp: {
+    minWidth: 82,
+    borderRadius: 22,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    backgroundColor: palette.white,
+    borderWidth: 1,
+    borderColor: palette.line,
+    flexDirection: "row",
+    gap: 9,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  weatherDay: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 10,
+    letterSpacing: 1.7,
+    color: palette.inkSoft,
+  },
+  heroWrap: { paddingHorizontal: 22, marginTop: 24 },
+  heroTitle: {
+    fontFamily: "BricolageGrotesque_800ExtraBold",
+    fontSize: 40,
+    lineHeight: 43,
+    color: palette.ink,
+  },
+  heroItalic: {
+    fontFamily: "BricolageGrotesque_700Bold",
+    fontStyle: "italic",
+    color: palette.oliveSoft,
+  },
+  searchWrap: { paddingHorizontal: 20, marginTop: 22 },
+  smartSearch: {
+    minHeight: 64,
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: palette.white,
+    borderWidth: 1,
+    borderColor: palette.line,
+    shadowColor: "#1F1E18",
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+  },
+  searchPlaceholder: {
+    fontFamily: "Geist_600SemiBold",
+    fontSize: 15.5,
+    color: palette.ink,
+  },
+  searchHint: {
+    marginTop: 2,
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 9.5,
+    letterSpacing: 1.4,
+    color: palette.inkSoft,
+    textTransform: "uppercase",
+  },
+  chipsRow: { paddingHorizontal: 20, paddingTop: 14, gap: 8 },
+  locating: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: palette.inkSoft,
+    textTransform: "uppercase",
+    paddingVertical: 8,
+  },
+  chip: {
+    maxWidth: 176,
+    borderRadius: 999,
+    paddingHorizontal: 15,
+    paddingVertical: 9,
+    backgroundColor: "rgba(63,155,178,0.14)",
+  },
+  chipOlive: { backgroundColor: "rgba(63,74,54,0.11)" },
+  chipOchre: { backgroundColor: "rgba(201,133,58,0.16)" },
+  chipText: { fontFamily: "Geist_600SemiBold", fontSize: 13, color: palette.aegeanDeep },
+  chipTextOlive: { color: palette.olive },
+  chipTextOchre: { color: palette.ochre },
+  mapBand: { marginTop: 20, paddingHorizontal: 20, position: "relative" },
+  mapOverlay: {
+    position: "absolute",
+    left: 34,
+    top: 14,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: "rgba(246,241,231,0.94)",
+    borderWidth: 1,
+    borderColor: "rgba(31,30,24,0.08)",
+  },
+  mapKicker: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 9,
+    letterSpacing: 1.8,
+    color: palette.inkSoft,
+    textTransform: "uppercase",
+  },
+  mapTitle: {
+    marginTop: 2,
+    fontFamily: "BricolageGrotesque_700Bold",
+    fontSize: 19,
+    color: palette.ink,
+  },
+  statsGrid: { marginTop: 12, paddingHorizontal: 20, flexDirection: "row", gap: 8 },
+  statCard: {
+    flex: 1,
+    minHeight: 92,
+    borderRadius: 18,
+    backgroundColor: palette.white,
+    borderWidth: 1,
+    borderColor: palette.line,
+    overflow: "hidden",
+    padding: 12,
+  },
+  statImage: { position: "absolute", right: -3, bottom: -4, width: "58%", height: "58%", opacity: 0.62 },
+  statLabel: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 9,
+    letterSpacing: 1.5,
+    color: palette.inkSoft,
+    textTransform: "uppercase",
+  },
+  statValue: {
+    marginTop: 9,
+    fontFamily: "BricolageGrotesque_800ExtraBold",
+    fontSize: 27,
+    lineHeight: 30,
+  },
+  editorialCard: {
+    marginHorizontal: 20,
+    marginTop: 24,
+    height: 188,
+    borderRadius: 26,
+    overflow: "hidden",
+    backgroundColor: palette.ink,
+  },
+  editorialWash: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(15,26,32,0.46)" },
+  editorialContent: { flex: 1, padding: 20, justifyContent: "flex-end" },
+  editorialKicker: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 10,
+    letterSpacing: 2,
+    color: "rgba(246,241,231,0.78)",
+    textTransform: "uppercase",
+  },
+  editorialTitle: {
+    marginTop: 7,
+    fontFamily: "BricolageGrotesque_800ExtraBold",
+    fontSize: 28,
+    lineHeight: 30,
+    color: palette.limestone,
+  },
+  editorialBody: {
+    marginTop: 7,
+    maxWidth: 300,
+    fontFamily: "Geist_500Medium",
+    fontSize: 13,
+    lineHeight: 18,
+    color: "rgba(246,241,231,0.84)",
+  },
+  sectionHead: {
+    marginTop: 28,
+    marginBottom: 12,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    gap: 14,
+  },
+  sectionKicker: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 10,
+    letterSpacing: 1.9,
+    color: palette.inkSoft,
+    textTransform: "uppercase",
+  },
+  sectionTitle: {
+    marginTop: 3,
+    fontFamily: "BricolageGrotesque_700Bold",
+    fontSize: 28,
+    color: palette.ink,
+  },
+  planLink: {
+    fontFamily: "Geist_600SemiBold",
+    fontSize: 13,
+    color: palette.aegeanDeep,
+  },
+  emptyCard: {
+    paddingVertical: 32,
+    alignItems: "center",
+    backgroundColor: palette.white,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: palette.line,
+  },
+  emptyTitle: { fontFamily: "BricolageGrotesque_700Bold", fontSize: 18, color: palette.ink },
+  emptyBody: { fontFamily: "Geist_500Medium", fontSize: 13, color: palette.inkSoft, marginTop: 4 },
+});
