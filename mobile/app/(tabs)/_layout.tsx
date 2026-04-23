@@ -2,6 +2,7 @@ import { Tabs } from "expo-router";
 import { View, Text, Platform } from "react-native";
 import { palette } from "@/constants/theme";
 import { HomeIcon, SearchIcon, SavedIcon, PlanIcon, PulseIcon, WalletIcon } from "@/components/TabIcon";
+import { useLocale, type I18nKey } from "@/lib/i18n";
 
 function TabLabel({ label, focused }: { label: string; focused: boolean }) {
   return (
@@ -20,6 +21,8 @@ function TabLabel({ label, focused }: { label: string; focused: boolean }) {
 }
 
 export default function TabLayout() {
+  const { t } = useLocale();
+  const label = (key: I18nKey) => t(key);
   return (
     <Tabs
       screenOptions={{
@@ -45,7 +48,7 @@ export default function TabLayout() {
               <HomeIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
             </View>
           ),
-          tabBarLabel: ({ focused }) => <TabLabel label="Today" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label={label("tab.today")} focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -54,7 +57,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <PulseIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
           ),
-          tabBarLabel: ({ focused }) => <TabLabel label="Pulse" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label={label("tab.pulse")} focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -63,7 +66,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <PlanIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
           ),
-          tabBarLabel: ({ focused }) => <TabLabel label="Plan" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label={label("tab.plan")} focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -72,7 +75,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <SearchIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
           ),
-          tabBarLabel: ({ focused }) => <TabLabel label="Search" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label={label("tab.search")} focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -81,7 +84,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <SavedIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
           ),
-          tabBarLabel: ({ focused }) => <TabLabel label="Saved" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label={label("tab.saved")} focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -90,7 +93,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <WalletIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
           ),
-          tabBarLabel: ({ focused }) => <TabLabel label="Wallet" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label={label("tab.wallet")} focused={focused} />,
         }}
       />
       <Tabs.Screen
