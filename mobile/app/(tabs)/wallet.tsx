@@ -38,6 +38,7 @@ import {
 } from "@/lib/motionPass";
 import { jccLogin, jccRefresh, jccSync, verifyMotionCard, getMotionCardOptions } from "@/lib/walletApi";
 import { timeAgo } from "@/lib/walletFormat";
+import { FadeSection } from "@/components/FadeSection";
 
 const fareUrban = require("@/assets/wallet/fare-urban.jpg");
 const fareNight = require("@/assets/wallet/fare-night.jpg");
