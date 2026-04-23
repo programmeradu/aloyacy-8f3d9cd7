@@ -39,10 +39,11 @@ import {
 import { jccLogin, jccRefresh, jccSync, verifyMotionCard, getMotionCardOptions } from "@/lib/walletApi";
 import { timeAgo } from "@/lib/walletFormat";
 import { FadeSection } from "@/components/FadeSection";
+import { assets } from "@/lib/assets";
 
-const fareUrban = require("@/assets/wallet/fare-urban.jpg");
-const fareNight = require("@/assets/wallet/fare-night.jpg");
-const fareIntercity = require("@/assets/wallet/fare-intercity.jpg");
+const fareUrban = assets.fare_urban;
+const fareNight = assets.fare_night;
+const fareIntercity = assets.fare_intercity;
 
 export default function WalletScreen() {
   const insets = useSafeAreaInsets();
