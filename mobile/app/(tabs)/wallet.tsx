@@ -319,22 +319,22 @@ export default function WalletScreen() {
           </View>
 
           {/* Fare grid */}
-          <View style={{ paddingHorizontal: 22, marginTop: 24 }}>
+          <FadeSection index={0} style={{ paddingHorizontal: 22, marginTop: 24 }}>
             <View style={{ flexDirection: "row", gap: 10 }}>
               <FareTile label="Urban" value="€1.50" sub="90 min" image={fareUrban} />
               <FareTile label="Night" value="€2.50" sub="21:00–05:00" image={fareNight} tone="dark" />
               <FareTile label="Intercity" value="€7.00" sub="single ride" image={fareIntercity} />
             </View>
-          </View>
+          </FadeSection>
 
           {/* History */}
-          <View style={{ paddingHorizontal: 22, marginTop: 28 }}>
+          <FadeSection index={1} style={{ paddingHorizontal: 22, marginTop: 28 }}>
             {linked ? (
               <TransactionList transactions={pass.transactions} />
             ) : (
               <TopupHistory pass={pass} />
             )}
-          </View>
+          </FadeSection>
         </>
       ) : (
         <View style={{ paddingHorizontal: 22, marginTop: 22 }}>
@@ -349,12 +349,12 @@ export default function WalletScreen() {
       )}
 
       {/* Account + settings — moved here from the retired More tab. */}
-      <View style={{ paddingHorizontal: 22, marginTop: 34 }}>
+      <FadeSection index={2} style={{ paddingHorizontal: 22, marginTop: 34 }}>
         <Text style={styles.sectionEyebrow}>ACCOUNT · SETTINGS</Text>
         <AuthCard />
         <NotificationsCard />
         <OfflineSchedulesCard />
-      </View>
+      </FadeSection>
 
       <View style={{ paddingHorizontal: 22, marginTop: 20 }}>
         <SettingsRow
