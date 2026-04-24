@@ -52,8 +52,8 @@ import type {
   MetWarningsPayload,
 } from "@/lib/pulse";
 
-const DISPLAY = "Bricolage_700Bold";
-const DISPLAY_MED = "Bricolage_600SemiBold";
+const DISPLAY = "BricolageGrotesque_700Bold";
+const DISPLAY_MED = "BricolageGrotesque_700Bold";
 const SANS = "Geist_500Medium";
 const SANS_BOLD = "Geist_700Bold";
 const MONO = "JetBrainsMono_500Medium";
