@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { palette } from "@/constants/theme";
 import { registerForPushNotifications } from "@/lib/push";
 
@@ -209,8 +210,50 @@ export function NotificationsCard() {
             paddingHorizontal: 6,
             opacity: !interactive || pending ? 0.5 : 1,
             transform: [{ scale: pressed ? 0.98 : 1 }],
+            overflow: "hidden",
+            shadowColor: isOn ? palette.aegeanDeep : "#1F1E18",
+            shadowOpacity: isOn ? 0.28 : 0.08,
+            shadowRadius: isOn ? 18 : 8,
+            shadowOffset: { width: 0, height: 8 },
           })}
         >
+          {isOn && (
+            <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+              <Defs>
+                <LinearGradient id="notif-g" x1="0" y1="0" x2="1" y2="0">
+                  <Stop offset="0" stopColor={palette.aegean} />
+                  <Stop offset="1" stopColor={palette.aegeanDeep} />
+                </LinearGradient>
+              </Defs>
+              <Rect x="0" y="0" width="100%" height="100%" rx="28" fill="url(#notif-g)" />
+            </Svg>
+          )}
+          <Text
+            style={{
+              position: "absolute",
+              left: 16,
+              fontFamily: "JetBrainsMono_500Medium",
+              fontSize: 9,
+              letterSpacing: 1.8,
+              color: "rgba(246,241,231,0.9)",
+              opacity: isOn ? 1 : 0,
+            }}
+          >
+            ON
+          </Text>
+          <Text
+            style={{
+              position: "absolute",
+              right: 15,
+              fontFamily: "JetBrainsMono_500Medium",
+              fontSize: 9,
+              letterSpacing: 1.8,
+              color: palette.inkSoft,
+              opacity: isOn ? 0 : 1,
+            }}
+          >
+            OFF
+          </Text>
           <View
             style={{
               width: 44,
