@@ -23,11 +23,12 @@
 // component and pass the same props on iOS, Android, and the web preview.
 
 import { useMemo } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { Image, Platform, StyleSheet, View } from "react-native";
 import { GoogleMaps, AppleMaps } from "expo-maps";
 import { useRealtime } from "@/lib/hooks";
 import type { RealtimeVehicle } from "@/lib/api";
 import { AppText } from "./AppText";
+import { assets } from "@/lib/assets";
 
 const LIMESTONE = "#f3ede1";
 const INK = "#2a261f";
@@ -498,7 +499,14 @@ export function MapView({
 function WebFallback({ height }: { height: number }) {
   return (
     <View style={[styles.wrap, styles.web, { height }]}>
-      <AppText style={styles.webLabel}>Map available on iOS &amp; Android</AppText>
+      <Image source={assets.cyprus_map} style={StyleSheet.absoluteFill} resizeMode="cover" />
+      <View style={styles.webWash} />
+      <View style={styles.webRoadOne} />
+      <View style={styles.webRoadTwo} />
+      <View style={[styles.webPin, { left: "28%", top: "38%", backgroundColor: AEGEAN }]} />
+      <View style={[styles.webPin, { left: "62%", top: "54%", backgroundColor: OCHRE }]} />
+      <View style={[styles.webPin, { left: "47%", top: "68%", backgroundColor: OLIVE }]} />
+      <AppText style={styles.webLabel}>Live Cyprus network</AppText>
     </View>
   );
 }
@@ -522,11 +530,51 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  webWash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(243,237,225,0.52)",
+  },
+  webRoadOne: {
+    position: "absolute",
+    left: "-8%",
+    top: "50%",
+    width: "116%",
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: "rgba(31,108,130,0.55)",
+    transform: [{ rotate: "-13deg" }],
+  },
+  webRoadTwo: {
+    position: "absolute",
+    left: "10%",
+    top: "30%",
+    width: "86%",
+    height: 3,
+    borderRadius: 999,
+    backgroundColor: "rgba(201,133,58,0.5)",
+    transform: [{ rotate: "27deg" }],
+  },
+  webPin: {
+    position: "absolute",
+    width: 13,
+    height: 13,
+    borderRadius: 999,
+    borderWidth: 3,
+    borderColor: "rgba(246,241,231,0.92)",
+  },
   webLabel: {
+    position: "absolute",
+    left: 14,
+    bottom: 14,
+    backgroundColor: "rgba(246,241,231,0.92)",
     color: INK,
-    opacity: 0.6,
-    fontSize: 13,
-    letterSpacing: 0.3,
+    fontSize: 12,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    overflow: "hidden",
   },
   emptyOverlay: {
     position: "absolute",
