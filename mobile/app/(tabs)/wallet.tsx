@@ -220,7 +220,7 @@ export default function WalletScreen() {
     >
       <View style={styles.headerRow}>
         <View style={{ width: 40 }} />
-        <Text style={styles.kicker}>WALLET · MOTION</Text>
+        <Text style={styles.kicker}>WALLET MOTION</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -254,7 +254,7 @@ export default function WalletScreen() {
               value={`€${pass.balanceEur.toFixed(2)}`}
               foot={
                 pass.balanceUpdatedAt
-                  ? `Live · ${timeAgo(pass.balanceUpdatedAt)}`
+                  ? `Live ${timeAgo(pass.balanceUpdatedAt)}`
                   : "Tap to check"
               }
               onPress={() => void runPublicSync()}
@@ -352,7 +352,7 @@ export default function WalletScreen() {
 
       {/* Account + settings — moved here from the retired More tab. */}
       <FadeSection index={2} style={{ paddingHorizontal: 22, marginTop: 34 }}>
-        <Text style={styles.sectionEyebrow}>ACCOUNT · SETTINGS</Text>
+        <Text style={styles.sectionEyebrow}>ACCOUNT SETTINGS</Text>
         <AuthCard />
         <NotificationsCard />
         <OfflineSchedulesCard />
@@ -361,7 +361,7 @@ export default function WalletScreen() {
       <View style={{ paddingHorizontal: 22, marginTop: 20 }}>
         <SettingsRow
           label="App settings"
-          value="Language · Notifications · Legal"
+          value="Language, notifications, legal"
           onPress={() => router.push("/settings")}
         />
         <SettingsRow
