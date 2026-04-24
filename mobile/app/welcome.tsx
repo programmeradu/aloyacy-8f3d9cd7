@@ -17,6 +17,7 @@ import {
   ScrollView,
   StyleSheet,
   Dimensions,
+  Image,
   TextInput,
   Alert,
   Platform,
@@ -27,11 +28,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import * as Haptics from "expo-haptics";
-import Svg, { Circle, Path, Defs, LinearGradient, Stop } from "react-native-svg";
 
 import { palette } from "@/constants/theme";
 import { mergePass } from "@/lib/motionPass";
 import { registerForPushNotifications } from "@/lib/push";
+import { assets } from "@/lib/assets";
 
 export const ONBOARDED_KEY = "aloya.onboarded.v1";
 
@@ -137,7 +138,7 @@ export default function WelcomeScreen() {
       >
         {/* Step 1 — Location */}
         <Slide title="Live buses, right where you stand" kicker="Location">
-          <LocationArt />
+          <OnboardingImage source={assets.welcome_location} />
           <Text style={styles.body}>
             Aloya uses your location to show the nearest stops, live ETAs for
             the buses you can actually catch, and turn-by-turn walking cues
@@ -157,7 +158,7 @@ export default function WelcomeScreen() {
 
         {/* Step 2 — Notifications */}
         <Slide title="Never miss your stop" kicker="Alerts">
-          <NotificationsArt />
+          <OnboardingImage source={assets.welcome_notifications} />
           <Text style={styles.body}>
             Get a nudge two stops before your exit, a heads-up when your
             transfer is boarding, and instant word if your route is disrupted.
@@ -177,7 +178,7 @@ export default function WelcomeScreen() {
 
         {/* Step 3 — Motion card */}
         <Slide title="Add your Motion card" kicker="Wallet">
-          <MotionArt />
+          <OnboardingImage source={assets.welcome_card} />
           <Text style={styles.body}>
             Save your card number to see the balance, top-ups and taps
             straight from the wallet. You can add or change it any time.
@@ -265,57 +266,11 @@ function SecondaryButton({ label, onPress }: { label: string; onPress: () => voi
   );
 }
 
-// ————— Editorial SVG art (bespoke, no icon set) —————
-
-function LocationArt() {
+function OnboardingImage({ source }: { source: { uri: string } }) {
   return (
-    <Svg width={220} height={180} viewBox="0 0 220 180">
-      <Defs>
-        <LinearGradient id="lg1" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor={palette.aegean} stopOpacity={0.25} />
-          <Stop offset="1" stopColor={palette.aegeanSoft} stopOpacity={0.9} />
-        </LinearGradient>
-      </Defs>
-      <Circle cx={110} cy={100} r={78} fill="url(#lg1)" />
-      <Circle cx={110} cy={100} r={52} fill="none" stroke={palette.aegeanDeep} strokeOpacity={0.2} strokeWidth={1} />
-      <Circle cx={110} cy={100} r={26} fill="none" stroke={palette.aegeanDeep} strokeOpacity={0.3} strokeWidth={1} />
-      <Path d="M110 60 C 92 60 78 74 78 92 c 0 22 32 48 32 48 s 32 -26 32 -48 c 0 -18 -14 -32 -32 -32 z" fill={palette.ochre} />
-      <Circle cx={110} cy={92} r={10} fill={palette.limestone} />
-    </Svg>
-  );
-}
-
-function NotificationsArt() {
-  return (
-    <Svg width={220} height={180} viewBox="0 0 220 180">
-      <Circle cx={110} cy={94} r={72} fill={palette.ochreSoft} />
-      <Path d="M70 110 h80 l-8 -14 v-24 c0 -18 -14 -32 -32 -32 s -32 14 -32 32 v24 z" fill={palette.olive} />
-      <Path d="M96 122 c 4 8 24 8 28 0" stroke={palette.olive} strokeWidth={3} fill="none" strokeLinecap="round" />
-      <Circle cx={148} cy={54} r={10} fill={palette.aegeanDeep} />
-    </Svg>
-  );
-}
-
-function MotionArt() {
-  return (
-    <Svg width={240} height={160} viewBox="0 0 240 160">
-      <Defs>
-        <LinearGradient id="lg2" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor={palette.aegeanDeep} />
-          <Stop offset="1" stopColor={palette.aegean} />
-        </LinearGradient>
-      </Defs>
-      <Path d="M20 30 h180 a12 12 0 0 1 12 12 v76 a12 12 0 0 1 -12 12 h -180 a 12 12 0 0 1 -12 -12 v -76 a 12 12 0 0 1 12 -12 z" fill="url(#lg2)" />
-      <Path d="M28 66 h50 v14 h-50 z" fill={palette.ochre} opacity={0.9} />
-      <Path d="M28 96 h120 v6 h-120 z" fill={palette.limestone} opacity={0.5} />
-      <Path d="M28 108 h80 v6 h-80 z" fill={palette.limestone} opacity={0.3} />
-      <Text
-        // @ts-expect-error react-native-svg Text is not typed via RN Text
-        x={162} y={54} fontSize={14} fontWeight="700" fill={palette.limestone}
-      >
-        Motion
-      </Text>
-    </Svg>
+    <View style={styles.imageFrame}>
+      <Image source={source} style={StyleSheet.absoluteFill} resizeMode="cover" />
+    </View>
   );
 }
 
@@ -369,6 +324,16 @@ const styles = StyleSheet.create({
     color: palette.inkSoft,
     marginTop: 12,
     marginBottom: 16,
+  },
+  imageFrame: {
+    alignSelf: "stretch",
+    height: Math.min(238, SCREEN_W * 0.55),
+    borderRadius: 28,
+    overflow: "hidden",
+    backgroundColor: palette.limestoneSoft,
+    borderWidth: 1,
+    borderColor: palette.line,
+    marginBottom: 10,
   },
   input: {
     alignSelf: "stretch",
