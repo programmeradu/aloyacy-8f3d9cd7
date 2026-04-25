@@ -12,11 +12,6 @@
 import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  getTrackingPermissionsAsync,
-  requestTrackingPermissionsAsync,
-  type PermissionResponse,
-} from "expo-tracking-transparency";
 
 const KEY = "aloya.att.decision.v1";
 
@@ -28,13 +23,15 @@ export type TrackingState =
 
 export async function ensureTrackingDecision(): Promise<TrackingState> {
   // Android + web: no ATT surface. Behave like "unavailable" so callers
-  // skip the prompt and fall back to first-party-only signals.
+  // skip the prompt and fall back to first-party-only signals. Also skip
+  // the dynamic import so the native module isn't required on web.
   if (Platform.OS !== "ios") {
     await AsyncStorage.setItem(KEY, "unavailable");
     return { status: "unavailable" };
   }
   try {
-    const current: PermissionResponse = await getTrackingPermissionsAsync();
+    const att = await import("expo-tracking-transparency");
+    const current = await att.getTrackingPermissionsAsync();
     if (current.status === "granted") {
       await AsyncStorage.setItem(KEY, "granted");
       return { status: "granted" };
@@ -43,7 +40,7 @@ export async function ensureTrackingDecision(): Promise<TrackingState> {
       await AsyncStorage.setItem(KEY, "denied");
       return { status: "denied" };
     }
-    const next = await requestTrackingPermissionsAsync();
+    const next = await att.requestTrackingPermissionsAsync();
     const status = next.status === "granted" ? "granted" : "denied";
     await AsyncStorage.setItem(KEY, status);
     return { status };
@@ -51,6 +48,7 @@ export async function ensureTrackingDecision(): Promise<TrackingState> {
     return { status: "unavailable" };
   }
 }
+
 
 export function useTrackingDecision(autoPrompt = false): TrackingState {
   const [state, setState] = useState<TrackingState>({ status: "unknown" });
