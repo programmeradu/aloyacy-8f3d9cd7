@@ -250,6 +250,13 @@ function RouteList({ routes }: { routes: StopCardRoute[] }) {
 }
 
 const cardStyles = StyleSheet.create({
+  washWrap: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
   washImage: {
     position: "absolute",
     right: -20,
