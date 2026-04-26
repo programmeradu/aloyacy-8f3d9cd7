@@ -1,16 +1,19 @@
-// Mobile StopCard — native mirror of `src/components/StopCard.tsx`.
+// Mobile StopCard — editorial mirror of `src/components/StopCard.tsx`.
 //
-// Renders one nearby stop: code, name, distance/headsign chip line,
-// next ETA numeral, and trust tier chip. Tap → /stop/[stopId].
-// Keeps semantic parity with web: tier chip drives numeral colour,
-// ghost replaces the number with "—", live/rider-confirmed get accent.
+// Layered composition: a limestone card ground with a Cyprus stop-shelter
+// photograph washed on the right for visual anchor, an aegean rail on the
+// left, and the numeric ETA at 44pt so it reads at a glance. Same tier
+// logic as the web card — LIVE/RIDER get accent, ghost replaces the number
+// with an em-dash.
 
-import { Pressable, View, Text } from "react-native";
+import { Pressable, View, Text, Image, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { palette } from "@/constants/theme";
 import { RouteChip } from "@/components/RouteChip";
+import { StopCode } from "@/components/StopCode";
 import { ConfidenceIcon } from "@/components/ConfidenceIcon";
+import { assets } from "@/lib/assets";
 import {
   type FreshnessTier,
   type FreshnessConfidence,
