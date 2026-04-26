@@ -121,7 +121,18 @@ function TurnStep({
     >
       <View style={{ aspectRatio: 16 / 9, backgroundColor: palette.limestoneSoft }}>
         {svFailed ? (
-          <ManeuverFallback maneuver={maneuver} />
+          <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}>
+            <MapView
+              height={9999 /* absorbed by flex; use 100% via wrapper */}
+              center={{ lat: step.start.lat, lng: step.start.lng }}
+              spanKm={0.3}
+              liveVehicles={false}
+              markers={[
+                { lat: step.start.lat, lng: step.start.lng, kind: "pin", tone: "aegean", label: step.instruction },
+              ]}
+              fitToContent={false}
+            />
+          </View>
         ) : (
           <Image
             source={{ uri: url }}
