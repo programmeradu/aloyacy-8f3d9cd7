@@ -477,7 +477,7 @@ export function MapView({
         coordinates: { latitude: v.lat, longitude: v.lng },
         title: v.label ?? v.routeId,
         tintColor: v.source === "rider" ? AEGEAN : INK,
-        systemImage: "bus.fill",
+        ...(busIcon ? { icon: busIcon } : { systemImage: "bus.fill" as const }),
       })),
       ...(userLocation
         ? [
