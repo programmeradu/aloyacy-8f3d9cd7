@@ -29,6 +29,7 @@ import { useImage } from "expo-image";
 import { useRealtime } from "@/lib/hooks";
 import type { RealtimeVehicle } from "@/lib/api";
 import { AppText } from "./AppText";
+import { assets } from "@/lib/assets";
 
 const BUS_ICON_SRC = require("../assets/images/bus-premium.png");
 import { assets } from "@/lib/assets";
