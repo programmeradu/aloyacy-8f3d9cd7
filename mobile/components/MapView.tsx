@@ -22,7 +22,7 @@
 // downstream screens (`trip-info`, `route`, `trip`, `airport`) import one
 // component and pass the same props on iOS, Android, and the web preview.
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, Platform, StyleSheet, View } from "react-native";
 import { GoogleMaps, AppleMaps } from "expo-maps";
 import { useRealtime } from "@/lib/hooks";
