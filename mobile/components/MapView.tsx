@@ -25,10 +25,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, Platform, StyleSheet, View } from "react-native";
 import { GoogleMaps, AppleMaps } from "expo-maps";
+import { useImage } from "expo-image";
 import { useRealtime } from "@/lib/hooks";
 import type { RealtimeVehicle } from "@/lib/api";
 import { AppText } from "./AppText";
 import { assets } from "@/lib/assets";
+
+const BUS_ICON_SRC = require("../assets/images/bus-premium.png");
 
 const LIMESTONE = "#f3ede1";
 const INK = "#2a261f";
@@ -362,6 +365,7 @@ export function MapView({
   fitToContent,
 }: MapViewProps) {
   const { data: rt } = useRealtime();
+  const busIcon = useImage(BUS_ICON_SRC, { maxWidth: 64, maxHeight: 64 });
 
   const polylinePoints = useMemo(
     () => (polyline ? decodePolyline(polyline) : []),
@@ -472,7 +476,7 @@ export function MapView({
         coordinates: { latitude: v.lat, longitude: v.lng },
         title: v.label ?? v.routeId,
         tintColor: v.source === "rider" ? AEGEAN : INK,
-        systemImage: "bus.fill",
+        ...(busIcon ? { icon: busIcon } : { systemImage: "bus.fill" as const }),
       })),
       ...(userLocation
         ? [
@@ -537,6 +541,7 @@ export function MapView({
       title: v.label ?? v.routeId,
       snippet: v.source === "rider" ? "Rider-confirmed" : "Live feed",
       zIndex: 200,
+      ...(busIcon ? { icon: busIcon } : {}),
     })),
   ];
   const googlePolylines: GoogleMaps.MapProps["polylines"] = polylinePoints.length
