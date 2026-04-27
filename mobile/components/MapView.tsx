@@ -22,7 +22,7 @@
 // downstream screens (`trip-info`, `route`, `trip`, `airport`) import one
 // component and pass the same props on iOS, Android, and the web preview.
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, Platform, StyleSheet, View } from "react-native";
 import { GoogleMaps, AppleMaps } from "expo-maps";
 import { useRealtime } from "@/lib/hooks";
@@ -260,6 +260,91 @@ function spanToZoom(spanKm: number) {
 }
 
 // ---------------------------------------------------------------------------
+// Smoothed vehicles — tween lat/lng between feed refreshes. Emits a new
+// vehicle array up to 10x per second (~100ms) with interpolated positions,
+// so the marker glides between the real 20s GTFS-RT snapshots.
+// ---------------------------------------------------------------------------
+type TweenState = {
+  fromLat: number; fromLng: number; fromBearing: number;
+  toLat: number; toLng: number; toBearing: number;
+  startAt: number; durationMs: number;
+};
+function useSmoothedVehicles(feed: RealtimeVehicle[]): RealtimeVehicle[] {
+  const statesRef = useRef<Map<string, TweenState>>(new Map());
+  const [tick, setTick] = useState(0);
+
+  // Sync target on every new feed frame.
+  useEffect(() => {
+    const now = Date.now();
+    const seen = new Set<string>();
+    for (const v of feed) {
+      const key = v.tripId || v.id;
+      seen.add(key);
+      const prev = statesRef.current.get(key);
+      if (!prev) {
+        statesRef.current.set(key, {
+          fromLat: v.lat, fromLng: v.lng, fromBearing: v.bearing ?? 0,
+          toLat: v.lat, toLng: v.lng, toBearing: v.bearing ?? 0,
+          startAt: now, durationMs: 1,
+        });
+      } else {
+        // Continue from current interpolated position, not the last target,
+        // so a mid-tween update doesn't jump.
+        const p = Math.min(1, (now - prev.startAt) / prev.durationMs);
+        const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+        const curLat = prev.fromLat + (prev.toLat - prev.fromLat) * eased;
+        const curLng = prev.fromLng + (prev.toLng - prev.fromLng) * eased;
+        statesRef.current.set(key, {
+          fromLat: curLat, fromLng: curLng, fromBearing: prev.toBearing,
+          toLat: v.lat, toLng: v.lng, toBearing: v.bearing ?? prev.toBearing,
+          startAt: now, durationMs: 2500,
+        });
+      }
+    }
+    for (const k of Array.from(statesRef.current.keys())) {
+      if (!seen.has(k)) statesRef.current.delete(k);
+    }
+    setTick((t) => t + 1);
+  }, [feed]);
+
+  // Drive ~10fps re-renders while any tween is still animating.
+  useEffect(() => {
+    let raf = 0;
+    let lastEmit = 0;
+    const loop = () => {
+      const now = Date.now();
+      let animating = false;
+      for (const s of statesRef.current.values()) {
+        if (now - s.startAt < s.durationMs) { animating = true; break; }
+      }
+      if (animating && now - lastEmit > 100) {
+        lastEmit = now;
+        setTick((t) => t + 1);
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return useMemo(() => {
+    const now = Date.now();
+    return feed.map((v) => {
+      const s = statesRef.current.get(v.tripId || v.id);
+      if (!s) return v;
+      const p = Math.min(1, (now - s.startAt) / s.durationMs);
+      const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      return {
+        ...v,
+        lat: s.fromLat + (s.toLat - s.fromLat) * eased,
+        lng: s.fromLng + (s.toLng - s.fromLng) * eased,
+      };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feed, tick]);
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 export function MapView({
@@ -283,7 +368,7 @@ export function MapView({
     [polyline],
   );
 
-  const vehicles = useMemo(() => {
+  const feedVehicles = useMemo(() => {
     if (!liveVehicles || !rt?.vehicles) return [] as RealtimeVehicle[];
     return filterVehicles(
       rt.vehicles,
@@ -301,6 +386,11 @@ export function MapView({
     restrictTripIds?.join(","),
     vehicleOverrides && JSON.stringify(vehicleOverrides),
   ]);
+
+  // Smoothed vehicles — tween lat/lng between 20s feed refreshes at ~10fps
+  // so buses glide instead of teleporting. Modest rate on native since each
+  // tick re-renders the expo-maps view.
+  const vehicles = useSmoothedVehicles(feedVehicles);
 
   // Bucket markers: stops are clusterable, anchors render directly.
   const { anchors, clusteredStops } = useMemo(() => {
