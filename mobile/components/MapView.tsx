@@ -542,6 +542,7 @@ export function MapView({
       title: v.label ?? v.routeId,
       snippet: v.source === "rider" ? "Rider-confirmed" : "Live feed",
       zIndex: 200,
+      ...(busIcon ? { icon: busIcon } : {}),
     })),
   ];
   const googlePolylines: GoogleMaps.MapProps["polylines"] = polylinePoints.length
