@@ -181,8 +181,8 @@ export function AuthCard() {
             inputMode="numeric"
             autoComplete="one-time-code"
             textContentType="oneTimeCode"
-            maxLength={8}
-            placeholder="12345678"
+            maxLength={6}
+            placeholder="123456"
             placeholderTextColor="#9aa0a6"
             value={code}
             onChangeText={(v) => setCode(v.replace(/\D/g, ""))}
