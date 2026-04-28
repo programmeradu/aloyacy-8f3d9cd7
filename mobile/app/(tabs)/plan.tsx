@@ -78,13 +78,62 @@ export default function PlanScreen() {
   const [origin, setOrigin] = useState<PickedPlace | null>(null);
   const [destination, setDestination] = useState<PickedPlace | null>(null);
   const [picking, setPicking] = useState<"origin" | "dest" | null>(null);
+  const [pickerSeed, setPickerSeed] = useState("");
   const [timeIntent, setTimeIntent] = useState<TimeIntent>({ kind: "now" });
+  const [locating, setLocating] = useState(false);
+  const [manualFix, setManualFix] = useState<{ lat: number; lng: number } | null>(null);
+  const [locError, setLocError] = useState<string | null>(null);
+
+  const activeFix = manualFix ?? (fix ? { lat: fix.lat, lng: fix.lng } : null);
 
   const effectiveOrigin: PickedPlace = useCurrent
-    ? fix
-      ? { lat: fix.lat, lng: fix.lng, label: "Current location" }
+    ? activeFix
+      ? { lat: activeFix.lat, lng: activeFix.lng, label: "Current location" }
       : FALLBACK_ORIGIN
     : (origin ?? FALLBACK_ORIGIN);
+
+  // Pre-fill destination search from the home-screen Ask Aloya composer.
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem("aloya:nl-plan-seed");
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as { text?: string; at?: number };
+        // Only honour seeds set in the last 60s so navigating back later
+        // doesn't hijack the picker.
+        if (!parsed?.text || !parsed?.at || Date.now() - parsed.at > 60_000) return;
+        await AsyncStorage.removeItem("aloya:nl-plan-seed");
+        setPickerSeed(parsed.text);
+        setPicking("dest");
+      } catch {}
+    })();
+  }, []);
+
+  async function locateMe() {
+    if (locating) return;
+    setLocating(true);
+    setLocError(null);
+    Haptics.selectionAsync().catch(() => {});
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setLocError("Location permission denied. Enable it in Settings to auto-locate.");
+        setLocating(false);
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      setManualFix({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      setUseCurrent(true);
+      setOrigin(null);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } catch (e) {
+      setLocError("Couldn't get a location fix. Try again in a moment.");
+    } finally {
+      setLocating(false);
+    }
+  }
 
   const timeArgs = useMemo(() => intentToUnix(timeIntent), [timeIntent]);
   const canPlan = !!destination;
