@@ -129,7 +129,7 @@ export function AuthCard() {
           lineHeight: 26,
         }}
       >
-        {stage === "email" ? "Save trips across devices." : "Enter your 8-digit code."}
+        {stage === "email" ? "Save trips across devices." : "Enter your 6-digit code."}
       </Text>
       <Text
         style={{
@@ -141,7 +141,7 @@ export function AuthCard() {
         }}
       >
         {stage === "email"
-          ? "We'll email you an 8-digit code — no passwords."
+          ? "We'll email you a 6-digit code — no passwords."
           : `Sent to ${email}.`}
       </Text>
 
