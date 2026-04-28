@@ -197,7 +197,7 @@ export function AuthCard() {
             ]}
           />
           <Pressable
-            disabled={busy || code.length < 8}
+            disabled={busy || code.length < 6}
             onPress={handleVerify}
             style={{
               marginTop: 12,
@@ -205,7 +205,7 @@ export function AuthCard() {
               backgroundColor: palette.ink,
               paddingVertical: 14,
               alignItems: "center",
-              opacity: busy || code.length < 8 ? 0.5 : 1,
+              opacity: busy || code.length < 6 ? 0.5 : 1,
             }}
           >
 
