@@ -314,140 +314,122 @@ export default function PlanScreen() {
           />
         }
       >
-        {/* ── Title ──────────────────────────────────────────────────── */}
-        <View style={{ paddingHorizontal: 20, gap: 4 }}>
-          <Text
-            style={{
-              fontFamily: "BricolageGrotesque_800ExtraBold",
-              fontSize: 32,
-              color: palette.ink,
-              letterSpacing: -0.8,
-            }}
-          >
-            Plan a trip
-          </Text>
-          <Text
-            style={{
-              fontFamily: "Geist_500Medium",
-              color: palette.inkSoft,
-              fontSize: 13,
-            }}
-          >
-            Live buses, real walking times, honest changes.
-          </Text>
-          <Text
-            style={{
-              fontFamily: "JetBrainsMono_500Medium",
-              fontSize: 10,
-              color: feedFresh ? palette.aegeanDeep : palette.ochre,
-              letterSpacing: 0.5,
-              marginTop: 6,
-            }}
-          >
-            {feedFresh ? "LIVE · REPLANS EVERY 30S" : "FEED STALE"}
-          </Text>
+        {/* ── Editorial hero ─────────────────────────────────────────── */}
+        <View style={planStyles.hero}>
+          <Image source={assets.plan_hero} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          <View style={planStyles.heroWash} />
+          <View style={planStyles.heroContent}>
+            <Text style={planStyles.heroKicker}>PLAN A TRIP</Text>
+            <Text style={planStyles.heroTitle}>Honest routes,{"\n"}live buses.</Text>
+            <Text style={planStyles.heroSub}>
+              Real walking times, real transfers, no filler.
+            </Text>
+            <View style={planStyles.heroBadge}>
+              <View style={[planStyles.dot, { backgroundColor: feedFresh ? palette.aegeanDeep : palette.ochre }]} />
+              <Text style={planStyles.heroBadgeText}>
+                {feedFresh ? "LIVE · REPLANS EVERY 30S" : "FEED STALE"}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        {/* ── From / To card ─────────────────────────────────────────── */}
-        <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
-          <View
-            style={{
-              backgroundColor: palette.white,
-              borderRadius: 18,
-              borderWidth: 1,
-              borderColor: palette.line,
-              padding: 4,
-            }}
-          >
-            <Pressable
-              onPress={() => {
-                if (useCurrent) {
-                  setPicking("origin");
-                } else {
-                  resetOriginToCurrent();
-                }
-              }}
-              onLongPress={() => setPicking("origin")}
-              style={({ pressed }) => ({
-                paddingVertical: 14,
-                paddingHorizontal: 14,
-                borderRadius: 14,
-                backgroundColor: useCurrent ? palette.aegeanSoft : "transparent",
-                opacity: pressed ? 0.75 : 1,
-              })}
-            >
-              <Text
-                style={{
-                  fontFamily: "JetBrainsMono_500Medium",
-                  fontSize: 10,
-                  color: palette.inkSoft,
-                  letterSpacing: 0.5,
-                }}
-              >
-                FROM
-              </Text>
-              <Text
-                style={{
-                  fontFamily: "Geist_600SemiBold",
-                  color: palette.ink,
-                  fontSize: 15,
-                  marginTop: 2,
-                }}
-                numberOfLines={1}
-              >
-                {useCurrent
-                  ? fix
+        {/* ── From / To form ─────────────────────────────────────────── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+          <View style={planStyles.formCard}>
+            <FieldRow
+              icon={
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                  <Circle cx={12} cy={12} r={5} fill={palette.aegeanDeep} />
+                  <Circle cx={12} cy={12} r={10.5} stroke={palette.aegeanDeep} strokeOpacity={0.35} strokeWidth={1.5} />
+                </Svg>
+              }
+              label="FROM"
+              value={
+                useCurrent
+                  ? activeFix
                     ? "Current location"
-                    : "Limassol (set location in More)"
-                  : (origin?.label ?? "Pick a starting point")}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: "JetBrainsMono_500Medium",
-                  fontSize: 10,
-                  color: palette.inkSoft,
-                  letterSpacing: 0.4,
-                  marginTop: 4,
-                }}
-              >
-                {useCurrent ? "TAP TO CHANGE" : "TAP TO RESET TO CURRENT"}
-              </Text>
-            </Pressable>
+                    : locError
+                      ? "Location unavailable"
+                      : "Tap Locate me to use your position"
+                  : (origin?.label ?? "Pick a starting point")
+              }
+              placeholder={!useCurrent && !origin}
+              onPress={() => {
+                setPickerSeed("");
+                setPicking("origin");
+              }}
+              accessory={
+                <Pressable
+                  onPress={locateMe}
+                  hitSlop={8}
+                  style={({ pressed }) => [planStyles.locateBtn, pressed && { opacity: 0.7 }]}
+                >
+                  {locating ? (
+                    <ActivityIndicator size="small" color={palette.limestone} />
+                  ) : (
+                    <>
+                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+                        <Path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke={palette.limestone} strokeWidth={2} strokeLinecap="round" />
+                        <Circle cx={12} cy={12} r={5} stroke={palette.limestone} strokeWidth={2} />
+                        <Circle cx={12} cy={12} r={1.5} fill={palette.limestone} />
+                      </Svg>
+                      <Text style={planStyles.locateBtnText}>Locate me</Text>
+                    </>
+                  )}
+                </Pressable>
+              }
+            />
 
-            <View style={{ height: 1, backgroundColor: palette.line, marginHorizontal: 14 }} />
+            <View style={planStyles.divider}>
+              <View style={planStyles.dividerLine} />
+              <Pressable
+                onPress={() => {
+                  if (!destination) return;
+                  Haptics.selectionAsync().catch(() => {});
+                  const swappedOrigin: PickedPlace = {
+                    lat: destination.lat,
+                    lng: destination.lng,
+                    label: destination.label,
+                  };
+                  const swappedDest: PickedPlace = {
+                    lat: effectiveOrigin.lat,
+                    lng: effectiveOrigin.lng,
+                    label: effectiveOrigin.label,
+                  };
+                  setOrigin(swappedOrigin);
+                  setUseCurrent(false);
+                  setDestination(swappedDest);
+                }}
+                hitSlop={8}
+                style={({ pressed }) => [planStyles.swapBtn, pressed && { opacity: 0.7 }]}
+                accessibilityLabel="Swap origin and destination"
+              >
+                <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                  <Path d="M7 4v14m0 0-3-3m3 3 3-3M17 20V6m0 0-3 3m3-3 3 3" stroke={palette.ink} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>
+              </Pressable>
+              <View style={planStyles.dividerLine} />
+            </View>
 
-            <Pressable
-              onPress={() => setPicking("dest")}
-              style={({ pressed }) => ({
-                paddingVertical: 14,
-                paddingHorizontal: 14,
-                borderRadius: 14,
-                opacity: pressed ? 0.75 : 1,
-              })}
-            >
-              <Text
-                style={{
-                  fontFamily: "JetBrainsMono_500Medium",
-                  fontSize: 10,
-                  color: palette.inkSoft,
-                  letterSpacing: 0.5,
-                }}
-              >
-                TO
-              </Text>
-              <Text
-                style={{
-                  fontFamily: "Geist_600SemiBold",
-                  color: destination ? palette.ink : palette.inkSoft,
-                  fontSize: 15,
-                  marginTop: 2,
-                }}
-                numberOfLines={1}
-              >
-                {destination?.label ?? "Pick a destination"}
-              </Text>
-            </Pressable>
+            <FieldRow
+              icon={
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                  <Path d="M12 22s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z" fill={palette.ochre} />
+                  <Circle cx={12} cy={10} r={2.4} fill={palette.limestone} />
+                </Svg>
+              }
+              label="TO"
+              value={destination?.label ?? "Where are you heading?"}
+              placeholder={!destination}
+              onPress={() => {
+                setPickerSeed("");
+                setPicking("dest");
+              }}
+            />
           </View>
+          {locError && (
+            <Text style={planStyles.locErr}>{locError}</Text>
+          )}
         </View>
 
         {/* ── Autocomplete sheet (inline) ────────────────────────────── */}
@@ -460,12 +442,14 @@ export default function PlanScreen() {
                   ? "Search a place, address or landmark"
                   : "Where are you heading?"
               }
-              bias={fix ? { lat: fix.lat, lng: fix.lng } : undefined}
+              initialQuery={pickerSeed}
+              bias={activeFix ? { lat: activeFix.lat, lng: activeFix.lng } : undefined}
               onPick={(p) => handlePicked(picking, p)}
               onClose={() => setPicking(null)}
             />
           </View>
         )}
+
 
         {/* ── Time picker ────────────────────────────────────────────── */}
         <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
