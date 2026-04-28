@@ -20,6 +20,8 @@ import { useGeoFix, useStopsBundle, useRealtime } from "@/lib/hooks";
 import { distanceMeters, formatDistance, timeOfDayGreeting } from "@/lib/format";
 import { smartEtaV2 } from "@/lib/eta-v2";
 import { assets } from "@/lib/assets";
+import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
+import { AskAloyaCard } from "@/components/AskAloyaCard";
 import type { Stop } from "@/lib/api";
 
 const FALLBACK = { lat: 35.1856, lng: 33.3823 };
