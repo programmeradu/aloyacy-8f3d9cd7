@@ -237,7 +237,14 @@ export default function TripInfoScreen() {
                   textTransform: "uppercase",
                 }}
               >
-                {trip.vehicle?.label ? `Bus ${trip.vehicle.label}` : "Live trip"}
+                {(() => {
+                  const raw = trip.vehicle?.label?.trim();
+                  // Some Cyprus operators fill the vehicle label with the
+                  // long internal entity id — only surface it when it looks
+                  // like a real fleet number (short alphanumeric).
+                  const isFleet = !!raw && raw.length >= 2 && raw.length <= 6 && /^[A-Z0-9\-]+$/i.test(raw);
+                  return isFleet ? `Bus ${raw}` : "Live trip";
+                })()}
               </Text>
             </View>
             <Text
