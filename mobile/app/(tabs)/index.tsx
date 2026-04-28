@@ -272,15 +272,7 @@ export default function TodayScreen() {
         <QuickStat label="Next ride" value={stopCards[0]?.etaMin != null ? `${stopCards[0].etaMin}′` : "—"} tone="ochre" image={assets.stat_road} />
       </View>
 
-      <View style={styles.editorialCard}>
-        <Image source={assets.nl_planner_illustration} style={StyleSheet.absoluteFill} resizeMode="cover" />
-        <View style={styles.editorialWash} />
-        <View style={styles.editorialContent}>
-          <Text style={styles.editorialKicker}>Natural planner</Text>
-          <Text style={styles.editorialTitle}>Tell Aloya where you’re going.</Text>
-          <Text style={styles.editorialBody}>Use routes, stop codes, landmarks, airports, or live bus labels from one search surface.</Text>
-        </View>
-      </View>
+      <AskAloyaCard />
 
       <View style={styles.sectionHead}>
         <View>
