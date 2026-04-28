@@ -100,11 +100,12 @@ export default function TodayScreen() {
         .slice(0, 3)
         .map((a) => {
           const meta = routesMeta[a.routeId];
+          const headsign = getHeadsignSync(a.tripId, a.routeId);
           return {
             code: meta?.short ?? a.routeId,
             tone: toneForRoute(a.routeId),
             color: meta?.color,
-            headsign: null,
+            headsign,
           };
         });
 
