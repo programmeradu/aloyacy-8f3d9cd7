@@ -69,5 +69,19 @@ export async function fetchStopsBundle(): Promise<StopsBundle> {
     headers: { Accept: "application/json" },
   });
   if (!res.ok) throw new Error(`Stops ${res.status}`);
-  return res.json();
+  const raw = (await res.json()) as {
+    stops: Stop[];
+    routes: Record<string, RouteMeta> | Array<RouteMeta & { id: string }>;
+  };
+  // API returns `routes` as an array keyed by `id`; normalize to a map so
+  // consumers can do `routes[routeId].short` uniformly.
+  let routes: Record<string, RouteMeta>;
+  if (Array.isArray(raw.routes)) {
+    routes = {};
+    for (const r of raw.routes) routes[r.id] = r;
+  } else {
+    routes = raw.routes ?? {};
+  }
+  return { stops: raw.stops, routes };
 }
+
