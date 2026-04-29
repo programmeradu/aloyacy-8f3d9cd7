@@ -129,7 +129,7 @@ export function AuthCard() {
           lineHeight: 26,
         }}
       >
-        {stage === "email" ? "Save trips across devices." : "Enter your 8-digit code."}
+        {stage === "email" ? "Save trips across devices." : "Enter your 6-digit code."}
       </Text>
       <Text
         style={{
@@ -141,7 +141,7 @@ export function AuthCard() {
         }}
       >
         {stage === "email"
-          ? "We'll email you an 8-digit code — no passwords."
+          ? "We'll email you a 6-digit code — no passwords."
           : `Sent to ${email}.`}
       </Text>
 
@@ -181,8 +181,8 @@ export function AuthCard() {
             inputMode="numeric"
             autoComplete="one-time-code"
             textContentType="oneTimeCode"
-            maxLength={8}
-            placeholder="12345678"
+            maxLength={6}
+            placeholder="123456"
             placeholderTextColor="#9aa0a6"
             value={code}
             onChangeText={(v) => setCode(v.replace(/\D/g, ""))}
@@ -197,7 +197,7 @@ export function AuthCard() {
             ]}
           />
           <Pressable
-            disabled={busy || code.length < 8}
+            disabled={busy || code.length < 6}
             onPress={handleVerify}
             style={{
               marginTop: 12,
@@ -205,7 +205,7 @@ export function AuthCard() {
               backgroundColor: palette.ink,
               paddingVertical: 14,
               alignItems: "center",
-              opacity: busy || code.length < 8 ? 0.5 : 1,
+              opacity: busy || code.length < 6 ? 0.5 : 1,
             }}
           >
 

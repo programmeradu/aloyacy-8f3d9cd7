@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,12 +6,18 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
+  Image,
+  StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueries, useQuery, keepPreviousData } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
+import * as Location from "expo-location";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Svg, { Circle, Path } from "react-native-svg";
 
 import { palette } from "@/constants/theme";
+import { assets } from "@/lib/assets";
 import { useGeoFix, useRealtime } from "@/lib/hooks";
 import { fetchPlan, type PlanResult, type Itinerary, type Leg } from "@/lib/plan";
 import {
@@ -72,13 +78,62 @@ export default function PlanScreen() {
   const [origin, setOrigin] = useState<PickedPlace | null>(null);
   const [destination, setDestination] = useState<PickedPlace | null>(null);
   const [picking, setPicking] = useState<"origin" | "dest" | null>(null);
+  const [pickerSeed, setPickerSeed] = useState("");
   const [timeIntent, setTimeIntent] = useState<TimeIntent>({ kind: "now" });
+  const [locating, setLocating] = useState(false);
+  const [manualFix, setManualFix] = useState<{ lat: number; lng: number } | null>(null);
+  const [locError, setLocError] = useState<string | null>(null);
+
+  const activeFix = manualFix ?? (fix ? { lat: fix.lat, lng: fix.lng } : null);
 
   const effectiveOrigin: PickedPlace = useCurrent
-    ? fix
-      ? { lat: fix.lat, lng: fix.lng, label: "Current location" }
+    ? activeFix
+      ? { lat: activeFix.lat, lng: activeFix.lng, label: "Current location" }
       : FALLBACK_ORIGIN
     : (origin ?? FALLBACK_ORIGIN);
+
+  // Pre-fill destination search from the home-screen Ask Aloya composer.
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem("aloya:nl-plan-seed");
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as { text?: string; at?: number };
+        // Only honour seeds set in the last 60s so navigating back later
+        // doesn't hijack the picker.
+        if (!parsed?.text || !parsed?.at || Date.now() - parsed.at > 60_000) return;
+        await AsyncStorage.removeItem("aloya:nl-plan-seed");
+        setPickerSeed(parsed.text);
+        setPicking("dest");
+      } catch {}
+    })();
+  }, []);
+
+  async function locateMe() {
+    if (locating) return;
+    setLocating(true);
+    setLocError(null);
+    Haptics.selectionAsync().catch(() => {});
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setLocError("Location permission denied. Enable it in Settings to auto-locate.");
+        setLocating(false);
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      setManualFix({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      setUseCurrent(true);
+      setOrigin(null);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } catch (e) {
+      setLocError("Couldn't get a location fix. Try again in a moment.");
+    } finally {
+      setLocating(false);
+    }
+  }
 
   const timeArgs = useMemo(() => intentToUnix(timeIntent), [timeIntent]);
   const canPlan = !!destination;
@@ -259,140 +314,122 @@ export default function PlanScreen() {
           />
         }
       >
-        {/* ── Title ──────────────────────────────────────────────────── */}
-        <View style={{ paddingHorizontal: 20, gap: 4 }}>
-          <Text
-            style={{
-              fontFamily: "BricolageGrotesque_800ExtraBold",
-              fontSize: 32,
-              color: palette.ink,
-              letterSpacing: -0.8,
-            }}
-          >
-            Plan a trip
-          </Text>
-          <Text
-            style={{
-              fontFamily: "Geist_500Medium",
-              color: palette.inkSoft,
-              fontSize: 13,
-            }}
-          >
-            Live buses, real walking times, honest changes.
-          </Text>
-          <Text
-            style={{
-              fontFamily: "JetBrainsMono_500Medium",
-              fontSize: 10,
-              color: feedFresh ? palette.aegeanDeep : palette.ochre,
-              letterSpacing: 0.5,
-              marginTop: 6,
-            }}
-          >
-            {feedFresh ? "LIVE · REPLANS EVERY 30S" : "FEED STALE"}
-          </Text>
+        {/* ── Editorial hero ─────────────────────────────────────────── */}
+        <View style={planStyles.hero}>
+          <Image source={assets.plan_hero} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          <View style={planStyles.heroWash} />
+          <View style={planStyles.heroContent}>
+            <Text style={planStyles.heroKicker}>PLAN A TRIP</Text>
+            <Text style={planStyles.heroTitle}>Honest routes,{"\n"}live buses.</Text>
+            <Text style={planStyles.heroSub}>
+              Real walking times, real transfers, no filler.
+            </Text>
+            <View style={planStyles.heroBadge}>
+              <View style={[planStyles.dot, { backgroundColor: feedFresh ? palette.aegeanDeep : palette.ochre }]} />
+              <Text style={planStyles.heroBadgeText}>
+                {feedFresh ? "LIVE · REPLANS EVERY 30S" : "FEED STALE"}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        {/* ── From / To card ─────────────────────────────────────────── */}
-        <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
-          <View
-            style={{
-              backgroundColor: palette.white,
-              borderRadius: 18,
-              borderWidth: 1,
-              borderColor: palette.line,
-              padding: 4,
-            }}
-          >
-            <Pressable
-              onPress={() => {
-                if (useCurrent) {
-                  setPicking("origin");
-                } else {
-                  resetOriginToCurrent();
-                }
-              }}
-              onLongPress={() => setPicking("origin")}
-              style={({ pressed }) => ({
-                paddingVertical: 14,
-                paddingHorizontal: 14,
-                borderRadius: 14,
-                backgroundColor: useCurrent ? palette.aegeanSoft : "transparent",
-                opacity: pressed ? 0.75 : 1,
-              })}
-            >
-              <Text
-                style={{
-                  fontFamily: "JetBrainsMono_500Medium",
-                  fontSize: 10,
-                  color: palette.inkSoft,
-                  letterSpacing: 0.5,
-                }}
-              >
-                FROM
-              </Text>
-              <Text
-                style={{
-                  fontFamily: "Geist_600SemiBold",
-                  color: palette.ink,
-                  fontSize: 15,
-                  marginTop: 2,
-                }}
-                numberOfLines={1}
-              >
-                {useCurrent
-                  ? fix
+        {/* ── From / To form ─────────────────────────────────────────── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+          <View style={planStyles.formCard}>
+            <FieldRow
+              icon={
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                  <Circle cx={12} cy={12} r={5} fill={palette.aegeanDeep} />
+                  <Circle cx={12} cy={12} r={10.5} stroke={palette.aegeanDeep} strokeOpacity={0.35} strokeWidth={1.5} />
+                </Svg>
+              }
+              label="FROM"
+              value={
+                useCurrent
+                  ? activeFix
                     ? "Current location"
-                    : "Limassol (set location in More)"
-                  : (origin?.label ?? "Pick a starting point")}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: "JetBrainsMono_500Medium",
-                  fontSize: 10,
-                  color: palette.inkSoft,
-                  letterSpacing: 0.4,
-                  marginTop: 4,
-                }}
-              >
-                {useCurrent ? "TAP TO CHANGE" : "TAP TO RESET TO CURRENT"}
-              </Text>
-            </Pressable>
+                    : locError
+                      ? "Location unavailable"
+                      : "Tap Locate me to use your position"
+                  : (origin?.label ?? "Pick a starting point")
+              }
+              placeholder={!useCurrent && !origin}
+              onPress={() => {
+                setPickerSeed("");
+                setPicking("origin");
+              }}
+              accessory={
+                <Pressable
+                  onPress={locateMe}
+                  hitSlop={8}
+                  style={({ pressed }) => [planStyles.locateBtn, pressed && { opacity: 0.7 }]}
+                >
+                  {locating ? (
+                    <ActivityIndicator size="small" color={palette.limestone} />
+                  ) : (
+                    <>
+                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+                        <Path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke={palette.limestone} strokeWidth={2} strokeLinecap="round" />
+                        <Circle cx={12} cy={12} r={5} stroke={palette.limestone} strokeWidth={2} />
+                        <Circle cx={12} cy={12} r={1.5} fill={palette.limestone} />
+                      </Svg>
+                      <Text style={planStyles.locateBtnText}>Locate me</Text>
+                    </>
+                  )}
+                </Pressable>
+              }
+            />
 
-            <View style={{ height: 1, backgroundColor: palette.line, marginHorizontal: 14 }} />
+            <View style={planStyles.divider}>
+              <View style={planStyles.dividerLine} />
+              <Pressable
+                onPress={() => {
+                  if (!destination) return;
+                  Haptics.selectionAsync().catch(() => {});
+                  const swappedOrigin: PickedPlace = {
+                    lat: destination.lat,
+                    lng: destination.lng,
+                    label: destination.label,
+                  };
+                  const swappedDest: PickedPlace = {
+                    lat: effectiveOrigin.lat,
+                    lng: effectiveOrigin.lng,
+                    label: effectiveOrigin.label,
+                  };
+                  setOrigin(swappedOrigin);
+                  setUseCurrent(false);
+                  setDestination(swappedDest);
+                }}
+                hitSlop={8}
+                style={({ pressed }) => [planStyles.swapBtn, pressed && { opacity: 0.7 }]}
+                accessibilityLabel="Swap origin and destination"
+              >
+                <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                  <Path d="M7 4v14m0 0-3-3m3 3 3-3M17 20V6m0 0-3 3m3-3 3 3" stroke={palette.ink} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>
+              </Pressable>
+              <View style={planStyles.dividerLine} />
+            </View>
 
-            <Pressable
-              onPress={() => setPicking("dest")}
-              style={({ pressed }) => ({
-                paddingVertical: 14,
-                paddingHorizontal: 14,
-                borderRadius: 14,
-                opacity: pressed ? 0.75 : 1,
-              })}
-            >
-              <Text
-                style={{
-                  fontFamily: "JetBrainsMono_500Medium",
-                  fontSize: 10,
-                  color: palette.inkSoft,
-                  letterSpacing: 0.5,
-                }}
-              >
-                TO
-              </Text>
-              <Text
-                style={{
-                  fontFamily: "Geist_600SemiBold",
-                  color: destination ? palette.ink : palette.inkSoft,
-                  fontSize: 15,
-                  marginTop: 2,
-                }}
-                numberOfLines={1}
-              >
-                {destination?.label ?? "Pick a destination"}
-              </Text>
-            </Pressable>
+            <FieldRow
+              icon={
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                  <Path d="M12 22s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z" fill={palette.ochre} />
+                  <Circle cx={12} cy={10} r={2.4} fill={palette.limestone} />
+                </Svg>
+              }
+              label="TO"
+              value={destination?.label ?? "Where are you heading?"}
+              placeholder={!destination}
+              onPress={() => {
+                setPickerSeed("");
+                setPicking("dest");
+              }}
+            />
           </View>
+          {locError && (
+            <Text style={planStyles.locErr}>{locError}</Text>
+          )}
         </View>
 
         {/* ── Autocomplete sheet (inline) ────────────────────────────── */}
@@ -405,12 +442,14 @@ export default function PlanScreen() {
                   ? "Search a place, address or landmark"
                   : "Where are you heading?"
               }
-              bias={fix ? { lat: fix.lat, lng: fix.lng } : undefined}
+              initialQuery={pickerSeed}
+              bias={activeFix ? { lat: activeFix.lat, lng: activeFix.lng } : undefined}
               onPick={(p) => handlePicked(picking, p)}
               onClose={() => setPicking(null)}
             />
           </View>
         )}
+
 
         {/* ── Time picker ────────────────────────────────────────────── */}
         <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
@@ -576,3 +615,177 @@ export default function PlanScreen() {
     </View>
   );
 }
+
+function FieldRow({
+  icon,
+  label,
+  value,
+  placeholder,
+  onPress,
+  accessory,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  placeholder?: boolean;
+  onPress: () => void;
+  accessory?: React.ReactNode;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [planStyles.field, pressed && { backgroundColor: palette.limestoneSoft }]}
+    >
+      <View style={planStyles.fieldIcon}>{icon}</View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={planStyles.fieldLabel}>{label}</Text>
+        <Text
+          style={[planStyles.fieldValue, placeholder && { color: palette.inkSoft }]}
+          numberOfLines={2}
+        >
+          {value}
+        </Text>
+      </View>
+      {accessory ?? (
+        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+          <Path d="m9 6 6 6-6 6" stroke={palette.inkSoft} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
+      )}
+    </Pressable>
+  );
+}
+
+const planStyles = StyleSheet.create({
+  hero: {
+    marginHorizontal: 20,
+    marginTop: 4,
+    height: 200,
+    borderRadius: 24,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: palette.line,
+    justifyContent: "flex-end",
+  },
+  heroWash: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(31,30,24,0.35)",
+  },
+  heroContent: {
+    padding: 20,
+    gap: 6,
+  },
+  heroKicker: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 10,
+    letterSpacing: 2.6,
+    color: palette.limestone,
+    opacity: 0.9,
+  },
+  heroTitle: {
+    fontFamily: "BricolageGrotesque_800ExtraBold",
+    fontSize: 30,
+    lineHeight: 32,
+    letterSpacing: -0.8,
+    color: palette.limestone,
+  },
+  heroSub: {
+    fontFamily: "Geist_500Medium",
+    fontSize: 13,
+    color: palette.limestone,
+    opacity: 0.85,
+  },
+  heroBadge: {
+    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: "rgba(246,241,231,0.18)",
+  },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  heroBadgeText: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 9.5,
+    letterSpacing: 1.4,
+    color: palette.limestone,
+  },
+  formCard: {
+    backgroundColor: palette.white,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: palette.line,
+    padding: 6,
+  },
+  field: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+  },
+  fieldIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.limestoneSoft,
+  },
+  fieldLabel: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 9.5,
+    letterSpacing: 1.8,
+    color: palette.inkSoft,
+  },
+  fieldValue: {
+    fontFamily: "Geist_600SemiBold",
+    fontSize: 15.5,
+    color: palette.ink,
+    marginTop: 3,
+    letterSpacing: -0.2,
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 14,
+    gap: 8,
+  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: palette.line },
+  swapBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.white,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  locateBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: palette.ink,
+    minWidth: 92,
+    justifyContent: "center",
+  },
+  locateBtnText: {
+    fontFamily: "Geist_600SemiBold",
+    fontSize: 11,
+    color: palette.limestone,
+    letterSpacing: 0.2,
+  },
+  locErr: {
+    marginTop: 10,
+    fontFamily: "Geist_500Medium",
+    fontSize: 12,
+    color: palette.ochre,
+  },
+});
