@@ -178,6 +178,10 @@ export async function downloadOfflineSchedules(opts: {
 }
 
 export async function clearOfflineSchedules(): Promise<void> {
+  if (!OFFLINE_SUPPORTED) {
+    try { await AsyncStorage.removeItem(STATUS_KEY); } catch {}
+    return;
+  }
   try {
     const info = await FileSystem.getInfoAsync(ROOT);
     if (info.exists) await FileSystem.deleteAsync(ROOT, { idempotent: true });
@@ -189,6 +193,7 @@ export async function clearOfflineSchedules(): Promise<void> {
 
 /** Read a cached JSON shard. Returns null when missing or unparseable. */
 export async function readCachedJson<T = unknown>(relPath: string): Promise<T | null> {
+  if (!OFFLINE_SUPPORTED) return null;
   try {
     const uri = `${ROOT}${relPath.replace(/^\//, "")}`;
     const info = await FileSystem.getInfoAsync(uri);
@@ -205,3 +210,4 @@ export function formatBytes(n: number): string {
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
+
