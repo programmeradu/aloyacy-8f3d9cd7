@@ -105,10 +105,16 @@ export async function downloadOfflineSchedules(opts: {
   daysAhead?: number;
   onProgress?: (p: DownloadProgress) => void;
 }): Promise<OfflineStatus> {
+  if (!OFFLINE_SUPPORTED) {
+    throw new Error(
+      "Offline schedules aren't available in the web preview — install the app on your phone to download timetables.",
+    );
+  }
   const daysAhead = Math.max(1, Math.min(14, opts.daysAhead ?? 7));
   const requested = nextDaysYmd(daysAhead);
 
   // Cross-check with the published by-date index so we don't 404 on dates
+
   // the static bundle hasn't ingested yet.
   let available: Set<string> | null = null;
   try {
