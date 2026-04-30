@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   },
   locale: {
     marginTop: 4,
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,
     color: palette.inkSoft,
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   weatherDay: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 1.7,
     color: palette.inkSoft,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   },
   searchHint: {
     marginTop: 2,
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9.5,
     letterSpacing: 1.4,
     color: palette.inkSoft,
@@ -445,14 +445,14 @@ const styles = StyleSheet.create({
   },
   searchResultMeta: {
     marginTop: 3,
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 1.5,
     color: palette.inkSoft,
     textTransform: "uppercase",
   },
   searchResultGo: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9.5,
     letterSpacing: 1.8,
     color: palette.aegeanDeep,
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.limestoneSoft,
   },
   fullSearchText: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,
     color: palette.ink,
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
   },
   chipsRow: { paddingHorizontal: 20, paddingTop: 14, gap: 8 },
   locating: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 1.8,
     color: palette.inkSoft,
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(31,30,24,0.08)",
   },
   mapKicker: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9,
     letterSpacing: 1.8,
     color: palette.inkSoft,
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
   },
   statImage: { position: "absolute", right: -3, bottom: -4, width: "58%", height: "58%", opacity: 0.62 },
   statLabel: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9,
     letterSpacing: 1.5,
     color: palette.inkSoft,
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
   editorialWash: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(15,26,32,0.46)" },
   editorialContent: { flex: 1, padding: 20, justifyContent: "flex-end" },
   editorialKicker: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,
     color: "rgba(246,241,231,0.78)",
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   sectionKicker: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 1.9,
     color: palette.inkSoft,

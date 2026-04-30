@@ -95,7 +95,7 @@ export function PlacesAutocomplete({
       >
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             color: palette.inkSoft,
             letterSpacing: 0.5,
@@ -131,7 +131,7 @@ export function PlacesAutocomplete({
           >
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 11,
                 color: palette.inkSoft,
                 letterSpacing: 0.4,
@@ -144,7 +144,7 @@ export function PlacesAutocomplete({
           <Pressable onPress={onClose} hitSlop={10}>
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 11,
                 color: palette.inkSoft,
                 letterSpacing: 0.4,

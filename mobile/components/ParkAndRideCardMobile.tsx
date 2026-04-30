@@ -62,7 +62,7 @@ export function ParkAndRideCardMobile({
       >
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             color: palette.aegeanDeep,
             letterSpacing: 0.6,
@@ -75,7 +75,7 @@ export function ParkAndRideCardMobile({
         </Text>
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             color: palette.inkSoft,
             letterSpacing: 0.4,
@@ -108,7 +108,7 @@ export function ParkAndRideCardMobile({
         >
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 10,
               color: palette.ochre,
               letterSpacing: 0.5,
@@ -219,7 +219,7 @@ function Stat({
     >
       <Text
         style={{
-          fontFamily: "JetBrainsMono_500Medium",
+          fontFamily: "Geist_700Bold",
           fontSize: 10,
           color: tone === "aegean" ? palette.aegeanDeep : palette.inkSoft,
           letterSpacing: 0.5,
@@ -250,7 +250,7 @@ function Stat({
       </View>
       <Text
         style={{
-          fontFamily: "JetBrainsMono_500Medium",
+          fontFamily: "Geist_700Bold",
           fontSize: 10,
           color: palette.inkSoft,
           letterSpacing: 0.3,

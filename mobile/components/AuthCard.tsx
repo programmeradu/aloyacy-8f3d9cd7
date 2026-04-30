@@ -29,7 +29,7 @@ export function AuthCard() {
       <Card style={{ marginTop: 18, padding: 20 }}>
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             color: palette.olive,
             letterSpacing: 2,
@@ -111,7 +111,7 @@ export function AuthCard() {
     <Card style={{ marginTop: 18, padding: 20 }}>
       <Text
         style={{
-          fontFamily: "JetBrainsMono_500Medium",
+          fontFamily: "Geist_700Bold",
           fontSize: 10,
           color: palette.olive,
           letterSpacing: 2,
@@ -190,7 +190,7 @@ export function AuthCard() {
               inputStyle,
               {
                 textAlign: "center",
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 22,
                 letterSpacing: 6,
               },
@@ -222,7 +222,7 @@ export function AuthCard() {
           >
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 11,
                 color: palette.inkSoft ?? palette.ink,
                 letterSpacing: 1.4,

@@ -293,13 +293,13 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
   close: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2.2,
     color: palette.inkSoft,
   },
   fieldLabel: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2.2,
     color: palette.inkSoft,
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 14,
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 16,
     letterSpacing: 2,
     color: palette.ink,
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.white,
   },
   chipLabel: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 12,
     color: palette.ink,
   },
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   primaryLabel: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 11,
     letterSpacing: 2.4,
     color: palette.limestone,

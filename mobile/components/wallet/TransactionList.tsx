@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   count: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,
     color: palette.inkSoft,
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   rowStamp: {
     marginTop: 4,
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9,
     letterSpacing: 1.4,
     color: palette.inkSoft,
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   },
   rowBalance: {
     marginTop: 3,
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 1.2,
     color: palette.inkSoft,

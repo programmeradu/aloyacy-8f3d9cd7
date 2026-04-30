@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   kicker: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 11,
     color: palette.aegeanDeep,
     letterSpacing: 2,
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.white,
     paddingHorizontal: 16,
     paddingVertical: Platform.OS === "ios" ? 14 : 10,
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 18,
     color: palette.ink,
     marginBottom: 12,

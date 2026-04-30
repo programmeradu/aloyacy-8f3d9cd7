@@ -125,7 +125,7 @@ export default function SearchScreen() {
               </Text>
               <Text
                 style={{
-                  fontFamily: "JetBrainsMono_500Medium",
+                  fontFamily: "Geist_700Bold",
                   fontSize: 12,
                   color: palette.inkSoft,
                   marginTop: 2,
