@@ -2,22 +2,40 @@ import { View, Text } from "react-native";
 import { palette } from "@/constants/theme";
 
 /**
- * Route badge — GTFS route_color painted as a full ground with a soft
- * limestone spine so the numeral stays legible on any brand colour. Type
- * uses Bricolage extrabold, tight tracking, single-line, generous baseline.
- * Auto-derives ink vs limestone foreground from the route color luminance.
+ * Route badge — themed to the Aloya palette (aegean / ochre / olive) instead
+ * of raw GTFS route_color, which ships arbitrary greens/reds/blues that
+ * clash with our Mediterranean editorial system. `tone` may be supplied
+ * directly; otherwise we derive it deterministically from the route short
+ * so the same route always renders the same colour.
  */
+type Tone = "aegean" | "ochre" | "olive";
+
+const TONES: Record<Tone, { bg: string; fg: string; shadow: string }> = {
+  aegean: { bg: palette.aegeanSoft, fg: palette.aegeanDeep, shadow: palette.aegeanDeep },
+  ochre: { bg: palette.ochreSoft, fg: palette.ochre, shadow: palette.ochre },
+  olive: { bg: "rgba(63,74,54,0.12)", fg: palette.olive, shadow: palette.olive },
+};
+
+function toneFor(short: string): Tone {
+  let h = 0;
+  for (let i = 0; i < short.length; i++) h = (h * 31 + short.charCodeAt(i)) | 0;
+  const v = Math.abs(h) % 3;
+  return v === 0 ? "aegean" : v === 1 ? "ochre" : "olive";
+}
+
 export function RouteChip({
   short,
-  color,
+  color: _color,
+  tone,
   size = "md",
 }: {
   short: string;
+  /** Raw GTFS route_color — ignored on mobile to keep the theme cohesive. */
   color?: string;
+  tone?: Tone;
   size?: "sm" | "md" | "lg";
 }) {
-  const hex = color ? (color.startsWith("#") ? color : `#${color}`) : palette.aegean;
-  const fg = readableForeground(hex);
+  const t = TONES[tone ?? toneFor(short)];
   const dims =
     size === "lg"
       ? { h: 40, px: 14, fs: 20, radius: 12 }
@@ -31,22 +49,19 @@ export function RouteChip({
         height: dims.h,
         paddingHorizontal: dims.px,
         borderRadius: dims.radius,
-        backgroundColor: hex,
+        backgroundColor: t.bg,
+        borderWidth: 1,
+        borderColor: `${t.fg}22`,
         alignItems: "center",
         justifyContent: "center",
         minWidth: dims.h + 6,
-        shadowColor: hex,
-        shadowOpacity: 0.25,
-        shadowRadius: 6,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 2,
       }}
     >
       <Text
         style={{
           fontFamily: "BricolageGrotesque_800ExtraBold",
           fontSize: dims.fs,
-          color: fg,
+          color: t.fg,
           letterSpacing: -0.4,
           lineHeight: dims.fs + 2,
           fontVariant: ["tabular-nums"],
@@ -57,15 +72,4 @@ export function RouteChip({
       </Text>
     </View>
   );
-}
-
-function readableForeground(hex: string): string {
-  const c = hex.replace("#", "");
-  if (c.length !== 6) return palette.white;
-  const r = parseInt(c.slice(0, 2), 16);
-  const g = parseInt(c.slice(2, 4), 16);
-  const b = parseInt(c.slice(4, 6), 16);
-  // Relative luminance (per WCAG). Under 0.55 = dark ground → limestone.
-  const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  return lum < 0.55 ? palette.limestone : palette.ink;
 }
