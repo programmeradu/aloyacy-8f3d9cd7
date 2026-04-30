@@ -92,15 +92,43 @@ export default function PlanScreen() {
       : FALLBACK_ORIGIN
     : (origin ?? FALLBACK_ORIGIN);
 
-  // Pre-fill destination search from the home-screen Ask Aloya composer.
+  // Hydrate from the "Ask Aloya" home-screen composer. Two seed shapes:
+  //   • `aloya:nl-plan` — fully resolved trip (from/to/times); apply and
+  //     let the planner run immediately.
+  //   • `aloya:nl-plan-seed` — raw text fallback when parsing failed;
+  //     open the destination picker pre-filled so the rider can adjust.
   useEffect(() => {
     (async () => {
       try {
+        const rich = await AsyncStorage.getItem("aloya:nl-plan");
+        if (rich) {
+          const parsed = JSON.parse(rich) as {
+            from?: { lat: number; lng: number; label: string } | null;
+            to?: { lat: number; lng: number; label: string };
+            leaveByISO?: string | null;
+            arriveByISO?: string | null;
+            at?: number;
+          };
+          await AsyncStorage.removeItem("aloya:nl-plan");
+          if (parsed?.to && parsed?.at && Date.now() - parsed.at < 60_000) {
+            setDestination(parsed.to);
+            if (parsed.from) {
+              setOrigin(parsed.from);
+              setUseCurrent(false);
+            } else {
+              setUseCurrent(true);
+              setOrigin(null);
+            }
+            if (parsed.leaveByISO) setTimeIntent({ kind: "leaveBy", iso: parsed.leaveByISO });
+            else if (parsed.arriveByISO) setTimeIntent({ kind: "arriveBy", iso: parsed.arriveByISO });
+            else setTimeIntent({ kind: "now" });
+            setPicking(null);
+            return;
+          }
+        }
         const raw = await AsyncStorage.getItem("aloya:nl-plan-seed");
         if (!raw) return;
         const parsed = JSON.parse(raw) as { text?: string; at?: number };
-        // Only honour seeds set in the last 60s so navigating back later
-        // doesn't hijack the picker.
         if (!parsed?.text || !parsed?.at || Date.now() - parsed.at > 60_000) return;
         await AsyncStorage.removeItem("aloya:nl-plan-seed");
         setPickerSeed(parsed.text);
@@ -108,6 +136,7 @@ export default function PlanScreen() {
       } catch {}
     })();
   }, []);
+
 
   async function locateMe() {
     if (locating) return;

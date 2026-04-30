@@ -18,6 +18,7 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -26,6 +27,8 @@ import Svg, { Path } from "react-native-svg";
 
 import { palette } from "@/constants/theme";
 import { assets } from "@/lib/assets";
+import { useGeoFix } from "@/lib/hooks";
+import { resolveAskAloya } from "@/lib/nl-planner";
 
 const SUGGESTIONS = [
   "To Eleftheria Square in 20 min",
@@ -36,19 +39,51 @@ const SUGGESTIONS = [
 
 export function AskAloyaCard() {
   const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { fix } = useGeoFix();
 
-  const submit = useCallback(async (value: string) => {
-    const q = value.trim();
-    if (q.length < 3) return;
-    Haptics.selectionAsync().catch(() => {});
-    try {
-      await AsyncStorage.setItem(
-        "aloya:nl-plan-seed",
-        JSON.stringify({ text: q, at: Date.now() }),
+  const submit = useCallback(
+    async (value: string) => {
+      const q = value.trim();
+      if (q.length < 3 || busy) return;
+      Haptics.selectionAsync().catch(() => {});
+      setBusy(true);
+      setError(null);
+      const bias = fix ? { lat: fix.lat, lng: fix.lng } : undefined;
+      const result = await resolveAskAloya(q, bias);
+      if (result.ok) {
+        try {
+          await AsyncStorage.setItem("aloya:nl-plan", JSON.stringify(result.seed));
+          // Clear the legacy text-only seed so the planner doesn't reopen
+          // the destination picker on top of the resolved trip.
+          await AsyncStorage.removeItem("aloya:nl-plan-seed");
+        } catch {}
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        setBusy(false);
+        setText("");
+        router.push("/plan");
+        return;
+      }
+      // Parse or geocode failure — hand the raw text to the picker as a
+      // fallback so the rider can adjust.
+      try {
+        await AsyncStorage.setItem(
+          "aloya:nl-plan-seed",
+          JSON.stringify({ text: q, at: Date.now() }),
+        );
+      } catch {}
+      setBusy(false);
+      setError(
+        result.reason === "parse"
+          ? "Couldn't understand that — try naming a place, e.g. \"to Larnaca airport\"."
+          : `Couldn't find "${result.hint ?? "that place"}". Try a different spelling.`,
       );
-    } catch {}
-    router.push("/plan");
-  }, []);
+      router.push("/plan");
+    },
+    [busy, fix?.lat, fix?.lng],
+  );
+
 
   return (
     <View style={styles.card}>
@@ -78,35 +113,45 @@ export function AskAloyaCard() {
         </Svg>
         <TextInput
           value={text}
-          onChangeText={setText}
+          onChangeText={(v) => {
+            setText(v);
+            if (error) setError(null);
+          }}
           onSubmitEditing={() => submit(text)}
-          placeholder="e.g. to the airport tomorrow 7am"
+          placeholder={busy ? "Aloya is planning…" : "e.g. to the airport tomorrow 7am"}
           placeholderTextColor={palette.inkSoft}
           returnKeyType="go"
           style={styles.input}
           maxLength={200}
+          editable={!busy}
         />
         <Pressable
           onPress={() => submit(text)}
-          disabled={text.trim().length < 3}
+          disabled={text.trim().length < 3 || busy}
           style={({ pressed }) => [
             styles.submit,
-            text.trim().length < 3 && { opacity: 0.35 },
+            (text.trim().length < 3 || busy) && { opacity: 0.5 },
             pressed && { opacity: 0.85 },
           ]}
           hitSlop={8}
         >
-          <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M12 4v16m0-16-6 6m6-6 6 6"
-              stroke={palette.limestone}
-              strokeWidth={2.4}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
+          {busy ? (
+            <ActivityIndicator size="small" color={palette.limestone} />
+          ) : (
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M12 4v16m0-16-6 6m6-6 6 6"
+                stroke={palette.limestone}
+                strokeWidth={2.4}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          )}
         </Pressable>
       </View>
+
+      {error && <Text style={styles.error}>{error}</Text>}
 
       <ScrollView
         horizontal
@@ -117,7 +162,8 @@ export function AskAloyaCard() {
           <Pressable
             key={s}
             onPress={() => submit(s)}
-            style={({ pressed }) => [styles.chip, pressed && { opacity: 0.7 }]}
+            disabled={busy}
+            style={({ pressed }) => [styles.chip, pressed && { opacity: 0.7 }, busy && { opacity: 0.5 }]}
           >
             <Text style={styles.chipText} numberOfLines={1}>{s}</Text>
           </Pressable>
@@ -126,6 +172,7 @@ export function AskAloyaCard() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   card: {
@@ -234,5 +281,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: palette.ink,
     letterSpacing: -0.1,
+  },
+  error: {
+    marginTop: 10,
+    marginHorizontal: 20,
+    fontFamily: "Geist_500Medium",
+    fontSize: 12,
+    color: palette.ochre,
+    lineHeight: 17,
   },
 });
