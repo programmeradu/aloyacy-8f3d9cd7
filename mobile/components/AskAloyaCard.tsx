@@ -113,35 +113,45 @@ export function AskAloyaCard() {
         </Svg>
         <TextInput
           value={text}
-          onChangeText={setText}
+          onChangeText={(v) => {
+            setText(v);
+            if (error) setError(null);
+          }}
           onSubmitEditing={() => submit(text)}
-          placeholder="e.g. to the airport tomorrow 7am"
+          placeholder={busy ? "Aloya is planning…" : "e.g. to the airport tomorrow 7am"}
           placeholderTextColor={palette.inkSoft}
           returnKeyType="go"
           style={styles.input}
           maxLength={200}
+          editable={!busy}
         />
         <Pressable
           onPress={() => submit(text)}
-          disabled={text.trim().length < 3}
+          disabled={text.trim().length < 3 || busy}
           style={({ pressed }) => [
             styles.submit,
-            text.trim().length < 3 && { opacity: 0.35 },
+            (text.trim().length < 3 || busy) && { opacity: 0.5 },
             pressed && { opacity: 0.85 },
           ]}
           hitSlop={8}
         >
-          <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M12 4v16m0-16-6 6m6-6 6 6"
-              stroke={palette.limestone}
-              strokeWidth={2.4}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
+          {busy ? (
+            <ActivityIndicator size="small" color={palette.limestone} />
+          ) : (
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M12 4v16m0-16-6 6m6-6 6 6"
+                stroke={palette.limestone}
+                strokeWidth={2.4}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          )}
         </Pressable>
       </View>
+
+      {error && <Text style={styles.error}>{error}</Text>}
 
       <ScrollView
         horizontal
@@ -152,7 +162,8 @@ export function AskAloyaCard() {
           <Pressable
             key={s}
             onPress={() => submit(s)}
-            style={({ pressed }) => [styles.chip, pressed && { opacity: 0.7 }]}
+            disabled={busy}
+            style={({ pressed }) => [styles.chip, pressed && { opacity: 0.7 }, busy && { opacity: 0.5 }]}
           >
             <Text style={styles.chipText} numberOfLines={1}>{s}</Text>
           </Pressable>
@@ -161,6 +172,7 @@ export function AskAloyaCard() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   card: {
