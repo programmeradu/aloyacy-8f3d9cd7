@@ -282,4 +282,12 @@ const styles = StyleSheet.create({
     color: palette.ink,
     letterSpacing: -0.1,
   },
+  error: {
+    marginTop: 10,
+    marginHorizontal: 20,
+    fontFamily: "Geist_500Medium",
+    fontSize: 12,
+    color: palette.ochre,
+    lineHeight: 17,
+  },
 });
