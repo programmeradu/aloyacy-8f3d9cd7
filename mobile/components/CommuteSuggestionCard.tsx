@@ -8,7 +8,6 @@
 // qualifies, or the query is still loading — keeping the home feed
 // honest.
 
-import { useEffect, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
