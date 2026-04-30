@@ -53,7 +53,7 @@ export function KapnosShuttleCardMobile({
       >
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             color: palette.aegeanDeep,
             letterSpacing: 0.6,
@@ -63,7 +63,7 @@ export function KapnosShuttleCardMobile({
         </Text>
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             color: palette.inkSoft,
             letterSpacing: 0.4,
@@ -127,7 +127,7 @@ export function KapnosShuttleCardMobile({
             >
               <Text
                 style={{
-                  fontFamily: "JetBrainsMono_500Medium",
+                  fontFamily: "Geist_700Bold",
                   fontSize: 14,
                   color: palette.ink,
                   letterSpacing: 0.5,
@@ -156,7 +156,7 @@ export function KapnosShuttleCardMobile({
             >
               <Text
                 style={{
-                  fontFamily: "JetBrainsMono_500Medium",
+                  fontFamily: "Geist_700Bold",
                   fontSize: 11,
                   color: palette.aegeanDeep,
                   letterSpacing: 0.4,
@@ -214,7 +214,7 @@ function Endpoint({
     <View>
       <Text
         style={{
-          fontFamily: "JetBrainsMono_500Medium",
+          fontFamily: "Geist_700Bold",
           fontSize: 10,
           color: palette.inkSoft,
           letterSpacing: 0.4,

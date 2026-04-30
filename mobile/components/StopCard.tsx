@@ -141,7 +141,7 @@ export function StopCard({ stop }: { stop: StopCardData }) {
           </Text>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9,
               letterSpacing: 1.8,
               color: "rgba(90,87,78,0.75)",
@@ -161,7 +161,7 @@ export function StopCard({ stop }: { stop: StopCardData }) {
             >
               <Text
                 style={{
-                  fontFamily: "JetBrainsMono_500Medium",
+                  fontFamily: "Geist_700Bold",
                   fontSize: 9,
                   letterSpacing: 1.8,
                   color: TIER_COLOR[tier],
@@ -199,7 +199,7 @@ function RouteList({ routes }: { routes: StopCardRoute[] }) {
             {r.headsign ? (
               <Text
                 style={{
-                  fontFamily: "JetBrainsMono_500Medium",
+                  fontFamily: "Geist_700Bold",
                   fontSize: 10,
                   letterSpacing: 1.4,
                   color: palette.inkSoft,
@@ -234,7 +234,7 @@ function RouteList({ routes }: { routes: StopCardRoute[] }) {
       {dests.length > 0 && (
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             letterSpacing: 1.4,
             color: palette.inkSoft,

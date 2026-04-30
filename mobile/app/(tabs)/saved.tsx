@@ -102,7 +102,7 @@ export default function SavedScreen() {
     >
       <Text
         style={{
-          fontFamily: "JetBrainsMono_500Medium",
+          fontFamily: "Geist_700Bold",
           fontSize: 12,
           letterSpacing: 2,
           color: palette.oliveSoft,
@@ -241,7 +241,7 @@ export default function SavedScreen() {
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text
                   style={{
-                    fontFamily: "JetBrainsMono_500Medium",
+                    fontFamily: "Geist_700Bold",
                     fontSize: 10,
                     letterSpacing: 1.8,
                     color: palette.inkSoft,
@@ -405,7 +405,7 @@ function RecentRow({
         </Text>
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             letterSpacing: 1.8,
             color: palette.inkSoft,

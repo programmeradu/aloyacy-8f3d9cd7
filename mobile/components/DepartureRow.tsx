@@ -125,7 +125,7 @@ export function DepartureRow({
             <RouteChip short={routeShort} color={routeColor} />
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 8.5,
                 letterSpacing: 2,
                 color: "rgba(90,87,78,0.75)",
@@ -141,7 +141,7 @@ export function DepartureRow({
               <>
                 <Text
                   style={{
-                    fontFamily: "JetBrainsMono_500Medium",
+                    fontFamily: "Geist_700Bold",
                     fontSize: 9,
                     letterSpacing: 2,
                     color: "rgba(31,108,130,0.85)",
@@ -181,7 +181,7 @@ export function DepartureRow({
             )}
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 10,
                 letterSpacing: 1.6,
                 color: palette.inkSoft,
@@ -208,7 +208,7 @@ export function DepartureRow({
             </Text>
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 9,
                 letterSpacing: 2,
                 color: "rgba(90,87,78,0.8)",
@@ -240,7 +240,7 @@ export function DepartureRow({
           >
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 10,
                 letterSpacing: 1.6,
                 color: tierColor,
@@ -259,7 +259,7 @@ export function DepartureRow({
               {showBand ? (
                 <Text
                   style={{
-                    fontFamily: "JetBrainsMono_500Medium",
+                    fontFamily: "Geist_700Bold",
                     fontSize: 10,
                     letterSpacing: 1.4,
                     color: "rgba(90,87,78,0.85)",
@@ -273,7 +273,7 @@ export function DepartureRow({
               {shifted ? (
                 <Text
                   style={{
-                    fontFamily: "JetBrainsMono_500Medium",
+                    fontFamily: "Geist_700Bold",
                     fontSize: 10,
                     letterSpacing: 1.4,
                     color: "rgba(90,87,78,0.5)",

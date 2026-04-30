@@ -35,7 +35,7 @@ export function MotionCardCard() {
       <Card style={{ marginTop: 14, padding: 18 }}>
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             letterSpacing: 2.4,
             textTransform: "uppercase",
@@ -80,7 +80,7 @@ export function MotionCardCard() {
           >
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 11,
                 letterSpacing: 1.6,
                 color: palette.ink,
@@ -111,7 +111,7 @@ export function MotionCardCard() {
               {pass.validUntil && (
                 <Text
                   style={{
-                    fontFamily: "JetBrainsMono_500Medium",
+                    fontFamily: "Geist_700Bold",
                     fontSize: 11,
                     color: palette.inkSoft,
                   }}

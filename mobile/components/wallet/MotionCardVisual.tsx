@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   validValue: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 11,
     letterSpacing: 0.5,
     color: "#1A2A6C",
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(15,26,32,0.9)",
   },
   scanLabel: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,
     color: palette.limestone,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   tapHint: {
     marginTop: 12,
     textAlign: "center",
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2.4,
     color: palette.inkSoft,

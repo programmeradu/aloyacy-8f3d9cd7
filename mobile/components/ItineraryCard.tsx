@@ -62,7 +62,7 @@ function LegRow({ leg }: { leg: Leg }) {
           <Text style={{ fontFamily: "Geist_600SemiBold", color: palette.ink, fontSize: 14 }} numberOfLines={1}>
             {leg.board.name} → {leg.alight.name}
           </Text>
-          <Text style={{ fontFamily: "JetBrainsMono_500Medium", color: palette.inkSoft, fontSize: 11, marginTop: 2 }}>
+          <Text style={{ fontFamily: "Geist_700Bold", color: palette.inkSoft, fontSize: 11, marginTop: 2 }}>
             {fmtClock(leg.board.departureUnix)} – {fmtClock(leg.alight.arrivalUnix)} · {leg.stopCount} stops
             {leg.live ? " · live" : ""}
           </Text>
@@ -100,7 +100,7 @@ function LegRow({ leg }: { leg: Leg }) {
           <Text style={{ fontFamily: "Geist_600SemiBold", color: palette.ink, fontSize: 14 }} numberOfLines={1}>
             {leg.from.name} → {leg.to.name}
           </Text>
-          <Text style={{ fontFamily: "JetBrainsMono_500Medium", color: palette.inkSoft, fontSize: 11, marginTop: 2 }}>
+          <Text style={{ fontFamily: "Geist_700Bold", color: palette.inkSoft, fontSize: 11, marginTop: 2 }}>
             {fmtDur(leg.durationSec)} · {Math.round(leg.distanceMeters)} m · Tap for steps
           </Text>
         </View>
@@ -129,7 +129,7 @@ export function ItineraryCard({ itinerary }: { itinerary: Itinerary }) {
           {fmtDur(itinerary.totalDurationSec)}
         </Text>
       </View>
-      <Text style={{ fontFamily: "JetBrainsMono_500Medium", color: palette.inkSoft, fontSize: 11, marginTop: 4 }}>
+      <Text style={{ fontFamily: "Geist_700Bold", color: palette.inkSoft, fontSize: 11, marginTop: 4 }}>
         {rides.length} ride{rides.length === 1 ? "" : "s"} · {itinerary.transfers} change{itinerary.transfers === 1 ? "" : "s"} ·
         {" "}{Math.round(itinerary.totalWalkMeters)} m walk · {itinerary.source}
       </Text>

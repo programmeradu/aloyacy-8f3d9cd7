@@ -179,7 +179,7 @@ export default function TripInfoScreen() {
         </Pressable>
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             letterSpacing: 2.2,
             color: rt.data?.stale ? palette.ochre : palette.aegeanDeep,
@@ -230,7 +230,7 @@ export default function TripInfoScreen() {
               <RouteChip short={trip.route?.short ?? "?"} color={trip.route?.color} />
               <Text
                 style={{
-                  fontFamily: "JetBrainsMono_500Medium",
+                  fontFamily: "Geist_700Bold",
                   fontSize: 10,
                   letterSpacing: 2.2,
                   color: palette.inkSoft,
@@ -313,7 +313,7 @@ export default function TripInfoScreen() {
               </Text>
               <Text
                 style={{
-                  fontFamily: "JetBrainsMono_500Medium",
+                  fontFamily: "Geist_700Bold",
                   fontSize: 9.5,
                   letterSpacing: 1.8,
                   color: palette.inkSoft,
@@ -397,7 +397,7 @@ export default function TripInfoScreen() {
                       <Text
                         style={{
                           marginTop: 3,
-                          fontFamily: "JetBrainsMono_500Medium",
+                          fontFamily: "Geist_700Bold",
                           fontSize: 10,
                           letterSpacing: 1.6,
                           color: palette.inkSoft,
@@ -428,7 +428,7 @@ export default function TripInfoScreen() {
                         <Text
                           style={{
                             marginTop: 3,
-                            fontFamily: "JetBrainsMono_500Medium",
+                            fontFamily: "Geist_700Bold",
                             fontSize: 9.5,
                             letterSpacing: 1.4,
                             color: palette.inkSoft,
@@ -532,7 +532,7 @@ function NextStopAndStatus({
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 10,
               letterSpacing: 2.2,
               color: palette.inkSoft,
@@ -557,7 +557,7 @@ function NextStopAndStatus({
             <Text
               style={{
                 marginTop: 6,
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 10,
                 letterSpacing: 1.8,
                 color: palette.inkSoft,
@@ -572,7 +572,7 @@ function NextStopAndStatus({
           {finished ? (
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 12,
                 letterSpacing: 2,
                 color: palette.inkSoft,
@@ -596,7 +596,7 @@ function NextStopAndStatus({
               <Text
                 style={{
                   marginTop: 4,
-                  fontFamily: "JetBrainsMono_500Medium",
+                  fontFamily: "Geist_700Bold",
                   fontSize: 10,
                   letterSpacing: 2.2,
                   color: palette.inkSoft,
@@ -623,7 +623,7 @@ function NextStopAndStatus({
         >
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9.5,
               letterSpacing: 2,
               color: palette.inkSoft,
@@ -647,7 +647,7 @@ function NextStopAndStatus({
           <Text
             style={{
               marginTop: 4,
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9.5,
               letterSpacing: 1.8,
               color: palette.inkSoft,
@@ -669,7 +669,7 @@ function NextStopAndStatus({
         >
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9.5,
               letterSpacing: 2,
               color: palette.inkSoft,
@@ -693,7 +693,7 @@ function NextStopAndStatus({
           <Text
             style={{
               marginTop: 4,
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9.5,
               letterSpacing: 1.8,
               color: palette.inkSoft,

@@ -53,7 +53,7 @@ export function ReliabilityBadge({ tier, onTimePct, meanDelaySec, sampleCount }:
         />
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             letterSpacing: 2.2,
             color: palette.inkSoft,
@@ -75,7 +75,7 @@ export function ReliabilityBadge({ tier, onTimePct, meanDelaySec, sampleCount }:
       </Text>
       <Text
         style={{
-          fontFamily: "JetBrainsMono_500Medium",
+          fontFamily: "Geist_700Bold",
           fontSize: 10,
           letterSpacing: 1.6,
           color: palette.inkSoft,

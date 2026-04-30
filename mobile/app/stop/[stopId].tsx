@@ -135,7 +135,7 @@ export default function StopDetailScreen() {
         </Pressable>
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             letterSpacing: 2.2,
             color: palette.inkSoft,
@@ -186,7 +186,7 @@ export default function StopDetailScreen() {
         >
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 10,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -223,7 +223,7 @@ export default function StopDetailScreen() {
         <View style={{ flex: 1 }}>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9.5,
               letterSpacing: 2.4,
               color: palette.inkSoft,
@@ -247,7 +247,7 @@ export default function StopDetailScreen() {
         </View>
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             letterSpacing: 1.8,
             color: stale ? palette.ochre : palette.aegeanDeep,

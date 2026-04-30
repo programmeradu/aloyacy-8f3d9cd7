@@ -22,7 +22,7 @@ function fmtDist(m: number) {
 }
 
 const KICKER = {
-  fontFamily: "JetBrainsMono_500Medium" as const,
+  fontFamily: "Geist_700Bold" as const,
   fontSize: 10,
   letterSpacing: 1.8,
   textTransform: "uppercase" as const,

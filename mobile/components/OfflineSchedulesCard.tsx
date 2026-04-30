@@ -100,7 +100,7 @@ export function OfflineSchedulesCard() {
             <>
               <Text
                 style={{
-                  fontFamily: "JetBrainsMono_500Medium",
+                  fontFamily: "Geist_700Bold",
                   fontSize: 12,
                   color: palette.ink,
                   letterSpacing: 0.3,
@@ -196,7 +196,7 @@ export function OfflineSchedulesCard() {
           <Text
             style={{
               marginTop: 8,
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 11,
               color: palette.inkSoft,
               letterSpacing: 0.3,
