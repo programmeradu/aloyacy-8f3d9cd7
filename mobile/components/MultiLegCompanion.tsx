@@ -940,9 +940,14 @@ function MultiLegActions({
     );
   }
 
-  // Calm tracking pill for phases with no explicit action.
+  // Calm tracking pill for phases with no explicit action. During a ride
+  // we also expose a quiet "get off here" affordance so the rider can
+  // bail out of the plan (missed a stop, changed their mind) and get
+  // rerouted from their current position.
+  const showGetOffHere =
+    live.phase === "riding" || live.phase === "walking-to-transfer";
   return (
-    <View style={{ paddingHorizontal: 20 }}>
+    <View style={{ paddingHorizontal: 20, gap: 10 }}>
       <View
         style={{
           flexDirection: "row",
@@ -967,6 +972,33 @@ function MultiLegActions({
           Tracking your journey.
         </Text>
       </View>
+      {showGetOffHere ? (
+        <Pressable
+          onPress={onGetOffHere}
+          style={({ pressed }) => ({
+            alignSelf: "flex-start",
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+            borderRadius: 999,
+            backgroundColor: palette.white,
+            borderWidth: 1,
+            borderColor: palette.line,
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <Text
+            style={{
+              fontFamily: "Geist_700Bold",
+              fontSize: 11,
+              letterSpacing: 1.4,
+              color: palette.aegeanDeep,
+              textTransform: "uppercase",
+            }}
+          >
+            Get off here — replan
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
