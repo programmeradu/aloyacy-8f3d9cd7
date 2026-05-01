@@ -833,10 +833,12 @@ function MultiLegActions({
   live,
   active,
   onImOff,
+  onGetOffHere,
 }: {
   live: MultiLegLive;
   active: ActiveTrip;
   onImOff: () => void;
+  onGetOffHere: () => void;
 }) {
   if (!live.active) {
     return (
