@@ -42,6 +42,8 @@ import {
   useMultiLegJourney,
   type MultiLegLive,
 } from "@/lib/useMultiLegJourney";
+import { useDisruptionWatch } from "@/lib/useDisruptionWatch";
+import { DisruptionBanner } from "@/components/DisruptionBanner";
 import { fetchWalkingDirections } from "@/lib/walk";
 import { distanceM } from "@aloya/core/geo";
 import type {
@@ -76,6 +78,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const insets = useSafeAreaInsets();
   const itin = active.itinerary!;
   const live = useMultiLegJourney(active);
+  const disruption = useDisruptionWatch(active, live);
 
   // ---- Walk directions for the current walk leg (lazy per-leg) -----------
   const currentWalk =
