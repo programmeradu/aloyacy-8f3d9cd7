@@ -467,6 +467,15 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         </View>
       </View>
     </ScrollView>
+
+    <EarlyAlightSheet
+      visible={replanKind !== null}
+      active={active}
+      fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
+      kind={replanKind ?? "early-alight"}
+      onClose={() => setReplanKind(null)}
+    />
+    </>
   );
 }
 
