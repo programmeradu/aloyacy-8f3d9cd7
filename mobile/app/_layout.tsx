@@ -21,6 +21,7 @@ import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 
 import { queryClient } from "@/lib/queryClient";
 import { palette } from "@/constants/theme";
+import { ResumeTripPill } from "@/components/ResumeTripPill";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -149,6 +150,7 @@ export default function RootLayout() {
             options={{ presentation: "card", animation: "slide_from_bottom" }}
           />
         </Stack>
+        <ResumeTripPill />
       </SafeAreaProvider>
     </QueryClientProvider>
   );
