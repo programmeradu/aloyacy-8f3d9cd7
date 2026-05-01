@@ -65,6 +65,10 @@ export function DisruptionBanner({
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch {}
+    if (onReplanProp) {
+      onReplanProp();
+      return;
+    }
     try {
       await AsyncStorage.setItem(
         "aloya:nl-plan",
