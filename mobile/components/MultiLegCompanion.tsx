@@ -30,6 +30,10 @@ import {
 } from "@/components/MapView";
 import { RouteChip } from "@/components/RouteChip";
 import { WalkGuidance } from "@/components/WalkGuidance";
+import { LiveWalkBanner } from "@/components/LiveWalkBanner";
+import { CrowdHint } from "@/components/CrowdHint";
+import { SightingButton } from "@/components/SightingButton";
+import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
 import {
   clearActiveTrip,
   type ActiveTrip,
@@ -42,7 +46,7 @@ import {
   useMultiLegJourney,
   type MultiLegLive,
 } from "@/lib/useMultiLegJourney";
-import { useDisruptionWatch } from "@/lib/useDisruptionWatch";
+import { useDisruptionWatch, type DisruptionKind } from "@/lib/useDisruptionWatch";
 import { DisruptionBanner } from "@/components/DisruptionBanner";
 import { fetchWalkingDirections } from "@/lib/walk";
 import { distanceM } from "@aloya/core/geo";
