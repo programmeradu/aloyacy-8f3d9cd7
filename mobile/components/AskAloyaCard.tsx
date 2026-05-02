@@ -49,7 +49,13 @@ export function AskAloyaCard() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
   const { fix } = useGeoFix();
+
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorderState = useAudioRecorderState(recorder);
+  const isRecording = recorderState.isRecording;
+  const permissionAsked = useRef(false);
 
   const submit = useCallback(
     async (value: string) => {
