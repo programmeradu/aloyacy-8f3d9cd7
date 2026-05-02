@@ -30,6 +30,10 @@ import {
 } from "@/components/MapView";
 import { RouteChip } from "@/components/RouteChip";
 import { WalkGuidance } from "@/components/WalkGuidance";
+import { LiveWalkBanner } from "@/components/LiveWalkBanner";
+import { CrowdHint } from "@/components/CrowdHint";
+import { SightingButton } from "@/components/SightingButton";
+import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
 import {
   clearActiveTrip,
   type ActiveTrip,
@@ -42,7 +46,7 @@ import {
   useMultiLegJourney,
   type MultiLegLive,
 } from "@/lib/useMultiLegJourney";
-import { useDisruptionWatch } from "@/lib/useDisruptionWatch";
+import { useDisruptionWatch, type DisruptionKind } from "@/lib/useDisruptionWatch";
 import { DisruptionBanner } from "@/components/DisruptionBanner";
 import { fetchWalkingDirections } from "@/lib/walk";
 import { distanceM } from "@aloya/core/geo";
@@ -79,6 +83,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const itin = active.itinerary!;
   const live = useMultiLegJourney(active);
   const disruption = useDisruptionWatch(active, live);
+  const [replanKind, setReplanKind] = useState<DisruptionKind | "early-alight" | null>(null);
 
   // ---- Walk directions for the current walk leg (lazy per-leg) -----------
   const currentWalk =
@@ -191,6 +196,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   };
 
   return (
+    <>
     <ScrollView
       style={{ flex: 1, backgroundColor: palette.limestone }}
       contentContainerStyle={{
@@ -282,8 +288,12 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           <PhaseSub live={live} itin={itin} destLabel={active.to.label} />
         </View>
       </View>
-      {/* Proactive disruption assistant — takes precedence over honest banners */}
-      <DisruptionBanner signal={disruption} active={active} />
+      {/* Proactive disruption assistant — opens inline replan sheet */}
+      <DisruptionBanner
+        signal={disruption}
+        active={active}
+        onReplan={() => disruption && setReplanKind(disruption.kind)}
+      />
 
       {/* Honest banners */}
       {live.active && live.tripGhost && !live.vehicleLost && (
@@ -293,6 +303,27 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           body="This trip is on the schedule but the operator hasn't reported it yet. Countdowns are on schedule until GPS appears."
         />
       )}
+
+      {/* Rider sighting CTA — surface when the current bus is a ghost and
+          the rider is close enough to the boarding stop to physically
+          confirm it. Costs one tap and rescues every other rider. */}
+      {live.active &&
+        live.tripGhost &&
+        live.currentRideLeg &&
+        (live.phase === "waiting-to-board" ||
+          live.phase === "walking-to-board") &&
+        live.metersToTarget < 120 && (
+          <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+            <SightingButton
+              tripId={live.currentRideLeg.tripId}
+              routeId={live.currentRideLeg.routeId}
+              stopId={live.currentRideLeg.board.stopId}
+              lat={live.currentRideLeg.board.lat}
+              lng={live.currentRideLeg.board.lng}
+            />
+          </View>
+        )}
+
       {live.active && live.vehicleLost && (
         <BannerCard
           tone="aegean"
@@ -322,6 +353,17 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           />
         )}
 
+      {/* Crowd / comfort — surface while a ride leg is active */}
+      {live.currentRideLeg &&
+        (live.phase === "riding" ||
+          live.phase === "alight-soon" ||
+          live.phase === "waiting-to-board") && (
+          <CrowdHint
+            routeId={live.currentRideLeg.routeId}
+            tripId={live.currentRideLeg.tripId}
+          />
+        )}
+
       {/* Live map */}
       <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
         <MapView
@@ -339,25 +381,44 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
 
       {/* Action HUD */}
       <View style={{ marginTop: 22 }}>
-        <MultiLegActions live={live} active={active} onImOff={handleImOff} />
+        <MultiLegActions
+          live={live}
+          active={active}
+          onImOff={handleImOff}
+          onGetOffHere={() => setReplanKind("early-alight")}
+        />
       </View>
 
-      {/* Walk turn-by-turn for the current walk leg */}
+      {/* Walk turn-by-turn: live banner + full step list */}
       {currentWalk && directions && directions.steps.length > 0 && (
-        <View style={{ marginTop: 26 }}>
-          <WalkGuidance
+        <>
+          <LiveWalkBanner
             title={
               live.phase === "walking-to-board"
-                ? `Walk to ${currentWalk.to.name}`
+                ? `To ${currentWalk.to.name}`
                 : live.phase === "walking-to-transfer"
-                  ? `Walk to bus ${live.nextRideLeg?.routeShort ?? ""}`
-                  : `Walk to ${currentWalk.to.name}`
+                  ? `To bus ${live.nextRideLeg?.routeShort ?? ""}`
+                  : `To ${currentWalk.to.name}`
             }
             steps={directions.steps}
-            totalDurationSec={directions.durationSec}
-            totalDistanceMeters={directions.distanceMeters}
+            fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
+            to={{ lat: currentWalk.to.lat, lng: currentWalk.to.lng }}
           />
-        </View>
+          <View style={{ marginTop: 20 }}>
+            <WalkGuidance
+              title={
+                live.phase === "walking-to-board"
+                  ? `Walk to ${currentWalk.to.name}`
+                  : live.phase === "walking-to-transfer"
+                    ? `Walk to bus ${live.nextRideLeg?.routeShort ?? ""}`
+                    : `Walk to ${currentWalk.to.name}`
+              }
+              steps={directions.steps}
+              totalDurationSec={directions.durationSec}
+              totalDistanceMeters={directions.distanceMeters}
+            />
+          </View>
+        </>
       )}
 
       {/* Full timeline */}
@@ -407,6 +468,15 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         </View>
       </View>
     </ScrollView>
+
+    <EarlyAlightSheet
+      visible={replanKind !== null}
+      active={active}
+      fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
+      kind={replanKind ?? "early-alight"}
+      onClose={() => setReplanKind(null)}
+    />
+    </>
   );
 }
 
@@ -773,10 +843,12 @@ function MultiLegActions({
   live,
   active,
   onImOff,
+  onGetOffHere,
 }: {
   live: MultiLegLive;
   active: ActiveTrip;
   onImOff: () => void;
+  onGetOffHere: () => void;
 }) {
   if (!live.active) {
     return (
@@ -878,9 +950,14 @@ function MultiLegActions({
     );
   }
 
-  // Calm tracking pill for phases with no explicit action.
+  // Calm tracking pill for phases with no explicit action. During a ride
+  // we also expose a quiet "get off here" affordance so the rider can
+  // bail out of the plan (missed a stop, changed their mind) and get
+  // rerouted from their current position.
+  const showGetOffHere =
+    live.phase === "riding" || live.phase === "walking-to-transfer";
   return (
-    <View style={{ paddingHorizontal: 20 }}>
+    <View style={{ paddingHorizontal: 20, gap: 10 }}>
       <View
         style={{
           flexDirection: "row",
@@ -905,6 +982,33 @@ function MultiLegActions({
           Tracking your journey.
         </Text>
       </View>
+      {showGetOffHere ? (
+        <Pressable
+          onPress={onGetOffHere}
+          style={({ pressed }) => ({
+            alignSelf: "flex-start",
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+            borderRadius: 999,
+            backgroundColor: palette.white,
+            borderWidth: 1,
+            borderColor: palette.line,
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <Text
+            style={{
+              fontFamily: "Geist_700Bold",
+              fontSize: 11,
+              letterSpacing: 1.4,
+              color: palette.aegeanDeep,
+              textTransform: "uppercase",
+            }}
+          >
+            Get off here — replan
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
