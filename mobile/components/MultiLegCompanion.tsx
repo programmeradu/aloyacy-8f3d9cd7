@@ -196,6 +196,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   };
 
   return (
+    <>
     <ScrollView
       style={{ flex: 1, backgroundColor: palette.limestone }}
       contentContainerStyle={{
