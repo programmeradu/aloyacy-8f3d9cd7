@@ -597,6 +597,47 @@ function GreekWordCard({
   en: string;
   meaning: string;
 }) {
+  const [playing, setPlaying] = useState(false);
+
+  const speak = useCallback(async () => {
+    if (playing) return;
+    Haptics.selectionAsync().catch(() => {});
+    setPlaying(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/public/tts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input: `${el}. ${translit}. In English: ${en}.`,
+          instructions:
+            "Pronounce the Greek word clearly and slowly first, then the transliteration, then the English translation. Warm and encouraging tone.",
+        }),
+      });
+      if (!res.ok) throw new Error(`TTS ${res.status}`);
+      const buf = await res.arrayBuffer();
+      // Cache to disk so expo-audio can stream it. Convert to base64.
+      const bytes = new Uint8Array(buf);
+      let bin = "";
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      const b64 =
+        typeof btoa === "function" ? btoa(bin) : Buffer.from(bin, "binary").toString("base64");
+      const path = `${FileSystem.cacheDirectory}wotd-${encodeURIComponent(el)}.mp3`;
+      await FileSystem.writeAsStringAsync(path, b64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      const player = createAudioPlayer({ uri: path });
+      player.addListener("playbackStatusUpdate", (status) => {
+        if (status.didJustFinish) {
+          setPlaying(false);
+          player.remove();
+        }
+      });
+      player.play();
+    } catch {
+      setPlaying(false);
+    }
+  }, [el, translit, en, playing]);
+
   return (
     <View
       style={{
@@ -630,16 +671,50 @@ function GreekWordCard({
           /{translit}/
         </Text>
       </View>
-      <Text
-        style={{
-          marginTop: 14,
-          fontFamily: DISPLAY,
-          fontSize: 34,
-          color: palette.ink,
-        }}
-      >
-        {el}
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 14 }}>
+        <Text
+          style={{
+            flex: 1,
+            fontFamily: DISPLAY,
+            fontSize: 34,
+            color: palette.ink,
+          }}
+        >
+          {el}
+        </Text>
+        <Pressable
+          onPress={speak}
+          disabled={playing}
+          hitSlop={10}
+          accessibilityLabel="Hear pronunciation"
+          style={({ pressed }) => ({
+            width: 44,
+            height: 44,
+            borderRadius: 999,
+            backgroundColor: playing ? palette.aegean : palette.ink,
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: pressed ? 0.85 : 1,
+          })}
+        >
+          {playing ? (
+            <ActivityIndicator size="small" color={palette.limestone} />
+          ) : (
+            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M11 5 6 9H3v6h3l5 4V5Z"
+                fill={palette.limestone}
+              />
+              <Path
+                d="M15.5 8.5a5 5 0 0 1 0 7M18.5 6a9 9 0 0 1 0 12"
+                stroke={palette.limestone}
+                strokeWidth={1.8}
+                strokeLinecap="round"
+              />
+            </Svg>
+          )}
+        </Pressable>
+      </View>
       <Text style={{ marginTop: 6, fontFamily: DISPLAY_MED, fontSize: 15, color: palette.olive }}>
         {en}
       </Text>
