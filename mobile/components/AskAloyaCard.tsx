@@ -98,6 +98,90 @@ export function AskAloyaCard() {
     [busy, fix?.lat, fix?.lng],
   );
 
+  const toggleMic = useCallback(async () => {
+    if (busy || transcribing) return;
+    if (isRecording) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      try {
+        await recorder.stop();
+      } catch {
+        setError("Recording failed. Try again.");
+        return;
+      }
+      const uri = recorder.uri;
+      if (!uri) {
+        setError("Recording failed. Try again.");
+        return;
+      }
+      setTranscribing(true);
+      setError(null);
+      try {
+        const info = await FileSystem.getInfoAsync(uri, { size: true });
+        if (!info.exists || (info.size ?? 0) < 2048) {
+          setError("That was too short — hold to record.");
+          setTranscribing(false);
+          return;
+        }
+        const form = new FormData();
+        // React Native FormData accepts the { uri, name, type } shape.
+        form.append(
+          "file",
+          {
+            uri,
+            name: uri.split("/").pop() ?? "recording.m4a",
+            type: "audio/m4a",
+          } as unknown as Blob,
+        );
+        const res = await fetch(`${API_BASE}/api/public/stt`, {
+          method: "POST",
+          body: form,
+        });
+        if (!res.ok) throw new Error(`STT ${res.status}`);
+        const data = (await res.json()) as { text?: string };
+        const heard = (data.text ?? "").trim();
+        if (!heard) {
+          setError("Didn't catch that — try again.");
+        } else {
+          setText(heard);
+          Haptics.notificationAsync(
+            Haptics.NotificationFeedbackType.Success,
+          ).catch(() => {});
+          void submit(heard);
+        }
+      } catch {
+        setError("Couldn't transcribe. Try again.");
+      } finally {
+        setTranscribing(false);
+      }
+      return;
+    }
+    // start recording
+    if (!permissionAsked.current) {
+      permissionAsked.current = true;
+      const perm = await AudioModule.requestRecordingPermissionsAsync();
+      if (!perm.granted) {
+        setError("Microphone permission is needed for voice input.");
+        return;
+      }
+    }
+    setError(null);
+    Haptics.selectionAsync().catch(() => {});
+    try {
+      await recorder.prepareToRecordAsync();
+      await recorder.record();
+    } catch {
+      setError("Couldn't start recording.");
+    }
+  }, [busy, transcribing, isRecording, recorder, submit]);
+
+  useEffect(() => {
+    return () => {
+      if (recorder.isRecording) {
+        recorder.stop().catch(() => {});
+      }
+    };
+  }, [recorder]);
+
 
   return (
     <View style={styles.card}>
