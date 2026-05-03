@@ -224,6 +224,39 @@ export function AskAloyaCard() {
           editable={!busy}
         />
         <Pressable
+          onPress={toggleMic}
+          disabled={busy || transcribing}
+          style={({ pressed }) => [
+            styles.mic,
+            isRecording && { backgroundColor: palette.ochre },
+            (busy || transcribing) && { opacity: 0.5 },
+            pressed && { opacity: 0.85 },
+          ]}
+          hitSlop={8}
+          accessibilityLabel={isRecording ? "Stop recording" : "Voice input"}
+        >
+          {transcribing ? (
+            <ActivityIndicator size="small" color={palette.ink} />
+          ) : isRecording ? (
+            <Svg width={12} height={12} viewBox="0 0 24 24">
+              <Path d="M6 6h12v12H6z" fill={palette.limestone} />
+            </Svg>
+          ) : (
+            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"
+                fill={palette.ink}
+              />
+              <Path
+                d="M5 11a7 7 0 0 0 14 0M12 18v3"
+                stroke={palette.ink}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+          )}
+        </Pressable>
+        <Pressable
           onPress={() => submit(text)}
           disabled={text.trim().length < 3 || busy}
           style={({ pressed }) => [
