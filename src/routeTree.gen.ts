@@ -32,7 +32,9 @@ import { Route as AirportCodeRouteImport } from './routes/airport.$code'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as ApiPublicWalletRouteImport } from './routes/api/public/wallet'
 import { Route as ApiPublicWalkDirectionsRouteImport } from './routes/api/public/walk-directions'
+import { Route as ApiPublicTtsRouteImport } from './routes/api/public/tts'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
+import { Route as ApiPublicSttRouteImport } from './routes/api/public/stt'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicStopsRouteImport } from './routes/api/public/stops'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
@@ -198,9 +200,19 @@ const ApiPublicWalkDirectionsRoute = ApiPublicWalkDirectionsRouteImport.update({
   path: '/api/public/walk-directions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTtsRoute = ApiPublicTtsRouteImport.update({
+  id: '/api/public/tts',
+  path: '/api/public/tts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
   id: '/api/public/trip-alerts',
   path: '/api/public/trip-alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSttRoute = ApiPublicSttRouteImport.update({
+  id: '/api/public/stt',
+  path: '/api/public/stt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicStreetviewRoute = ApiPublicStreetviewRouteImport.update({
@@ -513,7 +525,9 @@ export interface FileRoutesByFullPath {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
+  '/api/public/stt': typeof ApiPublicSttRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/tts': typeof ApiPublicTtsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
@@ -587,7 +601,9 @@ export interface FileRoutesByTo {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
+  '/api/public/stt': typeof ApiPublicSttRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/tts': typeof ApiPublicTtsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
@@ -662,7 +678,9 @@ export interface FileRoutesById {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
+  '/api/public/stt': typeof ApiPublicSttRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/tts': typeof ApiPublicTtsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
@@ -738,7 +756,9 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/stops'
     | '/api/public/streetview'
+    | '/api/public/stt'
     | '/api/public/trip-alerts'
+    | '/api/public/tts'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
     | '/api/public/gbfs/free_bike_status.json'
@@ -812,7 +832,9 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/stops'
     | '/api/public/streetview'
+    | '/api/public/stt'
     | '/api/public/trip-alerts'
+    | '/api/public/tts'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
     | '/api/public/gbfs/free_bike_status.json'
@@ -886,7 +908,9 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/stops'
     | '/api/public/streetview'
+    | '/api/public/stt'
     | '/api/public/trip-alerts'
+    | '/api/public/tts'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
     | '/api/public/gbfs/free_bike_status.json'
@@ -961,7 +985,9 @@ export interface RootRouteChildren {
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
   ApiPublicStopsRoute: typeof ApiPublicStopsRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
+  ApiPublicSttRoute: typeof ApiPublicSttRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
+  ApiPublicTtsRoute: typeof ApiPublicTtsRoute
   ApiPublicWalkDirectionsRoute: typeof ApiPublicWalkDirectionsRoute
   ApiPublicWalletRoute: typeof ApiPublicWalletRouteWithChildren
   ApiPublicGbfsFree_bike_statusDotjsonRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
@@ -1151,11 +1177,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWalkDirectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/tts': {
+      id: '/api/public/tts'
+      path: '/api/public/tts'
+      fullPath: '/api/public/tts'
+      preLoaderRoute: typeof ApiPublicTtsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/trip-alerts': {
       id: '/api/public/trip-alerts'
       path: '/api/public/trip-alerts'
       fullPath: '/api/public/trip-alerts'
       preLoaderRoute: typeof ApiPublicTripAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stt': {
+      id: '/api/public/stt'
+      path: '/api/public/stt'
+      fullPath: '/api/public/stt'
+      preLoaderRoute: typeof ApiPublicSttRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/streetview': {
@@ -1556,7 +1596,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStopsRoute: ApiPublicStopsRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
+  ApiPublicSttRoute: ApiPublicSttRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
+  ApiPublicTtsRoute: ApiPublicTtsRoute,
   ApiPublicWalkDirectionsRoute: ApiPublicWalkDirectionsRoute,
   ApiPublicWalletRoute: ApiPublicWalletRouteWithChildren,
   ApiPublicGbfsFree_bike_statusDotjsonRoute:

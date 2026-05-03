@@ -1,4 +1,6 @@
-import { View, Text, Pressable, Linking, Platform } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import * as Haptics from "expo-haptics";
+import Svg, { Path } from "react-native-svg";
 import { Card } from "./Card";
 import { palette } from "@/constants/theme";
 import type { Itinerary, Leg, RationaleTag } from "@/lib/plan";
@@ -27,16 +29,6 @@ function rationaleCopy(t: RationaleTag): string {
     case "leaves-sooner": return `Leaves ${t.minutesSooner} min sooner`;
     case "best-overall": return "Best overall";
   }
-}
-
-function openWalkInMaps(leg: Extract<Leg, { kind: "walk" }>) {
-  const from = `${leg.from.lat},${leg.from.lng}`;
-  const to = `${leg.to.lat},${leg.to.lng}`;
-  const url =
-    Platform.OS === "ios"
-      ? `https://maps.apple.com/?saddr=${from}&daddr=${to}&dirflg=w`
-      : `https://www.google.com/maps/dir/?api=1&origin=${from}&destination=${to}&travelmode=walking`;
-  Linking.openURL(url).catch(() => undefined);
 }
 
 function LegRow({ leg }: { leg: Leg }) {
@@ -72,15 +64,7 @@ function LegRow({ leg }: { leg: Leg }) {
   }
   if (leg.kind === "walk") {
     return (
-      <Pressable
-        onPress={() => openWalkInMaps(leg)}
-        style={({ pressed }) => ({
-          flexDirection: "row",
-          gap: 14,
-          paddingVertical: 12,
-          opacity: pressed ? 0.6 : 1,
-        })}
-      >
+      <View style={{ flexDirection: "row", gap: 14, paddingVertical: 12 }}>
         <View
           style={{
             minWidth: 56,
@@ -101,10 +85,10 @@ function LegRow({ leg }: { leg: Leg }) {
             {leg.from.name} → {leg.to.name}
           </Text>
           <Text style={{ fontFamily: "Geist_700Bold", color: palette.inkSoft, fontSize: 11, marginTop: 2 }}>
-            {fmtDur(leg.durationSec)} · {Math.round(leg.distanceMeters)} m · Tap for steps
+            {fmtDur(leg.durationSec)} · {Math.round(leg.distanceMeters)} m
           </Text>
         </View>
-      </Pressable>
+      </View>
     );
   }
   return (
@@ -117,10 +101,17 @@ function LegRow({ leg }: { leg: Leg }) {
   );
 }
 
-export function ItineraryCard({ itinerary }: { itinerary: Itinerary }) {
+export function ItineraryCard({
+  itinerary,
+  onStart,
+}: {
+  itinerary: Itinerary;
+  onStart?: (it: Itinerary) => void;
+}) {
   const rides = itinerary.legs.filter((l): l is Extract<Leg, { kind: "ride" }> => l.kind === "ride");
-  return (
-    <Card style={{ padding: 18 }}>
+  const startable = !!onStart;
+  const content = (
+    <>
       <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
         <Text style={{ fontFamily: "BricolageGrotesque_700Bold", color: palette.ink, fontSize: 22, letterSpacing: -0.4 }}>
           {fmtClock(itinerary.departureUnix)} → {fmtClock(itinerary.arrivalUnix)}
@@ -160,6 +151,67 @@ export function ItineraryCard({ itinerary }: { itinerary: Itinerary }) {
           <LegRow key={i} leg={leg} />
         ))}
       </View>
-    </Card>
+
+      {startable && (
+        <View
+          style={{
+            marginTop: 12,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            backgroundColor: palette.ink,
+            borderRadius: 14,
+            paddingHorizontal: 16,
+            paddingVertical: 14,
+          }}
+        >
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text
+              style={{
+                fontFamily: "Geist_700Bold",
+                fontSize: 10,
+                letterSpacing: 1.6,
+                color: palette.limestone,
+                opacity: 0.7,
+              }}
+            >
+              START THIS TRIP
+            </Text>
+            <Text
+              style={{
+                fontFamily: "Geist_600SemiBold",
+                fontSize: 13,
+                color: palette.limestone,
+                marginTop: 2,
+              }}
+              numberOfLines={1}
+            >
+              Turn-by-turn walk · live bus tracking
+            </Text>
+          </View>
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+            <Path d="m9 6 6 6-6 6" stroke={palette.limestone} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+          </Svg>
+        </View>
+      )}
+    </>
+  );
+
+  if (!startable) {
+    return <Card style={{ padding: 18 }}>{content}</Card>;
+  }
+
+  return (
+    <Pressable
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+        onStart!(itinerary);
+      }}
+      style={({ pressed }) => ({ opacity: pressed ? 0.92 : 1 })}
+      accessibilityRole="button"
+      accessibilityLabel={`Start trip departing ${fmtClock(itinerary.departureUnix)}, arriving ${fmtClock(itinerary.arrivalUnix)}`}
+    >
+      <Card style={{ padding: 18 }}>{content}</Card>
+    </Pressable>
   );
 }
