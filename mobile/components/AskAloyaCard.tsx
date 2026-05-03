@@ -394,6 +394,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     transform: [{ rotate: "45deg" }],
   },
+  mic: {
+    width: 36,
+    height: 36,
+    marginRight: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.limestone,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   chipsRow: {
     paddingHorizontal: 20,
     paddingTop: 14,
