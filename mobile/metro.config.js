@@ -24,6 +24,5 @@ config.resolver.nodeModulesPaths = [
 
 // Allow `@aloya/core/*` package-exports to resolve through Metro.
 config.resolver.unstable_enablePackageExports = true;
-config.resolver.unstable_conditionNames = ["require", "import", "react-native", "default"];
 
 module.exports = withNativeWind(config, { input: "./global.css" });
