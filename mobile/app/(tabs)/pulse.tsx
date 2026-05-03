@@ -619,8 +619,7 @@ function GreekWordCard({
       const bytes = new Uint8Array(buf);
       let bin = "";
       for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-      const b64 =
-        typeof btoa === "function" ? btoa(bin) : Buffer.from(bin, "binary").toString("base64");
+      const b64 = (globalThis as { btoa?: (s: string) => string }).btoa?.(bin) ?? "";
       const path = `${FileSystem.cacheDirectory}wotd-${encodeURIComponent(el)}.mp3`;
       await FileSystem.writeAsStringAsync(path, b64, {
         encoding: FileSystem.EncodingType.Base64,
