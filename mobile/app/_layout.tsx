@@ -22,6 +22,7 @@ import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { queryClient } from "@/lib/queryClient";
 import { palette } from "@/constants/theme";
 import { ResumeTripPill } from "@/components/ResumeTripPill";
+import { PaywallSheet } from "@/components/PaywallSheet";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -151,6 +152,7 @@ export default function RootLayout() {
           />
         </Stack>
         <ResumeTripPill />
+        <PaywallSheet />
       </SafeAreaProvider>
     </QueryClientProvider>
   );
