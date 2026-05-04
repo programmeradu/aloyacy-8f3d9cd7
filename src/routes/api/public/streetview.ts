@@ -36,18 +36,26 @@ function angularDelta(a: number, b: number) {
   return d;
 }
 
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+} as const;
+
 export const Route = createFileRoute("/api/public/streetview")({
   server: {
     handlers: {
+      OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
         const url = new URL(request.url);
         const parsed = QuerySchema.safeParse(
           Object.fromEntries(url.searchParams.entries()),
         );
         if (!parsed.success) {
-          return new Response("Bad request", { status: 400 });
+          return new Response("Bad request", { status: 400, headers: CORS });
         }
         const { lat, lng, heading, radius, meta } = parsed.data;
+
 
         const token = process.env.MAPILLARY_ACCESS_TOKEN;
         if (!token) {
