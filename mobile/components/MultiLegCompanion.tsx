@@ -30,6 +30,7 @@ import {
 } from "@/components/MapView";
 import { RouteChip } from "@/components/RouteChip";
 import { WalkGuidance } from "@/components/WalkGuidance";
+import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
 import { LiveWalkBanner } from "@/components/LiveWalkBanner";
 import { CrowdHint } from "@/components/CrowdHint";
 import { SightingButton } from "@/components/SightingButton";
@@ -398,6 +399,15 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
       {/* Walk turn-by-turn: live banner + full step list */}
       {currentWalk && directions && directions.steps.length > 0 && (
         <>
+          {live.phase === "walking-to-destination" && (
+            <LongFinalWalkHint
+              from={{ lat: currentWalk.from.lat, lng: currentWalk.from.lng }}
+              to={{ lat: currentWalk.to.lat, lng: currentWalk.to.lng }}
+              distanceMeters={currentWalk.distanceMeters}
+              durationSec={currentWalk.durationSec}
+              destinationLabel={active.to.label}
+            />
+          )}
           <LiveWalkBanner
             title={
               live.phase === "walking-to-board"
