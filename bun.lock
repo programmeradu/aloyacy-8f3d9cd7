@@ -105,10 +105,11 @@
       "name": "mobile",
       "version": "1.0.0",
       "dependencies": {
-        "@aloya/core": "workspace:*",
+        "@aloya/core": "file:../packages/core",
         "@expo-google-fonts/bricolage-grotesque": "^0.4.1",
         "@expo-google-fonts/geist": "^0.4.2",
         "@expo-google-fonts/jetbrains-mono": "^0.4.1",
+        "@mapbox/polyline": "^1.2.1",
         "@react-native-async-storage/async-storage": "^3.1.1",
         "@react-native-community/datetimepicker": "^9.1.0",
         "@stripe/stripe-react-native": "0.67.0",
@@ -140,6 +141,7 @@
         "react": "19.2.3",
         "react-dom": "19.2.3",
         "react-native": "0.85.3",
+        "react-native-css-interop": "^0.2.6",
         "react-native-qrcode-svg": "^6.3.21",
         "react-native-reanimated": "4.3.1",
         "react-native-safe-area-context": "~5.7.0",
@@ -3027,6 +3029,8 @@
     "metro-transform-worker/@babel/parser": ["@babel/parser@7.29.2", "", { "dependencies": { "@babel/types": "^7.29.0" }, "bin": "./bin/babel-parser.js" }, "sha512-4GgRzy/+fsBa72/RZVJmGKPmZu9Byn8o4MoLpmNe1m8ZfYnz5emHLQz3U4gLud6Zwl0RZIcgiLD7Uq7ySFuDLA=="],
 
     "micromatch/picomatch": ["picomatch@2.3.2", "", {}, "sha512-V7+vQEJ06Z+c5tSye8S+nHUfI51xoXIXjHQ99cQtKUkQqqO1kO/KCJUfZXuB47h/YBlDhah2H3hdUGXn8ie0oA=="],
+
+    "mobile/@aloya/core": ["@aloya/core@file:packages/core", { "dependencies": { "@mapbox/polyline": "^1.2.1" } }],
 
     "mobile/react": ["react@19.2.3", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react/-/react-19.2.3.tgz", {}, "sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA=="],
 
