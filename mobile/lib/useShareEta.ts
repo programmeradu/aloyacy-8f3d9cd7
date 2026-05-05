@@ -4,7 +4,15 @@
 // owner (or the originating anon device) can update.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import * as Crypto from "expo-crypto";
+
+function randomToken(): string {
+  // 128-bit token, base36 — good enough as an unguessable capability.
+  const a = Math.floor(Math.random() * 0xffffffff).toString(36);
+  const b = Math.floor(Math.random() * 0xffffffff).toString(36);
+  const c = Math.floor(Math.random() * 0xffffffff).toString(36);
+  const d = Math.floor(Math.random() * 0xffffffff).toString(36);
+  return `${a}${b}${c}${d}${Date.now().toString(36)}`;
+}
 import { supabase } from "./supabase";
 import type { ActiveTrip } from "./trip-store";
 
