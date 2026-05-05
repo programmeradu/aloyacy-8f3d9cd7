@@ -2,7 +2,7 @@
 // (`/eta/:token`) to see where a rider is right now and when they'll
 // arrive. No account, no install. Read-only.
 
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
