@@ -31,6 +31,7 @@ import {
 import { RouteChip } from "@/components/RouteChip";
 import { WalkGuidance } from "@/components/WalkGuidance";
 import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
+import { ShareEtaButton } from "@/components/ShareEtaButton";
 import { LiveWalkBanner } from "@/components/LiveWalkBanner";
 import { CrowdHint } from "@/components/CrowdHint";
 import { SightingButton } from "@/components/SightingButton";
