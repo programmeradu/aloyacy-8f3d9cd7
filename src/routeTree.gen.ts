@@ -24,6 +24,7 @@ import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
 import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
 import { Route as GuideGettingAroundCyprusRouteImport } from './routes/guide.getting-around-cyprus'
+import { Route as EtaTokenRouteImport } from './routes/eta.$token'
 import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
 import { Route as DebugGraphRouteImport } from './routes/debug.graph'
 import { Route as DebugEtaRouteImport } from './routes/debug.eta'
@@ -160,6 +161,11 @@ const GuideGettingAroundCyprusRoute =
     path: '/guide/getting-around-cyprus',
     getParentRoute: () => rootRouteImport,
   } as any)
+const EtaTokenRoute = EtaTokenRouteImport.update({
+  id: '/eta/$token',
+  path: '/eta/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DebugMultilegRoute = DebugMultilegRouteImport.update({
   id: '/debug/multileg',
   path: '/debug/multileg',
@@ -495,6 +501,7 @@ export interface FileRoutesByFullPath {
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
+  '/eta/$token': typeof EtaTokenRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -571,6 +578,7 @@ export interface FileRoutesByTo {
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
+  '/eta/$token': typeof EtaTokenRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -648,6 +656,7 @@ export interface FileRoutesById {
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
+  '/eta/$token': typeof EtaTokenRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -726,6 +735,7 @@ export interface FileRouteTypes {
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
+    | '/eta/$token'
     | '/guide/getting-around-cyprus'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -802,6 +812,7 @@ export interface FileRouteTypes {
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
+    | '/eta/$token'
     | '/guide/getting-around-cyprus'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -878,6 +889,7 @@ export interface FileRouteTypes {
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
+    | '/eta/$token'
     | '/guide/getting-around-cyprus'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -955,6 +967,7 @@ export interface RootRouteChildren {
   DebugEtaRoute: typeof DebugEtaRoute
   DebugGraphRoute: typeof DebugGraphRoute
   DebugMultilegRoute: typeof DebugMultilegRoute
+  EtaTokenRoute: typeof EtaTokenRoute
   GuideGettingAroundCyprusRoute: typeof GuideGettingAroundCyprusRoute
   RouteRouteIdRoute: typeof RouteRouteIdRoute
   StopStopIdRoute: typeof StopStopIdRoute
@@ -1119,6 +1132,13 @@ declare module '@tanstack/react-router' {
       path: '/guide/getting-around-cyprus'
       fullPath: '/guide/getting-around-cyprus'
       preLoaderRoute: typeof GuideGettingAroundCyprusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eta/$token': {
+      id: '/eta/$token'
+      path: '/eta/$token'
+      fullPath: '/eta/$token'
+      preLoaderRoute: typeof EtaTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/debug/multileg': {
@@ -1566,6 +1586,7 @@ const rootRouteChildren: RootRouteChildren = {
   DebugEtaRoute: DebugEtaRoute,
   DebugGraphRoute: DebugGraphRoute,
   DebugMultilegRoute: DebugMultilegRoute,
+  EtaTokenRoute: EtaTokenRoute,
   GuideGettingAroundCyprusRoute: GuideGettingAroundCyprusRoute,
   RouteRouteIdRoute: RouteRouteIdRoute,
   StopStopIdRoute: StopStopIdRoute,
