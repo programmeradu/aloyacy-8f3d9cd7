@@ -180,6 +180,7 @@ function LiveView({ trip }: { trip: SharedTripRow }) {
           center={center}
           spanKm={hasFix ? undefined : 4}
           markers={markers}
+          liveVehicles={false}
         />
       </div>
 
