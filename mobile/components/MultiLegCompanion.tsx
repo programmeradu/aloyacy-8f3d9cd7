@@ -293,6 +293,16 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           <PhaseSub live={live} itin={itin} destLabel={active.to.label} />
         </View>
       </View>
+
+      {/* Share my ETA — signed public link, live position + ETA */}
+      <View style={{ paddingHorizontal: 20 }}>
+        <ShareEtaButton
+          active={active}
+          fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
+          etaMinutes={etaToDestinationMinutes(live, itin)}
+        />
+      </View>
+
       {/* Traffic-on-route (CyNAP DATEX II) — corridor-scoped */}
       {trafficAlert && <TrafficRouteBanner alert={trafficAlert} />}
 
