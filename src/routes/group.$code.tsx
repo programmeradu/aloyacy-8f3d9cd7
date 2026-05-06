@@ -297,8 +297,6 @@ function JoinCard({ group }: { group: GroupRow }) {
       setJoined(true);
     }
   }, [group.code]);
-  const watchRef = useRef<number | null>(null);
-  const lastPingRef = useRef(0);
 
   const startWatching = useCallback((token: string) => {
     if (!("geolocation" in navigator)) return;
