@@ -32,6 +32,7 @@ import { RouteChip } from "@/components/RouteChip";
 import { WalkGuidance } from "@/components/WalkGuidance";
 import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
 import { ShareEtaButton } from "@/components/ShareEtaButton";
+import { GroupTripButton } from "@/components/GroupTripButton";
 import { LiveWalkBanner } from "@/components/LiveWalkBanner";
 import { CrowdHint } from "@/components/CrowdHint";
 import { SightingButton } from "@/components/SightingButton";
@@ -312,9 +313,14 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         </View>
       </View>
 
-      {/* Share my ETA — signed public link, live position + ETA */}
+      {/* Share ETA + group trip — public link surfaces */}
       <View style={{ paddingHorizontal: 20 }}>
         <ShareEtaButton
+          active={active}
+          fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
+          etaMinutes={etaToDestinationMinutes(live, itin)}
+        />
+        <GroupTripButton
           active={active}
           fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
           etaMinutes={etaToDestinationMinutes(live, itin)}
