@@ -281,10 +281,22 @@ function MembersList({ members }: { members: MemberRow[] }) {
 
 function JoinCard({ group }: { group: GroupRow }) {
   const [name, setName] = useState<string>("");
-  const [joined, setJoined] = useState<boolean>(() => !!localStorage.getItem(MEMBER_TOKEN_KEY(group.code)));
+  const [joined, setJoined] = useState<boolean>(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const memberTokenRef = useRef<string | null>(localStorage.getItem(MEMBER_TOKEN_KEY(group.code)));
+  const memberTokenRef = useRef<string | null>(null);
+  const watchRef = useRef<number | null>(null);
+  const lastPingRef = useRef(0);
+
+  // Hydrate persisted membership after mount (localStorage is browser-only).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = window.localStorage.getItem(MEMBER_TOKEN_KEY(group.code));
+    if (token) {
+      memberTokenRef.current = token;
+      setJoined(true);
+    }
+  }, [group.code]);
   const watchRef = useRef<number | null>(null);
   const lastPingRef = useRef(0);
 
