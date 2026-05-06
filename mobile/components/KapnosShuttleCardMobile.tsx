@@ -6,7 +6,7 @@ import { View, Text, Pressable, Linking } from "react-native";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { palette } from "@/constants/theme";
-import type { KapnosDeparture, KapnosSuggestion } from "@/lib/kapnos";
+import type { KapnosSuggestion } from "@/lib/kapnos";
 import { startKapnosCompanion } from "@/lib/kapnos-companion";
 
 function fmtWalk(m: number): string {
