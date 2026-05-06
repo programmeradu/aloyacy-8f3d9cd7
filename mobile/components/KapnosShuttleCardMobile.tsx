@@ -3,9 +3,11 @@
 // riders can decide if the walk is reasonable.
 import { useState } from "react";
 import { View, Text, Pressable, Linking } from "react-native";
+import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { palette } from "@/constants/theme";
 import type { KapnosSuggestion } from "@/lib/kapnos";
+import { startKapnosCompanion } from "@/lib/kapnos-companion";
 
 function fmtWalk(m: number): string {
   if (m < 950) return `${Math.round(m / 10) * 10} m`;
@@ -112,29 +114,48 @@ export function KapnosShuttleCardMobile({
       ) : (
         <View style={{ gap: 8 }}>
           {shown.map((d) => (
-            <View
+            <Pressable
               key={d.tripId}
-              style={{
+              onPress={() => {
+                Haptics.selectionAsync().catch(() => {});
+                startKapnosCompanion(suggestion, d);
+                router.push(`/trip/kapnos-${d.tripId}`);
+              }}
+              style={({ pressed }) => ({
                 flexDirection: "row",
                 alignItems: "baseline",
                 justifyContent: "space-between",
-                paddingVertical: 8,
+                paddingVertical: 10,
                 paddingHorizontal: 12,
                 backgroundColor: palette.limestoneSoft,
                 borderRadius: 12,
                 gap: 10,
-              }}
+                opacity: pressed ? 0.75 : 1,
+              })}
             >
-              <Text
-                style={{
-                  fontFamily: "Geist_700Bold",
-                  fontSize: 14,
-                  color: palette.ink,
-                  letterSpacing: 0.5,
-                }}
-              >
-                {fmtTime(d.departLocal)} → {fmtTime(d.arriveLocal)}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontFamily: "Geist_700Bold",
+                    fontSize: 14,
+                    color: palette.ink,
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  {fmtTime(d.departLocal)} → {fmtTime(d.arriveLocal)}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 2,
+                    fontFamily: "Geist_700Bold",
+                    fontSize: 9,
+                    color: palette.aegeanDeep,
+                    letterSpacing: 1.2,
+                  }}
+                >
+                  TAP TO START COMPANION
+                </Text>
+              </View>
               <Text
                 style={{
                   fontFamily: "Geist_600SemiBold",
@@ -144,7 +165,7 @@ export function KapnosShuttleCardMobile({
               >
                 {d.priceLabel || `${d.durationMin} min`}
               </Text>
-            </View>
+            </Pressable>
           ))}
           {suggestion.departures.length > 3 && (
             <Pressable
