@@ -313,9 +313,14 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         </View>
       </View>
 
-      {/* Share my ETA — signed public link, live position + ETA */}
+      {/* Share ETA + group trip — public link surfaces */}
       <View style={{ paddingHorizontal: 20 }}>
         <ShareEtaButton
+          active={active}
+          fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
+          etaMinutes={etaToDestinationMinutes(live, itin)}
+        />
+        <GroupTripButton
           active={active}
           fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
           etaMinutes={etaToDestinationMinutes(live, itin)}
