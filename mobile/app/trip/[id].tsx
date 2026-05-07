@@ -38,6 +38,7 @@ import {
 import { useRealtime } from "@/lib/hooks";
 import { fetchWalkingDirections } from "@/lib/walk";
 import { useJourney, type LivePhase } from "@/lib/useJourney";
+import { useTrafficWatch } from "@/lib/useTrafficWatch";
 
 type Phase =
   | "leave-soon"
