@@ -23,6 +23,7 @@ import { assets } from "@/lib/assets";
 import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
 import { AskAloyaCard } from "@/components/AskAloyaCard";
 import { CommuteSuggestionCard } from "@/components/CommuteSuggestionCard";
+import { ReturnTripSuggestionCard } from "@/components/ReturnTripSuggestionCard";
 import type { Stop } from "@/lib/api";
 
 const FALLBACK = { lat: 35.1856, lng: 33.3823 };
