@@ -23,6 +23,7 @@ import { assets } from "@/lib/assets";
 import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
 import { AskAloyaCard } from "@/components/AskAloyaCard";
 import { CommuteSuggestionCard } from "@/components/CommuteSuggestionCard";
+import { ReturnTripSuggestionCard } from "@/components/ReturnTripSuggestionCard";
 import type { Stop } from "@/lib/api";
 
 const FALLBACK = { lat: 35.1856, lng: 33.3823 };
@@ -272,6 +273,8 @@ export default function TodayScreen() {
         <QuickStat label="On time" value={onTimePct !== null ? `${onTimePct}%` : "—"} tone="olive" image={assets.stat_dial} />
         <QuickStat label="Next ride" value={stopCards[0]?.etaMin != null ? `${stopCards[0].etaMin}′` : "—"} tone="ochre" image={assets.stat_road} />
       </View>
+
+      <ReturnTripSuggestionCard here={fix ? { lat: fix.lat, lng: fix.lng } : null} />
 
       <CommuteSuggestionCard />
 
