@@ -467,6 +467,7 @@ function SingleLegCompanion({
           focusRouteId={bus.routeId}
           vehicleOverrides={vehicleOverrides}
           userLocation={userLocation}
+          trafficIncidents={trafficIncidents}
           fitToContent
         />
       </View>
