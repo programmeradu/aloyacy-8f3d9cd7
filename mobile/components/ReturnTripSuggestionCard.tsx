@@ -54,7 +54,7 @@ export function ReturnTripSuggestionCard({
         onPress={onPress}
         style={({ pressed }) => ({
           borderRadius: 28,
-          backgroundColor: palette.limestone ?? "#f5efe4",
+          backgroundColor: palette.ochreSoft,
           borderWidth: 1,
           borderColor: "rgba(158,124,60,0.28)",
           paddingVertical: 18,
@@ -69,7 +69,7 @@ export function ReturnTripSuggestionCard({
             fontSize: 10,
             letterSpacing: 2.2,
             textTransform: "uppercase",
-            color: palette.ochreDeep ?? palette.ink,
+            color: palette.ochre,
           }}
         >
           {suggestion.reason}
@@ -114,7 +114,7 @@ export function ReturnTripSuggestionCard({
             style={{
               fontFamily: "Geist_700Bold",
               fontSize: 14,
-              color: palette.ochreDeep ?? palette.ink,
+              color: palette.ochre,
             }}
           >
             →
