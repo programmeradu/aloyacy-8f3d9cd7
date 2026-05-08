@@ -298,3 +298,53 @@ function StopDetail() {
 
   );
 }
+
+/**
+ * Per-stop reliability strip. Editorial numerals, olive/ochre/red dot
+ * matched to the tier. Only rendered when we have real observations —
+ * caller gates on sampleCount > 0.
+ */
+function StopReliabilityStrip({
+  r,
+  t,
+}: {
+  r: {
+    onTimePct: number;
+    meanDelaySec: number;
+    sampleCount: number;
+    tier: "high" | "medium" | "low" | "unknown";
+  };
+  t: (k: never, vars?: Record<string, string | number>) => string;
+}) {
+  const tone =
+    r.tier === "high"
+      ? { dot: "bg-olive", num: "text-olive" }
+      : r.tier === "medium"
+        ? { dot: "bg-ochre", num: "text-ink" }
+        : r.tier === "low"
+          ? { dot: "bg-destructive", num: "text-destructive" }
+          : { dot: "bg-ink-soft/40", num: "text-ink-soft" };
+  const rated = r.tier !== "unknown";
+  const delaySign = r.meanDelaySec >= 0 ? "+" : "−";
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-3xl bg-card px-5 py-4 ring-1 ring-line">
+      <div className="min-w-0">
+        <p className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.22em] text-ink-soft">
+          <span className={`size-1.5 rounded-full ${tone.dot}`} aria-hidden />
+          {t("reliability.stopEyebrow" as never)}
+        </p>
+        <p className="mt-1 text-[12px] text-ink-soft">
+          {rated
+            ? t("reliability.stopSub" as never, {
+                n: r.sampleCount,
+                sec: `${delaySign}${Math.abs(r.meanDelaySec)}`,
+              })
+            : t("reliability.stopLearning" as never)}
+        </p>
+      </div>
+      <div className={`shrink-0 font-display text-[34px] leading-none ${tone.num}`}>
+        {rated ? `${r.onTimePct}%` : "—"}
+      </div>
+    </div>
+  );
+}
