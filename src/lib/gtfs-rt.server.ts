@@ -45,6 +45,11 @@ export type RiderConfirmedTrip = {
   tripId: string;
   /** Seconds since the most recent rider sighting. */
   ageSec: number;
+  /** Distinct riders that confirmed this trip in the trust window. */
+  count: number;
+  /** Trust-weighted confidence 0..1 combining distinct-rider count,
+   *  recency, and each rider's historical trust score. */
+  confidence: number;
 };
 
 export type RealtimeSnapshot = {
@@ -152,25 +157,76 @@ async function fetchRiderFixes(): Promise<LiveVehicle[]> {
 }
 
 async function fetchSightings(): Promise<RiderConfirmedTrip[]> {
-  // Trust window: 90 s. After that we let the trip fall back to whatever
-  // the feed (or absence of feed) actually says.
+  // Trust window: 90 s for the freshness upgrade. We also read a wider
+  // 7-day slice for per-device trust weighting so a rider with a consistent
+  // sighting history counts more than a first-tap device.
   const WINDOW_SEC = 90;
-  const cutoff = new Date(Date.now() - WINDOW_SEC * 1000).toISOString();
-  const { data, error } = await supabaseAdmin
-    .from("bus_sightings")
-    .select("trip_id, reported_at")
-    .gte("reported_at", cutoff)
-    .order("reported_at", { ascending: false })
-    .limit(500);
-  if (error || !data) return [];
   const now = Date.now();
-  const seen = new Map<string, number>(); // tripId → most recent age (sec)
-  for (const row of data) {
-    if (seen.has(row.trip_id)) continue;
-    const age = Math.max(0, Math.floor((now - new Date(row.reported_at).getTime()) / 1000));
-    seen.set(row.trip_id, age);
+  const cutoff = new Date(now - WINDOW_SEC * 1000).toISOString();
+  const trustCutoff = new Date(now - 7 * 86_400_000).toISOString();
+  const [{ data: recent, error }, { data: history }] = await Promise.all([
+    supabaseAdmin
+      .from("bus_sightings")
+      .select("trip_id, device_id, reported_at")
+      .gte("reported_at", cutoff)
+      .order("reported_at", { ascending: false })
+      .limit(500),
+    supabaseAdmin
+      .from("bus_sightings")
+      .select("device_id")
+      .gte("reported_at", trustCutoff)
+      .limit(5000),
+  ]);
+  if (error || !recent || recent.length === 0) return [];
+
+  // Per-device trust: sightings-per-week is a crude but useful proxy — a
+  // device that only ever taps once is treated conservatively (0.8),
+  // while a device with sustained history is weighted up (max 1.5).
+  const seenByDevice = new Map<string, number>();
+  for (const row of history ?? []) {
+    seenByDevice.set(row.device_id, (seenByDevice.get(row.device_id) ?? 0) + 1);
   }
-  return Array.from(seen, ([tripId, ageSec]) => ({ tripId, ageSec }));
+  const trustOf = (deviceId: string) => {
+    const n = seenByDevice.get(deviceId) ?? 0;
+    if (n <= 1) return 0.8;
+    if (n <= 4) return 1;
+    if (n <= 12) return 1.25;
+    return 1.5;
+  };
+
+  type Agg = {
+    tripId: string;
+    ageSec: number;
+    devices: Set<string>;
+    weightedCount: number;
+  };
+  const byTrip = new Map<string, Agg>();
+  for (const row of recent) {
+    const ageSec = Math.max(0, Math.floor((now - new Date(row.reported_at).getTime()) / 1000));
+    const existing = byTrip.get(row.trip_id);
+    if (existing) {
+      if (!existing.devices.has(row.device_id)) {
+        existing.devices.add(row.device_id);
+        existing.weightedCount += trustOf(row.device_id);
+      }
+      existing.ageSec = Math.min(existing.ageSec, ageSec);
+    } else {
+      byTrip.set(row.trip_id, {
+        tripId: row.trip_id,
+        ageSec,
+        devices: new Set([row.device_id]),
+        weightedCount: trustOf(row.device_id),
+      });
+    }
+  }
+
+  return Array.from(byTrip.values()).map((a) => {
+    const recency = Math.max(0, 1 - a.ageSec / WINDOW_SEC);
+    // Weighted-count saturates at ~3 trusted riders → confidence 1.
+    const density = Math.min(1, a.weightedCount / 3);
+    const confidence = Math.round((0.35 * recency + 0.65 * density) * 100) / 100;
+    return { tripId: a.tripId, ageSec: a.ageSec, count: a.devices.size, confidence };
+  });
 }
 
 export async function fetchRealtime(): Promise<RealtimeSnapshot> {
