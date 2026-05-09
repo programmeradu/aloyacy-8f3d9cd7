@@ -24,6 +24,7 @@ import { getDeviceId } from "@/lib/pwa";
 import planHero from "@/assets/plan-hero.jpg";
 import { ProGate } from "@/components/ProGate";
 import { RemindMeButton } from "@/components/RemindMeButton";
+import { SharePlanButton } from "@/components/SharePlanButton";
 import { useAuth } from "@/lib/useAuth";
 import { useI18n } from "@/lib/i18n";
 import { useAccessibilityPrefs } from "@/lib/useAccessibilityPrefs";
@@ -1373,8 +1374,13 @@ function ItineraryRow({
         onStart={start}
         startLabel={t("trips.startThis")}
       />
-      <div className="px-1">
+      <div className="px-1 flex flex-wrap items-center gap-2">
         <RemindMeButton
+          itinerary={itinerary}
+          origin={origin}
+          destination={destination}
+        />
+        <SharePlanButton
           itinerary={itinerary}
           origin={origin}
           destination={destination}
