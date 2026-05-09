@@ -473,32 +473,41 @@ function RoadPulseCard({
           </div>
         )}
 
-        {/* 24h sparkline + activity comb */}
+        {/* Plain-language summary of what the numbers mean right now */}
+        {hasData && (
+          <p className="mt-4 text-[14px] leading-snug text-ink">
+            {medianMin >= 1
+              ? t("pulse.flow.summaryLate", { n: medianMin })
+              : medianMin <= -1
+                ? t("pulse.flow.summaryEarly", { n: Math.abs(medianMin) })
+                : t("pulse.flow.summaryOnTime")}
+          </p>
+        )}
+
+        {/* Activity across the day — one simple visual, plain-English ticks */}
         {buckets.length > 0 && totalToday > 0 && (
-          <div className="mt-6">
-            <Sparkline buckets={buckets} nowHour={nowHour} />
-            <ActivityComb buckets={buckets} nowHour={nowHour} maxCount={maxCount} />
-            <div className="mt-2 flex items-baseline justify-between">
-              <p className="font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
-                {hasData ? (
-                  <>
-                    <span>{observations.toLocaleString()} live</span>
-                    <span className="mx-2 inline-block h-2 w-px translate-y-[1px] bg-line" aria-hidden />
-                    <span>{medianMin > 0 ? "+" : ""}{medianMin}m {t("pulse.flow.median").toLowerCase()}</span>
-                  </>
-                ) : (
-                  `${totalToday.toLocaleString()} samples today`
-                )}
-              </p>
-              <p className="font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
-                <span>00</span>
-                <span className="ml-6">06</span>
-                <span className="ml-6">12</span>
-                <span className="ml-6">18</span>
-                <span className="ml-3 text-ink-soft/60">h</span>
-              </p>
+          <div className="mt-5">
+            <p className="font-eyebrow text-[9px] uppercase tracking-[0.22em] text-ink-soft">
+              {t("pulse.flow.activityTitle")}
+            </p>
+            <div className="mt-2">
+              <ActivityComb buckets={buckets} nowHour={nowHour} maxCount={maxCount} />
+            </div>
+            <div className="mt-1.5 flex items-baseline justify-between font-eyebrow text-[9px] uppercase tracking-[0.18em] text-ink-soft">
+              <span>{t("pulse.flow.activityMorning")}</span>
+              <span>{t("pulse.flow.activityMidday")}</span>
+              <span>{t("pulse.flow.activityEvening")}</span>
+              <span>{t("pulse.flow.activityLate")}</span>
             </div>
           </div>
+        )}
+
+        {hasData && (
+          <p className="mt-4 text-[12px] leading-snug text-ink-soft">
+            {observations === 1
+              ? t("pulse.flow.basedOnOne")
+              : t("pulse.flow.basedOnMany", { n: observations.toLocaleString() })}
+          </p>
         )}
       </div>
     </article>
