@@ -1113,6 +1113,10 @@ export const el: Record<keyof typeof en, string> = {
   "reliability.subAvgOnTime": "Μ.ό. στην ώρα",
   "reliability.subLearning": "Δεν υπάρχουν αρκετά δεδομένα ακόμη",
   "reliability.samples": "{n} παρατηρήσεις",
+  "reliability.stopEyebrow": "Σε αυτή τη στάση",
+  "reliability.stopHeadline": "Στην ώρα {pct}%",
+  "reliability.stopLearning": "Μαθαίνουμε αυτή τη στάση",
+  "reliability.stopSub": "{n} παρατηρήσεις · μ.ό. {sec}″",
 
   // Wave 2.4 — Επεξήγηση επιλογής
   "rationale.eyebrow": "Γιατί αυτή η επιλογή",

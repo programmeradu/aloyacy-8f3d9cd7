@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { IconArrowLeft, IconShare } from "@/components/Icons";
@@ -14,6 +16,7 @@ import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
 import { getStop, getRoute } from "@/lib/gtfs";
+import { getStopReliability, aggregateStopReliability } from "@/lib/reliability.functions";
 import { useI18n } from "@/lib/i18n";
 
 
@@ -63,6 +66,24 @@ function StopDetail() {
     return Array.from(set);
   }, [rt, stopId]);
   const etaStats = useEtaStats(routeIdsHere);
+
+  // Wave 1.4 completion — per-stop reliability. Only fetches once we know
+  // which routes actually serve this stop, and only when there's at least
+  // one candidate. Returns per-route rows that we fold into a single
+  // stop-wide score for the hero strip.
+  const stopReliabilityFn = useServerFn(getStopReliability);
+  const { data: stopReliabilityRows } = useQuery({
+    queryKey: ["stopReliability", stopId, routeIdsHere.slice().sort().join(",")],
+    queryFn: () =>
+      stopReliabilityFn({ data: { stopId, routeIds: routeIdsHere } }),
+    enabled: routeIdsHere.length > 0,
+    staleTime: 5 * 60_000,
+  });
+  const stopReliability = useMemo(
+    () => (stopReliabilityRows ? aggregateStopReliability(stopReliabilityRows) : null),
+    [stopReliabilityRows],
+  );
+
   const [, forceHeadsigns] = useState(0);
   useEffect(() => {
     prefetchShapes();
@@ -139,6 +160,18 @@ function StopDetail() {
             : t("stop.notInDataset")}
         </p>
       </header>
+
+      {stopReliability && stopReliability.sampleCount > 0 && (
+        <section
+          className="px-6 pb-5 animate-rise"
+          style={{ animationDelay: "90ms" }}
+          aria-label={t("reliability.stopEyebrow")}
+        >
+          <StopReliabilityStrip r={stopReliability} t={t} />
+        </section>
+      )}
+
+
 
       <section className="px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MapPreview
@@ -263,5 +296,55 @@ function StopDetail() {
       )}
     </AppShell>
 
+  );
+}
+
+/**
+ * Per-stop reliability strip. Editorial numerals, olive/ochre/red dot
+ * matched to the tier. Only rendered when we have real observations —
+ * caller gates on sampleCount > 0.
+ */
+function StopReliabilityStrip({
+  r,
+  t,
+}: {
+  r: {
+    onTimePct: number;
+    meanDelaySec: number;
+    sampleCount: number;
+    tier: "high" | "medium" | "low" | "unknown";
+  };
+  t: (k: never, vars?: Record<string, string | number>) => string;
+}) {
+  const tone =
+    r.tier === "high"
+      ? { dot: "bg-olive", num: "text-olive" }
+      : r.tier === "medium"
+        ? { dot: "bg-ochre", num: "text-ink" }
+        : r.tier === "low"
+          ? { dot: "bg-destructive", num: "text-destructive" }
+          : { dot: "bg-ink-soft/40", num: "text-ink-soft" };
+  const rated = r.tier !== "unknown";
+  const delaySign = r.meanDelaySec >= 0 ? "+" : "−";
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-3xl bg-card px-5 py-4 ring-1 ring-line">
+      <div className="min-w-0">
+        <p className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.22em] text-ink-soft">
+          <span className={`size-1.5 rounded-full ${tone.dot}`} aria-hidden />
+          {t("reliability.stopEyebrow" as never)}
+        </p>
+        <p className="mt-1 text-[12px] text-ink-soft">
+          {rated
+            ? t("reliability.stopSub" as never, {
+                n: r.sampleCount,
+                sec: `${delaySign}${Math.abs(r.meanDelaySec)}`,
+              })
+            : t("reliability.stopLearning" as never)}
+        </p>
+      </div>
+      <div className={`shrink-0 font-display text-[34px] leading-none ${tone.num}`}>
+        {rated ? `${r.onTimePct}%` : "—"}
+      </div>
+    </div>
   );
 }

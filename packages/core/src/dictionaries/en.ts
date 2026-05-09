@@ -1131,6 +1131,10 @@ export const en = {
   "reliability.subAvgOnTime": "Avg on the dot",
   "reliability.subLearning": "Not enough data yet",
   "reliability.samples": "{n} observations",
+  "reliability.stopEyebrow": "At this stop",
+  "reliability.stopHeadline": "On time {pct}%",
+  "reliability.stopLearning": "Learning this stop",
+  "reliability.stopSub": "{n} observations · avg {sec}s",
 
   // Wave 2.4 — "Why this route?" rationale tags
   "rationale.eyebrow": "Why this option",
