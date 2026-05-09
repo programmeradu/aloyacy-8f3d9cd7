@@ -45,6 +45,7 @@ import { Route as ApiPublicRouteReliabilityRouteImport } from './routes/api/publ
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPulseRouteImport } from './routes/api/public/pulse'
+import { Route as ApiPublicPlanShareRouteImport } from './routes/api/public/plan-share'
 import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
 import { Route as ApiPublicPlacesAutocompleteRouteImport } from './routes/api/public/places-autocomplete'
 import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
@@ -266,6 +267,11 @@ const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
 const ApiPublicPulseRoute = ApiPublicPulseRouteImport.update({
   id: '/api/public/pulse',
   path: '/api/public/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPlanShareRoute = ApiPublicPlanShareRouteImport.update({
+  id: '/api/public/plan-share',
+  path: '/api/public/plan-share',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
@@ -531,6 +537,7 @@ export interface FileRoutesByFullPath {
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
+  '/api/public/plan-share': typeof ApiPublicPlanShareRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -609,6 +616,7 @@ export interface FileRoutesByTo {
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
+  '/api/public/plan-share': typeof ApiPublicPlanShareRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -688,6 +696,7 @@ export interface FileRoutesById {
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
+  '/api/public/plan-share': typeof ApiPublicPlanShareRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -768,6 +777,7 @@ export interface FileRouteTypes {
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
+    | '/api/public/plan-share'
     | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -846,6 +856,7 @@ export interface FileRouteTypes {
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
+    | '/api/public/plan-share'
     | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -924,6 +935,7 @@ export interface FileRouteTypes {
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
+    | '/api/public/plan-share'
     | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -1003,6 +1015,7 @@ export interface RootRouteChildren {
   ApiPublicPlaceRoute: typeof ApiPublicPlaceRoute
   ApiPublicPlacesAutocompleteRoute: typeof ApiPublicPlacesAutocompleteRoute
   ApiPublicPlanRoute: typeof ApiPublicPlanRoute
+  ApiPublicPlanShareRoute: typeof ApiPublicPlanShareRoute
   ApiPublicPulseRoute: typeof ApiPublicPulseRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
@@ -1292,6 +1305,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/pulse'
       fullPath: '/api/public/pulse'
       preLoaderRoute: typeof ApiPublicPulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/plan-share': {
+      id: '/api/public/plan-share'
+      path: '/api/public/plan-share'
+      fullPath: '/api/public/plan-share'
+      preLoaderRoute: typeof ApiPublicPlanShareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/plan': {
@@ -1630,6 +1650,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPlaceRoute: ApiPublicPlaceRoute,
   ApiPublicPlacesAutocompleteRoute: ApiPublicPlacesAutocompleteRoute,
   ApiPublicPlanRoute: ApiPublicPlanRoute,
+  ApiPublicPlanShareRoute: ApiPublicPlanShareRoute,
   ApiPublicPulseRoute: ApiPublicPulseRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
