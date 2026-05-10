@@ -44,7 +44,14 @@ export type ParkAndRideSuggestion = {
     note?: string;
     lat: number;
     lng: number;
+    ev?: {
+      count: number;
+      kwMax: number;
+      kind: "ac" | "dc";
+      network: string;
+    };
   };
+
   driveSec: number;
   driveMeters: number;
   bus: {
