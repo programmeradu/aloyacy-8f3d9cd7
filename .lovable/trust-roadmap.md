@@ -159,9 +159,15 @@ Goal: chain modes intelligently when the bus-only answer is poor.
 - `BoltScooterCard` rendered on `/trips` (after BikeShareCard, before ItineraryResults): editorial 01/02/03 ribbon (pickup zone → ride → dropoff zone), parking-slot capacity, walk distances, "Open Bolt" + cycling-mode Maps deep link. Numerals, no icons, no bullet dots. EN + EL strings under `bolt.*`.
 - Honesty: NEVER claims live scooter counts (Bolt's app is the source of truth). Sells legal viability — "you can legally start here and park there" — and tells the rider to confirm a live scooter in the Bolt app before walking.
 
+### EV chargers at Park & Ride hubs — SHIPPED 2026-07-01
+- `ParkAndRideHub.ev` field (count, kwMax, kind ac/dc, network). Curated & verified: Mall of Cyprus (4× 22 kW AC — EAC ChargeIn), My Mall Limassol (6× 22 kW AC), Limassol Mall (4× 22 kW AC). Hubs without on-site charging carry no `ev` — Aloya never guesses.
+- `ParkAndRideCard` surfaces an olive ribbon under the hub note: "{count} AC bays up to {kw} kW — {network}" + rider-facing hint ("Plug in, hop on the bus, come back to a topped-up car."). Numerals carry the story; no icons, no bullet dots.
+- Suggestion type propagates `ev` through the server fn so mobile can pick it up next.
+- Bilingual EN/EL copy under `pnr.ev*`.
+
 ### Still planned
 - Kapnos Airport Shuttle static integration.
-- EV chargers (CyNAP `electric_vehicle_chargers` + Open Charge Map).
+- Live EV feed (CyNAP `electric_vehicle_chargers` + Open Charge Map) — moves the curated list to real-time availability with charger status.
 - Waze traffic + alerts overlay (CyNAP XML).
 - Group trips (shared planning links, live ETAs to multiple riders).
 
