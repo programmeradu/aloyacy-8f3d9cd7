@@ -15,6 +15,17 @@
 
 import type { CityId } from "@/lib/cities";
 
+export type EvChargerInfo = {
+  /** How many charging bays on-site (verified). */
+  count: number;
+  /** Kilowatts of the fastest charger present. */
+  kwMax: number;
+  /** "ac" = slow/destination, "dc" = fast. Highest tier present. */
+  kind: "ac" | "dc";
+  /** Operator brand shown on the pedestal. Helps riders find the app. */
+  network: string;
+};
+
 export type ParkAndRideHub = {
   id: string;
   /** Internal slug, also used as React key. */
@@ -28,7 +39,10 @@ export type ParkAndRideHub = {
   city: CityId;
   lat: number;
   lng: number;
+  /** Verified on-site EV charging. Absent = we don't know, never guessed. */
+  ev?: EvChargerInfo;
 };
+
 
 export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
   // ── Nicosia catchment ─────────────────────────────────────────────────
