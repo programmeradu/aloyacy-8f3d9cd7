@@ -23,6 +23,7 @@ import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
 import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
+import { Route as PlanTokenRouteImport } from './routes/plan.$token'
 import { Route as GuideGettingAroundCyprusRouteImport } from './routes/guide.getting-around-cyprus'
 import { Route as GroupCodeRouteImport } from './routes/group.$code'
 import { Route as EtaTokenRouteImport } from './routes/eta.$token'
@@ -45,6 +46,7 @@ import { Route as ApiPublicRouteReliabilityRouteImport } from './routes/api/publ
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPulseRouteImport } from './routes/api/public/pulse'
+import { Route as ApiPublicPlanShareRouteImport } from './routes/api/public/plan-share'
 import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
 import { Route as ApiPublicPlacesAutocompleteRouteImport } from './routes/api/public/places-autocomplete'
 import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
@@ -154,6 +156,11 @@ const StopStopIdRoute = StopStopIdRouteImport.update({
 const RouteRouteIdRoute = RouteRouteIdRouteImport.update({
   id: '/route/$routeId',
   path: '/route/$routeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanTokenRoute = PlanTokenRouteImport.update({
+  id: '/plan/$token',
+  path: '/plan/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuideGettingAroundCyprusRoute =
@@ -266,6 +273,11 @@ const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
 const ApiPublicPulseRoute = ApiPublicPulseRouteImport.update({
   id: '/api/public/pulse',
   path: '/api/public/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPlanShareRoute = ApiPublicPlanShareRouteImport.update({
+  id: '/api/public/plan-share',
+  path: '/api/public/plan-share',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
@@ -510,6 +522,7 @@ export interface FileRoutesByFullPath {
   '/eta/$token': typeof EtaTokenRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
+  '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -531,6 +544,7 @@ export interface FileRoutesByFullPath {
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
+  '/api/public/plan-share': typeof ApiPublicPlanShareRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -588,6 +602,7 @@ export interface FileRoutesByTo {
   '/eta/$token': typeof EtaTokenRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
+  '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -609,6 +624,7 @@ export interface FileRoutesByTo {
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
+  '/api/public/plan-share': typeof ApiPublicPlanShareRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -667,6 +683,7 @@ export interface FileRoutesById {
   '/eta/$token': typeof EtaTokenRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
+  '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -688,6 +705,7 @@ export interface FileRoutesById {
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
+  '/api/public/plan-share': typeof ApiPublicPlanShareRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -747,6 +765,7 @@ export interface FileRouteTypes {
     | '/eta/$token'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
+    | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -768,6 +787,7 @@ export interface FileRouteTypes {
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
+    | '/api/public/plan-share'
     | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -825,6 +845,7 @@ export interface FileRouteTypes {
     | '/eta/$token'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
+    | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -846,6 +867,7 @@ export interface FileRouteTypes {
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
+    | '/api/public/plan-share'
     | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -903,6 +925,7 @@ export interface FileRouteTypes {
     | '/eta/$token'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
+    | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -924,6 +947,7 @@ export interface FileRouteTypes {
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
+    | '/api/public/plan-share'
     | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -982,6 +1006,7 @@ export interface RootRouteChildren {
   EtaTokenRoute: typeof EtaTokenRoute
   GroupCodeRoute: typeof GroupCodeRoute
   GuideGettingAroundCyprusRoute: typeof GuideGettingAroundCyprusRoute
+  PlanTokenRoute: typeof PlanTokenRoute
   RouteRouteIdRoute: typeof RouteRouteIdRoute
   StopStopIdRoute: typeof StopStopIdRoute
   TripInfoTripIdRoute: typeof TripInfoTripIdRoute
@@ -1003,6 +1028,7 @@ export interface RootRouteChildren {
   ApiPublicPlaceRoute: typeof ApiPublicPlaceRoute
   ApiPublicPlacesAutocompleteRoute: typeof ApiPublicPlacesAutocompleteRoute
   ApiPublicPlanRoute: typeof ApiPublicPlanRoute
+  ApiPublicPlanShareRoute: typeof ApiPublicPlanShareRoute
   ApiPublicPulseRoute: typeof ApiPublicPulseRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
@@ -1138,6 +1164,13 @@ declare module '@tanstack/react-router' {
       path: '/route/$routeId'
       fullPath: '/route/$routeId'
       preLoaderRoute: typeof RouteRouteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan/$token': {
+      id: '/plan/$token'
+      path: '/plan/$token'
+      fullPath: '/plan/$token'
+      preLoaderRoute: typeof PlanTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/guide/getting-around-cyprus': {
@@ -1292,6 +1325,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/pulse'
       fullPath: '/api/public/pulse'
       preLoaderRoute: typeof ApiPublicPulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/plan-share': {
+      id: '/api/public/plan-share'
+      path: '/api/public/plan-share'
+      fullPath: '/api/public/plan-share'
+      preLoaderRoute: typeof ApiPublicPlanShareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/plan': {
@@ -1609,6 +1649,7 @@ const rootRouteChildren: RootRouteChildren = {
   EtaTokenRoute: EtaTokenRoute,
   GroupCodeRoute: GroupCodeRoute,
   GuideGettingAroundCyprusRoute: GuideGettingAroundCyprusRoute,
+  PlanTokenRoute: PlanTokenRoute,
   RouteRouteIdRoute: RouteRouteIdRoute,
   StopStopIdRoute: StopStopIdRoute,
   TripInfoTripIdRoute: TripInfoTripIdRoute,
@@ -1630,6 +1671,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPlaceRoute: ApiPublicPlaceRoute,
   ApiPublicPlacesAutocompleteRoute: ApiPublicPlacesAutocompleteRoute,
   ApiPublicPlanRoute: ApiPublicPlanRoute,
+  ApiPublicPlanShareRoute: ApiPublicPlanShareRoute,
   ApiPublicPulseRoute: ApiPublicPulseRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,

@@ -1218,4 +1218,10 @@ export const el: Record<keyof typeof en, string> = {
  "share.openLabel": "Κοινοποίηση στάσης",
  "share.waFallback": "Η εικόνα αποθηκεύτηκε — επισυνάψτε την στο WhatsApp",
  "share.saved": "Αποθηκεύτηκε στη συσκευή σας",
+ "share.plan.cta": "Μοιράσου το πλάνο",
+ "share.plan.creating": "Δημιουργία συνδέσμου…",
+ "share.plan.copied": "Ο σύνδεσμος είναι έτοιμος — μοιράσου τον",
+ "share.plan.retry": "Δοκίμασε ξανά",
+ "share.plan.title": "Πλάνο διαδρομής",
+ "share.plan.text": "Το πλάνο μας για να φτάσουμε στο {where}.",
 };
