@@ -49,6 +49,16 @@ export type ParkAndRideSuggestion = {
       kwMax: number;
       kind: "ac" | "dc";
       network: string;
+      /** Live availability from CyNAP, when the feed reports it. */
+      live?: {
+        /** null when operator doesn't publish live status — total only. */
+        available: number | null;
+        total: number;
+        kwMax: number;
+        kind: "ac" | "dc";
+        operator: string | null;
+        updatedUnix: number | null;
+      };
     };
   };
 
