@@ -172,6 +172,13 @@ Goal: chain modes intelligently when the bus-only answer is poor.
 - `ParkAndRideCard` upgrades the olive EV ribbon: "Live" pulse chip + "3 of 4 AC bays free right now · up to 22 kW · EAC ChargeIn" + freshness stamp ("Updated 4 min ago — from the national EV feed"). When the operator doesn't publish live status, the card honestly says so instead of guessing.
 - Bilingual EN/EL copy under `pnr.evLive*`, `pnr.evFresh*`, `pnr.evNoLive`.
 
+### Kapnos Airport Shuttle — SHIPPED
+- `src/lib/kapnos.functions.ts` — live pull of the kapnos.ecoachmanager.com booking API (`/coachtrip/api/trip-type-all`). Parses every active route with pickup/dropoff coordinates + the next ~60 scheduled departures including seat availability. 10-min module cache, stale-cache fallback on upstream failure.
+- `suggestKapnos({ from, to, afterUnix?, beforeUnix? })` — direction-aware matcher: only fires when one endpoint sits within 3 km of an airport stop AND the other within 10 km of that route's city stop. Honors the rider's requested departure/arrival window (never surfaces a 1am coach when they asked for 7am). Walks candidates best→worst until one has actual upcoming seats — earlier version locked onto the closest route and returned null when its last bus had left.
+- `KapnosShuttleCard` on `/trips`: editorial ribbon with route code, pickup/dropoff with walking distance, next 3 departures (local time, seats left, fare from), deep-link to Kapnos booking. First-mile + last-mile bus legs pre-computed via `planMultiLegJourney` when the walk to/from the coach stop exceeds `KAPNOS_WALKABLE_M`, so the rider sees the full door-to-door chain — not just the coach segment.
+- Honesty: seat counts as-published (never rounded up), deep-link to Kapnos for the transaction (we don't intermediate), gone-departures filtered in Cyprus local time.
+- Bilingual copy under `kapnos.*`.
+
 ### Still planned
 - Waze traffic + alerts overlay (CyNAP XML) — next up.
 - Group trips beyond share-links: live ETAs to multiple riders on the same plan.
