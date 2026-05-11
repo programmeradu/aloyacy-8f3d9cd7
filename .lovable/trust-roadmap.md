@@ -165,11 +165,16 @@ Goal: chain modes intelligently when the bus-only answer is poor.
 - Suggestion type propagates `ev` through the server fn so mobile can pick it up next.
 - Bilingual EN/EL copy under `pnr.ev*`.
 
+### Live EV charger availability (CyNAP feed) — SHIPPED 2026-07-01
+- New `src/lib/ev-chargers.functions.ts` — Datex II parser for the CyNAP `electric_vehicle_chargers` dataset. Handles both `energyInfrastructureSite` and legacy `electricChargingPoint` block shapes. Extracts per-bay `availabilityStatus` (available / occupied / offline / unknown), station coordinates, operator, max kW, and feed timestamp. Module cache 10 min, stale-cache fallback, 6 s upstream timeout.
+- Public server fn `nearestEvChargers({ near, radiusM, max })` for a future map overlay / stop-detail surface. Server-internal `liveEvForHub(hub)` aggregates every charger within 200 m of a hub centroid into a single snapshot (total bays, live-available count when the operator publishes it, kwMax, kind, operator, updatedUnix).
+- `suggestParkAndRide` now enriches `hub.ev` with a `live` block for any hub that carries curated EV data. Feed failure is silent — the curated numbers still render.
+- `ParkAndRideCard` upgrades the olive EV ribbon: "Live" pulse chip + "3 of 4 AC bays free right now · up to 22 kW · EAC ChargeIn" + freshness stamp ("Updated 4 min ago — from the national EV feed"). When the operator doesn't publish live status, the card honestly says so instead of guessing.
+- Bilingual EN/EL copy under `pnr.evLive*`, `pnr.evFresh*`, `pnr.evNoLive`.
+
 ### Still planned
-- Kapnos Airport Shuttle static integration.
-- Live EV feed (CyNAP `electric_vehicle_chargers` + Open Charge Map) — moves the curated list to real-time availability with charger status.
-- Waze traffic + alerts overlay (CyNAP XML).
-- Group trips (shared planning links, live ETAs to multiple riders).
+- Waze traffic + alerts overlay (CyNAP XML) — next up.
+- Group trips beyond share-links: live ETAs to multiple riders on the same plan.
 
 ---
 

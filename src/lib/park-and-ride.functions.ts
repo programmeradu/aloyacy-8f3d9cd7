@@ -49,6 +49,16 @@ export type ParkAndRideSuggestion = {
       kwMax: number;
       kind: "ac" | "dc";
       network: string;
+      /** Live availability from CyNAP, when the feed reports it. */
+      live?: {
+        /** null when operator doesn't publish live status — total only. */
+        available: number | null;
+        total: number;
+        kwMax: number;
+        kind: "ac" | "dc";
+        operator: string | null;
+        updatedUnix: number | null;
+      };
     };
   };
 
@@ -229,6 +239,24 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
       (l): l is RideLeg => l.kind === "ride",
     );
 
+    // Live EV enrichment — only for hubs that carry a curated `ev` entry
+    // (we've already vouched for on-site charging existing there). The
+    // feed adds "3 of 4 bays free right now" on top; failure is silent.
+    let liveEv: NonNullable<ParkAndRideSuggestion["hub"]["ev"]>["live"] =
+      undefined;
+    if (top.c.hub.ev) {
+      try {
+        const { liveEvForHub } = await import("./ev-chargers.functions");
+        const snap = await liveEvForHub({
+          lat: top.c.hub.lat,
+          lng: top.c.hub.lng,
+        });
+        if (snap) liveEv = snap;
+      } catch {
+        // Feed unavailable — curated numbers still render.
+      }
+    }
+
     return {
       hub: {
         id: top.c.hub.id,
@@ -236,7 +264,9 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
         note: top.c.hub.note,
         lat: top.c.hub.lat,
         lng: top.c.hub.lng,
-        ev: top.c.hub.ev,
+        ev: top.c.hub.ev
+          ? { ...top.c.hub.ev, live: liveEv }
+          : undefined,
       },
       driveSec: top.drive.durationSec,
       driveMeters: top.drive.distanceMeters,
