@@ -41,6 +41,8 @@ import { KapnosShuttleCard } from "@/components/KapnosShuttleCard";
 import { BoltScooterCard } from "@/components/BoltScooterCard";
 import { getDustAdvisory } from "@/lib/pulse-live.functions";
 import { DustAdvisoryBanner } from "@/components/DustAdvisoryBanner";
+import { getItineraryTrafficAlerts } from "@/lib/traffic-alerts.functions";
+import { TrafficAlertsCard } from "@/components/TrafficAlertsCard";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
