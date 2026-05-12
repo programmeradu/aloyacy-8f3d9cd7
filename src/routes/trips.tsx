@@ -960,6 +960,7 @@ function Plan() {
             )}
             {bikeShare && <BikeShareCard suggestion={bikeShare} />}
             {boltScooter && <BoltScooterCard suggestion={boltScooter} />}
+            {trafficReport && <TrafficAlertsCard report={trafficReport} />}
             <ItineraryResults results={results} origin={origin} destination={destination} />
             {lastMileChain && <LastMileChainCard suggestion={lastMileChain} />}
           </div>
