@@ -525,6 +525,23 @@ export const en = {
   "kapnos.lastMile.tapHint": "Tap to open full directions",
   "kapnos.moreLabel": "More departures & booking",
 
+  // trip-level traffic alerts (CyNAP DATEX ingest, itinerary-scoped)
+  "traffic.eyebrow": "Live road alerts",
+  "traffic.headlineOne": "1 event on your route",
+  "traffic.headlineMany": "{n} events on your route",
+  "traffic.sev.low": "Minor",
+  "traffic.sev.medium": "Watch",
+  "traffic.sev.high": "Major",
+  "traffic.kind.roadworks": "Roadworks",
+  "traffic.kind.closure": "Road closed",
+  "traffic.kind.accident": "Accident",
+  "traffic.kind.congestion": "Slow traffic",
+  "traffic.kind.weather": "Weather",
+  "traffic.kind.other": "Advisory",
+  "traffic.source": "From the national road-alerts feed",
+  "traffic.updated": "Updated {when}",
+
+
 
 
   // saved
