@@ -110,11 +110,15 @@ function StartCard({ trip }: { trip: ActiveTrip }) {
             {t("hud.startBody")}
           </p>
           <button
-            onClick={async () => {
-              await requestCompassPermission();
+            type="button"
+            onClick={() => {
+              // Flip into live mode first — compass is an enhancement,
+              // never a gate. If the iOS permission dialog stalls or the
+              // rider dismisses it, guidance still starts.
               startLiveTracking();
+              void requestCompassPermission().catch(() => {});
             }}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 font-sans text-[14px] font-semibold tracking-tight text-limestone"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 font-sans text-[14px] font-semibold tracking-tight text-limestone active:scale-[0.98] transition"
           >
             {t("hud.startCta")}
             <IconArrowUpRight className="size-3.5" />
