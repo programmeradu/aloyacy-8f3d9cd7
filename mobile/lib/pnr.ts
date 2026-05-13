@@ -3,7 +3,27 @@
 import { API_BASE } from "./api";
 
 export type ParkAndRideSuggestion = {
-  hub: { id: string; label: string; note?: string; lat: number; lng: number };
+  hub: {
+    id: string;
+    label: string;
+    note?: string;
+    lat: number;
+    lng: number;
+    ev?: {
+      count: number;
+      kwMax: number;
+      kind: "ac" | "dc";
+      network: string;
+      live?: {
+        available: number | null;
+        total: number;
+        kwMax: number;
+        kind: "ac" | "dc";
+        operator: string | null;
+        updatedUnix: number | null;
+      };
+    };
+  };
   driveSec: number;
   driveMeters: number;
   bus: {
@@ -24,6 +44,7 @@ export type ParkAndRideSuggestion = {
     notable: boolean;
   };
 };
+
 
 export async function fetchParkAndRide(args: {
   from: { lat: number; lng: number; label?: string };
