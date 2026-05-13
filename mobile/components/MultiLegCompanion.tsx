@@ -50,6 +50,7 @@ import {
   type MultiLegLive,
 } from "@/lib/useMultiLegJourney";
 import { useDisruptionWatch, type DisruptionKind } from "@/lib/useDisruptionWatch";
+import { startLiveTracking } from "@/lib/useJourney";
 import { useTrafficWatch } from "@/lib/useTrafficWatch";
 import { DisruptionBanner } from "@/components/DisruptionBanner";
 import { TrafficRouteBanner } from "@/components/TrafficRouteBanner";
