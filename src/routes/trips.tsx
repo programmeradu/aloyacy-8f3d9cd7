@@ -1425,6 +1425,7 @@ function ItineraryRow({
           origin={origin}
           destination={destination}
         />
+        <WatchTogetherButton origin={origin} destination={destination} />
       </div>
     </div>
   );
