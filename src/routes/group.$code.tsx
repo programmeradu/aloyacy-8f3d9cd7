@@ -5,8 +5,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPreview } from "@/components/MapPreview";
+import { pingGroupMember, joinTripGroup, leaveTripGroup } from "@/lib/trip-groups.functions";
 
 const MEMBER_TOKEN_KEY = (code: string) => `aloya.group.${code}.token`;
 const PING_INTERVAL_MS = 25_000;
@@ -131,6 +133,7 @@ function GroupWatchPage() {
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col gap-4 px-5 py-6">
         <Header code={group.code} expired={expired} />
         <DestinationCard group={group} activeMembers={members.filter((m) => m.status === "active").length} />
+        <ConvergeCard members={members} expired={expired} />
         <GroupMap group={group} members={members} />
         <MembersList members={members} />
         {!expired && <JoinCard group={group} />}
@@ -279,7 +282,54 @@ function MembersList({ members }: { members: MemberRow[] }) {
   );
 }
 
+function ConvergeCard({ members, expired }: { members: MemberRow[]; expired: boolean }) {
+  const active = members.filter((m) => m.status === "active");
+  const etas = active.map((m) => m.eta_minutes).filter((e): e is number => typeof e === "number");
+  if (expired) {
+    return (
+      <div className="rounded-3xl bg-limestone-soft p-5 ring-1 ring-line">
+        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
+          Group ended
+        </p>
+        <p className="mt-1 font-sans text-[13px] font-medium text-ink">
+          Positions and ETAs stopped updating. Start a fresh group if you're heading out again.
+        </p>
+      </div>
+    );
+  }
+  if (etas.length === 0) return null;
+  const first = Math.min(...etas);
+  const last = Math.max(...etas);
+  const spread = last - first;
+  const allTogether = spread <= 3;
+  return (
+    <div className="rounded-3xl bg-aegean-soft/40 p-5 ring-1 ring-aegean/20">
+      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-aegean-deep">
+        Arriving together
+      </p>
+      <p className="mt-1 font-display text-[22px] font-semibold leading-tight text-ink">
+        {allTogether
+          ? first === 0
+            ? "Everyone's here."
+            : `Everyone in ~${first} min.`
+          : `First in ${first} min · last in ${last} min`}
+      </p>
+      <p className="mt-2 font-sans text-[13px] font-medium text-ink-soft">
+        {allTogether
+          ? spread === 0
+            ? "Same minute across the group — perfect meet-up window."
+            : `Spread of ${spread} min — you'll all land inside a coffee's wait.`
+          : `${spread} min gap. The earliest can grab a table while the rest catch up.`}
+      </p>
+    </div>
+  );
+}
+
 function JoinCard({ group }: { group: GroupRow }) {
+  const ping = useServerFn(pingGroupMember);
+  const join = useServerFn(joinTripGroup);
+  const leave = useServerFn(leaveTripGroup);
+
   const [name, setName] = useState<string>("");
   const [joined, setJoined] = useState<boolean>(false);
   const [busy, setBusy] = useState(false);
@@ -298,27 +348,28 @@ function JoinCard({ group }: { group: GroupRow }) {
     }
   }, [group.code]);
 
-  const startWatching = useCallback((token: string) => {
-    if (!("geolocation" in navigator)) return;
-    if (watchRef.current != null) return;
-    watchRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        const now = Date.now();
-        if (now - lastPingRef.current < PING_INTERVAL_MS) return;
-        lastPingRef.current = now;
-        void supabase
-          .from("trip_group_members")
-          .update({
-            last_lat: pos.coords.latitude,
-            last_lng: pos.coords.longitude,
-            last_updated: new Date().toISOString(),
-          })
-          .eq("member_token", token);
-      },
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 15_000, timeout: 20_000 },
-    );
-  }, []);
+  const startWatching = useCallback(
+    (token: string) => {
+      if (!("geolocation" in navigator)) return;
+      if (watchRef.current != null) return;
+      watchRef.current = navigator.geolocation.watchPosition(
+        (pos) => {
+          const now = Date.now();
+          if (now - lastPingRef.current < PING_INTERVAL_MS) return;
+          lastPingRef.current = now;
+          void ping({
+            data: {
+              memberToken: token,
+              position: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+            },
+          }).catch(() => {});
+        },
+        () => {},
+        { enableHighAccuracy: true, maximumAge: 15_000, timeout: 20_000 },
+      );
+    },
+    [ping],
+  );
 
   useEffect(() => {
     if (joined && memberTokenRef.current) startWatching(memberTokenRef.current);
@@ -330,6 +381,20 @@ function JoinCard({ group }: { group: GroupRow }) {
     };
   }, [joined, startWatching]);
 
+  const readPosition = useCallback((): Promise<{ lat: number; lng: number } | null> => {
+    return new Promise((resolve) => {
+      if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+        resolve(null);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+        () => resolve(null),
+        { enableHighAccuracy: true, maximumAge: 10_000, timeout: 8_000 },
+      );
+    });
+  }, []);
+
   const onJoin = useCallback(async () => {
     setErr(null);
     const trimmed = name.trim();
@@ -339,24 +404,41 @@ function JoinCard({ group }: { group: GroupRow }) {
     }
     setBusy(true);
     try {
-      const token = crypto.randomUUID();
-      const { error } = await supabase.from("trip_group_members").insert({
-        group_id: group.id,
-        member_token: token,
-        display_name: trimmed.slice(0, 40),
-        status: "active",
+      const origin = await readPosition();
+      const res = await join({
+        data: {
+          code: group.code,
+          displayName: trimmed.slice(0, 40),
+          origin: origin ?? undefined,
+        },
       });
-      if (error) {
-        setErr("Couldn't join. Try again in a moment.");
-        return;
-      }
-      localStorage.setItem(MEMBER_TOKEN_KEY(group.code), token);
-      memberTokenRef.current = token;
+      localStorage.setItem(MEMBER_TOKEN_KEY(group.code), res.memberToken);
+      memberTokenRef.current = res.memberToken;
       setJoined(true);
+    } catch {
+      setErr("Couldn't join. Try again in a moment.");
     } finally {
       setBusy(false);
     }
-  }, [name, group.id, group.code]);
+  }, [name, group.code, readPosition, join]);
+
+  const onLeave = useCallback(async () => {
+    const token = memberTokenRef.current;
+    if (!token) return;
+    setBusy(true);
+    try {
+      await leave({ data: { memberToken: token } }).catch(() => {});
+      localStorage.removeItem(MEMBER_TOKEN_KEY(group.code));
+      if (watchRef.current != null && "geolocation" in navigator) {
+        navigator.geolocation.clearWatch(watchRef.current);
+        watchRef.current = null;
+      }
+      memberTokenRef.current = null;
+      setJoined(false);
+    } finally {
+      setBusy(false);
+    }
+  }, [group.code, leave]);
 
   if (joined) {
     return (
@@ -365,8 +447,16 @@ function JoinCard({ group }: { group: GroupRow }) {
           You're in
         </p>
         <p className="mt-1 font-sans text-[13px] font-medium text-ink">
-          Sharing your live position with the group. Keep this tab open — close it to stop sharing.
+          Sharing your live position and ETA with the group. Keep this tab open — close it or tap Leave to stop sharing.
         </p>
+        <button
+          type="button"
+          onClick={onLeave}
+          disabled={busy}
+          className="mt-3 rounded-xl bg-ink/5 px-4 py-2 font-sans text-[12px] font-semibold uppercase tracking-[0.14em] text-ink transition-opacity hover:bg-ink/10 disabled:opacity-60"
+        >
+          {busy ? "Leaving…" : "Leave group"}
+        </button>
       </div>
     );
   }

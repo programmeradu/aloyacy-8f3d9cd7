@@ -186,8 +186,15 @@ Goal: chain modes intelligently when the bus-only answer is poor.
 - Bilingual EN/EL copy under `traffic.*` (eyebrows, severities, kinds, source/updated labels).
 - Honesty: distance rounded to 50 m, never overstates severity, ignores incidents older than 60 min, silently degrades when the feed hasn't been configured or ingest hasn't fired.
 
+### Group trips — live co-presence — SHIPPED
+- `WatchTogetherButton` on the planner results creates a `trip_groups` row (6-char code, 6h expiry) and auto-joins the host as the first `trip_group_members` row.
+- `/group/:code` shows everyone converging on the same destination on one map: per-member tone chips, live positions, "arriving together" card summarising first/last ETA and spread ("Everyone in ~14 min" vs "First in 8 · last in 22").
+- Members ping every 25s via `pingGroupMember` server fn, which recomputes ETA using Google Routes (TRANSIT for >1.2 km, WALK below) so the countdown is real transit time, not haversine math.
+- Anonymous-safe: create / join / leave all work without an account. Realtime channel on `trip_group_members` gives instant updates when others move.
+- `Leave group` button and auto-expiry keep ghost members from lingering.
+
 ### Still planned
-- Group trips beyond share-links: live ETAs to multiple riders on the same plan.
+Nothing. Every wave shipped.
 
 ---
 
