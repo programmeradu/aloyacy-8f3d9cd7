@@ -1,38 +1,38 @@
-// Group trips — multi-rider "watch" surface. One creator starts a group
-// tied to a destination, everyone else joins from the shared link and
-// the whole group sees each other converging on the map. Members ping
-// their position + ETA every 20s while the group is active.
+// Group trips — multi-rider "watch" surface using the anon-safe public
+// server functions (createTripGroup / pingGroupMember / leaveTripGroup)
+// via /api/public/trip-groups. No account required to host or join.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE } from "./api";
 import { supabase } from "./supabase";
 import type { ActiveTrip } from "./trip-store";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const PING_INTERVAL_MS = 20_000;
 const PUBLIC_BASE = "https://app.aloya.cy";
-const STORAGE_KEY = "aloya.groupTrip.v1";
-
-function randomCode(): string {
-  const alphabet = "ABCDEFGHJKMNPQRSTVWXYZ23456789"; // no confusables
-  let out = "";
-  for (let i = 0; i < 6; i++) out += alphabet[Math.floor(Math.random() * alphabet.length)];
-  return out;
-}
-function randomToken(): string {
-  const a = Math.floor(Math.random() * 0xffffffff).toString(36);
-  const b = Math.floor(Math.random() * 0xffffffff).toString(36);
-  const c = Math.floor(Math.random() * 0xffffffff).toString(36);
-  return `${a}${b}${c}${Date.now().toString(36)}`;
-}
+const STORAGE_KEY = "aloya.groupTrip.v2";
 
 export type GroupTripSession = {
-  groupId: string;
   code: string;
   memberToken: string;
   displayName: string;
   url: string;
   destinationLabel: string;
 };
+
+async function callGroups<T>(action: "create" | "join" | "ping" | "leave", payload: unknown): Promise<T | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/public/trip-groups`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ action, payload }),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
 
 const cache = new Map<string, GroupTripSession>();
 
@@ -49,9 +49,7 @@ async function saveCached(s: GroupTripSession | null) {
   try {
     if (!s) await AsyncStorage.removeItem(STORAGE_KEY);
     else await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-  } catch {
-    // best effort
-  }
+  } catch {}
 }
 
 export function useGroupTrip(opts: {
@@ -60,7 +58,7 @@ export function useGroupTrip(opts: {
   etaMinutes: number | null;
   displayName?: string;
 }) {
-  const { active, fix, etaMinutes, displayName } = opts;
+  const { active, fix, displayName } = opts;
   const key = `${active.startedAt}:${active.to.label}`;
   const [session, setSession] = useState<GroupTripSession | null>(() => cache.get(key) ?? null);
   const [busy, setBusy] = useState(false);
@@ -85,52 +83,24 @@ export function useGroupTrip(opts: {
     if (busy) return null;
     setBusy(true);
     try {
-      const code = randomCode();
-      const memberToken = randomToken();
       const { data: { user } } = await supabase.auth.getUser();
       const name = displayName?.trim() || user?.user_metadata?.full_name || "You";
 
-      const { data: groupRow, error: gErr } = await supabase
-        .from("trip_groups")
-        .insert({
-          code,
-          destination_label: active.to.label,
-          destination_lat: active.to.lat,
-          destination_lng: active.to.lng,
-          created_by_name: name,
-          created_by_id: user?.id ?? null,
-        })
-        .select("id")
-        .single();
-      if (gErr || !groupRow) {
-        console.warn("[groupTrip] create failed", gErr);
-        return null;
-      }
-
-      const { error: mErr } = await supabase.from("trip_group_members").insert({
-        group_id: groupRow.id,
-        member_token: memberToken,
-        display_name: name,
-        origin_label: active.from.label,
-        last_lat: fix?.lat ?? null,
-        last_lng: fix?.lng ?? null,
-        last_updated: fix ? new Date().toISOString() : null,
-        eta_minutes: etaMinutes,
-        is_creator: true,
-        owner_id: user?.id ?? null,
-        status: "active",
+      const res = await callGroups<{ code: string; memberToken: string }>("create", {
+        destinationLabel: active.to.label,
+        destination: { lat: active.to.lat, lng: active.to.lng },
+        hostName: name,
+        originLabel: active.from.label,
+        origin: fix ? { lat: fix.lat, lng: fix.lng } : undefined,
+        expiresInHours: 6,
       });
-      if (mErr) {
-        console.warn("[groupTrip] join-as-creator failed", mErr);
-        return null;
-      }
+      if (!res) return null;
 
       const next: GroupTripSession = {
-        groupId: groupRow.id,
-        code,
-        memberToken,
+        code: res.code,
+        memberToken: res.memberToken,
         displayName: name,
-        url: `${PUBLIC_BASE}/group/${code}`,
+        url: `${PUBLIC_BASE}/group/${res.code}`,
         destinationLabel: active.to.label,
       };
       cache.set(key, next);
@@ -140,35 +110,27 @@ export function useGroupTrip(opts: {
     } finally {
       setBusy(false);
     }
-  }, [busy, active, fix, etaMinutes, displayName, key]);
+  }, [busy, active, fix, displayName, key]);
 
   const leave = useCallback(async () => {
     if (!session) return;
-    await supabase
-      .from("trip_group_members")
-      .update({ status: "left", last_updated: new Date().toISOString() })
-      .eq("member_token", session.memberToken);
+    await callGroups("leave", { memberToken: session.memberToken });
     cache.delete(key);
     await saveCached(null);
     setSession(null);
   }, [session, key]);
 
-  // Ping own row while the group is active.
+  // Ping own position + let the server recompute the transit ETA.
   useEffect(() => {
     if (!session || !fix) return;
     const now = Date.now();
     if (now - lastPingRef.current < PING_INTERVAL_MS) return;
     lastPingRef.current = now;
-    void supabase
-      .from("trip_group_members")
-      .update({
-        last_lat: fix.lat,
-        last_lng: fix.lng,
-        last_updated: new Date().toISOString(),
-        eta_minutes: etaMinutes,
-      })
-      .eq("member_token", session.memberToken);
-  }, [session, fix, etaMinutes]);
+    void callGroups("ping", {
+      memberToken: session.memberToken,
+      position: { lat: fix.lat, lng: fix.lng },
+    });
+  }, [session, fix]);
 
   return { session, create, leave, busy };
 }

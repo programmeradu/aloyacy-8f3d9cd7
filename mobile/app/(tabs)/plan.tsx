@@ -39,7 +39,10 @@ import {
 import { ParkAndRideCardMobile } from "@/components/ParkAndRideCardMobile";
 import { KapnosShuttleCardMobile } from "@/components/KapnosShuttleCardMobile";
 import { DustAdvisoryBannerMobile } from "@/components/DustAdvisoryBannerMobile";
+import { TrafficAlertsCardMobile } from "@/components/TrafficAlertsCardMobile";
+import { fetchItineraryTrafficAlerts, itinerarySamplePoints } from "@/lib/traffic-alerts";
 import { RemindMeButtonMobile } from "@/components/RemindMeButtonMobile";
+
 import { SharePlanButtonMobile } from "@/components/SharePlanButtonMobile";
 import {
   PlacesAutocomplete,
@@ -305,6 +308,19 @@ export default function PlanScreen() {
   const bike = alts[3].data ?? null;
   const bolt = alts[4].data ?? null;
   const chain = alts[5].data ?? null;
+
+  // Live traffic alerts along the top itinerary — CyNAP incident feed
+  // intersected with board/alight/walk points. Silent when nothing hits.
+  const trafficPoints = useMemo(() => (topItin ? itinerarySamplePoints(topItin) : []), [topItin]);
+  const trafficQuery = useQuery({
+    queryKey: ["itinerary-traffic", trafficPoints],
+    queryFn: () => fetchItineraryTrafficAlerts(trafficPoints),
+    enabled: trafficPoints.length > 0,
+    staleTime: 90_000,
+    refetchInterval: 120_000,
+  });
+  const trafficReport = trafficQuery.data ?? null;
+
 
   function handlePicked(slot: "origin" | "dest", place: PickedPlace) {
     if (slot === "origin") {
@@ -648,6 +664,14 @@ export default function PlanScreen() {
             <KapnosShuttleCardMobile suggestion={kapnos} />
           </View>
         )}
+
+        {/* ── Live traffic on this route ─────────────────────────────── */}
+        {trafficReport && (
+          <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
+            <TrafficAlertsCardMobile report={trafficReport} />
+          </View>
+        )}
+
 
         {/* ── Other ways (bike / scooter / chain) ────────────────────── */}
         {result && (bike || bolt || chain) && (
