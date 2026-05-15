@@ -16,6 +16,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "cy.aloya.app",
       "buildNumber": "1",
+      "associatedDomains": [
+        "applinks:app.aloya.cy",
+        "applinks:aloyacy.live",
+        "applinks:www.aloyacy.live",
+        "applinks:app.aloyacy.live"
+      ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": [
@@ -46,7 +52,29 @@
         "CAMERA",
         "android.permission.CAMERA"
       ],
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            { "scheme": "https", "host": "app.aloya.cy", "pathPrefix": "/group/" },
+            { "scheme": "https", "host": "app.aloya.cy", "pathPrefix": "/plan/" },
+            { "scheme": "https", "host": "aloyacy.live", "pathPrefix": "/group/" },
+            { "scheme": "https", "host": "aloyacy.live", "pathPrefix": "/plan/" },
+            { "scheme": "https", "host": "www.aloyacy.live", "pathPrefix": "/group/" },
+            { "scheme": "https", "host": "www.aloyacy.live", "pathPrefix": "/plan/" },
+            { "scheme": "https", "host": "app.aloyacy.live", "pathPrefix": "/group/" },
+            { "scheme": "https", "host": "app.aloyacy.live", "pathPrefix": "/plan/" }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "VIEW",
+          "data": [{ "scheme": "aloya" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
