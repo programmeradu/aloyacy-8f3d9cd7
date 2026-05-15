@@ -314,7 +314,9 @@ export default function WalletScreen() {
           {/* Pro + accessibility */}
           <View style={{ paddingHorizontal: 22 }}>
             <ProAccountCard />
-            <GoProCard />
+            <View style={{ marginTop: 18 }}>
+              <ProUpsellCard />
+            </View>
             <AccessibilityPrefsCard />
           </View>
 
