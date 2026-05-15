@@ -28,10 +28,8 @@ import { RenewPasses } from "@/components/wallet/RenewPasses";
 import { ProAccountCard } from "@/components/wallet/ProAccountCard";
 import { AccessibilityPrefsCard } from "@/components/wallet/AccessibilityPrefsCard";
 import { CardScanSheet } from "@/components/CardScanSheet";
-import { GoProCard } from "@/components/GoProCard";
+import { ProUpsellCard } from "@/components/ProUpsell";
 import { AuthCard } from "@/components/AuthCard";
-import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
-import { NotificationsCard } from "@/components/NotificationsCard";
 import {
   readPass, writePass, mergePass, clearJccLink, subscribePass,
   type MotionPass,
