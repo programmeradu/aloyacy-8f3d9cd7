@@ -354,8 +354,6 @@ export default function WalletScreen() {
       <FadeSection index={2} style={{ paddingHorizontal: 22, marginTop: 34 }}>
         <Text style={styles.sectionEyebrow}>ACCOUNT SETTINGS</Text>
         <AuthCard />
-        <NotificationsCard />
-        <OfflineSchedulesCard />
       </FadeSection>
 
       <View style={{ paddingHorizontal: 22, marginTop: 20 }}>
