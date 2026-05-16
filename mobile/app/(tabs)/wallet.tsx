@@ -28,10 +28,8 @@ import { RenewPasses } from "@/components/wallet/RenewPasses";
 import { ProAccountCard } from "@/components/wallet/ProAccountCard";
 import { AccessibilityPrefsCard } from "@/components/wallet/AccessibilityPrefsCard";
 import { CardScanSheet } from "@/components/CardScanSheet";
-import { GoProCard } from "@/components/GoProCard";
+import { ProUpsellCard } from "@/components/ProUpsell";
 import { AuthCard } from "@/components/AuthCard";
-import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
-import { NotificationsCard } from "@/components/NotificationsCard";
 import {
   readPass, writePass, mergePass, clearJccLink, subscribePass,
   type MotionPass,
@@ -316,7 +314,9 @@ export default function WalletScreen() {
           {/* Pro + accessibility */}
           <View style={{ paddingHorizontal: 22 }}>
             <ProAccountCard />
-            <GoProCard />
+            <View style={{ marginTop: 18 }}>
+              <ProUpsellCard />
+            </View>
             <AccessibilityPrefsCard />
           </View>
 
@@ -354,8 +354,6 @@ export default function WalletScreen() {
       <FadeSection index={2} style={{ paddingHorizontal: 22, marginTop: 34 }}>
         <Text style={styles.sectionEyebrow}>ACCOUNT SETTINGS</Text>
         <AuthCard />
-        <NotificationsCard />
-        <OfflineSchedulesCard />
       </FadeSection>
 
       <View style={{ paddingHorizontal: 22, marginTop: 20 }}>
