@@ -74,5 +74,6 @@ export default function MoreScreen() {
       <View style={{ marginTop: 18 }}>
         <ProFeaturesUpsell />
       </View>
+    </ScrollView>
   );
 }
