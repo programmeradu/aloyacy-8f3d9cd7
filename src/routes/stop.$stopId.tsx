@@ -319,61 +319,44 @@ function StopReliabilityStrip({
 }) {
   const rated = r.tier !== "unknown";
   const late = r.meanDelaySec > 0;
-  const early = r.meanDelaySec < 0;
 
   const tone =
     r.tier === "high"
       ? {
           num: "text-olive",
-          bar: "bg-olive",
           chipBg: "bg-olive-soft/45",
           chipInk: "text-olive",
           wash:
-            "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-olive-soft)_75%,transparent)_0%,transparent_60%)]",
+            "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-olive-soft)_60%,transparent)_0%,transparent_65%)]",
           label: "Reliable",
         }
       : r.tier === "medium"
         ? {
             num: "text-ink",
-            bar: "bg-ochre",
             chipBg: "bg-ochre-soft/60",
             chipInk: "text-ink",
             wash:
-              "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-ochre-soft)_70%,transparent)_0%,transparent_60%)]",
+              "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-ochre-soft)_55%,transparent)_0%,transparent_65%)]",
             label: "Steady",
           }
         : r.tier === "low"
           ? {
               num: "text-destructive",
-              bar: "bg-destructive",
               chipBg: "bg-destructive/12",
               chipInk: "text-destructive",
               wash:
-                "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-destructive)_18%,transparent)_0%,transparent_60%)]",
+                "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-destructive)_14%,transparent)_0%,transparent_65%)]",
               label: "Uneven",
             }
           : {
               num: "text-ink-soft",
-              bar: "bg-ink-soft/30",
               chipBg: "bg-limestone-soft",
               chipInk: "text-ink-soft",
               wash: "",
               label: "Learning",
             };
 
-  const deltaCopy = !rated
-    ? t("reliability.subLearning" as never)
-    : Math.abs(r.meanDelaySec) < 20
-      ? t("reliability.subAvgOnTime" as never)
-      : late
-        ? t("reliability.subAvgLate" as never, { sec: r.meanDelaySec })
-        : t("reliability.subAvgEarly" as never, { sec: Math.abs(r.meanDelaySec) });
 
-  const delaySign = late ? "+" : early ? "−" : "±";
-  const deltaMagnitude = Math.abs(r.meanDelaySec);
-
-  // Ceiling the bar for tiny sample sizes so we don't over-promise a full rail.
-  const barPct = rated ? Math.max(4, Math.min(100, r.onTimePct)) : 0;
 
   // Human-readable summary. No jargon, no numbers unless useful.
   const summary = !rated
