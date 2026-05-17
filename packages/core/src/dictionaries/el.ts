@@ -1155,6 +1155,17 @@ export const el: Record<keyof typeof en, string> = {
   "reliability.stopHeadline": "Στην ώρα {pct}%",
   "reliability.stopLearning": "Μαθαίνουμε αυτή τη στάση",
   "reliability.stopSub": "{n} παρατηρήσεις · μ.ό. {sec}″",
+  "reliability.onTime": "στην ώρα",
+  "reliability.summaryLearning": "Μαθαίνουμε ακόμη αυτή τη γραμμή",
+  "reliability.summaryOnTime": "Συνήθως στην ώρα του",
+  "reliability.summaryLateSmall": "Συνήθως ένα-δύο λεπτά αργά",
+  "reliability.summaryLateBig": "Συχνά αργεί",
+  "reliability.summaryEarlySmall": "Καμιά φορά φεύγει λίγο νωρίς",
+  "reliability.summaryEarlyBig": "Συχνά φεύγει νωρίς",
+  "reliability.hintLearning": "Δεν υπάρχουν αρκετά δεδομένα ακόμη",
+  "reliability.hintHigh": "Ασφαλές για κοντινές ανταποκρίσεις",
+  "reliability.hintMedium": "Άφησε λίγο περιθώριο",
+  "reliability.hintLow": "Άφησε μερικά λεπτά περιθώριο",
 
   // Wave 2.4 — Επεξήγηση επιλογής
   "rationale.eyebrow": "Γιατί αυτή η επιλογή",
