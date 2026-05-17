@@ -307,159 +307,109 @@ function StopDetail() {
  */
 function StopReliabilityStrip({
   r,
-  t,
 }: {
+
   r: {
     onTimePct: number;
     meanDelaySec: number;
     sampleCount: number;
     tier: "high" | "medium" | "low" | "unknown";
   };
-  t: (k: never, vars?: Record<string, string | number>) => string;
+  t?: (k: never, vars?: Record<string, string | number>) => string;
 }) {
+
   const rated = r.tier !== "unknown";
   const late = r.meanDelaySec > 0;
-  const early = r.meanDelaySec < 0;
 
   const tone =
     r.tier === "high"
       ? {
           num: "text-olive",
-          bar: "bg-olive",
           chipBg: "bg-olive-soft/45",
           chipInk: "text-olive",
           wash:
-            "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-olive-soft)_75%,transparent)_0%,transparent_60%)]",
+            "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-olive-soft)_60%,transparent)_0%,transparent_65%)]",
           label: "Reliable",
         }
       : r.tier === "medium"
         ? {
             num: "text-ink",
-            bar: "bg-ochre",
             chipBg: "bg-ochre-soft/60",
             chipInk: "text-ink",
             wash:
-              "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-ochre-soft)_70%,transparent)_0%,transparent_60%)]",
+              "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-ochre-soft)_55%,transparent)_0%,transparent_65%)]",
             label: "Steady",
           }
         : r.tier === "low"
           ? {
               num: "text-destructive",
-              bar: "bg-destructive",
               chipBg: "bg-destructive/12",
               chipInk: "text-destructive",
               wash:
-                "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-destructive)_18%,transparent)_0%,transparent_60%)]",
+                "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-destructive)_14%,transparent)_0%,transparent_65%)]",
               label: "Uneven",
             }
           : {
               num: "text-ink-soft",
-              bar: "bg-ink-soft/30",
               chipBg: "bg-limestone-soft",
               chipInk: "text-ink-soft",
               wash: "",
               label: "Learning",
             };
 
-  const deltaCopy = !rated
-    ? t("reliability.subLearning" as never)
-    : Math.abs(r.meanDelaySec) < 20
-      ? t("reliability.subAvgOnTime" as never)
+
+
+  // Human-readable summary. No jargon, no numbers unless useful.
+  const summary = !rated
+    ? "Still learning this stop"
+    : Math.abs(r.meanDelaySec) < 60
+      ? "Usually runs on time"
       : late
-        ? t("reliability.subAvgLate" as never, { sec: r.meanDelaySec })
-        : t("reliability.subAvgEarly" as never, { sec: Math.abs(r.meanDelaySec) });
+        ? r.meanDelaySec < 180
+          ? "Usually a minute or two late"
+          : "Often runs late"
+        : Math.abs(r.meanDelaySec) < 180
+          ? "Sometimes leaves a touch early"
+          : "Often leaves early";
 
-  const delaySign = late ? "+" : early ? "−" : "±";
-  const deltaMagnitude = Math.abs(r.meanDelaySec);
-
-  // Ceiling the bar for tiny sample sizes so we don't over-promise a full rail.
-  const barPct = rated ? Math.max(4, Math.min(100, r.onTimePct)) : 0;
+  const hint = !rated
+    ? "Not enough rider data yet"
+    : r.tier === "high"
+      ? "Safe to plan tight connections"
+      : r.tier === "medium"
+        ? "Give yourself a small buffer"
+        : "Leave a few minutes of buffer";
 
   return (
-    <article className="relative overflow-hidden rounded-[28px] bg-card ring-1 ring-line">
+    <article className="relative overflow-hidden rounded-2xl bg-card ring-1 ring-line">
       <div className={`absolute inset-0 pointer-events-none ${tone.wash}`} aria-hidden />
-      <div className="relative p-6 sm:p-7">
-        <header className="flex items-center justify-between gap-3">
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.28em] text-ink-soft">
-            {t("reliability.stopEyebrow" as never)}
-          </span>
-          <span
-            className={`font-mono text-[9px] uppercase tracking-[0.24em] px-2.5 py-1 rounded-full ${tone.chipBg} ${tone.chipInk}`}
-          >
-            {tone.label}
-          </span>
-        </header>
-
-        <div className="mt-5 flex items-end justify-between gap-5">
-          <div className="min-w-0">
-            <div
-              className={`font-display leading-[0.9] tabular-nums -tracking-[0.03em] ${tone.num}`}
-            >
-              <span className="text-[76px] sm:text-[92px]">
-                {rated ? r.onTimePct : "—"}
-              </span>
-              {rated && (
-                <span className="text-[28px] sm:text-[34px] text-ink-soft/70 align-top ml-1">
-                  %
-                </span>
-              )}
-            </div>
-            <p className="mt-2 font-display text-[15px] sm:text-[16px] text-ink leading-snug">
-              {rated ? t("reliability.stopHeadline" as never, { pct: r.onTimePct }) : t("reliability.stopLearning" as never)}
-            </p>
-          </div>
-        </div>
-
+      <div className="relative flex items-center gap-4 p-4 sm:p-5">
         <div
-          className="mt-6 h-[3px] w-full rounded-full bg-limestone-soft overflow-hidden"
-          role="progressbar"
-          aria-valuenow={rated ? r.onTimePct : 0}
-          aria-valuemin={0}
-          aria-valuemax={100}
+          className={`shrink-0 flex flex-col items-center justify-center w-14 h-14 rounded-full ${tone.chipBg}`}
+          aria-hidden
         >
-          <div
-            className={`h-full rounded-full ${tone.bar} transition-[width] duration-700 ease-out`}
-            style={{ width: `${barPct}%` }}
-          />
+          <span className={`font-display text-[20px] leading-none tabular-nums -tracking-[0.02em] ${tone.num}`}>
+            {rated ? r.onTimePct : "—"}
+          </span>
+          {rated && (
+            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-ink-soft mt-0.5">
+              on time
+            </span>
+          )}
         </div>
-
-        <dl className="mt-6 grid grid-cols-2 gap-x-6">
-          <div className="border-r border-line pr-6">
-            <dt className="font-mono text-[9px] uppercase tracking-[0.24em] text-ink-soft">
-              Sample
-            </dt>
-            <dd className="mt-1.5 font-display text-[26px] leading-none text-ink tabular-nums -tracking-[0.01em]">
-              {r.sampleCount.toLocaleString()}
-            </dd>
-            <p className="mt-1 text-[11.5px] text-ink-soft">
-              {t("reliability.samples" as never, { n: r.sampleCount })
-                .replace(/^\d[\d,]*\s*/, "")
-                .trim() || "observations"}
-            </p>
-          </div>
-          <div className="min-w-0">
-            <dt className="font-mono text-[9px] uppercase tracking-[0.24em] text-ink-soft">
-              Avg deviation
-            </dt>
-            <dd
-              className={`mt-1.5 font-display text-[26px] leading-none tabular-nums -tracking-[0.01em] ${
-                rated ? (late ? "text-ochre" : early ? "text-aegean-deep" : "text-olive") : "text-ink-soft"
-              }`}
-            >
-              {rated ? (
-                <>
-                  {delaySign}
-                  {deltaMagnitude}
-                  <span className="text-[15px] text-ink-soft/80 ml-0.5">s</span>
-                </>
-              ) : (
-                "—"
-              )}
-            </dd>
-            <p className="mt-1 text-[11.5px] text-ink-soft leading-snug">{deltaCopy}</p>
-          </div>
-        </dl>
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-[15px] sm:text-[16px] text-ink leading-snug">
+            {summary}
+          </p>
+          <p className="mt-0.5 text-[12.5px] text-ink-soft leading-snug">{hint}</p>
+        </div>
+        <span
+          className={`shrink-0 font-mono text-[9px] uppercase tracking-[0.22em] px-2 py-1 rounded-full ${tone.chipBg} ${tone.chipInk}`}
+        >
+          {tone.label}
+        </span>
       </div>
     </article>
   );
 }
+
