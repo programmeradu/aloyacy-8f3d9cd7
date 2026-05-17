@@ -26,3 +26,27 @@ export async function fetchRouteReliability(
   if (!res.ok) throw new Error(`Reliability ${res.status}`);
   return res.json();
 }
+
+export type StopReliability = {
+  stopId: string;
+  routeIds: string[];
+  onTimePct: number;
+  meanDelaySec: number;
+  sampleCount: number;
+  tier: ReliabilityTier;
+};
+
+export async function fetchStopReliability(
+  stopId: string,
+  routeIds: string[],
+): Promise<StopReliability | null> {
+  if (!stopId || routeIds.length === 0) return null;
+  const res = await fetch(`${API_BASE}/api/public/stop-reliability`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ stopId, routeIds: routeIds.slice(0, 30) }),
+  });
+  if (!res.ok) throw new Error(`Stop reliability ${res.status}`);
+  return res.json();
+}
+
