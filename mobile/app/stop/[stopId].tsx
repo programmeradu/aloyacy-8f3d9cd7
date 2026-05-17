@@ -86,6 +86,18 @@ export default function StopDetailScreen() {
       .slice(0, 8);
   }, [rt.data, stopId, stop?.agency]);
 
+  const routeIds = useMemo(
+    () => Array.from(new Set(departures.map((d) => d.routeId))).slice(0, 30),
+    [departures],
+  );
+  const reliability = useQuery({
+    queryKey: ["stop-reliability", stopId, routeIds.slice().sort().join(",")],
+    queryFn: () => fetchStopReliability(stopId, routeIds),
+    enabled: routeIds.length > 0,
+    staleTime: 5 * 60_000,
+  });
+
+
   const stale = rt.data?.stale === true;
   const ghostFirst =
     departures.length > 0 && departures[0].eta.tier === "ghost";
