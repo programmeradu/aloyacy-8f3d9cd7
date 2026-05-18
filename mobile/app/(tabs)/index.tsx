@@ -28,6 +28,42 @@ import type { Stop } from "@/lib/api";
 
 const FALLBACK = { lat: 35.1856, lng: 33.3823 };
 
+type SearchHit = {
+  kind: "stop" | "route" | "vehicle" | "airport";
+  id: string;
+  primary: string;
+  meta: string;
+};
+
+// Airports mirrored from src/lib/airport.functions.ts. Kept local so the
+// mobile home search can surface them without pulling the whole server
+// module across the wire.
+const AIRPORTS: Array<{
+  code: "lca" | "pfo";
+  iata: string;
+  name: string;
+  nameEl: string;
+  city: string;
+  cityEl: string;
+}> = [
+  { code: "lca", iata: "LCA", name: "Larnaca International Airport", nameEl: "Διεθνές Αεροδρόμιο Λάρνακας", city: "Larnaca", cityEl: "Λάρνακα" },
+  { code: "pfo", iata: "PFO", name: "Paphos International Airport", nameEl: "Διεθνές Αεροδρόμιο Πάφου", city: "Paphos", cityEl: "Πάφος" },
+];
+
+function hitHref(h: SearchHit): string {
+  if (h.kind === "stop") return `/stop/${h.id}`;
+  if (h.kind === "route") return `/route/${h.id}`;
+  if (h.kind === "vehicle") return `/trip/${h.id}`;
+  return `/airport/${h.id}`;
+}
+
+function hitBadge(h: SearchHit): string {
+  if (h.kind === "stop") return "STOP";
+  if (h.kind === "route") return "ROUTE";
+  if (h.kind === "vehicle") return "LIVE BUS";
+  return "AIRPORT";
+}
+
 function toneForRoute(id: string): "aegean" | "ochre" | "olive" {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
@@ -137,13 +173,81 @@ export default function TodayScreen() {
   }, [rt.data]);
 
   const landmarkChips = nearby.slice(0, 4);
-  const searchResults = useMemo(() => {
+  const searchResults = useMemo<SearchHit[]>(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q || !bundle.data) return [];
-    return bundle.data.stops
+    const hits: SearchHit[] = [];
+
+    // Airports — match IATA, city, or "airport".
+    for (const a of AIRPORTS) {
+      const hay = `${a.iata} ${a.name} ${a.nameEl} ${a.city} ${a.cityEl} airport αεροδρόμιο`.toLowerCase();
+      if (a.iata.toLowerCase() === q || a.city.toLowerCase().startsWith(q) || hay.includes(q)) {
+        hits.push({ kind: "airport", id: a.code, primary: a.name, meta: `${a.iata}  ${a.city}` });
+      }
+    }
+
+    // Routes — exact short first, then startsWith, then long-name substring.
+    const routeEntries = Object.entries(bundle.data.routes);
+    const routeMatches = routeEntries
+      .map(([id, r]) => {
+        const short = r.short.toLowerCase();
+        const long = r.long.toLowerCase();
+        let rank = -1;
+        if (short === q) rank = 0;
+        else if (short.startsWith(q)) rank = 1;
+        else if (long.includes(q)) rank = 2;
+        return { id, r, rank };
+      })
+      .filter((x) => x.rank >= 0)
+      .sort((a, b) => a.rank - b.rank)
+      .slice(0, 6);
+    for (const { id, r } of routeMatches) {
+      hits.push({
+        kind: "route",
+        id,
+        primary: `Route ${r.short}`,
+        meta: r.long,
+      });
+    }
+
+    // Vehicles — by label / route code / vehicle id.
+    const vehicles = rt.data?.vehicles ?? [];
+    const vMatches = vehicles
+      .filter((v) => {
+        const meta = bundle.data!.routes[v.routeId];
+        return (
+          v.label?.toLowerCase().includes(q) ||
+          meta?.short.toLowerCase().startsWith(q) ||
+          v.id.toLowerCase().includes(q)
+        );
+      })
+      .slice(0, 3);
+    for (const v of vMatches) {
+      const meta = bundle.data.routes[v.routeId];
+      const d = distanceMeters(here, { lat: v.lat, lng: v.lng });
+      hits.push({
+        kind: "vehicle",
+        id: v.tripId,
+        primary: v.label || `Bus ${v.id}`,
+        meta: `Route ${meta?.short ?? "—"}  ${formatDistance(d)} away`,
+      });
+    }
+
+    // Stops
+    const stopMatches = bundle.data.stops
       .filter((s) => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q))
-      .slice(0, 5);
-  }, [bundle.data, searchQuery]);
+      .slice(0, 8);
+    for (const s of stopMatches) {
+      hits.push({
+        kind: "stop",
+        id: s.id,
+        primary: s.name,
+        meta: `Stop ${s.code}  ${s.agency}`,
+      });
+    }
+
+    return hits.slice(0, 18);
+  }, [bundle.data, searchQuery, rt.data, here.lat, here.lng]);
   const mapMarkers = nearby.map((s) => ({
     lat: s.lat,
     lng: s.lng,
@@ -196,44 +300,42 @@ export default function TodayScreen() {
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search stops or stop codes"
+              placeholder="Stops, routes, buses, airports"
               placeholderTextColor={palette.inkSoft}
               autoCorrect={false}
               returnKeyType="search"
               onSubmitEditing={() => {
                 const first = searchResults[0];
-                if (first) router.push(`/stop/${first.id}`);
+                if (first) router.push(hitHref(first));
               }}
               style={styles.searchInput}
             />
-            <Text style={styles.searchHint}>Tap to search the full live network</Text>
+            <Text style={styles.searchHint}>Search the full live network</Text>
           </View>
         </View>
         {searchQuery.trim().length > 0 && (
           <View style={styles.searchResults}>
             {searchResults.length === 0 ? (
-              <Text style={styles.searchEmpty}>No stops match “{searchQuery.trim()}”.</Text>
+              <Text style={styles.searchEmpty}>No matches for “{searchQuery.trim()}”.</Text>
             ) : (
-              searchResults.map((s) => (
+              searchResults.map((h) => (
                 <Pressable
-                  key={s.id}
-                  onPress={() => router.push(`/stop/${s.id}`)}
+                  key={`${h.kind}:${h.id}`}
+                  onPress={() => router.push(hitHref(h))}
                   style={({ pressed }) => [styles.searchResultRow, pressed && { opacity: 0.65 }]}
                 >
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.searchResultName} numberOfLines={2}>{s.name}</Text>
-                    <Text style={styles.searchResultMeta}>Stop {s.code}  {s.agency}</Text>
+                    <Text style={styles.searchResultName} numberOfLines={2}>{h.primary}</Text>
+                    <Text style={styles.searchResultMeta}>{hitBadge(h)}  {h.meta}</Text>
                   </View>
                   <Text style={styles.searchResultGo}>OPEN</Text>
                 </Pressable>
               ))
             )}
-            <Pressable onPress={() => router.push("/search")} style={styles.fullSearchLink}>
-              <Text style={styles.fullSearchText}>Full search</Text>
-            </Pressable>
           </View>
         )}
       </View>
+
 
       <ScrollView
         horizontal
