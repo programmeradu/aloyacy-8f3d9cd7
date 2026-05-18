@@ -396,6 +396,15 @@ export default function StopDetailScreen() {
           })}
         </View>
       )}
+      {stop ? (
+        <StreetViewSheet
+          open={streetOpen}
+          onClose={() => setStreetOpen(false)}
+          lat={stop.lat}
+          lng={stop.lng}
+          label={stop.name}
+        />
+      ) : null}
     </ScrollView>
   );
 }
