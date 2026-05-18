@@ -28,6 +28,42 @@ import type { Stop } from "@/lib/api";
 
 const FALLBACK = { lat: 35.1856, lng: 33.3823 };
 
+type SearchHit = {
+  kind: "stop" | "route" | "vehicle" | "airport";
+  id: string;
+  primary: string;
+  meta: string;
+};
+
+// Airports mirrored from src/lib/airport.functions.ts. Kept local so the
+// mobile home search can surface them without pulling the whole server
+// module across the wire.
+const AIRPORTS: Array<{
+  code: "lca" | "pfo";
+  iata: string;
+  name: string;
+  nameEl: string;
+  city: string;
+  cityEl: string;
+}> = [
+  { code: "lca", iata: "LCA", name: "Larnaca International Airport", nameEl: "Διεθνές Αεροδρόμιο Λάρνακας", city: "Larnaca", cityEl: "Λάρνακα" },
+  { code: "pfo", iata: "PFO", name: "Paphos International Airport", nameEl: "Διεθνές Αεροδρόμιο Πάφου", city: "Paphos", cityEl: "Πάφος" },
+];
+
+function hitHref(h: SearchHit): string {
+  if (h.kind === "stop") return `/stop/${h.id}`;
+  if (h.kind === "route") return `/route/${h.id}`;
+  if (h.kind === "vehicle") return `/trip/${h.id}`;
+  return `/airport/${h.id}`;
+}
+
+function hitBadge(h: SearchHit): string {
+  if (h.kind === "stop") return "STOP";
+  if (h.kind === "route") return "ROUTE";
+  if (h.kind === "vehicle") return "LIVE BUS";
+  return "AIRPORT";
+}
+
 function toneForRoute(id: string): "aegean" | "ochre" | "olive" {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
