@@ -16,7 +16,7 @@
 // the algorithm degrades gracefully (operator-only fallback). Wave C will
 // wire them in once `MapView` + shape prefetch land.
 
-import { useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -32,21 +32,13 @@ import { useLocalSearchParams, router } from "expo-router";
 import { palette } from "@/constants/theme";
 import { DepartureRow } from "@/components/DepartureRow";
 import { SightingButton } from "@/components/SightingButton";
-import { StreetViewSheet } from "@/components/StreetViewSheet";
+import { MapView, type MapMarker } from "@/components/MapView";
 import { StopReliabilityStrip } from "@/components/StopReliabilityStrip";
 import { useRealtime, useStopsBundle } from "@/lib/hooks";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getStop } from "@/lib/gtfs";
 import { fetchStopReliability } from "@/lib/reliability";
 
-import { useLocalSearchParams, router } from "expo-router";
-import { palette } from "@/constants/theme";
-import { DepartureRow } from "@/components/DepartureRow";
-import { SightingButton } from "@/components/SightingButton";
-import { StreetViewSheet } from "@/components/StreetViewSheet";
-import { useRealtime, useStopsBundle } from "@/lib/hooks";
-import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
-import { getStop } from "@/lib/gtfs";
 
 
 export default function StopDetailScreen() {
