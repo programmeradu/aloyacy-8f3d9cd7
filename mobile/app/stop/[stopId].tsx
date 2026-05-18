@@ -44,8 +44,8 @@ import { fetchStopReliability } from "@/lib/reliability";
 export default function StopDetailScreen() {
   const { stopId } = useLocalSearchParams<{ stopId: string }>();
   const insets = useSafeAreaInsets();
-  const [streetOpen, setStreetOpen] = useState(false);
   const rt = useRealtime();
+
 
   const bundle = useStopsBundle();
 
