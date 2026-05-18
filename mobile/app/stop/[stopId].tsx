@@ -16,7 +16,7 @@
 // the algorithm degrades gracefully (operator-only fallback). Wave C will
 // wire them in once `MapView` + shape prefetch land.
 
-import { useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -32,28 +32,20 @@ import { useLocalSearchParams, router } from "expo-router";
 import { palette } from "@/constants/theme";
 import { DepartureRow } from "@/components/DepartureRow";
 import { SightingButton } from "@/components/SightingButton";
-import { StreetViewSheet } from "@/components/StreetViewSheet";
+import { MapView } from "@/components/MapView";
 import { StopReliabilityStrip } from "@/components/StopReliabilityStrip";
 import { useRealtime, useStopsBundle } from "@/lib/hooks";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getStop } from "@/lib/gtfs";
 import { fetchStopReliability } from "@/lib/reliability";
 
-import { useLocalSearchParams, router } from "expo-router";
-import { palette } from "@/constants/theme";
-import { DepartureRow } from "@/components/DepartureRow";
-import { SightingButton } from "@/components/SightingButton";
-import { StreetViewSheet } from "@/components/StreetViewSheet";
-import { useRealtime, useStopsBundle } from "@/lib/hooks";
-import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
-import { getStop } from "@/lib/gtfs";
 
 
 export default function StopDetailScreen() {
   const { stopId } = useLocalSearchParams<{ stopId: string }>();
   const insets = useSafeAreaInsets();
-  const [streetOpen, setStreetOpen] = useState(false);
   const rt = useRealtime();
+
 
   const bundle = useStopsBundle();
 
@@ -200,38 +192,36 @@ export default function StopDetailScreen() {
             {stop.agency === "IC" ? "Intercity service" : "Urban service"} —{" "}
             {stop.lat.toFixed(4)}, {stop.lng.toFixed(4)}
           </Text>
-          <Pressable
-            onPress={() => {
-              Haptics.selectionAsync().catch(() => {});
-              setStreetOpen(true);
-            }}
-            style={({ pressed }) => ({
-              alignSelf: "flex-start",
-              marginTop: 12,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-              paddingHorizontal: 14,
-              paddingVertical: 9,
-              borderRadius: 999,
-              backgroundColor: palette.white,
+          <View
+            style={{
+              marginTop: 16,
+              borderRadius: 22,
+              overflow: "hidden",
               borderWidth: 1,
               borderColor: palette.line,
-              opacity: pressed ? 0.7 : 1,
-            })}
+              backgroundColor: palette.white,
+            }}
           >
-            <Text
-              style={{
-                fontFamily: "Geist_700Bold",
-                fontSize: 10,
-                letterSpacing: 1.8,
-                textTransform: "uppercase",
-                color: palette.ink,
-              }}
-            >
-              View street
-            </Text>
-          </Pressable>
+            <MapView
+              height={220}
+              center={{ lat: stop.lat, lng: stop.lng }}
+              spanKm={2}
+              markers={[
+                {
+                  lat: stop.lat,
+                  lng: stop.lng,
+                  kind: "origin",
+                  label: stop.name,
+                },
+              ]}
+
+              restrictTripIds={
+                departures.length ? departures.map((d) => d.tripId) : undefined
+              }
+              fitToContent={false}
+            />
+          </View>
+
         </>
       ) : null}
 
