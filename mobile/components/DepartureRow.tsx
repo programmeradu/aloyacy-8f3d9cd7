@@ -114,6 +114,29 @@ export function DepartureRow({
         transform: [{ translateY: pressed && onPress ? -1 : 0 }],
       })}
     >
+      {/* Editorial accent — soft photograph on the right edge, faded so
+          every label stays readable. Mirrors the web DepartureRow. */}
+      <Image
+        source={assets.route_card_accent}
+        style={{
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          right: 0,
+          width: "62%",
+          opacity: 0.22,
+        }}
+        resizeMode="cover"
+        pointerEvents="none"
+      />
+      <LinearGradient
+        colors={[palette.white, "rgba(255,255,255,0.82)", "rgba(255,255,255,0)"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        locations={[0, 0.55, 1]}
+        style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }}
+        pointerEvents="none"
+      />
       <View style={{ padding: 18 }}>
         {/* Top row: route chip · journey title · ETA numeral */}
         <View
