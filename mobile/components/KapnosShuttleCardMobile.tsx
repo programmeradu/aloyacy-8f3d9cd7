@@ -2,10 +2,11 @@
 // coaches with a "book online" handoff. Pickup/dropoff distance shown so
 // riders can decide if the walk is reasonable.
 import { useState } from "react";
-import { View, Text, Pressable, Linking } from "react-native";
+import { View, Text, Pressable, Linking, Image } from "react-native";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { palette } from "@/constants/theme";
+import { assets } from "@/lib/assets";
 import type { KapnosSuggestion } from "@/lib/kapnos";
 import { startKapnosCompanion } from "@/lib/kapnos-companion";
 
