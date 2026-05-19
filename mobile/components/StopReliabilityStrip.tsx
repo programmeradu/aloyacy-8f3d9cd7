@@ -1,7 +1,7 @@
-// Compact, editorial "At this stop" reliability card. Mirrors the
-// web `StopReliabilityStrip` in `src/routes/stop.$stopId.tsx` — same
-// summary + hint copy, same tier chip, plus a tonal radial-style wash
-// (via LinearGradient) so it reads at Awwwards quality on native.
+// Editorial "At this stop" reliability card. Big tabular-nums display
+// number that scales gracefully up to 100%, tonal wash per tier, tier
+// chip in the corner, plain-language summary + hint. Mirrors the web
+// `ReliabilityBadge` stack variant.
 
 import { View, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,36 +16,41 @@ type Tone = {
   chipInk: string;
   label: string;
   wash: [string, string];
+  rail: string;
 };
 
 const TIER_TONE: Record<ReliabilityTier, Tone> = {
   high: {
     num: palette.olive,
-    chipBg: "rgba(106,117,96,0.22)",
+    chipBg: "rgba(106,117,96,0.18)",
     chipInk: palette.olive,
     label: "Reliable",
-    wash: ["rgba(106,117,96,0.18)", "rgba(106,117,96,0)"],
+    wash: ["rgba(106,117,96,0.20)", "rgba(106,117,96,0)"],
+    rail: palette.olive,
   },
   medium: {
     num: palette.ink,
     chipBg: palette.ochreSoft,
     chipInk: palette.ink,
     label: "Steady",
-    wash: ["rgba(201,133,58,0.20)", "rgba(201,133,58,0)"],
+    wash: ["rgba(201,133,58,0.22)", "rgba(201,133,58,0)"],
+    rail: palette.ochre,
   },
   low: {
     num: DESTRUCTIVE,
-    chipBg: "rgba(178,58,42,0.14)",
+    chipBg: "rgba(178,58,42,0.12)",
     chipInk: DESTRUCTIVE,
     label: "Uneven",
-    wash: ["rgba(178,58,42,0.16)", "rgba(178,58,42,0)"],
+    wash: ["rgba(178,58,42,0.18)", "rgba(178,58,42,0)"],
+    rail: DESTRUCTIVE,
   },
   unknown: {
     num: palette.inkSoft,
     chipBg: palette.limestoneSoft,
     chipInk: palette.inkSoft,
     label: "Learning",
-    wash: ["rgba(90,87,78,0.06)", "rgba(90,87,78,0)"],
+    wash: ["rgba(90,87,78,0.08)", "rgba(90,87,78,0)"],
+    rail: palette.inkSoft,
   },
 };
 
@@ -80,6 +85,8 @@ export function StopReliabilityStrip({ tier, onTimePct, meanDelaySec }: Props) {
         ? "Give yourself a small buffer"
         : "Leave a few minutes of buffer";
 
+  const railPct = rated ? Math.max(4, Math.min(100, onTimePct)) : 0;
+
   return (
     <View
       style={{
@@ -88,123 +95,159 @@ export function StopReliabilityStrip({ tier, onTimePct, meanDelaySec }: Props) {
         backgroundColor: palette.white,
         borderWidth: 1,
         borderColor: palette.line,
-        borderRadius: 20,
+        borderRadius: 22,
       }}
     >
-      {/* Tonal wash — diagonal from top-left, tier colour. */}
       <LinearGradient
         colors={tone.wash}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        }}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
         pointerEvents="none"
       />
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 14,
-          paddingVertical: 16,
-          paddingHorizontal: 18,
-        }}
-      >
+
+      <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 18 }}>
+        {/* Eyebrow + tier chip */}
         <View
           style={{
-            width: 58,
-            height: 58,
-            borderRadius: 29,
-            backgroundColor: tone.chipBg,
+            flexDirection: "row",
             alignItems: "center",
-            justifyContent: "center",
+            justifyContent: "space-between",
+            marginBottom: 12,
           }}
         >
           <Text
             style={{
-              fontFamily: "BricolageGrotesque_700Bold",
-              fontSize: 20,
-              lineHeight: 22,
-              color: tone.num,
-              letterSpacing: -0.4,
-              fontVariant: ["tabular-nums"],
-            }}
-          >
-            {rated ? onTimePct : "—"}
-          </Text>
-          {rated ? (
-            <Text
-              style={{
-                marginTop: 2,
-                fontFamily: "Geist_700Bold",
-                fontSize: 8,
-                letterSpacing: 1.8,
-                color: palette.inkSoft,
-              }}
-            >
-              ON TIME
-            </Text>
-          ) : null}
-        </View>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text
-            style={{
               fontFamily: "Geist_700Bold",
-              fontSize: 9,
-              letterSpacing: 2.2,
+              fontSize: 9.5,
+              letterSpacing: 2.4,
               color: palette.inkSoft,
               textTransform: "uppercase",
-              marginBottom: 4,
             }}
           >
             At this stop
           </Text>
-          <Text
+          <View
             style={{
-              fontFamily: "BricolageGrotesque_700Bold",
-              fontSize: 15.5,
-              lineHeight: 19,
-              color: palette.ink,
-              letterSpacing: -0.2,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 999,
+              backgroundColor: tone.chipBg,
             }}
           >
-            {summary}
-          </Text>
-          <Text
-            style={{
-              marginTop: 2,
-              fontFamily: "Geist_500Medium",
-              fontSize: 12.5,
-              lineHeight: 17,
-              color: palette.inkSoft,
-            }}
-          >
-            {hint}
-          </Text>
+            <Text
+              style={{
+                fontFamily: "Geist_700Bold",
+                fontSize: 9.5,
+                letterSpacing: 1.8,
+                color: tone.chipInk,
+              }}
+            >
+              {tone.label.toUpperCase()}
+            </Text>
+          </View>
         </View>
+
+        {/* Hero number */}
         <View
           style={{
-            paddingHorizontal: 9,
-            paddingVertical: 5,
-            borderRadius: 999,
-            backgroundColor: tone.chipBg,
+            flexDirection: "row",
+            alignItems: "flex-end",
+            gap: 8,
+            marginBottom: 4,
           }}
         >
           <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
             style={{
-              fontFamily: "Geist_700Bold",
-              fontSize: 9,
-              letterSpacing: 1.8,
-              color: tone.chipInk,
+              fontFamily: "BricolageGrotesque_800ExtraBold",
+              fontSize: 56,
+              lineHeight: 58,
+              letterSpacing: -2,
+              color: tone.num,
+              fontVariant: ["tabular-nums"],
+              includeFontPadding: false,
             }}
           >
-            {tone.label.toUpperCase()}
+            {rated ? onTimePct : "—"}
+            {rated ? (
+              <Text
+                style={{
+                  fontFamily: "BricolageGrotesque_700Bold",
+                  fontSize: 28,
+                  letterSpacing: -1,
+                  color: tone.num,
+                }}
+              >
+                %
+              </Text>
+            ) : null}
           </Text>
+          {rated ? (
+            <Text
+              style={{
+                marginBottom: 12,
+                fontFamily: "Geist_700Bold",
+                fontSize: 10,
+                letterSpacing: 2,
+                color: palette.inkSoft,
+                textTransform: "uppercase",
+              }}
+            >
+              On time
+            </Text>
+          ) : null}
         </View>
+
+        {/* Rail */}
+        {rated ? (
+          <View
+            style={{
+              height: 4,
+              borderRadius: 999,
+              backgroundColor: "rgba(31,30,24,0.06)",
+              marginTop: 10,
+              marginBottom: 12,
+              overflow: "hidden",
+            }}
+          >
+            <View
+              style={{
+                width: `${railPct}%`,
+                height: "100%",
+                backgroundColor: tone.rail,
+                borderRadius: 999,
+              }}
+            />
+          </View>
+        ) : (
+          <View style={{ height: 6 }} />
+        )}
+
+        {/* Copy */}
+        <Text
+          style={{
+            fontFamily: "BricolageGrotesque_700Bold",
+            fontSize: 17,
+            lineHeight: 21,
+            color: palette.ink,
+            letterSpacing: -0.3,
+          }}
+        >
+          {summary}
+        </Text>
+        <Text
+          style={{
+            marginTop: 3,
+            fontFamily: "Geist_500Medium",
+            fontSize: 13,
+            lineHeight: 18,
+            color: palette.inkSoft,
+          }}
+        >
+          {hint}
+        </Text>
       </View>
     </View>
   );
