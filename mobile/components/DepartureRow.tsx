@@ -8,10 +8,12 @@
 // to read cleanly from 320pt up — generous padding, monospaced micro-meta,
 // editorial typography, no truncation on the destination headline.
 
-import { Pressable, View, Text } from "react-native";
+import { Pressable, View, Text, Image } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { palette } from "@/constants/theme";
 import { RouteChip } from "@/components/RouteChip";
 import { ConfidenceIcon } from "@/components/ConfidenceIcon";
+import { assets } from "@/lib/assets";
 import {
   type FreshnessTier,
   type FreshnessConfidence,
