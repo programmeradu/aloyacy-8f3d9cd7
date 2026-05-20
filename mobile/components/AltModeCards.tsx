@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { View, Text, Pressable, Linking, Image } from "react-native";
+import { SvgUri } from "react-native-svg";
 import { palette } from "@/constants/theme";
 import { Card } from "./Card";
 import { formatDistance } from "@/lib/format";
