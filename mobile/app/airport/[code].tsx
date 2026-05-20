@@ -22,6 +22,7 @@ import {
   RefreshControl,
   Share,
   Linking,
+  Image,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,6 +34,7 @@ import { MapView, type MapMarker } from "@/components/MapView";
 import { useRealtime, useStopsBundle } from "@/lib/hooks";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getStop } from "@/lib/gtfs";
+import { assets } from "@/lib/assets";
 import {
   fetchAirportPage,
   AIRPORT_STOP,
@@ -532,17 +534,48 @@ function CoachLineCard({ line }: { line: AirportCoachLine }) {
         }}
       >
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text
+          <View
             style={{
-              fontFamily: "Geist_700Bold",
-              fontSize: 9.5,
-              letterSpacing: 2.2,
-              textTransform: "uppercase",
-              color: palette.aegeanDeep,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 9,
             }}
           >
-            Direct coach · Kapnos
-          </Text>
+            <View
+              style={{
+                width: 82,
+                height: 28,
+                borderRadius: 8,
+                backgroundColor: palette.white,
+                borderWidth: 1,
+                borderColor: palette.line,
+                alignItems: "center",
+                justifyContent: "center",
+                paddingHorizontal: 6,
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                source={assets.kapnos_logo}
+                accessibilityLabel="Kapnos logo"
+                style={{ width: "100%", height: "100%" }}
+                resizeMode="contain"
+              />
+            </View>
+            <Text
+              style={{
+                fontFamily: "Geist_700Bold",
+                fontSize: 9.5,
+                letterSpacing: 1.7,
+                textTransform: "uppercase",
+                color: palette.aegeanDeep,
+                flexShrink: 1,
+              }}
+              numberOfLines={1}
+            >
+              Direct coach
+            </Text>
+          </View>
           <Text
             style={{
               marginTop: 4,
