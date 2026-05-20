@@ -344,7 +344,14 @@ export function MapView(props: MapViewProps) {
   useEffect(() => {
     const map = mapRef.current; if (!ready || !map) return;
     const fit = fitToContent ?? true;
-    if (!fit) return;
+    if (!fit) {
+      // Follow-mode: keep the map centered on the caller-provided center
+      // and zoom (used by the Today home map that must stay tight around
+      // the rider, not zoom out to the whole island).
+      map.setCenter(center);
+      map.setZoom(spanToZoom(spanKm));
+      return;
+    }
     const bounds = new google.maps.LatLngBounds();
     let any = false;
     for (const p of polylinePoints) { bounds.extend(p); any = true; }
@@ -355,7 +362,8 @@ export function MapView(props: MapViewProps) {
       map.fitBounds(bounds, { top: 40, bottom: 40, left: 40, right: 40 });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, polylinePoints, markers, vehicles.length, userLocation?.lat]);
+  }, [ready, polylinePoints, markers, vehicles.length, userLocation?.lat, fitToContent, center.lat, center.lng, spanKm]);
+
 
   // Bus markers + RAF glide
   useEffect(() => {
