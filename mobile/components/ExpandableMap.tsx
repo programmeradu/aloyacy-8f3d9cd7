@@ -4,7 +4,12 @@ import Svg, { Path } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { palette } from "@/constants/theme";
 import { MapView } from "./MapView";
-import type { MapViewProps } from "./MapView.web";
+
+// Import the shared prop type from whichever platform variant Metro resolved.
+// Both `MapView.web.tsx` and `MapView.tsx` export the same `MapViewProps`
+// contract (the native fallback re-exports it from `MapView.native`).
+type MapViewProps = React.ComponentProps<typeof MapView>;
+
 
 type Props = MapViewProps & {
   /** Radius (px) of the map container. Defaults to 18. */
