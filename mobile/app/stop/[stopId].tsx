@@ -33,6 +33,7 @@ import { palette } from "@/constants/theme";
 import { DepartureRow } from "@/components/DepartureRow";
 import { SightingButton } from "@/components/SightingButton";
 import { MapView } from "@/components/MapView";
+import { ExpandableMap } from "@/components/ExpandableMap";
 import { StopReliabilityStrip } from "@/components/StopReliabilityStrip";
 import { useRealtime, useStopsBundle } from "@/lib/hooks";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
@@ -202,7 +203,7 @@ export default function StopDetailScreen() {
               backgroundColor: palette.white,
             }}
           >
-            <MapView
+            <ExpandableMap
               height={220}
               center={{ lat: stop.lat, lng: stop.lng }}
               spanKm={2}

@@ -28,6 +28,7 @@ import { palette } from "@/constants/theme";
 import { Card } from "@/components/Card";
 import { RouteChip } from "@/components/RouteChip";
 import { MapView, type MapMarker } from "@/components/MapView";
+import { ExpandableMap } from "@/components/ExpandableMap";
 import { IntercityPatternsCard } from "@/components/IntercityPatternsCard";
 import { ReliabilityBadge } from "@/components/ReliabilityBadge";
 import { useRealtime, useStopsBundle } from "@/lib/hooks";
@@ -312,7 +313,7 @@ export default function RouteDetailScreen() {
               borderColor: palette.line,
             }}
           >
-            <MapView
+            <ExpandableMap
               height={224}
               markers={markers}
               focusRouteId={routeId}

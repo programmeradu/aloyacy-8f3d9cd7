@@ -38,6 +38,7 @@ import { palette } from "@/constants/theme";
 import { useRealtime, useStopsBundle } from "@/lib/hooks";
 import { getStop } from "@/lib/gtfs";
 import { MapView, type MapMarker } from "@/components/MapView";
+import { ExpandableMap } from "@/components/ExpandableMap";
 import { RouteChip } from "@/components/RouteChip";
 
 function fmtClock(unix: number) {
@@ -278,7 +279,7 @@ export default function TripInfoScreen() {
 
           {/* Map */}
           <View style={{ paddingHorizontal: 20 }}>
-            <MapView
+            <ExpandableMap
               height={220}
               spanKm={6}
               markers={markers}
