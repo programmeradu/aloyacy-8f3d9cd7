@@ -20,14 +20,51 @@ export function etaFromUnix(
   return { label: `${hh}:${mm}`, minutes, tier: "scheduled" };
 }
 
-export function timeOfDayGreeting(date = new Date()): string {
-  const h = date.getHours();
-  if (h < 5) return "Late night";
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  if (h < 21) return "Good evening";
-  return "Good night";
+// Compute Orthodox Easter (Meeus / Julian → Gregorian) for a given year.
+function orthodoxEaster(year: number): { m: number; d: number } {
+  const a = year % 4;
+  const b = year % 7;
+  const c = year % 19;
+  const d = (19 * c + 15) % 30;
+  const e = (2 * a + 4 * b - d + 34) % 7;
+  const month = Math.floor((d + e + 114) / 31);
+  const day = ((d + e + 114) % 31) + 1;
+  const jd = new Date(Date.UTC(year, month - 1, day));
+  jd.setUTCDate(jd.getUTCDate() + 13);
+  return { m: jd.getUTCMonth() + 1, d: jd.getUTCDate() };
 }
+
+/**
+ * Cyprus / Greek time-of-day greeting — mirrors web `src/lib/greeting.ts`.
+ *   05–12 Kalimera · 12–17 Kalo mesimeri · 17–22 Kalispera · 22–05 Kalinychta.
+ * Overrides on Cypriot & Orthodox holidays.
+ */
+export function timeOfDayGreeting(date = new Date()): string {
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  const h = date.getHours();
+
+  if (m === 1 && d === 1) return "Kali chronia";
+  if (m === 1 && d === 6) return "Kala Fota";
+  if (m === 3 && d === 25) return "Chronia polla";
+  if (m === 4 && d === 1) return "Chronia polla";
+  if (m === 8 && d === 15) return "Chronia polla";
+  if (m === 10 && d === 1) return "Chronia polla";
+  if (m === 10 && d === 28) return "Chronia polla";
+  if (m === 12 && (d === 24 || d === 25 || d === 26)) return "Kala Christougenna";
+  if (m === 12 && d === 31) return "Kali protochronia";
+
+  const e = orthodoxEaster(date.getFullYear());
+  const easter = new Date(date.getFullYear(), e.m - 1, e.d);
+  const diffDays = Math.round((date.getTime() - easter.getTime()) / 86_400_000);
+  if (diffDays >= -1 && diffDays <= 1) return "Christos anesti";
+
+  if (h >= 5 && h < 12) return "Kalimera";
+  if (h >= 12 && h < 17) return "Kalo mesimeri";
+  if (h >= 17 && h < 22) return "Kalispera";
+  return "Kalinychta";
+}
+
 
 /** Haversine in metres. Same math as web `lib/geo`. */
 export function distanceMeters(
