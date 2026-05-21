@@ -1373,7 +1373,7 @@ function SignalCard({
   kicker,
   children,
   image,
-  imageTone = "light",
+  imageTone: _imageTone = "light",
 }: {
   tone: string;
   kicker: string;
@@ -1385,8 +1385,6 @@ function SignalCard({
     <View
       style={{
         borderRadius: 22,
-        padding: 20,
-        paddingLeft: 22,
         backgroundColor: palette.white,
         borderWidth: 1,
         borderColor: palette.line,
@@ -1394,51 +1392,70 @@ function SignalCard({
       }}
     >
       {image && (
-        <>
-          <Image
-            source={image}
-            resizeMode="cover"
-            style={StyleSheet.absoluteFill}
-          />
-          {/* Legibility wash — soft parchment gradient over the photo so the
-              typography reads at Apple-grade contrast on any imagery. */}
+        <View
+          style={{
+            position: "relative",
+            width: "100%",
+            aspectRatio: 16 / 8,
+            backgroundColor: palette.limestoneSoft,
+          }}
+        >
+          <Image source={image} resizeMode="cover" style={StyleSheet.absoluteFill} />
+          {/* Kicker chip floats on the image — image itself remains fully visible. */}
           <View
-            pointerEvents="none"
-            style={[
-              StyleSheet.absoluteFill,
-              {
-                backgroundColor:
-                  imageTone === "dark"
-                    ? "rgba(15,26,32,0.62)"
-                    : "rgba(246,241,231,0.86)",
-              },
-            ]}
-          />
-        </>
+            style={{
+              position: "absolute",
+              left: 14,
+              top: 14,
+              backgroundColor: "rgba(255,255,255,0.94)",
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 999,
+              borderWidth: 1,
+              borderColor: palette.line,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: EYEBROW,
+                fontSize: 9,
+                letterSpacing: 1.8,
+                color: tone,
+                textTransform: "uppercase",
+              }}
+            >
+              {kicker}
+            </Text>
+          </View>
+        </View>
       )}
-      <View
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 3,
-          backgroundColor: tone,
-          opacity: 0.85,
-        }}
-      />
-      <Text
-        style={{
-          fontFamily: EYEBROW,
-          fontSize: 9.5,
-          letterSpacing: 2,
-          color: tone,
-          textTransform: "uppercase",
-        }}
-      >
-        {kicker}
-      </Text>
-      <View style={{ marginTop: 8 }}>{children}</View>
+      <View style={{ position: "relative", padding: 20, paddingLeft: 22 }}>
+        <View
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 3,
+            backgroundColor: tone,
+            opacity: 0.85,
+          }}
+        />
+        {!image && (
+          <Text
+            style={{
+              fontFamily: EYEBROW,
+              fontSize: 9.5,
+              letterSpacing: 2,
+              color: tone,
+              textTransform: "uppercase",
+            }}
+          >
+            {kicker}
+          </Text>
+        )}
+        <View style={{ marginTop: image ? 0 : 8 }}>{children}</View>
+      </View>
     </View>
   );
 }
