@@ -21,14 +21,14 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { supabase } from "./supabase";
 
 
-export const LOCALES = ["en", "el", "ru"] as const;
+export const LOCALES = ["en", "el"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const LOCALE_LABELS: Record<Locale, { native: string; english: string }> = {
   en: { native: "English", english: "English" },
   el: { native: "Ελληνικά", english: "Greek" },
-  ru: { native: "Русский", english: "Russian" },
 };
+
 
 const STORAGE_KEY = "aloya.locale.v1";
 
