@@ -33,6 +33,7 @@ import { Route as DebugEtaRouteImport } from './routes/debug.eta'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AirportCodeRouteImport } from './routes/airport.$code'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
+import { Route as ApiPublicWeatherRouteImport } from './routes/api/public/weather'
 import { Route as ApiPublicWalletRouteImport } from './routes/api/public/wallet'
 import { Route as ApiPublicWalkDirectionsRouteImport } from './routes/api/public/walk-directions'
 import { Route as ApiPublicTtsRouteImport } from './routes/api/public/tts'
@@ -210,6 +211,11 @@ const AirportCodeRoute = AirportCodeRouteImport.update({
 const AdminSeoRoute = AdminSeoRouteImport.update({
   id: '/admin/seo',
   path: '/admin/seo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWeatherRoute = ApiPublicWeatherRouteImport.update({
+  id: '/api/public/weather',
+  path: '/api/public/weather',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicWalletRoute = ApiPublicWalletRouteImport.update({
@@ -580,6 +586,7 @@ export interface FileRoutesByFullPath {
   '/api/public/tts': typeof ApiPublicTtsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
+  '/api/public/weather': typeof ApiPublicWeatherRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -663,6 +670,7 @@ export interface FileRoutesByTo {
   '/api/public/tts': typeof ApiPublicTtsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
+  '/api/public/weather': typeof ApiPublicWeatherRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -747,6 +755,7 @@ export interface FileRoutesById {
   '/api/public/tts': typeof ApiPublicTtsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
+  '/api/public/weather': typeof ApiPublicWeatherRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -832,6 +841,7 @@ export interface FileRouteTypes {
     | '/api/public/tts'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
+    | '/api/public/weather'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -915,6 +925,7 @@ export interface FileRouteTypes {
     | '/api/public/tts'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
+    | '/api/public/weather'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -998,6 +1009,7 @@ export interface FileRouteTypes {
     | '/api/public/tts'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
+    | '/api/public/weather'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -1082,6 +1094,7 @@ export interface RootRouteChildren {
   ApiPublicTtsRoute: typeof ApiPublicTtsRoute
   ApiPublicWalkDirectionsRoute: typeof ApiPublicWalkDirectionsRoute
   ApiPublicWalletRoute: typeof ApiPublicWalletRouteWithChildren
+  ApiPublicWeatherRoute: typeof ApiPublicWeatherRoute
   ApiPublicGbfsFree_bike_statusDotjsonRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   ApiPublicGbfsStation_informationDotjsonRoute: typeof ApiPublicGbfsStation_informationDotjsonRoute
   ApiPublicGbfsStation_statusDotjsonRoute: typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -1274,6 +1287,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/seo'
       fullPath: '/admin/seo'
       preLoaderRoute: typeof AdminSeoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/weather': {
+      id: '/api/public/weather'
+      path: '/api/public/weather'
+      fullPath: '/api/public/weather'
+      preLoaderRoute: typeof ApiPublicWeatherRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/wallet': {
@@ -1749,6 +1769,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicTtsRoute: ApiPublicTtsRoute,
   ApiPublicWalkDirectionsRoute: ApiPublicWalkDirectionsRoute,
   ApiPublicWalletRoute: ApiPublicWalletRouteWithChildren,
+  ApiPublicWeatherRoute: ApiPublicWeatherRoute,
   ApiPublicGbfsFree_bike_statusDotjsonRoute:
     ApiPublicGbfsFree_bike_statusDotjsonRoute,
   ApiPublicGbfsStation_informationDotjsonRoute:
@@ -1780,13 +1801,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
