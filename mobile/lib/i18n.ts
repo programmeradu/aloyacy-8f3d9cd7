@@ -95,37 +95,8 @@ const DICT = {
     "common.on": "Ενεργό",
     "common.off": "Ανενεργό",
   },
-  ru: {
-    "tab.today": "Сегодня",
-    "tab.pulse": "Пульс",
-    "tab.plan": "План",
-    "tab.search": "Поиск",
-    "tab.saved": "Избранное",
-    "tab.wallet": "Кошелёк",
-    "action.settings": "Настройки",
-    "action.done": "Готово",
-    "action.cancel": "Отмена",
-    "action.save": "Сохранить",
-    "action.retry": "Повторить",
-    "action.signOut": "Выйти",
-    "settings.title": "Настройки",
-    "settings.subtitle": "Язык, доступность, уведомления и правовая информация.",
-    "settings.language": "Язык",
-    "settings.language.foot": "Применяется к подписям приложения. Живые данные остаются на языке источника.",
-    "settings.accessibility": "Доступность",
-    "settings.accessibility.foot": "Планировщик учитывает эти настройки.",
-    "settings.notifications": "Уведомления",
-    "settings.privacy": "Конфиденциальность",
-    "settings.terms": "Условия",
-    "settings.about": "О приложении Aloya",
-    "settings.version": "Версия",
-    "settings.build": "Сборка",
-    "wallet.settingsRow": "Настройки приложения",
-    "wallet.settingsRow.value": "Язык, уведомления, правовое",
-    "common.on": "Вкл",
-    "common.off": "Выкл",
-  },
 } satisfies Record<Locale, Record<string, string>>;
+
 
 export type I18nKey = keyof (typeof DICT)["en"];
 
