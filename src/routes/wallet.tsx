@@ -454,15 +454,15 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
           draggable={false}
         />
 
-        {/* QR in the photo slot (top-right of card) */}
+        {/* QR in the photo slot (right side) */}
         <div
           className="absolute bg-white"
           style={{
-            top: "8%",
-            right: "6.5%",
-            width: "20%",
-            aspectRatio: "1 / 1.18",
-            padding: "3.5%",
+            top: "19%",
+            right: "8%",
+            width: "21%",
+            aspectRatio: "1 / 1.15",
+            padding: "3%",
           }}
           aria-label="Card QR for kiosk lookup"
         >
@@ -476,10 +476,10 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
           )}
         </div>
 
-        {/* Holder name */}
+        {/* Holder name (printed across the middle whitespace) */}
         <div
           className="absolute"
-          style={{ top: "38%", left: "5%", right: "30%" }}
+          style={{ top: "38%", left: "6%", right: "34%" }}
         >
           <p
             className="font-sans font-semibold truncate"
@@ -491,41 +491,35 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
           >
             {holderName}
           </p>
-        </div>
-
-        {/* Tier text inside the printed green pill */}
-        <div
-          className="absolute flex items-center justify-center"
-          style={{ top: "49.2%", left: "37%", width: "26%", height: "7%" }}
-        >
-          <span
-            className="font-sans font-semibold"
+          <p
+            className="mt-[1cqw] font-sans"
             style={{
-              fontSize: "clamp(8px, 2.5cqw, 13px)",
+              fontSize: "clamp(8px, 2.3cqw, 12px)",
               color: "#1a2a6c",
               letterSpacing: "0.04em",
             }}
           >
             {tierLabel}
-          </span>
+          </p>
         </div>
 
         {/* Valid Until date — sits right under the printed label */}
         <div
           className="absolute"
-          style={{ top: "59%", left: "5%" }}
+          style={{ top: "60%", left: "36%" }}
         >
           <p
-            className="font-mono"
+            className="font-mono font-semibold"
             style={{
               fontSize: "clamp(9px, 2.6cqw, 13px)",
               color: "#1a2a6c",
-              letterSpacing: "0.02em",
+              letterSpacing: "0.04em",
             }}
           >
             {validUntil}
           </p>
         </div>
+
 
         {/* Subtle gloss to sell the plastic */}
         <div
