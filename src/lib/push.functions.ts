@@ -92,6 +92,9 @@ async function dispatchToDevice(deviceId: string, payload: WebPushPayload) {
     } catch (e) {
       lastError = e instanceof Error ? e.message : String(e);
       console.error("[push] dispatch threw", e);
+      if (lastError.startsWith("Push notifications are misconfigured:")) {
+        return { sent, expired, error: lastError };
+      }
     }
   }
   return { sent, expired, error: lastError };
