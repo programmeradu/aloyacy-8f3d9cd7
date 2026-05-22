@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
 import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
+import busPremium from "@/assets/bus-premium.png";
 
 export type MapMarker = {
   lat: number;
