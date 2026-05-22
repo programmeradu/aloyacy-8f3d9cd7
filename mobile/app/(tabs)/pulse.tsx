@@ -307,7 +307,7 @@ function TodayHero({
     <View style={{ height: 200, backgroundColor: heroBg(theme), overflow: "hidden" }}>
       <Image
         source={THEME_HERO[theme] ?? assets.today_calm}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         resizeMode="cover"
       />
       <View
@@ -801,7 +801,7 @@ function RoadPulseCard({
         <View style={{ position: "relative", width: "100%", aspectRatio: 16 / 7 }}>
           <Image
             source={assets.pulse_network_band}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             resizeMode="cover"
           />
           {/* Bottom fade into card */}
