@@ -25,19 +25,19 @@ export function WeatherStamp({ dayLabel, tempC, iconKey, Icon, tone }: Props) {
   const vignette = VIGNETTES[key];
 
   return (
-    <div className="group relative flex items-center gap-2.5 pl-1 pr-3 py-1.5">
+    <div className="group relative flex items-center gap-3 pl-1 pr-3 py-1.5">
       {vignette ? (
         <img
           src={vignette}
           alt=""
           aria-hidden="true"
-          width={44}
-          height={44}
+          width={72}
+          height={72}
           loading="lazy"
-          className="size-11 -my-1 select-none pointer-events-none drop-shadow-[0_2px_8px_color-mix(in_oklab,var(--color-ochre)_22%,transparent)]"
+          className="size-[68px] -my-3 select-none pointer-events-none drop-shadow-[0_4px_14px_color-mix(in_oklab,var(--color-ochre)_32%,transparent)]"
         />
       ) : (
-        <span className="flex size-9 items-center justify-center rounded-full bg-card ring-1 ring-line">
+        <span className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line">
           <Icon className={`size-4 ${tone}`} />
         </span>
       )}
