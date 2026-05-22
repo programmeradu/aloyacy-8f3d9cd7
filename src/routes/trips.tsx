@@ -547,6 +547,7 @@ function JourneyCard({
       </ol>
 
       <button
+        onClick={start}
         className={`mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors ${
           highlight
             ? "bg-ink text-limestone hover:bg-ink/90"
