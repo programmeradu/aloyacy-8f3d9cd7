@@ -240,7 +240,7 @@ export async function sendWebPush(opts: {
   });
 
   const body = await encryptAes128Gcm({
-    payload: new TextEncoder().encode(JSON.stringify(opts.payload)),
+    payload: utf8(JSON.stringify(opts.payload)),
     uaPublicKey: b64urlDecode(opts.subscription.p256dh),
     uaAuthSecret: b64urlDecode(opts.subscription.auth),
   });
