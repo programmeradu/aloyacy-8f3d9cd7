@@ -86,9 +86,12 @@ export function useJourney(opts: {
       walkingEtaSec: 0,
       secsToBoard: 0,
       secsToAlight: 0,
+      fusedSecsToAlight: 0,
+      fusedVehicle: null,
       onBoardSuggested: false,
       missedSuggested: false,
     };
+
     if (!active || !bus || !started) return baseInactive;
     if (live?.alightedAt || walkingPhase === null && live?.onBoardConfirmedAt && bus) {
       // continue, handled below
