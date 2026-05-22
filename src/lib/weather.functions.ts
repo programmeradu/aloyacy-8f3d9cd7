@@ -41,35 +41,41 @@ export const getCurrentWeather = createServerFn({ method: "GET" })
       })
       .parse(input),
   )
-  .handler(async ({ data }): Promise<CurrentWeather> => {
+  .handler(async ({ data }): Promise<CurrentWeather | null> => {
     const lk = process.env.LOVABLE_API_KEY;
     const gk = process.env.GOOGLE_MAPS_API_KEY;
-    if (!lk || !gk) throw new Error("Google Maps connector credentials missing");
+    if (!lk || !gk) return null;
 
-    const url = `${GATEWAY}/weather/v1/currentConditions:lookup?location.latitude=${data.lat}&location.longitude=${data.lng}&unitsSystem=METRIC&languageCode=en`;
-    const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${lk}`,
-        "X-Connection-Api-Key": gk,
-      },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!res.ok) {
-      throw new Error(`weather ${res.status}`);
+    try {
+      const url = `${GATEWAY}/weather/v1/currentConditions:lookup?location.latitude=${data.lat}&location.longitude=${data.lng}&unitsSystem=METRIC&languageCode=en`;
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${lk}`,
+          "X-Connection-Api-Key": gk,
+        },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!res.ok) {
+        console.warn(`[weather] upstream ${res.status}`);
+        return null;
+      }
+      const json = (await res.json()) as {
+        temperature?: { degrees?: number };
+        feelsLikeTemperature?: { degrees?: number };
+        weatherCondition?: { type?: string; description?: { text?: string } };
+        isDaytime?: boolean;
+      };
+      const isDay = json.isDaytime ?? true;
+      const mapped = mapCondition(json.weatherCondition?.type, isDay);
+      return {
+        tempC: Math.round(json.temperature?.degrees ?? 0),
+        feelsLikeC: Math.round(json.feelsLikeTemperature?.degrees ?? 0),
+        condition: json.weatherCondition?.description?.text ?? mapped.label,
+        iconKey: mapped.iconKey,
+        isDaytime: isDay,
+      };
+    } catch (err) {
+      console.warn("[weather] failed", err);
+      return null;
     }
-    const json = (await res.json()) as {
-      temperature?: { degrees?: number };
-      feelsLikeTemperature?: { degrees?: number };
-      weatherCondition?: { type?: string; description?: { text?: string } };
-      isDaytime?: boolean;
-    };
-    const isDay = json.isDaytime ?? true;
-    const mapped = mapCondition(json.weatherCondition?.type, isDay);
-    return {
-      tempC: Math.round(json.temperature?.degrees ?? 0),
-      feelsLikeC: Math.round(json.feelsLikeTemperature?.degrees ?? 0),
-      condition: json.weatherCondition?.description?.text ?? mapped.label,
-      iconKey: mapped.iconKey,
-      isDaytime: isDay,
-    };
   });
