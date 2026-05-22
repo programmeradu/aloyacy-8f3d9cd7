@@ -233,13 +233,16 @@ function WalletRoute() {
           <section className="mt-4 px-6 animate-rise" style={{ animationDelay: "220ms" }}>
             {linked ? (
               <div className="rounded-[20px] bg-card ring-1 ring-line px-4 py-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                    Linked to JCC Smart
-                  </p>
-                  <p className="mt-1 text-[13px] text-ink truncate">
-                    {pass.passName || "Auto-sync enabled"}
-                  </p>
+                <div className="flex items-center gap-3 min-w-0">
+                  <JccLogo className="h-9 w-9 shrink-0 rounded-md ring-1 ring-line bg-white" />
+                  <div className="min-w-0">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+                      Linked to JCC Smart
+                    </p>
+                    <p className="mt-1 text-[13px] text-ink truncate">
+                      {pass.passName || "Auto-sync enabled"}
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={handleUnlink}
@@ -251,17 +254,20 @@ function WalletRoute() {
             ) : (
               <button
                 onClick={() => setEditing("link")}
-                className="w-full rounded-[20px] bg-aegean-deep text-limestone px-4 py-3 flex items-center justify-between hover:bg-aegean-deep/90 transition-colors"
+                className="w-full rounded-[20px] bg-aegean-deep text-limestone px-4 py-3 flex items-center justify-between gap-3 hover:bg-aegean-deep/90 transition-colors"
               >
-                <span className="text-left">
-                  <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
-                    Auto-sync
-                  </span>
-                  <span className="block text-[14px] mt-0.5">
-                    Link your JCC Smart account
+                <span className="flex items-center gap-3 text-left min-w-0">
+                  <JccLogo className="h-9 w-9 shrink-0 rounded-md ring-1 ring-limestone/20 bg-white" />
+                  <span className="min-w-0">
+                    <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
+                      Auto-sync
+                    </span>
+                    <span className="block text-[14px] mt-0.5 truncate">
+                      Link your JCC Smart account
+                    </span>
                   </span>
                 </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em]">
+                <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em]">
                   Connect
                 </span>
               </button>
