@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconClock, IconPin } from "@/components/Icons";
-import { StreetViewPane } from "@/components/StreetViewPane";
+// StreetViewPane removed — replaced by an on-brand mini map per step.
 import { useRealtime } from "@/lib/useRealtime";
 import { useActiveTrip, clearActiveTrip } from "@/lib/trip-store";
 import { routeTone } from "@/lib/gtfs";
@@ -595,7 +595,14 @@ function TurnStep({
   return (
     <li className="overflow-hidden rounded-[24px] bg-card ring-1 ring-line">
       <div className="relative aspect-[16/9]">
-        <StreetViewPane lat={lat} lng={lng} heading={heading} className="absolute inset-0" />
+        <MapPreview
+          height="absolute inset-0"
+          center={{ lat, lng }}
+          spanKm={0.3}
+          liveVehicles={false}
+          markers={[{ lat, lng, kind: "pin", tone: "aegean", label: instruction }]}
+          fitToContent={false}
+        />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
         <div className="absolute left-3 top-3 flex items-center gap-2">
           <span className="rounded-full bg-white/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
