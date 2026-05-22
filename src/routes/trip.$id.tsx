@@ -259,7 +259,7 @@ function TripCompanion() {
         >
           <div className="flex items-end justify-between mb-3">
             <h2 className="font-display text-2xl text-ink">
-              {preBus ? "Walk to the stop" : "Walk to destination"}
+              {walkingPhase === "to-stop" ? "Walk to the stop" : "Walk to destination"}
             </h2>
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
               {Math.round(directions.durationSec / 60)} min ·{" "}
