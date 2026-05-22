@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 // Loader hook for Google Maps JS API. Singleton-safe, uses async loading + callback.
 import { useEffect, useState } from "react";
 
