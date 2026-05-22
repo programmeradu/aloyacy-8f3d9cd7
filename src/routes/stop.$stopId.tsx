@@ -154,6 +154,6 @@ function StopDetail() {
 
 function confidenceAccent(eta: SmartEta): string {
   if (eta.confidence === "high") return "text-aegean-deep";
-  if (eta.confidence === "medium") return "text-ochre-sun";
+  if (eta.confidence === "medium") return "text-ochre";
   return "text-ink-soft";
 }
