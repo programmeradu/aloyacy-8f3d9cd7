@@ -465,11 +465,7 @@ function SmartSearch({
           placeholder="Stop, route number, or bus…"
           className="w-full rounded-2xl bg-card py-4 pl-11 pr-4 text-[15px] ring-1 ring-line placeholder:text-ink-soft/60 outline-none focus:ring-aegean-deep/30 transition-all"
         />
-        {query.length === 0 && (
-          <span className="absolute right-3 rounded-xl bg-ink px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-limestone">
-            ⌘ K
-          </span>
-        )}
+        {query.length === 0 && null}
         {query.length > 0 && (
           <button
             onClick={() => setQuery("")}
