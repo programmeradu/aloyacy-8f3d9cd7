@@ -34,15 +34,6 @@ export const Route = createFileRoute("/wallet")({
 
 function WalletRoute() {
   const [pass, setPass] = useState<MotionPass>(() => readPass());
-  const [editing, setEditing] = useState<"none" | "card" | "balance" | "topup">("none");
-
-  useEffect(() => {
-    const sync = () => setPass(readPass());
-    window.addEventListener("aloya:motionpass", sync);
-    window.addEventListener("storage", sync);
-    return () => {
-function WalletRoute() {
-  const [pass, setPass] = useState<MotionPass>(() => readPass());
   const [editing, setEditing] = useState<"none" | SheetMode>("none");
   const [syncing, setSyncing] = useState(false);
 
