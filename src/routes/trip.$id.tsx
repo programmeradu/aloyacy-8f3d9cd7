@@ -11,6 +11,8 @@ import { useRealtime } from "@/lib/useRealtime";
 import { useActiveTrip, clearActiveTrip } from "@/lib/trip-store";
 import { routeTone } from "@/lib/gtfs";
 import { getWalkingDirections } from "@/lib/maps.functions";
+import { useJourney } from "@/lib/useJourney";
+import { JourneyHUD } from "@/components/JourneyHUD";
 import companionHero from "@/assets/companion-hero.jpg";
 
 export const Route = createFileRoute("/trip/$id")({
@@ -159,6 +161,12 @@ function TripCompanion() {
   });
   const directions = walkingPhase ? dir?.directions ?? null : null;
 
+  const live = useJourney({
+    active,
+    walkingSteps: directions?.steps ?? null,
+    walkingPhase,
+  });
+
   const mapMarkers: MapMarker[] = useMemo(() => {
     const out: MapMarker[] = [];
     if (walkingPhase === "to-stop" && walkIn.kind === "walk") {
@@ -253,8 +261,14 @@ function TripCompanion() {
         />
       </section>
 
-      {/* Turn-by-turn */}
-      {directions && directions.steps.length > 0 && (
+      {/* Live HUD: Start button, current walking step, hurry banner,
+          on-board prompt, missed-bus rescue, alight & arrived cards. */}
+      <div className="mt-6">
+        <JourneyHUD trip={active} live={live} steps={directions?.steps ?? null} />
+      </div>
+
+      {/* Static turn-by-turn — only shown when live tracking is OFF. */}
+      {!live.active && directions && directions.steps.length > 0 && (
         <section
           className="mt-6 px-6 animate-rise"
           style={{ animationDelay: "150ms" }}

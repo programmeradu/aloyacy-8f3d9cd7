@@ -28,11 +28,22 @@ export type RecentDestination = {
   lastUsed: number;
 };
 
+export type LiveTripState = {
+  startedAt: number;
+  // Manual override: rider tapped "I'm on board" (or auto-confirmed).
+  onBoardConfirmedAt?: number;
+  // Manual override: rider tapped "Missed the bus".
+  missedAt?: number;
+  // Manual override: rider tapped "I'm off" (alighted).
+  alightedAt?: number;
+};
+
 export type ActiveTrip = {
   startedAt: number;
   option: JourneyOption;
   from: { lat: number; lng: number; label: string };
   to: { lat: number; lng: number; label: string };
+  live?: LiveTripState;
 };
 
 // ---------- raw helpers ----------
@@ -62,6 +73,16 @@ export function clearActiveTrip() {
 }
 export function getActiveTrip(): ActiveTrip | null {
   return read<ActiveTrip>(ACTIVE_KEY);
+}
+export function patchActiveTripLive(patch: Partial<LiveTripState>) {
+  const cur = getActiveTrip();
+  if (!cur) return;
+  const live: LiveTripState = {
+    startedAt: cur.live?.startedAt ?? Date.now(),
+    ...cur.live,
+    ...patch,
+  };
+  setActiveTrip({ ...cur, live });
 }
 
 // ---------- saved places ----------
