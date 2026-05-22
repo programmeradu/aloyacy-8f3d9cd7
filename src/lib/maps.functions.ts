@@ -4,6 +4,7 @@ import {
   placesAutocomplete,
   resolvePlace,
   reverseGeocode,
+  walkingDirections,
 } from "./maps.server";
 
 export const autocompletePlaces = createServerFn({ method: "POST" })
@@ -37,3 +38,21 @@ export const reverseLookup = createServerFn({ method: "POST" })
   .handler(async ({ data }) => ({
     address: await reverseGeocode(data.lat, data.lng),
   }));
+
+export const getWalkingDirections = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        from: z.object({ lat: z.number(), lng: z.number() }),
+        to: z.object({ lat: z.number(), lng: z.number() }),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    try {
+      return { directions: await walkingDirections(data.from, data.to) };
+    } catch (e) {
+      console.error("walking directions failed", e);
+      return { directions: null };
+    }
+  });
