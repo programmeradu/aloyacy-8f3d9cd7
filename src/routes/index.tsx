@@ -66,13 +66,15 @@ function Explore() {
   const { data: rt } = useRealtime();
   const getWeather = useServerFn(getCurrentWeather);
 
-  // Live local clock (Cyprus is Europe/Nicosia)
+  // Live local clock (Cyprus is Europe/Nicosia). Gated on mount to avoid SSR hydration mismatch.
+  const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
+    setMounted(true);
     const t = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(t);
   }, []);
-  const dayLabel = DAY_NAMES[now.getDay()];
+  const dayLabel = mounted ? DAY_NAMES[now.getDay()] : "—";
 
   // Weather — keyed on quantized coords so it doesn't refetch on every GPS jitter
   const wxKey = `${geo.coords.lat.toFixed(2)}:${geo.coords.lng.toFixed(2)}`;
