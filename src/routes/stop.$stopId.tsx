@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
-import { MapPreview } from "@/components/MapPreview";
+import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
-import { IconArrowLeft, IconBus } from "@/components/Icons";
+import { IconArrowLeft, IconBus, IconArrowUpRight } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { useLearnedStats } from "@/lib/useLearnedStats";
 import { smartEta, type SmartEta } from "@/lib/predictor";
