@@ -75,9 +75,11 @@ export function MapPreview({
   focusTripId,
   focusRouteId,
   restrictTripIds,
+  vehicleOverrides,
   liveLabel,
   fitToContent,
 }: Props) {
+
   const { api, error } = useGoogleMaps();
   const { data: rt } = useRealtime();
   const elRef = useRef<HTMLDivElement | null>(null);
