@@ -198,19 +198,72 @@ function WalletRoute() {
               eyebrow="Balance"
               value={`€${pass.balanceEur.toFixed(2)}`}
               foot={
-                pass.balanceUpdatedAt
-                  ? `Updated ${timeAgo(pass.balanceUpdatedAt)}`
-                  : "Tap to set"
+                linked
+                  ? pass.lastSyncAt
+                    ? `Synced ${timeAgo(pass.lastSyncAt)}`
+                    : "Tap Sync below"
+                  : pass.balanceUpdatedAt
+                    ? `Updated ${timeAgo(pass.balanceUpdatedAt)}`
+                    : "Tap to set"
               }
-              onClick={() => setEditing("balance")}
+              onClick={() => (linked ? void runSync() : setEditing("balance"))}
             />
-            <ActionTile
-              eyebrow="Top up"
-              value="Log"
-              foot="Add a recent reload"
-              onClick={() => setEditing("topup")}
-              tone="aegean"
-            />
+            {linked ? (
+              <ActionTile
+                eyebrow="JCC"
+                value={syncing ? "Syncing…" : "Sync"}
+                foot={pass.jcc?.displayName || pass.jcc?.email || "Connected"}
+                onClick={() => void runSync()}
+                tone="aegean"
+              />
+            ) : (
+              <ActionTile
+                eyebrow="Top up"
+                value="Log"
+                foot="Add a recent reload"
+                onClick={() => setEditing("topup")}
+                tone="aegean"
+              />
+            )}
+          </section>
+
+          {/* JCC link CTA (unlinked) or pass info (linked) */}
+          <section className="mt-4 px-6 animate-rise" style={{ animationDelay: "220ms" }}>
+            {linked ? (
+              <div className="rounded-[20px] bg-card ring-1 ring-line px-4 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+                    Linked to JCC Smart
+                  </p>
+                  <p className="mt-1 text-[13px] text-ink truncate">
+                    {pass.passName || "Auto-sync enabled"}
+                  </p>
+                </div>
+                <button
+                  onClick={handleUnlink}
+                  className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft hover:text-ink"
+                >
+                  Unlink
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setEditing("link")}
+                className="w-full rounded-[20px] bg-aegean-deep text-limestone px-4 py-3 flex items-center justify-between hover:bg-aegean-deep/90 transition-colors"
+              >
+                <span className="text-left">
+                  <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
+                    Auto-sync
+                  </span>
+                  <span className="block text-[14px] mt-0.5">
+                    Link your JCC Smart account
+                  </span>
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em]">
+                  Connect
+                </span>
+              </button>
+            )}
           </section>
 
           {/* Fare reference */}
@@ -227,48 +280,15 @@ function WalletRoute() {
             </div>
           </section>
 
-          {/* History */}
+          {/* History — either JCC transactions or manual topups */}
           <section
             className="mt-8 px-6 pb-4 animate-rise"
             style={{ animationDelay: "320ms" }}
           >
-            <div className="flex items-end justify-between mb-3">
-              <h2 className="font-display text-2xl text-ink">Top-up history</h2>
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                {pass.topups.length} entries
-              </span>
-            </div>
-            {pass.topups.length === 0 ? (
-              <div className="rounded-[24px] bg-limestone-soft ring-1 ring-line p-6 text-center">
-                <p className="text-[13px] text-ink-soft">
-                  Nothing here yet. Log your first top-up to start building a
-                  history.
-                </p>
-              </div>
+            {linked ? (
+              <TransactionList transactions={pass.transactions} />
             ) : (
-              <ol className="rounded-[24px] bg-card ring-1 ring-line divide-y divide-line">
-                {pass.topups
-                  .slice()
-                  .sort((a, b) => b.at - a.at)
-                  .map((t) => (
-                    <li
-                      key={t.id}
-                      className="flex items-center justify-between p-4"
-                    >
-                      <div>
-                        <p className="text-[13px] text-ink">
-                          Top-up
-                        </p>
-                        <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                          {fullDate(t.at)}
-                        </p>
-                      </div>
-                      <span className="font-display text-2xl text-ink tabular-nums">
-                        +€{t.amountEur.toFixed(2)}
-                      </span>
-                    </li>
-                  ))}
-              </ol>
+              <TopupHistory pass={pass} />
             )}
           </section>
         </>
@@ -293,9 +313,105 @@ function WalletRoute() {
           pass={pass}
           onClose={() => setEditing("none")}
           onSave={update}
+          onLink={handleLink}
         />
       )}
     </AppShell>
+  );
+}
+
+function TopupHistory({ pass }: { pass: MotionPass }) {
+  return (
+    <>
+      <div className="flex items-end justify-between mb-3">
+        <h2 className="font-display text-2xl text-ink">Top-up history</h2>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+          {pass.topups.length} entries
+        </span>
+      </div>
+      {pass.topups.length === 0 ? (
+        <div className="rounded-[24px] bg-limestone-soft ring-1 ring-line p-6 text-center">
+          <p className="text-[13px] text-ink-soft">
+            Nothing here yet. Log your first top-up — or link your JCC account
+            above to auto-sync from the source.
+          </p>
+        </div>
+      ) : (
+        <ol className="rounded-[24px] bg-card ring-1 ring-line divide-y divide-line">
+          {pass.topups
+            .slice()
+            .sort((a, b) => b.at - a.at)
+            .map((t) => (
+              <li key={t.id} className="flex items-center justify-between p-4">
+                <div>
+                  <p className="text-[13px] text-ink">Top-up</p>
+                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                    {fullDate(t.at)}
+                  </p>
+                </div>
+                <span className="font-display text-2xl text-ink tabular-nums">
+                  +€{t.amountEur.toFixed(2)}
+                </span>
+              </li>
+            ))}
+        </ol>
+      )}
+    </>
+  );
+}
+
+function TransactionList({ transactions }: { transactions: MotionTxSnapshot[] }) {
+  return (
+    <>
+      <div className="flex items-end justify-between mb-3">
+        <h2 className="font-display text-2xl text-ink">Recent activity</h2>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+          Last 30 days
+        </span>
+      </div>
+      {transactions.length === 0 ? (
+        <div className="rounded-[24px] bg-limestone-soft ring-1 ring-line p-6 text-center">
+          <p className="text-[13px] text-ink-soft">
+            No activity in the last 30 days.
+          </p>
+        </div>
+      ) : (
+        <ol className="rounded-[24px] bg-card ring-1 ring-line divide-y divide-line">
+          {transactions.map((t) => {
+            const isTopup = t.type === "Topup";
+            const isPositive = isTopup || t.priceEur === 0;
+            return (
+              <li key={t.id} className="flex items-center justify-between p-4 gap-3">
+                <div className="min-w-0">
+                  <p className="text-[13px] text-ink truncate">
+                    {isTopup ? "Top-up" : t.typeName}
+                    {t.route && !isTopup ? (
+                      <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                        Route {t.route}
+                      </span>
+                    ) : null}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-ink-soft truncate">
+                    {t.stopName}
+                  </p>
+                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                    {fullDate(+new Date(t.at))}
+                  </p>
+                </div>
+                <span
+                  className={`font-display text-xl tabular-nums shrink-0 ${
+                    isPositive ? "text-aegean-deep" : "text-ink"
+                  }`}
+                >
+                  {isTopup ? "+" : t.priceEur > 0 ? "−" : ""}€
+                  {Math.abs(isTopup ? t.priceEur || 0 : t.priceEur).toFixed(2)}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </>
   );
 }
 
