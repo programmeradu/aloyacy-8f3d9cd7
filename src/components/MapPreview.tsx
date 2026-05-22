@@ -178,20 +178,33 @@ export function MapPreview({
   // is rendered (and rendered prominently) — the rest of the fleet is hidden.
   const allVehicles = liveVehicles ? rt?.vehicles : undefined;
   const restrictKey = restrictTripIds ? restrictTripIds.join(",") : "";
+  const overrideKey = vehicleOverrides
+    ? Object.entries(vehicleOverrides)
+        .map(([k, v]) => `${k}:${v.lat.toFixed(5)},${v.lng.toFixed(5)},${Math.round(v.bearing ?? 0)}`)
+        .join("|")
+    : "";
   const vehicles = useMemo(() => {
     if (!allVehicles) return undefined;
+    const apply = (list: typeof allVehicles) =>
+      vehicleOverrides
+        ? list.map((v) => {
+            const o = vehicleOverrides[v.tripId];
+            return o ? { ...v, lat: o.lat, lng: o.lng, bearing: o.bearing ?? v.bearing } : v;
+          })
+        : list;
     if (focusTripId || focusRouteId) {
       const byTrip = focusTripId ? allVehicles.filter((v) => v.tripId === focusTripId) : [];
-      if (byTrip.length) return byTrip;
-      if (focusRouteId) return allVehicles.filter((v) => v.routeId === focusRouteId);
+      if (byTrip.length) return apply(byTrip);
+      if (focusRouteId) return apply(allVehicles.filter((v) => v.routeId === focusRouteId));
       return [];
     }
     if (restrictTripIds && restrictTripIds.length) {
       const set = new Set(restrictTripIds);
-      return allVehicles.filter((v) => set.has(v.tripId));
+      return apply(allVehicles.filter((v) => set.has(v.tripId)));
     }
-    return allVehicles;
-  }, [allVehicles, focusTripId, focusRouteId, restrictKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    return apply(allVehicles);
+  }, [allVehicles, focusTripId, focusRouteId, restrictKey, overrideKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   const focused = !!(focusTripId || focusRouteId);
   const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
