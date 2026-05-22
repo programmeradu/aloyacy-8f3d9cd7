@@ -96,6 +96,7 @@ function Plan() {
       setActive(destination ? null : "to");
     } else {
       setDestination(point);
+      pushRecent({ name: point.label, lat: point.lat, lng: point.lng });
       if (origin) void runPlan(origin, point);
       setActive(origin ? null : "from");
     }
