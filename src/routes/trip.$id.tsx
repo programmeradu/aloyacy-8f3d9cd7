@@ -312,7 +312,7 @@ function TripCompanion() {
             done={phase === "arrived"}
             title={
               <>
-                Board <span className="text-aegean-deep">{bus.routeShort}</span> — {bus.routeLong}
+                Board <span className="text-aegean-deep">BUS {bus.routeShort}</span> — {bus.routeLong}
               </>
             }
             sub={`Alight at ${bus.alight.name}`}
