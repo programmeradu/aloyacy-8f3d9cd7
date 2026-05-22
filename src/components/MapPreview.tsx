@@ -156,8 +156,22 @@ export function MapPreview({
     }
   }, [api, polyline, JSON.stringify(markers), fitToContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Realtime vehicles overlay
-  const vehicles = liveVehicles ? rt?.vehicles : undefined;
+  // Realtime vehicles overlay. When focused on a single trip, only that bus
+  // is rendered (and rendered prominently) — the rest of the fleet is hidden.
+  const allVehicles = liveVehicles ? rt?.vehicles : undefined;
+  const vehicles = useMemo(() => {
+    if (!allVehicles) return undefined;
+    if (focusTripId || focusRouteId) {
+      const byTrip = focusTripId ? allVehicles.filter((v) => v.tripId === focusTripId) : [];
+      if (byTrip.length) return byTrip;
+      if (focusRouteId) return allVehicles.filter((v) => v.routeId === focusRouteId);
+      return [];
+    }
+    return allVehicles;
+  }, [allVehicles, focusTripId, focusRouteId]);
+
+  const focused = !!(focusTripId || focusRouteId);
+
   useEffect(() => {
     const m = mapRef.current;
     if (!api || !m) return;
@@ -165,26 +179,27 @@ export function MapPreview({
     layer.vehicles.forEach((v) => v.setMap(null));
     layer.vehicles = [];
     if (!vehicles) return;
-    for (const v of vehicles.slice(0, 40)) {
+    for (const v of vehicles.slice(0, focused ? 1 : 40)) {
       const marker = new api.maps.Marker({
         position: { lat: v.lat, lng: v.lng },
         map: m,
+        title: v.label || undefined,
         icon: {
           path: "M0,-6 L4,4 L0,2 L-4,4 Z",
-          fillColor: "#2d8a9e",
+          fillColor: focused ? "#d99645" : "#2d8a9e",
           fillOpacity: 1,
           strokeColor: "#ffffff",
-          strokeWeight: 1.5,
-          scale: 1.2,
+          strokeWeight: focused ? 2.5 : 1.5,
+          scale: focused ? 1.9 : 1.2,
           rotation: v.bearing ?? 0,
         },
-        zIndex: 10,
+        zIndex: focused ? 200 : 10,
       });
       layer.vehicles.push(marker);
     }
-  }, [api, vehicles]);
+  }, [api, vehicles, focused]);
 
-  const liveCount = rt?.vehicles.length ?? 0;
+  const liveCount = focused ? vehicles?.length ?? 0 : rt?.vehicles.length ?? 0;
   const placeLabel = useMemo(() => {
     // Sub-degree → meters; round to avoid janky decimals.
     const km = spanKm;
