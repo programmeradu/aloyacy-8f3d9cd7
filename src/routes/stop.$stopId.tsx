@@ -5,6 +5,8 @@ import { MapPreview } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
+import { useLearnedStats } from "@/lib/useLearnedStats";
+import { smartEta, type SmartEta } from "@/lib/predictor";
 import { getStop, getRoute, routeTone } from "@/lib/gtfs";
 
 export const Route = createFileRoute("/stop/$stopId")({
@@ -21,20 +23,28 @@ function StopDetail() {
   const { stopId } = Route.useParams();
   const stop = getStop(stopId);
   const { data: rt, isLoading } = useRealtime();
+  const { data: learnedMap } = useLearnedStats([stopId]);
 
   const departures = useMemo(() => {
     if (!rt) return [];
     const now = Math.floor(Date.now() / 1000);
+    const learned = learnedMap?.get(stopId);
     return rt.arrivals
       .filter((a) => a.stopId === stopId)
-      .map((a) => ({
-        ...a,
-        etaMin: Math.max(0, Math.round((a.arrivalUnix - now) / 60)),
-      }))
-      .filter((a) => a.etaMin <= 180)
-      .sort((a, b) => a.etaMin - b.etaMin)
+      .map((a) => {
+        const scheduledUnix = a.arrivalUnix - a.delaySec;
+        const eta = smartEta({
+          scheduledArrivalUnix: scheduledUnix,
+          liveDelaySec: a.delaySec,
+          learned: learned?.get(a.routeId) ?? null,
+          nowUnix: now,
+        });
+        return { ...a, eta };
+      })
+      .filter((a) => a.eta.etaMin <= 180)
+      .sort((a, b) => a.eta.etaMin - b.eta.etaMin)
       .slice(0, 8);
-  }, [rt, stopId]);
+  }, [rt, stopId, learnedMap]);
 
   const center = stop ? { lat: stop.lat, lng: stop.lng } : undefined;
 
