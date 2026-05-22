@@ -168,6 +168,17 @@ function TripCompanion() {
     walkingSteps: directions?.steps ?? null,
     walkingPhase,
   });
+  // Override schedule-based ETAs with GPS-fused estimate once on board.
+  if (live.active && live.fusedSecsToAlight > 0 && (phase === "on-bus" || phase === "alight-soon")) {
+    minToAlight = Math.round(live.fusedSecsToAlight / 60);
+    const walkOutSec = walkOut.kind === "walk" ? walkOut.durationSec : 0;
+    minToDoor = Math.round((live.fusedSecsToAlight + walkOutSec) / 60);
+  }
+
+  const vehicleOverrides = live.fusedVehicle
+    ? { [live.fusedVehicle.tripId]: live.fusedVehicle }
+    : undefined;
+
 
   const mapMarkers: MapMarker[] = useMemo(() => {
     const out: MapMarker[] = [];
