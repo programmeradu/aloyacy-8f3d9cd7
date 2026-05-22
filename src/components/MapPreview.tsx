@@ -231,7 +231,11 @@ export function MapPreview({
     const seen = new Set<string>();
     const sliceLimit = focused ? 1 : 40;
     const slice = vehicles.slice(0, sliceLimit);
-    const sizePx = focused ? 64 : restricted ? 56 : 44;
+    const sizePx = focused ? 64 : restricted ? 48 : 16;
+    // Premium top-down bus asset only for focused/restricted close-ups.
+    // Wide fleet views (home, region overview) use lightweight directional
+    // triangles so the map stays legible.
+    const variant: "premium" | "triangle" = focused || restricted ? "premium" : "triangle";
 
     for (const v of slice) {
       seen.add(v.id);
@@ -241,6 +245,7 @@ export function MapPreview({
       const targetBearing = v.bearing ?? 0;
 
       if (existing) {
+        existing.setVariant(variant);
         existing.setTarget(targetLat, targetLng, targetBearing, now);
         existing.setSize(sizePx);
         existing.setFocused(focused);
@@ -253,10 +258,12 @@ export function MapPreview({
           sizePx,
           focused,
           v.label || `Bus ${v.id}`,
+          variant,
         );
         layer.set(v.id, bus);
       }
     }
+
 
     // Remove buses no longer in the feed.
     for (const [id, bus] of layer) {
