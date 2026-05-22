@@ -748,6 +748,14 @@ function RoadPulseCard({
   const hasData = live.observations > 0;
   const medianMin = Math.round(live.medianDelaySec / 60);
   const maxCount = Math.max(1, ...buckets.map((b) => b.sampleCount));
+  const totalToday = buckets.reduce((s, b) => s + b.sampleCount, 0);
+
+  const summary =
+    medianMin >= 1
+      ? `Right now, buses are running about ${medianMin} min late on average.`
+      : medianMin <= -1
+        ? `Right now, buses are running about ${Math.abs(medianMin)} min early on average.`
+        : "Right now, most buses are running on time.";
 
   return (
     <View style={{ marginTop: 22, paddingHorizontal: 20 }}>
@@ -758,162 +766,256 @@ function RoadPulseCard({
           backgroundColor: palette.white,
           borderWidth: 1,
           borderColor: palette.line,
-          padding: 22,
         }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: 12,
-          }}
-        >
-          <View style={{ flex: 1 }}>
-            <Eyebrow>Road pulse</Eyebrow>
-            <Text
+        {/* Editorial illustration band */}
+        <View style={{ position: "relative", width: "100%", aspectRatio: 16 / 7 }}>
+          <Image
+            source={assets.pulse_network_band}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode="cover"
+          />
+          {/* Bottom fade into card */}
+          <View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: "60%",
+              backgroundColor: "transparent",
+            }}
+          >
+            <View
               style={{
-                marginTop: 4,
-                fontFamily: DISPLAY,
-                fontSize: 22,
-                lineHeight: 25,
-                color: palette.ink,
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: "100%",
+                backgroundColor: palette.white,
+                opacity: 0.55,
               }}
-            >
-              How the island is flowing.
-            </Text>
+            />
           </View>
-          <View style={{ alignItems: "flex-end" }}>
-            <View style={{ flexDirection: "row", alignItems: "baseline", gap: 2 }}>
-              <Text
-                style={{
-                  fontFamily: DISPLAY,
-                  fontSize: 34,
-                  color: palette.aegeanDeep,
-                  letterSpacing: -0.4,
-                }}
-              >
-                {hasData ? live.onTimePct : "—"}
-              </Text>
+
+          {/* Kicker + title top-left */}
+          <View
+            style={{
+              position: "absolute",
+              top: 18,
+              left: 18,
+              right: 18,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: 12,
+            }}
+          >
+            <View style={{ flex: 1 }}>
               <Text
                 style={{
                   fontFamily: EYEBROW,
                   fontSize: 10,
-                  color: palette.inkSoft,
-                  letterSpacing: 1.8,
+                  letterSpacing: 2,
                   textTransform: "uppercase",
+                  color: palette.inkSoft,
                 }}
               >
-                %
+                Last 60 minutes
+              </Text>
+              <Text
+                style={{
+                  marginTop: 6,
+                  fontFamily: DISPLAY,
+                  fontSize: 22,
+                  lineHeight: 25,
+                  color: palette.ink,
+                  maxWidth: 180,
+                }}
+              >
+                How the network is moving
               </Text>
             </View>
-            <Text
+
+            {/* Floating on-time chip */}
+            <View
               style={{
-                fontFamily: EYEBROW,
-                fontSize: 9,
-                color: palette.inkSoft,
-                letterSpacing: 1.6,
-                textTransform: "uppercase",
-                marginTop: 2,
+                backgroundColor: "rgba(255,255,255,0.94)",
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: palette.line,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                alignItems: "flex-end",
               }}
             >
-              On time
-            </Text>
+              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 2 }}>
+                <Text
+                  style={{
+                    fontFamily: DISPLAY,
+                    fontSize: 32,
+                    lineHeight: 32,
+                    color: palette.aegeanDeep,
+                    letterSpacing: -0.6,
+                  }}
+                >
+                  {hasData ? live.onTimePct : "—"}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: EYEBROW,
+                    fontSize: 10,
+                    letterSpacing: 1.8,
+                    textTransform: "uppercase",
+                    color: palette.inkSoft,
+                  }}
+                >
+                  %
+                </Text>
+              </View>
+              <Text
+                style={{
+                  marginTop: 3,
+                  fontFamily: EYEBROW,
+                  fontSize: 9,
+                  letterSpacing: 1.6,
+                  textTransform: "uppercase",
+                  color: palette.inkSoft,
+                }}
+              >
+                On time
+              </Text>
+            </View>
           </View>
         </View>
 
-        {hasData ? (
-          <>
+        {/* Body */}
+        <View style={{ paddingHorizontal: 22, paddingTop: 6, paddingBottom: 22 }}>
+          {hasData ? (
+            <>
+              <View
+                style={{
+                  flexDirection: "row",
+                  height: 8,
+                  borderRadius: 999,
+                  overflow: "hidden",
+                }}
+              >
+                <View style={{ flex: live.latePct, backgroundColor: palette.ochre }} />
+                <View style={{ flex: live.onTimePct, backgroundColor: palette.aegeanDeep }} />
+                <View style={{ flex: live.earlyPct, backgroundColor: palette.olive }} />
+              </View>
+              <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
+                <PulseLeg color={palette.ochre} label="Late" pct={live.latePct} />
+                <PulseLeg color={palette.aegeanDeep} label="On time" pct={live.onTimePct} />
+                <PulseLeg color={palette.olive} label="Early" pct={live.earlyPct} />
+              </View>
+              <Text
+                style={{
+                  marginTop: 16,
+                  fontFamily: SANS,
+                  fontSize: 14,
+                  lineHeight: 20,
+                  color: palette.ink,
+                }}
+              >
+                {summary}
+              </Text>
+            </>
+          ) : (
             <View
               style={{
-                flexDirection: "row",
-                height: 8,
-                borderRadius: 999,
-                overflow: "hidden",
-                marginTop: 18,
+                borderRadius: 16,
+                padding: 14,
+                backgroundColor: palette.limestoneSoft,
+                borderWidth: 1,
+                borderColor: palette.line,
               }}
             >
-              <View style={{ flex: live.latePct, backgroundColor: palette.ochre }} />
-              <View style={{ flex: live.onTimePct, backgroundColor: palette.aegeanDeep }} />
-              <View style={{ flex: live.earlyPct, backgroundColor: palette.olive }} />
+              <Text
+                style={{
+                  fontFamily: EYEBROW,
+                  fontSize: 9.5,
+                  letterSpacing: 2,
+                  color: palette.inkSoft,
+                  textTransform: "uppercase",
+                }}
+              >
+                No live signal in the past hour
+              </Text>
+              <Text
+                style={{
+                  marginTop: 6,
+                  fontFamily: SANS,
+                  fontSize: 13.5,
+                  lineHeight: 19,
+                  color: palette.ink,
+                }}
+              >
+                Buses are between runs. The network wakes back up at first morning departure.
+              </Text>
             </View>
-            <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-              <PulseLeg color={palette.ochre} label="Late" pct={live.latePct} />
-              <PulseLeg color={palette.aegeanDeep} label="On time" pct={live.onTimePct} />
-              <PulseLeg color={palette.olive} label="Early" pct={live.earlyPct} />
-            </View>
-          </>
-        ) : (
-          <View
-            style={{
-              marginTop: 16,
-              borderRadius: 16,
-              padding: 14,
-              backgroundColor: palette.limestoneSoft,
-              borderWidth: 1,
-              borderColor: palette.line,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: EYEBROW,
-                fontSize: 9.5,
-                letterSpacing: 2,
-                color: palette.inkSoft,
-                textTransform: "uppercase",
-              }}
-            >
-              Between runs
-            </Text>
-            <Text
-              style={{
-                marginTop: 6,
-                fontFamily: SANS,
-                fontSize: 13.5,
-                lineHeight: 19,
-                color: palette.ink,
-              }}
-            >
-              Buses are quiet right now. The network wakes back up at first departure.
-            </Text>
-          </View>
-        )}
+          )}
 
-        {buckets.length > 0 && (
-          <View style={{ marginTop: 22 }}>
-            <ActivityComb buckets={buckets} nowHour={nowHour} maxCount={maxCount} />
-            <View
+          {buckets.length > 0 && totalToday > 0 && (
+            <View style={{ marginTop: 20 }}>
+              <Text
+                style={{
+                  fontFamily: EYEBROW,
+                  fontSize: 9,
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                  color: palette.inkSoft,
+                }}
+              >
+                Bus activity today
+              </Text>
+              <View style={{ marginTop: 8 }}>
+                <ActivityComb buckets={buckets} nowHour={nowHour} maxCount={maxCount} />
+              </View>
+              <View
+                style={{
+                  marginTop: 6,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                {["Morning", "Midday", "Evening", "Late"].map((l) => (
+                  <Text
+                    key={l}
+                    style={{
+                      fontFamily: EYEBROW,
+                      fontSize: 9,
+                      letterSpacing: 1.5,
+                      textTransform: "uppercase",
+                      color: palette.inkSoft,
+                    }}
+                  >
+                    {l}
+                  </Text>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {hasData && (
+            <Text
               style={{
-                marginTop: 6,
-                flexDirection: "row",
-                justifyContent: "space-between",
+                marginTop: 16,
+                fontFamily: SANS,
+                fontSize: 12,
+                lineHeight: 17,
+                color: palette.inkSoft,
               }}
             >
-              <Text
-                style={{
-                  fontFamily: MONO,
-                  fontSize: 9.5,
-                  letterSpacing: 1.4,
-                  color: palette.inkSoft,
-                }}
-              >
-                {hasData
-                  ? `${live.observations.toLocaleString()} live · ${medianMin > 0 ? "+" : ""}${medianMin}m median`
-                  : `${buckets.reduce((s, b) => s + b.sampleCount, 0).toLocaleString()} samples today`}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: MONO,
-                  fontSize: 9.5,
-                  letterSpacing: 1.4,
-                  color: palette.inkSoft,
-                }}
-              >
-                00 · 06 · 12 · 18 h
-              </Text>
-            </View>
-          </View>
-        )}
+              {live.observations === 1
+                ? "Based on 1 bus we checked in the last hour."
+                : `Based on ${live.observations.toLocaleString()} buses we checked in the last hour.`}
+            </Text>
+          )}
+        </View>
       </View>
     </View>
   );
