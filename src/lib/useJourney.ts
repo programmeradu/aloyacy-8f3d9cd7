@@ -36,10 +36,17 @@ export type LiveJourney = {
   // Bus timing (from realtime, may equal scheduled)
   secsToBoard: number;
   secsToAlight: number;
+  /** GPS-fused secsToAlight: blends rider's own phone GPS + bus feed.
+   *  Equal to secsToAlight when no fusion signal is available. */
+  fusedSecsToAlight: number;
+  /** Fused bus position when on-board (rider GPS + feed). Used to drive the
+   *  map marker so the bus glides with the phone instead of the lagging feed. */
+  fusedVehicle: { lat: number; lng: number; bearing: number; tripId: string } | null;
   // Diagnostics
   onBoardSuggested: boolean; // GPS suggests user is moving with bus
   missedSuggested: boolean;  // bus departed without user confirmation
 };
+
 
 const ARRIVAL_RADIUS_M = 30;   // "at stop" / "arrived at destination"
 const BUS_MATCH_RADIUS_M = 60; // user near a live vehicle
