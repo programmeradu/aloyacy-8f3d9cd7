@@ -697,11 +697,19 @@ function GreekWordCard({
       style={{
         borderRadius: 22,
         padding: 22,
+        paddingRight: 24,
         backgroundColor: palette.white,
         borderWidth: 1,
         borderColor: palette.line,
+        overflow: "hidden",
       }}
     >
+      <View
+        pointerEvents="none"
+        style={{ position: "absolute", right: -12, top: -12, opacity: 0.9 }}
+      >
+        <GreekWordGlyph word={el} />
+      </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
         <Text
           style={{
