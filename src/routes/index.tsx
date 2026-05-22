@@ -563,6 +563,3 @@ function SmartSearch({
     </div>
   );
 }
-
-// keep getStop import used for type-checking
-void getStop;
