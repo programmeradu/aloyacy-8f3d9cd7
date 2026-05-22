@@ -13,6 +13,7 @@ import { routeTone } from "@/lib/gtfs";
 import { getWalkingDirections } from "@/lib/maps.functions";
 import { useJourney } from "@/lib/useJourney";
 import { JourneyHUD } from "@/components/JourneyHUD";
+import { useTick } from "@/hooks/use-tick";
 import companionHero from "@/assets/companion-hero.jpg";
 
 export const Route = createFileRoute("/trip/$id")({
@@ -40,13 +41,7 @@ function TripCompanion() {
   const navigate = useNavigate();
   const active = useActiveTrip();
   const { data: rt } = useRealtime();
-  const [tick, setTick] = useState(0);
-
-  // refresh every 5s for countdowns
-  useEffect(() => {
-    const t = window.setInterval(() => setTick((n) => n + 1), 5_000);
-    return () => window.clearInterval(t);
-  }, []);
+  const tick = useTick(5_000);
 
   const view = useMemo(() => {
     if (!active) return null;
