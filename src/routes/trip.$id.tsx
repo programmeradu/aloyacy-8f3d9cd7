@@ -13,6 +13,7 @@ import { routeTone } from "@/lib/gtfs";
 import { getWalkingDirections } from "@/lib/maps.functions";
 import { useJourney } from "@/lib/useJourney";
 import { JourneyHUD } from "@/components/JourneyHUD";
+import { useTick } from "@/hooks/use-tick";
 import companionHero from "@/assets/companion-hero.jpg";
 
 export const Route = createFileRoute("/trip/$id")({
