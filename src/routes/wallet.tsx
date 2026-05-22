@@ -15,6 +15,7 @@ import {
 } from "@/lib/motion-pass";
 import { jccLogin, jccRefresh, jccSync } from "@/lib/jcc.functions";
 import { useQrSvg } from "@/lib/useQr";
+import { useNfcScan } from "@/lib/useNfc";
 
 type SheetMode = "card" | "balance" | "topup" | "link";
 
