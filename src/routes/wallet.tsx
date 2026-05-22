@@ -416,18 +416,25 @@ function TransactionList({ transactions }: { transactions: MotionTxSnapshot[] })
 }
 
 /* ============================================================
- * Motion Card — the visual centerpiece.
- * Brand-accurate: aegean teal gradient, ochre stripe at the bottom,
- * lowercase "motion" wordmark, contactless mark, NFC chip illustration,
- * 10-digit number across the middle. Tap-to-edit the whole card.
+ * Motion Card — pixel-faithful reproduction of the physical
+ * Cyprus Motion Bus Card front. White stock, official wordmark
+ * (lime cloud tuft + two-tone "motion" + "BUS CARD"), orange
+ * route-network illustration with contactless hand, holder name,
+ * tier pill, valid-until date, photo slot (we render the kiosk
+ * QR there), and the "ΚΑΝΟΝΙΚΗ STANDARD" tier label.
+ * Brand colors are hard-coded here on purpose — this is a faithful
+ * reproduction of an external brand asset, not app chrome.
  * ============================================================ */
 function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
   const hasCard = pass.number.replace(/\D/g, "").length >= 8;
-  // Card number value used for the QR (the kiosk reads exactly the printed
-  // digits, no prefix). Falls back to a placeholder so the QR slot doesn't
-  // collapse on an empty card.
   const qrValue = hasCard ? pass.number.replace(/\D/g, "") : "MOTION-DEMO";
-  const qrSvg = useQrSvg(qrValue);
+  const qrSvg = useQrSvg(qrValue, { color: "#1a2a6c" });
+
+  const holderName =
+    (pass.holder?.trim() || pass.jcc?.displayName?.trim() || "").toUpperCase() ||
+    "ADD YOUR NAME";
+  const tierLabel = (pass.tier?.trim() || "18+ Standard");
+  const validUntil = pass.validUntil?.trim() || "—/—/——";
 
   return (
     <button
@@ -437,105 +444,184 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
       aria-label={hasCard ? "Edit your Motion card" : "Add your Motion card"}
     >
       <article
-        className="relative aspect-[1.586/1] w-full overflow-hidden rounded-[28px] ring-1 ring-ink/15 shadow-[0_24px_60px_-28px_rgba(8,28,40,0.55)] transition-transform duration-500 ease-out group-hover:-translate-y-0.5"
-        style={{
-          containerType: "inline-size",
-          background:
-            "linear-gradient(135deg, oklch(0.34 0.07 220) 0%, oklch(0.42 0.09 215) 45%, oklch(0.52 0.10 210) 100%)",
-        }}
+        className="relative aspect-[1.586/1] w-full overflow-hidden rounded-[20px] ring-1 ring-ink/10 shadow-[0_24px_60px_-28px_rgba(8,28,40,0.4)] transition-transform duration-500 ease-out group-hover:-translate-y-0.5"
+        style={{ containerType: "inline-size", background: "#ffffff" }}
       >
-
-        {/* Subtle topographic guilloche texture */}
-        <svg
-          className="absolute inset-0 size-full opacity-[0.16]"
-          viewBox="0 0 400 252"
-          preserveAspectRatio="none"
-          aria-hidden
-        >
-          <defs>
-            <pattern id="motion-grid" width="22" height="22" patternUnits="userSpaceOnUse">
-              <path
-                d="M0 22 Q11 11 22 22 M0 0 Q11 11 22 0"
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth="0.6"
-              />
-            </pattern>
-          </defs>
-          <rect width="400" height="252" fill="url(#motion-grid)" />
-        </svg>
-
-        {/* Ochre stripe — the signature horizontal bar near the bottom */}
-        <div
-          className="absolute left-0 right-0 h-[12%]"
-          style={{
-            bottom: "16%",
-            background:
-              "linear-gradient(180deg, oklch(0.78 0.15 70) 0%, oklch(0.71 0.16 60) 100%)",
-            boxShadow:
-              "0 -1px 0 rgba(255,255,255,0.2) inset, 0 1px 0 rgba(0,0,0,0.15) inset",
-          }}
-        />
-
-        {/* Top row: wordmark + contactless mark */}
-        <div className="absolute inset-x-0 top-0 p-[5%] flex items-start justify-between text-white">
-          <div>
-            <p
-              className="font-display lowercase italic leading-none"
-              style={{ fontSize: "clamp(28px, 7.2cqw, 44px)" }}
+        {/* ===== Top-left: motion wordmark with green cloud tuft ===== */}
+        <div className="absolute" style={{ top: "7%", left: "6%", width: "44%" }}>
+          <svg viewBox="0 0 220 70" className="w-full h-auto" aria-hidden>
+            {/* Lime cloud tuft above the wordmark */}
+            <path
+              d="M8 22 C 14 6, 36 4, 46 14 C 58 4, 86 6, 96 18 C 110 8, 138 10, 148 22 L 148 30 L 8 30 Z"
+              fill="#a8c83a"
+            />
+            {/* "moti" in light blue, "on" in dark navy — split by glyph */}
+            <text
+              x="0"
+              y="62"
+              fontFamily="Geist, Inter, system-ui, sans-serif"
+              fontWeight="800"
+              fontSize="48"
+              letterSpacing="-2"
             >
-              motion
-            </p>
-            <p className="mt-1.5 font-mono uppercase tracking-[0.28em] text-white/80 text-[9px]">
-              Cyprus Public Transport
-            </p>
+              <tspan fill="#2cb6ea">moti</tspan>
+              <tspan fill="#1a2a6c">on</tspan>
+            </text>
+          </svg>
+          <div className="mt-[2cqw] flex items-baseline gap-[1.2cqw]">
+            <span
+              className="font-sans tracking-[0.12em] font-medium"
+              style={{ fontSize: "clamp(8px, 2.6cqw, 14px)", color: "#8a8d92" }}
+            >
+              BUS
+            </span>
+            <span
+              className="font-sans tracking-[0.12em] font-bold"
+              style={{ fontSize: "clamp(8px, 2.6cqw, 14px)", color: "#1a2a6c" }}
+            >
+              CARD
+            </span>
           </div>
-          <ContactlessMark />
         </div>
 
-        {/* Chip + middle row: number */}
-        <div className="absolute inset-x-0 top-[42%] px-[5%] flex items-center gap-4">
-          <NfcChip />
+        {/* ===== Photo slot (top right) — we render the kiosk QR here ===== */}
+        <div
+          className="absolute bg-white rounded-[2px]"
+          style={{
+            top: "9%",
+            right: "6%",
+            width: "22%",
+            aspectRatio: "1 / 1.1",
+            border: "1.5px solid #1a2a6c",
+            padding: "4%",
+          }}
+          aria-label="Card QR for kiosk lookup"
+        >
+          {qrSvg ? (
+            <div
+              className="size-full [&_svg]:size-full"
+              dangerouslySetInnerHTML={{ __html: qrSvg }}
+            />
+          ) : (
+            <div className="size-full bg-ink/5" />
+          )}
+        </div>
+
+        {/* ===== Holder name + tier pill + valid until (middle) ===== */}
+        <div
+          className="absolute"
+          style={{ top: "42%", left: "26%", right: "30%" }}
+        >
           <p
-            className="font-mono text-white tabular-nums tracking-[0.18em]"
-            style={{ fontSize: "clamp(14px, 4.2cqw, 22px)" }}
+            className="font-sans font-semibold truncate"
+            style={{
+              fontSize: "clamp(10px, 3.2cqw, 16px)",
+              color: hasCard ? "#9b1c1c" : "#9b1c1c80",
+              letterSpacing: "0.02em",
+            }}
           >
-            {hasCard ? formatCardNumber(pass.number) : "—— ———— ————"}
+            {holderName}
+          </p>
+          <div
+            className="inline-block mt-[1.5cqw] px-[2.4cqw] py-[0.6cqw] rounded-[3px]"
+            style={{ background: "#a8e6a3" }}
+          >
+            <span
+              className="font-sans font-semibold"
+              style={{ fontSize: "clamp(9px, 2.8cqw, 14px)", color: "#1a2a6c" }}
+            >
+              {tierLabel}
+            </span>
+          </div>
+          <p
+            className="mt-[2cqw] font-sans"
+            style={{ fontSize: "clamp(7px, 2.1cqw, 11px)", color: "#5a5d62" }}
+          >
+            Ισχύει Μέχρι/Valid Until:
+          </p>
+          <p
+            className="font-sans"
+            style={{ fontSize: "clamp(8px, 2.4cqw, 12px)", color: "#5a5d62" }}
+          >
+            {validUntil}
           </p>
         </div>
 
-        {/* Bottom row sits BELOW the ochre stripe: holder + QR */}
-        <div className="absolute inset-x-0 bottom-0 p-[5%] flex items-end justify-between text-white">
-          <div className="min-w-0 pr-3">
-            <p className="font-mono uppercase tracking-[0.22em] text-white/70 text-[9px]">
-              Cardholder
-            </p>
-            <p className="mt-1 font-display italic truncate text-balance" style={{ fontSize: "clamp(14px, 3.6cqw, 18px)" }}>
-              {pass.holder?.trim() || "Add a name"}
-            </p>
-          </div>
-          <div
-            className="shrink-0 rounded-[8px] bg-white p-1.5 ring-1 ring-white/40"
-            style={{ width: "clamp(44px, 14cqw, 64px)", height: "clamp(44px, 14cqw, 64px)" }}
-            aria-label="Card QR for kiosk lookup"
+        {/* ===== Orange route network across the bottom-left ===== */}
+        <svg
+          className="absolute"
+          style={{ bottom: "0", left: "0", width: "82%", height: "55%" }}
+          viewBox="0 0 320 140"
+          preserveAspectRatio="xMinYMax meet"
+          aria-hidden
+        >
+          {/* Connecting lines */}
+          <g stroke="#f08a3e" strokeWidth="3.5" fill="none" strokeLinecap="round">
+            <path d="M 58 92 L 110 110" />
+            <path d="M 110 110 L 168 96" />
+            <path d="M 168 96 L 220 118" />
+            <path d="M 220 118 L 276 102" />
+            <path d="M 110 110 L 138 78" />
+            <path d="M 168 96 L 200 70" />
+            <path d="M 220 118 L 250 88" />
+            <path d="M 138 78 L 200 70" />
+            <path d="M 250 88 L 296 76" />
+          </g>
+          {/* Hollow station nodes */}
+          <g fill="#ffffff" stroke="#f08a3e" strokeWidth="3.5">
+            <circle cx="110" cy="110" r="9" />
+            <circle cx="168" cy="96" r="9" />
+            <circle cx="220" cy="118" r="9" />
+            <circle cx="276" cy="102" r="9" />
+            <circle cx="138" cy="78" r="7" />
+            <circle cx="200" cy="70" r="7" />
+            <circle cx="250" cy="88" r="7" />
+            <circle cx="296" cy="76" r="6" />
+          </g>
+          {/* Hand holding phone with contactless waves */}
+          <g transform="translate(20 38)">
+            {/* Contactless arcs */}
+            <g fill="none" stroke="#1a2a6c" strokeWidth="2.6" strokeLinecap="round">
+              <path d="M 6 20 Q -2 28 6 36" />
+              <path d="M 0 14 Q -10 28 0 42" />
+            </g>
+            {/* Phone */}
+            <rect x="14" y="14" width="22" height="36" rx="3" fill="#ffffff" stroke="#1a2a6c" strokeWidth="2.4" />
+            <circle cx="25" cy="45" r="1.6" fill="#1a2a6c" />
+            {/* Hand */}
+            <path
+              d="M 14 46 C 10 50, 8 58, 14 64 L 38 64 C 44 58, 42 50, 38 46 L 38 56 L 14 56 Z"
+              fill="#1a2a6c"
+            />
+            <path d="M 22 64 L 22 78 L 34 78 L 34 64" fill="#1a2a6c" />
+          </g>
+        </svg>
+
+        {/* ===== Bottom-right tier text ===== */}
+        <div
+          className="absolute text-right"
+          style={{ bottom: "6%", right: "6%" }}
+        >
+          <p
+            className="font-sans font-bold leading-tight"
+            style={{ fontSize: "clamp(8px, 2.4cqw, 12px)", color: "#1a2a6c", letterSpacing: "0.04em" }}
           >
-            {qrSvg ? (
-              <div
-                className="size-full [&_svg]:size-full"
-                dangerouslySetInnerHTML={{ __html: qrSvg }}
-              />
-            ) : (
-              <div className="size-full bg-ink/10 rounded-[4px]" />
-            )}
-          </div>
+            ΚΑΝΟΝΙΚΗ
+          </p>
+          <p
+            className="font-sans font-bold leading-tight"
+            style={{ fontSize: "clamp(8px, 2.4cqw, 12px)", color: "#1a2a6c", letterSpacing: "0.04em" }}
+          >
+            STANDARD
+          </p>
         </div>
 
-        {/* Soft top highlight to give it polish */}
+        {/* Soft sheen */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(120% 60% at 50% -10%, rgba(255,255,255,0.18), transparent 55%)",
+              "radial-gradient(120% 60% at 50% -10%, rgba(0,0,0,0.04), transparent 55%)",
           }}
         />
       </article>
@@ -545,45 +631,6 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
         </p>
       )}
     </button>
-  );
-}
-
-function ContactlessMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-7 text-white/90" aria-hidden>
-      <g fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
-        <path d="M7 6c3 2.4 3 9.6 0 12" />
-        <path d="M11 4c4.4 3.4 4.4 12.6 0 16" />
-        <path d="M15 2c5.6 4.2 5.6 15.8 0 20" />
-      </g>
-    </svg>
-  );
-}
-
-function NfcChip() {
-  return (
-    <svg
-      viewBox="0 0 36 28"
-      aria-hidden
-      style={{ width: "clamp(32px, 10cqw, 48px)", height: "auto" }}
-    >
-      <defs>
-        <linearGradient id="chip-g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#f0d28a" />
-          <stop offset="55%" stopColor="#c79a4a" />
-          <stop offset="100%" stopColor="#8a6a2c" />
-        </linearGradient>
-      </defs>
-      <rect x="1" y="1" width="34" height="26" rx="4" fill="url(#chip-g)" stroke="#6b5320" strokeWidth="0.5" />
-      <g stroke="#6b5320" strokeWidth="0.6" fill="none">
-        <path d="M12 1 V8 H1" />
-        <path d="M24 1 V8 H35" />
-        <path d="M12 27 V20 H1" />
-        <path d="M24 27 V20 H35" />
-        <path d="M12 14 H24" />
-        <path d="M18 8 V20" />
-      </g>
-    </svg>
   );
 }
 
@@ -648,6 +695,8 @@ function PassSheet({
 }) {
   const [number, setNumber] = useState(pass.number);
   const [holder, setHolder] = useState(pass.holder ?? "");
+  const [tier, setTier] = useState(pass.tier ?? "");
+  const [validUntil, setValidUntil] = useState(pass.validUntil ?? "");
   const [balance, setBalance] = useState(
     pass.balanceEur > 0 ? pass.balanceEur.toFixed(2) : "",
   );
@@ -669,7 +718,13 @@ function PassSheet({
   async function save() {
     if (mode === "card") {
       const clean = number.replace(/\D/g, "").slice(0, 16);
-      onSave({ ...pass, number: clean, holder: holder.trim() });
+      onSave({
+        ...pass,
+        number: clean,
+        holder: holder.trim(),
+        tier: tier.trim() || undefined,
+        validUntil: validUntil.trim() || undefined,
+      });
     } else if (mode === "balance") {
       const v = parseFloat(balance);
       if (!isNaN(v) && v >= 0) {
@@ -742,6 +797,24 @@ function PassSheet({
                 className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[15px] text-ink focus:outline-none focus:ring-aegean-deep/40"
               />
             </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Tier">
+                <input
+                  value={tier}
+                  onChange={(e) => setTier(e.target.value)}
+                  placeholder="18+ Standard"
+                  className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[14px] text-ink focus:outline-none focus:ring-aegean-deep/40"
+                />
+              </Field>
+              <Field label="Valid until">
+                <input
+                  value={validUntil}
+                  onChange={(e) => setValidUntil(e.target.value)}
+                  placeholder="07/05/2036"
+                  className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 font-mono text-[14px] text-ink focus:outline-none focus:ring-aegean-deep/40"
+                />
+              </Field>
+            </div>
             <p className="text-[11px] text-ink-soft">
               The masked card on display: {maskedNumber(number)}
             </p>
