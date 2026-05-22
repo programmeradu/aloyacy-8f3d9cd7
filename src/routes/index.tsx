@@ -188,7 +188,7 @@ function Explore() {
             <WxIcon className={`size-3.5 ${wxTone}`} />
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
               {dayLabel}
-              {weather ? ` · ${weather.tempC}°` : geo.loading ? " · …" : " · —"}
+              {mounted && weather ? ` · ${weather.tempC}°` : ""}
             </span>
           </div>
         </div>
