@@ -471,11 +471,8 @@ class AnimatedBus {
   tick(nowMs: number) {
     const t = Math.min(1, (nowMs - this.tweenStart) / this.tweenDur);
     const e = EASE(t);
-    this.fromLat = this.fromLat + (this.toLat - this.fromLat) * e * 0; // no-op safety
     const lat = lerp(this.fromLat, this.toLat, e);
     const lng = lerp(this.fromLng, this.toLng, e);
-    // we don't mutate from* mid-tween — instead recompute lerp using stored start values
-    // store interpolated point back into from* only when tween completes
     const projection = this.overlay.getProjection();
     if (!projection) return;
     const pt = projection.fromLatLngToDivPixel(new this.api.maps.LatLng(lat, lng));
