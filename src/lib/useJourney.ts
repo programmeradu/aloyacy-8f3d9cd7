@@ -36,10 +36,17 @@ export type LiveJourney = {
   // Bus timing (from realtime, may equal scheduled)
   secsToBoard: number;
   secsToAlight: number;
+  /** GPS-fused secsToAlight: blends rider's own phone GPS + bus feed.
+   *  Equal to secsToAlight when no fusion signal is available. */
+  fusedSecsToAlight: number;
+  /** Fused bus position when on-board (rider GPS + feed). Used to drive the
+   *  map marker so the bus glides with the phone instead of the lagging feed. */
+  fusedVehicle: { lat: number; lng: number; bearing: number; tripId: string } | null;
   // Diagnostics
   onBoardSuggested: boolean; // GPS suggests user is moving with bus
   missedSuggested: boolean;  // bus departed without user confirmation
 };
+
 
 const ARRIVAL_RADIUS_M = 30;   // "at stop" / "arrived at destination"
 const BUS_MATCH_RADIUS_M = 60; // user near a live vehicle
@@ -79,9 +86,12 @@ export function useJourney(opts: {
       walkingEtaSec: 0,
       secsToBoard: 0,
       secsToAlight: 0,
+      fusedSecsToAlight: 0,
+      fusedVehicle: null,
       onBoardSuggested: false,
       missedSuggested: false,
     };
+
     if (!active || !bus || !started) return baseInactive;
     if (live?.alightedAt || walkingPhase === null && live?.onBoardConfirmedAt && bus) {
       // continue, handled below
@@ -196,6 +206,51 @@ export function useJourney(opts: {
 
     const missedSuggested = phase === "missed-bus";
 
+    // ---- GPS × feed fusion (on-board only) ---------------------------------
+    // Once the rider confirms they're on the bus, the phone IS the bus. We
+    // weight the rider's GPS heavily against the (often 5–30s stale) vehicle
+    // feed and re-derive the time-to-alight from the live distance + speed,
+    // then blend that with the schedule-based estimate so the ETA stays
+    // honest even if GPS speed flickers (tunnels, urban canyons).
+    let fusedVehicle: LiveJourney["fusedVehicle"] = null;
+    let fusedSecsToAlight = secsToAlight;
+    const onBoard = !!live?.onBoardConfirmedAt && !live?.alightedAt;
+    if (onBoard && fix && bus) {
+      if (vehicle) {
+        const wGps = 1 / Math.max(8, fix.accuracyM);
+        const wVeh = 1 / 60; // feed: ~30–60m effective uncertainty
+        const total = wGps + wVeh;
+        fusedVehicle = {
+          lat: (fix.lat * wGps + vehicle.lat * wVeh) / total,
+          lng: (fix.lng * wGps + vehicle.lng * wVeh) / total,
+          bearing: fix.headingDeg ?? vehicle.bearing ?? 0,
+          tripId: bus.tripId,
+        };
+      } else {
+        fusedVehicle = {
+          lat: fix.lat,
+          lng: fix.lng,
+          bearing: fix.headingDeg ?? 0,
+          tripId: bus.tripId,
+        };
+      }
+      const alightLoc =
+        walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
+      if (alightLoc) {
+        const distToAlight = distanceM(fusedVehicle, alightLoc);
+        // Effective speed: rider GPS if moving, else city-bus fallback (~22 km/h)
+        const gpsSpeed = fix.speedMps ?? 0;
+        const speed = gpsSpeed > 2 ? gpsSpeed : 6;
+        const gpsEta = Math.round(distToAlight / Math.max(3, speed));
+        // Trust GPS when we have a real speed signal, else lean schedule
+        const wGpsEta = gpsSpeed > 2 ? 0.65 : 0.35;
+        fusedSecsToAlight = Math.max(
+          0,
+          Math.round(wGpsEta * gpsEta + (1 - wGpsEta) * secsToAlight),
+        );
+      }
+    }
+
     return {
       active: true,
       fix,
@@ -206,10 +261,13 @@ export function useJourney(opts: {
       walkingEtaSec,
       secsToBoard,
       secsToAlight,
+      fusedSecsToAlight,
+      fusedVehicle,
       onBoardSuggested,
       missedSuggested,
     };
   }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps]);
+
 
   // ---- Push alerting on phase transition -----------------------------------
   const sentRef = useRef<Set<string>>(new Set());

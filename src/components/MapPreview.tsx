@@ -30,11 +30,16 @@ type Props = {
   /** If set, only render live vehicles whose tripId is in this list.
    *  Use to restrict the map to the buses relevant to a given stop/route. */
   restrictTripIds?: string[];
+  /** Override the live position/bearing of specific vehicles by tripId.
+   *  Used by the on-board journey to fuse the user's GPS into the bus blip
+   *  so the marker glides with the rider's phone instead of the lagging feed. */
+  vehicleOverrides?: Record<string, { lat: number; lng: number; bearing?: number }>;
   /** Override the bottom-left live-count pill label. */
   liveLabel?: { active?: string; empty?: string };
   /** Fit map to markers + polyline. Defaults to true when any are provided. */
   fitToContent?: boolean;
 };
+
 
 const TONE_COLOR: Record<NonNullable<MapMarker["tone"]>, string> = {
   aegean: "#2d8a9e",
@@ -70,9 +75,11 @@ export function MapPreview({
   focusTripId,
   focusRouteId,
   restrictTripIds,
+  vehicleOverrides,
   liveLabel,
   fitToContent,
 }: Props) {
+
   const { api, error } = useGoogleMaps();
   const { data: rt } = useRealtime();
   const elRef = useRef<HTMLDivElement | null>(null);
@@ -171,20 +178,33 @@ export function MapPreview({
   // is rendered (and rendered prominently) — the rest of the fleet is hidden.
   const allVehicles = liveVehicles ? rt?.vehicles : undefined;
   const restrictKey = restrictTripIds ? restrictTripIds.join(",") : "";
+  const overrideKey = vehicleOverrides
+    ? Object.entries(vehicleOverrides)
+        .map(([k, v]) => `${k}:${v.lat.toFixed(5)},${v.lng.toFixed(5)},${Math.round(v.bearing ?? 0)}`)
+        .join("|")
+    : "";
   const vehicles = useMemo(() => {
     if (!allVehicles) return undefined;
+    const apply = (list: typeof allVehicles) =>
+      vehicleOverrides
+        ? list.map((v) => {
+            const o = vehicleOverrides[v.tripId];
+            return o ? { ...v, lat: o.lat, lng: o.lng, bearing: o.bearing ?? v.bearing } : v;
+          })
+        : list;
     if (focusTripId || focusRouteId) {
       const byTrip = focusTripId ? allVehicles.filter((v) => v.tripId === focusTripId) : [];
-      if (byTrip.length) return byTrip;
-      if (focusRouteId) return allVehicles.filter((v) => v.routeId === focusRouteId);
+      if (byTrip.length) return apply(byTrip);
+      if (focusRouteId) return apply(allVehicles.filter((v) => v.routeId === focusRouteId));
       return [];
     }
     if (restrictTripIds && restrictTripIds.length) {
       const set = new Set(restrictTripIds);
-      return allVehicles.filter((v) => set.has(v.tripId));
+      return apply(allVehicles.filter((v) => set.has(v.tripId)));
     }
-    return allVehicles;
-  }, [allVehicles, focusTripId, focusRouteId, restrictKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    return apply(allVehicles);
+  }, [allVehicles, focusTripId, focusRouteId, restrictKey, overrideKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   const focused = !!(focusTripId || focusRouteId);
   const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
