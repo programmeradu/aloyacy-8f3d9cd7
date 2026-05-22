@@ -1,15 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { IconArrowLeft } from "@/components/Icons";
 import {
   readPass,
   writePass,
+  clearJccLink,
   formatCardNumber,
   maskedNumber,
   type MotionPass,
+  type MotionTxSnapshot,
 } from "@/lib/motion-pass";
+import { jccLogin, jccRefresh, jccSync } from "@/lib/jcc.functions";
 import { useQrSvg } from "@/lib/useQr";
+
+type SheetMode = "card" | "balance" | "topup" | "link";
 
 export const Route = createFileRoute("/wallet")({
   head: () => ({
@@ -27,7 +34,12 @@ export const Route = createFileRoute("/wallet")({
 
 function WalletRoute() {
   const [pass, setPass] = useState<MotionPass>(() => readPass());
-  const [editing, setEditing] = useState<"none" | "card" | "balance" | "topup">("none");
+  const [editing, setEditing] = useState<"none" | SheetMode>("none");
+  const [syncing, setSyncing] = useState(false);
+
+  const loginFn = useServerFn(jccLogin);
+  const refreshFn = useServerFn(jccRefresh);
+  const syncFn = useServerFn(jccSync);
 
   useEffect(() => {
     const sync = () => setPass(readPass());
@@ -45,6 +57,102 @@ function WalletRoute() {
   };
 
   const hasCard = pass.number.replace(/\D/g, "").length >= 8;
+  const linked = !!pass.jcc;
+
+  // ----- JCC sync flow -----
+  async function runSync(opts?: { silent?: boolean }) {
+    const current = readPass();
+    if (!current.jcc || !current.number) return;
+    setSyncing(true);
+    try {
+      let tokens = {
+        accessToken: current.jcc.accessToken,
+        refreshToken: current.jcc.refreshToken,
+        expiresAt: current.jcc.expiresAt,
+      };
+
+      // Proactive refresh if token expires within 60s.
+      if (tokens.expiresAt - Date.now() < 60_000) {
+        const r = await refreshFn({ data: { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken } });
+        if (!r.ok) {
+          update({ ...current, jcc: { ...current.jcc, expiresAt: 0 } });
+          if (!opts?.silent) toast.error("Session expired — please link again.");
+          return;
+        }
+        tokens = r.tokens;
+        update({ ...current, jcc: { ...current.jcc, ...tokens } });
+      }
+
+      const cardUid = current.number.replace(/\D/g, "");
+      let res = await syncFn({ data: { accessToken: tokens.accessToken, cardUid, period: "Last30" } });
+
+      // One reactive refresh on 401.
+      if (!res.ok && res.code === "expired") {
+        const r = await refreshFn({ data: { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken } });
+        if (!r.ok) {
+          update({ ...current, jcc: { ...current.jcc, expiresAt: 0 } });
+          if (!opts?.silent) toast.error("Session expired — please link again.");
+          return;
+        }
+        tokens = r.tokens;
+        update({ ...current, jcc: { ...current.jcc, ...tokens } });
+        res = await syncFn({ data: { accessToken: tokens.accessToken, cardUid, period: "Last30" } });
+      }
+
+      if (!res.ok) {
+        if (!opts?.silent) toast.error(("error" in res && res.error) || "Sync failed.");
+        return;
+      }
+
+      update({
+        ...current,
+        jcc: { ...current.jcc, ...tokens },
+        balanceEur: res.balanceEur,
+        balanceUpdatedAt: res.syncedAt,
+        lastSyncAt: res.syncedAt,
+        passName: res.passName,
+        transactions: res.transactions,
+      });
+      if (!opts?.silent) toast.success(`Synced — ${res.transactions.length} transactions`);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  // Auto-sync once on mount if linked and stale (>10 min).
+  const autoSyncedRef = useRef(false);
+  useEffect(() => {
+    if (autoSyncedRef.current) return;
+    if (linked && hasCard && Date.now() - pass.lastSyncAt > 10 * 60_000) {
+      autoSyncedRef.current = true;
+      void runSync({ silent: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linked, hasCard]);
+
+  async function handleLink(email: string, password: string): Promise<string | null> {
+    const r = await loginFn({ data: { email, password } });
+    if (!r.ok) return r.error;
+    const current = readPass();
+    update({
+      ...current,
+      holder: current.holder || `${r.profile.firstName} ${r.profile.lastName}`.trim(),
+      jcc: {
+        email: r.profile.email,
+        displayName: `${r.profile.firstName} ${r.profile.lastName}`.trim() || r.profile.email,
+        ...r.tokens,
+        linkedAt: Date.now(),
+      },
+    });
+    // fire-and-forget initial sync
+    setTimeout(() => void runSync(), 50);
+    return null;
+  }
+
+  function handleUnlink() {
+    update(clearJccLink(readPass()));
+    toast("Unlinked from JCC.");
+  }
 
   return (
     <AppShell>
@@ -90,19 +198,72 @@ function WalletRoute() {
               eyebrow="Balance"
               value={`€${pass.balanceEur.toFixed(2)}`}
               foot={
-                pass.balanceUpdatedAt
-                  ? `Updated ${timeAgo(pass.balanceUpdatedAt)}`
-                  : "Tap to set"
+                linked
+                  ? pass.lastSyncAt
+                    ? `Synced ${timeAgo(pass.lastSyncAt)}`
+                    : "Tap Sync below"
+                  : pass.balanceUpdatedAt
+                    ? `Updated ${timeAgo(pass.balanceUpdatedAt)}`
+                    : "Tap to set"
               }
-              onClick={() => setEditing("balance")}
+              onClick={() => (linked ? void runSync() : setEditing("balance"))}
             />
-            <ActionTile
-              eyebrow="Top up"
-              value="Log"
-              foot="Add a recent reload"
-              onClick={() => setEditing("topup")}
-              tone="aegean"
-            />
+            {linked ? (
+              <ActionTile
+                eyebrow="JCC"
+                value={syncing ? "Syncing…" : "Sync"}
+                foot={pass.jcc?.displayName || pass.jcc?.email || "Connected"}
+                onClick={() => void runSync()}
+                tone="aegean"
+              />
+            ) : (
+              <ActionTile
+                eyebrow="Top up"
+                value="Log"
+                foot="Add a recent reload"
+                onClick={() => setEditing("topup")}
+                tone="aegean"
+              />
+            )}
+          </section>
+
+          {/* JCC link CTA (unlinked) or pass info (linked) */}
+          <section className="mt-4 px-6 animate-rise" style={{ animationDelay: "220ms" }}>
+            {linked ? (
+              <div className="rounded-[20px] bg-card ring-1 ring-line px-4 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+                    Linked to JCC Smart
+                  </p>
+                  <p className="mt-1 text-[13px] text-ink truncate">
+                    {pass.passName || "Auto-sync enabled"}
+                  </p>
+                </div>
+                <button
+                  onClick={handleUnlink}
+                  className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft hover:text-ink"
+                >
+                  Unlink
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setEditing("link")}
+                className="w-full rounded-[20px] bg-aegean-deep text-limestone px-4 py-3 flex items-center justify-between hover:bg-aegean-deep/90 transition-colors"
+              >
+                <span className="text-left">
+                  <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
+                    Auto-sync
+                  </span>
+                  <span className="block text-[14px] mt-0.5">
+                    Link your JCC Smart account
+                  </span>
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em]">
+                  Connect
+                </span>
+              </button>
+            )}
           </section>
 
           {/* Fare reference */}
@@ -119,48 +280,15 @@ function WalletRoute() {
             </div>
           </section>
 
-          {/* History */}
+          {/* History — either JCC transactions or manual topups */}
           <section
             className="mt-8 px-6 pb-4 animate-rise"
             style={{ animationDelay: "320ms" }}
           >
-            <div className="flex items-end justify-between mb-3">
-              <h2 className="font-display text-2xl text-ink">Top-up history</h2>
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                {pass.topups.length} entries
-              </span>
-            </div>
-            {pass.topups.length === 0 ? (
-              <div className="rounded-[24px] bg-limestone-soft ring-1 ring-line p-6 text-center">
-                <p className="text-[13px] text-ink-soft">
-                  Nothing here yet. Log your first top-up to start building a
-                  history.
-                </p>
-              </div>
+            {linked ? (
+              <TransactionList transactions={pass.transactions} />
             ) : (
-              <ol className="rounded-[24px] bg-card ring-1 ring-line divide-y divide-line">
-                {pass.topups
-                  .slice()
-                  .sort((a, b) => b.at - a.at)
-                  .map((t) => (
-                    <li
-                      key={t.id}
-                      className="flex items-center justify-between p-4"
-                    >
-                      <div>
-                        <p className="text-[13px] text-ink">
-                          Top-up
-                        </p>
-                        <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                          {fullDate(t.at)}
-                        </p>
-                      </div>
-                      <span className="font-display text-2xl text-ink tabular-nums">
-                        +€{t.amountEur.toFixed(2)}
-                      </span>
-                    </li>
-                  ))}
-              </ol>
+              <TopupHistory pass={pass} />
             )}
           </section>
         </>
@@ -185,9 +313,105 @@ function WalletRoute() {
           pass={pass}
           onClose={() => setEditing("none")}
           onSave={update}
+          onLink={handleLink}
         />
       )}
     </AppShell>
+  );
+}
+
+function TopupHistory({ pass }: { pass: MotionPass }) {
+  return (
+    <>
+      <div className="flex items-end justify-between mb-3">
+        <h2 className="font-display text-2xl text-ink">Top-up history</h2>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+          {pass.topups.length} entries
+        </span>
+      </div>
+      {pass.topups.length === 0 ? (
+        <div className="rounded-[24px] bg-limestone-soft ring-1 ring-line p-6 text-center">
+          <p className="text-[13px] text-ink-soft">
+            Nothing here yet. Log your first top-up — or link your JCC account
+            above to auto-sync from the source.
+          </p>
+        </div>
+      ) : (
+        <ol className="rounded-[24px] bg-card ring-1 ring-line divide-y divide-line">
+          {pass.topups
+            .slice()
+            .sort((a, b) => b.at - a.at)
+            .map((t) => (
+              <li key={t.id} className="flex items-center justify-between p-4">
+                <div>
+                  <p className="text-[13px] text-ink">Top-up</p>
+                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                    {fullDate(t.at)}
+                  </p>
+                </div>
+                <span className="font-display text-2xl text-ink tabular-nums">
+                  +€{t.amountEur.toFixed(2)}
+                </span>
+              </li>
+            ))}
+        </ol>
+      )}
+    </>
+  );
+}
+
+function TransactionList({ transactions }: { transactions: MotionTxSnapshot[] }) {
+  return (
+    <>
+      <div className="flex items-end justify-between mb-3">
+        <h2 className="font-display text-2xl text-ink">Recent activity</h2>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+          Last 30 days
+        </span>
+      </div>
+      {transactions.length === 0 ? (
+        <div className="rounded-[24px] bg-limestone-soft ring-1 ring-line p-6 text-center">
+          <p className="text-[13px] text-ink-soft">
+            No activity in the last 30 days.
+          </p>
+        </div>
+      ) : (
+        <ol className="rounded-[24px] bg-card ring-1 ring-line divide-y divide-line">
+          {transactions.map((t) => {
+            const isTopup = t.type === "Topup";
+            const isPositive = isTopup || t.priceEur === 0;
+            return (
+              <li key={t.id} className="flex items-center justify-between p-4 gap-3">
+                <div className="min-w-0">
+                  <p className="text-[13px] text-ink truncate">
+                    {isTopup ? "Top-up" : t.typeName}
+                    {t.route && !isTopup ? (
+                      <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                        Route {t.route}
+                      </span>
+                    ) : null}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-ink-soft truncate">
+                    {t.stopName}
+                  </p>
+                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                    {fullDate(+new Date(t.at))}
+                  </p>
+                </div>
+                <span
+                  className={`font-display text-xl tabular-nums shrink-0 ${
+                    isPositive ? "text-aegean-deep" : "text-ink"
+                  }`}
+                >
+                  {isTopup ? "+" : t.priceEur > 0 ? "−" : ""}€
+                  {Math.abs(isTopup ? t.priceEur || 0 : t.priceEur).toFixed(2)}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </>
   );
 }
 
@@ -414,11 +638,13 @@ function PassSheet({
   pass,
   onClose,
   onSave,
+  onLink,
 }: {
-  mode: "card" | "balance" | "topup";
+  mode: SheetMode;
   pass: MotionPass;
   onClose: () => void;
   onSave: (p: MotionPass) => void;
+  onLink: (email: string, password: string) => Promise<string | null>;
 }) {
   const [number, setNumber] = useState(pass.number);
   const [holder, setHolder] = useState(pass.holder ?? "");
@@ -426,20 +652,30 @@ function PassSheet({
     pass.balanceEur > 0 ? pass.balanceEur.toFixed(2) : "",
   );
   const [topup, setTopup] = useState("");
+  const [email, setEmail] = useState(pass.jcc?.email ?? "");
+  const [password, setPassword] = useState("");
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [linking, setLinking] = useState(false);
 
   const title =
-    mode === "card" ? "Your Motion card" : mode === "balance" ? "Update balance" : "Log a top-up";
+    mode === "card"
+      ? "Your Motion card"
+      : mode === "balance"
+        ? "Update balance"
+        : mode === "topup"
+          ? "Log a top-up"
+          : "Link JCC Smart";
 
-  function save() {
+  async function save() {
     if (mode === "card") {
-      const clean = number.replace(/\D/g, "").slice(0, 10);
+      const clean = number.replace(/\D/g, "").slice(0, 16);
       onSave({ ...pass, number: clean, holder: holder.trim() });
     } else if (mode === "balance") {
       const v = parseFloat(balance);
       if (!isNaN(v) && v >= 0) {
         onSave({ ...pass, balanceEur: v, balanceUpdatedAt: Date.now() });
       }
-    } else {
+    } else if (mode === "topup") {
       const v = parseFloat(topup);
       if (!isNaN(v) && v > 0) {
         const now = Date.now();
@@ -447,11 +683,21 @@ function PassSheet({
           ...pass,
           balanceEur: pass.balanceEur + v,
           balanceUpdatedAt: now,
-          topups: [
-            ...pass.topups,
-            { id: String(now), amountEur: v, at: now },
-          ],
+          topups: [...pass.topups, { id: String(now), amountEur: v, at: now }],
         });
+      }
+    } else if (mode === "link") {
+      if (!email || !password) {
+        setLinkError("Email and password are required.");
+        return;
+      }
+      setLinking(true);
+      setLinkError(null);
+      const err = await onLink(email.trim(), password);
+      setLinking(false);
+      if (err) {
+        setLinkError(err);
+        return;
       }
     }
     onClose();
@@ -478,7 +724,7 @@ function PassSheet({
 
         {mode === "card" && (
           <div className="space-y-4">
-            <Field label="Card number (10 digits)">
+            <Field label="Card number">
               <input
                 inputMode="numeric"
                 autoFocus
@@ -553,16 +799,52 @@ function PassSheet({
           </div>
         )}
 
+        {mode === "link" && (
+          <div className="space-y-4">
+            <p className="text-[12px] text-ink-soft -mt-1">
+              We log in to JCC Smart on your behalf and pull your bus card
+              balance + recent activity. We keep only the session token on this
+              device — never your password.
+            </p>
+            <Field label="JCC Smart email">
+              <input
+                type="email"
+                autoFocus
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[15px] text-ink focus:outline-none focus:ring-aegean-deep/40"
+              />
+            </Field>
+            <Field label="Password">
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[15px] text-ink focus:outline-none focus:ring-aegean-deep/40"
+              />
+            </Field>
+            {linkError && (
+              <p className="text-[12px] text-destructive">{linkError}</p>
+            )}
+          </div>
+        )}
+
         <button
           onClick={save}
-          className="mt-6 w-full rounded-2xl bg-ink py-4 font-mono text-[11px] uppercase tracking-[0.22em] text-limestone hover:bg-ink/90 transition-colors"
+          disabled={linking}
+          className="mt-6 w-full rounded-2xl bg-ink py-4 font-mono text-[11px] uppercase tracking-[0.22em] text-limestone hover:bg-ink/90 transition-colors disabled:opacity-60"
         >
-          Save
+          {mode === "link" ? (linking ? "Linking…" : "Link account") : "Save"}
         </button>
       </div>
     </div>
   );
 }
+
 
 function Field({
   label,
