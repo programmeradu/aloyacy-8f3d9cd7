@@ -75,7 +75,24 @@ function StopDetail() {
       </header>
 
       <section className="px-6 animate-rise" style={{ animationDelay: "120ms" }}>
-        <MapPreview height="h-44" center={center} spanKm={3} />
+        <MapPreview
+          height="h-56"
+          center={center}
+          spanKm={2}
+          markers={
+            stop
+              ? ([
+                  { lat: stop.lat, lng: stop.lng, kind: "origin", label: stop.name },
+                ] as MapMarker[])
+              : undefined
+          }
+          restrictTripIds={departures.map((d) => d.tripId)}
+          liveLabel={{
+            active: `${departures.length} buses serving this stop`,
+            empty: "No buses near this stop right now",
+          }}
+          fitToContent={false}
+        />
       </section>
 
       <section
