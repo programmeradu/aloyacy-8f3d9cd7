@@ -215,10 +215,12 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
       <article
         className="relative aspect-[1.586/1] w-full overflow-hidden rounded-[28px] ring-1 ring-ink/15 shadow-[0_24px_60px_-28px_rgba(8,28,40,0.55)] transition-transform duration-500 ease-out group-hover:-translate-y-0.5"
         style={{
+          containerType: "inline-size",
           background:
             "linear-gradient(135deg, oklch(0.34 0.07 220) 0%, oklch(0.42 0.09 215) 45%, oklch(0.52 0.10 210) 100%)",
         }}
       >
+
         {/* Subtle topographic guilloche texture */}
         <svg
           className="absolute inset-0 size-full opacity-[0.16]"
