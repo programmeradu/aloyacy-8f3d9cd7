@@ -1,11 +1,12 @@
 // Edge-compatible Web Push sender (RFC 8291 aes128gcm + VAPID).
 // Uses only Web Crypto so it works on Cloudflare Workers / workerd.
 
-function b64urlDecode(input: string): Uint8Array {
+function b64urlDecode(input: string): Uint8Array<ArrayBuffer> {
   const pad = "=".repeat((4 - (input.length % 4)) % 4);
   const b64 = (input + pad).replace(/-/g, "+").replace(/_/g, "/");
   const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
+  const buf = new ArrayBuffer(bin.length);
+  const out = new Uint8Array(buf);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
 }
@@ -242,7 +243,7 @@ export async function sendWebPush(opts: {
       Urgency: opts.urgency ?? "normal",
       Authorization: `vapid t=${jwt}, k=${opts.vapidPublicKey}`,
     },
-    body,
+    body: body as BodyInit,
   });
 
   if (res.ok) return { ok: true, status: res.status };
