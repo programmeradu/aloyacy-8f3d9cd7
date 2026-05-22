@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as TripsRouteImport } from './routes/trips'
 import { Route as SavedRouteImport } from './routes/saved'
+import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
@@ -32,9 +34,19 @@ const SavedRoute = SavedRouteImport.update({
   path: '/saved',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PulseRoute = PulseRouteImport.update({
+  id: '/pulse',
+  path: '/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TripIdRoute = TripIdRouteImport.update({
+  id: '/trip/$id',
+  path: '/trip/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StopStopIdRoute = StopStopIdRouteImport.update({
@@ -55,29 +67,35 @@ const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/pulse': typeof PulseRoute
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
+  '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/pulse': typeof PulseRoute
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
+  '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/pulse': typeof PulseRoute
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
+  '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
 }
@@ -85,38 +103,46 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/pulse'
     | '/saved'
     | '/trips'
     | '/wallet'
     | '/stop/$stopId'
+    | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/snapshot'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/pulse'
     | '/saved'
     | '/trips'
     | '/wallet'
     | '/stop/$stopId'
+    | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/snapshot'
   id:
     | '__root__'
     | '/'
+    | '/pulse'
     | '/saved'
     | '/trips'
     | '/wallet'
     | '/stop/$stopId'
+    | '/trip/$id'
     | '/api/public/realtime'
     | '/api/public/snapshot'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PulseRoute: typeof PulseRoute
   SavedRoute: typeof SavedRoute
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
   StopStopIdRoute: typeof StopStopIdRoute
+  TripIdRoute: typeof TripIdRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
 }
@@ -144,11 +170,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SavedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pulse': {
+      id: '/pulse'
+      path: '/pulse'
+      fullPath: '/pulse'
+      preLoaderRoute: typeof PulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trip/$id': {
+      id: '/trip/$id'
+      path: '/trip/$id'
+      fullPath: '/trip/$id'
+      preLoaderRoute: typeof TripIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stop/$stopId': {
@@ -177,10 +217,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PulseRoute: PulseRoute,
   SavedRoute: SavedRoute,
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
   StopStopIdRoute: StopStopIdRoute,
+  TripIdRoute: TripIdRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
 }

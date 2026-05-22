@@ -1,47 +1,46 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { RouteChip } from "@/components/RouteChip";
-import { IconPin, IconArrowUpRight } from "@/components/Icons";
+import { IconPin, IconArrowUpRight, IconClock } from "@/components/Icons";
+import {
+  removeSavedPlace,
+  upsertSavedPlace,
+  useRecents,
+  useSavedPlaces,
+  type SavedPlace,
+} from "@/lib/trip-store";
 import coast from "@/assets/coast-hero.jpg";
 
 export const Route = createFileRoute("/saved")({
   head: () => ({
     meta: [
       { title: "Saved · Aloya" },
-      { name: "description", content: "Your places across Cyprus." },
+      { name: "description", content: "Your places and recent journeys across Cyprus." },
     ],
   }),
   component: Saved,
 });
 
-const places = [
-  {
-    label: "Home",
-    name: "Aglantzia, 14 Kyrenias",
-    routes: [
-      { code: "102", tone: "aegean" as const },
-      { code: "11", tone: "olive" as const },
-    ],
-    tone: "aegean",
-  },
-  {
-    label: "Office",
-    name: "GSP Stadium, Nicosia",
-    routes: [{ code: "150", tone: "aegean" as const }],
-    tone: "olive",
-  },
-  {
-    label: "Beach day",
-    name: "Finikoudes Promenade",
-    routes: [
-      { code: "425", tone: "ochre" as const },
-      { code: "IC-1", tone: "aegean" as const },
-    ],
-    tone: "ochre",
-  },
-];
+const TONE_CYCLE: SavedPlace["tone"][] = ["aegean", "ochre", "olive"];
 
 function Saved() {
+  const saved = useSavedPlaces();
+  const recents = useRecents();
+
+  function pinRecent(r: { id: string; name: string; lat: number; lng: number }, label: string) {
+    const tone = TONE_CYCLE[saved.length % 3];
+    upsertSavedPlace({
+      id: r.id,
+      label,
+      name: r.name,
+      lat: r.lat,
+      lng: r.lng,
+      tone,
+      pinned: true,
+      createdAt: Date.now(),
+    });
+  }
+
   return (
     <AppShell>
       <header className="px-6 pt-2 pb-5 animate-rise">
@@ -53,7 +52,6 @@ function Saved() {
         </h1>
       </header>
 
-      {/* Hero collection */}
       <section className="px-6 animate-rise" style={{ animationDelay: "80ms" }}>
         <div className="relative h-56 w-full overflow-hidden rounded-[28px] ring-1 ring-line">
           <img
@@ -67,61 +65,142 @@ function Saved() {
           <div className="absolute inset-0 bg-gradient-to-t from-ink/65 via-ink/15 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-5 text-limestone">
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] opacity-80">
-              Collection · 6 places
+              Collection · {saved.length} pinned
             </p>
             <h3 className="mt-1 font-display text-3xl italic leading-tight">
               Coastal weekends
             </h3>
             <p className="mt-1 text-[12px] opacity-80 max-w-[26ch]">
-              Larnaca, Paphos, Ayia Napa — the slow way around.
+              Pin a place once. Plan a trip to it from any screen, instantly.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Place list */}
-      <section
-        className="mt-7 px-6 animate-rise"
-        style={{ animationDelay: "140ms" }}
-      >
+      <section className="mt-7 px-6 animate-rise" style={{ animationDelay: "140ms" }}>
         <h2 className="font-display text-2xl text-ink mb-4">Pinned</h2>
-        <div className="flex flex-col gap-3">
-          {places.map((p) => (
+        {saved.length === 0 ? (
+          <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
+            <p className="font-display text-lg text-ink">No pins yet</p>
+            <p className="mt-1 text-[13px] text-ink-soft">
+              Plan a trip and pin the destination, or pick one from your recent
+              journeys below.
+            </p>
             <Link
-              key={p.name}
-              to="/stop/$stopId"
-              params={{ stopId: "412" }}
-              className="group flex items-center gap-4 rounded-3xl bg-card p-4 ring-1 ring-line transition-all hover:-translate-y-0.5 hover:ring-aegean/30"
+              to="/trips"
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-[12px] text-limestone"
             >
-              <span
-                className={`flex size-12 items-center justify-center rounded-2xl ${
-                  p.tone === "aegean"
-                    ? "bg-aegean-soft/60 text-aegean-deep"
-                    : p.tone === "ochre"
-                    ? "bg-ochre-soft/70 text-ochre"
-                    : "bg-olive/10 text-olive"
-                }`}
-              >
-                <IconPin className="size-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                  {p.label}
-                </p>
-                <p className="font-display text-lg leading-tight text-ink truncate">
-                  {p.name}
-                </p>
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  {p.routes.map((r) => (
-                    <RouteChip key={r.code} code={r.code} tone={r.tone} size="sm" />
-                  ))}
-                </div>
-              </div>
-              <IconArrowUpRight className="size-4 text-ink-soft group-hover:text-aegean-deep transition-colors" />
+              Plan a trip
+              <IconArrowUpRight className="size-3.5" />
             </Link>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {saved.map((p) => (
+              <div
+                key={p.id}
+                className="group flex items-center gap-4 rounded-3xl bg-card p-4 ring-1 ring-line"
+              >
+                <span
+                  className={`flex size-12 items-center justify-center rounded-2xl ${
+                    p.tone === "aegean"
+                      ? "bg-aegean-soft/60 text-aegean-deep"
+                      : p.tone === "ochre"
+                      ? "bg-ochre-soft/70 text-ochre"
+                      : "bg-olive/10 text-olive"
+                  }`}
+                >
+                  <IconPin className="size-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                    {p.label}
+                  </p>
+                  <p className="font-display text-lg leading-tight text-ink truncate">
+                    {p.name}
+                  </p>
+                </div>
+                <button
+                  onClick={() => removeSavedPlace(p.id)}
+                  className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft hover:text-ink"
+                >
+                  Unpin
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mt-8 px-6 pb-2 animate-rise" style={{ animationDelay: "200ms" }}>
+        <h2 className="font-display text-2xl text-ink mb-4">Recent</h2>
+        {recents.length === 0 ? (
+          <div className="rounded-3xl bg-card p-5 ring-1 ring-line text-[13px] text-ink-soft">
+            Your last few destinations will appear here.
+          </div>
+        ) : (
+          <div className="rounded-3xl bg-card ring-1 ring-line divide-y divide-line overflow-hidden">
+            {recents.map((r) => (
+              <RecentRow key={r.id} r={r} onPin={pinRecent} />
+            ))}
+          </div>
+        )}
       </section>
     </AppShell>
+  );
+}
+
+function RecentRow({
+  r,
+  onPin,
+}: {
+  r: { id: string; name: string; lat: number; lng: number; lastUsed: number };
+  onPin: (r: { id: string; name: string; lat: number; lng: number }, label: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [label, setLabel] = useState("Favourite");
+  const when = new Date(r.lastUsed).toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+  });
+  return (
+    <div className="flex items-center gap-3 p-4">
+      <IconClock className="size-4 text-ink-soft shrink-0" />
+      <div className="min-w-0 flex-1">
+        <p className="font-display text-base leading-tight text-ink truncate">
+          {r.name}
+        </p>
+        <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+          {when}
+        </p>
+      </div>
+      {editing ? (
+        <div className="flex items-center gap-2">
+          <input
+            autoFocus
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            className="w-24 rounded-lg bg-limestone-soft px-2 py-1 text-[12px] outline-none ring-1 ring-line"
+            placeholder="Home"
+          />
+          <button
+            onClick={() => {
+              onPin(r, label.trim() || "Favourite");
+              setEditing(false);
+            }}
+            className="font-mono text-[10px] uppercase tracking-[0.18em] text-aegean-deep"
+          >
+            Save
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => setEditing(true)}
+          className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
+        >
+          Pin
+        </button>
+      )}
+    </div>
   );
 }

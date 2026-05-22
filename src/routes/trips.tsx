@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
@@ -8,6 +8,12 @@ import { autocompletePlaces, getPlace, reverseLookup } from "@/lib/maps.function
 import { planTrip } from "@/lib/journey.functions";
 import type { JourneyOption } from "@/lib/journey.server";
 import { NICOSIA_CENTER, routeTone } from "@/lib/gtfs";
+import {
+  pushRecent,
+  setActiveTrip,
+  useRecents,
+  useSavedPlaces,
+} from "@/lib/trip-store";
 import planHero from "@/assets/plan-hero.jpg";
 
 export const Route = createFileRoute("/trips")({
@@ -90,6 +96,7 @@ function Plan() {
       setActive(destination ? null : "to");
     } else {
       setDestination(point);
+      pushRecent({ name: point.label, lat: point.lat, lng: point.lng });
       if (origin) void runPlan(origin, point);
       setActive(origin ? null : "from");
     }
@@ -189,10 +196,16 @@ function Plan() {
           </div>
         )}
 
-        {results && results.length > 0 && (
+        {results && results.length > 0 && origin && destination && (
           <div className="flex flex-col gap-3">
             {results.map((opt, i) => (
-              <JourneyCard key={opt.id} option={opt} highlight={i === 0} />
+              <JourneyCard
+                key={opt.id}
+                option={opt}
+                highlight={i === 0}
+                origin={origin}
+                destination={destination}
+              />
             ))}
           </div>
         )}
@@ -371,41 +384,121 @@ function PlacesPicker({
           </span>
         )}
       </div>
-      {suggestions.length > 0 && (
-        <ul className="divide-y divide-line">
-          {suggestions.slice(0, 6).map((s) => (
-            <li key={s.placeId}>
-              <button
-                onClick={() => choose(s.placeId)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-limestone-soft"
-              >
-                <IconPin className="size-4 text-aegean-deep shrink-0" />
-                <div className="min-w-0">
-                  <p className="truncate text-[14px] font-medium text-ink">
-                    {s.primary}
-                  </p>
-                  {s.secondary && (
-                    <p className="truncate text-[11px] text-ink-soft">
-                      {s.secondary}
+      {query.trim().length < 2 ? (
+        <QuickPicks role={role} onChoose={(p) => onPick(p, role)} />
+      ) : (
+        suggestions.length > 0 && (
+          <ul className="divide-y divide-line">
+            {suggestions.slice(0, 6).map((s) => (
+              <li key={s.placeId}>
+                <button
+                  onClick={() => choose(s.placeId)}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-limestone-soft"
+                >
+                  <IconPin className="size-4 text-aegean-deep shrink-0" />
+                  <div className="min-w-0">
+                    <p className="truncate text-[14px] font-medium text-ink">
+                      {s.primary}
                     </p>
-                  )}
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
+                    {s.secondary && (
+                      <p className="truncate text-[11px] text-ink-soft">
+                        {s.secondary}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )
       )}
     </div>
   );
 }
 
+function QuickPicks({
+  role,
+  onChoose,
+}: {
+  role: "from" | "to";
+  onChoose: (p: Point) => void;
+}) {
+  const saved = useSavedPlaces();
+  const recents = useRecents();
+  if (saved.length === 0 && recents.length === 0) return null;
+  return (
+    <div className="border-t border-line p-4 space-y-4">
+      {saved.length > 0 && (
+        <div>
+          <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
+            Pinned
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {saved.map((p) => (
+              <button
+                key={p.id}
+                onClick={() =>
+                  onChoose({ lat: p.lat, lng: p.lng, label: p.name })
+                }
+                className="rounded-full bg-limestone-soft px-3.5 py-2 text-[12px] text-ink hover:bg-aegean-soft/60"
+              >
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft mr-1.5">
+                  {p.label}
+                </span>
+                {p.name.length > 24 ? `${p.name.slice(0, 24)}…` : p.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {recents.length > 0 && role === "to" && (
+        <div>
+          <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
+            Recent
+          </p>
+          <ul className="divide-y divide-line">
+            {recents.slice(0, 5).map((r) => (
+              <li key={r.id}>
+                <button
+                  onClick={() =>
+                    onChoose({ lat: r.lat, lng: r.lng, label: r.name })
+                  }
+                  className="flex w-full items-center gap-3 py-2.5 text-left"
+                >
+                  <IconClock className="size-4 text-ink-soft shrink-0" />
+                  <span className="truncate text-[13px] text-ink">{r.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function JourneyCard({
   option,
   highlight,
+  origin,
+  destination,
 }: {
   option: JourneyOption;
   highlight: boolean;
+  origin: Point;
+  destination: Point;
 }) {
+  const navigate = useNavigate();
+  function start() {
+    setActiveTrip({
+      startedAt: Date.now(),
+      option,
+      from: origin,
+      to: destination,
+    });
+    void navigate({ to: "/trip/$id", params: { id: option.id } });
+  }
   const bus = option.legs.find((l) => l.kind === "bus");
   if (!bus || bus.kind !== "bus") return null;
   const totalMin = Math.round(option.totalDurationSec / 60);
@@ -520,6 +613,7 @@ function JourneyCard({
       </ol>
 
       <button
+        onClick={start}
         className={`mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors ${
           highlight
             ? "bg-ink text-limestone hover:bg-ink/90"
