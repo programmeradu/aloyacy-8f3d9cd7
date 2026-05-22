@@ -62,6 +62,18 @@ const SANS_BOLD = "Geist_700Bold";
 const MONO = "Geist_700Bold";
 const EYEBROW = "Geist_700Bold";
 
+const THEME_HERO: Record<TodayTheme, { uri: string }> = {
+  derby: assets.today_derby,
+  festival: assets.today_festival,
+  holiday: assets.today_calm,
+  cruise: assets.today_cruise,
+  heatwave: assets.today_heatwave,
+  storm: assets.today_storm,
+  calm: assets.today_calm,
+};
+
+
+
 export default function PulseScreen() {
   const insets = useSafeAreaInsets();
   const { fix } = useGeoFix();
