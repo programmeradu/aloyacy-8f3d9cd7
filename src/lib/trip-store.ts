@@ -74,6 +74,16 @@ export function clearActiveTrip() {
 export function getActiveTrip(): ActiveTrip | null {
   return read<ActiveTrip>(ACTIVE_KEY);
 }
+export function patchActiveTripLive(patch: Partial<LiveTripState>) {
+  const cur = getActiveTrip();
+  if (!cur) return;
+  const live: LiveTripState = {
+    startedAt: cur.live?.startedAt ?? Date.now(),
+    ...cur.live,
+    ...patch,
+  };
+  setActiveTrip({ ...cur, live });
+}
 
 // ---------- saved places ----------
 export function listSavedPlaces(): SavedPlace[] {
