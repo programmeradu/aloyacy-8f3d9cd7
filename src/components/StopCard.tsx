@@ -23,15 +23,21 @@ export function StopCard({ stop }: { stop: Stop }) {
       params={{ stopId: stop.id }}
       className="group relative block overflow-hidden rounded-3xl bg-card p-5 ring-1 ring-line transition-all hover:ring-aegean/30 hover:-translate-y-0.5"
     >
-      {/* Painted olive sprig — Cyprus signifier, low opacity, doesn't compete */}
+      {/* Painted olive sprig — Cyprus signifier, anchored to bottom-left corner so it doesn't fight the ETA column */}
       <img
         src={oliveSprig}
         alt=""
         aria-hidden="true"
         loading="lazy"
-        className={`pointer-events-none select-none absolute -right-8 -bottom-10 w-48 rotate-[18deg] transition-opacity ${
-          stop.highlight ? "opacity-[0.32]" : "opacity-[0.22]"
-        } group-hover:opacity-[0.4]`}
+        className={`pointer-events-none select-none absolute -left-10 -bottom-12 w-44 -rotate-[18deg] transition-opacity ${
+          stop.highlight ? "opacity-[0.28]" : "opacity-[0.18]"
+        } group-hover:opacity-[0.36]`}
+        style={{
+          maskImage:
+            "radial-gradient(120% 100% at 0% 100%, oklch(0 0 0) 40%, transparent 80%)",
+          WebkitMaskImage:
+            "radial-gradient(120% 100% at 0% 100%, oklch(0 0 0) 40%, transparent 80%)",
+        }}
       />
 
       <div className="relative flex items-start justify-between gap-4">
