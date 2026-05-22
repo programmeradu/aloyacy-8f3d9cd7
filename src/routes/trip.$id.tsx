@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconClock, IconPin } from "@/components/Icons";
-import { StreetViewPane } from "@/components/StreetViewPane";
+// StreetViewPane removed — replaced by an on-brand mini map per step.
 import { useRealtime } from "@/lib/useRealtime";
 import { useActiveTrip, clearActiveTrip } from "@/lib/trip-store";
 import { routeTone } from "@/lib/gtfs";
