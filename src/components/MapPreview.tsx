@@ -61,6 +61,8 @@ export function MapPreview({
   polyline,
   markers,
   liveVehicles = true,
+  focusTripId,
+  focusRouteId,
   fitToContent,
 }: Props) {
   const { api, error } = useGoogleMaps();
