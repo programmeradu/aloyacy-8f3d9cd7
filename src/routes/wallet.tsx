@@ -797,6 +797,24 @@ function PassSheet({
                 className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[15px] text-ink focus:outline-none focus:ring-aegean-deep/40"
               />
             </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Tier">
+                <input
+                  value={tier}
+                  onChange={(e) => setTier(e.target.value)}
+                  placeholder="18+ Standard"
+                  className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[14px] text-ink focus:outline-none focus:ring-aegean-deep/40"
+                />
+              </Field>
+              <Field label="Valid until">
+                <input
+                  value={validUntil}
+                  onChange={(e) => setValidUntil(e.target.value)}
+                  placeholder="07/05/2036"
+                  className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 font-mono text-[14px] text-ink focus:outline-none focus:ring-aegean-deep/40"
+                />
+              </Field>
+            </div>
             <p className="text-[11px] text-ink-soft">
               The masked card on display: {maskedNumber(number)}
             </p>
