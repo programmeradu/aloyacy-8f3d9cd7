@@ -292,8 +292,25 @@ function TodayHero({
   focus: TodayBriefing["focus"];
 }) {
   return (
-    <View style={{ height: 172, backgroundColor: heroBg(theme) }}>
-      <HeroArt theme={theme} />
+    <View style={{ height: 200, backgroundColor: heroBg(theme), overflow: "hidden" }}>
+      <Image
+        source={THEME_HERO[theme] ?? assets.today_calm}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      />
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: "55%",
+          backgroundColor: palette.white,
+          opacity: 0.35,
+        }}
+      />
+
       <View
         style={{
           position: "absolute",
