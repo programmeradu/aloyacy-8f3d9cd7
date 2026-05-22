@@ -223,7 +223,7 @@ function TodaySection({ briefing }: { briefing: TodayBriefing }) {
 
       {briefing.tiles.length > 0 && (
         <View style={{ marginTop: 20 }}>
-          <Eyebrow>Today around the island</Eyebrow>
+          <Eyebrow>On the island right now</Eyebrow>
           <View style={{ gap: 12, marginTop: 10 }}>
             {briefing.tiles.map((t, i) => (
               <TileCard key={i} tile={t} />
@@ -232,22 +232,39 @@ function TodaySection({ briefing }: { briefing: TodayBriefing }) {
         </View>
       )}
 
+      {/* Editor's note — aegean-tinted card with an oversized opening quote */}
       <View
         style={{
           marginTop: 20,
           borderRadius: 22,
-          padding: 20,
+          padding: 22,
+          paddingTop: 20,
           backgroundColor: "rgba(31,108,130,0.06)",
           borderWidth: 1,
           borderColor: "rgba(31,108,130,0.18)",
+          overflow: "hidden",
         }}
       >
-        <Eyebrow tone="aegean">Verdict</Eyebrow>
+        <Text
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: -18,
+            left: 12,
+            fontFamily: DISPLAY,
+            fontSize: 88,
+            lineHeight: 88,
+            color: "rgba(31,108,130,0.18)",
+          }}
+        >
+          {"\u201C"}
+        </Text>
+        <Eyebrow tone="aegean">Editor's note</Eyebrow>
         <Text
           style={{
-            marginTop: 6,
-            fontFamily: DISPLAY_MED,
-            fontSize: 17,
+            marginTop: 8,
+            fontFamily: DISPLAY,
+            fontSize: 18,
             lineHeight: 24,
             color: palette.ink,
           }}
@@ -265,24 +282,33 @@ function TodaySection({ briefing }: { briefing: TodayBriefing }) {
         />
       </View>
 
+      {/* Did you know / For visitors — glyphed fact card */}
       <View
         style={{
           marginTop: 14,
-          borderRadius: 20,
-          padding: 18,
+          borderRadius: 22,
+          padding: 20,
+          paddingRight: 92,
           backgroundColor: palette.white,
           borderWidth: 1,
           borderColor: palette.line,
+          overflow: "hidden",
         }}
       >
+        <View style={{ position: "absolute", right: -8, top: -8, opacity: 0.85 }}>
+          <TileGlyph
+            kind={briefing.fact.tag === "tourist" ? "festival" : "nameday"}
+            color={briefing.fact.tag === "tourist" ? palette.aegeanDeep : palette.ochre}
+          />
+        </View>
         <Eyebrow tone={briefing.fact.tag === "tourist" ? "aegean" : "ochre"}>
-          {briefing.fact.tag === "tourist" ? "For visitors" : "Local lore"}
+          {briefing.fact.tag === "tourist" ? "For visitors" : "Did you know"}
         </Eyebrow>
         <Text
           style={{
-            marginTop: 6,
-            fontFamily: DISPLAY_MED,
-            fontSize: 15.5,
+            marginTop: 8,
+            fontFamily: DISPLAY,
+            fontSize: 16,
             lineHeight: 22,
             color: palette.ink,
           }}
@@ -615,6 +641,101 @@ function TileGlyph({ kind, color }: { kind: TodayTile["kind"]; color: string }) 
   );
 }
 
+/**
+ * Bespoke Greek word glyph — mirrors the web GreekWordGlyph. Categorises
+ * the word by meaning (greeting, courtesy, transit, food, place, vibe) and
+ * renders a matching Cypriot motif with an ochre wash. Sits behind the
+ * card content so numerals and letters stay the hero.
+ */
+type GreekCategory = "greeting" | "courtesy" | "transit" | "food" | "place" | "vibe";
+const GREEK_CATEGORY: Record<string, GreekCategory> = {
+  "Καλημέρα": "greeting", "Καλησπέρα": "greeting", "Γεια σου": "greeting",
+  "Καλώς ήρθες": "greeting", "Καληνύχτα": "greeting",
+  "Ευχαριστώ": "courtesy", "Παρακαλώ": "courtesy", "Συγγνώμη": "courtesy",
+  "Ναι": "courtesy", "Όχι": "courtesy",
+  "Στάση": "transit", "Λεωφορείο": "transit", "Εισιτήριο": "transit", "Ένα λεπτό": "transit",
+  "Καφές": "food", "Χαλλούμι": "food", "Σούβλα": "food", "Νόστιμο": "food",
+  "Φέρτε μου": "food", "Λογαριασμό": "food", "Στην υγειά σου": "food",
+  "Παραλία": "place", "Νερό": "place", "Πού είναι;": "place",
+};
+
+function GreekWordGlyph({ word }: { word: string }) {
+  const cat: GreekCategory = GREEK_CATEGORY[word] ?? "vibe";
+  const size = 128;
+  const ochre = palette.ochre;
+  const olive = palette.olive;
+  const aegean = palette.aegeanDeep;
+  const ink = palette.ink;
+  const card = palette.white;
+
+  const wash = (
+    <Defs>
+      <SvgLinearGradient id={`gw-${cat}`} x1="1" y1="0" x2="0" y2="1">
+        <SvgStop offset="0" stopColor={ochre} stopOpacity="0.4" />
+        <SvgStop offset="1" stopColor={ochre} stopOpacity="0" />
+      </SvgLinearGradient>
+    </Defs>
+  );
+
+  return (
+    <Svg width={size} height={size} viewBox="0 0 128 128">
+      {wash}
+      <Rect x="0" y="0" width="128" height="128" fill={`url(#gw-${cat})`} />
+      {cat === "greeting" && (
+        <G>
+          <Circle cx={86} cy={46} r={18} fill={ochre} opacity={0.85} />
+          <Circle cx={86} cy={46} r={26} stroke={ochre} strokeWidth={1} fill="none" opacity={0.35} />
+          <Path d="M0 92 Q32 70 60 86 Q92 104 128 80 L128 128 L0 128 Z" fill={olive} opacity={0.2} />
+          <Path d="M0 104 Q40 88 76 100 Q104 110 128 96 L128 128 L0 128 Z" fill={olive} opacity={0.55} />
+        </G>
+      )}
+      {cat === "courtesy" && (
+        <G>
+          <Path d="M64 38 Q88 50 90 70 Q88 92 64 102" stroke={olive} strokeWidth={1.4} fill="none" opacity={0.6} />
+          <Path d="M64 38 Q40 50 38 70 Q40 92 64 102" stroke={olive} strokeWidth={1.4} fill="none" opacity={0.6} />
+          <Circle cx={64} cy={70} r={3} fill={olive} opacity={0.8} />
+        </G>
+      )}
+      {cat === "transit" && (
+        <G>
+          <Rect x={20} y={50} width={80} height={38} rx={8} fill={aegean} opacity={0.85} />
+          <Rect x={26} y={56} width={20} height={14} rx={2} fill={card} opacity={0.9} />
+          <Rect x={50} y={56} width={20} height={14} rx={2} fill={card} opacity={0.9} />
+          <Rect x={74} y={56} width={20} height={14} rx={2} fill={card} opacity={0.9} />
+          <Circle cx={36} cy={92} r={7} fill={ink} opacity={0.85} />
+          <Circle cx={86} cy={92} r={7} fill={ink} opacity={0.85} />
+        </G>
+      )}
+      {cat === "food" && (
+        <G>
+          <Path d="M40 70 L88 70 L84 100 Q84 106 78 106 L50 106 Q44 106 44 100 Z" fill={olive} opacity={0.85} />
+          <Path d="M88 76 Q102 76 102 86 Q102 96 88 96" stroke={olive} strokeWidth={2.5} fill="none" opacity={0.7} />
+          <Path d="M52 60 Q56 50 52 40 Q48 30 52 22" stroke={ink} strokeWidth={1.5} fill="none" opacity={0.4} strokeLinecap="round" />
+          <Path d="M64 60 Q68 50 64 40 Q60 30 64 22" stroke={ink} strokeWidth={1.5} fill="none" opacity={0.32} strokeLinecap="round" />
+          <Path d="M76 60 Q80 50 76 40 Q72 30 76 22" stroke={ink} strokeWidth={1.5} fill="none" opacity={0.24} strokeLinecap="round" />
+        </G>
+      )}
+      {cat === "place" && (
+        <G>
+          <Circle cx={90} cy={40} r={14} fill={ochre} opacity={0.85} />
+          <Path d="M0 64 Q16 60 32 64 Q48 68 64 64 Q80 60 96 64 Q112 68 128 64" stroke={aegean} strokeWidth={1.6} fill="none" opacity={0.7} />
+          <Path d="M0 78 Q16 74 32 78 Q48 82 64 78 Q80 74 96 78 Q112 82 128 78" stroke={aegean} strokeWidth={1.6} fill="none" opacity={0.55} />
+          <Path d="M0 92 Q16 88 32 92 Q48 96 64 92 Q80 88 96 92 Q112 96 128 92" stroke={aegean} strokeWidth={1.6} fill="none" opacity={0.4} />
+        </G>
+      )}
+      {cat === "vibe" && (
+        <G>
+          <Path d="M20 100 Q54 72 102 32" stroke={olive} strokeWidth={2} fill="none" strokeLinecap="round" opacity={0.85} />
+          <Circle cx={46} cy={78} r={3} fill={ink} opacity={0.65} />
+          <Circle cx={68} cy={62} r={3} fill={ink} opacity={0.55} />
+          <Circle cx={86} cy={46} r={3} fill={ink} opacity={0.7} />
+        </G>
+      )}
+    </Svg>
+  );
+}
+
+
 function GreekWordCard({
   el,
   translit,
@@ -671,11 +792,19 @@ function GreekWordCard({
       style={{
         borderRadius: 22,
         padding: 22,
+        paddingRight: 24,
         backgroundColor: palette.white,
         borderWidth: 1,
         borderColor: palette.line,
+        overflow: "hidden",
       }}
     >
+      <View
+        pointerEvents="none"
+        style={{ position: "absolute", right: -12, top: -12, opacity: 0.9 }}
+      >
+        <GreekWordGlyph word={el} />
+      </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
         <Text
           style={{
