@@ -695,6 +695,8 @@ function PassSheet({
 }) {
   const [number, setNumber] = useState(pass.number);
   const [holder, setHolder] = useState(pass.holder ?? "");
+  const [tier, setTier] = useState(pass.tier ?? "");
+  const [validUntil, setValidUntil] = useState(pass.validUntil ?? "");
   const [balance, setBalance] = useState(
     pass.balanceEur > 0 ? pass.balanceEur.toFixed(2) : "",
   );
@@ -716,7 +718,13 @@ function PassSheet({
   async function save() {
     if (mode === "card") {
       const clean = number.replace(/\D/g, "").slice(0, 16);
-      onSave({ ...pass, number: clean, holder: holder.trim() });
+      onSave({
+        ...pass,
+        number: clean,
+        holder: holder.trim(),
+        tier: tier.trim() || undefined,
+        validUntil: validUntil.trim() || undefined,
+      });
     } else if (mode === "balance") {
       const v = parseFloat(balance);
       if (!isNaN(v) && v >= 0) {
