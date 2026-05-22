@@ -248,6 +248,8 @@ function TripCompanion() {
           polyline={directions?.polyline}
           markers={mapMarkers}
           liveVehicles
+          focusTripId={bus.tripId}
+          focusRouteId={bus.routeId}
         />
       </section>
 
