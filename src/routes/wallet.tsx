@@ -454,15 +454,15 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
           draggable={false}
         />
 
-        {/* QR in the photo slot (right side) */}
+        {/* QR sits inside the printed photo square (top-right) */}
         <div
           className="absolute bg-white"
           style={{
-            top: "19%",
-            right: "8%",
-            width: "21%",
-            aspectRatio: "1 / 1.15",
-            padding: "3%",
+            top: "17%",
+            left: "58%",
+            width: "36%",
+            height: "56%",
+            padding: "2.2%",
           }}
           aria-label="Card QR for kiosk lookup"
         >
@@ -476,49 +476,54 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
           )}
         </div>
 
-        {/* Holder name (printed across the middle whitespace) */}
+        {/* Holder name — clean band just under the "BUS CARD" wordmark */}
         <div
           className="absolute"
-          style={{ top: "38%", left: "6%", right: "34%" }}
+          style={{ top: "37%", left: "5%", right: "45%" }}
         >
           <p
-            className="font-sans font-semibold truncate"
+            className="font-sans font-semibold truncate uppercase"
             style={{
-              fontSize: "clamp(11px, 3.4cqw, 18px)",
+              fontSize: "clamp(9px, 2.9cqw, 15px)",
               color: hasCard ? "#9b1c1c" : "#9b1c1c80",
-              letterSpacing: "0.02em",
+              letterSpacing: "0.03em",
+              lineHeight: 1,
             }}
           >
             {holderName}
           </p>
           <p
-            className="mt-[1cqw] font-sans"
+            className="mt-[1.4cqw] font-sans font-medium uppercase truncate"
             style={{
-              fontSize: "clamp(8px, 2.3cqw, 12px)",
+              fontSize: "clamp(7px, 2.1cqw, 11px)",
               color: "#1a2a6c",
-              letterSpacing: "0.04em",
+              letterSpacing: "0.06em",
+              lineHeight: 1,
             }}
           >
             {tierLabel}
           </p>
         </div>
 
-        {/* Valid Until date — sits right under the printed label */}
+        {/* Valid Until date — directly under the printed "Ισχύει Μέχρι / Valid Until:" label */}
         <div
-          className="absolute"
-          style={{ top: "60%", left: "36%" }}
+          className="absolute text-center"
+          style={{ top: "68%", left: "33%", width: "24%" }}
         >
           <p
             className="font-mono font-semibold"
             style={{
-              fontSize: "clamp(9px, 2.6cqw, 13px)",
+              fontSize: "clamp(8px, 2.4cqw, 12px)",
               color: "#1a2a6c",
               letterSpacing: "0.04em",
+              lineHeight: 1,
             }}
           >
             {validUntil}
           </p>
         </div>
+
+
 
 
         {/* Subtle gloss to sell the plastic */}
