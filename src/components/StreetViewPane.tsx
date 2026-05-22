@@ -51,12 +51,12 @@ export function StreetViewPane({ lat, lng, heading, className }: Props) {
   }, [api, lat, lng, heading]);
 
   return (
-    <div className={`relative bg-limestone-soft ${className ?? ""}`}>
+    <div className={`relative overflow-hidden bg-aegean-soft ${className ?? ""}`}>
       <div ref={elRef} className="absolute inset-0" />
       {status !== "ok" && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft/70">
-            {status === "loading" ? "Loading view" : "No street view"}
+        <div className="absolute inset-0 flex items-center justify-center bg-aegean-soft">
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
+            {status === "loading" ? "Loading street view…" : "Street view unavailable"}
           </span>
         </div>
       )}

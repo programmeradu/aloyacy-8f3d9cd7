@@ -134,11 +134,18 @@ function TripCompanion() {
   if (!view) return null;
   const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard, minToAlight, minToDoor } = view;
 
-  // Live Google walking directions for the relevant leg
-  const preBus = phase === "leave-soon" || phase === "walking" || phase === "waiting";
-  const walkLeg = preBus ? walkIn : walkOut;
-  const walkFrom = walkLeg.kind === "walk" ? walkLeg.from : null;
-  const walkTo = walkLeg.kind === "walk" ? walkLeg.to : null;
+  // Walking turn-by-turn only makes sense BEFORE boarding (walk to stop)
+  // and AFTER alighting (walk to destination). While on the bus we hide it
+  // entirely and lean on the live bus tracker + alight alert.
+  const walkingPhase: "to-stop" | "to-dest" | null =
+    phase === "leave-soon" || phase === "walking" || phase === "waiting"
+      ? "to-stop"
+      : phase === "arrived"
+        ? "to-dest"
+        : null;
+  const walkLeg = walkingPhase === "to-stop" ? walkIn : walkingPhase === "to-dest" ? walkOut : null;
+  const walkFrom = walkLeg && walkLeg.kind === "walk" ? walkLeg.from : null;
+  const walkTo = walkLeg && walkLeg.kind === "walk" ? walkLeg.to : null;
 
   const fetchDirections = useServerFn(getWalkingDirections);
   const { data: dir } = useQuery({
@@ -150,19 +157,25 @@ function TripCompanion() {
       }),
     staleTime: 10 * 60 * 1000,
   });
-  const directions = dir?.directions ?? null;
+  const directions = walkingPhase ? dir?.directions ?? null : null;
 
   const mapMarkers: MapMarker[] = useMemo(() => {
     const out: MapMarker[] = [];
-    if (preBus && walkIn.kind === "walk") {
+    if (walkingPhase === "to-stop" && walkIn.kind === "walk") {
       out.push({ lat: walkIn.from.lat, lng: walkIn.from.lng, kind: "origin", label: active.from.label });
       out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
-    } else if (!preBus && walkOut.kind === "walk") {
+    } else if (walkingPhase === "to-dest" && walkOut.kind === "walk") {
       out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "stop", label: bus.alight.name });
       out.push({ lat: walkOut.to.lat, lng: walkOut.to.lng, kind: "destination", label: active.to.label });
+    } else {
+      // On the bus: show board + alight stops so the user can watch the bus advance.
+      if (walkIn.kind === "walk")
+        out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
+      if (walkOut.kind === "walk")
+        out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "destination", label: bus.alight.name });
     }
     return out;
-  }, [preBus, active, bus, walkIn, walkOut]);
+  }, [walkingPhase, active, bus, walkIn, walkOut]);
 
   return (
     <AppShell>
@@ -246,7 +259,7 @@ function TripCompanion() {
         >
           <div className="flex items-end justify-between mb-3">
             <h2 className="font-display text-2xl text-ink">
-              {preBus ? "Walk to the stop" : "Walk to destination"}
+              {walkingPhase === "to-stop" ? "Walk to the stop" : "Walk to destination"}
             </h2>
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
               {Math.round(directions.durationSec / 60)} min ·{" "}
@@ -317,18 +330,35 @@ function TripCompanion() {
         </ol>
       </section>
 
-      {/* Alight banner */}
-      {phase === "alight-soon" && (
+      {/* Alight alert — surfaces a couple of minutes before the stop so the
+          rider has time to reach the bell. Pulses once it's truly imminent. */}
+      {(phase === "alight-soon" || (phase === "on-bus" && minToAlight <= 3)) && (
         <section className="mt-5 px-6 animate-rise">
-          <div className="rounded-[28px] bg-ochre-soft p-5 ring-1 ring-ochre/30">
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-              Step off next
-            </p>
+          <div
+            className={`rounded-[28px] p-5 ring-1 transition-colors ${
+              phase === "alight-soon"
+                ? "bg-ochre-soft ring-ochre/40"
+                : "bg-ochre-soft/60 ring-ochre/25"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+                {phase === "alight-soon" ? "Press the stop button now" : `Get ready · ${Math.max(0, minToAlight)} min`}
+              </p>
+              {phase === "alight-soon" && (
+                <span className="relative flex size-2.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-ochre opacity-60" />
+                  <span className="relative inline-flex size-2.5 rounded-full bg-ochre" />
+                </span>
+              )}
+            </div>
             <p className="mt-1 font-display text-[26px] leading-tight text-ink">
               {bus.alight.name}
             </p>
             <p className="mt-1 text-[13px] text-ink-soft">
-              Press the bell. Then it's a short walk to {active.to.label}.
+              {phase === "alight-soon"
+                ? `Pull the cord, head to the doors. We'll guide you turn-by-turn to ${active.to.label} once you're off.`
+                : `Move toward the doors and find the stop button. ${Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60)} min walk waits on the other side.`}
             </p>
           </div>
         </section>
