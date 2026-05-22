@@ -223,7 +223,7 @@ function TodaySection({ briefing }: { briefing: TodayBriefing }) {
 
       {briefing.tiles.length > 0 && (
         <View style={{ marginTop: 20 }}>
-          <Eyebrow>Today around the island</Eyebrow>
+          <Eyebrow>On the island right now</Eyebrow>
           <View style={{ gap: 12, marginTop: 10 }}>
             {briefing.tiles.map((t, i) => (
               <TileCard key={i} tile={t} />
@@ -232,22 +232,39 @@ function TodaySection({ briefing }: { briefing: TodayBriefing }) {
         </View>
       )}
 
+      {/* Editor's note — aegean-tinted card with an oversized opening quote */}
       <View
         style={{
           marginTop: 20,
           borderRadius: 22,
-          padding: 20,
+          padding: 22,
+          paddingTop: 20,
           backgroundColor: "rgba(31,108,130,0.06)",
           borderWidth: 1,
           borderColor: "rgba(31,108,130,0.18)",
+          overflow: "hidden",
         }}
       >
-        <Eyebrow tone="aegean">Verdict</Eyebrow>
+        <Text
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: -18,
+            left: 12,
+            fontFamily: DISPLAY,
+            fontSize: 88,
+            lineHeight: 88,
+            color: "rgba(31,108,130,0.18)",
+          }}
+        >
+          {"\u201C"}
+        </Text>
+        <Eyebrow tone="aegean">Editor's note</Eyebrow>
         <Text
           style={{
-            marginTop: 6,
-            fontFamily: DISPLAY_MED,
-            fontSize: 17,
+            marginTop: 8,
+            fontFamily: DISPLAY,
+            fontSize: 18,
             lineHeight: 24,
             color: palette.ink,
           }}
@@ -265,24 +282,33 @@ function TodaySection({ briefing }: { briefing: TodayBriefing }) {
         />
       </View>
 
+      {/* Did you know / For visitors — glyphed fact card */}
       <View
         style={{
           marginTop: 14,
-          borderRadius: 20,
-          padding: 18,
+          borderRadius: 22,
+          padding: 20,
+          paddingRight: 92,
           backgroundColor: palette.white,
           borderWidth: 1,
           borderColor: palette.line,
+          overflow: "hidden",
         }}
       >
+        <View style={{ position: "absolute", right: -8, top: -8, opacity: 0.85 }}>
+          <TileGlyph
+            kind={briefing.fact.tag === "tourist" ? "festival" : "nameday"}
+            color={briefing.fact.tag === "tourist" ? palette.aegeanDeep : palette.ochre}
+          />
+        </View>
         <Eyebrow tone={briefing.fact.tag === "tourist" ? "aegean" : "ochre"}>
-          {briefing.fact.tag === "tourist" ? "For visitors" : "Local lore"}
+          {briefing.fact.tag === "tourist" ? "For visitors" : "Did you know"}
         </Eyebrow>
         <Text
           style={{
-            marginTop: 6,
-            fontFamily: DISPLAY_MED,
-            fontSize: 15.5,
+            marginTop: 8,
+            fontFamily: DISPLAY,
+            fontSize: 16,
             lineHeight: 22,
             color: palette.ink,
           }}
