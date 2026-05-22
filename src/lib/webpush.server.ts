@@ -2,8 +2,10 @@
 // Uses only Web Crypto so it works on Cloudflare Workers / workerd.
 
 function b64urlDecode(input: string): Uint8Array<ArrayBuffer> {
-  const pad = "=".repeat((4 - (input.length % 4)) % 4);
-  const b64 = (input + pad).replace(/-/g, "+").replace(/_/g, "/");
+  // Normalize: trim whitespace/newlines, strip existing padding, convert b64url → b64
+  const clean = input.replace(/\s+/g, "").replace(/=+$/, "");
+  const pad = "=".repeat((4 - (clean.length % 4)) % 4);
+  const b64 = (clean + pad).replace(/-/g, "+").replace(/_/g, "/");
   const bin = atob(b64);
   const buf = new ArrayBuffer(bin.length);
   const out = new Uint8Array(buf);
