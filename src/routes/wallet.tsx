@@ -782,10 +782,13 @@ function PassSheet({
 
         {mode === "card" && (
           <div className="space-y-4">
+            <NfcScanBlock
+              nfc={nfc}
+              onUid={(digits) => setNumber(digits)}
+            />
             <Field label="Card number">
               <input
                 inputMode="numeric"
-                autoFocus
                 value={formatCardNumber(number)}
                 onChange={(e) => setNumber(e.target.value)}
                 placeholder="01 2345 6789"
