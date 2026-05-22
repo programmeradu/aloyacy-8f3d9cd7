@@ -14,6 +14,7 @@ import { Route as TripsRouteImport } from './routes/trips'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
+import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
@@ -40,6 +41,11 @@ const StopStopIdRoute = StopStopIdRouteImport.update({
   path: '/stop/$stopId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
+  id: '/api/public/realtime',
+  path: '/api/public/realtime',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
+  '/api/public/realtime': typeof ApiPublicRealtimeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
+  '/api/public/realtime': typeof ApiPublicRealtimeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/stop/$stopId': typeof StopStopIdRoute
+  '/api/public/realtime': typeof ApiPublicRealtimeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/saved' | '/trips' | '/wallet' | '/stop/$stopId'
+  fullPaths:
+    | '/'
+    | '/saved'
+    | '/trips'
+    | '/wallet'
+    | '/stop/$stopId'
+    | '/api/public/realtime'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/saved' | '/trips' | '/wallet' | '/stop/$stopId'
-  id: '__root__' | '/' | '/saved' | '/trips' | '/wallet' | '/stop/$stopId'
+  to:
+    | '/'
+    | '/saved'
+    | '/trips'
+    | '/wallet'
+    | '/stop/$stopId'
+    | '/api/public/realtime'
+  id:
+    | '__root__'
+    | '/'
+    | '/saved'
+    | '/trips'
+    | '/wallet'
+    | '/stop/$stopId'
+    | '/api/public/realtime'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +105,7 @@ export interface RootRouteChildren {
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
   StopStopIdRoute: typeof StopStopIdRoute
+  ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StopStopIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/realtime': {
+      id: '/api/public/realtime'
+      path: '/api/public/realtime'
+      fullPath: '/api/public/realtime'
+      preLoaderRoute: typeof ApiPublicRealtimeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
   StopStopIdRoute: StopStopIdRoute,
+  ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
