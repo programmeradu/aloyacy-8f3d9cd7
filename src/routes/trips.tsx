@@ -384,30 +384,98 @@ function PlacesPicker({
           </span>
         )}
       </div>
-      {suggestions.length > 0 && (
-        <ul className="divide-y divide-line">
-          {suggestions.slice(0, 6).map((s) => (
-            <li key={s.placeId}>
-              <button
-                onClick={() => choose(s.placeId)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-limestone-soft"
-              >
-                <IconPin className="size-4 text-aegean-deep shrink-0" />
-                <div className="min-w-0">
-                  <p className="truncate text-[14px] font-medium text-ink">
-                    {s.primary}
-                  </p>
-                  {s.secondary && (
-                    <p className="truncate text-[11px] text-ink-soft">
-                      {s.secondary}
+      {query.trim().length < 2 ? (
+        <QuickPicks role={role} onChoose={(p) => onPick(p, role)} />
+      ) : (
+        suggestions.length > 0 && (
+          <ul className="divide-y divide-line">
+            {suggestions.slice(0, 6).map((s) => (
+              <li key={s.placeId}>
+                <button
+                  onClick={() => choose(s.placeId)}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-limestone-soft"
+                >
+                  <IconPin className="size-4 text-aegean-deep shrink-0" />
+                  <div className="min-w-0">
+                    <p className="truncate text-[14px] font-medium text-ink">
+                      {s.primary}
                     </p>
-                  )}
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
+                    {s.secondary && (
+                      <p className="truncate text-[11px] text-ink-soft">
+                        {s.secondary}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )
       )}
+    </div>
+  );
+}
+
+function QuickPicks({
+  role,
+  onChoose,
+}: {
+  role: "from" | "to";
+  onChoose: (p: Point) => void;
+}) {
+  const saved = useSavedPlaces();
+  const recents = useRecents();
+  if (saved.length === 0 && recents.length === 0) return null;
+  return (
+    <div className="border-t border-line p-4 space-y-4">
+      {saved.length > 0 && (
+        <div>
+          <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
+            Pinned
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {saved.map((p) => (
+              <button
+                key={p.id}
+                onClick={() =>
+                  onChoose({ lat: p.lat, lng: p.lng, label: p.name })
+                }
+                className="rounded-full bg-limestone-soft px-3.5 py-2 text-[12px] text-ink hover:bg-aegean-soft/60"
+              >
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft mr-1.5">
+                  {p.label}
+                </span>
+                {p.name.length > 24 ? `${p.name.slice(0, 24)}…` : p.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {recents.length > 0 && role === "to" && (
+        <div>
+          <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
+            Recent
+          </p>
+          <ul className="divide-y divide-line">
+            {recents.slice(0, 5).map((r) => (
+              <li key={r.id}>
+                <button
+                  onClick={() =>
+                    onChoose({ lat: r.lat, lng: r.lng, label: r.name })
+                  }
+                  className="flex w-full items-center gap-3 py-2.5 text-left"
+                >
+                  <IconClock className="size-4 text-ink-soft shrink-0" />
+                  <span className="truncate text-[13px] text-ink">{r.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
     </div>
   );
 }
