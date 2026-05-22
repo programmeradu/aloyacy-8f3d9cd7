@@ -10,6 +10,7 @@ import {
   type SavedPlace,
 } from "@/lib/trip-store";
 import coast from "@/assets/coast-hero.jpg";
+import { NotificationsCard } from "@/components/NotificationsCard";
 
 export const Route = createFileRoute("/saved")({
   head: () => ({
@@ -145,6 +146,10 @@ function Saved() {
             ))}
           </div>
         )}
+      </section>
+
+      <section className="mt-8 px-6 pb-12 animate-rise" style={{ animationDelay: "260ms" }}>
+        <NotificationsCard />
       </section>
     </AppShell>
   );
