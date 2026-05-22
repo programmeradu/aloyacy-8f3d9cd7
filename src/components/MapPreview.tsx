@@ -22,6 +22,10 @@ type Props = {
   markers?: MapMarker[];
   /** If true, overlays realtime bus vehicles. Defaults to true. */
   liveVehicles?: boolean;
+  /** If set, only the bus matching this tripId is shown (with active styling).
+   *  Falls back to routeId match when no tripId matches the feed snapshot. */
+  focusTripId?: string;
+  focusRouteId?: string;
   /** Fit map to markers + polyline. Defaults to true when any are provided. */
   fitToContent?: boolean;
 };
