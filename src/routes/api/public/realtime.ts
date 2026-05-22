@@ -20,11 +20,18 @@ export const Route = createFileRoute("/api/public/realtime")({
             headers: { "Content-Type": "application/json", ...CORS },
           });
         } catch (e) {
+          // Degrade gracefully — upstream feed unavailable. Returning 200
+          // with an empty snapshot keeps the UI quiet (no console 502 spam)
+          // while signalling staleness via the `error` field for diagnostics.
           return new Response(
             JSON.stringify({
+              fetchedAt: Math.floor(Date.now() / 1000),
+              vehicles: [],
+              arrivals: [],
+              stale: true,
               error: e instanceof Error ? e.message : "upstream error",
             }),
-            { status: 502, headers: { "Content-Type": "application/json", ...CORS } }
+            { status: 200, headers: { "Content-Type": "application/json", ...CORS } }
           );
         }
       },
