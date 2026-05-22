@@ -63,7 +63,7 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
     }
     if (e.tripUpdate?.stopTimeUpdate?.length) {
       const tu = e.tripUpdate;
-      for (const stu of tu.stopTimeUpdate) {
+      for (const stu of tu.stopTimeUpdate ?? []) {
         const t = stu.arrival?.time ?? stu.departure?.time;
         if (!t) continue;
         arrivals.push({
