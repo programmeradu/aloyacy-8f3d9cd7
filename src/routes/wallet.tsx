@@ -418,14 +418,10 @@ function TransactionList({ transactions }: { transactions: MotionTxSnapshot[] })
 }
 
 /* ============================================================
- * Motion Card — pixel-faithful reproduction of the physical
- * Cyprus Motion Bus Card front. White stock, official wordmark
- * (lime cloud tuft + two-tone "motion" + "BUS CARD"), orange
- * route-network illustration with contactless hand, holder name,
- * tier pill, valid-until date, photo slot (we render the kiosk
- * QR there), and the "ΚΑΝΟΝΙΚΗ STANDARD" tier label.
- * Brand colors are hard-coded here on purpose — this is a faithful
- * reproduction of an external brand asset, not app chrome.
+ * Motion Card — photoreal printed artwork (generated image) +
+ * dynamic overlays for holder name, tier, expiry, and the kiosk QR.
+ * Brand colors are hard-coded here on purpose — faithful reproduction
+ * of an external brand asset, not app chrome.
  * ============================================================ */
 function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
   const hasCard = pass.number.replace(/\D/g, "").length >= 8;
@@ -435,7 +431,7 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
   const holderName =
     (pass.holder?.trim() || pass.jcc?.displayName?.trim() || "").toUpperCase() ||
     "ADD YOUR NAME";
-  const tierLabel = (pass.tier?.trim() || "18+ Standard");
+  const tierLabel = (pass.tier?.trim() || "18+ Standard").toUpperCase();
   const validUntil = pass.validUntil?.trim() || "—/—/——";
 
   return (
@@ -447,55 +443,26 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
     >
       <article
         className="relative aspect-[1.586/1] w-full overflow-hidden rounded-[20px] ring-1 ring-ink/10 shadow-[0_24px_60px_-28px_rgba(8,28,40,0.4)] transition-transform duration-500 ease-out group-hover:-translate-y-0.5"
-        style={{ containerType: "inline-size", background: "#ffffff" }}
+        style={{ containerType: "inline-size" }}
       >
-        {/* ===== Top-left: motion wordmark with green cloud tuft ===== */}
-        <div className="absolute" style={{ top: "7%", left: "6%", width: "44%" }}>
-          <svg viewBox="0 0 220 70" className="w-full h-auto" aria-hidden>
-            {/* Lime cloud tuft above the wordmark */}
-            <path
-              d="M8 22 C 14 6, 36 4, 46 14 C 58 4, 86 6, 96 18 C 110 8, 138 10, 148 22 L 148 30 L 8 30 Z"
-              fill="#a8c83a"
-            />
-            {/* "moti" in light blue, "on" in dark navy — split by glyph */}
-            <text
-              x="0"
-              y="62"
-              fontFamily="Geist, Inter, system-ui, sans-serif"
-              fontWeight="800"
-              fontSize="48"
-              letterSpacing="-2"
-            >
-              <tspan fill="#2cb6ea">moti</tspan>
-              <tspan fill="#1a2a6c">on</tspan>
-            </text>
-          </svg>
-          <div className="mt-[2cqw] flex items-baseline gap-[1.2cqw]">
-            <span
-              className="font-sans tracking-[0.12em] font-medium"
-              style={{ fontSize: "clamp(8px, 2.6cqw, 14px)", color: "#8a8d92" }}
-            >
-              BUS
-            </span>
-            <span
-              className="font-sans tracking-[0.12em] font-bold"
-              style={{ fontSize: "clamp(8px, 2.6cqw, 14px)", color: "#1a2a6c" }}
-            >
-              CARD
-            </span>
-          </div>
-        </div>
+        {/* Printed card artwork */}
+        <img
+          src={motionCardBase}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 size-full object-cover select-none pointer-events-none"
+          draggable={false}
+        />
 
-        {/* ===== Photo slot (top right) — we render the kiosk QR here ===== */}
+        {/* QR in the photo slot (top-right of card) */}
         <div
-          className="absolute bg-white rounded-[2px]"
+          className="absolute bg-white"
           style={{
-            top: "9%",
-            right: "6%",
-            width: "22%",
-            aspectRatio: "1 / 1.1",
-            border: "1.5px solid #1a2a6c",
-            padding: "4%",
+            top: "8%",
+            right: "6.5%",
+            width: "20%",
+            aspectRatio: "1 / 1.18",
+            padding: "3.5%",
           }}
           aria-label="Card QR for kiosk lookup"
         >
@@ -509,121 +476,63 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
           )}
         </div>
 
-        {/* ===== Holder name + tier pill + valid until (middle) ===== */}
+        {/* Holder name */}
         <div
           className="absolute"
-          style={{ top: "42%", left: "26%", right: "30%" }}
+          style={{ top: "38%", left: "5%", right: "30%" }}
         >
           <p
             className="font-sans font-semibold truncate"
             style={{
-              fontSize: "clamp(10px, 3.2cqw, 16px)",
+              fontSize: "clamp(11px, 3.4cqw, 18px)",
               color: hasCard ? "#9b1c1c" : "#9b1c1c80",
               letterSpacing: "0.02em",
             }}
           >
             {holderName}
           </p>
-          <div
-            className="inline-block mt-[1.5cqw] px-[2.4cqw] py-[0.6cqw] rounded-[3px]"
-            style={{ background: "#a8e6a3" }}
+        </div>
+
+        {/* Tier text inside the printed green pill */}
+        <div
+          className="absolute flex items-center justify-center"
+          style={{ top: "49.2%", left: "37%", width: "26%", height: "7%" }}
+        >
+          <span
+            className="font-sans font-semibold"
+            style={{
+              fontSize: "clamp(8px, 2.5cqw, 13px)",
+              color: "#1a2a6c",
+              letterSpacing: "0.04em",
+            }}
           >
-            <span
-              className="font-sans font-semibold"
-              style={{ fontSize: "clamp(9px, 2.8cqw, 14px)", color: "#1a2a6c" }}
-            >
-              {tierLabel}
-            </span>
-          </div>
+            {tierLabel}
+          </span>
+        </div>
+
+        {/* Valid Until date — sits right under the printed label */}
+        <div
+          className="absolute"
+          style={{ top: "59%", left: "5%" }}
+        >
           <p
-            className="mt-[2cqw] font-sans"
-            style={{ fontSize: "clamp(7px, 2.1cqw, 11px)", color: "#5a5d62" }}
-          >
-            Ισχύει Μέχρι/Valid Until:
-          </p>
-          <p
-            className="font-sans"
-            style={{ fontSize: "clamp(8px, 2.4cqw, 12px)", color: "#5a5d62" }}
+            className="font-mono"
+            style={{
+              fontSize: "clamp(9px, 2.6cqw, 13px)",
+              color: "#1a2a6c",
+              letterSpacing: "0.02em",
+            }}
           >
             {validUntil}
           </p>
         </div>
 
-        {/* ===== Orange route network across the bottom-left ===== */}
-        <svg
-          className="absolute"
-          style={{ bottom: "0", left: "0", width: "82%", height: "55%" }}
-          viewBox="0 0 320 140"
-          preserveAspectRatio="xMinYMax meet"
-          aria-hidden
-        >
-          {/* Connecting lines */}
-          <g stroke="#f08a3e" strokeWidth="3.5" fill="none" strokeLinecap="round">
-            <path d="M 58 92 L 110 110" />
-            <path d="M 110 110 L 168 96" />
-            <path d="M 168 96 L 220 118" />
-            <path d="M 220 118 L 276 102" />
-            <path d="M 110 110 L 138 78" />
-            <path d="M 168 96 L 200 70" />
-            <path d="M 220 118 L 250 88" />
-            <path d="M 138 78 L 200 70" />
-            <path d="M 250 88 L 296 76" />
-          </g>
-          {/* Hollow station nodes */}
-          <g fill="#ffffff" stroke="#f08a3e" strokeWidth="3.5">
-            <circle cx="110" cy="110" r="9" />
-            <circle cx="168" cy="96" r="9" />
-            <circle cx="220" cy="118" r="9" />
-            <circle cx="276" cy="102" r="9" />
-            <circle cx="138" cy="78" r="7" />
-            <circle cx="200" cy="70" r="7" />
-            <circle cx="250" cy="88" r="7" />
-            <circle cx="296" cy="76" r="6" />
-          </g>
-          {/* Hand holding phone with contactless waves */}
-          <g transform="translate(20 38)">
-            {/* Contactless arcs */}
-            <g fill="none" stroke="#1a2a6c" strokeWidth="2.6" strokeLinecap="round">
-              <path d="M 6 20 Q -2 28 6 36" />
-              <path d="M 0 14 Q -10 28 0 42" />
-            </g>
-            {/* Phone */}
-            <rect x="14" y="14" width="22" height="36" rx="3" fill="#ffffff" stroke="#1a2a6c" strokeWidth="2.4" />
-            <circle cx="25" cy="45" r="1.6" fill="#1a2a6c" />
-            {/* Hand */}
-            <path
-              d="M 14 46 C 10 50, 8 58, 14 64 L 38 64 C 44 58, 42 50, 38 46 L 38 56 L 14 56 Z"
-              fill="#1a2a6c"
-            />
-            <path d="M 22 64 L 22 78 L 34 78 L 34 64" fill="#1a2a6c" />
-          </g>
-        </svg>
-
-        {/* ===== Bottom-right tier text ===== */}
-        <div
-          className="absolute text-right"
-          style={{ bottom: "6%", right: "6%" }}
-        >
-          <p
-            className="font-sans font-bold leading-tight"
-            style={{ fontSize: "clamp(8px, 2.4cqw, 12px)", color: "#1a2a6c", letterSpacing: "0.04em" }}
-          >
-            ΚΑΝΟΝΙΚΗ
-          </p>
-          <p
-            className="font-sans font-bold leading-tight"
-            style={{ fontSize: "clamp(8px, 2.4cqw, 12px)", color: "#1a2a6c", letterSpacing: "0.04em" }}
-          >
-            STANDARD
-          </p>
-        </div>
-
-        {/* Soft sheen */}
+        {/* Subtle gloss to sell the plastic */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(120% 60% at 50% -10%, rgba(0,0,0,0.04), transparent 55%)",
+              "linear-gradient(115deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 35%, rgba(255,255,255,0) 65%, rgba(255,255,255,0.12) 100%)",
           }}
         />
       </article>
@@ -635,6 +544,7 @@ function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
     </button>
   );
 }
+
 
 /* ============================================================
  * Tiles + sheet
