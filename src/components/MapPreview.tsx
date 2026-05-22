@@ -222,7 +222,13 @@ export function MapPreview({
         <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 backdrop-blur-md ring-1 ring-line">
           <span className="size-1.5 rounded-full bg-aegean-deep animate-pulse" />
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink">
-            {liveCount ? `${liveCount} live` : "Connecting"}
+            {focused
+              ? liveCount
+                ? "Your bus — live"
+                : "Locating your bus"
+              : liveCount
+                ? `${liveCount} live`
+                : "Connecting"}
           </span>
         </div>
       )}
