@@ -169,8 +169,10 @@ function TripCompanion() {
       out.push({ lat: walkOut.to.lat, lng: walkOut.to.lng, kind: "destination", label: active.to.label });
     } else {
       // On the bus: show board + alight stops so the user can watch the bus advance.
-      out.push({ lat: bus.board.lat ?? active.from.lat, lng: bus.board.lng ?? active.from.lng, kind: "stop", label: bus.board.name });
-      out.push({ lat: bus.alight.lat ?? active.to.lat, lng: bus.alight.lng ?? active.to.lng, kind: "destination", label: bus.alight.name });
+      if (walkIn.kind === "walk")
+        out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
+      if (walkOut.kind === "walk")
+        out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "destination", label: bus.alight.name });
     }
     return out;
   }, [walkingPhase, active, bus, walkIn, walkOut]);
