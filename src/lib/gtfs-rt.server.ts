@@ -34,7 +34,12 @@ export type RealtimeSnapshot = {
 
 export async function fetchRealtime(): Promise<RealtimeSnapshot> {
   const res = await fetch(FEED_URL, {
-    headers: { Accept: "application/octet-stream" },
+    headers: {
+      Accept: "application/octet-stream",
+      // Some upstreams reject the default Cloudflare Worker UA — use a neutral one.
+      "User-Agent":
+        "Mozilla/5.0 (Aloya/1.0; +https://aloyacy.lovable.app) AppleWebKit/537.36",
+    },
     // Cyprus endpoint can be slow
     signal: AbortSignal.timeout(15_000),
   });
