@@ -19,7 +19,7 @@ import planHero from "@/assets/plan-hero.jpg";
 export const Route = createFileRoute("/trips")({
   head: () => ({
     meta: [
-      { title: "Plan a trip · Aloya" },
+      { title: "Plan a trip — Aloya" },
       {
         name: "description",
         content:
@@ -540,7 +540,7 @@ function JourneyCard({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
-            {highlight ? "Fastest live" : "Alternative"} · leaves in {departIn} min
+            {highlight ? "Fastest live" : "Alternative"} — leaves in {departIn} min
           </p>
           <h3 className="mt-1 font-display text-[26px] leading-tight text-ink text-pretty">
             Board at <span className="text-aegean-deep">{bus.board.name}</span>
@@ -591,7 +591,7 @@ function JourneyCard({
                     Walk to {leg.to.label}
                   </p>
                   <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                    {Math.max(1, Math.round(leg.durationSec / 60))} min · {Math.round(leg.distanceMeters)} m
+                    {Math.max(1, Math.round(leg.durationSec / 60))} min — {Math.round(leg.distanceMeters)} m
                   </p>
                 </>
               ) : (

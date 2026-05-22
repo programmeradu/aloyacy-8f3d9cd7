@@ -26,7 +26,7 @@ export function StopCard({ stop }: { stop: Stop }) {
         <div className="min-w-0 flex flex-col gap-3">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/70">
-              Stop · {stop.code}
+              Stop {stop.code}
             </p>
             <h3 className="mt-0.5 font-display text-[22px] leading-tight text-pretty text-ink">
               {stop.name}

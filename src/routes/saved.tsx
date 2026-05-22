@@ -15,7 +15,7 @@ import { NotificationsCard } from "@/components/NotificationsCard";
 export const Route = createFileRoute("/saved")({
   head: () => ({
     meta: [
-      { title: "Saved · Aloya" },
+      { title: "Saved — Aloya" },
       { name: "description", content: "Your places and recent journeys across Cyprus." },
     ],
   }),
@@ -66,7 +66,7 @@ function Saved() {
           <div className="absolute inset-0 bg-gradient-to-t from-ink/65 via-ink/15 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-5 text-limestone">
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] opacity-80">
-              Collection · {saved.length} pinned
+              {saved.length} pinned
             </p>
             <h3 className="mt-1 font-display text-3xl italic leading-tight">
               Coastal weekends
