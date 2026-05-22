@@ -29,9 +29,9 @@ export function StopCard({ stop }: { stop: Stop }) {
         alt=""
         aria-hidden="true"
         loading="lazy"
-        className={`pointer-events-none select-none absolute -right-6 -bottom-8 w-44 rotate-[14deg] transition-opacity ${
-          stop.highlight ? "opacity-[0.16]" : "opacity-[0.10]"
-        } group-hover:opacity-[0.22]`}
+        className={`pointer-events-none select-none absolute -right-2 -bottom-4 w-44 rotate-[14deg] transition-opacity ${
+          stop.highlight ? "opacity-[0.45]" : "opacity-[0.32]"
+        } group-hover:opacity-[0.55]`}
       />
 
       <div className="relative flex items-start justify-between gap-4">
