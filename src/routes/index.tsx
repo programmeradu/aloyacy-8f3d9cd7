@@ -30,6 +30,7 @@ import {
   routeTone,
   distanceKm,
 } from "@/lib/gtfs";
+import { getGreeting } from "@/lib/greeting";
 
 export const Route = createFileRoute("/")({
   head: () => ({
