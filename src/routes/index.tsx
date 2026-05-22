@@ -202,7 +202,7 @@ function Explore() {
         </h1>
       </header>
 
-      <div className="px-6 mt-5 animate-rise" style={{ animationDelay: "80ms" }}>
+      <div className="relative z-50 px-6 mt-5 animate-rise" style={{ animationDelay: "80ms" }}>
         <SmartSearch
           query={query}
           setQuery={setQuery}
@@ -480,7 +480,7 @@ function SmartSearch({
       </div>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full mt-2 z-30 rounded-2xl bg-card ring-1 ring-line shadow-[0_24px_60px_-24px_oklch(0.22_0.012_110/0.25)] overflow-hidden">
+        <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl bg-card ring-1 ring-line shadow-[0_24px_60px_-24px_oklch(0.22_0.012_110/0.25)] overflow-hidden">
           {results.length === 0 ? (
             <div className="px-5 py-6 text-center">
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
