@@ -30,11 +30,16 @@ type Props = {
   /** If set, only render live vehicles whose tripId is in this list.
    *  Use to restrict the map to the buses relevant to a given stop/route. */
   restrictTripIds?: string[];
+  /** Override the live position/bearing of specific vehicles by tripId.
+   *  Used by the on-board journey to fuse the user's GPS into the bus blip
+   *  so the marker glides with the rider's phone instead of the lagging feed. */
+  vehicleOverrides?: Record<string, { lat: number; lng: number; bearing?: number }>;
   /** Override the bottom-left live-count pill label. */
   liveLabel?: { active?: string; empty?: string };
   /** Fit map to markers + polyline. Defaults to true when any are provided. */
   fitToContent?: boolean;
 };
+
 
 const TONE_COLOR: Record<NonNullable<MapMarker["tone"]>, string> = {
   aegean: "#2d8a9e",
