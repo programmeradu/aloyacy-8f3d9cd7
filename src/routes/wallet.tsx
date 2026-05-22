@@ -1,15 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { IconArrowLeft } from "@/components/Icons";
 import {
   readPass,
   writePass,
+  clearJccLink,
   formatCardNumber,
   maskedNumber,
   type MotionPass,
+  type MotionTxSnapshot,
 } from "@/lib/motion-pass";
+import { jccLogin, jccRefresh, jccSync } from "@/lib/jcc.functions";
 import { useQrSvg } from "@/lib/useQr";
+
+type SheetMode = "card" | "balance" | "topup" | "link";
 
 export const Route = createFileRoute("/wallet")({
   head: () => ({
