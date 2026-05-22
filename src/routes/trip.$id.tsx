@@ -271,7 +271,9 @@ function TripCompanion() {
           liveVehicles
           focusTripId={bus.tripId}
           focusRouteId={bus.routeId}
+          vehicleOverrides={vehicleOverrides}
         />
+
       </section>
 
       {/* Live HUD: Start button, current walking step, hurry banner,
