@@ -80,8 +80,11 @@ export function MapPreview({
   const layerRef = useRef<{
     polyline?: google.maps.Polyline;
     markers: google.maps.Marker[];
-    vehicles: google.maps.Marker[];
-  }>({ markers: [], vehicles: [] });
+  }>({ markers: [] });
+  // Per-vehicle OverlayView state lives outside React so animation can keep
+  // tweening smoothly between feed refreshes without rerendering.
+  const busLayerRef = useRef<Map<string, AnimatedBus>>(new Map());
+  const rafRef = useRef<number | null>(null);
 
   // Initialize map once API is ready
   useEffect(() => {
