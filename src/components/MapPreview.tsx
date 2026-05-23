@@ -725,10 +725,29 @@ class AnimatedBus {
     if (speedMps < 0.5 || distM < 3) {
       // Bus is stopped (or barely moved) — short, gentle settle.
       this.tweenDur = 1200;
+      this.setBoarding(true);
     } else {
       const dur = (distM / speedMps) * 1000;
       this.tweenDur = Math.max(1500, Math.min(18_000, dur));
+      this.setBoarding(false);
     }
+  }
+
+  private setBoarding(on: boolean) {
+    if (on === this.boarding) return;
+    this.boarding = on;
+    this.boardingRing.style.opacity = on ? "1" : "0";
+    this.boardingRing.style.animation = on
+      ? "aloya-board-pulse 1600ms ease-out infinite"
+      : "none";
+  }
+
+  isBoarding() {
+    return this.boarding;
+  }
+
+  getPos() {
+    return { lat: this.curLat, lng: this.curLng };
   }
 
   tick(nowMs: number) {
