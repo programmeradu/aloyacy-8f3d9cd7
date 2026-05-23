@@ -18,6 +18,7 @@ import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
 import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
+import { Route as DebugEtaRouteImport } from './routes/debug.eta'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 
@@ -66,6 +67,11 @@ const RouteRouteIdRoute = RouteRouteIdRouteImport.update({
   path: '/route/$routeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DebugEtaRoute = DebugEtaRouteImport.update({
+  id: '/debug/eta',
+  path: '/debug/eta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSnapshotRoute = ApiPublicSnapshotRouteImport.update({
   id: '/api/public/snapshot',
   path: '/api/public/snapshot',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/debug/eta': typeof DebugEtaRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/debug/eta': typeof DebugEtaRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/debug/eta': typeof DebugEtaRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/trips'
     | '/wallet'
+    | '/debug/eta'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/trips'
     | '/wallet'
+    | '/debug/eta'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/trips'
     | '/wallet'
+    | '/debug/eta'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -165,6 +177,7 @@ export interface RootRouteChildren {
   SavedRoute: typeof SavedRoute
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
+  DebugEtaRoute: typeof DebugEtaRoute
   RouteRouteIdRoute: typeof RouteRouteIdRoute
   StopStopIdRoute: typeof StopStopIdRoute
   TripInfoTripIdRoute: typeof TripInfoTripIdRoute
@@ -238,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RouteRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/debug/eta': {
+      id: '/debug/eta'
+      path: '/debug/eta'
+      fullPath: '/debug/eta'
+      preLoaderRoute: typeof DebugEtaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/snapshot': {
       id: '/api/public/snapshot'
       path: '/api/public/snapshot'
@@ -261,6 +281,7 @@ const rootRouteChildren: RootRouteChildren = {
   SavedRoute: SavedRoute,
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
+  DebugEtaRoute: DebugEtaRoute,
   RouteRouteIdRoute: RouteRouteIdRoute,
   StopStopIdRoute: StopStopIdRoute,
   TripInfoTripIdRoute: TripInfoTripIdRoute,
@@ -271,3 +292,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
