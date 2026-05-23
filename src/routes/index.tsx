@@ -177,7 +177,7 @@ function Explore() {
         kind: stopKind(s),
       };
     });
-  }, [rt, geo.coords]);
+  }, [rt, nearStops, learnedByStop]);
 
   // Nearby landmark chips — actual stops within range, clickable to stop page
   const landmarkChips = useMemo(() => {
