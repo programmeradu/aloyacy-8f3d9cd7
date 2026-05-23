@@ -43,6 +43,17 @@ type Props = {
   placeName?: string;
   /** Fit map to markers + polyline. Defaults to true when any are provided. */
   fitToContent?: boolean;
+  /** Render a "you are here" dot (and optional heading cone) for the rider. */
+  userLocation?: {
+    lat: number;
+    lng: number;
+    /** Degrees clockwise from north. Null/undefined hides the cone. */
+    headingDeg?: number | null;
+    /** GPS accuracy in metres; used to size the soft accuracy halo. */
+    accuracyM?: number;
+  } | null;
+  /** Show the expand-to-fullscreen toggle. Defaults to true. */
+  fullscreenable?: boolean;
 };
 
 
