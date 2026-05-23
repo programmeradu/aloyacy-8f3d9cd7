@@ -498,6 +498,19 @@ export function MapPreview({
     };
   }, [expanded]);
 
+  // After expanding/collapsing (incl. re-parenting via portal), the Maps
+  // container has new dimensions. Trigger a resize so tiles re-render.
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m || !api) return;
+    const c = m.getCenter();
+    const id = window.setTimeout(() => {
+      api.maps.event.trigger(m, "resize");
+      if (c) m.setCenter(c);
+    }, 60);
+    return () => window.clearTimeout(id);
+  }, [expanded, fallbackOverlay, api]);
+
   const liveCount = focused || restricted ? vehicles?.length ?? 0 : rt?.vehicles.length ?? 0;
   const placeLabel = useMemo(() => {
     // Sub-degree → meters; round to avoid janky decimals.
