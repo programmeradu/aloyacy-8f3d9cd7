@@ -40,11 +40,11 @@ function Plan() {
   const [origin, setOrigin] = useState<Point | null>(null);
   const [destination, setDestination] = useState<Point | null>(null);
   const [active, setActive] = useState<"from" | "to" | null>("to");
-  const [results, setResults] = useState<JourneyOption[] | null>(null);
+  const [results, setResults] = useState<Itinerary[] | null>(null);
   const [planning, setPlanning] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
 
-  const planFn = useServerFn(planTrip);
+  const planFn = useServerFn(planMultiLeg);
   const reverseFn = useServerFn(reverseLookup);
   const fetchSuggestions = useServerFn(getTripSuggestions);
 
@@ -76,7 +76,6 @@ function Plan() {
         }
       },
       () => {
-        // Fall back to Nicosia centre silently.
         setOrigin({
           lat: NICOSIA_CENTER.lat,
           lng: NICOSIA_CENTER.lng,
@@ -93,8 +92,7 @@ function Plan() {
     setResults(null);
     try {
       const res = await planFn({ data: { from: o, to: d } });
-      if (res.error) setPlanError(res.error);
-      setResults(res.options);
+      setResults(res.itineraries);
     } catch (e) {
       setPlanError(e instanceof Error ? e.message : "Plan failed");
     } finally {
