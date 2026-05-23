@@ -7,6 +7,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
+// Legs are stored as opaque jsonb on the server. We validate only the outer
+// shape here — the cron alert dispatcher does its own narrow reads with
+// runtime guards (we never trust client legs blindly for anything risky;
+// they only drive notifications scoped to the same device).
 const upsertSchema = z.object({
   deviceId: z.string().min(8).max(128),
   tripId: z.string().min(1).max(160),
@@ -19,6 +23,10 @@ const upsertSchema = z.object({
   alightUnix: z.number().int().optional(),
   walkInSec: z.number().int().min(0).max(7200).default(0),
   walkOutSec: z.number().int().min(0).max(7200).default(0),
+  // Multi-leg additions (Phase 4). All optional so older clients still work.
+  itineraryId: z.string().max(200).optional(),
+  totalArrivalUnix: z.number().int().optional(),
+  legs: z.array(z.unknown()).max(20).optional(),
 });
 
 export const upsertActiveTrip = createServerFn({ method: "POST" })
@@ -40,6 +48,9 @@ export const upsertActiveTrip = createServerFn({ method: "POST" })
           walk_in_sec: data.walkInSec,
           walk_out_sec: data.walkOutSec,
           alerts_sent: [],
+          legs: (data.legs ?? null) as never,
+          itinerary_id: data.itineraryId ?? null,
+          total_arrival_unix: data.totalArrivalUnix ?? null,
           started_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
