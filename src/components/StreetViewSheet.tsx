@@ -6,6 +6,9 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconArrowLeft } from "@/components/Icons";
+// Bundle the viewer stylesheet directly — relying on a runtime <link> to
+// unpkg was flaky on iOS / restricted networks and left the canvas at 0×0.
+import "mapillary-js/dist/mapillary.css";
 
 type Meta = { imageId: string; token: string };
 
