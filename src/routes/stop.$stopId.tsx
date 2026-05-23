@@ -184,7 +184,7 @@ function StopDetail() {
 }
 
 function confidenceAccent(eta: SmartEta): string {
-  if (eta.confidence === "high") return "text-aegean-deep";
-  if (eta.confidence === "medium") return "text-ochre";
+  if (eta.confidence === "live") return "text-aegean-deep";
+  if (eta.confidence === "predicted") return "text-ochre";
   return "text-ink-soft";
 }
