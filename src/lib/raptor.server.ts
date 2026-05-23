@@ -356,7 +356,7 @@ function reconstruct(
   labels: Array<Map<string, Label>>,
   endRound: number,
   endStopId: string,
-  endMeta: { stop: ScheduleStop & { id: string }; distKm: number },
+  endMeta: { stop: ScheduleStop; id: string; distKm: number },
   schedule: LoadedSchedule,
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
