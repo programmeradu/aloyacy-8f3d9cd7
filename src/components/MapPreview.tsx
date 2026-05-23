@@ -1,5 +1,6 @@
 /// <reference types="google.maps" />
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER, getStop } from "@/lib/gtfs";
 import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
@@ -463,10 +464,10 @@ export function MapPreview({
   }, [spanKm]);
 
   const wrapperClass = expanded
-    ? "fixed inset-0 z-50 w-full h-full rounded-none ring-0 bg-limestone-soft"
+    ? "fixed inset-0 z-[100] w-screen h-screen rounded-none ring-0 bg-limestone-soft"
     : `relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`;
 
-  return (
+  const content = (
     <div className={`${wrapperClass} relative overflow-hidden`}>
       <div ref={elRef} className="absolute inset-0" />
       {error && (
@@ -511,6 +512,10 @@ export function MapPreview({
       )}
     </div>
   );
+
+  return expanded && typeof document !== "undefined"
+    ? createPortal(content, document.body)
+    : content;
 }
 
 /* ============================================================
