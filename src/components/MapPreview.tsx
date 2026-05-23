@@ -96,7 +96,10 @@ export function MapPreview({
   hideLiveBadge,
   placeName,
   fitToContent,
+  userLocation,
+  fullscreenable = true,
 }: Props) {
+  const [expanded, setExpanded] = useState(false);
 
   const { api, error } = useGoogleMaps();
   const { data: rt } = useRealtime();
