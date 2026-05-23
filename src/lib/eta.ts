@@ -35,6 +35,8 @@ export type SmartEta = {
   stopsAway: number | null;
   /** Short human label for the chip ("live", "stale ping", etc). */
   blurb: string;
+  /** Learned systematic delay applied (seconds, signed). */
+  learnedBiasSec: number;
 };
 
 // Tunables. Urban Cyprus speeds tend to be slow; intercity faster.
