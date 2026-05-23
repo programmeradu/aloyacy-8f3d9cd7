@@ -80,14 +80,39 @@ function TripCompanion() {
       (alightUnix + walkOut.durationSec - now) / 60,
     );
 
-    // Heuristic phase machine. Real GPS would refine this; we infer from time.
+    // Anchor the walking window to when the user actually pressed "Start",
+    // not to the schedule. Otherwise a trip whose board time has already
+    // passed (common — RAPTOR returns the soonest option, and a minute
+    // ticks by while the user picks it) skips straight to "on bus".
+    const startedAt = active?.live?.startedAt
+      ? Math.floor(active.live.startedAt / 1000)
+      : null;
+    const walkInSec = walkIn.durationSec;
+    const onBoardConfirmed = !!active?.live?.onBoardConfirmedAt;
+    const alighted = !!active?.live?.alightedAt;
+
     let phase: Phase = "leave-soon";
-    if (minToLeave > 1) phase = "leave-soon";
-    else if (minToBoard > 1) phase = "walking";
-    else if (now < boardUnix) phase = "waiting";
-    else if (minToAlight > 2) phase = "on-bus";
-    else if (minToAlight > -1) phase = "alight-soon";
-    else phase = "arrived";
+    if (alighted) {
+      if (minToDoor > 0) phase = "alight-soon";
+      else phase = "arrived";
+    } else if (onBoardConfirmed) {
+      if (minToAlight > 2) phase = "on-bus";
+      else if (minToAlight > -1) phase = "alight-soon";
+      else phase = "arrived";
+    } else if (startedAt != null) {
+      // Live trip: walk first, then wait at stop until rider confirms board.
+      const secsSinceStart = now - startedAt;
+      if (secsSinceStart < walkInSec - 30) phase = "walking";
+      else phase = "waiting";
+    } else {
+      // Pre-start preview based purely on schedule.
+      if (minToLeave > 1) phase = "leave-soon";
+      else if (minToBoard > 1) phase = "walking";
+      else if (now < boardUnix) phase = "waiting";
+      else if (minToAlight > 2) phase = "on-bus";
+      else if (minToAlight > -1) phase = "alight-soon";
+      else phase = "arrived";
+    }
 
     return {
       bus,
