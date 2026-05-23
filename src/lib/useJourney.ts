@@ -215,18 +215,43 @@ export function useJourney(opts: {
     let fusedVehicle: LiveJourney["fusedVehicle"] = null;
     let fusedSecsToAlight = secsToAlight;
     const onBoard = !!live?.onBoardConfirmedAt && !live?.alightedAt;
-    if (onBoard && fix && bus) {
-      if (vehicle) {
-        const wGps = 1 / Math.max(8, fix.accuracyM);
-        const wVeh = 1 / 60; // feed: ~30–60m effective uncertainty
-        const total = wGps + wVeh;
+    if (onBoard && bus) {
+      // Trust the vehicle feed as the source of truth for position +
+      // bearing. Only blend the rider's GPS in when we have *evidence*
+      // they're actually moving with the bus — otherwise a stationary
+      // phone (e.g. user still at the station after mis-tapping "I'm
+      // onboard") drags the marker back and corrupts the bearing.
+      const gpsSpeed = fix?.speedMps ?? 0;
+      const distToVehicle = fix && vehicle ? distanceM(fix, vehicle) : Infinity;
+      const ridingWithBus =
+        !!fix &&
+        !!vehicle &&
+        gpsSpeed > RIDING_SPEED_MPS &&
+        distToVehicle < 250;
+
+      if (vehicle && ridingWithBus && fix) {
+        // Both signals agree the rider is on the bus → light blend that
+        // smooths feed lag without overpowering it.
         fusedVehicle = {
-          lat: (fix.lat * wGps + vehicle.lat * wVeh) / total,
-          lng: (fix.lng * wGps + vehicle.lng * wVeh) / total,
-          bearing: fix.headingDeg ?? vehicle.bearing ?? 0,
+          lat: fix.lat * 0.35 + vehicle.lat * 0.65,
+          lng: fix.lng * 0.35 + vehicle.lng * 0.65,
+          bearing:
+            vehicle.bearing != null
+              ? vehicle.bearing
+              : gpsSpeed > 2 && fix.headingDeg != null
+                ? fix.headingDeg
+                : 0,
           tripId: bus.tripId,
         };
-      } else {
+      } else if (vehicle) {
+        // Rider hasn't proven they're on the bus → trust the feed verbatim.
+        fusedVehicle = {
+          lat: vehicle.lat,
+          lng: vehicle.lng,
+          bearing: vehicle.bearing ?? 0,
+          tripId: bus.tripId,
+        };
+      } else if (fix && ridingWithBus) {
         fusedVehicle = {
           lat: fix.lat,
           lng: fix.lng,
@@ -234,19 +259,18 @@ export function useJourney(opts: {
           tripId: bus.tripId,
         };
       }
+
+      // ETA fusion: only let GPS override the schedule when the rider
+      // is provably moving with the bus.
       const alightLoc =
         walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
-      if (alightLoc) {
+      if (alightLoc && fusedVehicle && ridingWithBus && fix) {
         const distToAlight = distanceM(fusedVehicle, alightLoc);
-        // Effective speed: rider GPS if moving, else city-bus fallback (~22 km/h)
-        const gpsSpeed = fix.speedMps ?? 0;
         const speed = gpsSpeed > 2 ? gpsSpeed : 6;
         const gpsEta = Math.round(distToAlight / Math.max(3, speed));
-        // Trust GPS when we have a real speed signal, else lean schedule
-        const wGpsEta = gpsSpeed > 2 ? 0.65 : 0.35;
         fusedSecsToAlight = Math.max(
           0,
-          Math.round(wGpsEta * gpsEta + (1 - wGpsEta) * secsToAlight),
+          Math.round(0.6 * gpsEta + 0.4 * secsToAlight),
         );
       }
     }
