@@ -22,6 +22,9 @@ import { TopupHistory, TransactionList } from "@/components/wallet/History";
 import { RenewPasses } from "@/components/wallet/Passes";
 import type { SheetMode } from "@/components/wallet/PassSheet";
 import { timeAgo } from "@/components/wallet/utils";
+import fareUrban from "@/assets/fare-urban.jpg";
+import fareNight from "@/assets/fare-night.jpg";
+import fareIntercity from "@/assets/fare-intercity.jpg";
 
 // Lazy: the editor sheet only mounts when the user taps to edit.
 const PassSheet = lazy(() =>
