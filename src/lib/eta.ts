@@ -116,6 +116,13 @@ function vertexDistanceAlong(polyline: LatLng[], vertexIdx: number): number {
   return d;
 }
 
+export type LearnedBias = {
+  /** Mean delay in seconds (positive = systematically late). */
+  meanDelaySec: number;
+  /** Sample size — drives how much weight we give the bias. */
+  sampleCount: number;
+};
+
 export type SmartEtaInput = {
   /** Target stop the user wants the ETA for. */
   stopId: string;
@@ -127,6 +134,13 @@ export type SmartEtaInput = {
   nowSec?: number;
   /** Optional: route agency hint ("IC" → intercity). */
   agency?: string;
+  /**
+   * Optional learned per-(route,stop,hour,dow) bias from delay_stats.
+   * Indexed by routeId — the caller looks up the row matching the
+   * chosen trip's route. When present and sample size is meaningful,
+   * we add this systematic delay onto our distance-based ETA.
+   */
+  learnedByRoute?: Record<string, LearnedBias>;
 };
 
 /**
