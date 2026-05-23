@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
 import { RouteChip } from "@/components/RouteChip";
-import { IconArrowUpRight, IconClock, IconPin, IconSearch } from "@/components/Icons";
+import { IconArrowUpRight, IconBriefcase, IconClock, IconHome, IconPin, IconSearch, IconStar } from "@/components/Icons";
 import { autocompletePlaces, getPlace, reverseLookup } from "@/lib/maps.functions";
 import { planTrip } from "@/lib/journey.functions";
 import type { JourneyOption } from "@/lib/journey.server";
