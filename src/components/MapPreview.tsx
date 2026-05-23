@@ -309,7 +309,7 @@ export function MapPreview({
       if (existing) {
         existing.setVariant(variant);
         existing.setPath(path);
-        existing.setTarget(targetLat, targetLng, targetBearing, now);
+        existing.setTarget(targetLat, targetLng, targetBearing, now, v.speed ?? 0);
         existing.setSize(sizePx);
         existing.setFocused(focused);
         existing.setStale(stale);
@@ -325,6 +325,7 @@ export function MapPreview({
           variant,
           path,
           stale,
+          v.speed ?? 0,
         );
         layer.set(v.id, bus);
       }
