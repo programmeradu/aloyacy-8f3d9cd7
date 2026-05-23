@@ -219,13 +219,15 @@ function Explore() {
             navigate({ to: "/stop/$stopId", params: { stopId } })
           }
           onPickRoute={(routeId) => {
-            const v = rt?.vehicles.find((x) => x.routeId === routeId && x.tripId);
-            if (v) navigate({ to: "/trip-info/$tripId", params: { tripId: v.tripId } });
-            else navigate({ to: "/pulse" });
+            navigate({ to: "/route/$routeId", params: { routeId } });
           }}
           onPickVehicle={(tripId) => {
-            if (tripId) navigate({ to: "/trip-info/$tripId", params: { tripId } });
-            else navigate({ to: "/pulse" });
+            if (tripId) {
+              navigate({ to: "/trip-info/$tripId", params: { tripId } });
+              return;
+            }
+            const v = rt?.vehicles.find((x) => x.tripId === tripId);
+            if (v?.routeId) navigate({ to: "/route/$routeId", params: { routeId: v.routeId } });
           }}
         />
       </div>
