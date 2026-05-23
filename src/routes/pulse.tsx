@@ -147,18 +147,6 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function LiveStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-limestone/10 ring-1 ring-limestone/15 px-3 py-2">
-      <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-limestone/60">
-        {label}
-      </p>
-      <p className="mt-0.5 font-sans font-medium text-[18px] leading-none text-limestone tabular-nums tracking-[-0.02em]">
-        {value}
-      </p>
-    </div>
-  );
-}
 
 function Section({
   title,
