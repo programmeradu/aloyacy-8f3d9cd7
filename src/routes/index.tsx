@@ -21,6 +21,7 @@ import {
   IconPin,
 } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
+import { smartEtaForStop } from "@/lib/eta";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { useTick } from "@/hooks/use-tick";
 import { getCurrentWeather } from "@/lib/weather.functions";
