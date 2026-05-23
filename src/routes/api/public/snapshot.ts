@@ -24,8 +24,25 @@ function badRequest(message: string) {
 }
 
 async function guard(request: Request): Promise<Response | null> {
+  // When CRON_SECRET is configured, require it on every call. This keeps
+  // the endpoint locked down to the scheduled cron caller and prevents
+  // anonymous abuse of the upstream fetch + service-role DB writes.
+  const expected = process.env.CRON_SECRET;
+  if (expected) {
+    const url = new URL(request.url);
+    const provided =
+      request.headers.get("X-Cron-Secret") ?? url.searchParams.get("cron_secret");
+    if (!provided || provided !== expected) {
+      return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...CORS },
+      });
+    }
+  }
   const url = new URL(request.url);
-  const params = Object.fromEntries(url.searchParams.entries());
+  const params = Object.fromEntries(
+    [...url.searchParams.entries()].filter(([k]) => k !== "cron_secret"),
+  );
   const parsed = QuerySchema.safeParse(params);
   if (!parsed.success) return badRequest("Unexpected query parameters.");
   return null;
