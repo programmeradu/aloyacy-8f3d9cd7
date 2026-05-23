@@ -479,6 +479,11 @@ class AnimatedBus {
   private el: HTMLDivElement;
   private rotor: HTMLDivElement; // the element we rotate (img or svg)
   private halo: HTMLDivElement;  // freshness ring shown when ping is stale
+  private boardingRing: HTMLDivElement; // pulsing ring when bus is stopped at a stop
+  private boarding = false;
+  // current rendered position (used by stop-pulse detection)
+  private curLat: number;
+  private curLng: number;
 
   constructor(
     api: typeof google,
