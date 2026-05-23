@@ -58,8 +58,8 @@ function WalletPassRoute() {
     let cancelled = false;
     const tryLock = async () => {
       try {
-        // @ts-expect-error wakeLock is widely supported but not in older lib.dom
-        lock = await navigator.wakeLock?.request?.("screen");
+        const wl = (navigator as Navigator & { wakeLock?: { request: (t: string) => Promise<WakeLockSentinel> } }).wakeLock;
+        lock = (await wl?.request?.("screen")) ?? null;
       } catch {
         // permission denied or unsupported — silent
       }

@@ -14,6 +14,7 @@ import { Route as TripsRouteImport } from './routes/trips'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WalletPassRouteImport } from './routes/wallet.pass'
 import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
@@ -47,6 +48,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const WalletPassRoute = WalletPassRouteImport.update({
+  id: '/pass',
+  path: '/pass',
+  getParentRoute: () => WalletRoute,
 } as any)
 const TripIdRoute = TripIdRouteImport.update({
   id: '/trip/$id',
@@ -94,12 +100,13 @@ export interface FileRoutesByFullPath {
   '/pulse': typeof PulseRoute
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
-  '/wallet': typeof WalletRoute
+  '/wallet': typeof WalletRouteWithChildren
   '/debug/eta': typeof DebugEtaRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/wallet/pass': typeof WalletPassRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
@@ -109,12 +116,13 @@ export interface FileRoutesByTo {
   '/pulse': typeof PulseRoute
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
-  '/wallet': typeof WalletRoute
+  '/wallet': typeof WalletRouteWithChildren
   '/debug/eta': typeof DebugEtaRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/wallet/pass': typeof WalletPassRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
@@ -125,12 +133,13 @@ export interface FileRoutesById {
   '/pulse': typeof PulseRoute
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
-  '/wallet': typeof WalletRoute
+  '/wallet': typeof WalletRouteWithChildren
   '/debug/eta': typeof DebugEtaRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/wallet/pass': typeof WalletPassRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/wallet/pass'
     | '/api/public/realtime'
     | '/api/public/snapshot'
     | '/api/public/streetview'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/wallet/pass'
     | '/api/public/realtime'
     | '/api/public/snapshot'
     | '/api/public/streetview'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/wallet/pass'
     | '/api/public/realtime'
     | '/api/public/snapshot'
     | '/api/public/streetview'
@@ -188,7 +200,7 @@ export interface RootRouteChildren {
   PulseRoute: typeof PulseRoute
   SavedRoute: typeof SavedRoute
   TripsRoute: typeof TripsRoute
-  WalletRoute: typeof WalletRoute
+  WalletRoute: typeof WalletRouteWithChildren
   DebugEtaRoute: typeof DebugEtaRoute
   RouteRouteIdRoute: typeof RouteRouteIdRoute
   StopStopIdRoute: typeof StopStopIdRoute
@@ -235,6 +247,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/wallet/pass': {
+      id: '/wallet/pass'
+      path: '/pass'
+      fullPath: '/wallet/pass'
+      preLoaderRoute: typeof WalletPassRouteImport
+      parentRoute: typeof WalletRoute
     }
     '/trip/$id': {
       id: '/trip/$id'
@@ -295,12 +314,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface WalletRouteChildren {
+  WalletPassRoute: typeof WalletPassRoute
+}
+
+const WalletRouteChildren: WalletRouteChildren = {
+  WalletPassRoute: WalletPassRoute,
+}
+
+const WalletRouteWithChildren =
+  WalletRoute._addFileChildren(WalletRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PulseRoute: PulseRoute,
   SavedRoute: SavedRoute,
   TripsRoute: TripsRoute,
-  WalletRoute: WalletRoute,
+  WalletRoute: WalletRouteWithChildren,
   DebugEtaRoute: DebugEtaRoute,
   RouteRouteIdRoute: RouteRouteIdRoute,
   StopStopIdRoute: StopStopIdRoute,
@@ -313,13 +343,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
