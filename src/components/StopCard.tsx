@@ -13,7 +13,7 @@ export type Stop = {
   code: string;
   name: string;
   towards: string;
-  etaMin: number;
+  etaMin: number | null;
   routes: { code: string; tone: Tone }[];
   highlight?: boolean;
   kind?: StopKind;
