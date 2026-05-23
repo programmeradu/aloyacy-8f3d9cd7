@@ -40,7 +40,7 @@ export type MultiLegResult = {
 };
 
 const TOP_K = 5;
-const MAX_TOTAL_JOURNEY_SEC = 180 * 60;
+const MAX_TOTAL_JOURNEY_SEC = 300 * 60;
 
 export const planMultiLeg = createServerFn({ method: "POST" })
   .inputValidator((input) => InputSchema.parse(input))
