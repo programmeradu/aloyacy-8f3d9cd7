@@ -293,8 +293,8 @@ function nearestStops(
 ): Array<{ id: string; stop: ScheduleStop; distKm: number } & ScheduleStop> {
   const out: Array<{ id: string; stop: ScheduleStop; distKm: number } & ScheduleStop> = [];
   for (const [id, s] of list) {
-    if (Math.abs(s.lat - point.lat) > 0.02) continue;
-    if (Math.abs(s.lng - point.lng) > 0.025) continue;
+    if (Math.abs(s.lat - point.lat) > 0.03) continue;
+    if (Math.abs(s.lng - point.lng) > 0.035) continue;
     const distKm = haversineKm(s, point);
     if (distKm > maxKm) continue;
     out.push({ id, stop: s, distKm, name: s.name, lat: s.lat, lng: s.lng, feedId: s.feedId });
