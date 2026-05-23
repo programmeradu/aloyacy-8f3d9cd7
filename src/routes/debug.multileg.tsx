@@ -54,7 +54,7 @@ function DebugMultiLeg() {
   const preset = PRESETS[presetIdx];
 
   const m = useMutation({
-    mutationFn: () => fn({ data: { from: preset.from, to: preset.to } }),
+    mutationFn: () => fn({ data: { from: preset.from, to: preset.to, debug: true } }),
   });
 
   return (
@@ -115,11 +115,37 @@ function DebugMultiLeg() {
           </p>
         ) : null}
 
+        {m.data?.diagnostics ? (
+          <section className="mt-6 rounded-[20px] bg-card ring-1 ring-line p-5 font-mono text-[11px] text-ink-soft">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-ink mb-3">Search funnel</p>
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 tabular-nums">
+              <dt>origin stops within 1.2km</dt><dd className="text-ink">{m.data.diagnostics.originStopCount} (nearest {m.data.diagnostics.nearestOriginStopKm?.toFixed(2)} km)</dd>
+              <dt>dest stops within 1.2km</dt><dd className="text-ink">{m.data.diagnostics.destStopCount} (nearest {m.data.diagnostics.nearestDestStopKm?.toFixed(2)} km)</dd>
+              <dt>live trips in feed</dt><dd className="text-ink">{m.data.diagnostics.liveTripCount} ({m.data.diagnostics.liveArrivalCount} arrivals)</dd>
+              <dt>trips at origin stops</dt><dd className="text-ink">{m.data.diagnostics.originTripCount}</dd>
+              <dt>trips at dest stops</dt><dd className="text-ink">{m.data.diagnostics.destTripCount}</dd>
+              <dt>direct candidates raw</dt><dd className="text-ink">{m.data.diagnostics.directRawCount}</dd>
+              <dt>transfer candidates raw</dt><dd className="text-ink">{m.data.diagnostics.transferRawCount}</dd>
+              <dt>after 90-min cap</dt><dd className="text-ink">{m.data.diagnostics.validCount}</dd>
+              <dt>pruned as mediocre</dt><dd className="text-ink">{m.data.diagnostics.prunedMediocre}</dd>
+              <dt>kept (top-K)</dt><dd className="text-ink">{m.data.diagnostics.keptCount}</dd>
+            </dl>
+            {m.data.diagnostics.reasons.length > 0 ? (
+              <div className="mt-4 pt-3 border-t border-line/60">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ochre mb-1.5">Why zero results</p>
+                {m.data.diagnostics.reasons.map((r, i) => (
+                  <p key={i} className="text-ink leading-relaxed">— {r}</p>
+                ))}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
         {m.data ? (
           <section className="mt-8 space-y-4">
             {m.data.itineraries.length === 0 ? (
               <p className="font-mono text-[11px] text-ink-soft">
-                No itineraries found in the live feed window.
+                No itineraries found in the live feed window — see funnel above for why.
               </p>
             ) : (
               m.data.itineraries.map((it, idx) => (
