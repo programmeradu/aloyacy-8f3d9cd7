@@ -124,7 +124,8 @@ function StopDetail() {
             {departures.map((d, i) => {
               const route = getRoute(d.routeId);
               const accent = confidenceAccent(d.eta);
-              const shifted = d.eta.etaMin !== d.eta.rawEtaMin;
+              const shifted =
+                d.eta.operatorEtaMin != null && d.eta.operatorEtaMin !== d.eta.etaMin;
               return (
                 <Link
                   key={d.tripId + d.routeId + i}
@@ -159,7 +160,7 @@ function StopDetail() {
                     </p>
                     {shifted && (
                       <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft line-through decoration-1">
-                        sched {d.eta.rawEtaMin}
+                        op {d.eta.operatorEtaMin}
                       </p>
                     )}
                     <p
@@ -173,6 +174,7 @@ function StopDetail() {
                   </span>
                 </Link>
               );
+
             })}
           </div>
         )}
