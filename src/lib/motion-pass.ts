@@ -27,6 +27,14 @@ export type JccLink = {
   linkedAt: number;
 };
 
+export type MotionPassOption = {
+  code: string;
+  name: string;
+  priceEur: number;
+  validityDays: number | null;
+  companyCode: string;
+};
+
 export type MotionPass = {
   number: string;
   holder?: string;
@@ -36,11 +44,17 @@ export type MotionPass = {
   validUntil?: string;
   balanceEur: number;
   balanceUpdatedAt: number;
+  // Card type confirmed by the public verify endpoint (e.g. "Motion").
+  cardType?: string | null;
   topups: { id: string; amountEur: number; at: number }[];
   jcc?: JccLink;
   transactions: MotionTxSnapshot[];
   lastSyncAt: number;
   passName?: string;
+  // Eligible passes for this card (from the public top-up portal).
+  // Optional — only set after a public sync has run.
+  passes?: MotionPassOption[];
+  passesUpdatedAt?: number;
 };
 
 const empty = (): MotionPass => ({
