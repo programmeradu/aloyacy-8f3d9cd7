@@ -105,7 +105,8 @@ export function MapPreview({
 
   const { api, error } = useGoogleMaps();
   const { data: rt } = useRealtime();
-  const elRef = useRef<HTMLDivElement | null>(null);
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const mapNodeRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const layerRef = useRef<{
     polyline?: google.maps.Polyline;
@@ -117,10 +118,23 @@ export function MapPreview({
   const rafRef = useRef<number | null>(null);
   const userHereRef = useRef<UserHereOverlay | null>(null);
 
+  if (typeof document !== "undefined" && !mapNodeRef.current) {
+    const node = document.createElement("div");
+    node.className = "absolute inset-0";
+    mapNodeRef.current = node;
+  }
+
+  useEffect(() => {
+    const host = hostRef.current;
+    const mapNode = mapNodeRef.current;
+    if (!host || !mapNode) return;
+    if (mapNode.parentElement !== host) host.appendChild(mapNode);
+  }, [expanded]);
+
   // Initialize map once API is ready
   useEffect(() => {
-    if (!api || !elRef.current || mapRef.current) return;
-    mapRef.current = new api.maps.Map(elRef.current, {
+    if (!api || !mapNodeRef.current || mapRef.current) return;
+    mapRef.current = new api.maps.Map(mapNodeRef.current, {
       center,
       zoom: spanToZoom(spanKm),
       disableDefaultUI: true,
@@ -469,7 +483,7 @@ export function MapPreview({
 
   const content = (
     <div className={`${wrapperClass} relative overflow-hidden`}>
-      <div ref={elRef} className="absolute inset-0" />
+      <div ref={hostRef} className="absolute inset-0" />
       {error && (
         <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
