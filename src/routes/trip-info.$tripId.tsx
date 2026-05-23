@@ -155,9 +155,10 @@ function TripInfo() {
               value={
                 trip.nextIdx === -1
                   ? "—"
-                  : trip.stops[trip.nextIdx]?.meta?.name.split(/[·\-,]/)[0].trim() ?? "—"
+                  : trip.stops[trip.nextIdx]?.meta?.name ?? "—"
               }
             />
+
             <Insight
               label="Eta there"
               value={
