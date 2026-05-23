@@ -19,6 +19,7 @@ import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
 import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
 import { Route as DebugEtaRouteImport } from './routes/debug.eta'
+import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
@@ -73,6 +74,11 @@ const DebugEtaRoute = DebugEtaRouteImport.update({
   path: '/debug/eta',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
+  id: '/api/public/trip-alerts',
+  path: '/api/public/trip-alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicStreetviewRoute = ApiPublicStreetviewRouteImport.update({
   id: '/api/public/streetview',
   path: '/api/public/streetview',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
+  '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
+  '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
+  '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/api/public/realtime'
     | '/api/public/snapshot'
     | '/api/public/streetview'
+    | '/api/public/trip-alerts'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/api/public/realtime'
     | '/api/public/snapshot'
     | '/api/public/streetview'
+    | '/api/public/trip-alerts'
   id:
     | '__root__'
     | '/'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/api/public/realtime'
     | '/api/public/snapshot'
     | '/api/public/streetview'
+    | '/api/public/trip-alerts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
+  ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -271,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DebugEtaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/trip-alerts': {
+      id: '/api/public/trip-alerts'
+      path: '/api/public/trip-alerts'
+      fullPath: '/api/public/trip-alerts'
+      preLoaderRoute: typeof ApiPublicTripAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/streetview': {
       id: '/api/public/streetview'
       path: '/api/public/streetview'
@@ -309,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
+  ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
