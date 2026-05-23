@@ -39,6 +39,7 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
       totalSamples: 0,
       onTimePct: 0,
       routesTracked: 0,
+      excludedUnknown: 0,
       hottest: [],
       coldest: [],
       steadiest: [],
@@ -46,11 +47,17 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
   }
 
   // Collapse per-hour buckets into per-route weighted means.
+  // Drop rows whose route_id isn't in our static timetable — they'd render as "?".
   const agg = new Map<
     string,
     { sumDelayWeighted: number; sampleCount: number }
   >();
+  const excludedRoutes = new Set<string>();
   for (const row of data) {
+    if (!KNOWN_ROUTE_IDS.has(row.route_id)) {
+      excludedRoutes.add(row.route_id);
+      continue;
+    }
     const cur = agg.get(row.route_id) ?? { sumDelayWeighted: 0, sampleCount: 0 };
     cur.sumDelayWeighted += row.mean_delay_sec * row.sample_count;
     cur.sampleCount += row.sample_count;
