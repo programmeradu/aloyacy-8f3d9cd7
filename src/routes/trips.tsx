@@ -178,15 +178,42 @@ function Plan() {
       >
         <div className="mb-3 flex items-end justify-between">
           <h2 className="font-display text-2xl text-ink">
-            {results === null && !planning ? "Suggestions" : "Best routes"}
+            {results === null && !planning
+              ? personalSuggestions.length > 0
+                ? "Your usuals"
+                : "Suggestions"
+              : "Best routes"}
           </h2>
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
-            {planning ? "Computing" : results ? "Live blended" : "Idle"}
+            {planning
+              ? "Computing"
+              : results
+                ? "Live blended"
+                : personalSuggestions.length > 0
+                  ? "Learned"
+                  : "Idle"}
           </span>
         </div>
 
-        {!results && !planning && (
+        {!results && !planning && personalSuggestions.length === 0 && (
           <EmptyState origin={origin} destination={destination} />
+        )}
+
+        {!results && !planning && personalSuggestions.length > 0 && (
+          <PersonalSuggestions
+            items={personalSuggestions}
+            onPick={(s) => {
+              const to: Point = { lat: s.toLat, lng: s.toLng, label: s.toLabel };
+              setDestination(to);
+              pushRecent({ name: s.toLabel, lat: s.toLat, lng: s.toLng });
+              setActive(null);
+              const o =
+                origin ??
+                ({ lat: s.fromLat, lng: s.fromLng, label: s.fromLabel } as Point);
+              if (!origin) setOrigin(o);
+              void runPlan(o, to);
+            }}
+          />
         )}
 
         {planning && <PlanningSkeleton />}
