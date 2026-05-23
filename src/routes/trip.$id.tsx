@@ -175,6 +175,22 @@ function TripCompanion() {
     ? { [live.fusedVehicle.tripId]: live.fusedVehicle }
     : undefined;
 
+  // Compass heading (works while stationary, complements GPS heading which
+  // only fires above ~2 m/s). Prefer compass; fall back to GPS heading.
+  const compass = useCompass(live.active);
+  const userLocation = live.fix
+    ? {
+        lat: live.fix.lat,
+        lng: live.fix.lng,
+        accuracyM: live.fix.accuracyM,
+        headingDeg:
+          compass.headingDeg != null
+            ? compass.headingDeg
+            : live.fix.headingDeg,
+      }
+    : null;
+
+
 
   const mapMarkers: MapMarker[] = useMemo(() => {
     const out: MapMarker[] = [];
