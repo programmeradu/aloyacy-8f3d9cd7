@@ -10,7 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { getPulse, getLivePulse, type PulseRouteStat } from "@/lib/pulse.functions";
+import { getPulse, type PulseRouteStat } from "@/lib/pulse.functions";
 import { getRoute, routeTone } from "@/lib/gtfs";
 import pulseHero from "@/assets/pulse-hero.jpg";
 
@@ -36,18 +36,11 @@ export const Route = createFileRoute("/pulse")({
 
 function Pulse() {
   const fn = useServerFn(getPulse);
-  const liveFn = useServerFn(getLivePulse);
   const { data, isLoading } = useQuery({
     queryKey: ["pulse"],
     queryFn: () => fn(),
     refetchInterval: 60_000,
     staleTime: 30_000,
-  });
-  const { data: live } = useQuery({
-    queryKey: ["pulse-live"],
-    queryFn: () => liveFn(),
-    refetchInterval: 30_000,
-    staleTime: 20_000,
   });
 
   const totalSamples = data?.totalSamples ?? 0;
@@ -104,46 +97,6 @@ function Pulse() {
         </div>
       </section>
 
-      <section className="px-6 mt-3 animate-rise" style={{ animationDelay: "140ms" }}>
-        <div className="rounded-[28px] bg-aegean-deep p-5 ring-1 ring-aegean-deep/20 text-limestone">
-          <div className="flex items-baseline justify-between gap-4">
-            <div className="min-w-0">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
-                Right now
-              </p>
-              <p className="mt-1 font-display text-[15px] leading-tight text-limestone/90 max-w-[28ch]">
-                {live === undefined
-                  ? "Reading the last hour…"
-                  : live.observations === 0
-                  ? "Quiet feed — no buses pinged in the last hour."
-                  : "On the dot across the last 60 minutes of the live feed."}
-              </p>
-            </div>
-            <div className="shrink-0 text-right leading-none">
-              <span className="font-display text-[56px] tabular-nums">
-                {live?.onTimePct ?? "—"}
-              </span>
-              <span className="ml-1 font-mono text-[10px] uppercase tracking-[0.18em] text-limestone/70 align-top">
-                %
-              </span>
-            </div>
-          </div>
-          {live && live.observations > 0 ? (
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <LiveStat label="Early" value={`${live.earlyPct}%`} />
-              <LiveStat label="On time" value={`${live.onTimePct}%`} />
-              <LiveStat label="Late" value={`${live.latePct}%`} />
-            </div>
-          ) : null}
-          <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.2em] text-limestone/60">
-            {live
-              ? `${live.observations.toLocaleString()} arrivals · median ${
-                  live.medianDelaySec > 0 ? "+" : ""
-                }${Math.round(live.medianDelaySec / 60)} min`
-              : "—"}
-          </p>
-        </div>
-      </section>
 
       <Section
         title="Running late"
@@ -194,18 +147,6 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function LiveStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-limestone/10 ring-1 ring-limestone/15 px-3 py-2">
-      <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-limestone/60">
-        {label}
-      </p>
-      <p className="mt-0.5 font-sans font-medium text-[18px] leading-none text-limestone tabular-nums tracking-[-0.02em]">
-        {value}
-      </p>
-    </div>
-  );
-}
 
 function Section({
   title,
