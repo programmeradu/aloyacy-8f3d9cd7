@@ -266,13 +266,31 @@ async function processTrips() {
   return { processed: trips.length, dispatched };
 }
 
+async function getExpectedSecret(): Promise<string | null> {
+  // Prefer the vault-managed value (written by the cron-schedule migration);
+  // fall back to a project-level env var for local/dev runs.
+  try {
+    const { data } = await supabaseAdmin
+      .schema("vault" as never)
+      .from("decrypted_secrets" as never)
+      .select("decrypted_secret")
+      .eq("name", "aloya_cron_secret")
+      .maybeSingle();
+    const v = (data as { decrypted_secret?: string } | null)?.decrypted_secret;
+    if (v) return v;
+  } catch (e) {
+    console.warn("[trip-alerts] vault lookup failed", e);
+  }
+  return process.env.CRON_SECRET ?? null;
+}
+
 export const Route = createFileRoute("/api/public/trip-alerts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = process.env.CRON_SECRET;
+        const expected = await getExpectedSecret();
         const header = request.headers.get("x-cron-secret");
-        if (!secret || header !== secret) {
+        if (!expected || header !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
         try {
