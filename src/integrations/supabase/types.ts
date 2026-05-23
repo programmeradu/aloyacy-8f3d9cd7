@@ -191,6 +191,54 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_history: {
+        Row: {
+          device_id: string
+          dow: number
+          from_label: string
+          from_lat: number
+          from_lng: number
+          hour: number
+          id: string
+          recorded_at: string
+          route_short: string | null
+          source: string
+          to_label: string
+          to_lat: number
+          to_lng: number
+        }
+        Insert: {
+          device_id: string
+          dow: number
+          from_label: string
+          from_lat: number
+          from_lng: number
+          hour: number
+          id?: string
+          recorded_at?: string
+          route_short?: string | null
+          source?: string
+          to_label: string
+          to_lat: number
+          to_lng: number
+        }
+        Update: {
+          device_id?: string
+          dow?: number
+          from_label?: string
+          from_lat?: number
+          from_lng?: number
+          hour?: number
+          id?: string
+          recorded_at?: string
+          route_short?: string | null
+          source?: string
+          to_label?: string
+          to_lat?: number
+          to_lng?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
