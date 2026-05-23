@@ -216,6 +216,34 @@ export function MapPreview({
   const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
 
   // -------------------------------------------------------------------
+  // Per-trip stop polylines. The GTFS-RT feed gives us a vehicle's tripId
+  // + that trip's ordered stop sequence (via arrivals). Using stop coords
+  // as a proxy for the route shape, the bus glides between stops instead
+  // of cutting straight through buildings. Cheap to build, keeps the map
+  // honest.
+  // -------------------------------------------------------------------
+  const tripPaths = useMemo(() => {
+    if (!rt) return new Map<string, { lat: number; lng: number }[]>();
+    const byTrip = new Map<string, { stopId: string; t: number }[]>();
+    for (const a of rt.arrivals) {
+      const arr = byTrip.get(a.tripId) ?? [];
+      arr.push({ stopId: a.stopId, t: a.arrivalUnix });
+      byTrip.set(a.tripId, arr);
+    }
+    const out = new Map<string, { lat: number; lng: number }[]>();
+    for (const [tripId, stops] of byTrip) {
+      stops.sort((x, y) => x.t - y.t);
+      const poly: { lat: number; lng: number }[] = [];
+      for (const s of stops) {
+        const meta = getStop(s.stopId);
+        if (meta) poly.push({ lat: meta.lat, lng: meta.lng });
+      }
+      if (poly.length >= 2) out.set(tripId, poly);
+    }
+    return out;
+  }, [rt]);
+
+  // -------------------------------------------------------------------
   // Premium gliding bus overlay. Each vehicle is its own DOM overlay that
   // tweens position + bearing between feed refreshes (rAF every frame),
   // giving the Uber-style smooth glide instead of teleporting on each poll.
@@ -226,6 +254,7 @@ export function MapPreview({
 
     const layer = busLayerRef.current;
     const now = performance.now();
+    const nowSec = Math.floor(Date.now() / 1000);
 
     if (!vehicles) {
       // Clear all buses when source goes away (e.g. liveVehicles=false).
@@ -249,12 +278,17 @@ export function MapPreview({
       const targetLat = v.lat;
       const targetLng = v.lng;
       const targetBearing = v.bearing ?? 0;
+      const path = tripPaths.get(v.tripId) ?? null;
+      const ageSec = v.timestamp ? Math.max(0, nowSec - v.timestamp) : 0;
+      const stale = ageSec > 90;
 
       if (existing) {
         existing.setVariant(variant);
+        existing.setPath(path);
         existing.setTarget(targetLat, targetLng, targetBearing, now);
         existing.setSize(sizePx);
         existing.setFocused(focused);
+        existing.setStale(stale);
       } else {
         const bus = new AnimatedBus(
           api,
@@ -265,6 +299,8 @@ export function MapPreview({
           focused,
           v.label || `Bus ${v.id}`,
           variant,
+          path,
+          stale,
         );
         layer.set(v.id, bus);
       }
@@ -292,7 +328,7 @@ export function MapPreview({
       };
       rafRef.current = requestAnimationFrame(tick);
     }
-  }, [api, vehicles, focused, restricted]);
+  }, [api, vehicles, focused, restricted, tripPaths]);
 
   // Cleanup on unmount
   useEffect(() => {
