@@ -88,7 +88,7 @@ export function getTransferCandidates(): Map<string, TransferCandidate[]> {
       if (Math.abs(other.lat - origin.lat) > 0.006) continue;
       if (Math.abs(other.lng - origin.lng) > 0.006) continue;
 
-      const km = distanceKm(origin.lat, origin.lng, other.lat, other.lng);
+      const km = distanceKm(origin, other);
       const meters = km * 1000;
       if (meters > TRANSFER_RADIUS_M) continue;
 
