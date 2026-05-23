@@ -36,6 +36,10 @@ type Props = {
   vehicleOverrides?: Record<string, { lat: number; lng: number; bearing?: number }>;
   /** Override the bottom-left live-count pill label. */
   liveLabel?: { active?: string; empty?: string };
+  /** Hide the bottom-left live-count pill (still renders vehicles). */
+  hideLiveBadge?: boolean;
+  /** Caption shown bottom-right. Defaults to "Cyprus — {spanKm}". */
+  placeName?: string;
   /** Fit map to markers + polyline. Defaults to true when any are provided. */
   fitToContent?: boolean;
 };
@@ -77,6 +81,8 @@ export function MapPreview({
   restrictTripIds,
   vehicleOverrides,
   liveLabel,
+  hideLiveBadge,
+  placeName,
   fitToContent,
 }: Props) {
 
@@ -316,7 +322,7 @@ export function MapPreview({
           </p>
         </div>
       )}
-      {liveVehicles && (
+      {liveVehicles && !hideLiveBadge && (
         <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 backdrop-blur-md ring-1 ring-line">
           <span className="size-1.5 rounded-full bg-aegean-deep animate-pulse" />
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink">
@@ -335,7 +341,7 @@ export function MapPreview({
         </div>
       )}
       <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-white/85 backdrop-blur-md ring-1 ring-line px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-        Cyprus &nbsp;—&nbsp; {placeLabel}
+        {placeName ?? `Cyprus \u2002—\u2002 ${placeLabel}`}
       </div>
     </div>
   );
