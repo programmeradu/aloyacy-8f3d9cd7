@@ -32,27 +32,36 @@ let _trips: Record<string, ScheduleTrip> | null = null;
 const _shards = new Map<string, DateShard>();
 const SHARD_TTL_MS = 60 * 60 * 1000; // 1h
 
-function originUrl(path: string): string {
-  // Prefer the inbound request's origin (so dev / preview / prod all work).
+function candidateUrls(path: string): string[] {
+  const urls: string[] = [];
   try {
     const req = getRequest();
-    if (req) return new URL(path, req.url).toString();
+    if (req) urls.push(new URL(path, req.url).toString());
   } catch {
-    // not in a request context (e.g. cold-start tests)
+    // not in a request context
   }
-  const base = process.env.PUBLIC_SITE_URL ?? "https://aloyacy.lovable.app";
-  return new URL(path, base).toString();
+  if (process.env.PUBLIC_SITE_URL) urls.push(new URL(path, process.env.PUBLIC_SITE_URL).toString());
+  urls.push(new URL(path, "https://aloyacy.lovable.app").toString());
+  urls.push(new URL(path, "https://project--cb91f9c9-a30e-4540-948c-0683f1088d6c-dev.lovable.app").toString());
+  return [...new Set(urls)];
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const url = originUrl(path);
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
-    if (!res.ok) throw new Error(`schedule asset ${path} → ${res.status} (url=${url})`);
-    return (await res.json()) as T;
-  } catch (err) {
-    throw new Error(`fetch schedule asset ${path} failed: ${(err as Error).message} (url=${url})`);
+  const urls = candidateUrls(path);
+  const errors: string[] = [];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
+      if (!res.ok) {
+        errors.push(`${url} → ${res.status}`);
+        continue;
+      }
+      return (await res.json()) as T;
+    } catch (err) {
+      errors.push(`${url} → ${(err as Error).message}`);
+    }
   }
+  throw new Error(`fetch ${path} failed: ${errors.join("; ")}`);
 }
 
 export async function loadStops(): Promise<Record<string, ScheduleStop>> {
