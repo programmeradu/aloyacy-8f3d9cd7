@@ -27,13 +27,28 @@ export type PulseSnapshot = {
 };
 
 export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await supabase
-    .from("delay_stats")
-    .select("route_id, mean_delay_sec, sample_count")
-    .gte("sample_count", 3)
-    .limit(5000);
+  // Paginate through delay_stats — Supabase caps each response at 1000 rows
+  // and the table has tens of thousands of (route, stop, hour) buckets.
+  const PAGE = 1000;
+  const HARD_CAP = 100_000; // safety belt
+  const rows: { route_id: string; mean_delay_sec: number; sample_count: number }[] = [];
+  let error: unknown = null;
+  for (let from = 0; from < HARD_CAP; from += PAGE) {
+    const { data, error: pageError } = await supabase
+      .from("delay_stats")
+      .select("route_id, mean_delay_sec, sample_count")
+      .gte("sample_count", 3)
+      .range(from, from + PAGE - 1);
+    if (pageError) {
+      error = pageError;
+      break;
+    }
+    if (!data || data.length === 0) break;
+    rows.push(...data);
+    if (data.length < PAGE) break;
+  }
 
-  if (error || !data) {
+  if (error || rows.length === 0) {
     return {
       generatedAt: Math.floor(Date.now() / 1000),
       totalSamples: 0,
@@ -45,6 +60,9 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
       steadiest: [],
     } satisfies PulseSnapshot;
   }
+
+  const data = rows;
+
 
   // Collapse per-hour buckets into per-route weighted means.
   // Drop rows whose route_id isn't in our static timetable — they'd render as "?".
