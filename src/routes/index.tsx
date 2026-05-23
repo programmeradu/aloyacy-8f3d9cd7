@@ -31,6 +31,7 @@ import {
   getRoute,
   routeTone,
   distanceKm,
+  stopKind,
 } from "@/lib/gtfs";
 import { getGreeting } from "@/lib/greeting";
 import statBus from "@/assets/stat-bus.png";
@@ -150,6 +151,7 @@ function Explore() {
         etaMin: nextEta,
         routes,
         highlight: idx === 0,
+        kind: stopKind(s),
       };
     });
   }, [rt, geo.coords]);
