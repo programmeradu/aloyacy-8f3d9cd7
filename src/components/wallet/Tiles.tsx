@@ -21,7 +21,7 @@ export function ActionTile({
         {eyebrow}
       </p>
       <p
-        className={`mt-2 font-display text-[28px] leading-none ${tone === "aegean" ? "text-aegean-deep italic" : "text-ink"}`}
+        className={`mt-2 font-sans font-medium text-[26px] leading-none tabular-nums tracking-[-0.02em] ${tone === "aegean" ? "text-aegean-deep" : "text-ink"}`}
       >
         {value}
       </p>
@@ -44,7 +44,7 @@ export function Fare({
       <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
         {label}
       </p>
-      <p className="mt-2 font-display text-2xl text-ink">{value}</p>
+      <p className="mt-2 font-sans font-medium text-[22px] text-ink tabular-nums tracking-[-0.02em] leading-none">{value}</p>
       <p className="mt-0.5 text-[11px] text-ink-soft">{sub}</p>
     </div>
   );
