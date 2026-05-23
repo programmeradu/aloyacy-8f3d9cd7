@@ -391,6 +391,28 @@ export function useJourney(opts: {
           },
         }).catch(() => {}),
       );
+      // Persist the completed trip so it can power personalized suggestions.
+      fireOnce("history", () => {
+        void import("./suggestions.functions").then(({ recordTripHistory }) =>
+          recordTripHistory({
+            data: {
+              deviceId,
+              from: {
+                lat: active!.from.lat,
+                lng: active!.from.lng,
+                label: active!.from.label,
+              },
+              to: {
+                lat: active!.to.lat,
+                lng: active!.to.lng,
+                label: active!.to.label,
+              },
+              routeShort: bus.routeShort,
+              source: "completed",
+            },
+          }).catch(() => {}),
+        );
+      });
     }
   }, [result.phase, result.onBoardSuggested, result.secsToBoard, result.active, active, bus, sendAlert]);
 

@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowUpRight, IconBriefcase, IconClock, IconHome, IconPin, IconSearch, IconStar } from "@/components/Icons";
@@ -14,6 +15,8 @@ import {
   useRecents,
   useSavedPlaces,
 } from "@/lib/trip-store";
+import { getTripSuggestions, type TripSuggestion } from "@/lib/suggestions.functions";
+import { getDeviceId } from "@/lib/pwa";
 import planHero from "@/assets/plan-hero.jpg";
 
 export const Route = createFileRoute("/trips")({
@@ -42,6 +45,15 @@ function Plan() {
 
   const planFn = useServerFn(planTrip);
   const reverseFn = useServerFn(reverseLookup);
+  const fetchSuggestions = useServerFn(getTripSuggestions);
+
+  const { data: suggData } = useQuery({
+    queryKey: ["trip-suggestions"],
+    queryFn: () => fetchSuggestions({ data: { deviceId: getDeviceId() } }),
+    staleTime: 5 * 60 * 1000,
+    enabled: typeof window !== "undefined",
+  });
+  const personalSuggestions = suggData?.suggestions ?? [];
 
   // Try to seed origin from geolocation once.
   useEffect(() => {
@@ -166,15 +178,42 @@ function Plan() {
       >
         <div className="mb-3 flex items-end justify-between">
           <h2 className="font-display text-2xl text-ink">
-            {results === null && !planning ? "Suggestions" : "Best routes"}
+            {results === null && !planning
+              ? personalSuggestions.length > 0
+                ? "Your usuals"
+                : "Suggestions"
+              : "Best routes"}
           </h2>
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
-            {planning ? "Computing" : results ? "Live blended" : "Idle"}
+            {planning
+              ? "Computing"
+              : results
+                ? "Live blended"
+                : personalSuggestions.length > 0
+                  ? "Learned"
+                  : "Idle"}
           </span>
         </div>
 
-        {!results && !planning && (
+        {!results && !planning && personalSuggestions.length === 0 && (
           <EmptyState origin={origin} destination={destination} />
+        )}
+
+        {!results && !planning && personalSuggestions.length > 0 && (
+          <PersonalSuggestions
+            items={personalSuggestions}
+            onPick={(s) => {
+              const to: Point = { lat: s.toLat, lng: s.toLng, label: s.toLabel };
+              setDestination(to);
+              pushRecent({ name: s.toLabel, lat: s.toLat, lng: s.toLng });
+              setActive(null);
+              const o =
+                origin ??
+                ({ lat: s.fromLat, lng: s.fromLng, label: s.fromLabel } as Point);
+              if (!origin) setOrigin(o);
+              void runPlan(o, to);
+            }}
+          />
         )}
 
         {planning && <PlanningSkeleton />}
@@ -231,6 +270,45 @@ function EmptyState({
       <p className="mt-2 text-[13px] text-ink-soft leading-relaxed">
         We'll walk you to the nearest stop, board a real bus from the live feed,
         and walk you to the front door. No more guessing which line passes by.
+      </p>
+    </div>
+  );
+}
+
+function PersonalSuggestions({
+  items,
+  onPick,
+}: {
+  items: TripSuggestion[];
+  onPick: (s: TripSuggestion) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      {items.map((s) => {
+        const shortLabel = s.toLabel.split(/[,—-]/)[0].trim();
+        return (
+          <button
+            key={s.key}
+            onClick={() => onPick(s)}
+            className="group flex items-center gap-4 rounded-[24px] bg-card ring-1 ring-line px-5 py-4 text-left transition-colors hover:bg-limestone-soft/60 active:scale-[0.995]"
+          >
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-aegean/15 ring-1 ring-aegean/30 font-display text-[18px] text-aegean-deep tabular-nums">
+              {s.count > 9 ? "9+" : s.count}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-[18px] leading-tight text-ink truncate">
+                {shortLabel}
+              </p>
+              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft truncate">
+                {s.blurb}
+              </p>
+            </div>
+            <IconArrowUpRight className="size-4 text-ink-soft transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </button>
+        );
+      })}
+      <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+        Learned from your past trips
       </p>
     </div>
   );
