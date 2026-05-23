@@ -239,6 +239,36 @@ export type Database = {
         }
         Relationships: []
       }
+      walk_links: {
+        Row: {
+          computed_at: string
+          distance_m: number
+          duration_sec: number
+          from_stop_id: string
+          id: string
+          polyline: string
+          to_stop_id: string
+        }
+        Insert: {
+          computed_at?: string
+          distance_m: number
+          duration_sec: number
+          from_stop_id: string
+          id?: string
+          polyline: string
+          to_stop_id: string
+        }
+        Update: {
+          computed_at?: string
+          distance_m?: number
+          duration_sec?: number
+          from_stop_id?: string
+          id?: string
+          polyline?: string
+          to_stop_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
