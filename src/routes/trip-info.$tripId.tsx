@@ -212,11 +212,12 @@ function TripInfo() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className={`font-display text-[17px] leading-tight truncate ${
+                      <p className={`font-display text-[17px] leading-tight text-pretty line-clamp-2 break-words ${
                         s.passed ? "text-ink-soft line-through decoration-1" : "text-ink"
                       }`}>
                         {s.meta?.name ?? `Stop ${s.stopId}`}
                       </p>
+
                       <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
                         {s.next && <IconBus className="size-3 text-ochre" />}
                         {s.meta?.code ? `Stop ${s.meta.code}` : `#${s.index + 1}`}
