@@ -114,6 +114,7 @@ export function MapPreview({
   // tweening smoothly between feed refreshes without rerendering.
   const busLayerRef = useRef<Map<string, AnimatedBus>>(new Map());
   const rafRef = useRef<number | null>(null);
+  const userHereRef = useRef<UserHereOverlay | null>(null);
 
   // Initialize map once API is ready
   useEffect(() => {
