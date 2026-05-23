@@ -62,19 +62,18 @@ function DebugMultiLeg() {
       <div className="mx-auto max-w-3xl px-6 py-10">
         <header>
           <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-ink-soft">
-            Phase 2a checkpoint
+            Phase 2c checkpoint
           </p>
           <h1 className="mt-1.5 font-display text-[36px] leading-[1.04] text-ink text-balance">
-            One transfer,
+            Schedule + realtime,
             <br />
-            <span className="italic text-aegean-deep">honestly proposed.</span>
+            <span className="italic text-aegean-deep">honestly merged.</span>
           </h1>
           <p className="mt-3 max-w-[58ch] text-[13px] text-ink-soft leading-relaxed">
-            The search returns direct AND 1-transfer options together, scores
-            them on realistic time + transfer friction + reliability, and
-            filters out any transfer that doesn't beat the best direct by ≥ 3
-            min or ≥ 15%. Walking geometry for the top 3 picks is verified
-            against Google before display.
+            Bounded RAPTOR runs over the full Cyprus timetable and the live
+            GTFS-RT feed in parallel. Results are merged, deduped, and the
+            no-mediocrity filter removes transfers that don't meaningfully
+            beat the best direct. Each ride leg is tagged with its source.
           </p>
         </header>
 
@@ -116,26 +115,62 @@ function DebugMultiLeg() {
         ) : null}
 
         {m.data?.diagnostics ? (
-          <section className="mt-6 rounded-[20px] bg-card ring-1 ring-line p-5 font-mono text-[11px] text-ink-soft">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-ink mb-3">Search funnel</p>
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 tabular-nums">
-              <dt>origin stops within 1.2km</dt><dd className="text-ink">{m.data.diagnostics.originStopCount} (nearest {m.data.diagnostics.nearestOriginStopKm?.toFixed(2)} km)</dd>
-              <dt>dest stops within 1.2km</dt><dd className="text-ink">{m.data.diagnostics.destStopCount} (nearest {m.data.diagnostics.nearestDestStopKm?.toFixed(2)} km)</dd>
-              <dt>live trips in feed</dt><dd className="text-ink">{m.data.diagnostics.liveTripCount} ({m.data.diagnostics.liveArrivalCount} arrivals)</dd>
-              <dt>trips at origin stops</dt><dd className="text-ink">{m.data.diagnostics.originTripCount}</dd>
-              <dt>trips at dest stops</dt><dd className="text-ink">{m.data.diagnostics.destTripCount}</dd>
-              <dt>direct candidates raw</dt><dd className="text-ink">{m.data.diagnostics.directRawCount}</dd>
-              <dt>transfer candidates raw</dt><dd className="text-ink">{m.data.diagnostics.transferRawCount}</dd>
-              <dt>after 90-min cap</dt><dd className="text-ink">{m.data.diagnostics.validCount}</dd>
-              <dt>pruned as mediocre</dt><dd className="text-ink">{m.data.diagnostics.prunedMediocre}</dd>
-              <dt>kept (top-K)</dt><dd className="text-ink">{m.data.diagnostics.keptCount}</dd>
-            </dl>
-            {m.data.diagnostics.reasons.length > 0 ? (
-              <div className="mt-4 pt-3 border-t border-line/60">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ochre mb-1.5">Why zero results</p>
-                {m.data.diagnostics.reasons.map((r, i) => (
-                  <p key={i} className="text-ink leading-relaxed">— {r}</p>
-                ))}
+          <section className="mt-6 rounded-[20px] bg-card ring-1 ring-line p-5 font-mono text-[11px] text-ink-soft space-y-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-ink mb-2">Merge funnel</p>
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 tabular-nums">
+                <dt>raw (live + scheduled)</dt><dd className="text-ink">{m.data.diagnostics.mergedRaw}</dd>
+                <dt>after dedup</dt><dd className="text-ink">{m.data.diagnostics.afterDedup}</dd>
+                <dt>pruned as mediocre</dt><dd className="text-ink">{m.data.diagnostics.prunedMediocre}</dd>
+                <dt>final</dt><dd className="text-ink">{m.data.diagnostics.finalCount}</dd>
+              </dl>
+            </div>
+
+            {m.data.diagnostics.scheduled ? (
+              <div className="pt-3 border-t border-line/60">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-ink mb-2">Scheduled (RAPTOR)</p>
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 tabular-nums">
+                  <dt>date</dt><dd className="text-ink">{m.data.diagnostics.scheduled.date}</dd>
+                  <dt>origin stops ≤1.2km</dt><dd className="text-ink">{m.data.diagnostics.scheduled.originStopCount} (nearest {m.data.diagnostics.scheduled.nearestOriginStopKm?.toFixed(2)} km)</dd>
+                  <dt>dest stops ≤1.2km</dt><dd className="text-ink">{m.data.diagnostics.scheduled.destStopCount} (nearest {m.data.diagnostics.scheduled.nearestDestStopKm?.toFixed(2)} km)</dd>
+                  <dt>schedule stops loaded</dt><dd className="text-ink">{m.data.diagnostics.scheduled.scheduleStopsLoaded}</dd>
+                  <dt>trips loaded for date</dt><dd className="text-ink">{m.data.diagnostics.scheduled.scheduleTripsLoaded}</dd>
+                  <dt>RAPTOR rounds run</dt><dd className="text-ink">{m.data.diagnostics.scheduled.roundsRun}</dd>
+                  <dt>trips scanned</dt><dd className="text-ink">{m.data.diagnostics.scheduled.scannedTrips}</dd>
+                  <dt>walk transfers</dt><dd className="text-ink">{m.data.diagnostics.scheduled.walkTransfers}</dd>
+                  <dt>candidate itineraries</dt><dd className="text-ink">{m.data.diagnostics.scheduled.candidateItineraries}</dd>
+                  <dt>live arrivals (overlay)</dt><dd className="text-ink">{m.data.diagnostics.scheduled.liveArrivalCount}</dd>
+                  <dt>legs overlaid live</dt><dd className="text-ink">{m.data.diagnostics.scheduled.legsOverlaid}</dd>
+                  <dt>load / raptor / overlay ms</dt><dd className="text-ink">{m.data.diagnostics.scheduled.loadMs} / {m.data.diagnostics.scheduled.raptorMs} / {m.data.diagnostics.scheduled.overlayMs}</dd>
+                </dl>
+                {m.data.diagnostics.scheduled.reasons.length > 0 ? (
+                  <div className="mt-3">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-ochre mb-1">Why scheduled gave nothing</p>
+                    {m.data.diagnostics.scheduled.reasons.map((r: string, i: number) => (
+                      <p key={i} className="text-ink leading-relaxed">— {r}</p>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {m.data.diagnostics.live ? (
+              <div className="pt-3 border-t border-line/60">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-ink mb-2">Live (realtime feed)</p>
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 tabular-nums">
+                  <dt>live trips in feed</dt><dd className="text-ink">{m.data.diagnostics.live.liveTripCount} ({m.data.diagnostics.live.liveArrivalCount} arrivals)</dd>
+                  <dt>direct candidates</dt><dd className="text-ink">{m.data.diagnostics.live.directRawCount}</dd>
+                  <dt>transfer candidates</dt><dd className="text-ink">{m.data.diagnostics.live.transferRawCount}</dd>
+                  <dt>kept (top-K)</dt><dd className="text-ink">{m.data.diagnostics.live.keptCount}</dd>
+                </dl>
+                {m.data.diagnostics.live.reasons.length > 0 ? (
+                  <div className="mt-3">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-ochre mb-1">Why live gave nothing</p>
+                    {m.data.diagnostics.live.reasons.map((r: string, i: number) => (
+                      <p key={i} className="text-ink leading-relaxed">— {r}</p>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </section>
@@ -145,7 +180,7 @@ function DebugMultiLeg() {
           <section className="mt-8 space-y-4">
             {m.data.itineraries.length === 0 ? (
               <p className="font-mono text-[11px] text-ink-soft">
-                No itineraries found in the live feed window — see funnel above for why.
+                No itineraries found — see funnel above for why.
               </p>
             ) : (
               m.data.itineraries.map((it, idx) => (
@@ -156,7 +191,7 @@ function DebugMultiLeg() {
         ) : null}
 
         <p className="mt-10 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft text-center">
-          Phase 2a of 5 — 1-transfer search
+          Phase 2c of 5 — RAPTOR + realtime overlay
         </p>
       </div>
     </main>
