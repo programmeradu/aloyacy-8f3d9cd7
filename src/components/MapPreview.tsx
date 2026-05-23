@@ -767,10 +767,14 @@ class AnimatedBus {
       lng = lerp(this.fromLng, this.toLng, e);
     }
 
+    this.curLat = lat;
+    this.curLng = lng;
+
     const projection = this.overlay.getProjection();
     if (!projection) return;
     const pt = projection.fromLatLngToDivPixel(new this.api.maps.LatLng(lat, lng));
     if (!pt) return;
+
 
     // Prefer the path-derived bearing when gliding along a polyline — it
     // matches the visible direction of travel even if the feed's bearing
