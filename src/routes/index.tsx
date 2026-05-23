@@ -392,6 +392,7 @@ type SearchResult =
   | {
       kind: "vehicle";
       id: string;
+      tripId: string;
       routeId: string;
       routeCode: string;
       label: string;
