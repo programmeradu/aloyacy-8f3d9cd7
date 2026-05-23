@@ -161,7 +161,7 @@ async function processTrips() {
   const { data: trips, error } = await supabaseAdmin
     .from("active_trips")
     .select(
-      "device_id, trip_id, route_short, board_stop_id, board_name, board_unix, alight_stop_id, alight_name, alight_unix, walk_in_sec, walk_out_sec, alerts_sent",
+      "device_id, trip_id, route_short, board_stop_id, board_name, board_unix, alight_stop_id, alight_name, alight_unix, walk_in_sec, walk_out_sec, alerts_sent, legs, total_arrival_unix",
     )
     .or(`alight_unix.is.null,alight_unix.gte.${cutoff}`);
 
