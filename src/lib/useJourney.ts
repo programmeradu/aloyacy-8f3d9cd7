@@ -45,6 +45,11 @@ export type LiveJourney = {
   // Diagnostics
   onBoardSuggested: boolean; // GPS suggests user is moving with bus
   missedSuggested: boolean;  // bus departed without user confirmation
+  /** True when on-board confirmed but the bus disappeared from the live feed.
+   *  We're falling back to the rider's own GPS as the vehicle position. */
+  vehicleLost: boolean;
+  /** True when the realtime feed itself is paused (proxy down, > 60 s stale). */
+  feedStale: boolean;
 };
 
 
@@ -64,7 +69,8 @@ export function useJourney(opts: {
   const started = !!live?.startedAt;
 
   const { fix } = useGeoWatch(started);
-  const { data: rt } = useRealtime();
+  const { data: rt, isStale: feedStale } = useRealtime();
+
 
   const bus = useMemo(() => {
     if (!active) return null;
