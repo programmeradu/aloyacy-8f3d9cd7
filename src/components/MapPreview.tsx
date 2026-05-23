@@ -105,8 +105,8 @@ export function MapPreview({
 
   const { api, error } = useGoogleMaps();
   const { data: rt } = useRealtime();
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const mapNodeRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const layerRef = useRef<{
     polyline?: google.maps.Polyline;
@@ -118,23 +118,10 @@ export function MapPreview({
   const rafRef = useRef<number | null>(null);
   const userHereRef = useRef<UserHereOverlay | null>(null);
 
-  if (typeof document !== "undefined" && !mapNodeRef.current) {
-    const node = document.createElement("div");
-    node.className = "absolute inset-0";
-    mapNodeRef.current = node;
-  }
-
-  useEffect(() => {
-    const host = hostRef.current;
-    const mapNode = mapNodeRef.current;
-    if (!host || !mapNode) return;
-    if (mapNode.parentElement !== host) host.appendChild(mapNode);
-  }, [expanded]);
-
   // Initialize map once API is ready
   useEffect(() => {
-    if (!api || !mapNodeRef.current || mapRef.current) return;
-    mapRef.current = new api.maps.Map(mapNodeRef.current, {
+    if (!api || !hostRef.current || mapRef.current) return;
+    mapRef.current = new api.maps.Map(hostRef.current, {
       center,
       zoom: spanToZoom(spanKm),
       disableDefaultUI: true,
@@ -144,6 +131,31 @@ export function MapPreview({
       clickableIcons: false,
     });
   }, [api]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Native Fullscreen API — browser lifts the wrapper out of the document,
+  // so no ancestor transform/overflow can clip it. No portals, no re-parenting
+  // the map node, no risk of Google Maps detaching from the DOM.
+  const toggleFullscreen = async () => {
+    const wrap = wrapperRef.current;
+    if (!wrap) return;
+    try {
+      if (!document.fullscreenElement) {
+        await wrap.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch {
+      // Fallback: in-page fixed overlay if the browser blocks fullscreen
+      // (e.g. iOS Safari, which doesn't support Element.requestFullscreen).
+      setExpanded((v) => !v);
+    }
+  };
+
+  useEffect(() => {
+    const onChange = () => setExpanded(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
 
   // Update center / zoom when no fit content is needed
   useEffect(() => {
