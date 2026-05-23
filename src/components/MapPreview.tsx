@@ -509,6 +509,8 @@ class AnimatedBus {
     this.fromLng = this.toLng = pos.lng;
     this.fromBearing = this.toBearing = bearing;
     this.currentBearing = bearing;
+    this.curLat = pos.lat;
+    this.curLng = pos.lng;
 
     // Build DOM
     const el = document.createElement("div");
@@ -528,6 +530,19 @@ class AnimatedBus {
     halo.style.transition = "opacity 240ms ease";
     halo.style.pointerEvents = "none";
 
+    // Boarding ring — concentric pulse shown when the bus is stationary
+    // at a stop (picking up / dropping off). Uses inline keyframes so we
+    // don't have to inject CSS globally.
+    ensureBoardingKeyframes();
+    const boardingRing = document.createElement("div");
+    boardingRing.style.position = "absolute";
+    boardingRing.style.inset = "-35%";
+    boardingRing.style.borderRadius = "50%";
+    boardingRing.style.border = "2px solid color-mix(in oklab, #2d8a9e 80%, transparent)";
+    boardingRing.style.opacity = "0";
+    boardingRing.style.pointerEvents = "none";
+    boardingRing.style.transformOrigin = "center center";
+
     const rotor = document.createElement("div");
     rotor.style.position = "absolute";
     rotor.style.inset = "0";
@@ -536,10 +551,12 @@ class AnimatedBus {
     rotor.style.transformOrigin = "center center";
 
     el.appendChild(halo);
+    el.appendChild(boardingRing);
     el.appendChild(rotor);
 
     this.el = el;
     this.halo = halo;
+    this.boardingRing = boardingRing;
     this.rotor = rotor;
     this.renderVariant();
     this.applySize();
