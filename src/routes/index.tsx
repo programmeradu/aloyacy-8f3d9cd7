@@ -401,7 +401,7 @@ type SearchResult =
 
 function searchAll(
   raw: string,
-  vehicles: { id: string; routeId: string; label: string; lat: number; lng: number }[],
+  vehicles: { id: string; tripId: string; routeId: string; label: string; lat: number; lng: number }[],
   origin: { lat: number; lng: number },
 ): SearchResult[] {
   const q = raw.trim().toLowerCase();
