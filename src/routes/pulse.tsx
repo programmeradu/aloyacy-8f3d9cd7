@@ -104,6 +104,47 @@ function Pulse() {
         </div>
       </section>
 
+      <section className="px-6 mt-3 animate-rise" style={{ animationDelay: "140ms" }}>
+        <div className="rounded-[28px] bg-aegean-deep p-5 ring-1 ring-aegean-deep/20 text-limestone">
+          <div className="flex items-baseline justify-between gap-4">
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
+                Right now
+              </p>
+              <p className="mt-1 font-display text-[15px] leading-tight text-limestone/90 max-w-[28ch]">
+                {live === undefined
+                  ? "Reading the last hour…"
+                  : live.observations === 0
+                  ? "Quiet feed — no buses pinged in the last hour."
+                  : "On the dot across the last 60 minutes of the live feed."}
+              </p>
+            </div>
+            <div className="shrink-0 text-right leading-none">
+              <span className="font-display text-[56px] tabular-nums">
+                {live?.onTimePct ?? "—"}
+              </span>
+              <span className="ml-1 font-mono text-[10px] uppercase tracking-[0.18em] text-limestone/70 align-top">
+                %
+              </span>
+            </div>
+          </div>
+          {live && live.observations > 0 ? (
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <LiveStat label="Early" value={`${live.earlyPct}%`} />
+              <LiveStat label="On time" value={`${live.onTimePct}%`} />
+              <LiveStat label="Late" value={`${live.latePct}%`} />
+            </div>
+          ) : null}
+          <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.2em] text-limestone/60">
+            {live
+              ? `${live.observations.toLocaleString()} arrivals · median ${
+                  live.medianDelaySec > 0 ? "+" : ""
+                }${Math.round(live.medianDelaySec / 60)} min`
+              : "—"}
+          </p>
+        </div>
+      </section>
+
       <Section
         title="Running late"
         kicker="Higher delay learned at this hour"
