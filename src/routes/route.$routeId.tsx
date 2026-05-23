@@ -361,34 +361,71 @@ function RoutePage() {
               const s = getStop(id);
               if (!s) return null;
               const isEdge = i === 0 || i === data.stopIds.length - 1;
+              const busHere = data.busesOnLine.find(
+                (b) => b.stopIndex === i && (b.status === "at" || b.status === "departing"),
+              );
+              const busApproaching = data.busesOnLine.find(
+                (b) => b.stopIndex === i && b.status === "approaching",
+              );
+              const liveLabel = busHere
+                ? busHere.status === "departing"
+                  ? "Bus departing now"
+                  : "Bus at this stop"
+                : busApproaching
+                  ? "Bus approaching"
+                  : null;
               return (
                 <Link
                   key={id}
                   to="/stop/$stopId"
                   params={{ stopId: id }}
-                  className="relative flex items-center gap-4 px-5 py-3.5 border-b border-line last:border-b-0 transition-colors hover:bg-limestone-soft/60"
+                  className={`relative flex items-center gap-4 px-5 py-3.5 border-b border-line last:border-b-0 transition-colors hover:bg-limestone-soft/60 ${
+                    liveLabel ? "bg-ochre/5" : ""
+                  }`}
                 >
                   <div className="relative flex flex-col items-center">
-                    <span
-                      className={`size-2.5 rounded-full ${
-                        isEdge ? "bg-ochre" : "bg-aegean-deep/70"
-                      }`}
-                    />
+                    {busHere ? (
+                      <span className="relative flex size-4 items-center justify-center">
+                        <span className="absolute inset-0 rounded-full bg-ochre/30 animate-ping" />
+                        <span className="relative flex size-4 items-center justify-center rounded-full bg-ochre ring-2 ring-limestone">
+                          <IconBus className="size-2.5 text-ink" />
+                        </span>
+                      </span>
+                    ) : busApproaching ? (
+                      <span className="relative flex size-3 items-center justify-center">
+                        <span className="absolute inset-0 rounded-full bg-ochre/40 animate-ping" />
+                        <span className="relative size-2.5 rounded-full bg-ochre ring-2 ring-limestone" />
+                      </span>
+                    ) : (
+                      <span
+                        className={`size-2.5 rounded-full ${
+                          isEdge ? "bg-ochre" : "bg-aegean-deep/70"
+                        }`}
+                      />
+                    )}
                     {i < data.stopIds.length - 1 && (
-                      <span className="absolute top-3 h-12 w-px bg-line" />
+                      <span className="absolute top-4 h-12 w-px bg-line" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-display text-[16px] leading-tight text-ink truncate">
                       {s.name}
                     </p>
-                    <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
-                      {i === 0
-                        ? "origin"
-                        : i === data.stopIds.length - 1
-                          ? "terminus"
-                          : `stop ${i + 1}`}
-                      {s.code ? ` — #${s.code}` : ""}
+                    <p
+                      className={`mt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] truncate ${
+                        liveLabel ? "text-ochre" : "text-ink-soft"
+                      }`}
+                    >
+                      {liveLabel ?? (
+                        <>
+                          {i === 0
+                            ? "origin"
+                            : i === data.stopIds.length - 1
+                              ? "terminus"
+                              : `stop ${i + 1}`}
+                          {s.code ? ` — #${s.code}` : ""}
+                        </>
+                      )}
                     </p>
                   </div>
                 </Link>
