@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowUpRight, IconBriefcase, IconClock, IconHome, IconPin, IconSearch, IconStar } from "@/components/Icons";
@@ -14,6 +15,8 @@ import {
   useRecents,
   useSavedPlaces,
 } from "@/lib/trip-store";
+import { getTripSuggestions, type TripSuggestion } from "@/lib/suggestions.functions";
+import { getDeviceId } from "@/lib/pwa";
 import planHero from "@/assets/plan-hero.jpg";
 
 export const Route = createFileRoute("/trips")({
