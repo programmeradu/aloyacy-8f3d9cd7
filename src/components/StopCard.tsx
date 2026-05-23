@@ -27,18 +27,18 @@ const VIGNETTES: Record<
 > = {
   shelter: {
     src: stopShelter,
-    className: "-right-4 -bottom-3 w-40",
-    mask: "radial-gradient(110% 110% at 100% 100%, #000 35%, transparent 78%)",
+    className: "-left-5 -bottom-3 w-40 -scale-x-100",
+    mask: "radial-gradient(110% 110% at 0% 100%, #000 35%, transparent 78%)",
   },
   pole: {
     src: stopPole,
-    className: "-right-2 -bottom-2 w-16",
-    mask: "radial-gradient(120% 120% at 100% 100%, #000 45%, transparent 82%)",
+    className: "left-1 -bottom-2 w-14",
+    mask: "radial-gradient(140% 130% at 0% 100%, #000 50%, transparent 85%)",
   },
   terminal: {
     src: stopTerminal,
-    className: "-right-6 -bottom-2 w-48",
-    mask: "radial-gradient(110% 110% at 100% 100%, #000 35%, transparent 78%)",
+    className: "-left-6 -bottom-2 w-48",
+    mask: "radial-gradient(110% 110% at 0% 100%, #000 35%, transparent 78%)",
   },
 };
 
