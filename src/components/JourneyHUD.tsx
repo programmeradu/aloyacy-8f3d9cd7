@@ -13,6 +13,7 @@ import {
   markAlighted,
   type LiveJourney,
 } from "@/lib/useJourney";
+import { requestCompassPermission } from "@/lib/useCompass";
 import type { ActiveTrip } from "@/lib/trip-store";
 import { setActiveTrip, clearActiveTrip } from "@/lib/trip-store";
 import { planTrip } from "@/lib/journey.functions";
