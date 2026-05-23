@@ -339,12 +339,10 @@ function WalletRoute() {
             className="mt-6 px-6 animate-rise"
             style={{ animationDelay: "240ms" }}
           >
-            <div className="rounded-[28px] bg-card ring-1 ring-line overflow-hidden">
-              <div className="grid grid-cols-3 divide-x divide-line">
-                <Fare label="Urban" value="€1.50" sub="90-min" image={fareUrban} imageAlt="A Mediterranean village street in soft daylight" />
-                <Fare label="Night" value="€2.50" sub="21:00 – 04:00" image={fareNight} imageAlt="A village arch lit by a single lamp under a crescent moon" />
-                <Fare label="Intercity" value="€7.00" sub="single" image={fareIntercity} imageAlt="A coastal road winding along Cypriot cliffs" />
-              </div>
+            <div className="grid grid-cols-3 gap-2.5">
+              <Fare label="Urban" value="€1.50" sub="90-min" image={fareUrban} imageAlt="A Mediterranean village street in soft daylight" />
+              <Fare label="Night" value="€2.50" sub="21:00 – 04:00" image={fareNight} imageAlt="A village arch lit by a single lamp under a crescent moon" tone="dark" />
+              <Fare label="Intercity" value="€7.00" sub="single" image={fareIntercity} imageAlt="A coastal road winding along Cypriot cliffs" />
             </div>
           </section>
 
