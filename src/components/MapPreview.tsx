@@ -462,10 +462,12 @@ export function MapPreview({
     return km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`;
   }, [spanKm]);
 
+  const wrapperClass = expanded
+    ? "fixed inset-0 z-50 w-full h-full rounded-none ring-0 bg-limestone-soft"
+    : `relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`;
+
   return (
-    <div
-      className={`relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`}
-    >
+    <div className={`${wrapperClass} relative overflow-hidden`}>
       <div ref={elRef} className="absolute inset-0" />
       {error && (
         <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
@@ -496,6 +498,16 @@ export function MapPreview({
         <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-white/85 backdrop-blur-md ring-1 ring-line px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
           {placeName}
         </div>
+      )}
+      {fullscreenable && !error && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-label={expanded ? "Close fullscreen map" : "Expand map"}
+          className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-md ring-1 ring-line text-ink shadow-sm transition-colors hover:bg-white"
+        >
+          {expanded ? <IconClose className="size-4" /> : <IconExpand className="size-4" />}
+        </button>
       )}
     </div>
   );
