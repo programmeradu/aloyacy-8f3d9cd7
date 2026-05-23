@@ -790,7 +790,7 @@ function GreekWordGlyph({ word }: { word: string }) {
     <Defs>
       <SvgRadialGradient id={`gw-${cat}`} cx="70%" cy="30%" r="60%">
         <SvgStop offset="0" stopColor={ochre} stopOpacity="0.4" />
-        <SvgStop offset="100" stopColor={ochre} stopOpacity="0" />
+        <SvgStop offset="100%" stopColor={ochre} stopOpacity="0" />
       </SvgRadialGradient>
     </Defs>
   );
