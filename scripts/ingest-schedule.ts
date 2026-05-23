@@ -82,12 +82,14 @@ function hmsToSec(s: string): number {
 type RouteOut = { short: string; long: string; color: string; feedId: number; type: number };
 type ServiceOut = { feedId: number; dates: string[] };
 type TripOut = { routeId: string; serviceId: string; direction: 0 | 1; headsign: string; feedId: number };
+type StopOut = { name: string; lat: number; lng: number; feedId: number };
 // stop_times row: [stopId, depSec, arrSec, seq] — array form keeps JSON small
 type StopTimeRow = [string, number, number, number];
 
 const routes: Record<string, RouteOut> = {};
 const services: Record<string, ServiceOut> = {};
 const trips: Record<string, TripOut> = {};
+const stops: Record<string, StopOut> = {};
 const stopTimes: Record<string, StopTimeRow[]> = {};
 
 for (const feedId of FEED_IDS) {
