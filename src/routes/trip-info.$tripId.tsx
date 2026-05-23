@@ -155,9 +155,10 @@ function TripInfo() {
               value={
                 trip.nextIdx === -1
                   ? "—"
-                  : trip.stops[trip.nextIdx]?.meta?.name.split(/[·\-,]/)[0].trim() ?? "—"
+                  : trip.stops[trip.nextIdx]?.meta?.name ?? "—"
               }
             />
+
             <Insight
               label="Eta there"
               value={
@@ -211,11 +212,12 @@ function TripInfo() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className={`font-display text-[17px] leading-tight truncate ${
+                      <p className={`font-display text-[17px] leading-tight text-pretty line-clamp-2 break-words ${
                         s.passed ? "text-ink-soft line-through decoration-1" : "text-ink"
                       }`}>
                         {s.meta?.name ?? `Stop ${s.stopId}`}
                       </p>
+
                       <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
                         {s.next && <IconBus className="size-3 text-ochre" />}
                         {s.meta?.code ? `Stop ${s.meta.code}` : `#${s.index + 1}`}
@@ -258,13 +260,14 @@ function TripInfo() {
 
 function Insight({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-card p-3 ring-1 ring-line">
+    <div className="rounded-2xl bg-card p-3 ring-1 ring-line min-w-0">
       <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
         {label}
       </p>
-      <p className="mt-1 font-display text-[18px] leading-tight text-ink truncate">
+      <p className="mt-1 font-display text-[16px] leading-[1.15] text-ink text-pretty line-clamp-2 break-words">
         {value}
       </p>
     </div>
   );
 }
+
