@@ -25,8 +25,8 @@ import { serviceDateToUnix } from "./schedule-loader.server";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
 
 const MAX_ROUNDS = 3; // 1 ride + 2 optional transfer rides
-const MAX_ACCESS_WALK_KM = 1.2;
-const MAX_EGRESS_WALK_KM = 1.2;
+const MAX_ACCESS_WALK_KM = 2.0;
+const MAX_EGRESS_WALK_KM = 2.0;
 const MAX_TRANSFER_WALK_M = 600;
 const TOP_ORIGIN_STOPS = 8;
 const TOP_DEST_STOPS = 8;
@@ -293,8 +293,8 @@ function nearestStops(
 ): Array<{ id: string; stop: ScheduleStop; distKm: number } & ScheduleStop> {
   const out: Array<{ id: string; stop: ScheduleStop; distKm: number } & ScheduleStop> = [];
   for (const [id, s] of list) {
-    if (Math.abs(s.lat - point.lat) > 0.02) continue;
-    if (Math.abs(s.lng - point.lng) > 0.025) continue;
+    if (Math.abs(s.lat - point.lat) > 0.03) continue;
+    if (Math.abs(s.lng - point.lng) > 0.035) continue;
     const distKm = haversineKm(s, point);
     if (distKm > maxKm) continue;
     out.push({ id, stop: s, distKm, name: s.name, lat: s.lat, lng: s.lng, feedId: s.feedId });
