@@ -584,13 +584,23 @@ class AnimatedBus {
   private tweenDur = TWEEN_MS;
   private currentBearing: number;
 
-  // polyline glide
+  // polyline glide — kinematic model
+  // We hold the densified path + cumulative-distance index. `srcPath` is the
+  // un-densified reference we received, kept only so setPath() can no-op when
+  // the upstream shape hasn't changed.
+  private srcPath: { lat: number; lng: number }[] | null = null;
   private path: { lat: number; lng: number }[] | null = null;
-  // cumulative metres along path at each vertex — built lazily.
   private cum: number[] = [];
-  // distance-along values for the current tween's from / to snap points.
-  private fromAlong = 0;
-  private toAlong = 0;
+  private pathTotal = 0;
+  // Current rendered position along the path, in metres. Advanced every frame
+  // by speed + correction velocity, then sampled to lat/lng.
+  private displayedAlong = 0;
+  // Smoothed ground speed (m/s), EMA-blended from feed pings.
+  private speedMps = 0;
+  // Extra m/s added to dead-reckoning to bleed off a prediction error from
+  // the most recent ping. Decays exponentially toward zero.
+  private correctionVel = 0;
+  private lastTickMs = 0;
   private usePath = false;
 
   // overlay
