@@ -126,8 +126,7 @@ function Explore() {
       const arrivals = (arrByStop.get(s.id) ?? []).sort(
         (a, b) => a.eta - b.eta,
       );
-      const nextEta =
-        arrivals[0]?.eta ?? Math.round(s.distanceKm * 14 + 3);
+      const nextEta = arrivals[0]?.eta ?? null;
       const seen = new Set<string>();
       const routes = arrivals
         .filter((a) =>
