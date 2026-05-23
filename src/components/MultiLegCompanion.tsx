@@ -8,6 +8,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
+import { StaleFeedBanner } from "@/components/StaleFeedBanner";
 import { IconArrowLeft, IconArrowUpRight, IconBus, IconClock, IconPin } from "@/components/Icons";
 import { routeTone } from "@/lib/gtfs";
 import { clearActiveTrip, type ActiveTrip } from "@/lib/trip-store";
@@ -18,6 +19,7 @@ import {
   type MultiLegLive,
 } from "@/lib/useMultiLegJourney";
 import { startLiveTracking } from "@/lib/useJourney";
+import { useResumeRefresh, useInvalidateRealtime } from "@/lib/useRealtime";
 import { requestCompassPermission } from "@/lib/useCompass";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "@/lib/itinerary-types";
 import companionHero from "@/assets/companion-hero.jpg";
@@ -38,6 +40,10 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const itin = active.itinerary!;
   const live = useMultiLegJourney(active);
   const tripId = active.option.id;
+
+  // Force a fresh realtime fetch when rider returns to the tab after >30s away.
+  const invalidateRt = useInvalidateRealtime();
+  useResumeRefresh(invalidateRt, 30);
 
   // Map center / span — fit to whole itinerary footprint.
   const bounds = useMemo(() => boundsFor(itin), [itin]);
