@@ -46,7 +46,7 @@ export const Route = createFileRoute("/api/public/streetview")({
         if (!parsed.success) {
           return new Response("Bad request", { status: 400 });
         }
-        const { lat, lng, heading, radius } = parsed.data;
+        const { lat, lng, heading, radius, meta } = parsed.data;
 
         const token = process.env.MAPILLARY_ACCESS_TOKEN;
         if (!token) {
