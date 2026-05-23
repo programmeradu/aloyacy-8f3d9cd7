@@ -50,6 +50,8 @@ function TripCompanion() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
+  const fetchDirections = useServerFn(getWalkingDirections);
+
   const view = useMemo(() => {
     if (!active) return null;
     const now = Math.floor(Date.now() / 1000);
@@ -103,61 +105,25 @@ function TripCompanion() {
     };
   }, [active, rt, tick]);
 
-  if (!active && !hydrated) {
-    return <AppShell><div className="px-6 pt-10" /></AppShell>;
-  }
-
-  if (!active) {
-    return (
-      <AppShell>
-        <div className="px-6 pt-2 pb-4 animate-rise">
-          <Link
-            to="/trips"
-            className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink"
-          >
-            <IconArrowLeft className="size-4" />
-          </Link>
-        </div>
-        <section className="px-6 mt-6 animate-rise">
-          <h1 className="font-display text-[36px] leading-tight text-ink">
-            No active trip
-          </h1>
-          <p className="mt-3 text-[13px] text-ink-soft">
-            Plan a route and tap <span className="font-medium text-ink">Start</span>{" "}
-            on the option you want. We'll guide you from your front door to
-            theirs — countdown to leave, the bus on the move, and a gentle
-            nudge when it's time to step off.
-          </p>
-          <Link
-            to="/trips"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
-          >
-            Plan a trip
-          </Link>
-        </section>
-      </AppShell>
-    );
-  }
-
-  if (!view) return null;
-  const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard } = view;
-  let { minToAlight, minToDoor } = view;
-
-
-  // Walking turn-by-turn only makes sense BEFORE boarding (walk to stop)
-  // and AFTER alighting (walk to destination). While on the bus we hide it
-  // entirely and lean on the live bus tracker + alight alert.
-  const walkingPhase: "to-stop" | "to-dest" | null =
-    phase === "leave-soon" || phase === "walking" || phase === "waiting"
+  // Compute walking phase/leg defensively so hook order stays stable when
+  // the active trip is cleared (e.g. user taps "End").
+  const walkingPhase: "to-stop" | "to-dest" | null = view
+    ? view.phase === "leave-soon" || view.phase === "walking" || view.phase === "waiting"
       ? "to-stop"
-      : phase === "arrived"
+      : view.phase === "arrived"
         ? "to-dest"
-        : null;
-  const walkLeg = walkingPhase === "to-stop" ? walkIn : walkingPhase === "to-dest" ? walkOut : null;
+        : null
+    : null;
+  const walkLeg = view
+    ? walkingPhase === "to-stop"
+      ? view.walkIn
+      : walkingPhase === "to-dest"
+        ? view.walkOut
+        : null
+    : null;
   const walkFrom = walkLeg && walkLeg.kind === "walk" ? walkLeg.from : null;
   const walkTo = walkLeg && walkLeg.kind === "walk" ? walkLeg.to : null;
 
-  const fetchDirections = useServerFn(getWalkingDirections);
   const { data: dir } = useQuery({
     queryKey: ["walk", walkFrom?.lat, walkFrom?.lng, walkTo?.lat, walkTo?.lng],
     enabled: !!walkFrom && !!walkTo,
@@ -174,16 +140,6 @@ function TripCompanion() {
     walkingSteps: directions?.steps ?? null,
     walkingPhase,
   });
-  // Override schedule-based ETAs with GPS-fused estimate once on board.
-  if (live.active && live.fusedSecsToAlight > 0 && (phase === "on-bus" || phase === "alight-soon")) {
-    minToAlight = Math.round(live.fusedSecsToAlight / 60);
-    const walkOutSec = walkOut.kind === "walk" ? walkOut.durationSec : 0;
-    minToDoor = Math.round((live.fusedSecsToAlight + walkOutSec) / 60);
-  }
-
-  const vehicleOverrides = live.fusedVehicle
-    ? { [live.fusedVehicle.tripId]: live.fusedVehicle }
-    : undefined;
 
   // Compass heading (works while stationary). GPS heading is only valid
   // while moving > ~2 m/s. As a third fallback we derive a bearing from
@@ -204,6 +160,78 @@ function TripCompanion() {
       }
     }
   }
+
+  const mapMarkers: MapMarker[] = useMemo(() => {
+    const out: MapMarker[] = [];
+    if (!view || !active) return out;
+    const { bus, walkIn, walkOut } = view;
+    if (walkingPhase === "to-stop" && walkIn.kind === "walk") {
+      out.push({ lat: walkIn.from.lat, lng: walkIn.from.lng, kind: "origin", label: active.from.label });
+      out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
+    } else if (walkingPhase === "to-dest" && walkOut.kind === "walk") {
+      out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "stop", label: bus.alight.name });
+      out.push({ lat: walkOut.to.lat, lng: walkOut.to.lng, kind: "destination", label: active.to.label });
+    } else {
+      if (walkIn.kind === "walk")
+        out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
+      if (walkOut.kind === "walk")
+        out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "destination", label: bus.alight.name });
+    }
+    return out;
+  }, [walkingPhase, active, view]);
+
+  // ---- Early returns (all hooks above this line) -------------------------
+
+  if (!active && !hydrated) {
+    return <AppShell><div className="px-6 pt-10" /></AppShell>;
+  }
+
+  if (!active) {
+    return (
+      <AppShell>
+        <div className="px-6 pt-2 pb-4 animate-rise">
+          <Link
+            to="/trips"
+            className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink"
+          >
+            <IconArrowLeft className="size-4" />
+          </Link>
+        </div>
+        <section className="px-6 mt-6 animate-rise">
+          <h1 className="font-display text-[36px] leading-tight text-ink">
+            Trip ended
+          </h1>
+          <p className="mt-3 text-[13px] text-ink-soft">
+            You're back to the planner. Pick a starting point and a
+            destination to begin a new journey — we'll guide you door-to-door
+            with live countdowns and a gentle nudge when it's time to step off.
+          </p>
+          <Link
+            to="/trips"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
+          >
+            Plan a new trip
+          </Link>
+        </section>
+      </AppShell>
+    );
+  }
+
+  if (!view) return null;
+  const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard } = view;
+  let { minToAlight, minToDoor } = view;
+
+  // Override schedule-based ETAs with GPS-fused estimate once on board.
+  if (live.active && live.fusedSecsToAlight > 0 && (phase === "on-bus" || phase === "alight-soon")) {
+    minToAlight = Math.round(live.fusedSecsToAlight / 60);
+    const walkOutSec = walkOut.kind === "walk" ? walkOut.durationSec : 0;
+    minToDoor = Math.round((live.fusedSecsToAlight + walkOutSec) / 60);
+  }
+
+  const vehicleOverrides = live.fusedVehicle
+    ? { [live.fusedVehicle.tripId]: live.fusedVehicle }
+    : undefined;
+
   const userLocation = live.fix
     ? {
         lat: live.fix.lat,
@@ -219,24 +247,6 @@ function TripCompanion() {
     : null;
 
 
-
-  const mapMarkers: MapMarker[] = useMemo(() => {
-    const out: MapMarker[] = [];
-    if (walkingPhase === "to-stop" && walkIn.kind === "walk") {
-      out.push({ lat: walkIn.from.lat, lng: walkIn.from.lng, kind: "origin", label: active.from.label });
-      out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
-    } else if (walkingPhase === "to-dest" && walkOut.kind === "walk") {
-      out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "stop", label: bus.alight.name });
-      out.push({ lat: walkOut.to.lat, lng: walkOut.to.lng, kind: "destination", label: active.to.label });
-    } else {
-      // On the bus: show board + alight stops so the user can watch the bus advance.
-      if (walkIn.kind === "walk")
-        out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
-      if (walkOut.kind === "walk")
-        out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "destination", label: bus.alight.name });
-    }
-    return out;
-  }, [walkingPhase, active, bus, walkIn, walkOut]);
 
   return (
     <AppShell>
