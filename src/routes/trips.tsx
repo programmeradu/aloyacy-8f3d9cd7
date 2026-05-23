@@ -467,9 +467,8 @@ function QuickPicks({
       )}
       {recents.length > 0 && role === "to" && (
         <div>
-          <div className="mb-2 flex items-center gap-2 text-ink-soft">
-            <IconClock className="size-3.5" strokeWidth={1.4} />
-            <span className="h-px flex-1 bg-line" />
+          <div className="mb-2 text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+            Recent
           </div>
           <ul className="divide-y divide-line">
             {recents.slice(0, 5).map((r) => (
