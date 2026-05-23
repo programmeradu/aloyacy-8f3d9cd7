@@ -116,25 +116,8 @@ export function StopCard({ stop }: { stop: Stop }) {
               <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/70">
                 min away
               </span>
-              {stop.etaBlurb && (
-                <span
-                  className={`mt-0.5 inline-flex items-center gap-1 font-mono text-[8.5px] uppercase tracking-[0.2em] ${
-                    stop.etaConfidence === "live"
-                      ? "text-aegean-deep"
-                      : stop.etaConfidence === "scheduled"
-                        ? "text-ink-soft/60"
-                        : "text-olive"
-                  }`}
-                >
-                  <span
-                    className={`size-1.5 rounded-full ${
-                      stop.etaConfidence === "live"
-                        ? "bg-aegean-deep animate-pulse"
-                        : stop.etaConfidence === "scheduled"
-                          ? "bg-ink-soft/40"
-                          : "bg-olive"
-                    }`}
-                  />
+              {stop.etaBlurb && stop.etaConfidence !== "live" && (
+                <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-ink-soft/60">
                   {stop.etaBlurb}
                 </span>
               )}
