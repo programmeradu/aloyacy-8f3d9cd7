@@ -124,6 +124,22 @@ export const IconWind = ({ className, strokeWidth = 1.5 }: IconProps) => (
   </svg>
 );
 
+export const IconExpand = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 9V4h5" />
+    <path d="M20 9V4h-5" />
+    <path d="M4 15v5h5" />
+    <path d="M20 15v5h-5" />
+  </svg>
+);
+
+export const IconClose = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 6l12 12" />
+    <path d="M18 6L6 18" />
+  </svg>
+);
+
 export const IconCrosshair = ({ className, strokeWidth = 1.5 }: IconProps) => (
   <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="8" />

@@ -13,6 +13,7 @@ import {
   markAlighted,
   type LiveJourney,
 } from "@/lib/useJourney";
+import { requestCompassPermission } from "@/lib/useCompass";
 import type { ActiveTrip } from "@/lib/trip-store";
 import { setActiveTrip, clearActiveTrip } from "@/lib/trip-store";
 import { planTrip } from "@/lib/journey.functions";
@@ -97,7 +98,12 @@ function StartCard({ trip }: { trip: ActiveTrip }) {
           right moment.
         </p>
         <button
-          onClick={() => startLiveTracking()}
+          onClick={async () => {
+            // Piggyback the iOS compass permission on the user gesture so we
+            // can show a heading cone on the live map.
+            await requestCompassPermission();
+            startLiveTracking();
+          }}
           className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
         >
           Start journey

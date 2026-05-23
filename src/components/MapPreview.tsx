@@ -5,6 +5,7 @@ import { NICOSIA_CENTER, getStop } from "@/lib/gtfs";
 import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
 import { prefetchShapes, getShapeForTripSync } from "@/lib/shapes";
 import busPremium from "@/assets/bus-premium.png";
+import { IconExpand, IconClose } from "@/components/Icons";
 
 export type MapMarker = {
   lat: number;
@@ -43,6 +44,17 @@ type Props = {
   placeName?: string;
   /** Fit map to markers + polyline. Defaults to true when any are provided. */
   fitToContent?: boolean;
+  /** Render a "you are here" dot (and optional heading cone) for the rider. */
+  userLocation?: {
+    lat: number;
+    lng: number;
+    /** Degrees clockwise from north. Null/undefined hides the cone. */
+    headingDeg?: number | null;
+    /** GPS accuracy in metres; used to size the soft accuracy halo. */
+    accuracyM?: number;
+  } | null;
+  /** Show the expand-to-fullscreen toggle. Defaults to true. */
+  fullscreenable?: boolean;
 };
 
 
@@ -85,7 +97,10 @@ export function MapPreview({
   hideLiveBadge,
   placeName,
   fitToContent,
+  userLocation,
+  fullscreenable = true,
 }: Props) {
+  const [expanded, setExpanded] = useState(false);
 
   const { api, error } = useGoogleMaps();
   const { data: rt } = useRealtime();
@@ -99,6 +114,7 @@ export function MapPreview({
   // tweening smoothly between feed refreshes without rerendering.
   const busLayerRef = useRef<Map<string, AnimatedBus>>(new Map());
   const rafRef = useRef<number | null>(null);
+  const userHereRef = useRef<UserHereOverlay | null>(null);
 
   // Initialize map once API is ready
   useEffect(() => {
@@ -382,14 +398,62 @@ export function MapPreview({
     }
   }, [api, vehicles, focused, restricted, tripPaths]);
 
+  // ----- "You are here" overlay (rider's own location + heading cone) -----
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!api || !m) return;
+    if (!userLocation) {
+      userHereRef.current?.destroy();
+      userHereRef.current = null;
+      return;
+    }
+    if (!userHereRef.current) {
+      userHereRef.current = new UserHereOverlay(api, m, userLocation);
+    } else {
+      userHereRef.current.update(userLocation);
+    }
+  }, [api, userLocation?.lat, userLocation?.lng, userLocation?.headingDeg, userLocation?.accuracyM]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Trigger a Maps resize whenever the container size changes (fullscreen
+  // toggle). Without this Google Maps caches the old bounds and renders blank
+  // grey margins until the user pans.
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!api || !m) return;
+    // next frame so the DOM has reflowed first
+    const id = requestAnimationFrame(() => {
+      const center = m.getCenter();
+      api.maps.event.trigger(m, "resize");
+      if (center) m.setCenter(center);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [api, expanded]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       busLayerRef.current.forEach((b) => b.destroy());
       busLayerRef.current.clear();
+      userHereRef.current?.destroy();
+      userHereRef.current = null;
     };
   }, []);
+
+  // Lock body scroll while in fullscreen.
+  useEffect(() => {
+    if (!expanded) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setExpanded(false);
+    };
+    window.addEventListener("keydown", onEsc);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onEsc);
+    };
+  }, [expanded]);
 
   const liveCount = focused || restricted ? vehicles?.length ?? 0 : rt?.vehicles.length ?? 0;
   const placeLabel = useMemo(() => {
@@ -398,10 +462,12 @@ export function MapPreview({
     return km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`;
   }, [spanKm]);
 
+  const wrapperClass = expanded
+    ? "fixed inset-0 z-50 w-full h-full rounded-none ring-0 bg-limestone-soft"
+    : `relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`;
+
   return (
-    <div
-      className={`relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`}
-    >
+    <div className={`${wrapperClass} relative overflow-hidden`}>
       <div ref={elRef} className="absolute inset-0" />
       {error && (
         <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
@@ -432,6 +498,16 @@ export function MapPreview({
         <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-white/85 backdrop-blur-md ring-1 ring-line px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
           {placeName}
         </div>
+      )}
+      {fullscreenable && !error && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-label={expanded ? "Close fullscreen map" : "Expand map"}
+          className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-md ring-1 ring-line text-ink shadow-sm transition-colors hover:bg-white"
+        >
+          {expanded ? <IconClose className="size-4" /> : <IconExpand className="size-4" />}
+        </button>
       )}
     </div>
   );
@@ -895,6 +971,179 @@ function ensureBoardingKeyframes() {
     0%   { transform: scale(0.75); opacity: 0.85; }
     70%  { transform: scale(1.45); opacity: 0; }
     100% { transform: scale(1.45); opacity: 0; }
+  }`;
+  document.head.appendChild(style);
+}
+
+/* ============================================================
+ * UserHereOverlay — Google-Maps-style "blue dot" for the rider's
+ * own location, with an optional translucent heading cone when a
+ * compass or GPS heading is available. Lightweight DOM overlay so
+ * it composites smoothly with the gliding bus markers.
+ * ============================================================ */
+class UserHereOverlay {
+  private overlay: google.maps.OverlayView;
+  private el: HTMLDivElement;
+  private cone: HTMLDivElement;
+  private accuracyHalo: HTMLDivElement;
+  private map: google.maps.Map;
+  private lat: number;
+  private lng: number;
+  private heading: number | null;
+  private accuracyM: number;
+
+  constructor(
+    api: typeof google,
+    map: google.maps.Map,
+    init: { lat: number; lng: number; headingDeg?: number | null; accuracyM?: number },
+  ) {
+    this.lat = init.lat;
+    this.lng = init.lng;
+    this.heading = init.headingDeg ?? null;
+    this.accuracyM = init.accuracyM ?? 25;
+    ensureUserHerePulseKeyframes();
+
+    const el = document.createElement("div");
+    el.style.position = "absolute";
+    el.style.pointerEvents = "none";
+    el.style.willChange = "transform";
+    el.style.transformOrigin = "center center";
+
+    // Accuracy halo — soft fill scaled by GPS accuracy.
+    const accuracyHalo = document.createElement("div");
+    accuracyHalo.style.position = "absolute";
+    accuracyHalo.style.left = "50%";
+    accuracyHalo.style.top = "50%";
+    accuracyHalo.style.borderRadius = "50%";
+    accuracyHalo.style.background =
+      "radial-gradient(circle, color-mix(in oklab, #2d8a9e 22%, transparent) 0%, color-mix(in oklab, #2d8a9e 8%, transparent) 60%, transparent 100%)";
+    accuracyHalo.style.transform = "translate(-50%, -50%)";
+
+    // Heading cone — translucent wedge, points "up" (rotated by heading).
+    const cone = document.createElement("div");
+    cone.style.position = "absolute";
+    cone.style.left = "50%";
+    cone.style.top = "50%";
+    cone.style.width = "120px";
+    cone.style.height = "120px";
+    cone.style.transformOrigin = "50% 50%";
+    cone.style.background =
+      "conic-gradient(from -30deg at 50% 50%, transparent 0deg, color-mix(in oklab, #2d8a9e 55%, transparent) 30deg, color-mix(in oklab, #2d8a9e 0%, transparent) 60deg, transparent 60deg)";
+    cone.style.maskImage =
+      "radial-gradient(circle at 50% 50%, black 12%, rgba(0,0,0,0.85) 35%, transparent 65%)";
+    // Webkit fallback for the mask.
+    (cone.style as unknown as { webkitMaskImage: string }).webkitMaskImage =
+      "radial-gradient(circle at 50% 50%, black 12%, rgba(0,0,0,0.85) 35%, transparent 65%)";
+    cone.style.transform = "translate(-50%, -50%) rotate(0deg)";
+    cone.style.opacity = this.heading == null ? "0" : "1";
+    cone.style.transition = "opacity 240ms ease";
+
+    // Pulsing soft outer ring.
+    const pulse = document.createElement("div");
+    pulse.style.position = "absolute";
+    pulse.style.left = "50%";
+    pulse.style.top = "50%";
+    pulse.style.width = "36px";
+    pulse.style.height = "36px";
+    pulse.style.borderRadius = "50%";
+    pulse.style.transform = "translate(-50%, -50%)";
+    pulse.style.background = "color-mix(in oklab, #2d8a9e 30%, transparent)";
+    pulse.style.animation = "aloya-here-pulse 1800ms ease-out infinite";
+
+    // Core dot — white ring + aegean center, classic "you" marker.
+    const dot = document.createElement("div");
+    dot.style.position = "absolute";
+    dot.style.left = "50%";
+    dot.style.top = "50%";
+    dot.style.width = "18px";
+    dot.style.height = "18px";
+    dot.style.borderRadius = "50%";
+    dot.style.transform = "translate(-50%, -50%)";
+    dot.style.background = "#2d8a9e";
+    dot.style.border = "3px solid #ffffff";
+    dot.style.boxShadow = "0 2px 6px rgba(20,20,20,0.35)";
+
+    el.appendChild(accuracyHalo);
+    el.appendChild(cone);
+    el.appendChild(pulse);
+    el.appendChild(dot);
+
+    this.el = el;
+    this.cone = cone;
+    this.accuracyHalo = accuracyHalo;
+    this.applyAccuracy(map);
+    this.applyHeading();
+
+    const self = this;
+    class HereOverlay extends api.maps.OverlayView {
+      onAdd() {
+        const panes = this.getPanes();
+        panes?.floatPane.appendChild(self.el);
+      }
+      draw() {
+        const projection = this.getProjection();
+        if (!projection) return;
+        const pt = projection.fromLatLngToDivPixel(
+          new api.maps.LatLng(self.lat, self.lng),
+        );
+        if (!pt) return;
+        self.el.style.transform = `translate3d(${pt.x}px, ${pt.y}px, 0)`;
+        self.applyAccuracy(self.map);
+      }
+      onRemove() {
+        self.el.parentNode?.removeChild(self.el);
+      }
+    }
+    this.map = map;
+    this.overlay = new HereOverlay();
+    this.overlay.setMap(map);
+  }
+
+  update(next: { lat: number; lng: number; headingDeg?: number | null; accuracyM?: number }) {
+    this.lat = next.lat;
+    this.lng = next.lng;
+    this.heading = next.headingDeg ?? null;
+    this.accuracyM = next.accuracyM ?? this.accuracyM;
+    this.applyHeading();
+    this.overlay.draw();
+  }
+
+  private applyHeading() {
+    if (this.heading == null) {
+      this.cone.style.opacity = "0";
+    } else {
+      this.cone.style.opacity = "1";
+      this.cone.style.transform = `translate(-50%, -50%) rotate(${this.heading}deg)`;
+    }
+  }
+
+  private applyAccuracy(map: google.maps.Map) {
+    // Convert accuracy in metres to pixels at current zoom.
+    const proj = map.getProjection();
+    if (!proj) return;
+    const zoom = map.getZoom() ?? 14;
+    const scale = 2 ** zoom;
+    const metersPerPixel =
+      (156543.03392 * Math.cos((this.lat * Math.PI) / 180)) / scale;
+    const px = Math.max(24, Math.min(160, this.accuracyM / metersPerPixel));
+    this.accuracyHalo.style.width = `${px * 2}px`;
+    this.accuracyHalo.style.height = `${px * 2}px`;
+  }
+
+  destroy() {
+    this.overlay.setMap(null);
+  }
+}
+
+let userHerePulseKeyframesInjected = false;
+function ensureUserHerePulseKeyframes() {
+  if (userHerePulseKeyframesInjected || typeof document === "undefined") return;
+  userHerePulseKeyframesInjected = true;
+  const style = document.createElement("style");
+  style.textContent = `@keyframes aloya-here-pulse {
+    0%   { transform: translate(-50%, -50%) scale(0.6); opacity: 0.6; }
+    80%  { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
   }`;
   document.head.appendChild(style);
 }
