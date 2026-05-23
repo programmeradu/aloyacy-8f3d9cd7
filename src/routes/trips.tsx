@@ -45,6 +45,15 @@ function Plan() {
 
   const planFn = useServerFn(planTrip);
   const reverseFn = useServerFn(reverseLookup);
+  const fetchSuggestions = useServerFn(getTripSuggestions);
+
+  const { data: suggData } = useQuery({
+    queryKey: ["trip-suggestions"],
+    queryFn: () => fetchSuggestions({ data: { deviceId: getDeviceId() } }),
+    staleTime: 5 * 60 * 1000,
+    enabled: typeof window !== "undefined",
+  });
+  const personalSuggestions = suggData?.suggestions ?? [];
 
   // Try to seed origin from geolocation once.
   useEffect(() => {
