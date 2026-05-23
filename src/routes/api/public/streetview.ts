@@ -16,8 +16,9 @@ const QuerySchema = z.object({
   // Search radius in metres. Mapillary defaults are tight; 80m matches the
   // walking-step granularity well.
   radius: z.coerce.number().min(10).max(500).default(80),
-  // When "1", return JSON metadata (image id + viewer token) instead of the
-  // JPEG bytes — used by the interactive viewer sheet.
+  // When "1", return JSON metadata (image id only) — the client uses it to
+  // request the JPEG separately. The Mapillary access token is server-only
+  // and never returned to clients.
   meta: z.enum(["0", "1"]).default("0"),
 });
 
@@ -110,11 +111,12 @@ export const Route = createFileRoute("/api/public/streetview")({
           return new Response("No imagery", { status: 404 });
         }
 
-        // Meta mode: return image id + the public viewer token so the client
-        // can boot mapillary-js without baking the secret into the bundle.
+        // Meta mode: return only the image id. The JPEG is fetched via the
+        // default mode of this same endpoint so the access token never
+        // leaves the server.
         if (meta === "1") {
           return new Response(
-            JSON.stringify({ imageId: best.id, token }),
+            JSON.stringify({ imageId: best.id }),
             {
               status: 200,
               headers: {
