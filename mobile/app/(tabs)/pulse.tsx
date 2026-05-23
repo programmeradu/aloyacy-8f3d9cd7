@@ -572,73 +572,175 @@ function accentColor(a: TodayTile["accent"]): string {
   }
 }
 
-/** Bespoke SVG glyphs for tile kinds — no icon set. */
+/** Bespoke SVG glyphs for tile kinds — mirrors src/components/TodayTileGlyph.tsx. */
 function TileGlyph({ kind, color }: { kind: TodayTile["kind"]; color: string }) {
   const s = 86;
-  const common = { stroke: color, strokeWidth: 1.6, fill: "none" as const };
+  const card = palette.white;
   return (
-    <Svg width={s} height={s} viewBox="0 0 100 100">
+    <Svg width={s} height={s} viewBox="0 0 96 96">
       {kind === "match" && (
-        <G {...common}>
-          <Circle cx={50} cy={50} r={26} />
-          <Path d="M50 24 L58 42 L78 46 L64 60 L68 80 L50 70 L32 80 L36 60 L22 46 L42 42 Z" fill={color} opacity={0.25} />
-        </G>
+        <>
+          <Defs>
+            <SvgRadialGradient id="g-match" cx="50%" cy="40%" r="55%">
+              <SvgStop offset="0%" stopColor={color} stopOpacity="0.22" />
+              <SvgStop offset="100%" stopColor={color} stopOpacity="0" />
+            </SvgRadialGradient>
+          </Defs>
+          <Rect x={0} y={0} width={96} height={96} fill="url(#g-match)" />
+          <Rect x={18} y={22} width={2} height={40} fill={color} opacity={0.45} />
+          <Rect x={76} y={22} width={2} height={40} fill={color} opacity={0.45} />
+          <Path d="M14 18 H24 V26 H14 Z" fill={color} opacity={0.85} />
+          <Path d="M72 18 H82 V26 H72 Z" fill={color} opacity={0.85} />
+          <Path d="M10 70 Q48 56 86 70 L86 78 Q48 64 10 78 Z" fill={color} opacity={0.18} />
+          <Path d="M14 72 Q48 60 82 72 L82 76 Q48 64 14 76 Z" fill={color} opacity={0.55} />
+          <Path d="M30 78 Q48 73 66 78" stroke={color} strokeWidth={1.2} opacity={0.65} fill="none" />
+        </>
       )}
       {kind === "festival" && (
-        <G {...common}>
-          <Path d="M20 78 L50 30 L80 78 Z" />
-          <Path d="M35 60 L50 40 L65 60" />
-          <Circle cx={50} cy={30} r={3} fill={color} />
-        </G>
+        <>
+          <Path d="M8 22 Q48 42 88 22" stroke={color} strokeWidth={1.2} opacity={0.55} fill="none" />
+          <Path d="M22 26 L30 26 L26 42 Z" fill={color} opacity={0.85} />
+          <Path d="M40 32 L50 32 L45 50 Z" fill={color} opacity={0.55} />
+          <Path d="M60 33 L70 33 L65 50 Z" fill={color} opacity={0.75} />
+          <Circle cx={16} cy={56} r={1.8} fill={color} opacity={0.7} />
+          <Circle cx={80} cy={60} r={2.2} fill={color} opacity={0.55} />
+          <Circle cx={50} cy={68} r={1.6} fill={color} opacity={0.8} />
+          <Circle cx={34} cy={74} r={2} fill={color} opacity={0.4} />
+          <Circle cx={72} cy={78} r={1.4} fill={color} opacity={0.65} />
+        </>
       )}
       {kind === "cruise" && (
-        <G {...common}>
-          <Path d="M15 66 L85 66 L74 82 L26 82 Z" />
-          <Path d="M50 66 L50 30 M50 40 L70 44 L50 48" />
-        </G>
+        <>
+          <Circle cx={74} cy={22} r={8} fill={color} opacity={0.25} />
+          <Path d="M10 50 L74 50 L66 62 L18 62 Z" fill={color} opacity={0.85} />
+          <Rect x={22} y={38} width={38} height={12} fill={color} opacity={0.45} />
+          <Rect x={26} y={42} width={3} height={3} fill={card} />
+          <Rect x={34} y={42} width={3} height={3} fill={card} />
+          <Rect x={42} y={42} width={3} height={3} fill={card} />
+          <Rect x={50} y={42} width={3} height={3} fill={card} />
+          <Rect x={44} y={30} width={4} height={10} fill={color} opacity={0.7} />
+          <Rect x={52} y={30} width={4} height={10} fill={color} opacity={0.7} />
+          <Path d="M6 72 Q18 68 30 72 T54 72 T78 72 T96 72" stroke={color} strokeWidth={1.4} fill="none" opacity={0.55} />
+          <Path d="M6 80 Q18 76 30 80 T54 80 T78 80 T96 80" stroke={color} strokeWidth={1.4} fill="none" opacity={0.35} />
+        </>
       )}
       {kind === "holiday" && (
-        <G {...common}>
-          <Path d="M28 30 L72 30 L68 78 L32 78 Z" />
-          <Circle cx={50} cy={52} r={9} />
-        </G>
+        <>
+          <Circle cx={60} cy={32} r={14} fill={color} opacity={0.22} />
+          <Circle cx={60} cy={32} r={9} fill={color} opacity={0.85} />
+          <Path d="M30 86 Q26 60 22 36" stroke={color} strokeWidth={2.2} fill="none" opacity={0.85} strokeLinecap="round" />
+          <Path d="M22 36 Q10 30 4 38" stroke={color} strokeWidth={1.6} fill="none" opacity={0.7} strokeLinecap="round" />
+          <Path d="M22 36 Q26 22 38 20" stroke={color} strokeWidth={1.6} fill="none" opacity={0.7} strokeLinecap="round" />
+          <Path d="M22 36 Q14 44 8 56" stroke={color} strokeWidth={1.6} fill="none" opacity={0.55} strokeLinecap="round" />
+          <Path d="M22 36 Q34 36 44 44" stroke={color} strokeWidth={1.6} fill="none" opacity={0.55} strokeLinecap="round" />
+        </>
       )}
       {kind === "nameday" && (
-        <G {...common}>
-          <Path d="M32 40 Q50 22 68 40 Q60 62 50 76 Q40 62 32 40 Z" />
-          <Circle cx={50} cy={45} r={4} fill={color} />
-        </G>
-      )}
-      {kind === "rhythm" && (
-        <G {...common}>
-          <Path d="M20 60 L34 60 L40 42 L52 78 L60 52 L68 60 L82 60" strokeLinecap="round" strokeLinejoin="round" />
-        </G>
+        <>
+          {[-1, 1].map((sx) => (
+            <G key={sx} transform={`translate(48 50) scale(${sx} 1)`}>
+              <Path d="M0 -28 Q20 -18 22 0 Q20 18 0 28" stroke={color} strokeWidth={1.4} fill="none" opacity={0.55} />
+              {[-22, -10, 2, 14].map((y, i) => (
+                <Ellipse
+                  key={i}
+                  cx={20}
+                  cy={y}
+                  rx={6}
+                  ry={3}
+                  fill={color}
+                  opacity={0.55 + (i % 2) * 0.2}
+                  transform={`rotate(${-30 + i * 18} 20 ${y})`}
+                />
+              ))}
+            </G>
+          ))}
+          <Circle cx={48} cy={50} r={3} fill={color} opacity={0.8} />
+        </>
       )}
       {kind === "weather-sun" && (
-        <G {...common}>
-          <Circle cx={50} cy={50} r={14} fill={color} opacity={0.3} />
-          {Array.from({ length: 8 }).map((_, i) => {
-            const a = (i * Math.PI) / 4;
+        <>
+          <Circle cx={48} cy={50} r={14} fill={color} opacity={0.85} />
+          <Circle cx={48} cy={50} r={22} stroke={color} strokeWidth={1} fill="none" opacity={0.25} />
+          {Array.from({ length: 12 }).map((_, i) => {
+            const a = (i * Math.PI) / 6;
+            const r1 = 26;
+            const r2 = i % 2 === 0 ? 36 : 32;
             return (
-              <Path
+              <Line
                 key={i}
-                d={`M${50 + Math.cos(a) * 22} ${50 + Math.sin(a) * 22} L${50 + Math.cos(a) * 30} ${50 + Math.sin(a) * 30}`}
+                x1={48 + Math.cos(a) * r1}
+                y1={50 + Math.sin(a) * r1}
+                x2={48 + Math.cos(a) * r2}
+                y2={50 + Math.sin(a) * r2}
+                stroke={color}
+                strokeWidth={2}
+                strokeLinecap="round"
+                opacity={0.7}
+              />
+            );
+          })}
+        </>
+      )}
+      {kind === "weather-rain" && (
+        <>
+          <Path
+            d="M22 50 Q22 38 34 38 Q38 28 50 30 Q64 30 66 42 Q78 42 78 52 Q78 60 70 60 L30 60 Q22 60 22 50 Z"
+            fill={color}
+            opacity={0.65}
+          />
+          {[0, 1, 2].map((i) => (
+            <Path
+              key={i}
+              d={`M${36 + i * 12} 70 L${30 + i * 12} 84`}
+              stroke={color}
+              strokeWidth={2.4}
+              strokeLinecap="round"
+              opacity={0.75 - i * 0.12}
+              fill="none"
+            />
+          ))}
+        </>
+      )}
+      {kind === "weather-cloud" && (
+        <>
+          <Path
+            d="M16 58 Q16 44 30 44 Q34 32 48 34 Q64 34 66 48 Q82 48 82 60 Q82 70 72 70 L26 70 Q16 70 16 58 Z"
+            fill={color}
+            opacity={0.4}
+          />
+          <Path
+            d="M22 60 Q22 50 32 50 Q36 42 46 44 Q58 44 60 54 Q72 54 72 62 Q72 70 64 70 L30 70 Q22 70 22 60 Z"
+            fill={color}
+            opacity={0.85}
+          />
+        </>
+      )}
+      {kind === "rhythm" && (
+        <>
+          <Circle cx={48} cy={50} r={26} stroke={color} strokeWidth={1.4} fill="none" opacity={0.5} />
+          <Circle cx={48} cy={50} r={20} fill={color} opacity={0.1} />
+          {Array.from({ length: 12 }).map((_, i) => {
+            const a = (i * Math.PI) / 6;
+            const r1 = 23;
+            const r2 = i % 3 === 0 ? 19 : 21;
+            return (
+              <Line
+                key={i}
+                x1={48 + Math.cos(a) * r2}
+                y1={50 + Math.sin(a) * r2}
+                x2={48 + Math.cos(a) * r1}
+                y2={50 + Math.sin(a) * r1}
+                stroke={color}
+                strokeWidth={i % 3 === 0 ? 1.8 : 1}
+                opacity={0.7}
                 strokeLinecap="round"
               />
             );
           })}
-        </G>
-      )}
-      {kind === "weather-rain" && (
-        <G {...common}>
-          <Path d="M28 46 Q40 32 56 40 Q76 34 78 54 Q76 62 66 62 L34 62 Q22 60 28 46 Z" />
-          <Path d="M36 70 L32 82 M50 70 L46 82 M64 70 L60 82" strokeLinecap="round" />
-        </G>
-      )}
-      {kind === "weather-cloud" && (
-        <G {...common}>
-          <Path d="M24 60 Q36 44 52 52 Q72 44 78 62 Q76 72 66 72 L30 72 Q18 70 24 60 Z" />
-        </G>
+          <Line x1={48} y1={50} x2={48} y2={34} stroke={color} strokeWidth={2} strokeLinecap="round" opacity={0.85} />
+          <Line x1={48} y1={50} x2={60} y2={54} stroke={color} strokeWidth={2.2} strokeLinecap="round" opacity={0.85} />
+          <Circle cx={48} cy={50} r={2.2} fill={color} />
+        </>
       )}
     </Svg>
   );
