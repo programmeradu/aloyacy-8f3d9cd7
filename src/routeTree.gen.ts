@@ -18,6 +18,7 @@ import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
 import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
+import { Route as DebugGraphRouteImport } from './routes/debug.graph'
 import { Route as DebugEtaRouteImport } from './routes/debug.eta'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
@@ -69,6 +70,11 @@ const RouteRouteIdRoute = RouteRouteIdRouteImport.update({
   path: '/route/$routeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DebugGraphRoute = DebugGraphRouteImport.update({
+  id: '/debug/graph',
+  path: '/debug/graph',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DebugEtaRoute = DebugEtaRouteImport.update({
   id: '/debug/eta',
   path: '/debug/eta',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/debug/eta': typeof DebugEtaRoute
+  '/debug/graph': typeof DebugGraphRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/debug/eta': typeof DebugEtaRoute
+  '/debug/graph': typeof DebugGraphRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/debug/eta': typeof DebugEtaRoute
+  '/debug/graph': typeof DebugGraphRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/debug/eta'
+    | '/debug/graph'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/debug/eta'
+    | '/debug/graph'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/debug/eta'
+    | '/debug/graph'
     | '/route/$routeId'
     | '/stop/$stopId'
     | '/trip-info/$tripId'
@@ -202,6 +214,7 @@ export interface RootRouteChildren {
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
   DebugEtaRoute: typeof DebugEtaRoute
+  DebugGraphRoute: typeof DebugGraphRoute
   RouteRouteIdRoute: typeof RouteRouteIdRoute
   StopStopIdRoute: typeof StopStopIdRoute
   TripInfoTripIdRoute: typeof TripInfoTripIdRoute
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RouteRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/debug/graph': {
+      id: '/debug/graph'
+      path: '/debug/graph'
+      fullPath: '/debug/graph'
+      preLoaderRoute: typeof DebugGraphRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/debug/eta': {
       id: '/debug/eta'
       path: '/debug/eta'
@@ -322,6 +342,7 @@ const rootRouteChildren: RootRouteChildren = {
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
   DebugEtaRoute: DebugEtaRoute,
+  DebugGraphRoute: DebugGraphRoute,
   RouteRouteIdRoute: RouteRouteIdRoute,
   StopStopIdRoute: StopStopIdRoute,
   TripInfoTripIdRoute: TripInfoTripIdRoute,
