@@ -16,6 +16,9 @@ const QuerySchema = z.object({
   // Search radius in metres. Mapillary defaults are tight; 80m matches the
   // walking-step granularity well.
   radius: z.coerce.number().min(10).max(500).default(80),
+  // When "1", return JSON metadata (image id + viewer token) instead of the
+  // JPEG bytes — used by the interactive viewer sheet.
+  meta: z.enum(["0", "1"]).default("0"),
 });
 
 type MapillaryImage = {
