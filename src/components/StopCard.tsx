@@ -7,6 +7,7 @@ import stopTerminal from "@/assets/stop-terminal.png";
 
 type Tone = "aegean" | "ochre" | "olive";
 export type StopKind = "shelter" | "pole" | "terminal";
+export type EtaConfidence = "live" | "predicted" | "scheduled";
 
 export type Stop = {
   id: string;
@@ -14,6 +15,10 @@ export type Stop = {
   name: string;
   towards: string;
   etaMin: number | null;
+  /** Source/freshness of the displayed ETA. Drives the colour chip. */
+  etaConfidence?: EtaConfidence;
+  /** Optional short label ("live", "stale ping", "scheduled"). */
+  etaBlurb?: string;
   routes: { code: string; tone: Tone }[];
   highlight?: boolean;
   kind?: StopKind;
@@ -96,13 +101,43 @@ export function StopCard({ stop }: { stop: Stop }) {
           ) : (
             <>
               <div className="flex items-baseline">
-                <span className={`font-display text-5xl leading-none ${tone}`}>
+                <span
+                  className={`font-display text-5xl leading-none ${
+                    stop.etaConfidence === "scheduled"
+                      ? "text-ink-soft/60"
+                      : stop.etaConfidence === "predicted"
+                        ? "text-olive"
+                        : tone
+                  }`}
+                >
                   {stop.etaMin}
                 </span>
               </div>
               <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/70">
                 min away
               </span>
+              {stop.etaBlurb && (
+                <span
+                  className={`mt-0.5 inline-flex items-center gap-1 font-mono text-[8.5px] uppercase tracking-[0.2em] ${
+                    stop.etaConfidence === "live"
+                      ? "text-aegean-deep"
+                      : stop.etaConfidence === "scheduled"
+                        ? "text-ink-soft/60"
+                        : "text-olive"
+                  }`}
+                >
+                  <span
+                    className={`size-1.5 rounded-full ${
+                      stop.etaConfidence === "live"
+                        ? "bg-aegean-deep animate-pulse"
+                        : stop.etaConfidence === "scheduled"
+                          ? "bg-ink-soft/40"
+                          : "bg-olive"
+                    }`}
+                  />
+                  {stop.etaBlurb}
+                </span>
+              )}
             </>
           )}
           <span className="mt-2 flex size-7 items-center justify-center rounded-full bg-limestone-soft text-ink-soft transition-colors group-hover:bg-aegean-deep group-hover:text-white">
