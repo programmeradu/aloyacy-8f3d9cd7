@@ -86,7 +86,7 @@ export function RenewPasses({
                 onClick={() => handleRenew(p.code)}
                 className="shrink-0 rounded-full bg-ink text-limestone px-3.5 py-2 hover:bg-ink/90 transition-colors"
               >
-                <span className="font-display text-[18px] tabular-nums leading-none">
+                <span className="font-sans font-medium text-[15px] tabular-nums tracking-[-0.01em] leading-none">
                   €{p.priceEur.toFixed(2)}
                 </span>
               </button>
