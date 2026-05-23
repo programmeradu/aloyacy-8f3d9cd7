@@ -398,14 +398,62 @@ export function MapPreview({
     }
   }, [api, vehicles, focused, restricted, tripPaths]);
 
+  // ----- "You are here" overlay (rider's own location + heading cone) -----
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!api || !m) return;
+    if (!userLocation) {
+      userHereRef.current?.destroy();
+      userHereRef.current = null;
+      return;
+    }
+    if (!userHereRef.current) {
+      userHereRef.current = new UserHereOverlay(api, m, userLocation);
+    } else {
+      userHereRef.current.update(userLocation);
+    }
+  }, [api, userLocation?.lat, userLocation?.lng, userLocation?.headingDeg, userLocation?.accuracyM]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Trigger a Maps resize whenever the container size changes (fullscreen
+  // toggle). Without this Google Maps caches the old bounds and renders blank
+  // grey margins until the user pans.
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!api || !m) return;
+    // next frame so the DOM has reflowed first
+    const id = requestAnimationFrame(() => {
+      const center = m.getCenter();
+      api.maps.event.trigger(m, "resize");
+      if (center) m.setCenter(center);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [api, expanded]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       busLayerRef.current.forEach((b) => b.destroy());
       busLayerRef.current.clear();
+      userHereRef.current?.destroy();
+      userHereRef.current = null;
     };
   }, []);
+
+  // Lock body scroll while in fullscreen.
+  useEffect(() => {
+    if (!expanded) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setExpanded(false);
+    };
+    window.addEventListener("keydown", onEsc);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onEsc);
+    };
+  }, [expanded]);
 
   const liveCount = focused || restricted ? vehicles?.length ?? 0 : rt?.vehicles.length ?? 0;
   const placeLabel = useMemo(() => {
