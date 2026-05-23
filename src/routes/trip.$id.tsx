@@ -630,6 +630,7 @@ function TurnStep({
           liveVehicles={false}
           markers={[{ lat, lng, kind: "pin", tone: "aegean", label: instruction }]}
           fitToContent={false}
+          fullscreenable={false}
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
         <div className="absolute left-3 top-3 flex items-center gap-2">
