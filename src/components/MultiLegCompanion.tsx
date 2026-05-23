@@ -122,6 +122,20 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         </article>
       </section>
 
+      {/* Resilience banners */}
+      {live.active && live.vehicleLost && (
+        <div className="mt-3"><StaleFeedBanner variant="vehicle-lost" /></div>
+      )}
+      {live.active && !live.vehicleLost && live.feedStale && (
+        <div className="mt-3"><StaleFeedBanner variant="feed-stale" /></div>
+      )}
+      {live.active &&
+        (live.phase === "walking-to-transfer" || live.phase === "waiting-for-connection") &&
+        live.nextRideLeg &&
+        !live.nextVehicleTracked && (
+          <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
+        )}
+
       {/* Live map with current (+ next) vehicle */}
       <section className="mt-5 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MapPreview
@@ -131,6 +145,11 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           markers={mapMarkers}
           liveVehicles
           restrictTripIds={restrictTripIds}
+          vehicleOverrides={
+            live.fusedCurrentVehicle
+              ? { [live.fusedCurrentVehicle.tripId]: live.fusedCurrentVehicle }
+              : undefined
+          }
           userLocation={
             live.fix
               ? { lat: live.fix.lat, lng: live.fix.lng, accuracyM: live.fix.accuracyM, headingDeg: live.fix.headingDeg }
