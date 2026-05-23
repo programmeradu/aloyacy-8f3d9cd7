@@ -1088,14 +1088,13 @@ class UserHereOverlay {
         );
         if (!pt) return;
         self.el.style.transform = `translate3d(${pt.x}px, ${pt.y}px, 0)`;
-        self.applyAccuracy(self["map"]);
+        self.applyAccuracy(self.map);
       }
       onRemove() {
         self.el.parentNode?.removeChild(self.el);
       }
     }
-    // Stash map ref for accuracy scaling on each draw.
-    (this as unknown as { map: google.maps.Map }).map = map;
+    this.map = map;
     this.overlay = new HereOverlay();
     this.overlay.setMap(map);
   }
