@@ -49,8 +49,8 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     const mode = data.mode ?? "both";
 
     const tasks: Promise<unknown>[] = [];
-    let liveResult: Awaited<ReturnType<typeof planMultiLegJourney>> | null = null;
-    let schedResult: Awaited<ReturnType<typeof planMultiLegScheduled>> | null = null;
+    let liveResult: { itineraries: Itinerary[]; diagnostics?: MultiLegDiagnostics } | null = null;
+    let schedResult: { itineraries: Itinerary[]; diagnostics: ScheduledDiagnostics } | null = null;
 
     if (mode === "live" || mode === "both") {
       tasks.push(
