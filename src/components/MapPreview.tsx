@@ -881,3 +881,18 @@ function sampleAlong(
   const bearing = ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
   return { lat, lng, bearing };
 }
+
+// Inject the boarding-pulse keyframes once per page load. Keeps the
+// animation purely CSS-driven so React + the rAF loop stay lean.
+let boardingKeyframesInjected = false;
+function ensureBoardingKeyframes() {
+  if (boardingKeyframesInjected || typeof document === "undefined") return;
+  boardingKeyframesInjected = true;
+  const style = document.createElement("style");
+  style.textContent = `@keyframes aloya-board-pulse {
+    0%   { transform: scale(0.75); opacity: 0.85; }
+    70%  { transform: scale(1.45); opacity: 0; }
+    100% { transform: scale(1.45); opacity: 0; }
+  }`;
+  document.head.appendChild(style);
+}
