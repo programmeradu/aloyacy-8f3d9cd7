@@ -349,6 +349,33 @@ export function MapPreview({
           return;
         }
         busLayerRef.current.forEach((b) => b.tick(t));
+        // Stop-pulse detection: any bus that's at-stop (speed≈0, near current
+        // tween target) within ~30m of a rendered stop marker triggers a pulse
+        // on that marker. Cheap O(buses × stops) — both are small.
+        const stopMarkers = layerRef.current.markers;
+        if (stopMarkers.length) {
+          const active = new Set<google.maps.Marker>();
+          busLayerRef.current.forEach((b) => {
+            if (!b.isBoarding()) return;
+            const pos = b.getPos();
+            for (const mk of stopMarkers) {
+              const p = mk.getPosition();
+              if (!p) continue;
+              if (haversineM(pos, { lat: p.lat(), lng: p.lng() }) < 30) active.add(mk);
+            }
+          });
+          // Toggle a CSS class on each marker via icon scale tweak.
+          for (const mk of stopMarkers) {
+            const on = active.has(mk);
+            const wasOn = (mk as unknown as { __pulse?: boolean }).__pulse;
+            if (on === !!wasOn) continue;
+            (mk as unknown as { __pulse?: boolean }).__pulse = on;
+            const icon = mk.getIcon() as google.maps.Symbol | undefined;
+            if (icon && typeof icon === "object" && "scale" in icon) {
+              mk.setIcon({ ...icon, scale: on ? (icon.scale ?? 6) * 1.6 : (icon.scale ?? 6) / 1.6 });
+            }
+          }
+        }
         rafRef.current = requestAnimationFrame(tick);
       };
       rafRef.current = requestAnimationFrame(tick);
@@ -452,6 +479,11 @@ class AnimatedBus {
   private el: HTMLDivElement;
   private rotor: HTMLDivElement; // the element we rotate (img or svg)
   private halo: HTMLDivElement;  // freshness ring shown when ping is stale
+  private boardingRing: HTMLDivElement; // pulsing ring when bus is stopped at a stop
+  private boarding = false;
+  // current rendered position (used by stop-pulse detection)
+  private curLat: number;
+  private curLng: number;
 
   constructor(
     api: typeof google,
@@ -477,6 +509,8 @@ class AnimatedBus {
     this.fromLng = this.toLng = pos.lng;
     this.fromBearing = this.toBearing = bearing;
     this.currentBearing = bearing;
+    this.curLat = pos.lat;
+    this.curLng = pos.lng;
 
     // Build DOM
     const el = document.createElement("div");
@@ -496,6 +530,19 @@ class AnimatedBus {
     halo.style.transition = "opacity 240ms ease";
     halo.style.pointerEvents = "none";
 
+    // Boarding ring — concentric pulse shown when the bus is stationary
+    // at a stop (picking up / dropping off). Uses inline keyframes so we
+    // don't have to inject CSS globally.
+    ensureBoardingKeyframes();
+    const boardingRing = document.createElement("div");
+    boardingRing.style.position = "absolute";
+    boardingRing.style.inset = "-35%";
+    boardingRing.style.borderRadius = "50%";
+    boardingRing.style.border = "2px solid color-mix(in oklab, #2d8a9e 80%, transparent)";
+    boardingRing.style.opacity = "0";
+    boardingRing.style.pointerEvents = "none";
+    boardingRing.style.transformOrigin = "center center";
+
     const rotor = document.createElement("div");
     rotor.style.position = "absolute";
     rotor.style.inset = "0";
@@ -504,10 +551,12 @@ class AnimatedBus {
     rotor.style.transformOrigin = "center center";
 
     el.appendChild(halo);
+    el.appendChild(boardingRing);
     el.appendChild(rotor);
 
     this.el = el;
     this.halo = halo;
+    this.boardingRing = boardingRing;
     this.rotor = rotor;
     this.renderVariant();
     this.applySize();
@@ -676,10 +725,29 @@ class AnimatedBus {
     if (speedMps < 0.5 || distM < 3) {
       // Bus is stopped (or barely moved) — short, gentle settle.
       this.tweenDur = 1200;
+      this.setBoarding(true);
     } else {
       const dur = (distM / speedMps) * 1000;
       this.tweenDur = Math.max(1500, Math.min(18_000, dur));
+      this.setBoarding(false);
     }
+  }
+
+  private setBoarding(on: boolean) {
+    if (on === this.boarding) return;
+    this.boarding = on;
+    this.boardingRing.style.opacity = on ? "1" : "0";
+    this.boardingRing.style.animation = on
+      ? "aloya-board-pulse 1600ms ease-out infinite"
+      : "none";
+  }
+
+  isBoarding() {
+    return this.boarding;
+  }
+
+  getPos() {
+    return { lat: this.curLat, lng: this.curLng };
   }
 
   tick(nowMs: number) {
@@ -699,10 +767,14 @@ class AnimatedBus {
       lng = lerp(this.fromLng, this.toLng, e);
     }
 
+    this.curLat = lat;
+    this.curLng = lng;
+
     const projection = this.overlay.getProjection();
     if (!projection) return;
     const pt = projection.fromLatLngToDivPixel(new this.api.maps.LatLng(lat, lng));
     if (!pt) return;
+
 
     // Prefer the path-derived bearing when gliding along a polyline — it
     // matches the visible direction of travel even if the feed's bearing
@@ -808,4 +880,19 @@ function sampleAlong(
   const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
   const bearing = ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
   return { lat, lng, bearing };
+}
+
+// Inject the boarding-pulse keyframes once per page load. Keeps the
+// animation purely CSS-driven so React + the rAF loop stay lean.
+let boardingKeyframesInjected = false;
+function ensureBoardingKeyframes() {
+  if (boardingKeyframesInjected || typeof document === "undefined") return;
+  boardingKeyframesInjected = true;
+  const style = document.createElement("style");
+  style.textContent = `@keyframes aloya-board-pulse {
+    0%   { transform: scale(0.75); opacity: 0.85; }
+    70%  { transform: scale(1.45); opacity: 0; }
+    100% { transform: scale(1.45); opacity: 0; }
+  }`;
+  document.head.appendChild(style);
 }
