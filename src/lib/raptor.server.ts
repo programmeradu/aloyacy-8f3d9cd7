@@ -129,8 +129,9 @@ export async function planRaptor(
   if (dests.length === 0) diag.reasons.push(`No schedule stop within ${MAX_EGRESS_WALK_KM}km of destination`);
   if (origins.length === 0 || dests.length === 0) return { itineraries: [], diagnostics: diag };
 
-  const destSet = new Map<string, { stop: ScheduleStop & { id: string }; distKm: number }>();
-  for (const d of dests) destSet.set(d.id, d);
+  const destSet = new Map<string, { stop: ScheduleStop; id: string; distKm: number }>();
+  for (const d of dests) destSet.set(d.id, { id: d.id, stop: d.stop, distKm: d.distKm });
+
 
   // Spatial bucket index for nearby-stop lookups (cheap walk transfers).
   // Bucket by 0.005° (~500m at Cyprus); a stop and its neighbours fall in
