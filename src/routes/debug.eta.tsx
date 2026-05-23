@@ -117,9 +117,9 @@ function DebugEta() {
                 >
                   <span className="font-sans text-[13px] text-ink truncate">
                     <span className="font-mono text-[11px] text-ink-soft mr-2">
-                      {meta?.shortName ?? r.routeId}
+                      {meta?.short ?? r.routeId}
                     </span>
-                    {meta?.longName ?? ""}
+                    {meta?.long ?? ""}
                   </span>
                   <span className="font-mono text-[12px] text-ink-soft text-right tabular-nums">
                     {r.count}
@@ -163,7 +163,7 @@ function DebugEta() {
                   className="grid grid-cols-[auto_1fr_auto_auto] gap-x-4 px-4 py-2.5 items-baseline border-b border-line last:border-0"
                 >
                   <span className="font-mono text-[11px] text-ink-soft">
-                    {meta?.shortName ?? r.routeId}
+                    {meta?.short ?? r.routeId}
                   </span>
                   <span className="font-sans text-[12px] text-ink truncate">
                     stop {r.stopId}
