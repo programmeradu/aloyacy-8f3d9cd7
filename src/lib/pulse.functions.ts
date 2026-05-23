@@ -104,6 +104,7 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
     totalSamples,
     onTimePct,
     routesTracked: stats.length,
+    excludedUnknown: excludedRoutes.size,
     hottest,
     coldest,
     steadiest,
