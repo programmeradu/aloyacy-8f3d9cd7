@@ -128,3 +128,84 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
     steadiest,
   } satisfies PulseSnapshot;
 });
+
+// ---------------------------------------------------------------------------
+// Live pulse — last 60 minutes of observed snapshots.
+// Honest, strict "on time" definition: |delay| < 90s. Counts unique
+// (trip_id, stop_id) pairs so a bus pinged 5 times near a stop counts once.
+// ---------------------------------------------------------------------------
+
+export type LivePulse = {
+  generatedAt: number;
+  windowMinutes: number;
+  observations: number; // unique trip×stop events in the window
+  onTimePct: number; // % with |delay| < 90s
+  earlyPct: number; // delay < -90s
+  latePct: number; // delay > 90s
+  medianDelaySec: number;
+};
+
+export const getLivePulse = createServerFn({ method: "GET" }).handler(async () => {
+  const WINDOW_MIN = 60;
+  const sinceIso = new Date(Date.now() - WINDOW_MIN * 60_000).toISOString();
+  const PAGE = 1000;
+  const HARD_CAP = 50_000;
+
+  type Row = { trip_id: string; stop_id: string; delay_sec: number; captured_at: string };
+  const rows: Row[] = [];
+  for (let from = 0; from < HARD_CAP; from += PAGE) {
+    const { data, error } = await supabase
+      .from("rt_snapshots")
+      .select("trip_id, stop_id, delay_sec, captured_at")
+      .gte("captured_at", sinceIso)
+      .order("captured_at", { ascending: false })
+      .range(from, from + PAGE - 1);
+    if (error) break;
+    if (!data || data.length === 0) break;
+    rows.push(...(data as Row[]));
+    if (data.length < PAGE) break;
+  }
+
+  // Deduplicate: keep the latest snapshot per (trip_id, stop_id).
+  // rows are already ordered newest-first per page; first wins.
+  const latest = new Map<string, number>();
+  for (const r of rows) {
+    const key = `${r.trip_id}|${r.stop_id}`;
+    if (!latest.has(key)) latest.set(key, r.delay_sec);
+  }
+
+  const delays = [...latest.values()];
+  if (delays.length === 0) {
+    return {
+      generatedAt: Math.floor(Date.now() / 1000),
+      windowMinutes: WINDOW_MIN,
+      observations: 0,
+      onTimePct: 0,
+      earlyPct: 0,
+      latePct: 0,
+      medianDelaySec: 0,
+    } satisfies LivePulse;
+  }
+
+  let onTime = 0;
+  let early = 0;
+  let late = 0;
+  for (const d of delays) {
+    if (d > 90) late++;
+    else if (d < -90) early++;
+    else onTime++;
+  }
+  const sorted = [...delays].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+
+  const n = delays.length;
+  return {
+    generatedAt: Math.floor(Date.now() / 1000),
+    windowMinutes: WINDOW_MIN,
+    observations: n,
+    onTimePct: Math.round((onTime / n) * 100),
+    earlyPct: Math.round((early / n) * 100),
+    latePct: Math.round((late / n) * 100),
+    medianDelaySec: Math.round(median),
+  } satisfies LivePulse;
+});
