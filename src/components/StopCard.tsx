@@ -84,14 +84,27 @@ export function StopCard({ stop }: { stop: Stop }) {
         </div>
 
         <div className="flex flex-col items-end gap-1">
-          <div className="flex items-baseline">
-            <span className={`font-display text-5xl leading-none ${tone}`}>
-              {stop.etaMin}
-            </span>
-          </div>
-          <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/70">
-            min away
-          </span>
+          {stop.etaMin === null ? (
+            <>
+              <span className={`font-display text-5xl leading-none ${tone}`}>
+                —
+              </span>
+              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/70 text-right max-w-[7rem]">
+                no live bus
+              </span>
+            </>
+          ) : (
+            <>
+              <div className="flex items-baseline">
+                <span className={`font-display text-5xl leading-none ${tone}`}>
+                  {stop.etaMin}
+                </span>
+              </div>
+              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/70">
+                min away
+              </span>
+            </>
+          )}
           <span className="mt-2 flex size-7 items-center justify-center rounded-full bg-limestone-soft text-ink-soft transition-colors group-hover:bg-aegean-deep group-hover:text-white">
             <IconArrowUpRight className="size-3.5" />
           </span>
