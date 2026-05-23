@@ -1,16 +1,12 @@
-// Fullscreen interactive Street View sheet powered by mapillary-js.
-// Loaded lazily — the heavy WebGL viewer only mounts when the user taps
-// a turn thumbnail. Includes a thin Aloya-themed chrome (close button,
-// label) so it doesn't break the editorial feel.
+// Fullscreen Street View sheet. Renders the Mapillary JPEG returned by
+// our server proxy. We intentionally do NOT boot the interactive
+// mapillary-js viewer here because that would require exposing the
+// Mapillary access token to the browser — a server secret that must
+// stay server-side.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconArrowLeft } from "@/components/Icons";
-// Bundle the viewer stylesheet directly — relying on a runtime <link> to
-// unpkg was flaky on iOS / restricted networks and left the canvas at 0×0.
-import "mapillary-js/dist/mapillary.css";
-
-type Meta = { imageId: string; token: string };
 
 export function StreetViewSheet({
   open,
@@ -27,30 +23,26 @@ export function StreetViewSheet({
   heading?: number;
   label?: string;
 }) {
-  const hostRef = useRef<HTMLDivElement | null>(null);
-  const viewerRef = useRef<unknown>(null);
-  const [meta, setMeta] = useState<Meta | null>(null);
+  const [src, setSrc] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch the image id once the sheet opens.
   useEffect(() => {
     if (!open) return;
-    let cancelled = false;
-    setMeta(null);
+    setSrc(null);
     setError(null);
-    const q = new URLSearchParams({
-      lat: String(lat),
-      lng: String(lng),
-      meta: "1",
-    });
+    const q = new URLSearchParams({ lat: String(lat), lng: String(lng) });
     if (heading != null) q.set("heading", String(heading));
-    fetch(`/api/public/streetview?${q.toString()}`)
-      .then(async (r) => {
-        if (!r.ok) throw new Error(`No imagery (${r.status})`);
-        return r.json() as Promise<Meta>;
-      })
-      .then((m) => {
-        if (!cancelled) setMeta(m);
+    // HEAD-check via GET; if the proxy 404s we show the no-coverage state.
+    const url = `/api/public/streetview?${q.toString()}`;
+    let cancelled = false;
+    fetch(url, { method: "GET" })
+      .then((r) => {
+        if (cancelled) return;
+        if (!r.ok) {
+          setError(`No imagery (${r.status})`);
+          return;
+        }
+        setSrc(url);
       })
       .catch((e) => {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed");
@@ -59,73 +51,6 @@ export function StreetViewSheet({
       cancelled = true;
     };
   }, [open, lat, lng, heading]);
-
-  // Boot the viewer once we have meta + a host element.
-  useEffect(() => {
-    if (!open || !meta || !hostRef.current) return;
-    let cancelled = false;
-    let viewer: { remove: () => void; resize: () => void } | null = null;
-    let resizeObs: ResizeObserver | null = null;
-
-    const handleResize = () => viewer?.resize();
-
-    (async () => {
-      let mly: typeof import("mapillary-js");
-      try {
-        mly = await import("mapillary-js");
-      } catch (e) {
-        if (!cancelled) setError("Viewer failed to load");
-        console.error("[streetview] mapillary-js import failed", e);
-        return;
-      }
-      if (cancelled || !hostRef.current) return;
-      try {
-        viewer = new mly.Viewer({
-          accessToken: meta.token,
-          container: hostRef.current,
-          imageId: meta.imageId,
-          component: {
-            cover: false,
-            sequence: true,
-            direction: true,
-            zoom: true,
-          },
-        }) as unknown as { remove: () => void; resize: () => void };
-      } catch (e) {
-        if (!cancelled) setError("Viewer failed to start");
-        console.error("[streetview] Viewer init failed", e);
-        return;
-      }
-      viewerRef.current = viewer;
-
-      // iOS Safari often mounts the WebGL canvas before layout settles —
-      // poke resize on next frame, after a beat, and whenever the host
-      // box or orientation changes.
-      requestAnimationFrame(() => viewer?.resize());
-      setTimeout(() => viewer?.resize(), 300);
-      setTimeout(() => viewer?.resize(), 800);
-      if (typeof ResizeObserver !== "undefined" && hostRef.current) {
-        resizeObs = new ResizeObserver(() => viewer?.resize());
-        resizeObs.observe(hostRef.current);
-      }
-      window.addEventListener("orientationchange", handleResize);
-    })();
-
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener("orientationchange", handleResize);
-      if (resizeObs) resizeObs.disconnect();
-      if (viewer) {
-        try {
-          viewer.remove();
-        } catch {
-          /* noop */
-        }
-      }
-      viewerRef.current = null;
-    };
-  }, [open, meta]);
 
   // Lock body scroll while open.
   useEffect(() => {
@@ -141,13 +66,15 @@ export function StreetViewSheet({
 
   return createPortal(
     <div className="fixed inset-0 z-[200] bg-ink">
-      <div
-        ref={hostRef}
-        className="absolute inset-0 bg-ink"
-        style={{ width: "100%", height: "100%" }}
-      />
+      {src && !error && (
+        <img
+          src={src}
+          alt={label ?? "Street view"}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
 
-      {!meta && !error && (
+      {!src && !error && (
         <div className="absolute inset-0 grid place-items-center">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
             Loading street view…
