@@ -26,8 +26,11 @@ import Svg, {
   Circle,
   Rect,
   G,
+  Line,
+  Ellipse,
   Defs,
   LinearGradient as SvgLinearGradient,
+  RadialGradient as SvgRadialGradient,
   Stop as SvgStop,
 } from "react-native-svg";
 import { palette } from "@/constants/theme";
