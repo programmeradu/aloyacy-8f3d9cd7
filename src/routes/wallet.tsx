@@ -22,6 +22,9 @@ import { TopupHistory, TransactionList } from "@/components/wallet/History";
 import { RenewPasses } from "@/components/wallet/Passes";
 import type { SheetMode } from "@/components/wallet/PassSheet";
 import { timeAgo } from "@/components/wallet/utils";
+import fareUrban from "@/assets/fare-urban.jpg";
+import fareNight from "@/assets/fare-night.jpg";
+import fareIntercity from "@/assets/fare-intercity.jpg";
 
 // Lazy: the editor sheet only mounts when the user taps to edit.
 const PassSheet = lazy(() =>
@@ -338,9 +341,9 @@ function WalletRoute() {
           >
             <div className="rounded-[28px] bg-card ring-1 ring-line overflow-hidden">
               <div className="grid grid-cols-3 divide-x divide-line">
-                <Fare label="Urban" value="€1.50" sub="90-min" />
-                <Fare label="Night" value="€2.50" sub="21:00 – 04:00" />
-                <Fare label="Intercity" value="€7.00" sub="single" />
+                <Fare label="Urban" value="€1.50" sub="90-min" image={fareUrban} imageAlt="A Mediterranean village street in soft daylight" />
+                <Fare label="Night" value="€2.50" sub="21:00 – 04:00" image={fareNight} imageAlt="A village arch lit by a single lamp under a crescent moon" />
+                <Fare label="Intercity" value="€7.00" sub="single" image={fareIntercity} imageAlt="A coastal road winding along Cypriot cliffs" />
               </div>
             </div>
           </section>
