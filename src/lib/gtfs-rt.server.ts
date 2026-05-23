@@ -32,6 +32,11 @@ export type RealtimeSnapshot = {
   fetchedAt: number;
   vehicles: LiveVehicle[];
   arrivals: LiveArrival[];
+  /** True when the upstream feed could not be reached and this snapshot is
+   *  an empty fallback. UI surfaces an honest "live feed lost" banner. */
+  stale?: boolean;
+  /** Diagnostic message accompanying `stale: true`. Not surfaced to users. */
+  error?: string;
 };
 
 export async function fetchRealtime(): Promise<RealtimeSnapshot> {

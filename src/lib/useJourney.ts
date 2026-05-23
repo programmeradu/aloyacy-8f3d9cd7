@@ -45,6 +45,11 @@ export type LiveJourney = {
   // Diagnostics
   onBoardSuggested: boolean; // GPS suggests user is moving with bus
   missedSuggested: boolean;  // bus departed without user confirmation
+  /** True when on-board confirmed but the bus disappeared from the live feed.
+   *  We're falling back to the rider's own GPS as the vehicle position. */
+  vehicleLost: boolean;
+  /** True when the realtime feed itself is paused (proxy down, > 60 s stale). */
+  feedStale: boolean;
 };
 
 
@@ -64,7 +69,8 @@ export function useJourney(opts: {
   const started = !!live?.startedAt;
 
   const { fix } = useGeoWatch(started);
-  const { data: rt } = useRealtime();
+  const { data: rt, isStale: feedStale } = useRealtime();
+
 
   const bus = useMemo(() => {
     if (!active) return null;
@@ -90,7 +96,10 @@ export function useJourney(opts: {
       fusedVehicle: null,
       onBoardSuggested: false,
       missedSuggested: false,
+      vehicleLost: false,
+      feedStale,
     };
+
 
     if (!active || !bus || !started) return baseInactive;
     if (live?.alightedAt || walkingPhase === null && live?.onBoardConfirmedAt && bus) {
@@ -214,13 +223,9 @@ export function useJourney(opts: {
     // honest even if GPS speed flickers (tunnels, urban canyons).
     let fusedVehicle: LiveJourney["fusedVehicle"] = null;
     let fusedSecsToAlight = secsToAlight;
+    let vehicleLost = false;
     const onBoard = !!live?.onBoardConfirmedAt && !live?.alightedAt;
     if (onBoard && bus) {
-      // Trust the vehicle feed as the source of truth for position +
-      // bearing. Only blend the rider's GPS in when we have *evidence*
-      // they're actually moving with the bus — otherwise a stationary
-      // phone (e.g. user still at the station after mis-tapping "I'm
-      // onboard") drags the marker back and corrupts the bearing.
       const gpsSpeed = fix?.speedMps ?? 0;
       const distToVehicle = fix && vehicle ? distanceM(fix, vehicle) : Infinity;
       const ridingWithBus =
@@ -251,7 +256,11 @@ export function useJourney(opts: {
           bearing: vehicle.bearing ?? 0,
           tripId: bus.tripId,
         };
-      } else if (fix && ridingWithBus) {
+      } else if (fix) {
+        // Feed lost the vehicle (proxy hiccup, vehicle dropped out of
+        // service area, tripId churn). The rider IS the bus — drive the
+        // marker from their phone GPS so the map keeps moving honestly.
+        vehicleLost = true;
         fusedVehicle = {
           lat: fix.lat,
           lng: fix.lng,
@@ -260,18 +269,18 @@ export function useJourney(opts: {
         };
       }
 
-      // ETA fusion: only let GPS override the schedule when the rider
-      // is provably moving with the bus.
+      // ETA fusion: prefer GPS once provably riding. Even without a feed
+      // vehicle we can derive ETA from distance + walking-out leg location.
       const alightLoc =
         walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
-      if (alightLoc && fusedVehicle && ridingWithBus && fix) {
+      if (alightLoc && fusedVehicle && fix && (ridingWithBus || vehicleLost)) {
         const distToAlight = distanceM(fusedVehicle, alightLoc);
         const speed = gpsSpeed > 2 ? gpsSpeed : 6;
         const gpsEta = Math.round(distToAlight / Math.max(3, speed));
-        fusedSecsToAlight = Math.max(
-          0,
-          Math.round(0.6 * gpsEta + 0.4 * secsToAlight),
-        );
+        // When the feed is lost we trust GPS entirely; otherwise blend.
+        fusedSecsToAlight = vehicleLost
+          ? Math.max(0, gpsEta)
+          : Math.max(0, Math.round(0.6 * gpsEta + 0.4 * secsToAlight));
       }
     }
 
@@ -289,8 +298,10 @@ export function useJourney(opts: {
       fusedVehicle,
       onBoardSuggested,
       missedSuggested,
+      vehicleLost,
+      feedStale,
     };
-  }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps]);
+  }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps, feedStale]);
 
 
   // ---- Push alerting on phase transition -----------------------------------

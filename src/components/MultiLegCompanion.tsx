@@ -8,6 +8,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
+import { StaleFeedBanner } from "@/components/StaleFeedBanner";
 import { IconArrowLeft, IconArrowUpRight, IconBus, IconClock, IconPin } from "@/components/Icons";
 import { routeTone } from "@/lib/gtfs";
 import { clearActiveTrip, type ActiveTrip } from "@/lib/trip-store";
@@ -18,6 +19,7 @@ import {
   type MultiLegLive,
 } from "@/lib/useMultiLegJourney";
 import { startLiveTracking } from "@/lib/useJourney";
+import { useResumeRefresh, useInvalidateRealtime } from "@/lib/useRealtime";
 import { requestCompassPermission } from "@/lib/useCompass";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "@/lib/itinerary-types";
 import companionHero from "@/assets/companion-hero.jpg";
@@ -38,6 +40,10 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const itin = active.itinerary!;
   const live = useMultiLegJourney(active);
   const tripId = active.option.id;
+
+  // Force a fresh realtime fetch when rider returns to the tab after >30s away.
+  const invalidateRt = useInvalidateRealtime();
+  useResumeRefresh(invalidateRt, 30);
 
   // Map center / span — fit to whole itinerary footprint.
   const bounds = useMemo(() => boundsFor(itin), [itin]);
@@ -116,6 +122,20 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         </article>
       </section>
 
+      {/* Resilience banners */}
+      {live.active && live.vehicleLost && (
+        <div className="mt-3"><StaleFeedBanner variant="vehicle-lost" /></div>
+      )}
+      {live.active && !live.vehicleLost && live.feedStale && (
+        <div className="mt-3"><StaleFeedBanner variant="feed-stale" /></div>
+      )}
+      {live.active &&
+        (live.phase === "walking-to-transfer" || live.phase === "waiting-for-connection") &&
+        live.nextRideLeg &&
+        !live.nextVehicleTracked && (
+          <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
+        )}
+
       {/* Live map with current (+ next) vehicle */}
       <section className="mt-5 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MapPreview
@@ -125,6 +145,11 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           markers={mapMarkers}
           liveVehicles
           restrictTripIds={restrictTripIds}
+          vehicleOverrides={
+            live.fusedCurrentVehicle
+              ? { [live.fusedCurrentVehicle.tripId]: live.fusedCurrentVehicle }
+              : undefined
+          }
           userLocation={
             live.fix
               ? { lat: live.fix.lat, lng: live.fix.lng, accuracyM: live.fix.accuracyM, headingDeg: live.fix.headingDeg }
