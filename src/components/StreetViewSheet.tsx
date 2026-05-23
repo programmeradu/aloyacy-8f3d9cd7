@@ -67,43 +67,35 @@ export function StreetViewSheet({
     let viewer: { remove: () => void; resize: () => void } | null = null;
     let resizeObs: ResizeObserver | null = null;
 
-    const ensureCss = () =>
-      new Promise<void>((resolve) => {
-        const cssId = "mapillary-js-css";
-        const existing = document.getElementById(cssId) as
-          | HTMLLinkElement
-          | null;
-        if (existing) {
-          if (existing.sheet) return resolve();
-          existing.addEventListener("load", () => resolve(), { once: true });
-          existing.addEventListener("error", () => resolve(), { once: true });
-          return;
-        }
-        const link = document.createElement("link");
-        link.id = cssId;
-        link.rel = "stylesheet";
-        link.href = "https://unpkg.com/mapillary-js@4.1.2/dist/mapillary.css";
-        link.addEventListener("load", () => resolve(), { once: true });
-        link.addEventListener("error", () => resolve(), { once: true });
-        document.head.appendChild(link);
-      });
-
     const handleResize = () => viewer?.resize();
 
     (async () => {
-      const [mly] = await Promise.all([import("mapillary-js"), ensureCss()]);
+      let mly: typeof import("mapillary-js");
+      try {
+        mly = await import("mapillary-js");
+      } catch (e) {
+        if (!cancelled) setError("Viewer failed to load");
+        console.error("[streetview] mapillary-js import failed", e);
+        return;
+      }
       if (cancelled || !hostRef.current) return;
-      viewer = new mly.Viewer({
-        accessToken: meta.token,
-        container: hostRef.current,
-        imageId: meta.imageId,
-        component: {
-          cover: false,
-          sequence: true,
-          direction: true,
-          zoom: true,
-        },
-      }) as unknown as { remove: () => void; resize: () => void };
+      try {
+        viewer = new mly.Viewer({
+          accessToken: meta.token,
+          container: hostRef.current,
+          imageId: meta.imageId,
+          component: {
+            cover: false,
+            sequence: true,
+            direction: true,
+            zoom: true,
+          },
+        }) as unknown as { remove: () => void; resize: () => void };
+      } catch (e) {
+        if (!cancelled) setError("Viewer failed to start");
+        console.error("[streetview] Viewer init failed", e);
+        return;
+      }
       viewerRef.current = viewer;
 
       // iOS Safari often mounts the WebGL canvas before layout settles —
@@ -111,12 +103,14 @@ export function StreetViewSheet({
       // box or orientation changes.
       requestAnimationFrame(() => viewer?.resize());
       setTimeout(() => viewer?.resize(), 300);
+      setTimeout(() => viewer?.resize(), 800);
       if (typeof ResizeObserver !== "undefined" && hostRef.current) {
         resizeObs = new ResizeObserver(() => viewer?.resize());
         resizeObs.observe(hostRef.current);
       }
       window.addEventListener("orientationchange", handleResize);
     })();
+
 
     return () => {
       cancelled = true;
