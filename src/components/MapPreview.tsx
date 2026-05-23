@@ -986,6 +986,7 @@ class UserHereOverlay {
   private el: HTMLDivElement;
   private cone: HTMLDivElement;
   private accuracyHalo: HTMLDivElement;
+  private map: google.maps.Map;
   private lat: number;
   private lng: number;
   private heading: number | null;
