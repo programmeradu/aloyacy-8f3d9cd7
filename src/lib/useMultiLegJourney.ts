@@ -556,9 +556,13 @@ export function multiLegMarkAlighted() {
   patchCurrentLeg({ alightedAt: Date.now() });
   // The auto-advance effect will move to the next leg on the next tick.
 }
+export function multiLegMarkArrived() {
+  patchCurrentLeg({ arrivedAt: Date.now() });
+}
 export function multiLegMarkMissed() {
   patchCurrentLeg({ missedAt: Date.now() });
 }
+
 
 // Type re-exports for convenience.
 export type { Leg, RideLeg, WalkLeg, WaitLeg };
