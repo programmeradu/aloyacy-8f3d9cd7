@@ -29,6 +29,7 @@ import {
 import type { Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
 import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
+import { useRiderFixReporter } from "./useRiderFixReporter";
 
 export type MultiLegPhase =
   | "idle"
