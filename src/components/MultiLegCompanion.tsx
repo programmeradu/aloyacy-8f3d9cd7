@@ -15,9 +15,11 @@ import { clearActiveTrip, type ActiveTrip } from "@/lib/trip-store";
 import {
   multiLegConfirmOnBoard,
   multiLegMarkAlighted,
+  multiLegMarkArrived,
   useMultiLegJourney,
   type MultiLegLive,
 } from "@/lib/useMultiLegJourney";
+
 import { startLiveTracking } from "@/lib/useJourney";
 import { useResumeRefresh, useInvalidateRealtime } from "@/lib/useRealtime";
 import { requestCompassPermission } from "@/lib/useCompass";
