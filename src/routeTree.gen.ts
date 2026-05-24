@@ -24,6 +24,7 @@ import { Route as DebugEtaRouteImport } from './routes/debug.eta'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
+import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 
 const WalletRoute = WalletRouteImport.update({
@@ -101,6 +102,11 @@ const ApiPublicSnapshotRoute = ApiPublicSnapshotRouteImport.update({
   path: '/api/public/snapshot',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicRiderFixRoute = ApiPublicRiderFixRouteImport.update({
+  id: '/api/public/rider-fix',
+  path: '/api/public/rider-fix',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
   id: '/api/public/realtime',
   path: '/api/public/realtime',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
+  '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
+  '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
+  '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/trip-info/$tripId'
     | '/trip/$id'
     | '/api/public/realtime'
+    | '/api/public/rider-fix'
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/trip-info/$tripId'
     | '/trip/$id'
     | '/api/public/realtime'
+    | '/api/public/rider-fix'
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/trip-info/$tripId'
     | '/trip/$id'
     | '/api/public/realtime'
+    | '/api/public/rider-fix'
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
@@ -233,6 +245,7 @@ export interface RootRouteChildren {
   TripInfoTripIdRoute: typeof TripInfoTripIdRoute
   TripIdRoute: typeof TripIdRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
+  ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
@@ -345,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSnapshotRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/rider-fix': {
+      id: '/api/public/rider-fix'
+      path: '/api/public/rider-fix'
+      fullPath: '/api/public/rider-fix'
+      preLoaderRoute: typeof ApiPublicRiderFixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/realtime': {
       id: '/api/public/realtime'
       path: '/api/public/realtime'
@@ -369,6 +389,7 @@ const rootRouteChildren: RootRouteChildren = {
   TripInfoTripIdRoute: TripInfoTripIdRoute,
   TripIdRoute: TripIdRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
+  ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
@@ -376,3 +397,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
