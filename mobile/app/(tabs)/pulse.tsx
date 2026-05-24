@@ -17,6 +17,8 @@ import {
   Linking,
   Image,
   StyleSheet,
+  Platform,
+  type TextStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
@@ -60,10 +62,21 @@ import type {
 
 const DISPLAY = "BricolageGrotesque_700Bold";
 const DISPLAY_MED = "BricolageGrotesque_700Bold";
-const SANS = "Geist_600SemiBold";
+const SANS = "Geist_700Bold";
 const SANS_BOLD = "Geist_700Bold";
-const MONO = "JetBrainsMono_500Medium";
-const EYEBROW = "JetBrainsMono_500Medium";
+const MONO = "Geist_700Bold";
+const EYEBROW = "Geist_700Bold";
+
+const GREEK_WORD_TYPE: TextStyle =
+  Platform.select<TextStyle>({
+    web: {
+      fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontWeight: "800",
+    },
+    ios: { fontWeight: "800" },
+    android: { fontFamily: "sans-serif-condensed", fontWeight: "700" },
+    default: { fontFamily: SANS_BOLD },
+  }) ?? { fontFamily: SANS_BOLD };
 
 const THEME_HERO: Record<TodayTheme, { uri: string }> = {
   derby: assets.today_derby,
@@ -775,10 +788,10 @@ function GreekWordGlyph({ word }: { word: string }) {
 
   const wash = (
     <Defs>
-      <SvgLinearGradient id={`gw-${cat}`} x1="1" y1="0" x2="0" y2="1">
+      <SvgRadialGradient id={`gw-${cat}`} cx="70%" cy="30%" r="60%">
         <SvgStop offset="0" stopColor={ochre} stopOpacity="0.4" />
-        <SvgStop offset="1" stopColor={ochre} stopOpacity="0" />
-      </SvgLinearGradient>
+        <SvgStop offset="100%" stopColor={ochre} stopOpacity="0" />
+      </SvgRadialGradient>
     </Defs>
   );
 
@@ -796,8 +809,23 @@ function GreekWordGlyph({ word }: { word: string }) {
       )}
       {cat === "courtesy" && (
         <G>
-          <Path d="M64 38 Q88 50 90 70 Q88 92 64 102" stroke={olive} strokeWidth={1.4} fill="none" opacity={0.6} />
-          <Path d="M64 38 Q40 50 38 70 Q40 92 64 102" stroke={olive} strokeWidth={1.4} fill="none" opacity={0.6} />
+          {[-1, 1].map((s) => (
+            <G key={s} transform={`translate(64 70) scale(${s} 1)`}>
+              <Path d="M0 -32 Q24 -20 26 0 Q24 22 0 32" stroke={olive} strokeWidth={1.4} fill="none" opacity={0.6} />
+              {[-24, -10, 4, 18].map((y, i) => (
+                <Ellipse
+                  key={i}
+                  cx={24}
+                  cy={y}
+                  rx={7}
+                  ry={3.2}
+                  fill={olive}
+                  opacity={0.55 + (i % 2) * 0.2}
+                  transform={`rotate(${-30 + i * 18} 24 ${y})`}
+                />
+              ))}
+            </G>
+          ))}
           <Circle cx={64} cy={70} r={3} fill={olive} opacity={0.8} />
         </G>
       )}
@@ -807,33 +835,82 @@ function GreekWordGlyph({ word }: { word: string }) {
           <Rect x={26} y={56} width={20} height={14} rx={2} fill={card} opacity={0.9} />
           <Rect x={50} y={56} width={20} height={14} rx={2} fill={card} opacity={0.9} />
           <Rect x={74} y={56} width={20} height={14} rx={2} fill={card} opacity={0.9} />
+          <Rect x={20} y={80} width={80} height={3} fill={ink} opacity={0.25} />
           <Circle cx={36} cy={92} r={7} fill={ink} opacity={0.85} />
+          <Circle cx={36} cy={92} r={2.6} fill={card} />
           <Circle cx={86} cy={92} r={7} fill={ink} opacity={0.85} />
+          <Circle cx={86} cy={92} r={2.6} fill={card} />
         </G>
       )}
       {cat === "food" && (
         <G>
           <Path d="M40 70 L88 70 L84 100 Q84 106 78 106 L50 106 Q44 106 44 100 Z" fill={olive} opacity={0.85} />
           <Path d="M88 76 Q102 76 102 86 Q102 96 88 96" stroke={olive} strokeWidth={2.5} fill="none" opacity={0.7} />
-          <Path d="M52 60 Q56 50 52 40 Q48 30 52 22" stroke={ink} strokeWidth={1.5} fill="none" opacity={0.4} strokeLinecap="round" />
-          <Path d="M64 60 Q68 50 64 40 Q60 30 64 22" stroke={ink} strokeWidth={1.5} fill="none" opacity={0.32} strokeLinecap="round" />
-          <Path d="M76 60 Q80 50 76 40 Q72 30 76 22" stroke={ink} strokeWidth={1.5} fill="none" opacity={0.24} strokeLinecap="round" />
+          <Ellipse cx={64} cy={70} rx={24} ry={4} fill={ink} opacity={0.25} />
+          {[52, 64, 76].map((x, i) => (
+            <Path
+              key={x}
+              d={`M${x} 60 Q${x + 4} 50 ${x} 40 Q${x - 4} 30 ${x} 22`}
+              stroke={ink}
+              strokeWidth={1.5}
+              fill="none"
+              opacity={0.4 - i * 0.08}
+              strokeLinecap="round"
+            />
+          ))}
         </G>
       )}
       {cat === "place" && (
         <G>
           <Circle cx={90} cy={40} r={14} fill={ochre} opacity={0.85} />
-          <Path d="M0 64 Q16 60 32 64 Q48 68 64 64 Q80 60 96 64 Q112 68 128 64" stroke={aegean} strokeWidth={1.6} fill="none" opacity={0.7} />
-          <Path d="M0 78 Q16 74 32 78 Q48 82 64 78 Q80 74 96 78 Q112 82 128 78" stroke={aegean} strokeWidth={1.6} fill="none" opacity={0.55} />
-          <Path d="M0 92 Q16 88 32 92 Q48 96 64 92 Q80 88 96 92 Q112 96 128 92" stroke={aegean} strokeWidth={1.6} fill="none" opacity={0.4} />
+          {[64, 78, 92, 106].map((y, i) => (
+            <Path
+              key={y}
+              d={`M0 ${y} Q16 ${y - 4} 32 ${y} T64 ${y} T96 ${y} T128 ${y}`}
+              stroke={aegean}
+              strokeWidth={1.6}
+              fill="none"
+              opacity={0.7 - i * 0.12}
+            />
+          ))}
         </G>
       )}
       {cat === "vibe" && (
-        <G>
-          <Path d="M20 100 Q54 72 102 32" stroke={olive} strokeWidth={2} fill="none" strokeLinecap="round" opacity={0.85} />
-          <Circle cx={46} cy={78} r={3} fill={ink} opacity={0.65} />
-          <Circle cx={68} cy={62} r={3} fill={ink} opacity={0.55} />
-          <Circle cx={86} cy={46} r={3} fill={ink} opacity={0.7} />
+        <G transform="translate(64 64) rotate(-22)">
+          <Path d="M-44 36 Q-10 8 38 -32" stroke={olive} strokeWidth={2} fill="none" strokeLinecap="round" opacity={0.85} />
+          {[
+            { t: 0.15, side: 1 },
+            { t: 0.32, side: -1 },
+            { t: 0.5, side: 1 },
+            { t: 0.68, side: -1 },
+            { t: 0.85, side: 1 },
+          ].map(({ t, side }, i) => {
+            const p0 = { x: -44, y: 36 };
+            const p1 = { x: -10, y: 8 };
+            const p2 = { x: 38, y: -32 };
+            const x = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x;
+            const y = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y;
+            const tx = 2 * (1 - t) * (p1.x - p0.x) + 2 * t * (p2.x - p1.x);
+            const ty = 2 * (1 - t) * (p1.y - p0.y) + 2 * t * (p2.y - p1.y);
+            const ang = (Math.atan2(ty, tx) * 180) / Math.PI + side * 55;
+            const lx = x + Math.cos((ang * Math.PI) / 180) * 10;
+            const ly = y + Math.sin((ang * Math.PI) / 180) * 10;
+            return (
+              <Ellipse
+                key={i}
+                cx={lx}
+                cy={ly}
+                rx={11}
+                ry={3.6}
+                fill={olive}
+                opacity={0.5 + (i % 2) * 0.25}
+                transform={`rotate(${ang} ${lx} ${ly})`}
+              />
+            );
+          })}
+          <Circle cx={-18} cy={14} r={3} fill={ink} opacity={0.65} />
+          <Circle cx={4} cy={-2} r={3} fill={ink} opacity={0.55} />
+          <Circle cx={22} cy={-18} r={3} fill={ink} opacity={0.7} />
         </G>
       )}
     </Svg>
@@ -896,8 +973,7 @@ function GreekWordCard({
     <View
       style={{
         borderRadius: 22,
-        padding: 22,
-        paddingRight: 24,
+        padding: 0,
         backgroundColor: palette.white,
         borderWidth: 1,
         borderColor: palette.line,
@@ -906,90 +982,102 @@ function GreekWordCard({
     >
       <View
         pointerEvents="none"
-        style={{ position: "absolute", right: -12, top: -12, opacity: 0.9 }}
+        style={{ position: "absolute", right: -14, top: -14, opacity: 0.9 }}
       >
         <GreekWordGlyph word={el} />
       </View>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
-        <Text
-          style={{
-            fontFamily: EYEBROW,
-            fontSize: 9.5,
-            letterSpacing: 2,
-            color: palette.olive,
-            textTransform: "uppercase",
-          }}
-        >
-          Greek word of the day
+      <View style={{ position: "relative", padding: 22, paddingRight: 112 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 14 }}>
+          <Text
+            style={{
+              flex: 1,
+              fontFamily: EYEBROW,
+              fontSize: 9.5,
+              letterSpacing: 1.5,
+              color: palette.olive,
+              textTransform: "uppercase",
+              lineHeight: 13,
+            }}
+          >
+            Greek word of the day
+          </Text>
+          <Text
+            style={{
+              maxWidth: 108,
+              fontFamily: MONO,
+              fontSize: 10.5,
+              letterSpacing: 1.1,
+              lineHeight: 14,
+              color: palette.inkSoft,
+              textAlign: "right",
+            }}
+          >
+            /{translit}/
+          </Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 12, marginTop: 14 }}>
+          <Text
+            style={[
+              GREEK_WORD_TYPE,
+              {
+                flexShrink: 1,
+                fontSize: 36,
+                lineHeight: 40,
+                color: palette.ink,
+              },
+            ]}
+          >
+            {el}
+          </Text>
+          <Pressable
+            onPress={speak}
+            disabled={playing}
+            hitSlop={10}
+            accessibilityLabel="Hear pronunciation"
+            style={({ pressed }) => ({
+              width: 36,
+              height: 36,
+              marginBottom: 1,
+              flexShrink: 0,
+              borderRadius: 999,
+              backgroundColor: "rgba(63,74,54,0.12)",
+              borderWidth: playing ? 2 : 0,
+              borderColor: "rgba(63,74,54,0.4)",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            {playing ? (
+              <ActivityIndicator size="small" color={palette.olive} />
+            ) : (
+              <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                <Path d="M4 10v4h3l5 4V6L7 10H4Z" fill={palette.olive} />
+                <Path
+                  d="M15 9c1.2 1 1.2 5 0 6 M17.5 7c2.5 2 2.5 8 0 10"
+                  stroke={palette.olive}
+                  strokeWidth={1.6}
+                  strokeLinecap="round"
+                />
+              </Svg>
+            )}
+          </Pressable>
+        </View>
+        <Text style={{ marginTop: 8, fontFamily: DISPLAY_MED, fontSize: 15, color: palette.olive }}>
+          {en}
         </Text>
         <Text
           style={{
-            fontFamily: MONO,
-            fontSize: 10.5,
-            letterSpacing: 1.4,
+            marginTop: 10,
+            fontFamily: SANS,
+            fontSize: 13.5,
+            lineHeight: 20,
             color: palette.inkSoft,
           }}
         >
-          /{translit}/
+          {meaning}
         </Text>
       </View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 14 }}>
-        <Text
-          style={{
-            flex: 1,
-            fontFamily: DISPLAY,
-            fontSize: 34,
-            color: palette.ink,
-          }}
-        >
-          {el}
-        </Text>
-        <Pressable
-          onPress={speak}
-          disabled={playing}
-          hitSlop={10}
-          accessibilityLabel="Hear pronunciation"
-          style={({ pressed }) => ({
-            width: 36,
-            height: 36,
-            borderRadius: 999,
-            backgroundColor: "rgba(63,74,54,0.12)",
-            borderWidth: playing ? 2 : 0,
-            borderColor: "rgba(63,74,54,0.4)",
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: pressed ? 0.85 : 1,
-          })}
-        >
-          {playing ? (
-            <ActivityIndicator size="small" color={palette.olive} />
-          ) : (
-            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-              <Path d="M4 10v4h3l5 4V6L7 10H4Z" fill={palette.olive} />
-              <Path
-                d="M15 9c1.2 1 1.2 5 0 6 M17.5 7c2.5 2 2.5 8 0 10"
-                stroke={palette.olive}
-                strokeWidth={1.6}
-                strokeLinecap="round"
-              />
-            </Svg>
-          )}
-        </Pressable>
-      </View>
-      <Text style={{ marginTop: 6, fontFamily: DISPLAY_MED, fontSize: 15, color: palette.olive }}>
-        {en}
-      </Text>
-      <Text
-        style={{
-          marginTop: 10,
-          fontFamily: SANS,
-          fontSize: 13.5,
-          lineHeight: 20,
-          color: palette.inkSoft,
-        }}
-      >
-        {meaning}
-      </Text>
     </View>
   );
 }
