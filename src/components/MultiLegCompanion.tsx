@@ -65,6 +65,10 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
     isOnFinalWalk,
   });
 
+  // Emit training events (walk-complete, transfer-made/missed) into the
+  // learning pipeline.
+  useTrainingSignals(active, live);
+
   // "I'm off" handler — if the rider is well clear of the planned alight
   // stop, they got off at the wrong place. Open the re-route sheet instead
   // of marking alighted (which would auto-advance to the wrong walk leg).
