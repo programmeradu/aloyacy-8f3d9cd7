@@ -32,7 +32,8 @@ import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-type
 
 // ---- Tunables (all explicit so we can audit any change) -------------------
 const MAX_ACCESS_WALK_KM = 2.0; // origin → first board stop
-const MAX_EGRESS_WALK_KM = 2.0; // last alight → destination
+const MAX_EGRESS_WALK_KM = 2.0; // last alight → destination (transfers)
+const MAX_DIRECT_EGRESS_WALK_KM = 3.0; // wider net for no-transfer rides
 const MAX_TRANSFER_WALK_M = 600; // walking between transfer stops
 const TOP_ORIGIN_STOPS = 6;
 const TOP_DEST_STOPS = 6;
