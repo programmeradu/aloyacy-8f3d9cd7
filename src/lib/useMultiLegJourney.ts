@@ -281,7 +281,20 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
           // transition state.
           phase = "alight-soon";
         } else if (per.onBoardConfirmedAt) {
-          if (secsToCurrentAlight <= 60) phase = "alight-soon";
+          // Gate "alight-soon" by BOTH schedule ETA AND physical proximity
+          // to the alight stop. The schedule alone fires several stops
+          // early when the bus is running ahead or the ETA is stale; the
+          // distance alone fires if the bus path coincidentally passes near
+          // the alight stop. Use the rider's GPS — on board, they ARE the
+          // bus, so it's the most reliable position we have.
+          const distToAlight =
+            fix && currentRideLeg
+              ? distanceM(fix, { lat: currentRideLeg.alight.lat, lng: currentRideLeg.alight.lng })
+              : Number.POSITIVE_INFINITY;
+          const closeByDistance = distToAlight < 350;
+          const closeByEta = secsToCurrentAlight > 0 && secsToCurrentAlight <= 60;
+          if (closeByDistance && closeByEta) phase = "alight-soon";
+          else if (distToAlight < 120) phase = "alight-soon"; // very close — trust GPS even if ETA is wrong
           else phase = "riding";
         } else {
           // Ride leg active but on-board not confirmed → still waiting.
