@@ -313,12 +313,14 @@ export async function planMultiLegJourney(
       const boardIdx = trip.indexOf.get(o.id)!;
       const board = trip.stops[boardIdx];
 
-      // Find earliest dest-candidate downstream.
+      // Find earliest dest-candidate downstream. Uses the wider direct-only
+      // dest set so a no-transfer ride that drops you a slightly longer walk
+      // away still surfaces (and the user can choose it over a transfer).
       let bestAlightIdx = -1;
-      let bestAlightStop: (typeof destStops)[number] | null = null;
+      let bestAlightStop: (typeof directDestStops)[number] | null = null;
       for (let i = boardIdx + 1; i < trip.stops.length; i++) {
         const sid = trip.stops[i].stopId;
-        const d = destStopMap.get(sid);
+        const d = directDestStopMap.get(sid);
         if (d) {
           bestAlightIdx = i;
           bestAlightStop = d;
