@@ -20,6 +20,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useRealtime } from "./useRealtime";
 import { useGeoWatch, type LiveFix } from "./useGeoWatch";
 import { distanceM } from "./geo";
+import { useDriveEta } from "./useDriveEta";
 import {
   advanceToNextLeg,
   patchCurrentLeg,
