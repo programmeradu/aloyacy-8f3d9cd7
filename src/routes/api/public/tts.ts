@@ -13,8 +13,8 @@ const CORS = {
   "Cache-Control": "public, max-age=86400",
 };
 
-// Sarah — warm, clear female voice, works well for language-learner content.
-const DEFAULT_VOICE_ID = "EXAVITQu4vr4xnSDxMaL";
+// Martha — natural, expressive voice tuned for multilingual content.
+const DEFAULT_VOICE_ID = "JrrE7QTGDmQKQuUnqk7H";
 
 async function synthLovable(input: string, instructions: string, apiKey: string) {
   return fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
