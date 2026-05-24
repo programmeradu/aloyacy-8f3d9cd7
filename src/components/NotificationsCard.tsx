@@ -282,7 +282,7 @@ export function NotificationsCard() {
 
         {/* Secondary action */}
         {isOn && (
-          <div className="mt-5">
+          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
             <button
               onClick={sendTest}
               disabled={pending}
@@ -290,6 +290,18 @@ export function NotificationsCard() {
             >
               Send a test ping
             </button>
+            {speechSupported && (
+              <button
+                onClick={toggleSpeech}
+                aria-pressed={speechOn}
+                className={[
+                  "font-mono text-[11px] uppercase tracking-[0.22em] underline-offset-4 transition hover:underline",
+                  speechOn ? "text-olive" : "text-ink-soft",
+                ].join(" ")}
+              >
+                {speechOn ? "Speak alerts: on" : "Speak alerts: off"}
+              </button>
+            )}
           </div>
         )}
 
