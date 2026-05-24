@@ -1,12 +1,23 @@
 // Server-only helper: decode Cyprus GTFS-RT feed → compact JSON.
 // The upstream endpoint is HTTP-only, so the browser cannot fetch it directly
 // from a published HTTPS site. We proxy through this server route.
+//
+// We also fold in crowdsourced rider GPS fixes — when a rider is on board
+// and reporting position via /api/public/rider-fix, those fixes appear in
+// the `vehicles` list (overriding stale upstream positions) so every other
+// passenger sees a smoother bus and better ETAs.
 
 import gr from "gtfs-realtime-bindings";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 // Cyprus upstream blocks Cloudflare Worker IPs, so we go through a tiny
 // Vercel Node function that fetches the raw protobuf and forwards it.
 const FEED_URL = "https://programmeradu-aloya-proxy.vercel.app/api/feed";
+
+/** Rider fixes are trusted over upstream when they are this fresh. */
+const RIDER_FIX_TRUST_SEC = 25;
+/** Upstream is considered stale relative to a rider fix this much fresher. */
+const RIDER_PREFER_DELTA_SEC = 10;
 
 export type LiveVehicle = {
   id: string;
@@ -18,6 +29,8 @@ export type LiveVehicle = {
   speed: number;
   label: string;
   timestamp: number;
+  /** Where this position came from. "rider" = crowdsourced GPS. */
+  source?: "feed" | "rider" | "feed+rider";
 };
 
 export type LiveArrival = {
@@ -39,26 +52,24 @@ export type RealtimeSnapshot = {
   error?: string;
 };
 
-export async function fetchRealtime(): Promise<RealtimeSnapshot> {
+async function fetchUpstream(): Promise<{
+  vehicles: LiveVehicle[];
+  arrivals: LiveArrival[];
+}> {
   const res = await fetch(FEED_URL, {
     headers: {
       Accept: "application/octet-stream",
-      // Some upstreams reject the default Cloudflare Worker UA — use a neutral one.
       "User-Agent":
         "Mozilla/5.0 (Aloya/1.0; +https://aloyacy.lovable.app) AppleWebKit/537.36",
     },
-    // Cyprus endpoint can be slow
     signal: AbortSignal.timeout(15_000),
   });
-  if (!res.ok) {
-    throw new Error(`GTFS-RT upstream ${res.status}`);
-  }
+  if (!res.ok) throw new Error(`GTFS-RT upstream ${res.status}`);
   const buf = new Uint8Array(await res.arrayBuffer());
   const feed = gr.transit_realtime.FeedMessage.decode(buf);
 
   const vehicles: LiveVehicle[] = [];
   const arrivals: LiveArrival[] = [];
-
   for (const e of feed.entity) {
     if (e.vehicle?.position && e.vehicle.trip) {
       vehicles.push({
@@ -71,6 +82,7 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
         speed: e.vehicle.position.speed ?? 0,
         label: e.vehicle.vehicle?.label ?? "",
         timestamp: Number(e.vehicle.timestamp ?? 0),
+        source: "feed",
       });
     }
     if (e.tripUpdate?.stopTimeUpdate?.length) {
@@ -88,6 +100,86 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
       }
     }
   }
-
-  return { fetchedAt: Math.floor(Date.now() / 1000), vehicles, arrivals };
+  return { vehicles, arrivals };
 }
+
+async function fetchRiderFixes(): Promise<LiveVehicle[]> {
+  const cutoff = new Date(Date.now() - 60_000).toISOString();
+  const { data, error } = await supabaseAdmin
+    .from("rider_vehicle_fixes")
+    .select("trip_id, route_id, lat, lng, bearing, speed_mps, reported_at")
+    .gte("reported_at", cutoff)
+    .order("reported_at", { ascending: false })
+    .limit(500);
+  if (error || !data) return [];
+  // Keep only the freshest fix per tripId.
+  const seen = new Set<string>();
+  const out: LiveVehicle[] = [];
+  for (const row of data) {
+    if (seen.has(row.trip_id)) continue;
+    seen.add(row.trip_id);
+    out.push({
+      id: `rider:${row.trip_id}`,
+      tripId: row.trip_id,
+      routeId: row.route_id ?? "",
+      lat: row.lat,
+      lng: row.lng,
+      bearing: row.bearing ?? 0,
+      speed: row.speed_mps ?? 0,
+      label: "",
+      timestamp: Math.floor(new Date(row.reported_at).getTime() / 1000),
+      source: "rider",
+    });
+  }
+  return out;
+}
+
+export async function fetchRealtime(): Promise<RealtimeSnapshot> {
+  const now = Math.floor(Date.now() / 1000);
+  const [upstreamResult, riderFixes] = await Promise.all([
+    fetchUpstream().catch((e) => ({ error: e as Error })),
+    fetchRiderFixes().catch(() => [] as LiveVehicle[]),
+  ]);
+
+  if ("error" in upstreamResult) {
+    // Upstream down — still surface rider fixes as the only source of truth.
+    return {
+      fetchedAt: now,
+      vehicles: riderFixes,
+      arrivals: [],
+      stale: riderFixes.length === 0,
+      error: upstreamResult.error.message,
+    };
+  }
+
+  const { vehicles, arrivals } = upstreamResult;
+  // Merge: a rider fix wins when it's fresh AND newer than the upstream
+  // position by RIDER_PREFER_DELTA_SEC. Otherwise upstream wins.
+  const byTrip = new Map<string, LiveVehicle>();
+  for (const v of vehicles) byTrip.set(v.tripId, v);
+  for (const r of riderFixes) {
+    const ageSec = now - r.timestamp;
+    if (ageSec > RIDER_FIX_TRUST_SEC) continue;
+    const upstream = byTrip.get(r.tripId);
+    if (!upstream) {
+      byTrip.set(r.tripId, r);
+    } else if (r.timestamp - upstream.timestamp >= RIDER_PREFER_DELTA_SEC) {
+      byTrip.set(r.tripId, {
+        ...upstream,
+        lat: r.lat,
+        lng: r.lng,
+        bearing: r.bearing || upstream.bearing,
+        speed: r.speed || upstream.speed,
+        timestamp: r.timestamp,
+        source: "feed+rider",
+      });
+    }
+  }
+
+  return {
+    fetchedAt: now,
+    vehicles: [...byTrip.values()],
+    arrivals,
+  };
+}
+

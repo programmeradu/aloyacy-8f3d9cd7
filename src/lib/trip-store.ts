@@ -4,7 +4,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { JourneyOption } from "./journey.server";
-import type { Itinerary, RideLeg } from "./itinerary-types";
+import type { Itinerary, RideLeg, WalkLeg } from "./itinerary-types";
+import { distanceM, WALK_M_PER_S } from "./geo";
 
 const ACTIVE_KEY = "aloya:active-trip";
 const SAVED_KEY = "aloya:saved-places";
@@ -240,6 +241,43 @@ export function advanceToNextLeg() {
     },
   };
   setActiveTrip({ ...cur, legState: next });
+}
+
+/** Collapse all remaining legs (from current leg onward) into a single
+ *  walk leg from the rider's current GPS to the destination. Used by the
+ *  shortcut detector — when the rider is already near the destination,
+ *  there's no point waiting for another bus. */
+export function collapseToFinalWalk(fix: { lat: number; lng: number }) {
+  const cur = getActiveTrip();
+  if (!cur || !cur.itinerary || !cur.legState) return;
+  const idx = cur.legState.currentLegIndex;
+  const dest = cur.to;
+  const meters = Math.round(distanceM(fix, { lat: dest.lat, lng: dest.lng }) * 1.35);
+  const durationSec = Math.max(30, Math.round(meters / WALK_M_PER_S));
+  const finalWalk: WalkLeg = {
+    kind: "walk",
+    from: { name: "Here", lat: fix.lat, lng: fix.lng },
+    to: { name: dest.label, lat: dest.lat, lng: dest.lng },
+    durationSec,
+    distanceMeters: meters,
+    verified: false,
+  };
+  const newLegs = [...cur.itinerary.legs.slice(0, idx), finalWalk];
+  const now = Math.floor(Date.now() / 1000);
+  const newItin: Itinerary = {
+    ...cur.itinerary,
+    legs: newLegs,
+    arrivalUnix: now + durationSec,
+    totalDurationSec: now + durationSec - Math.floor(cur.startedAt / 1000),
+    totalWalkMeters: newLegs
+      .filter((l): l is WalkLeg => l.kind === "walk")
+      .reduce((a, w) => a + w.distanceMeters, 0),
+  };
+  const newLegState: MultiLegState = {
+    currentLegIndex: idx,
+    perLeg: { ...cur.legState.perLeg, [idx]: { enteredAt: Date.now() } },
+  };
+  setActiveTrip({ ...cur, itinerary: newItin, legState: newLegState });
 }
 
 // ---------- saved places ----------
