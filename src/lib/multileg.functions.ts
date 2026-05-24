@@ -9,7 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { planMultiLegJourney, type MultiLegDiagnostics } from "./journey-multileg.server";
 import { planMultiLegScheduled, type ScheduledDiagnostics } from "./journey-scheduled.server";
-import { getSkippedTransferCount } from "./overrides.functions";
+import { getSkippedTransferCount } from "./overrides.server";
 import type { Itinerary, RideLeg } from "./itinerary-types";
 
 const PointSchema = z.object({
