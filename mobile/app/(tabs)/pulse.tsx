@@ -42,6 +42,7 @@ import { assets } from "@/lib/assets";
 import { API_BASE } from "@/lib/api";
 import * as FileSystem from "expo-file-system/legacy";
 import { createAudioPlayer } from "expo-audio";
+import * as Speech from "expo-speech";
 import type {
   TodayBriefing,
   TodayTile,
@@ -931,6 +932,29 @@ function GreekWordCard({
 }) {
   const [playing, setPlaying] = useState(false);
 
+  const speakFallback = useCallback(() => {
+    try {
+      Speech.stop();
+      Speech.speak(el, {
+        language: "el-GR",
+        rate: 0.85,
+        onDone: () => {
+          Speech.speak(en, {
+            language: "en-US",
+            rate: 0.95,
+            onDone: () => setPlaying(false),
+            onStopped: () => setPlaying(false),
+            onError: () => setPlaying(false),
+          });
+        },
+        onStopped: () => setPlaying(false),
+        onError: () => setPlaying(false),
+      });
+    } catch {
+      setPlaying(false);
+    }
+  }, [el, en]);
+
   const speak = useCallback(async () => {
     if (playing) return;
     Haptics.selectionAsync().catch(() => {});
@@ -945,9 +969,12 @@ function GreekWordCard({
             "Pronounce the Greek word clearly and slowly first, then the transliteration, then the English translation. Warm and encouraging tone.",
         }),
       });
-      if (!res.ok) throw new Error(`TTS ${res.status}`);
+      if (!res.ok) {
+        // 402 (out of credits), 403, 429, 5xx → fall back to device TTS
+        speakFallback();
+        return;
+      }
       const buf = await res.arrayBuffer();
-      // Cache to disk so expo-audio can stream it. Convert to base64.
       const bytes = new Uint8Array(buf);
       let bin = "";
       for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
@@ -965,9 +992,9 @@ function GreekWordCard({
       });
       player.play();
     } catch {
-      setPlaying(false);
+      speakFallback();
     }
-  }, [el, translit, en, playing]);
+  }, [el, translit, en, playing, speakFallback]);
 
   return (
     <View
