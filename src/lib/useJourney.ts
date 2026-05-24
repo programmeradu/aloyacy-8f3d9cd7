@@ -82,6 +82,31 @@ export function useJourney(opts: {
   const walkIn = active?.option.legs[0];
   const walkOut = active?.option.legs[active.option.legs.length - 1];
 
+  // Best-effort live bus position for the drive-ETA query. Prefers the
+  // realtime feed; falls back to the rider's GPS once they're on board
+  // (the phone IS the bus). Recomputed only when inputs change.
+  const onBoard = !!live?.onBoardConfirmedAt && !live?.alightedAt;
+  const busPos = useMemo(() => {
+    if (!bus) return null;
+    const v = rt?.vehicles.find((x) => x.tripId === bus.tripId);
+    if (v) return { lat: v.lat, lng: v.lng };
+    if (onBoard && fix) return { lat: fix.lat, lng: fix.lng };
+    return null;
+  }, [bus, rt, onBoard, fix]);
+  const alightLoc = useMemo(
+    () =>
+      walkOut?.kind === "walk"
+        ? { lat: walkOut.from.lat, lng: walkOut.from.lng }
+        : null,
+    [walkOut],
+  );
+  const drive = useDriveEta({
+    enabled: onBoard && !!busPos && !!alightLoc,
+    from: busPos,
+    to: alightLoc,
+  });
+
+
   const result = useMemo<LiveJourney>(() => {
     const baseInactive: LiveJourney = {
       active: false,
