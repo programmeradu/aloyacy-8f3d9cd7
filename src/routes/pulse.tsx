@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { TodayTileGlyph } from "@/components/TodayTileGlyph";
 import { PulseLiveSection } from "@/components/PulseLiveSection";
@@ -812,29 +812,34 @@ function GreekWordGlyph({ word, className }: { word: string; className?: string 
   }
 }
 
-// Tap-to-hear Greek pronunciation. Uses Web Speech API with el-GR voice when available.
+// Tap-to-hear Greek pronunciation. Uses ElevenLabs via /api/public/tts for
+// high-quality neural voice; falls back to browser speechSynthesis only if
+// the network call fails.
 function SpeakGreekButton({ text }: { text: string }) {
   const [speaking, setSpeaking] = useState(false);
-  const [supported, setSupported] = useState(true);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const cacheRef = useRef<Map<string, string>>(new Map());
 
   useEffect(() => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      setSupported(false);
-    }
+    const cache = cacheRef.current;
+    return () => {
+      audioRef.current?.pause();
+      cache.forEach((u: string) => URL.revokeObjectURL(u));
+    };
   }, []);
 
-  if (!supported) return null;
-
-  const speak = () => {
+  const fallback = () => {
     try {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+        setSpeaking(false);
+        return;
+      }
       const synth = window.speechSynthesis;
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "el-GR";
       u.rate = 0.85;
-      u.pitch = 1;
-      const voices = synth.getVoices();
-      const greek = voices.find((v) => v.lang?.toLowerCase().startsWith("el"));
+      const greek = synth.getVoices().find((v) => v.lang?.toLowerCase().startsWith("el"));
       if (greek) u.voice = greek;
       u.onstart = () => setSpeaking(true);
       u.onend = () => setSpeaking(false);
@@ -842,6 +847,33 @@ function SpeakGreekButton({ text }: { text: string }) {
       synth.speak(u);
     } catch {
       setSpeaking(false);
+    }
+  };
+
+  const speak = async () => {
+    try {
+      setSpeaking(true);
+      let url = cacheRef.current.get(text);
+      if (!url) {
+        const res = await fetch("/api/public/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, lang: "el-GR" }),
+        });
+        if (!res.ok) throw new Error(`tts ${res.status}`);
+        const blob = await res.blob();
+        if (!blob.type.startsWith("audio/")) throw new Error("not audio");
+        url = URL.createObjectURL(blob);
+        cacheRef.current.set(text, url);
+      }
+      audioRef.current?.pause();
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => setSpeaking(false);
+      audio.onerror = () => setSpeaking(false);
+      await audio.play();
+    } catch {
+      fallback();
     }
   };
 
@@ -855,10 +887,7 @@ function SpeakGreekButton({ text }: { text: string }) {
       }`}
     >
       <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
-        <path
-          d="M4 10v4h3l5 4V6L7 10H4Z"
-          fill="currentColor"
-        />
+        <path d="M4 10v4h3l5 4V6L7 10H4Z" fill="currentColor" />
         <path
           d={speaking ? "M15 9c1.2 1 1.2 5 0 6" : "M15 9c1.2 1 1.2 5 0 6 M17.5 7c2.5 2 2.5 8 0 10"}
           stroke="currentColor"
