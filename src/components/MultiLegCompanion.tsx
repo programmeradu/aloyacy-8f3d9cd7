@@ -28,6 +28,7 @@ import { WalkGuidance } from "@/components/WalkGuidance";
 import { ShortcutPrompt } from "@/components/ShortcutPrompt";
 import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
 import { useShortcutDetector } from "@/lib/useShortcutDetector";
+import { useTrainingSignals } from "@/lib/useTrainingSignals";
 import { distanceM } from "@/lib/geo";
 import companionHero from "@/assets/companion-hero.jpg";
 
@@ -63,6 +64,10 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
     currentLegIndex: live.currentLegIndex,
     isOnFinalWalk,
   });
+
+  // Emit training events (walk-complete, transfer-made/missed) into the
+  // learning pipeline.
+  useTrainingSignals(active, live);
 
   // "I'm off" handler — if the rider is well clear of the planned alight
   // stop, they got off at the wrong place. Open the re-route sheet instead
