@@ -20,6 +20,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useRealtime } from "./useRealtime";
 import { useGeoWatch, type LiveFix } from "./useGeoWatch";
 import { distanceM } from "./geo";
+import { useDriveEta } from "./useDriveEta";
 import {
   advanceToNextLeg,
   patchCurrentLeg,
@@ -98,6 +99,39 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
 
   const { fix } = useGeoWatch(started);
   const { data: rt, isStale: feedStale } = useRealtime();
+
+  // Compute on-board + current ride / alight target outside the main memo
+  // so we can feed them to the Google Routes drive-ETA hook (which can't
+  // run inside useMemo).
+  const driveInputs = useMemo(() => {
+    if (!itin || !legState) return { onBoard: false, busPos: null, alightLoc: null, tripId: null };
+    const idx = Math.min(legState.currentLegIndex, itin.legs.length - 1);
+    const currentLeg = itin.legs[idx];
+    const per = legState.perLeg[idx] ?? {};
+    if (!currentLeg || currentLeg.kind !== "ride") {
+      return { onBoard: false, busPos: null, alightLoc: null, tripId: null };
+    }
+    const onBoard = !!per.onBoardConfirmedAt && !per.alightedAt;
+    if (!onBoard) return { onBoard: false, busPos: null, alightLoc: null, tripId: null };
+    const v = rt?.vehicles.find((x) => x.tripId === currentLeg.tripId);
+    const busPos = v
+      ? { lat: v.lat, lng: v.lng }
+      : fix
+        ? { lat: fix.lat, lng: fix.lng }
+        : null;
+    return {
+      onBoard,
+      busPos,
+      alightLoc: { lat: currentLeg.alight.lat, lng: currentLeg.alight.lng },
+      tripId: currentLeg.tripId,
+    };
+  }, [itin, legState, rt, fix]);
+  const drive = useDriveEta({
+    enabled: driveInputs.onBoard && !!driveInputs.busPos && !!driveInputs.alightLoc,
+    from: driveInputs.busPos,
+    to: driveInputs.alightLoc,
+  });
+
 
 
   const result = useMemo<MultiLegLive>(() => {
@@ -282,7 +316,11 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       const FLOOR_SPEED_MPS = 11; // ~40 km/h optimistic urban+intercity
       const minPossibleEta = Math.round(distToAlight / FLOOR_SPEED_MPS);
       const gpsSpeed = fix?.speedMps ?? 0;
-      if (vehicleLost) {
+      if (drive.etaSec != null && driveInputs.tripId === currentRideLeg.tripId) {
+        // Google Routes drive ETA (traffic-aware, road-following) is the
+        // source of truth when available.
+        fusedSecsToCurrentAlight = Math.max(minPossibleEta, drive.etaSec);
+      } else if (vehicleLost) {
         const speed = gpsSpeed > 2 ? gpsSpeed : 6;
         fusedSecsToCurrentAlight = Math.max(
           minPossibleEta,
@@ -336,7 +374,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       feedStale,
       nextVehicleTracked,
     };
-  }, [itin, legState, started, fix, rt, feedStale]);
+  }, [itin, legState, started, fix, rt, feedStale, drive.etaSec, driveInputs.tripId]);
 
   // ---- Auto-advance the phase machine for walk/wait legs ------------------
   // Ride legs require explicit user tap ("I'm on board", "I'm off"); walks
