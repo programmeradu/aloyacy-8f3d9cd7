@@ -250,7 +250,7 @@ export function useJourney(opts: {
     let fusedVehicle: LiveJourney["fusedVehicle"] = null;
     let fusedSecsToAlight = secsToAlight;
     let vehicleLost = false;
-    const onBoard = !!live?.onBoardConfirmedAt && !live?.alightedAt;
+    // (outer scope already computed `onBoard`)
     if (onBoard && bus) {
       const gpsSpeed = fix?.speedMps ?? 0;
       const distToVehicle = fix && vehicle ? distanceM(fix, vehicle) : Infinity;
