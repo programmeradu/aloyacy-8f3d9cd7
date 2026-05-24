@@ -824,7 +824,7 @@ function SpeakGreekButton({ text }: { text: string }) {
     const cache = cacheRef.current;
     return () => {
       audioRef.current?.pause();
-      cache.forEach((u) => URL.revokeObjectURL(u));
+      cache.forEach((u: string) => URL.revokeObjectURL(u));
     };
   }, []);
 
