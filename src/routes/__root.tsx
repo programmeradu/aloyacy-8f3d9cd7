@@ -11,6 +11,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { registerServiceWorker } from "@/lib/pwa";
+import { speak } from "@/lib/speech";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -119,6 +120,13 @@ function RootComponent() {
 
   useEffect(() => {
     void registerServiceWorker();
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    const onMessage = (event: MessageEvent) => {
+      const data = event.data as { type?: string; text?: string } | null;
+      if (data?.type === "aloya-speak" && data.text) speak(data.text);
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onMessage);
   }, []);
 
   return (
