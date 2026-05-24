@@ -326,7 +326,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       rideOrdinal: currentRideOrdinal,
       totalRides,
       secsToCurrentBoard,
-      secsToCurrentAlight,
+      secsToCurrentAlight: fusedSecsToCurrentAlight,
       secsToNextBoard,
       nextBoardSource,
       nextBoardLate,
