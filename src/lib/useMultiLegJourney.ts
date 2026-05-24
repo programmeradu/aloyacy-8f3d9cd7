@@ -316,7 +316,11 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       const FLOOR_SPEED_MPS = 11; // ~40 km/h optimistic urban+intercity
       const minPossibleEta = Math.round(distToAlight / FLOOR_SPEED_MPS);
       const gpsSpeed = fix?.speedMps ?? 0;
-      if (vehicleLost) {
+      if (drive.etaSec != null && driveInputs.tripId === currentRideLeg.tripId) {
+        // Google Routes drive ETA (traffic-aware, road-following) is the
+        // source of truth when available.
+        fusedSecsToCurrentAlight = Math.max(minPossibleEta, drive.etaSec);
+      } else if (vehicleLost) {
         const speed = gpsSpeed > 2 ? gpsSpeed : 6;
         fusedSecsToCurrentAlight = Math.max(
           minPossibleEta,
