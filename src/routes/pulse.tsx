@@ -858,7 +858,7 @@ function SpeakGreekButton({ text }: { text: string }) {
         const res = await fetch("/api/public/tts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, lang: "el-GR" }),
+          body: JSON.stringify({ input: text }),
         });
         if (!res.ok) throw new Error(`tts ${res.status}`);
         const blob = await res.blob();
