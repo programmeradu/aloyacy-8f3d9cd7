@@ -27,28 +27,11 @@ export type PulseSnapshot = {
 };
 
 export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
-  // Paginate through delay_stats — Supabase caps each response at 1000 rows
-  // and the table has tens of thousands of (route, stop, hour) buckets.
-  const PAGE = 1000;
-  const HARD_CAP = 100_000; // safety belt
-  const rows: { route_id: string; mean_delay_sec: number; sample_count: number }[] = [];
-  let error: unknown = null;
-  for (let from = 0; from < HARD_CAP; from += PAGE) {
-    const { data, error: pageError } = await supabase
-      .from("delay_stats")
-      .select("route_id, mean_delay_sec, sample_count")
-      .gte("sample_count", 3)
-      .range(from, from + PAGE - 1);
-    if (pageError) {
-      error = pageError;
-      break;
-    }
-    if (!data || data.length === 0) break;
-    rows.push(...data);
-    if (data.length < PAGE) break;
-  }
+  // Server-side aggregation via RPC — collapses tens of thousands of
+  // (route, stop, hour) buckets into one row per route in a single call.
+  const { data, error } = await supabase.rpc("pulse_route_stats");
 
-  if (error || rows.length === 0) {
+  if (error || !data || data.length === 0) {
     return {
       generatedAt: Math.floor(Date.now() / 1000),
       totalSamples: 0,
@@ -61,25 +44,18 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
     } satisfies PulseSnapshot;
   }
 
-  const data = rows;
-
-
-  // Collapse per-hour buckets into per-route weighted means.
-  // Drop rows whose route_id isn't in our static timetable — they'd render as "?".
-  const agg = new Map<
-    string,
-    { sumDelayWeighted: number; sampleCount: number }
-  >();
+  // Filter out routes that aren't in our static timetable — they'd render as "?".
   const excludedRoutes = new Set<string>();
-  for (const row of data) {
+  const agg = new Map<string, { sumDelayWeighted: number; sampleCount: number }>();
+  for (const row of data as Array<{ route_id: string; sum_delay_weighted: number; sample_count: number }>) {
     if (!KNOWN_ROUTE_IDS.has(row.route_id)) {
       excludedRoutes.add(row.route_id);
       continue;
     }
-    const cur = agg.get(row.route_id) ?? { sumDelayWeighted: 0, sampleCount: 0 };
-    cur.sumDelayWeighted += row.mean_delay_sec * row.sample_count;
-    cur.sampleCount += row.sample_count;
-    agg.set(row.route_id, cur);
+    agg.set(row.route_id, {
+      sumDelayWeighted: Number(row.sum_delay_weighted) || 0,
+      sampleCount: Number(row.sample_count) || 0,
+    });
   }
 
   const stats: PulseRouteStat[] = [...agg.entries()].map(([routeId, v]) => {
