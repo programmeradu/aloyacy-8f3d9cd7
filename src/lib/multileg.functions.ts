@@ -69,6 +69,9 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       ...(liveResult?.itineraries ?? []),
       ...(schedResult?.itineraries ?? []),
     ];
+    const learningMod = await import("./planner-learning.server");
+    const learning = await learningMod.loadPlannerLearningContext(merged).catch(() => null);
+    for (const it of merged) learningMod.rescoreItineraryWithLearning(it, learning);
     const mergedRaw = merged.length;
 
     // Dedupe by (signature). Prefer "live" or "mixed" over "estimated".
