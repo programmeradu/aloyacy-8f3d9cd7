@@ -12,6 +12,14 @@ import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
 import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
 
+// How long the rider's GPS must show sustained bus-speed motion before we
+// auto-confirm boarding without an explicit tap. Guards against a single
+// noisy speed sample (e.g. a phone tossed in a bag) triggering confirmation.
+const SUSTAINED_RIDING_MS = 12_000;
+// How far past the board stop the rider must travel before we treat their
+// motion as "definitely on a bus, not jogging at the curb".
+const RIDING_DISPLACEMENT_M = 80;
+
 export type LivePhase =
   | "idle" // start button shown
   | "walking-to-stop"
@@ -190,19 +198,40 @@ export function useJourney(opts: {
     } else if (live?.missedAt) {
       phase = "missed-bus";
     } else {
-      // Pre-board phase
-      const atStop =
-        fix &&
-        bus &&
-        distanceM(fix, {
-          lat: walkIn?.kind === "walk" ? walkIn.to.lat : 0,
-          lng: walkIn?.kind === "walk" ? walkIn.to.lng : 0,
-        }) < ARRIVAL_RADIUS_M;
+      // Pre-board phase. The bus leg only stores stopId/name, so use the
+      // walk-in leg's `to` coordinate as the board-stop location.
+      const boardLoc =
+        walkIn?.kind === "walk"
+          ? { lat: walkIn.to.lat, lng: walkIn.to.lng }
+          : null;
+      const distToBoardStop = fix && boardLoc ? distanceM(fix, boardLoc) : Infinity;
+      const atStop = !!fix && !!boardLoc && distToBoardStop < ARRIVAL_RADIUS_M;
+
+      // Rider's GPS-based riding signal — works even when the GTFS-RT feed
+      // has no vehicle for this tripId (very common at night).
+      const gpsSpeed = fix?.speedMps ?? 0;
+      const ridingByGps = gpsSpeed > RIDING_SPEED_MPS;
+      const departedStop = distToBoardStop > RIDING_DISPLACEMENT_M;
+      // Within the boarding time window: from 2 min before scheduled board
+      // until 3 min after (covers feed delay + dwell).
+      const inBoardingWindow = secsToBoard <= 120 && secsToBoard >= -180;
 
       if (atStop) {
-        // Vehicle nearby and at stop → boarding window
-        if (vehicle && distToBus < BUS_MATCH_RADIUS_M) phase = "boarding";
-        else phase = "at-stop";
+        // Show the "Are you on board?" prompt as soon as ANY of:
+        //   - vehicle is at the stop (feed-driven, original behavior)
+        //   - rider's GPS speed indicates they're moving with a bus
+        //   - we're inside the boarding time window (be optimistic when the
+        //     bus is due — better to ask too early than never)
+        const vehicleAtStop = !!vehicle && distToBus < BUS_MATCH_RADIUS_M;
+        if (vehicleAtStop || ridingByGps || inBoardingWindow) {
+          phase = "boarding";
+        } else {
+          phase = "at-stop";
+        }
+      } else if (ridingByGps && departedStop && inBoardingWindow) {
+        // Rider already left the stop AT bus speed — they boarded a moment
+        // ago, we just never got the chance to ask. Surface the prompt.
+        phase = "boarding";
       } else {
         phase = "walking-to-stop";
         // Hurry escalation while walking
@@ -213,20 +242,20 @@ export function useJourney(opts: {
         }
       }
 
-      // Missed-bus detection: vehicle has clearly left the board stop and
-      // is moving away from it, but we haven't confirmed on-board.
-      if (vehicle && bus) {
-        const boardLoc = { lat: 0, lng: 0 };
-        if (walkIn?.kind === "walk") {
-          boardLoc.lat = walkIn.to.lat;
-          boardLoc.lng = walkIn.to.lng;
-        }
+      // Missed-bus detection. Only fire when we're CONFIDENT the rider is
+      // not on this bus: vehicle has cleared the stop, the rider isn't
+      // moving at bus speed, and the rider's own GPS isn't near the vehicle.
+      if (vehicle && bus && !ridingByGps && boardLoc) {
         const busFromStop = distanceM(vehicle, boardLoc);
-        if (busFromStop > 200 && now > boardUnix + 30) {
-          // and user is NOT near the bus
-          if (!fix || distanceM(fix, vehicle) > 200) {
-            phase = "missed-bus";
-          }
+        const riderFarFromBus = !fix || distanceM(fix, vehicle) > 250;
+        const riderStillNearStop = !!fix && distToBoardStop < 60;
+        if (
+          busFromStop > 250 &&
+          now > boardUnix + 60 &&
+          riderFarFromBus &&
+          riderStillNearStop
+        ) {
+          phase = "missed-bus";
         }
       }
     }
@@ -234,8 +263,6 @@ export function useJourney(opts: {
     // On-board auto-detection heuristic (suggest prompt, never auto-skip)
     const onBoardSuggested =
       !!fix &&
-      !!vehicle &&
-      distToBus < BUS_MATCH_RADIUS_M &&
       (fix.speedMps ?? 0) > RIDING_SPEED_MPS &&
       !live?.onBoardConfirmedAt;
 
@@ -350,6 +377,45 @@ export function useJourney(opts: {
       feedStale,
     };
   }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps, feedStale, drive.etaSec, onBoard]);
+
+
+  // ---- GPS-based auto-confirm boarding -------------------------------------
+  // If the rider's GPS shows sustained bus-speed motion AND they've left the
+  // board stop, mark them on-board automatically. This is the safety net for
+  // when the GTFS-RT feed has no vehicle for the tripId and the prompt
+  // would otherwise never appear (the exact failure mode reported at night).
+  const ridingStartedAtRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!result.active || !bus) return;
+    if (live?.onBoardConfirmedAt || live?.missedAt || live?.alightedAt) {
+      ridingStartedAtRef.current = null;
+      return;
+    }
+    const gpsSpeed = fix?.speedMps ?? 0;
+    if (gpsSpeed <= RIDING_SPEED_MPS) {
+      ridingStartedAtRef.current = null;
+      return;
+    }
+    const boardLoc =
+      walkIn?.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null;
+    const departed =
+      !!fix && !!boardLoc && distanceM(fix, boardLoc) > RIDING_DISPLACEMENT_M;
+    if (!departed) {
+      ridingStartedAtRef.current = null;
+      return;
+    }
+    if (ridingStartedAtRef.current == null) {
+      ridingStartedAtRef.current = Date.now();
+      return;
+    }
+    if (Date.now() - ridingStartedAtRef.current >= SUSTAINED_RIDING_MS) {
+      patchActiveTripLive({ onBoardConfirmedAt: Date.now() });
+      ridingStartedAtRef.current = null;
+    }
+  }, [result.active, bus, fix, live, walkIn]);
+
+
+
 
 
   // ---- Push alerting on phase transition -----------------------------------
