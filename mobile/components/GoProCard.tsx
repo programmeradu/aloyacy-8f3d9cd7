@@ -199,6 +199,41 @@ export function GoProCard() {
         />
       )}
 
+      <TextInput
+        autoCapitalize="characters"
+        autoCorrect={false}
+        placeholder="Promo code (optional)"
+        placeholderTextColor="#9aa0a6"
+        value={promo}
+        onChangeText={setPromo}
+        style={{
+          marginTop: 10,
+          borderWidth: 1,
+          borderColor: palette.line,
+          borderRadius: 12,
+          paddingHorizontal: 14,
+          paddingVertical: 12,
+          fontFamily: "Geist_500Medium",
+          fontSize: 14,
+          color: palette.ink,
+          backgroundColor: "#fff",
+        }}
+      />
+
+      {signedIn && (
+        <Text
+          style={{
+            marginTop: 10,
+            fontFamily: "Geist_500Medium",
+            fontSize: 11,
+            color: palette.inkSoft ?? palette.olive,
+            textAlign: "center",
+          }}
+        >
+          New here? Your first 7 days are free — cancel anytime before day 7 and you won't be charged.
+        </Text>
+      )}
+
       <Pressable
         disabled={busy}
         onPress={handlePay}
@@ -215,6 +250,7 @@ export function GoProCard() {
           {busy ? "Opening payment sheet…" : "Continue to payment"}
         </Text>
       </Pressable>
+
     </Card>
   );
 }
