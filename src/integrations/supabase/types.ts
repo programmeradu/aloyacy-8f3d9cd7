@@ -593,42 +593,6 @@ export type Database = {
         }
         Relationships: []
       }
-      promo_codes: {
-        Row: {
-          active: boolean
-          code: string
-          created_at: string
-          duration_days: number
-          expires_at: string | null
-          max_redemptions: number | null
-          notes: string | null
-          redemptions_count: number
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          code: string
-          created_at?: string
-          duration_days?: number
-          expires_at?: string | null
-          max_redemptions?: number | null
-          notes?: string | null
-          redemptions_count?: number
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          code?: string
-          created_at?: string
-          duration_days?: number
-          expires_at?: string | null
-          max_redemptions?: number | null
-          notes?: string | null
-          redemptions_count?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
       pulse_signals: {
         Row: {
           fetched_at: string
@@ -1184,46 +1148,29 @@ export type Database = {
       trial_grants: {
         Row: {
           device_id: string
-          duration_days: number
           environment: string
           expires_at: string
           granted_at: string
           id: string
-          promo_code: string | null
-          source: string
           user_id: string
         }
         Insert: {
           device_id: string
-          duration_days: number
           environment: string
           expires_at: string
           granted_at?: string
           id?: string
-          promo_code?: string | null
-          source: string
           user_id: string
         }
         Update: {
           device_id?: string
-          duration_days?: number
           environment?: string
           expires_at?: string
           granted_at?: string
           id?: string
-          promo_code?: string | null
-          source?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "trial_grants_promo_code_fkey"
-            columns: ["promo_code"]
-            isOneToOne: false
-            referencedRelation: "promo_codes"
-            referencedColumns: ["code"]
-          },
-        ]
+        Relationships: []
       }
       trip_group_members: {
         Row: {
