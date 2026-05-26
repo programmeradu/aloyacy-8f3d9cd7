@@ -12,6 +12,14 @@ import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
 import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
 
+// How long the rider's GPS must show sustained bus-speed motion before we
+// auto-confirm boarding without an explicit tap. Guards against a single
+// noisy speed sample (e.g. a phone tossed in a bag) triggering confirmation.
+const SUSTAINED_RIDING_MS = 12_000;
+// How far past the board stop the rider must travel before we treat their
+// motion as "definitely on a bus, not jogging at the curb".
+const RIDING_DISPLACEMENT_M = 80;
+
 export type LivePhase =
   | "idle" // start button shown
   | "walking-to-stop"
