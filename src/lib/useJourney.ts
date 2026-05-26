@@ -379,6 +379,45 @@ export function useJourney(opts: {
   }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps, feedStale, drive.etaSec, onBoard]);
 
 
+  // ---- GPS-based auto-confirm boarding -------------------------------------
+  // If the rider's GPS shows sustained bus-speed motion AND they've left the
+  // board stop, mark them on-board automatically. This is the safety net for
+  // when the GTFS-RT feed has no vehicle for the tripId and the prompt
+  // would otherwise never appear (the exact failure mode reported at night).
+  const ridingStartedAtRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!result.active || !bus) return;
+    if (live?.onBoardConfirmedAt || live?.missedAt || live?.alightedAt) {
+      ridingStartedAtRef.current = null;
+      return;
+    }
+    const gpsSpeed = fix?.speedMps ?? 0;
+    if (gpsSpeed <= RIDING_SPEED_MPS) {
+      ridingStartedAtRef.current = null;
+      return;
+    }
+    const boardLoc =
+      walkIn?.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null;
+    const departed =
+      !!fix && !!boardLoc && distanceM(fix, boardLoc) > RIDING_DISPLACEMENT_M;
+    if (!departed) {
+      ridingStartedAtRef.current = null;
+      return;
+    }
+    if (ridingStartedAtRef.current == null) {
+      ridingStartedAtRef.current = Date.now();
+      return;
+    }
+    if (Date.now() - ridingStartedAtRef.current >= SUSTAINED_RIDING_MS) {
+      patchActiveTripLive({ onBoardConfirmedAt: Date.now() });
+      ridingStartedAtRef.current = null;
+    }
+  }, [result.active, bus, fix, live, walkIn]);
+
+
+
+
+
   // ---- Push alerting on phase transition -----------------------------------
   const sentRef = useRef<Set<string>>(new Set());
   const sendAlert = useServerFn(sendTripAlert);
