@@ -199,18 +199,38 @@ export function useJourney(opts: {
       phase = "missed-bus";
     } else {
       // Pre-board phase
-      const atStop =
-        fix &&
-        bus &&
-        distanceM(fix, {
-          lat: walkIn?.kind === "walk" ? walkIn.to.lat : 0,
-          lng: walkIn?.kind === "walk" ? walkIn.to.lng : 0,
-        }) < ARRIVAL_RADIUS_M;
+      const boardLoc =
+        walkIn?.kind === "walk"
+          ? { lat: walkIn.to.lat, lng: walkIn.to.lng }
+          : { lat: bus.board.lat, lng: bus.board.lng };
+      const distToBoardStop = fix ? distanceM(fix, boardLoc) : Infinity;
+      const atStop = fix && distToBoardStop < ARRIVAL_RADIUS_M;
+
+      // Rider's GPS-based riding signal — works even when the GTFS-RT feed
+      // has no vehicle for this tripId (very common at night).
+      const gpsSpeed = fix?.speedMps ?? 0;
+      const ridingByGps = gpsSpeed > RIDING_SPEED_MPS;
+      const departedStop = distToBoardStop > RIDING_DISPLACEMENT_M;
+      // Within the boarding time window: from 2 min before scheduled board
+      // until 3 min after (covers feed delay + dwell).
+      const inBoardingWindow = secsToBoard <= 120 && secsToBoard >= -180;
 
       if (atStop) {
-        // Vehicle nearby and at stop → boarding window
-        if (vehicle && distToBus < BUS_MATCH_RADIUS_M) phase = "boarding";
-        else phase = "at-stop";
+        // Show the "Are you on board?" prompt as soon as ANY of:
+        //   - vehicle is at the stop (feed-driven, original behavior)
+        //   - rider's GPS speed indicates they're moving with a bus
+        //   - we're inside the boarding time window (be optimistic when the
+        //     bus is due — better to ask too early than never)
+        const vehicleAtStop = !!vehicle && distToBus < BUS_MATCH_RADIUS_M;
+        if (vehicleAtStop || ridingByGps || inBoardingWindow) {
+          phase = "boarding";
+        } else {
+          phase = "at-stop";
+        }
+      } else if (ridingByGps && departedStop && inBoardingWindow) {
+        // Rider already left the stop AT bus speed — they boarded a moment
+        // ago, we just never got the chance to ask. Surface the prompt.
+        phase = "boarding";
       } else {
         phase = "walking-to-stop";
         // Hurry escalation while walking
@@ -221,20 +241,20 @@ export function useJourney(opts: {
         }
       }
 
-      // Missed-bus detection: vehicle has clearly left the board stop and
-      // is moving away from it, but we haven't confirmed on-board.
-      if (vehicle && bus) {
-        const boardLoc = { lat: 0, lng: 0 };
-        if (walkIn?.kind === "walk") {
-          boardLoc.lat = walkIn.to.lat;
-          boardLoc.lng = walkIn.to.lng;
-        }
+      // Missed-bus detection. Only fire when we're CONFIDENT the rider is
+      // not on this bus: vehicle has cleared the stop, the rider isn't
+      // moving at bus speed, and the rider's own GPS isn't near the vehicle.
+      if (vehicle && bus && !ridingByGps) {
         const busFromStop = distanceM(vehicle, boardLoc);
-        if (busFromStop > 200 && now > boardUnix + 30) {
-          // and user is NOT near the bus
-          if (!fix || distanceM(fix, vehicle) > 200) {
-            phase = "missed-bus";
-          }
+        const riderFarFromBus = !fix || distanceM(fix, vehicle) > 250;
+        const riderStillNearStop = !!fix && distToBoardStop < 60;
+        if (
+          busFromStop > 250 &&
+          now > boardUnix + 60 &&
+          riderFarFromBus &&
+          riderStillNearStop
+        ) {
+          phase = "missed-bus";
         }
       }
     }
@@ -242,8 +262,6 @@ export function useJourney(opts: {
     // On-board auto-detection heuristic (suggest prompt, never auto-skip)
     const onBoardSuggested =
       !!fix &&
-      !!vehicle &&
-      distToBus < BUS_MATCH_RADIUS_M &&
       (fix.speedMps ?? 0) > RIDING_SPEED_MPS &&
       !live?.onBoardConfirmedAt;
 
