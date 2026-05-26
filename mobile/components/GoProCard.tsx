@@ -14,6 +14,7 @@ export function GoProCard() {
   const { user, signedIn } = useSession();
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<PlanKey>("pro_monthly");
+  const [promo, setPromo] = useState("");
   const [busy, setBusy] = useState(false);
 
   const effectiveEmail = signedIn ? (user?.email ?? "") : email;
@@ -27,6 +28,7 @@ export function GoProCard() {
     const res = await startProCheckout({
       email: signedIn ? undefined : email.trim(),
       planKey: plan,
+      promotionCode: promo.trim() || undefined,
     });
     setBusy(false);
     if (res.ok) {
@@ -40,6 +42,7 @@ export function GoProCard() {
       Alert.alert("Checkout failed", res.message);
     }
   }
+
 
   return (
     <Card style={{ marginTop: 18, padding: 20 }}>
