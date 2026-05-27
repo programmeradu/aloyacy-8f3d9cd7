@@ -401,18 +401,31 @@ export function MapPreview({
       }
     }
     // 2) Fallback: stop-derived polylines from arrivals.
+    // Build a tripId → agency map first so getStop() can disambiguate the
+    // 344 stop IDs that collide across operator feeds. Without this every
+    // non-Nicosia trip falls back to lerp mode and the bus teleports.
+    const tripAgency = new Map<string, string>();
+    for (const v of rt.vehicles) {
+      const r = getRoute(v.routeId);
+      if (r) tripAgency.set(v.tripId, r.agency);
+    }
     const byTrip = new Map<string, { stopId: string; t: number }[]>();
     for (const a of rt.arrivals) {
       const arr = byTrip.get(a.tripId) ?? [];
       arr.push({ stopId: a.stopId, t: a.arrivalUnix });
       byTrip.set(a.tripId, arr);
+      if (!tripAgency.has(a.tripId)) {
+        const r = getRoute(a.routeId);
+        if (r) tripAgency.set(a.tripId, r.agency);
+      }
     }
     for (const [tripId, stops] of byTrip) {
       if (out.has(tripId)) continue; // real shape already wins
       stops.sort((x, y) => x.t - y.t);
+      const agency = tripAgency.get(tripId);
       const poly: { lat: number; lng: number }[] = [];
       for (const s of stops) {
-        const meta = getStop(s.stopId);
+        const meta = getStop(s.stopId, agency);
         if (meta) poly.push({ lat: meta.lat, lng: meta.lng });
       }
       if (poly.length >= 2) out.set(tripId, poly);
