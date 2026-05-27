@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
@@ -9,7 +9,9 @@ import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useEtaStats } from "@/lib/useEtaStats";
 import { smartEtaForStop, type SmartEta } from "@/lib/eta";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
+import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { getStop, getRoute, routeTone } from "@/lib/gtfs";
+
 
 export const Route = createFileRoute("/stop/$stopId")({
   head: ({ params }) => ({
@@ -37,6 +39,7 @@ function StopDetail() {
     return Array.from(set);
   }, [rt, stopId]);
   const etaStats = useEtaStats(routeIdsHere);
+  useEffect(() => { prefetchShapes(); }, []);
 
   const departures = useMemo(() => {
     if (!rt) return [];
@@ -66,9 +69,11 @@ function StopDetail() {
           agency: stop?.agency,
           segments: etaStats.segments,
           dwells: etaStats.dwells,
+          shape: getShapeForTripSync(a.tripId, a.routeId),
         });
         return { ...a, eta, etaV2 };
       })
+
       .filter(
         (d): d is typeof d & { eta: SmartEta } =>
           d.eta != null && d.eta.etaMin <= 180,
