@@ -21,6 +21,7 @@ import { getDeviceId } from "@/lib/pwa";
 import planHero from "@/assets/plan-hero.jpg";
 import { ProGate } from "@/components/ProGate";
 import { RemindMeButton } from "@/components/RemindMeButton";
+import { useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
