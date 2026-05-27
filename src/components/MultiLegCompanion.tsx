@@ -28,6 +28,8 @@ import { WalkGuidance } from "@/components/WalkGuidance";
 import { ShortcutPrompt } from "@/components/ShortcutPrompt";
 import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
 import { CrowdHint } from "@/components/CrowdHint";
+import { DisruptionBanner } from "@/components/DisruptionBanner";
+import { useDisruptionWatch } from "@/lib/useDisruptionWatch";
 import { useShortcutDetector } from "@/lib/useShortcutDetector";
 import { useTrainingSignals } from "@/lib/useTrainingSignals";
 import { distanceM } from "@/lib/geo";
@@ -50,6 +52,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const live = useMultiLegJourney(active);
   const tripId = active.option.id;
   const [earlyAlightOpen, setEarlyAlightOpen] = useState(false);
+  const disruption = useDisruptionWatch(active, live);
 
   // Force a fresh realtime fetch when rider returns to the tab after >30s away.
   const invalidateRt = useInvalidateRealtime();
@@ -175,6 +178,11 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         !live.nextVehicleTracked && (
           <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
         )}
+
+      {/* Proactive disruption assistant */}
+      <DisruptionBanner signal={disruption} />
+
+
 
       {/* Wrong-stop adaptive hint while walking to board */}
       {live.active && live.rerouteHint?.kind === "switch-boarding" && (
