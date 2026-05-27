@@ -78,10 +78,20 @@ export function RemindMeButton({
     }
   }
 
+  function handleClick() {
+    if (!user) {
+      setAuthOpen(true);
+      return;
+    }
+    requirePro(() => {
+      void doSchedule();
+    });
+  }
+
   return (
     <>
       <button
-        onClick={onClick}
+        onClick={handleClick}
         disabled={state === "saving" || state === "saved"}
         className="inline-flex items-center gap-2 rounded-full bg-card ring-1 ring-line px-4 py-2 text-[12px] text-ink hover:bg-limestone-soft disabled:opacity-70"
       >
@@ -90,7 +100,9 @@ export function RemindMeButton({
           ? "Reminder set"
           : state === "saving"
             ? "Saving…"
-            : "Remind me to leave"}
+            : isPro
+              ? "Remind me to leave"
+              : "Remind me to leave · Pro"}
       </button>
       {state === "saved" && (
         <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">
@@ -108,6 +120,7 @@ export function RemindMeButton({
         title="Sign in to save reminders"
         subtitle="We'll buzz you when it's time to head out."
       />
+      {paywall}
     </>
   );
 }
