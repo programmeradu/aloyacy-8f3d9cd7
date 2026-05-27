@@ -9,6 +9,7 @@ import { autocompletePlaces, getPlace, reverseLookup } from "@/lib/maps.function
 import { planMultiLeg } from "@/lib/multileg.functions";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
+import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
 import {
   pushRecent,
@@ -43,13 +44,11 @@ function Plan() {
   const [origin, setOrigin] = useState<Point | null>(null);
   const [destination, setDestination] = useState<Point | null>(null);
   const [active, setActive] = useState<"from" | "to" | null>("to");
-  const [results, setResults] = useState<Itinerary[] | null>(null);
-  const [planning, setPlanning] = useState(false);
-  const [planError, setPlanError] = useState<string | null>(null);
 
   const planFn = useServerFn(planMultiLeg);
   const reverseFn = useServerFn(reverseLookup);
   const fetchSuggestions = useServerFn(getTripSuggestions);
+  
 
   const { session } = useAuth();
   const { data: suggData } = useQuery({
@@ -69,6 +68,64 @@ function Plan() {
     enabled: typeof window !== "undefined",
   });
   const personalSuggestions = suggData?.suggestions ?? [];
+
+  // Live realtime tick — every time vehicle positions / ETAs refresh, we
+  // know the planner has fresher signals to chew on.
+  const { data: rt } = useRealtime();
+  const rtTick = rt?.fetchedAt ?? 0;
+
+  // Plan results driven by useQuery so they auto-refresh:
+  //   - every 30s while the screen is open
+  //   - on window focus / reconnect
+  //   - whenever the realtime feed advances (rtTick in the key)
+  // This is what makes "the bus left, give me the next one" feel automatic.
+  const planQuery = useQuery({
+    queryKey: [
+      "plan",
+      origin?.lat,
+      origin?.lng,
+      destination?.lat,
+      destination?.lng,
+      rtTick,
+    ],
+    queryFn: async () => {
+      if (!origin || !destination) return { itineraries: [] as Itinerary[] };
+      const res = await planFn({ data: { from: origin, to: destination } });
+      return res;
+    },
+    enabled: !!origin && !!destination,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+    staleTime: 15_000,
+  });
+  const results = planQuery.data?.itineraries ?? null;
+  const planning = planQuery.isFetching && !planQuery.data;
+  const planError = planQuery.error
+    ? planQuery.error instanceof Error
+      ? planQuery.error.message
+      : "Plan failed"
+    : null;
+
+  // Force a re-plan the moment the top result's bus has just departed —
+  // the static refetchInterval would otherwise leave a stale "next bus" on
+  // screen for up to 30 seconds after it pulled away.
+  useEffect(() => {
+    if (!results || results.length === 0) return;
+    const first = results[0];
+    const firstRide = first.legs.find((l): l is RideLeg => l.kind === "ride");
+    if (!firstRide) return;
+    const msUntilDeparture = firstRide.board.departureUnix * 1000 - Date.now();
+    if (msUntilDeparture <= 0) {
+      planQuery.refetch();
+      return;
+    }
+    // Fire a refetch ~5s after the scheduled departure so live delays settle.
+    const t = window.setTimeout(
+      () => planQuery.refetch(),
+      Math.min(msUntilDeparture + 5_000, 60_000),
+    );
+    return () => window.clearTimeout(t);
+  }, [results, planQuery]);
 
   // Try to seed origin from geolocation once.
   useEffect(() => {
@@ -100,32 +157,17 @@ function Plan() {
     );
   }, [origin, reverseFn]);
 
-  async function runPlan(o: Point, d: Point) {
-    setPlanning(true);
-    setPlanError(null);
-    setResults(null);
-    try {
-      const res = await planFn({ data: { from: o, to: d } });
-      setResults(res.itineraries);
-    } catch (e) {
-      setPlanError(e instanceof Error ? e.message : "Plan failed");
-    } finally {
-      setPlanning(false);
-    }
-  }
-
   function onPick(point: Point, role: "from" | "to") {
     if (role === "from") {
       setOrigin(point);
-      if (destination) void runPlan(point, destination);
       setActive(destination ? null : "to");
     } else {
       setDestination(point);
       pushRecent({ name: point.label, lat: point.lat, lng: point.lng });
-      if (origin) void runPlan(origin, point);
       setActive(origin ? null : "from");
     }
   }
+
 
   return (
     <AppShell>
@@ -159,7 +201,6 @@ function Plan() {
             onActivate={() => setActive("from")}
             onClear={() => {
               setOrigin(null);
-              setResults(null);
             }}
           />
           <div className="mx-5 h-px bg-line" />
@@ -171,7 +212,6 @@ function Plan() {
             onActivate={() => setActive("to")}
             onClear={() => {
               setDestination(null);
-              setResults(null);
             }}
           />
         </div>
@@ -224,7 +264,6 @@ function Plan() {
                 origin ??
                 ({ lat: s.fromLat, lng: s.fromLng, label: s.fromLabel } as Point);
               if (!origin) setOrigin(o);
-              void runPlan(o, to);
             }}
           />
         )}
