@@ -152,10 +152,11 @@ function extractExplicitTime(
 ): { iso: string; preferArrive: boolean } | null {
   const t = text.toLowerCase();
   // Match: optional leading verb, hour, optional :mm, optional am/pm.
+  const hasNightWord = /\b(tonight|evening|morning|noon|midnight)\b/.test(t);
   // Require either am/pm OR a colon OR a 24h hour >= 13 to avoid grabbing
   // stray digits like "in 5 min" or "bus 30".
   const re =
-    /\b(at|by|before|leave at|leave by|depart at|depart by|arrive by|arrive at)?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/g;
+    /\b(at|by|before|leave at|leave by|depart at|depart by|arrive by|arrive at)?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b(?!\s*(?:min|mins|minute|minutes|hr|hrs|hour|hours|km|kms|m\b))/g;
   let best: { hh: number; mm: number; verb: string | undefined } | null = null;
   for (const m of t.matchAll(re)) {
     const verb = m[1];
@@ -164,9 +165,8 @@ function extractExplicitTime(
     const ampm = m[4];
     const hasColon = !!m[3];
     if (hh > 23 || mm > 59) continue;
-    // Filter ambiguous bare numbers
-    if (!ampm && !hasColon && !verb && hh < 13) continue;
-    if (!ampm && !hasColon && verb && hh > 23) continue;
+    // Filter ambiguous bare numbers unless a night/day word gives context.
+    if (!ampm && !hasColon && !verb && !hasNightWord && hh < 13) continue;
     let h = hh;
     if (ampm === "pm" && h < 12) h += 12;
     if (ampm === "am" && h === 12) h = 0;
@@ -174,6 +174,7 @@ function extractExplicitTime(
     break; // first plausible match wins
   }
   if (!best) return null;
+
 
   const now = new Date(nowISO);
   // Walk to the caller's local Y/M/D.
