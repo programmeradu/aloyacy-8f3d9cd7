@@ -177,6 +177,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       vehicleLost: false,
       feedStale,
       nextVehicleTracked: false,
+      rerouteHint: null,
     };
 
     if (!itin || !legState || !started) return baseInactive;
