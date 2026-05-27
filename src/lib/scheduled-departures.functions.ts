@@ -50,7 +50,7 @@ export const scheduleDeparture = createServerFn({ method: "POST" })
         arrive_by_unix: data.arriveByUnix,
         remind_at_unix: data.remindAtUnix,
         push_subscription_id: data.pushSubscriptionId ?? null,
-        plan_json: data.plan as unknown as Record<string, unknown>,
+        plan_json: JSON.parse(JSON.stringify(data.plan)),
         status: "scheduled",
       })
       .select("id")
