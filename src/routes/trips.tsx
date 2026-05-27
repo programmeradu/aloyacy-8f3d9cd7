@@ -201,7 +201,6 @@ function Plan() {
             onActivate={() => setActive("from")}
             onClear={() => {
               setOrigin(null);
-              setResults(null);
             }}
           />
           <div className="mx-5 h-px bg-line" />
@@ -213,7 +212,6 @@ function Plan() {
             onActivate={() => setActive("to")}
             onClear={() => {
               setDestination(null);
-              setResults(null);
             }}
           />
         </div>
