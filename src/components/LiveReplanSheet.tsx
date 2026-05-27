@@ -3,6 +3,7 @@
 // route from where they currently are. Mirrors EarlyAlightSheet's pattern
 // (reroute → swap ActiveTrip) but with disruption-aware copy.
 
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { rerouteFromHere } from "@/lib/reroute.functions";
@@ -13,6 +14,7 @@ import {
   type ActiveTrip,
 } from "@/lib/trip-store";
 import { getDeviceId } from "@/lib/pwa";
+import { track } from "@/lib/analytics";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
 import type { DisruptionKind } from "@/lib/useDisruptionWatch";
@@ -135,6 +137,14 @@ export function LiveReplanSheet({
   });
 
   const options = data?.itineraries ?? [];
+  useEffect(() => {
+    track("ui:live-replan.open", { kind });
+  }, [kind]);
+  useEffect(() => {
+    if (data) {
+      track("ai:live-replan.options", { kind, count: options.length });
+    }
+  }, [data, kind, options.length]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end bg-ink/40 backdrop-blur-sm">
@@ -177,6 +187,11 @@ export function LiveReplanSheet({
               <li key={it.id}>
                 <button
                   onClick={() => {
+                    track("ui:live-replan.select", {
+                      kind,
+                      transfers: it.transfers,
+                      totalSec: it.totalDurationSec,
+                    });
                     setActiveTrip({
                       ...active,
                       itinerary: it,
