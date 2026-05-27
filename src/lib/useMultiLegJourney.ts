@@ -86,6 +86,8 @@ export type MultiLegLive = {
   feedStale: boolean;
   /** True when the next ride's vehicle has not started reporting yet. */
   nextVehicleTracked: boolean;
+  /** Wrong-stop adaptive hint while walking to the planned board stop. */
+  rerouteHint: RerouteHint;
 };
 
 const STOP_ARRIVAL_RADIUS_M = 30;
