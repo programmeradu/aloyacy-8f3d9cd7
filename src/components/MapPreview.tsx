@@ -57,6 +57,9 @@ type Props = {
   } | null;
   /** Show the expand-to-fullscreen toggle. Defaults to true. */
   fullscreenable?: boolean;
+  /** Render a live telemetry overlay listing every animated bus (ping age,
+   *  mode, speed, correction). For internal /qa stress testing only. */
+  debug?: boolean;
 };
 
 
@@ -116,6 +119,7 @@ export function MapPreview({
   fitToContent,
   userLocation,
   fullscreenable = true,
+  debug = false,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [fallbackOverlay, setFallbackOverlay] = useState(false);
@@ -641,6 +645,20 @@ export function MapPreview({
     return km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`;
   }, [spanKm]);
 
+  // -------- Debug telemetry (stress test on /qa) --------
+  const [debugRows, setDebugRows] = useState<ReturnType<AnimatedBus["getDebug"]>[]>([]);
+  useEffect(() => {
+    if (!debug) return;
+    const id = window.setInterval(() => {
+      const now = performance.now();
+      const rows = Array.from(busLayerRef.current.values())
+        .map((b) => b.getDebug(now))
+        .sort((a, b) => a.pingAgeMs - b.pingAgeMs);
+      setDebugRows(rows);
+    }, 200);
+    return () => window.clearInterval(id);
+  }, [debug]);
+
   // Use :fullscreen pseudo-class via inline style fallback. When the wrapper
   // is the browser's fullscreenElement, it's already full viewport — but the
   // rounded corners + ring would look odd, so we drop those when expanded.
@@ -692,6 +710,46 @@ export function MapPreview({
         >
           {expanded ? <IconClose className="size-4" /> : <IconExpand className="size-4" />}
         </button>
+      )}
+      {debug && (
+        <div className="absolute top-3 left-3 max-h-[70%] w-[280px] overflow-y-auto rounded-2xl bg-ink/92 text-limestone backdrop-blur-md ring-1 ring-ink/30 p-3 font-mono text-[10px] leading-tight shadow-xl">
+          <div className="flex items-baseline justify-between pb-2 mb-2 border-b border-limestone/15">
+            <span className="uppercase tracking-[0.22em] text-limestone/60">Glide telemetry</span>
+            <span className="text-ochre">{debugRows.length}</span>
+          </div>
+          {debugRows.length === 0 && (
+            <p className="text-limestone/50">no animated buses</p>
+          )}
+          {debugRows.map((r) => {
+            const age = r.pingAgeMs < 0 ? "—" : `${(r.pingAgeMs / 1000).toFixed(1)}s`;
+            const ageWarn = r.pingAgeMs > 30_000;
+            return (
+              <div key={r.label} className="py-1.5 border-b border-limestone/10 last:border-b-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate text-limestone">{r.label}</span>
+                  <span className={ageWarn ? "text-ochre" : "text-limestone/60"}>{age}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-limestone/60">
+                  <span>
+                    <span className={r.mode === "path" ? "text-aegean" : "text-ochre"}>{r.mode}</span>
+                    {r.boarding ? " · stop" : r.stale ? " · stale" : ""}
+                  </span>
+                  <span>{r.speedKmh.toFixed(0)} km/h</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-limestone/45">
+                  <span>
+                    {r.hasPath
+                      ? `${(r.alongM / 1000).toFixed(2)}/${(r.pathTotalM / 1000).toFixed(2)} km`
+                      : "no shape"}
+                  </span>
+                  <span>
+                    {r.correctionVel !== 0 ? `±${r.correctionVel.toFixed(1)}m/s` : "—"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
@@ -1131,6 +1189,27 @@ class AnimatedBus {
 
   setLastTs(ts: number) {
     this.lastTs = ts;
+  }
+
+  /** Telemetry snapshot used by the /qa stress-test overlay. */
+  getDebug(nowMs: number) {
+    const pingAgeMs = this.lastPingMs > 0 ? Math.max(0, nowMs - this.lastPingMs) : -1;
+    return {
+      label: this.label,
+      lat: this.curLat,
+      lng: this.curLng,
+      bearing: this.currentBearing,
+      speedMps: this.speedMps,
+      speedKmh: this.speedMps * 3.6,
+      pingAgeMs,
+      mode: this.usePath ? ("path" as const) : ("lerp" as const),
+      hasPath: !!this.path,
+      pathTotalM: this.pathTotal,
+      alongM: this.displayedAlong,
+      correctionVel: this.correctionVel,
+      boarding: this.boarding,
+      stale: this.stale,
+    };
   }
 
   tick(nowMs: number) {
