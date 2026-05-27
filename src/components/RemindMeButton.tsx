@@ -9,6 +9,8 @@ import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "@/components/AuthSheet";
 import { scheduleDeparture } from "@/lib/scheduled-departures.functions";
 import { IconClock } from "@/components/Icons";
+import { useProPaywall } from "@/lib/useProPaywall";
+
 
 export function RemindMeButton({
   itinerary,
@@ -21,6 +23,7 @@ export function RemindMeButton({
 }) {
   const { user } = useAuth();
   const schedule = useServerFn(scheduleDeparture);
+  const { isPro, requirePro, paywall } = useProPaywall();
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [authOpen, setAuthOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -34,11 +37,7 @@ export function RemindMeButton({
   // Remind 5 min before the rider should actually leave
   const remindAtUnix = itinerary.departureUnix - walkSec - 5 * 60;
 
-  async function onClick() {
-    if (!user) {
-      setAuthOpen(true);
-      return;
-    }
+  async function doSchedule() {
     setState("saving");
     setErr(null);
     try {
@@ -79,10 +78,20 @@ export function RemindMeButton({
     }
   }
 
+  function handleClick() {
+    if (!user) {
+      setAuthOpen(true);
+      return;
+    }
+    requirePro(() => {
+      void doSchedule();
+    });
+  }
+
   return (
     <>
       <button
-        onClick={onClick}
+        onClick={handleClick}
         disabled={state === "saving" || state === "saved"}
         className="inline-flex items-center gap-2 rounded-full bg-card ring-1 ring-line px-4 py-2 text-[12px] text-ink hover:bg-limestone-soft disabled:opacity-70"
       >
@@ -91,7 +100,9 @@ export function RemindMeButton({
           ? "Reminder set"
           : state === "saving"
             ? "Saving…"
-            : "Remind me to leave"}
+            : isPro
+              ? "Remind me to leave"
+              : "Remind me to leave · Pro"}
       </button>
       {state === "saved" && (
         <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">
@@ -109,6 +120,7 @@ export function RemindMeButton({
         title="Sign in to save reminders"
         subtitle="We'll buzz you when it's time to head out."
       />
+      {paywall}
     </>
   );
 }
