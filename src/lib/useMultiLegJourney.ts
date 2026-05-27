@@ -18,7 +18,8 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useRealtime } from "./useRealtime";
-import { useGeoWatch, type LiveFix } from "./useGeoWatch";
+import type { LiveFix } from "./useGeoWatch";
+import { useFusedFix } from "./useFusedFix";
 import { distanceM } from "./geo";
 import { useDriveEta } from "./useDriveEta";
 import {
@@ -30,6 +31,7 @@ import type { Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
 import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
 import { useRiderFixReporter } from "./useRiderFixReporter";
+import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
 
 export type MultiLegPhase =
   | "idle"
@@ -84,6 +86,8 @@ export type MultiLegLive = {
   feedStale: boolean;
   /** True when the next ride's vehicle has not started reporting yet. */
   nextVehicleTracked: boolean;
+  /** Wrong-stop adaptive hint while walking to the planned board stop. */
+  rerouteHint: RerouteHint;
 };
 
 const STOP_ARRIVAL_RADIUS_M = 30;
@@ -103,7 +107,18 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   const legState = active?.legState ?? null;
   const started = !!active?.live?.startedAt;
 
-  const { fix } = useGeoWatch(started);
+  const { fix: fusedFix } = useFusedFix({ enabled: started });
+  const fix: LiveFix | null = useMemo(() => {
+    if (!fusedFix) return null;
+    return {
+      lat: fusedFix.lat,
+      lng: fusedFix.lng,
+      accuracyM: fusedFix.uncertaintyM,
+      speedMps: fusedFix.speedMps,
+      headingDeg: fusedFix.bearingDeg,
+      timestamp: fusedFix.timestamp,
+    };
+  }, [fusedFix]);
   const { data: rt, isStale: feedStale } = useRealtime();
 
   // Compute on-board + current ride / alight target outside the main memo
@@ -162,6 +177,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       vehicleLost: false,
       feedStale,
       nextVehicleTracked: false,
+      rerouteHint: null,
     };
 
     if (!itin || !legState || !started) return baseInactive;
@@ -393,6 +409,22 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       phase = "missed-connection";
     }
 
+    // ---- Wrong-stop reroute hint (Google-Maps-style) --------------------
+    let rerouteHint: RerouteHint = null;
+    if (
+      (phase === "walking-to-board" || phase === "waiting-to-board") &&
+      currentRideLeg &&
+      fix
+    ) {
+      rerouteHint = detectWrongStop({
+        fixLat: fix.lat,
+        fixLng: fix.lng,
+        routeId: currentRideLeg.routeId,
+        plannedBoardStopId: currentRideLeg.board.stopId,
+        plannedAlightStopId: currentRideLeg.alight.stopId,
+      });
+    }
+
     return {
       active: true,
       fix,
@@ -414,6 +446,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       vehicleLost,
       feedStale,
       nextVehicleTracked,
+      rerouteHint,
     };
   }, [itin, legState, started, fix, rt, feedStale, drive.etaSec, driveInputs.tripId]);
 
