@@ -36,7 +36,7 @@ type Props = {
   /** Override the live position/bearing of specific vehicles by tripId.
    *  Used by the on-board journey to fuse the user's GPS into the bus blip
    *  so the marker glides with the rider's phone instead of the lagging feed. */
-  vehicleOverrides?: Record<string, { lat: number; lng: number; bearing?: number }>;
+  vehicleOverrides?: Record<string, { lat: number; lng: number; bearing?: number; routeId?: string; label?: string; source?: "feed" | "rider" | "feed+rider" | "synthetic" }>;
   /** Override the bottom-left live-count pill label. */
   liveLabel?: { active?: string; empty?: string };
   /** Hide the bottom-left live-count pill (still renders vehicles). */
@@ -246,29 +246,65 @@ export function MapPreview({
   const restrictKey = restrictTripIds ? restrictTripIds.join(",") : "";
   const overrideKey = vehicleOverrides
     ? Object.entries(vehicleOverrides)
-        .map(([k, v]) => `${k}:${v.lat.toFixed(5)},${v.lng.toFixed(5)},${Math.round(v.bearing ?? 0)}`)
+        .map(([k, v]) => `${k}:${v.lat.toFixed(5)},${v.lng.toFixed(5)},${Math.round(v.bearing ?? 0)},${v.routeId ?? ""},${v.source ?? ""}`)
         .join("|")
     : "";
   const vehicles = useMemo(() => {
-    if (!allVehicles) return undefined;
-    const apply = (list: typeof allVehicles) =>
-      vehicleOverrides
+    const base = allVehicles ?? [];
+    const apply = (list: typeof base) => {
+      const mapped = vehicleOverrides
         ? list.map((v) => {
             const o = vehicleOverrides[v.tripId];
-            return o ? { ...v, lat: o.lat, lng: o.lng, bearing: o.bearing ?? v.bearing } : v;
+            return o
+              ? {
+                  ...v,
+                  lat: o.lat,
+                  lng: o.lng,
+                  bearing: o.bearing ?? v.bearing,
+                  routeId: o.routeId ?? v.routeId,
+                  label: o.label ?? v.label,
+                  source: o.source ?? v.source,
+                }
+              : v;
           })
         : list;
+      if (!vehicleOverrides) return mapped;
+      const seenTrips = new Set(mapped.map((v) => v.tripId));
+      const synthetic = Object.entries(vehicleOverrides)
+        .filter(([tripId]) => !seenTrips.has(tripId))
+        .map(([tripId, v]) => ({
+          id: `override:${tripId}`,
+          tripId,
+          routeId: v.routeId ?? "",
+          lat: v.lat,
+          lng: v.lng,
+          bearing: v.bearing ?? 0,
+          speed: 0,
+          label: v.label ?? "",
+          timestamp: Math.floor(Date.now() / 1000),
+          source: v.source ?? "synthetic",
+        }));
+      return [...mapped, ...synthetic];
+    };
     if (focusTripId || focusRouteId) {
-      const byTrip = focusTripId ? allVehicles.filter((v) => v.tripId === focusTripId) : [];
+      const byTrip = focusTripId ? base.filter((v) => v.tripId === focusTripId) : [];
       if (byTrip.length) return apply(byTrip);
-      if (focusRouteId) return apply(allVehicles.filter((v) => v.routeId === focusRouteId));
-      return [];
+      const focusedFallback = focusTripId && vehicleOverrides?.[focusTripId]
+        ? apply([]).filter((v) => v.tripId === focusTripId)
+        : [];
+      if (focusedFallback.length) return focusedFallback;
+      if (focusRouteId) {
+        const byRoute = apply(base.filter((v) => v.routeId === focusRouteId));
+        if (byRoute.length) return byRoute;
+        return apply([]).filter((v) => v.routeId === focusRouteId);
+      }
+      return apply([]);
     }
     if (restrictTripIds && restrictTripIds.length) {
       const set = new Set(restrictTripIds);
-      return apply(allVehicles.filter((v) => set.has(v.tripId)));
+      return apply(base.filter((v) => set.has(v.tripId)));
     }
-    return apply(allVehicles);
+    return apply(base);
   }, [allVehicles, focusTripId, focusRouteId, restrictKey, overrideKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
@@ -543,8 +579,8 @@ export function MapPreview({
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink">
             {focused
               ? liveCount
-                ? "Your bus — live"
-                : "Locating your bus"
+                ? liveLabel?.active ?? "Your bus — live"
+                : liveLabel?.empty ?? "Locating your bus"
               : restricted
                 ? liveCount
                   ? liveLabel?.active ?? `${liveCount} serving, live`
