@@ -2,8 +2,10 @@
 // re-plan CTA when applicable. Stays out of the way (returns null) when
 // there's no signal.
 
+import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import type { DisruptionSignal } from "@/lib/useDisruptionWatch";
+import { track, trackImpression } from "@/lib/analytics";
 import { IconArrowUpRight } from "./Icons";
 
 export function DisruptionBanner({
@@ -14,6 +16,15 @@ export function DisruptionBanner({
   onReplan?: () => void;
 }) {
   const navigate = useNavigate();
+  useEffect(() => {
+    if (signal) {
+      trackImpression(
+        "ui:disruption.impression",
+        { kind: signal.kind, suggestReplan: !!signal.suggestReplan },
+        `disruption:${signal.kind}`,
+      );
+    }
+  }, [signal]);
   if (!signal) return null;
 
   const palette = signal.kind === "vehicle-lost-feed"
@@ -37,6 +48,7 @@ export function DisruptionBanner({
           };
 
   const handleReplan = () => {
+    track("ui:disruption.replan-tap", { kind: signal.kind });
     if (onReplan) {
       onReplan();
       return;
