@@ -27,6 +27,17 @@ function StopDetail() {
   const { data: rt, isLoading } = useRealtime();
   const { data: learnedByStop } = useLearnedStatsBulk([stopId]);
 
+  // Route IDs serving this stop right now — fed to ETA v2 stats fetcher.
+  const routeIdsHere = useMemo(() => {
+    if (!rt) return [] as string[];
+    const set = new Set<string>();
+    for (const a of rt.arrivals) {
+      if (a.stopId === stopId) set.add(a.routeId);
+    }
+    return Array.from(set);
+  }, [rt, stopId]);
+  const etaStats = useEtaStats(routeIdsHere);
+
   const departures = useMemo(() => {
     if (!rt) return [];
     const now = Math.floor(Date.now() / 1000);
@@ -47,11 +58,23 @@ function StopDetail() {
           agency: stop?.agency,
           learnedByRoute,
         });
-        return { ...a, eta };
+        const etaV2 = smartEtaV2({
+          stopId,
+          arrivals: rt.arrivals,
+          vehicles: rt.vehicles,
+          nowSec: now,
+          agency: stop?.agency,
+          segments: etaStats.segments,
+          dwells: etaStats.dwells,
+        });
+        return { ...a, eta, etaV2 };
       })
-      .filter((d): d is typeof d & { eta: SmartEta } => d.eta != null && d.eta.etaMin <= 180)
+      .filter(
+        (d): d is typeof d & { eta: SmartEta } =>
+          d.eta != null && d.eta.etaMin <= 180,
+      )
       .slice(0, 8);
-  }, [rt, stopId, learnedByStop, stop?.agency]);
+  }, [rt, stopId, learnedByStop, stop?.agency, etaStats]);
 
 
   const center = stop ? { lat: stop.lat, lng: stop.lng } : undefined;
