@@ -740,6 +740,12 @@ class AnimatedBus {
   private lastPingMs = 0;
   private lastPingLat = 0;
   private lastPingLng = 0;
+  // Upstream feed timestamp of the last ping we actually consumed. Used to
+  // dedupe replayed pings: when the client refetches every 20s but the
+  // upstream feed only updates every 30s, ~1 in 3 polls returns the SAME
+  // ping. Without this guard, setTarget() would recompute err against the
+  // already-advanced displayedAlong and visibly reverse the bus.
+  private lastTs = 0;
   // Extra m/s added to dead-reckoning to bleed off a prediction error from
   // the most recent ping. Decays exponentially toward zero.
   private correctionVel = 0;
