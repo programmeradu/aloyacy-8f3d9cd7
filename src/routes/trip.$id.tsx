@@ -296,7 +296,14 @@ function SingleLegCompanion({
   }
 
   const vehicleOverrides = live.fusedVehicle
-    ? { [live.fusedVehicle.tripId]: live.fusedVehicle }
+    ? {
+        [live.fusedVehicle.tripId]: {
+          ...live.fusedVehicle,
+          routeId: bus.routeId,
+          label: `Bus ${bus.routeShort}`,
+          source: live.vehicleLost ? "synthetic" : "feed+rider",
+        },
+      }
     : undefined;
 
   const userLocation = live.fix
@@ -389,6 +396,14 @@ function SingleLegCompanion({
           focusTripId={bus.tripId}
           focusRouteId={bus.routeId}
           vehicleOverrides={vehicleOverrides}
+          liveLabel={
+            live.active && live.vehicleLost
+              ? {
+                  active: "Tracking your bus from your phone",
+                  empty: "Using your phone as the bus",
+                }
+              : undefined
+          }
           userLocation={userLocation}
         />
 
