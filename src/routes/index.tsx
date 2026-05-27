@@ -324,6 +324,13 @@ function Explore() {
 
       <section
         className="mt-8 px-6 animate-rise"
+        style={{ animationDelay: "300ms" }}
+      >
+        <NLPlannerCard />
+      </section>
+
+      <section
+        className="mt-8 px-6 animate-rise"
         style={{ animationDelay: "320ms" }}
       >
         <div className="flex items-end justify-between mb-4">
