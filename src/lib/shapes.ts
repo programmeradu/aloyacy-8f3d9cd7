@@ -21,20 +21,13 @@ let cache: ShapesIndex | null = null;
 let inflight: Promise<ShapesIndex> | null = null;
 const decoded = new Map<string, LatLng[]>(); // shapeId -> decoded points
 
+import polyline from "@mapbox/polyline";
+
 /** Decode a Google-encoded polyline (precision 5) into lat/lng pairs. */
 export function decodePolyline(encoded: string): LatLng[] {
-  const points: LatLng[] = [];
-  let idx = 0, lat = 0, lng = 0;
-  while (idx < encoded.length) {
-    let b: number, shift = 0, result = 0;
-    do { b = encoded.charCodeAt(idx++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-    lat += (result & 1) ? ~(result >> 1) : (result >> 1);
-    shift = 0; result = 0;
-    do { b = encoded.charCodeAt(idx++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-    lng += (result & 1) ? ~(result >> 1) : (result >> 1);
-    points.push({ lat: lat / 1e5, lng: lng / 1e5 });
-  }
-  return points;
+  if (!encoded) return [];
+  // @mapbox/polyline returns [lat, lng] tuples at precision 5 by default.
+  return polyline.decode(encoded).map(([lat, lng]) => ({ lat, lng }));
 }
 
 async function loadIndex(): Promise<ShapesIndex> {
