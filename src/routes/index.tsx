@@ -480,13 +480,21 @@ function searchAll(
   if (q.length < 1) return [];
   const out: SearchResult[] = [];
 
-  // Routes
-  const matchedRoutes = ROUTES.filter(
+  // Routes — keep all matches across cities; rank exact short matches first, then by agency.
+  const allMatched = ROUTES.filter(
     (r) =>
       r.short.toLowerCase() === q ||
       r.short.toLowerCase().startsWith(q) ||
       r.long.toLowerCase().includes(q),
-  ).slice(0, 4);
+  );
+  const matchedRoutes = allMatched
+    .map((r) => {
+      const exact = r.short.toLowerCase() === q ? 0 : r.short.toLowerCase().startsWith(q) ? 1 : 2;
+      return { r, exact, rank: AGENCY_RANK[r.agency] ?? 9 };
+    })
+    .sort((a, b) => a.exact - b.exact || a.rank - b.rank)
+    .slice(0, 8)
+    .map((x) => x.r);
   for (const r of matchedRoutes) {
     const live = vehicles.filter((v) => v.routeId === r.id).length;
     out.push({
@@ -494,6 +502,7 @@ function searchAll(
       id: r.id,
       code: r.short,
       name: r.long,
+      city: AGENCY_CITY[r.agency] ?? r.agency,
       liveCount: live,
     });
   }
