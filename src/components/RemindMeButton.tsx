@@ -30,6 +30,11 @@ export function RemindMeButton({
   const [err, setErr] = useState<string | null>(null);
 
   const departIn = Math.round((itinerary.departureUnix - Date.now() / 1000) / 60);
+  useEffect(() => {
+    if (departIn >= 20) {
+      trackImpression("ui:remind-me.impression", { isPro, departIn });
+    }
+  }, [departIn, isPro]);
   if (departIn < 20) return null;
 
   // How long the rider needs before bus departure (first walk leg + 3 min buffer)
@@ -73,13 +78,16 @@ export function RemindMeButton({
         },
       });
       setState("saved");
+      track("ui:remind-me.saved", { departIn });
     } catch (e) {
+      track("ui:remind-me.error");
       setErr(e instanceof Error ? e.message : "Could not schedule reminder");
       setState("error");
     }
   }
 
   function handleClick() {
+    track("ui:remind-me.tap", { isPro, departIn });
     if (!user) {
       setAuthOpen(true);
       return;
