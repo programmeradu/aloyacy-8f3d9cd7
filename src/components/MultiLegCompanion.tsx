@@ -27,6 +27,7 @@ import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "@/lib/itinerary-
 import { WalkGuidance } from "@/components/WalkGuidance";
 import { ShortcutPrompt } from "@/components/ShortcutPrompt";
 import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
+import { LiveReplanSheet } from "@/components/LiveReplanSheet";
 import { CrowdHint } from "@/components/CrowdHint";
 import { DisruptionBanner } from "@/components/DisruptionBanner";
 import { useDisruptionWatch } from "@/lib/useDisruptionWatch";
@@ -52,6 +53,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const live = useMultiLegJourney(active);
   const tripId = active.option.id;
   const [earlyAlightOpen, setEarlyAlightOpen] = useState(false);
+  const [liveReplanOpen, setLiveReplanOpen] = useState(false);
   const disruption = useDisruptionWatch(active, live);
 
   // Force a fresh realtime fetch when rider returns to the tab after >30s away.
@@ -180,7 +182,10 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         )}
 
       {/* Proactive disruption assistant */}
-      <DisruptionBanner signal={disruption} />
+      <DisruptionBanner
+        signal={disruption}
+        onReplan={live.fix ? () => setLiveReplanOpen(true) : undefined}
+      />
 
 
 
@@ -271,6 +276,17 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           onClose={() => setEarlyAlightOpen(false)}
         />
       )}
+
+      {/* Live re-plan sheet — opens from the disruption banner CTA. */}
+      {liveReplanOpen && live.fix && disruption && (
+        <LiveReplanSheet
+          active={active}
+          fix={{ lat: live.fix.lat, lng: live.fix.lng }}
+          kind={disruption.kind}
+          onClose={() => setLiveReplanOpen(false)}
+        />
+      )}
+
 
       {/* Turn-by-turn for any walk leg — initial, transfer, or final. */}
       {live.currentLeg?.kind === "walk" && (
