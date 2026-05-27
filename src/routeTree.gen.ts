@@ -30,6 +30,7 @@ import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
+import { Route as ApiPublicHooksDepartureTickRouteImport } from './routes/api/public/hooks/departure-tick'
 
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
@@ -137,6 +138,12 @@ const ApiPublicHooksTrainRoute = ApiPublicHooksTrainRouteImport.update({
   path: '/api/public/hooks/train',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksDepartureTickRoute =
+  ApiPublicHooksDepartureTickRouteImport.update({
+    id: '/api/public/hooks/departure-tick',
+    path: '/api/public/hooks/departure-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -181,6 +189,7 @@ export interface FileRoutesByTo {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -205,6 +214,7 @@ export interface FileRoutesById {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
+    | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
+    | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
   id:
@@ -276,6 +288,7 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
+    | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -300,6 +313,7 @@ export interface RootRouteChildren {
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
+  ApiPublicHooksDepartureTickRoute: typeof ApiPublicHooksDepartureTickRoute
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -453,6 +467,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTrainRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/departure-tick': {
+      id: '/api/public/hooks/departure-tick'
+      path: '/api/public/hooks/departure-tick'
+      fullPath: '/api/public/hooks/departure-tick'
+      preLoaderRoute: typeof ApiPublicHooksDepartureTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -476,6 +497,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
+  ApiPublicHooksDepartureTickRoute: ApiPublicHooksDepartureTickRoute,
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
