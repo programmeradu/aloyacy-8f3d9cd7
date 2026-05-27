@@ -19,6 +19,7 @@ import {
 import { getTripSuggestions, type TripSuggestion } from "@/lib/suggestions.functions";
 import { getDeviceId } from "@/lib/pwa";
 import planHero from "@/assets/plan-hero.jpg";
+import { ProGate } from "@/components/ProGate";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
