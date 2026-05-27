@@ -179,6 +179,11 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
         )}
 
+      {/* Proactive disruption assistant */}
+      <DisruptionBanner signal={disruption} />
+
+
+
       {/* Wrong-stop adaptive hint while walking to board */}
       {live.active && live.rerouteHint?.kind === "switch-boarding" && (
         <section className="px-6 mt-3 animate-rise">
