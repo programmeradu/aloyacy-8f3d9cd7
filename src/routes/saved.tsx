@@ -154,12 +154,22 @@ function Saved() {
         )}
       </section>
 
-      <section className="mt-8 px-6 pb-12 animate-rise" style={{ animationDelay: "260ms" }}>
+      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "260ms" }}>
         {isPro ? (
           <NotificationsCard />
         ) : (
           <ProGate feature="Quiet alerts for boarding, stops, and delays">
             <NotificationsCard />
+          </ProGate>
+        )}
+      </section>
+
+      <section className="mt-6 px-6 pb-12 animate-rise" style={{ animationDelay: "320ms" }}>
+        {isPro ? (
+          <OfflineSchedulesCard />
+        ) : (
+          <ProGate feature="Offline timetables for trips without signal">
+            <OfflineSchedulesCard />
           </ProGate>
         )}
       </section>
