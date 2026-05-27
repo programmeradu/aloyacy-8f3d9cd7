@@ -34,7 +34,12 @@ import { useRiderFixReporter } from "./useRiderFixReporter";
 import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
 import { recordCommutePattern } from "./commute-learner.functions";
 
-export type MultiLegPhase =
+import type { JourneyPhase } from "./journey-phase";
+export type { JourneyPhase } from "./journey-phase";
+
+/** @deprecated use JourneyPhase from "@/lib/journey-phase" */
+export type MultiLegPhase = Extract<
+  JourneyPhase,
   | "idle"
   | "walking-to-board"
   | "waiting-to-board"
@@ -44,7 +49,8 @@ export type MultiLegPhase =
   | "waiting-for-connection"
   | "missed-connection"
   | "walking-to-destination"
-  | "arrived";
+  | "arrived"
+>;
 
 export type MultiLegLive = {
   active: boolean;
