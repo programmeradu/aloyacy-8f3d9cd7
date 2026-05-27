@@ -11,6 +11,7 @@ import { distanceM, projectOnSteps, WALK_M_PER_S, type WalkStep } from "./geo";
 import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
 import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
+import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
 
 // How long the rider's GPS must show sustained bus-speed motion before we
 // auto-confirm boarding without an explicit tap. Guards against a single
@@ -59,6 +60,13 @@ export type LiveJourney = {
   vehicleLost: boolean;
   /** True when the realtime feed itself is paused (proxy down, > 60 s stale). */
   feedStale: boolean;
+  /** True when feed is healthy but no vehicle for this tripId yet (very common
+   *  pre-departure and at night). Drives an honest "not yet on the live feed"
+   *  banner instead of leaving the map silently empty. */
+  vehicleNotTracked: boolean;
+  /** Google-Maps-style wrong-stop hint: rider drifted to a different stop the
+   *  same route serves, or to one it doesn't serve. */
+  rerouteHint: RerouteHint;
 };
 
 
@@ -132,6 +140,8 @@ export function useJourney(opts: {
       missedSuggested: false,
       vehicleLost: false,
       feedStale,
+      vehicleNotTracked: false,
+      rerouteHint: null,
     };
 
 
@@ -359,6 +369,34 @@ export function useJourney(opts: {
       }
     }
 
+    // ---- Vehicle-on-feed honesty ------------------------------------------
+    // Feed is healthy but no vehicle for this tripId yet. Very common before
+    // departure or at night. Surface a banner instead of silently empty map.
+    const vehicleNotTracked =
+      !feedStale &&
+      !!rt &&
+      !vehicle &&
+      !live?.onBoardConfirmedAt &&
+      !live?.alightedAt;
+
+    // ---- Wrong-stop reroute hint (Google-Maps-style) ----------------------
+    let rerouteHint: RerouteHint = null;
+    if (
+      (phase === "walking-to-stop" ||
+        phase === "hurry-soft" ||
+        phase === "hurry-urgent" ||
+        phase === "at-stop") &&
+      fix
+    ) {
+      rerouteHint = detectWrongStop({
+        fixLat: fix.lat,
+        fixLng: fix.lng,
+        routeId: bus.routeId,
+        plannedBoardStopId: bus.board.stopId,
+        plannedAlightStopId: bus.alight.stopId,
+      });
+    }
+
     return {
       active: true,
       fix,
@@ -375,6 +413,8 @@ export function useJourney(opts: {
       missedSuggested,
       vehicleLost,
       feedStale,
+      vehicleNotTracked,
+      rerouteHint,
     };
   }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps, feedStale, drive.etaSec, onBoard]);
 
