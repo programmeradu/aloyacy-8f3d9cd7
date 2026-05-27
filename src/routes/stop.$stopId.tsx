@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
@@ -9,7 +9,9 @@ import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useEtaStats } from "@/lib/useEtaStats";
 import { smartEtaForStop, type SmartEta } from "@/lib/eta";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
+import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { getStop, getRoute, routeTone } from "@/lib/gtfs";
+
 
 export const Route = createFileRoute("/stop/$stopId")({
   head: ({ params }) => ({
