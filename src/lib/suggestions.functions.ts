@@ -22,8 +22,7 @@ export const claimDeviceToken = createServerFn({ method: "POST" })
   });
 
 // ---------- record ----------
-const RecordSchema = z.object({
-  deviceId: z.string().min(8).max(128),
+const RecordSchema = DeviceAuth.extend({
   from: z.object({
     lat: z.number().min(-90).max(90),
     lng: z.number().min(-180).max(180),
