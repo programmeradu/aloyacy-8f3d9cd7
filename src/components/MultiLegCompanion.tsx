@@ -221,13 +221,20 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         </section>
       )}
 
-      {/* Crowd / comfort prediction during ride or wait */}
+      {/* Crowd / comfort prediction during ride or wait. Folds in weather
+          at the alight stop for intercity routes (longer rides where the
+          weather at arrival actually changes the decision). */}
       {live.active &&
         (live.phase === "riding" || live.phase === "alight-soon" || live.phase === "waiting-to-board") &&
         live.currentRideLeg && (
           <CrowdHint
             routeId={live.currentRideLeg.routeId}
             tripId={live.currentRideLeg.tripId}
+            weatherAt={
+              live.currentRideLeg.agency === "IC"
+                ? { lat: live.currentRideLeg.alight.lat, lng: live.currentRideLeg.alight.lng }
+                : null
+            }
           />
         )}
 
