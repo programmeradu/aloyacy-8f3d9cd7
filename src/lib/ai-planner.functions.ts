@@ -141,3 +141,54 @@ export const parseTripIntent = createServerFn({ method: "POST" })
       return null;
     }
   });
+
+// Deterministic extractor for explicit clock times like "7am", "7:30 pm",
+// "19:30", "at 8", "by 9am". Returns an ISO anchored to the caller's local
+// timezone (tzMin = minutes east of UTC, e.g. Cyprus EEST = 180).
+function extractExplicitTime(
+  text: string,
+  nowISO: string,
+  tzMin: number,
+): { iso: string; preferArrive: boolean } | null {
+  const t = text.toLowerCase();
+  // Match: optional leading verb, hour, optional :mm, optional am/pm.
+  // Require either am/pm OR a colon OR a 24h hour >= 13 to avoid grabbing
+  // stray digits like "in 5 min" or "bus 30".
+  const re =
+    /\b(at|by|before|leave at|leave by|depart at|depart by|arrive by|arrive at)?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/g;
+  let best: { hh: number; mm: number; verb: string | undefined } | null = null;
+  for (const m of t.matchAll(re)) {
+    const verb = m[1];
+    const hh = parseInt(m[2], 10);
+    const mm = m[3] ? parseInt(m[3], 10) : 0;
+    const ampm = m[4];
+    const hasColon = !!m[3];
+    if (hh > 23 || mm > 59) continue;
+    // Filter ambiguous bare numbers
+    if (!ampm && !hasColon && !verb && hh < 13) continue;
+    if (!ampm && !hasColon && verb && hh > 23) continue;
+    let h = hh;
+    if (ampm === "pm" && h < 12) h += 12;
+    if (ampm === "am" && h === 12) h = 0;
+    best = { hh: h, mm, verb };
+    break; // first plausible match wins
+  }
+  if (!best) return null;
+
+  const now = new Date(nowISO);
+  // Walk to the caller's local Y/M/D.
+  const local = new Date(now.getTime() + tzMin * 60_000);
+  let y = local.getUTCFullYear();
+  let mo = local.getUTCMonth();
+  let d = local.getUTCDate();
+
+  if (/\btomorrow\b/.test(t)) d += 1;
+  else if (/\btonight\b/.test(t)) {
+    if (best.hh < 17) best.hh += 12;
+  }
+
+  const localTargetMs = Date.UTC(y, mo, d, best.hh, best.mm, 0);
+  const iso = new Date(localTargetMs - tzMin * 60_000).toISOString();
+  const preferArrive = /\b(by|before|arrive)\b/.test(t);
+  return { iso, preferArrive };
+}
