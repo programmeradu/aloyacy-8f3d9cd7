@@ -9,6 +9,7 @@ import { IconArrowLeft, IconBus, IconClock, IconPin } from "@/components/Icons";
 import { StreetViewSheet } from "@/components/StreetViewSheet";
 import { TurnStep } from "@/components/WalkGuidance";
 import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
+import { StaleFeedBanner } from "@/components/StaleFeedBanner";
 import { useRealtime } from "@/lib/useRealtime";
 import { useActiveTrip, clearActiveTrip, isMultiLeg } from "@/lib/trip-store";
 import { MultiLegCompanion } from "@/components/MultiLegCompanion";
@@ -259,8 +260,33 @@ function SingleLegCompanion({
   }
 
   if (!view) return null;
-  const { bus, walkIn, walkOut, delaySec, phase, minToLeave, minToBoard } = view;
-  let { minToAlight, minToDoor } = view;
+  const { bus, walkIn, walkOut, delaySec, phase: schedulePhase, minToLeave } = view;
+  let { minToAlight, minToDoor, minToBoard } = view;
+
+  // GPS-truth phase overrides the schedule-based one once live tracking is on,
+  // so the hero card stops contradicting the HUD ("AT THE STOP" while the
+  // HUD shouts "HURRY — 4 min on foot").
+  const liveToHero: Record<string, Phase> = {
+    "walking-to-stop": "walking",
+    "hurry-soft": "walking",
+    "hurry-urgent": "walking",
+    "at-stop": "waiting",
+    "boarding": "waiting",
+    "missed-bus": "walking",
+    "on-bus": "on-bus",
+    "alight-soon": "alight-soon",
+    "walking-to-dest": "arrived",
+    "arrived": "arrived",
+  };
+  const phase: Phase =
+    live.active && live.phase !== "idle"
+      ? liveToHero[live.phase] ?? schedulePhase
+      : schedulePhase;
+
+  // Prefer the GPS-driven secsToBoard so the hero countdown matches the HUD.
+  if (live.active && live.secsToBoard > 0 && (phase === "walking" || phase === "waiting")) {
+    minToBoard = Math.max(0, Math.round(live.secsToBoard / 60));
+  }
 
   // Override schedule-based ETAs with GPS-fused estimate once on board.
   if (live.active && live.fusedSecsToAlight > 0 && (phase === "on-bus" || phase === "alight-soon")) {
