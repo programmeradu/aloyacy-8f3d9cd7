@@ -12,6 +12,7 @@ import {
 import coast from "@/assets/coast-hero.jpg";
 import { NotificationsCard } from "@/components/NotificationsCard";
 import { ProGate } from "@/components/ProGate";
+import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
 import { useProPaywall } from "@/lib/useProPaywall";
 
 export const Route = createFileRoute("/saved")({
