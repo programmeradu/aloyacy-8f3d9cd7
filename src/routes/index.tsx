@@ -445,6 +445,7 @@ type SearchResult =
       id: string;
       code: string;
       name: string;
+      city: string;
       liveCount: number;
     }
   | {
@@ -456,6 +457,19 @@ type SearchResult =
       label: string;
       sub: string;
     };
+
+const AGENCY_CITY: Record<string, string> = {
+  NPT: "Nicosia",
+  LMS: "Limassol",
+  PFO: "Paphos",
+  LCA: "Larnaca",
+  FAM: "Famagusta",
+  IC: "Intercity",
+  SPC: "Intercity",
+};
+const AGENCY_RANK: Record<string, number> = {
+  NPT: 0, LMS: 1, LCA: 2, PFO: 3, FAM: 4, IC: 5, SPC: 6,
+};
 
 function searchAll(
   raw: string,
