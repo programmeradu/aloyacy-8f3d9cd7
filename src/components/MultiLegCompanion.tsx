@@ -10,7 +10,7 @@ import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
 import { StaleFeedBanner } from "@/components/StaleFeedBanner";
 import { IconArrowLeft, IconArrowUpRight, IconBus, IconClock, IconPin } from "@/components/Icons";
-import { routeTone } from "@/lib/gtfs";
+import { routeTone, getStop } from "@/lib/gtfs";
 import { clearActiveTrip, type ActiveTrip } from "@/lib/trip-store";
 import {
   multiLegConfirmOnBoard,
@@ -231,7 +231,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
             routeId={live.currentRideLeg.routeId}
             tripId={live.currentRideLeg.tripId}
             weatherAt={
-              live.currentRideLeg.agency === "IC"
+              getStop(live.currentRideLeg.alight.stopId)?.agency === "IC"
                 ? { lat: live.currentRideLeg.alight.lat, lng: live.currentRideLeg.alight.lng }
                 : null
             }
