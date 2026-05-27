@@ -27,6 +27,7 @@ import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "@/lib/itinerary-
 import { WalkGuidance } from "@/components/WalkGuidance";
 import { ShortcutPrompt } from "@/components/ShortcutPrompt";
 import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
+import { LiveReplanSheet } from "@/components/LiveReplanSheet";
 import { CrowdHint } from "@/components/CrowdHint";
 import { DisruptionBanner } from "@/components/DisruptionBanner";
 import { useDisruptionWatch } from "@/lib/useDisruptionWatch";
