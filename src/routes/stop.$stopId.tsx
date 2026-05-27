@@ -144,9 +144,8 @@ function StopDetail() {
           <div className="rounded-3xl bg-card ring-1 ring-line divide-y divide-line overflow-hidden">
             {departures.map((d, i) => {
               const route = getRoute(d.routeId);
-              const accent = confidenceAccent(d.eta);
-              const shifted =
-                d.eta.operatorEtaMin != null && d.eta.operatorEtaMin !== d.eta.etaMin;
+              const accent = freshnessAccent(d.eta.freshness);
+              const shifted = d.eta.operatorEtaMin !== d.eta.etaMin;
               return (
                 <Link
                   key={d.tripId + d.routeId + i}
@@ -188,11 +187,11 @@ function StopDetail() {
                     <p
                       className={`mt-1 font-mono text-[9px] uppercase tracking-[0.2em] ${accent}`}
                     >
-                      {d.eta.confidence}
+                      {d.eta.freshness}
                     </p>
-                    {d.etaV2 && bandIsInformative(d.etaV2, d.eta.etaMin) && (
+                    {bandIsInformative(d.eta, d.eta.etaMin) && (
                       <p className="mt-1 font-mono text-[9.5px] tracking-[0.04em] text-ink-soft/80">
-                        {d.etaV2.band}
+                        {d.eta.band}
                       </p>
                     )}
                   </div>
@@ -210,9 +209,9 @@ function StopDetail() {
   );
 }
 
-function confidenceAccent(eta: SmartEta): string {
-  if (eta.confidence === "live") return "text-aegean-deep";
-  if (eta.confidence === "predicted") return "text-ochre";
+function freshnessAccent(f: SmartEtaV2["freshness"]): string {
+  if (f === "live") return "text-aegean-deep";
+  if (f === "predicted") return "text-ochre";
   return "text-ink-soft";
 }
 
