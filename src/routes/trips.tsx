@@ -50,13 +50,19 @@ function Plan() {
   const reverseFn = useServerFn(reverseLookup);
   const fetchSuggestions = useServerFn(getTripSuggestions);
 
+  const { session } = useAuth();
   const { data: suggData } = useQuery({
-    queryKey: ["trip-suggestions"],
+    queryKey: ["trip-suggestions", session?.user?.id ?? null],
     queryFn: async () => {
-      const { getDeviceToken } = await import("@/lib/pwa");
-      const token = await getDeviceToken();
+      const { getDeviceToken, getAccessToken } = await import("@/lib/pwa");
+      const [token, accessToken] = await Promise.all([
+        getDeviceToken(),
+        getAccessToken(),
+      ]);
       if (!token) return { suggestions: [] };
-      return fetchSuggestions({ data: { deviceId: getDeviceId(), deviceToken: token } });
+      return fetchSuggestions({
+        data: { deviceId: getDeviceId(), deviceToken: token, accessToken },
+      });
     },
     staleTime: 5 * 60 * 1000,
     enabled: typeof window !== "undefined",
