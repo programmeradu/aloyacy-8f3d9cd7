@@ -462,10 +462,16 @@ export function MapPreview({
       if (existing) {
         existing.setVariant(variant);
         existing.setPath(path);
-        existing.setTarget(targetLat, targetLng, targetBearing, now, v.speed ?? 0);
         existing.setSize(sizePx);
         existing.setFocused(focused);
         existing.setStale(stale);
+        // Dedupe: only consume a ping when its upstream timestamp is fresher
+        // than the last one we applied. Otherwise the bus continues its
+        // smooth dead-reckoning glide between real updates.
+        if (!v.timestamp || v.timestamp > existing.getLastTs()) {
+          existing.setTarget(targetLat, targetLng, targetBearing, now, v.speed ?? 0);
+          existing.setLastTs(v.timestamp ?? 0);
+        }
       } else {
         const bus = new AnimatedBus(
           api,
@@ -480,6 +486,7 @@ export function MapPreview({
           stale,
           v.speed ?? 0,
         );
+        bus.setLastTs(v.timestamp ?? 0);
         layer.set(v.id, bus);
       }
     }
