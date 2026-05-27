@@ -57,6 +57,9 @@ type Props = {
   } | null;
   /** Show the expand-to-fullscreen toggle. Defaults to true. */
   fullscreenable?: boolean;
+  /** Render a live telemetry overlay listing every animated bus (ping age,
+   *  mode, speed, correction). For internal /qa stress testing only. */
+  debug?: boolean;
 };
 
 
