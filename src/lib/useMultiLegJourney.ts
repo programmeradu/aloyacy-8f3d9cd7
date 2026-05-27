@@ -659,6 +659,34 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     routeId: result.currentRideLeg?.routeId,
   });
 
+  // ---- Commute pattern learner: record once on arrival ------------------
+  const recordCommute = useServerFn(recordCommutePattern);
+  const recordedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (result.phase !== "arrived" || !itin || !active) return;
+    const key = active.option.id;
+    if (recordedRef.current === key) return;
+    const rideLegs = itin.legs.filter((l): l is RideLeg => l.kind === "ride");
+    if (rideLegs.length === 0) return;
+    const first = rideLegs[0];
+    const last = rideLegs[rideLegs.length - 1];
+    recordedRef.current = key;
+    recordCommute({
+      data: {
+        fromLat: first.board.lat,
+        fromLng: first.board.lng,
+        toLat: last.alight.lat,
+        toLng: last.alight.lng,
+        fromLabel: first.board.name,
+        toLabel: last.alight.name,
+        startedAtUnix: Math.floor((active.live?.startedAt ?? Date.now()) / 1000),
+      },
+    }).catch(() => {
+      // Best-effort; not signed in → silently skip.
+      recordedRef.current = null;
+    });
+  }, [result.phase, itin, active, recordCommute]);
+
   return result;
 }
 
