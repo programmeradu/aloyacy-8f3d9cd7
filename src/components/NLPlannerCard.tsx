@@ -51,12 +51,10 @@ export function NLPlannerCard() {
 
   function go() {
     if (!intent?.to) return;
-    const params = new URLSearchParams();
-    if (intent.from) params.set("from", intent.from);
-    params.set("to", intent.to);
-    if (intent.arriveByISO) params.set("arriveBy", intent.arriveByISO);
-    else if (intent.leaveByISO) params.set("leaveBy", intent.leaveByISO);
-    navigate({ to: "/trips", search: Object.fromEntries(params) });
+    try {
+      sessionStorage.setItem("aloya:nl-intent", JSON.stringify(intent));
+    } catch {}
+    navigate({ to: "/trips" });
   }
 
   return (
