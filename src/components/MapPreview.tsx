@@ -1061,12 +1061,14 @@ class AnimatedBus {
       { lat: this.fromLat, lng: this.fromLng },
       { lat, lng },
     );
-    if (speedMps < 0.5 || distM < 3) {
+    // Off-path: tween length = distance / speed, so the bus glides for the
+    // full inter-ping interval instead of arriving early and parking.
+    if (estSpeed < 0.5 || distM < 3) {
       this.tweenDur = 1200;
       this.setBoarding(true);
     } else {
-      const dur = (distM / speedMps) * 1000;
-      this.tweenDur = Math.max(1500, Math.min(18_000, dur));
+      const dur = (distM / estSpeed) * 1000;
+      this.tweenDur = Math.max(1500, Math.min(22_000, dur));
       this.setBoarding(false);
     }
   }
