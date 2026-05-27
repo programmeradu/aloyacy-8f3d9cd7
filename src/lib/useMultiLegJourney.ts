@@ -409,6 +409,22 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       phase = "missed-connection";
     }
 
+    // ---- Wrong-stop reroute hint (Google-Maps-style) --------------------
+    let rerouteHint: RerouteHint = null;
+    if (
+      (phase === "walking-to-board" || phase === "waiting-to-board") &&
+      currentRideLeg &&
+      fix
+    ) {
+      rerouteHint = detectWrongStop({
+        fixLat: fix.lat,
+        fixLng: fix.lng,
+        routeId: currentRideLeg.routeId,
+        plannedBoardStopId: currentRideLeg.board.stopId,
+        plannedAlightStopId: currentRideLeg.alight.stopId,
+      });
+    }
+
     return {
       active: true,
       fix,
@@ -430,6 +446,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       vehicleLost,
       feedStale,
       nextVehicleTracked,
+      rerouteHint,
     };
   }, [itin, legState, started, fix, rt, feedStale, drive.etaSec, driveInputs.tripId]);
 
