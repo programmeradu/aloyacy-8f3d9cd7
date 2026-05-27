@@ -1133,6 +1133,27 @@ class AnimatedBus {
     this.lastTs = ts;
   }
 
+  /** Telemetry snapshot used by the /qa stress-test overlay. */
+  getDebug(nowMs: number) {
+    const pingAgeMs = this.lastPingMs > 0 ? Math.max(0, nowMs - this.lastPingMs) : -1;
+    return {
+      label: this.label,
+      lat: this.curLat,
+      lng: this.curLng,
+      bearing: this.currentBearing,
+      speedMps: this.speedMps,
+      speedKmh: this.speedMps * 3.6,
+      pingAgeMs,
+      mode: this.usePath ? ("path" as const) : ("lerp" as const),
+      hasPath: !!this.path,
+      pathTotalM: this.pathTotal,
+      alongM: this.displayedAlong,
+      correctionVel: this.correctionVel,
+      boarding: this.boarding,
+      stale: this.stale,
+    };
+  }
+
   tick(nowMs: number) {
     // Cap dt so a backgrounded tab doesn't fling the bus on resume.
     if (this.lastTickMs === 0) this.lastTickMs = nowMs;
