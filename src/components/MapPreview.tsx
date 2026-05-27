@@ -992,6 +992,24 @@ class AnimatedBus {
     this.toLng = lng;
     this.toBearing = bearing;
 
+    // Derive ground speed from successive pings when the feed itself
+    // doesn't supply one (Cyprus GTFS-RT often reports speed = 0).
+    let estSpeed = speedMps;
+    if (estSpeed <= 0.1 && this.lastPingMs > 0) {
+      const dtSec = (nowMs - this.lastPingMs) / 1000;
+      if (dtSec > 1 && dtSec < 120) {
+        const d = haversineM(
+          { lat: this.lastPingLat, lng: this.lastPingLng },
+          { lat, lng },
+        );
+        // Clamp to a sane urban-bus envelope to ignore GPS jitter.
+        estSpeed = Math.max(0, Math.min(22, d / dtSec));
+      }
+    }
+    this.lastPingMs = nowMs;
+    this.lastPingLat = lat;
+    this.lastPingLng = lng;
+
     if (this.path && this.path.length >= 2) {
       const snap = snapAlong({ lat, lng }, this.path, this.cum);
       if (snap && snap.perpM <= MAX_SNAP_M) {
@@ -1010,9 +1028,9 @@ class AnimatedBus {
         // EMA-smooth the speed so noisy zero / spike samples don't visibly
         // jolt the glide between feed refreshes.
         this.speedMps =
-          this.speedMps === 0 && speedMps > 0
-            ? speedMps
-            : this.speedMps * (1 - SPEED_SMOOTH) + speedMps * SPEED_SMOOTH;
+          this.speedMps === 0 && estSpeed > 0
+            ? estSpeed
+            : this.speedMps * (1 - SPEED_SMOOTH) + estSpeed * SPEED_SMOOTH;
 
         this.usePath = true;
         this.setBoarding(this.speedMps < 0.5);
