@@ -4,10 +4,12 @@
 // fold in current weather at the alight stop so the rider gets one
 // consolidated comfort line ("Busy — and rain at arrival.").
 
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getRouteLoad, type CrowdLevel } from "@/lib/crowd.functions";
 import { getCurrentWeather, type CurrentWeather } from "@/lib/weather.functions";
+import { trackImpression } from "@/lib/analytics";
 
 const COPY: Record<CrowdLevel, { tag: string; line: string; tone: string }> = {
   quiet: {
@@ -73,7 +75,17 @@ export function CrowdHint({
   });
 
   const wClause = weatherClause(weather ?? null);
-  if (!data?.level && !wClause) return null;
+  const level = data?.level;
+  useEffect(() => {
+    if (level || wClause) {
+      trackImpression(
+        "ui:crowd-hint.impression",
+        { level: level ?? null, weather: !!wClause, routeId },
+        `crowd:${routeId}:${level ?? "none"}:${wClause ? "w" : "nw"}`,
+      );
+    }
+  }, [level, wClause, routeId]);
+  if (!level && !wClause) return null;
 
   // Crowd-only render path (no useful weather signal).
   if (!data?.level && wClause) {
