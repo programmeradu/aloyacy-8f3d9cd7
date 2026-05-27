@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MarkerClusterer, SuperClusterAlgorithm } from "@googlemaps/markerclusterer";
 import { useRealtime } from "@/lib/useRealtime";
-import { NICOSIA_CENTER, getStop } from "@/lib/gtfs";
+import { NICOSIA_CENTER, getStop, getRoute } from "@/lib/gtfs";
 import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
 import { prefetchShapes, getShapeForTripSync } from "@/lib/shapes";
 import busPremium from "@/assets/bus-premium.png";
@@ -401,18 +401,31 @@ export function MapPreview({
       }
     }
     // 2) Fallback: stop-derived polylines from arrivals.
+    // Build a tripId → agency map first so getStop() can disambiguate the
+    // 344 stop IDs that collide across operator feeds. Without this every
+    // non-Nicosia trip falls back to lerp mode and the bus teleports.
+    const tripAgency = new Map<string, string>();
+    for (const v of rt.vehicles) {
+      const r = getRoute(v.routeId);
+      if (r) tripAgency.set(v.tripId, r.agency);
+    }
     const byTrip = new Map<string, { stopId: string; t: number }[]>();
     for (const a of rt.arrivals) {
       const arr = byTrip.get(a.tripId) ?? [];
       arr.push({ stopId: a.stopId, t: a.arrivalUnix });
       byTrip.set(a.tripId, arr);
+      if (!tripAgency.has(a.tripId)) {
+        const r = getRoute(a.routeId);
+        if (r) tripAgency.set(a.tripId, r.agency);
+      }
     }
     for (const [tripId, stops] of byTrip) {
       if (out.has(tripId)) continue; // real shape already wins
       stops.sort((x, y) => x.t - y.t);
+      const agency = tripAgency.get(tripId);
       const poly: { lat: number; lng: number }[] = [];
       for (const s of stops) {
-        const meta = getStop(s.stopId);
+        const meta = getStop(s.stopId, agency);
         if (meta) poly.push({ lat: meta.lat, lng: meta.lng });
       }
       if (poly.length >= 2) out.set(tripId, poly);
@@ -462,10 +475,16 @@ export function MapPreview({
       if (existing) {
         existing.setVariant(variant);
         existing.setPath(path);
-        existing.setTarget(targetLat, targetLng, targetBearing, now, v.speed ?? 0);
         existing.setSize(sizePx);
         existing.setFocused(focused);
         existing.setStale(stale);
+        // Dedupe: only consume a ping when its upstream timestamp is fresher
+        // than the last one we applied. Otherwise the bus continues its
+        // smooth dead-reckoning glide between real updates.
+        if (!v.timestamp || v.timestamp > existing.getLastTs()) {
+          existing.setTarget(targetLat, targetLng, targetBearing, now, v.speed ?? 0);
+          existing.setLastTs(v.timestamp ?? 0);
+        }
       } else {
         const bus = new AnimatedBus(
           api,
@@ -480,6 +499,12 @@ export function MapPreview({
           stale,
           v.speed ?? 0,
         );
+        // Prime the kinematic model: enables path-mode (usePath=true) and
+        // records lastPingMs so the next genuine ping yields a real dt for
+        // speed estimation. Without this the bus parks in lerp-mode forever
+        // until the second poll, then snaps forward in one big tween.
+        bus.setTarget(targetLat, targetLng, targetBearing, now, v.speed ?? 0);
+        bus.setLastTs(v.timestamp ?? 0);
         layer.set(v.id, bus);
       }
     }
@@ -740,6 +765,12 @@ class AnimatedBus {
   private lastPingMs = 0;
   private lastPingLat = 0;
   private lastPingLng = 0;
+  // Upstream feed timestamp of the last ping we actually consumed. Used to
+  // dedupe replayed pings: when the client refetches every 20s but the
+  // upstream feed only updates every 30s, ~1 in 3 polls returns the SAME
+  // ping. Without this guard, setTarget() would recompute err against the
+  // already-advanced displayedAlong and visibly reverse the bus.
+  private lastTs = 0;
   // Extra m/s added to dead-reckoning to bleed off a prediction error from
   // the most recent ping. Decays exponentially toward zero.
   private correctionVel = 0;
@@ -1088,6 +1119,14 @@ class AnimatedBus {
 
   getPos() {
     return { lat: this.curLat, lng: this.curLng };
+  }
+
+  getLastTs() {
+    return this.lastTs;
+  }
+
+  setLastTs(ts: number) {
+    this.lastTs = ts;
   }
 
   tick(nowMs: number) {
