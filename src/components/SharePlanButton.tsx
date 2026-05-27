@@ -84,26 +84,49 @@ export function SharePlanButton({
           ? t("share.plan.retry")
           : t("share.plan.cta");
 
+  const sub =
+    state === "shared" && url
+      ? url.replace(/^https?:\/\//, "")
+      : state === "error"
+        ? "Something went wrong — tap to retry"
+        : "Meeting stop, bus, time — one link";
+
   return (
-    <div className="flex flex-col gap-1.5">
-      <button
-        type="button"
-        onClick={onShare}
-        disabled={state === "creating"}
-        className="inline-flex items-center justify-center gap-2 rounded-full bg-limestone-soft px-4 py-2 font-sans text-[13px] font-semibold text-ink ring-1 ring-line transition-colors hover:bg-limestone-soft/70 disabled:opacity-60"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4" aria-hidden>
+    <button
+      type="button"
+      onClick={onShare}
+      disabled={state === "creating"}
+      className="group flex h-full w-full items-center gap-3 rounded-2xl bg-card ring-1 ring-line px-4 py-3 text-left transition-colors hover:bg-limestone-soft disabled:opacity-60 disabled:cursor-not-allowed"
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-limestone-soft ring-1 ring-line">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="size-4 text-ink"
+          aria-hidden
+        >
           <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
           <path d="M16 6l-4-4-4 4" />
           <path d="M12 2v14" />
         </svg>
-        {label}
-      </button>
-      {state === "shared" && url && (
-        <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft break-all">
-          {url.replace(/^https?:\/\//, "")}
-        </p>
-      )}
-    </div>
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="font-display text-[14px] font-semibold text-ink leading-tight">
+          {label}
+        </span>
+        <span
+          className={`mt-0.5 truncate font-mono text-[10px] uppercase tracking-[0.16em] ${state === "error" ? "text-ochre" : "text-ink-soft"}`}
+        >
+          {sub}
+        </span>
+      </span>
+      <span className="font-mono text-[16px] text-ink-soft leading-none transition-transform group-hover:translate-x-0.5">
+        ›
+      </span>
+    </button>
   );
 }
