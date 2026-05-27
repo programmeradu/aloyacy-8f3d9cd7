@@ -8,6 +8,7 @@ import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconClock, IconPin } from "@/components/Icons";
 import { StreetViewSheet } from "@/components/StreetViewSheet";
 import { TurnStep } from "@/components/WalkGuidance";
+import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
 import { useRealtime } from "@/lib/useRealtime";
 import { useActiveTrip, clearActiveTrip, isMultiLeg } from "@/lib/trip-store";
 import { MultiLegCompanion } from "@/components/MultiLegCompanion";
@@ -372,6 +373,20 @@ function SingleLegCompanion({
       <div className="mt-6">
         <JourneyHUD trip={active} live={live} steps={directions?.steps ?? null} />
       </div>
+
+      {/* Long final walk hint — shown whenever the rider is on the egress
+          walk (live or static) and the distance is too long to be a pleasant
+          stroll. Sits above the turn-by-turn so the rider sees the choice
+          before scrolling through 12 steps. */}
+      {walkingPhase === "to-dest" && walkOut.kind === "walk" && (
+        <LongFinalWalkHint
+          from={{ lat: walkOut.from.lat, lng: walkOut.from.lng }}
+          to={{ lat: walkOut.to.lat, lng: walkOut.to.lng }}
+          distanceMeters={walkOut.distanceMeters}
+          durationSec={walkOut.durationSec}
+          destinationLabel={active.to.label}
+        />
+      )}
 
       {/* Static turn-by-turn — only shown when live tracking is OFF. */}
       {!live.active && directions && directions.steps.length > 0 && (

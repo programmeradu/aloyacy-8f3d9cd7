@@ -25,6 +25,7 @@ import { useResumeRefresh, useInvalidateRealtime } from "@/lib/useRealtime";
 import { requestCompassPermission } from "@/lib/useCompass";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "@/lib/itinerary-types";
 import { WalkGuidance } from "@/components/WalkGuidance";
+import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
 import { ShortcutPrompt } from "@/components/ShortcutPrompt";
 import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
 import { LiveReplanSheet } from "@/components/LiveReplanSheet";
@@ -297,19 +298,30 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
 
       {/* Turn-by-turn for any walk leg — initial, transfer, or final. */}
       {live.currentLeg?.kind === "walk" && (
-        <WalkGuidance
-          from={{ lat: live.currentLeg.from.lat, lng: live.currentLeg.from.lng }}
-          to={{ lat: live.currentLeg.to.lat, lng: live.currentLeg.to.lng }}
-          title={
-            live.phase === "walking-to-board"
-              ? "Walk to the first stop"
-              : live.phase === "walking-to-transfer"
-                ? `Walk to bus ${live.nextRideLeg?.routeShort ?? ""}`
-                : live.phase === "walking-to-destination"
-                  ? "Walk to your destination"
-                  : "Walk"
-          }
-        />
+        <>
+          {live.phase === "walking-to-destination" && (
+            <LongFinalWalkHint
+              from={{ lat: live.currentLeg.from.lat, lng: live.currentLeg.from.lng }}
+              to={{ lat: live.currentLeg.to.lat, lng: live.currentLeg.to.lng }}
+              distanceMeters={live.currentLeg.distanceMeters}
+              durationSec={live.currentLeg.durationSec}
+              destinationLabel={active.to.label}
+            />
+          )}
+          <WalkGuidance
+            from={{ lat: live.currentLeg.from.lat, lng: live.currentLeg.from.lng }}
+            to={{ lat: live.currentLeg.to.lat, lng: live.currentLeg.to.lng }}
+            title={
+              live.phase === "walking-to-board"
+                ? "Walk to the first stop"
+                : live.phase === "walking-to-transfer"
+                  ? `Walk to bus ${live.nextRideLeg?.routeShort ?? ""}`
+                  : live.phase === "walking-to-destination"
+                    ? "Walk to your destination"
+                    : "Walk"
+            }
+          />
+        </>
       )}
 
       {/* Timeline of every leg with current highlighted */}
