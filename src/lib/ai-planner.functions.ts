@@ -118,6 +118,23 @@ export const parseTripIntent = createServerFn({ method: "POST" })
         console.warn("[ai-planner] schema mismatch", parsed.error.flatten());
         return null;
       }
+      // Deterministic time override: the LLM is unreliable at turning "7am"
+      // into a correctly-offset ISO. If the user's text contains an explicit
+      // clock time, compute it ourselves from the caller's tz anchor.
+      const fix = extractExplicitTime(
+        data.text,
+        data.nowISO ?? new Date().toISOString(),
+        data.tzOffsetMin ?? 180,
+      );
+      if (fix) {
+        if (fix.preferArrive) {
+          parsed.data.arriveByISO = fix.iso;
+          parsed.data.leaveByISO = null;
+        } else {
+          parsed.data.leaveByISO = fix.iso;
+          parsed.data.arriveByISO = null;
+        }
+      }
       return parsed.data;
     } catch (err) {
       console.warn("[ai-planner] failed", err);
