@@ -48,7 +48,7 @@ function Plan() {
   const planFn = useServerFn(planMultiLeg);
   const reverseFn = useServerFn(reverseLookup);
   const fetchSuggestions = useServerFn(getTripSuggestions);
-  const queryClient = useQueryClient();
+  
 
   const { session } = useAuth();
   const { data: suggData } = useQuery({
