@@ -32,6 +32,7 @@ import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
 import { useRiderFixReporter } from "./useRiderFixReporter";
 import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
+import { recordCommutePattern } from "./commute-learner.functions";
 
 export type MultiLegPhase =
   | "idle"
