@@ -6,58 +6,75 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { rerouteFromHere } from "@/lib/reroute.functions";
-import { logTripOverride } from "@/lib/training-events.functions";
+import { logTripOverride } from "@/lib/overrides.functions";
 import {
   setActiveTrip,
+  initialLegState,
   type ActiveTrip,
 } from "@/lib/trip-store";
+import { getDeviceId } from "@/lib/pwa";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
 import type { DisruptionKind } from "@/lib/useDisruptionWatch";
-import { getDeviceId } from "@/lib/device";
 
 function fmtMin(s: number) {
   return `${Math.max(0, Math.round(s / 60))} min`;
 }
 
-function initialLegState() {
-  return { currentLegIndex: 0, perLeg: {} as Record<number, never> };
-}
-
-// Synthesize a single-ride JourneyOption (legacy shape) from a fresh
-// multi-leg itinerary so the old single-leg companion paths still work.
+// Same shape EarlyAlightSheet uses — kept local to avoid coupling.
 function synthesizeOption(it: Itinerary): JourneyOption {
-  const ride = it.legs.find((l): l is RideLeg => l.kind === "ride");
-  if (!ride) {
-    return {
-      id: it.id,
-      route: { id: "", shortName: "WALK", longName: "", tone: "olive", color: undefined },
-      boardStop: { id: "", name: "Origin", lat: 0, lng: 0 },
-      alightStop: { id: "", name: "Destination", lat: 0, lng: 0 },
-      departureUnix: it.departureUnix,
-      arrivalUnix: it.arrivalUnix,
-      walkSeconds: it.totalWalkMeters,
-      rideSeconds: 0,
-      transfers: it.transfers,
-      score: it.score,
-      source: it.source,
-    } as unknown as JourneyOption;
+  const firstRide = it.legs.find((l): l is RideLeg => l.kind === "ride");
+  const walkIn = it.legs[0];
+  const walkOut = it.legs[it.legs.length - 1];
+  const legs: JourneyOption["legs"] = [];
+  if (walkIn?.kind === "walk") {
+    const w = walkIn as WalkLeg;
+    legs.push({
+      kind: "walk",
+      from: { lat: w.from.lat, lng: w.from.lng, label: w.from.name },
+      to: { lat: w.to.lat, lng: w.to.lng, label: w.to.name },
+      durationSec: w.durationSec,
+      distanceMeters: w.distanceMeters,
+    });
+  }
+  if (firstRide) {
+    legs.push({
+      kind: "bus",
+      routeId: firstRide.routeId,
+      routeShort: firstRide.routeShort,
+      routeLong: firstRide.routeLong,
+      tripId: firstRide.tripId,
+      board: {
+        stopId: firstRide.board.stopId,
+        name: firstRide.board.name,
+        departureUnix: firstRide.board.departureUnix,
+      },
+      alight: {
+        stopId: firstRide.alight.stopId,
+        name: firstRide.alight.name,
+        arrivalUnix: firstRide.alight.arrivalUnix,
+      },
+      delaySec: firstRide.delaySec,
+    });
+  }
+  if (walkOut && walkOut !== walkIn && walkOut.kind === "walk") {
+    const w = walkOut as WalkLeg;
+    legs.push({
+      kind: "walk",
+      from: { lat: w.from.lat, lng: w.from.lng, label: w.from.name },
+      to: { lat: w.to.lat, lng: w.to.lng, label: w.to.name },
+      durationSec: w.durationSec,
+      distanceMeters: w.distanceMeters,
+    });
   }
   return {
     id: it.id,
-    route: { id: ride.routeId, shortName: ride.routeShort, longName: ride.routeLong ?? "", tone: ride.tone, color: ride.color },
-    boardStop: { id: ride.board.stopId, name: ride.board.name, lat: ride.board.lat, lng: ride.board.lng },
-    alightStop: { id: ride.alight.stopId, name: ride.alight.name, lat: ride.alight.lat, lng: ride.alight.lng },
-    departureUnix: ride.board.departureUnix,
-    arrivalUnix: ride.alight.arrivalUnix,
-    walkSeconds: it.legs
-      .filter((l): l is WalkLeg => l.kind === "walk")
-      .reduce((s, w) => s + w.durationSec, 0),
-    rideSeconds: ride.alight.arrivalUnix - ride.board.departureUnix,
+    totalDurationSec: it.totalDurationSec,
+    departureUnix: it.departureUnix,
+    arrivalUnix: it.arrivalUnix,
+    legs,
     transfers: it.transfers,
-    score: it.score,
-    source: it.source,
-  } as unknown as JourneyOption;
+  };
 }
 
 const COPY: Record<DisruptionKind, { eyebrow: string; title: string; sub: string }> = {
@@ -99,7 +116,14 @@ export function LiveReplanSheet({
   const copy = COPY[kind];
 
   const { data, isLoading } = useQuery({
-    queryKey: ["live-replan", kind, fix.lat.toFixed(4), fix.lng.toFixed(4), active.to.lat, active.to.lng],
+    queryKey: [
+      "live-replan",
+      kind,
+      fix.lat.toFixed(4),
+      fix.lng.toFixed(4),
+      active.to.lat,
+      active.to.lng,
+    ],
     queryFn: () =>
       reroute({
         data: {
