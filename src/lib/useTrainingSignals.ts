@@ -19,6 +19,8 @@ export function useTrainingSignals(
   live: MultiLegLive,
 ) {
   const sentRef = useRef<Set<string>>(new Set());
+  const prevPhaseRef = useRef<string | null>(null);
+  const missedAtRef = useRef<Map<number, number>>(new Map());
   const log = useServerFn(logTrainingEvent);
 
   useEffect(() => {
@@ -32,6 +34,110 @@ export function useTrainingSignals(
       fn();
     };
     const deviceId = getDeviceId();
+    const now = Date.now();
+    const hourOfDay = new Date(now).getHours();
+    const dayOfWeek = new Date(now).getDay();
+
+    // ---- Phase-transition logging (every change) ----
+    const curRide = live.currentRideLeg;
+    if (prevPhaseRef.current !== live.phase) {
+      const from = prevPhaseRef.current;
+      prevPhaseRef.current = live.phase;
+      if (from) {
+        log({
+          data: {
+            deviceId,
+            kind: "phase-transition",
+            payload: {
+              from,
+              to: live.phase,
+              legIdx: idx,
+              routeShort: curRide?.routeShort ?? live.nextRideLeg?.routeShort ?? null,
+              routeId: curRide?.routeId ?? live.nextRideLeg?.routeId ?? null,
+              stopId: curRide?.board.stopId ?? live.nextRideLeg?.board.stopId ?? null,
+              hourOfDay,
+              dayOfWeek,
+            },
+          },
+        }).catch(() => {});
+      }
+    }
+
+    // ---- Boarding-prompt coverage ----
+    // Prompt is shown whenever phase enters waiting-to-board on a ride leg.
+    if (live.phase === "waiting-to-board" && curRide) {
+      fireOnce(`prompt-shown:${idx}`, () =>
+        log({
+          data: {
+            deviceId,
+            kind: "boarding-prompt-shown",
+            payload: {
+              legIdx: idx,
+              routeShort: curRide.routeShort,
+              routeId: curRide.routeId,
+              stopId: curRide.board.stopId,
+              hourOfDay,
+              dayOfWeek,
+            },
+          },
+        }).catch(() => {}),
+      );
+    }
+    // Confirmed: any ride leg with onBoardConfirmedAt set.
+    for (let i = 0; i <= idx; i++) {
+      const leg = itin.legs[i];
+      const per = legState.perLeg[i];
+      if (!leg || leg.kind !== "ride" || !per?.onBoardConfirmedAt) continue;
+      fireOnce(`prompt-confirmed:${i}`, () =>
+        log({
+          data: {
+            deviceId,
+            kind: "boarding-prompt-confirmed",
+            payload: {
+              legIdx: i,
+              routeShort: leg.routeShort,
+              routeId: leg.routeId,
+              stopId: leg.board.stopId,
+              latencyMs: per.onBoardConfirmedAt!
+                ? Math.max(0, per.onBoardConfirmedAt - (per.enteredAt ?? per.onBoardConfirmedAt))
+                : 0,
+              hourOfDay,
+              dayOfWeek,
+            },
+          },
+        }).catch(() => {}),
+      );
+    }
+
+    // ---- Missed-bus false positives ----
+    // Track when missedAt fires; if onBoardConfirmedAt arrives within 4 min,
+    // it's a false positive.
+    for (let i = 0; i <= idx; i++) {
+      const leg = itin.legs[i];
+      const per = legState.perLeg[i];
+      if (!leg || leg.kind !== "ride" || !per?.missedAt) continue;
+      if (!missedAtRef.current.has(i)) missedAtRef.current.set(i, per.missedAt);
+      if (per.onBoardConfirmedAt && per.onBoardConfirmedAt - per.missedAt < 4 * 60_000) {
+        fireOnce(`missed-fp:${i}`, () =>
+          log({
+            data: {
+              deviceId,
+              kind: "missed-bus-false-positive",
+              payload: {
+                legIdx: i,
+                routeShort: leg.routeShort,
+                routeId: leg.routeId,
+                stopId: leg.board.stopId,
+                gapMs: per.onBoardConfirmedAt! - per.missedAt!,
+                hourOfDay,
+                dayOfWeek,
+              },
+            },
+          }).catch(() => {}),
+        );
+      }
+    }
+
 
     // Walk-complete: when a walk leg was just completed (any previous leg
     // marked completedAt and was a walk).
