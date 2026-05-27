@@ -6,7 +6,9 @@ import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconArrowUpRight } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
+import { useEtaStats } from "@/lib/useEtaStats";
 import { smartEtaForStop, type SmartEta } from "@/lib/eta";
+import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getStop, getRoute, routeTone } from "@/lib/gtfs";
 
 export const Route = createFileRoute("/stop/$stopId")({
