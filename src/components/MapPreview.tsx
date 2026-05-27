@@ -1096,6 +1096,14 @@ class AnimatedBus {
     return { lat: this.curLat, lng: this.curLng };
   }
 
+  getLastTs() {
+    return this.lastTs;
+  }
+
+  setLastTs(ts: number) {
+    this.lastTs = ts;
+  }
+
   tick(nowMs: number) {
     // Cap dt so a backgrounded tab doesn't fling the bus on resume.
     if (this.lastTickMs === 0) this.lastTickMs = nowMs;
