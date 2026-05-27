@@ -67,7 +67,7 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
           placeholder="passphrase"
         />
         {error && (
-          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-terracotta">
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
             Wrong phrase
           </p>
         )}
@@ -136,7 +136,7 @@ function Dashboard() {
         </p>
       )}
       {error && (
-        <p className="px-6 pt-10 font-mono text-[11px] uppercase tracking-[0.22em] text-terracotta">
+        <p className="px-6 pt-10 font-mono text-[11px] uppercase tracking-[0.22em] text-ochre">
           {(error as Error).message}
         </p>
       )}
@@ -215,10 +215,10 @@ function DashboardBody({ data }: { data: QaStats }) {
                     <span
                       className={
                         r.coveragePct >= 80
-                          ? "text-olive-deep"
+                          ? "text-olive-soft"
                           : r.coveragePct >= 50
                           ? "text-ochre"
-                          : "text-terracotta"
+                          : "text-ochre"
                       }
                     >
                       {r.promptsShown ? `${r.coveragePct}%` : "—"}
@@ -247,7 +247,7 @@ function DashboardBody({ data }: { data: QaStats }) {
             {data.phaseErrorBreakdown.map((p) => (
               <div key={`${p.from}-${p.to}`} className="flex items-center justify-between px-4 py-3">
                 <span className="font-mono text-[12px] text-ink">
-                  {p.from} → <span className="text-terracotta">{p.to}</span>
+                  {p.from} → <span className="text-ochre">{p.to}</span>
                 </span>
                 <span className="font-mono text-[12px] text-ink-soft">{p.count}</span>
               </div>
@@ -288,9 +288,9 @@ function Stat({
   tone: "olive" | "ochre" | "terracotta" | "aegean";
 }) {
   const toneText = {
-    olive: "text-olive-deep",
+    olive: "text-olive-soft",
     ochre: "text-ochre",
-    terracotta: "text-terracotta",
+    terracotta: "text-ochre",
     aegean: "text-aegean-deep",
   }[tone];
   return (
@@ -325,14 +325,14 @@ function HourGrid({ rows }: { rows: QaStats["byHour"] }) {
         const h = (r.promptsShown / maxShown) * 100;
         return (
           <div key={r.hour} className="flex flex-col items-center gap-1.5">
-            <div className="relative h-24 w-full rounded-md bg-limestone-deep ring-1 ring-line overflow-hidden">
+            <div className="relative h-24 w-full rounded-md bg-limestone/60 ring-1 ring-line overflow-hidden">
               <div
                 className="absolute inset-x-0 bottom-0 bg-aegean-deep/80"
                 style={{ height: `${h}%` }}
                 title={`${r.promptsShown} prompts`}
               />
               {r.phaseErrors > 0 && (
-                <div className="absolute top-1 right-1 size-1.5 rounded-full bg-terracotta" />
+                <div className="absolute top-1 right-1 size-1.5 rounded-full bg-ochre" />
               )}
               {r.falsePositives > 0 && (
                 <div className="absolute top-1 left-1 size-1.5 rounded-full bg-ochre" />
