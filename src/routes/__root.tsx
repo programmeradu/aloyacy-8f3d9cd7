@@ -133,9 +133,16 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <RealtimeBridge />
       <PaymentTestModeBanner />
       <Outlet />
       <Toaster position="top-center" />
     </QueryClientProvider>
   );
+}
+
+// Lives inside QueryClientProvider so it can grab the queryClient via hook.
+function RealtimeBridge() {
+  useUserDataRealtime();
+  return null;
 }
