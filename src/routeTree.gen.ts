@@ -23,6 +23,7 @@ import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
 import { Route as DebugGraphRouteImport } from './routes/debug.graph'
 import { Route as DebugEtaRouteImport } from './routes/debug.eta'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
@@ -99,6 +100,11 @@ const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
   path: '/api/public/trip-alerts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe-webhook',
+  path: '/api/public/stripe-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicStreetviewRoute = ApiPublicStreetviewRouteImport.update({
   id: '/api/public/streetview',
   path: '/api/public/streetview',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
 }
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
 }
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
 }
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/api/public/rider-fix'
     | '/api/public/snapshot'
     | '/api/public/streetview'
+    | '/api/public/stripe-webhook'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/train'
   fileRoutesByTo: FileRoutesByTo
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/api/public/rider-fix'
     | '/api/public/snapshot'
     | '/api/public/streetview'
+    | '/api/public/stripe-webhook'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/train'
   id:
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/api/public/rider-fix'
     | '/api/public/snapshot'
     | '/api/public/streetview'
+    | '/api/public/stripe-webhook'
     | '/api/public/trip-alerts'
     | '/api/public/hooks/train'
   fileRoutesById: FileRoutesById
@@ -273,6 +285,7 @@ export interface RootRouteChildren {
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
+  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
 }
@@ -377,6 +390,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTripAlertsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/stripe-webhook': {
+      id: '/api/public/stripe-webhook'
+      path: '/api/public/stripe-webhook'
+      fullPath: '/api/public/stripe-webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/streetview': {
       id: '/api/public/streetview'
       path: '/api/public/streetview'
@@ -433,6 +453,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
+  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
 }
