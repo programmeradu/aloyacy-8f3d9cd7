@@ -264,7 +264,12 @@ export function useJourney(opts: {
 
     // After-the-bus leg
     if (live?.alightedAt) {
-      if (fix && metersToDestination < ARRIVAL_RADIUS_M) phase = "arrived";
+      const destLoc =
+        walkOut?.kind === "walk"
+          ? { lat: walkOut.to.lat, lng: walkOut.to.lng }
+          : null;
+      const distToDest = fix && destLoc ? distanceM(fix, destLoc) : Infinity;
+      if (fix && destLoc && distToDest < ARRIVAL_RADIUS_M) phase = "arrived";
       else phase = "walking-to-dest";
     } else if (live?.onBoardConfirmedAt) {
       // Riding
