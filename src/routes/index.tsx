@@ -137,18 +137,24 @@ function Explore() {
         (a, b) => a.eta - b.eta,
       );
 
-      // Smart ETA: snap the running vehicle onto its trip's stop polyline,
-      // factor in dwell + ping freshness + speed + learned per-route bias.
-      const smart = rt
-        ? smartEtaForStop({
-            stopId: s.id,
-            arrivals: rt.arrivals,
-            vehicles: rt.vehicles,
-            nowSec: t,
-            agency: s.agency,
-            learnedByRoute: learnedByStop?.get(s.id),
-          })
-        : null;
+      // Smart ETA v2: snap the running vehicle onto its trip's GTFS shape,
+      // factor in per-segment speeds, dwell, ping freshness, and learned bias.
+      let smart: ReturnType<typeof smartEtaV2> = null;
+      if (rt) {
+        // Peek the next arrival at this stop to pick its shape.
+        const nextHere = rt.arrivals
+          .filter((a) => a.stopId === s.id && a.arrivalUnix >= t - 30)
+          .sort((a, b) => a.arrivalUnix - b.arrivalUnix)[0];
+        smart = smartEtaV2({
+          stopId: s.id,
+          arrivals: rt.arrivals,
+          vehicles: rt.vehicles,
+          nowSec: t,
+          agency: s.agency,
+          learnedByRoute: learnedByStop?.get(s.id),
+          shape: nextHere ? getShapeForTripSync(nextHere.tripId, nextHere.routeId) : null,
+        });
+      }
       const nextEta = smart ? smart.etaMin : arrivals[0]?.eta ?? null;
 
 
