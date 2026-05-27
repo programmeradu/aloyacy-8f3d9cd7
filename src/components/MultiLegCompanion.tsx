@@ -277,6 +277,17 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         />
       )}
 
+      {/* Live re-plan sheet — opens from the disruption banner CTA. */}
+      {liveReplanOpen && live.fix && disruption && (
+        <LiveReplanSheet
+          active={active}
+          fix={{ lat: live.fix.lat, lng: live.fix.lng }}
+          kind={disruption.kind}
+          onClose={() => setLiveReplanOpen(false)}
+        />
+      )}
+
+
       {/* Turn-by-turn for any walk leg — initial, transfer, or final. */}
       {live.currentLeg?.kind === "walk" && (
         <WalkGuidance
