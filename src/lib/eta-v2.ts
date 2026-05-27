@@ -36,6 +36,7 @@ import {
   polylineLengthM,
   type LatLng,
 } from "./geo";
+import type { LearnedBias } from "./learned-types";
 
 export type SegmentSpeedKey = string; // `${routeId}|${fromStopId}|${toStopId}`
 export type DwellKey = string; // `${routeId}|${stopId}`
@@ -49,6 +50,9 @@ export type DwellStatMap = Record<
   { meanDwellSec: number; sampleCount: number }
 >;
 
+/** Source/freshness tier for the colour chip. */
+export type EtaFreshness = "live" | "predicted" | "scheduled";
+
 export type SmartEtaV2 = {
   /** Median ETA in seconds. */
   etaSec: number;
@@ -60,11 +64,19 @@ export type SmartEtaV2 = {
   upperSec: number;
   /** Stops between bus and target. */
   stopsAway: number;
-  /** "high" | "medium" | "low" based on sample coverage + freshness. */
+  /** Confidence of the *band width* (sample coverage + freshness). */
   confidence: "high" | "medium" | "low";
-  /** Short label e.g. "8–12 min", or "≈10 min". */
+  /** Source tier for the colour chip — "live" (fresh ping + close), "predicted" (vehicle but stale/far), "scheduled" (no vehicle). */
+  freshness: EtaFreshness;
+  /** What the operator's tripUpdate said — for the strikethrough hint. */
+  operatorEtaMin: number;
+  /** Short label for the chip e.g. "live", "stale ping", "usually 2 min late". */
+  blurb: string;
+  /** Learned systematic delay applied (signed seconds). */
+  learnedBiasSec: number;
+  /** Short range label e.g. "8–12 min", or "≈10 min". */
   band: string;
-  /** Ping age of the vehicle in seconds. */
+  /** Ping age of the vehicle in seconds (Infinity if no vehicle). */
   pingAgeSec: number;
 };
 
@@ -73,6 +85,12 @@ const INTERCITY_FALLBACK_MPS = 40 / 3.6;
 const URBAN_DWELL_SEC = 20;
 const INTERCITY_DWELL_SEC = 10;
 const MIN_SAMPLES_TRUST = 5;
+const PING_FRESH_SEC = 60;
+const PING_STALE_SEC = 90;
+const NEAR_STOPS_LIVE = 5;
+const LEARNED_BIAS_WEIGHT = 0.6;
+const LEARNED_BIAS_MIN_SAMPLES = 5;
+const LEARNED_BLURB_MIN_SAMPLES = 8;
 
 export type SmartEtaV2Input = {
   stopId: string;
@@ -85,6 +103,8 @@ export type SmartEtaV2Input = {
   /** GTFS shape polyline for the trip. When provided the bus is snapped
    *  to the real road geometry and segment lengths come from the shape. */
   shape?: LatLng[] | null;
+  /** Optional learned per-route bias for the stop's current hour/dow. */
+  learnedByRoute?: Record<string, LearnedBias>;
 };
 
 export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
@@ -100,23 +120,46 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     .filter((a) => a.tripId === next.tripId)
     .sort((a, b) => a.arrivalUnix - b.arrivalUnix);
 
+  // Learned per-route bias (applied at the end so it composes with both
+  // distance-based and operator-fallback ETAs equally).
+  const learned = input.learnedByRoute?.[next.routeId];
+  const learnedBiasSec =
+    learned && learned.sampleCount >= LEARNED_BIAS_MIN_SAMPLES
+      ? learned.meanDelaySec
+      : 0;
+
+  const operatorEtaSec = Math.max(0, next.arrivalUnix - now);
+  const operatorEtaMin = Math.round(operatorEtaSec / 60);
+  const pingAgeSec = vehicle ? Math.max(0, now - vehicle.timestamp) : Infinity;
+
   const verts: { stopId: string; lat: number; lng: number }[] = [];
   for (const a of tripStops) {
     const s = getStop(a.stopId);
     if (s) verts.push({ stopId: a.stopId, lat: s.lat, lng: s.lng });
   }
   const targetIdx = verts.findIndex((v) => v.stopId === input.stopId);
+
+  // ----- Fallback path: no usable geometry, lean on the operator number. ---
   if (targetIdx < 0 || verts.length < 2) {
-    const opSec = Math.max(0, next.arrivalUnix - now);
+    const adjusted = Math.max(
+      0,
+      operatorEtaSec + learnedBiasSec * LEARNED_BIAS_WEIGHT,
+    );
+    const adjMin = Math.max(0, Math.round(adjusted / 60));
+    const freshness: EtaFreshness = vehicle ? "predicted" : "scheduled";
     return {
-      etaSec: opSec,
-      etaMin: Math.round(opSec / 60),
-      lowerSec: opSec,
-      upperSec: opSec,
+      etaSec: adjusted,
+      etaMin: adjMin,
+      lowerSec: adjusted,
+      upperSec: adjusted,
       stopsAway: 0,
       confidence: "low",
-      band: `≈${Math.round(opSec / 60)} min`,
-      pingAgeSec: vehicle ? Math.max(0, now - vehicle.timestamp) : Infinity,
+      freshness,
+      operatorEtaMin,
+      blurb: blurbFor(freshness, pingAgeSec, learned, learnedBiasSec),
+      learnedBiasSec,
+      band: `≈${adjMin} min`,
+      pingAgeSec,
     };
   }
 
@@ -132,8 +175,6 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
 
   if (vehicle) {
     if (shape) {
-      // Snap vehicle + each stop onto shape. The next stop the bus hasn't
-      // passed yet is the segment start.
       const vehSnap = snapToPolyline(
         { lat: vehicle.lat, lng: vehicle.lng },
         shape,
@@ -143,11 +184,9 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
         return s ? s.alongM : 0;
       });
       if (vehSnap) {
-        // Find the first stop ahead of the bus on the shape.
         let i = 0;
         while (i < verts.length && stopAlong[i] <= vehSnap.alongM + 5) i++;
         if (i > targetIdx) {
-          // Bus already passed the target on the shape — clamp.
           startIdx = Math.max(0, targetIdx - 1);
           firstLegM = 0;
         } else if (i === 0) {
@@ -159,7 +198,6 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
         }
       }
     } else {
-      // No shape — find nearest pair using snap on the chord polyline.
       const chord = verts.map((v) => ({ lat: v.lat, lng: v.lng }));
       const snap = snapToPolyline(
         { lat: vehicle.lat, lng: vehicle.lng },
@@ -203,7 +241,6 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   for (let i = startIdx; i < targetIdx; i++) {
     const fromId = verts[i].stopId;
     const toId = verts[i + 1].stopId;
-    // Prefer shape-derived segment length over chord when shape is loaded.
     let distMSeg: number;
     if (shape) {
       const a = snapToPolyline({ lat: verts[i].lat, lng: verts[i].lng }, shape);
@@ -218,7 +255,6 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
         ? Math.max(2, stat.meanMps)
         : fallbackMps;
     p50 += distMSeg / speed;
-    // Dwell at the *arriving* stop (toId), except the target stop itself.
     if (i + 1 < targetIdx) {
       const d = input.dwells?.[`${next.routeId}|${toId}`];
       p50 +=
@@ -230,8 +266,14 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     totalSegs += 1;
   }
 
+  // Apply learned systematic bias on top of the distance-based estimate.
+  // Scaled by LEARNED_BIAS_WEIGHT because the speed model already absorbs
+  // part of "running late" via observed segment speeds.
+  p50 = Math.max(0, p50 + learnedBiasSec * LEARNED_BIAS_WEIGHT);
+
   // Confidence + band
   const avgSamples = totalSegs > 0 ? segSamples / totalSegs : 0;
+  const stopsAway = Math.max(0, targetIdx - startIdx);
   let confidence: SmartEtaV2["confidence"];
   if (avgSamples >= 10) {
     confidence = "high";
@@ -243,9 +285,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     confidence = "low";
     pessFactor = 1.5;
   }
-  const pingAgeSec = vehicle ? Math.max(0, now - vehicle.timestamp) : Infinity;
-  if (pingAgeSec > 90) pessFactor += 0.1;
-  // Tiny shape sanity-check use (avoid an unused-var lint when shape mode never fired)
+  if (pingAgeSec > PING_STALE_SEC) pessFactor += 0.1;
   void polylineLengthM;
 
   const lowerSec = Math.max(0, p50 * 0.92);
@@ -259,14 +299,51 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
       ? `≈${etaMin} min`
       : `${lowerMin}–${upperMin} min`;
 
+  // Freshness tier — drives the headline colour chip.
+  let freshness: EtaFreshness;
+  if (!vehicle) {
+    freshness = "scheduled";
+  } else if (pingAgeSec <= PING_FRESH_SEC && stopsAway <= NEAR_STOPS_LIVE) {
+    freshness = "live";
+  } else {
+    freshness = "predicted";
+  }
+
   return {
     etaSec: p50,
     etaMin,
     lowerSec,
     upperSec,
-    stopsAway: Math.max(0, targetIdx - startIdx),
+    stopsAway,
     confidence,
+    freshness,
+    operatorEtaMin,
+    blurb: blurbFor(freshness, pingAgeSec, learned, learnedBiasSec),
+    learnedBiasSec,
     band,
     pingAgeSec,
   };
+}
+
+function blurbFor(
+  freshness: EtaFreshness,
+  pingAgeSec: number,
+  learned: LearnedBias | undefined,
+  learnedBiasSec: number,
+): string {
+  // Surface a learned-pattern blurb when the sample is meaningful.
+  const biasMin = Math.round(learnedBiasSec / 60);
+  if (
+    learned &&
+    learned.sampleCount >= LEARNED_BLURB_MIN_SAMPLES &&
+    Math.abs(biasMin) >= 2 &&
+    (freshness === "live" || freshness === "predicted")
+  ) {
+    return biasMin > 0
+      ? `usually ${biasMin} min late`
+      : `usually ${-biasMin} min early`;
+  }
+  if (freshness === "scheduled") return "scheduled";
+  if (pingAgeSec > 240) return "stale ping";
+  return freshness;
 }
