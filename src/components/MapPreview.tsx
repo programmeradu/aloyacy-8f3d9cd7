@@ -645,6 +645,20 @@ export function MapPreview({
     return km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`;
   }, [spanKm]);
 
+  // -------- Debug telemetry (stress test on /qa) --------
+  const [debugRows, setDebugRows] = useState<ReturnType<AnimatedBus["getDebug"]>[]>([]);
+  useEffect(() => {
+    if (!debug) return;
+    const id = window.setInterval(() => {
+      const now = performance.now();
+      const rows = Array.from(busLayerRef.current.values())
+        .map((b) => b.getDebug(now))
+        .sort((a, b) => a.pingAgeMs - b.pingAgeMs);
+      setDebugRows(rows);
+    }, 200);
+    return () => window.clearInterval(id);
+  }, [debug]);
+
   // Use :fullscreen pseudo-class via inline style fallback. When the wrapper
   // is the browser's fullscreenElement, it's already full viewport — but the
   // rounded corners + ring would look odd, so we drop those when expanded.
