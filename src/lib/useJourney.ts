@@ -369,6 +369,34 @@ export function useJourney(opts: {
       }
     }
 
+    // ---- Vehicle-on-feed honesty ------------------------------------------
+    // Feed is healthy but no vehicle for this tripId yet. Very common before
+    // departure or at night. Surface a banner instead of silently empty map.
+    const vehicleNotTracked =
+      !feedStale &&
+      !!rt &&
+      !vehicle &&
+      !live?.onBoardConfirmedAt &&
+      !live?.alightedAt;
+
+    // ---- Wrong-stop reroute hint (Google-Maps-style) ----------------------
+    let rerouteHint: RerouteHint = null;
+    if (
+      (phase === "walking-to-stop" ||
+        phase === "hurry-soft" ||
+        phase === "hurry-urgent" ||
+        phase === "at-stop") &&
+      fix
+    ) {
+      rerouteHint = detectWrongStop({
+        fixLat: fix.lat,
+        fixLng: fix.lng,
+        routeId: bus.routeId,
+        plannedBoardStopId: bus.board.stopId,
+        plannedAlightStopId: bus.alight.stopId,
+      });
+    }
+
     return {
       active: true,
       fix,
@@ -385,6 +413,8 @@ export function useJourney(opts: {
       missedSuggested,
       vehicleLost,
       feedStale,
+      vehicleNotTracked,
+      rerouteHint,
     };
   }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps, feedStale, drive.etaSec, onBoard]);
 
