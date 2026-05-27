@@ -84,49 +84,29 @@ export function SharePlanButton({
           ? t("share.plan.retry")
           : t("share.plan.cta");
 
-  const sub =
-    state === "shared" && url
-      ? url.replace(/^https?:\/\//, "")
-      : state === "error"
-        ? "Something went wrong — tap to retry"
-        : "Meeting stop, bus, time — one link";
-
   return (
     <button
       type="button"
       onClick={onShare}
       disabled={state === "creating"}
-      className="group flex h-full w-full items-center gap-3 rounded-2xl bg-card ring-1 ring-line px-4 py-3 text-left transition-colors hover:bg-limestone-soft disabled:opacity-60 disabled:cursor-not-allowed"
+      title={state === "shared" && url ? url : undefined}
+      className="group inline-flex h-9 items-center gap-2 rounded-full bg-card ring-1 ring-line px-3.5 font-sans text-[12.5px] font-semibold text-ink transition-colors hover:bg-limestone-soft disabled:opacity-60 disabled:cursor-not-allowed"
     >
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-limestone-soft ring-1 ring-line">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="size-4 text-ink"
-          aria-hidden
-        >
-          <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
-          <path d="M16 6l-4-4-4 4" />
-          <path d="M12 2v14" />
-        </svg>
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="font-display text-[14px] font-semibold text-ink leading-tight">
-          {label}
-        </span>
-        <span
-          className={`mt-0.5 truncate font-mono text-[10px] uppercase tracking-[0.16em] ${state === "error" ? "text-ochre" : "text-ink-soft"}`}
-        >
-          {sub}
-        </span>
-      </span>
-      <span className="font-mono text-[16px] text-ink-soft leading-none transition-transform group-hover:translate-x-0.5">
-        ›
-      </span>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={`size-3.5 ${state === "error" ? "text-ochre" : "text-ink-soft"}`}
+        aria-hidden
+      >
+        <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
+        <path d="M16 6l-4-4-4 4" />
+        <path d="M12 2v14" />
+      </svg>
+      <span className="leading-none">{label}</span>
     </button>
   );
 }
