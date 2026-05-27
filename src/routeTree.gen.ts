@@ -22,6 +22,7 @@ import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
 import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
 import { Route as DebugGraphRouteImport } from './routes/debug.graph'
 import { Route as DebugEtaRouteImport } from './routes/debug.eta'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
@@ -95,6 +96,11 @@ const DebugEtaRoute = DebugEtaRouteImport.update({
   path: '/debug/eta',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
   id: '/api/public/trip-alerts',
   path: '/api/public/trip-alerts',
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/saved': typeof SavedRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
@@ -208,6 +217,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/trips'
     | '/wallet'
+    | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/trips'
     | '/wallet'
+    | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/trips'
     | '/wallet'
+    | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
@@ -275,6 +287,7 @@ export interface RootRouteChildren {
   SavedRoute: typeof SavedRoute
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
+  CheckoutReturnRoute: typeof CheckoutReturnRoute
   DebugEtaRoute: typeof DebugEtaRoute
   DebugGraphRoute: typeof DebugGraphRoute
   DebugMultilegRoute: typeof DebugMultilegRoute
@@ -384,6 +397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DebugEtaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/trip-alerts': {
       id: '/api/public/trip-alerts'
       path: '/api/public/trip-alerts'
@@ -443,6 +463,7 @@ const rootRouteChildren: RootRouteChildren = {
   SavedRoute: SavedRoute,
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
+  CheckoutReturnRoute: CheckoutReturnRoute,
   DebugEtaRoute: DebugEtaRoute,
   DebugGraphRoute: DebugGraphRoute,
   DebugMultilegRoute: DebugMultilegRoute,
