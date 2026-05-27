@@ -1,6 +1,25 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { ensureDeviceToken, verifyDeviceToken } from "./device-auth.server";
+
+// Anonymous device IDs are not secrets — anyone who learns one could read
+// or write that device's trip history. Every read/write requires the
+// device-bound bearer token issued by `claimDeviceToken` on first use.
+const DeviceAuth = z.object({
+  deviceId: z.string().min(8).max(128),
+  deviceToken: z.string().min(20).max(128),
+});
+
+export const claimDeviceToken = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z.object({ deviceId: z.string().min(8).max(128) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const result = await ensureDeviceToken(data.deviceId);
+    if (!result.ok) return { ok: false as const, error: result.error };
+    return { ok: true as const, token: result.token };
+  });
 
 // ---------- record ----------
 const RecordSchema = z.object({
