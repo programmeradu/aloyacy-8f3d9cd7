@@ -181,7 +181,7 @@ function Explore() {
               ? `${s.distanceKm.toFixed(s.distanceKm >= 10 ? 0 : 1)} km away`
               : `${Math.round(s.distanceKm * 1000)} m away`,
         etaMin: nextEta,
-        etaConfidence: smart?.confidence,
+        etaConfidence: smart?.freshness,
         etaBlurb: smart?.blurb,
         routes,
         highlight: idx === 0,
