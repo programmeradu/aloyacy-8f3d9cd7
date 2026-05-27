@@ -15,6 +15,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { getTopCommuteSuggestion } from "@/lib/commute-learner.functions";
 import { planMultiLeg } from "@/lib/multileg.functions";
 import { useProSubscription } from "@/lib/usePro";
+import { useAuth } from "@/lib/useAuth";
 import { track, trackImpression } from "@/lib/analytics";
 import { IconArrowUpRight } from "@/components/Icons";
 
@@ -23,9 +24,11 @@ export function CommuteSuggestionCard() {
   const plan = useServerFn(planMultiLeg);
   const nav = useNavigate();
   const { isPro } = useProSubscription();
+  const { session } = useAuth();
 
   const { data } = useQuery({
-    queryKey: ["commute-suggestion"],
+    enabled: !!session,
+    queryKey: ["commute-suggestion", session?.user?.id ?? null],
     queryFn: () => fn({}),
     staleTime: 5 * 60_000,
   });
