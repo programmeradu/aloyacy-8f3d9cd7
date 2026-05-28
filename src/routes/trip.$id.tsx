@@ -398,6 +398,17 @@ function SingleLegCompanion({
         </article>
       </section>
 
+      {/* Watch together — prominent right under the hero so the rider
+          can invite friends before the trip really starts. Returning to
+          this page after the trip is live also brings them back to their
+          group. */}
+      <section className="mt-4 px-6 animate-rise" style={{ animationDelay: "90ms" }}>
+        <WatchTogetherButton
+          origin={{ lat: active.from.lat, lng: active.from.lng, label: active.from.label }}
+          destination={{ lat: active.to.lat, lng: active.to.lng, label: active.to.label }}
+        />
+      </section>
+
       {/* Live map */}
       <section className="mt-5 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MapPreview
@@ -470,17 +481,6 @@ function SingleLegCompanion({
           on-board prompt, missed-bus rescue, alight & arrived cards. */}
       <div className="mt-6">
         <JourneyHUD trip={active} live={live} steps={directions?.steps ?? null} />
-      </div>
-
-      {/* Watch together — start a live group so friends converging on the
-          same destination see each other on one map. Sits on the trip
-          page so the rider can invite mid-journey and return here to
-          rejoin the group any time. */}
-      <div className="mt-4 px-6">
-        <WatchTogetherButton
-          origin={{ lat: active.from.lat, lng: active.from.lng, label: active.from.label }}
-          destination={{ lat: active.to.lat, lng: active.to.lng, label: active.to.label }}
-        />
       </div>
 
       {/* Long final walk hint — shown whenever the rider is on the egress

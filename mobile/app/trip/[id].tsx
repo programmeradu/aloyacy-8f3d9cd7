@@ -29,6 +29,7 @@ import { MapView, type MapMarker, type VehicleOverride } from "@/components/MapV
 import { ExpandableMap } from "@/components/ExpandableMap";
 import { JourneyHUD } from "@/components/JourneyHUD";
 import { WalkGuidance } from "@/components/WalkGuidance";
+import { GroupTripButton } from "@/components/GroupTripButton";
 import { RouteChip } from "@/components/RouteChip";
 import { MultiLegCompanion } from "@/components/MultiLegCompanion";
 import {
@@ -470,6 +471,17 @@ function SingleLegCompanion({
             </Text>
           </View>
         </View>
+      </View>
+
+      {/* Watch together — prominent below the hero so friends can be
+          invited before the trip really begins. Returning to this page
+          also brings the rider back to their group. */}
+      <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
+        <GroupTripButton
+          active={active}
+          fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
+          etaMinutes={minToDoor}
+        />
       </View>
 
       {/* Live map */}
