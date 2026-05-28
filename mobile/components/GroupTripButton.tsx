@@ -2,8 +2,8 @@
 // tap creates a group and shares the invite; subsequent taps re-open
 // the share sheet. Long-press to leave.
 
-import { useCallback } from "react";
-import { View, Text, Pressable, StyleSheet, Share, Alert } from "react-native";
+import { useCallback, useEffect, useRef } from "react";
+import { View, Text, Pressable, StyleSheet, Share, Alert, Animated, Easing } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import { palette } from "@/constants/theme";
