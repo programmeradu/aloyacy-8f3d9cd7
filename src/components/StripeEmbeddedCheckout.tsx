@@ -6,6 +6,7 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { createCheckoutSession } from "@/lib/billing.functions";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
+import { getDeviceId } from "@/lib/device-id";
 
 export function StripeEmbeddedCheckoutPane({
   planKey,
@@ -22,11 +23,13 @@ export function StripeEmbeddedCheckoutPane({
         planKey,
         environment: getStripeEnvironment(),
         returnUrl,
+        deviceId: getDeviceId(),
       },
     });
     if ("error" in result) throw new Error(result.error);
     return result.clientSecret;
   }, [checkoutFn, planKey, returnUrl]);
+
 
   return (
     <div id="checkout" className="w-full">

@@ -11,9 +11,11 @@ export type CheckoutResult =
 export async function startProCheckout(_opts: {
   email?: string;
   planKey: PlanKey;
+  promotionCode?: string;
 }): Promise<CheckoutResult> {
   return {
     ok: false,
     message: "In-app purchases are only available on iOS and Android.",
   };
 }
+

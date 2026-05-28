@@ -122,39 +122,33 @@ export function RemindMeButton({
     });
   }
 
+  const label =
+    state === "saved"
+      ? t("remind.set")
+      : state === "saving"
+        ? t("remind.saving")
+        : isPro
+          ? t("remind.cta")
+          : t("remind.ctaPro");
+
   return (
     <>
       <button
+        type="button"
         onClick={handleClick}
         disabled={state === "saving" || state === "saved"}
-        className="inline-flex items-center gap-2 rounded-full bg-card ring-1 ring-line px-4 py-2 text-[12px] text-ink hover:bg-limestone-soft disabled:opacity-70"
+        title={err ?? undefined}
+        className="group inline-flex h-9 items-center gap-2 rounded-full bg-card ring-1 ring-line px-3.5 font-sans text-[12.5px] font-semibold text-ink transition-colors hover:bg-limestone-soft disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        <IconClock className="size-3.5" />
-        {state === "saved"
-          ? t("remind.set")
-          : state === "saving"
-            ? t("remind.saving")
-            : isPro
-              ? t("remind.cta")
-              : t("remind.ctaPro")}
+        <IconClock className={`size-3.5 ${err ? "text-ochre" : "text-ink-soft"}`} />
+        <span className="leading-none">{label}</span>
       </button>
-      {state === "saved" && (
-        <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">
-          {t("remind.foot")}
-        </p>
-      )}
-      {err && (
-        <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ochre">
-          {err}
-        </p>
-      )}
       <AuthSheet
         open={authOpen}
         onClose={() => setAuthOpen(false)}
         title={t("remind.authTitle")}
         subtitle={t("remind.authSubtitle")}
       />
-      
     </>
   );
 }

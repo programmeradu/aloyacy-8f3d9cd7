@@ -11,7 +11,11 @@ const CheckoutInput = z.object({
   planKey: z.enum(["pro_weekly", "pro_monthly"]),
   environment: z.enum(["sandbox", "live"]),
   returnUrl: z.string().url(),
+  deviceId: z.string().min(6).max(128).optional(),
 });
+
+const TRIAL_DAYS = 7;
+
 
 type CheckoutResult = { clientSecret: string } | { error: string };
 
@@ -81,20 +85,43 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         .limit(1)
         .maybeSingle();
 
+      // Allow upgrading during a trial (status='trialing'); only block a
+      // fully paid active subscription. Trials are ephemeral rows without a
+      // stripe_subscription_id — checkout replaces them with the real thing.
       if (
         existing &&
-        (existing.status === "active" || existing.status === "trialing") &&
+        existing.status === "active" &&
         (!existing.current_period_end ||
           new Date(existing.current_period_end as string) > new Date())
       ) {
         return { error: "You already have an active Pro subscription." };
       }
 
+
       const price = await findPriceByPlanKey(stripe, data.planKey);
       if (!price) return { error: "Plan not available right now." };
 
       const email = (claims as { email?: string })?.email;
       const customerId = await resolveOrCreateCustomer(stripe, { userId, email });
+
+      // Trial eligibility: one 7-day trial per user AND per device.
+      // We pre-insert the trial_grants row so a duplicate device/account
+      // can't slip through a race. If the row can't be reserved, we still
+      // let checkout proceed — just without a trial. Card is required
+      // upfront (managed_payments default), so Stripe auto-charges when
+      // the trial ends.
+      let trialDays: number | undefined;
+      if (data.deviceId) {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { error: grantErr } = await supabaseAdmin.from("trial_grants").insert({
+          user_id: userId,
+          device_id: data.deviceId,
+          environment: env,
+          expires_at: new Date(Date.now() + TRIAL_DAYS * 86_400_000).toISOString(),
+        });
+        if (!grantErr) trialDays = TRIAL_DAYS;
+        // 23505 = already redeemed on this device or account → no trial.
+      }
 
       const sessionParams = {
         mode: "subscription",
@@ -110,13 +137,25 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         metadata: { user_id: userId, plan_key: data.planKey },
         subscription_data: {
           metadata: { user_id: userId, plan_key: data.planKey },
+          ...(trialDays ? { trial_period_days: trialDays } : {}),
         },
       } as unknown as Parameters<typeof stripe.checkout.sessions.create>[0];
 
       const session = await stripe.checkout.sessions.create(sessionParams);
 
-      if (!session.client_secret)
+      if (!session.client_secret) {
+        // Roll back trial reservation so the user can retry.
+        if (trialDays && data.deviceId) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          await supabaseAdmin
+            .from("trial_grants")
+            .delete()
+            .eq("user_id", userId)
+            .eq("environment", env);
+        }
         return { error: "Stripe did not return a checkout secret." };
+      }
+
       return { clientSecret: session.client_secret };
     } catch (error) {
       return { error: getStripeErrorMessage(error) };
