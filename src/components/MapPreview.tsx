@@ -795,9 +795,11 @@ export function MapPreview({
  * straight ease-tween between pings.
  * ============================================================ */
 const TWEEN_MS = 5500;                  // off-path fallback tween length
-const MAX_SNAP_M = 45;                  // reject pings further than this off the polyline
-const TELEPORT_M = 250;                 // above this prediction error, snap instead of bleed
-const SETTLE_S = 1.5;                   // target time to absorb a prediction error
+const MAX_SNAP_M = 90;                  // accept pings within this of the polyline (urban GPS noise)
+const PATH_ATTACH_M = 180;              // even noisier pings still snap to path if one exists
+const TELEPORT_M = 400;                 // above this prediction error, fast-settle instead of bleed
+const SETTLE_S = 1.5;                   // target time to absorb a normal prediction error
+const FAST_SETTLE_S = 0.4;              // settle time for large jumps (replaces hard snap)
 const CORRECTION_TAU = 0.6;             // exp-decay constant for the correction velocity
 const DENSIFY_MAX_M = 25;               // max segment length after densification
 const SPEED_SMOOTH = 0.55;              // EMA weight on the freshest speed sample
@@ -1085,11 +1087,12 @@ class AnimatedBus {
     this.pathTotal = this.cum[this.cum.length - 1];
     // Initialise the kinematic position from wherever we are right now,
     // so the first frame after path arrives doesn't snap to the start.
+    // We always accept the nearest point on the polyline — even if the
+    // perpendicular distance is large — so the bus never teleports to
+    // along=0 just because GPS noise pushed it off the line.
     const snap = snapAlong({ lat: this.curLat, lng: this.curLng }, dense, this.cum);
-    if (snap && snap.perpM <= MAX_SNAP_M) {
+    if (snap) {
       this.displayedAlong = snap.along;
-    } else {
-      this.displayedAlong = 0;
     }
     this.correctionVel = 0;
   }
@@ -1124,43 +1127,50 @@ class AnimatedBus {
 
     if (this.path && this.path.length >= 2) {
       const snap = snapAlong({ lat, lng }, this.path, this.cum);
-      if (snap && snap.perpM <= MAX_SNAP_M) {
-        const pingAlong = snap.along;
+      // Accept the snap if it's within the tight band (high-quality fix)
+      // OR within the loose attach band when we already trust the path
+      // (the path is more reliable than a noisy GPS sample). Either way
+      // we stay on the polyline — never drop to cross-map lerp when a
+      // path exists, since that's what draws lines through buildings.
+      const tightOk = snap && snap.perpM <= MAX_SNAP_M;
+      const looseOk = snap && snap.perpM <= PATH_ATTACH_M;
+
+      if (tightOk || looseOk) {
+        const pingAlong = snap!.along;
         const err = pingAlong - this.displayedAlong;
 
         if (Math.abs(err) > TELEPORT_M) {
-          // Driver detoured, started a new run, or feed reset — snap.
-          this.displayedAlong = pingAlong;
-          this.correctionVel = 0;
+          // Driver detoured, started a new run, or feed reset. Don't hard
+          // snap (that's a visible teleport) — settle quickly instead.
+          this.correctionVel = err / FAST_SETTLE_S;
         } else {
           // Smooth correction: distribute the error over SETTLE_S seconds.
           this.correctionVel = err / SETTLE_S;
         }
 
-        // EMA-smooth the speed so noisy zero / spike samples don't visibly
-        // jolt the glide between feed refreshes.
+        // Trust speed more when the ping was on-path; less when it was loose.
+        const weight = tightOk ? SPEED_SMOOTH : SPEED_SMOOTH * 0.4;
         this.speedMps =
           this.speedMps === 0 && estSpeed > 0
             ? estSpeed
-            : this.speedMps * (1 - SPEED_SMOOTH) + estSpeed * SPEED_SMOOTH;
+            : this.speedMps * (1 - weight) + estSpeed * weight;
 
         this.usePath = true;
         this.setBoarding(this.speedMps < 0.5);
         return;
       }
-      // Ping fell off the polyline. Distrust it: keep gliding on the line
-      // with what we already know, but bleed off any pending correction so
-      // we don't keep drifting on stale error. Slowly fade speed so the
-      // bus eventually parks if the GPS stays bad.
-      if (this.usePath) {
-        this.correctionVel = 0;
-        this.speedMps *= 0.75;
-        if (this.speedMps < 0.4) this.setBoarding(true);
-        return;
-      }
+      // Ping is wildly off the polyline (>PATH_ATTACH_M). Distrust the
+      // sample entirely and keep gliding on the line with what we know.
+      // Bleed correction; fade speed so the bus eventually parks if GPS
+      // stays bad.
+      this.correctionVel = 0;
+      this.speedMps *= 0.75;
+      if (this.speedMps < 0.4) this.setBoarding(true);
+      this.usePath = true;
+      return;
     }
 
-    // -------- Off-path fallback: original ease-tween between pings -------
+    // -------- Off-path fallback (no shape available): ease-tween --------
     this.usePath = false;
     this.fromLat = this.curLat;
     this.fromLng = this.curLng;
@@ -1231,7 +1241,7 @@ class AnimatedBus {
     // path branch starts from the right place instead of along=0.
     if (this.path && this.path.length >= 2) {
       const snap = snapAlong({ lat, lng }, this.path, this.cum);
-      if (snap && snap.perpM <= MAX_SNAP_M) {
+      if (snap && snap.perpM <= PATH_ATTACH_M) {
         this.displayedAlong = snap.along;
         const seededSpeed = Math.max(0, Math.min(22, speedMps));
         if (seededSpeed > 0.5) {
