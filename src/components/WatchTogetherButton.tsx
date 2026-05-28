@@ -181,3 +181,29 @@ function PulseDot() {
     </span>
   );
 }
+
+// Bespoke trio-of-friends glyph — three overlapping shoulders + heads, drawn
+// as a single-color mark so it sits cleanly on the aegean tile. Not a stock
+// icon; hand-tuned proportions to feel warm rather than clinical.
+function FriendsGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 24" fill="none" className={className} aria-hidden>
+      {/* back shoulders — soft silhouette behind */}
+      <path
+        d="M3 22c1-4 4-6 7-6s6 2 7 6H3Zm12 0c1-4 4-6 7-6s6 2 7 6H15Z"
+        fill="currentColor"
+        opacity="0.55"
+      />
+      {/* back heads */}
+      <circle cx="10" cy="8" r="3.2" fill="currentColor" opacity="0.55" />
+      <circle cx="22" cy="8" r="3.2" fill="currentColor" opacity="0.55" />
+      {/* front friend — larger, forward */}
+      <path
+        d="M7 23c1.4-4.2 4.7-6.4 9-6.4s7.6 2.2 9 6.4H7Z"
+        fill="currentColor"
+      />
+      <circle cx="16" cy="7.2" r="4" fill="currentColor" />
+    </svg>
+  );
+}
+
