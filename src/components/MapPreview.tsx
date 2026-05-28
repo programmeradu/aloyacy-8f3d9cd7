@@ -1087,11 +1087,12 @@ class AnimatedBus {
     this.pathTotal = this.cum[this.cum.length - 1];
     // Initialise the kinematic position from wherever we are right now,
     // so the first frame after path arrives doesn't snap to the start.
+    // We always accept the nearest point on the polyline — even if the
+    // perpendicular distance is large — so the bus never teleports to
+    // along=0 just because GPS noise pushed it off the line.
     const snap = snapAlong({ lat: this.curLat, lng: this.curLng }, dense, this.cum);
-    if (snap && snap.perpM <= MAX_SNAP_M) {
+    if (snap) {
       this.displayedAlong = snap.along;
-    } else {
-      this.displayedAlong = 0;
     }
     this.correctionVel = 0;
   }
