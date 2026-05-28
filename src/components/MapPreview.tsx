@@ -795,9 +795,11 @@ export function MapPreview({
  * straight ease-tween between pings.
  * ============================================================ */
 const TWEEN_MS = 5500;                  // off-path fallback tween length
-const MAX_SNAP_M = 45;                  // reject pings further than this off the polyline
-const TELEPORT_M = 250;                 // above this prediction error, snap instead of bleed
-const SETTLE_S = 1.5;                   // target time to absorb a prediction error
+const MAX_SNAP_M = 90;                  // accept pings within this of the polyline (urban GPS noise)
+const PATH_ATTACH_M = 180;              // even noisier pings still snap to path if one exists
+const TELEPORT_M = 400;                 // above this prediction error, fast-settle instead of bleed
+const SETTLE_S = 1.5;                   // target time to absorb a normal prediction error
+const FAST_SETTLE_S = 0.4;              // settle time for large jumps (replaces hard snap)
 const CORRECTION_TAU = 0.6;             // exp-decay constant for the correction velocity
 const DENSIFY_MAX_M = 25;               // max segment length after densification
 const SPEED_SMOOTH = 0.55;              // EMA weight on the freshest speed sample
