@@ -118,8 +118,13 @@ export function WatchTogetherButton({
         onClick={() => setOpen(true)}
         className="group flex w-full items-center gap-3 rounded-2xl bg-card px-4 py-3.5 text-left ring-1 ring-line transition-colors hover:bg-limestone-soft/60"
       >
-        <span className="grid size-10 place-items-center rounded-xl bg-aegean-deep text-limestone shadow-sm">
-          <PulseDot />
+        <span className="relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-aegean-deep to-aegean text-limestone shadow-[0_6px_16px_-8px_rgba(31,108,130,0.55)]">
+          <span aria-hidden className="pointer-events-none absolute inset-0 rounded-xl bg-aegean/40 animate-ping" />
+          <FriendsGlyph className="relative h-6 w-7" />
+          <span aria-hidden className="absolute right-1 top-1 grid size-2.5 place-items-center">
+            <span className="absolute inline-flex size-2.5 animate-ping rounded-full bg-ochre/80" />
+            <span className="relative inline-flex size-1.5 rounded-full bg-ochre ring-2 ring-aegean-deep" />
+          </span>
         </span>
         <span className="min-w-0 flex-1">
           <span className="block font-display text-[14.5px] font-semibold leading-tight text-ink">
