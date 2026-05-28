@@ -15,6 +15,7 @@ import * as Haptics from "expo-haptics";
 import { palette } from "@/constants/theme";
 import type { WalkStep } from "@aloya/core/geo";
 import { streetViewUrl } from "@/lib/walk";
+import { StreetViewSheet } from "@/components/StreetViewSheet";
 
 function fmtDist(m: number) {
   if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
