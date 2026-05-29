@@ -8,7 +8,7 @@
 // coverage), we fall back to a limestone panel with a maneuver glyph so
 // the step still reads.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, Image, Pressable } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
