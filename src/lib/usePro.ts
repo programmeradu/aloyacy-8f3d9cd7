@@ -42,8 +42,11 @@ export function useProSubscription() {
     }
     load();
 
+    // Unique channel name per hook instance — multiple components use this
+    // hook; reusing `sub-${user.id}` returns the already-subscribed channel
+    // and `.on()` after `.subscribe()` throws.
     const channel = supabase
-      .channel(`sub-${user.id}`)
+      .channel(`sub-${user.id}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "subscriptions", filter: `user_id=eq.${user.id}` },
