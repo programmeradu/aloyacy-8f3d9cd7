@@ -73,9 +73,16 @@ function initials(name: string) {
 }
 
 export const Route = createFileRoute("/group/$code")({
-  head: () => {
-    const title = "Group trip — Aloya";
-    const desc = "Everyone in your group, converging on one place. Live.";
+  head: ({ params }) => {
+    const code = String(params.code || "").toUpperCase();
+    const title = `Group trip · ${code} — Aloya`;
+    const desc = "Everyone in your group, converging on one place. Live positions and arrival ETAs update as friends move.";
+    // Absolute OG image URL is rendered on demand from the current group
+    // state. A cache-buster minute-bucket nudges platforms that key by URL
+    // to re-fetch periodically so previews don't stay stale for hours.
+    const bucket = Math.floor(Date.now() / 60_000);
+    const ogImage = `https://app.aloya.cy/api/public/og/group/${encodeURIComponent(code)}?v=${bucket}`;
+    const pageUrl = `https://app.aloya.cy/group/${encodeURIComponent(code)}`;
     return {
       meta: [
         { title },
@@ -84,14 +91,21 @@ export const Route = createFileRoute("/group/$code")({
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
         { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary" },
+        { property: "og:url", content: pageUrl },
+        { property: "og:image", content: ogImage },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:updated_time", content: String(bucket * 60) },
+        { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: desc },
+        { name: "twitter:image", content: ogImage },
       ],
     };
   },
   component: GroupWatchPage,
 });
+
 
 function GroupWatchPage() {
   const { code } = Route.useParams();
