@@ -13,7 +13,7 @@ import { OG_PALETTE, clip, esc, renderOgCard } from "@/lib/og-render.server";
 
 const GROUP_BG = "/__l5e/assets-v1/c1152100-2b4c-41b1-ae85-6efb490103e0/og-group-bg.jpg";
 
-export const Route = createFileRoute("/api/public/og/group/$code.png")({
+export const Route = createFileRoute("/api/public/og/group/$code")({
   server: {
     handlers: {
       GET: async ({ params, request }) => {
