@@ -91,8 +91,6 @@ import { Route as ApiPublicGbfsSystem_informationDotjsonRouteImport } from './ro
 import { Route as ApiPublicGbfsStation_statusDotjsonRouteImport } from './routes/api/public/gbfs/station_status[.]json'
 import { Route as ApiPublicGbfsStation_informationDotjsonRouteImport } from './routes/api/public/gbfs/station_information[.]json'
 import { Route as ApiPublicGbfsFree_bike_statusDotjsonRouteImport } from './routes/api/public/gbfs/free_bike_status[.]json'
-import { Route as ApiPublicOgPlanTokenRouteImport } from './routes/api/public/og/plan.$token'
-import { Route as ApiPublicOgGroupCodeRouteImport } from './routes/api/public/og/group.$code'
 
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
@@ -528,16 +526,6 @@ const ApiPublicGbfsFree_bike_statusDotjsonRoute =
     path: '/api/public/gbfs/free_bike_status.json',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicOgPlanTokenRoute = ApiPublicOgPlanTokenRouteImport.update({
-  id: '/api/public/og/plan/$token',
-  path: '/api/public/og/plan/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicOgGroupCodeRoute = ApiPublicOgGroupCodeRouteImport.update({
-  id: '/api/public/og/group/$code',
-  path: '/api/public/og/group/$code',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -622,8 +610,6 @@ export interface FileRoutesByFullPath {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
-  '/api/public/og/group/$code': typeof ApiPublicOgGroupCodeRoute
-  '/api/public/og/plan/$token': typeof ApiPublicOgPlanTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -708,8 +694,6 @@ export interface FileRoutesByTo {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
-  '/api/public/og/group/$code': typeof ApiPublicOgGroupCodeRoute
-  '/api/public/og/plan/$token': typeof ApiPublicOgPlanTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -795,8 +779,6 @@ export interface FileRoutesById {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
-  '/api/public/og/group/$code': typeof ApiPublicOgGroupCodeRoute
-  '/api/public/og/plan/$token': typeof ApiPublicOgPlanTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -883,8 +865,6 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
-    | '/api/public/og/group/$code'
-    | '/api/public/og/plan/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -969,8 +949,6 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
-    | '/api/public/og/group/$code'
-    | '/api/public/og/plan/$token'
   id:
     | '__root__'
     | '/'
@@ -1055,8 +1033,6 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
-    | '/api/public/og/group/$code'
-    | '/api/public/og/plan/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1141,8 +1117,6 @@ export interface RootRouteChildren {
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
-  ApiPublicOgGroupCodeRoute: typeof ApiPublicOgGroupCodeRoute
-  ApiPublicOgPlanTokenRoute: typeof ApiPublicOgPlanTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1721,20 +1695,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/og/plan/$token': {
-      id: '/api/public/og/plan/$token'
-      path: '/api/public/og/plan/$token'
-      fullPath: '/api/public/og/plan/$token'
-      preLoaderRoute: typeof ApiPublicOgPlanTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/og/group/$code': {
-      id: '/api/public/og/group/$code'
-      path: '/api/public/og/group/$code'
-      fullPath: '/api/public/og/group/$code'
-      preLoaderRoute: typeof ApiPublicOgGroupCodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -1837,8 +1797,6 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
-  ApiPublicOgGroupCodeRoute: ApiPublicOgGroupCodeRoute,
-  ApiPublicOgPlanTokenRoute: ApiPublicOgPlanTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
