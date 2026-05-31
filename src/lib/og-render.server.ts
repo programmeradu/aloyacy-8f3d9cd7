@@ -40,24 +40,26 @@ async function loadFontFromGoogleCss(cssUrl: string): Promise<ArrayBuffer> {
 
 export function loadOgFonts(): Promise<Font[]> {
   if (fontsPromise) return fontsPromise;
-  fontsPromise = (async () => {
+  const p: Promise<Font[]> = (async () => {
     const [display, body, bodyBold] = await Promise.all([
       loadFontFromGoogleCss(BRICOLAGE_800_URL),
       loadFontFromGoogleCss(GEIST_500_URL),
       loadFontFromGoogleCss(GEIST_700_URL),
     ]);
     return [
-      { name: "Display", data: display, weight: 800, style: "normal" },
-      { name: "Body", data: body, weight: 500, style: "normal" },
-      { name: "Body", data: bodyBold, weight: 700, style: "normal" },
+      { name: "Display", data: display, weight: 800 as const, style: "normal" as const },
+      { name: "Body", data: body, weight: 500 as const, style: "normal" as const },
+      { name: "Body", data: bodyBold, weight: 700 as const, style: "normal" as const },
     ];
-  })().catch((e) => {
+  })();
+  fontsPromise = p;
+  p.catch(() => {
     // Reset so the next request can retry rather than caching a rejection.
-    fontsPromise = null;
-    throw e;
+    if (fontsPromise === p) fontsPromise = null;
   });
-  return fontsPromise;
+  return p;
 }
+
 
 /** Truncate copy with an ellipsis so it never breaks the card layout. */
 export function clip(s: string, max: number): string {
