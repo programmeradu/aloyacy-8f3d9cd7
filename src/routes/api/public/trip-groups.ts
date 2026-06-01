@@ -5,6 +5,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
   createTripGroup,
+  endTripGroup,
   joinTripGroup,
   leaveTripGroup,
   pingGroupMember,
