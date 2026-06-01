@@ -791,8 +791,19 @@ function JoinCard({ code, onJoined }: { code: string; onJoined: (t: string) => v
 
 /* ——————————————————————————— Live card (already joined) ——————————————————————————— */
 
-function LiveCard({ group, me, onLeft }: { group: GroupRow; me: MemberRow; onLeft: () => Promise<void> }) {
+function LiveCard({
+  group,
+  me,
+  onLeft,
+  onEnded,
+}: {
+  group: GroupRow;
+  me: MemberRow;
+  onLeft: () => Promise<void>;
+  onEnded: () => Promise<void>;
+}) {
   const [busy, setBusy] = useState(false);
+  const [ending, setEnding] = useState(false);
 
   const share = useCallback(async () => {
     void Haptics.selectionAsync();
@@ -825,6 +836,30 @@ function LiveCard({ group, me, onLeft }: { group: GroupRow; me: MemberRow; onLef
       },
     ]);
   }, [me.member_token, onLeft]);
+
+  const endTrip = useCallback(() => {
+    Alert.alert(
+      "End this group trip?",
+      "The group will be disbanded for everyone immediately. This can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "End trip",
+          style: "destructive",
+          onPress: async () => {
+            setEnding(true);
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            try {
+              await callGroups("end", { memberToken: me.member_token });
+              await onEnded();
+            } finally {
+              setEnding(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [me.member_token, onEnded]);
 
   return (
     <View
