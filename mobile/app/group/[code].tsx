@@ -105,6 +105,25 @@ function timeAgo(iso: string | null): string {
   return `${Math.round(diffSec / 3600)} h ago`;
 }
 
+function isStale(iso: string | null): boolean {
+  if (!iso) return true;
+  return Date.now() - new Date(iso).getTime() > STALE_MS;
+}
+
+function toMapMembers(members: MemberRow[], meToken: string | null): GroupMapMember[] {
+  return members
+    .filter((m) => m.status === "active")
+    .map((m) => ({
+      id: m.id,
+      displayName: m.display_name,
+      lat: m.last_lat,
+      lng: m.last_lng,
+      lastUpdated: m.last_updated,
+      isMe: m.member_token === meToken,
+      isCreator: m.is_creator,
+    }));
+}
+
 export default function GroupWatchScreen() {
   const params = useLocalSearchParams<{ code: string }>();
   const code = (params.code ?? "").toUpperCase();
