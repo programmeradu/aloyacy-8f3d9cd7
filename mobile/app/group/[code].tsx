@@ -28,10 +28,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { palette } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { API_BASE } from "@/lib/api";
+import { GroupMap, type GroupMapMember } from "@/components/GroupMap";
+import {
+  startGroupBackgroundLocation,
+  stopGroupBackgroundLocation,
+} from "@/lib/groupBackgroundLocation";
 
 const HERO =
   "https://app.aloya.cy/__l5e/assets-v1/5c4831ab-cd68-46d1-ae67-05259fc19a64/group-converge-hero.jpg";
 const PING_INTERVAL_MS = 25_000;
+const STALE_MS = 75_000;
 const TOKEN_KEY = (code: string) => `aloya.group.${code}.token`;
 const NAME_KEY = "aloya.group.lastName";
 
