@@ -253,6 +253,11 @@ export default function GroupWatchScreen() {
                 hostName={group.created_by_name}
               />
               <ConvergeCard members={members} expired={expired} />
+              <GroupMap
+                members={toMapMembers(members, myToken)}
+                destination={{ lat: group.destination_lat, lng: group.destination_lng }}
+                destinationLabel={group.destination_label}
+              />
               <MembersList members={members} meToken={myToken} />
               {!expired && !me && <JoinCard code={group.code} onJoined={setMyToken} />}
               {!expired && me && (
@@ -260,8 +265,13 @@ export default function GroupWatchScreen() {
                   group={group}
                   me={me}
                   onLeft={async () => {
+                    await stopGroupBackgroundLocation();
                     setMyToken(null);
                     await AsyncStorage.removeItem(TOKEN_KEY(code));
+                  }}
+                  onEnded={async () => {
+                    await stopGroupBackgroundLocation();
+                    void queryClient.invalidateQueries({ queryKey: ["mobile-trip-group", code] });
                   }}
                 />
               )}
