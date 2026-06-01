@@ -3,7 +3,16 @@ import { loadStripe, type Stripe } from "@stripe/stripe-js";
 type StripeEnv = "sandbox" | "live";
 
 const clientToken = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string | undefined;
-const environment: StripeEnv = clientToken?.startsWith("pk_test_") ? "sandbox" : "live";
+
+// Derive env from token prefix. When the token is missing (e.g. production
+// build shipped before payments go-live finished), default to "sandbox" so
+// read-only hooks like useProSubscription don't crash the entire app. The
+// actual checkout flow (getStripe) still throws loudly if invoked.
+const environment: StripeEnv = clientToken?.startsWith("pk_live_") ? "live" : "sandbox";
+
+export function isPaymentsConfigured(): boolean {
+  return !!clientToken;
+}
 
 let stripePromise: Promise<Stripe | null> | null = null;
 
