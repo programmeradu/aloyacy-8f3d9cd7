@@ -172,7 +172,9 @@ export default function GroupWatchScreen() {
     [members, myToken],
   );
 
-  // Continuous location ping while joined
+  // Continuous location ping while joined — foreground for immediate
+  // updates, background (TaskManager) so pings continue when the app is
+  // minimised or the screen is off.
   useEffect(() => {
     if (!me || !myToken) return;
     let cancelled = false;
@@ -194,16 +196,23 @@ export default function GroupWatchScreen() {
           });
         },
       );
+      // Also start background updates so a pocketed phone keeps pinging.
+      void startGroupBackgroundLocation(myToken, code);
     })();
     return () => {
       cancelled = true;
       subscription?.remove();
     };
-  }, [me?.id, myToken]);
+  }, [me?.id, myToken, code]);
+
+  // Auto-stop background updates if the trip has ended.
+  const expired = group ? new Date(group.expires_at).getTime() < Date.now() : false;
+  useEffect(() => {
+    if (expired) void stopGroupBackgroundLocation();
+  }, [expired]);
 
   const isLoading = groupQuery.isLoading;
   const isMissing = !isLoading && (groupQuery.isError || !group);
-  const expired = group ? new Date(group.expires_at).getTime() < Date.now() : false;
 
   return (
     <>
