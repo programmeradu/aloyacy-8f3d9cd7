@@ -573,6 +573,7 @@ function MembersList({ members, meToken }: { members: MemberRow[]; meToken: stri
       {members.map((m, i) => {
         const tone = MEMBER_TONES[i % MEMBER_TONES.length];
         const isMe = m.member_token === meToken;
+        const stale = m.status === "active" && m.last_lat != null && isStale(m.last_updated);
         return (
           <View
             key={m.id}
@@ -591,9 +592,10 @@ function MembersList({ members, meToken }: { members: MemberRow[]; meToken: stri
                 width: 40,
                 height: 40,
                 borderRadius: 999,
-                backgroundColor: tone,
+                backgroundColor: stale ? "#9a9689" : tone,
                 alignItems: "center",
                 justifyContent: "center",
+                opacity: stale ? 0.7 : 1,
               }}
             >
               <Text style={{ fontFamily: "Geist_700Bold", fontSize: 13, color: palette.white }}>
@@ -606,12 +608,21 @@ function MembersList({ members, meToken }: { members: MemberRow[]; meToken: stri
                 {isMe ? "  — you" : ""}
                 {m.is_creator ? "  · host" : ""}
               </Text>
-              <Text style={{ marginTop: 2, fontFamily: "Geist_500Medium", fontSize: 12, color: palette.inkSoft }}>
+              <Text
+                style={{
+                  marginTop: 2,
+                  fontFamily: "Geist_500Medium",
+                  fontSize: 12,
+                  color: stale ? palette.ochre : palette.inkSoft,
+                }}
+              >
                 {m.status === "left"
                   ? "Left the group"
                   : m.last_lat == null
                     ? "Waiting for location"
-                    : `Updated ${timeAgo(m.last_updated)}`}
+                    : stale
+                      ? `Signal lost · last seen ${timeAgo(m.last_updated)}`
+                      : `Updated ${timeAgo(m.last_updated)}`}
               </Text>
             </View>
             <View style={{ alignItems: "flex-end" }}>
