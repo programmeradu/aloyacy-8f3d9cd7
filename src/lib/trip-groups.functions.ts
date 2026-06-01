@@ -139,6 +139,30 @@ export const leaveTripGroup = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+const EndInput = z.object({ memberToken: z.string().uuid() });
+
+/** Host-only: force-end the group by setting expires_at to now. Verified
+ *  by the host's private member_token + is_creator flag. */
+export const endTripGroup = createServerFn({ method: "POST" })
+  .inputValidator((input) => EndInput.parse(input))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: member, error: mErr } = await supabaseAdmin
+      .from("trip_group_members")
+      .select("id, group_id, is_creator")
+      .eq("member_token", data.memberToken)
+      .maybeSingle();
+    if (mErr) throw new Error(`member lookup failed: ${mErr.message}`);
+    if (!member) throw new Error("member not found");
+    if (!member.is_creator) throw new Error("only the host can end the group");
+    const { error: uErr } = await supabaseAdmin
+      .from("trip_groups")
+      .update({ expires_at: new Date().toISOString() })
+      .eq("id", member.group_id);
+    if (uErr) throw new Error(`end failed: ${uErr.message}`);
+    return { ok: true as const };
+  });
+
 const JoinInput = z.object({
   code: z.string().min(4).max(12),
   displayName: z.string().min(1).max(40),
