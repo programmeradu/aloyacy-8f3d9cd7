@@ -403,7 +403,7 @@ function GroupMap({
         <PulseDot />&nbsp;Live map · {fixCount} sharing
       </div>
       <MapPreview
-        height="380px"
+        height="h-[380px]"
         center={center}
         spanKm={fixCount === 0 ? 4 : undefined}
         markers={markers}
