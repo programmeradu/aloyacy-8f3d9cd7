@@ -919,6 +919,26 @@ function LiveCard({
           {busy ? "Leaving…" : "Leave the group"}
         </Text>
       </Pressable>
+      {me.is_creator && (
+        <Pressable
+          onPress={endTrip}
+          disabled={ending}
+          style={({ pressed }) => ({
+            marginTop: 10,
+            paddingVertical: 12,
+            borderRadius: 14,
+            backgroundColor: "rgba(184,52,52,0.08)",
+            borderWidth: 1,
+            borderColor: "rgba(184,52,52,0.35)",
+            alignItems: "center",
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <Text style={{ fontFamily: "Geist_700Bold", fontSize: 13, color: "#8a2828" }}>
+            {ending ? "Ending trip…" : "End group trip for everyone"}
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 }
