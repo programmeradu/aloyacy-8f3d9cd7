@@ -50,7 +50,8 @@
         "VIBRATE",
         "RECEIVE_BOOT_COMPLETED",
         "CAMERA",
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "ACCESS_BACKGROUND_LOCATION"
       ],
       "predictiveBackGestureEnabled": false,
       "intentFilters": [
