@@ -945,7 +945,141 @@ function LiveCard({
   );
 }
 
+/* ——————————————————————————— Plan my route ——————————————————————————— */
+
+function PlanRouteCard({ group, joined }: { group: GroupRow; joined: boolean }) {
+  const [busy, setBusy] = useState(false);
+
+  const onPlan = useCallback(async () => {
+    if (busy) return;
+    setBusy(true);
+    Haptics.selectionAsync().catch(() => {});
+    try {
+      let from: { lat: number; lng: number; label: string } | null = null;
+      try {
+        const perm = await Location.getForegroundPermissionsAsync();
+        const canUse =
+          perm.status === "granted" ||
+          (perm.canAskAgain && (await Location.requestForegroundPermissionsAsync()).status === "granted");
+        if (canUse) {
+          const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          from = { lat: pos.coords.latitude, lng: pos.coords.longitude, label: "Current location" };
+        }
+      } catch { /* fall through with no origin */ }
+
+      await AsyncStorage.setItem(
+        "aloya:nl-plan",
+        JSON.stringify({
+          from,
+          to: {
+            lat: group.destination_lat,
+            lng: group.destination_lng,
+            label: group.destination_label,
+          },
+          at: Date.now(),
+        }),
+      );
+      router.push("/(tabs)/plan");
+    } finally {
+      setBusy(false);
+    }
+  }, [busy, group.destination_label, group.destination_lat, group.destination_lng]);
+
+  return (
+    <View
+      style={{
+        borderRadius: 24,
+        backgroundColor: palette.limestoneSoft,
+        borderWidth: 1,
+        borderColor: palette.line,
+        padding: 18,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: "JetBrainsMono_500Medium",
+          fontSize: 10,
+          letterSpacing: 2,
+          textTransform: "uppercase",
+          color: palette.aegeanDeep,
+        }}
+      >
+        {joined ? "Now get there" : "Plan your route"}
+      </Text>
+      <Text
+        style={{
+          marginTop: 6,
+          fontFamily: "BricolageGrotesque_700Bold",
+          fontSize: 20,
+          lineHeight: 25,
+          letterSpacing: -0.3,
+          color: palette.ink,
+        }}
+      >
+        {joined
+          ? "Plan the bus that gets you to the meetup"
+          : `Find the bus to ${group.destination_label}`}
+      </Text>
+      <Text
+        style={{
+          marginTop: 8,
+          fontFamily: "Geist_500Medium",
+          fontSize: 13,
+          lineHeight: 19,
+          color: palette.inkSoft,
+        }}
+      >
+        {joined
+          ? "The group can see your live ETA already. Open the planner to see which bus to catch, when it leaves, then start turn-by-turn guidance."
+          : "Get door-to-door directions with live bus times. Once you start the trip, the group will see your real ETA update as you move."}
+      </Text>
+      <Pressable
+        onPress={onPlan}
+        disabled={busy}
+        accessibilityRole="button"
+        accessibilityLabel="Plan my route to the meetup"
+        style={{
+          marginTop: 14,
+          alignSelf: "flex-start",
+          borderRadius: 14,
+          backgroundColor: palette.aegeanDeep,
+          paddingHorizontal: 20,
+          paddingVertical: 14,
+          minHeight: 48,
+          opacity: busy ? 0.6 : 1,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "Geist_700Bold",
+            fontSize: 12,
+            letterSpacing: 1.4,
+            textTransform: "uppercase",
+            color: palette.limestone,
+          }}
+        >
+          {busy ? "Locating…" : "Plan my route"}
+        </Text>
+      </Pressable>
+      <Text
+        style={{
+          marginTop: 12,
+          fontFamily: "JetBrainsMono_500Medium",
+          fontSize: 9,
+          letterSpacing: 1.8,
+          textTransform: "uppercase",
+          color: palette.inkSoft,
+        }}
+      >
+        Live Cyprus bus schedules · come back to this page anytime
+      </Text>
+    </View>
+  );
+}
+
 /* ——————————————————————————— How this works ——————————————————————————— */
+
+
 
 function HowThisWorks() {
   const items = [
