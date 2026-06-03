@@ -3,11 +3,38 @@
 // is the live counterpart to SharePlanButton (which is a read-only snapshot).
 // Anonymous-safe: no account required to host or join.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { createTripGroup } from "@/lib/trip-groups.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type Point = { lat: number; lng: number; label: string };
+
+type ExistingGroup = {
+  code: string;
+  destination_label: string;
+  memberCount: number;
+  activeMembers: number;
+};
+
+// Scan localStorage for any group codes this browser has joined/hosted.
+// Keys are shaped `aloya.group.<CODE>.token` (see WatchTogetherButton create
+// path + group.$code.tsx join path).
+function readJoinedCodes(): string[] {
+  if (typeof window === "undefined") return [];
+  const codes: string[] = [];
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      const m = k?.match(/^aloya\.group\.([A-Z0-9]+)\.token$/i);
+      if (m) codes.push(m[1].toUpperCase());
+    }
+  } catch {
+    // ignore
+  }
+  return codes;
+}
 
 export function WatchTogetherButton({
   origin,
@@ -22,6 +49,46 @@ export function WatchTogetherButton({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [shared, setShared] = useState<{ url: string; code: string } | null>(null);
+
+  // Detect an existing, still-active group this browser is already part of
+  // for the same destination — and if found, surface it as "resume" instead
+  // of letting the user spin up a duplicate group.
+  const [joinedCodes, setJoinedCodes] = useState<string[]>([]);
+  useEffect(() => {
+    setJoinedCodes(readJoinedCodes());
+  }, []);
+  const existingQuery = useQuery({
+    queryKey: ["watch-together-existing", joinedCodes.join(","), destination.label],
+    enabled: joinedCodes.length > 0,
+    refetchInterval: 20_000,
+    queryFn: async (): Promise<ExistingGroup | null> => {
+      const nowIso = new Date().toISOString();
+      const { data: groups, error } = await supabase
+        .from("trip_groups")
+        .select("id, code, destination_label, expires_at")
+        .in("code", joinedCodes)
+        .gt("expires_at", nowIso);
+      if (error || !groups?.length) return null;
+      // Prefer an exact destination-label match; otherwise fall back to the
+      // most recently active group so the CTA is still useful.
+      const norm = (s: string) => s.trim().toLowerCase();
+      const match =
+        groups.find((g) => norm(g.destination_label) === norm(destination.label)) ??
+        groups[0];
+      const { data: members } = await supabase
+        .from("trip_group_members")
+        .select("status")
+        .eq("group_id", match.id);
+      const active = (members ?? []).filter((m) => m.status === "active").length;
+      return {
+        code: match.code,
+        destination_label: match.destination_label,
+        memberCount: members?.length ?? 0,
+        activeMembers: active,
+      };
+    },
+  });
+  const existing = existingQuery.data ?? null;
 
   async function readPosition(): Promise<{ lat: number; lng: number } | null> {
     return new Promise((resolve) => {
@@ -92,6 +159,44 @@ export function WatchTogetherButton({
     } finally {
       setBusy(false);
     }
+  }
+
+  // Already in an active group — resume it instead of spinning up a duplicate.
+  if (existing && !shared && !open) {
+    const sameDest =
+      existing.destination_label.trim().toLowerCase() ===
+      destination.label.trim().toLowerCase();
+    const count = existing.activeMembers || existing.memberCount;
+    const peopleLabel =
+      count <= 1 ? "just you so far" : `${count} on board`;
+    return (
+      <a
+        href={`/group/${existing.code}`}
+        className="group flex w-full items-center gap-3 rounded-2xl bg-aegean-deep px-4 py-3.5 text-left text-limestone ring-1 ring-aegean-deep transition-opacity hover:opacity-95"
+      >
+        <span className="relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-limestone/15">
+          <span aria-hidden className="pointer-events-none absolute inset-0 rounded-xl bg-limestone/10 animate-ping" />
+          <FriendsGlyph className="relative h-6 w-7" />
+          <span aria-hidden className="absolute right-1 top-1 grid size-2.5 place-items-center">
+            <span className="absolute inline-flex size-2.5 animate-ping rounded-full bg-ochre" />
+            <span className="relative inline-flex size-1.5 rounded-full bg-ochre ring-2 ring-aegean-deep" />
+          </span>
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-display text-[14.5px] font-semibold leading-tight">
+            {sameDest
+              ? `Group trip live · ${existing.code}`
+              : `You're in ${existing.code} → ${existing.destination_label}`}
+          </span>
+          <span className="mt-0.5 block truncate font-sans text-[11.5px] font-medium text-limestone/80">
+            Tap to open the live map · {peopleLabel}
+          </span>
+        </span>
+        <span className="font-display text-lg text-limestone/80 transition-transform group-hover:translate-x-0.5">
+          ›
+        </span>
+      </a>
+    );
   }
 
   if (shared) {
