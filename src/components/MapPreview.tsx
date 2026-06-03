@@ -2,13 +2,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import markerClustererPkg, { type MarkerClusterer as MarkerClustererType } from "@googlemaps/markerclusterer";
-const { MarkerClusterer, SuperClusterAlgorithm } = markerClustererPkg;
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER, getStop, getRoute } from "@/lib/gtfs";
 import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
 import { prefetchShapes, getShapeForTripSync } from "@/lib/shapes";
 import busPremium from "@/assets/bus-premium.png";
 import { IconExpand, IconClose } from "@/components/Icons";
+
+const { MarkerClusterer, SuperClusterAlgorithm } = markerClustererPkg;
 
 export type MapMarker = {
   lat: number;
