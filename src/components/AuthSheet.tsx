@@ -114,10 +114,10 @@ export function AuthSheet({
               autoComplete="one-time-code"
               required
               autoFocus
-              maxLength={6}
+              maxLength={10}
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-              placeholder="123456"
+              placeholder="Enter code"
               className="w-full rounded-2xl border border-line bg-white px-4 py-3 text-center font-mono text-2xl tracking-[0.4em] text-ink placeholder:text-ink-soft/40 focus:border-aegean-deep focus:outline-none"
             />
             {error && <p className="text-xs text-ochre-deep">{error}</p>}
