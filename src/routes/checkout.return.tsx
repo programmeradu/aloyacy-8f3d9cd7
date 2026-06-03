@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useProSubscription } from "@/lib/usePro";
+import { track } from "@/lib/analytics";
 
 export const Route = createFileRoute("/checkout/return")({
   head: () => ({
@@ -16,13 +17,18 @@ export const Route = createFileRoute("/checkout/return")({
 function CheckoutReturn() {
   const { session_id } = Route.useSearch();
   const { isPro, loading } = useProSubscription();
+  const fired = useRef(false);
 
-  // Light page-level confetti haptic, once.
+  // Fire `pro_activated` once when the subscription flips active, plus a
+  // light haptic so the moment feels physical.
   useEffect(() => {
-    if (isPro && typeof navigator !== "undefined" && "vibrate" in navigator) {
+    if (!isPro || fired.current) return;
+    fired.current = true;
+    track("ui:pro.activated", { sessionRef: session_id?.slice(-12) });
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       try { (navigator as Navigator).vibrate?.([8, 30, 12]); } catch { /* noop */ }
     }
-  }, [isPro]);
+  }, [isPro, session_id]);
 
   return (
     <AppShell>
