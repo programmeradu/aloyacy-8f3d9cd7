@@ -277,7 +277,9 @@ export default function GroupWatchScreen() {
                 destination={{ lat: group.destination_lat, lng: group.destination_lng }}
                 destinationLabel={group.destination_label}
               />
+              {!expired && group ? <PlanRouteCard group={group} joined={!!me} /> : null}
               <MembersList members={members} meToken={myToken} />
+
               {!expired && !me && <JoinCard code={group.code} onJoined={setMyToken} />}
               {!expired && me && (
                 <LiveCard
