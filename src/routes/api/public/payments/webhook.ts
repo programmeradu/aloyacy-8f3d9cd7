@@ -160,11 +160,18 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
                 const sub = await stripe.subscriptions.retrieve(
                   session.subscription as string,
                 );
-                await upsertFromSubscription(sub, env);
+                await upsertFromSubscription(sub, env, { sendWelcome: true });
               }
               break;
             }
-            case "customer.subscription.created":
+            case "customer.subscription.created": {
+              await upsertFromSubscription(
+                event.data.object as Stripe.Subscription,
+                env,
+                { sendWelcome: true },
+              );
+              break;
+            }
             case "customer.subscription.updated":
             case "customer.subscription.deleted": {
               await upsertFromSubscription(
