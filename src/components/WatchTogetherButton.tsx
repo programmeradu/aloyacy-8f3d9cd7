@@ -161,6 +161,44 @@ export function WatchTogetherButton({
     }
   }
 
+  // Already in an active group — resume it instead of spinning up a duplicate.
+  if (existing && !shared && !open) {
+    const sameDest =
+      existing.destination_label.trim().toLowerCase() ===
+      destination.label.trim().toLowerCase();
+    const count = existing.activeMembers || existing.memberCount;
+    const peopleLabel =
+      count <= 1 ? "just you so far" : `${count} on board`;
+    return (
+      <a
+        href={`/group/${existing.code}`}
+        className="group flex w-full items-center gap-3 rounded-2xl bg-aegean-deep px-4 py-3.5 text-left text-limestone ring-1 ring-aegean-deep transition-opacity hover:opacity-95"
+      >
+        <span className="relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-limestone/15">
+          <span aria-hidden className="pointer-events-none absolute inset-0 rounded-xl bg-limestone/10 animate-ping" />
+          <FriendsGlyph className="relative h-6 w-7" />
+          <span aria-hidden className="absolute right-1 top-1 grid size-2.5 place-items-center">
+            <span className="absolute inline-flex size-2.5 animate-ping rounded-full bg-ochre" />
+            <span className="relative inline-flex size-1.5 rounded-full bg-ochre ring-2 ring-aegean-deep" />
+          </span>
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-display text-[14.5px] font-semibold leading-tight">
+            {sameDest
+              ? `Group trip live · ${existing.code}`
+              : `You're in ${existing.code} → ${existing.destination_label}`}
+          </span>
+          <span className="mt-0.5 block truncate font-sans text-[11.5px] font-medium text-limestone/80">
+            Tap to open the live map · {peopleLabel}
+          </span>
+        </span>
+        <span className="font-display text-lg text-limestone/80 transition-transform group-hover:translate-x-0.5">
+          ›
+        </span>
+      </a>
+    );
+  }
+
   if (shared) {
     return (
       <div className="flex w-full flex-col gap-1.5">
