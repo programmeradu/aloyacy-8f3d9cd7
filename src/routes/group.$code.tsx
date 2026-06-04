@@ -18,6 +18,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPreview } from "@/components/MapPreview";
 import { pingGroupMember, joinTripGroup, leaveTripGroup } from "@/lib/trip-groups.functions";
+import { useActiveTrip } from "@/lib/trip-store";
 import heroArtAsset from "@/assets/group-converge-hero.jpg.asset.json";
 const heroArt = heroArtAsset.url;
 
@@ -746,6 +747,17 @@ function LiveShareCard({
 
 function PlanRouteCard({ group, joined }: { group: GroupRow; joined: boolean }) {
   const [busy, setBusy] = useState(false);
+  const active = useActiveTrip();
+
+  // Consider the trip a match for this group if the destination is within
+  // ~500m of the group's meetup point — same "you're headed here" intent.
+  const activeMatches = useMemo(() => {
+    if (!active) return false;
+    const dLat = active.to.lat - group.destination_lat;
+    const dLng = active.to.lng - group.destination_lng;
+    const approxMeters = Math.sqrt(dLat * dLat + dLng * dLng) * 111_000;
+    return approxMeters < 500;
+  }, [active, group.destination_lat, group.destination_lng]);
 
   const readPosition = useCallback((): Promise<{ lat: number; lng: number } | null> => {
     return new Promise((resolve) => {
@@ -779,6 +791,50 @@ function PlanRouteCard({ group, joined }: { group: GroupRow; joined: boolean }) 
       setBusy(false);
     }
   }, [group.destination_label, group.destination_lat, group.destination_lng, readPosition]);
+
+  if (active && activeMatches) {
+    const busLeg = active.option.legs.find((l) => l.kind === "bus");
+    const routeShort = busLeg && busLeg.kind === "bus" ? busLeg.routeShort : null;
+    const arrivalUnix =
+      active.itinerary?.arrivalUnix ??
+      (active.option.legs[active.option.legs.length - 1] as { arrivalUnix?: number } | undefined)?.arrivalUnix;
+    const minsAway = arrivalUnix
+      ? Math.max(0, Math.round((arrivalUnix * 1000 - Date.now()) / 60_000))
+      : null;
+    return (
+      <section className="rounded-3xl bg-limestone-soft p-5 ring-1 ring-line">
+        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-aegean-deep">
+          Trip in progress
+        </p>
+        <h2 className="mt-1 font-display text-[20px] font-semibold leading-tight text-ink">
+          {routeShort
+            ? `You're on the ${routeShort} to ${group.destination_label}`
+            : `You're on your way to ${group.destination_label}`}
+        </h2>
+        <p className="mt-2 font-sans text-[13px] font-medium text-ink-soft">
+          {minsAway != null
+            ? `Arriving in about ${minsAway} min. Open the live trip for turn-by-turn guidance — the group already sees your ETA.`
+            : "Open the live trip for turn-by-turn guidance — the group already sees your ETA."}
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <a
+            href={`/trip/${active.option.id}`}
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-aegean-deep px-5 py-3 font-sans text-[13px] font-semibold uppercase tracking-[0.14em] text-limestone transition-opacity hover:opacity-90"
+          >
+            Resume trip
+          </a>
+          <button
+            type="button"
+            onClick={goPlan}
+            disabled={busy}
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink/5 px-4 py-3 font-sans text-[13px] font-semibold uppercase tracking-[0.14em] text-ink transition-colors hover:bg-ink/10 disabled:opacity-60"
+          >
+            {busy ? "Locating…" : "Plan a different route"}
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-3xl bg-limestone-soft p-5 ring-1 ring-line">
