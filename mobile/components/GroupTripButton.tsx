@@ -49,13 +49,16 @@ export function GroupTripButton({
 
   const onPress = useCallback(async () => {
     void Haptics.selectionAsync();
-    let s = session;
+    // Already in a group → jump straight to the group page instead of
+    // creating a new one or re-opening the share sheet.
+    if (session) {
+      router.push(`/group/${session.code}` as never);
+      return;
+    }
+    const s = await create();
     if (!s) {
-      s = await create();
-      if (!s) {
-        Alert.alert("Couldn't start group", "Check your connection and try again.");
-        return;
-      }
+      Alert.alert("Couldn't start group", "Check your connection and try again.");
+      return;
     }
     const message = `Join my trip to ${active.to.label} on Aloya. Code ${s.code}\n${s.url}`;
     try {
