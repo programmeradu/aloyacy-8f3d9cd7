@@ -996,6 +996,122 @@ function PlanRouteCard({ group, joined }: { group: GroupRow; joined: boolean }) 
     }
   }, [busy, group.destination_label, group.destination_lat, group.destination_lng]);
 
+  if (active && activeMatches) {
+    const busLeg = active.option.legs.find((l) => l.kind === "bus");
+    const routeShort = busLeg && busLeg.kind === "bus" ? busLeg.routeShort : null;
+    const arrivalUnix =
+      active.itinerary?.arrivalUnix ??
+      (active.option.legs[active.option.legs.length - 1] as { arrivalUnix?: number } | undefined)?.arrivalUnix;
+    const minsAway = arrivalUnix
+      ? Math.max(0, Math.round((arrivalUnix * 1000 - Date.now()) / 60_000))
+      : null;
+    return (
+      <View
+        style={{
+          borderRadius: 24,
+          backgroundColor: palette.limestoneSoft,
+          borderWidth: 1,
+          borderColor: palette.line,
+          padding: 18,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "JetBrainsMono_500Medium",
+            fontSize: 10,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: palette.aegeanDeep,
+          }}
+        >
+          Trip in progress
+        </Text>
+        <Text
+          style={{
+            marginTop: 6,
+            fontFamily: "BricolageGrotesque_700Bold",
+            fontSize: 20,
+            lineHeight: 25,
+            letterSpacing: -0.3,
+            color: palette.ink,
+          }}
+        >
+          {routeShort
+            ? `You're on the ${routeShort} to ${group.destination_label}`
+            : `You're on your way to ${group.destination_label}`}
+        </Text>
+        <Text
+          style={{
+            marginTop: 8,
+            fontFamily: "Geist_500Medium",
+            fontSize: 13,
+            lineHeight: 19,
+            color: palette.inkSoft,
+          }}
+        >
+          {minsAway != null
+            ? `Arriving in about ${minsAway} min. Open the live trip for turn-by-turn guidance — the group already sees your ETA.`
+            : "Open the live trip for turn-by-turn guidance — the group already sees your ETA."}
+        </Text>
+        <View style={{ marginTop: 14, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          <Pressable
+            onPress={() => {
+              Haptics.selectionAsync().catch(() => {});
+              router.push(`/trip/${active.option.id}` as never);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Resume trip"
+            style={{
+              borderRadius: 14,
+              backgroundColor: palette.aegeanDeep,
+              paddingHorizontal: 20,
+              paddingVertical: 14,
+              minHeight: 48,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "Geist_700Bold",
+                fontSize: 12,
+                letterSpacing: 1.4,
+                textTransform: "uppercase",
+                color: palette.limestone,
+              }}
+            >
+              Resume trip
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={onPlan}
+            disabled={busy}
+            accessibilityRole="button"
+            accessibilityLabel="Plan a different route"
+            style={{
+              borderRadius: 14,
+              backgroundColor: "rgba(19,22,26,0.06)",
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              minHeight: 48,
+              opacity: busy ? 0.6 : 1,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "Geist_700Bold",
+                fontSize: 12,
+                letterSpacing: 1.4,
+                textTransform: "uppercase",
+                color: palette.ink,
+              }}
+            >
+              {busy ? "Locating…" : "Plan a different route"}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View
       style={{
