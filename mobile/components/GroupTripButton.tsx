@@ -161,13 +161,15 @@ export function GroupTripButton({
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.label, isLive && { color: palette.ink }]}>
-          {isLive ? "Group trip live" : "Watch together — live"}
+          {isLive
+            ? `Group ${session!.code}${memberCount ? ` · ${memberCount} on board` : ""}`
+            : "Watch together — live"}
         </Text>
         <Text style={[styles.sub, isLive && { color: "rgba(0,0,0,0.6)" }]}>
           {busy
             ? "Starting group…"
             : isLive
-              ? `Tap to invite · code ${session!.code} · long-press to leave`
+              ? "Tap to open the group map · long-press to leave"
               : "Invite friends · one map, real ETAs, no account"}
         </Text>
       </View>
