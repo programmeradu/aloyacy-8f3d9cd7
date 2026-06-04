@@ -950,6 +950,16 @@ function LiveCard({
 
 function PlanRouteCard({ group, joined }: { group: GroupRow; joined: boolean }) {
   const [busy, setBusy] = useState(false);
+  const active = useActiveTrip();
+
+  // ~500m of the group's meetup point counts as "already heading here".
+  const activeMatches = useMemo(() => {
+    if (!active) return false;
+    const dLat = active.to.lat - group.destination_lat;
+    const dLng = active.to.lng - group.destination_lng;
+    const approxMeters = Math.sqrt(dLat * dLat + dLng * dLng) * 111_000;
+    return approxMeters < 500;
+  }, [active, group.destination_lat, group.destination_lng]);
 
   const onPlan = useCallback(async () => {
     if (busy) return;
