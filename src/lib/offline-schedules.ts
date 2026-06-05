@@ -92,7 +92,20 @@ export async function downloadOfflineSchedules(opts: {
     throw new Error("Offline cache is not supported in this browser.");
   }
   const daysAhead = Math.max(1, Math.min(14, opts.daysAhead ?? 7));
-  const dates = nextDaysYmd(daysAhead);
+  const requested = nextDaysYmd(daysAhead);
+
+  // Intersect with the published by-date index so we don't 404 on dates
+  // the static bundle hasn't been ingested for yet.
+  let available: Set<string> | null = null;
+  try {
+    const idxRes = await fetch("/data/schedule/by-date/index.json", { cache: "no-cache" });
+    if (idxRes.ok) {
+      const idx = (await idxRes.json()) as Record<string, unknown>;
+      available = new Set(Object.keys(idx));
+    }
+  } catch {}
+
+  const dates = available ? requested.filter((d) => available!.has(d)) : requested;
   const dateUrls = dates.flatMap((d) => [
     `/data/schedule/by-date/${d}/stop-trips.json`,
     `/data/schedule/by-date/${d}/stop-times.json`,
