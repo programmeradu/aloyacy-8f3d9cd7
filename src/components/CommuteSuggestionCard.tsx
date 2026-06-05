@@ -79,11 +79,13 @@ export function CommuteSuggestionCard() {
         });
         try {
           sessionStorage.setItem(
-            "aloya:nl-intent",
+            "aloya:nl-plan",
             JSON.stringify({
               from: { label: s.fromLabel, lat: s.fromLat, lng: s.fromLng },
               to: { label: s.toLabel, lat: s.toLat, lng: s.toLng },
-              source: "commute-learner",
+              leaveByISO: null,
+              arriveByISO: null,
+              rawText: `${s.fromLabel} to ${s.toLabel}`,
             }),
           );
         } catch {}
