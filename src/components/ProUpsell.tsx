@@ -1,5 +1,6 @@
 import { paywallStore } from "@/lib/paywall-store";
 import { useProSubscription } from "@/lib/usePro";
+import { useTrialEligibility } from "@/lib/useTrialEligibility";
 import { useI18n } from "@/lib/i18n";
 
 /**
@@ -7,6 +8,7 @@ import { useI18n } from "@/lib/i18n";
  */
 export function ProUpsellCard() {
   const { isPro, loading } = useProSubscription();
+  const trialEligible = useTrialEligibility();
   const { t } = useI18n();
 
   if (loading || isPro) return null;
@@ -30,15 +32,30 @@ export function ProUpsellCard() {
         <div className="flex min-w-0 flex-1 flex-col">
           <p className="font-display text-[11px] font-medium leading-none tracking-[0.14em] text-limestone/70">
             Aloya<span className="text-ochre"> Pro</span>
+            {trialEligible && (
+              <span className="ml-2 rounded-full bg-ochre/15 px-1.5 py-0.5 font-mono text-[9.5px] tracking-[0.16em] text-ochre">
+                7 DAYS FREE
+              </span>
+            )}
           </p>
           <p className="mt-1.5 font-display text-[17px] leading-[1.15] tracking-tight text-limestone text-balance">
             {t("proup.taglineLead")}{" "}
             <span className="text-limestone/55">{t("proup.taglineTail")}</span>
           </p>
           <p className="mt-1.5 text-[11.5px] leading-snug text-limestone/55">
-            {t("proup.priceFromPrefix")}{" "}
-            <span className="tabular-nums text-limestone/80">€1.99</span>
-            {t("proup.priceFromSuffix")}
+            {trialEligible ? (
+              <>
+                7-day free trial, then{" "}
+                <span className="tabular-nums text-limestone/80">€1.99</span>
+                /wk · cancel anytime
+              </>
+            ) : (
+              <>
+                {t("proup.priceFromPrefix")}{" "}
+                <span className="tabular-nums text-limestone/80">€1.99</span>
+                {t("proup.priceFromSuffix")}
+              </>
+            )}
           </p>
         </div>
 
@@ -47,7 +64,7 @@ export function ProUpsellCard() {
           onClick={() => paywallStore.open()}
           className="shrink-0 rounded-full bg-limestone px-4 py-2 text-[12.5px] font-medium tracking-tight text-ink transition hover:bg-limestone/90 active:scale-[0.98]"
         >
-          {t("proup.tryPro")}
+          {trialEligible ? "Start free" : t("proup.tryPro")}
         </button>
       </div>
     </article>

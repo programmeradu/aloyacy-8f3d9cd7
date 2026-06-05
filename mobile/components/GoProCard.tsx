@@ -4,6 +4,7 @@ import { palette } from "@/constants/theme";
 import { Card } from "./Card";
 import { startProCheckout, type PlanKey } from "@/lib/wallet";
 import { useSession } from "@/lib/auth";
+import { useTrialEligibility } from "@/lib/useTrialEligibility";
 
 const PLANS: { id: PlanKey; label: string; price: string; cadence: string; note?: string }[] = [
   { id: "pro_weekly", label: "Weekly", price: "€1.99", cadence: "/week" },
@@ -16,6 +17,7 @@ export function GoProCard() {
   const [plan, setPlan] = useState<PlanKey>("pro_monthly");
   const [promo, setPromo] = useState("");
   const [busy, setBusy] = useState(false);
+  const trialEligible = useTrialEligibility();
 
   const effectiveEmail = signedIn ? (user?.email ?? "") : email;
 
@@ -68,6 +70,65 @@ export function GoProCard() {
       >
         Faster planning,{"\n"}quieter notifications.
       </Text>
+
+      {trialEligible && (
+        <View
+          style={{
+            marginTop: 14,
+            borderWidth: 1,
+            borderColor: palette.aegeanDeep + "40",
+            borderRadius: 14,
+            paddingHorizontal: 14,
+            paddingVertical: 12,
+            backgroundColor: "#fff",
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "BricolageGrotesque_700Bold",
+                fontSize: 14,
+                color: palette.ink,
+                letterSpacing: -0.2,
+                flexShrink: 1,
+              }}
+            >
+              7 days free, then auto-renews
+            </Text>
+            <Text
+              style={{
+                fontFamily: "Geist_700Bold",
+                fontSize: 9,
+                color: palette.inkSoft ?? palette.olive,
+                letterSpacing: 1.4,
+              }}
+            >
+              ONE PER DEVICE
+            </Text>
+          </View>
+          <Text
+            style={{
+              marginTop: 4,
+              fontFamily: "Geist_500Medium",
+              fontSize: 11.5,
+              lineHeight: 16,
+              color: palette.inkSoft ?? palette.olive,
+            }}
+          >
+            {signedIn
+              ? "Card required so we can renew when the trial ends. Cancel before day 7 and you won\u2019t be charged."
+              : "Sign in on the next step to start your 7-day free trial. Cancel before day 7 and you won\u2019t be charged."}
+          </Text>
+        </View>
+      )}
+
 
       <View style={{ marginTop: 16, gap: 8 }}>
         {PLANS.map((p) => {
@@ -220,20 +281,6 @@ export function GoProCard() {
         }}
       />
 
-      {signedIn && (
-        <Text
-          style={{
-            marginTop: 10,
-            fontFamily: "Geist_500Medium",
-            fontSize: 11,
-            color: palette.inkSoft ?? palette.olive,
-            textAlign: "center",
-          }}
-        >
-          New here? Your first 7 days are free — cancel anytime before day 7 and you won't be charged.
-        </Text>
-      )}
-
       <Pressable
         disabled={busy}
         onPress={handlePay}
@@ -247,9 +294,14 @@ export function GoProCard() {
         }}
       >
         <Text style={{ fontFamily: "Geist_600SemiBold", fontSize: 14, color: palette.limestone }}>
-          {busy ? "Opening payment sheet…" : "Continue to payment"}
+          {busy
+            ? "Opening payment sheet\u2026"
+            : trialEligible
+              ? "Start 7-day free trial"
+              : "Continue to payment"}
         </Text>
       </Pressable>
+
 
     </Card>
   );
