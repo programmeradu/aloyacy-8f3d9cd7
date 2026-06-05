@@ -17,6 +17,7 @@ export function GoProCard() {
   const [plan, setPlan] = useState<PlanKey>("pro_monthly");
   const [promo, setPromo] = useState("");
   const [busy, setBusy] = useState(false);
+  const trialEligible = useTrialEligibility();
 
   const effectiveEmail = signedIn ? (user?.email ?? "") : email;
 
