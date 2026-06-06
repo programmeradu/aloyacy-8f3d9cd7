@@ -23,6 +23,10 @@ const InputSchema = z.object({
   to: PointSchema,
   debug: z.boolean().optional(),
   mode: z.enum(["live", "scheduled", "both"]).optional(),
+  /** Unix seconds. Plan trips departing at/after this time. */
+  departAtUnix: z.number().int().positive().optional(),
+  /** Unix seconds. Plan trips arriving at/before this time. */
+  arriveByUnix: z.number().int().positive().optional(),
 });
 
 export type MultiLegResult = {
@@ -42,12 +46,23 @@ export type MultiLegResult = {
 
 const TOP_K = 5;
 const MAX_TOTAL_JOURNEY_SEC = 300 * 60;
+const FUTURE_THRESHOLD_SEC = 20 * 60; // beyond this, skip live and use scheduled only
 
 export const planMultiLeg = createServerFn({ method: "POST" })
   .inputValidator((input) => InputSchema.parse(input))
   .handler(async ({ data }): Promise<MultiLegResult> => {
     const t0 = Date.now();
-    const mode = data.mode ?? "both";
+    const nowSec = Math.floor(Date.now() / 1000);
+
+    // Resolve target departure. arriveBy → back off by 90 min as a search anchor.
+    let departureUnix = data.departAtUnix ?? null;
+    if (!departureUnix && data.arriveByUnix) {
+      departureUnix = Math.max(nowSec, data.arriveByUnix - 90 * 60);
+    }
+    const isFuture = departureUnix !== null && departureUnix - nowSec > FUTURE_THRESHOLD_SEC;
+
+    // Live realtime is only meaningful for "leave now"; future trips go scheduled-only.
+    const mode = data.mode ?? (isFuture ? "scheduled" : "both");
 
     type LiveR = { itineraries: Itinerary[]; diagnostics?: MultiLegDiagnostics } | null;
     type SchedR = { itineraries: Itinerary[]; diagnostics: ScheduledDiagnostics } | null;
@@ -59,7 +74,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
         : Promise.resolve(null);
     const schedPromise: Promise<SchedR> =
       mode === "scheduled" || mode === "both"
-        ? planMultiLegScheduled(data.from, data.to)
+        ? planMultiLegScheduled(data.from, data.to, departureUnix ? { departureUnix } : undefined)
             .catch((e: unknown) => { console.warn("[multileg] scheduled failed:", (e as Error).message); return null; })
         : Promise.resolve(null);
 
