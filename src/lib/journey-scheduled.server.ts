@@ -11,6 +11,14 @@
 // indifferent to which planner produced a given result.
 
 import { loadScheduleForDate, todayLocalDate } from "./schedule-loader.server";
+
+/** Cyprus-local YYYYMMDD for a given unix second timestamp. */
+function localDateForUnix(unix: number): string {
+  // UTC+3 approximation matches todayLocalDate().
+  const d = new Date(unix * 1000 + 3 * 3600 * 1000);
+  return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+void todayLocalDate;
 import { planRaptor, type RaptorDiagnostics } from "./raptor.server";
 import { fetchRealtime } from "./gtfs-rt.server";
 import { refineAllItineraries } from "./walk-refine.server";
