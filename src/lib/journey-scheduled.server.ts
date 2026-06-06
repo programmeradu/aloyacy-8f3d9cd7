@@ -11,6 +11,14 @@
 // indifferent to which planner produced a given result.
 
 import { loadScheduleForDate, todayLocalDate } from "./schedule-loader.server";
+
+/** Cyprus-local YYYYMMDD for a given unix second timestamp. */
+function localDateForUnix(unix: number): string {
+  // UTC+3 approximation matches todayLocalDate().
+  const d = new Date(unix * 1000 + 3 * 3600 * 1000);
+  return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+void todayLocalDate;
 import { planRaptor, type RaptorDiagnostics } from "./raptor.server";
 import { fetchRealtime } from "./gtfs-rt.server";
 import { refineAllItineraries } from "./walk-refine.server";
@@ -30,10 +38,12 @@ export type ScheduledDiagnostics = RaptorDiagnostics & {
 export async function planMultiLegScheduled(
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
-  opts?: { departureUnix?: number },
+  opts?: { departureUnix?: number; date?: string },
 ): Promise<{ itineraries: Itinerary[]; diagnostics: ScheduledDiagnostics }> {
   const departureUnix = opts?.departureUnix ?? Math.floor(Date.now() / 1000);
-  const date = todayLocalDate();
+  // Derive service date from the departure time (Cyprus local), so "tomorrow 7am"
+  // loads tomorrow's shard, not today's.
+  const date = opts?.date ?? localDateForUnix(departureUnix);
 
   const tLoad0 = Date.now();
   const schedule = await loadScheduleForDate(date);
