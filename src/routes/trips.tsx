@@ -264,6 +264,13 @@ function Plan() {
           />
         </div>
 
+        <TimeIntentChip
+          intent={timeIntent}
+          onChange={setTimeIntent}
+          onClear={() => setTimeIntent(null)}
+        />
+
+
         {active && (
           <PlacesPicker
             role={active}
