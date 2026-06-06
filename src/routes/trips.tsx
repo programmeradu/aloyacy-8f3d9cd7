@@ -90,11 +90,21 @@ function Plan() {
       origin?.lng,
       destination?.lat,
       destination?.lng,
+      timeIntent?.leaveByISO ?? null,
+      timeIntent?.arriveByISO ?? null,
       rtTick,
     ],
     queryFn: async () => {
       if (!origin || !destination) return { itineraries: [] as Itinerary[] };
-      const res = await planFn({ data: { from: origin, to: destination } });
+      const departAtUnix = timeIntent?.leaveByISO
+        ? Math.floor(new Date(timeIntent.leaveByISO).getTime() / 1000)
+        : undefined;
+      const arriveByUnix = timeIntent?.arriveByISO
+        ? Math.floor(new Date(timeIntent.arriveByISO).getTime() / 1000)
+        : undefined;
+      const res = await planFn({
+        data: { from: origin, to: destination, departAtUnix, arriveByUnix },
+      });
       return res;
     },
     enabled: !!origin && !!destination,
