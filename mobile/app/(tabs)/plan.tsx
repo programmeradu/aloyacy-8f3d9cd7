@@ -756,7 +756,55 @@ export default function PlanScreen() {
         {/* ── Kapnos coach ───────────────────────────────────────────── */}
         {kapnos && (
           <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
-            <KapnosShuttleCardMobile suggestion={kapnos} />
+            <KapnosShuttleCardMobile
+              suggestion={kapnos}
+              firstMile={firstMileItin}
+              lastMile={lastMileItin}
+              firstMileLoading={
+                kapnosPickupFar && firstMileQuery.isFetching && !firstMileItin
+              }
+              lastMileLoading={
+                kapnosDropoffFar && lastMileQuery.isFetching && !lastMileItin
+              }
+              onPlanFirstMile={
+                firstMileItin
+                  ? () => {
+                      startItinerary(
+                        firstMileItin,
+                        {
+                          lat: effectiveOrigin.lat,
+                          lng: effectiveOrigin.lng,
+                          label: effectiveOrigin.label,
+                        },
+                        {
+                          lat: kapnos.pickup.lat,
+                          lng: kapnos.pickup.lng,
+                          label: kapnos.pickup.name,
+                        },
+                      );
+                    }
+                  : undefined
+              }
+              onPlanLastMile={
+                lastMileItin && destination
+                  ? () => {
+                      startItinerary(
+                        lastMileItin,
+                        {
+                          lat: kapnos.dropoff.lat,
+                          lng: kapnos.dropoff.lng,
+                          label: kapnos.dropoff.name,
+                        },
+                        {
+                          lat: destination.lat,
+                          lng: destination.lng,
+                          label: destination.label,
+                        },
+                      );
+                    }
+                  : undefined
+              }
+            />
           </View>
         )}
 
