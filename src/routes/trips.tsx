@@ -166,6 +166,12 @@ function Plan() {
         setOrigin(plan.from);
         setActive(null);
       }
+      if (plan?.leaveByISO || plan?.arriveByISO) {
+        setTimeIntent({
+          leaveByISO: plan.leaveByISO ?? null,
+          arriveByISO: plan.arriveByISO ?? null,
+        });
+      }
     } catch {}
   }, []);
 
