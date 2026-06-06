@@ -94,6 +94,10 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     const dedup = new Map<string, Itinerary>();
     for (const it of merged) {
       if (it.totalDurationSec > MAX_TOTAL_JOURNEY_SEC) continue;
+      // Honour arrive-by: 10 min slack so a near-miss still shows with a warning upstream.
+      if (data.arriveByUnix && it.arrivalUnix > data.arriveByUnix + 600) continue;
+      // Honour depart-at: keep options that depart within 2h of the requested time.
+      if (departureUnix && it.departureUnix < departureUnix - 300) continue;
       const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
       const key = rides.map((r) => `${r.routeId}|${r.board.stopId}|${r.alight.stopId}`).join("→");
       const existing = dedup.get(key);
