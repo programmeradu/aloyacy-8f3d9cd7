@@ -1,6 +1,9 @@
 // Dynamic OG image for /plan/:token — social previews of a planned trip
 // (meeting point, bus, timing). Fetches the shared plan on every request
 // so previews reflect the actual planned journey — not a generic card.
+//
+// Rendered as PNG via workers-og so previews show on every social
+// platform. See src/lib/og-render.server.ts for renderer notes.
 
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -12,7 +15,7 @@ import {
   OG_WIDTH,
   clip,
   esc,
-  ogSvgResponse,
+  ogPngResponse,
 } from "@/lib/og-render.server";
 
 const PLAN_BG_PATH = "/__l5e/assets-v1/07a36f1e-f5b3-4387-a769-42d43792c7b1/og-plan-bg.jpg";
@@ -77,80 +80,56 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
           }
         }
 
-        // Chip layout math — variable widths, laid out from left.
-        const chips: Array<{ w: number; body: string }> = [];
         const chipTime = `${dep} → ${arr}`;
-        chips.push({
-          w: 260,
-          body: `<rect x="0" y="0" width="260" height="86" rx="16" fill="${OG_PALETTE.ink}"/>
-            <text x="18" y="30" font-family="${OG_FONT_BODY}" font-weight="700" font-size="12" letter-spacing="2" fill="${OG_PALETTE.limestone}" fill-opacity="0.7">${esc(day.toUpperCase())}</text>
-            <text x="18" y="66" font-family="${OG_FONT_DISPLAY}" font-weight="800" font-size="30" letter-spacing="-0.4" fill="${OG_PALETTE.limestone}">${esc(chipTime)}</text>`,
-        });
         const journeyText = `${dur}${transfers ? ` · ${transfers} transfer${transfers === 1 ? "" : "s"}` : ""}`;
-        chips.push({
-          w: 220,
-          body: `<rect x="0" y="0" width="220" height="86" rx="16" fill="${OG_PALETTE.white}" fill-opacity="0.78" stroke="${OG_PALETTE.line}" stroke-width="1"/>
-            <text x="18" y="30" font-family="${OG_FONT_BODY}" font-weight="700" font-size="12" letter-spacing="2" fill="${OG_PALETTE.inkSoft}">JOURNEY</text>
-            <text x="18" y="66" font-family="${OG_FONT_DISPLAY}" font-weight="800" font-size="30" letter-spacing="-0.4" fill="${OG_PALETTE.ink}">${esc(journeyText)}</text>`,
-        });
-        if (routeShort) {
-          chips.push({
-            w: 150,
-            body: `<rect x="0" y="0" width="150" height="86" rx="16" fill="${OG_PALETTE.aegeanDeep}"/>
-              <text x="18" y="30" font-family="${OG_FONT_BODY}" font-weight="700" font-size="12" letter-spacing="2" fill="${OG_PALETTE.limestone}" fill-opacity="0.8">BUS</text>
-              <text x="18" y="66" font-family="${OG_FONT_DISPLAY}" font-weight="800" font-size="30" letter-spacing="-0.4" fill="${OG_PALETTE.limestone}">${esc(routeShort)}</text>`,
-          });
-        }
-        let chipX = 0;
-        const chipsSvg = chips
-          .map((c) => {
-            const s = `<g transform="translate(${chipX},0)">${c.body}</g>`;
-            chipX += c.w + 14;
-            return s;
-          })
-          .join("");
 
-        const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
-  <defs>
-    <linearGradient id="wash" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="${OG_PALETTE.limestone}" stop-opacity="0"/>
-      <stop offset="0.28" stop-color="${OG_PALETTE.limestone}" stop-opacity="0.94"/>
-      <stop offset="1" stop-color="${OG_PALETTE.limestone}" stop-opacity="1"/>
-    </linearGradient>
-  </defs>
-  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="${OG_PALETTE.limestone}"/>
-  <image href="${esc(bg)}" x="0" y="0" width="${OG_WIDTH}" height="${OG_HEIGHT}" preserveAspectRatio="xMidYMid slice"/>
-  <rect x="520" y="0" width="680" height="${OG_HEIGHT}" fill="url(#wash)"/>
+        const busChip = routeShort
+          ? `<div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 18px;border-radius:16px;background:${OG_PALETTE.aegeanDeep};color:${OG_PALETTE.limestone};">
+              <div style="display:flex;font-weight:700;font-size:12px;letter-spacing:2px;opacity:0.8;">BUS</div>
+              <div style="display:flex;font-family:${OG_FONT_DISPLAY};font-weight:800;font-size:30px;letter-spacing:-0.4px;">${esc(routeShort)}</div>
+            </div>`
+          : "";
 
-  <!-- Wordmark -->
-  <g transform="translate(48,52)">
-    <rect x="0" y="0" width="40" height="40" rx="12" fill="${OG_PALETTE.ink}"/>
-    <text x="20" y="29" text-anchor="middle" font-family="${OG_FONT_DISPLAY}" font-weight="800" font-size="24" fill="${OG_PALETTE.limestone}">A</text>
-    <text x="54" y="27" font-family="${OG_FONT_BODY}" font-weight="700" font-size="16" letter-spacing="2" fill="${OG_PALETTE.ink}">ALOYA · CYPRUS</text>
-  </g>
+        const html = `
+<div style="display:flex;width:${OG_WIDTH}px;height:${OG_HEIGHT}px;background:${OG_PALETTE.limestone};font-family:${OG_FONT_BODY};position:relative;">
+  <img src="${esc(bg)}" width="${OG_WIDTH}" height="${OG_HEIGHT}" style="position:absolute;top:0;left:0;width:${OG_WIDTH}px;height:${OG_HEIGHT}px;object-fit:cover;"/>
+  <div style="display:flex;position:absolute;top:0;left:480px;width:720px;height:${OG_HEIGHT}px;background:linear-gradient(to right, rgba(243,237,225,0), rgba(243,237,225,0.94) 20%, ${OG_PALETTE.limestone} 100%);"></div>
 
-  <!-- Kicker -->
-  <g transform="translate(560,148)">
-    <circle cx="6" cy="0" r="6" fill="${OG_PALETTE.ochre}"/>
-    <text x="22" y="6" font-family="${OG_FONT_BODY}" font-weight="700" font-size="15" letter-spacing="2.4" fill="${OG_PALETTE.ochre}">${esc(kicker.toUpperCase())}</text>
-  </g>
+  <div style="display:flex;align-items:center;position:absolute;top:52px;left:48px;">
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:${OG_PALETTE.ink};color:${OG_PALETTE.limestone};font-family:${OG_FONT_DISPLAY};font-weight:800;font-size:24px;">A</div>
+    <div style="display:flex;margin-left:14px;color:${OG_PALETTE.ink};font-weight:700;font-size:16px;letter-spacing:2px;">ALOYA · CYPRUS</div>
+  </div>
 
-  <!-- From / To -->
-  <text x="560" y="196" font-family="${OG_FONT_BODY}" font-weight="500" font-size="14" letter-spacing="2" fill="${OG_PALETTE.inkSoft}">FROM</text>
-  <text x="560" y="234" font-family="${OG_FONT_DISPLAY}" font-weight="800" font-size="30" letter-spacing="-0.4" fill="${OG_PALETTE.ink}">${esc(originLabel)}</text>
-  <text x="560" y="278" font-family="${OG_FONT_BODY}" font-weight="500" font-size="14" letter-spacing="2" fill="${OG_PALETTE.inkSoft}">TO</text>
-  <text x="560" y="330" font-family="${OG_FONT_DISPLAY}" font-weight="800" font-size="52" letter-spacing="-1" fill="${OG_PALETTE.ink}">${esc(destination)}</text>
+  <div style="display:flex;flex-direction:column;position:absolute;top:130px;left:560px;width:600px;">
+    <div style="display:flex;align-items:center;color:${OG_PALETTE.ochre};font-weight:700;font-size:15px;letter-spacing:2.4px;">
+      <div style="display:flex;width:12px;height:12px;border-radius:999px;background:${OG_PALETTE.ochre};margin-right:12px;"></div>
+      ${esc(kicker.toUpperCase())}
+    </div>
 
-  <!-- Chips -->
-  <g transform="translate(560,380)">${chipsSvg}</g>
+    <div style="display:flex;margin-top:26px;color:${OG_PALETTE.inkSoft};font-weight:500;font-size:14px;letter-spacing:2px;">FROM</div>
+    <div style="display:flex;margin-top:8px;color:${OG_PALETTE.ink};font-family:${OG_FONT_DISPLAY};font-weight:800;font-size:30px;letter-spacing:-0.4px;">${esc(originLabel)}</div>
 
-  <!-- Footer -->
-  <text x="48" y="596" font-family="${OG_FONT_BODY}" font-weight="700" font-size="13" letter-spacing="2.6" fill="${OG_PALETTE.inkSoft}">PLAN · SHARE BEFORE YOU LEAVE</text>
-  <text x="${OG_WIDTH - 48}" y="596" text-anchor="end" font-family="${OG_FONT_BODY}" font-weight="500" font-size="13" letter-spacing="2.4" fill="${OG_PALETTE.inkSoft}">APP.ALOYA.CY/PLAN</text>
-</svg>`;
+    <div style="display:flex;margin-top:22px;color:${OG_PALETTE.inkSoft};font-weight:500;font-size:14px;letter-spacing:2px;">TO</div>
+    <div style="display:flex;margin-top:8px;color:${OG_PALETTE.ink};font-family:${OG_FONT_DISPLAY};font-weight:800;font-size:52px;letter-spacing:-1px;line-height:1;">${esc(destination)}</div>
 
-        return ogSvgResponse(svg, 60);
+    <div style="display:flex;margin-top:34px;">
+      <div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 18px;border-radius:16px;background:${OG_PALETTE.ink};color:${OG_PALETTE.limestone};margin-right:14px;">
+        <div style="display:flex;font-weight:700;font-size:12px;letter-spacing:2px;opacity:0.7;">${esc(day.toUpperCase())}</div>
+        <div style="display:flex;font-family:${OG_FONT_DISPLAY};font-weight:800;font-size:30px;letter-spacing:-0.4px;">${esc(chipTime)}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 18px;border-radius:16px;background:rgba(255,255,255,0.78);border:1px solid ${OG_PALETTE.line};color:${OG_PALETTE.ink};margin-right:14px;">
+        <div style="display:flex;color:${OG_PALETTE.inkSoft};font-weight:700;font-size:12px;letter-spacing:2px;">JOURNEY</div>
+        <div style="display:flex;font-family:${OG_FONT_DISPLAY};font-weight:800;font-size:30px;letter-spacing:-0.4px;">${esc(journeyText)}</div>
+      </div>
+      ${busChip}
+    </div>
+  </div>
+
+  <div style="display:flex;position:absolute;left:48px;bottom:34px;color:${OG_PALETTE.inkSoft};font-weight:700;font-size:13px;letter-spacing:2.6px;">PLAN · SHARE BEFORE YOU LEAVE</div>
+  <div style="display:flex;position:absolute;right:48px;bottom:34px;color:${OG_PALETTE.inkSoft};font-weight:500;font-size:13px;letter-spacing:2.4px;">APP.ALOYA.CY/PLAN</div>
+</div>`;
+
+        return ogPngResponse(html, 60);
       },
     },
   },
