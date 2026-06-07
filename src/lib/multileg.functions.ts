@@ -8,7 +8,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { planMultiLegJourney, type MultiLegDiagnostics } from "./journey-multileg.server";
-import { planMultiLegScheduled, type ScheduledDiagnostics } from "./journey-scheduled.server";
+import {
+  planMultiLegScheduled,
+  type ScheduledDiagnostics,
+  NoScheduleAvailableError,
+} from "./journey-scheduled.server";
 import { getSkippedTransferCount } from "./overrides.server";
 import type { Itinerary, RideLeg } from "./itinerary-types";
 
@@ -34,6 +38,10 @@ export type MultiLegResult = {
   searchedAt: number;
   elapsedMs: number;
   mode: "live" | "scheduled" | "both";
+  /** True when the requested date has no timetable shard published yet. */
+  noScheduleAvailable?: boolean;
+  /** YYYYMMDD the planner tried to load when noScheduleAvailable is true. */
+  requestedDate?: string;
   diagnostics?: {
     live?: MultiLegDiagnostics;
     scheduled?: ScheduledDiagnostics;
@@ -72,10 +80,21 @@ export const planMultiLeg = createServerFn({ method: "POST" })
         ? planMultiLegJourney(data.from, data.to, { collectDiagnostics: data.debug ?? false })
             .catch((e: unknown) => { console.warn("[multileg] live failed:", (e as Error).message); return null; })
         : Promise.resolve(null);
+    let noScheduleAvailable = false;
+    let requestedDate: string | undefined;
     const schedPromise: Promise<SchedR> =
       mode === "scheduled" || mode === "both"
-        ? planMultiLegScheduled(data.from, data.to, departureUnix ? { departureUnix } : undefined)
-            .catch((e: unknown) => { console.warn("[multileg] scheduled failed:", (e as Error).message); return null; })
+        ? planMultiLegScheduled(data.from, data.to, departureUnix ? { departureUnix, explicitTime: !!(data.departAtUnix || data.arriveByUnix) } : undefined)
+            .catch((e: unknown) => {
+              if (e instanceof NoScheduleAvailableError) {
+                noScheduleAvailable = true;
+                requestedDate = e.date;
+                console.warn("[multileg] no schedule shard for", e.date);
+                return null;
+              }
+              console.warn("[multileg] scheduled failed:", (e as Error).message);
+              return null;
+            })
         : Promise.resolve(null);
 
     const [liveResult, schedResult] = await Promise.all([livePromise, schedPromise]);
@@ -147,6 +166,8 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       searchedAt: Math.floor(Date.now() / 1000),
       elapsedMs: Date.now() - t0,
       mode,
+      noScheduleAvailable: noScheduleAvailable && top.length === 0 ? true : undefined,
+      requestedDate: noScheduleAvailable ? requestedDate : undefined,
       diagnostics: data.debug
         ? {
             live: liveResult?.diagnostics,
