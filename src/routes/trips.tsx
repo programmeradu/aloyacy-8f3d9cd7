@@ -916,3 +916,19 @@ function formatIntentLabel(iso: string): string {
     return iso;
   }
 }
+
+function formatYYYYMMDD(s: string): string {
+  if (!/^\d{8}$/.test(s)) return s;
+  const y = Number(s.slice(0, 4));
+  const m = Number(s.slice(4, 6)) - 1;
+  const d = Number(s.slice(6, 8));
+  try {
+    return new Date(Date.UTC(y, m, d)).toLocaleDateString([], {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return s;
+  }
+}
