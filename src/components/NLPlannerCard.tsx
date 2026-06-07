@@ -173,6 +173,7 @@ export function NLPlannerCard() {
   const parse = useServerFn(parseTripIntent);
   const acFn = useServerFn(autocompletePlaces);
   const placeFn = useServerFn(getPlace);
+  const suggestFn = useServerFn(getNlSuggestions);
 
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -184,9 +185,46 @@ export function NLPlannerCard() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const recRef = useRef<SpeechRec | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // Best-effort geolocation, never blocks rendering. Powers location-aware
+  // suggestions; absence just degrades them to time-of-day defaults.
+  useEffect(() => {
+    if (typeof window === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { timeout: 4000, maximumAge: 5 * 60_000 },
+    );
+  }, []);
+
+  const suggestionsQuery = useQuery({
+    queryKey: ["nl-suggestions", coords?.lat ?? null, coords?.lng ?? null, new Date().getHours()],
+    queryFn: async () => {
+      const token = await getDeviceToken().catch(() => null);
+      if (!token) return { suggestions: [] };
+      const now = new Date();
+      return suggestFn({
+        data: {
+          deviceId: getDeviceId(),
+          deviceToken: token,
+          lat: coords?.lat ?? null,
+          lng: coords?.lng ?? null,
+          hour: now.getHours(),
+          dow: now.getDay(),
+        },
+      });
+    },
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
+    enabled: typeof window !== "undefined",
+  });
+  const examples =
+    suggestionsQuery.data?.suggestions?.map((s) => s.text) ??
+    (suggestionsQuery.isLoading ? [] : FALLBACK_EXAMPLES);
 
   useEffect(() => {
     trackImpression("ui:nl-planner.impression");
