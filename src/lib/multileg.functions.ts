@@ -166,6 +166,8 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       searchedAt: Math.floor(Date.now() / 1000),
       elapsedMs: Date.now() - t0,
       mode,
+      noScheduleAvailable: noScheduleAvailable && top.length === 0 ? true : undefined,
+      requestedDate: noScheduleAvailable ? requestedDate : undefined,
       diagnostics: data.debug
         ? {
             live: liveResult?.diagnostics,
