@@ -333,12 +333,28 @@ function Plan() {
 
         {results && results.length === 0 && !planning && (
           <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
-            <p className="font-display text-xl text-ink">No live route found</p>
-            <p className="mt-1.5 text-[13px] text-ink-soft">
-              We couldn't see a bus serving both your start and end stops in the
-              next hour. Try a destination closer to a known route, or check
-              again in a few minutes.
-            </p>
+            {planQuery.data?.noScheduleAvailable ? (
+              <>
+                <p className="font-display text-xl text-ink">No timetable for that date</p>
+                <p className="mt-1.5 text-[13px] text-ink-soft">
+                  We don't have published bus schedules for{" "}
+                  {planQuery.data.requestedDate
+                    ? formatYYYYMMDD(planQuery.data.requestedDate)
+                    : "that day"}{" "}
+                  yet. Timetables are loaded for the next 14 days — try a date
+                  inside that window.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-display text-xl text-ink">No live route found</p>
+                <p className="mt-1.5 text-[13px] text-ink-soft">
+                  We couldn't see a bus serving both your start and end stops in
+                  the next hour. Try a destination closer to a known route, or
+                  check again in a few minutes.
+                </p>
+              </>
+            )}
           </div>
         )}
 
