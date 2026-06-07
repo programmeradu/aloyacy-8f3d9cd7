@@ -95,7 +95,8 @@ function Plan() {
       rtTick,
     ],
     queryFn: async () => {
-      if (!origin || !destination) return { itineraries: [] as Itinerary[] };
+      if (!origin || !destination)
+        return { itineraries: [] as Itinerary[], noScheduleAvailable: undefined, requestedDate: undefined };
       const departAtUnix = timeIntent?.leaveByISO
         ? Math.floor(new Date(timeIntent.leaveByISO).getTime() / 1000)
         : undefined;
