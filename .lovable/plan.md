@@ -1,70 +1,72 @@
-## Context
+# Offline cache — web + mobile
 
-You're viewing the app on **Expo Web** (`localhost:8081`). `expo-maps` is a native module — it renders Apple Maps on iOS and Google Maps on Android but has **no web implementation**, so `MapView.tsx` intentionally returns a limestone `WebFallback` tile in the browser. That's why "the map disappeared" on stop / route / trip pages in the Expo web preview. On a real device (Expo Go dev build or EAS build) the same screens already show a live map.
+Status: **DEFERRED** — saved 2026-07-02 for later. Ping me with "let's do the offline cache plan" (or similar) and I'll pick this up.
 
-Two ways forward on the map front, and I want your call before I spend the effort:
+Two surfaces, two mechanisms, one shared philosophy: the app opens instantly with the last-good data when the network is gone, and refreshes silently when it comes back.
 
-- **A. Keep web as fallback tile** (current). Cheap. Everything premium goes into iOS/Android where riders actually live.
-- **B. Add a real web map to `MapView.tsx`** using Google Maps JS (same key + tracking pattern as the web app). Then stop/route/trip/index/airport screens render the same live map on Expo Web too.
+## What gets cached (both platforms)
 
-I recommend **B** so you can QA on your laptop without a device. Same file, platform-branched: Google Maps JS on web, Apple/Google native on device.
+- **App shell** (web only): HTML, JS, CSS, fonts, icons — so the app launches offline.
+- **Static GTFS payloads**: `public/data/*.json`, `gtfs-shapes.json`, `gtfs-headsigns.json` — stable, safe to cache aggressively.
+- **Query results** (both): all TanStack Query caches persist to disk, so the last-seen pulse, plans, saved trips, group state, wallet balance, etc. render immediately on cold start.
+- **Live data** (pulse, realtime, ETAs): NetworkFirst on web, cached-with-stale-marker on mobile. Never cache-first — riders need fresh numbers.
+- **Media/tiles**: Google Maps tiles are handled by their own SDK — we do not intercept.
 
-## Scope for this pass
+Not cached: auth tokens (handled by Supabase), OAuth callbacks (`/~oauth`), server functions with side effects.
 
-Regardless of A/B, deliver mobile parity with the web app:
+## Web (vite-plugin-pwa)
 
-### 1. Animated bus glide (native + web-if-B)
-- Copy `src/assets/bus-premium.png` into `mobile/assets/` and register in `mobile/lib/assets.ts`.
-- New `mobile/lib/animatedBus.ts`: RAF-driven tween between 20 s realtime ticks, bearing-aware interpolation, polyline-snapping when a shape is available (mirrors `src/components/AnimatedBus.tsx`).
-- Wire into `MapView.tsx`: vehicle markers use the bus PNG as icon (`iconResource` on Google, `IconMarkerAnnotation` on Apple), coordinates + rotation update at 30 fps from the RAF loop.
+1. Add `vite-plugin-pwa` with `registerType: "autoUpdate"`, `generateSW`, `injectRegister: null`, `devOptions: { enabled: false }`.
+2. Runtime caching:
+   - HTML navigations → `NetworkFirst` (excludes `/~oauth`, `/api/*`).
+   - `/public/data/*.json`, hashed JS/CSS → `CacheFirst`, 30 days.
+   - `/api/public/realtime`, `/api/public/pulse`, `/api/public/*` GETs → `NetworkFirst`, 60s cache with 1-day SWR fallback, so a dead network still renders the last snapshot with a stale badge.
+   - Google Fonts → `CacheFirst`, 1 year.
+3. Registration wrapper (`src/lib/register-sw.ts`) — the only registrar; refuses to register when any of these hold: `!import.meta.env.PROD`, inside iframe, hostname is a Lovable preview host, or URL has `?sw=off`. In refused contexts, unregisters existing `/sw.js` registrations.
+4. Hook the wrapper into `src/start.ts` (client entry) once.
+5. Persist TanStack Query cache to `localStorage` via `@tanstack/query-sync-storage-persister` + `persistQueryClient`. Buster keyed to app version so a deploy invalidates stale shapes.
+6. Small offline banner: subscribes to `navigator.onLine`, shows "Offline — showing last-known bus data" at the top on route changes when offline.
 
-### 2. Map coverage audit
-Web has maps on: `index`, `stop.$stopId`, `route.$routeId`, `trip.$id`, `trip-info.$tripId`, `airport.$code`, `MultiLegCompanion`, `WalkGuidance`.
-Mobile already has: all of the above **except `WalkGuidance`**. I'll port the web `WalkGuidance` map block into `mobile/components/WalkGuidance.tsx`.
+## Mobile (Expo / React Native)
 
-### 3. Premium chip + card system
-Rebuild these to match web fidelity, no shortcuts:
-- **`RouteChip.tsx`** — route number badge with GTFS `route_color` bar, headsign, tone-aware; used on cards and departure rows.
-- **`StopCode` component (new)** — the "Stop 1234" numeral pill with mono type, limestone-soft ground, aegean rule; currently just raw text in `StopCard`.
-- **`BusNumberBadge` (new)** — the fleet-number pill riders see on the map callout + trip HUD.
-- **`StopCard.tsx`** — background-image treatment using `stop-departures-hero` / `route-card-accent` assets from `mobile/lib/assets.ts`, layered wash so type stays legible, matches web `StopCard` composition.
-- **`DepartureRow.tsx`** — bring in RouteChip + StopCode consistency, tier chip + confidence icon alignment.
-- Route-list cards on `/route/[id]` and search results get the same accent-asset background.
+No service workers on native. Same UX via layered caches:
 
-### 4. Editorial background assets on map screens
-Web wraps `MapPreview` in a card with `route-vignette` / `coast-hero` washes. Mobile screens currently render the map raw. Add the same limestone card frame + optional asset hero to each screen's map block.
+1. Install `@tanstack/react-query-persist-client` + `@tanstack/query-async-storage-persister` (AsyncStorage already present).
+2. Wrap `QueryClientProvider` with `PersistQueryClientProvider` in `mobile/app/_layout.tsx`. `maxAge: 24h`, buster keyed to `expo-application` bundle version.
+3. Persist small state slices (active trip, saved trips, wallet) via existing `mobile/lib/*` stores — audit + add AsyncStorage persistence where missing.
+4. Bundle static GTFS JSON directly in the app via `assets/data/` require() so they are always available offline (no network trip on cold start).
+5. Network status via `@react-native-community/netinfo` → global `useOnline()` hook. When offline: React Query switches to `networkMode: "offlineFirst"`, mutations queue via `onlineManager`, bottom banner shows the same copy.
+6. On foreground return-online: invalidate `["pulse"]`, `["realtime"]`, `["saved-trips"]` so freshest data replaces the cached snapshot without a visible spinner.
 
-## Technical notes (skip if not interesting)
+## Shared UI contract
 
-- `expo-maps` marker icon API: Google accepts `icon: { assetName }` referencing a native drawable OR a `require()`'d asset URI; Apple accepts `iconImage`. We'll use the `require()` form so the bus PNG ships in the JS bundle.
-- Animation state lives outside React (mutable ref of `{ tripId → { lat, lng, rot } }`) and a `useSyncExternalStore` hook re-renders only the map at 30 fps — avoids re-rendering the whole screen.
-- Web map (if B) uses the same `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY` the web app already uses, loaded via a `<script>` tag injected from `mobile/app/+html.tsx`.
+- Same copy on both platforms: "Offline — showing last-known bus data. We'll refresh when you're back."
+- Same stale badges on live cards (pulse, realtime ETAs, group members): dim + "as of HH:MM" label when `data.updatedAt` is older than 60s while offline.
+- No blocking spinners on cold start — always render the persisted snapshot first, then reconcile.
 
-## Deliverables
+## Preview safety (web)
 
-```text
-mobile/
-  assets/bus-premium.png            (new — copied from web)
-  lib/animatedBus.ts                (new)
-  lib/assets.ts                     (extended)
-  components/
-    MapView.tsx                     (bus PNG marker + RAF glide; web branch if B)
-    RouteChip.tsx                   (rebuild premium)
-    StopCode.tsx                    (new)
-    BusNumberBadge.tsx              (new)
-    StopCard.tsx                    (asset backgrounds)
-    DepartureRow.tsx                (chip alignment)
-    WalkGuidance.tsx                (add map block)
-  app/
-    stop/[stopId].tsx               (map card frame + asset)
-    route/[routeId].tsx             (map card frame + asset)
-    trip/[id].tsx                   (map card frame + asset)
-    trip-info/[tripId].tsx          (map card frame + asset)
-    airport/[code].tsx              (map card frame + asset)
-    (tabs)/index.tsx                (nearby stop cards → premium)
-```
+The registration wrapper is the only thing that touches `navigator.serviceWorker`. It never registers in dev, iframe, Lovable preview hosts, or when `?sw=off` is present, and actively unregisters any stale `/sw.js` in those contexts. This keeps the Lovable editor preview clean while offline mode ships to the published site.
 
-## Question before I start
+## Files touched
 
-1. **Web map — A (keep fallback) or B (real Google JS map)?**
-2. Anything you want me to skip from the deliverables list above to keep this shippable in one pass?
+**Web**
+- `vite.config.ts` — add `VitePWA` plugin config.
+- `src/lib/register-sw.ts` — new, guarded registrar + unregister-on-preview.
+- `src/start.ts` — invoke the wrapper.
+- `src/router.tsx` — attach `persistQueryClient` to the QueryClient.
+- `src/components/OfflineBanner.tsx` — new, mounted in `__root.tsx`.
+- `src/routes/__root.tsx` — mount the banner.
+
+**Mobile**
+- `mobile/package.json` — add `@tanstack/react-query-persist-client`, `@tanstack/query-async-storage-persister`, `@react-native-community/netinfo`.
+- `mobile/app/_layout.tsx` — swap to `PersistQueryClientProvider`, register `onlineManager` with NetInfo, mount banner.
+- `mobile/lib/online.ts` — new `useOnline()` hook.
+- `mobile/lib/gtfs.ts` — read bundled static data first, network as refresh.
+- `mobile/components/OfflineBanner.tsx` — new.
+
+## Out of scope
+
+- No offline map tiles (Google's terms + storage cost).
+- No offline mutations for wallet top-ups / payments.
+- Push notifications and background location run through their own workers/services — untouched.
