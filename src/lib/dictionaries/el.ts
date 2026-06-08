@@ -3,7 +3,7 @@
 
 import type { en } from "./en";
 
-export const el: typeof en = {
+export const el: Record<keyof typeof en, string> = {
   "common.back": "Πίσω",
   "common.close": "Κλείσιμο",
   "common.save": "Αποθήκευση",
