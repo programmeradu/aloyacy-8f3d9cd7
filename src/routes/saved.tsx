@@ -14,6 +14,7 @@ import { NotificationsCard } from "@/components/NotificationsCard";
 import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
 import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
 import { useProPaywall } from "@/lib/useProPaywall";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/saved")({
   head: () => ({
