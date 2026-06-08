@@ -42,38 +42,6 @@ function useWeatherClause(w: CurrentWeather | null | undefined): string | null {
   return null;
 }
 
-const COPY: Record<CrowdLevel, { tag: string; line: string; tone: string }> = {
-  quiet: {
-    tag: "Comfort",
-    line: "Plenty of seats — quiet ride.",
-    tone: "bg-olive-soft/40 ring-olive/25 text-olive",
-  },
-  moderate: {
-    tag: "Comfort",
-    line: "Some seats free.",
-    tone: "bg-aegean-soft/40 ring-aegean/25 text-aegean-deep",
-  },
-  busy: {
-    tag: "Comfort",
-    line: "Busy — standing likely.",
-    tone: "bg-ochre-soft/60 ring-ochre/30 text-ochre",
-  },
-  packed: {
-    tag: "Comfort",
-    line: "Packed — consider the next bus if you can.",
-    tone: "bg-ochre-soft ring-ochre/40 text-ochre",
-  },
-};
-
-function weatherClause(w: CurrentWeather | null | undefined): string | null {
-  if (!w) return null;
-  if (w.iconKey === "storm") return "Storms at arrival — bring cover.";
-  if (w.iconKey === "rain") return "Rain at arrival — bring cover.";
-  if (w.iconKey === "wind") return "Windy at arrival.";
-  if (w.tempC >= 33) return `Hot at arrival (${w.tempC}°).`;
-  if (w.tempC <= 8) return `Cold at arrival (${w.tempC}°).`;
-  return null;
-}
 
 export function CrowdHint({
   routeId,
@@ -85,6 +53,7 @@ export function CrowdHint({
   /** When provided, fetch current weather here and fold into the comfort line. */
   weatherAt?: { lat: number; lng: number } | null;
 }) {
+  const { t } = useI18n();
   const fetchLoad = useServerFn(getRouteLoad);
   const fetchWeather = useServerFn(getCurrentWeather);
 
