@@ -430,10 +430,10 @@ function RoutePage() {
                       {liveLabel ?? (
                         <>
                           {i === 0
-                            ? "origin"
+                            ? t("route.origin")
                             : i === data.stopIds.length - 1
-                              ? "terminus"
-                              : `stop ${i + 1}`}
+                              ? t("route.terminus")
+                              : t("route.stopN", { n: i + 1 })}
                           {s.code ? ` — #${s.code}` : ""}
                         </>
                       )}
