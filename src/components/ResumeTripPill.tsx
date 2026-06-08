@@ -17,6 +17,7 @@ export function ResumeTripPill() {
   // localStorage and therefore no trip) doesn't mismatch with the client.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  const { t } = useI18n();
 
   const active = useActiveTrip();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
