@@ -592,16 +592,20 @@ export function NLPlannerCard() {
   );
 }
 
-function formatWhen(iso: string): string {
+type TFn = (key: import("@/lib/i18n").DictKey, vars?: Record<string, string | number>) => string;
+
+function formatWhen(iso: string, t: TFn, locale: string): string {
   try {
+    const tag = locale === "el" ? "el-GR" : undefined;
     const d = new Date(iso);
     const today = new Date();
-    const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-    if (d.toDateString() === today.toDateString()) return `at ${time}`;
+    const time = d.toLocaleTimeString(tag, { hour: "numeric", minute: "2-digit" });
+    if (d.toDateString() === today.toDateString()) return t("nl.when.atTime", { time });
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    if (d.toDateString() === tomorrow.toDateString()) return `tomorrow ${time}`;
-    return `${d.toLocaleDateString([], { weekday: "short" })} ${time}`;
+    if (d.toDateString() === tomorrow.toDateString()) return t("nl.when.tomorrow", { time });
+    const dow = d.toLocaleDateString(tag, { weekday: "short" });
+    return t("nl.when.dow", { dow, time });
   } catch {
     return iso;
   }
