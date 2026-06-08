@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useActiveTrip } from "@/lib/trip-store";
+import { useI18n } from "@/lib/i18n";
 import { IconBus } from "./Icons";
 
 /**
