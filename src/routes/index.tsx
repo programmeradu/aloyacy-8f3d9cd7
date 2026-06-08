@@ -82,6 +82,8 @@ function Explore() {
   const geo = useGeolocation();
   const { data: rt } = useRealtime();
   const getWeather = useServerFn(getCurrentWeather);
+  const { t } = useI18n();
+
 
   // Live local clock (Cyprus is Europe/Nicosia). Gated on mount to avoid SSR hydration mismatch.
   const [mounted, setMounted] = useState(false);
