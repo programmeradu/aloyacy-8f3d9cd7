@@ -579,12 +579,12 @@ function PlacesPicker({
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={role === "from" ? "From where?" : "Where to?"}
+          placeholder={role === "from" ? t("trips.fromWhere") : t("trips.whereTo")}
           className="w-full bg-transparent py-4 pl-11 pr-4 text-[15px] outline-none placeholder:text-ink-soft/60"
         />
         {loading && (
           <span className="absolute right-4 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            Searching
+            {t("trips.searching")}
           </span>
         )}
       </div>
