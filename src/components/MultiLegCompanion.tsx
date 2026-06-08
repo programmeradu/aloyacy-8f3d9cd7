@@ -546,21 +546,20 @@ function PhaseSub({
 // ---- Action HUD ----------------------------------------------------------
 
 function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active: ActiveTrip; onImOff: () => void }) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   if (!live.active) {
     return (
       <section className="px-6 animate-rise" style={{ animationDelay: "100ms" }}>
         <div className="rounded-[28px] bg-aegean-soft/40 ring-1 ring-aegean/20 p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
-            Live guidance
+            {t("hud.liveGuidance")}
           </p>
           <p className="mt-2 font-display text-[26px] leading-tight text-ink">
-            Start the journey to {active.to.label}.
+            {t("ml.act.startTitle", { name: active.to.label })}
           </p>
           <p className="mt-2 text-[13px] text-ink-soft">
-            We will walk you to the first stop, alert you when each bus is
-            approaching, prompt you off at the right moment, and guide every
-            transfer.
+            {t("ml.act.startBody")}
           </p>
           <button
             onClick={async () => {
@@ -569,7 +568,7 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
             }}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
           >
-            Start journey
+            {t("ml.act.startCta")}
             <IconArrowUpRight className="size-3.5" />
           </button>
         </div>
@@ -582,17 +581,16 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
       <section className="px-6 animate-rise">
         <div className="rounded-[28px] bg-card ring-1 ring-line p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
-            On board bus {live.currentRideLeg?.routeShort}?
+            {t("ml.act.onBoardQ", { code: live.currentRideLeg?.routeShort ?? "" })}
           </p>
           <p className="mt-2 text-[13px] text-ink-soft">
-            Tap when you're seated — we'll switch to ride mode and watch for{" "}
-            {live.currentRideLeg?.alight.name}.
+            {t("ml.act.onBoardBody", { name: live.currentRideLeg?.alight.name ?? "" })}
           </p>
           <button
             onClick={() => multiLegConfirmOnBoard()}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
           >
-            I'm on board
+            {t("ml.act.onBoardCta")}
             <IconBus className="size-3.5" />
           </button>
         </div>
@@ -605,7 +603,7 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
       <section className="px-6 animate-rise">
         <div className="rounded-[28px] bg-ochre-soft ring-1 ring-ochre/40 p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-            Press the stop button now
+            {t("ml.act.pressStop")}
           </p>
           <p className="mt-2 font-display text-[26px] leading-tight text-ink">
             {live.currentRideLeg?.alight.name}
@@ -614,7 +612,7 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
             onClick={onImOff}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
           >
-            I'm off
+            {t("ml.act.imOff")}
             <IconPin className="size-3.5" />
           </button>
         </div>
@@ -631,20 +629,19 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
       <section className="px-6 animate-rise">
         <div className="rounded-[28px] bg-card ring-1 ring-line p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive">
-            Final stretch — {walkMin} min on foot
+            {t("ml.act.finalLabel", { m: walkMin })}
           </p>
           <p className="mt-2 font-display text-[22px] leading-tight text-ink">
-            Walking to {active.to.label}.
+            {t("ml.act.finalTitle", { name: active.to.label })}
           </p>
           <p className="mt-2 text-[13px] text-ink-soft">
-            We'll close the trip automatically when you arrive — or tap below
-            the moment you're at the door.
+            {t("ml.act.finalBody")}
           </p>
           <button
             onClick={() => multiLegMarkArrived()}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
           >
-            I'm here
+            {t("ml.act.imHere")}
             <IconPin className="size-3.5" />
           </button>
         </div>
@@ -653,15 +650,14 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
   }
 
   if (live.phase === "arrived") {
-
     return (
       <section className="px-6 animate-rise">
         <div className="rounded-[28px] bg-olive-soft ring-1 ring-olive/30 p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive">
-            You've arrived
+            {t("hud.arrived.label")}
           </p>
           <p className="mt-2 font-display text-[26px] leading-tight text-ink">
-            Welcome to {active.to.label}.
+            {t("hud.arrived.title", { name: active.to.label })}
           </p>
           <button
             onClick={() => {
@@ -670,7 +666,7 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
             }}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
           >
-            Done
+            {t("hud.arrived.done")}
           </button>
         </div>
       </section>
@@ -685,7 +681,7 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
           <span className="absolute inline-flex size-full animate-ping rounded-full bg-aegean-deep/50 opacity-60" />
           <span className="relative inline-flex size-2 rounded-full bg-aegean-deep" />
         </span>
-        <span>Tracking live — we'll buzz when you need to act.</span>
+        <span>{t("ml.tracking")}</span>
       </div>
     </section>
   );
