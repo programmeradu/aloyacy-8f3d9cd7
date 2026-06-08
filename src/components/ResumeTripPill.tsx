@@ -45,13 +45,13 @@ export function ResumeTripPill() {
         </span>
         <span className="flex flex-1 flex-col leading-tight text-left min-w-0">
           <span className="font-sans text-[11px] font-semibold tracking-wide text-limestone/70">
-            Trip in progress
+            {t("resume.label")}
           </span>
           <span className="font-display text-[15px] font-semibold tracking-tight truncate">
             {routeShort ? (
               <>
-                <span className="text-ochre">Bus {routeShort}</span>
-                <span className="text-limestone/60"> to </span>
+                <span className="text-ochre">{t("resume.busTo", { code: routeShort }).split(" ").slice(0, -1).join(" ")}</span>
+                <span className="text-limestone/60"> {t("resume.busTo", { code: routeShort }).split(" ").slice(-1)[0]} </span>
                 {destination}
               </>
             ) : (
@@ -60,7 +60,7 @@ export function ResumeTripPill() {
           </span>
         </span>
         <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-limestone px-3 py-1.5 font-sans text-[12px] font-semibold text-ink">
-          Resume
+          {t("resume.cta")}
           <svg viewBox="0 0 12 12" className="size-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h6M7 3l3 3-3 3" /></svg>
         </span>
       </Link>
