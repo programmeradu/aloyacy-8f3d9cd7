@@ -34,6 +34,13 @@ const SHARD_TTL_MS = 60 * 60 * 1000; // 1h
 
 function candidateUrls(path: string): string[] {
   const urls: string[] = [];
+  // Prefer the Supabase Storage `schedule` bucket — refreshed nightly by the
+  // pg_cron job, no redeploy needed. `path` is /data/schedule/<rest>, so we
+  // strip the prefix when mapping to the bucket key.
+  const bucketKey = path.replace(/^\/data\/schedule\//, "");
+  const supaUrl = process.env.SUPABASE_URL;
+  if (supaUrl) urls.push(`${supaUrl}/storage/v1/object/public/schedule/${bucketKey}`);
+  // Fallback: the bundled snapshot in /public, served by the origin.
   try {
     const req = getRequest();
     if (req) urls.push(new URL(path, req.url).toString());
