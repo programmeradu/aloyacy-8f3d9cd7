@@ -32,22 +32,34 @@ export function ResumeTripPill() {
       <Link
         to="/trip/$id"
         params={{ id: active.option.id }}
-        className="pointer-events-auto flex w-full max-w-[400px] items-center gap-3 rounded-full bg-ink px-4 py-2.5 text-limestone shadow-[0_14px_40px_-18px_rgba(28,30,26,0.55)] ring-1 ring-ink/10 animate-rise"
+        className="pointer-events-auto group flex w-full max-w-[400px] items-center gap-3 rounded-full bg-ink px-3.5 py-2.5 text-limestone shadow-[0_18px_44px_-18px_rgba(28,30,26,0.6)] ring-1 ring-ink/10 animate-rise"
       >
-        <span className="flex size-8 items-center justify-center rounded-full bg-limestone/15">
-          <IconBus className="size-4" />
+        <span className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-aegean-deep">
+          <IconBus className="size-4 text-limestone" />
+          <span className="absolute -top-0.5 -right-0.5 flex size-2.5">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-ochre opacity-70" />
+            <span className="relative inline-flex size-2.5 rounded-full bg-ochre ring-2 ring-ink" />
+          </span>
         </span>
-        <span className="flex flex-1 flex-col leading-tight text-left">
-          <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-limestone/70">
+        <span className="flex flex-1 flex-col leading-tight text-left min-w-0">
+          <span className="font-sans text-[11px] font-semibold tracking-wide text-limestone/70">
             Trip in progress
           </span>
-          <span className="text-[13px] font-medium truncate">
-            {routeShort ? `Bus ${routeShort} — ` : ""}
-            {destination}
+          <span className="font-display text-[15px] font-semibold tracking-tight truncate">
+            {routeShort ? (
+              <>
+                <span className="text-ochre">Bus {routeShort}</span>
+                <span className="text-limestone/60"> to </span>
+                {destination}
+              </>
+            ) : (
+              destination
+            )}
           </span>
         </span>
-        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-limestone/80">
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-limestone px-3 py-1.5 font-sans text-[12px] font-semibold text-ink">
           Resume
+          <svg viewBox="0 0 12 12" className="size-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h6M7 3l3 3-3 3" /></svg>
         </span>
       </Link>
     </div>
