@@ -220,10 +220,11 @@ function RecentRow({
       ) : (
         <button
           onClick={() => setEditing(true)}
-          className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
+          className="inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone hover:bg-ink/90"
         >
           Pin
         </button>
+
       )}
     </div>
   );
