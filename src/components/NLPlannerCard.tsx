@@ -467,7 +467,7 @@ export function NLPlannerCard() {
             <button
               type="submit"
               disabled={!canSubmit}
-              aria-label="Plan trip"
+              aria-label={t("nl.aria.plan")}
               className="mr-1.5 grid place-items-center size-10 rounded-full bg-ink text-card transition disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:bg-aegean-deep enabled:active:scale-95"
             >
               {busy ? (
