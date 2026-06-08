@@ -698,6 +698,7 @@ function LegTimelineRow({
   isActive: boolean;
   isDone: boolean;
 }) {
+  const { t } = useI18n();
   const ring = isDone
     ? "bg-olive/10 text-olive ring-olive/20"
     : isActive
@@ -713,23 +714,29 @@ function LegTimelineRow({
     glyph = <IconBus className="size-3.5" />;
     title = (
       <>
-        Board <span className="text-aegean-deep">BUS {leg.routeShort}</span> — {leg.routeLong}
+        {t("ml.timeline.boardPrefix")} <span className="text-aegean-deep">{t("trip.boardBusName", { code: leg.routeShort })}</span> — {leg.routeLong}
       </>
     );
-    sub = `${leg.board.name} → ${leg.alight.name} · ${fmtTime(leg.board.departureUnix)} — ${fmtTime(leg.alight.arrivalUnix)} · ${leg.stopCount} stops`;
+    sub = t("ml.timeline.rideSub", {
+      from: leg.board.name,
+      to: leg.alight.name,
+      dep: fmtTime(leg.board.departureUnix),
+      arr: fmtTime(leg.alight.arrivalUnix),
+      n: leg.stopCount,
+    });
     accent = <RouteChip code={leg.routeShort} tone={routeTone(leg.routeId)} size="sm" />;
   } else if (leg.kind === "walk") {
     glyph = <IconPin className="size-3.5" />;
     title = (
       <>
-        Walk to <span className="text-ink">{(leg as WalkLeg).to.name}</span>
+        {t("ml.timeline.walkTo")} <span className="text-ink">{(leg as WalkLeg).to.name}</span>
       </>
     );
-    sub = `${fmtMin((leg as WalkLeg).durationSec)} · ${(leg as WalkLeg).distanceMeters} m`;
+    sub = t("ml.timeline.walkSub", { min: fmtMin((leg as WalkLeg).durationSec), d: (leg as WalkLeg).distanceMeters });
   } else {
     glyph = <IconClock className="size-3.5" />;
-    title = <>Wait at {(leg as WaitLeg).name}</>;
-    sub = `${fmtMin((leg as WaitLeg).durationSec)} at the stop`;
+    title = <>{t("ml.timeline.waitAt", { name: (leg as WaitLeg).name })}</>;
+    sub = t("ml.timeline.waitSub", { min: fmtMin((leg as WaitLeg).durationSec) });
   }
 
   return (
