@@ -245,8 +245,8 @@ export function NLPlannerCard() {
   }
 
   async function submit(value: string) {
-    const t = value.trim();
-    if (t.length < 3) return;
+    const q = value.trim();
+    if (q.length < 3) return;
     abortRef.current?.abort();
     abortRef.current = new AbortController();
 
@@ -255,10 +255,10 @@ export function NLPlannerCard() {
     setIntent(null);
     setResolved(null);
     setStage("parsing");
-    track("ai:nl-planner.submit", { length: t.length });
+    track("ai:nl-planner.submit", { length: q.length });
 
     const tzMin = -new Date().getTimezoneOffset();
-    const heuristic = extractHeuristicIntent(t, tzMin);
+    const heuristic = extractHeuristicIntent(q, tzMin);
 
     try {
       // Run AI + heuristic in parallel. Heuristic is instant; AI takes ~1-2s.
