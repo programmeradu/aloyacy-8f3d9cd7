@@ -454,7 +454,7 @@ export function NLPlannerCard() {
             <button
               type="button"
               onClick={startVoice}
-              aria-label={listening ? "Stop listening" : "Voice input"}
+              aria-label={listening ? t("nl.aria.voiceStop") : t("nl.aria.voice")}
               aria-pressed={listening}
               className={`mr-1 grid place-items-center size-9 rounded-full transition ${
                 listening
