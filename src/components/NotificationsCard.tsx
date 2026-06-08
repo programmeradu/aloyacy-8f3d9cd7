@@ -66,13 +66,13 @@ export function NotificationsCard() {
     setSpeechEnabled(next);
     setSpeechOn(next);
     if (next) {
-      // Must run from the click handler to unlock iOS speech.
       primeSpeech();
-      speak("Spoken alerts are on.");
+      speak(t("notif.speech.priming"));
     } else if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
   }
+
 
   async function enable() {
     setPending(true);
