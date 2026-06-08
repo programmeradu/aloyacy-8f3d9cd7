@@ -246,18 +246,16 @@ function SingleLegCompanion({
         </div>
         <section className="px-6 mt-6 animate-rise">
           <h1 className="font-display text-[36px] leading-tight text-ink">
-            Trip ended
+            {t("trip.ended.title")}
           </h1>
           <p className="mt-3 text-[13px] text-ink-soft">
-            You're back to the planner. Pick a starting point and a
-            destination to begin a new journey — we'll guide you door-to-door
-            with live countdowns and a gentle nudge when it's time to step off.
+            {t("trip.ended.body")}
           </p>
           <Link
             to="/trips"
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
           >
-            Plan a new trip
+            {t("trip.planNew")}
           </Link>
         </section>
       </AppShell>
