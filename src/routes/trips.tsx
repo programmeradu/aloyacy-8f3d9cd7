@@ -233,12 +233,12 @@ function Plan() {
           className="pointer-events-none absolute right-[-30%] top-[-10%] w-[90%] opacity-[0.18] mix-blend-multiply"
         />
         <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-ink-soft">
-          Door to door
+          {t("trips.kicker")}
         </p>
         <h1 className="font-display text-[40px] leading-[1.04] mt-1.5 text-ink text-balance">
-          Tell us <span className="italic text-aegean-deep">where</span>.
+          {t("trips.titlePrefix")} <span className="italic text-aegean-deep">{t("trips.titleEmph")}</span>.
           <br />
-          We'll find the way.
+          {t("trips.titleSuffix")}
         </h1>
       </header>
 
@@ -246,7 +246,7 @@ function Plan() {
         <div className="rounded-[28px] bg-card ring-1 ring-line p-2">
           <FieldRow
             role="from"
-            label="From"
+            label={t("trips.from")}
             point={origin}
             active={active === "from"}
             onActivate={() => setActive("from")}
@@ -257,7 +257,7 @@ function Plan() {
           <div className="mx-5 h-px bg-line" />
           <FieldRow
             role="to"
-            label="To"
+            label={t("trips.to")}
             point={destination}
             active={active === "to"}
             onActivate={() => setActive("to")}
