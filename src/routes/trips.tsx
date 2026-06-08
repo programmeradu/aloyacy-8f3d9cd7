@@ -712,6 +712,7 @@ function ItineraryRow({
   origin: Point;
   destination: Point;
 }) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const rides = itinerary.legs.filter((l): l is RideLeg => l.kind === "ride");
   const isSingleRide = rides.length === 1;
