@@ -36,6 +36,7 @@ import { useShortcutDetector } from "@/lib/useShortcutDetector";
 import { useTrainingSignals } from "@/lib/useTrainingSignals";
 import { distanceM } from "@/lib/geo";
 import { fmtEta as fmtMin, fmtClock as fmtTime } from "@/lib/journey-copy";
+import { useI18n } from "@/lib/i18n";
 import companionHero from "@/assets/companion-hero.jpg";
 
 export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
