@@ -11,6 +11,7 @@ import { scheduleDeparture } from "@/lib/scheduled-departures.functions";
 import { IconClock } from "@/components/Icons";
 import { useProPaywall } from "@/lib/useProPaywall";
 import { track, trackImpression } from "@/lib/analytics";
+import { useI18n } from "@/lib/i18n";
 
 
 export function RemindMeButton({
@@ -22,6 +23,7 @@ export function RemindMeButton({
   origin: { lat: number; lng: number; label: string };
   destination: { lat: number; lng: number; label: string };
 }) {
+  const { t } = useI18n();
   const { user } = useAuth();
   const schedule = useServerFn(scheduleDeparture);
   const { isPro, requirePro, paywall } = useProPaywall();
@@ -81,7 +83,7 @@ export function RemindMeButton({
       track("ui:remind-me.saved", { departIn });
     } catch (e) {
       track("ui:remind-me.error");
-      setErr(e instanceof Error ? e.message : "Could not schedule reminder");
+      setErr(e instanceof Error ? e.message : t("remind.error"));
       setState("error");
     }
   }
@@ -106,16 +108,16 @@ export function RemindMeButton({
       >
         <IconClock className="size-3.5" />
         {state === "saved"
-          ? "Reminder set"
+          ? t("remind.set")
           : state === "saving"
-            ? "Saving…"
+            ? t("remind.saving")
             : isPro
-              ? "Remind me to leave"
-              : "Remind me to leave · Pro"}
+              ? t("remind.cta")
+              : t("remind.ctaPro")}
       </button>
       {state === "saved" && (
         <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">
-          We'll re-check weather &amp; traffic and ping you a little earlier if needed.
+          {t("remind.foot")}
         </p>
       )}
       {err && (
@@ -126,8 +128,8 @@ export function RemindMeButton({
       <AuthSheet
         open={authOpen}
         onClose={() => setAuthOpen(false)}
-        title="Sign in to save reminders"
-        subtitle="We'll buzz you when it's time to head out."
+        title={t("remind.authTitle")}
+        subtitle={t("remind.authSubtitle")}
       />
       {paywall}
     </>
