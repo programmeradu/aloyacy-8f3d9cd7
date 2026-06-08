@@ -467,6 +467,7 @@ function FieldRow({
   onActivate: () => void;
   onClear: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <button
       onClick={onActivate}
@@ -496,7 +497,7 @@ function FieldRow({
             point ? "text-ink font-medium" : "text-ink-soft"
           }`}
         >
-          {point?.label ?? (role === "from" ? "Detecting your location…" : "Search a place, address or stop")}
+          {point?.label ?? (role === "from" ? t("trips.detecting") : t("trips.searchPlaceholder"))}
         </p>
       </div>
       {point && (
@@ -507,7 +508,7 @@ function FieldRow({
           }}
           className="rounded-full bg-limestone-soft px-3 py-1.5 font-sans text-[11px] font-semibold tracking-tight text-ink-soft hover:bg-ink hover:text-limestone transition-colors"
         >
-          Clear
+          {t("trips.clear")}
         </span>
       )}
     </button>
