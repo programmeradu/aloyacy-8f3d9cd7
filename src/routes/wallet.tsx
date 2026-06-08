@@ -27,6 +27,7 @@ import fareNight from "@/assets/fare-night.jpg";
 import fareIntercity from "@/assets/fare-intercity.jpg";
 import { ProUpsellCard } from "@/components/ProUpsell";
 import { ProAccountCard } from "@/components/ProAccountCard";
+import { useI18n } from "@/lib/i18n";
 
 // Lazy: the editor sheet only mounts when the user taps to edit.
 const PassSheet = lazy(() =>
@@ -48,6 +49,7 @@ export const Route = createFileRoute("/wallet")({
 });
 
 function WalletRoute() {
+  const { t } = useI18n();
   const [pass, setPass] = useState<MotionPass>(() => readPass());
   const [editing, setEditing] = useState<"none" | SheetMode>("none");
   const [syncing, setSyncing] = useState(false);
@@ -93,7 +95,7 @@ function WalletRoute() {
         const r = await refreshFn({ data: { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken } });
         if (!r.ok) {
           update({ ...current, jcc: { ...current.jcc, expiresAt: 0 } });
-          if (!opts?.silent) toast.error("Session expired — please link again.");
+          if (!opts?.silent) toast.error(t("wallet.toast.expired"));
           return;
         }
         tokens = r.tokens;
@@ -108,7 +110,7 @@ function WalletRoute() {
         const r = await refreshFn({ data: { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken } });
         if (!r.ok) {
           update({ ...current, jcc: { ...current.jcc, expiresAt: 0 } });
-          if (!opts?.silent) toast.error("Session expired — please link again.");
+          if (!opts?.silent) toast.error(t("wallet.toast.expired"));
           return;
         }
         tokens = r.tokens;
@@ -117,7 +119,7 @@ function WalletRoute() {
       }
 
       if (!res.ok) {
-        if (!opts?.silent) toast.error(("error" in res && res.error) || "Sync failed.");
+        if (!opts?.silent) toast.error(("error" in res && res.error) || t("wallet.toast.syncFailed"));
         return;
       }
 
@@ -130,7 +132,7 @@ function WalletRoute() {
         passName: res.passName,
         transactions: res.transactions,
       });
-      if (!opts?.silent) toast.success(`Synced — ${res.transactions.length} transactions`);
+      if (!opts?.silent) toast.success(t("wallet.toast.synced", { n: res.transactions.length }));
     } finally {
       setSyncing(false);
     }
@@ -206,7 +208,7 @@ function WalletRoute() {
 
   function handleUnlink() {
     update(clearJccLink(readPass()));
-    toast("Unlinked from JCC.");
+    toast(t("wallet.unlinkedToast"));
   }
 
   return (
@@ -215,25 +217,23 @@ function WalletRoute() {
         <a
           href="/"
           className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink"
-          aria-label="Back"
+          aria-label={t("wallet.back")}
         >
           <IconArrowLeft className="size-4" />
         </a>
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          Motion Pass
+          {t("wallet.kicker")}
         </p>
         <span className="size-10" />
       </header>
 
       <section className="px-6 animate-rise" style={{ animationDelay: "60ms" }}>
         <h1 className="font-display text-[40px] leading-[1.04] text-ink text-balance">
-          Your card,{" "}
-          <span className="italic text-aegean-deep">always with you.</span>
+          {t("wallet.titlePrefix")}{" "}
+          <span className="italic text-aegean-deep">{t("wallet.titleEmph")}</span>
         </h1>
         <p className="mt-3 text-[13px] text-ink-soft max-w-md">
-          {hasCard
-            ? "Tap your balance to update it after a top-up. Scan the QR at any Motion vending kiosk to pull up your card."
-            : "Add your Motion bus card number and we'll keep it ready — balance, history, and a scan-ready QR for the kiosk."}
+          {hasCard ? t("wallet.bodyHasCard") : t("wallet.bodyEmpty")}
         </p>
       </section>
 
@@ -252,20 +252,20 @@ function WalletRoute() {
             style={{ animationDelay: "180ms" }}
           >
             <ActionTile
-              eyebrow="Balance"
+              eyebrow={t("wallet.tile.balance")}
               value={`€${pass.balanceEur.toFixed(2)}`}
               foot={
                 pass.balanceUpdatedAt
-                  ? `Live ${timeAgo(pass.balanceUpdatedAt)}`
-                  : "Tap to refresh"
+                  ? t("wallet.tile.balanceLive", { when: timeAgo(pass.balanceUpdatedAt) })
+                  : t("wallet.tile.balanceTap")
               }
               onClick={() => void runPublicSync()}
             />
             {linked ? (
               <ActionTile
-                eyebrow="JCC"
-                value={syncing ? "Syncing…" : "Sync"}
-                foot={pass.jcc?.displayName || pass.jcc?.email || "Connected"}
+                eyebrow={t("wallet.tile.jcc")}
+                value={syncing ? t("wallet.tile.syncing") : t("wallet.tile.sync")}
+                foot={pass.jcc?.displayName || pass.jcc?.email || t("wallet.tile.jccConnected")}
                 onClick={() => void runSync()}
                 tone="aegean"
                 adornment={
@@ -274,9 +274,9 @@ function WalletRoute() {
               />
             ) : (
               <ActionTile
-                eyebrow="Top up"
-                value="Log"
-                foot="Add a recent reload"
+                eyebrow={t("wallet.tile.topup")}
+                value={t("wallet.tile.topupValue")}
+                foot={t("wallet.tile.topupFoot")}
                 onClick={() => setEditing("topup")}
                 tone="aegean"
               />
@@ -291,10 +291,10 @@ function WalletRoute() {
                   <JccLogo className="h-9 w-9 shrink-0 rounded-md ring-1 ring-line bg-white" />
                   <div className="min-w-0">
                     <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                      Linked to JCC Smart
+                      {t("wallet.linkedKicker")}
                     </p>
                     <p className="mt-1 text-[13px] text-ink truncate">
-                      {pass.passName || "Auto-sync enabled"}
+                      {pass.passName || t("wallet.linkedAutoSync")}
                     </p>
                   </div>
                 </div>
@@ -302,7 +302,7 @@ function WalletRoute() {
                   onClick={handleUnlink}
                   className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft hover:text-ink"
                 >
-                  Unlink
+                  {t("wallet.unlink")}
                 </button>
               </div>
             ) : (
@@ -314,15 +314,15 @@ function WalletRoute() {
                   <JccLogo className="h-9 w-9 shrink-0 rounded-md ring-1 ring-limestone/20 bg-white" />
                   <span className="min-w-0">
                     <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
-                      Auto-sync
+                      {t("wallet.linkAutoSync")}
                     </span>
                     <span className="block text-[14px] mt-0.5 truncate">
-                      Link your JCC Smart account
+                      {t("wallet.linkCta")}
                     </span>
                   </span>
                 </span>
                 <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em]">
-                  Connect
+                  {t("wallet.connect")}
                 </span>
               </button>
             )}
@@ -347,9 +347,9 @@ function WalletRoute() {
             style={{ animationDelay: "240ms" }}
           >
             <div className="grid grid-cols-3 gap-2.5">
-              <Fare label="Urban" value="€1.50" sub="90-min" image={fareUrban} imageAlt="A Mediterranean village street in soft daylight" />
-              <Fare label="Night" value="€2.50" sub="21:00 – 04:00" image={fareNight} imageAlt="A village arch lit by a single lamp under a crescent moon" tone="dark" />
-              <Fare label="Intercity" value="€7.00" sub="single" image={fareIntercity} imageAlt="A coastal road winding along Cypriot cliffs" />
+              <Fare label={t("wallet.fare.urban")} value="€1.50" sub={t("wallet.fare.urbanSub")} image={fareUrban} imageAlt={t("wallet.fare.urbanAlt")} />
+              <Fare label={t("wallet.fare.night")} value="€2.50" sub={t("wallet.fare.nightSub")} image={fareNight} imageAlt={t("wallet.fare.nightAlt")} tone="dark" />
+              <Fare label={t("wallet.fare.intercity")} value="€7.00" sub={t("wallet.fare.intercitySub")} image={fareIntercity} imageAlt={t("wallet.fare.intercityAlt")} />
             </div>
           </section>
 
@@ -371,12 +371,9 @@ function WalletRoute() {
             onClick={() => setEditing("card")}
             className="w-full rounded-2xl bg-ink py-4 font-mono text-[11px] uppercase tracking-[0.22em] text-limestone hover:bg-ink/90 transition-colors"
           >
-            Add my Motion card
+            {t("wallet.addCardCta")}
           </button>
-          <p className="mt-4 text-[12px] text-ink-soft">
-            Your card details live only on this device. We don't send them
-            anywhere — at least not until you ask us to.
-          </p>
+          <p className="mt-4 text-[12px] text-ink-soft">{t("wallet.addCardNote")}</p>
         </section>
       )}
 
