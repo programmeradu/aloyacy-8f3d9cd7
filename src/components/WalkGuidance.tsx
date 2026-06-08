@@ -10,6 +10,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getWalkingDirections } from "@/lib/maps.functions";
 import { MapPreview } from "@/components/MapPreview";
 import { StreetViewSheet } from "@/components/StreetViewSheet";
+import { useI18n, type DictKey } from "@/lib/i18n";
 
 type LatLng = { lat: number; lng: number };
 
@@ -24,10 +25,11 @@ export function WalkGuidance({
   title: string;
   className?: string;
 }) {
+  const { locale, t } = useI18n();
   const fetchDirections = useServerFn(getWalkingDirections);
   const { data } = useQuery({
-    queryKey: ["walk", from.lat, from.lng, to.lat, to.lng],
-    queryFn: () => fetchDirections({ data: { from, to } }),
+    queryKey: ["walk", from.lat, from.lng, to.lat, to.lng, locale],
+    queryFn: () => fetchDirections({ data: { from, to, locale } }),
     staleTime: 10 * 60 * 1000,
   });
   const directions = data?.directions ?? null;
@@ -37,7 +39,7 @@ export function WalkGuidance({
       <div className="flex items-end justify-between mb-3">
         <h2 className="font-display text-2xl text-ink">{title}</h2>
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-          {Math.round(directions.durationSec / 60)} min —{" "}
+          {Math.round(directions.durationSec / 60)} {t("common.minShort")} —{" "}
           {directions.distanceMeters >= 1000
             ? `${(directions.distanceMeters / 1000).toFixed(1)} km`
             : `${Math.round(directions.distanceMeters)} m`}
@@ -81,11 +83,14 @@ export function TurnStep({
   heading: number;
   last: boolean;
 }) {
+  const { t } = useI18n();
   const dist =
     distanceMeters >= 1000
       ? `${(distanceMeters / 1000).toFixed(1)} km`
       : `${Math.round(distanceMeters)} m`;
-  const maneuverLabel = (maneuver || "straight").replace(/[-_]/g, " ");
+  const normalized = (maneuver || "straight").toLowerCase().replace(/[-_]/g, " ");
+  const maneuverKey = `walk.maneuver.${normalized}` as DictKey;
+  const maneuverLabel = t(maneuverKey) === maneuverKey ? normalized : t(maneuverKey);
   const sv = `/api/public/streetview?lat=${lat}&lng=${lng}&heading=${Math.round(
     heading,
   )}&w=640&h=360&fov=85`;
@@ -99,7 +104,11 @@ export function TurnStep({
         disabled={!canOpenViewer}
         onClick={() => canOpenViewer && setViewerOpen(true)}
         className="group relative block aspect-[16/9] w-full bg-limestone-soft text-left disabled:cursor-default"
-        aria-label={canOpenViewer ? `Open street view: ${instruction}` : instruction}
+        aria-label={
+          canOpenViewer
+            ? t("walk.openStreetView", { instruction })
+            : instruction
+        }
       >
         {svFailed ? (
           <MapPreview
@@ -114,7 +123,7 @@ export function TurnStep({
         ) : (
           <img
             src={sv}
-            alt={`Street view: ${instruction}`}
+            alt={t("walk.streetViewAlt", { instruction })}
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
             onError={() => setSvFailed(true)}
@@ -134,13 +143,13 @@ export function TurnStep({
         </div>
         {canOpenViewer && (
           <span className="absolute bottom-3 left-3 rounded-full bg-aegean px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-limestone opacity-0 transition group-hover:opacity-100">
-            Tap to look around
+            {t("walk.tapToLook")}
           </span>
         )}
       </button>
       <div className="flex items-start gap-3 p-4">
         <span className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-          {last ? "Arrive" : "Then"}
+          {last ? t("walk.arrive") : t("walk.then")}
         </span>
         <p className="flex-1 font-display text-lg leading-snug text-ink">
           {instruction}
