@@ -74,7 +74,7 @@ export function CrowdHint({
     staleTime: 10 * 60_000,
   });
 
-  const wClause = weatherClause(weather ?? null);
+  const wClause = useWeatherClause(weather ?? null);
   const level = data?.level;
   useEffect(() => {
     if (level || wClause) {
@@ -93,7 +93,7 @@ export function CrowdHint({
       <section className="px-6 mt-3 animate-rise">
         <div className="rounded-[22px] ring-1 bg-aegean-soft/40 ring-aegean/25 px-4 py-3">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
-            Comfort
+            {t("crowd.tag")}
           </p>
           <p className="mt-1 text-[13px] text-ink">{wClause}</p>
         </div>
@@ -109,15 +109,15 @@ export function CrowdHint({
     <section className="px-6 mt-3 animate-rise">
       <div className={`rounded-[22px] ring-1 px-4 py-3 ${toneBg}`}>
         <p className={`font-mono text-[10px] uppercase tracking-[0.22em] ${toneText}`}>
-          {c.tag}
+          {t("crowd.tag")}
         </p>
         <p className="mt-1 text-[13px] text-ink">
-          {c.line}
+          {t(c.line)}
           {wClause && <span className="text-ink-soft"> {wClause}</span>}
         </p>
         {data!.sample > 1 && (
           <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            From {data!.sample} recent riders
+            {t("crowd.fromRiders", { n: data!.sample })}
           </p>
         )}
       </div>
