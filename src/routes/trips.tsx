@@ -883,10 +883,11 @@ function TimeIntentChip({
   onChange: (i: { leaveByISO: string | null; arriveByISO: string | null }) => void;
   onClear: () => void;
 }) {
+  const { t } = useI18n();
   if (!intent || (!intent.leaveByISO && !intent.arriveByISO)) return null;
   const iso = intent.arriveByISO ?? intent.leaveByISO!;
   const mode: "arrive" | "leave" = intent.arriveByISO ? "arrive" : "leave";
-  const label = formatIntentLabel(iso);
+  const label = formatIntentLabel(iso, t);
   return (
     <div className="mt-3 flex items-center gap-2 rounded-full bg-aegean-soft/50 ring-1 ring-aegean-soft px-3 py-2">
       <IconClock className="size-3.5 text-aegean-deep shrink-0" />
@@ -900,18 +901,16 @@ function TimeIntentChip({
           )
         }
         className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-aegean-deep hover:text-ink transition"
-        aria-label="Toggle between leave-by and arrive-by"
       >
-        {mode === "arrive" ? "Arrive by" : "Leave"} {label}
+        {mode === "arrive" ? t("trips.intentArriveBy") : t("trips.intentLeave")} {label}
       </button>
       <span className="flex-1" />
       <button
         type="button"
         onClick={onClear}
         className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft hover:text-ink transition"
-        aria-label="Clear time and plan for now"
       >
-        Now
+        {t("trips.intentNow")}
       </button>
     </div>
   );
