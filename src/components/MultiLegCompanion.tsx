@@ -732,10 +732,10 @@ function LegTimelineRow({
         {glyph}
       </span>
       <div className="min-w-0 flex-1">
-        <p className={`font-display text-lg leading-tight ${isActive ? "text-ink" : "text-ink-soft"}`}>
+        <p className={`font-display text-[19px] font-semibold leading-tight ${isActive ? "text-ink" : "text-ink-soft"}`}>
           {title}
         </p>
-        <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+        <p className="mt-1 font-sans text-[13px] font-medium text-ink-soft leading-snug">
           {sub}
         </p>
       </div>
