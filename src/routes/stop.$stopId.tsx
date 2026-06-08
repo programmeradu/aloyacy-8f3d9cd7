@@ -10,6 +10,7 @@ import { useEtaStats } from "@/lib/useEtaStats";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { getStop, getRoute, routeTone } from "@/lib/gtfs";
+import { useI18n } from "@/lib/i18n";
 
 
 export const Route = createFileRoute("/stop/$stopId")({
