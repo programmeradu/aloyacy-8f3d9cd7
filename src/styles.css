@@ -120,7 +120,20 @@
     background-image: radial-gradient(oklch(0.22 0.012 110 / 0.035) 1px, transparent 1px);
     background-size: 3px 3px;
   }
+
+  /* i18n overflow guardrails — Greek can run 30–60% longer than English. */
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
+  .truncate-1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  /* Last-resort mid-word break for long compound Greek words */
+  .break-soft { overflow-wrap: anywhere; word-break: normal; hyphens: auto; }
 }
+
+/* Greek-specific typographic tightening so long words still breathe. */
+:lang(el) .font-display { letter-spacing: -0.012em; }
+:lang(el) .font-mono { letter-spacing: 0.12em; }
 
 @keyframes pulse-ring {
   0% { transform: scale(0.9); opacity: 0.7; }
