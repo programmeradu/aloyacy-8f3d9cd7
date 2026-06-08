@@ -334,7 +334,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           ))}
         </ol>
 
-        <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+        <p className="mt-3 font-sans text-[11px] font-medium text-ink-soft/70 tabular-nums">
           Trip {tripId.slice(0, 12)}
         </p>
       </section>
