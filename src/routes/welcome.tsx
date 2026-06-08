@@ -5,6 +5,7 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/useAuth";
 import { markOnboarded } from "@/lib/onboarding";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { Logo } from "@/components/Logo";
 import { writePass, readPass } from "@/lib/motion-pass";
 import {
   getOrCreatePushSubscription,
@@ -57,9 +58,8 @@ function WelcomePage() {
     <div className="relative min-h-[100dvh] bg-limestone text-ink">
       {/* Top bar */}
       <header className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 pt-5">
-        <span className="font-display text-[20px] leading-none tracking-tight">
-          {t("welcome.brand")}
-        </span>
+        <Logo />
+
         <div className="flex items-center gap-2">
           <LocaleSwitcher />
           <button
