@@ -1,6 +1,7 @@
 import { useQrSvg } from "@/lib/useQr";
 import type { MotionPass } from "@/lib/motion-pass";
 import motionCardBase from "@/assets/motion-card-base.png";
+import { useI18n } from "@/lib/i18n";
 
 /* ============================================================
  * Motion Card — photoreal printed artwork (generated image) +
@@ -9,14 +10,15 @@ import motionCardBase from "@/assets/motion-card-base.png";
  * of an external brand asset, not app chrome.
  * ============================================================ */
 export function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
+  const { t } = useI18n();
   const hasCard = pass.number.replace(/\D/g, "").length >= 8;
   const qrValue = hasCard ? pass.number.replace(/\D/g, "") : "MOTION-DEMO";
   const qrSvg = useQrSvg(qrValue, { color: "#1a2a6c" });
 
   const holderName =
     (pass.holder?.trim() || pass.jcc?.displayName?.trim() || "").toUpperCase() ||
-    "ADD YOUR NAME";
-  const tierLabel = (pass.tier?.trim() || "18+ Standard").toUpperCase();
+    t("wallet.addYourName");
+  const tierLabel = (pass.tier?.trim() || t("wallet.tierDefault")).toUpperCase();
   const validUntil = pass.validUntil?.trim() || "—/—/——";
 
   return (
@@ -24,7 +26,7 @@ export function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => voi
       type="button"
       onClick={onTap}
       className="group block w-full text-left"
-      aria-label={hasCard ? "Edit your Motion card" : "Add your Motion card"}
+      aria-label={hasCard ? t("wallet.cardEditAria") : t("wallet.cardAddAria")}
     >
       <article
         className="relative aspect-[1.586/1] w-full overflow-hidden rounded-[20px] ring-1 ring-ink/10 shadow-[0_24px_60px_-28px_rgba(8,28,40,0.4)] transition-transform duration-500 ease-out group-hover:-translate-y-0.5"
@@ -42,7 +44,7 @@ export function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => voi
         <div
           className="absolute bg-white"
           style={{ top: "17%", left: "58%", width: "36%", height: "56%", padding: "2.2%" }}
-          aria-label="Card QR for kiosk lookup"
+          aria-label={t("wallet.qrAria")}
         >
           {qrSvg ? (
             <div
@@ -109,7 +111,7 @@ export function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => voi
       </article>
       {!hasCard && (
         <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          Tap the card to set it up
+          {t("wallet.tapToSetUp")}
         </p>
       )}
     </button>
