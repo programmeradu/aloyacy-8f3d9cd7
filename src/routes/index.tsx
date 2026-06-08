@@ -250,8 +250,9 @@ function Explore() {
           {mounted ? getGreeting().word : "Kalimera."}
           <br />
           <span className="italic text-olive-soft">
-            Where in {headerArea} today?
+            {tt("home.whereToday", { area: headerArea })}
           </span>
+
         </h1>
       </header>
 
