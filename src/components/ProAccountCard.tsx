@@ -57,7 +57,7 @@ export function ProAccountCard() {
         <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-ochre-sun">
           Aloya Pro · Active
         </p>
-        <p className="mt-3 font-serif text-[1.7rem] leading-[1.05]">
+        <p className="mt-3 font-display text-[1.7rem] leading-[1.05]">
           Every feature unlocked.
         </p>
 

@@ -112,6 +112,9 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
   .font-display { font-family: var(--font-display); }
+  /* App-wide: hide scrollbars but preserve scrolling. Mobile-app feel. */
+  *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  * { scrollbar-width: none; -ms-overflow-style: none; }
   .font-mono { font-family: var(--font-mono); }
   .grain {
     background-image: radial-gradient(oklch(0.22 0.012 110 / 0.035) 1px, transparent 1px);
