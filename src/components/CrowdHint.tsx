@@ -10,6 +10,37 @@ import { useServerFn } from "@tanstack/react-start";
 import { getRouteLoad, type CrowdLevel } from "@/lib/crowd.functions";
 import { getCurrentWeather, type CurrentWeather } from "@/lib/weather.functions";
 import { trackImpression } from "@/lib/analytics";
+import { useI18n, type DictKey } from "@/lib/i18n";
+
+const COPY: Record<CrowdLevel, { line: DictKey; tone: string }> = {
+  quiet: {
+    line: "crowd.quiet",
+    tone: "bg-olive-soft/40 ring-olive/25 text-olive",
+  },
+  moderate: {
+    line: "crowd.moderate",
+    tone: "bg-aegean-soft/40 ring-aegean/25 text-aegean-deep",
+  },
+  busy: {
+    line: "crowd.busy",
+    tone: "bg-ochre-soft/60 ring-ochre/30 text-ochre",
+  },
+  packed: {
+    line: "crowd.packed",
+    tone: "bg-ochre-soft ring-ochre/40 text-ochre",
+  },
+};
+
+function useWeatherClause(w: CurrentWeather | null | undefined): string | null {
+  const { t } = useI18n();
+  if (!w) return null;
+  if (w.iconKey === "storm") return t("crowd.weather.storm");
+  if (w.iconKey === "rain") return t("crowd.weather.rain");
+  if (w.iconKey === "wind") return t("crowd.weather.wind");
+  if (w.tempC >= 33) return t("crowd.weather.hot", { temp: w.tempC });
+  if (w.tempC <= 8) return t("crowd.weather.cold", { temp: w.tempC });
+  return null;
+}
 
 const COPY: Record<CrowdLevel, { tag: string; line: string; tone: string }> = {
   quiet: {
