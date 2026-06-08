@@ -8,6 +8,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { readPass, writePass, type MotionPass } from "./motion-pass";
+import {
+  listSavedPlaces,
+  type SavedPlace,
+} from "./trip-store";
 
 let lastPushedUserId: string | null = null;
 let pushTimer: number | null = null;
