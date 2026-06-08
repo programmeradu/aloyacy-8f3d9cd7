@@ -50,8 +50,7 @@ export function ResumeTripPill() {
           <span className="font-display text-[15px] font-semibold tracking-tight truncate">
             {routeShort ? (
               <>
-                <span className="text-ochre">{t("resume.busTo", { code: routeShort }).split(" ").slice(0, -1).join(" ")}</span>
-                <span className="text-limestone/60"> {t("resume.busTo", { code: routeShort }).split(" ").slice(-1)[0]} </span>
+                <span className="text-ochre">{t("resume.busTo", { code: routeShort })}</span>{" "}
                 {destination}
               </>
             ) : (
