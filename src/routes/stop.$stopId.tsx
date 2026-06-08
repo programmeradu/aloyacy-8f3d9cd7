@@ -87,19 +87,19 @@ function StopDetail() {
           <IconArrowLeft className="size-4" />
         </Link>
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          Stop {stop?.code ?? stopId}
+          {t("stop.kicker", { code: stop?.code ?? stopId })}
         </span>
         <span className="size-10" />
       </div>
 
       <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
         <h1 className="font-display text-[40px] leading-[1.05] text-ink">
-          {stop?.name ?? "Unknown stop"}
+          {stop?.name ?? t("stop.unknown")}
         </h1>
         <p className="mt-2 text-[13px] text-ink-soft">
           {stop
-            ? `${stop.agency === "IC" ? "Intercity service" : "Urban service"} — ${stop.lat.toFixed(4)}, ${stop.lng.toFixed(4)}`
-            : "Stop not in current dataset"}
+            ? `${stop.agency === "IC" ? t("stop.serviceIntercity") : t("stop.serviceUrban")} — ${stop.lat.toFixed(4)}, ${stop.lng.toFixed(4)}`
+            : t("stop.notInDataset")}
         </p>
       </header>
 
