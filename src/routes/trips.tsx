@@ -393,6 +393,7 @@ function PersonalSuggestions({
   items: TripSuggestion[];
   onPick: (s: TripSuggestion) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col gap-2.5">
       {items.map((s) => {
