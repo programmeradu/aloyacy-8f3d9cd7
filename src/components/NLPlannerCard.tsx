@@ -326,9 +326,10 @@ export function NLPlannerCard() {
     }
     const rec = createRecognizer();
     if (!rec) {
-      setError("Voice input isn\u2019t supported on this browser.");
+      setError(t("nl.err.voice"));
       return;
     }
+    rec.lang = locale === "el" ? "el-GR" : "en-US";
     recRef.current = rec;
     rec.onresult = (e) => {
       const transcript = Array.from(e.results)
