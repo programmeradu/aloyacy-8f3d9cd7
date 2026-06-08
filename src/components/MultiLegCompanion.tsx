@@ -309,12 +309,12 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
             to={{ lat: live.currentLeg.to.lat, lng: live.currentLeg.to.lng }}
             title={
               live.phase === "walking-to-board"
-                ? "Walk to the first stop"
+                ? t("ml.walk.toFirst")
                 : live.phase === "walking-to-transfer"
-                  ? `Walk to bus ${live.nextRideLeg?.routeShort ?? ""}`
+                  ? t("ml.walk.toBus", { code: live.nextRideLeg?.routeShort ?? "" })
                   : live.phase === "walking-to-destination"
-                    ? "Walk to your destination"
-                    : "Walk"
+                    ? t("ml.walk.toDest")
+                    : t("ml.walk.generic")
             }
           />
         </>
@@ -323,9 +323,9 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
       {/* Timeline of every leg with current highlighted */}
       <section className="mt-7 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
         <div className="flex items-end justify-between mb-3">
-          <h2 className="font-display text-2xl text-ink">Your journey</h2>
+          <h2 className="font-display text-2xl text-ink">{t("trip.yourJourney")}</h2>
           <span className="font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
-            {Math.round(itin.totalDurationSec / 60)} min · arr {fmtTime(itin.arrivalUnix)}
+            {t("ml.minArr", { m: Math.round(itin.totalDurationSec / 60), t: fmtTime(itin.arrivalUnix) })}
           </span>
         </div>
 
