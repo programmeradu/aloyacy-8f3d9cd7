@@ -29,6 +29,7 @@ export const Route = createFileRoute("/saved")({
 const TONE_CYCLE: SavedPlace["tone"][] = ["aegean", "ochre", "olive"];
 
 function Saved() {
+  const { t } = useI18n();
   const saved = useSavedPlaces();
   const recents = useRecents();
   const { isPro, requirePro, paywall } = useProPaywall();
