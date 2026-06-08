@@ -129,10 +129,11 @@ function Saved() {
                 </div>
                 <button
                   onClick={() => removeSavedPlace(p.id)}
-                  className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft hover:text-ink"
+                  className="inline-flex items-center gap-1 rounded-full bg-limestone-soft px-3 py-1.5 font-sans text-[12px] font-semibold text-ink ring-1 ring-line hover:bg-card"
                 >
                   Unpin
                 </button>
+
               </div>
             ))}
           </div>
@@ -211,7 +212,7 @@ function RecentRow({
               onPin(r, label.trim() || "Favourite");
               setEditing(false);
             }}
-            className="font-mono text-[10px] uppercase tracking-[0.18em] text-aegean-deep"
+            className="inline-flex items-center rounded-full bg-aegean-deep px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone"
           >
             Save
           </button>
@@ -219,10 +220,11 @@ function RecentRow({
       ) : (
         <button
           onClick={() => setEditing(true)}
-          className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
+          className="inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone hover:bg-ink/90"
         >
           Pin
         </button>
+
       )}
     </div>
   );
