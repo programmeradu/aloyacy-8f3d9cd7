@@ -240,6 +240,11 @@ function CardStep({ onFinish }: { onFinish: () => void }) {
     holder: "",
     tier: "18+ Standard",
     validUntil: "—/—/——",
+    balanceEur: 0,
+    balanceUpdatedAt: 0,
+    topups: [],
+    transactions: [],
+    lastSyncAt: 0,
   };
 
   return (
