@@ -235,13 +235,25 @@ function CardStep({ onFinish }: { onFinish: () => void }) {
     onFinish();
   };
 
+  const previewPass: MotionPass = {
+    number: digits || "0000000000000000",
+    holder: "",
+    tier: "18+ Standard",
+    validUntil: "—/—/——",
+  };
+
   return (
     <StepShell
       eyebrow={t("welcome.card.eyebrow")}
       title={t("welcome.card.title")}
       body={t("welcome.card.body")}
-      image={imgCard}
-      imageAlt="A hand holding a transit card up to a glowing reader, painterly"
+      visual={
+        <div className="px-6 py-8">
+          <div className="mx-auto w-full max-w-[320px] pointer-events-none">
+            <MotionCard pass={previewPass} onTap={() => {}} />
+          </div>
+        </div>
+      }
       primary={
         <>
           <label className="block">
