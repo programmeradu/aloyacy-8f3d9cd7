@@ -23,6 +23,7 @@ import planHero from "@/assets/plan-hero.jpg";
 import { ProGate } from "@/components/ProGate";
 import { RemindMeButton } from "@/components/RemindMeButton";
 import { useAuth } from "@/lib/useAuth";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
@@ -41,6 +42,7 @@ export const Route = createFileRoute("/trips")({
 type Point = { lat: number; lng: number; label: string };
 
 function Plan() {
+  const { t } = useI18n();
   const [origin, setOrigin] = useState<Point | null>(null);
   const [destination, setDestination] = useState<Point | null>(null);
   const [active, setActive] = useState<"from" | "to" | null>("to");
@@ -118,7 +120,7 @@ function Plan() {
   const planError = planQuery.error
     ? planQuery.error instanceof Error
       ? planQuery.error.message
-      : "Plan failed"
+      : t("trips.planFailed")
     : null;
 
   // Force a re-plan the moment the top result's bus has just departed —
@@ -231,12 +233,12 @@ function Plan() {
           className="pointer-events-none absolute right-[-30%] top-[-10%] w-[90%] opacity-[0.18] mix-blend-multiply"
         />
         <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-ink-soft">
-          Door to door
+          {t("trips.kicker")}
         </p>
         <h1 className="font-display text-[40px] leading-[1.04] mt-1.5 text-ink text-balance">
-          Tell us <span className="italic text-aegean-deep">where</span>.
+          {t("trips.titlePrefix")} <span className="italic text-aegean-deep">{t("trips.titleEmph")}</span>.
           <br />
-          We'll find the way.
+          {t("trips.titleSuffix")}
         </h1>
       </header>
 
@@ -244,7 +246,7 @@ function Plan() {
         <div className="rounded-[28px] bg-card ring-1 ring-line p-2">
           <FieldRow
             role="from"
-            label="From"
+            label={t("trips.from")}
             point={origin}
             active={active === "from"}
             onActivate={() => setActive("from")}
@@ -255,7 +257,7 @@ function Plan() {
           <div className="mx-5 h-px bg-line" />
           <FieldRow
             role="to"
-            label="To"
+            label={t("trips.to")}
             point={destination}
             active={active === "to"}
             onActivate={() => setActive("to")}
@@ -289,18 +291,18 @@ function Plan() {
           <h2 className="font-display text-2xl text-ink">
             {results === null && !planning
               ? personalSuggestions.length > 0
-                ? "Your usuals"
-                : "Suggestions"
-              : "Best routes"}
+                ? t("trips.yourUsuals")
+                : t("trips.suggestions")
+              : t("trips.bestRoutes")}
           </h2>
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
             {planning
-              ? "Computing"
+              ? t("trips.statusComputing")
               : results
-                ? "Live blended"
+                ? t("trips.statusLive")
                 : personalSuggestions.length > 0
-                  ? "Learned"
-                  : "Idle"}
+                  ? t("trips.statusLearned")
+                  : t("trips.statusIdle")}
           </span>
         </div>
 
@@ -336,23 +338,20 @@ function Plan() {
           <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
             {planQuery.data?.noScheduleAvailable ? (
               <>
-                <p className="font-display text-xl text-ink">No timetable for that date</p>
+                <p className="font-display text-xl text-ink">{t("trips.noScheduleTitle")}</p>
                 <p className="mt-1.5 text-[13px] text-ink-soft">
-                  We don't have published bus schedules for{" "}
-                  {planQuery.data.requestedDate
-                    ? formatYYYYMMDD(planQuery.data.requestedDate)
-                    : "that day"}{" "}
-                  yet. Timetables are loaded for the next 14 days — try a date
-                  inside that window.
+                  {t("trips.noScheduleBody", {
+                    date: planQuery.data.requestedDate
+                      ? formatYYYYMMDD(planQuery.data.requestedDate)
+                      : t("trips.noScheduleDay"),
+                  })}
                 </p>
               </>
             ) : (
               <>
-                <p className="font-display text-xl text-ink">No live route found</p>
+                <p className="font-display text-xl text-ink">{t("trips.noRouteTitle")}</p>
                 <p className="mt-1.5 text-[13px] text-ink-soft">
-                  We couldn't see a bus serving both your start and end stops in
-                  the next hour. Try a destination closer to a known route, or
-                  check again in a few minutes.
+                  {t("trips.noRouteBody")}
                 </p>
               </>
             )}
@@ -374,16 +373,14 @@ function EmptyState({
   origin: Point | null;
   destination: Point | null;
 }) {
+  const { t } = useI18n();
   return (
     <div className="rounded-[28px] bg-card p-6 ring-1 ring-line">
       <p className="font-display text-lg text-ink leading-tight text-balance">
-        {origin && !destination
-          ? "Where would you like to go?"
-          : "Pick a starting point and a destination, anywhere on the island."}
+        {origin && !destination ? t("trips.emptyTitleA") : t("trips.emptyTitleB")}
       </p>
       <p className="mt-2 text-[13px] text-ink-soft leading-relaxed">
-        We'll walk you to the nearest stop, board a real bus from the live feed,
-        and walk you to the front door. No more guessing which line passes by.
+        {t("trips.emptyBody")}
       </p>
     </div>
   );
@@ -396,6 +393,7 @@ function PersonalSuggestions({
   items: TripSuggestion[];
   onPick: (s: TripSuggestion) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col gap-2.5">
       {items.map((s) => {
@@ -434,7 +432,7 @@ function PersonalSuggestions({
         );
       })}
       <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-        Learned from your past trips
+        {t("trips.learnedFromPast")}
       </p>
     </div>
   );
@@ -469,6 +467,7 @@ function FieldRow({
   onActivate: () => void;
   onClear: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <button
       onClick={onActivate}
@@ -498,7 +497,7 @@ function FieldRow({
             point ? "text-ink font-medium" : "text-ink-soft"
           }`}
         >
-          {point?.label ?? (role === "from" ? "Detecting your location…" : "Search a place, address or stop")}
+          {point?.label ?? (role === "from" ? t("trips.detecting") : t("trips.searchPlaceholder"))}
         </p>
       </div>
       {point && (
@@ -509,7 +508,7 @@ function FieldRow({
           }}
           className="rounded-full bg-limestone-soft px-3 py-1.5 font-sans text-[11px] font-semibold tracking-tight text-ink-soft hover:bg-ink hover:text-limestone transition-colors"
         >
-          Clear
+          {t("trips.clear")}
         </span>
       )}
     </button>
@@ -525,6 +524,7 @@ function PlacesPicker({
   bias: { lat: number; lng: number };
   onPick: (p: Point, role: "from" | "to") => void;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<
     { placeId: string; primary: string; secondary: string }[]
@@ -579,12 +579,12 @@ function PlacesPicker({
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={role === "from" ? "From where?" : "Where to?"}
+          placeholder={role === "from" ? t("trips.fromWhere") : t("trips.whereTo")}
           className="w-full bg-transparent py-4 pl-11 pr-4 text-[15px] outline-none placeholder:text-ink-soft/60"
         />
         {loading && (
           <span className="absolute right-4 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            Searching
+            {t("trips.searching")}
           </span>
         )}
       </div>
@@ -636,6 +636,7 @@ function QuickPicks({
   role: "from" | "to";
   onChoose: (p: Point) => void;
 }) {
+  const { t } = useI18n();
   const saved = useSavedPlaces();
   const recents = useRecents();
   if (saved.length === 0 && recents.length === 0) return null;
@@ -672,7 +673,7 @@ function QuickPicks({
       {recents.length > 0 && role === "to" && (
         <div>
           <div className="mb-2 text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            Recent
+            {t("trips.recent")}
           </div>
           <ul className="divide-y divide-line">
             {recents.slice(0, 5).map((r) => (
@@ -711,6 +712,7 @@ function ItineraryRow({
   origin: Point;
   destination: Point;
 }) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const rides = itinerary.legs.filter((l): l is RideLeg => l.kind === "ride");
   const isSingleRide = rides.length === 1;
@@ -741,7 +743,7 @@ function ItineraryRow({
         itinerary={itinerary}
         highlight={highlight}
         onStart={start}
-        startLabel="Start this trip"
+        startLabel={t("trips.startThis")}
       />
       <div className="px-1">
         <RemindMeButton
@@ -766,6 +768,7 @@ function ItineraryResults({
   origin: Point;
   destination: Point;
 }) {
+  const { t } = useI18n();
   const direct = results.filter((it) => it.transfers === 0);
   const transfers = results.filter((it) => it.transfers > 0);
 
@@ -782,7 +785,7 @@ function ItineraryResults({
       ))}
       {transfers.length > 0 && (
         <ProGate
-          feature={`${transfers.length} faster route${transfers.length > 1 ? "s" : ""} with transfers`}
+          feature={transfers.length === 1 ? t("trips.fasterOne") : t("trips.fasterN", { n: transfers.length })}
           preview={
             <div className="flex flex-col gap-3 p-3">
               {transfers.slice(0, 2).map((it) => (
@@ -880,10 +883,11 @@ function TimeIntentChip({
   onChange: (i: { leaveByISO: string | null; arriveByISO: string | null }) => void;
   onClear: () => void;
 }) {
+  const { t } = useI18n();
   if (!intent || (!intent.leaveByISO && !intent.arriveByISO)) return null;
   const iso = intent.arriveByISO ?? intent.leaveByISO!;
   const mode: "arrive" | "leave" = intent.arriveByISO ? "arrive" : "leave";
-  const label = formatIntentLabel(iso);
+  const label = formatIntentLabel(iso, t);
   return (
     <div className="mt-3 flex items-center gap-2 rounded-full bg-aegean-soft/50 ring-1 ring-aegean-soft px-3 py-2">
       <IconClock className="size-3.5 text-aegean-deep shrink-0" />
@@ -897,24 +901,22 @@ function TimeIntentChip({
           )
         }
         className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-aegean-deep hover:text-ink transition"
-        aria-label="Toggle between leave-by and arrive-by"
       >
-        {mode === "arrive" ? "Arrive by" : "Leave"} {label}
+        {mode === "arrive" ? t("trips.intentArriveBy") : t("trips.intentLeave")} {label}
       </button>
       <span className="flex-1" />
       <button
         type="button"
         onClick={onClear}
         className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft hover:text-ink transition"
-        aria-label="Clear time and plan for now"
       >
-        Now
+        {t("trips.intentNow")}
       </button>
     </div>
   );
 }
 
-function formatIntentLabel(iso: string): string {
+function formatIntentLabel(iso: string, t: (k: any, v?: any) => string): string {
   try {
     const d = new Date(iso);
     const today = new Date();
@@ -922,7 +924,7 @@ function formatIntentLabel(iso: string): string {
     if (d.toDateString() === today.toDateString()) return time;
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    if (d.toDateString() === tomorrow.toDateString()) return `tomorrow ${time}`;
+    if (d.toDateString() === tomorrow.toDateString()) return t("trips.intentTomorrow", { time });
     return `${d.toLocaleDateString([], { weekday: "short" })} ${time}`;
   } catch {
     return iso;
