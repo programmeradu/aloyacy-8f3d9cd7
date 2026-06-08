@@ -36,7 +36,7 @@ function CheckoutReturn() {
         <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-ochre-deep">
           Aloya Pro
         </p>
-        <h1 className="mt-3 font-serif text-[2.4rem] leading-[1.05] text-ink">
+        <h1 className="mt-3 font-display text-[2.4rem] leading-[1.05] text-ink">
           {isPro ? "You're in." : "Almost there."}
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-ink-soft">
