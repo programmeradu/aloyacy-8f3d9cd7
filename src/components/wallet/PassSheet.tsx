@@ -4,6 +4,7 @@ import { formatCardNumber, maskedNumber, type MotionPass } from "@/lib/motion-pa
 import { useNfcScan } from "@/lib/useNfc";
 import { JccLogo } from "./JccLogo";
 import { timeAgo } from "./utils";
+import { useI18n, type DictKey } from "@/lib/i18n";
 
 export type SheetMode = "card" | "balance" | "topup" | "link";
 
@@ -20,6 +21,7 @@ export function PassSheet({
   onSave: (p: MotionPass) => void;
   onLink: (email: string, password: string) => Promise<string | null>;
 }) {
+  const { t } = useI18n();
   const [number, setNumber] = useState(pass.number);
   const [holder, setHolder] = useState(pass.holder ?? "");
   const [tier, setTier] = useState(pass.tier ?? "");
@@ -34,14 +36,14 @@ export function PassSheet({
   const [linking, setLinking] = useState(false);
   const nfc = useNfcScan();
 
-  const title =
+  const titleKey: DictKey =
     mode === "card"
-      ? "Your Motion card"
+      ? "wallet.sheet.cardTitle"
       : mode === "balance"
-        ? "Update balance"
+        ? "wallet.sheet.balanceTitle"
         : mode === "topup"
-          ? "Log a top-up"
-          : "Link JCC Smart";
+          ? "wallet.sheet.topupTitle"
+          : "wallet.sheet.linkTitle";
 
   async function save() {
     if (mode === "card") {
@@ -71,7 +73,7 @@ export function PassSheet({
       }
     } else if (mode === "link") {
       if (!email || !password) {
-        setLinkError("Email and password are required.");
+        setLinkError(t("wallet.sheet.linkError"));
         return;
       }
       setLinking(true);
@@ -96,62 +98,62 @@ export function PassSheet({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-display text-2xl text-ink">{title}</h2>
+          <h2 className="font-display text-2xl text-ink">{t(titleKey)}</h2>
           <button
             onClick={onClose}
             className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft hover:text-ink"
           >
-            Close
+            {t("common.close")}
           </button>
         </div>
 
         {mode === "card" && (
           <div className="space-y-4">
             <NfcScanBlock nfc={nfc} onUid={(digits) => setNumber(digits)} />
-            <Field label="Card number">
+            <Field label={t("wallet.sheet.cardNumber")}>
               <input
                 inputMode="numeric"
                 value={formatCardNumber(number)}
                 onChange={(e) => setNumber(e.target.value)}
-                placeholder="01 2345 6789"
+                placeholder={t("wallet.sheet.cardNumberPh")}
                 className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 font-mono text-lg tracking-[0.18em] text-ink focus:outline-none focus:ring-aegean-deep/40"
               />
             </Field>
-            <Field label="Cardholder name (optional)">
+            <Field label={t("wallet.sheet.holder")}>
               <input
                 value={holder}
                 onChange={(e) => setHolder(e.target.value)}
-                placeholder="Andreas G."
+                placeholder={t("wallet.sheet.holderPh")}
                 className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[15px] text-ink focus:outline-none focus:ring-aegean-deep/40"
               />
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Tier">
+              <Field label={t("wallet.sheet.tier")}>
                 <input
                   value={tier}
                   onChange={(e) => setTier(e.target.value)}
-                  placeholder="18+ Standard"
+                  placeholder={t("wallet.sheet.tierPh")}
                   className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[14px] text-ink focus:outline-none focus:ring-aegean-deep/40"
                 />
               </Field>
-              <Field label="Valid until">
+              <Field label={t("wallet.sheet.validUntil")}>
                 <input
                   value={validUntil}
                   onChange={(e) => setValidUntil(e.target.value)}
-                  placeholder="07/05/2036"
+                  placeholder={t("wallet.sheet.validUntilPh")}
                   className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 font-mono text-[14px] text-ink focus:outline-none focus:ring-aegean-deep/40"
                 />
               </Field>
             </div>
             <p className="text-[11px] text-ink-soft">
-              The masked card on display: {maskedNumber(number)}
+              {t("wallet.sheet.maskedHint", { masked: maskedNumber(number) })}
             </p>
           </div>
         )}
 
         {mode === "balance" && (
           <div className="space-y-4">
-            <Field label="Balance in EUR">
+            <Field label={t("wallet.sheet.balanceLabel")}>
               <div className="flex items-center bg-card rounded-2xl ring-1 ring-line px-4 py-3 focus-within:ring-aegean-deep/40">
                 <span className="font-sans font-medium text-[22px] text-ink-soft mr-2 tabular-nums">€</span>
                 <input
@@ -165,15 +167,16 @@ export function PassSheet({
               </div>
             </Field>
             <p className="text-[11px] text-ink-soft">
-              Last updated{" "}
-              {pass.balanceUpdatedAt ? timeAgo(pass.balanceUpdatedAt) : "never"}.
+              {t("wallet.sheet.lastUpdated", {
+                when: pass.balanceUpdatedAt ? timeAgo(pass.balanceUpdatedAt) : t("wallet.sheet.never"),
+              })}
             </p>
           </div>
         )}
 
         {mode === "topup" && (
           <div className="space-y-4">
-            <Field label="Top-up amount">
+            <Field label={t("wallet.sheet.topupLabel")}>
               <div className="flex items-center bg-card rounded-2xl ring-1 ring-line px-4 py-3 focus-within:ring-aegean-deep/40">
                 <span className="font-sans font-medium text-[22px] text-ink-soft mr-2 tabular-nums">€</span>
                 <input
@@ -204,30 +207,26 @@ export function PassSheet({
           <div className="space-y-4">
             <div className="flex items-center gap-3 -mt-1">
               <JccLogo className="h-10 w-10 shrink-0 rounded-lg ring-1 ring-line bg-white" />
-              <p className="text-[12px] text-ink-soft">
-                We log in to JCC Smart on your behalf and pull your bus card
-                balance + recent activity. We keep only the session token on
-                this device — never your password.
-              </p>
+              <p className="text-[12px] text-ink-soft">{t("wallet.sheet.linkIntro")}</p>
             </div>
-            <Field label="JCC Smart email">
+            <Field label={t("wallet.sheet.email")}>
               <input
                 type="email"
                 autoFocus
                 autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t("wallet.sheet.emailPh")}
                 className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[15px] text-ink focus:outline-none focus:ring-aegean-deep/40"
               />
             </Field>
-            <Field label="Password">
+            <Field label={t("wallet.sheet.password")}>
               <input
                 type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder={t("wallet.sheet.passwordPh")}
                 className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[15px] text-ink focus:outline-none focus:ring-aegean-deep/40"
               />
             </Field>
@@ -242,7 +241,11 @@ export function PassSheet({
           disabled={linking}
           className="mt-6 w-full rounded-2xl bg-ink py-4 font-mono text-[11px] uppercase tracking-[0.22em] text-limestone hover:bg-ink/90 transition-colors disabled:opacity-60"
         >
-          {mode === "link" ? (linking ? "Linking…" : "Link account") : "Save"}
+          {mode === "link"
+            ? linking
+              ? t("wallet.sheet.linking")
+              : t("wallet.sheet.linkAccount")
+            : t("common.save")}
         </button>
       </div>
     </div>
@@ -278,16 +281,15 @@ function NfcScanBlock({
   nfc: ReturnType<typeof useNfcScan>;
   onUid: (digits: string) => void;
 }) {
+  const { t } = useI18n();
+
   if (!nfc.supported) {
     return (
       <div className="rounded-2xl ring-1 ring-line bg-card px-4 py-3">
         <p className="font-mono uppercase tracking-[0.22em] text-[10px] text-ink-soft">
-          Tap to scan
+          {t("wallet.nfc.tapToScan")}
         </p>
-        <p className="mt-1 text-[12px] text-ink-soft">
-          Available on Android with Chrome. Type the 14-digit UID from the back
-          of your card below.
-        </p>
+        <p className="mt-1 text-[12px] text-ink-soft">{t("wallet.nfc.unsupported")}</p>
       </div>
     );
   }
@@ -298,7 +300,7 @@ function NfcScanBlock({
     const uid = await nfc.scan();
     if (uid?.digits) {
       onUid(uid.digits);
-      toast.success("Card scanned", { description: `UID ${uid.digits}` });
+      toast.success(t("wallet.nfc.scanned"), { description: t("wallet.nfc.scannedDesc", { uid: uid.digits }) });
     }
   }
 
@@ -307,12 +309,10 @@ function NfcScanBlock({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-mono uppercase tracking-[0.22em] text-[10px] text-aegean-deep">
-            Tap card to scan
+            {t("wallet.nfc.tapHeading")}
           </p>
           <p className="mt-1 text-[12px] text-ink-soft">
-            {scanning
-              ? "Hold your Motion card against the back of your phone…"
-              : "Skip typing. Tap your card to fill in the 14-digit UID."}
+            {scanning ? t("wallet.nfc.scanning") : t("wallet.nfc.prompt")}
           </p>
         </div>
         <button
@@ -320,7 +320,7 @@ function NfcScanBlock({
           onClick={scanning ? nfc.stop : run}
           className="shrink-0 rounded-full bg-ink text-limestone px-4 py-2 text-[12px] font-medium hover:bg-ink/90"
         >
-          {scanning ? "Cancel" : "Scan"}
+          {scanning ? t("wallet.nfc.cancel") : t("wallet.nfc.scan")}
         </button>
       </div>
       {scanning && (
@@ -329,7 +329,7 @@ function NfcScanBlock({
             <span className="absolute inline-flex size-full rounded-full bg-aegean-deep opacity-60 animate-pulse-ring" />
             <span className="relative inline-flex size-3 rounded-full bg-aegean-deep" />
           </span>
-          <span className="font-mono text-[11px] text-aegean-deep">Listening for NFC…</span>
+          <span className="font-mono text-[11px] text-aegean-deep">{t("wallet.nfc.listening")}</span>
         </div>
       )}
       {nfc.status === "error" && nfc.error && (
@@ -337,7 +337,7 @@ function NfcScanBlock({
       )}
       {nfc.status === "success" && nfc.lastUid && (
         <p className="mt-2 font-mono text-[11px] text-olive">
-          Read UID {nfc.lastUid.digits}
+          {t("wallet.nfc.readUid", { uid: nfc.lastUid.digits })}
         </p>
       )}
     </div>
