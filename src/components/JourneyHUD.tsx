@@ -20,6 +20,7 @@ import { setActiveTrip, clearActiveTrip } from "@/lib/trip-store";
 import { planTrip } from "@/lib/journey.functions";
 import type { WalkStep } from "@/lib/geo";
 import { fmtEta as fmtMinutes } from "@/lib/journey-copy";
+import { useI18n } from "@/lib/i18n";
 
 function fmtMeters(m: number): string {
   if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
@@ -81,6 +82,7 @@ export function JourneyHUD({
 // ----- Start ----------------------------------------------------------------
 
 function StartCard({ trip }: { trip: ActiveTrip }) {
+  const { t } = useI18n();
   return (
     <section className="px-6 animate-rise" style={{ animationDelay: "100ms" }}>
       <div className="overflow-hidden rounded-[28px] bg-card ring-1 ring-line">
@@ -95,17 +97,15 @@ function StartCard({ trip }: { trip: ActiveTrip }) {
           />
           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink/55 to-transparent" />
           <p className="absolute left-5 top-5 font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-limestone">
-            Live guidance
+            {t("hud.liveGuidance")}
           </p>
         </div>
         <div className="p-5">
           <p className="font-display text-[26px] leading-tight text-ink text-balance">
-            Start the journey to {trip.to.label}.
+            {t("hud.startTitle", { name: trip.to.label })}
           </p>
           <p className="mt-2 font-sans text-[14px] leading-relaxed text-ink-soft">
-            We'll follow your steps, nudge you to hurry if the bus is close,
-            let you know when you reach the stop, and guide you off at the
-            right moment.
+            {t("hud.startBody")}
           </p>
           <button
             onClick={async () => {
@@ -114,7 +114,7 @@ function StartCard({ trip }: { trip: ActiveTrip }) {
             }}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 font-sans text-[14px] font-semibold tracking-tight text-limestone"
           >
-            Start journey
+            {t("hud.startCta")}
             <IconArrowUpRight className="size-3.5" />
           </button>
         </div>
@@ -126,6 +126,7 @@ function StartCard({ trip }: { trip: ActiveTrip }) {
 // ----- Hurry ----------------------------------------------------------------
 
 function HurryBanner({ urgent, live }: { urgent: boolean; live: LiveJourney }) {
+  const { t } = useI18n();
   return (
     <section className="px-6 animate-rise">
       <div
@@ -137,7 +138,7 @@ function HurryBanner({ urgent, live }: { urgent: boolean; live: LiveJourney }) {
       >
         <div className="flex items-center justify-between">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-            {urgent ? "Hurry — bus is arriving" : "Pick up the pace"}
+            {urgent ? t("hud.hurry.urgentTitle") : t("hud.hurry.softTitle")}
           </p>
           {urgent && (
             <span className="relative flex size-2.5">
@@ -147,13 +148,13 @@ function HurryBanner({ urgent, live }: { urgent: boolean; live: LiveJourney }) {
           )}
         </div>
         <p className="mt-1 font-display text-[26px] leading-tight text-ink">
-          {fmtMinutes(live.secsToBoard)} to bus — {fmtMinutes(live.walkingEtaSec)}{" "}
-          on foot
+          {t("hud.hurry.headline", {
+            board: fmtMinutes(live.secsToBoard),
+            walk: fmtMinutes(live.walkingEtaSec),
+          })}
         </p>
         <p className="mt-1 text-[13px] text-ink-soft">
-          {urgent
-            ? "You will miss it at your current pace. Quicken up or we'll find the next one."
-            : "It's going to be tight. Keep moving and you'll just catch it."}
+          {urgent ? t("hud.hurry.urgentBody") : t("hud.hurry.softBody")}
         </p>
       </div>
     </section>
@@ -163,6 +164,7 @@ function HurryBanner({ urgent, live }: { urgent: boolean; live: LiveJourney }) {
 // ----- Live walking step ----------------------------------------------------
 
 function LiveStepCard({ live, steps }: { live: LiveJourney; steps: WalkStep[] }) {
+  const { t } = useI18n();
   const idx = Math.min(live.currentStepIndex, steps.length - 1);
   const step = steps[idx];
   const next = steps[idx + 1];
@@ -173,7 +175,7 @@ function LiveStepCard({ live, steps }: { live: LiveJourney; steps: WalkStep[] })
       <article className="rounded-[28px] bg-card ring-1 ring-line p-5">
         <div className="flex items-center justify-between">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
-            {live.phase === "walking-to-dest" ? "Walking to destination" : "Walking to stop"}
+            {live.phase === "walking-to-dest" ? t("hud.walking.toDest") : t("hud.walking.toStop")}
           </p>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
             {fmtMeters(live.metersToDestination)} — {fmtMinutes(live.walkingEtaSec)}
@@ -190,7 +192,7 @@ function LiveStepCard({ live, steps }: { live: LiveJourney; steps: WalkStep[] })
         {next && !isFinal && (
           <div className="mt-4 border-t border-line/70 pt-3">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-              Then
+              {t("hud.walking.then")}
             </p>
             <p className="mt-1 font-display text-[15px] leading-snug text-ink-soft">
               {next.instruction}
@@ -205,20 +207,20 @@ function LiveStepCard({ live, steps }: { live: LiveJourney; steps: WalkStep[] })
 // ----- At stop --------------------------------------------------------------
 
 function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
+  const { t } = useI18n();
   const bus = trip.option.legs.find((l) => l.kind === "bus");
   if (!bus || bus.kind !== "bus") return null;
   return (
     <section className="px-6 animate-rise">
       <div className="rounded-[28px] bg-olive-soft/40 ring-1 ring-olive/25 p-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive">
-          You're at the stop
+          {t("hud.atStop.label")}
         </p>
         <p className="mt-2 font-display text-[26px] leading-tight text-ink">
-          BUS {bus.routeShort} in {fmtMinutes(live.secsToBoard)}
+          {t("hud.atStop.headline", { code: bus.routeShort, min: fmtMinutes(live.secsToBoard) })}
         </p>
         <p className="mt-1 text-[13px] text-ink-soft">
-          Stay near the curb at {bus.board.name}. We'll prompt you the moment
-          the bus pulls in.
+          {t("hud.atStop.body", { name: bus.board.name })}
         </p>
       </div>
     </section>
@@ -228,6 +230,7 @@ function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
 // ----- Boarding prompt (on-board confirmation) ------------------------------
 
 function BoardingPrompt({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
+  const { t } = useI18n();
   const bus = trip.option.legs.find((l) => l.kind === "bus");
 
   // 30-second auto-confirm when GPS strongly suggests onboard.
@@ -237,17 +240,17 @@ function BoardingPrompt({ trip, live }: { trip: ActiveTrip; live: LiveJourney })
       setSecondsLeft(30);
       return;
     }
-    const t = window.setInterval(() => {
+    const tm = window.setInterval(() => {
       setSecondsLeft((n) => {
         if (n <= 1) {
-          window.clearInterval(t);
+          window.clearInterval(tm);
           confirmOnBoard();
           return 0;
         }
         return n - 1;
       });
     }, 1000);
-    return () => window.clearInterval(t);
+    return () => window.clearInterval(tm);
   }, [live.onBoardSuggested]);
 
   if (!bus || bus.kind !== "bus") return null;
@@ -255,29 +258,29 @@ function BoardingPrompt({ trip, live }: { trip: ActiveTrip; live: LiveJourney })
     <section className="px-6 animate-rise">
       <div className="rounded-[28px] bg-aegean-soft/50 ring-1 ring-aegean/30 p-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
-          Are you on board?
+          {t("hud.board.label")}
         </p>
         <p className="mt-2 font-display text-[26px] leading-tight text-ink">
-          BUS {bus.routeShort} — {bus.routeLong}
+          {t("hud.board.headline", { code: bus.routeShort, long: bus.routeLong })}
         </p>
         <p className="mt-2 text-[13px] text-ink-soft">
           {live.onBoardSuggested
-            ? `Looks like you boarded. Auto-confirming in ${secondsLeft}s.`
-            : `Confirm so we can switch to ride mode and watch for ${bus.alight.name}.`}
+            ? t("hud.board.bodyAuto", { s: secondsLeft })
+            : t("hud.board.body", { name: bus.alight.name })}
         </p>
         <div className="mt-4 flex gap-3">
           <button
             onClick={() => confirmOnBoard()}
             className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
           >
-            I'm on board
+            {t("hud.board.onboard")}
             <IconBus className="size-3.5" />
           </button>
           <button
             onClick={() => markMissed()}
             className="inline-flex items-center gap-2 rounded-full bg-card ring-1 ring-line px-5 py-3 text-[13px] text-ink"
           >
-            Missed it
+            {t("hud.board.missed")}
           </button>
         </div>
       </div>
@@ -288,6 +291,7 @@ function BoardingPrompt({ trip, live }: { trip: ActiveTrip; live: LiveJourney })
 // ----- Missed bus → rescue --------------------------------------------------
 
 function MissedBusCard({ trip }: { trip: ActiveTrip }) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const fetchPlan = useServerFn(planTrip);
   const [loading, setLoading] = useState(false);
@@ -301,10 +305,9 @@ function MissedBusCard({ trip }: { trip: ActiveTrip }) {
         data: { from: { lat: trip.from.lat, lng: trip.from.lng }, to: { lat: trip.to.lat, lng: trip.to.lng } },
       });
       if (error || !options || options.length === 0) {
-        setErr(error ?? "No nearby options. Try again in a moment.");
+        setErr(error ?? t("hud.missed.err"));
         return;
       }
-      // Swap in the next option, keep tracking the same endpoints.
       const next = options[0];
       setActiveTrip({
         startedAt: Date.now(),
@@ -315,7 +318,7 @@ function MissedBusCard({ trip }: { trip: ActiveTrip }) {
       });
       navigate({ to: "/trip/$id", params: { id: next.id } });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Could not find another option.");
+      setErr(e instanceof Error ? e.message : t("hud.missed.err"));
     } finally {
       setLoading(false);
     }
@@ -325,14 +328,13 @@ function MissedBusCard({ trip }: { trip: ActiveTrip }) {
     <section className="px-6 animate-rise">
       <div className="rounded-[28px] bg-ochre-soft ring-1 ring-ochre/40 p-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-          The bus has left
+          {t("hud.missed.label")}
         </p>
         <p className="mt-2 font-display text-[26px] leading-tight text-ink">
-          Let's find the next one.
+          {t("hud.missed.title")}
         </p>
         <p className="mt-1 text-[13px] text-ink-soft">
-          We'll re-plan from where you are now, including nearby stops that
-          might have an earlier ride to {trip.to.label}.
+          {t("hud.missed.body", { name: trip.to.label })}
         </p>
         <div className="mt-4 flex gap-3">
           <button
@@ -340,7 +342,7 @@ function MissedBusCard({ trip }: { trip: ActiveTrip }) {
             onClick={rescue}
             className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone disabled:opacity-60"
           >
-            {loading ? "Finding…" : "Find next ride"}
+            {loading ? t("hud.missed.finding") : t("hud.missed.find")}
             <IconArrowUpRight className="size-3.5" />
           </button>
           <button
@@ -350,7 +352,7 @@ function MissedBusCard({ trip }: { trip: ActiveTrip }) {
             }}
             className="inline-flex items-center gap-2 rounded-full bg-card ring-1 ring-line px-5 py-3 text-[13px] text-ink"
           >
-            End trip
+            {t("trip.endTrip")}
           </button>
         </div>
         {err && (
@@ -364,6 +366,7 @@ function MissedBusCard({ trip }: { trip: ActiveTrip }) {
 // ----- Riding ---------------------------------------------------------------
 
 function RidingCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
+  const { t } = useI18n();
   const bus = trip.option.legs.find((l) => l.kind === "bus");
   if (!bus || bus.kind !== "bus") return null;
   const eta = live.fusedSecsToAlight > 0 ? live.fusedSecsToAlight : live.secsToAlight;
@@ -371,25 +374,21 @@ function RidingCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
     <section className="px-6 animate-rise">
       <div className="rounded-[28px] bg-card ring-1 ring-line p-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
-          On board — BUS {bus.routeShort}
+          {t("hud.riding.label", { code: bus.routeShort })}
         </p>
         <p className="mt-2 font-display text-[26px] leading-tight text-ink">
-          Off in {fmtMinutes(eta)} at {bus.alight.name}.
+          {t("hud.riding.headline", { min: fmtMinutes(eta), name: bus.alight.name })}
         </p>
         <p className="mt-2 flex items-start gap-2 text-[13px] text-ink-soft">
           <IconClock className="mt-0.5 size-3.5 shrink-0" />
-          <span>
-            {live.vehicleLost
-              ? "Feed lost the bus, so we're using your phone as the bus and keeping the stop countdown on your movement."
-              : "Sit back. We'll buzz when it's time to press the stop button."}
-          </span>
+          <span>{live.vehicleLost ? t("hud.riding.lost") : t("hud.riding.calm")}</span>
         </p>
         {live.phase === "alight-soon" && (
           <button
             onClick={() => markAlighted()}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
           >
-            I'm off
+            {t("hud.riding.imOff")}
             <IconPin className="size-3.5" />
           </button>
         )}
@@ -401,15 +400,16 @@ function RidingCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
 // ----- Arrived --------------------------------------------------------------
 
 function ArrivedCard({ trip }: { trip: ActiveTrip }) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   return (
     <section className="px-6 animate-rise">
       <div className="rounded-[28px] bg-olive-soft ring-1 ring-olive/30 p-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive">
-          You've arrived
+          {t("hud.arrived.label")}
         </p>
         <p className="mt-2 font-display text-[26px] leading-tight text-ink">
-          Welcome to {trip.to.label}.
+          {t("hud.arrived.title", { name: trip.to.label })}
         </p>
         <button
           onClick={() => {
@@ -418,7 +418,7 @@ function ArrivedCard({ trip }: { trip: ActiveTrip }) {
           }}
           className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
         >
-          Done
+          {t("hud.arrived.done")}
         </button>
       </div>
     </section>
