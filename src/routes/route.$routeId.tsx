@@ -223,10 +223,10 @@ function RoutePage() {
             <div className="absolute inset-0 bg-gradient-to-t from-limestone/80 via-limestone/10 to-transparent" />
             <div className="absolute bottom-4 left-5 right-5">
               <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
-                Service window
+                {t("route.serviceWindow")}
               </p>
               <p className="mt-1 font-display text-[20px] leading-tight text-ink">
-                {isLoading ? "Checking the line…" : "This line is quiet right now"}
+                {isLoading ? t("route.checking") : t("route.quiet")}
               </p>
             </div>
           </div>
