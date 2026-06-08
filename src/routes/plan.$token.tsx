@@ -47,10 +47,10 @@ export const Route = createFileRoute("/plan/$token")({
     const token = String(params.token || "");
     const title = "A trip plan — Aloya";
     const desc = "Someone shared a Cyprus bus plan with you. Meeting point, bus, timing — open before you leave.";
-    // Minute-bucket cache-buster so platforms re-scrape when the underlying
-    // plan is edited or arrival time slides.
-    const bucket = Math.floor(Date.now() / 60_000);
-    const ogImage = `https://app.aloya.cy/api/public/og/plan/${encodeURIComponent(token)}?v=${bucket}`;
+    // Static branded PNG — SVG OG images are rejected by WhatsApp, iMessage,
+    // Facebook, LinkedIn, Slack, and Twitter, so previews never render.
+    // We serve a real PNG until a Worker-safe SVG→PNG rasterizer is wired up.
+    const ogImage = "https://app.aloya.cy/og/plan-default.png";
     const pageUrl = `https://app.aloya.cy/plan/${encodeURIComponent(token)}`;
     return {
       meta: [
@@ -62,15 +62,16 @@ export const Route = createFileRoute("/plan/$token")({
         { property: "og:type", content: "website" },
         { property: "og:url", content: pageUrl },
         { property: "og:image", content: ogImage },
+        { property: "og:image:secure_url", content: ogImage },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
-        { property: "og:image:type", content: "image/svg+xml" },
+        { property: "og:image:type", content: "image/png" },
         { property: "og:image:alt", content: "Shared trip plan preview — from, to, departure, bus and journey" },
-        { property: "og:updated_time", content: String(bucket * 60) },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: desc },
         { name: "twitter:image", content: ogImage },
+
       ],
     };
   },
