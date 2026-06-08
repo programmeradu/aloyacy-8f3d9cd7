@@ -212,7 +212,7 @@ function RecentRow({
               onPin(r, label.trim() || "Favourite");
               setEditing(false);
             }}
-            className="font-mono text-[10px] uppercase tracking-[0.18em] text-aegean-deep"
+            className="inline-flex items-center rounded-full bg-aegean-deep px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone"
           >
             Save
           </button>
