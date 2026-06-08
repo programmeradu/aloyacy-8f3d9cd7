@@ -65,7 +65,7 @@ export function ProFeaturesUpsell() {
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="rounded-full bg-ink px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-limestone transition hover:bg-ink/90"
+              className="rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium tracking-tight text-limestone transition hover:bg-ink/90"
             >
               Unlock from €1.99/wk
             </button>
