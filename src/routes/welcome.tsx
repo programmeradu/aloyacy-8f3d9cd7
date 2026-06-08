@@ -5,6 +5,7 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/useAuth";
 import { markOnboarded } from "@/lib/onboarding";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { Logo } from "@/components/Logo";
 import { writePass, readPass } from "@/lib/motion-pass";
 import {
   getOrCreatePushSubscription,
