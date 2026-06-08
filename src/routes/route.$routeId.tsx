@@ -8,6 +8,7 @@ import { useRealtime } from "@/lib/useRealtime";
 import { getRoute, getStop, routeTone } from "@/lib/gtfs";
 import { distanceM } from "@/lib/geo";
 import routeVignette from "@/assets/route-vignette.jpg";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/route/$routeId")({
   head: ({ params }) => ({
