@@ -18,9 +18,11 @@ import { track } from "@/lib/analytics";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
 import type { DisruptionKind } from "@/lib/useDisruptionWatch";
+import { useI18n, type DictKey } from "@/lib/i18n";
 
-function fmtMin(s: number) {
-  return `${Math.max(0, Math.round(s / 60))} min`;
+function useFmtMin() {
+  const { t } = useI18n();
+  return (s: number) => `${Math.max(0, Math.round(s / 60))} ${t("common.minUnit")}`;
 }
 
 // Same shape EarlyAlightSheet uses — kept local to avoid coupling.
@@ -79,26 +81,26 @@ function synthesizeOption(it: Itinerary): JourneyOption {
   };
 }
 
-const COPY: Record<DisruptionKind, { eyebrow: string; title: string; sub: string }> = {
+const COPY: Record<DisruptionKind, { eyebrow: DictKey; title: DictKey; sub: DictKey }> = {
   "missed-connection": {
-    eyebrow: "Connection missed",
-    title: "Let's find another way.",
-    sub: "Fresh options from where you are right now.",
+    eyebrow: "replan.missed.eyebrow",
+    title: "replan.missed.title",
+    sub: "replan.missed.sub",
   },
   "running-late": {
-    eyebrow: "Running late",
-    title: "Want a faster route from here?",
-    sub: "We'll re-plan around the current delay.",
+    eyebrow: "replan.late.eyebrow",
+    title: "replan.late.title",
+    sub: "replan.late.sub",
   },
   "connection-at-risk": {
-    eyebrow: "Plan B ready",
-    title: "If you miss it, here's what's next.",
-    sub: "Tap any option to switch — or keep going if you make the bus.",
+    eyebrow: "replan.atRisk.eyebrow",
+    title: "replan.atRisk.title",
+    sub: "replan.atRisk.sub",
   },
   "vehicle-lost-feed": {
-    eyebrow: "Switch route",
-    title: "Re-plan from where you are.",
-    sub: "Fresh options computed from your current position.",
+    eyebrow: "replan.lostFeed.eyebrow",
+    title: "replan.lostFeed.title",
+    sub: "replan.lostFeed.sub",
   },
 };
 
