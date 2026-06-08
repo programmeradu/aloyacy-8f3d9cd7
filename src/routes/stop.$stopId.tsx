@@ -10,6 +10,7 @@ import { useEtaStats } from "@/lib/useEtaStats";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { getStop, getRoute, routeTone } from "@/lib/gtfs";
+import { useI18n } from "@/lib/i18n";
 
 
 export const Route = createFileRoute("/stop/$stopId")({
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/stop/$stopId")({
 });
 
 function StopDetail() {
+  const { t } = useI18n();
   const { stopId } = Route.useParams();
   const stop = getStop(stopId);
   const { data: rt, isLoading } = useRealtime();
@@ -85,19 +87,19 @@ function StopDetail() {
           <IconArrowLeft className="size-4" />
         </Link>
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          Stop {stop?.code ?? stopId}
+          {t("stop.kicker", { code: stop?.code ?? stopId })}
         </span>
         <span className="size-10" />
       </div>
 
       <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
         <h1 className="font-display text-[40px] leading-[1.05] text-ink">
-          {stop?.name ?? "Unknown stop"}
+          {stop?.name ?? t("stop.unknown")}
         </h1>
         <p className="mt-2 text-[13px] text-ink-soft">
           {stop
-            ? `${stop.agency === "IC" ? "Intercity service" : "Urban service"} — ${stop.lat.toFixed(4)}, ${stop.lng.toFixed(4)}`
-            : "Stop not in current dataset"}
+            ? `${stop.agency === "IC" ? t("stop.serviceIntercity") : t("stop.serviceUrban")} — ${stop.lat.toFixed(4)}, ${stop.lng.toFixed(4)}`
+            : t("stop.notInDataset")}
         </p>
       </header>
 
@@ -115,8 +117,10 @@ function StopDetail() {
           }
           restrictTripIds={departures.map((d) => d.tripId)}
           liveLabel={{
-            active: `${departures.length} buses serving this stop`,
-            empty: "No buses near this stop right now",
+            active: departures.length === 1
+              ? t("stop.busesServingOne")
+              : t("stop.busesServingN", { n: departures.length }),
+            empty: t("stop.noBusesNear"),
           }}
           fitToContent={false}
         />
@@ -127,17 +131,17 @@ function StopDetail() {
         style={{ animationDelay: "180ms" }}
       >
         <div className="flex items-end justify-between mb-3">
-          <h2 className="font-display text-2xl text-ink">Departures</h2>
+          <h2 className="font-display text-2xl text-ink">{t("stop.departures")}</h2>
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            {isLoading ? "Loading" : "Live, smart eta"}
+            {isLoading ? t("stop.loading") : t("stop.liveSmart")}
           </span>
         </div>
 
         {departures.length === 0 ? (
           <div className="rounded-3xl bg-card p-6 text-center ring-1 ring-line">
-            <p className="font-display text-lg text-ink">No upcoming departures</p>
+            <p className="font-display text-lg text-ink">{t("stop.noUpcomingTitle")}</p>
             <p className="mt-1 text-[12px] text-ink-soft">
-              The live feed has nothing scheduled for this stop in the next 3 hours.
+              {t("stop.noUpcomingBody")}
             </p>
           </div>
         ) : (
@@ -160,7 +164,7 @@ function StopDetail() {
                   />
                   <div className="min-w-0 flex-1">
                     <p className="font-display text-lg leading-[1.15] text-ink text-pretty line-clamp-2 break-words">
-                      {route?.long ?? "Route"}
+                      {route?.long ?? t("stop.routeFallback")}
                     </p>
 
                     <p className="mt-1 flex items-center gap-2 text-[12px] text-ink-soft">
@@ -177,11 +181,11 @@ function StopDetail() {
                       {d.eta.etaMin}
                     </p>
                     <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                      min
+                      {t("stop.minShort")}
                     </p>
                     {shifted && (
                       <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft line-through decoration-1">
-                        op {d.eta.operatorEtaMin}
+                        {t("stop.opShort", { m: d.eta.operatorEtaMin })}
                       </p>
                     )}
                     <p
