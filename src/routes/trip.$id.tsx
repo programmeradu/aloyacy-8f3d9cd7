@@ -476,10 +476,10 @@ function SingleLegCompanion({
         >
           <div className="flex items-end justify-between mb-3">
             <h2 className="font-display text-2xl text-ink">
-              {walkingPhase === "to-stop" ? "Walk to the stop" : "Walk to destination"}
+              {walkingPhase === "to-stop" ? t("trip.walkToStopH") : t("trip.walkToDestH")}
             </h2>
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-              {Math.round(directions.durationSec / 60)} min —{" "}
+              {Math.round(directions.durationSec / 60)} {t("common.minUnit")} —{" "}
               {directions.distanceMeters >= 1000
                 ? `${(directions.distanceMeters / 1000).toFixed(1)} km`
                 : `${Math.round(directions.distanceMeters)} m`}
@@ -506,9 +506,9 @@ function SingleLegCompanion({
       {/* Timeline */}
       <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
         <div className="flex items-end justify-between mb-3">
-          <h2 className="font-display text-2xl text-ink">Your journey</h2>
+          <h2 className="font-display text-2xl text-ink">{t("trip.yourJourney")}</h2>
           <span className="font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
-            {Math.round(active.option.totalDurationSec / 60)} min total
+            {t("trip.minTotal", { m: Math.round(active.option.totalDurationSec / 60) })}
           </span>
         </div>
 
@@ -516,8 +516,8 @@ function SingleLegCompanion({
           <TimelineRow
             active={phase === "leave-soon" || phase === "walking"}
             done={phase !== "leave-soon" && phase !== "walking"}
-            title={`Walk to ${bus.board.name}`}
-            sub={`${Math.round((walkIn.kind === "walk" ? walkIn.durationSec : 0) / 60)} min — ${Math.round((walkIn.kind === "walk" ? walkIn.distanceMeters : 0))} m`}
+            title={t("trip.walkToName", { name: bus.board.name })}
+            sub={t("trip.walkMeters", { m: Math.round((walkIn.kind === "walk" ? walkIn.durationSec : 0) / 60), d: Math.round((walkIn.kind === "walk" ? walkIn.distanceMeters : 0)) })}
           >
             <IconPin className="size-3.5" />
           </TimelineRow>
@@ -527,10 +527,10 @@ function SingleLegCompanion({
             done={phase === "arrived"}
             title={
               <>
-                Board <span className="text-aegean-deep">BUS {bus.routeShort}</span> — {bus.routeLong}
+                {t("trip.boardBusPrefix")} <span className="text-aegean-deep">{t("trip.boardBusName", { code: bus.routeShort })}</span> — {bus.routeLong}
               </>
             }
-            sub={`Alight at ${bus.alight.name}`}
+            sub={t("trip.alightAt", { name: bus.alight.name })}
             accent={<RouteChip code={bus.routeShort} tone={routeTone(bus.routeId)} size="sm" />}
           >
             <IconBus className="size-3.5" />
@@ -539,16 +539,15 @@ function SingleLegCompanion({
           <TimelineRow
             active={phase === "alight-soon" || phase === "arrived"}
             done={false}
-            title={`Walk to ${active.to.label}`}
-            sub={`${Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60)} min — ${Math.round((walkOut.kind === "walk" ? walkOut.distanceMeters : 0))} m`}
+            title={t("trip.walkToName", { name: active.to.label })}
+            sub={t("trip.walkMeters", { m: Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60), d: Math.round((walkOut.kind === "walk" ? walkOut.distanceMeters : 0)) })}
           >
             <IconPin className="size-3.5" />
           </TimelineRow>
         </ol>
       </section>
 
-      {/* Alight alert — surfaces a couple of minutes before the stop so the
-          rider has time to reach the bell. Pulses once it's truly imminent. */}
+      {/* Alight alert */}
       {(phase === "alight-soon" || (phase === "on-bus" && minToAlight <= 3)) && (
         <section className="mt-5 px-6 animate-rise">
           <div
@@ -560,7 +559,7 @@ function SingleLegCompanion({
           >
             <div className="flex items-center justify-between">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-                {phase === "alight-soon" ? "Press the stop button now" : `Get ready — ${Math.max(0, minToAlight)} min`}
+                {phase === "alight-soon" ? t("trip.alight.press") : t("trip.alight.getReady", { m: Math.max(0, minToAlight) })}
               </p>
               {phase === "alight-soon" && (
                 <span className="relative flex size-2.5">
@@ -574,8 +573,8 @@ function SingleLegCompanion({
             </p>
             <p className="mt-1 text-[13px] text-ink-soft">
               {phase === "alight-soon"
-                ? `Pull the cord, head to the doors. We'll guide you turn-by-turn to ${active.to.label} once you're off.`
-                : `Move toward the doors and find the stop button. ${Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60)} min walk waits on the other side.`}
+                ? t("trip.alight.body.now", { name: active.to.label })
+                : t("trip.alight.body.soon", { m: Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60) })}
             </p>
           </div>
         </section>
