@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { isAnonymousUser } from "./anon-auth";
 
 // Run the device→user link at most once per page load per user id, regardless
 // of how many components mount `useAuth`.
@@ -47,7 +48,7 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, s) => {
         setSession(s);
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
           void linkDeviceIfPossible(s);
         }
       },
@@ -58,5 +59,15 @@ export function useAuth() {
     };
   }, []);
 
-  return { session, user: session?.user ?? null, loading };
+  const user = session?.user ?? null;
+  const isAnonymous = isAnonymousUser(user as User | null);
+
+  return {
+    session,
+    user,
+    loading,
+    isAnonymous,
+    /** True if the user has linked a real identity (email or social). */
+    isPermanent: !!user && !isAnonymous,
+  };
 }
