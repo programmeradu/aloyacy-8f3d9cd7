@@ -9,7 +9,7 @@ import {
   OG_WIDTH,
   clip,
   esc,
-  ogSvgResponse,
+  ogPngResponse,
 } from "@/lib/og-render.server";
 
 function fmtTime(unix: number): string {
@@ -147,7 +147,7 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
   <text x="${OG_WIDTH - 48}" y="596" text-anchor="end" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" font-weight="500" letter-spacing="2.4" fill="${OG_PALETTE.inkSoft}">APP.ALOYA.CY/PLAN</text>
 </svg>`;
 
-        return ogSvgResponse(svg, 60);
+        return await ogPngResponse(svg, 60);
       },
     },
   },
