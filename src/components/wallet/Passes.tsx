@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { MotionPassOption } from "@/lib/motion-pass";
+import { useI18n } from "@/lib/i18n";
 
 const TOPUP_URL =
   "https://www.publictransport.com.cy/topup/page/topup-travel-card";
@@ -36,6 +37,7 @@ export function RenewPasses({
   passes: MotionPassOption[];
 }) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const { t } = useI18n();
 
   if (passes.length === 0) return null;
 
@@ -54,10 +56,11 @@ export function RenewPasses({
     <section className="px-6 animate-rise" style={{ animationDelay: "260ms" }}>
       <div className="flex items-end justify-between mb-3">
         <h2 className="font-display text-2xl text-ink">
-          Renew your <span className="italic text-aegean-deep">pass</span>
+          {t("wallet.renewTitlePrefix")}{" "}
+          <span className="italic text-aegean-deep">{t("wallet.renewTitleEmph")}</span>
         </h2>
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-          {passes.length} eligible
+          {t("wallet.renewEligible", { n: passes.length })}
         </span>
       </div>
 
@@ -75,10 +78,10 @@ export function RenewPasses({
                 </p>
                 <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
                   {justCopied
-                    ? "Card number copied — paste on the next screen"
+                    ? t("wallet.renewCopied")
                     : p.validityDays
-                      ? `${p.validityDays} day validity`
-                      : `Pass ${p.code}`}
+                      ? t("wallet.renewValidity", { n: p.validityDays })
+                      : t("wallet.renewPass", { code: p.code })}
                 </p>
               </div>
               <button
@@ -95,11 +98,7 @@ export function RenewPasses({
         })}
       </ul>
 
-      <p className="mt-3 text-[11px] text-ink-soft">
-        Tapping a price copies your card number, then opens the official Cyprus
-        Public Transport top-up page — paste it into the card field and JCC
-        handles the rest.
-      </p>
+      <p className="mt-3 text-[11px] text-ink-soft">{t("wallet.renewFoot")}</p>
     </section>
   );
 }
