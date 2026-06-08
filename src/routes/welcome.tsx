@@ -15,8 +15,7 @@ import {
 import { saveSubscription } from "@/lib/push.functions";
 import imgLocation from "@/assets/welcome-location.jpg";
 import imgNotifications from "@/assets/welcome-notifications.jpg";
-import { MotionCard } from "@/components/wallet/MotionCard";
-import type { MotionPass } from "@/lib/motion-pass";
+import imgCard from "@/assets/welcome-card.jpg";
 
 export const Route = createFileRoute("/welcome")({
   head: () => ({
@@ -235,30 +234,13 @@ function CardStep({ onFinish }: { onFinish: () => void }) {
     onFinish();
   };
 
-  const previewPass: MotionPass = {
-    number: digits || "0000000000000000",
-    holder: "",
-    tier: "18+ Standard",
-    validUntil: "—/—/——",
-    balanceEur: 0,
-    balanceUpdatedAt: 0,
-    topups: [],
-    transactions: [],
-    lastSyncAt: 0,
-  };
-
   return (
     <StepShell
       eyebrow={t("welcome.card.eyebrow")}
       title={t("welcome.card.title")}
       body={t("welcome.card.body")}
-      visual={
-        <div className="px-6 py-8">
-          <div className="mx-auto w-full max-w-[320px] pointer-events-none">
-            <MotionCard pass={previewPass} onTap={() => {}} />
-          </div>
-        </div>
-      }
+      image={imgCard}
+      imageAlt="A hand holding a Motion Bus Card up to a kiosk reader, painterly"
       primary={
         <>
           <label className="block">
