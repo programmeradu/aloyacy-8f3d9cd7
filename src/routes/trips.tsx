@@ -120,7 +120,7 @@ function Plan() {
   const planError = planQuery.error
     ? planQuery.error instanceof Error
       ? planQuery.error.message
-      : "Plan failed"
+      : t("trips.planFailed")
     : null;
 
   // Force a re-plan the moment the top result's bus has just departed —
