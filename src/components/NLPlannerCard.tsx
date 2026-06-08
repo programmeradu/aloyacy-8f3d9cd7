@@ -312,7 +312,7 @@ export function NLPlannerCard() {
     } catch (err) {
       console.warn("[nl-planner] failed", err);
       track("ai:nl-planner.error");
-      setError("Something went wrong. Try again.");
+      setError(t("nl.err.generic"));
       setStage("idle");
     } finally {
       setBusy(false);
