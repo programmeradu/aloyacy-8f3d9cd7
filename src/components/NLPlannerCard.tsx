@@ -301,7 +301,7 @@ export function NLPlannerCard() {
 
       if (!destination) {
         track("ai:nl-planner.geocode-failed", { which: "to" });
-        setError(`Couldn\u2019t find \u201c${merged.to}\u201d in Cyprus.`);
+        setError(t("nl.err.geocode", { q: merged.to }));
         setStage("idle");
         return;
       }
