@@ -41,6 +41,7 @@ import companionHero from "@/assets/companion-hero.jpg";
 
 export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const itin = active.itinerary!;
   const live = useMultiLegJourney(active);
   const tripId = active.option.id;
