@@ -43,6 +43,8 @@ import { getGreeting } from "@/lib/greeting";
 import statBus from "@/assets/stat-bus.png";
 import statDial from "@/assets/stat-dial.png";
 import statRoad from "@/assets/stat-road.png";
+import { useI18n } from "@/lib/i18n";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -80,6 +82,8 @@ function Explore() {
   const geo = useGeolocation();
   const { data: rt } = useRealtime();
   const getWeather = useServerFn(getCurrentWeather);
+  const { t: tt } = useI18n();
+
 
   // Live local clock (Cyprus is Europe/Nicosia). Gated on mount to avoid SSR hydration mismatch.
   const [mounted, setMounted] = useState(false);
@@ -177,10 +181,12 @@ function Explore() {
         name: s.name,
         towards:
           s.agency === "IC"
-            ? "Intercity"
+            ? tt("home.intercity")
             : s.distanceKm >= 1
-              ? `${s.distanceKm.toFixed(s.distanceKm >= 10 ? 0 : 1)} km away`
-              : `${Math.round(s.distanceKm * 1000)} m away`,
+              ? tt("common.kmAway", { km: s.distanceKm.toFixed(s.distanceKm >= 10 ? 0 : 1) })
+              : tt("common.mAway", { m: Math.round(s.distanceKm * 1000) }),
+
+
         etaMin: nextEta,
         etaConfidence: smart?.freshness,
         etaBlurb: smart?.blurb,
@@ -244,8 +250,9 @@ function Explore() {
           {mounted ? getGreeting().word : "Kalimera."}
           <br />
           <span className="italic text-olive-soft">
-            Where in {headerArea} today?
+            {tt("home.whereToday", { area: headerArea })}
           </span>
+
         </h1>
       </header>
 
@@ -277,8 +284,9 @@ function Explore() {
       >
         {landmarkChips.length === 0 ? (
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft py-2">
-            Locating…
+            {tt("home.locating")}
           </span>
+
         ) : (
           landmarkChips.map((s, i) => {
             const tones = [
@@ -312,26 +320,27 @@ function Explore() {
         style={{ animationDelay: "260ms" }}
       >
         <QuickStat
-          label="Live buses"
+          label={tt("home.liveBuses")}
           value={liveCount ? String(liveCount) : "—"}
           tone="aegean"
           vignette={statBus}
           vignetteClass="right-1 bottom-1 w-[52%] opacity-[0.7] rotate-[-3deg]"
         />
         <QuickStat
-          label="On-time"
+          label={tt("home.onTime")}
           value={onTimePct !== null ? `${onTimePct}%` : "—"}
           tone="olive"
           vignette={statDial}
           vignetteClass="right-1 bottom-1 w-[46%] opacity-[0.6]"
         />
         <QuickStat
-          label="Next ride"
+          label={tt("home.nextRide")}
           value={stops[0]?.etaMin != null ? `${stops[0].etaMin}′` : "—"}
           tone="ochre"
           vignette={statRoad}
           vignetteClass="right-1 bottom-1 w-[56%] opacity-[0.75]"
         />
+
       </section>
 
 
@@ -363,20 +372,21 @@ function Explore() {
                 <IconPin className="size-3 text-ink-soft/60" />
               )}
               {geo.source === "live"
-                ? "Around you, live feed"
+                ? tt("home.aroundYou")
                 : geo.source === "cached"
-                  ? "Last known location"
-                  : "Around Nicosia centre"}
+                  ? tt("home.lastKnown")
+                  : tt("home.aroundNicosia")}
             </p>
-            <h2 className="font-display text-3xl mt-1 text-ink">Nearby stops</h2>
+            <h2 className="font-display text-3xl mt-1 text-ink">{tt("home.nearbyStops")}</h2>
           </div>
           <Link
             to="/trips"
             className="flex items-center gap-1 text-[12px] font-medium text-aegean-deep"
           >
-            Plan a trip
+            {tt("home.planTrip")}
             <IconArrowUpRight className="size-3.5" />
           </Link>
+
         </div>
 
         <div className="flex flex-col gap-3">
@@ -573,6 +583,7 @@ function SmartSearch({
 }) {
   const [focused, setFocused] = useState(false);
   const open = focused && query.trim().length > 0;
+  const { t: tt } = useI18n();
 
   return (
     <div className="relative">
@@ -586,7 +597,7 @@ function SmartSearch({
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setTimeout(() => setFocused(false), 150)}
-          placeholder="Stop, route number, or bus…"
+          placeholder={tt("home.searchPlaceholder")}
           className="w-full rounded-2xl bg-card py-4 pl-11 pr-4 text-[15px] ring-1 ring-line placeholder:text-ink-soft/60 outline-none focus:ring-aegean-deep/30 transition-all"
         />
         {query.length === 0 && null}
@@ -595,7 +606,7 @@ function SmartSearch({
             onClick={() => setQuery("")}
             className="absolute right-3 rounded-full bg-limestone-soft px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
           >
-            clear
+            {tt("home.clear")}
           </button>
         )}
       </div>
@@ -605,13 +616,14 @@ function SmartSearch({
           {results.length === 0 ? (
             <div className="px-5 py-6 text-center">
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                No matches
+                {tt("home.noMatches")}
               </p>
               <p className="mt-1 text-[13px] text-ink-soft">
-                Try a route number like <span className="font-mono">120</span> or a place name.
+                {tt("home.searchHint", { example: "120" })}
               </p>
             </div>
           ) : (
+
             <ul className="max-h-[60vh] overflow-y-auto divide-y divide-line">
               {results.map((r) => {
                 if (r.kind === "route") {
