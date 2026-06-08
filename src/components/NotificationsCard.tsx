@@ -150,28 +150,14 @@ export function NotificationsCard() {
   const isOn = status === "on";
 
   const copy = {
-    unknown: { line: "Checking notification status…", tone: "ink-soft" as const },
-    unsupported: {
-      line: "This browser does not support push notifications.",
-      tone: "ink-soft" as const,
-    },
-    preview: {
-      line: "Notifications work on the installed app. Open the published site or add Aloya to your home screen.",
-      tone: "ink-soft" as const,
-    },
-    denied: {
-      line: "Notifications are blocked. Allow them in your browser settings to receive bus alerts.",
-      tone: "ochre" as const,
-    },
-    off: {
-      line: "Turn on quiet alerts for boarding, alighting, and delays.",
-      tone: "ink-soft" as const,
-    },
-    on: {
-      line: "On. We will only ping for boarding, alighting, and disruptions.",
-      tone: "olive" as const,
-    },
+    unknown: { line: t("notif.line.unknown"), tone: "ink-soft" as const },
+    unsupported: { line: t("notif.line.unsupported"), tone: "ink-soft" as const },
+    preview: { line: t("notif.line.preview"), tone: "ink-soft" as const },
+    denied: { line: t("notif.line.denied"), tone: "ochre" as const },
+    off: { line: t("notif.line.off"), tone: "ink-soft" as const },
+    on: { line: t("notif.line.on"), tone: "olive" as const },
   }[status];
+
 
   return (
     <article className="relative overflow-hidden rounded-[28px] bg-paper ring-1 ring-line">
