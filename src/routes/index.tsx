@@ -372,20 +372,21 @@ function Explore() {
                 <IconPin className="size-3 text-ink-soft/60" />
               )}
               {geo.source === "live"
-                ? "Around you, live feed"
+                ? tt("home.aroundYou")
                 : geo.source === "cached"
-                  ? "Last known location"
-                  : "Around Nicosia centre"}
+                  ? tt("home.lastKnown")
+                  : tt("home.aroundNicosia")}
             </p>
-            <h2 className="font-display text-3xl mt-1 text-ink">Nearby stops</h2>
+            <h2 className="font-display text-3xl mt-1 text-ink">{tt("home.nearbyStops")}</h2>
           </div>
           <Link
             to="/trips"
             className="flex items-center gap-1 text-[12px] font-medium text-aegean-deep"
           >
-            Plan a trip
+            {tt("home.planTrip")}
             <IconArrowUpRight className="size-3.5" />
           </Link>
+
         </div>
 
         <div className="flex flex-col gap-3">
