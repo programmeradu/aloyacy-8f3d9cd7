@@ -584,6 +584,8 @@ function SingleLegCompanion({
 }
 
 function PhaseLabel({ phase, delaySec }: { phase: Phase; delaySec: number }) {
+function PhaseLabel({ phase, delaySec }: { phase: Phase; delaySec: number }) {
+  const { t } = useI18n();
   const tone =
     phase === "arrived"
       ? "text-olive"
@@ -592,22 +594,22 @@ function PhaseLabel({ phase, delaySec }: { phase: Phase; delaySec: number }) {
       : "text-aegean-deep";
   const txt =
     phase === "leave-soon"
-      ? "Get ready"
+      ? t("trip.phase.getReady")
       : phase === "walking"
-      ? "On your way"
+      ? t("trip.phase.onYourWay")
       : phase === "waiting"
-      ? "At the stop"
+      ? t("trip.phase.atStop")
       : phase === "on-bus"
-      ? "On board"
+      ? t("trip.phase.onBoard")
       : phase === "alight-soon"
-      ? "Almost there"
-      : "Arrived";
+      ? t("trip.phase.almostThere")
+      : t("trip.phase.arrived");
   const delay =
     delaySec > 60
-      ? `${Math.round(delaySec / 60)} min late`
+      ? t("trip.delay.late", { m: Math.round(delaySec / 60) })
       : delaySec < -60
-      ? `${Math.round(-delaySec / 60)} min early`
-      : "Right on time";
+      ? t("trip.delay.early", { m: Math.round(-delaySec / 60) })
+      : t("trip.delay.onTime");
   return (
     <p className={`font-sans text-[12px] font-semibold tracking-tight ${tone}`}>
       {txt} <span className="text-ink-soft/80 font-medium tabular-nums">— {delay}</span>
@@ -632,51 +634,49 @@ function PhaseHeadline({
   boardName: string;
   alightName: string;
 }) {
+  const { t } = useI18n();
   const base = "mt-2 font-display text-[40px] leading-[1.04] text-ink text-balance";
+  const unit = <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">{t("common.minUnit")}</span>;
   if (phase === "leave-soon") {
     return (
       <h1 className={base}>
-        Leave in <span className="text-aegean-deep">{Math.max(0, minToLeave)}</span>
-        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">min</span>
+        {t("trip.hl.leaveIn")} <span className="text-aegean-deep">{Math.max(0, minToLeave)}</span>{unit}
         <br />
-        <span className="italic text-olive-soft">walk to {boardName}.</span>
+        <span className="italic text-olive-soft">{t("trip.hl.walkTo", { name: boardName })}</span>
       </h1>
     );
   }
   if (phase === "walking") {
     return (
       <h1 className={base}>
-        Bus in <span className="text-aegean-deep">{Math.max(0, minToBoard)}</span>
-        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">min</span>
+        {t("trip.hl.busIn")} <span className="text-aegean-deep">{Math.max(0, minToBoard)}</span>{unit}
         <br />
-        <span className="italic text-olive-soft">keep heading to {boardName}.</span>
+        <span className="italic text-olive-soft">{t("trip.hl.keepHeading", { name: boardName })}</span>
       </h1>
     );
   }
   if (phase === "waiting") {
     return (
       <h1 className={base}>
-        Boards in <span className="text-aegean-deep">{Math.max(0, minToBoard)}</span>
-        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">min</span>
+        {t("trip.hl.boardsIn")} <span className="text-aegean-deep">{Math.max(0, minToBoard)}</span>{unit}
         <br />
-        <span className="italic text-olive-soft">at {boardName}.</span>
+        <span className="italic text-olive-soft">{t("trip.hl.at", { name: boardName })}</span>
       </h1>
     );
   }
   if (phase === "on-bus") {
     return (
       <h1 className={base}>
-        Off in <span className="text-aegean-deep">{Math.max(0, minToAlight)}</span>
-        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">min</span>
+        {t("trip.hl.offIn")} <span className="text-aegean-deep">{Math.max(0, minToAlight)}</span>{unit}
         <br />
-        <span className="italic text-olive-soft">at {alightName}.</span>
+        <span className="italic text-olive-soft">{t("trip.hl.at", { name: alightName })}</span>
       </h1>
     );
   }
   if (phase === "alight-soon") {
     return (
       <h1 className={base}>
-        Step off <span className="text-ochre">next</span>
+        {t("trip.hl.stepOff")} <span className="text-ochre">{t("trip.hl.next")}</span>
         <br />
         <span className="italic text-olive-soft">{alightName}.</span>
       </h1>
@@ -684,9 +684,9 @@ function PhaseHeadline({
   }
   return (
     <h1 className={base}>
-      You're <span className="text-olive">there</span>
+      {t("trip.hl.youreThere")} <span className="text-olive">{t("trip.hl.there")}</span>
       <br />
-      <span className="italic text-olive-soft">{Math.max(0, minToDoor)} min walk left.</span>
+      <span className="italic text-olive-soft">{t("trip.hl.minWalkLeft", { m: Math.max(0, minToDoor) })}</span>
     </h1>
   );
 }
@@ -708,18 +708,19 @@ function PhaseSub({
   alightName: string;
   minToDoor: number;
 }) {
+  const { t } = useI18n();
   const text =
     phase === "leave-soon"
-      ? `It's a ${Math.round(walkInSec / 60)} min walk. We'll keep watching the bus while you go.`
+      ? t("trip.sub.leaveSoon", { m: Math.round(walkInSec / 60) })
       : phase === "walking"
-      ? `${Math.round(walkInSec / 60)} min to ${boardName}. You're on schedule.`
+      ? t("trip.sub.walking", { m: Math.round(walkInSec / 60), name: boardName })
       : phase === "waiting"
-      ? `Stay near the curb at ${boardName}. We'll buzz when the doors are about to open.`
+      ? t("trip.sub.waiting", { name: boardName })
       : phase === "on-bus"
-      ? `Sit back. ${Math.round(walkOutSec / 60)} min walk waiting at ${alightName}.`
+      ? t("trip.sub.onBus", { m: Math.round(walkOutSec / 60), name: alightName })
       : phase === "alight-soon"
-      ? `Pull the cord now. Then ${Math.round(walkOutSec / 60)} min on foot to ${destName}.`
-      : `You're ${minToDoor} min from ${destName}. Mind the path.`;
+      ? t("trip.sub.alightSoon", { m: Math.round(walkOutSec / 60), name: destName })
+      : t("trip.sub.arrived", { m: minToDoor, name: destName });
   return (
     <p className="mt-4 flex items-start gap-2 text-[13px] text-ink-soft leading-relaxed">
       <IconClock className="mt-0.5 size-3.5 shrink-0 text-ink-soft" />
