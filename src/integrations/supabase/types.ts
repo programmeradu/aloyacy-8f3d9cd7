@@ -356,6 +356,63 @@ export type Database = {
         }
         Relationships: []
       }
+      motion_card: {
+        Row: {
+          balance_eur: number
+          balance_updated_at: string | null
+          card_number: string
+          card_type: string | null
+          created_at: string
+          holder: string | null
+          jcc_display_name: string | null
+          jcc_email: string | null
+          jcc_linked_at: string | null
+          jcc_tokens_encrypted: string | null
+          last_sync_at: string | null
+          pass_name: string | null
+          tier: string | null
+          updated_at: string
+          user_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          balance_eur?: number
+          balance_updated_at?: string | null
+          card_number: string
+          card_type?: string | null
+          created_at?: string
+          holder?: string | null
+          jcc_display_name?: string | null
+          jcc_email?: string | null
+          jcc_linked_at?: string | null
+          jcc_tokens_encrypted?: string | null
+          last_sync_at?: string | null
+          pass_name?: string | null
+          tier?: string | null
+          updated_at?: string
+          user_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          balance_eur?: number
+          balance_updated_at?: string | null
+          card_number?: string
+          card_type?: string | null
+          created_at?: string
+          holder?: string | null
+          jcc_display_name?: string | null
+          jcc_email?: string | null
+          jcc_linked_at?: string | null
+          jcc_tokens_encrypted?: string | null
+          last_sync_at?: string | null
+          pass_name?: string | null
+          tier?: string | null
+          updated_at?: string
+          user_id?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       observed_arrivals: {
         Row: {
           last_delay_sec: number
@@ -539,6 +596,42 @@ export type Database = {
           route_id?: string
           stop_id?: string
           trip_id?: string
+        }
+        Relationships: []
+      }
+      saved_places: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          kind: string
+          label: string
+          lat: number
+          lng: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          label: string
+          lat: number
+          lng: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          label?: string
+          lat?: number
+          lng?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -848,6 +941,51 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_history_cloud: {
+        Row: {
+          created_at: string
+          duration_sec: number | null
+          from_label: string
+          from_lat: number
+          from_lng: number
+          id: string
+          route_id: string | null
+          taken_at: string
+          to_label: string
+          to_lat: number
+          to_lng: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_sec?: number | null
+          from_label: string
+          from_lat: number
+          from_lng: number
+          id?: string
+          route_id?: string | null
+          taken_at: string
+          to_label: string
+          to_lat: number
+          to_lng: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_sec?: number | null
+          from_label?: string
+          from_lat?: number
+          from_lng?: number
+          id?: string
+          route_id?: string | null
+          taken_at?: string
+          to_label?: string
+          to_lat?: number
+          to_lng?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       trip_no_shows: {
         Row: {
           detected_at: string
@@ -914,6 +1052,42 @@ export type Database = {
           recorded_at?: string
           to_lat?: number
           to_lng?: number
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          consent_analytics: boolean
+          consent_cookies_at: string | null
+          created_at: string
+          locale: string
+          notif_disruptions: boolean
+          notif_trip_alerts: boolean
+          onboarded_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consent_analytics?: boolean
+          consent_cookies_at?: string | null
+          created_at?: string
+          locale?: string
+          notif_disruptions?: boolean
+          notif_trip_alerts?: boolean
+          onboarded_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consent_analytics?: boolean
+          consent_cookies_at?: string | null
+          created_at?: string
+          locale?: string
+          notif_disruptions?: boolean
+          notif_trip_alerts?: boolean
+          onboarded_at?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
