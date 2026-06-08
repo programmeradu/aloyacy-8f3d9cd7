@@ -284,8 +284,9 @@ function Explore() {
       >
         {landmarkChips.length === 0 ? (
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft py-2">
-            Locating…
+            {tt("home.locating")}
           </span>
+
         ) : (
           landmarkChips.map((s, i) => {
             const tones = [
