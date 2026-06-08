@@ -206,8 +206,8 @@ function RoutePage() {
             markers={markers}
             restrictTripIds={tripIds.length ? tripIds : undefined}
             liveLabel={{
-              active: "Live buses on this line",
-              empty: "No live buses on this line",
+              active: t("route.liveOnLine"),
+              empty: t("route.noLiveOnLine"),
             }}
           />
         ) : (
