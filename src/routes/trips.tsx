@@ -400,6 +400,15 @@ function PersonalSuggestions({
     <div className="flex flex-col gap-2.5">
       {items.map((s) => {
         const shortLabel = s.toLabel.split(/[,—-]/)[0].trim();
+        const len = shortLabel.length;
+        const labelSize =
+          len > 38
+            ? "text-[13px]"
+            : len > 28
+              ? "text-[15px]"
+              : len > 20
+                ? "text-[16px]"
+                : "text-[18px]";
         return (
           <button
             key={s.key}
@@ -410,7 +419,10 @@ function PersonalSuggestions({
               {s.count > 9 ? "9+" : s.count}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-display text-[18px] leading-tight text-ink truncate">
+              <p
+                className={`font-display ${labelSize} leading-[1.2] text-ink break-words [overflow-wrap:anywhere] line-clamp-2`}
+                title={shortLabel}
+              >
                 {shortLabel}
               </p>
               <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft truncate">
