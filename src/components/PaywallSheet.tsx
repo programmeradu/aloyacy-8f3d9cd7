@@ -4,31 +4,18 @@ import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "./AuthSheet";
 import { StripeEmbeddedCheckoutPane } from "./StripeEmbeddedCheckout";
 import proHero from "@/assets/pro-hero.jpg";
+import { useI18n, type DictKey } from "@/lib/i18n";
 
-const FEATURES: { title: string; body: string }[] = [
-  {
-    title: "Multi-leg trip planner",
-    body: "Full transfers across Nicosia and intercity routes — door to door.",
-  },
-  {
-    title: "Live boarding cues",
-    body: "Voice and haptic the second your bus arrives. Auto-reroute if you miss it.",
-  },
-  {
-    title: "Saved trips & push alerts",
-    body: "Delays, disruptions, and the perfect leave-now moment — straight to your phone.",
-  },
-  {
-    title: "Offline schedules",
-    body: "The whole network cached. Works underground, on planes, anywhere.",
-  },
-  {
-    title: "Priority data refresh",
-    body: "Live positions sync more often. Always the freshest ETAs.",
-  },
+const FEATURE_KEYS: { title: DictKey; body: DictKey }[] = [
+  { title: "pay.feat.planner.t", body: "pay.feat.planner.b" },
+  { title: "pay.feat.boarding.t", body: "pay.feat.boarding.b" },
+  { title: "pay.feat.alerts.t", body: "pay.feat.alerts.b" },
+  { title: "pay.feat.offline.t", body: "pay.feat.offline.b" },
+  { title: "pay.feat.priority.t", body: "pay.feat.priority.b" },
 ];
 
 export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [plan, setPlan] = useState<PlanId>("monthly");
   const [authOpen, setAuthOpen] = useState(false);
@@ -72,25 +59,24 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
                 <div className="absolute left-1/2 top-3 h-1 w-10 -translate-x-1/2 rounded-full bg-white/70 backdrop-blur" />
                 <div className="absolute bottom-3 left-6 right-6">
                   <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ink/80">
-                    Aloya Pro
+                    {t("pay.kicker")}
                   </p>
                 </div>
               </div>
 
               <div className="px-6 pb-10 -mt-2">
                 <h2 className="font-display text-[2.1rem] leading-[1.05] tracking-tight text-ink">
-                  The whole island,<br />in your pocket.
+                  {t("pay.titleA")}<br />{t("pay.titleB")}
                 </h2>
               <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                Aloya stays free for everyday rides. Pro adds the features that turn it
-                into a proper navigator — for the cost of two coffees a month.
+                {t("pay.lede")}
               </p>
 
               <ul className="mt-7 space-y-5">
-                {FEATURES.map((f) => (
+                {FEATURE_KEYS.map((f) => (
                   <li key={f.title} className="border-l border-aegean-deep/30 pl-4">
-                    <p className="text-sm font-medium text-ink">{f.title}</p>
-                    <p className="mt-1 text-[13px] leading-relaxed text-ink-soft">{f.body}</p>
+                    <p className="text-sm font-medium text-ink">{t(f.title)}</p>
+                    <p className="mt-1 text-[13px] leading-relaxed text-ink-soft">{t(f.body)}</p>
                   </li>
                 ))}
               </ul>
@@ -132,17 +118,17 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
                 onClick={startCheckout}
                 className="mt-6 w-full rounded-2xl bg-ink py-4 text-sm font-medium text-limestone"
               >
-                {user ? "Continue to checkout" : "Continue"}
+                {user ? t("pay.continueCheckout") : t("pay.continue")}
               </button>
               <button
                 onClick={onClose}
                 className="mt-2 w-full py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft"
               >
-                Maybe later
+                {t("pay.later")}
               </button>
 
               <p className="mt-6 text-center text-[11px] leading-relaxed text-ink-soft/80">
-                Cancel anytime. Secure checkout by Stripe. Free features stay free, forever.
+                {t("pay.fine")}
               </p>
               </div>
             </>
@@ -152,7 +138,7 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
                 onClick={() => setStage("plan")}
                 className="mb-2 px-4 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft"
               >
-                ← Back
+                {t("pay.back")}
               </button>
               <StripeEmbeddedCheckoutPane
                 planKey={PRO_PLANS[plan].key}
@@ -166,8 +152,8 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
       <AuthSheet
         open={authOpen}
         onClose={() => setAuthOpen(false)}
-        title="One step before Pro"
-        subtitle="We need an email so your subscription works across devices. No password — just a magic link."
+        title={t("pay.authTitle")}
+        subtitle={t("pay.authSubtitle")}
       />
     </>
   );
