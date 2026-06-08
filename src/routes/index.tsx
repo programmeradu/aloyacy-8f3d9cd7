@@ -583,6 +583,7 @@ function SmartSearch({
 }) {
   const [focused, setFocused] = useState(false);
   const open = focused && query.trim().length > 0;
+  const { t: tt } = useI18n();
 
   return (
     <div className="relative">
@@ -596,7 +597,7 @@ function SmartSearch({
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setTimeout(() => setFocused(false), 150)}
-          placeholder="Stop, route number, or bus…"
+          placeholder={tt("home.searchPlaceholder")}
           className="w-full rounded-2xl bg-card py-4 pl-11 pr-4 text-[15px] ring-1 ring-line placeholder:text-ink-soft/60 outline-none focus:ring-aegean-deep/30 transition-all"
         />
         {query.length === 0 && null}
@@ -605,7 +606,7 @@ function SmartSearch({
             onClick={() => setQuery("")}
             className="absolute right-3 rounded-full bg-limestone-soft px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
           >
-            clear
+            {tt("home.clear")}
           </button>
         )}
       </div>
@@ -615,13 +616,14 @@ function SmartSearch({
           {results.length === 0 ? (
             <div className="px-5 py-6 text-center">
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                No matches
+                {tt("home.noMatches")}
               </p>
               <p className="mt-1 text-[13px] text-ink-soft">
-                Try a route number like <span className="font-mono">120</span> or a place name.
+                {tt("home.searchHint", { example: "120" })}
               </p>
             </div>
           ) : (
+
             <ul className="max-h-[60vh] overflow-y-auto divide-y divide-line">
               {results.map((r) => {
                 if (r.kind === "route") {
