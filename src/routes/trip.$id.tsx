@@ -21,6 +21,7 @@ import { distanceM as haversineMeters, bearingDeg } from "@/lib/geo";
 import { JourneyHUD } from "@/components/JourneyHUD";
 import { useTick } from "@/hooks/use-tick";
 import companionHero from "@/assets/companion-hero.jpg";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/trip/$id")({
   head: ({ params }) => ({
