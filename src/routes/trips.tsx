@@ -916,7 +916,7 @@ function TimeIntentChip({
   );
 }
 
-function formatIntentLabel(iso: string): string {
+function formatIntentLabel(iso: string, t: (k: any, v?: any) => string): string {
   try {
     const d = new Date(iso);
     const today = new Date();
@@ -924,7 +924,7 @@ function formatIntentLabel(iso: string): string {
     if (d.toDateString() === today.toDateString()) return time;
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    if (d.toDateString() === tomorrow.toDateString()) return `tomorrow ${time}`;
+    if (d.toDateString() === tomorrow.toDateString()) return t("trips.intentTomorrow", { time });
     return `${d.toLocaleDateString([], { weekday: "short" })} ${time}`;
   } catch {
     return iso;
