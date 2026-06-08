@@ -189,6 +189,7 @@ function bearing(
 export async function walkingDirections(
   from: { lat: number; lng: number },
   to: { lat: number; lng: number },
+  languageCode: string = "en",
 ): Promise<WalkDirections | null> {
   const res = await fetch(`${GATEWAY}/routes/directions/v2:computeRoutes`, {
     method: "POST",
@@ -200,7 +201,7 @@ export async function walkingDirections(
       origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
       destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
       travelMode: "WALK",
-      languageCode: "en",
+      languageCode,
       units: "METRIC",
     }),
   });
