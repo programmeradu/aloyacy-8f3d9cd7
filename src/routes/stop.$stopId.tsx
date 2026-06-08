@@ -164,7 +164,7 @@ function StopDetail() {
                   />
                   <div className="min-w-0 flex-1">
                     <p className="font-display text-lg leading-[1.15] text-ink text-pretty line-clamp-2 break-words">
-                      {route?.long ?? "Route"}
+                      {route?.long ?? t("stop.routeFallback")}
                     </p>
 
                     <p className="mt-1 flex items-center gap-2 text-[12px] text-ink-soft">
@@ -181,11 +181,11 @@ function StopDetail() {
                       {d.eta.etaMin}
                     </p>
                     <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                      min
+                      {t("stop.minShort")}
                     </p>
                     {shifted && (
                       <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft line-through decoration-1">
-                        op {d.eta.operatorEtaMin}
+                        {t("stop.opShort", { m: d.eta.operatorEtaMin })}
                       </p>
                     )}
                     <p
