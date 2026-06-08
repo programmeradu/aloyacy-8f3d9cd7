@@ -30,6 +30,7 @@ import {
   IconNav,
   IconClockSmall,
 } from "@/components/Icons";
+import { useI18n } from "@/lib/i18n";
 
 // Generic cold-start fallbacks. Used only when the server-side suggestion
 // fetch fails entirely; the hook below populates real, dynamic chips.
