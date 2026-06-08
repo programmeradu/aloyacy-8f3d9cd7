@@ -448,11 +448,10 @@ function RoutePage() {
         <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "240ms" }}>
           <div className="rounded-[28px] bg-card ring-1 ring-line p-6">
             <p className="font-display text-[20px] leading-tight text-ink">
-              Stops appear when the line is active
+              {t("route.stopsAppearTitle")}
             </p>
             <p className="mt-2 text-[13px] text-ink-soft">
-              The operator publishes stop sequences alongside live trips. When the first
-              bus of the day reports in, we'll show the full line here.
+              {t("route.stopsAppearBody")}
             </p>
           </div>
         </section>
