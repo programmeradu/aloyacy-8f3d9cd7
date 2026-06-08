@@ -23,6 +23,7 @@ import planHero from "@/assets/plan-hero.jpg";
 import { ProGate } from "@/components/ProGate";
 import { RemindMeButton } from "@/components/RemindMeButton";
 import { useAuth } from "@/lib/useAuth";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
