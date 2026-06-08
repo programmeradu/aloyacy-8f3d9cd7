@@ -115,6 +115,8 @@ export function LiveReplanSheet({
   kind: DisruptionKind;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
+  const fmtMin = useFmtMin();
   const reroute = useServerFn(rerouteFromHere);
   const logOverride = useServerFn(logTripOverride);
   const copy = COPY[kind];
@@ -154,28 +156,26 @@ export function LiveReplanSheet({
         <div className="flex items-start justify-between">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-              {copy.eyebrow}
+              {t(copy.eyebrow)}
             </p>
             <h2 className="mt-1 font-display text-[28px] leading-tight text-ink">
-              {copy.title}
+              {t(copy.title)}
             </h2>
-            <p className="mt-1 text-[13px] text-ink-soft">{copy.sub}</p>
+            <p className="mt-1 text-[13px] text-ink-soft">{t(copy.sub)}</p>
           </div>
           <button
             onClick={onClose}
             className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft"
           >
-            Close
+            {t("replan.close")}
           </button>
         </div>
 
         {isLoading && (
-          <p className="mt-4 text-[13px] text-ink-soft">Searching nearby buses…</p>
+          <p className="mt-4 text-[13px] text-ink-soft">{t("replan.searching")}</p>
         )}
         {!isLoading && options.length === 0 && (
-          <p className="mt-4 text-[13px] text-ink-soft">
-            No fresh options found — sit tight, we'll keep tracking.
-          </p>
+          <p className="mt-4 text-[13px] text-ink-soft">{t("replan.empty")}</p>
         )}
 
         <ul className="mt-5 space-y-3">
@@ -183,8 +183,8 @@ export function LiveReplanSheet({
             const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
             const summary =
               rides.length === 0
-                ? "Walk only"
-                : rides.map((r) => `Bus ${r.routeShort}`).join(" → ");
+                ? t("replan.walkOnly")
+                : rides.map((r) => t("replan.bus", { code: r.routeShort })).join(" → ");
             return (
               <li key={it.id}>
                 <button
@@ -215,13 +215,13 @@ export function LiveReplanSheet({
                   className="w-full text-left rounded-[24px] bg-card ring-1 ring-line p-4 hover:ring-aegean-deep transition"
                 >
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                    {summary} · {it.transfers === 0 ? "no change" : `${it.transfers} change`}
+                    {summary} — {it.transfers === 0 ? t("replan.noChange") : t("replan.changes", { n: it.transfers })}
                   </p>
                   <p className="mt-1 font-display text-[20px] leading-tight text-ink">
-                    {fmtMin(it.totalDurationSec)} to {active.to.label}
+                    {t("replan.headToDest", { mins: fmtMin(it.totalDurationSec), dest: active.to.label })}
                   </p>
                   <p className="mt-1 text-[12px] text-ink-soft">
-                    {Math.round(it.totalWalkMeters)} m walking total
+                    {t("replan.walkingTotal", { m: Math.round(it.totalWalkMeters) })}
                   </p>
                 </button>
               </li>
@@ -233,7 +233,7 @@ export function LiveReplanSheet({
           onClick={onClose}
           className="mt-6 w-full rounded-full bg-card ring-1 ring-line px-5 py-3 text-[13px] text-ink-soft"
         >
-          Keep current trip
+          {t("replan.keepCurrent")}
         </button>
       </div>
     </div>
