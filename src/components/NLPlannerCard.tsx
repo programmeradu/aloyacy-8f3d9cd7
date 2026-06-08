@@ -400,19 +400,19 @@ export function NLPlannerCard() {
       <div className="relative p-5">
         <div className="flex items-center gap-2">
           <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-aegean-deep">
-            Ask Aloya
+            {t("nl.kicker")}
           </span>
           <span className="h-px flex-1 bg-line" />
           <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
-            Plain words
+            {t("nl.kicker2")}
           </span>
         </div>
 
         <h2 className="font-display text-[2rem] leading-[1.05] text-ink mt-2">
-          Where to today?
+          {t("nl.title")}
         </h2>
         <p className="font-sans text-[12.5px] text-ink-soft mt-1.5">
-          Say it like you would to a friend. Times, days, landmarks — all fair game.
+          {t("nl.sub")}
         </p>
 
         {/* Composer */}
