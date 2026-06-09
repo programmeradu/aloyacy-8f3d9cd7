@@ -18,12 +18,24 @@ function fmtMeta(template: string, vars: Record<string, string>) {
 
 export const Route = createFileRoute("/trip-info/$tripId")({
   validateSearch: searchSchema,
-  head: ({ params }) => ({
-    meta: [
-      { title: fmtMeta(en["tripInfo.meta.title"], { id: params.tripId }) },
-      { name: "description", content: en["tripInfo.meta.desc"] },
-    ],
-  }),
+  head: ({ params }) => {
+    const title = fmtMeta(en["tripInfo.meta.title"], { id: params.tripId });
+    const desc = en["tripInfo.meta.desc"];
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: `https://aloyacy.lovable.app/trip-info/${params.tripId}` },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+      ],
+      links: [{ rel: "canonical", href: `https://aloyacy.lovable.app/trip-info/${params.tripId}` }],
+    };
+  },
   component: TripInfo,
 });
 

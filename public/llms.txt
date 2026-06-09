@@ -1,0 +1,17 @@
+# Aloya
+
+> Cyprus's calmest way to ride the bus — live ETAs, smart routing, and bespoke editorial design built for Nicosia, Limassol, Larnaca, Paphos, and the intercity network.
+
+Aloya is a mobile-first transit companion for Cyprus. It fuses official GTFS data (Nicosia urban + Cyprus intercity) with live vehicle positions, Google Routes for walking guidance, and crowdsourced rider signals to give riders trustworthy ETAs and door-to-door journeys.
+
+## Pages
+- [Home](/): Plan a journey, live network pulse at a glance
+- [Network pulse](/pulse): Live map of every bus moving in Cyprus right now
+- [Plan trips](/trips): Door-to-door multi-leg journey planner
+- [Saved places](/saved): Pinned stops, home, work, favourites
+- [Motion bus card](/wallet): Top-up balance, recent taps, card status
+- [Privacy](/privacy): What we store, what we don't, how rider data is handled
+- [Terms](/terms): Terms of use
+
+## Optional
+- [Welcome](/welcome): First-run onboarding
