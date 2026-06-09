@@ -17,9 +17,9 @@ export const Route = createFileRoute("/terms")({
         property: "og:description",
         content: "Service, acceptable use, Pro billing, liability, and governing law.",
       },
-      { property: "og:url", content: "https://aloyacy.lovable.app/terms" },
+      { property: "og:url", content: "https://app.aloya.cy/terms" },
     ],
-    links: [{ rel: "canonical", href: "https://aloyacy.lovable.app/terms" }],
+    links: [{ rel: "canonical", href: "https://app.aloya.cy/terms" }],
   }),
   component: TermsPage,
 });
