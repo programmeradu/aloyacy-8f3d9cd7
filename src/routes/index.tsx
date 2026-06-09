@@ -605,6 +605,7 @@ function SmartSearch({
           onFocus={() => setFocused(true)}
           onBlur={() => setTimeout(() => setFocused(false), 150)}
           placeholder={tt("home.searchPlaceholder")}
+          aria-label={tt("home.searchPlaceholder")}
           className="w-full rounded-2xl bg-card py-4 pl-11 pr-4 text-[15px] ring-1 ring-line placeholder:text-ink-soft/60 outline-none focus:ring-aegean-deep/30 transition-all"
         />
         {query.length === 0 && null}
