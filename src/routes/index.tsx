@@ -46,38 +46,50 @@ import statRoad from "@/assets/stat-road.png";
 import { useI18n } from "@/lib/i18n";
 
 
+import { getIsMarketingHost } from "@/lib/host.functions";
+import { MarketingLanding } from "@/components/MarketingLanding";
+
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Aloya — Cyprus bus, the way it should feel" },
-      {
-        name: "description",
-        content:
-          "Plan, track and ride Cyprus buses with a calm, intelligent interface. Live ETAs, nearby stops, smart routing across the island.",
-      },
-      { property: "og:title", content: "Aloya — Cyprus transit, beautifully" },
-      {
-        property: "og:description",
-        content: "Mediterranean-light transit, redesigned. Live ETAs, nearby stops, smart routing.",
-      },
-      { property: "og:url", content: "https://app.aloyacy.live/" },
-      { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://app.aloyacy.live/og/og-home.jpg" },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "A rider's hand on a Cyprus bus window at golden hour, olive trees beyond." },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://app.aloyacy.live/og/og-home.jpg" },
-    ],
-    links: [
-      { rel: "canonical", href: "https://app.aloyacy.live/" },
-      { rel: "alternate", hrefLang: "en", href: "https://app.aloyacy.live/" },
-      { rel: "alternate", hrefLang: "el", href: "https://app.aloyacy.live/" },
-      { rel: "alternate", hrefLang: "x-default", href: "https://app.aloyacy.live/" },
-    ],
-  }),
-  component: Explore,
+  loader: async () => ({ marketing: await getIsMarketingHost() }),
+  head: ({ loaderData }) => {
+    const marketing = loaderData?.marketing ?? false;
+    const url = marketing ? "https://aloyacy.live/" : "https://app.aloyacy.live/";
+    const title = marketing
+      ? "Aloya — Cyprus bus, redrawn"
+      : "Aloya — Cyprus bus, the way it should feel";
+    const description = marketing
+      ? "A calm, intelligent navigation system for every bus in Cyprus. Live ETAs, smart routing, Motion-card ready."
+      : "Plan, track and ride Cyprus buses with a calm, intelligent interface. Live ETAs, nearby stops, smart routing across the island.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "website" },
+        { property: "og:image", content: "https://app.aloyacy.live/og/og-home.jpg" },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:alt", content: "A rider's hand on a Cyprus bus window at golden hour, olive trees beyond." },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: "https://app.aloyacy.live/og/og-home.jpg" },
+      ],
+      links: [
+        { rel: "canonical", href: url },
+        { rel: "alternate", hrefLang: "en", href: url },
+        { rel: "alternate", hrefLang: "el", href: url },
+        { rel: "alternate", hrefLang: "x-default", href: url },
+      ],
+    };
+  },
+  component: IndexRoute,
 });
+
+function IndexRoute() {
+  const { marketing } = Route.useLoaderData();
+  return marketing ? <MarketingLanding /> : <Explore />;
+}
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WEATHER_ICONS = {
