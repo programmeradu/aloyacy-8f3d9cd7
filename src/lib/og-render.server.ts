@@ -8,14 +8,20 @@
 // exactly as it does in-app; no system fonts exist in the Worker sandbox.
 
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
-// @ts-expect-error — Vite/Cloudflare Worker bundler resolves .wasm to a
-// WebAssembly.Module at build time.
-import resvgWasmModule from "@resvg/resvg-wasm/index_bg.wasm";
 import {
   BRICOLAGE_BOLD_B64,
   GEIST_BOLD_B64,
   GEIST_MEDIUM_B64,
 } from "./og-fonts.server";
+
+// The resvg WASM binary. Fetched from a CDN because Vite's default WASM
+// pipeline (`.wasm` ESM integration) is unsupported in the Worker runtime,
+// and `?init` returns an Instance that initWasm() can't consume. `fetch()`
+// works identically in dev (Node) and prod (Cloudflare Worker), and the
+// module is cached per-isolate after the first request.
+const RESVG_WASM_URL =
+  "https://cdn.jsdelivr.net/npm/@resvg/resvg-wasm@2.6.2/index_bg.wasm";
+
 
 export const OG_PALETTE = {
   limestone: "#f3ede1",
@@ -61,7 +67,7 @@ function b64ToBytes(b64: string): Uint8Array {
 
 let wasmReady: Promise<void> | null = null;
 function ensureWasm(): Promise<void> {
-  if (!wasmReady) wasmReady = initWasm(resvgWasmModule as WebAssembly.Module);
+  if (!wasmReady) wasmReady = initWasm(fetch(RESVG_WASM_URL));
   return wasmReady;
 }
 
