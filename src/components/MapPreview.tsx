@@ -9,6 +9,7 @@ import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
 import { prefetchShapes, getShapeForTripSync } from "@/lib/shapes";
 import busPremium from "@/assets/bus-premium.png";
 import { IconExpand, IconClose } from "@/components/Icons";
+import { useI18n } from "@/lib/i18n";
 
 const { MarkerClusterer, SuperClusterAlgorithm } = markerClustererPkg;
 
