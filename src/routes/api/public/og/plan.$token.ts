@@ -78,16 +78,19 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
         }
 
         const chipTime = `${dep} → ${arr}`;
-        const journeyText = `${dur}${transfers ? ` · ${transfers} transfer${transfers === 1 ? "" : "s"}` : ""}`;
+        const journeyText = `${dur}${transfers ? `  —  ${transfers} transfer${transfers === 1 ? "" : "s"}` : ""}`;
 
+        // Bus chip sits to the right of the time chip on the same row (y=470).
+        // Time chip: x=560, w=280 → ends at 840. Bus chip: x=864, w=200 → ends 1064. 24px gap.
         const busChip = routeShort
           ? `
-    <g transform="translate(880, 470)">
-      <rect width="220" height="82" rx="16" fill="${OG_PALETTE.aegeanDeep}"/>
-      <text x="18" y="30" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="${OG_PALETTE.limestone}" opacity="0.8">BUS</text>
-      <text x="18" y="66" font-family="Bricolage Grotesque, Georgia, serif" font-size="30" font-weight="800" letter-spacing="-0.4" fill="${OG_PALETTE.limestone}">${esc(routeShort)}</text>
+    <g transform="translate(864, 470)">
+      <rect width="200" height="82" rx="16" fill="${OG_PALETTE.aegeanDeep}"/>
+      <text x="20" y="30" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="2.4" fill="${OG_PALETTE.limestone}" opacity="0.85">BUS</text>
+      <text x="20" y="66" font-family="Bricolage Grotesque, Georgia, serif" font-size="30" font-weight="800" letter-spacing="-0.4" fill="${OG_PALETTE.limestone}">${esc(routeShort)}</text>
     </g>`
           : "";
+
 
         const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
