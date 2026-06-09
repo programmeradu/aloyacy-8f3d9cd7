@@ -24,15 +24,24 @@ import companionHero from "@/assets/companion-hero.jpg";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/trip/$id")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `Live trip — Aloya` },
-      {
-        name: "description",
-        content: `Door-to-door live guidance for trip ${params.id}.`,
-      },
-    ],
-  }),
+  head: ({ params }) => {
+    const title = `Live trip — Aloya`;
+    const desc = `Door-to-door live guidance for trip ${params.id}.`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: `https://aloyacy.lovable.app/trip/${params.id}` },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+      ],
+      links: [{ rel: "canonical", href: `https://aloyacy.lovable.app/trip/${params.id}` }],
+    };
+  },
   component: TripCompanion,
 });
 
