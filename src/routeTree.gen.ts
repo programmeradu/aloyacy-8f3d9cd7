@@ -27,6 +27,7 @@ import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
 import { Route as DebugGraphRouteImport } from './routes/debug.graph'
 import { Route as DebugEtaRouteImport } from './routes/debug.eta'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
@@ -127,6 +128,11 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSeoRoute = AdminSeoRouteImport.update({
+  id: '/admin/seo',
+  path: '/admin/seo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
   id: '/api/public/trip-alerts',
   path: '/api/public/trip-alerts',
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/welcome': typeof WelcomeRoute
+  '/admin/seo': typeof AdminSeoRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
@@ -216,6 +223,7 @@ export interface FileRoutesByTo {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/welcome': typeof WelcomeRoute
+  '/admin/seo': typeof AdminSeoRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
@@ -246,6 +254,7 @@ export interface FileRoutesById {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/welcome': typeof WelcomeRoute
+  '/admin/seo': typeof AdminSeoRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
@@ -277,6 +286,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/welcome'
+    | '/admin/seo'
     | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/welcome'
+    | '/admin/seo'
     | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
@@ -335,6 +346,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/welcome'
+    | '/admin/seo'
     | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
@@ -365,6 +377,7 @@ export interface RootRouteChildren {
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
   WelcomeRoute: typeof WelcomeRoute
+  AdminSeoRoute: typeof AdminSeoRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DebugEtaRoute: typeof DebugEtaRoute
   DebugGraphRoute: typeof DebugGraphRoute
@@ -512,6 +525,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/seo': {
+      id: '/admin/seo'
+      path: '/admin/seo'
+      fullPath: '/admin/seo'
+      preLoaderRoute: typeof AdminSeoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/trip-alerts': {
       id: '/api/public/trip-alerts'
       path: '/api/public/trip-alerts'
@@ -589,6 +609,7 @@ const rootRouteChildren: RootRouteChildren = {
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
   WelcomeRoute: WelcomeRoute,
+  AdminSeoRoute: AdminSeoRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   DebugEtaRoute: DebugEtaRoute,
   DebugGraphRoute: DebugGraphRoute,
