@@ -17,10 +17,10 @@ export const Route = createFileRoute("/privacy")({
         property: "og:description",
         content: "What we store, who we share with, and your rights.",
       },
-      { property: "og:url", content: "https://aloyacy.lovable.app/privacy" },
+      { property: "og:url", content: "https://app.aloya.cy/privacy" },
     ],
     links: [
-      { rel: "canonical", href: "https://aloyacy.lovable.app/privacy" },
+      { rel: "canonical", href: "https://app.aloya.cy/privacy" },
     ],
   }),
   component: PrivacyPage,
