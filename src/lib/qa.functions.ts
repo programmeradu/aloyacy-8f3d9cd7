@@ -179,16 +179,30 @@ export const getQaStats = createServerFn({ method: "POST" })
       })
       .sort((a, b) => b.count - a.count);
 
-    const recent = list.slice(0, 40).map((r) => {
+    const recent = list.slice(0, 60).map((r) => {
       const p = (r.payload ?? {}) as Record<string, unknown>;
       let summary = "";
       if (r.kind === "phase-transition") summary = `${p.from} → ${p.to} · ${p.routeShort ?? "—"}`;
       else if (r.kind === "boarding-prompt-shown") summary = `prompt shown · ${p.routeShort ?? "—"} @ ${p.stopId ?? "—"}`;
       else if (r.kind === "boarding-prompt-confirmed") summary = `confirmed · ${p.routeShort ?? "—"}`;
       else if (r.kind === "missed-bus-false-positive") summary = `false miss · ${p.routeShort ?? "—"} (gap ${Math.round(((p.gapMs as number) ?? 0) / 1000)}s)`;
-      else summary = r.kind;
+      else {
+        const bits: string[] = [];
+        for (const k of ["query", "intent", "reason", "route", "label", "ms"]) {
+          if (p[k] != null) bits.push(`${k}=${String(p[k]).slice(0, 60)}`);
+        }
+        summary = bits.length ? bits.join(" · ") : r.kind;
+      }
       return { recordedAt: r.recorded_at, kind: r.kind, summary };
     });
+
+    const telemetryCounts = new Map<string, number>();
+    for (const row of list) {
+      telemetryCounts.set(row.kind, (telemetryCounts.get(row.kind) ?? 0) + 1);
+    }
+    const telemetryByKind = Array.from(telemetryCounts.entries())
+      .map(([kind, count]) => ({ kind, count }))
+      .sort((a, b) => b.count - a.count);
 
     return {
       windowDays: data.days,
@@ -206,5 +220,9 @@ export const getQaStats = createServerFn({ method: "POST" })
       byRoute: routeRows,
       phaseErrorBreakdown,
       recent,
+      telemetry: {
+        total: list.length,
+        byKind: telemetryByKind,
+      },
     };
   });
