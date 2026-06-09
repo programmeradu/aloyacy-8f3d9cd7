@@ -91,12 +91,20 @@ export function PlanShareSheet({ open, onClose, ctx }: Props) {
 
   const shareText = buildText(ctx);
 
+  // When we attach a file, DO NOT pass `url` — many share targets
+  // (WhatsApp, iMessage, Messenger) will fetch the URL's OG image and
+  // show that instead of the attached picture, which is why users see
+  // a "different image" than the preview. We fold the URL into the
+  // text body so the file stays the visible image and the link still
+  // rides along.
+  const shareTextWithUrl = `${shareText}\n${ctx.url}`;
+
   async function handleNativeShare() {
     const file = makeFile();
     if (!file) return;
     if (canShareFile(file)) {
       try {
-        await navigator.share({ files: [file], title: t("share.plan.title"), text: shareText, url: ctx.url });
+        await navigator.share({ files: [file], title: t("share.plan.title"), text: shareTextWithUrl });
         return;
       } catch { return; }
     }
@@ -112,16 +120,18 @@ export function PlanShareSheet({ open, onClose, ctx }: Props) {
     if (!file) return;
     if (canShareFile(file)) {
       try {
-        await navigator.share({ files: [file], title: t("share.plan.title"), text: shareText, url: ctx.url });
+        await navigator.share({ files: [file], title: t("share.plan.title"), text: shareTextWithUrl });
         return;
       } catch { return; }
     }
     triggerDownload(file);
-    try { await navigator.clipboard.writeText(`${shareText}\n${ctx.url}`); } catch { /* noop */ }
-    const wa = `https://web.whatsapp.com/send?text=${encodeURIComponent(shareText + "\n" + ctx.url)}`;
+    try { await navigator.clipboard.writeText(shareTextWithUrl); } catch { /* noop */ }
+    const wa = `https://web.whatsapp.com/send?text=${encodeURIComponent(shareTextWithUrl)}`;
     window.open(wa, "_blank", "noopener,noreferrer");
     flash(t("share.waFallback"));
   }
+
+
 
   async function handleSave() {
     const file = makeFile();
