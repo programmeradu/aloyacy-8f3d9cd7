@@ -10,8 +10,9 @@ export function PaymentTestModeBanner() {
         target="_blank"
         rel="noopener noreferrer"
         className="underline"
+        aria-label="Read the payments test mode documentation"
       >
-        Learn more
+        Read about test mode
       </a>
     </div>
   );
