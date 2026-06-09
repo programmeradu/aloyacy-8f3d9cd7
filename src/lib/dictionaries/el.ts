@@ -362,9 +362,9 @@ export const el: Record<keyof typeof en, string> = {
 
   // trips
   "trips.kicker": "Από πόρτα σε πόρτα",
-  "trips.titlePrefix": "Πείτε μας",
-  "trips.titleEmph": "πού",
-  "trips.titleSuffix": "Θα βρούμε τον δρόμο.",
+ "trips.titlePrefix": "Σχεδιάστε μια διαδρομή με λεωφορείο στην",
+ "trips.titleEmph": "Κύπρο",
+ "trips.titleSuffix": "Από πόρτα σε πόρτα, ζωντανές ώρες, κάθε στάση.",
   "trips.from": "Από",
   "trips.to": "Προς",
   "trips.detecting": "Εντοπισμός τοποθεσίας…",
