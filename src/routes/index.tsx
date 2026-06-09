@@ -53,16 +53,23 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Plan, track and ride Cyprus buses with a calm, intelligent interface. Live ETAs, nearby stops, smart routing.",
+          "Plan, track and ride Cyprus buses with a calm, intelligent interface. Live ETAs, nearby stops, smart routing across the island.",
       },
-      { property: "og:title", content: "Aloya — Cyprus transit" },
+      { property: "og:title", content: "Aloya — Cyprus transit, beautifully" },
       {
         property: "og:description",
-        content: "Mediterranean-light transit, redesigned.",
+        content: "Mediterranean-light transit, redesigned. Live ETAs, nearby stops, smart routing.",
       },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f1f21805-9e1e-4941-99d9-ecf6d4a5a633" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f1f21805-9e1e-4941-99d9-ecf6d4a5a633" },
+      { property: "og:url", content: "https://aloyacy.lovable.app/" },
+      { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://aloyacy.lovable.app/og/og-home.jpg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "A rider's hand on a Cyprus bus window at golden hour, olive trees beyond." },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://aloyacy.lovable.app/og/og-home.jpg" },
     ],
+    links: [{ rel: "canonical", href: "https://aloyacy.lovable.app/" }],
   }),
   component: Explore,
 });
