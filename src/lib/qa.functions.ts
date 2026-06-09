@@ -87,13 +87,6 @@ export const getQaStats = createServerFn({ method: "POST" })
       .from("training_events")
       .select("kind, payload, recorded_at")
       .gte("recorded_at", since)
-      .in("kind", [
-        "phase-transition",
-        "boarding-prompt-shown",
-        "boarding-prompt-confirmed",
-        "missed-bus-false-positive",
-        "transfer-missed",
-      ])
       .order("recorded_at", { ascending: false })
       .limit(10000);
     if (error) throw new Error(error.message);
