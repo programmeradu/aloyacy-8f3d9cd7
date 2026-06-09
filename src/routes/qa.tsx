@@ -275,6 +275,25 @@ function DashboardBody({ data }: { data: QaStats }) {
         </div>
       </section>
 
+      <section className="px-6 pt-12">
+        <Heading
+          kicker="Telemetry"
+          title={`All recorded events · ${data.telemetry.total} in window`}
+        />
+        {data.telemetry.byKind.length === 0 ? (
+          <p className="mt-5 text-[13px] text-ink-soft">No events recorded.</p>
+        ) : (
+          <div className="mt-5 rounded-2xl ring-1 ring-line bg-card divide-y divide-line/60">
+            {data.telemetry.byKind.map((t) => (
+              <div key={t.kind} className="flex items-center justify-between px-4 py-3">
+                <span className="font-mono text-[12px] text-ink">{t.kind}</span>
+                <span className="font-mono text-[12px] text-ink-soft">{t.count}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       <BusGlideStressTest />
     </>
   );
