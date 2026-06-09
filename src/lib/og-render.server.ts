@@ -65,10 +65,17 @@ function b64ToBytes(b64: string): Uint8Array {
   return out;
 }
 
-let wasmReady: Promise<void> | null = null;
+// Cache on globalThis so Vite HMR re-runs of this module don't try to
+// initialize the WASM instance twice (`Already initialized` throws).
+const G = globalThis as unknown as { __aloya_resvg_ready?: Promise<void> };
 function ensureWasm(): Promise<void> {
-  if (!wasmReady) wasmReady = initWasm(fetch(RESVG_WASM_URL));
-  return wasmReady;
+  if (!G.__aloya_resvg_ready) {
+    G.__aloya_resvg_ready = initWasm(fetch(RESVG_WASM_URL)).catch((e) => {
+      if (String(e?.message || e).includes("Already initialized")) return;
+      throw e;
+    });
+  }
+  return G.__aloya_resvg_ready;
 }
 
 let fontBuffers: Uint8Array[] | null = null;
