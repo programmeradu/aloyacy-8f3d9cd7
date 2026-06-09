@@ -69,7 +69,12 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://aloyacy.lovable.app/og/og-home.jpg" },
     ],
-    links: [{ rel: "canonical", href: "https://aloyacy.lovable.app/" }],
+    links: [
+      { rel: "canonical", href: "https://aloyacy.lovable.app/" },
+      { rel: "alternate", hrefLang: "en", href: "https://aloyacy.lovable.app/" },
+      { rel: "alternate", hrefLang: "el", href: "https://aloyacy.lovable.app/" },
+      { rel: "alternate", hrefLang: "x-default", href: "https://aloyacy.lovable.app/" },
+    ],
   }),
   component: Explore,
 });

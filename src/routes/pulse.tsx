@@ -32,7 +32,12 @@ export const Route = createFileRoute("/pulse")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://aloyacy.lovable.app/og/og-pulse.jpg" },
     ],
-    links: [{ rel: "canonical", href: "https://aloyacy.lovable.app/pulse" }],
+    links: [
+      { rel: "canonical", href: "https://aloyacy.lovable.app/pulse" },
+      { rel: "alternate", hrefLang: "en", href: "https://aloyacy.lovable.app/pulse" },
+      { rel: "alternate", hrefLang: "el", href: "https://aloyacy.lovable.app/pulse" },
+      { rel: "alternate", hrefLang: "x-default", href: "https://aloyacy.lovable.app/pulse" },
+    ],
   }),
   component: Pulse,
 });
