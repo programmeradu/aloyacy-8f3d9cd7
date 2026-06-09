@@ -49,6 +49,10 @@ export type QaStats = {
   }[];
   phaseErrorBreakdown: { from: string; to: string; count: number }[];
   recent: { recordedAt: string; kind: string; summary: string }[];
+  telemetry: {
+    total: number;
+    byKind: { kind: string; count: number }[];
+  };
 };
 
 // A "phase error" is a transition into missed-connection or a backwards jump
