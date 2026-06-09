@@ -3,8 +3,8 @@ import { AppShell } from "@/components/AppShell";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { useI18n, type Locale } from "@/lib/i18n";
 
-const CANONICAL = "https://aloyacy.live/guide/getting-around-cyprus";
-const OG_IMAGE = "https://aloyacy.live/og/og-guide-getting-around.jpg";
+const CANONICAL = "https://app.aloyacy.live/guide/getting-around-cyprus";
+const OG_IMAGE = "https://app.aloyacy.live/og/og-guide-getting-around.jpg";
 
 const TITLE = "Getting Around Cyprus by Bus — A Practical Guide";
 const DESCRIPTION =
