@@ -13,6 +13,7 @@ import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as TripsRouteImport } from './routes/trips'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as QaRouteImport } from './routes/qa'
 import { Route as PulseRouteImport } from './routes/pulse'
@@ -54,6 +55,11 @@ const TripsRoute = TripsRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SavedRoute = SavedRouteImport.update({
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
   '/saved': typeof SavedRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
   '/saved': typeof SavedRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
@@ -233,6 +241,7 @@ export interface FileRoutesById {
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
   '/saved': typeof SavedRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
@@ -263,6 +272,7 @@ export interface FileRouteTypes {
     | '/pulse'
     | '/qa'
     | '/saved'
+    | '/sitemap.xml'
     | '/terms'
     | '/trips'
     | '/wallet'
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/pulse'
     | '/qa'
     | '/saved'
+    | '/sitemap.xml'
     | '/terms'
     | '/trips'
     | '/wallet'
@@ -319,6 +330,7 @@ export interface FileRouteTypes {
     | '/pulse'
     | '/qa'
     | '/saved'
+    | '/sitemap.xml'
     | '/terms'
     | '/trips'
     | '/wallet'
@@ -348,6 +360,7 @@ export interface RootRouteChildren {
   PulseRoute: typeof PulseRoute
   QaRoute: typeof QaRoute
   SavedRoute: typeof SavedRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/saved': {
@@ -564,6 +584,7 @@ const rootRouteChildren: RootRouteChildren = {
   PulseRoute: PulseRoute,
   QaRoute: QaRoute,
   SavedRoute: SavedRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
@@ -589,13 +610,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

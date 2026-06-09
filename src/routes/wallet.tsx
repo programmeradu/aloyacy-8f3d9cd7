@@ -43,7 +43,18 @@ export const Route = createFileRoute("/wallet")({
         content:
           "Your Cyprus Motion bus card in your pocket. Balance, top-ups, and a scan-ready QR.",
       },
+      { property: "og:title", content: "Motion Pass — Aloya" },
+      { property: "og:description", content: "Balance, top-ups, and a scan-ready Motion QR — always with you." },
+      { property: "og:url", content: "https://aloyacy.lovable.app/wallet" },
+      { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://aloyacy.lovable.app/og/og-wallet.jpg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "A transit card resting on Cypriot limestone with olive-tree shadow." },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://aloyacy.lovable.app/og/og-wallet.jpg" },
     ],
+    links: [{ rel: "canonical", href: "https://aloyacy.lovable.app/wallet" }],
   }),
   component: WalletRoute,
 });
