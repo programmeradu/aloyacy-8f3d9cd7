@@ -123,7 +123,7 @@ export function ItineraryCard({
           <span key={i} className="inline-flex items-center gap-2">
             {i > 0 ? (
               <span className="font-sans text-[12px] font-semibold text-ink-soft">
-                change
+                {t("itin.change")}
               </span>
             ) : null}
             <RouteChip code={r.routeShort} tone={routeTone(r.routeId)} />
@@ -147,7 +147,7 @@ export function ItineraryCard({
       {/* Timeline (collapsible) */}
       <div className="mt-4 flex items-center justify-between gap-3">
         <span className="font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
-          {Math.round(itinerary.totalWalkMeters)} m walk
+          {t("itin.metersWalk", { m: Math.round(itinerary.totalWalkMeters) })}
         </span>
         <button
           type="button"
@@ -155,7 +155,7 @@ export function ItineraryCard({
           aria-expanded={expanded}
           className="inline-flex items-center gap-1.5 rounded-full bg-limestone-soft px-3 py-1.5 font-sans text-[12px] font-semibold text-ink ring-1 ring-line hover:bg-limestone-soft/70 transition-colors"
         >
-          {expanded ? "Hide details" : "Show details"}
+          {expanded ? t("itin.hideDetails") : t("itin.showDetails")}
           <svg
             viewBox="0 0 24 24"
             fill="none"
