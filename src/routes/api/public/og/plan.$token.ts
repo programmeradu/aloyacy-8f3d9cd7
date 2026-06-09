@@ -78,16 +78,19 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
         }
 
         const chipTime = `${dep} → ${arr}`;
-        const journeyText = `${dur}${transfers ? ` · ${transfers} transfer${transfers === 1 ? "" : "s"}` : ""}`;
+        const journeyText = `${dur}${transfers ? `  —  ${transfers} transfer${transfers === 1 ? "" : "s"}` : ""}`;
 
+        // Bus chip sits to the right of the time chip on the same row (y=470).
+        // Time chip: x=560, w=280 → ends at 840. Bus chip: x=864, w=200 → ends 1064. 24px gap.
         const busChip = routeShort
           ? `
-    <g transform="translate(880, 470)">
-      <rect width="220" height="82" rx="16" fill="${OG_PALETTE.aegeanDeep}"/>
-      <text x="18" y="30" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="${OG_PALETTE.limestone}" opacity="0.8">BUS</text>
-      <text x="18" y="66" font-family="Bricolage Grotesque, Georgia, serif" font-size="30" font-weight="800" letter-spacing="-0.4" fill="${OG_PALETTE.limestone}">${esc(routeShort)}</text>
+    <g transform="translate(864, 470)">
+      <rect width="200" height="82" rx="16" fill="${OG_PALETTE.aegeanDeep}"/>
+      <text x="20" y="30" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="2.4" fill="${OG_PALETTE.limestone}" opacity="0.85">BUS</text>
+      <text x="20" y="66" font-family="Bricolage Grotesque, Georgia, serif" font-size="30" font-weight="800" letter-spacing="-0.4" fill="${OG_PALETTE.limestone}">${esc(routeShort)}</text>
     </g>`
           : "";
+
 
         const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
@@ -131,20 +134,19 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
     <text x="18" y="66" font-family="Bricolage Grotesque, Georgia, serif" font-size="30" font-weight="800" letter-spacing="-0.4" fill="${OG_PALETTE.limestone}">${esc(chipTime)}</text>
   </g>
 
-  <!-- chip: journey -->
-  <g transform="translate(${routeShort ? 880 : 860}, 470)">
-    ${routeShort ? "" : `<rect width="300" height="82" rx="16" fill="rgba(255,255,255,0.78)" stroke="${OG_PALETTE.line}"/>
-    <text x="18" y="30" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="${OG_PALETTE.inkSoft}">JOURNEY</text>
-    <text x="18" y="66" font-family="Bricolage Grotesque, Georgia, serif" font-size="30" font-weight="800" letter-spacing="-0.4" fill="${OG_PALETTE.ink}">${esc(journeyText)}</text>`}
-  </g>
-  ${routeShort ? `<g transform="translate(560, 566)">
-    <text font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="14" font-weight="600" fill="${OG_PALETTE.inkSoft}">${esc(journeyText)}</text>
-  </g>` : ""}
+  <!-- chip: journey (only when there's no bus chip taking the right slot) -->
+  ${routeShort ? "" : `<g transform="translate(864, 470)">
+    <rect width="240" height="82" rx="16" fill="rgba(255,255,255,0.85)" stroke="${OG_PALETTE.line}"/>
+    <text x="20" y="30" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="2.4" fill="${OG_PALETTE.inkSoft}">JOURNEY</text>
+    <text x="20" y="66" font-family="Bricolage Grotesque, Georgia, serif" font-size="26" font-weight="800" letter-spacing="-0.4" fill="${OG_PALETTE.ink}">${esc(journeyText)}</text>
+  </g>`}
   ${busChip}
+  ${routeShort ? `<text x="560" y="588" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" font-weight="600" letter-spacing="0.2" fill="${OG_PALETTE.inkSoft}">Journey ${esc(journeyText)}</text>` : ""}
 
   <!-- footer -->
-  <text x="48" y="596" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" font-weight="700" letter-spacing="2.6" fill="${OG_PALETTE.inkSoft}">PLAN · SHARE BEFORE YOU LEAVE</text>
-  <text x="${OG_WIDTH - 48}" y="596" text-anchor="end" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" font-weight="500" letter-spacing="2.4" fill="${OG_PALETTE.inkSoft}">APP.ALOYA.CY/PLAN</text>
+  <text x="48" y="596" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="12" font-weight="700" letter-spacing="2.8" fill="${OG_PALETTE.inkSoft}">PLAN — SHARE BEFORE YOU LEAVE</text>
+  <text x="${OG_WIDTH - 48}" y="596" text-anchor="end" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="12" font-weight="600" letter-spacing="2.6" fill="${OG_PALETTE.inkSoft}">APP.ALOYA.CY/PLAN</text>
+
 </svg>`;
 
         return await ogPngResponse(svg, 60);
