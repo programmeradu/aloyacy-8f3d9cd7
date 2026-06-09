@@ -186,14 +186,15 @@ export function ItineraryCard({
                   </p>
                   <p className="font-sans text-[12px] font-semibold text-ink-soft mt-1 tabular-nums">
                     {fmtTime(leg.board.departureUnix)} —{" "}
-                    {fmtTime(leg.alight.arrivalUnix)} · {leg.stopCount} stops
-                    {leg.live ? " · live" : ""}
+                    {fmtTime(leg.alight.arrivalUnix)} · {leg.live
+                      ? t("itin.stopsLive", { n: leg.stopCount })
+                      : t("itin.stops", { n: leg.stopCount })}
                   </p>
                 </div>
               ) : leg.kind === "walk" ? (
                 <p className="text-ink">
                   <span className="font-sans text-[12px] font-bold mr-2 text-ink tabular-nums">
-                    Walk {fmtMin(leg.durationSec)}
+                    {t("itin.walk")} {fmtMin(leg.durationSec)}
                   </span>
                   <span className="text-ink-soft">
                     {leg.from.name.split(",")[0]} → {leg.to.name.split(",")[0]}
@@ -202,9 +203,9 @@ export function ItineraryCard({
               ) : (
                 <p className="text-ink">
                   <span className="font-sans text-[12px] font-bold mr-2 text-ink tabular-nums">
-                    Wait {fmtMin(leg.durationSec)}
+                    {t("itin.wait")} {fmtMin(leg.durationSec)}
                   </span>
-                  <span className="text-ink-soft">at {leg.name.split(",")[0]}</span>
+                  <span className="text-ink-soft">{t("itin.at")} {leg.name.split(",")[0]}</span>
                 </p>
               )}
             </li>
