@@ -141,6 +141,7 @@ export function MapPreview({
 
   const { api, error } = useGoogleMaps();
   const { data: rt } = useRealtime();
+  const { t } = useI18n();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
