@@ -26,6 +26,7 @@ export const Route = createFileRoute("/welcome")({
         content:
           "A short, calm welcome to Aloya — the smarter way to ride Cyprus buses.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: WelcomePage,
