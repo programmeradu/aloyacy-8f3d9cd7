@@ -1,12 +1,27 @@
-// Edge-safe OG image renderer — hand-rolled SVG, no WASM.
+// Edge-safe OG image renderer.
 //
-// Historical note: we tried workers-og (satori + resvg-wasm) to emit PNG so
-// every social platform would render the card, but its Yoga WASM import is
-// not resolvable in the Cloudflare Worker bundler and the failure took the
-// entire SSR worker down (every API route returned a Cloudflare 500 with no
-// CORS headers). Until we ship a Worker-safe rasterizer, we stay on SVG —
-// it renders in Facebook, WhatsApp, Twitter/X, iMessage previews with the
-// current caching; a few edge clients fall back to no image, which is fine.
+// We author cards as hand-rolled SVG (brand-accurate, no Yoga/satori runtime),
+// then rasterize to PNG on the Cloudflare Worker with @resvg/resvg-wasm.
+// PNG is non-negotiable — WhatsApp, iMessage, Facebook, LinkedIn, Slack and
+// Twitter/X all reject SVG for og:image, so shared previews stay blank
+// otherwise. Fonts are bundled (Bricolage Grotesque + Geist) so text renders
+// exactly as it does in-app; no system fonts exist in the Worker sandbox.
+
+import { initWasm, Resvg } from "@resvg/resvg-wasm";
+import {
+  BRICOLAGE_BOLD_B64,
+  GEIST_BOLD_B64,
+  GEIST_MEDIUM_B64,
+} from "./og-fonts.server";
+
+// The resvg WASM binary. Fetched from a CDN because Vite's default WASM
+// pipeline (`.wasm` ESM integration) is unsupported in the Worker runtime,
+// and `?init` returns an Instance that initWasm() can't consume. `fetch()`
+// works identically in dev (Node) and prod (Cloudflare Worker), and the
+// module is cached per-isolate after the first request.
+const RESVG_WASM_URL =
+  "https://cdn.jsdelivr.net/npm/@resvg/resvg-wasm@2.6.2/index_bg.wasm";
+
 
 export const OG_PALETTE = {
   limestone: "#f3ede1",
@@ -41,12 +56,65 @@ export function clip(s: string, max: number): string {
   return t.length > max ? `${t.slice(0, max - 1).trimEnd()}…` : t;
 }
 
-/** Wrap an SVG string in an image/svg+xml Response with crawler-friendly headers. */
-export function ogSvgResponse(svg: string, cacheSeconds = 60): Response {
-  return new Response(svg, {
+// ---- WASM + font bootstrap (module-scoped, initialized once per isolate) ----
+
+function b64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+// Cache on globalThis so Vite HMR re-runs of this module don't try to
+// initialize the WASM instance twice (`Already initialized` throws).
+const G = globalThis as unknown as { __aloya_resvg_ready?: Promise<void> };
+function ensureWasm(): Promise<void> {
+  if (!G.__aloya_resvg_ready) {
+    G.__aloya_resvg_ready = initWasm(fetch(RESVG_WASM_URL)).catch((e) => {
+      if (String(e?.message || e).includes("Already initialized")) return;
+      throw e;
+    });
+  }
+  return G.__aloya_resvg_ready;
+}
+
+let fontBuffers: Uint8Array[] | null = null;
+function loadFonts(): Uint8Array[] {
+  if (!fontBuffers) {
+    fontBuffers = [
+      b64ToBytes(BRICOLAGE_BOLD_B64),
+      b64ToBytes(GEIST_MEDIUM_B64),
+      b64ToBytes(GEIST_BOLD_B64),
+    ];
+  }
+  return fontBuffers;
+}
+
+/** Rasterize an SVG string to a PNG Response with crawler-friendly headers. */
+export async function ogPngResponse(
+  svg: string,
+  cacheSeconds = 60,
+): Promise<Response> {
+  await ensureWasm();
+  const resvg = new Resvg(svg, {
+    fitTo: { mode: "width", value: OG_WIDTH },
+    background: OG_PALETTE.limestone,
+    font: {
+      fontBuffers: loadFonts(),
+      loadSystemFonts: false,
+      defaultFontFamily: "Geist",
+      sansSerifFamily: "Geist",
+      serifFamily: "Bricolage Grotesque",
+    },
+    textRendering: 2,
+    shapeRendering: 2,
+  });
+  const png = resvg.render().asPng();
+  return new Response(png as BlobPart, {
     status: 200,
     headers: {
-      "Content-Type": "image/svg+xml; charset=utf-8",
+      "Content-Type": "image/png",
+      "Content-Length": String(png.byteLength),
       "Cache-Control": `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=300`,
       "Access-Control-Allow-Origin": "*",
       "X-Content-Type-Options": "nosniff",
