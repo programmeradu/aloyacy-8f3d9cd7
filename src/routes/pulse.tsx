@@ -88,6 +88,13 @@ function Pulse() {
     refetchInterval: 5 * 60_000,
     staleTime: 4 * 60_000,
   });
+  const todayFn = useServerFn(getTodayBriefing);
+  const { data: today } = useQuery({
+    queryKey: ["today-briefing"],
+    queryFn: () => todayFn(),
+    refetchInterval: 10 * 60_000,
+    staleTime: 9 * 60_000,
+  });
 
   const onTimePct = data?.onTimePct ?? 0;
   const routesTracked = data?.routesTracked ?? 0;
