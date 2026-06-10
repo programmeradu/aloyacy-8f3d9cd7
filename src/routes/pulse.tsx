@@ -227,51 +227,58 @@ function WeatherHero({
   }
 
   return (
-    <header className="relative px-6 pt-3 pb-1 animate-rise overflow-hidden">
-      {/* Hero illustration anchored bottom-right, faint */}
-      <img
-        src={pulseHero}
-        alt=""
-        aria-hidden
-        width={1536}
-        height={1024}
-        className="pointer-events-none absolute -right-10 -bottom-6 w-[78%] opacity-[0.55] mix-blend-multiply select-none"
-      />
-      <div className="relative">
-        <p className="font-eyebrow text-[10px] uppercase tracking-[0.24em] text-ink-soft">
-          {t("pulse.weather.kicker")}
-        </p>
-        <h1 className="font-display text-[40px] leading-[1.04] mt-2 text-ink text-balance max-w-[14ch]">
-          {moodHead}
-          {moodTail && (
-            <>
-              <br />
-              <span className="italic text-aegean-deep">{moodTail}</span>
-            </>
-          )}
-        </h1>
-        <p className="mt-3 text-[13.5px] leading-snug text-ink-soft max-w-[34ch]">{sub}</p>
+    <header className="px-6 pt-3 animate-rise">
+      <p className="font-eyebrow text-[10px] uppercase tracking-[0.24em] text-ink-soft">
+        {t("pulse.weather.kicker")}
+      </p>
 
-        {/* Score row */}
-        <div className="mt-6 flex items-end gap-5">
-          <ReliabilityRing value={hasData ? onTimePct : 0} typical={delta == null ? null : onTimePct - delta} />
-          <div className="min-w-0 pb-1">
-            <div className="flex items-baseline gap-2">
-              <span className="font-display text-[44px] leading-none text-ink tabular-nums tracking-[-0.02em]">
-                {hasData ? onTimePct : "—"}
-              </span>
-              <span className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft pb-1.5">
-                /100
-              </span>
+      <div className="relative mt-3 overflow-hidden rounded-[34px] bg-card ring-1 ring-line">
+        {/* Hero illustration anchored top-right, behind text */}
+        <img
+          src={pulseHero}
+          alt=""
+          aria-hidden
+          width={1536}
+          height={1024}
+          className="pointer-events-none absolute -right-8 -top-2 w-[64%] opacity-[0.55] mix-blend-multiply select-none"
+        />
+        {/* Light gradient veil so the headline stays legible over the illustration */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(95deg, var(--color-card) 32%, color-mix(in oklab, var(--color-card) 70%, transparent) 60%, transparent 100%)",
+          }}
+        />
+
+        <div className="relative p-6 pb-5">
+          <h1 className="font-display text-[34px] leading-[1.05] text-ink text-balance max-w-[12ch]">
+            <span className="italic text-aegean-deep">{mood}</span>
+          </h1>
+          <p className="mt-3 text-[13px] leading-snug text-ink-soft max-w-[28ch]">{sub}</p>
+
+          {/* Score row */}
+          <div className="mt-7 flex items-center gap-4">
+            <ReliabilityRing value={hasData ? onTimePct : 0} typical={delta == null ? null : onTimePct - delta} />
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-display text-[40px] leading-none text-ink tabular-nums tracking-[-0.02em]">
+                  {hasData ? onTimePct : "—"}
+                </span>
+                <span className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft pb-1">
+                  /100
+                </span>
+              </div>
+              {delta != null && hasData && (
+                <DeltaBadge delta={delta} label={t("pulse.vsTypical")} />
+              )}
+              {(observations > 0 || totalSamples > 0) && (
+                <p className="mt-2 font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
+                  {observations.toLocaleString()} live · {totalSamples.toLocaleString()} learned
+                </p>
+              )}
             </div>
-            {delta != null && hasData && (
-              <DeltaBadge delta={delta} label={t("pulse.vsTypical")} />
-            )}
-            {observations > 0 && (
-              <p className="mt-2 font-eyebrow text-[9px] uppercase tracking-[0.2em] text-ink-soft">
-                {observations.toLocaleString()} live · {totalSamples.toLocaleString()} learned
-              </p>
-            )}
           </div>
         </div>
       </div>
@@ -280,7 +287,6 @@ function WeatherHero({
 }
 
 function splitMood(s: string): [string, string] {
-  // Put the first word on line 1 (caps, anchor) and the rest italic underneath.
   const i = s.indexOf(" ");
   if (i < 0) return [s, ""];
   return [s.slice(0, i), s.slice(i + 1)];
