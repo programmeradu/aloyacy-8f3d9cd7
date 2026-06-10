@@ -14,6 +14,7 @@
 // /trips picks them up on mount.
 
 import { useEffect, useRef, useState } from "react";
+import nlIllustration from "@/assets/nl-planner-illustration.jpg";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
