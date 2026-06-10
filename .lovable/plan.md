@@ -1,76 +1,119 @@
-## Why this needs a rebuild, not a polish
+# Pulse → "Cyprus Today" — full island heartbeat
 
-The current page asks riders to stare at absolute numbers (`56/100`, `42%`, `+0 min`) without telling them what those numbers *mean for their day*. Leading rider-facing pulse pages (TfL Go, Transit App, MBTA, TransitPulse AU, Citymapper) all share one move: they replace raw values with **contextual comparisons**, **confidence signals**, and **scoped relevance**. That's the gap.
-
-Plan below is grounded in research on those products plus the data fields we already have (`onTimePct`, `meanDelaySec`, `sampleCount`, `routesTracked`, `latePct/onTimePct/earlyPct`, `medianDelaySec`, `observations`).
+A daily, context-aware editorial page that fuses what's happening on the roads, in the stadiums, at the ports, and in the air — written for both locals and tourists.
 
 ---
 
-## The new Pulse page — section by section
+## Page structure (top → bottom)
 
-### 1. Weather-report headline (replaces the dial as the lead)
-Editorial verdict instead of a number-first hero.
-
-> **"Mostly smooth across Cyprus today."**
-> *Network is running 74% on time — 6 points better than this week's average. Route 30 is the rough spot.*
-
-Composition: oversized display sentence, mood word (`Smooth` / `Choppy` / `Rough` / `Storming`) in aegean italic, supporting one-liner in ink-soft. Reads like a Bloomberg/FT lede, not a metric.
-
-### 2. Reliability arc — but with a "typical" ghost
-Keep the arc, but layer a **muted baseline arc** showing the historical typical OTP. The gap between baseline and today's fill is the story. Add a delta chip: `+6 vs typical` (olive) or `-9 vs typical` (ochre). No more naked 56/100.
-
-### 3. Bespoke hero illustration (new asset)
-Generate a **mediterranean isometric scene**: ochre buses tracing across a stylized Cyprus coastline at the hour-of-day matching the rider's current time (dawn / midday / dusk / night) — picked at render via simple time gate. Hand-painted gouache style consistent with brand. Four scenes total (one per phase). Sits behind the headline as a quiet anchor, not screaming for attention.
-
-### 4. Network Flow ribbon — upgraded to a "river"
-Replace the flat segmented bar with an **SVG flow ribbon**: three streams (late / on-time / early) that widen and narrow horizontally based on share, with a subtle animated current. Median drift annotation hangs off the on-time stream. Feels alive, not a progress bar.
-
-### 5. "Today vs typical" hour-strip (new — uses live + historical)
-24-cell horizontal strip showing **how the network felt each hour today** (color = mean delay per hour). At the current hour, a vertical "you are here" marker. Cells before are filled; cells after are ghosted. Single most-actionable view: *"the morning was rough, it's clearing up now."*
-
-### 6. Route ranking — single dot-strip, not three lists
-Collapse the three list-cards into **one ranked dot-strip**:
-- X axis = mean delay (early ← 0 → late), zero line in the middle.
-- Each route = a labeled dot. Color encodes late/on-time/early. **Dot size encodes sample count** (confidence). Tap → route page.
-- Top filter chips: `All • Late • Early • Steadiest • Near me`.
-This visualization, with size-as-confidence, is the single most insightful thing we can build from our data: riders see at a glance which routes are trustworthy AND outliers, not just sorted lists.
-
-### 7. "So what" insight chips (new server fn additions)
-Two to three rotating chips above the route ranking, computed server-side from existing data:
-- *"3 routes near you are running 4+ min late right now"* (uses geolocation + live)
-- *"Route 230 is steadier before 09:15"* (hour-of-day bucketed mean delay)
-- *"Network is calmer than usual for a Wednesday"* (day-of-week historical compare)
-These are the editorial layer that turns data into a decision.
-
-### 8. Confidence footnote everywhere
-Every metric gets a quiet `· based on N live observations` micro-label. Removes the "where did this come from?" doubt.
-
-### 9. Route portraits (illustration system)
-Each route in the ranking gets a **tiny 28×28 line-art icon** representing its character (coast / mountain / city / village) instead of just a colored chip. Generated once as a sprite. Makes the list feel like meeting characters, not reading a spreadsheet.
+```text
+┌─────────────────────────────────────────┐
+│ 1. EDITORIAL HERO                       │
+│    Bespoke gouache illustration         │
+│    Mood word + headline + 1-line lede   │
+│    Auto-selected from today's signals   │
+├─────────────────────────────────────────┤
+│ 2. TODAY ON THE ISLAND (3-up tiles)     │
+│    Football · Events · Cruise/Holiday   │
+├─────────────────────────────────────────┤
+│ 3. ROAD PULSE                           │
+│    Reliability arc + ghost              │
+│    Hour-by-hour strip                   │
+│    Flow river (late/on-time/early)      │
+├─────────────────────────────────────────┤
+│ 4. HOTSPOTS                             │
+│    Traffic corridors + reroutes         │
+│    Trending stops (from our data)       │
+├─────────────────────────────────────────┤
+│ 5. WEATHER & BEACH INDEX                │
+│    Today's weather + ride implications  │
+├─────────────────────────────────────────┤
+│ 6. ROUTES TABLE                         │
+│    Ranked dot-strip (current pulse v2)  │
+├─────────────────────────────────────────┤
+│ 7. EDITORIAL VERDICT                    │
+│    1-sentence sign-off + fun fact       │
+└─────────────────────────────────────────┘
+```
 
 ---
 
-## Technical notes
+## Section 1 — Editorial hero (the soul of the page)
 
-- **New server fn**: `getPulseInsights` — returns 2-3 ranked insight chips from existing `delay_stats` (hour-of-day buckets) + live snapshot. Pure read, no schema changes.
-- **New server fn**: `getPulseHourStrip` — returns 24 hourly mean-delay buckets for today's network. Aggregates `rt_snapshots` by `extract(hour from captured_at)`. Cacheable 5 min.
-- **New assets** (imagegen):
-  - 4× hero scenes (dawn/midday/dusk/night Cyprus + buses), gouache style
-  - 1× sprite or 6× route portrait illustrations (coast/mountain/city/village/intercity/airport)
-- **New components**: `WeatherHeadline`, `ReliabilityArcWithGhost`, `FlowRiver` (SVG), `HourStrip`, `RouteDotStrip`, `InsightChip`, `RoutePortrait`.
-- **Removed**: `Section` × 3 (replaced by single `RouteDotStrip` with filter chips), the flat segmented `NetworkFlow` (replaced by `FlowRiver`).
-- **i18n**: all new strings added to `en.ts` + `el.ts` in same change. Mood words ("Smooth", "Choppy", "Rough", "Storming") carefully localized.
-- **Typography**: stays Bricolage + Geist + JetBrains Mono. No new fonts. `font-eyebrow` retained.
-- **Color**: stays within existing limestone / aegean / ochre / olive / ink tokens. No new tokens needed.
+A `composeTodayHeadline` server fn ranks signals by "interestingness" and picks ONE lead story. Examples by theme:
+
+| Theme            | Trigger                                  | Headline pattern                                                                 |
+|------------------|------------------------------------------|----------------------------------------------------------------------------------|
+| `derby`          | APOEL/Omonia/AEL fixture today           | "Derby night in Nicosia. Expect GSP traffic from 17:30."                         |
+| `heatwave`       | Forecast >35°C                           | "Hot one today — 37°C in Nicosia. Buses running with AC on max."                 |
+| `cruise`         | Cruise ship docked Limassol              | "Two cruise ships in Limassol port. Old town buses busier than usual."           |
+| `festival`       | Major event (Pafos Aphrodite, Kourion)   | "Aphrodite Festival opens tonight at Paphos Castle."                             |
+| `holiday`        | Public holiday or major name day         | "Kataklysmos today — coastal routes packed, inland calm."                        |
+| `storm`          | Rain/storm forecast                      | "Wet morning rolling in from the west. Troodos road slick after 11:00."          |
+| `calm`           | None of the above                        | "A quiet Wednesday. Roads moving, skies clear, no fixtures."                     |
+
+Each theme has its own gouache illustration (generated once, reused per theme). Selected at server-render time.
 
 ---
 
-## What it feels like after
+## Data sources & server fns
 
-The page reads top-to-bottom as: **mood → today vs typical → why → what to do**. A rider can answer "should I leave now?" in under 4 seconds without parsing a single percentage. That's the bar.
+| New server fn                  | Source                                            | Cache    |
+|--------------------------------|---------------------------------------------------|----------|
+| `getCyprusFixtures`            | CFA + scraped fixture pages via Firecrawl         | 6h       |
+| `getCyprusEvents`              | visitcyprus.com + Pafos/Limassol municipalities   | 12h      |
+| `getCruiseSchedule`            | Limassol Port public schedule (scraped)           | 24h      |
+| `getTrafficHotspots`           | Google Routes API on 6 known corridors            | 5m       |
+| `getTrendingStops`             | Our own analytics (most-viewed stops 24h)         | 30m      |
+| `getBeachIndex`                | Weather + UV + wind, computed                     | 1h       |
+| `getDailyFact`                 | Curated JSON (60 facts, rotated by day-of-year)   | static   |
+| `composeTodayHeadline`         | Composes all of the above into 1 lead + theme key | 10m      |
+
+All read-only, public, no auth. Firecrawl already available as a connector — will use for fixture/event/cruise scraping.
+
+---
+
+## Illustrations (imagegen, generated once)
+
+Bespoke gouache scenes in our Mediterranean palette (ochre / aegean / olive / limestone). 8 hero scenes + 6 small theme glyphs:
+
+**Hero scenes (1600×900):** derby-night, heatwave-coast, cruise-port, festival-castle, holiday-village, storm-troodos, calm-day, snow-troodos.
+
+**Small theme glyphs (400×400):** football, ship, festival-mask, sun, rain-cloud, calendar.
+
+---
+
+## Curated content (no API needed)
+
+- `src/data/cyprus-facts.json` — 60 fun facts (local-leaning + tourist-leaning, tagged).
+- `src/data/cyprus-name-days.json` — Major Orthodox name days mapped to dates.
+- `src/data/cyprus-corridors.json` — 6 traffic corridors with start/end coords for Routes API.
+
+---
+
+## i18n
+
+All editorial templates parameterized (route ID, venue, temperature, etc.) and translated en/el. Greek translations are first-class — Cypriot context matters.
+
+---
+
+## Implementation order
+
+1. **Foundation** — server fns + curated JSON + Firecrawl wiring.
+2. **Hero illustrations** — generate 8 gouache scenes via imagegen.
+3. **`composeTodayHeadline`** — the ranking + theme selection brain.
+4. **UI** — rebuild `pulse.tsx` top-to-bottom following the structure above.
+5. **Verify** — mobile viewport, both locales, all 8 themes by mocking signals.
+
+---
+
+## What stays from current Pulse
+
+- Reliability arc + ghost, hour strip, flow river, dot-strip — all keepers, moved into the **Road Pulse** section as part of the larger story.
+- All existing server fns (`getPulse`, `getLivePulse`, `getPulseHourStrip`) untouched.
 
 ---
 
 ## What I need from you
 
-Just an approval to build. I'll generate the illustrations, write the server fns, build the components, wire i18n, and verify on mobile viewport before handing back.
+Approval to build. This is ~1 long session of work: scraping wiring, ~8 illustration generations, ~5 new server fns, full page rebuild, i18n. I'll verify each theme renders before handing back.
