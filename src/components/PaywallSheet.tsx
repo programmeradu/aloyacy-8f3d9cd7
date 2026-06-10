@@ -16,7 +16,7 @@ const FEATURE_KEYS: { title: DictKey; body: DictKey }[] = [
 
 export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useI18n();
-  const { user } = useAuth();
+  const { isPermanent } = useAuth();
   const [plan, setPlan] = useState<PlanId>("monthly");
   const [authOpen, setAuthOpen] = useState(false);
   const [stage, setStage] = useState<"plan" | "checkout">("plan");
@@ -24,7 +24,7 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
   if (!open) return null;
 
   function startCheckout() {
-    if (!user) {
+    if (!isPermanent) {
       setAuthOpen(true);
       return;
     }
@@ -118,7 +118,7 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
                 onClick={startCheckout}
                 className="mt-6 w-full rounded-2xl bg-ink py-4 text-sm font-medium text-limestone"
               >
-                {user ? t("pay.continueCheckout") : t("pay.continue")}
+                {isPermanent ? t("pay.continueCheckout") : t("pay.continue")}
               </button>
               <button
                 onClick={onClose}
