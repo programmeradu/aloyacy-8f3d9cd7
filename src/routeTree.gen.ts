@@ -39,6 +39,7 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
+import { Route as ApiPublicHooksPulseWeatherRouteImport } from './routes/api/public/hooks/pulse-weather'
 import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
 import { Route as ApiPublicHooksDepartureTickRouteImport } from './routes/api/public/hooks/departure-tick'
 
@@ -195,6 +196,12 @@ const ApiPublicHooksTrainRoute = ApiPublicHooksTrainRouteImport.update({
   path: '/api/public/hooks/train',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksPulseWeatherRoute =
+  ApiPublicHooksPulseWeatherRouteImport.update({
+    id: '/api/public/hooks/pulse-weather',
+    path: '/api/public/hooks/pulse-weather',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksIngestScheduleRoute =
   ApiPublicHooksIngestScheduleRouteImport.update({
     id: '/api/public/hooks/ingest-schedule',
@@ -236,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
+  '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -270,6 +278,7 @@ export interface FileRoutesByTo {
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
+  '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -305,6 +314,7 @@ export interface FileRoutesById {
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
+  '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/api/public/trip-alerts'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
+    | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/api/public/trip-alerts'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
+    | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -409,6 +421,7 @@ export interface FileRouteTypes {
     | '/api/public/trip-alerts'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
+    | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -444,6 +457,7 @@ export interface RootRouteChildren {
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
   ApiPublicHooksDepartureTickRoute: typeof ApiPublicHooksDepartureTickRoute
   ApiPublicHooksIngestScheduleRoute: typeof ApiPublicHooksIngestScheduleRoute
+  ApiPublicHooksPulseWeatherRoute: typeof ApiPublicHooksPulseWeatherRoute
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -663,6 +677,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTrainRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/pulse-weather': {
+      id: '/api/public/hooks/pulse-weather'
+      path: '/api/public/hooks/pulse-weather'
+      fullPath: '/api/public/hooks/pulse-weather'
+      preLoaderRoute: typeof ApiPublicHooksPulseWeatherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/ingest-schedule': {
       id: '/api/public/hooks/ingest-schedule'
       path: '/api/public/hooks/ingest-schedule'
@@ -708,6 +729,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
   ApiPublicHooksDepartureTickRoute: ApiPublicHooksDepartureTickRoute,
   ApiPublicHooksIngestScheduleRoute: ApiPublicHooksIngestScheduleRoute,
+  ApiPublicHooksPulseWeatherRoute: ApiPublicHooksPulseWeatherRoute,
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,

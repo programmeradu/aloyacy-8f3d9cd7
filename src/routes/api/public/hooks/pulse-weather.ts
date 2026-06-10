@@ -139,21 +139,30 @@ async function ingest() {
 
   // One row per zone for fine-grained reads, plus a single rolled-up "island"
   // payload for the headline card.
-  const upserts = rows.map((r) => ({
+  type SignalRow = {
+    key: string;
+    scope: string;
+    source: string;
+    payload: unknown;
+    ttl_seconds: number;
+    fetched_at: string;
+  };
+  const now = new Date().toISOString();
+  const upserts: SignalRow[] = rows.map((r) => ({
     key: "weather",
     scope: r.zone,
     source: "open-meteo",
     payload: r,
     ttl_seconds: 1800,
-    fetched_at: new Date().toISOString(),
+    fetched_at: now,
   }));
   upserts.push({
     key: "weather",
     scope: "island",
     source: "open-meteo",
-    payload: { zones: rows, observedAt: new Date().toISOString() },
+    payload: { zones: rows, observedAt: now },
     ttl_seconds: 1800,
-    fetched_at: new Date().toISOString(),
+    fetched_at: now,
   });
 
   const { error } = await supabaseAdmin
