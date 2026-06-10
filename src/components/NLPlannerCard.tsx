@@ -411,7 +411,7 @@ export function NLPlannerCard() {
         <h2 className="font-display text-[2rem] leading-[1.05] text-ink mt-2">
           {t("nl.title")}
         </h2>
-        <p className="font-sans text-[12.5px] text-ink-soft mt-1.5">
+        <p className="font-sans font-medium text-[12.5px] text-ink-soft mt-1.5">
           {t("nl.sub")}
         </p>
 
@@ -436,7 +436,7 @@ export function NLPlannerCard() {
               }}
               placeholder={listening ? t("nl.listening") : t("nl.placeholder")}
               aria-label={t("nl.aria.describe")}
-              className="flex-1 bg-transparent outline-none font-sans text-[14.5px] text-ink placeholder:text-ink-soft/60 px-2.5 py-3"
+              className="flex-1 bg-transparent outline-none font-sans font-medium text-[14.5px] text-ink placeholder:text-ink-soft/60 placeholder:font-medium px-2.5 py-3"
               autoComplete="off"
               maxLength={500}
               disabled={listening}
@@ -515,7 +515,7 @@ export function NLPlannerCard() {
                       }}
                       className="group text-left rounded-xl bg-background ring-1 ring-line px-3 py-2 hover:ring-aegean-deep hover:bg-card transition flex items-center justify-between gap-2"
                     >
-                      <span className="font-sans text-[13px] text-ink">{ex}</span>
+                      <span className="font-sans font-medium text-[13px] text-ink">{ex}</span>
                       <IconArrowUp className="size-3 text-ink-soft rotate-45 group-hover:text-aegean-deep transition" />
                     </button>
                   ))}
@@ -525,7 +525,7 @@ export function NLPlannerCard() {
 
         {/* Error */}
         {error && (
-          <div className="mt-3 rounded-xl bg-ochre-soft/60 px-3 py-2 font-sans text-[12.5px] text-ink">
+          <div className="mt-3 rounded-xl bg-ochre-soft/60 px-3 py-2 font-sans font-medium text-[12.5px] text-ink">
             {error}
           </div>
         )}
@@ -544,13 +544,13 @@ export function NLPlannerCard() {
                 <span className="size-2 rounded-full bg-ochre" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-sans text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+                <p className="font-sans font-semibold text-[11px] uppercase tracking-[0.16em] text-ink-soft">
                   {t("nl.from")}
                 </p>
                 <p className="font-display text-[18px] leading-tight text-ink truncate">
                   {resolved.from?.label ?? t("nl.yourLocation")}
                 </p>
-                <p className="font-sans text-[11px] uppercase tracking-[0.16em] text-ink-soft mt-2">
+                <p className="font-sans font-semibold text-[11px] uppercase tracking-[0.16em] text-ink-soft mt-2">
                   {t("nl.to")}
                 </p>
                 <p className="font-display text-[18px] leading-tight text-ink truncate">
