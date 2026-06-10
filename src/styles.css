@@ -154,7 +154,7 @@
 
 /* Greek-specific typographic tightening so long words still breathe. */
 :lang(el) .font-display { letter-spacing: -0.012em; }
-:lang(el) .font-mono { letter-spacing: 0.12em; }
+:lang(el) .font-mono { letter-spacing: 0.06em; }
 
 @keyframes pulse-ring {
   0% { transform: scale(0.9); opacity: 0.7; }
