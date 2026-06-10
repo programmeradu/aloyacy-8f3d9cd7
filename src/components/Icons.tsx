@@ -199,3 +199,44 @@ export const IconClockSmall = ({ className, strokeWidth = 1.5 }: IconProps) => (
     <path d="M12 7v5l3 2" />
   </svg>
 );
+
+// ── Filled / duotone variants for active tab-bar states. iOS HIG pattern:
+// outline when inactive, filled when active. Outer shape filled with
+// currentColor, inner glyph cut with the surface color for contrast.
+export const IconCompassFilled = ({ className }: IconProps) => (
+  <svg viewBox="0 0 24 24" className={base(className)} fill="currentColor">
+    <circle cx="12" cy="12" r="9.25" />
+    <path d="M9.2 14.8l1.9-5.6 5.6-1.9-1.9 5.6-5.6 1.9z" fill="var(--color-limestone)" />
+    <circle cx="12" cy="12" r="0.9" fill="currentColor" />
+  </svg>
+);
+
+export const IconRouteFilled = ({ className }: IconProps) => (
+  <svg viewBox="0 0 24 24" className={base(className)} fill="none" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 8.2v4a4 4 0 0 0 4 4h4" />
+    <circle cx="6" cy="6" r="2.4" fill="currentColor" />
+    <circle cx="18" cy="18" r="2.4" fill="currentColor" />
+  </svg>
+);
+
+export const IconWavesFilled = ({ className }: IconProps) => (
+  <svg viewBox="0 0 24 24" className={base(className)} fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 8c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2" />
+    <path d="M2 14c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2" />
+    <path d="M2 20c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2" />
+  </svg>
+);
+
+export const IconOliveFilled = ({ className }: IconProps) => (
+  <svg viewBox="0 0 24 24" className={base(className)} fill="currentColor">
+    <path d="M12 3c-3 3-4 6-4 9 0 4 2 7 4 9 2-2 4-5 4-9 0-3-1-6-4-9z" />
+    <path d="M12 8.5v12.5" stroke="var(--color-limestone)" strokeWidth={1.4} strokeLinecap="round" fill="none" />
+  </svg>
+);
+
+export const IconTicketFilled = ({ className }: IconProps) => (
+  <svg viewBox="0 0 24 24" className={base(className)} fill="currentColor">
+    <path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z" />
+    <path d="M14 6.5v11" stroke="var(--color-limestone)" strokeWidth={1.4} strokeLinecap="round" strokeDasharray="1.5 2.5" fill="none" />
+  </svg>
+);
