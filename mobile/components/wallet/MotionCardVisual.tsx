@@ -14,10 +14,12 @@ export function MotionCardVisual({
   pass,
   onTap,
   onScan,
+  onNfc,
 }: {
   pass: MotionPass;
   onTap: () => void;
   onScan?: () => void;
+  onNfc?: () => void;
 }) {
   const hasCard = pass.number.replace(/\D/g, "").length >= 8;
   const qrValue = hasCard ? pass.number.replace(/\D/g, "") : "MOTION-DEMO";
@@ -72,16 +74,30 @@ export function MotionCardVisual({
       </Pressable>
 
       {onScan && (
-        <Pressable
-          onPress={() => {
-            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            onScan();
-          }}
-          style={styles.scanBtn}
-          accessibilityLabel="Scan card with camera"
-        >
-          <Text style={styles.scanLabel}>SCAN</Text>
-        </Pressable>
+        <View style={styles.actionRow}>
+          <Pressable
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              onScan();
+            }}
+            style={styles.actionBtn}
+            accessibilityLabel="Scan card with camera"
+          >
+            <Text style={styles.actionLabel}>CAMERA</Text>
+          </Pressable>
+          {onNfc && (
+            <Pressable
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                onNfc();
+              }}
+              style={[styles.actionBtn, { backgroundColor: palette.aegeanDeep }]}
+              accessibilityLabel="Scan card with NFC"
+            >
+              <Text style={styles.actionLabel}>TAP CARD</Text>
+            </Pressable>
+          )}
+        </View>
       )}
 
       {!hasCard && (
@@ -145,16 +161,20 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     color: "#1A2A6C",
   },
-  scanBtn: {
+  actionRow: {
     position: "absolute",
     top: 12,
     right: 12,
+    flexDirection: "row",
+    gap: 8,
+  },
+  actionBtn: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
     backgroundColor: "rgba(15,26,32,0.9)",
   },
-  scanLabel: {
+  actionLabel: {
     fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,

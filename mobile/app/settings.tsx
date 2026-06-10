@@ -111,6 +111,10 @@ export default function SettingsScreen() {
           <Text style={styles.eyebrow}>·</Text>
           <Card style={{ marginTop: 10, paddingVertical: 4 }}>
             <LegalRow
+              label={t("settings.support")}
+              onPress={() => void Linking.openURL("https://app.aloya.cy/qa")}
+            />
+            <LegalRow
               label={t("settings.about")}
               onPress={() => void Linking.openURL("https://app.aloya.cy/about")}
             />
