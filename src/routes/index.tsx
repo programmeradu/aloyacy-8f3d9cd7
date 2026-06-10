@@ -94,7 +94,7 @@ function IndexRoute() {
   const showMarketing = (() => {
     if (typeof window === "undefined") return marketing;
     const h = window.location.hostname.toLowerCase();
-    return h === "aloyacy.live" || h === "www.aloyacy.live";
+    return h === "aloyacy.live" || h === "www.aloyacy.live" || h === "aloya.cy" || h === "www.aloya.cy";
   })();
   return showMarketing ? <MarketingLanding /> : <Explore />;
 }
