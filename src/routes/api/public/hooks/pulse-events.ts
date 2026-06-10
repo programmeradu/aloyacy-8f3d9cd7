@@ -96,14 +96,17 @@ async function ingest() {
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         url: targetUrl,
-        formats: ["json", "markdown"],
-        jsonOptions: {
-          schema: JSON_SCHEMA,
-          prompt:
-            "Extract upcoming public events, festivals, exhibitions, and concerts happening in Cyprus. Include title, city, venue, dates (ISO format if possible), category, and detail URL.",
-        },
         onlyMainContent: true,
         waitFor: 1500,
+        formats: [
+          "markdown",
+          {
+            type: "json",
+            schema: JSON_SCHEMA,
+            prompt:
+              "Extract upcoming public events, festivals, exhibitions, and concerts happening in Cyprus. Include title, city, venue, dates (ISO format if possible), category, and detail URL.",
+          },
+        ],
       }),
     });
     if (!res.ok) throw new Error(`Firecrawl ${res.status}: ${await res.text()}`);
