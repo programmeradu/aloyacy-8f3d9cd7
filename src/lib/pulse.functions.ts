@@ -273,3 +273,81 @@ export const getLivePulse = createServerFn({ method: "GET" }).handler(async () =
     medianDelaySec: Math.round(median),
   } satisfies LivePulse;
 });
+
+// ---------------------------------------------------------------------------
+// Hourly strip — last 24 hours of mean delay bucketed by clock hour.
+// Powers the "today, hour by hour" visualization on the Pulse page.
+// Uses Cyprus local time (EET/EEST, UTC+2 in winter / +3 in summer).
+// ---------------------------------------------------------------------------
+
+export type HourBucket = {
+  hour: number; // 0-23, local Cyprus time
+  meanDelaySec: number; // raw mean (not dedup'd) — directionally accurate
+  sampleCount: number;
+};
+
+export type HourStrip = {
+  generatedAt: number;
+  nowHour: number; // current Cyprus-local hour
+  buckets: HourBucket[]; // 24, even empty ones present with sampleCount=0
+};
+
+function cyprusOffsetMinutes(d: Date): number {
+  // EEST (UTC+3) from last Sunday of March → last Sunday of October, else EET (+2).
+  const y = d.getUTCFullYear();
+  const lastSunday = (month: number) => {
+    const last = new Date(Date.UTC(y, month + 1, 0));
+    return new Date(Date.UTC(y, month, last.getUTCDate() - last.getUTCDay()));
+  };
+  const dstStart = lastSunday(2); // March
+  const dstEnd = lastSunday(9); // October
+  const inDst = d >= dstStart && d < dstEnd;
+  return inDst ? 180 : 120;
+}
+
+export const getPulseHourStrip = createServerFn({ method: "GET" }).handler(async () => {
+  const [{ supabaseAdmin }] = await Promise.all([
+    import("@/integrations/supabase/client.server"),
+  ]);
+  const sinceIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const PAGE = 1000;
+  const HARD_CAP = 20_000;
+  type Row = { delay_sec: number; captured_at: string };
+  const rows: Row[] = [];
+  for (let from = 0; from < HARD_CAP; from += PAGE) {
+    const { data, error } = await supabaseAdmin
+      .from("rt_snapshots")
+      .select("delay_sec, captured_at")
+      .gte("captured_at", sinceIso)
+      .order("captured_at", { ascending: false })
+      .range(from, from + PAGE - 1);
+    if (error) break;
+    if (!data || data.length === 0) break;
+    rows.push(...(data as Row[]));
+    if (data.length < PAGE) break;
+  }
+
+  const sums = new Array(24).fill(0);
+  const counts = new Array(24).fill(0);
+  for (const r of rows) {
+    const d = new Date(r.captured_at);
+    const localMinutes = d.getUTCHours() * 60 + d.getUTCMinutes() + cyprusOffsetMinutes(d);
+    const h = ((Math.floor(localMinutes / 60) % 24) + 24) % 24;
+    sums[h] += r.delay_sec;
+    counts[h] += 1;
+  }
+  const now = new Date();
+  const nowMinutes = now.getUTCHours() * 60 + now.getUTCMinutes() + cyprusOffsetMinutes(now);
+  const nowHour = ((Math.floor(nowMinutes / 60) % 24) + 24) % 24;
+  const buckets: HourBucket[] = Array.from({ length: 24 }, (_, h) => ({
+    hour: h,
+    sampleCount: counts[h],
+    meanDelaySec: counts[h] > 0 ? Math.round(sums[h] / counts[h]) : 0,
+  }));
+
+  return {
+    generatedAt: Math.floor(Date.now() / 1000),
+    nowHour,
+    buckets,
+  } satisfies HourStrip;
+});
