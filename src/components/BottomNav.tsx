@@ -17,7 +17,7 @@ export function BottomNav() {
   return (
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(env(safe-area-inset-bottom),12px)] px-3">
       <div className="pointer-events-auto w-full max-w-[400px]">
-        <div className="relative flex items-center justify-between rounded-[28px] bg-white px-2 py-2 ring-1 ring-line shadow-[0_18px_40px_-14px_rgba(28,30,26,0.35),0_2px_6px_-2px_rgba(28,30,26,0.12)]">
+        <div className="relative flex items-center justify-between rounded-[30px] bg-white px-2 py-2 ring-1 ring-black/[0.06] shadow-[0_1px_0_0_rgba(255,255,255,0.9)_inset,0_-0.5px_0_0_rgba(0,0,0,0.04)_inset,0_2px_3px_-1px_rgba(28,30,26,0.06),0_8px_16px_-6px_rgba(28,30,26,0.18),0_24px_44px_-12px_rgba(28,30,26,0.28)]">
           {items.map(({ to, labelKey, Icon }) => {
             const active =
               to === "/" ? pathname === "/" : pathname.startsWith(to);
@@ -30,7 +30,7 @@ export function BottomNav() {
                 }`}
               >
                 {active && (
-                  <span className="absolute inset-x-1.5 inset-y-0 -z-10 rounded-[22px] bg-limestone-soft ring-1 ring-line" />
+                  <span className="absolute inset-x-1.5 inset-y-0 -z-10 rounded-[22px] bg-limestone-soft ring-1 ring-black/[0.05] shadow-[0_1px_0_0_rgba(255,255,255,0.7)_inset,0_1px_2px_0_rgba(28,30,26,0.08)]" />
                 )}
                 <Icon className="size-[20px]" strokeWidth={active ? 1.9 : 1.6} />
                 <span className="font-mono text-[9px] uppercase tracking-[0.16em] [:lang(el)_&]:tracking-[0.01em] max-w-full truncate-1">
