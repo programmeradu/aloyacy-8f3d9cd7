@@ -128,8 +128,13 @@ function Plan() {
     },
     enabled: !!origin && !!destination,
     refetchInterval: 30_000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     staleTime: 15_000,
+    // Silent background refresh: keep the previously-rendered itineraries
+    // on screen while the next plan loads, so the list never blanks out
+    // mid-read and per-card state (like "Remind me set") stays mounted.
+    placeholderData: keepPreviousData,
+    notifyOnChangeProps: ["data", "error"],
   });
   const results = planQuery.data?.itineraries ?? null;
   const planning = planQuery.isFetching && !planQuery.data;
