@@ -61,7 +61,7 @@ export const Layout = ({
         href="https://fonts.googleapis.com"
       />
       <link
-        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Geist:wght@500;600;700&display=swap"
         rel="stylesheet"
       />
     </Head>
@@ -77,7 +77,7 @@ export const Layout = ({
                   <span style={wordmarkTag}>CY</span>
                 </td>
                 <td style={{ textAlign: 'right', verticalAlign: 'baseline' }}>
-                  <span style={topMeta}>Cyprus · Transit</span>
+                  <span style={topMeta}>CYPRUS TRANSIT</span>
                 </td>
               </tr>
             </tbody>
@@ -85,8 +85,8 @@ export const Layout = ({
         </Section>
 
         <Img
-          src={headerImg}
-          alt=""
+          src={`${ASSET_HOST}${heroImage}`}
+          alt={heroAlt}
           width={560}
           height={280}
           style={hero}
@@ -119,7 +119,7 @@ export const Layout = ({
             </tbody>
           </table>
           <Text style={footerFine}>
-            Nicosia · Limassol · Larnaca · Paphos · Famagusta
+            NICOSIA   LIMASSOL   LARNACA   PAPHOS   FAMAGUSTA
           </Text>
         </Section>
       </Container>
@@ -134,7 +134,7 @@ const display =
 const sans =
   "'Geist', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
 const mono =
-  "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+  "'Geist', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
 
 const body: React.CSSProperties = {
   backgroundColor: '#ffffff',
