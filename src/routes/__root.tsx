@@ -227,10 +227,17 @@ function RootComponent() {
       <CloudSyncBridge />
       <OnboardingGate />
       <Outlet />
+      <GlobalPaywall />
       <Toaster position="top-center" />
     </QueryClientProvider>
   );
 }
+
+function GlobalPaywall() {
+  const open = usePaywallOpen();
+  return <PaywallSheet open={open} onClose={() => paywallStore.close()} />;
+}
+
 
 // Lives inside QueryClientProvider so it can grab the queryClient via hook.
 function RealtimeBridge() {
