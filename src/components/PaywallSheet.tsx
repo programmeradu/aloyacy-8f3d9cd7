@@ -16,7 +16,7 @@ const FEATURE_KEYS: { title: DictKey; body: DictKey }[] = [
 
 export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useI18n();
-  const { user } = useAuth();
+  const { isPermanent } = useAuth();
   const [plan, setPlan] = useState<PlanId>("monthly");
   const [authOpen, setAuthOpen] = useState(false);
   const [stage, setStage] = useState<"plan" | "checkout">("plan");
@@ -24,7 +24,7 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
   if (!open) return null;
 
   function startCheckout() {
-    if (!user) {
+    if (!isPermanent) {
       setAuthOpen(true);
       return;
     }
