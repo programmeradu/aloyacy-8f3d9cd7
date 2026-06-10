@@ -290,14 +290,14 @@ function GuidePage() {
         <header className="mb-8 flex items-center justify-between">
           <Link
             to="/"
-            className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink/60 hover:text-ink"
+            className="font-eyebrow text-[11px] uppercase tracking-[0.22em] text-ink/60 hover:text-ink"
           >
             {c.backLabel}
           </Link>
           <LocaleSwitcher />
         </header>
 
-        <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-aegean">
+        <p className="font-eyebrow text-[11px] uppercase tracking-[0.26em] text-aegean">
           {c.eyebrowDate}
         </p>
         <h1 className="mt-3 font-display text-[40px] leading-[1.02] tracking-tight text-ink">
@@ -314,7 +314,7 @@ function GuidePage() {
             height={640}
             className="w-full aspect-[1216/640] object-cover"
           />
-          <figcaption className="mt-2 px-5 sm:px-0 font-mono text-[10px] uppercase tracking-[0.22em] text-ink/45">
+          <figcaption className="mt-2 px-5 sm:px-0 font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink/45">
             {c.figCaption}
           </figcaption>
         </figure>
@@ -334,14 +334,14 @@ function GuidePage() {
                   className="group flex items-baseline justify-between border-t border-ink/10 py-4 hover:border-aegean"
                 >
                   <span className="flex items-baseline gap-3">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink/40">
+                    <span className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink/40">
                       {c.routeWord} {r.short}
                     </span>
                     <span className="font-display text-[20px] tracking-tight text-ink group-hover:text-aegean-deep">
                       {r.from[locale]} <span className="text-ink/40">→</span> {r.to[locale]}
                     </span>
                   </span>
-                  <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink/55">
+                  <span className="font-eyebrow text-[11px] uppercase tracking-[0.18em] text-ink/55">
                     {r.duration}
                   </span>
                 </Link>
@@ -382,7 +382,7 @@ function GuidePage() {
         </Section>
 
         <div className="mt-16 border-t border-ink/15 pt-8">
-          <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-ink/45">
+          <p className="font-eyebrow text-[10px] uppercase tracking-[0.26em] text-ink/45">
             {c.ctaEyebrow}
           </p>
           <Link
@@ -409,7 +409,7 @@ function Section({
 }) {
   return (
     <section className="mt-14">
-      <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-ink/40">
+      <p className="font-eyebrow text-[10px] uppercase tracking-[0.26em] text-ink/40">
         {eyebrow}
       </p>
       <h2 className="mt-2 font-display text-[26px] leading-tight tracking-tight text-ink">

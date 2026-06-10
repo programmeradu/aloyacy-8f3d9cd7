@@ -20,7 +20,7 @@ export function MarketingLanding() {
         <Logo />
         <a
           href="https://app.aloya.cy/"
-          className="font-mono text-[10px] uppercase tracking-[0.24em] text-ink-soft underline decoration-ink/15 underline-offset-[6px] transition-colors hover:text-ink"
+          className="font-eyebrow text-[10px] uppercase tracking-[0.24em] text-ink-soft underline decoration-ink/15 underline-offset-[6px] transition-colors hover:text-ink"
         >
           Open the app
         </a>
@@ -30,7 +30,7 @@ export function MarketingLanding() {
       <section className="px-8 pt-14 pb-20 lg:px-16 lg:pt-24 lg:pb-28">
         <div className="grid gap-14 lg:grid-cols-12 lg:gap-12">
           <div className="lg:col-span-7">
-            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ink-soft">
+            <p className="font-eyebrow text-[10px] uppercase tracking-[0.28em] text-ink-soft">
               Cyprus — 2026
             </p>
             <h1 className="mt-5 font-display text-[clamp(48px,8vw,112px)] leading-[0.95] tracking-[-0.02em] text-balance">
@@ -59,7 +59,7 @@ export function MarketingLanding() {
               </a>
               <a
                 href="#manifesto"
-                className="font-mono text-[10px] uppercase tracking-[0.24em] text-ink-soft underline decoration-ink/15 underline-offset-[6px] transition-colors hover:text-ink"
+                className="font-eyebrow text-[10px] uppercase tracking-[0.24em] text-ink-soft underline decoration-ink/15 underline-offset-[6px] transition-colors hover:text-ink"
               >
                 Read the manifesto
               </a>
@@ -75,7 +75,7 @@ export function MarketingLanding() {
                 loading="eager"
                 fetchPriority="high"
               />
-              <figcaption className="absolute bottom-4 left-5 right-5 flex items-end justify-between font-mono text-[9px] uppercase tracking-[0.22em] text-limestone/85 mix-blend-screen">
+              <figcaption className="absolute bottom-4 left-5 right-5 flex items-end justify-between font-eyebrow text-[9px] uppercase tracking-[0.22em] text-limestone/85 mix-blend-screen">
                 <span>Plate 01 — Coastal, 17:42</span>
                 <span>{mounted ? new Date().getFullYear() : ""}</span>
               </figcaption>
@@ -94,7 +94,7 @@ export function MarketingLanding() {
             { kicker: "ETA accuracy", value: "±90s", caption: "On routes with rider GPS coverage" },
           ].map((s) => (
             <div key={s.kicker} className="px-8 py-10 lg:px-10 lg:py-14">
-              <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-ink-soft">
+              <p className="font-eyebrow text-[9px] uppercase tracking-[0.24em] text-ink-soft">
                 {s.kicker}
               </p>
               <p className="mt-4 font-display text-[56px] leading-none tracking-[-0.02em] text-ink">
@@ -109,7 +109,7 @@ export function MarketingLanding() {
       {/* Manifesto — long-form, two columns */}
       <section id="manifesto" className="px-8 py-24 lg:px-16 lg:py-32">
         <div className="mx-auto max-w-5xl">
-          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ink-soft">
+          <p className="font-eyebrow text-[10px] uppercase tracking-[0.28em] text-ink-soft">
             Manifesto
           </p>
           <h2 className="mt-5 font-display text-[clamp(36px,5vw,64px)] leading-[1.02] tracking-[-0.01em] text-balance">
@@ -152,7 +152,7 @@ export function MarketingLanding() {
         <div className="px-8 py-24 lg:px-16 lg:py-32">
           <div className="mx-auto flex max-w-5xl flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-limestone/55">
+              <p className="font-eyebrow text-[10px] uppercase tracking-[0.28em] text-limestone/55">
                 Ready when you are
               </p>
               <h2 className="mt-5 font-display text-[clamp(40px,6vw,80px)] leading-[1.0] tracking-[-0.02em]">
@@ -175,7 +175,7 @@ export function MarketingLanding() {
             </a>
           </div>
 
-          <footer className="mx-auto mt-24 flex max-w-5xl flex-wrap items-center justify-between gap-6 border-t border-limestone/15 pt-8 font-mono text-[10px] uppercase tracking-[0.24em] text-limestone/55">
+          <footer className="mx-auto mt-24 flex max-w-5xl flex-wrap items-center justify-between gap-6 border-t border-limestone/15 pt-8 font-eyebrow text-[10px] uppercase tracking-[0.24em] text-limestone/55">
             <span>Aloya — Lefkosia, Cyprus</span>
             <span className="flex gap-6">
               <a href="https://app.aloya.cy/privacy" className="hover:text-limestone">
