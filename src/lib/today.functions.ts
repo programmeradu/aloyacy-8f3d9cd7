@@ -17,7 +17,18 @@ export type TodayTheme =
   | "storm"
   | "calm";
 
+export type TodayTileKind =
+  | "match"
+  | "festival"
+  | "cruise"
+  | "holiday"
+  | "nameday"
+  | "weather-sun"
+  | "weather-rain"
+  | "weather-cloud";
+
 export type TodayTile = {
+  kind: TodayTileKind;
   kicker: string;
   kickerEl: string;
   title: string;
