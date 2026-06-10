@@ -833,6 +833,16 @@ export const el: Record<keyof typeof en, string> = {
   "pulse.item.limits.body": "Οι καθυστερήσεις έρχονται από τη ζωντανή ροή κάθε φορέα — αν τα δεδομένα τους είναι λάθος, και τα δικά μας. Οι ώρες είναι σε UTC, όχι τοπικές Κύπρου, οπότε το «αυτή την ώρα» είναι κατά προσέγγιση.",
   "pulse.excluded.one": "{n} γραμμή κρύβεται εδώ γιατί δεν είναι ακόμη στο πακέτο μας.",
   "pulse.excluded.many": "{n} γραμμές κρύβονται εδώ γιατί δεν είναι ακόμη στο πακέτο μας.",
+  "pulse.flow.title": "Πώς κινείται το δίκτυο",
+  "pulse.flow.kicker": "Τελευταία 60 λεπτά",
+  "pulse.flow.late": "Πίσω",
+  "pulse.flow.onTime": "Στην ώρα",
+  "pulse.flow.early": "Νωρίς",
+  "pulse.flow.observations": "{n} αφίξεις",
+  "pulse.flow.empty": "Καμία ζωντανή ένδειξη την τελευταία ώρα.",
+  "pulse.flow.median": "Μέση απόκλιση",
+  "pulse.section.delayProfile": "Προφίλ καθυστέρησης",
+  "pulse.section.reliabilityBar": "Αξιοπιστία",
 
   // Trip Info
   "tripInfo.meta.title": "Δρομολόγιο {id} — Aloya",

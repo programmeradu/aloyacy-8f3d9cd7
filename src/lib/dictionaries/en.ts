@@ -847,6 +847,16 @@ export const en = {
   "pulse.item.limits.body": "Delays come from each operator's live feed — if their data is off, ours will be too. Buckets are in UTC, not Cyprus local time, so the \"at this hour\" framing is approximate.",
   "pulse.excluded.one": "{n} route is hidden here because it's not in our bundled timetable yet.",
   "pulse.excluded.many": "{n} routes are hidden here because they're not in our bundled timetable yet.",
+  "pulse.flow.title": "How the network is moving",
+  "pulse.flow.kicker": "Last 60 minutes",
+  "pulse.flow.late": "Late",
+  "pulse.flow.onTime": "On time",
+  "pulse.flow.early": "Early",
+  "pulse.flow.observations": "{n} arrivals observed",
+  "pulse.flow.empty": "No live signal in the past hour.",
+  "pulse.flow.median": "Median drift",
+  "pulse.section.delayProfile": "Delay profile",
+  "pulse.section.reliabilityBar": "Reliability",
 
   // Trip Info
   "tripInfo.meta.title": "Trip {id} — Aloya",
