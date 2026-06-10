@@ -1,12 +1,10 @@
-import { useState } from "react";
-import { PaywallSheet } from "./PaywallSheet";
+import { paywallStore } from "@/lib/paywall-store";
 import { useI18n } from "@/lib/i18n";
 
 /**
  * Combined Pro upsell shown to non-Pro users on the Saved screen.
  */
 export function ProFeaturesUpsell() {
-  const [open, setOpen] = useState(false);
   const { t } = useI18n();
 
   const features = [
@@ -15,8 +13,7 @@ export function ProFeaturesUpsell() {
   ];
 
   return (
-    <>
-      <article className="relative overflow-hidden rounded-[28px] bg-card ring-1 ring-line">
+    <article className="relative overflow-hidden rounded-[28px] bg-card ring-1 ring-line">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aegean/40 to-transparent"
@@ -57,7 +54,7 @@ export function ProFeaturesUpsell() {
           <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
             <button
               type="button"
-              onClick={() => setOpen(true)}
+              onClick={() => paywallStore.open()}
               className="rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium tracking-tight text-limestone transition hover:bg-ink/90"
             >
               {t("upsell.cta")}
@@ -67,8 +64,6 @@ export function ProFeaturesUpsell() {
             </span>
           </div>
         </div>
-      </article>
-      <PaywallSheet open={open} onClose={() => setOpen(false)} />
-    </>
+    </article>
   );
 }

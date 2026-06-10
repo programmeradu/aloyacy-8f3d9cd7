@@ -26,7 +26,7 @@ export function RemindMeButton({
   const { t } = useI18n();
   const { user } = useAuth();
   const schedule = useServerFn(scheduleDeparture);
-  const { isPro, requirePro, paywall } = useProPaywall();
+  const { isPro, requirePro } = useProPaywall();
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [authOpen, setAuthOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -131,7 +131,7 @@ export function RemindMeButton({
         title={t("remind.authTitle")}
         subtitle={t("remind.authSubtitle")}
       />
-      {paywall}
+      
     </>
   );
 }
