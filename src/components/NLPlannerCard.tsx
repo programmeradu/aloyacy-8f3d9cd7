@@ -411,7 +411,7 @@ export function NLPlannerCard() {
         <h2 className="font-display text-[2rem] leading-[1.05] text-ink mt-2">
           {t("nl.title")}
         </h2>
-        <p className="font-sans text-[12.5px] text-ink-soft mt-1.5">
+        <p className="font-sans font-medium text-[12.5px] text-ink-soft mt-1.5">
           {t("nl.sub")}
         </p>
 
