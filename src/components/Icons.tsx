@@ -216,12 +216,13 @@ export const IconClockSmall = ({ className, strokeWidth = 1.5 }: IconProps) => (
 // outline when inactive, filled when active. Outer shape filled with
 // currentColor, inner glyph cut with the surface color for contrast.
 export const IconCompassFilled = ({ className }: IconProps) => (
-  <svg viewBox="0 0 24 24" className={base(className)} fill="currentColor">
-    <circle cx="12" cy="12" r="9.25" />
-    <path d="M9.2 14.8l1.9-5.6 5.6-1.9-1.9 5.6-5.6 1.9z" fill="var(--color-limestone)" />
-    <circle cx="12" cy="12" r="0.9" fill="currentColor" />
+  <svg viewBox="0 0 24 24" className={base(className)} fill="none">
+    <path d="M3.5 16c2.4-2.4 5.3-3.6 8.5-3.6s6.1 1.2 8.5 3.6" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M6.5 15.5a5.5 5.5 0 0 1 11 0z" fill="currentColor" />
+    <path d="M12 5.2v2.4M6.2 7.8l1.5 1.7M17.8 7.8l-1.5 1.7M2.8 12.4l2 .5M21.2 12.4l-2 .5" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" />
   </svg>
 );
+
 
 export const IconRouteFilled = ({ className }: IconProps) => (
   <svg viewBox="0 0 24 24" className={base(className)} fill="none" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round">
