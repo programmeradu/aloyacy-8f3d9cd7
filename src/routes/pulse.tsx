@@ -480,6 +480,39 @@ function PulseLeg({
   );
 }
 
+function ActivityComb({
+  buckets,
+  nowHour,
+  maxCount,
+}: {
+  buckets: HourBucket[];
+  nowHour: number;
+  maxCount: number;
+}) {
+  return (
+    <div className="mt-2 flex h-7 items-end gap-[2px]" aria-hidden>
+      {buckets.map((b, i) => {
+        const h = b.sampleCount === 0 ? 2 : 4 + Math.round((b.sampleCount / maxCount) * 22);
+        const isNow = i === nowHour;
+        const isEmpty = b.sampleCount === 0;
+        return (
+          <span
+            key={i}
+            className={`flex-1 rounded-[2px] ${
+              isNow
+                ? "bg-ink"
+                : isEmpty
+                ? "bg-line"
+                : "bg-aegean-deep/35"
+            }`}
+            style={{ height: `${h}px` }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 function Sparkline({ buckets, nowHour }: { buckets: HourBucket[]; nowHour: number }) {
   const W = 280;
   const H = 44;
