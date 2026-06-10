@@ -884,7 +884,13 @@ export const el: Record<keyof typeof en, string> = {
  "pulse.insight.steadyRoute": "Η γραμμή {code} είναι η πιο σταθερή σήμερα.",
  "pulse.insight.calmer": "Το δίκτυο είναι πιο ήρεμο από συνήθως.",
  "pulse.insight.busier": "Πιο πολλές καθυστερήσεις από μια τυπική {weekday}.",
- "pulse.insight.tooQuiet": "Πολύ ήσυχα για να διαβαστεί ακόμη το δίκτυο.",
+  "pulse.insight.tooQuiet": "Πολύ ήσυχα για να διαβαστεί ακόμη το δίκτυο.",
+  "today.kicker": "Κύπρος σήμερα",
+  "today.tiles.kicker": "Στο νησί τώρα",
+  "today.verdict.kicker": "Σημείωση συντάκτη",
+  "today.fact.local": "Το ήξερες;",
+  "today.fact.tourist": "Για επισκέπτες",
+
 
   // Trip Info
   "tripInfo.meta.title": "Δρομολόγιο {id} — Aloya",
