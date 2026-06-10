@@ -118,7 +118,7 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
                 onClick={startCheckout}
                 className="mt-6 w-full rounded-2xl bg-ink py-4 text-sm font-medium text-limestone"
               >
-                {user ? t("pay.continueCheckout") : t("pay.continue")}
+                {isPermanent ? t("pay.continueCheckout") : t("pay.continue")}
               </button>
               <button
                 onClick={onClose}
