@@ -20,6 +20,8 @@ export const MagicLinkEmail = ({ confirmationUrl }: MagicLinkEmailProps) => (
     preview="Your Aloya sign-in link is ready."
     eyebrow="Single-use sign-in"
     headline="Tap to continue to Aloya."
+    heroImage="/__l5e/assets-v1/f79b2c1b-336f-4939-b36d-863768673a70/email-magiclink.jpg"
+    heroAlt="Antique brass key on cream paper, sunlit limestone"
   >
     <Text style={bodyText}>
       No password required. This link signs you in on the device

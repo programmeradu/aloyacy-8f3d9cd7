@@ -17,6 +17,8 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
     preview="Your Aloya verification code."
     eyebrow="Verify it's you"
     headline="A short code to confirm your identity."
+    heroImage="/__l5e/assets-v1/2dc5fa2b-d3d2-4862-9b1a-f69e57cb1c88/email-reauth.jpg"
+    heroAlt="Brass padlock and ceramic dish on limestone with a dried olive leaf"
   >
     <Text style={bodyText}>
       Enter the code below in the Aloya app to continue. It's
