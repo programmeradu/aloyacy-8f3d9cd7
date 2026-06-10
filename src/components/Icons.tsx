@@ -7,12 +7,19 @@ const base = (className?: string) =>
   `inline-block ${className ?? ""}`;
 
 export const IconCompass = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  // Bespoke "wayfinder": a half-sun rising over a curved horizon — a
+  // Mediterranean-coded explore mark. Not the typical compass dial.
   <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M9 15l2-6 4-2-2 6-4 2z" />
-    <circle cx="12" cy="12" r="0.6" fill="currentColor" />
+    <path d="M4 15.5c2.2-2 5-3 8-3s5.8 1 8 3" />
+    <path d="M6.5 15.5a5.5 5.5 0 0 1 11 0" />
+    <path d="M12 5.5v2.2" />
+    <path d="M6.5 8l1.4 1.6" />
+    <path d="M17.5 8l-1.4 1.6" />
+    <path d="M3.2 12.6l1.8.4" />
+    <path d="M20.8 12.6l-1.8.4" />
   </svg>
 );
+
 
 export const IconRoute = ({ className, strokeWidth = 1.5 }: IconProps) => (
   <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
