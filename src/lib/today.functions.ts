@@ -133,14 +133,13 @@ function seededPick<T>(arr: T[], seed: number): T {
 
 type Weather = { tempC: number; condition: string; iconKey: string } | null;
 
-async function fetchCyprusWeather(): Promise<Weather> {
-  // Nicosia centre as proxy for "the island" weather.
+async function fetchCyprusWeather(lat = 35.1856, lng = 33.3823): Promise<Weather> {
   try {
     const lk = process.env.LOVABLE_API_KEY;
     const gk = process.env.GOOGLE_MAPS_API_KEY;
     if (!lk || !gk) return null;
     const url =
-      "https://connector-gateway.lovable.dev/google_maps/weather/v1/currentConditions:lookup?location.latitude=35.1856&location.longitude=33.3823&unitsSystem=METRIC&languageCode=en";
+      `https://connector-gateway.lovable.dev/google_maps/weather/v1/currentConditions:lookup?location.latitude=${lat}&location.longitude=${lng}&unitsSystem=METRIC&languageCode=en`;
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${lk}`, "X-Connection-Api-Key": gk },
       signal: AbortSignal.timeout(6000),
@@ -166,21 +165,22 @@ async function fetchCyprusWeather(): Promise<Weather> {
 }
 
 type EventsJson = typeof events;
-type NameDaysJson = typeof nameDays;
 
-function isLikelyMatchday(d: Date): { venue: string; venueEl: string; city: string; cityEl: string; routes: string[] } | null {
-  // Heuristic when no live CFA data: Cyprus League games are mostly Sat/Sun
-  // evenings, with midweek Champions League nights on Wed/Tue.
-  const dow = d.getUTCDay(); // 0 Sun .. 6 Sat
+function isLikelyMatchday(
+  d: Date,
+  preferCity?: string,
+): { venue: string; venueEl: string; city: string; cityEl: string; routes: string[] } | null {
+  const dow = d.getUTCDay();
   const seed = dayOfYear(d);
   const isWeekendNight = dow === 0 || dow === 6;
   const isMidweek = dow === 2 || dow === 3;
   if (!isWeekendNight && !isMidweek) return null;
-  // Deterministic ~60% chance on weekends, ~25% midweek.
   const threshold = isWeekendNight ? 60 : 25;
   const score = (seed * 9301 + 49297) % 100;
   if (score >= threshold) return null;
-  const venue = seededPick(events.fixturesPattern.venues, seed);
+  const venues = events.fixturesPattern.venues;
+  const biased = preferCity ? venues.find((v) => v.city === preferCity) : undefined;
+  const venue = biased ?? seededPick(venues, seed);
   return {
     venue: venue.name,
     venueEl: venue.nameEl,
