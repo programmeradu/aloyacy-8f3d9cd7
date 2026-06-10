@@ -530,6 +530,36 @@ export type Database = {
         }
         Relationships: []
       }
+      pulse_signals: {
+        Row: {
+          fetched_at: string
+          id: number
+          key: string
+          payload: Json
+          scope: string
+          source: string
+          ttl_seconds: number
+        }
+        Insert: {
+          fetched_at?: string
+          id?: number
+          key: string
+          payload: Json
+          scope?: string
+          source: string
+          ttl_seconds?: number
+        }
+        Update: {
+          fetched_at?: string
+          id?: number
+          key?: string
+          payload?: Json
+          scope?: string
+          source?: string
+          ttl_seconds?: number
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -1289,6 +1319,7 @@ export type Database = {
     }
     Functions: {
       bump_alert_counter: { Args: { p_kind: string }; Returns: undefined }
+      cleanup_pulse_signals: { Args: never; Returns: undefined }
       cleanup_rider_fixes: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
