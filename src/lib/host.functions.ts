@@ -13,6 +13,7 @@ export function isMarketingHostname(host: string | null | undefined): boolean {
   if (!host) return false;
   const h = host.toLowerCase().split(":")[0];
   if (h === "aloyacy.live" || h === "www.aloyacy.live") return true;
+  if (h === "aloya.cy" || h === "www.aloya.cy") return true;
   return false;
 }
 
