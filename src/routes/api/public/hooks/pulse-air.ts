@@ -133,7 +133,7 @@ async function ingest() {
     key: "air",
     scope: "island",
     source: "open-meteo-air",
-    payload: { ...worst, zones: rows, observedAt: now },
+    payload: { worst, zones: rows, observedAt: now } as unknown as AirRow,
     ttl_seconds: 3600,
     fetched_at: now,
   });
