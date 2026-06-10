@@ -53,7 +53,7 @@ export const Route = createFileRoute("/")({
   loader: async () => ({ marketing: await getIsMarketingHost() }),
   head: ({ loaderData }) => {
     const marketing = loaderData?.marketing ?? false;
-    const url = marketing ? "https://aloyacy.live/" : "https://app.aloyacy.live/";
+    const url = marketing ? "https://aloya.cy/" : "https://app.aloya.cy/";
     const title = marketing
       ? "Aloya — Cyprus bus, redrawn"
       : "Aloya — Cyprus bus, the way it should feel";
@@ -68,12 +68,12 @@ export const Route = createFileRoute("/")({
         { property: "og:description", content: description },
         { property: "og:url", content: url },
         { property: "og:type", content: "website" },
-        { property: "og:image", content: "https://app.aloyacy.live/og/og-home.jpg" },
+        { property: "og:image", content: "https://app.aloya.cy/og/og-home.jpg" },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { property: "og:image:alt", content: "A rider's hand on a Cyprus bus window at golden hour, olive trees beyond." },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:image", content: "https://app.aloyacy.live/og/og-home.jpg" },
+        { name: "twitter:image", content: "https://app.aloya.cy/og/og-home.jpg" },
       ],
       links: [
         { rel: "canonical", href: url },
@@ -89,12 +89,12 @@ export const Route = createFileRoute("/")({
 function IndexRoute() {
   const { marketing } = Route.useLoaderData();
   // Defensive: trust the actual hostname on the client. Only aloyacy.live and
-  // www.aloyacy.live ever render the marketing landing — every other host
-  // (app.aloyacy.live, lovable previews, localhost) gets the app.
+  // www.aloya.cy ever render the marketing landing — every other host
+  // (app.aloya.cy, lovable previews, localhost) gets the app.
   const showMarketing = (() => {
     if (typeof window === "undefined") return marketing;
     const h = window.location.hostname.toLowerCase();
-    return h === "aloyacy.live" || h === "www.aloyacy.live" || h === "aloya.cy" || h === "www.aloya.cy";
+    return h === "aloya.cy" || h === "www.aloya.cy" || h === "aloya.cy" || h === "www.aloya.cy";
   })();
   return showMarketing ? <MarketingLanding /> : <Explore />;
 }

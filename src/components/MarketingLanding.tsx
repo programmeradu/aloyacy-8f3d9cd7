@@ -3,8 +3,8 @@ import heroImg from "@/assets/marketing-hero.jpg";
 import { Logo } from "@/components/Logo";
 
 /**
- * Marketing landing — served at https://aloyacy.live/
- * Distinct from the app at https://app.aloyacy.live/
+ * Marketing landing — served at https://aloya.cy/
+ * Distinct from the app at https://app.aloya.cy/
  *
  * Editorial, Mediterranean, no icons, no bullet dots. Designed to feel like a
  * print spread that happens to render in a browser.
@@ -19,7 +19,7 @@ export function MarketingLanding() {
       <header className="flex items-center justify-between px-8 pt-7 lg:px-16">
         <Logo />
         <a
-          href="https://app.aloyacy.live/"
+          href="https://app.aloya.cy/"
           className="font-mono text-[10px] uppercase tracking-[0.24em] text-ink-soft underline decoration-ink/15 underline-offset-[6px] transition-colors hover:text-ink"
         >
           Open the app
@@ -46,7 +46,7 @@ export function MarketingLanding() {
 
             <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
               <a
-                href="https://app.aloyacy.live/"
+                href="https://app.aloya.cy/"
                 className="group inline-flex items-center gap-3 rounded-full bg-ink px-6 py-3.5 text-[14px] font-medium tracking-tight text-limestone transition-colors hover:bg-aegean-deep"
               >
                 Launch Aloya
@@ -162,10 +162,10 @@ export function MarketingLanding() {
               </h2>
             </div>
             <a
-              href="https://app.aloyacy.live/"
+              href="https://app.aloya.cy/"
               className="group inline-flex items-center gap-3 self-start rounded-full bg-limestone px-7 py-4 text-[14px] font-medium tracking-tight text-ink transition-colors hover:bg-aegean-soft"
             >
-              Open app.aloyacy.live
+              Open app.aloya.cy
               <span
                 aria-hidden
                 className="font-mono text-[11px] tracking-[0.18em] text-ink/60 transition-transform group-hover:translate-x-0.5"
@@ -178,14 +178,14 @@ export function MarketingLanding() {
           <footer className="mx-auto mt-24 flex max-w-5xl flex-wrap items-center justify-between gap-6 border-t border-limestone/15 pt-8 font-mono text-[10px] uppercase tracking-[0.24em] text-limestone/55">
             <span>Aloya — Lefkosia, Cyprus</span>
             <span className="flex gap-6">
-              <a href="https://app.aloyacy.live/privacy" className="hover:text-limestone">
+              <a href="https://app.aloya.cy/privacy" className="hover:text-limestone">
                 Privacy
               </a>
-              <a href="https://app.aloyacy.live/terms" className="hover:text-limestone">
+              <a href="https://app.aloya.cy/terms" className="hover:text-limestone">
                 Terms
               </a>
               <a
-                href="https://app.aloyacy.live/guide/getting-around-cyprus"
+                href="https://app.aloya.cy/guide/getting-around-cyprus"
                 className="hover:text-limestone"
               >
                 Guide

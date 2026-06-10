@@ -22,7 +22,7 @@ export function OnboardingGate() {
     // Skip on the marketing domain — "/" there is the landing page, not the app.
     if (typeof window !== "undefined") {
       const h = window.location.hostname.toLowerCase();
-      if (h === "aloyacy.live" || h === "www.aloyacy.live") return;
+      if (h === "aloya.cy" || h === "www.aloya.cy") return;
       if (h === "aloya.cy" || h === "www.aloya.cy") return;
     }
     const cached = isOnboardedCached();
