@@ -5,9 +5,9 @@
 // the rider has not been alerted about yet. Idempotent via the
 // `alerts_sent` text[] on each row.
 //
-// Secured with a shared header (`x-cron-secret`) — this endpoint can move
-// real money in user attention (pushing to a phone), so we don't want it
-// callable from the open internet.
+// Secured for scheduled backend callers via the project publishable key
+// (canonical pg_cron pattern), with a CRON_SECRET bearer fallback for
+// local/dev compatibility.
 
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -438,31 +438,29 @@ async function processTrips() {
   return { processed: trips.length, dispatched };
 }
 
-async function getExpectedSecret(): Promise<string | null> {
-  // Prefer the vault-managed value (written by the cron-schedule migration);
-  // fall back to a project-level env var for local/dev runs.
-  try {
-    const { data } = await supabaseAdmin
-      .schema("vault" as never)
-      .from("decrypted_secrets" as never)
-      .select("decrypted_secret")
-      .eq("name", "aloya_cron_secret")
-      .maybeSingle();
-    const v = (data as { decrypted_secret?: string } | null)?.decrypted_secret;
-    if (v) return v;
-  } catch (e) {
-    console.warn("[trip-alerts] vault lookup failed", e);
-  }
-  return process.env.CRON_SECRET ?? null;
-}
-
 export const Route = createFileRoute("/api/public/trip-alerts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const expected = await getExpectedSecret();
-        const header = request.headers.get("x-cron-secret");
-        if (!expected || header !== expected) {
+        const apikey = request.headers.get("apikey");
+        const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+        let legacySecret: string | null = process.env.CRON_SECRET ?? null;
+        try {
+          const { data } = await supabaseAdmin
+            .schema("vault" as never)
+            .from("decrypted_secrets" as never)
+            .select("decrypted_secret")
+            .eq("name", "aloya_cron_secret")
+            .maybeSingle();
+          legacySecret = (data as { decrypted_secret?: string } | null)?.decrypted_secret ?? legacySecret;
+        } catch {
+          // ignore vault lookup failures and fall back to env
+        }
+        const legacyHeader = request.headers.get("x-cron-secret");
+        const validApiKey = apikey && apikey === process.env.SUPABASE_PUBLISHABLE_KEY;
+        const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
+        const validLegacy = legacySecret && legacyHeader && legacyHeader === legacySecret;
+        if (!validApiKey && !validCron && !validLegacy) {
           return new Response("Unauthorized", { status: 401 });
         }
         try {
