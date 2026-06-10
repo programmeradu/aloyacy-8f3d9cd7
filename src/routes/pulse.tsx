@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { TodayTileGlyph } from "@/components/TodayTileGlyph";
 import { getLivePulse, getPulseHourStrip, type HourBucket } from "@/lib/pulse.functions";
 import { useI18n, type DictKey } from "@/lib/i18n";
 import { en } from "@/lib/dictionaries/en";
 import { getTodayBriefing, type TodayBriefing, type TodayTheme } from "@/lib/today.functions";
+import { useActiveTrip } from "@/lib/trip-store";
 import todayDerby from "@/assets/today-derby.jpg";
 import todayHeatwave from "@/assets/today-heatwave.jpg";
 import todayCruise from "@/assets/today-cruise.jpg";
@@ -61,9 +63,41 @@ function Pulse() {
   const liveFn = useServerFn(getLivePulse);
   const hourFn = useServerFn(getPulseHourStrip);
 
+  // ── Location awareness ───────────────────────────────────────────────────
+  const active = useActiveTrip();
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    let cancelled = false;
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        if (cancelled) return;
+        setCoords({ lat: p.coords.latitude, lng: p.coords.longitude });
+      },
+      () => {},
+      { enableHighAccuracy: false, timeout: 6000, maximumAge: 5 * 60_000 },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Build briefing input — trip destination takes precedence, fall back to user coords.
+  const briefingInput = useMemo(() => {
+    const dest = active?.to;
+    const round = (n: number) => Math.round(n * 100) / 100; // ~1 km bucket → cache-friendly
+    return {
+      lat: coords ? round(coords.lat) : undefined,
+      lng: coords ? round(coords.lng) : undefined,
+      destLat: dest ? round(dest.lat) : undefined,
+      destLng: dest ? round(dest.lng) : undefined,
+    };
+  }, [coords, active?.to]);
+
   const { data: today } = useQuery({
-    queryKey: ["today-briefing"],
-    queryFn: () => todayFn(),
+    queryKey: ["today-briefing", briefingInput],
+    queryFn: () => todayFn({ data: briefingInput }),
     refetchInterval: 10 * 60_000,
     staleTime: 9 * 60_000,
   });
@@ -160,9 +194,19 @@ function TodayEditorial({
                 "linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--color-card) 30%, transparent) 55%, var(--color-card) 100%)",
             }}
           />
-          <p className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-card/90 backdrop-blur-sm px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ink ring-1 ring-line">
-            {niceDate}
-          </p>
+          <div className="absolute left-5 top-5 right-5 flex items-center justify-between gap-2">
+            <p className="inline-flex items-center gap-2 rounded-full bg-card/90 backdrop-blur-sm px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ink ring-1 ring-line">
+              {niceDate}
+            </p>
+            {briefing.focus.scope !== "island" && (
+              <p className="inline-flex items-center gap-1.5 rounded-full bg-ink/85 backdrop-blur-sm px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-card ring-1 ring-ink/40">
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ochre" />
+                {briefing.focus.scope === "trip"
+                  ? isEl ? `Προς ${briefing.focus.cityEl}` : `Heading to ${briefing.focus.city}`
+                  : isEl ? `Στη ${briefing.focus.cityEl}` : `Around ${briefing.focus.city}`}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="relative px-6 pt-4 pb-6">
@@ -201,13 +245,32 @@ function TodayEditorial({
         <p className="font-display text-[18px] leading-snug text-ink text-balance">{verdict}</p>
       </div>
 
-      {/* Fact */}
-      <div className="mt-4 rounded-2xl bg-limestone-soft px-4 py-3 ring-1 ring-line">
-        <p className="font-eyebrow text-[9px] uppercase tracking-[0.22em] text-ochre">
-          {factKicker}
-        </p>
-        <p className="mt-1 text-[13.5px] leading-snug text-ink">{factText}</p>
-      </div>
+      {/* Fact — same illustrated treatment as the tile cards */}
+      <article className="relative mt-4 overflow-hidden rounded-[22px] bg-card ring-1 ring-line">
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute inset-0 bg-gradient-to-bl ${
+            briefing.fact.tag === "tourist" ? "from-aegean-deep/8" : "from-ochre/8"
+          } to-transparent`}
+        />
+        <TodayTileGlyph
+          kind={briefing.fact.tag === "tourist" ? "festival" : "nameday"}
+          accent={briefing.fact.tag === "tourist" ? "aegean" : "ochre"}
+          className="pointer-events-none absolute -right-2 -top-2 h-24 w-24 select-none"
+        />
+        <div className="relative p-5 pr-24">
+          <p
+            className={`font-eyebrow text-[9.5px] uppercase tracking-[0.24em] ${
+              briefing.fact.tag === "tourist" ? "text-aegean-deep" : "text-ochre"
+            }`}
+          >
+            {factKicker}
+          </p>
+          <p className="mt-2 font-display text-[16px] leading-snug text-ink text-balance break-soft">
+            {factText}
+          </p>
+        </div>
+      </article>
     </section>
   );
 }
