@@ -43,7 +43,7 @@ function Saved() {
   const { t } = useI18n();
   const saved = useSavedPlaces();
   const recents = useRecents();
-  const { isPro, requirePro, paywall } = useProPaywall();
+  const { isPro, requirePro } = useProPaywall();
 
   function pinRecent(r: { id: string; name: string; lat: number; lng: number }, label: string) {
     requirePro(() => {
@@ -181,7 +181,7 @@ function Saved() {
           <ProFeaturesUpsell />
         </section>
       )}
-      {paywall}
+      
     </AppShell>
   );
 }
