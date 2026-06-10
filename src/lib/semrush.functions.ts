@@ -88,11 +88,55 @@ export const getSeoPanel = createServerFn({ method: "GET" }).handler(async () =>
     aloyaOrganic = parseTable(j);
   } catch {}
 
+  // 5) Backlink profile per tracked domain (root domain).
+  const backlinks = await Promise.all(
+    DOMAINS.map(async (domain) => {
+      try {
+        const j = await call("/backlinks/backlinks_overview", {
+          target: domain,
+          target_type: "root_domain",
+          export_columns: "ascore,total,domains_num,urls_num,ips_num,follows_num,nofollows_num",
+        });
+        const row = parseTable(j)[0] ?? {};
+        return { domain, ok: true as const, row };
+      } catch (e) {
+        return { domain, ok: false as const, error: (e as Error).message };
+      }
+    }),
+  );
+
+  // 6) Top referring domains for the incumbent — where the useful links come from.
+  let incumbentRefDomains: Row[] = [];
+  try {
+    const j = await call("/backlinks/backlinks_refdomains", {
+      target: "intercity-buses.com",
+      target_type: "root_domain",
+      display_limit: "15",
+      export_columns: "domain_ascore,domain,backlinks_num,ip",
+    });
+    incumbentRefDomains = parseTable(j);
+  } catch {}
+
+  // 7) Aloya's own referring domains (mostly SEO spam today; useful to track).
+  let aloyaRefDomains: Row[] = [];
+  try {
+    const j = await call("/backlinks/backlinks_refdomains", {
+      target: "app.aloya.cy",
+      target_type: "root_domain",
+      display_limit: "15",
+      export_columns: "domain_ascore,domain,backlinks_num,ip",
+    });
+    aloyaRefDomains = parseTable(j);
+  } catch {}
+
   return {
     fetchedAt: new Date().toISOString(),
     matrix,
     incumbentOrganic,
     incumbentPaid,
     aloyaOrganic,
+    backlinks,
+    incumbentRefDomains,
+    aloyaRefDomains,
   };
 });
