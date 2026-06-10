@@ -822,6 +822,13 @@ export function MapPreview({
     </div>
   );
 
+  // On iOS Safari (no native Fullscreen API), portal to document.body so the
+  // overlay escapes every ancestor stacking context — transforms, filters,
+  // isolation, opacity, sticky/fixed parents — that would otherwise trap the
+  // fixed wrapper underneath sibling chrome.
+  if (expanded && fallbackOverlay && typeof document !== "undefined") {
+    return createPortal(content, document.body);
+  }
   return content;
 }
 
