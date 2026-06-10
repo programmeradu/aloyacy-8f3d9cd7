@@ -88,7 +88,7 @@ export function MarketingLanding() {
       <section className="border-y border-line/70 bg-card/40">
         <div className="grid grid-cols-2 divide-y divide-line/70 lg:grid-cols-4 lg:divide-x lg:divide-y-0">
           {[
-            { kicker: "Operators", value: "5", caption: "OSEL, EMEL, Zenon, OSYPA, Intercity" },
+            { kicker: "Operators", value: "7", caption: "OSEL, EMEL, Zenon, OSYPA, OSEA, Intercity, Pame Express" },
             { kicker: "Live vehicles", value: "300+", caption: "Streamed, fused, re-snapped to shape" },
             { kicker: "Stops indexed", value: "4,200", caption: "Across the island, both languages" },
             { kicker: "ETA accuracy", value: "±90s", caption: "On routes with rider GPS coverage" },

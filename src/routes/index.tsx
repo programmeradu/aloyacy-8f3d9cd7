@@ -513,7 +513,7 @@ const AGENCY_CITY: Record<string, string> = {
   LCA: "Larnaca",
   FAM: "Famagusta",
   IC: "Intercity",
-  SPC: "Intercity",
+  SPC: "Pame Express",
 };
 const AGENCY_RANK: Record<string, number> = {
   NPT: 0, LMS: 1, LCA: 2, PFO: 3, FAM: 4, IC: 5, SPC: 6,
