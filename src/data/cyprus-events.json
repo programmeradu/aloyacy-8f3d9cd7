@@ -1,0 +1,31 @@
+{
+  "recurring": [
+    { "id": "limassol-carnival", "name": "Limassol Carnival", "nameEl": "Καρναβάλι Λεμεσού", "city": "Limassol", "month": 2, "kind": "festival", "weekRule": "last-week" },
+    { "id": "kataklysmos", "name": "Kataklysmos festival", "nameEl": "Καταικλυσμός", "city": "Coastline", "month": 6, "kind": "festival", "weekRule": "monday-after-pentecost" },
+    { "id": "paphos-aphrodite", "name": "Aphrodite Festival", "nameEl": "Φεστιβάλ Αφροδίτη", "city": "Paphos", "month": 9, "kind": "festival", "weekRule": "first-weekend" },
+    { "id": "wine-festival", "name": "Limassol Wine Festival", "nameEl": "Γιορτή Κρασιού Λεμεσού", "city": "Limassol", "month": 9, "kind": "festival", "weekRule": "late-month" },
+    { "id": "kypria", "name": "Kypria International Festival", "nameEl": "Κυπρία", "city": "All cities", "month": 9, "kind": "festival", "weekRule": "all-month" },
+    { "id": "kourion-summer", "name": "Kourion Summer Theatre", "nameEl": "Καλοκαιρινό Θέατρο Κουρίου", "city": "Limassol", "month": 7, "kind": "festival", "weekRule": "all-month" }
+  ],
+  "fixturesPattern": {
+    "note": "Major Cyprus football derbies — used as fallback when live CFA data not scraped",
+    "weekendOdds": 0.6,
+    "venues": [
+      { "id": "gsp", "name": "GSP Stadium", "nameEl": "Στάδιο ΓΣΠ", "city": "Nicosia", "teams": ["APOEL", "Omonia"], "routeIds": ["158", "259"] },
+      { "id": "tsireion", "name": "Tsirion Stadium", "nameEl": "Στάδιο Τσίρειο", "city": "Limassol", "teams": ["AEL", "Apollon", "Aris"], "routeIds": ["30"] },
+      { "id": "antonis-papadopoulos", "name": "Antonis Papadopoulos Stadium", "nameEl": "Στάδιο Αντώνης Παπαδόπουλος", "city": "Larnaca", "teams": ["AEK Larnaca"], "routeIds": ["407"] }
+    ]
+  },
+  "publicHolidays": {
+    "01-01": { "en": "New Year's Day", "el": "Πρωτοχρονιά" },
+    "01-06": { "en": "Epiphany", "el": "Θεοφάνεια" },
+    "03-25": { "en": "Greek Independence Day", "el": "25η Μαρτίου" },
+    "04-01": { "en": "EOKA Day", "el": "Ημέρα ΕΟΚΑ" },
+    "05-01": { "en": "Labour Day", "el": "Πρωτομαγιά" },
+    "08-15": { "en": "Assumption of the Virgin", "el": "Δεκαπενταύγουστος" },
+    "10-01": { "en": "Cyprus Independence Day", "el": "Ημέρα Ανεξαρτησίας" },
+    "10-28": { "en": "Ohi Day", "el": "Ημέρα του Όχι" },
+    "12-25": { "en": "Christmas Day", "el": "Χριστούγεννα" },
+    "12-26": { "en": "Boxing Day", "el": "Σύναξις Θεοτόκου" }
+  }
+}

@@ -20,6 +20,23 @@ import { getRoute, routeTone } from "@/lib/gtfs";
 import { useI18n, type DictKey } from "@/lib/i18n";
 import { en } from "@/lib/dictionaries/en";
 import pulseHero from "@/assets/pulse-hero-cyprus.jpg";
+import { getTodayBriefing, type TodayBriefing, type TodayTheme } from "@/lib/today.functions";
+import todayDerby from "@/assets/today-derby.jpg";
+import todayHeatwave from "@/assets/today-heatwave.jpg";
+import todayCruise from "@/assets/today-cruise.jpg";
+import todayFestival from "@/assets/today-festival.jpg";
+import todayStorm from "@/assets/today-storm.jpg";
+import todayCalm from "@/assets/today-calm.jpg";
+
+const THEME_HERO: Record<TodayTheme, string> = {
+  derby: todayDerby,
+  heatwave: todayHeatwave,
+  cruise: todayCruise,
+  festival: todayFestival,
+  storm: todayStorm,
+  holiday: todayCalm,
+  calm: todayCalm,
+};
 
 export const Route = createFileRoute("/pulse")({
   head: () => ({
@@ -70,6 +87,13 @@ function Pulse() {
     queryFn: () => hourFn(),
     refetchInterval: 5 * 60_000,
     staleTime: 4 * 60_000,
+  });
+  const todayFn = useServerFn(getTodayBriefing);
+  const { data: today } = useQuery({
+    queryKey: ["today-briefing"],
+    queryFn: () => todayFn(),
+    refetchInterval: 10 * 60_000,
+    staleTime: 9 * 60_000,
   });
 
   const onTimePct = data?.onTimePct ?? 0;

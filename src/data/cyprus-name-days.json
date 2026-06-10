@@ -1,0 +1,18 @@
+{
+  "01-01": { "name": "Vasilis", "nameEl": "Βασίλη", "scale": "huge" },
+  "01-07": { "name": "Yiannis", "nameEl": "Γιάννη", "scale": "huge" },
+  "02-10": { "name": "Charalambos", "nameEl": "Χαράλαμπε", "scale": "big" },
+  "03-25": { "name": "Evangelia", "nameEl": "Ευαγγελία", "scale": "big" },
+  "04-23": { "name": "Yiorgos", "nameEl": "Γιώργο", "scale": "huge" },
+  "05-21": { "name": "Konstantinos & Eleni", "nameEl": "Κωνσταντίνο και Ελένη", "scale": "huge" },
+  "06-29": { "name": "Petros & Pavlos", "nameEl": "Πέτρο και Παύλο", "scale": "big" },
+  "07-17": { "name": "Marina", "nameEl": "Μαρίνα", "scale": "big" },
+  "07-26": { "name": "Paraskevi", "nameEl": "Παρασκευή", "scale": "big" },
+  "08-15": { "name": "Maria", "nameEl": "Μαρία", "scale": "huge" },
+  "09-14": { "name": "Stavros", "nameEl": "Σταύρο", "scale": "big" },
+  "10-26": { "name": "Dimitris", "nameEl": "Δημήτρη", "scale": "big" },
+  "11-08": { "name": "Michalis & Angelos", "nameEl": "Μιχάλη και Άγγελο", "scale": "big" },
+  "11-25": { "name": "Aikaterini", "nameEl": "Αικατερίνη", "scale": "big" },
+  "12-06": { "name": "Nikolaos", "nameEl": "Νικόλα", "scale": "big" },
+  "12-12": { "name": "Spyridon", "nameEl": "Σπυρίδωνα", "scale": "big" }
+}
