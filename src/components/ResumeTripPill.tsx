@@ -30,7 +30,7 @@ export function ResumeTripPill() {
   const destination = active.to.label;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[88px] z-30 flex justify-center px-4">
+    <div className="pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 84px)" }}>
       <Link
         to="/trip/$id"
         params={{ id: active.option.id }}
