@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { requestEmailOtp } from "@/lib/otp.functions";
+import { requestEmailOtp, linkEmailAndRequestOtp } from "@/lib/otp.functions";
+import { useAuth } from "@/lib/useAuth";
 import { useI18n } from "@/lib/i18n";
 
 export function AuthSheet({
