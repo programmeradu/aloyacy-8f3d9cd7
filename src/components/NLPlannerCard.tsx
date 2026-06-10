@@ -515,7 +515,7 @@ export function NLPlannerCard() {
                       }}
                       className="group text-left rounded-xl bg-background ring-1 ring-line px-3 py-2 hover:ring-aegean-deep hover:bg-card transition flex items-center justify-between gap-2"
                     >
-                      <span className="font-sans text-[13px] text-ink">{ex}</span>
+                      <span className="font-sans font-medium text-[13px] text-ink">{ex}</span>
                       <IconArrowUp className="size-3 text-ink-soft rotate-45 group-hover:text-aegean-deep transition" />
                     </button>
                   ))}
