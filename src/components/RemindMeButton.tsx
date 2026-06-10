@@ -27,7 +27,27 @@ export function RemindMeButton({
   const { user } = useAuth();
   const schedule = useServerFn(scheduleDeparture);
   const { isPro, requirePro } = useProPaywall();
-  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  // Stable signature so a "saved" reminder stays marked saved even after the
+  // planner refetches and remounts this card with a new itinerary.id.
+  const firstRide = itinerary.legs.find(
+    (l): l is RideLeg => l.kind === "ride",
+  );
+  const sigKey = `aloya:remind:${origin.lat.toFixed(4)},${origin.lng.toFixed(4)}->${destination.lat.toFixed(4)},${destination.lng.toFixed(4)}@${firstRide?.routeId ?? "x"}:${Math.round(itinerary.departureUnix / 60)}`;
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">(
+    () => {
+      if (typeof window === "undefined") return "idle";
+      try {
+        const raw = window.localStorage.getItem(sigKey);
+        if (!raw) return "idle";
+        const savedUntil = Number(raw);
+        return Number.isFinite(savedUntil) && savedUntil * 1000 > Date.now()
+          ? "saved"
+          : "idle";
+      } catch {
+        return "idle";
+      }
+    },
+  );
   const [authOpen, setAuthOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -80,6 +100,9 @@ export function RemindMeButton({
         },
       });
       setState("saved");
+      try {
+        window.localStorage.setItem(sigKey, String(itinerary.departureUnix));
+      } catch {}
       track("ui:remind-me.saved", { departIn });
     } catch (e) {
       track("ui:remind-me.error");
