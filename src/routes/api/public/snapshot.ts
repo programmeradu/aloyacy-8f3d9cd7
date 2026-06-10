@@ -26,9 +26,24 @@ function badRequest(message: string) {
 async function guard(request: Request): Promise<Response | null> {
   const apikey = request.headers.get("apikey");
   const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  let legacySecret: string | null = process.env.CRON_SECRET ?? null;
+  try {
+    const { data } = await supabaseAdmin
+      .schema("vault" as never)
+      .from("decrypted_secrets" as never)
+      .select("decrypted_secret")
+      .eq("name", "aloya_cron_secret")
+      .maybeSingle();
+    legacySecret = (data as { decrypted_secret?: string } | null)?.decrypted_secret ?? legacySecret;
+  } catch {
+    // ignore vault lookup failures and fall back to env
+  }
+  const legacyHeader =
+    request.headers.get("X-Cron-Secret") ?? request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
   const validApiKey = apikey && apikey === process.env.SUPABASE_PUBLISHABLE_KEY;
   const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
-  if (!validApiKey && !validCron) {
+  const validLegacy = legacySecret && legacyHeader && legacyHeader === legacySecret;
+  if (!validApiKey && !validCron && !validLegacy) {
     return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json", ...CORS },
