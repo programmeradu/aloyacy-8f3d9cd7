@@ -25,6 +25,8 @@ export const SignupEmail = ({
     preview="One step to start riding with Aloya."
     eyebrow="Welcome aboard"
     headline="Confirm your email and start moving."
+    heroImage="/__l5e/assets-v1/c9eb3e6a-3aa4-4db4-8273-4f7fbaf02fef/email-signup.jpg"
+    heroAlt="Olive branch on warm linen, Cyprus limestone"
   >
     <Text style={bodyText}>
       You're a tap away from smarter bus journeys across Cyprus —
