@@ -245,13 +245,32 @@ function TodayEditorial({
         <p className="font-display text-[18px] leading-snug text-ink text-balance">{verdict}</p>
       </div>
 
-      {/* Fact */}
-      <div className="mt-4 rounded-2xl bg-limestone-soft px-4 py-3 ring-1 ring-line">
-        <p className="font-eyebrow text-[9px] uppercase tracking-[0.22em] text-ochre">
-          {factKicker}
-        </p>
-        <p className="mt-1 text-[13.5px] leading-snug text-ink">{factText}</p>
-      </div>
+      {/* Fact — same illustrated treatment as the tile cards */}
+      <article className="relative mt-4 overflow-hidden rounded-[22px] bg-card ring-1 ring-line">
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute inset-0 bg-gradient-to-bl ${
+            briefing.fact.tag === "tourist" ? "from-aegean-deep/8" : "from-ochre/8"
+          } to-transparent`}
+        />
+        <TodayTileGlyph
+          kind={briefing.fact.tag === "tourist" ? "festival" : "nameday"}
+          accent={briefing.fact.tag === "tourist" ? "aegean" : "ochre"}
+          className="pointer-events-none absolute -right-2 -top-2 h-24 w-24 select-none"
+        />
+        <div className="relative p-5 pr-24">
+          <p
+            className={`font-eyebrow text-[9.5px] uppercase tracking-[0.24em] ${
+              briefing.fact.tag === "tourist" ? "text-aegean-deep" : "text-ochre"
+            }`}
+          >
+            {factKicker}
+          </p>
+          <p className="mt-2 font-display text-[16px] leading-snug text-ink text-balance break-soft">
+            {factText}
+          </p>
+        </div>
+      </article>
     </section>
   );
 }
