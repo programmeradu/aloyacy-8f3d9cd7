@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useProSubscription } from "@/lib/usePro";
-import { PaywallSheet } from "./PaywallSheet";
+import { paywallStore } from "@/lib/paywall-store";
 
 interface ProGateProps {
   /** What the gate is unlocking, used in CTA copy. */
