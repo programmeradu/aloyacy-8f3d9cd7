@@ -1,26 +1,24 @@
 import * as React from 'react'
-import { Button, Text } from '@react-email/components'
+import { Text } from '@react-email/components'
 import {
   Layout,
   bodyText,
   bodyTextMuted,
-  ctaButton,
-  ctaWrap,
+  codeBlock,
   fineprint,
   inlineLink,
+  sectionLabel,
 } from './_layout'
 
 interface SignupEmailProps {
   siteName: string
   siteUrl: string
   recipient: string
-  confirmationUrl: string
+  confirmationUrl?: string
+  token?: string
 }
 
-export const SignupEmail = ({
-  recipient,
-  confirmationUrl,
-}: SignupEmailProps) => (
+export const SignupEmail = ({ recipient, token }: SignupEmailProps) => (
   <Layout
     preview="One step to start riding with Aloya."
     eyebrow="Welcome aboard"
@@ -34,22 +32,15 @@ export const SignupEmail = ({
       make sense.
     </Text>
 
-    <div style={ctaWrap}>
-      <Button style={ctaButton} href={confirmationUrl}>
-        Confirm email
-      </Button>
-    </div>
+    <Text style={sectionLabel}>Confirmation code</Text>
+    <div style={codeBlock}>{token ?? '------'}</div>
 
     <Text style={bodyTextMuted}>
       We're confirming{' '}
       <a href={`mailto:${recipient}`} style={inlineLink}>
         {recipient}
       </a>
-      . If the button doesn't open, paste this link into your browser:
-      <br />
-      <a href={confirmationUrl} style={inlineLink}>
-        {confirmationUrl}
-      </a>
+      . Enter the code above in the app to finish signing in.
     </Text>
 
     <Text style={fineprint}>
