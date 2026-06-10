@@ -316,7 +316,7 @@ function Explore() {
         style={{ animationDelay: "140ms" }}
       >
         {landmarkChips.length === 0 ? (
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft py-2">
+          <span className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft py-2">
             {tt("home.locating")}
           </span>
 
@@ -398,7 +398,7 @@ function Explore() {
       >
         <div className="flex items-end justify-between mb-4">
           <div>
-            <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+            <p className="flex items-center gap-1.5 font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
               {geo.source === "live" ? (
                 <IconCrosshair className="size-3 text-aegean-deep" />
               ) : (
@@ -468,7 +468,7 @@ function QuickStat({
         />
       )}
       <div className="relative p-3">
-        <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
+        <p className="font-eyebrow text-[9px] uppercase tracking-[0.18em] text-ink-soft">
           {label}
         </p>
         <p className={`mt-1 font-display text-2xl leading-none ${c}`}>{value}</p>
@@ -638,7 +638,7 @@ function SmartSearch({
         {query.length > 0 && (
           <button
             onClick={() => setQuery("")}
-            className="absolute right-3 rounded-full bg-limestone-soft px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
+            className="absolute right-3 rounded-full bg-limestone-soft px-3 py-1.5 font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
           >
             {tt("home.clear")}
           </button>
@@ -649,7 +649,7 @@ function SmartSearch({
         <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl bg-card ring-1 ring-line shadow-[0_24px_60px_-24px_oklch(0.22_0.012_110/0.25)] overflow-hidden">
           {results.length === 0 ? (
             <div className="px-5 py-6 text-center">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+              <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft">
                 {tt("home.noMatches")}
               </p>
               <p className="mt-1 text-[13px] text-ink-soft">
@@ -671,7 +671,7 @@ function SmartSearch({
                         <RouteChip code={r.code} tone={routeTone(r.id)} size="sm" />
                         <div className="min-w-0 flex-1">
                           <p className="text-[14px] text-ink truncate">{r.name}</p>
-                          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
+                          <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
                             {r.city} · {r.liveCount > 0 ? `${r.liveCount} live` : "no live buses"}
                           </p>
                         </div>
@@ -695,7 +695,7 @@ function SmartSearch({
                           <p className="text-[14px] text-ink truncate">
                             Bus {r.label} <span className="text-ink-soft">line {r.routeCode}</span>
                           </p>
-                          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
+                          <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
                             {r.sub}
                           </p>
                         </div>
@@ -716,7 +716,7 @@ function SmartSearch({
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="text-[14px] text-ink truncate">{r.name}</p>
-                        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
+                        <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
                           {r.sub}
                         </p>
                       </div>
