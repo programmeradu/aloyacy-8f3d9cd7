@@ -648,6 +648,51 @@ export function MapPreview({
     };
   }, [expanded]);
 
+  // iOS Safari fallback: when we go fullscreen via the in-page `position:
+  // fixed` overlay (no native Fullscreen API), any ancestor with a
+  // `transform`, `filter`, or `perspective` creates a containing block that
+  // traps our fixed wrapper. That makes the map render at the wrong size or
+  // not paint at all (just the limestone background shows). Walk up from the
+  // wrapper and neutralize those properties for the duration of the overlay.
+  useEffect(() => {
+    if (!(expanded && fallbackOverlay)) return;
+    const wrap = wrapperRef.current;
+    if (!wrap) return;
+    const restorers: Array<() => void> = [];
+    let el: HTMLElement | null = wrap.parentElement;
+    while (el && el !== document.body) {
+      const cs = window.getComputedStyle(el);
+      const needsFix =
+        (cs.transform && cs.transform !== "none") ||
+        (cs.filter && cs.filter !== "none") ||
+        (cs.perspective && cs.perspective !== "none") ||
+        cs.contain.includes("paint") ||
+        cs.contain.includes("layout");
+      if (needsFix) {
+        const prevTransform = el.style.transform;
+        const prevFilter = el.style.filter;
+        const prevPerspective = el.style.perspective;
+        const prevContain = el.style.contain;
+        el.style.setProperty("transform", "none", "important");
+        el.style.setProperty("filter", "none", "important");
+        el.style.setProperty("perspective", "none", "important");
+        el.style.setProperty("contain", "none", "important");
+        const target = el;
+        restorers.push(() => {
+          target.style.transform = prevTransform;
+          target.style.filter = prevFilter;
+          target.style.perspective = prevPerspective;
+          target.style.contain = prevContain;
+        });
+      }
+      el = el.parentElement;
+    }
+    return () => {
+      restorers.forEach((r) => r());
+    };
+  }, [expanded, fallbackOverlay]);
+
+
   // After expanding/collapsing (incl. re-parenting via portal), the Maps
   // container has new dimensions. Trigger a resize so tiles re-render.
   useEffect(() => {
