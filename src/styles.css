@@ -70,9 +70,9 @@
   --ochre: oklch(0.685 0.135 65);
   --ochre-soft: oklch(0.93 0.045 75);
   --olive: oklch(0.34 0.025 125);
-  --olive-soft: oklch(0.6 0.025 125);
+  --olive-soft: oklch(0.5 0.028 125);
   --ink: oklch(0.22 0.012 110);
-  --ink-soft: oklch(0.45 0.012 110);
+  --ink-soft: oklch(0.38 0.014 110);
   --line: oklch(0.22 0.012 110 / 8%);
 
   --background: var(--limestone);
