@@ -284,6 +284,7 @@ export const getTodayBriefing = createServerFn({ method: "GET" }).handler(
 
     if (fixture) {
       tiles.push({
+        kind: "match",
         kicker: "TONIGHT",
         kickerEl: "ΑΠΟΨΕ",
         title: `${fixture.venue}`,
@@ -295,6 +296,7 @@ export const getTodayBriefing = createServerFn({ method: "GET" }).handler(
     }
     if (festival) {
       tiles.push({
+        kind: "festival",
         kicker: "ON NOW",
         kickerEl: "ΣΕ ΕΞΕΛΙΞΗ",
         title: festival.name,
@@ -306,6 +308,7 @@ export const getTodayBriefing = createServerFn({ method: "GET" }).handler(
     }
     if (cruise) {
       tiles.push({
+        kind: "cruise",
         kicker: "PORT TODAY",
         kickerEl: "ΣΤΟ ΛΙΜΑΝΙ",
         title: cruise.count > 1 ? `${cruise.count} cruise ships` : "Cruise ship docked",
@@ -317,6 +320,7 @@ export const getTodayBriefing = createServerFn({ method: "GET" }).handler(
     }
     if (holiday) {
       tiles.push({
+        kind: "holiday",
         kicker: "HOLIDAY",
         kickerEl: "ΑΡΓΙΑ",
         title: holiday.en,
@@ -328,6 +332,7 @@ export const getTodayBriefing = createServerFn({ method: "GET" }).handler(
     }
     if (nd) {
       tiles.push({
+        kind: "nameday",
         kicker: "NAME DAY",
         kickerEl: "ΟΝΟΜΑΣΤΙΚΗ",
         title: `Chronia Polla ${nd.name}`,
@@ -339,7 +344,14 @@ export const getTodayBriefing = createServerFn({ method: "GET" }).handler(
     }
     if (weather && tiles.length < 3) {
       const beachOk = weather.tempC >= 24 && weather.iconKey === "sun";
+      const wKind: TodayTileKind =
+        weather.iconKey === "rain" || weather.iconKey === "storm"
+          ? "weather-rain"
+          : weather.iconKey === "cloud"
+          ? "weather-cloud"
+          : "weather-sun";
       tiles.push({
+        kind: wKind,
         kicker: "WEATHER",
         kickerEl: "ΚΑΙΡΟΣ",
         title: `${weather.tempC}°C, ${weather.condition.replace(/_/g, " ").toLowerCase()}`,
