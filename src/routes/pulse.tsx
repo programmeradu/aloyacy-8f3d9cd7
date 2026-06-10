@@ -9,6 +9,7 @@ import { useI18n, type DictKey } from "@/lib/i18n";
 import { en } from "@/lib/dictionaries/en";
 import { getTodayBriefing, type TodayBriefing, type TodayTheme } from "@/lib/today.functions";
 import { useActiveTrip } from "@/lib/trip-store";
+import pulseNetworkBand from "@/assets/pulse-network-band.jpg";
 import todayDerby from "@/assets/today-derby.jpg";
 import todayHeatwave from "@/assets/today-heatwave.jpg";
 import todayCruise from "@/assets/today-cruise.jpg";
