@@ -474,6 +474,7 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
       tiles: tiles.slice(0, 3),
       verdict,
       fact,
+      focus,
     };
   },
 );
