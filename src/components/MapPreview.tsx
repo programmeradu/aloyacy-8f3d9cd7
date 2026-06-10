@@ -1,6 +1,5 @@
 /// <reference types="google.maps" />
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import * as markerClustererPkg from "@googlemaps/markerclusterer";
 import type { MarkerClusterer as MarkerClustererType } from "@googlemaps/markerclusterer";
 import { useRealtime } from "@/lib/useRealtime";
