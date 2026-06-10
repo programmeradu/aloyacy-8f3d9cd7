@@ -167,20 +167,22 @@ const wordmark: React.CSSProperties = {
 }
 
 const wordmarkTag: React.CSSProperties = {
-  fontFamily: mono,
-  fontSize: '9px',
+  fontFamily: sans,
+  fontSize: '10px',
+  fontWeight: 700,
   letterSpacing: '0.22em',
   color: colors.inkSoft,
-  marginLeft: '6px',
+  marginLeft: '8px',
   verticalAlign: '3px',
 }
 
 const topMeta: React.CSSProperties = {
-  fontFamily: mono,
-  fontSize: '10px',
-  letterSpacing: '0.18em',
+  fontFamily: sans,
+  fontSize: '11px',
+  fontWeight: 700,
+  letterSpacing: '0.22em',
   textTransform: 'uppercase',
-  color: colors.inkSoft,
+  color: colors.ink,
 }
 
 const hero: React.CSSProperties = {
@@ -196,21 +198,21 @@ const contentWrap: React.CSSProperties = {
 }
 
 const eyebrowStyle: React.CSSProperties = {
-  fontFamily: mono,
-  fontSize: '11px',
+  fontFamily: sans,
+  fontSize: '12px',
   letterSpacing: '0.24em',
   textTransform: 'uppercase',
   color: colors.ochre,
   margin: '0 0 18px',
-  fontWeight: 500,
+  fontWeight: 700,
 }
 
 const headlineStyle: React.CSSProperties = {
   fontFamily: display,
-  fontSize: '36px',
+  fontSize: '38px',
   lineHeight: 1.08,
   letterSpacing: '-0.02em',
-  fontWeight: 600,
+  fontWeight: 700,
   color: colors.ink,
   margin: '0 0 28px',
 }
@@ -235,8 +237,8 @@ const footerRule: React.CSSProperties = {
 const footerBrand: React.CSSProperties = {
   fontFamily: display,
   fontStyle: 'italic',
-  fontWeight: 600,
-  fontSize: '18px',
+  fontWeight: 700,
+  fontSize: '20px',
   color: colors.ink,
   margin: '0 0 4px',
 }
@@ -244,13 +246,15 @@ const footerBrand: React.CSSProperties = {
 const footerLine: React.CSSProperties = {
   fontFamily: sans,
   fontSize: '13px',
+  fontWeight: 500,
   color: colors.inkSoft,
   margin: 0,
 }
 
 const footerLink: React.CSSProperties = {
-  fontFamily: mono,
-  fontSize: '11px',
+  fontFamily: sans,
+  fontSize: '12px',
+  fontWeight: 700,
   letterSpacing: '0.18em',
   textTransform: 'uppercase',
   color: colors.aegeanDeep,
@@ -258,9 +262,10 @@ const footerLink: React.CSSProperties = {
 }
 
 const footerFine: React.CSSProperties = {
-  fontFamily: mono,
-  fontSize: '10px',
-  letterSpacing: '0.16em',
+  fontFamily: sans,
+  fontSize: '11px',
+  fontWeight: 700,
+  letterSpacing: '0.22em',
   color: colors.inkSoft,
   margin: '24px 0 0',
   textTransform: 'uppercase',
@@ -270,24 +275,25 @@ const footerFine: React.CSSProperties = {
 
 export const bodyText: React.CSSProperties = {
   fontFamily: sans,
-  fontSize: '15px',
+  fontSize: '16px',
   lineHeight: 1.6,
   color: colors.ink,
   margin: '0 0 20px',
-  fontWeight: 400,
+  fontWeight: 500,
 }
 
 export const bodyTextMuted: React.CSSProperties = {
   ...bodyText,
   color: colors.inkSoft,
   fontSize: '14px',
+  fontWeight: 500,
 }
 
 export const inlineLink: React.CSSProperties = {
   color: colors.aegeanDeep,
   textDecoration: 'underline',
   textUnderlineOffset: '2px',
-  fontWeight: 500,
+  fontWeight: 600,
 }
 
 export const ctaButton: React.CSSProperties = {
@@ -295,10 +301,10 @@ export const ctaButton: React.CSSProperties = {
   backgroundColor: colors.ink,
   color: colors.paper,
   fontFamily: sans,
-  fontSize: '14px',
-  fontWeight: 600,
+  fontSize: '15px',
+  fontWeight: 700,
   letterSpacing: '0.02em',
-  padding: '16px 28px',
+  padding: '17px 30px',
   textDecoration: 'none',
   borderRadius: '2px',
 }
@@ -308,32 +314,33 @@ export const ctaWrap: React.CSSProperties = {
 }
 
 export const codeBlock: React.CSSProperties = {
-  fontFamily: mono,
-  fontSize: '34px',
-  fontWeight: 500,
-  letterSpacing: '0.28em',
+  fontFamily: display,
+  fontSize: '40px',
+  fontWeight: 700,
+  letterSpacing: '0.22em',
   color: colors.ink,
   backgroundColor: colors.limestone,
   border: `1px solid ${colors.line}`,
-  padding: '24px 28px',
+  padding: '26px 28px',
   textAlign: 'center' as const,
   margin: '0 0 28px',
 }
 
 export const sectionLabel: React.CSSProperties = {
-  fontFamily: mono,
-  fontSize: '10px',
+  fontFamily: sans,
+  fontSize: '11px',
+  fontWeight: 700,
   letterSpacing: '0.22em',
   textTransform: 'uppercase',
   color: colors.inkSoft,
   margin: '0 0 8px',
-  fontWeight: 500,
 }
 
 export const fineprint: React.CSSProperties = {
   fontFamily: sans,
-  fontSize: '12px',
+  fontSize: '13px',
   lineHeight: 1.6,
   color: colors.inkSoft,
   margin: '24px 0 0',
+  fontWeight: 500,
 }
