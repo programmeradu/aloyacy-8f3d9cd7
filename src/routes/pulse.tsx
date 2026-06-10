@@ -4,7 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { TodayTileGlyph } from "@/components/TodayTileGlyph";
+import { PulseLiveSection } from "@/components/PulseLiveSection";
 import { getLivePulse, getPulseHourStrip, type HourBucket } from "@/lib/pulse.functions";
+import { getPulseLive } from "@/lib/pulse-live.functions";
 import { useI18n, type DictKey } from "@/lib/i18n";
 import { en } from "@/lib/dictionaries/en";
 import { getTodayBriefing, type TodayBriefing, type TodayTheme } from "@/lib/today.functions";
@@ -63,6 +65,7 @@ function Pulse() {
   const todayFn = useServerFn(getTodayBriefing);
   const liveFn = useServerFn(getLivePulse);
   const hourFn = useServerFn(getPulseHourStrip);
+  const pulseLiveFn = useServerFn(getPulseLive);
 
   // ── Location awareness ───────────────────────────────────────────────────
   const active = useActiveTrip();
@@ -114,6 +117,16 @@ function Pulse() {
     refetchInterval: 5 * 60_000,
     staleTime: 4 * 60_000,
   });
+  const liveSignalsInput = useMemo(
+    () => ({ lat: briefingInput.lat, lng: briefingInput.lng }),
+    [briefingInput.lat, briefingInput.lng],
+  );
+  const { data: liveSignals } = useQuery({
+    queryKey: ["pulse-live-signals", liveSignalsInput],
+    queryFn: () => pulseLiveFn({ data: liveSignalsInput }),
+    refetchInterval: 5 * 60_000,
+    staleTime: 4 * 60_000,
+  });
 
   return (
     <AppShell>
@@ -131,6 +144,8 @@ function Pulse() {
           t={t}
         />
       </section>
+
+      {liveSignals && <PulseLiveSection bundle={liveSignals} locale={locale} />}
 
       <div className="px-6 pt-8 pb-2">
         <p className="text-center font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink-soft">
