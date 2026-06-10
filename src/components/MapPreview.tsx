@@ -1,6 +1,5 @@
 /// <reference types="google.maps" />
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import * as markerClustererPkg from "@googlemaps/markerclusterer";
 import type { MarkerClusterer as MarkerClustererType } from "@googlemaps/markerclusterer";
 import { useRealtime } from "@/lib/useRealtime";
@@ -649,6 +648,51 @@ export function MapPreview({
     };
   }, [expanded]);
 
+  // iOS Safari fallback: when we go fullscreen via the in-page `position:
+  // fixed` overlay (no native Fullscreen API), any ancestor with a
+  // `transform`, `filter`, or `perspective` creates a containing block that
+  // traps our fixed wrapper. That makes the map render at the wrong size or
+  // not paint at all (just the limestone background shows). Walk up from the
+  // wrapper and neutralize those properties for the duration of the overlay.
+  useEffect(() => {
+    if (!(expanded && fallbackOverlay)) return;
+    const wrap = wrapperRef.current;
+    if (!wrap) return;
+    const restorers: Array<() => void> = [];
+    let el: HTMLElement | null = wrap.parentElement;
+    while (el && el !== document.body) {
+      const cs = window.getComputedStyle(el);
+      const needsFix =
+        (cs.transform && cs.transform !== "none") ||
+        (cs.filter && cs.filter !== "none") ||
+        (cs.perspective && cs.perspective !== "none") ||
+        cs.contain.includes("paint") ||
+        cs.contain.includes("layout");
+      if (needsFix) {
+        const prevTransform = el.style.transform;
+        const prevFilter = el.style.filter;
+        const prevPerspective = el.style.perspective;
+        const prevContain = el.style.contain;
+        el.style.setProperty("transform", "none", "important");
+        el.style.setProperty("filter", "none", "important");
+        el.style.setProperty("perspective", "none", "important");
+        el.style.setProperty("contain", "none", "important");
+        const target = el;
+        restorers.push(() => {
+          target.style.transform = prevTransform;
+          target.style.filter = prevFilter;
+          target.style.perspective = prevPerspective;
+          target.style.contain = prevContain;
+        });
+      }
+      el = el.parentElement;
+    }
+    return () => {
+      restorers.forEach((r) => r());
+    };
+  }, [expanded, fallbackOverlay]);
+
+
   // After expanding/collapsing (incl. re-parenting via portal), the Maps
   // container has new dimensions. Trigger a resize so tiles re-render.
   useEffect(() => {
@@ -777,14 +821,6 @@ export function MapPreview({
     </div>
   );
 
-  // When using the in-page fallback overlay (iOS Safari, no native
-  // Fullscreen API), portal to document.body so ancestor `transform`
-  // containing blocks (e.g. `animate-rise` sections) don't trap the
-  // "fixed inset-0" wrapper inside a local stacking context — which
-  // would let the bottom nav and other app chrome paint over it.
-  if (expanded && fallbackOverlay && typeof document !== "undefined") {
-    return createPortal(content, document.body);
-  }
   return content;
 }
 
