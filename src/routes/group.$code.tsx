@@ -39,7 +39,6 @@ type GroupRow = {
 type MemberRow = {
   id: string;
   group_id: string;
-  member_token: string;
   display_name: string;
   origin_label: string | null;
   last_lat: number | null;
@@ -50,6 +49,7 @@ type MemberRow = {
   is_creator: boolean;
   joined_at: string;
 };
+
 
 const MEMBER_TONES = ["aegean", "ochre", "olive", "ink"] as const;
 type Tone = (typeof MEMBER_TONES)[number];
@@ -117,55 +117,6 @@ function GroupWatchPage() {
   const { code } = Route.useParams();
   const queryClient = useQueryClient();
 
-  const groupQuery = useQuery({
-    queryKey: ["trip-group", code],
-    queryFn: async (): Promise<GroupRow | null> => {
-      const { data, error } = await supabase
-        .from("trip_groups")
-        .select("*")
-        .eq("code", code.toUpperCase())
-        .maybeSingle();
-      if (error) throw error;
-      return (data as GroupRow | null) ?? null;
-    },
-  });
-
-  const group = groupQuery.data ?? null;
-  const groupId = group?.id;
-
-  const membersQuery = useQuery({
-    queryKey: ["trip-group-members", groupId],
-    enabled: !!groupId,
-    queryFn: async (): Promise<MemberRow[]> => {
-      const { data, error } = await supabase
-        .from("trip_group_members")
-        .select("*")
-        .eq("group_id", groupId!)
-        .order("joined_at", { ascending: true });
-      if (error) throw error;
-      return (data as MemberRow[]) ?? [];
-    },
-    refetchInterval: 20_000,
-  });
-
-  // Realtime — instant updates when anyone's ETA/position changes.
-  useEffect(() => {
-    if (!groupId) return;
-    const channel = supabase
-      .channel(`trip-group-${groupId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "trip_group_members", filter: `group_id=eq.${groupId}` },
-        () => {
-          void queryClient.invalidateQueries({ queryKey: ["trip-group-members", groupId] });
-        },
-      )
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [groupId, queryClient]);
-
   // Current viewer's token → so we can highlight "this is you".
   const [myToken, setMyToken] = useState<string | null>(null);
   useEffect(() => {
@@ -173,6 +124,34 @@ function GroupWatchPage() {
     const t = window.localStorage.getItem(MEMBER_TOKEN_KEY(code.toUpperCase()));
     setMyToken(t);
   }, [code]);
+
+  const viewQuery = useQuery({
+    queryKey: ["trip-group-view", code, myToken],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_trip_group_view", {
+        p_code: code.toUpperCase(),
+        p_member_token: myToken ?? undefined,
+      });
+      if (error) throw error;
+      return (data as (GroupRow & { members: MemberRow[]; me_id: string | null }) | null) ?? null;
+    },
+    refetchInterval: 15_000,
+  });
+
+  const group: GroupRow | null = viewQuery.data
+    ? (({ members: _m, me_id: _me, ...g }) => g as GroupRow)(viewQuery.data)
+    : null;
+  const meId = viewQuery.data?.me_id ?? null;
+  const orderedMembers: MemberRow[] = viewQuery.data?.members ?? [];
+
+  const groupQuery = viewQuery;
+  const membersQuery = {
+    data: orderedMembers,
+    isLoading: viewQuery.isLoading,
+    isError: viewQuery.isError,
+  };
+  void queryClient;
+  void membersQuery;
 
   if (groupQuery.isLoading) return <Shell><LoadingState /></Shell>;
   if (groupQuery.isError || !group) {
@@ -184,10 +163,9 @@ function GroupWatchPage() {
   }
 
   const expired = new Date(group.expires_at).getTime() < Date.now();
-  const members = membersQuery.data ?? [];
-  const orderedMembers = members;
-  const meIndex = myToken ? orderedMembers.findIndex((m) => m.member_token === myToken) : -1;
+  const meIndex = meId ? orderedMembers.findIndex((m) => m.id === meId) : -1;
   const me = meIndex >= 0 ? orderedMembers[meIndex] : null;
+
 
   return (
     <Shell>
@@ -203,11 +181,11 @@ function GroupWatchPage() {
             hostName={group.created_by_name}
           />
           <ConvergeCard members={orderedMembers} expired={expired} />
-          <GroupMap group={group} members={orderedMembers} meToken={myToken} />
+          <GroupMap group={group} members={orderedMembers} meId={meId} />
           {!expired && <PlanRouteCard group={group} joined={me != null} />}
-          <MembersList members={orderedMembers} meToken={myToken} />
+          <MembersList members={orderedMembers} meId={meId} />
           {!expired && (me == null) && <JoinCard group={group} onJoined={setMyToken} />}
-          {!expired && me != null && <LiveShareCard group={group} me={me} onLeft={() => setMyToken(null)} />}
+          {!expired && me != null && myToken && <LiveShareCard group={group} me={me} memberToken={myToken} onLeft={() => setMyToken(null)} />}
           <HowThisWorks />
           <Footer code={group.code} />
         </div>
@@ -363,11 +341,11 @@ function IdentityRibbon({
 function GroupMap({
   group,
   members,
-  meToken,
+  meId,
 }: {
   group: GroupRow;
   members: MemberRow[];
-  meToken: string | null;
+  meId: string | null;
 }) {
   const markers = useMemo(() => {
     const list: {
@@ -390,13 +368,13 @@ function GroupMap({
       list.push({
         lat: m.last_lat,
         lng: m.last_lng,
-        label: m.member_token === meToken ? `${m.display_name} (you)` : m.display_name,
+        label: m.id === meId ? `${m.display_name} (you)` : m.display_name,
         kind: "pin",
         tone: MEMBER_TONES[i % MEMBER_TONES.length],
       });
     });
     return list;
-  }, [group, members, meToken]);
+  }, [group, members, meId]);
 
   const fixCount = markers.filter((m) => m.kind === "pin").length;
   const center = fixCount === 0
@@ -426,7 +404,7 @@ function GroupMap({
 
 /* ——————————————————————— Members list ——————————————————————— */
 
-function MembersList({ members, meToken }: { members: MemberRow[]; meToken: string | null }) {
+function MembersList({ members, meId }: { members: MemberRow[]; meId: string | null }) {
   const now = Date.now();
   if (members.length === 0) {
     return (
@@ -454,7 +432,7 @@ function MembersList({ members, meToken }: { members: MemberRow[]; meToken: stri
             : null;
           const stale = updatedSec != null && updatedSec > 120;
           const left = m.status !== "active";
-          const isMe = m.member_token === meToken;
+          const isMe = m.id === meId;
           return (
             <li
               key={m.id}
@@ -642,12 +620,15 @@ function JoinCard({ group, onJoined }: { group: GroupRow; onJoined: (token: stri
 function LiveShareCard({
   group,
   me,
+  memberToken,
   onLeft,
 }: {
   group: GroupRow;
   me: MemberRow;
+  memberToken: string;
   onLeft: () => void;
 }) {
+  void me;
   const ping = useServerFn(pingGroupMember);
   const leave = useServerFn(leaveTripGroup);
   const watchRef = useRef<number | null>(null);
@@ -657,7 +638,7 @@ function LiveShareCard({
   useEffect(() => {
     if (typeof navigator === "undefined" || !("geolocation" in navigator)) return;
     if (watchRef.current != null) return;
-    const token = me.member_token;
+    const token = memberToken;
     watchRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const now = Date.now();
@@ -679,12 +660,12 @@ function LiveShareCard({
         watchRef.current = null;
       }
     };
-  }, [ping, me.member_token]);
+  }, [ping, memberToken]);
 
   const onLeave = useCallback(async () => {
     setBusy(true);
     try {
-      await leave({ data: { memberToken: me.member_token } }).catch(() => {});
+      await leave({ data: { memberToken } }).catch(() => {});
       try { localStorage.removeItem(MEMBER_TOKEN_KEY(group.code)); } catch { /* ignore */ }
       if (watchRef.current != null && "geolocation" in navigator) {
         navigator.geolocation.clearWatch(watchRef.current);
@@ -694,7 +675,8 @@ function LiveShareCard({
     } finally {
       setBusy(false);
     }
-  }, [leave, me.member_token, group.code, onLeft]);
+  }, [leave, memberToken, group.code, onLeft]);
+
 
   const onShare = useCallback(async () => {
     const url = `${window.location.origin}/group/${group.code}`;
