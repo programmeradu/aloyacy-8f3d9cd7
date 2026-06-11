@@ -775,14 +775,17 @@ function JoinCard({ code, onJoined }: { code: string; onJoined: (t: string) => v
 function LiveCard({
   group,
   me,
+  memberToken,
   onLeft,
   onEnded,
 }: {
   group: GroupRow;
   me: MemberRow;
+  memberToken: string;
   onLeft: () => Promise<void>;
   onEnded: () => Promise<void>;
 }) {
+  void me;
   const [busy, setBusy] = useState(false);
   const [ending, setEnding] = useState(false);
 
@@ -808,7 +811,7 @@ function LiveCard({
           setBusy(true);
           void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           try {
-            await callGroups("leave", { memberToken: me.member_token });
+            await callGroups("leave", { memberToken });
             await onLeft();
           } finally {
             setBusy(false);
@@ -816,7 +819,7 @@ function LiveCard({
         },
       },
     ]);
-  }, [me.member_token, onLeft]);
+  }, [memberToken, onLeft]);
 
   const endTrip = useCallback(() => {
     Alert.alert(
@@ -831,7 +834,7 @@ function LiveCard({
             setEnding(true);
             void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             try {
-              await callGroups("end", { memberToken: me.member_token });
+              await callGroups("end", { memberToken });
               await onEnded();
             } finally {
               setEnding(false);
@@ -840,7 +843,8 @@ function LiveCard({
         },
       ],
     );
-  }, [me.member_token, onEnded]);
+  }, [memberToken, onEnded]);
+
 
   return (
     <View
