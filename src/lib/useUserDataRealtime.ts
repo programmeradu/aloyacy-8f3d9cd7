@@ -41,17 +41,11 @@ export function useUserDataRealtime() {
 
     const userChan = supabase
       .channel(`rt-user-${user.id}`)
+      // subscriptions is intentionally NOT in the supabase_realtime publication
+      // (it contains Stripe IDs). Rely on cache invalidation on webhook writes
+      // + the natural refetch cadence instead.
       .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "subscriptions",
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => queryClient.invalidateQueries({ queryKey: ["subscription"] }),
-      )
-      .on(
+
         "postgres_changes",
         {
           event: "*",
