@@ -246,6 +246,12 @@ export function MapPreview({
     }
   }, [expanded, fallbackOverlay]);
 
+  useEffect(() => {
+    if (expanded || !fallbackOverlay) return;
+    const id = window.requestAnimationFrame(() => setFallbackOverlay(false));
+    return () => window.cancelAnimationFrame(id);
+  }, [expanded, fallbackOverlay]);
+
   // Update center / zoom when no fit content is needed
   useEffect(() => {
     const m = mapRef.current;
