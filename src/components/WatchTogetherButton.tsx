@@ -62,31 +62,36 @@ export function WatchTogetherButton({
     enabled: joinedCodes.length > 0,
     refetchInterval: 20_000,
     queryFn: async (): Promise<ExistingGroup | null> => {
-      const nowIso = new Date().toISOString();
-      const { data: groups, error } = await supabase
-        .from("trip_groups")
-        .select("id, code, destination_label, expires_at")
-        .in("code", joinedCodes)
-        .gt("expires_at", nowIso);
-      if (error || !groups?.length) return null;
-      // Prefer an exact destination-label match; otherwise fall back to the
-      // most recently active group so the CTA is still useful.
+      // Look up each candidate group via the sanitized RPC — direct SELECT on
+      // trip_groups / trip_group_members is no longer available to browsers.
+      const views = await Promise.all(
+        joinedCodes.map(async (code) => {
+          const { data } = await supabase.rpc("get_trip_group_view", { p_code: code });
+          return data as {
+            id: string;
+            code: string;
+            destination_label: string;
+            expires_at: string;
+            members: Array<{ status: string }>;
+          } | null;
+        }),
+      );
+      const groups = views.filter((v): v is NonNullable<typeof v> => !!v);
+      if (!groups.length) return null;
       const norm = (s: string) => s.trim().toLowerCase();
       const match =
         groups.find((g) => norm(g.destination_label) === norm(destination.label)) ??
         groups[0];
-      const { data: members } = await supabase
-        .from("trip_group_members")
-        .select("status")
-        .eq("group_id", match.id);
-      const active = (members ?? []).filter((m) => m.status === "active").length;
+      const members = match.members ?? [];
+      const active = members.filter((m) => m.status === "active").length;
       return {
         code: match.code,
         destination_label: match.destination_label,
-        memberCount: members?.length ?? 0,
+        memberCount: members.length,
         activeMembers: active,
       };
     },
+
   });
   const existing = existingQuery.data ?? null;
 
