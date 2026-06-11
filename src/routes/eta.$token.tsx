@@ -50,17 +50,14 @@ function EtaWatchPage() {
   const query = useQuery({
     queryKey: ["shared-trip", token],
     queryFn: async (): Promise<SharedTripRow | null> => {
-      const { data, error } = await supabase
-        .from("shared_trips")
-        .select("*")
-        .eq("token", token)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("get_shared_trip_view", { p_token: token });
       if (error) throw error;
       return (data as SharedTripRow | null) ?? null;
     },
     refetchInterval: 15_000,
     refetchIntervalInBackground: false,
   });
+
 
   const trip = query.data;
 
