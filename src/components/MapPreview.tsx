@@ -214,6 +214,30 @@ export function MapPreview({
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, [fallbackOverlay]);
 
+  useLayoutEffect(() => {
+    const host = hostRef.current;
+    const shell = fallbackShellRef.current;
+    if (!host || !shell) return;
+
+    if (expanded && fallbackOverlay) {
+      if (!originalParentRef.current) {
+        originalParentRef.current = host.parentElement;
+        originalNextSiblingRef.current = host.nextSibling;
+      }
+      if (host.parentElement !== shell) shell.appendChild(host);
+      return;
+    }
+
+    const parent = originalParentRef.current;
+    if (!parent || host.parentElement === parent) return;
+    const nextSibling = originalNextSiblingRef.current;
+    if (nextSibling && nextSibling.parentNode === parent) {
+      parent.insertBefore(host, nextSibling);
+    } else {
+      parent.appendChild(host);
+    }
+  }, [expanded, fallbackOverlay]);
+
   // Update center / zoom when no fit content is needed
   useEffect(() => {
     const m = mapRef.current;
