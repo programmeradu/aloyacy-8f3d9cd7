@@ -58,7 +58,6 @@ type GroupRow = {
 type MemberRow = {
   id: string;
   group_id: string;
-  member_token: string;
   display_name: string;
   origin_label: string | null;
   last_lat: number | null;
@@ -111,7 +110,7 @@ function isStale(iso: string | null): boolean {
   return Date.now() - new Date(iso).getTime() > STALE_MS;
 }
 
-function toMapMembers(members: MemberRow[], meToken: string | null): GroupMapMember[] {
+function toMapMembers(members: MemberRow[], meId: string | null): GroupMapMember[] {
   return members
     .filter((m) => m.status === "active")
     .map((m) => ({
@@ -120,7 +119,7 @@ function toMapMembers(members: MemberRow[], meToken: string | null): GroupMapMem
       lat: m.last_lat,
       lng: m.last_lng,
       lastUpdated: m.last_updated,
-      isMe: m.member_token === meToken,
+      isMe: m.id === meId,
       isCreator: m.is_creator,
     }));
 }
@@ -251,12 +250,12 @@ export default function GroupWatchScreen() {
               />
               <ConvergeCard members={members} expired={expired} />
               <GroupMap
-                members={toMapMembers(members, myToken)}
+                members={toMapMembers(members, meId)}
                 destination={{ lat: group.destination_lat, lng: group.destination_lng }}
                 destinationLabel={group.destination_label}
               />
               {!expired && group ? <PlanRouteCard group={group} joined={!!me} /> : null}
-              <MembersList members={members} meToken={myToken} />
+              <MembersList members={members} meId={meId} />
 
               {!expired && !me && <JoinCard code={group.code} onJoined={setMyToken} />}
               {!expired && me && (
@@ -509,7 +508,7 @@ function ConvergeCard({ members, expired }: { members: MemberRow[]; expired: boo
 
 /* ——————————————————————————— Members list ——————————————————————————— */
 
-function MembersList({ members, meToken }: { members: MemberRow[]; meToken: string | null }) {
+function MembersList({ members, meId }: { members: MemberRow[]; meId: string | null }) {
   if (members.length === 0) {
     return (
       <View
@@ -552,7 +551,7 @@ function MembersList({ members, meToken }: { members: MemberRow[]; meToken: stri
       </View>
       {members.map((m, i) => {
         const tone = MEMBER_TONES[i % MEMBER_TONES.length];
-        const isMe = m.member_token === meToken;
+        const isMe = m.id === meId;
         const stale = m.status === "active" && m.last_lat != null && isStale(m.last_updated);
         return (
           <View
