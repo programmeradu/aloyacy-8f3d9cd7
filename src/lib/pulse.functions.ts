@@ -306,17 +306,37 @@ function cyprusOffsetMinutes(d: Date): number {
 }
 
 export const getPulseHourStrip = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin.rpc("pulse_hour_strip" as never);
-
   const sums = new Array(24).fill(0);
   const counts = new Array(24).fill(0);
-  if (!error && Array.isArray(data)) {
-    for (const row of data as Array<{ hour_of_day: number; sample_count: number; mean_delay_sec: number }>) {
-      const h = ((row.hour_of_day % 24) + 24) % 24;
-      counts[h] = Number(row.sample_count) || 0;
-      sums[h] = (Number(row.mean_delay_sec) || 0) * counts[h];
+
+  try {
+    const url = process.env.SUPABASE_URL!;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const res = await fetch(`${url}/rest/v1/rpc/pulse_hour_strip`, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: "{}",
+    });
+    if (res.ok) {
+      const data = (await res.json()) as Array<{
+        hour_of_day: number;
+        sample_count: number;
+        mean_delay_sec: number;
+      }>;
+      for (const row of data) {
+        const h = ((row.hour_of_day % 24) + 24) % 24;
+        counts[h] = Number(row.sample_count) || 0;
+        sums[h] = (Number(row.mean_delay_sec) || 0) * counts[h];
+      }
+    } else {
+      console.error("pulse_hour_strip RPC failed", res.status, await res.text());
     }
+  } catch (e) {
+    console.error("pulse_hour_strip RPC threw", e);
   }
 
   const now = new Date();
@@ -334,4 +354,5 @@ export const getPulseHourStrip = createServerFn({ method: "GET" }).handler(async
     buckets,
   } satisfies HourStrip;
 });
+
 
