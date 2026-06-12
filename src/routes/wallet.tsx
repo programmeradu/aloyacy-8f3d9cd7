@@ -403,6 +403,12 @@ function WalletRoute() {
           />
         </Suspense>
       )}
+
+      {scanning && (
+        <Suspense fallback={null}>
+          <CardScanSheet onClose={() => setScanning(false)} />
+        </Suspense>
+      )}
     </AppShell>
   );
 }
