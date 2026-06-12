@@ -188,7 +188,7 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
             {(["tl","tr","bl","br"] as const).map((p) => (
               <span
                 key={p}
-                className="absolute size-8 border-aegean-glow"
+                className="absolute size-8 border-ochre"
                 style={{
                   top: p.startsWith("t") ? 0 : "auto",
                   bottom: p.startsWith("b") ? 0 : "auto",
@@ -205,7 +205,7 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
             {/* Scan line sweep */}
             {status === "scanning" && (
               <span
-                className="absolute left-2 right-2 h-px bg-aegean-glow/80 shadow-[0_0_12px_2px_var(--color-aegean-glow)]"
+                className="absolute left-2 right-2 h-px bg-ochre/80 shadow-[0_0_12px_2px_var(--color-ochre)]"
                 style={{ animation: "scanSweep 1.8s ease-in-out infinite" }}
               />
             )}
@@ -253,7 +253,7 @@ function FieldRow({ label, value }: { label: string; value: string }) {
       </span>
       <span
         className={`font-mono text-[13px] truncate transition-colors ${
-          has ? "text-aegean-glow" : "text-limestone/30"
+          has ? "text-ochre" : "text-limestone/30"
         }`}
       >
         {has ? value : "—"}
