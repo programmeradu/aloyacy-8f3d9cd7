@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/internal/funding")({
+export const Route = createFileRoute("/internal/funding/")({
   head: () => ({
     meta: [
       { title: "Aloya — Funding & Positioning (Internal)" },
