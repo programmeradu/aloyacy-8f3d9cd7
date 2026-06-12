@@ -278,5 +278,35 @@ export function TodayTileGlyph({
           />
         </svg>
       );
+
+    case "rhythm":
+      // Stylised clock — soft dial with two hands and tick marks.
+      return (
+        <svg {...common}>
+          <circle cx="48" cy="50" r="26" stroke={color} strokeWidth="1.4" fill="none" opacity="0.5" />
+          <circle cx="48" cy="50" r="20" fill={color} opacity="0.10" />
+          {Array.from({ length: 12 }).map((_, i) => {
+            const a = (i * Math.PI) / 6;
+            const r1 = 23;
+            const r2 = i % 3 === 0 ? 19 : 21;
+            return (
+              <line
+                key={i}
+                x1={48 + Math.cos(a) * r2}
+                y1={50 + Math.sin(a) * r2}
+                x2={48 + Math.cos(a) * r1}
+                y2={50 + Math.sin(a) * r1}
+                stroke={color}
+                strokeWidth={i % 3 === 0 ? 1.8 : 1}
+                opacity="0.7"
+                strokeLinecap="round"
+              />
+            );
+          })}
+          <line x1="48" y1="50" x2="48" y2="34" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.85" />
+          <line x1="48" y1="50" x2="60" y2="54" stroke={color} strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+          <circle cx="48" cy="50" r="2.2" fill={color} />
+        </svg>
+      );
   }
 }
