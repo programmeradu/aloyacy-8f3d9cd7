@@ -124,6 +124,17 @@ export function MotionCard({
           {t("wallet.tapToSetUp")}
         </p>
       )}
-    </button>
+      </button>
+      {onScan && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onScan(); }}
+          aria-label="Scan card with camera"
+          className="absolute top-3 right-3 z-10 flex size-10 items-center justify-center rounded-full bg-ink/85 text-limestone ring-1 ring-limestone/20 backdrop-blur-sm shadow-[0_8px_22px_-8px_rgba(8,28,40,0.55)] transition-transform hover:scale-105 active:scale-95"
+        >
+          <IconScanCard className="size-[18px]" />
+        </button>
+      )}
+    </div>
   );
 }
