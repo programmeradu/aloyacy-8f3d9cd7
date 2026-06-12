@@ -404,7 +404,7 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
         kickerEl: "ΣΤΟ ΛΙΜΑΝΙ",
         title: cruise.count > 1 ? `${cruise.count} cruise ships` : "Cruise ship docked",
         titleEl: cruise.count > 1 ? `${cruise.count} κρουαζιερόπλοια` : "Κρουαζιερόπλοιο στο λιμάνι",
-        detail: "Limassol seafront and old town routes busier from midday.",
+        detail: cruise.summary ?? "Limassol seafront and old town routes busier from midday.",
         detailEl: "Οι γραμμές της παραλιακής και της παλιάς πόλης Λεμεσού φορτώνουν από το μεσημέρι.",
         accent: "aegean",
       });
