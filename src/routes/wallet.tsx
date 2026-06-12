@@ -254,7 +254,7 @@ function WalletRoute() {
 
       {/* The Pass */}
       <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
-        <MotionCard pass={pass} onTap={() => setEditing("card")} />
+        <MotionCard pass={pass} onTap={() => setEditing("card")} onScan={() => setScanning(true)} />
       </section>
 
 
