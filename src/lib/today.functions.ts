@@ -54,8 +54,10 @@ export type TodayBriefing = {
   tiles: TodayTile[];
   /** Closing editorial sign-off. */
   verdict: { en: string; el: string };
-  /** Rotating fun fact. */
+  /** Rotating fun fact — rotates every 2 hours. */
   fact: { en: string; el: string; tag: "local" | "tourist" };
+  /** Greek word of the day — for visitors learning the language. */
+  greekWord: { el: string; translit: string; en: string; meaning: string };
   /** Editorial focus — which city/area this briefing centres on. */
   focus: { city: string; cityEl: string; scope: "island" | "city" | "trip" };
 };
