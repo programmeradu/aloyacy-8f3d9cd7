@@ -437,6 +437,13 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
         accent: "olive",
       });
     }
+
+    // ─── Rhythm of the day — weekday × city pattern, always relevant ──────
+    if (tiles.length < 3 && !fixture && !festival && !cruise && !holiday) {
+      const rhythm = rhythmForDay(d.getUTCDay(), focus.city);
+      if (rhythm) tiles.push(rhythm);
+    }
+
     if (weather && tiles.length < 3) {
       const beachOk = weather.tempC >= 24 && weather.iconKey === "sun";
       const wKind: TodayTileKind =
