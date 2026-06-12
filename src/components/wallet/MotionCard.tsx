@@ -2,6 +2,7 @@ import { useQrSvg } from "@/lib/useQr";
 import type { MotionPass } from "@/lib/motion-pass";
 import motionCardBase from "@/assets/motion-card-base.png";
 import { useI18n } from "@/lib/i18n";
+import { IconScanCard } from "@/components/Icons";
 
 /* ============================================================
  * Motion Card — photoreal printed artwork (generated image) +
@@ -9,7 +10,15 @@ import { useI18n } from "@/lib/i18n";
  * Brand colors are hard-coded here on purpose — faithful reproduction
  * of an external brand asset, not app chrome.
  * ============================================================ */
-export function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
+export function MotionCard({
+  pass,
+  onTap,
+  onScan,
+}: {
+  pass: MotionPass;
+  onTap: () => void;
+  onScan?: () => void;
+}) {
   const { t } = useI18n();
   const hasCard = pass.number.replace(/\D/g, "").length >= 8;
   const qrValue = hasCard ? pass.number.replace(/\D/g, "") : "MOTION-DEMO";
