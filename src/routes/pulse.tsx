@@ -443,7 +443,7 @@ function RoadPulseCard({
         )}
 
         {/* 24h sparkline + activity comb */}
-        {buckets.length > 0 && (
+        {buckets.length > 0 && totalToday > 0 && (
           <div className="mt-6">
             <Sparkline buckets={buckets} nowHour={nowHour} />
             <ActivityComb buckets={buckets} nowHour={nowHour} maxCount={maxCount} />
