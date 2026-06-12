@@ -480,9 +480,14 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
         ? { en: "Carry water. Buses help, but the walk between stops doesn't.", el: "Πάρε νερό. Το λεωφορείο βοηθά, η απόσταση μεταξύ στάσεων όχι." }
         : { en: "A good day to ride.", el: "Καλή μέρα για να πάρεις λεωφορείο." };
 
-    // ─── Rotating fact ────────────────────────────────────────────────────
+    // ─── Rotating fact — refreshes every 2 hours ──────────────────────────
     const factPool = facts as Array<{ en: string; el: string; tag: "local" | "tourist" }>;
-    const fact = factPool[dayOfYear(d) % factPool.length];
+    const twoHourSlot = dayOfYear(d) * 12 + Math.floor(d.getUTCHours() / 2);
+    const fact = factPool[Math.abs(twoHourSlot) % factPool.length];
+
+    // ─── Greek word of the day — rotates daily ────────────────────────────
+    const wordPool = greekWords as Array<{ el: string; translit: string; en: string; meaning: string }>;
+    const greekWord = wordPool[dayOfYear(d) % wordPool.length];
 
     return {
       generatedAt: Math.floor(Date.now() / 1000),
@@ -495,6 +500,7 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
       tiles: tiles.slice(0, 3),
       verdict,
       fact,
+      greekWord,
       focus,
     };
   });
