@@ -33,6 +33,9 @@ import { useI18n } from "@/lib/i18n";
 const PassSheet = lazy(() =>
   import("@/components/wallet/PassSheet").then((m) => ({ default: m.PassSheet })),
 );
+const CardScanSheet = lazy(() =>
+  import("@/components/wallet/CardScanSheet").then((m) => ({ default: m.CardScanSheet })),
+);
 
 export const Route = createFileRoute("/wallet")({
   head: () => ({
@@ -63,6 +66,7 @@ function WalletRoute() {
   const { t } = useI18n();
   const [pass, setPass] = useState<MotionPass>(() => readPass());
   const [editing, setEditing] = useState<"none" | SheetMode>("none");
+  const [scanning, setScanning] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
   const loginFn = useServerFn(jccLogin);
@@ -250,7 +254,7 @@ function WalletRoute() {
 
       {/* The Pass */}
       <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
-        <MotionCard pass={pass} onTap={() => setEditing("card")} />
+        <MotionCard pass={pass} onTap={() => setEditing("card")} onScan={() => setScanning(true)} />
       </section>
 
 
@@ -397,6 +401,12 @@ function WalletRoute() {
             onSave={update}
             onLink={handleLink}
           />
+        </Suspense>
+      )}
+
+      {scanning && (
+        <Suspense fallback={null}>
+          <CardScanSheet onClose={() => setScanning(false)} />
         </Suspense>
       )}
     </AppShell>

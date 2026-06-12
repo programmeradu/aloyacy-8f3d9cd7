@@ -2,6 +2,7 @@ import { useQrSvg } from "@/lib/useQr";
 import type { MotionPass } from "@/lib/motion-pass";
 import motionCardBase from "@/assets/motion-card-base.png";
 import { useI18n } from "@/lib/i18n";
+import { IconScanCard } from "@/components/Icons";
 
 /* ============================================================
  * Motion Card — photoreal printed artwork (generated image) +
@@ -9,7 +10,15 @@ import { useI18n } from "@/lib/i18n";
  * Brand colors are hard-coded here on purpose — faithful reproduction
  * of an external brand asset, not app chrome.
  * ============================================================ */
-export function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => void }) {
+export function MotionCard({
+  pass,
+  onTap,
+  onScan,
+}: {
+  pass: MotionPass;
+  onTap: () => void;
+  onScan?: () => void;
+}) {
   const { t } = useI18n();
   const hasCard = pass.number.replace(/\D/g, "").length >= 8;
   const qrValue = hasCard ? pass.number.replace(/\D/g, "") : "MOTION-DEMO";
@@ -22,12 +31,13 @@ export function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => voi
   const validUntil = pass.validUntil?.trim() || "—/—/——";
 
   return (
-    <button
-      type="button"
-      onClick={onTap}
-      className="group block w-full text-left"
-      aria-label={hasCard ? t("wallet.cardEditAria") : t("wallet.cardAddAria")}
-    >
+    <div className="relative group">
+      <button
+        type="button"
+        onClick={onTap}
+        className="block w-full text-left"
+        aria-label={hasCard ? t("wallet.cardEditAria") : t("wallet.cardAddAria")}
+      >
       <article
         className="relative aspect-[1.586/1] w-full overflow-hidden rounded-[20px] ring-1 ring-ink/10 shadow-[0_24px_60px_-28px_rgba(8,28,40,0.4)] transition-transform duration-500 ease-out group-hover:-translate-y-0.5"
         style={{ containerType: "inline-size" }}
@@ -114,6 +124,17 @@ export function MotionCard({ pass, onTap }: { pass: MotionPass; onTap: () => voi
           {t("wallet.tapToSetUp")}
         </p>
       )}
-    </button>
+      </button>
+      {onScan && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onScan(); }}
+          aria-label="Scan card with camera"
+          className="absolute top-3 right-3 z-10 flex size-10 items-center justify-center rounded-full bg-ink/85 text-limestone ring-1 ring-limestone/20 backdrop-blur-sm shadow-[0_8px_22px_-8px_rgba(8,28,40,0.55)] transition-transform hover:scale-105 active:scale-95"
+        >
+          <IconScanCard className="size-[18px]" />
+        </button>
+      )}
+    </div>
   );
 }
