@@ -66,6 +66,7 @@ function WalletRoute() {
   const { t } = useI18n();
   const [pass, setPass] = useState<MotionPass>(() => readPass());
   const [editing, setEditing] = useState<"none" | SheetMode>("none");
+  const [scanning, setScanning] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
   const loginFn = useServerFn(jccLogin);
