@@ -31,12 +31,13 @@ export function MotionCard({
   const validUntil = pass.validUntil?.trim() || "—/—/——";
 
   return (
-    <button
-      type="button"
-      onClick={onTap}
-      className="group block w-full text-left"
-      aria-label={hasCard ? t("wallet.cardEditAria") : t("wallet.cardAddAria")}
-    >
+    <div className="relative group">
+      <button
+        type="button"
+        onClick={onTap}
+        className="block w-full text-left"
+        aria-label={hasCard ? t("wallet.cardEditAria") : t("wallet.cardAddAria")}
+      >
       <article
         className="relative aspect-[1.586/1] w-full overflow-hidden rounded-[20px] ring-1 ring-ink/10 shadow-[0_24px_60px_-28px_rgba(8,28,40,0.4)] transition-transform duration-500 ease-out group-hover:-translate-y-0.5"
         style={{ containerType: "inline-size" }}
