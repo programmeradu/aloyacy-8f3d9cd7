@@ -298,7 +298,7 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
     const nd = nameDayToday(d);
     const festival = activeFestival(d);
     const fixture = isLikelyMatchday(d, focus.scope !== "island" ? focus.city : undefined);
-    const cruise = cruiseInPort(d);
+    const cruise = await cruiseInPortLive();
     const isHot = weather && weather.tempC >= 35;
     const isStorm = weather && (weather.iconKey === "storm" || weather.iconKey === "rain");
 
