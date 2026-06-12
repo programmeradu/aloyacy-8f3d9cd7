@@ -291,20 +291,24 @@ function TodayEditorial({
       <article className="relative mt-4 overflow-hidden rounded-[22px] bg-card ring-1 ring-line">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-gradient-to-bl from-olive/10 to-transparent"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-bl from-olive/12 via-transparent to-ochre/5"
         />
+        <GreekWordGlyph className="pointer-events-none absolute -right-3 -top-3 h-32 w-32" />
         <div className="relative p-5">
           <div className="flex items-baseline justify-between gap-3">
             <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.24em] text-olive">
               {t("today.greek.kicker")}
             </p>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-              {briefing.greekWord.translit}
+              /{briefing.greekWord.translit}/
             </p>
           </div>
-          <p className="mt-3 font-display text-[34px] leading-none text-ink">
-            {briefing.greekWord.el}
-          </p>
+          <div className="mt-3 flex items-end gap-3">
+            <p className="font-display text-[34px] leading-none text-ink">
+              {briefing.greekWord.el}
+            </p>
+            <SpeakGreekButton text={briefing.greekWord.el} />
+          </div>
           <p className="mt-2 font-display text-[15px] text-olive">
             {briefing.greekWord.en}
           </p>
@@ -613,5 +617,122 @@ function Sparkline({ buckets, nowHour }: { buckets: HourBucket[]; nowHour: numbe
         <circle cx={nowPt.x} cy={nowPt.y} r="3" fill="var(--color-ink)" />
       )}
     </svg>
+  );
+}
+
+// Bespoke olive-branch + amphora corner illustration for the Greek word card.
+function GreekWordGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden>
+      <defs>
+        <radialGradient id="gw-sun" cx="70%" cy="30%" r="60%">
+          <stop offset="0%" stopColor="var(--color-ochre)" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="var(--color-ochre)" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <rect width="128" height="128" fill="url(#gw-sun)" />
+      {/* Amphora silhouette */}
+      <path
+        d="M70 28 Q70 22 76 22 Q82 22 82 28 L82 34 Q96 40 96 58 Q96 78 84 92 L84 100 L68 100 L68 92 Q56 78 56 58 Q56 40 70 34 Z"
+        fill="var(--color-olive)"
+        opacity="0.18"
+      />
+      <path
+        d="M70 28 Q70 22 76 22 Q82 22 82 28"
+        stroke="var(--color-olive)"
+        strokeWidth="1.4"
+        opacity="0.7"
+        fill="none"
+      />
+      {/* Olive branch */}
+      <path
+        d="M14 86 Q44 70 78 78"
+        stroke="var(--color-olive)"
+        strokeWidth="1.6"
+        fill="none"
+        opacity="0.8"
+        strokeLinecap="round"
+      />
+      {[
+        { x: 22, y: 80, r: -28 },
+        { x: 34, y: 74, r: -18 },
+        { x: 48, y: 72, r: -8 },
+        { x: 62, y: 74, r: 6 },
+        { x: 74, y: 78, r: 14 },
+      ].map((l, i) => (
+        <ellipse
+          key={i}
+          cx={l.x}
+          cy={l.y - 4}
+          rx="6"
+          ry="2.6"
+          fill="var(--color-olive)"
+          opacity={0.55 + (i % 2) * 0.2}
+          transform={`rotate(${l.r} ${l.x} ${l.y - 4})`}
+        />
+      ))}
+      {/* Olives */}
+      <circle cx="40" cy="84" r="2.2" fill="var(--color-ink)" opacity="0.55" />
+      <circle cx="58" cy="84" r="2.2" fill="var(--color-ink)" opacity="0.45" />
+    </svg>
+  );
+}
+
+// Tap-to-hear Greek pronunciation. Uses Web Speech API with el-GR voice when available.
+function SpeakGreekButton({ text }: { text: string }) {
+  const [speaking, setSpeaking] = useState(false);
+  const [supported, setSupported] = useState(true);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setSupported(false);
+    }
+  }, []);
+
+  if (!supported) return null;
+
+  const speak = () => {
+    try {
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "el-GR";
+      u.rate = 0.85;
+      u.pitch = 1;
+      const voices = synth.getVoices();
+      const greek = voices.find((v) => v.lang?.toLowerCase().startsWith("el"));
+      if (greek) u.voice = greek;
+      u.onstart = () => setSpeaking(true);
+      u.onend = () => setSpeaking(false);
+      u.onerror = () => setSpeaking(false);
+      synth.speak(u);
+    } catch {
+      setSpeaking(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={speak}
+      aria-label={`Hear ${text} pronounced`}
+      className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-olive/12 text-olive transition-all hover:bg-olive/20 active:scale-95 ${
+        speaking ? "ring-2 ring-olive/40" : ""
+      }`}
+    >
+      <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+        <path
+          d="M4 10v4h3l5 4V6L7 10H4Z"
+          fill="currentColor"
+        />
+        <path
+          d={speaking ? "M15 9c1.2 1 1.2 5 0 6" : "M15 9c1.2 1 1.2 5 0 6 M17.5 7c2.5 2 2.5 8 0 10"}
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          fill="none"
+        />
+      </svg>
+    </button>
   );
 }
