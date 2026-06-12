@@ -293,7 +293,7 @@ function TodayEditorial({
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-gradient-to-bl from-olive/12 via-transparent to-ochre/5"
         />
-        <GreekWordGlyph className="pointer-events-none absolute -right-3 -top-3 h-32 w-32" />
+        <GreekWordGlyph word={briefing.greekWord.el} className="pointer-events-none absolute -right-3 -top-3 h-32 w-32" />
         <div className="relative p-5">
           <div className="flex items-baseline justify-between gap-3">
             <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.24em] text-olive">
