@@ -33,6 +33,9 @@ import { useI18n } from "@/lib/i18n";
 const PassSheet = lazy(() =>
   import("@/components/wallet/PassSheet").then((m) => ({ default: m.PassSheet })),
 );
+const CardScanSheet = lazy(() =>
+  import("@/components/wallet/CardScanSheet").then((m) => ({ default: m.CardScanSheet })),
+);
 
 export const Route = createFileRoute("/wallet")({
   head: () => ({
