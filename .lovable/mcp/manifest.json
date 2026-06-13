@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "aloya-mcp",
+      "version": "0.1.0",
+      "title": "Aloya — Cyprus Transit"
+    },
+    "tools": [
+      {
+        "name": "search_stops",
+        "title": "Search Cyprus bus stops",
+        "description": "Search Aloya's Cyprus-wide bus stop directory (Nicosia, Limassol, Larnaca, Paphos, Intercity) by name or stop code. Returns matching stops with coordinates and agency.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stop name or code fragment, e.g. 'Eleftheria' or '1234'."
+            },
+            "limit": {
+              "description": "Max results (default 10).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_stop_arrivals",
+        "title": "Get live arrivals for a stop",
+        "description": "Fetch upcoming live bus arrivals for a specific Cyprus stop from Aloya's real-time feed. Returns route, trip, ETA (unix seconds) and delay.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "stopId": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The stop id (as returned by search_stops)."
+            },
+            "limit": {
+              "description": "Max arrivals to return (default 8).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            }
+          },
+          "required": [
+            "stopId"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "plan_trip",
+        "title": "Plan a Cyprus bus trip from natural language",
+        "description": "Parse a natural-language trip request (e.g. 'Nicosia to Larnaca airport tomorrow 8am') into structured origin, destination and time using Aloya's planner. Returns parsed intent suitable for building a deep link to the app.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 2,
+              "description": "Free-form trip request in English or Greek."
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

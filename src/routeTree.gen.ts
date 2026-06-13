@@ -18,6 +18,7 @@ import { Route as SavedRouteImport } from './routes/saved'
 import { Route as QaRouteImport } from './routes/qa'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
@@ -33,6 +34,8 @@ import { Route as DebugEtaRouteImport } from './routes/debug.eta'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AirportCodeRouteImport } from './routes/airport.$code'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as InternalFundingIndexRouteImport } from './routes/internal.funding.index'
 import { Route as InternalFundingDocsRouteImport } from './routes/internal.funding.docs'
 import { Route as ApiPublicWeatherRouteImport } from './routes/api/public/weather'
@@ -70,6 +73,7 @@ import { Route as ApiPublicDustAdvisoryRouteImport } from './routes/api/public/d
 import { Route as ApiPublicBoltScooterRouteImport } from './routes/api/public/bolt-scooter'
 import { Route as ApiPublicBikeShareRouteImport } from './routes/api/public/bike-share'
 import { Route as ApiPublicAirportRouteImport } from './routes/api/public/airport'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -139,6 +143,11 @@ const PulseRoute = PulseRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -217,6 +226,18 @@ const AdminSeoRoute = AdminSeoRouteImport.update({
   path: '/admin/seo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const InternalFundingIndexRoute = InternalFundingIndexRouteImport.update({
   id: '/internal/funding/',
   path: '/internal/funding/',
@@ -408,6 +429,12 @@ const ApiPublicAirportRoute = ApiPublicAirportRouteImport.update({
   path: '/api/public/airport',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
     id: '/lovable/email/queue/process',
@@ -553,6 +580,7 @@ const ApiPublicOgGroupCodeRoute = ApiPublicOgGroupCodeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/mcp': typeof McpRoute
   '/privacy': typeof PrivacyRoute
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
@@ -562,6 +590,8 @@ export interface FileRoutesByFullPath {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/welcome': typeof WelcomeRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/seo': typeof AdminSeoRoute
   '/airport/$code': typeof AirportCodeRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -576,6 +606,7 @@ export interface FileRoutesByFullPath {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/airport': typeof ApiPublicAirportRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
@@ -641,6 +672,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/mcp': typeof McpRoute
   '/privacy': typeof PrivacyRoute
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
@@ -650,6 +682,8 @@ export interface FileRoutesByTo {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/welcome': typeof WelcomeRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/seo': typeof AdminSeoRoute
   '/airport/$code': typeof AirportCodeRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -664,6 +698,7 @@ export interface FileRoutesByTo {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/airport': typeof ApiPublicAirportRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
@@ -730,6 +765,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/mcp': typeof McpRoute
   '/privacy': typeof PrivacyRoute
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
@@ -739,6 +775,8 @@ export interface FileRoutesById {
   '/trips': typeof TripsRoute
   '/wallet': typeof WalletRoute
   '/welcome': typeof WelcomeRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/seo': typeof AdminSeoRoute
   '/airport/$code': typeof AirportCodeRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -753,6 +791,7 @@ export interface FileRoutesById {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/airport': typeof ApiPublicAirportRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
@@ -820,6 +859,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/mcp'
     | '/privacy'
     | '/pulse'
     | '/qa'
@@ -829,6 +869,8 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/welcome'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/seo'
     | '/airport/$code'
     | '/checkout/return'
@@ -843,6 +885,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/airport'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
@@ -908,6 +951,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/mcp'
     | '/privacy'
     | '/pulse'
     | '/qa'
@@ -917,6 +961,8 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/welcome'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/seo'
     | '/airport/$code'
     | '/checkout/return'
@@ -931,6 +977,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/airport'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
@@ -996,6 +1043,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/mcp'
     | '/privacy'
     | '/pulse'
     | '/qa'
@@ -1005,6 +1053,8 @@ export interface FileRouteTypes {
     | '/trips'
     | '/wallet'
     | '/welcome'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/seo'
     | '/airport/$code'
     | '/checkout/return'
@@ -1019,6 +1069,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/airport'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
@@ -1085,6 +1136,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  McpRoute: typeof McpRoute
   PrivacyRoute: typeof PrivacyRoute
   PulseRoute: typeof PulseRoute
   QaRoute: typeof QaRoute
@@ -1094,6 +1146,8 @@ export interface RootRouteChildren {
   TripsRoute: typeof TripsRoute
   WalletRoute: typeof WalletRoute
   WelcomeRoute: typeof WelcomeRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AdminSeoRoute: typeof AdminSeoRoute
   AirportCodeRoute: typeof AirportCodeRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -1108,6 +1162,7 @@ export interface RootRouteChildren {
   StopStopIdRoute: typeof StopStopIdRoute
   TripInfoTripIdRoute: typeof TripInfoTripIdRoute
   TripIdRoute: typeof TripIdRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicAirportRoute: typeof ApiPublicAirportRoute
   ApiPublicBikeShareRoute: typeof ApiPublicBikeShareRoute
   ApiPublicBoltScooterRoute: typeof ApiPublicBoltScooterRoute
@@ -1236,6 +1291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -1339,6 +1401,20 @@ declare module '@tanstack/react-router' {
       path: '/admin/seo'
       fullPath: '/admin/seo'
       preLoaderRoute: typeof AdminSeoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/internal/funding/': {
@@ -1600,6 +1676,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAirportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
       path: '/lovable/email/queue/process'
@@ -1792,6 +1875,7 @@ const ApiPublicWalletRouteWithChildren = ApiPublicWalletRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  McpRoute: McpRoute,
   PrivacyRoute: PrivacyRoute,
   PulseRoute: PulseRoute,
   QaRoute: QaRoute,
@@ -1801,6 +1885,9 @@ const rootRouteChildren: RootRouteChildren = {
   TripsRoute: TripsRoute,
   WalletRoute: WalletRoute,
   WelcomeRoute: WelcomeRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AdminSeoRoute: AdminSeoRoute,
   AirportCodeRoute: AirportCodeRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
@@ -1815,6 +1902,7 @@ const rootRouteChildren: RootRouteChildren = {
   StopStopIdRoute: StopStopIdRoute,
   TripInfoTripIdRoute: TripInfoTripIdRoute,
   TripIdRoute: TripIdRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicAirportRoute: ApiPublicAirportRoute,
   ApiPublicBikeShareRoute: ApiPublicBikeShareRoute,
   ApiPublicBoltScooterRoute: ApiPublicBoltScooterRoute,
