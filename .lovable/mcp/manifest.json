@@ -8,7 +8,7 @@
   "mcp": {
     "server": {
       "name": "aloya-mcp",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "title": "Aloya — Cyprus Transit"
     },
     "tools": [
@@ -95,6 +95,47 @@
           },
           "required": [
             "query"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "watch_stop_arrivals",
+        "title": "Watch a stop for live arrivals (long-poll)",
+        "description": "Long-polls Aloya's real-time feed for a stop and returns as soon as a bus is within `alertWithinSec` seconds, an ETA shifts by more than 60s, or the timeout elapses. Call this instead of repeatedly polling `get_stop_arrivals` — one call effectively streams the next meaningful update. Safe to call in a loop for continuous monitoring.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "stopId": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stop id from search_stops."
+            },
+            "routeId": {
+              "description": "Optional: only watch this route id.",
+              "type": "string"
+            },
+            "alertWithinSec": {
+              "description": "Trigger when next bus ETA <= this (default 300 = 5 min).",
+              "type": "integer",
+              "minimum": 30,
+              "maximum": 1800
+            },
+            "timeoutSec": {
+              "description": "Max seconds to wait before returning current state (default 20).",
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 25
+            }
+          },
+          "required": [
+            "stopId"
           ]
         },
         "outputSchema": null
