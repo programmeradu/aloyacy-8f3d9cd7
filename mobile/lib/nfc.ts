@@ -41,7 +41,7 @@ export async function scanCardUid(): Promise<NfcScanResult> {
   try {
     // Android doesn't have a built-in system UI for NFC scanning like iOS,
     // so we just start the tech discovery.
-    await NfcManager.requestTechnology([NfcTech.MifareDesfire, NfcTech.NfcA]);
+    await NfcManager.requestTechnology([NfcTech.IsoDep, NfcTech.NfcA]);
 
     const tag = await NfcManager.getTag();
     if (!tag || !tag.id) {

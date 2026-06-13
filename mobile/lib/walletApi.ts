@@ -6,6 +6,7 @@
 // identical to what the web wallet already handles.
 
 import { API_BASE } from "./api";
+export { API_BASE };
 import type { MotionPassOption, MotionTxSnapshot } from "./motionPass";
 
 type LoginRes =
