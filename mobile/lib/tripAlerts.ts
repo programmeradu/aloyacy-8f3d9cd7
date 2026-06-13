@@ -70,14 +70,30 @@ function minutesText(min?: number): string {
   return `${min} minutes`;
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const HAPTIC: Record<TripAlertKind, () => Promise<void>> = {
   "hurry-soft": () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
-  "hurry-urgent": () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning),
+  "hurry-urgent": async () => {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    await sleep(250);
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  },
   "at-stop": () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium),
   "confirm-onboard": () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium),
   "missed-bus": () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error),
-  "press-stop": () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy),
-  arrived: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
+  "press-stop": async () => {
+    // "Double Heavy Pulse" for Alight Soon
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    await sleep(150);
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  },
+  arrived: async () => {
+    // "Triple Success Pulse" for Arrived
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await sleep(300);
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  },
 };
 
 /** Fire a local in-flight trip alert. Safe to call from useEffect — caller
