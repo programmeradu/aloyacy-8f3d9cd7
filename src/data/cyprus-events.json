@@ -5,7 +5,7 @@
     { "id": "paphos-aphrodite", "name": "Aphrodite Festival", "nameEl": "Φεστιβάλ Αφροδίτη", "city": "Paphos", "month": 9, "kind": "festival", "weekRule": "first-weekend" },
     { "id": "wine-festival", "name": "Limassol Wine Festival", "nameEl": "Γιορτή Κρασιού Λεμεσού", "city": "Limassol", "month": 9, "kind": "festival", "weekRule": "late-month" },
     { "id": "kypria", "name": "Kypria International Festival", "nameEl": "Κυπρία", "city": "All cities", "month": 9, "kind": "festival", "weekRule": "all-month" },
-    { "id": "kourion-summer", "name": "Kourion Summer Theatre", "nameEl": "Καλοκαιρινό Θέατρο Κουρίου", "city": "Limassol", "month": 7, "kind": "festival", "weekRule": "all-month" }
+    { "id": "kourion-summer", "name": "Kourion Summer Theatre", "nameEl": "Καλοκαιρινό Θέατρο Κουρίου", "city": "Limassol", "month": 7, "kind": "festival", "weekRule": "weekend-nights" }
   ],
   "fixturesPattern": {
     "note": "Major Cyprus football derbies — used as fallback when live CFA data not scraped",
