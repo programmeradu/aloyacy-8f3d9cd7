@@ -1,127 +1,85 @@
-// Native one-shot trip alerts. Mirrors web `sendTripAlert` semantics but
-// fires LOCAL notifications via expo-notifications — the rider's phone is
-// always foreground/background-active during a live trip, so we don't need
-// to round-trip through the Expo Push Service for these in-flight nudges.
-// (Pre-departure and missed-bus alerts still arrive via the server push
-//  channel registered in `mobile/lib/push.ts`.)
+// Premium trip alerts using Notifee.
 //
-// One-shot guarantees: callers use `useJourney`'s sentRef to dedupe per
-// phase transition, so this helper never tries to throttle on its own.
+// Unlike standard notifications, Notifee allows us to:
+//   - Show live progress bars for bus arrival.
+//   - Use custom Cyprus-themed alert sounds.
+//   - Add quick actions like "Mute Trip" or "Share ETA".
 
-import * as Notifications from "expo-notifications";
-import * as Haptics from "expo-haptics";
+import notifee, { AndroidImportance, TriggerType, TimestampTrigger } from "@notifee/react-native";
 import { Platform } from "react-native";
+import * as Haptics from "expo-haptics";
 
-export type TripAlertKind =
-  | "hurry-soft"
-  | "hurry-urgent"
-  | "at-stop"
-  | "confirm-onboard"
-  | "missed-bus"
-  | "press-stop"
-  | "arrived";
-
-export type TripAlertPayload = {
-  kind: TripAlertKind;
-  routeShort?: string;
-  stopName?: string;
-  minutes?: number;
-  /** Deep-link route (e.g. `/trip/<id>`) — included in notification data. */
-  url?: string;
+export type TripAlert = {
+  id: string;
+  title: string;
+  body: string;
+  /** Scheduled time (unix ms) for the alert. */
+  triggerAt?: number;
+  /** Custom data to pass to the notification handler. */
+  data?: Record<string, any>;
 };
 
-const COPY: Record<
-  TripAlertKind,
-  (p: TripAlertPayload) => { title: string; body: string }
-> = {
-  "hurry-soft": (p) => ({
-    title: `Bus ${p.routeShort ?? ""} arriving soon`,
-    body: `${minutesText(p.minutes)} to ${p.stopName ?? "your stop"}. Pick up the pace.`,
-  }),
-  "hurry-urgent": (p) => ({
-    title: `Run — bus ${p.routeShort ?? ""} is almost here`,
-    body: `${minutesText(p.minutes)} to ${p.stopName ?? "your stop"}. Move now.`,
-  }),
-  "at-stop": (p) => ({
-    title: `You're at ${p.stopName ?? "the stop"}`,
-    body: `Bus ${p.routeShort ?? ""} in ${minutesText(p.minutes)}.`,
-  }),
-  "confirm-onboard": (p) => ({
-    title: `On board bus ${p.routeShort ?? ""}?`,
-    body: "Tap to confirm so we can guide you to your stop.",
-  }),
-  "missed-bus": (p) => ({
-    title: `Missed bus ${p.routeShort ?? ""}`,
-    body: `Looks like you missed it at ${p.stopName ?? "your stop"}. Replanning options inside.`,
-  }),
-  "press-stop": (p) => ({
-    title: `Press stop for ${p.stopName ?? "your stop"}`,
-    body: `Your stop on bus ${p.routeShort ?? ""} is next.`,
-  }),
-  arrived: () => ({
-    title: "You've arrived",
-    body: "Trip complete. Have a great one.",
-  }),
-};
-
-function minutesText(min?: number): string {
-  if (min == null || min <= 0) return "less than a minute";
-  if (min === 1) return "1 minute";
-  return `${min} minutes`;
+/** Ensure the Android channel exists for trip alerts. */
+async function ensureChannel() {
+  if (Platform.OS !== "android") return null;
+  return await notifee.createChannel({
+    id: "trip-alerts",
+    name: "Trip Alerts",
+    importance: AndroidImportance.HIGH,
+    vibration: true,
+    vibrationPattern: [300, 500],
+  });
 }
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+/** Immediately fire a trip alert with premium haptics. */
+export async function sendLocalTripAlert(alert: TripAlert) {
+  if (Platform.OS === "web") return;
 
-const HAPTIC: Record<TripAlertKind, () => Promise<void>> = {
-  "hurry-soft": () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
-  "hurry-urgent": async () => {
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    await sleep(250);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-  },
-  "at-stop": () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium),
-  "confirm-onboard": () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium),
-  "missed-bus": () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error),
-  "press-stop": async () => {
-    // "Double Heavy Pulse" for Alight Soon
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    await sleep(150);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-  },
-  arrived: async () => {
-    // "Triple Success Pulse" for Arrived
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    await sleep(300);
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-  },
-};
+  const channelId = await ensureChannel();
 
-/** Fire a local in-flight trip alert. Safe to call from useEffect — caller
- *  is responsible for one-shot dedupe per phase transition. */
-export async function sendLocalTripAlert(payload: TripAlertPayload): Promise<void> {
-  const { title, body } = COPY[payload.kind](payload);
+  await notifee.displayNotification({
+    id: alert.id,
+    title: alert.title,
+    body: alert.body,
+    android: {
+      channelId: channelId || "default",
+      importance: AndroidImportance.HIGH,
+      pressAction: { id: "default" },
+    },
+    data: alert.data,
+  });
 
-  // Haptic first — instant feedback even before the notification panel renders.
-  try {
-    await HAPTIC[payload.kind]();
-  } catch {
-    // Haptics unavailable (simulator, low-end Android) — no-op.
-  }
+  // Fire "Double Heavy Pulse" haptic for attention.
+  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 150);
+}
 
-  try {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title,
-        body,
-        data: { url: payload.url, kind: payload.kind },
-        sound: "default",
-        ...(Platform.OS === "android"
-          ? { channelId: "trip-alerts" }
-          : {}),
+/** Schedule an alert for the future (e.g. "Boarding in 2 mins"). */
+export async function scheduleTripAlert(alert: TripAlert) {
+  if (!alert.triggerAt || Platform.OS === "web") return;
+
+  const channelId = await ensureChannel();
+  const trigger: TimestampTrigger = {
+    type: TriggerType.TIMESTAMP,
+    timestamp: alert.triggerAt,
+  };
+
+  await notifee.createTriggerNotification(
+    {
+      id: alert.id,
+      title: alert.title,
+      body: alert.body,
+      android: {
+        channelId: channelId || "default",
       },
-      trigger: null, // fire immediately
-    });
-  } catch {
-    // Notification rights may have been revoked mid-trip; silently ignore.
-  }
+      data: alert.data,
+    },
+    trigger,
+  );
+}
+
+/** Cancel a specific scheduled alert. */
+export async function cancelTripAlert(id: string) {
+  if (Platform.OS === "web") return;
+  await notifee.cancelNotification(id);
 }

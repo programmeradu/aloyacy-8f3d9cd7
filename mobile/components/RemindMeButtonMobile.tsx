@@ -4,7 +4,9 @@
 import { useEffect, useState } from "react";
 import { View, Text, Pressable, Alert, Linking } from "react-native";
 import * as Haptics from "expo-haptics";
-import * as Notifications from "expo-notifications";
+// import * as Notifications from "expo-notifications";
+const Notifications: any = null;
+
 import * as Device from "expo-device";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { palette } from "@/constants/theme";

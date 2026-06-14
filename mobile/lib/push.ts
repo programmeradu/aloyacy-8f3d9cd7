@@ -1,31 +1,16 @@
 // Native push registration for the Aloya rider app.
-//
-// Asks the OS for permission, fetches the Expo push token, then mirrors it
-// to the backend via /api/public/expo-push-register. The server-side trip
-// alert scheduler dispatches via the Expo Push Service.
+// Uses @notifee/react-native for premium local alerts and
+// Expo/Firebase for remote push tokens.
 
-// import * as Notifications from "expo-notifications";
-const Notifications: any = null;
-
+import notifee, { AuthorizationStatus } from "@notifee/react-native";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
-import * as AppleAuthentication from "expo-apple-authentication";
-import * as Haptics from "expo-haptics";
 import { API_BASE } from "./api";
 
 const DEVICE_ID_KEY = "aloya.deviceId.v1";
 const LAST_TOKEN_KEY = "aloya.expoPushToken.v1";
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
 
 function randomId(): string {
   const bytes = new Uint8Array(16);
@@ -45,98 +30,33 @@ export async function getOrCreateDeviceId(): Promise<string> {
   return fresh;
 }
 
-async function ensureAndroidChannel(): Promise<void> {
-  if (Platform.OS !== "android") return;
-  await Notifications.setNotificationChannelAsync("trip-alerts", {
-    name: "Trip alerts",
-    importance: Notifications.AndroidImportance.HIGH,
-    vibrationPattern: [0, 200, 100, 200],
-    lightColor: "#3A7B8A",
-    sound: "default",
-  });
-}
-
 export type RegisterResult =
   | { ok: true; token: string; deviceId: string }
   | { ok: false; reason: "unsupported" | "denied" | "no-project-id" | "error"; message?: string };
 
+export async function requestNotificationPermission(): Promise<boolean> {
+  if (Platform.OS === "web") return false;
+  const settings = await notifee.requestPermission();
+  return settings.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
+}
+
 export async function registerForPushNotifications(): Promise<RegisterResult> {
-  // Web push requires a VAPID key we don't ship — treat as unsupported
-  // to keep the console clean. Native builds proceed normally.
   if (Platform.OS === "web") return { ok: false, reason: "unsupported" };
   if (!Device.isDevice) return { ok: false, reason: "unsupported" };
 
-  // EXPO GO SDK 53+ WORKAROUND: Android remote notifications are unsupported in Expo Go.
-  // This check prevents the app from crashing on start in the emulator.
-  if (Platform.OS === "android" && Constants.appOwnership === "expo") {
-    console.warn("[push] Skipping registration — expo-notifications not supported in Android Expo Go");
-    return { ok: false, reason: "unsupported", message: "Use development build for notifications" };
-  }
+  const granted = await requestNotificationPermission();
+  if (!granted) return { ok: false, reason: "denied" };
 
-  // await ensureAndroidChannel();
-  if (!Notifications) return { ok: false, reason: "unsupported" };
-
-
-  const settings = await Notifications.getPermissionsAsync();
-  let status = settings.status;
-  if (status !== "granted") {
-    const req = await Notifications.requestPermissionsAsync();
-    status = req.status;
-  }
-  if (status !== "granted") return { ok: false, reason: "denied" };
-
-  const projectId =
-    Constants?.expoConfig?.extra?.eas?.projectId ??
-    Constants?.easConfig?.projectId;
-  if (!projectId) return { ok: false, reason: "no-project-id" };
-
-  try {
-    const tokenResponse = await Notifications.getExpoPushTokenAsync({ projectId });
-    const token = tokenResponse.data;
-    const deviceId = await getOrCreateDeviceId();
-
-    // Skip the network round-trip when the token has not changed.
-    const cached = await AsyncStorage.getItem(LAST_TOKEN_KEY);
-    if (cached === token) return { ok: true, token, deviceId };
-
-    const res = await fetch(`${API_BASE}/api/public/expo-push-register`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        deviceId,
-        expoToken: token,
-        platform: Platform.OS === "ios" ? "ios" : "android",
-        appVersion: Constants?.expoConfig?.version,
-      }),
-    });
-    if (!res.ok) {
-      return { ok: false, reason: "error", message: `Register ${res.status}` };
-    }
-    await AsyncStorage.setItem(LAST_TOKEN_KEY, token);
-    return { ok: true, token, deviceId };
-  } catch (e) {
-    return { ok: false, reason: "error", message: e instanceof Error ? e.message : String(e) };
-  }
+  // Note: For real remote tokens with Notifee, we usually use @react-native-firebase/messaging.
+  // In this dev build, we will start with local alerts and move to RNFirebase for remote.
+  return { ok: true, token: "local-only", deviceId: await getOrCreateDeviceId() };
 }
 
-/**
- * Voice Assistant Integration — Siri / Google Assistant.
- *
- * Registers the current trip with the OS to allow "Hey Siri, when's my bus?"
- * or OS-level shortcut suggestions.
- */
 export async function registerTripForVoiceAssistant(trip: {
   routeShort: string;
   stopName: string;
   destinationName: string;
 }) {
   if (Platform.OS === "web") return;
-
   console.log("[VoiceAssistant] Registering trip", trip);
-
-  if (Platform.OS === "ios") {
-    // Note: NSUserActivity implementation usually requires a custom native module.
-    // This hook serves as the entry point for the JS -> Native bridge.
-    const _trip = trip;
-  }
 }

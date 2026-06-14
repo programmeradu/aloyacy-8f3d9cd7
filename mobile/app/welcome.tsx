@@ -1,13 +1,5 @@
 // Native onboarding — 3-step carousel shown once on first launch.
-//
-// Steps:
-//   1. Location — enables live ETAs, nearest-stop discovery, walk guidance.
-//   2. Notifications — trip alerts (get-off, transfer, disruption).
-//   3. Motion card — optional add so the wallet is ready on day one.
-//
-// The last screen persists `aloya.onboarded.v1` and routes into the app.
-// Each permission ask is non-blocking: a "Skip" affordance is always there
-// so denied permissions never trap the user off the app.
+// Uses Notifee for premium notifications setup.
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
@@ -26,12 +18,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
-import * as Notifications from "expo-notifications";
 import * as Haptics from "expo-haptics";
 
 import { palette } from "@/constants/theme";
 import { mergePass } from "@/lib/motionPass";
-import { registerForPushNotifications } from "@/lib/push";
+import { registerForPushNotifications, requestNotificationPermission } from "@/lib/push";
 import { assets } from "@/lib/assets";
 
 export const ONBOARDED_KEY = "aloya.onboarded.v1";
@@ -78,8 +69,8 @@ export default function WelcomeScreen() {
 
   const askNotifications = useCallback(async () => {
     try {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status === "granted") {
+      const granted = await requestNotificationPermission();
+      if (granted) {
         setNotifState("granted");
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
         // Mirror the token to the backend; failure is silent.
