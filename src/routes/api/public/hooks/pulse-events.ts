@@ -86,7 +86,7 @@ async function ingest() {
   const apiKey = process.env.FIRECRAWL_API_KEY;
   if (!apiKey) return json({ ok: false, error: "FIRECRAWL_API_KEY not configured" }, 500);
 
-  const targetUrl = "https://www.visitcyprus.com/index.php/en/discovercyprus/events-festivals";
+  const targetUrl = "https://www.visitcyprus.com/events/";
   const fetchedAt = new Date().toISOString();
 
   let scrape: { json?: { events?: unknown }; markdown?: string; data?: { json?: { events?: unknown }; markdown?: string } };
