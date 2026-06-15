@@ -612,32 +612,19 @@ const FLAVOR_ACCENT: Record<EventFlavor, { bg: string; ink: string; ring: string
   culture:  { bg: "from-aegean/20 to-olive/10",      ink: "text-aegean-deep",  ring: "ring-aegean/30" },
 };
 
-/** Bespoke line-art glyph per flavor. Painterly, hand-drawn feel — no icon set. */
-function FlavorGlyph({ flavor }: { flavor: EventFlavor }) {
-  const stroke = "currentColor";
-  const p = { fill: "none", stroke, strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  switch (flavor) {
-    case "music":
-      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M14 26V10l14-3v16"/><circle {...p} cx="12" cy="28" r="3"/><circle {...p} cx="26" cy="25" r="3"/></svg>);
-    case "running":
-      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><circle {...p} cx="25" cy="9" r="3"/><path {...p} d="M14 32l5-7 4 3 3 7"/><path {...p} d="M19 25l-2-6 6-4 4 4 4 1"/></svg>);
-    case "sport":
-      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><circle {...p} cx="20" cy="20" r="11"/><path {...p} d="M9 20h22M20 9v22M12 12l16 16M28 12L12 28"/></svg>);
-    case "marine":
-      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M6 26c3 2 5 2 8 0s5-2 8 0 5 2 8 0 4-2 4-2"/><path {...p} d="M6 32c3 2 5 2 8 0s5-2 8 0 5 2 8 0 4-2 4-2"/><path {...p} d="M20 6v14M20 6l-5 6M20 6l5 6"/></svg>);
-    case "cinema":
-      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><rect {...p} x="6" y="12" width="22" height="16" rx="2"/><path {...p} d="M28 16l6-3v14l-6-3z"/></svg>);
-    case "art":
-      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M20 6c8 0 14 6 14 12 0 4-4 5-7 5h-2c-2 0-3 2-2 4l1 2c1 3-2 5-4 5-8 0-14-6-14-14S12 6 20 6z"/><circle {...p} cx="14" cy="16" r="1.5"/><circle {...p} cx="22" cy="12" r="1.5"/><circle {...p} cx="28" cy="18" r="1.5"/></svg>);
-    case "food":
-      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M12 8v14a4 4 0 008 0V8M16 8v8"/><path {...p} d="M28 8c-3 2-4 6-4 10s1 6 4 6v8"/></svg>);
-    case "festival":
-      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M8 32l8-22 4 8 4-8 8 22z"/><path {...p} d="M12 26h16M14 20h12"/></svg>);
-    case "culture":
-    default:
-      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M6 30h28M8 30V16l12-8 12 8v14"/><path {...p} d="M14 30V20M20 30V20M26 30V20"/></svg>);
-  }
-}
+/** Bespoke painterly asset per flavor — generated editorial illustrations. */
+const FLAVOR_IMAGE: Record<EventFlavor, string> = {
+  music:    eventMusicImg,
+  running:  eventRunningImg,
+  sport:    eventSportImg,
+  marine:   eventMarineImg,
+  cinema:   eventCinemaImg,
+  art:      eventArtImg,
+  food:     eventFoodImg,
+  festival: eventFestivalImg,
+  culture:  eventCultureImg,
+};
+
 
 /** Parse an event date in local time — dates from the ingest are YYYY-MM-DD. */
 function parseEventDate(s: string | null): Date | null {
