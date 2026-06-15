@@ -691,11 +691,18 @@ function EventsStrip({
               className="group relative overflow-hidden rounded-[22px] bg-card ring-1 ring-line hover:ring-ink/15 transition-all"
             >
               <div className="flex items-stretch gap-0">
-                <div
-                  className={`relative flex-shrink-0 w-[76px] bg-gradient-to-br ${accent.bg} flex items-center justify-center ${accent.ink}`}
-                >
-                  <FlavorGlyph flavor={flavor} />
+                <div className="relative flex-shrink-0 w-[92px] overflow-hidden">
+                  <img
+                    src={FLAVOR_IMAGE[flavor]}
+                    alt=""
+                    loading="lazy"
+                    width={768}
+                    height={768}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card to-transparent" />
                 </div>
+
                 <div className="flex-1 min-w-0 px-4 py-3.5 flex flex-col gap-1.5">
                   <div className="flex items-center gap-2">
                     <span className={`font-eyebrow text-[9px] uppercase tracking-[0.22em] ${accent.ink}`}>
