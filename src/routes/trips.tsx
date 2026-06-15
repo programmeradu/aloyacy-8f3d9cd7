@@ -200,34 +200,85 @@ function Plan() {
   }, []);
 
   // Try to seed origin from geolocation once (skipped if NL plan provided one).
+  // Uses the cached fix populated by the home page for an instant result, then
+  // refines via getCurrentPosition. Falls back to Nicosia centre only after the
+  // browser hard-fails (denied / unavailable / final timeout).
   useEffect(() => {
-    if (origin || typeof window === "undefined" || !navigator.geolocation) return;
+    if (origin || typeof window === "undefined") return;
+    let cancelled = false;
+
+    const applyFix = async (latitude: number, longitude: number) => {
+      if (cancelled) return;
+      // Optimistic label so the UI unlocks immediately while reverse-geo resolves.
+      setOrigin({
+        lat: latitude,
+        lng: longitude,
+        label: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+      });
+      try {
+        const { address } = await reverseFn({ data: { lat: latitude, lng: longitude } });
+        if (cancelled) return;
+        setOrigin({ lat: latitude, lng: longitude, label: address });
+      } catch {
+        /* keep optimistic label */
+      }
+    };
+
+    // 1) Instant seed from the shared cache populated by useGeolocation().
+    try {
+      const raw = localStorage.getItem("aloya:geo");
+      if (raw) {
+        const parsed = JSON.parse(raw) as { lat: number; lng: number; ts: number };
+        if (parsed && Number.isFinite(parsed.lat) && Number.isFinite(parsed.lng)) {
+          void applyFix(parsed.lat, parsed.lng);
+        }
+      }
+    } catch { /* ignore */ }
+
+    // 2) Always try a fresh fix. High accuracy, generous timeout, accept a
+    //    recent cached browser fix so we don't re-prompt on every navigation.
+    if (!("geolocation" in navigator)) return;
+    const fallbackTimer = window.setTimeout(() => {
+      if (cancelled || origin) return;
+      // Only show Nicosia fallback if nothing seeded after 12s.
+      setOrigin((cur) => cur ?? {
+        lat: NICOSIA_CENTER.lat,
+        lng: NICOSIA_CENTER.lng,
+        label: "Nicosia centre",
+      });
+    }, 12_000);
+
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+      (pos) => {
+        window.clearTimeout(fallbackTimer);
         const { latitude, longitude } = pos.coords;
         try {
-          const { address } = await reverseFn({
-            data: { lat: latitude, lng: longitude },
-          });
-          setOrigin({ lat: latitude, lng: longitude, label: address });
-        } catch {
-          setOrigin({
-            lat: latitude,
-            lng: longitude,
-            label: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-          });
-        }
+          localStorage.setItem(
+            "aloya:geo",
+            JSON.stringify({ lat: latitude, lng: longitude, ts: Date.now() }),
+          );
+        } catch { /* ignore */ }
+        void applyFix(latitude, longitude);
       },
       () => {
-        setOrigin({
+        window.clearTimeout(fallbackTimer);
+        if (cancelled) return;
+        // If cache already seeded an origin, keep it; otherwise fall back.
+        setOrigin((cur) => cur ?? {
           lat: NICOSIA_CENTER.lat,
           lng: NICOSIA_CENTER.lng,
           label: "Nicosia centre",
         });
       },
-      { timeout: 6000 },
+      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
     );
-  }, [origin, reverseFn]);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(fallbackTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function onPick(point: Point, role: "from" | "to") {
     if (role === "from") {
