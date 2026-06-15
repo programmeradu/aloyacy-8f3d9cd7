@@ -19,6 +19,16 @@ import pulseTrafficImg from "@/assets/pulse-traffic-card.jpg";
 import pulseTrafficRoadworksImg from "@/assets/pulse-traffic-roadworks.jpg";
 import pulseTrafficClosureImg from "@/assets/pulse-traffic-closure.jpg";
 import pulseTrafficCongestionImg from "@/assets/pulse-traffic-congestion.jpg";
+import eventMusicImg from "@/assets/event-music.jpg";
+import eventRunningImg from "@/assets/event-running.jpg";
+import eventSportImg from "@/assets/event-sport.jpg";
+import eventMarineImg from "@/assets/event-marine.jpg";
+import eventCinemaImg from "@/assets/event-cinema.jpg";
+import eventArtImg from "@/assets/event-art.jpg";
+import eventFoodImg from "@/assets/event-food.jpg";
+import eventFestivalImg from "@/assets/event-festival.jpg";
+import eventCultureImg from "@/assets/event-culture.jpg";
+
 
 type Locale = "en" | "el";
 
