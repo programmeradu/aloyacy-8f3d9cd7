@@ -187,16 +187,37 @@ export const jccSync = createServerFn({ method: "POST" })
     if (res.status === 400) {
       const body = await res.text().catch(() => "");
       const isWrong = /Wrong cardUID/i.test(body);
+      let jccMsg = "";
+      try {
+        const j = JSON.parse(body) as { message?: string };
+        if (j?.message) jccMsg = String(j.message).split("\n")[0];
+      } catch {
+        /* not json */
+      }
       return {
         ok: false as const,
         code: "card" as const,
         error: isWrong
           ? "JCC doesn't recognize this card number. Double-check the 10–16 digits on the back."
-          : `JCC rejected the request (${res.status}).`,
+          : jccMsg
+            ? `JCC: ${jccMsg}`
+            : `JCC rejected the request (${res.status}).`,
       };
     }
     if (!res.ok) {
-      return { ok: false as const, code: "http" as const, error: `JCC sync failed (${res.status}).` };
+      const body = await res.text().catch(() => "");
+      let jccMsg = "";
+      try {
+        const j = JSON.parse(body) as { message?: string };
+        if (j?.message) jccMsg = String(j.message).split("\n")[0];
+      } catch {
+        /* not json */
+      }
+      return {
+        ok: false as const,
+        code: "http" as const,
+        error: jccMsg ? `JCC: ${jccMsg}` : `JCC sync failed (${res.status}).`,
+      };
     }
 
     const raw = (await res.json()) as Array<{
