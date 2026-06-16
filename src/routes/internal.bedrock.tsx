@@ -19,8 +19,14 @@ const MODEL_PRESETS = [
   "amazon.nova-lite-v1:0",
 ];
 
+type AuthMode = "api-key" | "sigv4";
+
 function BedrockTestPage() {
+  const [authMode, setAuthMode] = useState<AuthMode>("sigv4");
   const [apiKey, setApiKey] = useState("");
+  const [accessKeyId, setAccessKeyId] = useState("");
+  const [secretAccessKey, setSecretAccessKey] = useState("");
+  const [sessionToken, setSessionToken] = useState("");
   const [region, setRegion] = useState("us-west-2");
   const [modelId, setModelId] = useState(MODEL_PRESETS[0]);
   const [prompt, setPrompt] = useState("Say hello from Bedrock in one sentence.");
@@ -31,6 +37,7 @@ function BedrockTestPage() {
     status: number;
     elapsedMs: number;
     endpoint: string;
+    authMode?: string;
     response: unknown;
     error?: string;
   }>(null);
@@ -39,10 +46,14 @@ function BedrockTestPage() {
     setLoading(true);
     setResult(null);
     try {
+      const payload =
+        authMode === "sigv4"
+          ? { authMode, accessKeyId, secretAccessKey, sessionToken: sessionToken || undefined, region, modelId, prompt, maxTokens }
+          : { authMode, apiKey, region, modelId, prompt, maxTokens };
       const res = await fetch("/api/public/bedrock-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKey, region, modelId, prompt, maxTokens }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       setResult(data);
@@ -68,6 +79,11 @@ function BedrockTestPage() {
     return null;
   })();
 
+  const canRun =
+    !loading &&
+    !!prompt &&
+    (authMode === "api-key" ? !!apiKey : !!accessKeyId && !!secretAccessKey);
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
       <div className="mb-8">
@@ -76,24 +92,75 @@ function BedrockTestPage() {
         </div>
         <h1 className="text-3xl font-bold">AWS Bedrock Test</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Paste a Bedrock API key (long-term or short-term bearer token). Key is sent to our
-          server proxy per-request and never stored. Do not use this page with credentials
-          that shouldn't be handled by browser JS.
+          Credentials are sent to our server proxy per-request and never stored. SigV4 signing
+          runs on the server (Web Crypto). Do not paste production long-lived root keys.
         </p>
       </div>
 
       <div className="space-y-4 rounded-2xl border bg-card p-6">
-        <label className="block">
-          <span className="mb-1 block text-sm font-semibold">Bedrock API key</span>
-          <textarea
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            rows={3}
-            spellCheck={false}
-            className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
-            placeholder="bedrock-api-key-... or ABSK..."
-          />
-        </label>
+        <div className="flex gap-2">
+          {(["sigv4", "api-key"] as AuthMode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setAuthMode(m)}
+              className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                authMode === m ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+              }`}
+            >
+              {m === "sigv4" ? "Access key (SigV4)" : "API key (Bearer)"}
+            </button>
+          ))}
+        </div>
+
+        {authMode === "api-key" ? (
+          <label className="block">
+            <span className="mb-1 block text-sm font-semibold">Bedrock API key</span>
+            <textarea
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              rows={3}
+              spellCheck={false}
+              className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
+              placeholder="ABSK..."
+            />
+          </label>
+        ) : (
+          <div className="space-y-3">
+            <label className="block">
+              <span className="mb-1 block text-sm font-semibold">AWS Access Key ID</span>
+              <input
+                value={accessKeyId}
+                onChange={(e) => setAccessKeyId(e.target.value)}
+                spellCheck={false}
+                className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
+                placeholder="AKIA... or ASIA..."
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-sm font-semibold">AWS Secret Access Key</span>
+              <input
+                type="password"
+                value={secretAccessKey}
+                onChange={(e) => setSecretAccessKey(e.target.value)}
+                spellCheck={false}
+                className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-sm font-semibold">
+                Session token <span className="font-normal text-muted-foreground">(only for ASIA temporary creds)</span>
+              </span>
+              <textarea
+                value={sessionToken}
+                onChange={(e) => setSessionToken(e.target.value)}
+                rows={2}
+                spellCheck={false}
+                className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
+              />
+            </label>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="block">
@@ -130,7 +197,7 @@ function BedrockTestPage() {
                 onClick={() => setModelId(m)}
                 className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
               >
-                {m.split(".")[1]?.split("-").slice(0, 3).join("-") ?? m}
+                {m.split(".")[1]?.split("-").slice(0, 3).join("-") ?? m.slice(0, 24)}
               </button>
             ))}
           </div>
@@ -149,7 +216,7 @@ function BedrockTestPage() {
         <button
           type="button"
           onClick={run}
-          disabled={loading || !apiKey || !prompt}
+          disabled={!canRun}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           {loading ? "Invoking…" : "Invoke model"}
@@ -167,6 +234,11 @@ function BedrockTestPage() {
               {result.ok ? "OK" : "FAIL"} · {result.status}
             </span>
             <span className="text-muted-foreground">{result.elapsedMs} ms</span>
+            {result.authMode && (
+              <span className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+                {result.authMode}
+              </span>
+            )}
             {result.endpoint && (
               <span className="truncate font-mono text-xs text-muted-foreground">
                 {result.endpoint}
