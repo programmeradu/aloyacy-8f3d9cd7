@@ -25,6 +25,7 @@ import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
 import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
 import { Route as PlanTokenRouteImport } from './routes/plan.$token'
+import { Route as InternalBedrockRouteImport } from './routes/internal.bedrock'
 import { Route as GuideGettingAroundCyprusRouteImport } from './routes/guide.getting-around-cyprus'
 import { Route as GroupCodeRouteImport } from './routes/group.$code'
 import { Route as EtaTokenRouteImport } from './routes/eta.$token'
@@ -72,6 +73,7 @@ import { Route as ApiPublicExpoPushRegisterRouteImport } from './routes/api/publ
 import { Route as ApiPublicDustAdvisoryRouteImport } from './routes/api/public/dust-advisory'
 import { Route as ApiPublicBoltScooterRouteImport } from './routes/api/public/bolt-scooter'
 import { Route as ApiPublicBikeShareRouteImport } from './routes/api/public/bike-share'
+import { Route as ApiPublicBedrockTestRouteImport } from './routes/api/public/bedrock-test'
 import { Route as ApiPublicAirportRouteImport } from './routes/api/public/airport'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -179,6 +181,11 @@ const RouteRouteIdRoute = RouteRouteIdRouteImport.update({
 const PlanTokenRoute = PlanTokenRouteImport.update({
   id: '/plan/$token',
   path: '/plan/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InternalBedrockRoute = InternalBedrockRouteImport.update({
+  id: '/internal/bedrock',
+  path: '/internal/bedrock',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuideGettingAroundCyprusRoute =
@@ -425,6 +432,11 @@ const ApiPublicBikeShareRoute = ApiPublicBikeShareRouteImport.update({
   path: '/api/public/bike-share',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicBedrockTestRoute = ApiPublicBedrockTestRouteImport.update({
+  id: '/api/public/bedrock-test',
+  path: '/api/public/bedrock-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAirportRoute = ApiPublicAirportRouteImport.update({
   id: '/api/public/airport',
   path: '/api/public/airport',
@@ -607,6 +619,7 @@ export interface FileRoutesByFullPath {
   '/eta/$token': typeof EtaTokenRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
+  '/internal/bedrock': typeof InternalBedrockRoute
   '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -614,6 +627,7 @@ export interface FileRoutesByFullPath {
   '/trip/$id': typeof TripIdRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/airport': typeof ApiPublicAirportRoute
+  '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
@@ -700,6 +714,7 @@ export interface FileRoutesByTo {
   '/eta/$token': typeof EtaTokenRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
+  '/internal/bedrock': typeof InternalBedrockRoute
   '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -707,6 +722,7 @@ export interface FileRoutesByTo {
   '/trip/$id': typeof TripIdRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/airport': typeof ApiPublicAirportRoute
+  '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
@@ -794,6 +810,7 @@ export interface FileRoutesById {
   '/eta/$token': typeof EtaTokenRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
+  '/internal/bedrock': typeof InternalBedrockRoute
   '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -801,6 +818,7 @@ export interface FileRoutesById {
   '/trip/$id': typeof TripIdRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/airport': typeof ApiPublicAirportRoute
+  '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
@@ -889,6 +907,7 @@ export interface FileRouteTypes {
     | '/eta/$token'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
+    | '/internal/bedrock'
     | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -896,6 +915,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/airport'
+    | '/api/public/bedrock-test'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
     | '/api/public/dust-advisory'
@@ -982,6 +1002,7 @@ export interface FileRouteTypes {
     | '/eta/$token'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
+    | '/internal/bedrock'
     | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -989,6 +1010,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/airport'
+    | '/api/public/bedrock-test'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
     | '/api/public/dust-advisory'
@@ -1075,6 +1097,7 @@ export interface FileRouteTypes {
     | '/eta/$token'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
+    | '/internal/bedrock'
     | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -1082,6 +1105,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/airport'
+    | '/api/public/bedrock-test'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
     | '/api/public/dust-advisory'
@@ -1169,6 +1193,7 @@ export interface RootRouteChildren {
   EtaTokenRoute: typeof EtaTokenRoute
   GroupCodeRoute: typeof GroupCodeRoute
   GuideGettingAroundCyprusRoute: typeof GuideGettingAroundCyprusRoute
+  InternalBedrockRoute: typeof InternalBedrockRoute
   PlanTokenRoute: typeof PlanTokenRoute
   RouteRouteIdRoute: typeof RouteRouteIdRoute
   StopStopIdRoute: typeof StopStopIdRoute
@@ -1176,6 +1201,7 @@ export interface RootRouteChildren {
   TripIdRoute: typeof TripIdRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicAirportRoute: typeof ApiPublicAirportRoute
+  ApiPublicBedrockTestRoute: typeof ApiPublicBedrockTestRoute
   ApiPublicBikeShareRoute: typeof ApiPublicBikeShareRoute
   ApiPublicBoltScooterRoute: typeof ApiPublicBoltScooterRoute
   ApiPublicDustAdvisoryRoute: typeof ApiPublicDustAdvisoryRoute
@@ -1350,6 +1376,13 @@ declare module '@tanstack/react-router' {
       path: '/plan/$token'
       fullPath: '/plan/$token'
       preLoaderRoute: typeof PlanTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/internal/bedrock': {
+      id: '/internal/bedrock'
+      path: '/internal/bedrock'
+      fullPath: '/internal/bedrock'
+      preLoaderRoute: typeof InternalBedrockRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/guide/getting-around-cyprus': {
@@ -1681,6 +1714,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBikeShareRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/bedrock-test': {
+      id: '/api/public/bedrock-test'
+      path: '/api/public/bedrock-test'
+      fullPath: '/api/public/bedrock-test'
+      preLoaderRoute: typeof ApiPublicBedrockTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/airport': {
       id: '/api/public/airport'
       path: '/api/public/airport'
@@ -1918,6 +1958,7 @@ const rootRouteChildren: RootRouteChildren = {
   EtaTokenRoute: EtaTokenRoute,
   GroupCodeRoute: GroupCodeRoute,
   GuideGettingAroundCyprusRoute: GuideGettingAroundCyprusRoute,
+  InternalBedrockRoute: InternalBedrockRoute,
   PlanTokenRoute: PlanTokenRoute,
   RouteRouteIdRoute: RouteRouteIdRoute,
   StopStopIdRoute: StopStopIdRoute,
@@ -1925,6 +1966,7 @@ const rootRouteChildren: RootRouteChildren = {
   TripIdRoute: TripIdRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicAirportRoute: ApiPublicAirportRoute,
+  ApiPublicBedrockTestRoute: ApiPublicBedrockTestRoute,
   ApiPublicBikeShareRoute: ApiPublicBikeShareRoute,
   ApiPublicBoltScooterRoute: ApiPublicBoltScooterRoute,
   ApiPublicDustAdvisoryRoute: ApiPublicDustAdvisoryRoute,
