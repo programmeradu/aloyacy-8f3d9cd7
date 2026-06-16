@@ -12,19 +12,19 @@ export const Route = createFileRoute("/internal/bedrock")({
 });
 
 const MODEL_PRESETS = [
+  "arn:aws:bedrock:us-west-2:362234323850:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0",
   "anthropic.claude-3-5-sonnet-20241022-v2:0",
   "anthropic.claude-3-5-haiku-20241022-v1:0",
-  "anthropic.claude-3-haiku-20240307-v1:0",
   "amazon.nova-pro-v1:0",
   "amazon.nova-lite-v1:0",
 ];
 
 function BedrockTestPage() {
   const [apiKey, setApiKey] = useState("");
-  const [region, setRegion] = useState("us-east-1");
+  const [region, setRegion] = useState("us-west-2");
   const [modelId, setModelId] = useState(MODEL_PRESETS[0]);
   const [prompt, setPrompt] = useState("Say hello from Bedrock in one sentence.");
-  const [maxTokens, setMaxTokens] = useState(256);
+  const [maxTokens, setMaxTokens] = useState(1024);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<null | {
     ok: boolean;

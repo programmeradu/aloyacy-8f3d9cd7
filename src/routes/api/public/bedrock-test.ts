@@ -28,21 +28,21 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
             maxTokens?: number;
           };
           const apiKey = (body.apiKey || "").trim();
-          const region = (body.region || "us-east-1").trim();
-          const modelId = (body.modelId || "anthropic.claude-3-5-sonnet-20241022-v2:0").trim();
+          const region = (body.region || "us-west-2").trim();
+          const modelId = (body.modelId || "").trim();
           const prompt = (body.prompt || "").trim();
-          const maxTokens = Math.min(Math.max(body.maxTokens ?? 256, 1), 4096);
+          const maxTokens = Math.min(Math.max(body.maxTokens ?? 1024, 1), 32000);
 
           if (!apiKey) return new Response(JSON.stringify({ error: "Missing apiKey" }), { status: 400, headers: cors });
+          if (!modelId) return new Response(JSON.stringify({ error: "Missing modelId" }), { status: 400, headers: cors });
           if (!prompt) return new Response(JSON.stringify({ error: "Missing prompt" }), { status: 400, headers: cors });
 
-          const url = `https://bedrock-runtime.${region}.amazonaws.com/model/${encodeURIComponent(modelId)}/invoke`;
+          // Bedrock Converse API — works with foundation model IDs and inference profile ARNs
+          const url = `https://bedrock-runtime.${region}.amazonaws.com/model/${encodeURIComponent(modelId)}/converse`;
 
-          // Anthropic Messages API on Bedrock
           const payload = {
-            anthropic_version: "bedrock-2023-05-31",
-            max_tokens: maxTokens,
-            messages: [{ role: "user", content: prompt }],
+            messages: [{ role: "user", content: [{ text: prompt }] }],
+            inferenceConfig: { maxTokens },
           };
 
           const started = Date.now();
