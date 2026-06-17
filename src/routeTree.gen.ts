@@ -25,6 +25,7 @@ import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
 import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
 import { Route as PlanTokenRouteImport } from './routes/plan.$token'
+import { Route as InternalBedrockUsageRouteImport } from './routes/internal.bedrock-usage'
 import { Route as InternalBedrockRouteImport } from './routes/internal.bedrock'
 import { Route as GuideGettingAroundCyprusRouteImport } from './routes/guide.getting-around-cyprus'
 import { Route as GroupCodeRouteImport } from './routes/group.$code'
@@ -181,6 +182,11 @@ const RouteRouteIdRoute = RouteRouteIdRouteImport.update({
 const PlanTokenRoute = PlanTokenRouteImport.update({
   id: '/plan/$token',
   path: '/plan/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InternalBedrockUsageRoute = InternalBedrockUsageRouteImport.update({
+  id: '/internal/bedrock-usage',
+  path: '/internal/bedrock-usage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InternalBedrockRoute = InternalBedrockRouteImport.update({
@@ -620,6 +626,7 @@ export interface FileRoutesByFullPath {
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/internal/bedrock': typeof InternalBedrockRoute
+  '/internal/bedrock-usage': typeof InternalBedrockUsageRoute
   '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -715,6 +722,7 @@ export interface FileRoutesByTo {
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/internal/bedrock': typeof InternalBedrockRoute
+  '/internal/bedrock-usage': typeof InternalBedrockUsageRoute
   '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -811,6 +819,7 @@ export interface FileRoutesById {
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/internal/bedrock': typeof InternalBedrockRoute
+  '/internal/bedrock-usage': typeof InternalBedrockUsageRoute
   '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -908,6 +917,7 @@ export interface FileRouteTypes {
     | '/group/$code'
     | '/guide/getting-around-cyprus'
     | '/internal/bedrock'
+    | '/internal/bedrock-usage'
     | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -1003,6 +1013,7 @@ export interface FileRouteTypes {
     | '/group/$code'
     | '/guide/getting-around-cyprus'
     | '/internal/bedrock'
+    | '/internal/bedrock-usage'
     | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -1098,6 +1109,7 @@ export interface FileRouteTypes {
     | '/group/$code'
     | '/guide/getting-around-cyprus'
     | '/internal/bedrock'
+    | '/internal/bedrock-usage'
     | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -1194,6 +1206,7 @@ export interface RootRouteChildren {
   GroupCodeRoute: typeof GroupCodeRoute
   GuideGettingAroundCyprusRoute: typeof GuideGettingAroundCyprusRoute
   InternalBedrockRoute: typeof InternalBedrockRoute
+  InternalBedrockUsageRoute: typeof InternalBedrockUsageRoute
   PlanTokenRoute: typeof PlanTokenRoute
   RouteRouteIdRoute: typeof RouteRouteIdRoute
   StopStopIdRoute: typeof StopStopIdRoute
@@ -1376,6 +1389,13 @@ declare module '@tanstack/react-router' {
       path: '/plan/$token'
       fullPath: '/plan/$token'
       preLoaderRoute: typeof PlanTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/internal/bedrock-usage': {
+      id: '/internal/bedrock-usage'
+      path: '/internal/bedrock-usage'
+      fullPath: '/internal/bedrock-usage'
+      preLoaderRoute: typeof InternalBedrockUsageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/internal/bedrock': {
@@ -1959,6 +1979,7 @@ const rootRouteChildren: RootRouteChildren = {
   GroupCodeRoute: GroupCodeRoute,
   GuideGettingAroundCyprusRoute: GuideGettingAroundCyprusRoute,
   InternalBedrockRoute: InternalBedrockRoute,
+  InternalBedrockUsageRoute: InternalBedrockUsageRoute,
   PlanTokenRoute: PlanTokenRoute,
   RouteRouteIdRoute: RouteRouteIdRoute,
   StopStopIdRoute: StopStopIdRoute,
