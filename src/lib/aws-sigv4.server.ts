@@ -46,10 +46,15 @@ export async function signRequest(
 ): Promise<{ url: string; headers: Record<string, string> }> {
   const u = new URL(input.url);
   const host = u.host;
+  // Bedrock (and most non-S3 AWS services) requires the path to be URI-encoded
+  // TWICE for SigV4. `u.pathname` already contains one layer of encoding from
+  // the caller (e.g. ARN colons as %3A); encode each segment once more so
+  // "%3A" becomes "%253A" in the canonical request.
   const canonicalUri = u.pathname
     .split("/")
-    .map((seg) => encodeURIComponent(decodeURIComponent(seg)))
+    .map((seg) => encodeURIComponent(seg))
     .join("/");
+
   const canonicalQuery = [...u.searchParams.entries()]
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
