@@ -24,9 +24,7 @@ type AuthMode = "api-key" | "sigv4";
 function BedrockTestPage() {
   const [authMode, setAuthMode] = useState<AuthMode>("sigv4");
   const [apiKey, setApiKey] = useState("");
-  const [accessKeyId, setAccessKeyId] = useState("");
-  const [secretAccessKey, setSecretAccessKey] = useState("");
-  const [sessionToken, setSessionToken] = useState("");
+  const [credsCombined, setCredsCombined] = useState("");
   const [region, setRegion] = useState("us-west-2");
   const [modelId, setModelId] = useState(MODEL_PRESETS[0]);
   const [prompt, setPrompt] = useState("Say hello from Bedrock in one sentence.");
@@ -42,14 +40,48 @@ function BedrockTestPage() {
     error?: string;
   }>(null);
 
+  // Parse "AKIA...:SECRET[:region][:sessionToken]" — the shape AWS uses in
+  // its exported access-keys CSV. Colons inside the session token are kept.
+  function parseCreds(raw: string): {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region?: string;
+    sessionToken?: string;
+  } {
+    const trimmed = raw.trim().replace(/^\uFEFF/, "");
+    const parts = trimmed.split(":");
+    const accessKeyId = parts[0]?.trim() ?? "";
+    const secretAccessKey = parts[1]?.trim() ?? "";
+    const maybeRegion = parts[2]?.trim();
+    const maybeToken = parts.slice(3).join(":").trim() || undefined;
+    return {
+      accessKeyId,
+      secretAccessKey,
+      region: maybeRegion || undefined,
+      sessionToken: maybeToken,
+    };
+  }
+
   async function run() {
     setLoading(true);
     setResult(null);
     try {
-      const payload =
-        authMode === "sigv4"
-          ? { authMode, accessKeyId, secretAccessKey, sessionToken: sessionToken || undefined, region, modelId, prompt, maxTokens }
-          : { authMode, apiKey, region, modelId, prompt, maxTokens };
+      let payload: Record<string, unknown>;
+      if (authMode === "sigv4") {
+        const parsed = parseCreds(credsCombined);
+        payload = {
+          authMode,
+          accessKeyId: parsed.accessKeyId,
+          secretAccessKey: parsed.secretAccessKey,
+          sessionToken: parsed.sessionToken,
+          region: parsed.region || region,
+          modelId,
+          prompt,
+          maxTokens,
+        };
+      } else {
+        payload = { authMode, apiKey, region, modelId, prompt, maxTokens };
+      }
       const res = await fetch("/api/public/bedrock-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -79,10 +111,13 @@ function BedrockTestPage() {
     return null;
   })();
 
+  const parsedPreview = authMode === "sigv4" ? parseCreds(credsCombined) : null;
   const canRun =
     !loading &&
     !!prompt &&
-    (authMode === "api-key" ? !!apiKey : !!accessKeyId && !!secretAccessKey);
+    (authMode === "api-key"
+      ? !!apiKey
+      : !!parsedPreview?.accessKeyId && !!parsedPreview?.secretAccessKey);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
@@ -126,40 +161,40 @@ function BedrockTestPage() {
             />
           </label>
         ) : (
-          <div className="space-y-3">
-            <label className="block">
-              <span className="mb-1 block text-sm font-semibold">AWS Access Key ID</span>
-              <input
-                value={accessKeyId}
-                onChange={(e) => setAccessKeyId(e.target.value)}
-                spellCheck={false}
-                className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
-                placeholder="AKIA... or ASIA..."
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm font-semibold">AWS Secret Access Key</span>
-              <input
-                type="password"
-                value={secretAccessKey}
-                onChange={(e) => setSecretAccessKey(e.target.value)}
-                spellCheck={false}
-                className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm font-semibold">
-                Session token <span className="font-normal text-muted-foreground">(only for ASIA temporary creds)</span>
+          <label className="block">
+            <span className="mb-1 block text-sm font-semibold">
+              AWS credentials{" "}
+              <span className="font-normal text-muted-foreground">
+                (paste one line: <code>accessKeyId:secretAccessKey[:region][:sessionToken]</code>)
               </span>
-              <textarea
-                value={sessionToken}
-                onChange={(e) => setSessionToken(e.target.value)}
-                rows={2}
-                spellCheck={false}
-                className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
-              />
-            </label>
-          </div>
+            </span>
+            <textarea
+              value={credsCombined}
+              onChange={(e) => setCredsCombined(e.target.value)}
+              rows={3}
+              spellCheck={false}
+              className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
+              placeholder="AKIAXXXXXXXXXXXXXXXX:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY:us-west-2"
+            />
+            {parsedPreview && (parsedPreview.accessKeyId || parsedPreview.secretAccessKey) && (
+              <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                <span className="rounded-full border px-2 py-0.5 font-mono">
+                  key: {parsedPreview.accessKeyId ? `${parsedPreview.accessKeyId.slice(0, 6)}…${parsedPreview.accessKeyId.slice(-4)}` : "—"}
+                </span>
+                <span className="rounded-full border px-2 py-0.5 font-mono">
+                  secret: {parsedPreview.secretAccessKey ? `${parsedPreview.secretAccessKey.length} chars` : "—"}
+                </span>
+                <span className="rounded-full border px-2 py-0.5 font-mono">
+                  region: {parsedPreview.region || region}
+                </span>
+                {parsedPreview.sessionToken && (
+                  <span className="rounded-full border px-2 py-0.5 font-mono">
+                    session token: {parsedPreview.sessionToken.length} chars
+                  </span>
+                )}
+              </div>
+            )}
+          </label>
         )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
