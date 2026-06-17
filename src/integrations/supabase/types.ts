@@ -92,6 +92,54 @@ export type Database = {
         }
         Relationships: []
       }
+      bedrock_usage: {
+        Row: {
+          access_key_hint: string | null
+          auth_mode: string
+          created_at: string
+          error: string | null
+          est_cost_usd: number
+          http_status: number | null
+          id: string
+          input_tokens: number
+          latency_ms: number
+          model_id: string
+          ok: boolean
+          output_tokens: number
+          region: string
+        }
+        Insert: {
+          access_key_hint?: string | null
+          auth_mode: string
+          created_at?: string
+          error?: string | null
+          est_cost_usd?: number
+          http_status?: number | null
+          id?: string
+          input_tokens?: number
+          latency_ms?: number
+          model_id: string
+          ok?: boolean
+          output_tokens?: number
+          region: string
+        }
+        Update: {
+          access_key_hint?: string | null
+          auth_mode?: string
+          created_at?: string
+          error?: string | null
+          est_cost_usd?: number
+          http_status?: number | null
+          id?: string
+          input_tokens?: number
+          latency_ms?: number
+          model_id?: string
+          ok?: boolean
+          output_tokens?: number
+          region?: string
+        }
+        Relationships: []
+      }
       bus_sightings: {
         Row: {
           device_id: string
