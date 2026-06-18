@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getBedrockUsageStats, type BedrockUsageStats } from "@/lib/bedrock-usage.functions";
+import { getBedrockCloudwatchStats, type BedrockCwStats } from "@/lib/bedrock-cloudwatch.functions";
 
 export const Route = createFileRoute("/internal/bedrock-usage")({
   head: () => ({
