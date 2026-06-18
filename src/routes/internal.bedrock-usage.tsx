@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { getBedrockUsageStats, type BedrockUsageStats } from "@/lib/bedrock-usage.functions";
 import { getBedrockCloudwatchStats, type BedrockCwStats } from "@/lib/bedrock-cloudwatch.functions";
+import { getBedrockCostExplorer, type BedrockCeStats } from "@/lib/bedrock-cost-explorer.functions";
 
 export const Route = createFileRoute("/internal/bedrock-usage")({
   head: () => ({
@@ -17,7 +18,27 @@ export const Route = createFileRoute("/internal/bedrock-usage")({
 
 const money = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 4, maximumFractionDigits: 4 });
+const money2 = (n: number) =>
+  n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const compact = (n: number) => n.toLocaleString("en-US");
+
+function formatWindow(hours: number): string {
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  if (hours < 24) return `${hours}h`;
+  return `${hours / 24}d`;
+}
+function formatPeriod(s: number): string {
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${s / 60}m`;
+  return `${s / 3600}h`;
+}
+function formatAxisTs(iso: string, hours: number): string {
+  const d = new Date(iso);
+  if (hours <= 24) {
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+}
 
 function BedrockUsagePage() {
   const fetchStats = useServerFn(getBedrockUsageStats);
@@ -275,6 +296,9 @@ function BedrockUsagePage() {
         {/* CloudWatch — account-wide, near real time */}
         <CloudwatchPanel />
 
+        {/* Cost Explorer — real billed $, delayed ~8-24h */}
+        <CostExplorerPanel />
+
         <p className="text-xs text-muted-foreground">
           Proxy log auto-refreshes every 15s. Costs are calculated from Bedrock Converse <span className="font-mono">usage</span> field × on-demand list price per model.
           Unknown models log 0 — add pricing in <span className="font-mono">src/lib/bedrock-pricing.ts</span>.
@@ -410,9 +434,21 @@ function CloudwatchPanel() {
               onChange={(e) => setHours(Number(e.target.value))}
               className="rounded-lg border border-input bg-background px-3 py-2 text-sm"
             >
-              {[1, 3, 6, 12, 24, 72, 168, 336].map((h) => (
-                <option key={h} value={h}>{h < 24 ? `${h}h` : `${h / 24}d`}</option>
-              ))}
+              <optgroup label="Minutes">
+                <option value={5 / 60}>5 min</option>
+                <option value={15 / 60}>15 min</option>
+                <option value={30 / 60}>30 min</option>
+              </optgroup>
+              <optgroup label="Hours">
+                {[1, 3, 6, 12, 24].map((h) => (
+                  <option key={h} value={h}>{h}h</option>
+                ))}
+              </optgroup>
+              <optgroup label="Days">
+                {[72, 168, 336].map((h) => (
+                  <option key={h} value={h}>{h / 24}d</option>
+                ))}
+              </optgroup>
             </select>
           </label>
           <div className="flex items-end">
@@ -456,7 +492,14 @@ function CloudwatchPanel() {
             </div>
 
             <div className="space-y-2">
-              <div className="text-xs font-mono uppercase text-muted-foreground">Invocations · {cw.windowHours}h</div>
+              <div className="flex items-baseline justify-between">
+                <div className="text-xs font-mono uppercase text-muted-foreground">
+                  Invocations · {formatWindow(cw.windowHours)}
+                </div>
+                <div className="text-[10px] font-mono text-muted-foreground">
+                  bucket {formatPeriod(cw.periodSeconds)} · {cw.perMinute.length} points
+                </div>
+              </div>
               <div className="flex items-end gap-[2px] h-24 border-b border-border pb-1">
                 {cw.perMinute.map((p) => (
                   <div
@@ -470,6 +513,13 @@ function CloudwatchPanel() {
                   <div className="w-full text-center text-xs text-muted-foreground">No datapoints in window</div>
                 )}
               </div>
+              {cw.perMinute.length > 1 && (
+                <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
+                  <span>{formatAxisTs(cw.perMinute[0].t, cw.windowHours)}</span>
+                  <span>{formatAxisTs(cw.perMinute[Math.floor(cw.perMinute.length / 2)].t, cw.windowHours)}</span>
+                  <span>{formatAxisTs(cw.perMinute[cw.perMinute.length - 1].t, cw.windowHours)}</span>
+                </div>
+              )}
             </div>
 
             <div className="overflow-x-auto">
@@ -503,6 +553,236 @@ function CloudwatchPanel() {
           <div className="text-xs text-muted-foreground">
             Paste an AWS access key with <span className="font-mono">cloudwatch:GetMetricData</span> permission and hit <em>Start live</em>.
             Creds live in <span className="font-mono">sessionStorage</span> for this tab only — never sent anywhere except AWS.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const CE_STORAGE = "bedrock-ce-creds";
+
+function CostExplorerPanel() {
+  const fetchCe = useServerFn(getBedrockCostExplorer);
+  const [combined, setCombined] = useState("");
+  const [days, setDays] = useState(14);
+  const [granularity, setGranularity] = useState<"HOURLY" | "DAILY">("DAILY");
+  const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = sessionStorage.getItem(CE_STORAGE);
+    if (saved) {
+      try {
+        const j = JSON.parse(saved);
+        setCombined(j.combined ?? "");
+        setDays(j.days ?? 14);
+        setGranularity(j.granularity ?? "DAILY");
+        setEnabled(Boolean(j.enabled));
+      } catch { /* ignore */ }
+    }
+  }, []);
+
+  const parsed = useMemo(() => parseCombined(combined), [combined]);
+  // HOURLY is only allowed for the last 14 days
+  const effectiveGranularity = days > 14 ? "DAILY" : granularity;
+
+  const q = useQuery({
+    queryKey: ["bedrock-ce", parsed?.accessKeyId, days, effectiveGranularity, enabled],
+    queryFn: async () => {
+      if (!parsed) throw new Error("No credentials");
+      return fetchCe({
+        data: {
+          accessKeyId: parsed.accessKeyId,
+          secretAccessKey: parsed.secretAccessKey,
+          sessionToken: parsed.sessionToken,
+          days,
+          granularity: effectiveGranularity,
+        },
+      });
+    },
+    enabled: enabled && !!parsed,
+    // CE calls cost ~$0.01 each — cache for 1h; refetch on demand only
+    staleTime: 60 * 60_000,
+    refetchInterval: false,
+    retry: 0,
+  });
+
+  const ce: BedrockCeStats | undefined = q.data;
+
+  const persist = (next: Partial<{ combined: string; days: number; granularity: "HOURLY" | "DAILY"; enabled: boolean }>) => {
+    if (typeof window === "undefined") return;
+    sessionStorage.setItem(
+      CE_STORAGE,
+      JSON.stringify({
+        combined: next.combined ?? combined,
+        days: next.days ?? days,
+        granularity: next.granularity ?? granularity,
+        enabled: next.enabled ?? enabled,
+      }),
+    );
+  };
+
+  const maxBucket = useMemo(
+    () => Math.max(0.0001, ...(ce?.perBucket.map((p) => p.total) ?? [0.0001])),
+    [ce],
+  );
+
+  return (
+    <div className="rounded-2xl border border-border bg-card overflow-hidden">
+      <div className="px-5 py-4 border-b border-border flex items-baseline justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold">AWS-wide · Cost Explorer</h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Real billed spend for <span className="font-mono">Amazon Bedrock</span> — matches your invoice.
+            Delayed ~8-24h vs CloudWatch. Each refresh costs ~$0.01 in CE fees, so cached for 1h.
+          </p>
+        </div>
+        {ce?.fetchedAt && (
+          <span className="text-[10px] font-mono text-muted-foreground whitespace-nowrap">
+            fetched {new Date(ce.fetchedAt).toLocaleTimeString()}
+          </span>
+        )}
+      </div>
+
+      <div className="p-5 space-y-5">
+        <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto_auto]">
+          <label className="space-y-1.5">
+            <div className="text-xs font-mono uppercase text-muted-foreground">
+              AWS creds · needs <span className="font-mono">ce:GetCostAndUsage</span>
+            </div>
+            <textarea
+              value={combined}
+              onChange={(e) => { setCombined(e.target.value); persist({ combined: e.target.value }); }}
+              placeholder="AKIA...:SECRET (reuses the CloudWatch key if it has ce:GetCostAndUsage)"
+              rows={2}
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs font-mono resize-none"
+            />
+          </label>
+          <label className="space-y-1.5">
+            <div className="text-xs font-mono uppercase text-muted-foreground">Window</div>
+            <select
+              value={days}
+              onChange={(e) => { const v = Number(e.target.value); setDays(v); persist({ days: v }); }}
+              className="rounded-lg border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value={1}>1 day</option>
+              <option value={3}>3 days</option>
+              <option value={7}>7 days</option>
+              <option value={14}>14 days</option>
+              <option value={30}>30 days</option>
+              <option value={60}>60 days</option>
+              <option value={90}>90 days</option>
+            </select>
+          </label>
+          <label className="space-y-1.5">
+            <div className="text-xs font-mono uppercase text-muted-foreground">Granularity</div>
+            <select
+              value={effectiveGranularity}
+              disabled={days > 14}
+              onChange={(e) => { const v = e.target.value as "HOURLY" | "DAILY"; setGranularity(v); persist({ granularity: v }); }}
+              className="rounded-lg border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
+            >
+              <option value="HOURLY">Hourly</option>
+              <option value="DAILY">Daily</option>
+            </select>
+          </label>
+          <div className="flex items-end">
+            <button
+              type="button"
+              disabled={!parsed || q.isFetching}
+              onClick={() => {
+                if (!enabled) { setEnabled(true); persist({ enabled: true }); }
+                q.refetch();
+              }}
+              className="w-full rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {q.isFetching ? "Loading…" : ce ? "Refresh" : "Fetch"}
+            </button>
+          </div>
+        </div>
+
+        {days > 14 && (
+          <div className="text-[10px] font-mono text-muted-foreground">
+            Hourly granularity is limited by AWS to the last 14 days — showing daily instead.
+          </div>
+        )}
+        {q.error && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 text-destructive px-3 py-2 text-xs font-mono">
+            {(q.error as Error).message}
+          </div>
+        )}
+
+        {ce && (
+          <>
+            <div className="grid gap-4 sm:grid-cols-4">
+              <Kpi label="Today" value={money2(ce.totals.todaySpend)} sub="billed today" />
+              <Kpi label="Yesterday" value={money2(ce.totals.yesterdaySpend)} sub="final" />
+              <Kpi label="Month to date" value={money2(ce.totals.mtdSpend)} sub="this calendar month" />
+              <Kpi label="Window total" value={money2(ce.totals.windowSpend)} sub={`${days}d · ${ce.granularity.toLowerCase()}`} />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-baseline justify-between">
+                <div className="text-xs font-mono uppercase text-muted-foreground">
+                  Spend · {days}d · {ce.granularity.toLowerCase()}
+                </div>
+                <div className="text-[10px] font-mono text-muted-foreground">{ce.perBucket.length} buckets</div>
+              </div>
+              <div className="flex items-end gap-[3px] h-32 border-b border-border pb-1">
+                {ce.perBucket.map((p) => (
+                  <div
+                    key={p.start}
+                    title={`${new Date(p.start).toLocaleString()} · ${money2(p.total)}`}
+                    className="flex-1 min-w-[3px] rounded-t bg-[color:var(--ochre)]/80"
+                    style={{ height: `${Math.max(2, (p.total / maxBucket) * 100)}%` }}
+                  />
+                ))}
+                {ce.perBucket.length === 0 && (
+                  <div className="w-full text-center text-xs text-muted-foreground">No spend in window</div>
+                )}
+              </div>
+              {ce.perBucket.length > 1 && (
+                <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
+                  <span>{formatAxisTs(ce.perBucket[0].start, ce.granularity === "HOURLY" ? 24 : 999)}</span>
+                  <span>{formatAxisTs(ce.perBucket[Math.floor(ce.perBucket.length / 2)].start, ce.granularity === "HOURLY" ? 24 : 999)}</span>
+                  <span>{formatAxisTs(ce.perBucket[ce.perBucket.length - 1].start, ce.granularity === "HOURLY" ? 24 : 999)}</span>
+                </div>
+              )}
+            </div>
+
+            {ce.perModel.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50 text-xs font-mono uppercase text-muted-foreground">
+                    <tr>
+                      <th className="text-left px-4 py-2 font-medium">Usage type</th>
+                      <th className="text-right px-4 py-2 font-medium">Billed cost</th>
+                      <th className="text-right px-4 py-2 font-medium">Share</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ce.perModel.map((m) => {
+                      const share = ce.totals.windowSpend > 0 ? (m.amount / ce.totals.windowSpend) * 100 : 0;
+                      return (
+                        <tr key={m.key} className="border-t border-border">
+                          <td className="px-4 py-2 font-mono text-xs">{m.key}</td>
+                          <td className="px-4 py-2 text-right font-mono font-semibold">{money2(m.amount)}</td>
+                          <td className="px-4 py-2 text-right font-mono text-muted-foreground">{share.toFixed(1)}%</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+
+        {!ce && !q.isFetching && !q.error && (
+          <div className="text-xs text-muted-foreground">
+            Paste an AWS access key with <span className="font-mono">ce:GetCostAndUsage</span> and hit <em>Fetch</em>.
+            Cost Explorer must be enabled once in the AWS Billing console (one-click, free).
           </div>
         )}
       </div>

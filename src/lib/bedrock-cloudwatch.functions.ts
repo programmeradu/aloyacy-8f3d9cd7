@@ -11,6 +11,7 @@ export type BedrockCwPerModel = {
 
 export type BedrockCwStats = {
   windowHours: number;
+  periodSeconds: number;
   region: string;
   fetchedAt: string;
   latestDatapointAt: string | null;
@@ -45,11 +46,18 @@ export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { cwGetMetricData } = await import("@/lib/aws-cloudwatch.server");
     const region = (data.region || "us-west-2").trim();
-    const hours = Math.min(Math.max(data.hours ?? 24, 1), 336); // up to 14 days
+    // Accept fractional hours (0.083 = 5min). CloudWatch's smallest period is 60s.
+    const hours = Math.min(Math.max(data.hours ?? 24, 0.05), 336); // 3min → 14d
     const endTime = new Date();
     const startTime = new Date(endTime.getTime() - hours * 3600_000);
-    // Period: >= 1h window → 60s; >= 6h → 300s; >= 24h → 900s
-    const period = hours <= 3 ? 60 : hours <= 12 ? 300 : hours <= 48 ? 900 : 3600;
+    // Period tuned so we get ~15-60 buckets per window (good bar chart density).
+    const period =
+      hours <= 0.5 ? 60 :
+      hours <= 3 ? 60 :
+      hours <= 12 ? 300 :
+      hours <= 48 ? 900 :
+      hours <= 168 ? 3600 :
+      21600; // 6h buckets for very long windows
 
     // SEARCH expressions return one time series per model, per metric.
     const queries = [
@@ -133,6 +141,7 @@ export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
 
     return {
       windowHours: hours,
+      periodSeconds: period,
       region,
       fetchedAt: new Date().toISOString(),
       latestDatapointAt: latestTs,
