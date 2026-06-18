@@ -11,6 +11,7 @@ export type BedrockCwPerModel = {
 
 export type BedrockCwStats = {
   windowHours: number;
+  periodSeconds: number;
   region: string;
   fetchedAt: string;
   latestDatapointAt: string | null;
