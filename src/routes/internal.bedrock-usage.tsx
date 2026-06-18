@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { getBedrockUsageStats, type BedrockUsageStats } from "@/lib/bedrock-usage.functions";
 import { getBedrockCloudwatchStats, type BedrockCwStats } from "@/lib/bedrock-cloudwatch.functions";
+import { getBedrockCostExplorer, type BedrockCeStats } from "@/lib/bedrock-cost-explorer.functions";
 
 export const Route = createFileRoute("/internal/bedrock-usage")({
   head: () => ({
