@@ -141,6 +141,7 @@ export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
 
     return {
       windowHours: hours,
+      periodSeconds: period,
       region,
       fetchedAt: new Date().toISOString(),
       latestDatapointAt: latestTs,
