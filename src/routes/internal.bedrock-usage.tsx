@@ -468,7 +468,14 @@ function CloudwatchPanel() {
             </div>
 
             <div className="space-y-2">
-              <div className="text-xs font-mono uppercase text-muted-foreground">Invocations · {cw.windowHours}h</div>
+              <div className="flex items-baseline justify-between">
+                <div className="text-xs font-mono uppercase text-muted-foreground">
+                  Invocations · {formatWindow(cw.windowHours)}
+                </div>
+                <div className="text-[10px] font-mono text-muted-foreground">
+                  bucket {formatPeriod(cw.periodSeconds)} · {cw.perMinute.length} points
+                </div>
+              </div>
               <div className="flex items-end gap-[2px] h-24 border-b border-border pb-1">
                 {cw.perMinute.map((p) => (
                   <div
@@ -482,6 +489,13 @@ function CloudwatchPanel() {
                   <div className="w-full text-center text-xs text-muted-foreground">No datapoints in window</div>
                 )}
               </div>
+              {cw.perMinute.length > 1 && (
+                <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
+                  <span>{formatAxisTs(cw.perMinute[0].t, cw.windowHours)}</span>
+                  <span>{formatAxisTs(cw.perMinute[Math.floor(cw.perMinute.length / 2)].t, cw.windowHours)}</span>
+                  <span>{formatAxisTs(cw.perMinute[cw.perMinute.length - 1].t, cw.windowHours)}</span>
+                </div>
+              )}
             </div>
 
             <div className="overflow-x-auto">
