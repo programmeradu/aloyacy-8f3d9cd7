@@ -296,6 +296,9 @@ function BedrockUsagePage() {
         {/* CloudWatch — account-wide, near real time */}
         <CloudwatchPanel />
 
+        {/* Cost Explorer — real billed $, delayed ~8-24h */}
+        <CostExplorerPanel />
+
         <p className="text-xs text-muted-foreground">
           Proxy log auto-refreshes every 15s. Costs are calculated from Bedrock Converse <span className="font-mono">usage</span> field × on-demand list price per model.
           Unknown models log 0 — add pricing in <span className="font-mono">src/lib/bedrock-pricing.ts</span>.
