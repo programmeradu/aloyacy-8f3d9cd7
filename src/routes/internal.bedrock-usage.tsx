@@ -410,9 +410,21 @@ function CloudwatchPanel() {
               onChange={(e) => setHours(Number(e.target.value))}
               className="rounded-lg border border-input bg-background px-3 py-2 text-sm"
             >
-              {[1, 3, 6, 12, 24, 72, 168, 336].map((h) => (
-                <option key={h} value={h}>{h < 24 ? `${h}h` : `${h / 24}d`}</option>
-              ))}
+              <optgroup label="Minutes">
+                <option value={5 / 60}>5 min</option>
+                <option value={15 / 60}>15 min</option>
+                <option value={30 / 60}>30 min</option>
+              </optgroup>
+              <optgroup label="Hours">
+                {[1, 3, 6, 12, 24].map((h) => (
+                  <option key={h} value={h}>{h}h</option>
+                ))}
+              </optgroup>
+              <optgroup label="Days">
+                {[72, 168, 336].map((h) => (
+                  <option key={h} value={h}>{h / 24}d</option>
+                ))}
+              </optgroup>
             </select>
           </label>
           <div className="flex items-end">
