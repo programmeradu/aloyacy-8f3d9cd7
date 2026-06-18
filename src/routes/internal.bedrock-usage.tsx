@@ -17,7 +17,27 @@ export const Route = createFileRoute("/internal/bedrock-usage")({
 
 const money = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 4, maximumFractionDigits: 4 });
+const money2 = (n: number) =>
+  n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const compact = (n: number) => n.toLocaleString("en-US");
+
+function formatWindow(hours: number): string {
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  if (hours < 24) return `${hours}h`;
+  return `${hours / 24}d`;
+}
+function formatPeriod(s: number): string {
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${s / 60}m`;
+  return `${s / 3600}h`;
+}
+function formatAxisTs(iso: string, hours: number): string {
+  const d = new Date(iso);
+  if (hours <= 24) {
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+}
 
 function BedrockUsagePage() {
   const fetchStats = useServerFn(getBedrockUsageStats);
