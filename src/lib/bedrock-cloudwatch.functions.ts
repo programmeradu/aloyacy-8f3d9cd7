@@ -59,11 +59,14 @@ export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
       hours <= 168 ? 3600 :
       21600; // 6h buckets for very long windows
 
-    // SEARCH expressions return one time series per model, per metric.
+    // SEARCH returns one time series per model, per metric. We force the
+    // Label to just the ModelId so we can attribute each series unambiguously
+    // (default labels vary and can drop the "ModelId=" prefix entirely).
+    const label = "${PROP('Dim.ModelId')}";
     const queries = [
-      { id: "inv", expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="Invocations"', 'Sum', ${period})` },
-      { id: "in", expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="InputTokenCount"', 'Sum', ${period})` },
-      { id: "out", expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="OutputTokenCount"', 'Sum', ${period})` },
+      { id: "inv", expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="Invocations"', 'Sum', ${period})`, label },
+      { id: "in", expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="InputTokenCount"', 'Sum', ${period})`, label },
+      { id: "out", expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="OutputTokenCount"', 'Sum', ${period})`, label },
     ];
 
     const series = await cwGetMetricData(
@@ -71,15 +74,19 @@ export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
       { startTime, endTime, queries },
     );
 
-    // Labels come back as "Bedrock ModelId=<modelId> Invocations"
-    // Extract the ModelId, then bucket by (metric, modelId).
+    // With the Label override above, s.label IS the modelId. Fall back to
+    // regex parsing for any series where CloudWatch couldn't resolve the
+    // template (e.g. metric-math results with no dimensions).
     const modelIndex = new Map<string, BedrockCwPerModel>();
     const minuteMap = new Map<string, { invocations: number; inputTokens: number; outputTokens: number; estCostUsd: number }>();
     let latestTs: string | null = null;
 
     for (const s of series) {
-      const modelMatch = /ModelId=([^\s]+)/.exec(s.label);
-      const modelId = modelMatch?.[1] ?? "unknown";
+      const raw = s.label?.trim() ?? "";
+      const modelId =
+        raw && !raw.includes(" ") && raw !== "Invocations" && raw !== "InputTokenCount" && raw !== "OutputTokenCount"
+          ? raw
+          : (/ModelId=([^\s]+)/.exec(raw)?.[1] ?? "unknown");
       const bucket = modelIndex.get(modelId) ?? {
         modelId,
         invocations: 0,
