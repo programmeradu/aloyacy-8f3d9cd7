@@ -32,6 +32,7 @@ export async function cwGetMetricData(
       expression: string;
       period?: number; // seconds; default 300
       returnData?: boolean;
+      label?: string; // CloudWatch Label template, e.g. "${PROP('Dim.ModelId')}"
     }>;
   },
 ): Promise<CwSeries[]> {
@@ -53,6 +54,7 @@ export async function cwGetMetricData(
       `MetricDataQueries.member.${n}.ReturnData`,
       String(q.returnData ?? true),
     );
+    if (q.label) params.set(`MetricDataQueries.member.${n}.Label`, q.label);
   });
 
   const body = params.toString();
