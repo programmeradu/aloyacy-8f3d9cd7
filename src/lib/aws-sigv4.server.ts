@@ -111,13 +111,21 @@ export async function signRequest(
 
   const authorization = `${algorithm} Credential=${input.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
 
-  const finalHeaders: Record<string, string> = {
-    "Content-Type": headers["content-type"],
-    "X-Amz-Date": amzDate,
-    "X-Amz-Content-Sha256": payloadHash,
-    Authorization: authorization,
-  };
-  if (input.sessionToken) finalHeaders["X-Amz-Security-Token"] = input.sessionToken;
+  // Forward every signed header on the wire — otherwise service-specific
+  // headers like X-Amz-Target (required by Cost Explorer, DynamoDB, etc.)
+  // are included in the signature but missing from the request, and AWS
+  // rejects with UnknownOperationException.
+  const finalHeaders: Record<string, string> = {};
+  for (const h of signedHeaderNames) {
+    if (h === "host") continue; // set automatically by fetch
+    // Preserve conventional casing for well-known headers.
+    const name = h
+      .split("-")
+      .map((p) => (p === "amz" ? "Amz" : p.charAt(0).toUpperCase() + p.slice(1)))
+      .join("-");
+    finalHeaders[name] = headers[h];
+  }
+  finalHeaders["Authorization"] = authorization;
 
   return { url: input.url, headers: finalHeaders };
 }
