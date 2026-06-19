@@ -12,11 +12,11 @@ export const Route = createFileRoute("/internal/bedrock")({
 });
 
 const MODEL_PRESETS = [
-  "arn:aws:bedrock:us-west-2:362234323850:inference-profile/global.anthropic.claude-opus-4-6-v1:0",
-  "arn:aws:bedrock:us-west-2:362234323850:inference-profile/global.anthropic.claude-opus-4-5-20251101-v1:0",
-  "arn:aws:bedrock:us-west-2:362234323850:inference-profile/global.anthropic.claude-sonnet-4-6",
-  "arn:aws:bedrock:us-west-2:362234323850:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0",
-  "arn:aws:bedrock:us-west-2:362234323850:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "arn:aws:bedrock:sa-east-1:362234323850:inference-profile/global.anthropic.claude-opus-4-6-v1:0",
+  "arn:aws:bedrock:sa-east-1:362234323850:inference-profile/global.anthropic.claude-opus-4-5-20251101-v1:0",
+  "arn:aws:bedrock:sa-east-1:362234323850:inference-profile/global.anthropic.claude-sonnet-4-6",
+  "arn:aws:bedrock:sa-east-1:362234323850:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "arn:aws:bedrock:sa-east-1:362234323850:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0",
   "anthropic.claude-3-5-sonnet-20241022-v2:0",
   "anthropic.claude-3-5-haiku-20241022-v1:0",
   "amazon.nova-pro-v1:0",
@@ -29,7 +29,7 @@ function BedrockTestPage() {
   const [authMode, setAuthMode] = useState<AuthMode>("sigv4");
   const [apiKey, setApiKey] = useState("");
   const [credsCombined, setCredsCombined] = useState("");
-  const [region, setRegion] = useState("us-west-2");
+  const [region, setRegion] = useState("sa-east-1");
   const [modelId, setModelId] = useState(MODEL_PRESETS[0]);
   const [prompt, setPrompt] = useState("Say hello from Bedrock in one sentence.");
   const [maxTokens, setMaxTokens] = useState(1024);
@@ -181,7 +181,7 @@ function BedrockTestPage() {
               rows={3}
               spellCheck={false}
               className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
-              placeholder="AKIAXXXXXXXXXXXXXXXX:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY:us-west-2"
+              placeholder="AKIAXXXXXXXXXXXXXXXX:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY:sa-east-1"
             />
             {parsedPreview && (parsedPreview.accessKeyId || parsedPreview.secretAccessKey) && (
               <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
