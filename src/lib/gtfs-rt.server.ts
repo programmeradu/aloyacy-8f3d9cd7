@@ -82,21 +82,45 @@ export type RealtimeSnapshot = {
 };
 
 
+/** Fetch the raw protobuf, trying each source until one yields bytes. */
+async function fetchFeedBytes(): Promise<Uint8Array> {
+  const failures: string[] = [];
+  for (const url of FEED_SOURCES) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          Accept: "application/octet-stream",
+          "User-Agent":
+            "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
+        },
+        signal: AbortSignal.timeout(12_000),
+      });
+      if (!res.ok) {
+        failures.push(`${new URL(url).host} ${res.status}`);
+        continue;
+      }
+      const buf = new Uint8Array(await res.arrayBuffer());
+      if (buf.byteLength === 0) {
+        failures.push(`${new URL(url).host} empty`);
+        continue;
+      }
+      return buf;
+    } catch (e) {
+      failures.push(
+        `${new URL(url).host} ${e instanceof Error ? e.message : String(e)}`,
+      );
+    }
+  }
+  throw new Error(`GTFS-RT upstream unreachable (${failures.join("; ")})`);
+}
+
 async function fetchUpstream(): Promise<{
   vehicles: LiveVehicle[];
   arrivals: LiveArrival[];
 }> {
-  const res = await fetch(FEED_URL, {
-    headers: {
-      Accept: "application/octet-stream",
-      "User-Agent":
-        "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
-    },
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!res.ok) throw new Error(`GTFS-RT upstream ${res.status}`);
-  const buf = new Uint8Array(await res.arrayBuffer());
+  const buf = await fetchFeedBytes();
   const feed = gr.transit_realtime.FeedMessage.decode(buf);
+
 
   const vehicles: LiveVehicle[] = [];
   const arrivals: LiveArrival[] = [];
