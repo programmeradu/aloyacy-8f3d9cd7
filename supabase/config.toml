@@ -1,1 +1,4 @@
 project_id = "uliqfclkndvevslmjwlu"
+
+[functions.gtfs-proxy]
+verify_jwt = false

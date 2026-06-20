@@ -11,15 +11,19 @@ import gr from "gtfs-realtime-bindings";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 // Feed sources, tried in order until one returns a decodable protobuf.
-// Historically the Cyprus upstream refused Cloudflare Worker egress IPs, so
-// everything went through an external Node proxy. That proxy is a single point
-// of failure (it started returning 402 when its host suspended the project),
-// so we now hit the upstream directly from our own Cloudflare Worker first and
-// only fall back to the proxy if the direct call fails.
-const FEED_SOURCES = [
-  "http://20.19.98.194:8328/Api/api/gtfs-realtime",
-  "https://programmeradu-aloya-proxy.vercel.app/api/feed",
-] as const;
+// The Cyprus upstream answers 403 to Cloudflare Worker egress IPs, so the
+// direct call from our own Worker usually fails — we still try it first in
+// case that ever changes (it's the lowest-latency path), then fall back to
+// our own edge-function relay, which runs on different infrastructure and
+// does reach the upstream. The old third-party Vercel proxy is gone.
+const DIRECT_FEED = "http://20.19.98.194:8328/Api/api/gtfs-realtime";
+
+function feedSources(): string[] {
+  const base = process.env.SUPABASE_URL ?? "https://uliqfclkndvevslmjwlu.supabase.co";
+  return [DIRECT_FEED, `${base}/functions/v1/gtfs-proxy`];
+}
+
+
 
 
 /** Rider fixes are trusted over upstream when they are this fresh. */
@@ -85,7 +89,7 @@ export type RealtimeSnapshot = {
 /** Fetch the raw protobuf, trying each source until one yields bytes. */
 async function fetchFeedBytes(): Promise<Uint8Array> {
   const failures: string[] = [];
-  for (const url of FEED_SOURCES) {
+  for (const url of feedSources()) {
     try {
       const res = await fetch(url, {
         headers: {
