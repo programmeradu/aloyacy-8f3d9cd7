@@ -10,9 +10,17 @@
 import gr from "gtfs-realtime-bindings";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-// Cyprus upstream blocks Cloudflare Worker IPs, so we go through a tiny
-// Vercel Node function that fetches the raw protobuf and forwards it.
-const FEED_URL = "https://programmeradu-aloya-proxy.vercel.app/api/feed";
+// Feed sources, tried in order until one returns a decodable protobuf.
+// Historically the Cyprus upstream refused Cloudflare Worker egress IPs, so
+// everything went through an external Node proxy. That proxy is a single point
+// of failure (it started returning 402 when its host suspended the project),
+// so we now hit the upstream directly from our own Cloudflare Worker first and
+// only fall back to the proxy if the direct call fails.
+const FEED_SOURCES = [
+  "http://20.19.98.194:8328/Api/api/gtfs-realtime",
+  "https://programmeradu-aloya-proxy.vercel.app/api/feed",
+] as const;
+
 
 /** Rider fixes are trusted over upstream when they are this fresh. */
 const RIDER_FIX_TRUST_SEC = 25;
@@ -74,21 +82,45 @@ export type RealtimeSnapshot = {
 };
 
 
+/** Fetch the raw protobuf, trying each source until one yields bytes. */
+async function fetchFeedBytes(): Promise<Uint8Array> {
+  const failures: string[] = [];
+  for (const url of FEED_SOURCES) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          Accept: "application/octet-stream",
+          "User-Agent":
+            "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
+        },
+        signal: AbortSignal.timeout(12_000),
+      });
+      if (!res.ok) {
+        failures.push(`${new URL(url).host} ${res.status}`);
+        continue;
+      }
+      const buf = new Uint8Array(await res.arrayBuffer());
+      if (buf.byteLength === 0) {
+        failures.push(`${new URL(url).host} empty`);
+        continue;
+      }
+      return buf;
+    } catch (e) {
+      failures.push(
+        `${new URL(url).host} ${e instanceof Error ? e.message : String(e)}`,
+      );
+    }
+  }
+  throw new Error(`GTFS-RT upstream unreachable (${failures.join("; ")})`);
+}
+
 async function fetchUpstream(): Promise<{
   vehicles: LiveVehicle[];
   arrivals: LiveArrival[];
 }> {
-  const res = await fetch(FEED_URL, {
-    headers: {
-      Accept: "application/octet-stream",
-      "User-Agent":
-        "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
-    },
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!res.ok) throw new Error(`GTFS-RT upstream ${res.status}`);
-  const buf = new Uint8Array(await res.arrayBuffer());
+  const buf = await fetchFeedBytes();
   const feed = gr.transit_realtime.FeedMessage.decode(buf);
+
 
   const vehicles: LiveVehicle[] = [];
   const arrivals: LiveArrival[] = [];
