@@ -10,9 +10,17 @@
 import gr from "gtfs-realtime-bindings";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-// Cyprus upstream blocks Cloudflare Worker IPs, so we go through a tiny
-// Vercel Node function that fetches the raw protobuf and forwards it.
-const FEED_URL = "https://programmeradu-aloya-proxy.vercel.app/api/feed";
+// Feed sources, tried in order until one returns a decodable protobuf.
+// Historically the Cyprus upstream refused Cloudflare Worker egress IPs, so
+// everything went through an external Node proxy. That proxy is a single point
+// of failure (it started returning 402 when its host suspended the project),
+// so we now hit the upstream directly from our own Cloudflare Worker first and
+// only fall back to the proxy if the direct call fails.
+const FEED_SOURCES = [
+  "http://20.19.98.194:8328/Api/api/gtfs-realtime",
+  "https://programmeradu-aloya-proxy.vercel.app/api/feed",
+] as const;
+
 
 /** Rider fixes are trusted over upstream when they are this fresh. */
 const RIDER_FIX_TRUST_SEC = 25;
