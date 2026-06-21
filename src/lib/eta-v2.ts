@@ -39,9 +39,9 @@ import {
 import type { LearnedBias } from "./learned-types";
 import {
   classifyFreshness,
-  thresholdsFor,
   type FreshnessTier,
 } from "./freshness";
+
 
 
 export type SegmentSpeedKey = string; // `${routeId}|${fromStopId}|${toStopId}`
@@ -94,9 +94,8 @@ const INTERCITY_FALLBACK_MPS = 40 / 3.6;
 const URBAN_DWELL_SEC = 20;
 const INTERCITY_DWELL_SEC = 10;
 const MIN_SAMPLES_TRUST = 5;
-const PING_FRESH_SEC = 60;
 const PING_STALE_SEC = 90;
-const NEAR_STOPS_LIVE = 5;
+
 const LEARNED_BIAS_WEIGHT = 0.6;
 const LEARNED_BIAS_MIN_SAMPLES = 5;
 const LEARNED_BLURB_MIN_SAMPLES = 8;
