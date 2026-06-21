@@ -291,7 +291,7 @@ function Explore() {
           {mounted ? getGreeting().word : "Kalimera."}
           <br />
           <span className="italic text-olive-soft">
-            {tt("home.whereToday", { area: headerArea })}
+            {tt("home.whereToday", { area: mounted ? headerArea : "Cyprus" })}
           </span>
 
         </h1>
