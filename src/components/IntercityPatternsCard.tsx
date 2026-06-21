@@ -153,7 +153,7 @@ export function IntercityPatternsCard({ insights, isLoading }: Props) {
               {t("intercity.weekday")}
             </span>
             <p className="mt-1.5 font-display text-[22px] leading-none text-ink">
-              {weekdayMeanDelaySec === null ? "—" : fmtDelay(weekdayMeanDelaySec, t)}
+              {weekdayMeanDelaySec === null ? "—" : fmtDelay(weekdayMeanDelaySec, t as TFn)}
             </p>
           </div>
           <div>
@@ -161,7 +161,7 @@ export function IntercityPatternsCard({ insights, isLoading }: Props) {
               {t("intercity.weekend")}
             </span>
             <p className="mt-1.5 font-display text-[22px] leading-none text-ink">
-              {weekendMeanDelaySec === null ? "—" : fmtDelay(weekendMeanDelaySec, t)}
+              {weekendMeanDelaySec === null ? "—" : fmtDelay(weekendMeanDelaySec, t as TFn)}
             </p>
             {weekendDelta !== null && Math.abs(weekendDelta) >= 60 && (
               <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
