@@ -114,10 +114,13 @@ export type LiveJourney = {
   vehicleLost: boolean;
   /** True when the realtime feed itself is paused (proxy down, > 60 s stale). */
   feedStale: boolean;
+  /** True when this trip is flagged ghost on the snapshot (no fresh GPS ≥ 180s). */
+  tripGhost: boolean;
   /** True when feed is healthy but no vehicle for this tripId yet (very common
    *  pre-departure and at night). Drives an honest "not yet on the live feed"
    *  banner instead of leaving the map silently empty. */
   vehicleNotTracked: boolean;
+
   /** Google-Maps-style wrong-stop hint: rider drifted to a different stop the
    *  same route serves, or to one it doesn't serve. */
   rerouteHint: RerouteHint;
@@ -230,7 +233,9 @@ export function useJourney(opts: {
       missedSuggested: false,
       vehicleLost: false,
       feedStale,
+      tripGhost: false,
       vehicleNotTracked: false,
+
       rerouteHint: null,
     };
 
@@ -523,7 +528,9 @@ export function useJourney(opts: {
       missedSuggested,
       vehicleLost,
       feedStale,
+      tripGhost: !!(bus?.tripId && rt?.ghostTripIds?.includes(bus.tripId)),
       vehicleNotTracked,
+
       rerouteHint,
     };
   }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps, feedStale, drive.etaSec, onBoard, tick]);
