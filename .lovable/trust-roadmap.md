@@ -55,10 +55,17 @@ Limassol coverage, trip chaining.
 - Up to 2 tags per option, joined with an em-dash. Top option gets a `best-overall` fallback so the #1 rank is always explained.
 - Wired into `multileg.functions.ts` after the final sort, surfaced on `ItineraryCard` as a calm limestone block under the leg ribbon. EN/EL copy. No new ML, no extra server calls.
 
-### 2.2 Accessibility-Weighted Routing — NEXT
-- Preference: step-free, low-floor bus, shaded waits, max walking distance.
-- Stored per-profile; planner accepts as ranking weights, not hard filters.
-- Surface affordances on `StopCard` (shelter / shade / seating / step-free).
+### 2.2 Accessibility-Weighted Routing — SHIPPED 2026-06-21
+- Preferences stored in `user_settings.accessibility_prefs` (JSONB) with localStorage cache; anon riders keep prefs local-only.
+- Settings card lives in `/wallet` (`AccessibilityPrefsCard`): toggles for step-free routing and shaded waits, plus a discrete-step walking cap (None / 400 m → 2 km).
+- Planner contract extended (`multileg.functions.ts` `InputSchema.a11y`); weights applied in `accessibility-weights.ts` AFTER the final sort and BEFORE rationale annotation. Soft re-ranking only — never filters.
+  - Walking-cap overshoot penalised at 1.0 sec/meter over limit.
+  - Step-free: +60s per leg whose board/alight stop is known non-step-free.
+  - Shade: +30s per non-shaded board/wait, −20s bonus when shaded; wait legs weighted by wait length up to 5 min.
+- Stop amenity data: curated seed dataset (`src/data/stop-amenities.ts`) for major Nicosia hubs + intercity terminals. Unknown stops stay neutral (no guessing).
+- `StopCard` surfaces positive amenity chips (Shelter / Shade / Seating / Step-free) when known; nothing otherwise.
+- `lowFloor` preference stored and shipped through the planner contract but not yet weighted — wires in the moment GTFS-RT VehiclePosition wheelchair_accessible lands.
+- EN/EL strings in both dictionaries.
 
 ### 2.1 Multimodal Planning Quality — PLANNED
 - Walk-leg accuracy via Google Routes (already wired) — extend to bike-share where available.
