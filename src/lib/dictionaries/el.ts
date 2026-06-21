@@ -474,6 +474,15 @@ export const el: Record<keyof typeof en, string> = {
   "kapnos.bookCta": "Κράτηση στην Kapnos",
   "kapnos.timetableCta": "Πλήρες δρομολόγιο",
   "kapnos.disclaimer": "Η διαθεσιμότητα και η κράτηση γίνονται από την Kapnos",
+  "kapnos.fromPrice": "από {price}",
+  "kapnos.coachLeg": "Λεωφορείο Kapnos — {m} λεπτά χωρίς στάσεις",
+  "kapnos.firstMile.title": "Διαδρομή με αστικό προς {stop}",
+  "kapnos.firstMile.loading": "Σχεδιάζουμε τη διαδρομή σας προς τη στάση…",
+  "kapnos.firstMile.none": "Δεν βρέθηκε απευθείας αστικό — προτείνουμε ταξί ή ride-share ως τη στάση.",
+  "kapnos.lastMile.title": "Διαδρομή με αστικό από {stop}",
+  "kapnos.lastMile.loading": "Σχεδιάζουμε τη συνέχεια της διαδρομής σας…",
+  "kapnos.lastMile.none": "Δεν βρέθηκε απευθείας αστικό από τη στάση — προτείνουμε ταξί ή ride-share.",
+  "kapnos.moreLabel": "Περισσότερες αναχωρήσεις & κράτηση",
 
 
   // saved
