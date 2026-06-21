@@ -139,9 +139,18 @@ Goal: chain modes intelligently when the bus-only answer is poor.
   - `/trips` planning page renders the card below the top itinerary so the rider sees the handoff before committing.
   - `MultiLegCompanion` pre-fetches the suggestion when the itinerary's final walk is ≥800 m and shows the card during `walking-to-destination` phase — alongside the existing `LongFinalWalkHint`, so the rider can switch to a taxi the moment they alight.
 
+### Bike-share (Nextbike Cyprus) — SHIPPED 2026-06-21
+- Reversed the earlier "out of scope" call: Nextbike actually runs in all 5 urban regions (Limassol, Nicosia, Larnaca, Paphos, Famagusta) with ~516 docked stations and ~860 bikes live across the island. Public `nextbike-live.json` feed, no auth, ~10-min refresh.
+- New `src/lib/bikeshare.functions.ts`:
+  - `nearestBikeStations({ near, max, needBikes, needRacks })` — reusable for future surfaces (map overlay, stop pages, last-mile alts).
+  - `suggestBikeShare({ from, to, busOnlyDurationSec })` — only fires when OD is 1.5–8 km, **both** endpoints have a station within 650 m walk, pickup station has ≥1 bike, dropoff has ≥1 free rack, ride ≥800 m, and total (walk + 90 s unlock + ride at 16 km/h + 60 s return + walk) saves ≥3 min vs the bus plan (or no bus plan exists).
+  - Module-level 60 s cache on the Nextbike feed — many planners hit one upstream call.
+  - Stale-cache fallback if upstream is temporarily down; never invents station counts.
+- `BikeShareCard` rendered on `/trips` above `ItineraryResults` (after Park & Ride, before bus list): editorial 01/02/03 ribbon (pickup → ride → dropoff), live bike + rack counts, "Open Nextbike" + cycling-mode Google Maps deep link. Numerals, no icons, no bullet dots. EN + EL strings under `bike.*`.
+- Honesty: never recommends a station with 0 bikes or a dropoff with 0 racks; never suggests cross-city cycling.
+
 ### Still planned
-- Bike-share integration — OUT OF SCOPE for Cyprus (no city-scale network).
-- Scooter integration (Bolt / Lime if launched in CY).
+- Scooter integration (Bolt scooters live in Nicosia via CyNAP DATEX II feed).
 - Group trips (shared planning links, live ETAs to multiple riders).
 
 ---

@@ -108,17 +108,17 @@ export const en = {
   // multi-leg companion
   "ml.changesOne": "One change",
   "ml.changesN": "{n} changes",
-  "ml.rideOfN": "{label} · ride {n} of {total}",
+  "ml.rideOfN": "{label} — ride {n} of {total}",
   "ml.boardingAdjusted": "Boarding adjusted",
   "ml.boardingAdjustedBody": "You're closer to {name}. Same bus stops here — board from this stop instead.",
   "ml.differentStop": "Different stop",
   "ml.replanFromHere": "Re-plan from here",
   "ml.tracking": "Tracking live — we'll buzz when you need to act.",
-  "ml.minArr": "{m} min · arr {t}",
+  "ml.minArr": "{m} min — arr {t}",
   "ml.phase.ready": "Ready to go",
   "ml.phase.walkFirst": "Walk to first stop",
   "ml.phase.waitFor": "Wait for bus {code}",
-  "ml.phase.onBus": "On bus {code} · ride {n} of {total}",
+  "ml.phase.onBus": "On bus {code} — ride {n} of {total}",
   "ml.phase.alightNext": "Alight next",
   "ml.phase.walkToBus": "Walk to bus {code}",
   "ml.phase.finalWalk": "Final walk",
@@ -177,8 +177,8 @@ export const en = {
   "ml.timeline.boardPrefix": "Board",
   "ml.timeline.walkTo": "Walk to",
   "ml.timeline.waitAt": "Wait at {name}",
-  "ml.timeline.rideSub": "{from} → {to} · {dep} — {arr} · {n} stops",
-  "ml.timeline.walkSub": "{min} · {d} m",
+  "ml.timeline.rideSub": "{from} → {to} — {dep} — {arr} — {n} stops",
+  "ml.timeline.walkSub": "{min} — {d} m",
   "ml.timeline.waitSub": "{min} at the stop",
 
   // bottom nav
@@ -343,7 +343,7 @@ export const en = {
   "route.boardingOrigin": "Boarding at origin — bound for {terminus}",
   "route.doorsOpen": "Doors open — next stop {name}",
   "route.headingTo": "Heading to {name}",
-  "route.arrivingEnds": "arriving {time} · ends at {terminus}",
+  "route.arrivingEnds": "arriving {time} — ends at {terminus}",
   "route.kmhPrefix": "{kmh} km/h — ",
   "route.boardingPill": "boarding",
   "route.atStopPill": "at stop",
@@ -413,7 +413,7 @@ export const en = {
   "pnr.title": "Drive to {hub}, bus from there.",
   "pnr.driveLabel": "Drive",
   "pnr.busLabel": "Bus",
-  "pnr.driveSub": "{km} km · live traffic",
+  "pnr.driveSub": "{km} km — live traffic",
   "pnr.busSubRoute": "Route {route} from {stop}",
   "pnr.busSubNoRoute": "From {stop}",
   "pnr.openDrive": "Open driving directions",
@@ -437,7 +437,21 @@ export const en = {
   "chain.openBolt": "Open in Bolt",
   "chain.callDispatcher": "Call a taxi",
   "chain.openMaps": "Open in Maps",
-  "chain.disclaimer": "Estimate · regulated Cyprus tariff, ±15%",
+  "chain.disclaimer": "Estimate — regulated Cyprus tariff, ±15%",
+
+  // bike share (Nextbike Cyprus)
+  "bike.eyebrowFaster": "Cycle instead — saves {m} min",
+  "bike.eyebrowAlt": "Cycle instead — no bus needed",
+  "bike.totalLine": "{m} min door-to-door",
+  "bike.title": "A Nextbike across {city} works for this one.",
+  "bike.pickupMeta": "{bikes} bikes ready — {walk} walk",
+  "bike.dropoffMeta": "{racks} free racks — {walk} walk to finish",
+  "bike.rideLine": "{m} min ride — {km} km",
+  "bike.ridePace": "City pace, e-bike assist",
+  "bike.openNextbike": "Open Nextbike",
+  "bike.openRoute": "Cycling route in Maps",
+  "bike.disclaimer": "Live station counts — refreshed every 10 min",
+
 
 
   // saved
@@ -644,7 +658,7 @@ export const en = {
   "remind.set": "Reminder set",
   "remind.saving": "Saving…",
   "remind.cta": "Remind me to leave",
-  "remind.ctaPro": "Remind me to leave · Pro",
+  "remind.ctaPro": "Remind me to leave — Pro",
   "remind.foot": "We'll re-check weather & traffic and ping you a little earlier if needed.",
   "remind.error": "Could not schedule reminder",
   "remind.authTitle": "Sign in to save reminders",
@@ -868,8 +882,8 @@ export const en = {
   "proacc.opening": "Opening…",
   "proacc.signOut": "Sign out",
   "proacc.errPortal": "Could not open billing",
-  "proacc.plan.weekly": "Weekly · €1.99",
-  "proacc.plan.monthly": "Monthly · €6.99",
+  "proacc.plan.weekly": "Weekly — €1.99",
+  "proacc.plan.monthly": "Monthly — €6.99",
   "proacc.plan.default": "Aloya Pro",
 
   // Pulse
@@ -1027,14 +1041,14 @@ export const en = {
   "itin.walk": "Walk",
   "itin.wait": "Wait",
   "itin.at": "at",
-  "itin.stopsLive": "{n} stops · live",
+  "itin.stopsLive": "{n} stops — live",
   "itin.stops": "{n} stops",
 
   // Pro upsell card
   "proup.taglineLead": "Hear your bus. Plan transfers.",
   "proup.taglineTail": "Stay offline.",
   "proup.priceFromPrefix": "From",
-  "proup.priceFromSuffix": "/wk · cancel anytime",
+  "proup.priceFromSuffix": "/wk — cancel anytime",
   "proup.tryPro": "Try Pro",
   "proup.unlock": "Unlock with Pro",
 
