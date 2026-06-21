@@ -226,15 +226,19 @@ function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
           {t("hud.atStop.body", { name: bus.board.name })}
         </p>
       </div>
-      {needsSighting && (
-        <SightingButton
-          tripId={bus.tripId}
-          routeId={bus.routeId}
-          stopId={bus.board.stopId}
-          lat={bus.board.lat}
-          lng={bus.board.lng}
-        />
-      )}
+      {needsSighting && (() => {
+        const s = getStop(bus.board.stopId);
+        if (!s) return null;
+        return (
+          <SightingButton
+            tripId={bus.tripId}
+            routeId={bus.routeId}
+            stopId={bus.board.stopId}
+            lat={s.lat}
+            lng={s.lng}
+          />
+        );
+      })()}
     </section>
   );
 }
