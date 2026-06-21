@@ -27,6 +27,7 @@ import fareNight from "@/assets/fare-night.jpg";
 import fareIntercity from "@/assets/fare-intercity.jpg";
 import { ProUpsellCard } from "@/components/ProUpsell";
 import { ProAccountCard } from "@/components/ProAccountCard";
+import { AccessibilityPrefsCard } from "@/components/AccessibilityPrefsCard";
 import { useI18n } from "@/lib/i18n";
 
 // Lazy: the editor sheet only mounts when the user taps to edit.
@@ -354,6 +355,7 @@ function WalletRoute() {
           <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "220ms" }}>
             <ProAccountCard />
             <ProUpsellCard />
+            <AccessibilityPrefsCard />
           </section>
 
           {/* Fare reference */}
