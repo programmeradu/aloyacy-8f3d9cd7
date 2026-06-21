@@ -500,7 +500,12 @@ function Plan() {
         )}
 
         {results && results.length > 0 && origin && destination && (
-          <ItineraryResults results={results} origin={origin} destination={destination} />
+          <div className="flex flex-col gap-3">
+            {pnr && (
+              <ParkAndRideCard suggestion={pnr} origin={{ lat: origin.lat, lng: origin.lng }} />
+            )}
+            <ItineraryResults results={results} origin={origin} destination={destination} />
+          </div>
         )}
       </section>
     </AppShell>
