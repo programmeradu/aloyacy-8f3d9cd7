@@ -530,6 +530,21 @@ export const el: Record<keyof typeof en, string> = {
   "stale.vehicleLost.detail": "Χάσαμε το λεωφορείο από τη ζωντανή ροή — χρησιμοποιούμε το GPS σας για να κρατήσουμε χάρτη και αντίστροφη μέτρηση ακριβείς μέχρι να επιστρέψει.",
   "stale.nextNotTracked.label": "Το επόμενο λεωφορείο δεν παρακολουθείται ακόμη",
   "stale.nextNotTracked.detail": "Το λεωφορείο ανταπόκρισης δεν έχει αρχίσει να στέλνει τη θέση του. Θα εμφανιστεί μόλις ξεκινήσει.",
+  "stale.ghostBus.label": "Χωρίς GPS για αυτό το λεωφορείο",
+  "stale.ghostBus.detail": "Δεν έχουμε λάβει θέση από αυτό το όχημα για πάνω από 3 λεπτά. Δείχνουμε την προγραμματισμένη ώρα — θεωρήστε την εκτίμηση.",
+
+  // Πλακέτα ETA με ζώνη εμπιστοσύνης
+  "eta.tier.live": "ζωντανό",
+  "eta.tier.rider": "από επιβάτη",
+  "eta.tier.predicted": "πρόβλεψη",
+  "eta.tier.ghost": "χωρίς gps",
+  "eta.tier.scheduled": "πρόγραμμα",
+  "eta.conf.high": "υψηλή εμπιστοσύνη",
+  "eta.conf.med": "μέτρια εμπιστοσύνη",
+  "eta.conf.low": "χαμηλή εμπιστοσύνη",
+  "eta.minLabel": "λεπτά",
+  "eta.opShort": "οπ {m} λεπ",
+
 
   // crowd hint
   "crowd.tag": "Άνεση",
