@@ -457,11 +457,12 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       fusedCurrentVehicle,
       vehicleLost,
       feedStale,
-      tripGhost: (() => {
-        const tripId = currentRideLeg?.kind === "ride" ? currentRideLeg.tripId : null;
-        if (!tripId || !rt?.ghostTripIds) return false;
-        return rt.ghostTripIds.includes(tripId);
-      })(),
+      tripGhost: !!(
+        currentRideLeg &&
+        rt?.ghostTripIds &&
+        rt.ghostTripIds.includes(currentRideLeg.tripId)
+      ),
+
       nextVehicleTracked,
 
       rerouteHint,
