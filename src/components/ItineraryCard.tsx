@@ -10,24 +10,29 @@ import { RouteChip } from "@/components/RouteChip";
 import { IconArrowUpRight } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
 
-function rationaleToCopy(tag: RationaleTag, t: (k: string, v?: Record<string, string | number>) => string): string {
+// Rationale tag → i18n key (with optional vars). Keeping the keys as
+// string literals here ensures the dictionary type guards still fire.
+type T = (key: never, vars?: Record<string, string | number>) => string;
+function rationaleToCopy(tag: RationaleTag, t: T): string {
   switch (tag.kind) {
     case "fastest":
-      return t("rationale.fastest", { m: tag.minutesEarlier });
+      return t("rationale.fastest" as never, { m: tag.minutesEarlier });
     case "no-changes":
-      return t("rationale.noChanges");
+      return t("rationale.noChanges" as never);
     case "fewer-changes":
-      return tag.n === 1 ? t("rationale.fewerChangesOne") : t("rationale.fewerChanges");
+      return tag.n === 1
+        ? t("rationale.fewerChangesOne" as never)
+        : t("rationale.fewerChanges" as never);
     case "less-walking":
-      return t("rationale.lessWalking", { m: tag.metersSaved });
+      return t("rationale.lessWalking" as never, { m: tag.metersSaved });
     case "all-live":
-      return t("rationale.allLive");
+      return t("rationale.allLive" as never);
     case "more-reliable":
-      return t("rationale.moreReliable");
+      return t("rationale.moreReliable" as never);
     case "leaves-sooner":
-      return t("rationale.leavesSooner", { m: tag.minutesSooner });
+      return t("rationale.leavesSooner" as never, { m: tag.minutesSooner });
     case "best-overall":
-      return t("rationale.bestOverall");
+      return t("rationale.bestOverall" as never);
   }
 }
 
