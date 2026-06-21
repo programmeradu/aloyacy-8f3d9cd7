@@ -1049,4 +1049,10 @@ export const en = {
   "amenity.shade": "Shade",
   "amenity.seating": "Seating",
   "amenity.stepFree": "Step-free",
+
+  // Wave 2.1 — Live walking banner
+  "walkLive.now": "Now",
+  "walkLive.inMeters": "In {m}",
+  "walkLive.then": "Then",
+  "walkLive.lastStep": "Last step — you're almost there",
 } as const;
