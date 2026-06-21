@@ -224,6 +224,7 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
   // so every consumer reads one truth — see src/lib/freshness.ts.
   const GHOST_AGE_SEC = 180;
   const SOON_WINDOW_SEC = 30 * 60;
+  const confirmedSet = new Set(sightings.map((s) => s.tripId));
   const ghostTripIds: string[] = [];
   const tripsWithUpcoming = new Set<string>();
   for (const a of arrivals) {
@@ -232,6 +233,9 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
     }
   }
   for (const tripId of tripsWithUpcoming) {
+    // Rider-confirmed trips are NOT ghosts — at least one rider physically
+    // sees this bus right now, so we trust it even without a fresh feed row.
+    if (confirmedSet.has(tripId)) continue;
     const v = byTrip.get(tripId);
     if (!v) {
       ghostTripIds.push(tripId);
@@ -247,6 +251,7 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
     vehicles: mergedVehicles,
     arrivals,
     ghostTripIds,
+    riderConfirmedTrips: sightings,
   };
 }
 
