@@ -81,9 +81,16 @@ Limassol coverage, trip chaining.
 - Stop entry/exit hints ("Board at Bay C", "Exit door at the front"): DEFERRED — no authoritative dataset; revisit if/when operator publishes bay assignments or we crowdsource it.
 - `JourneyHUD` (single-leg) already had `LiveStepCard` from earlier work; left untouched.
 
-### 2.3 Park & Ride Suggestions — PLANNED
-- For trips originating outside Nicosia core, suggest "Drive to X, bus from there" when total time is competitive.
-- Requires P&R inventory dataset (manual seed for Strovolos, Engomi, Latsia hubs).
+### 2.3 Park & Ride Suggestions — SHIPPED 2026-06-21
+- Curated hub inventory (`src/data/park-and-ride.ts`): GSP Stadium, Engomi/UCY ring, Strovolos Municipal Hall, Mall of Cyprus, Lakatamia. Each entry verified for real free/cheap parking + frequent inbound bus link.
+- `suggestParkAndRide` server fn (`src/lib/park-and-ride.functions.ts`):
+  - Geometry gates first (origin ≥5 km from Nicosia centre, destination ≤8 km, O→D ≥6 km). Pure haversine; no API call when the trip can't possibly benefit.
+  - Filters hubs that genuinely intercept (closer to destination than origin, ≥2 km drive, ≤9 km bus-to-destination).
+  - For top 2 candidates, calls `drivingRoute` (Google Routes, TRAFFIC_AWARE) and `planMultiLegJourney(hub→dest)` in parallel — never haversine + avg-speed (per Accuracy-over-Reinvention rule).
+  - Adds a 3-min parking buffer. Surfaces only when (a) bus-only doesn't exist, (b) total ≤ bus-only − 5 min, or (c) origin walk to first stop ≥ 800 m AND total ≤ bus-only + 2 min (comfort path).
+- `ParkAndRideCard` rendered above `ItineraryResults` on `/trips`: editorial two-column ribbon (Drive / Bus), numerals carry the story (no icons, no bullet dots). "Open driving directions" deep-links to Google Maps. Honest copy distinguishes faster vs. comfort vs. no-bus-only.
+- Parallel React Query, 5-min staleTime, throttled gateway use.
+- EN/EL strings under `pnr.*`.
 
 ### 2.5 Limassol Coverage — PLANNED
 - Wire EMEL (Limassol) GTFS-RT feed end-to-end (static, realtime, classifier thresholds, route tones).
