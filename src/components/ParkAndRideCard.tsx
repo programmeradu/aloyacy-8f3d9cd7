@@ -33,9 +33,19 @@ export function ParkAndRideCard({
       ? t("pnr.eyebrowFaster", { m: fmtMin(suggestion.savingsSec) })
       : suggestion.reason === "comfort"
         ? t("pnr.eyebrowComfort")
-        : t("pnr.eyebrowOnly");
+        : suggestion.reason === "traffic-jam"
+          ? t("pnr.eyebrowTraffic", { m: fmtMin(suggestion.savingsSec) })
+          : t("pnr.eyebrowOnly");
 
   const mapsHref = `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${suggestion.hub.lat},${suggestion.hub.lng}&travelmode=driving`;
+
+  // Live-traffic "why" line — only when the direct drive is genuinely worse
+  // than free-flow. Numerals carry the story; no icons.
+  const lt = suggestion.liveTraffic;
+  const showWhy = lt?.notable === true;
+  const trafficPct = lt ? Math.round(lt.severity * 100) : 0;
+  const trafficDelayMin = lt ? fmtMin(lt.delaySec) : 0;
+  const directDriveMin = lt ? fmtMin(lt.directDriveSec) : 0;
 
   return (
     <article className="rounded-[28px] bg-card ring-1 ring-line p-5 flex flex-col gap-4 animate-rise">
@@ -51,6 +61,21 @@ export function ParkAndRideCard({
       <h3 className="font-display text-[22px] leading-[1.15] text-ink text-balance">
         {t("pnr.title", { hub: suggestion.hub.label })}
       </h3>
+
+      {showWhy && (
+        <section className="rounded-2xl bg-ochre-soft/40 ring-1 ring-ochre/30 p-3.5 flex flex-col gap-1">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre-deep">
+            {t("pnr.whyLabel")}
+          </p>
+          <p className="font-display text-[15px] leading-snug text-ink text-balance">
+            {t("pnr.whyTrafficLine", {
+              delay: trafficDelayMin,
+              pct: trafficPct,
+              direct: directDriveMin,
+            })}
+          </p>
+        </section>
+      )}
 
       <dl className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl bg-limestone-soft/60 p-3">
