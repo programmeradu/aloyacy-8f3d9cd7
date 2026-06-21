@@ -177,41 +177,54 @@ function StopDetail() {
           <div className="rounded-3xl bg-card ring-1 ring-line divide-y divide-line overflow-hidden">
             {departures.map((d, i) => {
               const route = getRoute(d.routeId);
+              const isGhost = d.eta.tier === "ghost";
               return (
-                <Link
-                  key={d.tripId + d.routeId + i}
-                  to="/trip-info/$tripId"
-                  params={{ tripId: d.tripId }}
-                  search={{ from: stopId }}
-                  className="group flex items-start gap-4 p-4 transition-colors hover:bg-limestone-soft/60"
-                >
-                  <RouteChip
-                    code={route?.short ?? "?"}
-                    tone={routeTone(d.routeId)}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-display text-lg leading-[1.15] text-ink text-pretty line-clamp-2 break-words">
-                      {route?.long ?? t("stop.routeFallback")}
-                    </p>
-                    <p className="mt-1 flex items-center gap-2 text-[12px] text-ink-soft">
-                      <IconBus className="size-3 shrink-0" />
-                      <span className="truncate">{d.eta.blurb}</span>
-                    </p>
-                  </div>
-                  <div className="shrink-0">
-                    <EtaPill
-                      data={{
-                        etaMin: d.eta.tier === "ghost" ? null : d.eta.etaMin,
-                        band: d.eta.band,
-                        tier: d.eta.tier,
-                        confidence: d.eta.confidence,
-                        operatorEtaMin: d.eta.operatorEtaMin,
-                      }}
-                      variant="stack"
-                      align="right"
+                <div key={d.tripId + d.routeId + i}>
+                  <Link
+                    to="/trip-info/$tripId"
+                    params={{ tripId: d.tripId }}
+                    search={{ from: stopId }}
+                    className="group flex items-start gap-4 p-4 transition-colors hover:bg-limestone-soft/60"
+                  >
+                    <RouteChip
+                      code={route?.short ?? "?"}
+                      tone={routeTone(d.routeId)}
                     />
-                  </div>
-                </Link>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-display text-lg leading-[1.15] text-ink text-pretty line-clamp-2 break-words">
+                        {route?.long ?? t("stop.routeFallback")}
+                      </p>
+                      <p className="mt-1 flex items-center gap-2 text-[12px] text-ink-soft">
+                        <IconBus className="size-3 shrink-0" />
+                        <span className="truncate">{d.eta.blurb}</span>
+                      </p>
+                    </div>
+                    <div className="shrink-0">
+                      <EtaPill
+                        data={{
+                          etaMin: isGhost ? null : d.eta.etaMin,
+                          band: d.eta.band,
+                          tier: d.eta.tier,
+                          confidence: d.eta.confidence,
+                          operatorEtaMin: d.eta.operatorEtaMin,
+                        }}
+                        variant="stack"
+                        align="right"
+                      />
+                    </div>
+                  </Link>
+                  {isGhost && stop && (
+                    <div className="px-4 pb-4 -mt-1">
+                      <SightingButton
+                        tripId={d.tripId}
+                        routeId={d.routeId}
+                        stopId={stopId}
+                        lat={stop.lat}
+                        lng={stop.lng}
+                      />
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
