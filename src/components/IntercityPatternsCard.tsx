@@ -34,7 +34,7 @@ function fmtHourBand(hour: number): string {
   return `${pad(h)}:00–${pad(next)}:00`;
 }
 
-function fmtDelay(sec: number, t: (k: string, p?: Record<string, unknown>) => string) {
+function fmtDelay(sec: number, t: TFn) {
   const abs = Math.round(Math.abs(sec));
   if (abs < 30) return t("intercity.onTime");
   const m = Math.round(abs / 60);
@@ -52,7 +52,7 @@ function WindowLine({
   window: IntercityWindow;
 }) {
   const { t } = useI18n();
-  const day = t(`day.short.${dayKey(window.dayOfWeek)}`);
+  const day = t(`day.short.${dayKey(window.dayOfWeek)}` as DictKey);
   return (
     <div className="flex flex-col gap-1">
       <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
@@ -62,7 +62,7 @@ function WindowLine({
         {day} {fmtHourBand(window.hourOfDay)}
       </span>
       <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/80">
-        {fmtDelay(window.meanDelaySec, t)} · {t("intercity.runs", { n: window.sampleCount })}
+        {fmtDelay(window.meanDelaySec, t as TFn)} · {t("intercity.runs", { n: window.sampleCount })}
       </span>
     </div>
   );
@@ -70,7 +70,7 @@ function WindowLine({
 
 function AnomalyRow({ anomaly }: { anomaly: IntercityAnomaly }) {
   const { t } = useI18n();
-  const day = t(`day.long.${dayKey(anomaly.dayOfWeek)}`);
+  const day = t(`day.long.${dayKey(anomaly.dayOfWeek)}` as DictKey);
   return (
     <li className="flex items-baseline justify-between gap-4 border-t border-line/60 pt-3 first:border-t-0 first:pt-0">
       <div className="min-w-0 flex-1">
