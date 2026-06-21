@@ -15,6 +15,7 @@ import {
 } from "./journey-scheduled.server";
 import { getSkippedTransferCount } from "./overrides.server";
 import type { Itinerary, RideLeg } from "./itinerary-types";
+import { annotateRationales } from "./itinerary-rationale";
 
 const PointSchema = z.object({
   lat: z.number().min(34).max(36),
