@@ -92,9 +92,21 @@ Limassol coverage, trip chaining.
 - Parallel React Query, 5-min staleTime, throttled gateway use.
 - EN/EL strings under `pnr.*`.
 
-### 2.5 Limassol Coverage — PLANNED
-- Wire EMEL (Limassol) GTFS-RT feed end-to-end (static, realtime, classifier thresholds, route tones).
-- Strategic: closes the biggest market gap vs Pame.
+### 2.5 Limassol Coverage — SHIPPED 2026-06-21
+- Discovery: the bundled GTFS static already includes all Cyprus operator feeds (NPT 194 routes, LMS 244 routes, LCA 133, PFO 112, FAM 53, IC 60). The realtime upstream proxy delivers the national feed, so Limassol vehicles flow through `fetchRealtime()` automatically. The blocker was UI/UX assumptions that treated Cyprus as Nicosia-only.
+- New `src/lib/cities.ts` — single source of truth for the five cities (Nicosia, Limassol, Larnaca, Paphos, Famagusta): centre coordinates, agency mapping (`NPT`/`LMS`/`LCA`/`PFO`/`FAM`), urban core radius, `nearestCity()` and `isInCityCore()` helpers. Replaces the lone `NICOSIA_CENTER` constant as the way to reason about "where is the rider?".
+- Place autocomplete biases now follow the rider:
+  - `/trips` `PlacesPicker` biases to the nearest city of the current origin (cold start still falls back to Nicosia).
+  - `NLPlannerCard.geocodeOne` biases to the nearest city of the last cached GPS fix.
+  - A Limassol rider typing "Mall" / "Old Port" now lands on Limassol results first.
+- Park & Ride suggester is now per-city:
+  - `park-and-ride.ts` hubs gained a `city: CityId` field; new `hubsForCity(cityId)` helper.
+  - Limassol catchment added: My Mall Limassol, Limassol Mall, Polemidia junction, Limassol New Port (verified parking + EMEL inbound).
+  - `suggestParkAndRide` frames the suggestion around the **destination** city: it only fires when the origin is outside that city's core, the destination sits inside it (+3 km buffer), the trip is ≥6 km, and the rider isn't already inside the same city's core. Intra-city trips never get pushed onto a car.
+- Freshness classifier already agency-correct (urban thresholds for LMS/LCA/PFO/FAM, IC relaxation for intercity), so no further wiring needed there.
+- Out of scope for this ship: a "You're in Limassol" header affordance — deferred until we have a real signal that riders find the auto-bias unclear.
+
+### Wave 2 — closed. Goal met: every Wave 2 daily-use feature has landed.
 
 ### 2.6 Trip Chaining — DEFERRED (late Wave 2)
 - Higher complexity; revisit after 2.1–2.5 ship.
