@@ -10,6 +10,7 @@ import { z } from "zod";
 import { planMultiLegJourney, type MultiLegDiagnostics } from "./journey-multileg.server";
 import {
   planMultiLegScheduled,
+  localDateForUnix,
   type ScheduledDiagnostics,
   NoScheduleAvailableError,
 } from "./journey-scheduled.server";
@@ -68,6 +69,7 @@ export type MultiLegResult = {
 const TOP_K = 5;
 const MAX_TOTAL_JOURNEY_SEC = 300 * 60;
 const FUTURE_THRESHOLD_SEC = 20 * 60; // beyond this, skip live and use scheduled only
+const ARRIVE_BY_BACKSEARCH_SEC = 6 * 3600;
 const AIRPORT_RE = /\b(airport|terminal)\b/i;
 const AIRPORT_EXTRA_TRANSFER_MIN_SAVINGS_SEC = 45 * 60;
 
@@ -107,10 +109,12 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     const t0 = Date.now();
     const nowSec = Math.floor(Date.now() / 1000);
 
-    // Resolve target departure. arriveBy → back off by 90 min as a search anchor.
+    // Resolve target departure. arriveBy searches backwards across a wider
+    // window so first-mile feeds with sparse late-night service still catch
+    // a coach without falling back to "no city bus".
     let departureUnix = data.departAtUnix ?? null;
     if (!departureUnix && data.arriveByUnix) {
-      departureUnix = Math.max(nowSec, data.arriveByUnix - 90 * 60);
+      departureUnix = Math.max(nowSec, data.arriveByUnix - ARRIVE_BY_BACKSEARCH_SEC);
     }
     const isFuture = departureUnix !== null && departureUnix - nowSec > FUTURE_THRESHOLD_SEC;
 
@@ -129,7 +133,17 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     let requestedDate: string | undefined;
     const schedPromise: Promise<SchedR> =
       mode === "scheduled" || mode === "both"
-        ? planMultiLegScheduled(data.from, data.to, departureUnix ? { departureUnix, explicitTime: !!(data.departAtUnix || data.arriveByUnix) } : undefined)
+        ? planMultiLegScheduled(
+            data.from,
+            data.to,
+            departureUnix
+              ? {
+                  departureUnix,
+                  explicitTime: !!(data.departAtUnix || data.arriveByUnix),
+                  date: data.arriveByUnix ? localDateForUnix(data.arriveByUnix) : undefined,
+                }
+              : undefined,
+          )
             .catch((e: unknown) => {
               if (e instanceof NoScheduleAvailableError) {
                 noScheduleAvailable = true;
