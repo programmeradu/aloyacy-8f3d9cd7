@@ -183,6 +183,34 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
         )}
 
+      {/* Rider-confirmed sighting CTA — appears next to ghost/vehicle-lost banners
+          so a rider physically near the bus can rescue the trip. */}
+      {live.active && (live.tripGhost || live.vehicleLost) && live.currentRideLeg && (
+        <div className="mt-3 px-6">
+          <SightingButton
+            tripId={live.currentRideLeg.tripId}
+            routeId={live.currentRideLeg.routeId}
+            stopId={live.currentRideLeg.board.stopId}
+            lat={live.currentRideLeg.board.lat}
+            lng={live.currentRideLeg.board.lng}
+          />
+        </div>
+      )}
+      {live.active &&
+        (live.phase === "walking-to-transfer" || live.phase === "waiting-for-connection") &&
+        live.nextRideLeg &&
+        !live.nextVehicleTracked && (
+          <div className="mt-3 px-6">
+            <SightingButton
+              tripId={live.nextRideLeg.tripId}
+              routeId={live.nextRideLeg.routeId}
+              stopId={live.nextRideLeg.board.stopId}
+              lat={live.nextRideLeg.board.lat}
+              lng={live.nextRideLeg.board.lng}
+            />
+          </div>
+        )}
+
 
       {/* Proactive disruption assistant */}
       <DisruptionBanner
