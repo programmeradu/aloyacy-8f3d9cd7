@@ -535,6 +535,8 @@ export const en = {
   "disruption.label.connectionAtRisk": "Tight connection",
   "disruption.label.missedConnection": "Plan B",
   "disruption.label.vehicleLostFeed": "Tracking",
+  "disruption.label.ghostPreBoard": "Ghost bus",
+  "disruption.label.latePreBoard": "Running late",
   "disruption.fasterRoute": "Find a faster route",
 
   // stale feed banner
@@ -636,6 +638,14 @@ export const en = {
   "replan.lostFeed.eyebrow": "Switch route",
   "replan.lostFeed.title": "Re-plan from where you are.",
   "replan.lostFeed.sub": "Fresh options computed from your current position.",
+  "replan.ghostPreBoard.eyebrow": "Ghost bus",
+  "replan.ghostPreBoard.title": "This bus isn't pinging.",
+  "replan.ghostPreBoard.sub": "Pick a backup so you're not stranded if it doesn't show.",
+  "replan.latePreBoard.eyebrow": "Running late",
+  "replan.latePreBoard.title": "Your bus is slipping.",
+  "replan.latePreBoard.sub": "Here's what's faster from where you are now.",
+  "replan.walkInstead": "Or walk there in about {mins}",
+  "replan.walkInsteadCta": "Walk it",
   "alight.eyebrow": "You got off early",
   "alight.title": "Here are fresh options from where you are.",
   "alight.empty": "No buses found — your best bet is walking the rest of the way.",

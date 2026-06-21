@@ -32,11 +32,12 @@ Goal: every ETA shown in Aloya carries a credible confidence signal, and no ride
 - `<ReliabilityBadge>` (compact + stack variants) surfaces on route detail page header. EN/EL copy ("On time 78% · Avg 42s late · 1,204 observations").
 - Per-stop reliability + Pulse filter integration deferred to a later pass.
 
-### 1.5 Smart Alternatives on Failure
-- Trigger: trip becomes `ghost` OR predicted delay >8min OR cancellation alert.
-- Engine: rerun planner with `excludeTripId`, surface top 2 alternatives inline in `JourneyHUD` (next bus same route, next viable route).
-- Walk-out option when no bus within 20min: "Walk 14min to Ledra (faster)".
-- Push notification (where opted-in) for active journeys only.
+### 1.5 Smart Alternatives on Failure — SHIPPED
+- `useDisruptionWatch` extended with two new pre-board kinds: `ghost-pre-board` (current ride tagged ghost while walking-to-board or waiting-to-board, within 30min of boarding) and `late-pre-board` (live ETA slipped ≥ 8min vs scheduled before boarding).
+- Both trigger the existing `DisruptionBanner` → `LiveReplanSheet` flow, which already reruns `rerouteFromHere` and lets the rider one-tap swap to a new itinerary.
+- `LiveReplanSheet` now appends a Walk-Out option when the destination is within ~25min walking (straight-line × 1.3 detour, 1.3 m/s pace) — opens native Google Maps walking directions so the rider always has an out.
+- EN/EL copy: distinct eyebrows ("Ghost bus" / "Running late") and bodies that name the route number; banner label keys added.
+- Cancellation-alert trigger deferred to when a feed-level cancellation signal lands.
 
 ---
 

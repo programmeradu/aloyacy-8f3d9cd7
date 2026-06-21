@@ -97,5 +97,9 @@ function labelKeyFor(kind: DisruptionSignal["kind"]): DictKey {
       return "disruption.label.missedConnection";
     case "vehicle-lost-feed":
       return "disruption.label.vehicleLostFeed";
+    case "ghost-pre-board":
+      return "disruption.label.ghostPreBoard";
+    case "late-pre-board":
+      return "disruption.label.latePreBoard";
   }
 }
