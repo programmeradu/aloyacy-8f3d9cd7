@@ -11,9 +11,9 @@ type Props = {
 };
 
 const TIER_TONE: Record<ReliabilityTier, { dot: string; text: string; ring: string }> = {
-  high: { dot: "bg-olive", text: "text-olive-deep", ring: "ring-olive/30" },
-  medium: { dot: "bg-ochre", text: "text-ochre-deep", ring: "ring-ochre/30" },
-  low: { dot: "bg-clay", text: "text-clay-deep", ring: "ring-clay/30" },
+  high: { dot: "bg-olive", text: "text-olive", ring: "ring-olive/30" },
+  medium: { dot: "bg-ochre", text: "text-ink", ring: "ring-ochre/40" },
+  low: { dot: "bg-destructive", text: "text-destructive", ring: "ring-destructive/30" },
   unknown: { dot: "bg-ink-soft/40", text: "text-ink-soft", ring: "ring-line" },
 };
 
