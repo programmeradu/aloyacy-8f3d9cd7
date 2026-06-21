@@ -1092,7 +1092,7 @@ function PlacesPickerSheet({
         className="absolute inset-0 bg-ink/40 backdrop-blur-[2px] animate-fade-in"
       />
       {/* Sheet */}
-      <div className="relative mt-auto w-full rounded-t-[28px] bg-limestone ring-1 ring-line shadow-[0_-12px_40px_-12px_rgba(20,30,40,0.25)] max-h-[88vh] flex flex-col animate-slide-up">
+      <div className="relative mt-auto w-full rounded-t-[28px] bg-limestone ring-1 ring-line shadow-[0_-12px_40px_-12px_rgba(20,30,40,0.25)] min-h-[72vh] max-h-[92vh] flex flex-col animate-slide-up">
         <div className="flex items-center justify-between px-5 pt-4 pb-2">
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
