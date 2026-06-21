@@ -464,6 +464,7 @@ export const el: Record<keyof typeof en, string> = {
   "kapnos.eyebrow": "Λεωφορείο αεροδρομίου Kapnos — απευθείας",
   "kapnos.title": "Πάρε το shuttle {route}",
   "kapnos.walkMeta": "{walk} περπάτημα ως τη στάση",
+  "kapnos.transferMeta": "{walk} από εδώ — με αστικό ή ταξί ως τη στάση",
   "kapnos.rideLine": "Αναχώρηση {depart} — άφιξη {arrive} ({m} λεπτά)",
   "kapnos.priceFromLabel": "Από {price} — κράτηση στην Kapnos",
   "kapnos.nextDeparturesLabel": "Επόμενες αναχωρήσεις",
