@@ -5,12 +5,14 @@
 // dow×hour anomalies we have enough data to call out. Stays silent when
 // the route is still in "learning" mode (no fake confidence).
 
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type DictKey } from "@/lib/i18n";
 import type {
   IntercityAnomaly,
   IntercityInsights,
   IntercityWindow,
 } from "@/lib/intercity-intel.functions";
+
+type TFn = (k: DictKey, p?: Record<string, string | number>) => string;
 
 type Props = {
   insights: IntercityInsights | null | undefined;
