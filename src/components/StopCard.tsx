@@ -202,3 +202,37 @@ function TierChip({
   );
 }
 
+/**
+ * Wave 2.2 — surfaces stop affordances when we have curated data. We
+ * deliberately render nothing when amenities are undefined.
+ */
+function AmenityRow({
+  a,
+  t,
+}: {
+  a: NonNullable<Stop["amenities"]>;
+  t: (k: never) => string;
+}) {
+  const chips: { label: string; on: boolean }[] = [
+    { label: t("amenity.shelter" as never), on: a.shelter },
+    { label: t("amenity.shade" as never), on: a.shade },
+    { label: t("amenity.seating" as never), on: a.seating },
+    { label: t("amenity.stepFree" as never), on: a.stepFree },
+  ];
+  const positives = chips.filter((c) => c.on);
+  if (positives.length === 0) return null;
+  return (
+    <ul className="-mt-1 flex flex-wrap gap-1">
+      {positives.map((c) => (
+        <li
+          key={c.label}
+          className="rounded-full bg-olive/12 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-olive-deep ring-1 ring-olive/25"
+        >
+          {c.label}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+
