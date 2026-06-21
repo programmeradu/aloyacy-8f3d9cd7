@@ -72,8 +72,10 @@ export type SmartEtaV2 = {
   stopsAway: number;
   /** Confidence of the *band width* (sample coverage + freshness). */
   confidence: "high" | "medium" | "low";
-  /** Source tier for the colour chip — "live" (fresh ping + close), "predicted" (vehicle but stale/far), "scheduled" (no vehicle). */
+  /** Legacy source tier — kept for back-compat. New code reads `tier`. */
   freshness: EtaFreshness;
+  /** Rich trust tier used by EtaPill: live / rider-confirmed / predicted / ghost / scheduled. */
+  tier: FreshnessTier;
   /** What the operator's tripUpdate said — for the strikethrough hint. */
   operatorEtaMin: number;
   /** Short label for the chip e.g. "live", "stale ping", "usually 2 min late". */
@@ -85,6 +87,7 @@ export type SmartEtaV2 = {
   /** Ping age of the vehicle in seconds (Infinity if no vehicle). */
   pingAgeSec: number;
 };
+
 
 const URBAN_FALLBACK_MPS = 18 / 3.6;
 const INTERCITY_FALLBACK_MPS = 40 / 3.6;
