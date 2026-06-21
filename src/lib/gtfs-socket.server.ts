@@ -26,10 +26,12 @@ async function getConnect(): Promise<
   ((addr: { hostname: string; port: number }) => CfSocket) | null
 > {
   try {
-    // Bare specifier only resolvable inside the Workers runtime.
-    const mod = (await import(
-      /* @vite-ignore */ "cloudflare:sockets"
-    )) as unknown as { connect: (a: { hostname: string; port: number }) => CfSocket };
+    // Bare specifier only resolvable inside the Workers runtime; kept in a
+    // variable so the bundler/typechecker does not try to resolve it.
+    const spec = "cloudflare:sockets";
+    const mod = (await import(/* @vite-ignore */ spec)) as unknown as {
+      connect?: (a: { hostname: string; port: number }) => CfSocket;
+    };
     return typeof mod?.connect === "function" ? mod.connect : null;
   } catch {
     return null;
