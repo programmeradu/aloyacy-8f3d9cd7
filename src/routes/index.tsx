@@ -215,7 +215,7 @@ function Explore() {
         kind: stopKind(s),
       };
     });
-  }, [rt, nearStops, learnedByStop]);
+  }, [rt, nearStops, learnedByStop, riderConfirmedAge]);
 
   // Nearby landmark chips — actual stops within range, clickable to stop page
   const landmarkChips = useMemo(() => {
