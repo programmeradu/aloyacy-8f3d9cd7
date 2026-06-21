@@ -187,7 +187,7 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
       };
     }
 
-    const busOnly = data.busOnlySec ?? data.busOnlyDurationSec ?? null;
+    const busOnly = data.busOnlyDurationSec ?? null;
     const accessWalk = data.busOnlyAccessWalkM ?? null;
 
     let reason: ParkAndRideSuggestion["reason"];
