@@ -1,12 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
+import { ReliabilityBadge } from "@/components/ReliabilityBadge";
 import { IconArrowLeft, IconBus } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { getRoute, getStop, routeTone } from "@/lib/gtfs";
 import { distanceM } from "@/lib/geo";
+import { getRouteReliability } from "@/lib/reliability.functions";
 import routeVignette from "@/assets/route-vignette.jpg";
 import { useI18n } from "@/lib/i18n";
 
@@ -63,6 +67,14 @@ function RoutePage() {
   const route = getRoute(routeId);
   const agency = route?.agency;
   const stopOf = (id: string) => getStop(id, agency);
+
+  const fetchReliability = useServerFn(getRouteReliability);
+  const { data: reliability } = useQuery({
+    queryKey: ["route-reliability", routeId],
+    queryFn: () => fetchReliability({ data: { routeIds: [routeId] } }),
+    staleTime: 5 * 60_000,
+  });
+  const rel = reliability?.[0];
 
   const data = useMemo(() => {
     if (!rt) return null;
@@ -211,6 +223,17 @@ function RoutePage() {
             : t("route.noBusesReporting")}
           {data?.stopIds.length ? t("route.stopsOnLineSuffix", { n: data.stopIds.length }) : ""}
         </p>
+        {rel && (
+          <div className="mt-4">
+            <ReliabilityBadge
+              tier={rel.tier}
+              onTimePct={rel.onTimePct}
+              meanDelaySec={rel.meanDelaySec}
+              sampleCount={rel.sampleCount}
+              variant="stack"
+            />
+          </div>
+        )}
       </header>
 
       {/* Editorial vignette + map stacked */}
