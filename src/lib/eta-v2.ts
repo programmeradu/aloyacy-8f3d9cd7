@@ -155,22 +155,36 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
       operatorEtaSec + learnedBiasSec * LEARNED_BIAS_WEIGHT,
     );
     const adjMin = Math.max(0, Math.round(adjusted / 60));
-    const freshness: EtaFreshness = vehicle ? "predicted" : "scheduled";
+    const cls = classifyFreshness({
+      hasVehicle: !!vehicle,
+      pingAgeSec,
+      agency: input.agency,
+      stopsAway: 0,
+      modelSamples: 0,
+    });
+    const freshness: EtaFreshness =
+      cls.tier === "ghost" || cls.tier === "scheduled"
+        ? "scheduled"
+        : cls.tier === "predicted"
+          ? "predicted"
+          : "live";
     return {
       etaSec: adjusted,
       etaMin: adjMin,
       lowerSec: adjusted,
       upperSec: adjusted,
       stopsAway: 0,
-      confidence: "low",
+      confidence: cls.confidence,
       freshness,
+      tier: cls.tier,
       operatorEtaMin,
-      blurb: blurbFor(freshness, pingAgeSec, learned, learnedBiasSec),
+      blurb: blurbFor(cls.tier, pingAgeSec, learned, learnedBiasSec),
       learnedBiasSec,
       band: `≈${adjMin} min`,
       pingAgeSec,
     };
   }
+
 
   // ----- Snap the bus to the route geometry --------------------------------
   // Shape mode: snap vehicle + every stop vertex onto the real polyline and
