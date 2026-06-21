@@ -165,6 +165,20 @@ export function ItineraryCard({
         </span>
       </div>
 
+      {/* Wave 2.4 — "Why this route?" rationale */}
+      {itinerary.rationale && itinerary.rationale.length > 0 ? (
+        <div className="mt-3 rounded-2xl bg-limestone-soft/60 px-3.5 py-2.5 ring-1 ring-line/70">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-soft">
+            {t("rationale.eyebrow")}
+          </p>
+          <p className="mt-1 font-sans text-[13px] font-semibold leading-snug text-ink text-pretty">
+            {itinerary.rationale
+              .map((tag) => rationaleToCopy(tag, t))
+              .join(" — ")}
+          </p>
+        </div>
+      ) : null}
+
       {/* Timeline (collapsible) */}
       <div className="mt-4 flex items-center justify-between gap-3">
         <span className="font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
