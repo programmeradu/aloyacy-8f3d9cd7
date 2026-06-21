@@ -339,8 +339,9 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   // back to the legacy three-value `freshness` field for back-compat (ghost
   // collapses to "scheduled" so older consumers visibly demote, not lie).
   const cls = classifyFreshness({
-    hasVehicle: !!vehicle,
+    hasVehicle: hasVehicleForClassifier,
     pingAgeSec,
+    riderConfirmed,
     agency: input.agency,
     stopsAway,
     modelSamples: avgSamples,
