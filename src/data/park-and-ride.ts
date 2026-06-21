@@ -13,6 +13,8 @@
 // during peak). When operator-published P&R data lands, this file can be
 // replaced behind the same shape with no UI changes.
 
+import type { CityId } from "@/lib/cities";
+
 export type ParkAndRideHub = {
   id: string;
   /** Internal slug, also used as React key. */
@@ -21,6 +23,9 @@ export type ParkAndRideHub = {
   label: string;
   /** Optional short note: capacity, cost, gotchas. Surfaced in the card. */
   note?: string;
+  /** City this hub serves. Suggester only considers hubs whose city matches
+   *  the rider's nearest city, so a Nicosia rider never gets a Limassol hub. */
+  city: CityId;
   lat: number;
   lng: number;
 };
