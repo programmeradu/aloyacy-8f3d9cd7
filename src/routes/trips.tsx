@@ -26,6 +26,8 @@ import { useAuth } from "@/lib/useAuth";
 import { useI18n } from "@/lib/i18n";
 import { useAccessibilityPrefs } from "@/lib/useAccessibilityPrefs";
 import { isActive as isA11yActive } from "@/lib/accessibility-prefs";
+import { suggestParkAndRide } from "@/lib/park-and-ride.functions";
+import { ParkAndRideCard } from "@/components/ParkAndRideCard";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
@@ -166,6 +168,50 @@ function Plan() {
       ? planQuery.error.message
       : t("trips.planFailed")
     : null;
+
+  // Wave 2.3 — Park & Ride evaluation runs in parallel with the bus plan
+  // and is fed the bus-only baseline so it only suggests when it actually
+  // helps. Cheap: gated on origin/destination geometry server-side; at
+  // most two driving-route calls per evaluation.
+  const pnrFn = useServerFn(suggestParkAndRide);
+  const busOnlyTop = results?.[0] ?? null;
+  const busOnlyAccessWalkM = (() => {
+    if (!busOnlyTop) return null;
+    const firstWalk = busOnlyTop.legs.find((l) => l.kind === "walk");
+    return firstWalk && firstWalk.kind === "walk"
+      ? Math.round(firstWalk.distanceMeters)
+      : 0;
+  })();
+  const pnrQuery = useQuery({
+    queryKey: [
+      "pnr",
+      origin?.lat,
+      origin?.lng,
+      destination?.lat,
+      destination?.lng,
+      busOnlyTop?.totalDurationSec ?? null,
+      busOnlyAccessWalkM,
+    ],
+    queryFn: async () => {
+      if (!origin || !destination) return null;
+      try {
+        return await pnrFn({
+          data: {
+            from: { lat: origin.lat, lng: origin.lng, label: origin.label },
+            to: { lat: destination.lat, lng: destination.lng, label: destination.label },
+            busOnlyDurationSec: busOnlyTop?.totalDurationSec ?? null,
+            busOnlyAccessWalkM,
+          },
+        });
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!origin && !!destination,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const pnr = pnrQuery.data ?? null;
 
   // Force a re-plan the moment the top result's bus has just departed —
   // the static refetchInterval would otherwise leave a stale "next bus" on
@@ -454,7 +500,12 @@ function Plan() {
         )}
 
         {results && results.length > 0 && origin && destination && (
-          <ItineraryResults results={results} origin={origin} destination={destination} />
+          <div className="flex flex-col gap-3">
+            {pnr && (
+              <ParkAndRideCard suggestion={pnr} origin={{ lat: origin.lat, lng: origin.lng }} />
+            )}
+            <ItineraryResults results={results} origin={origin} destination={destination} />
+          </div>
         )}
       </section>
     </AppShell>
