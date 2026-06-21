@@ -198,14 +198,47 @@ export type KapnosSuggestion = {
 
 const Point = z.object({ lat: z.number(), lng: z.number() });
 
+/** Convert a unix-second instant to Cyprus-local "YYYY-MM-DD HH:MM:SS". */
+function unixToCyprusLocal(unixSec: number): string {
+  const fmt = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Nicosia",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false,
+  });
+  return fmt.format(new Date(unixSec * 1000)).replace("T", " ");
+}
+
 export const suggestKapnos = createServerFn({ method: "POST" })
-  .inputValidator((input: { from: { lat: number; lng: number }; to: { lat: number; lng: number } }) =>
-    z.object({ from: Point, to: Point }).parse(input),
+  .inputValidator((input: {
+    from: { lat: number; lng: number };
+    to: { lat: number; lng: number };
+    /** Only return departures at/after this instant (unix seconds). */
+    afterUnix?: number;
+    /** Only return departures at/before this instant (unix seconds). */
+    beforeUnix?: number;
+  }) =>
+    z.object({
+      from: Point,
+      to: Point,
+      afterUnix: z.number().optional(),
+      beforeUnix: z.number().optional(),
+    }).parse(input),
   )
   .handler(async ({ data }) => {
     const routes = await fetchRoutes();
     if (routes.length === 0) return null;
-    const now = nowCyprusLocal();
+    const nowLocal = nowCyprusLocal();
+    // Honor the rider's requested time. If they asked to leave at 7am, never
+    // surface the 1am coach. We still floor at "now" so past departures
+    // (relative to wall-clock) are filtered out.
+    const afterLocal = data.afterUnix
+      ? unixToCyprusLocal(data.afterUnix)
+      : nowLocal;
+    const cutoffLocal = afterLocal > nowLocal ? afterLocal : nowLocal;
+    const beforeLocal = data.beforeUnix
+      ? unixToCyprusLocal(data.beforeUnix)
+      : undefined;
 
     type Candidate = {
       route: KapnosRoute;
