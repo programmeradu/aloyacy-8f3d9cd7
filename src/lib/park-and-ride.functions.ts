@@ -66,7 +66,7 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
         /** Bus-only plan's total duration in seconds, if one exists. */
         busOnlyDurationSec: z.number().int().positive().nullable().optional(),
         /** Walking distance from origin to the first bus stop, in metres. */
-        busOnlyAccessWalkM: z.number().int().nonneg().nullable().optional(),
+        busOnlyAccessWalkM: z.number().int().min(0).nullable().optional(),
       })
       .parse(input),
   )
