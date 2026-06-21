@@ -138,9 +138,6 @@ export function KapnosShuttleCard({
             </p>
           </div>
         </div>
-        <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft tabular-nums shrink-0">
-          {suggestion.routeCode}
-        </p>
       </header>
 
       {/* Headline summary line — next coach, condensed */}
