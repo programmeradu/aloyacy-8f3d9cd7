@@ -9,16 +9,31 @@
 
 import gr from "gtfs-realtime-bindings";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { fetchFeedOverSocket } from "@/lib/gtfs-socket.server";
 
 // Feed sources, tried in order until one returns a decodable protobuf.
-// Cloudflare Worker egress is blocked by the Cyprus upstream, so Lovable
-// Cloud is the primary relay. The direct URL remains only as an emergency
-// fallback in case the upstream later removes that block.
+//
+// The upstream listens on http://20.19.98.194:8328 — a port Cloudflare's
+// `fetch()` refuses to dial, which is what surfaced as a "403" from Worker
+// egress. Raw TCP sockets have no such port restriction, so the Worker now
+// talks to the upstream itself (see gtfs-socket.server.ts). HTTP relays stay
+// in the chain as fallbacks.
 const DIRECT_FEED = "http://20.19.98.194:8328/Api/api/gtfs-realtime";
+
+/** Optional self-hosted relay (e.g. your own Cloudflare Worker). */
+function relayUrl(): string | null {
+  const u = process.env["GTFS_RELAY_URL"];
+  return u && /^https?:\/\//.test(u) ? u : null;
+}
 
 function feedSources(): string[] {
   const base = process.env.SUPABASE_URL ?? "https://uliqfclkndvevslmjwlu.supabase.co";
-  return [`${base}/functions/v1/gtfs-proxy`, DIRECT_FEED];
+  const custom = relayUrl();
+  return [
+    ...(custom ? [custom] : []),
+    `${base}/functions/v1/gtfs-proxy`,
+    DIRECT_FEED,
+  ];
 }
 
 
