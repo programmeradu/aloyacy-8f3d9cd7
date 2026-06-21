@@ -997,4 +997,14 @@ export const en = {
   "map.live.active": "Your bus, live",
   "map.live.locating": "Locating your bus",
   "map.live.none": "No buses here right now",
+
+  // Route reliability badge — Wave 1.4
+  "reliability.label": "Reliability",
+  "reliability.headline": "On time {pct}%",
+  "reliability.notEnough": "Learning this route",
+  "reliability.subAvgLate": "Avg {sec}s late",
+  "reliability.subAvgEarly": "Avg {sec}s early",
+  "reliability.subAvgOnTime": "Avg on the dot",
+  "reliability.subLearning": "Not enough data yet",
+  "reliability.samples": "{n} observations",
 } as const;

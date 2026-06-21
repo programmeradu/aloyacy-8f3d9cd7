@@ -982,4 +982,14 @@ export const el: Record<keyof typeof en, string> = {
   "map.live.active": "Το λεωφορείο σου, ζωντανά",
   "map.live.locating": "Εντοπισμός λεωφορείου",
   "map.live.none": "Κανένα λεωφορείο εδώ τώρα",
+
+  // Route reliability badge — Wave 1.4
+  "reliability.label": "Αξιοπιστία",
+  "reliability.headline": "Στην ώρα {pct}%",
+  "reliability.notEnough": "Μαθαίνουμε τη γραμμή",
+  "reliability.subAvgLate": "Μ.ό. {sec}″ αργά",
+  "reliability.subAvgEarly": "Μ.ό. {sec}″ νωρίς",
+  "reliability.subAvgOnTime": "Μ.ό. στην ώρα",
+  "reliability.subLearning": "Δεν υπάρχουν αρκετά δεδομένα ακόμη",
+  "reliability.samples": "{n} παρατηρήσεις",
 };
