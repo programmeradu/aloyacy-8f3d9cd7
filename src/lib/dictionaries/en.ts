@@ -544,6 +544,21 @@ export const en = {
   "stale.vehicleLost.detail": "We lost sight of the bus on the live feed — using your GPS to keep the map and countdown honest until it comes back.",
   "stale.nextNotTracked.label": "Next bus not yet tracked",
   "stale.nextNotTracked.detail": "Your connecting bus hasn't started sending its location yet. We'll surface it the moment it does.",
+  "stale.ghostBus.label": "No GPS for this bus",
+  "stale.ghostBus.detail": "We haven't received a position from this vehicle in over 3 minutes. Showing the scheduled time — treat it as an estimate.",
+
+  // ETA pill — confidence-banded display, shared across every surface
+  "eta.tier.live": "live",
+  "eta.tier.rider": "rider-confirmed",
+  "eta.tier.predicted": "predicted",
+  "eta.tier.ghost": "no gps",
+  "eta.tier.scheduled": "scheduled",
+  "eta.conf.high": "high confidence",
+  "eta.conf.med": "medium confidence",
+  "eta.conf.low": "low confidence",
+  "eta.minLabel": "min away",
+  "eta.opShort": "op {m} min",
+
 
   // crowd hint
   "crowd.tag": "Comfort",

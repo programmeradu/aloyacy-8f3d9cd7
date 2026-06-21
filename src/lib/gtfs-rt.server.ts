@@ -45,12 +45,17 @@ export type RealtimeSnapshot = {
   fetchedAt: number;
   vehicles: LiveVehicle[];
   arrivals: LiveArrival[];
+  /** Trip IDs with an active arrival in the next 30 min but no fresh vehicle
+   *  position (≥ 180 s old, or none at all). Consumers downgrade these trips
+   *  from "live" to scheduled/ghost across every surface. */
+  ghostTripIds?: string[];
   /** True when the upstream feed could not be reached and this snapshot is
    *  an empty fallback. UI surfaces an honest "live feed lost" banner. */
   stale?: boolean;
   /** Diagnostic message accompanying `stale: true`. Not surfaced to users. */
   error?: string;
 };
+
 
 async function fetchUpstream(): Promise<{
   vehicles: LiveVehicle[];
@@ -176,10 +181,37 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
     }
   }
 
+  const mergedVehicles = [...byTrip.values()];
+
+  // Ghost detection: any trip with an upcoming arrival in the next 30 min
+  // that has no fresh vehicle position (≥180 s old, or none). Tagged here
+  // so every consumer reads one truth — see src/lib/freshness.ts.
+  const GHOST_AGE_SEC = 180;
+  const SOON_WINDOW_SEC = 30 * 60;
+  const ghostTripIds: string[] = [];
+  const tripsWithUpcoming = new Set<string>();
+  for (const a of arrivals) {
+    if (a.arrivalUnix >= now - 30 && a.arrivalUnix <= now + SOON_WINDOW_SEC) {
+      tripsWithUpcoming.add(a.tripId);
+    }
+  }
+  for (const tripId of tripsWithUpcoming) {
+    const v = byTrip.get(tripId);
+    if (!v) {
+      ghostTripIds.push(tripId);
+      continue;
+    }
+    if (v.timestamp && now - v.timestamp >= GHOST_AGE_SEC) {
+      ghostTripIds.push(tripId);
+    }
+  }
+
   return {
     fetchedAt: now,
-    vehicles: [...byTrip.values()],
+    vehicles: mergedVehicles,
     arrivals,
+    ghostTripIds,
   };
 }
+
 
