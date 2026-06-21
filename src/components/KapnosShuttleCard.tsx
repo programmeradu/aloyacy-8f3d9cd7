@@ -101,12 +101,16 @@ export function KapnosShuttleCard({
   lastMile,
   firstMileLoading,
   lastMileLoading,
+  onPlanFirstMile,
+  onPlanLastMile,
 }: {
   suggestion: KapnosSuggestion;
   firstMile?: Itinerary | null;
   lastMile?: Itinerary | null;
   firstMileLoading?: boolean;
   lastMileLoading?: boolean;
+  onPlanFirstMile?: () => void;
+  onPlanLastMile?: () => void;
 }) {
   const { t, locale } = useI18n();
   const rideMin = fmtMin(suggestion.rideSec);
