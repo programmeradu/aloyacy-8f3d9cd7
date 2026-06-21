@@ -117,11 +117,19 @@ Limassol coverage, trip chaining.
 
 Goal: chain modes intelligently when the bus-only answer is poor.
 
+### Cross-island intercity intelligence — SHIPPED 2026-06-21
+- New `getIntercityInsights` server fn (`src/lib/intercity-intel.functions.ts`) reduces `delay_stats` for a given route into a weekly pattern: weekday vs weekend weighted mean delay, the single most reliable (dow, hour) bucket, and up to 3 anomaly callouts where buckets exceed the route baseline by ≥90 s **and** clear a 1.0σ z-score (stddev floor 60 s — IC feed is noisier than urban).
+- Bucket aggregation collapses every stop into (dow × hour) before the stats run, so a long route's hottest segments don't get smeared away by quiet ones at the endpoints.
+- Three tiers — `rated` (≥60 weighted samples), `learning` (some data, no claim), `unknown` (no data). Anomalies only ever surface in `rated`; learning routes render an honest "still learning" line instead of fake confidence.
+- `IntercityPatternsCard` (`src/components/IntercityPatternsCard.tsx`) renders the card on `/route/$routeId` for IC routes only: weekday/weekend split with delta callout (only above 1 min absolute), most-reliable departure window, and an anomaly stack labelled "Run-times to plan around" with day-name + hour-band headlines.
+- Shared day-name dictionary (`day.short.*` / `day.long.*`) added in EN + EL — first time the app renders day-of-week names, useful beyond this feature.
+- React Query staleTime 30 min, enabled only when `agency === "IC"` — no useless calls for urban routes.
+
+### Still planned
 - Trip chaining (bus → bike → walk; taxi handoff for last mile after-hours).
 - Bike-share integration (Nextbike Cyprus where coverage justifies).
 - Scooter integration (Bolt / Lime if launched in CY).
 - Group trips (shared planning links, live ETAs to multiple riders).
-- Cross-island intercity intelligence (anomaly detection, weekend pattern learning).
 
 ---
 
