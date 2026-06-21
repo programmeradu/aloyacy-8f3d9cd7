@@ -168,8 +168,9 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     );
     const adjMin = Math.max(0, Math.round(adjusted / 60));
     const cls = classifyFreshness({
-      hasVehicle: !!vehicle,
+      hasVehicle: hasVehicleForClassifier,
       pingAgeSec,
+      riderConfirmed,
       agency: input.agency,
       stopsAway: 0,
       modelSamples: 0,
