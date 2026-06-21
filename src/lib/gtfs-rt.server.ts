@@ -41,14 +41,26 @@ export type LiveArrival = {
   delaySec: number;
 };
 
+export type RiderConfirmedTrip = {
+  tripId: string;
+  /** Seconds since the most recent rider sighting. */
+  ageSec: number;
+};
+
 export type RealtimeSnapshot = {
   fetchedAt: number;
   vehicles: LiveVehicle[];
   arrivals: LiveArrival[];
   /** Trip IDs with an active arrival in the next 30 min but no fresh vehicle
    *  position (≥ 180 s old, or none at all). Consumers downgrade these trips
-   *  from "live" to scheduled/ghost across every surface. */
+   *  from "live" to scheduled/ghost across every surface. Trips confirmed by
+   *  a recent rider sighting are excluded — they live in `riderConfirmedTrips`
+   *  instead. */
   ghostTripIds?: string[];
+  /** Trips a rider physically confirmed they can see within the last ~90 s.
+   *  Used by the freshness classifier to upgrade trips from ghost/predicted
+   *  to the `rider-confirmed` tier. */
+  riderConfirmedTrips?: RiderConfirmedTrip[];
   /** True when the upstream feed could not be reached and this snapshot is
    *  an empty fallback. UI surfaces an honest "live feed lost" banner. */
   stale?: boolean;
