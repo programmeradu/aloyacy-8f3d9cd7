@@ -113,6 +113,10 @@ export type SmartEtaV2Input = {
   shape?: LatLng[] | null;
   /** Optional learned per-route bias for the stop's current hour/dow. */
   learnedByRoute?: Record<string, LearnedBias>;
+  /** Seconds since the most recent rider-confirmed sighting of this trip.
+   *  When set and within the trust window, the classifier upgrades the
+   *  trip to the `rider-confirmed` tier — overriding ghost / stale ping. */
+  riderConfirmedAgeSec?: number;
 };
 
 export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
@@ -138,7 +142,16 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
 
   const operatorEtaSec = Math.max(0, next.arrivalUnix - now);
   const operatorEtaMin = Math.round(operatorEtaSec / 60);
-  const pingAgeSec = vehicle ? Math.max(0, now - vehicle.timestamp) : Infinity;
+  const rawPingAgeSec = vehicle ? Math.max(0, now - vehicle.timestamp) : Infinity;
+  // A rider sighting acts as a synthetic fresh ping: use min(real ping age,
+  // sighting age) so the classifier sees a young enough signal to upgrade.
+  const sightingAge = input.riderConfirmedAgeSec;
+  const riderConfirmed =
+    typeof sightingAge === "number" && Number.isFinite(sightingAge);
+  const pingAgeSec = riderConfirmed
+    ? Math.min(rawPingAgeSec, sightingAge as number)
+    : rawPingAgeSec;
+  const hasVehicleForClassifier = !!vehicle || riderConfirmed;
 
   const verts: { stopId: string; lat: number; lng: number }[] = [];
   for (const a of tripStops) {
