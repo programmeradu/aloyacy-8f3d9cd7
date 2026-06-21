@@ -67,10 +67,19 @@ Limassol coverage, trip chaining.
 - `lowFloor` preference stored and shipped through the planner contract but not yet weighted — wires in the moment GTFS-RT VehiclePosition wheelchair_accessible lands.
 - EN/EL strings in both dictionaries.
 
-### 2.1 Multimodal Planning Quality — PLANNED
-- Walk-leg accuracy via Google Routes (already wired) — extend to bike-share where available.
-- Step-by-step turn instructions in `JourneyHUD` walking phases.
-- Stop entry/exit hints ("Board at Bay C", "Exit door is at the front").
+### 2.1 Multimodal Walking Quality — SHIPPED 2026-06-21
+- Walk-leg geometry already came from Google Routes API (`walkingRoute()` in `maps.server.ts`).
+- Full step-by-step list with Street View imagery already shipped via `WalkGuidance` in both single-leg JourneyHUD and MultiLegCompanion (every walk leg: initial, transfer, final).
+- NEW: `LiveWalkBanner` (this wave) — a live in-walk header above the step list that surfaces:
+  - Current maneuver chip + instruction in big editorial type.
+  - Meters countdown to the next turn (rounded to 5 m), flips to "Now" within 25 m.
+  - "Then" preview of the next step, or "Last step" callout on the final.
+  - Total distance + ETA remaining; ETA derived from `WALK_M_PER_S` ÷ remaining distance.
+  - Shares the `getWalkingDirections` React-Query cache with WalkGuidance — no double-fetch.
+  - GPS projection via existing `projectOnSteps()`; banner stays silent (no flicker) when fix or directions are missing.
+- Bike-share: OUT OF SCOPE for Cyprus (no city-scale bike-share network).
+- Stop entry/exit hints ("Board at Bay C", "Exit door at the front"): DEFERRED — no authoritative dataset; revisit if/when operator publishes bay assignments or we crowdsource it.
+- `JourneyHUD` (single-leg) already had `LiveStepCard` from earlier work; left untouched.
 
 ### 2.3 Park & Ride Suggestions — PLANNED
 - For trips originating outside Nicosia core, suggest "Drive to X, bus from there" when total time is competitive.
