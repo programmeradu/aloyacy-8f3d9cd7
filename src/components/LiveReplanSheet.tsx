@@ -3,7 +3,7 @@
 // route from where they currently are. Mirrors EarlyAlightSheet's pattern
 // (reroute → swap ActiveTrip) but with disruption-aware copy.
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { rerouteFromHere } from "@/lib/reroute.functions";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/trip-store";
 import { getDeviceId } from "@/lib/pwa";
 import { track } from "@/lib/analytics";
+import { distanceM } from "@/lib/geo";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
 import type { DisruptionKind } from "@/lib/useDisruptionWatch";
@@ -239,6 +240,8 @@ export function LiveReplanSheet({
           })}
         </ul>
 
+        <WalkOutOption fix={fix} active={active} kind={kind} />
+
         <button
           onClick={onClose}
           className="mt-6 w-full rounded-full bg-card ring-1 ring-line px-5 py-3 text-[13px] text-ink-soft"
@@ -247,5 +250,57 @@ export function LiveReplanSheet({
         </button>
       </div>
     </div>
+  );
+}
+
+// Walking detour factor — straight-line × 1.3 approximates real street paths
+// closely enough for a "should I walk?" decision. We cap surfacing at ~25 min
+// so we never propose marathon walks as a serious option.
+const WALK_DETOUR_FACTOR = 1.3;
+const WALK_SPEED_MPS = 1.3; // ~4.7 km/h, comfortable everyday pace
+const WALK_MAX_SEC = 25 * 60;
+
+function WalkOutOption({
+  fix,
+  active,
+  kind,
+}: {
+  fix: { lat: number; lng: number };
+  active: ActiveTrip;
+  kind: DisruptionKind;
+}) {
+  const { t } = useI18n();
+  const walk = useMemo(() => {
+    const straightM = distanceM(fix, { lat: active.to.lat, lng: active.to.lng });
+    const walkM = straightM * WALK_DETOUR_FACTOR;
+    const sec = Math.round(walkM / WALK_SPEED_MPS);
+    return sec <= WALK_MAX_SEC ? { sec, m: Math.round(walkM) } : null;
+  }, [fix, active.to.lat, active.to.lng]);
+  if (!walk) return null;
+  const url = `https://www.google.com/maps/dir/?api=1&origin=${fix.lat},${fix.lng}&destination=${active.to.lat},${active.to.lng}&travelmode=walking`;
+  const mins = Math.max(1, Math.round(walk.sec / 60));
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => track("ui:live-replan.walk-out", { kind, sec: walk.sec, m: walk.m })}
+      className="mt-4 flex items-center justify-between rounded-[24px] bg-aegean-soft/40 ring-1 ring-aegean/30 p-4 hover:ring-aegean-deep transition"
+    >
+      <div className="min-w-0">
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-aegean-deep">
+          {t("replan.walkInsteadCta")}
+        </p>
+        <p className="mt-1 font-display text-[18px] leading-tight text-ink">
+          {t("replan.walkInstead", { mins })}
+        </p>
+        <p className="mt-0.5 text-[12px] text-ink-soft">
+          {t("replan.walkingTotal", { m: walk.m })}
+        </p>
+      </div>
+      <span className="ml-3 font-mono text-[10px] uppercase tracking-[0.18em] text-aegean-deep">
+        ↗
+      </span>
+    </a>
   );
 }
