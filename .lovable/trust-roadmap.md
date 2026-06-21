@@ -149,8 +149,20 @@ Goal: chain modes intelligently when the bus-only answer is poor.
 - `BikeShareCard` rendered on `/trips` above `ItineraryResults` (after Park & Ride, before bus list): editorial 01/02/03 ribbon (pickup → ride → dropoff), live bike + rack counts, "Open Nextbike" + cycling-mode Google Maps deep link. Numerals, no icons, no bullet dots. EN + EL strings under `bike.*`.
 - Honesty: never recommends a station with 0 bikes or a dropoff with 0 racks; never suggests cross-city cycling.
 
+### Bolt e-scooters (Nicosia) — SHIPPED 2026-06-21
+- CyNAP `boltstations` Datex II XML feed (no auth, ≤30 min refresh) — 255 mandated parking zones across Nicosia (Strovolos, old town, Aglandjia, Engomi, Latsia, Lakatameia).
+- New `src/lib/bolt-scooter.functions.ts`:
+  - Minimal Datex II XML parser (no extra deps) — extracts identifier, name, capacity, centroid lat/lng per zone.
+  - `nearestBoltZones({ near, max, radiusM })` — Nicosia bbox-gated, reusable for future map overlay.
+  - `suggestBoltScooter({ from, to, busOnlyDurationSec })` — only fires when **both** endpoints sit inside Nicosia bbox AND within 350 m walk of a parking zone, OD is 0.8–4 km, ride ≥600 m, pickup ≠ dropoff zone, and total (walk + 45 s unlock + ride at 14 km/h + 45 s park + walk) saves ≥2 min vs the bus plan (or no bus plan).
+  - Module-level 10 min cache, stale-cache fallback.
+- `BoltScooterCard` rendered on `/trips` (after BikeShareCard, before ItineraryResults): editorial 01/02/03 ribbon (pickup zone → ride → dropoff zone), parking-slot capacity, walk distances, "Open Bolt" + cycling-mode Maps deep link. Numerals, no icons, no bullet dots. EN + EL strings under `bolt.*`.
+- Honesty: NEVER claims live scooter counts (Bolt's app is the source of truth). Sells legal viability — "you can legally start here and park there" — and tells the rider to confirm a live scooter in the Bolt app before walking.
+
 ### Still planned
-- Scooter integration (Bolt scooters live in Nicosia via CyNAP DATEX II feed).
+- Kapnos Airport Shuttle static integration.
+- EV chargers (CyNAP `electric_vehicle_chargers` + Open Charge Map).
+- Waze traffic + alerts overlay (CyNAP XML).
 - Group trips (shared planning links, live ETAs to multiple riders).
 
 ---
