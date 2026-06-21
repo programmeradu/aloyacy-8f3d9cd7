@@ -34,6 +34,16 @@ export type Stop = {
   routes: { code: string; tone: Tone }[];
   highlight?: boolean;
   kind?: StopKind;
+  /**
+   * Wave 2.2 — optional amenity flags. When undefined we show nothing
+   * (honest: no data is better than guessed data).
+   */
+  amenities?: {
+    shelter: boolean;
+    shade: boolean;
+    seating: boolean;
+    stepFree: boolean;
+  };
 };
 
 const VIGNETTES: Record<
@@ -114,6 +124,7 @@ export function StopCard({ stop }: { stop: Stop }) {
               <RouteChip key={r.code} code={r.code} tone={r.tone} size="sm" />
             ))}
           </div>
+          {stop.amenities ? <AmenityRow a={stop.amenities} t={t} /> : null}
         </div>
 
         <div className="flex flex-col items-end gap-1">

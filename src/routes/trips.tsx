@@ -24,6 +24,8 @@ import { ProGate } from "@/components/ProGate";
 import { RemindMeButton } from "@/components/RemindMeButton";
 import { useAuth } from "@/lib/useAuth";
 import { useI18n } from "@/lib/i18n";
+import { useAccessibilityPrefs } from "@/lib/useAccessibilityPrefs";
+import { isActive as isA11yActive } from "@/lib/accessibility-prefs";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
@@ -96,6 +98,13 @@ function Plan() {
   const { data: rt } = useRealtime();
   const rtTick = rt?.fetchedAt ?? 0;
 
+  const { prefs: a11yPrefs } = useAccessibilityPrefs();
+  const a11yOn = isA11yActive(a11yPrefs);
+  // Stable key segment so React Query re-plans when prefs change.
+  const a11yKey = a11yOn
+    ? `${a11yPrefs.stepFree ? "s" : ""}${a11yPrefs.preferShade ? "h" : ""}${a11yPrefs.lowFloor ? "l" : ""}-${a11yPrefs.maxWalkMeters ?? "x"}`
+    : "off";
+
   // Plan results driven by useQuery so they auto-refresh:
   //   - every 30s while the screen is open
   //   - on window focus / reconnect
@@ -111,6 +120,7 @@ function Plan() {
       timeIntent?.leaveByISO ?? null,
       timeIntent?.arriveByISO ?? null,
       rtTick,
+      a11yKey,
     ],
     queryFn: async () => {
       if (!origin || !destination)
@@ -122,7 +132,20 @@ function Plan() {
         ? Math.floor(new Date(timeIntent.arriveByISO).getTime() / 1000)
         : undefined;
       const res = await planFn({
-        data: { from: origin, to: destination, departAtUnix, arriveByUnix },
+        data: {
+          from: origin,
+          to: destination,
+          departAtUnix,
+          arriveByUnix,
+          a11y: a11yOn
+            ? {
+                stepFree: a11yPrefs.stepFree,
+                preferShade: a11yPrefs.preferShade,
+                lowFloor: a11yPrefs.lowFloor,
+                maxWalkMeters: a11yPrefs.maxWalkMeters,
+              }
+            : undefined,
+        },
       });
       return res;
     },
