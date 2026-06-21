@@ -452,6 +452,19 @@ export const en = {
   "bike.openRoute": "Cycling route in Maps",
   "bike.disclaimer": "Live station counts — refreshed every 10 min",
 
+  // bolt scooters (Nicosia only)
+  "bolt.eyebrowFaster": "Scoot it — saves {m} min",
+  "bolt.eyebrowAlt": "Scoot it — no bus needed",
+  "bolt.totalLine": "{m} min door-to-door",
+  "bolt.title": "A Bolt scooter through Nicosia threads this one.",
+  "bolt.pickupMeta": "{walk} walk — {slots}-slot parking zone",
+  "bolt.dropoffMeta": "{walk} walk to finish — {slots}-slot zone",
+  "bolt.rideLine": "{m} min ride — {km} km",
+  "bolt.ridePace": "City pace, 20 km/h cap",
+  "bolt.openBolt": "Open Bolt",
+  "bolt.openRoute": "Route in Maps",
+  "bolt.disclaimer": "Confirm a live scooter in the Bolt app before you walk",
+
 
 
   // saved
