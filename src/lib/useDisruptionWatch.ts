@@ -20,7 +20,12 @@ export type DisruptionKind =
   | "running-late"
   | "connection-at-risk"
   | "missed-connection"
-  | "vehicle-lost-feed";
+  | "vehicle-lost-feed"
+  // Wave 1.5 — pre-board failures while the rider is still walking to or
+  // waiting at the boarding stop. These are the cases where Aloya can
+  // most usefully suggest an alternative before the rider commits.
+  | "ghost-pre-board"
+  | "late-pre-board";
 
 export type DisruptionSignal = {
   kind: DisruptionKind;
@@ -35,6 +40,8 @@ export type DisruptionSignal = {
 };
 
 const LATE_THRESHOLD_SEC = 5 * 60;
+const PRE_BOARD_LATE_THRESHOLD_SEC = 8 * 60;
+const PRE_BOARD_HORIZON_SEC = 30 * 60;
 const CONNECTION_RISK_BUFFER_SEC = 60;
 
 export function useDisruptionWatch(
@@ -68,6 +75,39 @@ export function useDisruptionWatch(
         body: "We've lost the bus from the live feed. We'll keep estimating from your phone — alerts may run a moment late.",
         suggestReplan: false,
       };
+    }
+
+    // 2b) Pre-board failures — Wave 1.5. Only while the rider is still
+    //     walking to or waiting at the boarding stop. We suppress these
+    //     once on board (later disruptions take over).
+    if (
+      live.currentRideLeg &&
+      (live.phase === "walking-to-board" || live.phase === "waiting-to-board") &&
+      live.secsToCurrentBoard >= 0 &&
+      live.secsToCurrentBoard < PRE_BOARD_HORIZON_SEC
+    ) {
+      if (live.tripGhost) {
+        return {
+          kind: "ghost-pre-board",
+          slipMin: 0,
+          title: `Bus ${live.currentRideLeg.routeShort} hasn't pinged in a while`,
+          body: `We've lost the GPS signal for this trip. It may still arrive, but it's worth looking at an alternative to ${active.to.label}.`,
+          suggestReplan: true,
+        };
+      }
+      const now2 = Math.floor(Date.now() / 1000);
+      const scheduledSecsToBoard = live.currentRideLeg.board.departureUnix - now2;
+      const slip = live.secsToCurrentBoard - scheduledSecsToBoard;
+      if (slip >= PRE_BOARD_LATE_THRESHOLD_SEC) {
+        const slipMin = Math.round(slip / 60);
+        return {
+          kind: "late-pre-board",
+          slipMin,
+          title: `Bus ${live.currentRideLeg.routeShort} is ${slipMin} min late`,
+          body: `It's slipping before you've even boarded. We can show you faster ways to ${active.to.label}.`,
+          suggestReplan: true,
+        };
+      }
     }
 
     // 3) Connection at risk: walking-to-transfer or waiting, and the
