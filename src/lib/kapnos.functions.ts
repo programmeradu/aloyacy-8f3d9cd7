@@ -289,7 +289,12 @@ export const suggestKapnos = createServerFn({ method: "POST" })
     // Kapnos route still had seats for tonight.
     for (const best of candidates) {
       const upcoming = best.route.trips
-        .filter((t) => t.departLocal && t.departLocal > now)
+        .filter((t) => {
+          if (!t.departLocal) return false;
+          if (t.departLocal <= cutoffLocal) return false;
+          if (beforeLocal && t.departLocal > beforeLocal) return false;
+          return true;
+        })
         .slice(0, SUGGEST_COUNT);
       if (upcoming.length === 0) continue;
 
