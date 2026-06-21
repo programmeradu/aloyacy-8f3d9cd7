@@ -145,6 +145,14 @@ function StopDetail() {
         />
       </section>
 
+      {/* Ghost-bus banner — surfaces when the soonest departure has no
+          fresh GPS. Honest fallback in place of a phantom "live" claim. */}
+      {departures.length > 0 && departures[0].eta.tier === "ghost" && (
+        <div className="mt-4">
+          <StaleFeedBanner variant="ghost-bus" />
+        </div>
+      )}
+
       <section
         className="mt-8 px-6 animate-rise"
         style={{ animationDelay: "180ms" }}
@@ -167,15 +175,13 @@ function StopDetail() {
           <div className="rounded-3xl bg-card ring-1 ring-line divide-y divide-line overflow-hidden">
             {departures.map((d, i) => {
               const route = getRoute(d.routeId);
-              const accent = freshnessAccent(d.eta.freshness);
-              const shifted = d.eta.operatorEtaMin !== d.eta.etaMin;
               return (
                 <Link
                   key={d.tripId + d.routeId + i}
                   to="/trip-info/$tripId"
                   params={{ tripId: d.tripId }}
                   search={{ from: stopId }}
-                  className="group flex items-center gap-4 p-4 transition-colors hover:bg-limestone-soft/60"
+                  className="group flex items-start gap-4 p-4 transition-colors hover:bg-limestone-soft/60"
                 >
                   <RouteChip
                     code={route?.short ?? "?"}
@@ -185,45 +191,26 @@ function StopDetail() {
                     <p className="font-display text-lg leading-[1.15] text-ink text-pretty line-clamp-2 break-words">
                       {route?.long ?? t("stop.routeFallback")}
                     </p>
-
                     <p className="mt-1 flex items-center gap-2 text-[12px] text-ink-soft">
                       <IconBus className="size-3 shrink-0" />
                       <span className="truncate">{d.eta.blurb}</span>
                     </p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p
-                      className={`font-display text-3xl leading-none ${
-                        i === 0 ? "text-aegean-deep" : "text-ink"
-                      }`}
-                    >
-                      {d.eta.etaMin}
-                    </p>
-                    <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                      {t("stop.minShort")}
-                    </p>
-                    {shifted && (
-                      <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft line-through decoration-1">
-                        {t("stop.opShort", { m: d.eta.operatorEtaMin })}
-                      </p>
-                    )}
-                    <p
-                      className={`mt-1 font-mono text-[9px] uppercase tracking-[0.2em] ${accent}`}
-                    >
-                      {d.eta.freshness}
-                    </p>
-                    {bandIsInformative(d.eta, d.eta.etaMin) && (
-                      <p className="mt-1 font-mono text-[9.5px] tracking-[0.04em] text-ink-soft/80">
-                        {d.eta.band}
-                      </p>
-                    )}
+                  <div className="shrink-0">
+                    <EtaPill
+                      data={{
+                        etaMin: d.eta.tier === "ghost" ? null : d.eta.etaMin,
+                        band: d.eta.band,
+                        tier: d.eta.tier,
+                        confidence: d.eta.confidence,
+                        operatorEtaMin: d.eta.operatorEtaMin,
+                      }}
+                      variant="stack"
+                      align="right"
+                    />
                   </div>
-                  <span className="ml-1 flex size-7 shrink-0 items-center justify-center rounded-full bg-limestone-soft text-ink-soft transition-colors group-hover:bg-aegean-deep group-hover:text-white">
-                    <IconArrowUpRight className="size-3.5" />
-                  </span>
                 </Link>
               );
-
             })}
           </div>
         )}
@@ -232,22 +219,5 @@ function StopDetail() {
   );
 }
 
-function freshnessAccent(f: SmartEtaV2["freshness"]): string {
-  if (f === "live") return "text-aegean-deep";
-  if (f === "predicted") return "text-ochre";
-  return "text-ink-soft";
-}
-
-/** Only show the v2 band when it materially differs from the headline minute. */
-function bandIsInformative(v2: SmartEtaV2, headlineMin: number): boolean {
-  if (!v2.band.includes("–")) return false;
-  // Hide trivial 1-minute spreads (e.g. "7–8 min") next to "8".
-  const m = v2.band.match(/^(\d+)–(\d+)/);
-  if (!m) return true;
-  const lo = Number(m[1]);
-  const hi = Number(m[2]);
-  if (hi - lo <= 1) return false;
-  // Hide when both edges round to the headline (visual noise).
-  if (Math.abs(lo - headlineMin) <= 1 && Math.abs(hi - headlineMin) <= 1) return false;
   return true;
 }
