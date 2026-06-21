@@ -37,7 +37,18 @@ export function useRealtime() {
     [q.data?.ghostTripIds],
   );
 
-  return { ...q, isStale, staleSec, ghostTripIds };
+  // tripId → seconds since the most recent rider sighting. Consumers
+  // pass the matching age into smartEtaV2 / classifyFreshness so the
+  // displayed tier is "rider-confirmed" instead of "ghost"/"predicted".
+  const riderConfirmedAge = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of q.data?.riderConfirmedTrips ?? []) {
+      m.set(r.tripId, r.ageSec);
+    }
+    return m;
+  }, [q.data?.riderConfirmedTrips]);
+
+  return { ...q, isStale, staleSec, ghostTripIds, riderConfirmedAge };
 }
 
 

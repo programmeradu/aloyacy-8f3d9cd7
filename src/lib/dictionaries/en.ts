@@ -559,6 +559,14 @@ export const en = {
   "eta.minLabel": "min away",
   "eta.opShort": "op {m} min",
 
+  // rider-confirmed sighting — "I see this bus" CTA
+  "sighting.kicker": "Can you see this bus?",
+  "sighting.cta": "Confirm — I see it now",
+  "sighting.help": "Tap if the bus is at the stop. Your tap upgrades it from 'no GPS' for everyone else.",
+  "sighting.sending": "Sending…",
+  "sighting.thanksLabel": "Thanks — rider-confirmed",
+  "sighting.thanksDetail": "Other riders will see this trip as confirmed for the next minute or so.",
+
 
   // crowd hint
   "crowd.tag": "Comfort",
