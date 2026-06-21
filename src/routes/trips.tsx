@@ -647,31 +647,35 @@ function Plan() {
         )}
 
         {results && results.length === 0 && !planning && (
-          <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
-            {planQuery.data?.noScheduleAvailable ? (
-              <>
-                <p className="font-display text-xl text-ink">{t("trips.noScheduleTitle")}</p>
-                <p className="mt-1.5 text-[13px] text-ink-soft">
-                  {t("trips.noScheduleBody", {
-                    date: planQuery.data.requestedDate
-                      ? formatYYYYMMDD(planQuery.data.requestedDate)
-                      : t("trips.noScheduleDay"),
-                  })}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="font-display text-xl text-ink">{t("trips.noRouteTitle")}</p>
-                <p className="mt-1.5 text-[13px] text-ink-soft">
-                  {t("trips.noRouteBody")}
-                </p>
-              </>
-            )}
+          <div className="flex flex-col gap-3">
+            {kapnos && <KapnosShuttleCard suggestion={kapnos} />}
+            <div className="rounded-3xl bg-card p-6 ring-1 ring-line">
+              {planQuery.data?.noScheduleAvailable ? (
+                <>
+                  <p className="font-display text-xl text-ink">{t("trips.noScheduleTitle")}</p>
+                  <p className="mt-1.5 text-[13px] text-ink-soft">
+                    {t("trips.noScheduleBody", {
+                      date: planQuery.data.requestedDate
+                        ? formatYYYYMMDD(planQuery.data.requestedDate)
+                        : t("trips.noScheduleDay"),
+                    })}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-display text-xl text-ink">{t("trips.noRouteTitle")}</p>
+                  <p className="mt-1.5 text-[13px] text-ink-soft">
+                    {t("trips.noRouteBody")}
+                  </p>
+                </>
+              )}
+            </div>
           </div>
         )}
 
         {results && results.length > 0 && origin && destination && (
           <div className="flex flex-col gap-3">
+            {kapnos && <KapnosShuttleCard suggestion={kapnos} />}
             {pnr && (
               <ParkAndRideCard suggestion={pnr} origin={{ lat: origin.lat, lng: origin.lng }} />
             )}
