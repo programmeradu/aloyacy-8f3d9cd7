@@ -33,6 +33,8 @@ import { suggestLastMileChain } from "@/lib/last-mile-chain.functions";
 import { LastMileChainCard } from "@/components/LastMileChainCard";
 import { suggestBikeShare } from "@/lib/bikeshare.functions";
 import { BikeShareCard } from "@/components/BikeShareCard";
+import { suggestBoltScooter } from "@/lib/bolt-scooter.functions";
+import { BoltScooterCard } from "@/components/BoltScooterCard";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
@@ -313,6 +315,40 @@ function Plan() {
     refetchOnWindowFocus: false,
   });
   const bikeShare = bikeQuery.data ?? null;
+
+  // Wave 3 — Bolt e-scooter alternative (Nicosia only). Both endpoints
+  // must sit within walking distance of a mandated parking zone.
+  const boltFn = useServerFn(suggestBoltScooter);
+  const boltQuery = useQuery({
+    queryKey: [
+      "boltScooter",
+      origin?.lat,
+      origin?.lng,
+      destination?.lat,
+      destination?.lng,
+      busOnlyTop?.totalDurationSec ?? null,
+    ],
+    queryFn: async () => {
+      if (!origin || !destination) return null;
+      try {
+        return await boltFn({
+          data: {
+            from: { lat: origin.lat, lng: origin.lng },
+            to: { lat: destination.lat, lng: destination.lng },
+            busOnlyDurationSec: busOnlyTop?.totalDurationSec ?? null,
+          },
+        });
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!origin && !!destination,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const boltScooter = boltQuery.data ?? null;
+
+
 
 
   // Force a re-plan the moment the top result's bus has just departed —
@@ -614,6 +650,7 @@ function Plan() {
               <ParkAndRideCard suggestion={pnr} origin={{ lat: origin.lat, lng: origin.lng }} />
             )}
             {bikeShare && <BikeShareCard suggestion={bikeShare} />}
+            {boltScooter && <BoltScooterCard suggestion={boltScooter} />}
             <ItineraryResults results={results} origin={origin} destination={destination} />
             {lastMileChain && <LastMileChainCard suggestion={lastMileChain} />}
           </div>
