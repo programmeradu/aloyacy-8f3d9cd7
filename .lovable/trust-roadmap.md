@@ -45,23 +45,36 @@ Goal: every ETA shown in Aloya carries a credible confidence signal, and no ride
 
 Goal: when riders open Aloya for routine trips, every detail feels considered.
 
-### 2.1 Multimodal Planning Quality
-- Walk-leg accuracy via Google Routes (already wired) — extend to bike-share where available.
-- Step-by-step turn instructions in `JourneyHUD` walking phases.
-- Stop entry/exit hints ("Board at Bay C", "Exit door is at the front").
+Refined priority (set 2026-06-21): rationale first (cheap trust win),
+then accessibility-weighted routing, then multimodal quality, P&R,
+Limassol coverage, trip chaining.
 
-### 2.2 Accessibility-Weighted Routing
+### 2.4 "Why this route?" Explanations — SHIPPED
+- New `RationaleTag` union on `Itinerary` (`src/lib/itinerary-types.ts`) and pure ranker `annotateRationales` in `src/lib/itinerary-rationale.ts`.
+- Tags are contrastive (computed against peers in the same result set), not absolute. Thresholds: ≥3 min for "fastest", ≥150 m for "less-walking", ≥2 min for "leaves-sooner", ≥2 min observed delay delta for "more-reliable".
+- Up to 2 tags per option, joined with an em-dash. Top option gets a `best-overall` fallback so the #1 rank is always explained.
+- Wired into `multileg.functions.ts` after the final sort, surfaced on `ItineraryCard` as a calm limestone block under the leg ribbon. EN/EL copy. No new ML, no extra server calls.
+
+### 2.2 Accessibility-Weighted Routing — NEXT
 - Preference: step-free, low-floor bus, shaded waits, max walking distance.
 - Stored per-profile; planner accepts as ranking weights, not hard filters.
 - Surface affordances on `StopCard` (shelter / shade / seating / step-free).
 
-### 2.3 Park & Ride Suggestions
+### 2.1 Multimodal Planning Quality — PLANNED
+- Walk-leg accuracy via Google Routes (already wired) — extend to bike-share where available.
+- Step-by-step turn instructions in `JourneyHUD` walking phases.
+- Stop entry/exit hints ("Board at Bay C", "Exit door is at the front").
+
+### 2.3 Park & Ride Suggestions — PLANNED
 - For trips originating outside Nicosia core, suggest "Drive to X, bus from there" when total time is competitive.
 - Requires P&R inventory dataset (manual seed for Strovolos, Engomi, Latsia hubs).
 
-### 2.4 "Why this route?" Explanations
-- Replace silent ranking with one-line rationale per option ("Fewer transfers", "Arrives 6min earlier", "More reliable on Tuesdays").
-- Generated from planner internals — no new ML.
+### 2.5 Limassol Coverage — PLANNED
+- Wire EMEL (Limassol) GTFS-RT feed end-to-end (static, realtime, classifier thresholds, route tones).
+- Strategic: closes the biggest market gap vs Pame.
+
+### 2.6 Trip Chaining — DEFERRED (late Wave 2)
+- Higher complexity; revisit after 2.1–2.5 ship.
 
 ---
 

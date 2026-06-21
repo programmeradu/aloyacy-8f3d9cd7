@@ -1017,4 +1017,16 @@ export const en = {
   "reliability.subAvgOnTime": "Avg on the dot",
   "reliability.subLearning": "Not enough data yet",
   "reliability.samples": "{n} observations",
+
+  // Wave 2.4 — "Why this route?" rationale tags
+  "rationale.eyebrow": "Why this option",
+  "rationale.fastest": "Arrives {m} min earlier",
+  "rationale.noChanges": "No changes",
+  "rationale.fewerChangesOne": "Only one change",
+  "rationale.fewerChanges": "Fewer changes",
+  "rationale.lessWalking": "{m} m less walking",
+  "rationale.allLive": "Live data the whole way",
+  "rationale.moreReliable": "Smaller delays right now",
+  "rationale.leavesSooner": "Leaves {m} min sooner",
+  "rationale.bestOverall": "Best balance of time, transfers and walking",
 } as const;
