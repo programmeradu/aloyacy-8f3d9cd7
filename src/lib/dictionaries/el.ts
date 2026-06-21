@@ -1034,4 +1034,10 @@ export const el: Record<keyof typeof en, string> = {
   "amenity.shade": "Σκιά",
   "amenity.seating": "Κάθισμα",
   "amenity.stepFree": "Χωρίς σκαλοπάτι",
+
+  // Wave 2.1 — Ζωντανές οδηγίες περπατήματος
+  "walkLive.now": "Τώρα",
+  "walkLive.inMeters": "Σε {m}",
+  "walkLive.then": "Στη συνέχεια",
+  "walkLive.lastStep": "Τελευταίο βήμα — σχεδόν έφτασες",
 };
