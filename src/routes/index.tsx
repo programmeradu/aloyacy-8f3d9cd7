@@ -96,7 +96,7 @@ const WEATHER_ICONS = {
 function Explore() {
   const navigate = useNavigate();
   const geo = useGeolocation();
-  const { data: rt } = useRealtime();
+  const { data: rt, riderConfirmedAge } = useRealtime();
   const getWeather = useServerFn(getCurrentWeather);
   const { t: tt } = useI18n();
 
@@ -174,6 +174,7 @@ function Explore() {
           agency: s.agency,
           learnedByRoute: learnedByStop?.get(s.id),
           shape: nextHere ? getShapeForTripSync(nextHere.tripId, nextHere.routeId) : null,
+          riderConfirmedAgeSec: nextHere ? riderConfirmedAge.get(nextHere.tripId) : undefined,
         });
       }
       const nextEta = smart ? smart.etaMin : arrivals[0]?.eta ?? null;
