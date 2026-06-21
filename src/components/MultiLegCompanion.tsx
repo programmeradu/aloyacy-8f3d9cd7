@@ -27,6 +27,10 @@ import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "@/lib/itinerary-
 import { WalkGuidance } from "@/components/WalkGuidance";
 import { LiveWalkBanner } from "@/components/LiveWalkBanner";
 import { SightingButton } from "@/components/SightingButton";
+import { LastMileChainCard } from "@/components/LastMileChainCard";
+import { suggestLastMileChain } from "@/lib/last-mile-chain.functions";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
 import { ShortcutPrompt } from "@/components/ShortcutPrompt";
 import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
