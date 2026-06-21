@@ -1002,4 +1002,16 @@ export const el: Record<keyof typeof en, string> = {
   "reliability.subAvgOnTime": "Μ.ό. στην ώρα",
   "reliability.subLearning": "Δεν υπάρχουν αρκετά δεδομένα ακόμη",
   "reliability.samples": "{n} παρατηρήσεις",
+
+  // Wave 2.4 — Επεξήγηση επιλογής
+  "rationale.eyebrow": "Γιατί αυτή η επιλογή",
+  "rationale.fastest": "Φτάνει {m} λεπτά νωρίτερα",
+  "rationale.noChanges": "Χωρίς μετεπιβίβαση",
+  "rationale.fewerChangesOne": "Μόνο μία μετεπιβίβαση",
+  "rationale.fewerChanges": "Λιγότερες μετεπιβιβάσεις",
+  "rationale.lessWalking": "{m} μ. λιγότερο περπάτημα",
+  "rationale.allLive": "Ζωντανά δεδομένα σε όλη τη διαδρομή",
+  "rationale.moreReliable": "Μικρότερες καθυστερήσεις τώρα",
+  "rationale.leavesSooner": "Φεύγει {m} λεπτά νωρίτερα",
+  "rationale.bestOverall": "Καλύτερη ισορροπία χρόνου, μετεπιβιβάσεων και περπατήματος",
 };
