@@ -405,6 +405,19 @@ export const en = {
   "trips.intentTomorrow": "tomorrow {time}",
   "trips.planFailed": "Plan failed",
 
+  // park & ride (Wave 2.3)
+  "pnr.eyebrowFaster": "Park & ride — {m} min faster",
+  "pnr.eyebrowComfort": "Park & ride — shorter walk",
+  "pnr.eyebrowOnly": "Park & ride — best option here",
+  "pnr.totalShort": "{m} min total",
+  "pnr.title": "Drive to {hub}, bus from there.",
+  "pnr.driveLabel": "Drive",
+  "pnr.busLabel": "Bus",
+  "pnr.driveSub": "{km} km · live traffic",
+  "pnr.busSubRoute": "Route {route} from {stop}",
+  "pnr.busSubNoRoute": "From {stop}",
+  "pnr.openDrive": "Open driving directions",
+
   // saved
   "saved.kicker": "Your atlas",
   "saved.titlePrefix": "The places that",
