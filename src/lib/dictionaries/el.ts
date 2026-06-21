@@ -412,6 +412,28 @@ export const el: Record<keyof typeof en, string> = {
   "pnr.busSubNoRoute": "Από {stop}",
   "pnr.openDrive": "Άνοιγμα οδηγιών οδήγησης",
 
+  // chain — μετάβαση με ταξί για το τελευταίο κομμάτι (Wave 3)
+  "chain.eyebrowLongLate": "Τελευταίο κομμάτι — μετά τις 21:00",
+  "chain.eyebrowLateNight": "Τελευταίο κομμάτι — αφού νυχτώσει",
+  "chain.eyebrowLongWalk": "Τελευταίο κομμάτι",
+  "chain.titleAfterHours": "Πάρε ταξί για το υπόλοιπο μέχρι {name}.",
+  "chain.titleLongWalk": "Απόφυγε το μεγάλο περπάτημα μέχρι {name}.",
+  "chain.toFallback": "τον προορισμό σου",
+  "chain.fromLine": "Από {name} — εδώ σε αφήνει το λεωφορείο.",
+  "chain.vsWalk": "έναντι {m} λεπτά περπάτημα",
+  "chain.driveLabel": "Με ταξί",
+  "chain.driveSub": "ζωντανή κίνηση",
+  "chain.distanceLabel": "Απόσταση",
+  "chain.distanceSub": "από τη στάση",
+  "chain.fareLabel": "Κόμιστρο",
+  "chain.tariffDay": "Ημερήσιο τιμολόγιο",
+  "chain.tariffNight": "Νυχτερινό τιμολόγιο (20:30–06:00)",
+  "chain.openBolt": "Άνοιγμα στο Bolt",
+  "chain.callDispatcher": "Κλήση ταξί",
+  "chain.openMaps": "Άνοιγμα στους Χάρτες",
+  "chain.disclaimer": "Εκτίμηση · ρυθμισμένο τιμολόγιο Κύπρου, ±15%",
+
+
   // saved
   "saved.kicker": "Ο άτλας σας",
   "saved.titlePrefix": "Τα μέρη που",
