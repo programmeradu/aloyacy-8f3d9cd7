@@ -102,14 +102,30 @@ export type RealtimeSnapshot = {
 /** Fetch the raw protobuf, trying each source until one yields bytes. */
 async function fetchFeedBytes(): Promise<Uint8Array> {
   const failures: string[] = [];
+
+  // 1) Raw TCP straight from our own Cloudflare Worker — no relay hop.
+  try {
+    const buf = await fetchFeedOverSocket();
+    if (buf.byteLength > 0) return buf;
+    failures.push("socket empty");
+  } catch (e) {
+    failures.push(`socket ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  // 2) HTTP relays (self-hosted Worker, then Lovable Cloud, then direct).
+  const token = process.env["GTFS_RELAY_TOKEN"];
   for (const url of feedSources()) {
     try {
+      const headers: Record<string, string> = {
+        Accept: "application/octet-stream",
+        "User-Agent":
+          "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
+      };
+      if (token && url === process.env["GTFS_RELAY_URL"]) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const res = await fetch(url, {
-        headers: {
-          Accept: "application/octet-stream",
-          "User-Agent":
-            "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
-        },
+        headers,
         signal: AbortSignal.timeout(12_000),
       });
       if (!res.ok) {
