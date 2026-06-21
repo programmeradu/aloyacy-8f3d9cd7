@@ -3,7 +3,9 @@ import { useEffect, useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
-import { IconArrowLeft, IconBus, IconArrowUpRight } from "@/components/Icons";
+import { IconArrowLeft, IconBus } from "@/components/Icons";
+import { StaleFeedBanner } from "@/components/StaleFeedBanner";
+import { EtaPill } from "@/components/EtaPill";
 import { useRealtime } from "@/lib/useRealtime";
 import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useEtaStats } from "@/lib/useEtaStats";
@@ -11,6 +13,7 @@ import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { getStop, getRoute, routeTone } from "@/lib/gtfs";
 import { useI18n } from "@/lib/i18n";
+
 
 
 export const Route = createFileRoute("/stop/$stopId")({
