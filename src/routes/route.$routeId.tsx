@@ -6,11 +6,13 @@ import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
 import { ReliabilityBadge } from "@/components/ReliabilityBadge";
+import { IntercityPatternsCard } from "@/components/IntercityPatternsCard";
 import { IconArrowLeft, IconBus } from "@/components/Icons";
 import { useRealtime } from "@/lib/useRealtime";
 import { getRoute, getStop, routeTone } from "@/lib/gtfs";
 import { distanceM } from "@/lib/geo";
 import { getRouteReliability } from "@/lib/reliability.functions";
+import { getIntercityInsights } from "@/lib/intercity-intel.functions";
 import routeVignette from "@/assets/route-vignette.jpg";
 import { useI18n } from "@/lib/i18n";
 
