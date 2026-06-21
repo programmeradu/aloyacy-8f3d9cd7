@@ -543,7 +543,11 @@ function Plan() {
   // If the user arrived from the NL planner or a learned-commute card, the
   // resolved Points were stashed in sessionStorage. Apply them once on mount;
   // they take precedence over the geolocation default.
+  // Flag stashed synchronously so the geolocation seeding effect (which runs
+  // right after this one on the same mount) knows an NL/commute origin was
+  // applied and must NOT be overwritten by the cached/live geo fix.
   const consumedNlPlanRef = useRef(false);
+  const nlSeededOriginRef = useRef(false);
   useEffect(() => {
     if (consumedNlPlanRef.current || typeof window === "undefined") return;
     consumedNlPlanRef.current = true;
@@ -562,6 +566,7 @@ function Plan() {
         pushRecent({ name: plan.to.label, lat: plan.to.lat, lng: plan.to.lng });
       }
       if (plan?.from) {
+        nlSeededOriginRef.current = true;
         setOrigin(plan.from);
         setActive(null);
       }
@@ -579,7 +584,7 @@ function Plan() {
   // refines via getCurrentPosition. Falls back to Nicosia centre only after the
   // browser hard-fails (denied / unavailable / final timeout).
   useEffect(() => {
-    if (origin || typeof window === "undefined") return;
+    if (origin || nlSeededOriginRef.current || typeof window === "undefined") return;
     let cancelled = false;
 
     const applyFix = async (latitude: number, longitude: number) => {
