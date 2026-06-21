@@ -439,6 +439,20 @@ export const en = {
   "chain.openMaps": "Open in Maps",
   "chain.disclaimer": "Estimate · regulated Cyprus tariff, ±15%",
 
+  // bike share (Nextbike Cyprus)
+  "bike.eyebrowFaster": "Cycle instead — saves {m} min",
+  "bike.eyebrowAlt": "Cycle instead — no bus needed",
+  "bike.totalLine": "{m} min door-to-door",
+  "bike.title": "A Nextbike across {city} works for this one.",
+  "bike.pickupMeta": "{bikes} bikes ready · {walk} walk",
+  "bike.dropoffMeta": "{racks} free racks · {walk} walk to finish",
+  "bike.rideLine": "{m} min ride · {km} km",
+  "bike.ridePace": "City pace, e-bike assist",
+  "bike.openNextbike": "Open Nextbike",
+  "bike.openRoute": "Cycling route in Maps",
+  "bike.disclaimer": "Live station counts · refreshed every 10 min",
+
+
 
   // saved
   "saved.kicker": "Your atlas",

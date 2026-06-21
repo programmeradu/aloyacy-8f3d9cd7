@@ -433,6 +433,19 @@ export const el: Record<keyof typeof en, string> = {
   "chain.openMaps": "Άνοιγμα στους Χάρτες",
   "chain.disclaimer": "Εκτίμηση · ρυθμισμένο τιμολόγιο Κύπρου, ±15%",
 
+  // bike share (Nextbike Cyprus)
+  "bike.eyebrowFaster": "Με ποδήλατο — κερδίζεις {m} λεπτά",
+  "bike.eyebrowAlt": "Με ποδήλατο — χωρίς λεωφορείο",
+  "bike.totalLine": "{m} λεπτά συνολικά",
+  "bike.title": "Ένα Nextbike στη {city} κάνει τη δουλειά.",
+  "bike.pickupMeta": "{bikes} ποδήλατα διαθέσιμα · {walk} περπάτημα",
+  "bike.dropoffMeta": "{racks} ελεύθερες θέσεις · {walk} μέχρι το τέλος",
+  "bike.rideLine": "{m} λεπτά ποδηλασία · {km} χλμ",
+  "bike.ridePace": "Αστικός ρυθμός, ηλεκτρική υποβοήθηση",
+  "bike.openNextbike": "Άνοιγμα Nextbike",
+  "bike.openRoute": "Διαδρομή στους Χάρτες",
+  "bike.disclaimer": "Ζωντανή διαθεσιμότητα · ανανέωση κάθε 10 λεπτά",
+
 
   // saved
   "saved.kicker": "Ο άτλας σας",
