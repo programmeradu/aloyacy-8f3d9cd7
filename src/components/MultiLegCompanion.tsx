@@ -395,6 +395,11 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
               destinationLabel={active.to.label}
             />
           )}
+          {live.phase === "walking-to-destination" && lastMileChain && (
+            <section className="mt-3 px-6 animate-rise">
+              <LastMileChainCard suggestion={lastMileChain} />
+            </section>
+          )}
           <LiveWalkBanner
             from={{ lat: live.currentLeg.from.lat, lng: live.currentLeg.from.lng }}
             to={{ lat: live.currentLeg.to.lat, lng: live.currentLeg.to.lng }}
