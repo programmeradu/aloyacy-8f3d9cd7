@@ -310,6 +310,11 @@ export const el: Record<keyof typeof en, string> = {
   "stop.opShort": "πρ {m}",
   "stop.routeFallback": "Γραμμή",
   "stop.kicker": "Στάση {code}",
+  "stop.routeKicker": "Γραμμή",
+  "stop.scheduledAt": "Πρόγραμμα · {time}",
+  "stop.nextDepartures": "Επόμενες αναχωρήσεις",
+  "stop.heroEyebrow": "Σε αυτή τη στάση",
+  "stop.heroNote": "Ο χρόνος άφιξης συνδυάζει δεδομένα μεταφορέα, ζωντανά στίγματα οχημάτων και αναφορές επιβατών — μία ειλικρινής ένδειξη ανά αναχώρηση.",
 
   // route detail
   "route.overview": "Επισκόπηση γραμμής",
