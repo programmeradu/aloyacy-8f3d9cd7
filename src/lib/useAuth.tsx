@@ -1,4 +1,11 @@
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { isAnonymousUser } from "./anon-auth";
@@ -33,7 +40,17 @@ async function linkDeviceIfPossible(session: Session | null) {
   }
 }
 
-export function useAuth() {
+type AuthState = {
+  session: Session | null;
+  user: User | null;
+  loading: boolean;
+  isAnonymous: boolean;
+  isPermanent: boolean;
+};
+
+const AuthContext = createContext<AuthState | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -62,12 +79,24 @@ export function useAuth() {
   const user = session?.user ?? null;
   const isAnonymous = isAnonymousUser(user as User | null);
 
-  return {
-    session,
-    user,
-    loading,
-    isAnonymous,
-    /** True if the user has linked a real identity (email or social). */
-    isPermanent: !!user && !isAnonymous,
-  };
+  const value = useMemo<AuthState>(
+    () => ({
+      session,
+      user,
+      loading,
+      isAnonymous,
+      isPermanent: !!user && !isAnonymous,
+    }),
+    [session, user, loading, isAnonymous],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
 }
