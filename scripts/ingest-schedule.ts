@@ -23,26 +23,34 @@ import { gzipSync } from "node:zlib";
 
 const FEED_IDS = [2, 4, 5, 6, 9, 10, 11];
 const BASE = "https://motionbuscard.org.cy/opendata/downloadfile?file=GTFS\\";
-const TMP = "/tmp/gtfs";
-const OUT = "public/data/schedule";
+import { resolve } from "node:path";
+const TMP = resolve(".tmp/gtfs");
+const OUT = resolve("public/data/schedule");
 
 mkdirSync(TMP, { recursive: true });
 mkdirSync(OUT, { recursive: true });
 
 // --- 1. Download + unzip every feed if not already present -----------------
 
+const isWin = process.platform === "win32";
 for (const id of FEED_IDS) {
-  const zip = `${TMP}/${id}.zip`;
-  const dir = `${TMP}/feed${id}`;
+  const zip = resolve(`${TMP}/${id}.zip`);
+  const dir = resolve(`${TMP}/feed${id}`);
   if (!existsSync(zip)) {
     console.log(`[ingest] downloading feed ${id}`);
-    execSync(
-      `curl -sfL -A "Mozilla/5.0" -o "${zip}" "${BASE}${id}_google_transit.zip&rel=True"`,
-      { stdio: "inherit" }
-    );
+    const url = `${BASE}${id}_google_transit.zip&rel=True`;
+    if (isWin) {
+      execSync(`powershell -Command "Invoke-WebRequest -Uri '${url}' -OutFile '${zip}' -UserAgent 'Mozilla/5.0'"`, { stdio: "inherit" });
+    } else {
+      execSync(`curl -sfL -A "Mozilla/5.0" -o "${zip}" "${url}"`, { stdio: "inherit" });
+    }
   }
   if (!existsSync(`${dir}/stop_times.txt`)) {
-    execSync(`unzip -oq "${zip}" -d "${dir}"`, { stdio: "inherit" });
+    if (isWin) {
+      execSync(`powershell -Command "Expand-Archive -Force -Path '${zip}' -DestinationPath '${dir}'"`, { stdio: "inherit" });
+    } else {
+      execSync(`unzip -oq "${zip}" -d "${dir}"`, { stdio: "inherit" });
+    }
   }
 }
 
