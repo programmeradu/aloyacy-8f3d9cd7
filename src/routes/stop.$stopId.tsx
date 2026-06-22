@@ -165,7 +165,7 @@ function StopDetail() {
         <div className="relative overflow-hidden rounded-3xl ring-1 ring-line bg-card mb-5">
           <div className="relative aspect-[16/6] w-full">
             <img
-              src={heroAsset.url}
+              src={heroAsset}
               alt=""
               loading="lazy"
               width={1280}
