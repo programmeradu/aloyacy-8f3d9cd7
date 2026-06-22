@@ -118,8 +118,8 @@ REVOKE EXECUTE ON FUNCTION public.enqueue_email(text, jsonb)            FROM PUB
 REVOKE EXECUTE ON FUNCTION public.delete_email(text, bigint)            FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.move_to_dlq(text, text, bigint, jsonb) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.read_email_batch(text, integer, integer) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.email_queue_dispatch()                FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.email_queue_wake()                    FROM PUBLIC, anon, authenticated;
+-- REVOKE EXECUTE ON FUNCTION public.email_queue_dispatch()                FROM PUBLIC, anon, authenticated;
+-- REVOKE EXECUTE ON FUNCTION public.email_queue_wake()                    FROM PUBLIC, anon, authenticated;
 
 -- 8) Pin search_path on functions that don't have it configured.
 ALTER FUNCTION public.enqueue_email(text, jsonb)                       SET search_path = public;
