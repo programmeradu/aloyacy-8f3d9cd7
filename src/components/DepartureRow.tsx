@@ -142,14 +142,10 @@ export function DepartureRow({
         {/* Hairline + meta strip — tier, confidence, band, op-shift */}
         <div className="mt-4 pt-3 border-t border-line/70 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] min-w-0">
-            <span className={`size-1.5 rounded-full ${dot}`} aria-hidden />
             <span className={accent}>{tierLabel}</span>
-            {isLiveish && (
-              <span className="text-ink-soft/70 truncate before:content-['—'] before:mx-1.5 before:text-ink-soft/40">
-                {t(CONFIDENCE_KEYS[eta.confidence])}
-              </span>
-            )}
+            {isLiveish && <ConfidenceIcon confidence={eta.confidence} />}
           </div>
+
           {(showBand || shifted) && (
             <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft/80 shrink-0">
               {showBand && <span className="tabular-nums">{eta.band}</span>}
