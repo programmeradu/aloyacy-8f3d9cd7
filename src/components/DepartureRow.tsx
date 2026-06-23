@@ -15,12 +15,12 @@ import { Link } from "@tanstack/react-router";
 import { RouteChip } from "@/components/RouteChip";
 import { routeTone } from "@/lib/gtfs";
 import {
-  confidenceDot,
   tierAccent,
   type FreshnessTier,
   type FreshnessConfidence,
 } from "@/lib/freshness";
 import { useI18n, type DictKey } from "@/lib/i18n";
+import { ConfidenceIcon } from "@/components/ConfidenceIcon";
 import accentAsset from "@/assets/route-card-accent.jpg.asset.json";
 
 type DepartureRowProps = {
@@ -47,11 +47,6 @@ const TIER_KEYS: Record<FreshnessTier, DictKey> = {
   scheduled: "eta.tier.scheduled",
 };
 
-const CONFIDENCE_KEYS: Record<FreshnessConfidence, DictKey> = {
-  high: "eta.conf.high",
-  medium: "eta.conf.med",
-  low: "eta.conf.low",
-};
 
 export function DepartureRow({
   tripId,
