@@ -34,7 +34,7 @@ export type Stop = {
   etaConfidenceLevel?: FreshnessConfidence;
   /** Optional short label ("live", "stale ping", "scheduled"). */
   etaBlurb?: string;
-  routes: { code: string; tone: Tone }[];
+  routes: { code: string; tone: Tone; headsign?: string | null }[];
   highlight?: boolean;
   kind?: StopKind;
   /**
