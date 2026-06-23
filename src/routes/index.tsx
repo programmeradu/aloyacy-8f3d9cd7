@@ -22,7 +22,9 @@ import {
   IconArrowUpRight,
   IconBus,
   IconPin,
+  IconPlane,
 } from "@/components/Icons";
+import { AIRPORTS, type AirportCode } from "@/lib/airport.functions";
 import { useRealtime } from "@/lib/useRealtime";
 import { smartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync } from "@/lib/shapes";
