@@ -34,8 +34,8 @@ export function AccessibilityPrefsCard() {
         </div>
         <span className="shrink-0 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
           {prefs.stepFree || prefs.preferShade || prefs.maxWalkMeters != null
-            ? t("a11y.status.on") ?? "on"
-            : t("a11y.status.off") ?? "off"}
+            ? "on"
+            : "off"}
         </span>
       </header>
 
