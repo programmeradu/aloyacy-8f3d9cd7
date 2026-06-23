@@ -176,7 +176,6 @@ function TierChip({
   blurb?: string;
   t: (k: never) => string;
 }) {
-  const dot = confidenceDot(confidence ?? "low");
   const showConfidence =
     !!confidence && (tier === "live" || tier === "rider-confirmed" || tier === "predicted");
   // i18n keys are typed against the dictionary; cast here is intentional —
@@ -185,14 +184,8 @@ function TierChip({
   return (
     <div className="mt-1 flex flex-col items-end gap-0.5">
       <span className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
-        <span className={`size-1.5 rounded-full ${dot}`} aria-hidden />
         <span>{tierLabel}</span>
-        {showConfidence && (
-          <>
-            <span className="text-ink-soft/40">·</span>
-            <span>{t(`eta.conf.${confidence === "medium" ? "med" : confidence}` as never)}</span>
-          </>
-        )}
+        {showConfidence && confidence && <ConfidenceIcon confidence={confidence} />}
       </span>
       {blurb && tier !== "live" && tier !== "rider-confirmed" && (
         <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-ink-soft/60 text-right max-w-[10rem]">
@@ -202,6 +195,7 @@ function TierChip({
     </div>
   );
 }
+
 
 /**
  * Wave 2.2 — surfaces stop affordances when we have curated data. We
