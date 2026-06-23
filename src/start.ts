@@ -41,6 +41,7 @@ const hostRedirectMiddleware = createMiddleware().server(async ({ next }) => {
     )
       .toLowerCase()
       .split(":")[0];
+    maybePingIndexNow(host);
     let target: string | null = null;
     if (host === "app.aloyacy.live") target = `https://app.aloya.cy${url.pathname}${url.search}`;
     else if (host === "aloyacy.live" || host === "www.aloyacy.live")
