@@ -245,8 +245,9 @@ export function ShareSheet({ open, onClose, ctx }: Props) {
           />
           <ActionButton
             onClick={handleWhatsApp}
-            icon={<IconWhatsApp className="size-4" />}
+            icon={<IconWhatsApp className="size-[18px] text-[#25D366]" />}
             label={t("share.whatsapp")}
+            disabled={!blob}
           />
           <ActionButton
             onClick={handleSave}
@@ -260,6 +261,16 @@ export function ShareSheet({ open, onClose, ctx }: Props) {
             label={copied ? t("share.copied") : t("share.copyLink")}
           />
         </div>
+
+        {notice ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mx-5 mb-5 -mt-2 rounded-xl bg-limestone-soft ring-1 ring-line px-3 py-2 text-[12px] text-ink-soft text-center animate-fade-in"
+          >
+            {notice}
+          </div>
+        ) : null}
       </div>
     </div>,
     document.body,
