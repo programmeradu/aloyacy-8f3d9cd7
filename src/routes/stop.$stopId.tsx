@@ -61,7 +61,12 @@ function StopDetail() {
     return Array.from(set);
   }, [rt, stopId]);
   const etaStats = useEtaStats(routeIdsHere);
-  useEffect(() => { prefetchShapes(); prefetchHeadsigns(); }, []);
+  const [, forceHeadsigns] = useState(0);
+  useEffect(() => {
+    prefetchShapes();
+    prefetchHeadsigns();
+    return onHeadsignsLoaded(() => forceHeadsigns((n) => n + 1));
+  }, []);
 
   const departures = useMemo(() => {
     if (!rt) return [];
