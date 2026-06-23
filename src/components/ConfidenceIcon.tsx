@@ -84,7 +84,7 @@ export function ConfidenceIcon({
       onMouseLeave={() => setOpen(false)}
       onFocus={() => setOpen(true)}
       onBlur={() => setOpen(false)}
-      className="relative inline-flex items-center justify-center rounded-full p-0.5 outline-none focus-visible:ring-1 focus-visible:ring-aegean-deep/50 cursor-help align-middle"
+      className="relative inline-flex items-center justify-center rounded-full leading-none outline-none focus-visible:ring-1 focus-visible:ring-aegean-deep/50 cursor-help align-middle"
     >
       <svg
         width={dims.w}
