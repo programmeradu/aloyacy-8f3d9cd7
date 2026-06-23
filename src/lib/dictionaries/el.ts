@@ -1199,6 +1199,8 @@ export const el: Record<keyof typeof en, string> = {
   "share.save": "Αποθήκευση",
   "share.copyLink": "Αντιγραφή",
   "share.copied": "Αντιγράφηκε",
-  "share.close": "Κλείσιμο",
-  "share.openLabel": "Κοινοποίηση στάσης",
+ "share.close": "Κλείσιμο",
+ "share.openLabel": "Κοινοποίηση στάσης",
+ "share.waFallback": "Η εικόνα αποθηκεύτηκε — επισυνάψτε την στο WhatsApp",
+ "share.saved": "Αποθηκεύτηκε στη συσκευή σας",
 };
