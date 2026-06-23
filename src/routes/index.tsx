@@ -234,7 +234,7 @@ function Explore() {
         amenities: getStopAmenities(s.id),
       };
     });
-  }, [rt, nearStops, learnedByStop, riderConfirmedAge]);
+  }, [rt, nearStops, learnedByStop, riderConfirmedAge, headsignsReady]);
 
   // Nearby landmark chips — actual stops within range, clickable to stop page
   const landmarkChips = useMemo(() => {
