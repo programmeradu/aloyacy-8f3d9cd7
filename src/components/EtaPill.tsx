@@ -53,12 +53,6 @@ const TIER_KEYS: Record<FreshnessTier, DictKey> = {
   scheduled: "eta.tier.scheduled",
 };
 
-const CONFIDENCE_KEYS: Record<FreshnessConfidence, DictKey> = {
-  high: "eta.conf.high",
-  medium: "eta.conf.med",
-  low: "eta.conf.low",
-};
-
 export function EtaPill({
   data,
   variant = "stack",
@@ -71,9 +65,7 @@ export function EtaPill({
   const { t } = useI18n();
   const isGhost = data.tier === "ghost";
   const accent = tierAccent(data.tier);
-  const dot = confidenceDot(data.confidence);
   const tierLabel = t(TIER_KEYS[data.tier]);
-  const confLabel = t(CONFIDENCE_KEYS[data.confidence]);
   const shifted =
     data.etaMin != null &&
     data.operatorEtaMin != null &&
@@ -97,12 +89,7 @@ export function EtaPill({
             </span>
           )}
         </div>
-        <ChipRow
-          dot={dot}
-          tierLabel={tierLabel}
-          confLabel={confLabel}
-          tier={data.tier}
-        />
+        <ChipRow tierLabel={tierLabel} tier={data.tier} confidence={data.confidence} accent={accent} />
         {showBand && (
           <p className="mt-1 font-mono text-[11px] tracking-[0.04em] text-ink-soft">
             {data.band}
@@ -124,20 +111,22 @@ export function EtaPill({
 
   // Compact pill — fits in dense lists & leg cards.
   if (variant === "compact") {
+    const showConfidence =
+      data.tier === "live" || data.tier === "rider-confirmed" || data.tier === "predicted";
     return (
       <span
         className={`inline-flex items-center gap-2 rounded-full bg-limestone-soft/70 ring-1 ring-line px-3 py-1`}
       >
-        <span className={`size-1.5 rounded-full ${dot}`} aria-hidden />
         <span className={`font-display text-[15px] leading-none ${accent}`}>
           {data.etaMin ?? "—"}
         </span>
         <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
           {data.etaMin != null ? t("eta.minLabel") : t("eta.tier.ghost")}
         </span>
-        <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/80">
-          · {tierLabel}
+        <span className={`font-mono text-[9px] uppercase tracking-[0.18em] ${accent}`}>
+          {tierLabel}
         </span>
+        {showConfidence && <ConfidenceIcon confidence={data.confidence} />}
       </span>
     );
   }
@@ -153,13 +142,7 @@ export function EtaPill({
       <span className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/80">
         {data.etaMin != null ? t("eta.minLabel") : t("eta.tier.ghost")}
       </span>
-      <ChipRow
-        dot={dot}
-        tierLabel={tierLabel}
-        confLabel={confLabel}
-        tier={data.tier}
-        compact
-      />
+      <ChipRow tierLabel={tierLabel} tier={data.tier} confidence={data.confidence} accent={accent} compact />
       {showBand && (
         <p className="mt-1 font-mono text-[10px] tracking-[0.04em] text-ink-soft/80">
           {data.band}
@@ -175,34 +158,28 @@ export function EtaPill({
 }
 
 function ChipRow({
-  dot,
   tierLabel,
-  confLabel,
   tier,
+  confidence,
+  accent,
   compact = false,
 }: {
-  dot: string;
   tierLabel: string;
-  confLabel: string;
   tier: FreshnessTier;
+  confidence: FreshnessConfidence;
+  accent: string;
   compact?: boolean;
 }) {
-  // Confidence is hidden when ghost/scheduled — it would mislead.
   const showConfidence = tier === "live" || tier === "rider-confirmed" || tier === "predicted";
   const size = compact ? "text-[9px]" : "text-[10px]";
   return (
-    <div className={`mt-1 flex items-center gap-1.5 font-mono uppercase tracking-[0.18em] ${size} text-ink-soft`}>
-      <span className={`size-1.5 rounded-full ${dot}`} aria-hidden />
-      <span>{tierLabel}</span>
-      {showConfidence && (
-        <>
-          <span className="text-ink-soft/40">·</span>
-          <span>{confLabel}</span>
-        </>
-      )}
+    <div className={`mt-1 flex items-center gap-1.5 font-mono uppercase tracking-[0.18em] ${size}`}>
+      <span className={accent}>{tierLabel}</span>
+      {showConfidence && <ConfidenceIcon confidence={confidence} />}
     </div>
   );
 }
+
 
 /** Only show the band when it materially differs from the headline minute. */
 function bandIsInformative(band: string, headlineMin: number | null): boolean {
