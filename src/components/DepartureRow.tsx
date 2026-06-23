@@ -97,9 +97,10 @@ export function DepartureRow({
         loading="lazy"
         width={1024}
         height={512}
-        className="pointer-events-none absolute inset-y-0 right-0 hidden sm:block h-full w-[58%] object-cover object-right opacity-[0.18]"
+        className="pointer-events-none absolute inset-y-0 right-0 h-full w-[62%] object-cover object-right opacity-[0.32] sm:opacity-[0.38] mix-blend-multiply"
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-card via-card/95 to-card/60" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-card via-card/80 to-transparent" />
+
 
       <div className="relative p-4 sm:p-5">
         {/* Top row: route chip · journey title · ETA numeral */}
