@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { IconArrowLeft } from "@/components/Icons";
@@ -11,6 +11,7 @@ import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useEtaStats } from "@/lib/useEtaStats";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
+import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
 import { getStop, getRoute } from "@/lib/gtfs";
 import { useI18n } from "@/lib/i18n";
 
@@ -60,7 +61,12 @@ function StopDetail() {
     return Array.from(set);
   }, [rt, stopId]);
   const etaStats = useEtaStats(routeIdsHere);
-  useEffect(() => { prefetchShapes(); }, []);
+  const [, forceHeadsigns] = useState(0);
+  useEffect(() => {
+    prefetchShapes();
+    prefetchHeadsigns();
+    return onHeadsignsLoaded(() => forceHeadsigns((n) => n + 1));
+  }, []);
 
   const departures = useMemo(() => {
     if (!rt) return [];
@@ -185,6 +191,7 @@ function StopDetail() {
             {departures.map((d, i) => {
               const route = getRoute(d.routeId);
               const isGhost = d.eta.tier === "ghost";
+              const headsign = getHeadsignSync(d.tripId, d.routeId);
               return (
                 <div key={d.tripId + d.routeId + i}>
                   <DepartureRow
@@ -192,6 +199,7 @@ function StopDetail() {
                     routeId={d.routeId}
                     routeShort={route?.short ?? "?"}
                     routeLong={route?.long ?? t("stop.routeFallback")}
+                    headsign={headsign}
                     stopId={stopId}
                     arrivalUnix={d.arrivalUnix}
                     eta={{

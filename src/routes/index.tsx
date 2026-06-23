@@ -26,6 +26,7 @@ import {
 import { useRealtime } from "@/lib/useRealtime";
 import { smartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync } from "@/lib/shapes";
+import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
 import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { useTick } from "@/hooks/use-tick";
@@ -139,17 +140,26 @@ function Explore() {
   const nearStopIds = useMemo(() => nearStops.map((s) => s.id), [nearStops]);
   const { data: learnedByStop } = useLearnedStatsBulk(nearStopIds);
 
+  // Kick off the lazy headsigns bundle once — used to label route chips by
+  // their actual destination ("19 → Lakatamia"), disambiguating opposite
+  // directions of the same line that otherwise look identical on a card.
+  const [headsignsReady, setHeadsignsReady] = useState(0);
+  useEffect(() => {
+    prefetchHeadsigns();
+    return onHeadsignsLoaded(() => setHeadsignsReady((n) => n + 1));
+  }, []);
+
   const stops: Stop[] = useMemo(() => {
     const near = nearStops;
     const t = Math.floor(Date.now() / 1000);
     // Index arrivals by stop for the route-chip list (cheap, no snap needed).
-    const arrByStop = new Map<string, { routeId: string; eta: number }[]>();
+    const arrByStop = new Map<string, { routeId: string; tripId: string; eta: number }[]>();
     if (rt) {
       for (const a of rt.arrivals) {
         const eta = Math.max(0, Math.round((a.arrivalUnix - t) / 60));
         if (eta > 120) continue;
         const arr = arrByStop.get(a.stopId) ?? [];
-        arr.push({ routeId: a.routeId, eta });
+        arr.push({ routeId: a.routeId, tripId: a.tripId, eta });
         arrByStop.set(a.stopId, arr);
       }
     }
@@ -181,18 +191,25 @@ function Explore() {
       const nextEta = smart ? smart.etaMin : arrivals[0]?.eta ?? null;
 
 
+      // Dedupe by (routeId + headsign) so opposite-direction buses on the same
+      // line appear as two distinct entries ("19 → Lakatamia" + "19 → City
+      // Center") — the only signal that tells a rider which one helps them.
       const seen = new Set<string>();
       const routes = arrivals
-        .filter((a) =>
-          seen.has(a.routeId) ? false : (seen.add(a.routeId), true),
-        )
+        .map((a) => ({ ...a, headsign: getHeadsignSync(a.tripId, a.routeId) }))
+        .filter((a) => {
+          const key = `${a.routeId}|${a.headsign ?? ""}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        })
         .slice(0, 3)
         .map((a) => {
           const r = getRoute(a.routeId);
-          return { code: r?.short ?? "—", tone: routeTone(a.routeId) };
+          return { code: r?.short ?? "—", tone: routeTone(a.routeId), headsign: a.headsign };
         });
       if (routes.length === 0)
-        routes.push({ code: "—", tone: "olive" as const });
+        routes.push({ code: "—", tone: "olive" as const, headsign: null });
       return {
         id: s.id,
         code: s.code || s.id,
@@ -217,7 +234,7 @@ function Explore() {
         amenities: getStopAmenities(s.id),
       };
     });
-  }, [rt, nearStops, learnedByStop, riderConfirmedAge]);
+  }, [rt, nearStops, learnedByStop, riderConfirmedAge, headsignsReady]);
 
   // Nearby landmark chips — actual stops within range, clickable to stop page
   const landmarkChips = useMemo(() => {
