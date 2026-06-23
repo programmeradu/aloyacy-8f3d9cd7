@@ -56,7 +56,11 @@ export function getHeadsignSync(tripId: string, routeId?: string): string | null
     const b = cache![rid];
     if (!b) return null;
     const idx = b.trips[tripId];
-    if (idx == null) return null;
+    // The live feed's trip IDs rotate with each schedule publish, while route
+    // direction IDs remain stable. Cyprus encodes each direction as its own
+    // route_id in the feeds we bundle, so a single-headsign route is a safe
+    // fallback when the exact trip_id no longer exists in the static bundle.
+    if (idx == null) return b.headsigns.length === 1 ? b.headsigns[0] : null;
     return b.headsigns[idx] ?? null;
   };
   if (routeId) {
