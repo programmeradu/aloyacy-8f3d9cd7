@@ -315,29 +315,33 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
   }
 
   // Stop name — display, up to 2 lines, auto-shrink to fit.
+  let nameBottomY = 870;
   {
-    let size = 84;
-    const minSize = 56;
+    let size = 80;
+    const minSize = 48;
     ctx.fillStyle = C.ink;
     let lines: string[] = [];
     while (size >= minSize) {
       ctx.font = `600 ${size}px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif`;
       lines = wrap(ctx, c.stop.name, innerW, 2);
       const longest = Math.max(...lines.map((l) => ctx.measureText(l).width));
-      if (longest <= innerW) break;
+      if (longest <= innerW && lines.length <= 2) break;
       size -= 4;
     }
-    const lh = size * 1.04;
+    const lh = size * 1.02;
     const startY = 870;
+    ctx.font = `600 ${size}px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif`;
     lines.forEach((line, i) => {
-      ctx.fillText(line, PAD, startY + i * lh + size * 0.85);
+      ctx.fillText(line, PAD, startY + i * lh + size * 0.82);
     });
+    nameBottomY = startY + (lines.length - 1) * lh + size * 0.82;
   }
 
-  // Route chips
+  // Route chips — placed relative to the name bottom so 1- and 2-line stops
+  // both breathe properly.
+  const chipH = 52;
+  const chipY = Math.min(1080, nameBottomY + 34);
   {
-    const chipY = 1020;
-    const chipH = 56;
     const gap = 12;
     const maxChips = 6;
     const shown = c.routes.slice(0, maxChips);
@@ -346,7 +350,7 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
     ctx.font = "600 22px 'JetBrains Mono', ui-monospace, monospace";
     for (const r of shown) {
       const labelW = ctx.measureText(r.short).width;
-      const w = Math.max(chipH, labelW + 32);
+      const w = Math.max(chipH, labelW + 30);
       if (x + w > W - PAD) break;
       ctx.fillStyle = C.aegeanSoft;
       roundRect(ctx, x, chipY, w, chipH, 14);
@@ -359,10 +363,9 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
       ctx.fillText(r.short, x + (w - labelW) / 2, chipY + chipH / 2 + 8);
       x += w + gap;
     }
-    if (extra > 0 && x + 80 <= W - PAD) {
+    if (extra > 0 && x + 76 <= W - PAD) {
       const label = `+${extra}`;
-      const w = 80;
-      ctx.fillStyle = "transparent";
+      const w = 76;
       roundRect(ctx, x, chipY, w, chipH, 14);
       ctx.strokeStyle = "rgba(75,79,69,0.35)";
       ctx.lineWidth = 1.2;
@@ -375,61 +378,65 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
   }
 
   // Next bus block — divider + label + giant numeral + headsign
+  const dividerY = Math.max(1150, chipY + chipH + 38);
   {
-    const y = 1120;
-    // Top divider
     ctx.strokeStyle = "rgba(75,79,69,0.18)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(PAD, y);
-    ctx.lineTo(W - PAD, y);
+    ctx.moveTo(PAD, dividerY);
+    ctx.lineTo(W - PAD, dividerY);
     ctx.stroke();
 
-    // Left: label + headsign
+    // Layout: ETA on the right at fixed width, headsign fills the rest.
+    const etaMin = c.nextEtaMin;
+    const big = etaMin != null ? String(etaMin) : "—";
+    ctx.font = "600 124px 'JetBrains Mono', ui-monospace, monospace";
+    const bigW = ctx.measureText(big).width;
+    const unit = c.locale === "el" ? "λεπτά" : "min";
+    ctx.font =
+      "600 28px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
+    const unitW = etaMin != null ? ctx.measureText(unit).width : 0;
+    const etaTotalW = bigW + (etaMin != null ? 14 + unitW : 0);
+    const etaXRight = W - PAD - etaTotalW;
+    const leftMaxW = etaXRight - PAD - 28;
+
+    // Left: NEXT BUS label
     ctx.fillStyle = C.inkSoft;
     ctx.font = "600 14px 'JetBrains Mono', ui-monospace, monospace";
     drawTracked(
       ctx,
       c.locale === "el" ? "ΕΠΟΜΕΝΟ ΛΕΩΦΟΡΕΙΟ" : "NEXT BUS",
       PAD,
-      y + 38,
+      dividerY + 38,
       2.4,
     );
 
-    if (c.nextHeadsign) {
+    // Headsign (strip leading arrow if present from upstream)
+    const cleanHs = c.nextHeadsign
+      ? c.nextHeadsign.replace(/^[→➜➡⇒\s]+/, "").trim()
+      : null;
+    if (cleanHs) {
       ctx.fillStyle = C.ink;
       ctx.font =
-        "600 28px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
-      const hs = wrap(ctx, c.nextHeadsign, innerW * 0.55, 1)[0] ?? "";
-      ctx.fillText(hs, PAD, y + 88);
+        "600 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
+      const hs = wrap(ctx, cleanHs, Math.max(220, leftMaxW), 2);
+      hs.forEach((line, i) => {
+        ctx.fillText(line, PAD, dividerY + 84 + i * 32);
+      });
     }
 
-    // Right: giant ETA
-    if (c.nextEtaMin != null) {
-      const big = String(c.nextEtaMin);
-      ctx.font = "600 140px 'JetBrains Mono', ui-monospace, monospace";
-      const bigW = ctx.measureText(big).width;
-      const unit = c.locale === "el" ? "λεπτά" : "min";
-      ctx.font =
-        "600 32px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
-      const unitW = ctx.measureText(unit).width;
-      const totalW = bigW + 16 + unitW;
-      const xRight = W - PAD - totalW;
-      ctx.fillStyle = C.ink;
-      ctx.font = "600 140px 'JetBrains Mono', ui-monospace, monospace";
-      ctx.fillText(big, xRight, y + 130);
+    // Giant ETA on the right
+    ctx.fillStyle = etaMin != null ? C.ink : C.inkSoft;
+    ctx.font = "600 124px 'JetBrains Mono', ui-monospace, monospace";
+    ctx.fillText(big, etaXRight, dividerY + 124);
+    if (etaMin != null) {
       ctx.fillStyle = C.inkSoft;
       ctx.font =
-        "600 32px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
-      ctx.fillText(unit, xRight + bigW + 16, y + 130);
-    } else {
-      const label = c.locale === "el" ? "—" : "—";
-      ctx.fillStyle = C.inkSoft;
-      ctx.font = "600 140px 'JetBrains Mono', ui-monospace, monospace";
-      const lw = ctx.measureText(label).width;
-      ctx.fillText(label, W - PAD - lw, y + 130);
+        "600 28px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
+      ctx.fillText(unit, etaXRight + bigW + 14, dividerY + 124);
     }
   }
+
 
   // Footer — URL + open mark
   {
