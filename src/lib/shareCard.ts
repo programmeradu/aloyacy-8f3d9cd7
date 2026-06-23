@@ -390,13 +390,13 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
     // Layout: ETA on the right at fixed width, headsign fills the rest.
     const etaMin = c.nextEtaMin;
     const big = etaMin != null ? String(etaMin) : "—";
-    ctx.font = "600 124px 'JetBrains Mono', ui-monospace, monospace";
+    ctx.font = "600 110px 'JetBrains Mono', ui-monospace, monospace";
     const bigW = ctx.measureText(big).width;
     const unit = c.locale === "el" ? "λεπτά" : "min";
     ctx.font =
-      "600 28px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
+      "600 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
     const unitW = etaMin != null ? ctx.measureText(unit).width : 0;
-    const etaTotalW = bigW + (etaMin != null ? 14 + unitW : 0);
+    const etaTotalW = bigW + (etaMin != null ? 12 + unitW : 0);
     const etaXRight = W - PAD - etaTotalW;
     const leftMaxW = etaXRight - PAD - 28;
 
@@ -407,7 +407,7 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
       ctx,
       c.locale === "el" ? "ΕΠΟΜΕΝΟ ΛΕΩΦΟΡΕΙΟ" : "NEXT BUS",
       PAD,
-      dividerY + 38,
+      dividerY + 32,
       2.4,
     );
 
@@ -418,24 +418,26 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
     if (cleanHs) {
       ctx.fillStyle = C.ink;
       ctx.font =
-        "600 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
+        "600 24px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
       const hs = wrap(ctx, cleanHs, Math.max(220, leftMaxW), 2);
       hs.forEach((line, i) => {
-        ctx.fillText(line, PAD, dividerY + 84 + i * 32);
+        ctx.fillText(line, PAD, dividerY + 72 + i * 30);
       });
     }
 
-    // Giant ETA on the right
+    // Giant ETA on the right — baseline pulled up so descenders clear footer.
+    const etaBaseline = dividerY + 108;
     ctx.fillStyle = etaMin != null ? C.ink : C.inkSoft;
-    ctx.font = "600 124px 'JetBrains Mono', ui-monospace, monospace";
-    ctx.fillText(big, etaXRight, dividerY + 124);
+    ctx.font = "600 110px 'JetBrains Mono', ui-monospace, monospace";
+    ctx.fillText(big, etaXRight, etaBaseline);
     if (etaMin != null) {
       ctx.fillStyle = C.inkSoft;
       ctx.font =
-        "600 28px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
-      ctx.fillText(unit, etaXRight + bigW + 14, dividerY + 124);
+        "600 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
+      ctx.fillText(unit, etaXRight + bigW + 12, etaBaseline);
     }
   }
+
 
 
   // Footer — URL + open mark
