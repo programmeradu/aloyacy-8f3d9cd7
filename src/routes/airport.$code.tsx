@@ -1,11 +1,10 @@
 // Airport page — /airport/lca, /airport/pfo
 //
-// Treats the airport as a stop: shows the Kapnos coach card at the top
-// (direct intercity departures with live seats), an optional flight
-// pulse, and then the urban-network DepartureRows from the airport's
-// GTFS stop — same UI as /stop/$stopId. SEO metadata + JSON-LD kept
-// for indexability; the long-form editorial article lives on the
-// marketing site, not here.
+// Mirrors /stop/$stopId exactly. The airport's GTFS stop drives the
+// "Next departures" list; Kapnos intercity coach cards are slotted in
+// at the top of that same list (same UI rhythm as a stop page — no
+// editorial article, no numbered sections, no flight pulse strip).
+// SEO metadata + JSON-LD are kept for indexability only.
 
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
@@ -32,12 +31,10 @@ import {
   type AirportCode,
   type AirportPageData,
   type AirportCoachLine,
-  type AirportFlights,
 } from "@/lib/airport.functions";
 
 const BASE = "https://app.aloya.cy";
 
-// GTFS stop IDs for the two scheduled Cyprus airports.
 const AIRPORT_STOP: Record<AirportCode, string> = {
   lca: "6117", // "Larnaka Airport"
   pfo: "1813", // "Pafos Airport"
@@ -53,12 +50,11 @@ function airportQuery(code: AirportCode) {
   });
 }
 
-// FAQ kept for JSON-LD only — the visual article lives on the marketing site.
 function buildFaq(city: string): { q: string; a: string }[] {
   return [
     {
       q: `How do I get from ${city} airport by bus?`,
-      a: `Direct intercity coaches (Kapnos) board on the arrivals forecourt to Nicosia, Limassol, Larnaca, Paphos, Ayia Napa and Protaras. Live next departures and urban-bus options are shown above.`,
+      a: `Direct intercity coaches (Kapnos) board on the arrivals forecourt to Nicosia, Limassol, Larnaca, Paphos, Ayia Napa and Protaras. Urban-bus options leave from the same stop.`,
     },
     {
       q: `How much does the bus from ${city} airport cost?`,
@@ -72,76 +68,43 @@ function buildFaq(city: string): { q: string; a: string }[] {
 }
 
 const COPY: Record<Locale, {
-  kicker: (iata: string) => string;
-  coachTitle: string;
-  coachLead: string;
-  coachNone: string;
+  coachKicker: string;
   seatsLeft: (n: number) => string;
   sold: string;
   bookCta: string;
   timetableCta: string;
   pickup: string;
   fromLabel: string;
-  flightTitle: string;
-  flightQuiet: string;
-  flightLine: (a: number, d: number) => string;
-  flightSrc: (s: string) => string;
-  arrivalsHead: string;
-  departuresHead: string;
-  localTitle: string;
-  localLive: string;
-  localLoading: string;
-  localEmptyTitle: string;
-  localEmptyBody: string;
+  emptyTitle: string;
+  emptyBody: string;
   notInDataset: string;
+  serviceLabel: string;
 }> = {
   en: {
-    kicker: (iata) => `airport · ${iata}`,
-    coachTitle: "Direct coaches",
-    coachLead: "Kapnos services boarding at arrivals. Live seat counts, deep-link to the operator's checkout.",
-    coachNone: "No upcoming Kapnos coaches in the service window.",
+    coachKicker: "Direct coach",
     seatsLeft: (n) => `${n} seats`,
     sold: "Sold out",
-    bookCta: "Book on Kapnos",
-    timetableCta: "Timetable",
+    bookCta: "Book",
+    timetableCta: "Times",
     pickup: "Boards at",
     fromLabel: "from",
-    flightTitle: "Live at the terminal",
-    flightQuiet: "Quiet at the terminal in the next hour.",
-    flightLine: (a, d) => `${a} arriving · ${d} departing · next 60 min`,
-    flightSrc: (s) => `flights via ${s}`,
-    arrivalsHead: "Arrivals",
-    departuresHead: "Departures",
-    localTitle: "Local buses from the airport stop",
-    localLive: "Live · smart ETA",
-    localLoading: "Loading…",
-    localEmptyTitle: "No upcoming buses at this stop.",
-    localEmptyBody: "Try the planner for a coach-first option, or check back closer to your flight.",
+    emptyTitle: "No upcoming buses at this stop.",
+    emptyBody: "Coaches and local buses will appear here as they're scheduled.",
     notInDataset: "Airport stop not in dataset.",
+    serviceLabel: "Airport service",
   },
   el: {
-    kicker: (iata) => `αεροδρόμιο · ${iata}`,
-    coachTitle: "Απευθείας υπεραστικά",
-    coachLead: "Δρομολόγια Kapnos από τις Αφίξεις. Ζωντανές θέσεις, κράτηση απευθείας στον μεταφορέα.",
-    coachNone: "Δεν υπάρχουν επόμενα δρομολόγια Kapnos αυτή τη στιγμή.",
+    coachKicker: "Απευθείας υπεραστικό",
     seatsLeft: (n) => `${n} θέσεις`,
     sold: "Εξαντλήθηκαν",
-    bookCta: "Κράτηση στον Kapnos",
+    bookCta: "Κράτηση",
     timetableCta: "Πρόγραμμα",
     pickup: "Επιβίβαση",
     fromLabel: "από",
-    flightTitle: "Ζωντανά στο τερματικό",
-    flightQuiet: "Ήσυχα στο τερματικό την επόμενη ώρα.",
-    flightLine: (a, d) => `${a} αφίξεις · ${d} αναχωρήσεις · επόμενα 60′`,
-    flightSrc: (s) => `πτήσεις μέσω ${s}`,
-    arrivalsHead: "Αφίξεις",
-    departuresHead: "Αναχωρήσεις",
-    localTitle: "Αστικά λεωφορεία από τη στάση του αεροδρομίου",
-    localLive: "Ζωντανά · έξυπνο ETA",
-    localLoading: "Φόρτωση…",
-    localEmptyTitle: "Δεν υπάρχουν επόμενα λεωφορεία στη στάση.",
-    localEmptyBody: "Δοκιμάστε τον σχεδιαστή ή ελέγξτε ξανά πιο κοντά στην πτήση σας.",
+    emptyTitle: "Δεν υπάρχουν επόμενα λεωφορεία στη στάση.",
+    emptyBody: "Υπεραστικά και αστικά λεωφορεία θα εμφανίζονται εδώ.",
     notInDataset: "Η στάση του αεροδρομίου δεν είναι στο σύνολο δεδομένων.",
+    serviceLabel: "Υπηρεσία αεροδρομίου",
   },
 };
 
@@ -273,7 +236,6 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
   const stop = getStop(stopId);
   const [shareOpen, setShareOpen] = useState(false);
 
-  // --- live urban-bus departures (mirrors /stop/$stopId logic) ---
   const { data: rt, isLoading, riderConfirmedAge } = useRealtime();
   const { data: learnedByStop } = useLearnedStatsBulk([stopId]);
   const routeIdsHere = useMemo(() => {
@@ -320,8 +282,8 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
   }, [rt, stopId, learnedByStop, stop?.agency, etaStats, riderConfirmedAge]);
 
   const center = stop ? { lat: stop.lat, lng: stop.lng } : { lat: airport.lat, lng: airport.lng };
-  const cityName = locale === "el" ? airport.cityEl : airport.city;
   const airportName = locale === "el" ? airport.nameEl : airport.name;
+  const totalCount = data.coachLines.length + departures.length;
 
   return (
     <AppShell>
@@ -333,7 +295,7 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
           <IconArrowLeft className="size-4" />
         </Link>
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          {c.kicker(airport.iata)}
+          {t("stop.kicker", { code: airport.iata })}
         </span>
         <button
           type="button"
@@ -348,7 +310,7 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
       <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
         <h1 className="font-display text-[40px] leading-[1.05] text-ink">{airportName}</h1>
         <p className="mt-2 text-[13px] text-ink-soft">
-          {cityName} — {airport.lat.toFixed(4)}, {airport.lng.toFixed(4)}
+          {c.serviceLabel} — {airport.lat.toFixed(4)}, {airport.lng.toFixed(4)}
         </p>
       </header>
 
@@ -356,7 +318,7 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
         <MapPreview
           height="h-56"
           center={center}
-          spanKm={3}
+          spanKm={2}
           markers={[
             { lat: airport.lat, lng: airport.lng, kind: "origin", label: airportName },
           ] as MapMarker[]}
@@ -365,76 +327,41 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
         />
       </section>
 
-      {/* Flight pulse — compact strip */}
-      <FlightPulse flights={data.flights} c={c} />
-
-      {/* Direct coaches (Kapnos) */}
-      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
-        <div className="flex items-end justify-between gap-4 mb-4">
-          <div className="min-w-0">
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.24em] text-ink-soft">
-              01 — intercity
-            </span>
-            <h2 className="mt-1 font-display text-[22px] sm:text-[26px] leading-[1.1] text-ink">
-              {c.coachTitle}
-            </h2>
-          </div>
-          <img
-            src={kapnosLogo.url}
-            alt="Kapnos"
-            className="h-7 w-7 rounded-md object-contain bg-white ring-1 ring-line/60 p-0.5 shrink-0"
-            loading="lazy"
-          />
-        </div>
-        <p className="text-[13px] text-ink-soft mb-3">{c.coachLead}</p>
-
-        {data.coachLines.length === 0 ? (
-          <div className="rounded-3xl bg-card p-6 text-center ring-1 ring-line">
-            <p className="text-[13px] text-ink-soft">{c.coachNone}</p>
-          </div>
-        ) : (
-          <ul className="space-y-3">
-            {data.coachLines.map((line) => (
-              <CoachLineCard key={`${line.routeId}-${line.destinationCity}`} line={line} iata={airport.iata} c={c} />
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {/* Ghost-bus banner for the soonest urban departure */}
       {departures.length > 0 && departures[0].eta.tier === "ghost" && (
         <div className="mt-4">
           <StaleFeedBanner variant="ghost-bus" />
         </div>
       )}
 
-      {/* Local buses from the airport stop — same UI as /stop */}
-      <section className="mt-10 px-6 animate-rise" style={{ animationDelay: "220ms" }}>
+      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
         <div className="flex items-end justify-between gap-4 mb-4">
           <div className="min-w-0">
             <span className="font-mono text-[9.5px] uppercase tracking-[0.24em] text-ink-soft">
-              02 — urban
+              {t("stop.heroEyebrow")}
             </span>
             <h2 className="mt-1 font-display text-[22px] sm:text-[26px] leading-[1.1] text-ink">
-              {c.localTitle}
+              {t("stop.nextDepartures")}
             </h2>
           </div>
           <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-ink-soft shrink-0 pb-1">
-            {isLoading ? c.localLoading : c.localLive}
+            {isLoading ? t("stop.loading") : t("stop.liveSmart")}
           </span>
         </div>
 
-        {!stop ? (
+        {totalCount === 0 ? (
           <div className="rounded-3xl bg-card p-6 text-center ring-1 ring-line">
-            <p className="text-[13px] text-ink-soft">{c.notInDataset}</p>
-          </div>
-        ) : departures.length === 0 ? (
-          <div className="rounded-3xl bg-card p-6 text-center ring-1 ring-line">
-            <p className="font-display text-lg text-ink">{c.localEmptyTitle}</p>
-            <p className="mt-1 text-[12px] text-ink-soft">{c.localEmptyBody}</p>
+            <p className="font-display text-lg text-ink">{c.emptyTitle}</p>
+            <p className="mt-1 text-[12px] text-ink-soft">{c.emptyBody}</p>
           </div>
         ) : (
           <div className="space-y-3">
+            {data.coachLines.map((line) => (
+              <CoachLineCard
+                key={`${line.routeId}-${line.destinationCity}`}
+                line={line}
+                c={c}
+              />
+            ))}
             {departures.map((d, i) => {
               const route = getRoute(d.routeId);
               const isGhost = d.eta.tier === "ghost";
@@ -445,7 +372,7 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
                     tripId={d.tripId}
                     routeId={d.routeId}
                     routeShort={route?.short ?? "?"}
-                    routeLong={route?.long ?? ""}
+                    routeLong={route?.long ?? t("stop.routeFallback")}
                     headsign={headsign}
                     stopId={stopId}
                     arrivalUnix={d.arrivalUnix}
@@ -504,70 +431,82 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
   );
 }
 
+// Kapnos intercity coach — rendered as a row in the same departures list
+// as the urban DepartureRows. Card shape matches DepartureRow chrome so
+// the page reads as one continuous list, not a separate article section.
 function CoachLineCard({
   line,
-  iata,
   c,
 }: {
   line: AirportCoachLine;
-  iata: string;
   c: (typeof COPY)["en"];
 }) {
+  const next = line.nextDepartures[0];
   return (
-    <li className="rounded-[24px] bg-card ring-1 ring-line p-4 flex flex-col gap-3">
-      <header className="flex items-baseline justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep">
-            {iata} → {line.destinationCity}
-          </p>
-          <p className="mt-1 font-display text-[22px] leading-tight text-ink truncate">
-            {line.destinationCity}
-          </p>
+    <article className="rounded-[24px] bg-card ring-1 ring-line p-4">
+      <header className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <img
+            src={kapnosLogo.url}
+            alt=""
+            className="h-9 w-9 rounded-md object-contain bg-white ring-1 ring-line/60 p-0.5 shrink-0"
+            loading="lazy"
+          />
+          <div className="min-w-0">
+            <p className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep">
+              {c.coachKicker}
+            </p>
+            <p className="mt-0.5 font-display text-[20px] leading-tight text-ink truncate">
+              → {line.destinationCity}
+            </p>
+          </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft tabular-nums">
             {line.rideMin} min
           </p>
           {line.priceFrom ? (
-            <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/65 tabular-nums">
+            <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink/60 tabular-nums">
               {c.fromLabel} {line.priceFrom}
             </p>
           ) : null}
         </div>
       </header>
 
-      <ul className="flex flex-col rounded-2xl ring-1 ring-line/60 divide-y divide-line/40">
-        {line.nextDepartures.map((d) => {
-          const sold = d.seatsAvailable <= 0;
-          const low = d.seatsAvailable > 0 && d.seatsAvailable <= 8;
-          return (
-            <li
-              key={`${d.tripId}-${d.depart}`}
-              className="flex items-baseline justify-between gap-3 px-3 py-2 font-mono text-[12px] tabular-nums"
-            >
-              <span className="flex items-baseline gap-2">
-                <span className="font-display text-[16px] text-ink">{d.depart}</span>
-                <span className="text-ink-soft">→</span>
-                <span className="text-ink/80">{d.arrive}</span>
-                {d.dayChip ? (
-                  <span className="ml-1 text-[9.5px] uppercase tracking-[0.18em] text-ochre-deep">
-                    {d.dayChip}
-                  </span>
-                ) : null}
-              </span>
-              <span
-                className={`text-[9.5px] uppercase tracking-[0.18em] ${
-                  sold ? "text-red-700" : low ? "text-ochre-deep" : "text-ink/55"
-                }`}
+      {line.nextDepartures.length > 0 && (
+        <ul className="mt-3 flex flex-col rounded-2xl ring-1 ring-line/60 divide-y divide-line/40">
+          {line.nextDepartures.slice(0, 3).map((d) => {
+            const sold = d.seatsAvailable <= 0;
+            const low = d.seatsAvailable > 0 && d.seatsAvailable <= 8;
+            return (
+              <li
+                key={`${d.tripId}-${d.depart}`}
+                className="flex items-baseline justify-between gap-3 px-3 py-2 font-mono text-[12px] tabular-nums"
               >
-                {sold ? c.sold : c.seatsLeft(d.seatsAvailable)}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
+                <span className="flex items-baseline gap-2">
+                  <span className="font-display text-[16px] text-ink">{d.depart}</span>
+                  <span className="text-ink-soft">→</span>
+                  <span className="text-ink/80">{d.arrive}</span>
+                  {d.dayChip ? (
+                    <span className="ml-1 text-[9.5px] uppercase tracking-[0.18em] text-ochre-deep">
+                      {d.dayChip}
+                    </span>
+                  ) : null}
+                </span>
+                <span
+                  className={`text-[9.5px] uppercase tracking-[0.18em] ${
+                    sold ? "text-red-700" : low ? "text-ochre-deep" : "text-ink/55"
+                  }`}
+                >
+                  {sold ? c.sold : c.seatsLeft(d.seatsAvailable)}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
-      <div className="flex items-baseline justify-between gap-3">
+      <div className="mt-3 flex items-baseline justify-between gap-3">
         <p className="text-[12px] text-ink-soft truncate min-w-0">
           <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink/40">
             {c.pickup}:
@@ -587,78 +526,16 @@ function CoachLineCard({
             href="https://kapnosairportshuttle.com/"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full bg-ink px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone hover:bg-ochre-deep transition-colors"
+            className={`rounded-full px-3 py-1.5 font-sans text-[12px] font-semibold transition-colors ${
+              next && next.seatsAvailable <= 0
+                ? "bg-card ring-1 ring-line text-ink/50 pointer-events-none"
+                : "bg-ink text-limestone hover:bg-ochre-deep"
+            }`}
           >
             {c.bookCta}
           </a>
         </div>
       </div>
-    </li>
-  );
-}
-
-function FlightPulse({
-  flights,
-  c,
-}: {
-  flights: AirportFlights;
-  c: (typeof COPY)["en"];
-}) {
-  if (!flights) return null;
-  const quiet = flights.arrivalsNext60 === 0 && flights.departuresNext60 === 0;
-  return (
-    <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "150ms" }}>
-      <div className="rounded-3xl bg-aegean-soft/40 px-4 py-3.5 ring-1 ring-line/60">
-        <p className="font-mono text-[9.5px] uppercase tracking-[0.24em] text-aegean-deep">
-          {c.flightTitle}
-        </p>
-        <p className="mt-1 font-display text-[18px] leading-snug text-ink">
-          {quiet ? c.flightQuiet : c.flightLine(flights.arrivalsNext60, flights.departuresNext60)}
-        </p>
-        {!quiet && (flights.arrivals.length > 0 || flights.departures.length > 0) && (
-          <details className="mt-2 group [&[open]>summary>span.chev]:rotate-180">
-            <summary className="flex items-center justify-between gap-3 cursor-pointer list-none">
-              <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-ink-soft">
-                {c.flightSrc(flights.source)}
-              </span>
-              <span className="chev font-mono text-[10px] text-ink-soft transition-transform">▾</span>
-            </summary>
-            <div className="mt-3 grid grid-cols-2 gap-5">
-              <FlightCol head={c.arrivalsHead} rows={flights.arrivals} />
-              <FlightCol head={c.departuresHead} rows={flights.departures} />
-            </div>
-          </details>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function FlightCol({
-  head,
-  rows,
-}: {
-  head: string;
-  rows: { callsign: string | null; otherAirport: string | null; scheduled: string }[];
-}) {
-  return (
-    <div>
-      <p className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-ink/45">{head}</p>
-      <ul className="mt-2 flex flex-col gap-1">
-        {rows.length === 0 ? (
-          <li className="font-mono text-[11px] text-ink/40">—</li>
-        ) : (
-          rows.map((r, i) => (
-            <li key={i} className="flex items-baseline justify-between gap-2 font-mono text-[11px] tabular-nums text-ink/80">
-              <span className="text-ink">{r.scheduled}</span>
-              <span className="text-ink/55 truncate">
-                {r.callsign ?? "—"}
-                {r.otherAirport ? <span className="text-ink/35"> · {r.otherAirport}</span> : null}
-              </span>
-            </li>
-          ))
-        )}
-      </ul>
-    </div>
+    </article>
   );
 }
