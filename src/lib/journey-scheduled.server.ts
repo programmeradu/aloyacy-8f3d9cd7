@@ -204,6 +204,9 @@ export async function planMultiLegScheduled(
       walkRefineMs,
       walkLegsVerified,
       itinerariesDroppedAfterRefine,
+      widenedHorizon,
+      rolledToNextDay,
+      serviceDate: searchDate,
     },
   };
 }
