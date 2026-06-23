@@ -122,18 +122,7 @@ export function StopCard({ stop }: { stop: Stop }) {
             </h3>
             <p className="mt-1 text-xs text-ink-soft">{t("stopCard.towards", { name: stop.towards })}</p>
           </div>
-          <ul className="flex flex-col gap-1.5">
-            {stop.routes.map((r, i) => (
-              <li key={`${r.code}|${r.headsign ?? ""}|${i}`} className="flex items-center gap-2 min-w-0">
-                <RouteChip code={r.code} tone={r.tone} size="sm" />
-                {r.headsign ? (
-                  <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft truncate">
-                    <span className="text-ink-soft/50">→</span> {r.headsign}
-                  </span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
+          <RouteList routes={stop.routes} />
           {stop.amenities ? <AmenityRow a={stop.amenities} t={t} /> : null}
         </div>
 
