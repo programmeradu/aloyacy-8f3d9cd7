@@ -118,7 +118,7 @@ function isAirportPoint(name: string): boolean {
   return /airport|\(A\d/i.test(name);
 }
 
-async function fetchRoutes(): Promise<KapnosRoute[]> {
+export async function fetchKapnosRoutes(): Promise<KapnosRoute[]> {
   const now = Date.now();
   if (cache && now - cache.at < CACHE_TTL_MS) return cache.data;
   try {
