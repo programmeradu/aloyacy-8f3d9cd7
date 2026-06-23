@@ -289,7 +289,7 @@ function RouteList({ routes }: { routes: Stop["routes"] }) {
       {destSummary.length > 0 && (
         <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft truncate">
           <span className="text-ink-soft/50">→</span>{" "}
-          {destSummary.join(" · ")}
+          {destSummary.join("  ")}
           {extraDest > 0 ? (
             <span className="text-ink-soft/60"> +{extraDest}</span>
           ) : null}
