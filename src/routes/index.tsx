@@ -143,7 +143,11 @@ function Explore() {
   // Kick off the lazy headsigns bundle once — used to label route chips by
   // their actual destination ("19 → Lakatamia"), disambiguating opposite
   // directions of the same line that otherwise look identical on a card.
-  useEffect(() => { prefetchHeadsigns(); }, []);
+  const [headsignsReady, setHeadsignsReady] = useState(0);
+  useEffect(() => {
+    prefetchHeadsigns();
+    return onHeadsignsLoaded(() => setHeadsignsReady((n) => n + 1));
+  }, []);
 
   const stops: Stop[] = useMemo(() => {
     const near = nearStops;
