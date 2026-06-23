@@ -547,6 +547,25 @@ function searchAll(
   if (q.length < 1) return [];
   const out: SearchResult[] = [];
 
+  // Airports — match IATA code, city, "airport", or full name.
+  for (const a of Object.values(AIRPORTS)) {
+    const hay = `${a.iata} ${a.name} ${a.nameEl} ${a.city} ${a.cityEl} airport αεροδρόμιο`.toLowerCase();
+    if (
+      a.iata.toLowerCase() === q ||
+      a.city.toLowerCase().startsWith(q) ||
+      hay.includes(q)
+    ) {
+      out.push({
+        kind: "airport",
+        id: a.code,
+        iata: a.iata,
+        name: a.name,
+        city: a.city,
+      });
+    }
+  }
+
+
   // Routes — keep all matches across cities; rank exact short matches first, then by agency.
   const allMatched = ROUTES.filter(
     (r) =>
