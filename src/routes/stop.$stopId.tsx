@@ -186,6 +186,7 @@ function StopDetail() {
             {departures.map((d, i) => {
               const route = getRoute(d.routeId);
               const isGhost = d.eta.tier === "ghost";
+              const headsign = getHeadsignSync(d.tripId, d.routeId);
               return (
                 <div key={d.tripId + d.routeId + i}>
                   <DepartureRow
@@ -193,6 +194,7 @@ function StopDetail() {
                     routeId={d.routeId}
                     routeShort={route?.short ?? "?"}
                     routeLong={route?.long ?? t("stop.routeFallback")}
+                    headsign={headsign}
                     stopId={stopId}
                     arrivalUnix={d.arrivalUnix}
                     eta={{
