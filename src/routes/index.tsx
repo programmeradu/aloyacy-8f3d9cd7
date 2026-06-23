@@ -512,7 +512,15 @@ type SearchResult =
       routeCode: string;
       label: string;
       sub: string;
+    }
+  | {
+      kind: "airport";
+      id: AirportCode;
+      iata: string;
+      name: string;
+      city: string;
     };
+
 
 const AGENCY_CITY: Record<string, string> = {
   NPT: "Nicosia",
