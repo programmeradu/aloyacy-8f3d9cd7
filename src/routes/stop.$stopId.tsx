@@ -2,10 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
-import { IconArrowLeft } from "@/components/Icons";
+import { IconArrowLeft, IconShare } from "@/components/Icons";
 import { StaleFeedBanner } from "@/components/StaleFeedBanner";
 import { DepartureRow } from "@/components/DepartureRow";
 import { SightingButton } from "@/components/SightingButton";
+import { ShareSheet } from "@/components/ShareSheet";
 import { useRealtime } from "@/lib/useRealtime";
 import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useEtaStats } from "@/lib/useEtaStats";
@@ -45,7 +46,8 @@ export const Route = createFileRoute("/stop/$stopId")({
 });
 
 function StopDetail() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const [shareOpen, setShareOpen] = useState(false);
   const { stopId } = Route.useParams();
   const stop = getStop(stopId);
   const { data: rt, isLoading, riderConfirmedAge } = useRealtime();
@@ -116,11 +118,19 @@ function StopDetail() {
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
           {t("stop.kicker", { code: stop?.code ?? stopId })}
         </span>
-        <span className="size-10" />
+        <button
+          type="button"
+          onClick={() => setShareOpen(true)}
+          aria-label={t("share.openLabel")}
+          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink hover:bg-limestone-soft transition-colors"
+        >
+          <IconShare className="size-4" />
+        </button>
       </div>
 
       <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
         <h1 className="font-display text-[40px] leading-[1.05] text-ink">
+
           {stop?.name ?? t("stop.unknown")}
         </h1>
         <p className="mt-2 text-[13px] text-ink-soft">
@@ -227,6 +237,31 @@ function StopDetail() {
           </div>
         )}
       </section>
+
+      {stop && (
+        <ShareSheet
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          ctx={{
+            stop: { id: stop.id, code: stop.code, name: stop.name, agency: stop.agency },
+            routes: Array.from(
+              new Map(
+                departures
+                  .map((d) => getRoute(d.routeId))
+                  .filter((r): r is NonNullable<typeof r> => !!r)
+                  .map((r) => [r.id, { short: r.short }]),
+              ).values(),
+            ),
+            nextEtaMin: departures[0]?.eta.etaMin ?? null,
+            nextHeadsign: departures[0]
+              ? getHeadsignSync(departures[0].tripId, departures[0].routeId)
+              : null,
+            locale,
+            url: `https://app.aloya.cy/stop/${stop.id}`,
+          }}
+        />
+      )}
     </AppShell>
+
   );
 }
