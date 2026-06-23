@@ -123,8 +123,8 @@ export function DepartureRow({
           <div className="min-w-0">
             {destination ? (
               <>
-                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft/70 truncate">
-                  {t("stop.fromLabel", { name: origin })}
+                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-aegean-deep/80 truncate">
+                  {t("stop.headedTo")}
                 </p>
                 <h3 className="mt-0.5 font-display text-[17px] sm:text-[20px] leading-[1.15] tracking-tight text-ink text-pretty line-clamp-2">
                   {destination}
