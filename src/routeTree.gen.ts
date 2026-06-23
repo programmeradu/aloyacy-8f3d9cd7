@@ -9,144 +9,104 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WelcomeRouteImport } from './routes/welcome'
-import { Route as WalletRouteImport } from './routes/wallet'
-import { Route as TripsRouteImport } from './routes/trips'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as SavedRouteImport } from './routes/saved'
-import { Route as QaRouteImport } from './routes/qa'
-import { Route as PulseRouteImport } from './routes/pulse'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as McpRouteImport } from './routes/mcp'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TripIdRouteImport } from './routes/trip.$id'
-import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
-import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
-import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
-import { Route as PlanTokenRouteImport } from './routes/plan.$token'
-import { Route as InternalBedrockUsageRouteImport } from './routes/internal.bedrock-usage'
-import { Route as InternalBedrockRouteImport } from './routes/internal.bedrock'
-import { Route as GuideGettingAroundCyprusRouteImport } from './routes/guide.getting-around-cyprus'
-import { Route as GroupCodeRouteImport } from './routes/group.$code'
-import { Route as EtaTokenRouteImport } from './routes/eta.$token'
-import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
-import { Route as DebugGraphRouteImport } from './routes/debug.graph'
-import { Route as DebugEtaRouteImport } from './routes/debug.eta'
-import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
-import { Route as AirportCodeRouteImport } from './routes/airport.$code'
-import { Route as AdminSeoRouteImport } from './routes/admin.seo'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PulseRouteImport } from './routes/pulse'
+import { Route as QaRouteImport } from './routes/qa'
+import { Route as SavedRouteImport } from './routes/saved'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TripsRouteImport } from './routes/trips'
+import { Route as WalletRouteImport } from './routes/wallet'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as AdminSeoRouteImport } from './routes/admin.seo'
+import { Route as AirportCodeRouteImport } from './routes/airport.$code'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as DebugEtaRouteImport } from './routes/debug.eta'
+import { Route as DebugGraphRouteImport } from './routes/debug.graph'
+import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
+import { Route as EtaTokenRouteImport } from './routes/eta.$token'
+import { Route as GroupCodeRouteImport } from './routes/group.$code'
+import { Route as GuideGettingAroundCyprusRouteImport } from './routes/guide.getting-around-cyprus'
+import { Route as InternalBedrockRouteImport } from './routes/internal.bedrock'
+import { Route as InternalBedrockUsageRouteImport } from './routes/internal.bedrock-usage'
+import { Route as PlanTokenRouteImport } from './routes/plan.$token'
+import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
+import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
+import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
+import { Route as TripIdRouteImport } from './routes/trip.$id'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as ApiPublicAirportRouteImport } from './routes/api/public/airport'
+import { Route as ApiPublicBedrockTestRouteImport } from './routes/api/public/bedrock-test'
+import { Route as ApiPublicBikeShareRouteImport } from './routes/api/public/bike-share'
+import { Route as ApiPublicBoltScooterRouteImport } from './routes/api/public/bolt-scooter'
+import { Route as ApiPublicDustAdvisoryRouteImport } from './routes/api/public/dust-advisory'
+import { Route as ApiPublicExpoPushRegisterRouteImport } from './routes/api/public/expo-push-register'
+import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
+import { Route as ApiPublicGtfsHeadsignsRouteImport } from './routes/api/public/gtfs-headsigns'
+import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
+import { Route as ApiPublicIntercityIntelRouteImport } from './routes/api/public/intercity-intel'
+import { Route as ApiPublicKapnosRouteImport } from './routes/api/public/kapnos'
+import { Route as ApiPublicLastMileChainRouteImport } from './routes/api/public/last-mile-chain'
+import { Route as ApiPublicMobilePaymentSheetRouteImport } from './routes/api/public/mobile-payment-sheet'
+import { Route as ApiPublicParkAndRideRouteImport } from './routes/api/public/park-and-ride'
+import { Route as ApiPublicParseTripIntentRouteImport } from './routes/api/public/parse-trip-intent'
+import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
+import { Route as ApiPublicPlacesAutocompleteRouteImport } from './routes/api/public/places-autocomplete'
+import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
+import { Route as ApiPublicPlanShareRouteImport } from './routes/api/public/plan-share'
+import { Route as ApiPublicPulseRouteImport } from './routes/api/public/pulse'
+import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
+import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
+import { Route as ApiPublicRouteReliabilityRouteImport } from './routes/api/public/route-reliability'
+import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sighting'
+import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
+import { Route as ApiPublicStopReliabilityRouteImport } from './routes/api/public/stop-reliability'
+import { Route as ApiPublicStopsRouteImport } from './routes/api/public/stops'
+import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
+import { Route as ApiPublicSttRouteImport } from './routes/api/public/stt'
+import { Route as ApiPublicTrafficAlertsRouteImport } from './routes/api/public/traffic-alerts'
+import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
+import { Route as ApiPublicTripGroupsRouteImport } from './routes/api/public/trip-groups'
+import { Route as ApiPublicTtsRouteImport } from './routes/api/public/tts'
+import { Route as ApiPublicWalkDirectionsRouteImport } from './routes/api/public/walk-directions'
+import { Route as ApiPublicWalletRouteImport } from './routes/api/public/wallet'
+import { Route as ApiPublicWeatherRouteImport } from './routes/api/public/weather'
 import { Route as InternalFundingIndexRouteImport } from './routes/internal.funding.index'
 import { Route as InternalFundingDocsRouteImport } from './routes/internal.funding.docs'
-import { Route as ApiPublicWeatherRouteImport } from './routes/api/public/weather'
-import { Route as ApiPublicWalletRouteImport } from './routes/api/public/wallet'
-import { Route as ApiPublicWalkDirectionsRouteImport } from './routes/api/public/walk-directions'
-import { Route as ApiPublicTtsRouteImport } from './routes/api/public/tts'
-import { Route as ApiPublicTripGroupsRouteImport } from './routes/api/public/trip-groups'
-import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
-import { Route as ApiPublicTrafficAlertsRouteImport } from './routes/api/public/traffic-alerts'
-import { Route as ApiPublicSttRouteImport } from './routes/api/public/stt'
-import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
-import { Route as ApiPublicStopsRouteImport } from './routes/api/public/stops'
-import { Route as ApiPublicStopReliabilityRouteImport } from './routes/api/public/stop-reliability'
-import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
-import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sighting'
-import { Route as ApiPublicRouteReliabilityRouteImport } from './routes/api/public/route-reliability'
-import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
-import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
-import { Route as ApiPublicPulseRouteImport } from './routes/api/public/pulse'
-import { Route as ApiPublicPlanShareRouteImport } from './routes/api/public/plan-share'
-import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
-import { Route as ApiPublicPlacesAutocompleteRouteImport } from './routes/api/public/places-autocomplete'
-import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
-import { Route as ApiPublicParseTripIntentRouteImport } from './routes/api/public/parse-trip-intent'
-import { Route as ApiPublicParkAndRideRouteImport } from './routes/api/public/park-and-ride'
-import { Route as ApiPublicMobilePaymentSheetRouteImport } from './routes/api/public/mobile-payment-sheet'
-import { Route as ApiPublicLastMileChainRouteImport } from './routes/api/public/last-mile-chain'
-import { Route as ApiPublicKapnosRouteImport } from './routes/api/public/kapnos'
-import { Route as ApiPublicIntercityIntelRouteImport } from './routes/api/public/intercity-intel'
-import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
-import { Route as ApiPublicGtfsHeadsignsRouteImport } from './routes/api/public/gtfs-headsigns'
-import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
-import { Route as ApiPublicExpoPushRegisterRouteImport } from './routes/api/public/expo-push-register'
-import { Route as ApiPublicDustAdvisoryRouteImport } from './routes/api/public/dust-advisory'
-import { Route as ApiPublicBoltScooterRouteImport } from './routes/api/public/bolt-scooter'
-import { Route as ApiPublicBikeShareRouteImport } from './routes/api/public/bike-share'
-import { Route as ApiPublicBedrockTestRouteImport } from './routes/api/public/bedrock-test'
-import { Route as ApiPublicAirportRouteImport } from './routes/api/public/airport'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
-import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
-import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
-import { Route as ApiPublicWalletPassRouteImport } from './routes/api/public/wallet/pass'
-import { Route as ApiPublicWalletOcrRouteImport } from './routes/api/public/wallet/ocr'
-import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
-import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
-import { Route as ApiPublicHooksPulseWeatherRouteImport } from './routes/api/public/hooks/pulse-weather'
-import { Route as ApiPublicHooksPulseTrafficRouteImport } from './routes/api/public/hooks/pulse-traffic'
-import { Route as ApiPublicHooksPulseNewsRouteImport } from './routes/api/public/hooks/pulse-news'
-import { Route as ApiPublicHooksPulseMetWarningsRouteImport } from './routes/api/public/hooks/pulse-met-warnings'
-import { Route as ApiPublicHooksPulseMarineRouteImport } from './routes/api/public/hooks/pulse-marine'
-import { Route as ApiPublicHooksPulseFootballRouteImport } from './routes/api/public/hooks/pulse-football'
-import { Route as ApiPublicHooksPulseFlightsRouteImport } from './routes/api/public/hooks/pulse-flights'
-import { Route as ApiPublicHooksPulseEventsRouteImport } from './routes/api/public/hooks/pulse-events'
-import { Route as ApiPublicHooksPulseCruisesRouteImport } from './routes/api/public/hooks/pulse-cruises'
-import { Route as ApiPublicHooksPulseAirRouteImport } from './routes/api/public/hooks/pulse-air'
-import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
-import { Route as ApiPublicHooksDepartureTickRouteImport } from './routes/api/public/hooks/departure-tick'
-import { Route as ApiPublicGbfsVehicle_typesDotjsonRouteImport } from './routes/api/public/gbfs/vehicle_types[.]json'
-import { Route as ApiPublicGbfsSystem_informationDotjsonRouteImport } from './routes/api/public/gbfs/system_information[.]json'
-import { Route as ApiPublicGbfsStation_statusDotjsonRouteImport } from './routes/api/public/gbfs/station_status[.]json'
-import { Route as ApiPublicGbfsStation_informationDotjsonRouteImport } from './routes/api/public/gbfs/station_information[.]json'
 import { Route as ApiPublicGbfsFree_bike_statusDotjsonRouteImport } from './routes/api/public/gbfs/free_bike_status[.]json'
-import { Route as ApiPublicOgPlanTokenRouteImport } from './routes/api/public/og/plan.$token'
+import { Route as ApiPublicGbfsStation_informationDotjsonRouteImport } from './routes/api/public/gbfs/station_information[.]json'
+import { Route as ApiPublicGbfsStation_statusDotjsonRouteImport } from './routes/api/public/gbfs/station_status[.]json'
+import { Route as ApiPublicGbfsSystem_informationDotjsonRouteImport } from './routes/api/public/gbfs/system_information[.]json'
+import { Route as ApiPublicGbfsVehicle_typesDotjsonRouteImport } from './routes/api/public/gbfs/vehicle_types[.]json'
+import { Route as ApiPublicHooksDepartureTickRouteImport } from './routes/api/public/hooks/departure-tick'
+import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
+import { Route as ApiPublicHooksPulseAirRouteImport } from './routes/api/public/hooks/pulse-air'
+import { Route as ApiPublicHooksPulseCruisesRouteImport } from './routes/api/public/hooks/pulse-cruises'
+import { Route as ApiPublicHooksPulseEventsRouteImport } from './routes/api/public/hooks/pulse-events'
+import { Route as ApiPublicHooksPulseFlightsRouteImport } from './routes/api/public/hooks/pulse-flights'
+import { Route as ApiPublicHooksPulseFootballRouteImport } from './routes/api/public/hooks/pulse-football'
+import { Route as ApiPublicHooksPulseMarineRouteImport } from './routes/api/public/hooks/pulse-marine'
+import { Route as ApiPublicHooksPulseMetWarningsRouteImport } from './routes/api/public/hooks/pulse-met-warnings'
+import { Route as ApiPublicHooksPulseNewsRouteImport } from './routes/api/public/hooks/pulse-news'
+import { Route as ApiPublicHooksPulseTrafficRouteImport } from './routes/api/public/hooks/pulse-traffic'
+import { Route as ApiPublicHooksPulseWeatherRouteImport } from './routes/api/public/hooks/pulse-weather'
+import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicWalletOcrRouteImport } from './routes/api/public/wallet/ocr'
+import { Route as ApiPublicWalletPassRouteImport } from './routes/api/public/wallet/pass'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicOgGroupCodeRouteImport } from './routes/api/public/og/group.$code'
+import { Route as ApiPublicOgPlanTokenRouteImport } from './routes/api/public/og/plan.$token'
 
-const WelcomeRoute = WelcomeRouteImport.update({
-  id: '/welcome',
-  path: '/welcome',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const WalletRoute = WalletRouteImport.update({
-  id: '/wallet',
-  path: '/wallet',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TripsRoute = TripsRouteImport.update({
-  id: '/trips',
-  path: '/trips',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SavedRoute = SavedRouteImport.update({
-  id: '/saved',
-  path: '/saved',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QaRoute = QaRouteImport.update({
-  id: '/qa',
-  path: '/qa',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PulseRoute = PulseRouteImport.update({
-  id: '/pulse',
-  path: '/pulse',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -154,44 +114,101 @@ const McpRoute = McpRouteImport.update({
   path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TripIdRoute = TripIdRouteImport.update({
-  id: '/trip/$id',
-  path: '/trip/$id',
+const PulseRoute = PulseRouteImport.update({
+  id: '/pulse',
+  path: '/pulse',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TripInfoTripIdRoute = TripInfoTripIdRouteImport.update({
-  id: '/trip-info/$tripId',
-  path: '/trip-info/$tripId',
+const QaRoute = QaRouteImport.update({
+  id: '/qa',
+  path: '/qa',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StopStopIdRoute = StopStopIdRouteImport.update({
-  id: '/stop/$stopId',
-  path: '/stop/$stopId',
+const SavedRoute = SavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RouteRouteIdRoute = RouteRouteIdRouteImport.update({
-  id: '/route/$routeId',
-  path: '/route/$routeId',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlanTokenRoute = PlanTokenRouteImport.update({
-  id: '/plan/$token',
-  path: '/plan/$token',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InternalBedrockUsageRoute = InternalBedrockUsageRouteImport.update({
-  id: '/internal/bedrock-usage',
-  path: '/internal/bedrock-usage',
+const TripsRoute = TripsRouteImport.update({
+  id: '/trips',
+  path: '/trips',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InternalBedrockRoute = InternalBedrockRouteImport.update({
-  id: '/internal/bedrock',
-  path: '/internal/bedrock',
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminSeoRoute = AdminSeoRouteImport.update({
+  id: '/admin/seo',
+  path: '/admin/seo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AirportCodeRoute = AirportCodeRouteImport.update({
+  id: '/airport/$code',
+  path: '/airport/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DebugEtaRoute = DebugEtaRouteImport.update({
+  id: '/debug/eta',
+  path: '/debug/eta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DebugGraphRoute = DebugGraphRouteImport.update({
+  id: '/debug/graph',
+  path: '/debug/graph',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DebugMultilegRoute = DebugMultilegRouteImport.update({
+  id: '/debug/multileg',
+  path: '/debug/multileg',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EtaTokenRoute = EtaTokenRouteImport.update({
+  id: '/eta/$token',
+  path: '/eta/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupCodeRoute = GroupCodeRouteImport.update({
+  id: '/group/$code',
+  path: '/group/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuideGettingAroundCyprusRoute =
@@ -200,58 +217,233 @@ const GuideGettingAroundCyprusRoute =
     path: '/guide/getting-around-cyprus',
     getParentRoute: () => rootRouteImport,
   } as any)
-const GroupCodeRoute = GroupCodeRouteImport.update({
-  id: '/group/$code',
-  path: '/group/$code',
+const InternalBedrockRoute = InternalBedrockRouteImport.update({
+  id: '/internal/bedrock',
+  path: '/internal/bedrock',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EtaTokenRoute = EtaTokenRouteImport.update({
-  id: '/eta/$token',
-  path: '/eta/$token',
+const InternalBedrockUsageRoute = InternalBedrockUsageRouteImport.update({
+  id: '/internal/bedrock-usage',
+  path: '/internal/bedrock-usage',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DebugMultilegRoute = DebugMultilegRouteImport.update({
-  id: '/debug/multileg',
-  path: '/debug/multileg',
+const PlanTokenRoute = PlanTokenRouteImport.update({
+  id: '/plan/$token',
+  path: '/plan/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DebugGraphRoute = DebugGraphRouteImport.update({
-  id: '/debug/graph',
-  path: '/debug/graph',
+const RouteRouteIdRoute = RouteRouteIdRouteImport.update({
+  id: '/route/$routeId',
+  path: '/route/$routeId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DebugEtaRoute = DebugEtaRouteImport.update({
-  id: '/debug/eta',
-  path: '/debug/eta',
+const StopStopIdRoute = StopStopIdRouteImport.update({
+  id: '/stop/$stopId',
+  path: '/stop/$stopId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
-  id: '/checkout/return',
-  path: '/checkout/return',
+const TripInfoTripIdRoute = TripInfoTripIdRouteImport.update({
+  id: '/trip-info/$tripId',
+  path: '/trip-info/$tripId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AirportCodeRoute = AirportCodeRouteImport.update({
-  id: '/airport/$code',
-  path: '/airport/$code',
+const TripIdRoute = TripIdRouteImport.update({
+  id: '/trip/$id',
+  path: '/trip/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminSeoRoute = AdminSeoRouteImport.update({
-  id: '/admin/seo',
-  path: '/admin/seo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
+const ApiPublicAirportRoute = ApiPublicAirportRouteImport.update({
+  id: '/api/public/airport',
+  path: '/api/public/airport',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBedrockTestRoute = ApiPublicBedrockTestRouteImport.update({
+  id: '/api/public/bedrock-test',
+  path: '/api/public/bedrock-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBikeShareRoute = ApiPublicBikeShareRouteImport.update({
+  id: '/api/public/bike-share',
+  path: '/api/public/bike-share',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBoltScooterRoute = ApiPublicBoltScooterRouteImport.update({
+  id: '/api/public/bolt-scooter',
+  path: '/api/public/bolt-scooter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDustAdvisoryRoute = ApiPublicDustAdvisoryRouteImport.update({
+  id: '/api/public/dust-advisory',
+  path: '/api/public/dust-advisory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicExpoPushRegisterRoute =
+  ApiPublicExpoPushRegisterRouteImport.update({
+    id: '/api/public/expo-push-register',
+    path: '/api/public/expo-push-register',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicGbfsDotjsonRoute = ApiPublicGbfsDotjsonRouteImport.update({
+  id: '/api/public/gbfs.json',
+  path: '/api/public/gbfs.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicGtfsHeadsignsRoute = ApiPublicGtfsHeadsignsRouteImport.update({
+  id: '/api/public/gtfs-headsigns',
+  path: '/api/public/gtfs-headsigns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIndexnowRoute = ApiPublicIndexnowRouteImport.update({
+  id: '/api/public/indexnow',
+  path: '/api/public/indexnow',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIntercityIntelRoute = ApiPublicIntercityIntelRouteImport.update({
+  id: '/api/public/intercity-intel',
+  path: '/api/public/intercity-intel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKapnosRoute = ApiPublicKapnosRouteImport.update({
+  id: '/api/public/kapnos',
+  path: '/api/public/kapnos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicLastMileChainRoute = ApiPublicLastMileChainRouteImport.update({
+  id: '/api/public/last-mile-chain',
+  path: '/api/public/last-mile-chain',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicMobilePaymentSheetRoute =
+  ApiPublicMobilePaymentSheetRouteImport.update({
+    id: '/api/public/mobile-payment-sheet',
+    path: '/api/public/mobile-payment-sheet',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicParkAndRideRoute = ApiPublicParkAndRideRouteImport.update({
+  id: '/api/public/park-and-ride',
+  path: '/api/public/park-and-ride',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicParseTripIntentRoute =
+  ApiPublicParseTripIntentRouteImport.update({
+    id: '/api/public/parse-trip-intent',
+    path: '/api/public/parse-trip-intent',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPlaceRoute = ApiPublicPlaceRouteImport.update({
+  id: '/api/public/place',
+  path: '/api/public/place',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPlacesAutocompleteRoute =
+  ApiPublicPlacesAutocompleteRouteImport.update({
+    id: '/api/public/places-autocomplete',
+    path: '/api/public/places-autocomplete',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
+  id: '/api/public/plan',
+  path: '/api/public/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPlanShareRoute = ApiPublicPlanShareRouteImport.update({
+  id: '/api/public/plan-share',
+  path: '/api/public/plan-share',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPulseRoute = ApiPublicPulseRouteImport.update({
+  id: '/api/public/pulse',
+  path: '/api/public/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
+  id: '/api/public/realtime',
+  path: '/api/public/realtime',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicRiderFixRoute = ApiPublicRiderFixRouteImport.update({
+  id: '/api/public/rider-fix',
+  path: '/api/public/rider-fix',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicRouteReliabilityRoute =
+  ApiPublicRouteReliabilityRouteImport.update({
+    id: '/api/public/route-reliability',
+    path: '/api/public/route-reliability',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSightingRoute = ApiPublicSightingRouteImport.update({
+  id: '/api/public/sighting',
+  path: '/api/public/sighting',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSnapshotRoute = ApiPublicSnapshotRouteImport.update({
+  id: '/api/public/snapshot',
+  path: '/api/public/snapshot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicStopReliabilityRoute =
+  ApiPublicStopReliabilityRouteImport.update({
+    id: '/api/public/stop-reliability',
+    path: '/api/public/stop-reliability',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicStopsRoute = ApiPublicStopsRouteImport.update({
+  id: '/api/public/stops',
+  path: '/api/public/stops',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicStreetviewRoute = ApiPublicStreetviewRouteImport.update({
+  id: '/api/public/streetview',
+  path: '/api/public/streetview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSttRoute = ApiPublicSttRouteImport.update({
+  id: '/api/public/stt',
+  path: '/api/public/stt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTrafficAlertsRoute = ApiPublicTrafficAlertsRouteImport.update({
+  id: '/api/public/traffic-alerts',
+  path: '/api/public/traffic-alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
+  id: '/api/public/trip-alerts',
+  path: '/api/public/trip-alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTripGroupsRoute = ApiPublicTripGroupsRouteImport.update({
+  id: '/api/public/trip-groups',
+  path: '/api/public/trip-groups',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTtsRoute = ApiPublicTtsRouteImport.update({
+  id: '/api/public/tts',
+  path: '/api/public/tts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWalkDirectionsRoute = ApiPublicWalkDirectionsRouteImport.update({
+  id: '/api/public/walk-directions',
+  path: '/api/public/walk-directions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWalletRoute = ApiPublicWalletRouteImport.update({
+  id: '/api/public/wallet',
+  path: '/api/public/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWeatherRoute = ApiPublicWeatherRouteImport.update({
+  id: '/api/public/weather',
+  path: '/api/public/weather',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InternalFundingIndexRoute = InternalFundingIndexRouteImport.update({
   id: '/internal/funding/',
   path: '/internal/funding/',
@@ -262,321 +454,10 @@ const InternalFundingDocsRoute = InternalFundingDocsRouteImport.update({
   path: '/internal/funding/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicWeatherRoute = ApiPublicWeatherRouteImport.update({
-  id: '/api/public/weather',
-  path: '/api/public/weather',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicWalletRoute = ApiPublicWalletRouteImport.update({
-  id: '/api/public/wallet',
-  path: '/api/public/wallet',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicWalkDirectionsRoute = ApiPublicWalkDirectionsRouteImport.update({
-  id: '/api/public/walk-directions',
-  path: '/api/public/walk-directions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicTtsRoute = ApiPublicTtsRouteImport.update({
-  id: '/api/public/tts',
-  path: '/api/public/tts',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicTripGroupsRoute = ApiPublicTripGroupsRouteImport.update({
-  id: '/api/public/trip-groups',
-  path: '/api/public/trip-groups',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
-  id: '/api/public/trip-alerts',
-  path: '/api/public/trip-alerts',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicTrafficAlertsRoute = ApiPublicTrafficAlertsRouteImport.update({
-  id: '/api/public/traffic-alerts',
-  path: '/api/public/traffic-alerts',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicSttRoute = ApiPublicSttRouteImport.update({
-  id: '/api/public/stt',
-  path: '/api/public/stt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicStreetviewRoute = ApiPublicStreetviewRouteImport.update({
-  id: '/api/public/streetview',
-  path: '/api/public/streetview',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicStopsRoute = ApiPublicStopsRouteImport.update({
-  id: '/api/public/stops',
-  path: '/api/public/stops',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicStopReliabilityRoute =
-  ApiPublicStopReliabilityRouteImport.update({
-    id: '/api/public/stop-reliability',
-    path: '/api/public/stop-reliability',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicSnapshotRoute = ApiPublicSnapshotRouteImport.update({
-  id: '/api/public/snapshot',
-  path: '/api/public/snapshot',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicSightingRoute = ApiPublicSightingRouteImport.update({
-  id: '/api/public/sighting',
-  path: '/api/public/sighting',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicRouteReliabilityRoute =
-  ApiPublicRouteReliabilityRouteImport.update({
-    id: '/api/public/route-reliability',
-    path: '/api/public/route-reliability',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicRiderFixRoute = ApiPublicRiderFixRouteImport.update({
-  id: '/api/public/rider-fix',
-  path: '/api/public/rider-fix',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicRealtimeRoute = ApiPublicRealtimeRouteImport.update({
-  id: '/api/public/realtime',
-  path: '/api/public/realtime',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPulseRoute = ApiPublicPulseRouteImport.update({
-  id: '/api/public/pulse',
-  path: '/api/public/pulse',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPlanShareRoute = ApiPublicPlanShareRouteImport.update({
-  id: '/api/public/plan-share',
-  path: '/api/public/plan-share',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
-  id: '/api/public/plan',
-  path: '/api/public/plan',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPlacesAutocompleteRoute =
-  ApiPublicPlacesAutocompleteRouteImport.update({
-    id: '/api/public/places-autocomplete',
-    path: '/api/public/places-autocomplete',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicPlaceRoute = ApiPublicPlaceRouteImport.update({
-  id: '/api/public/place',
-  path: '/api/public/place',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicParseTripIntentRoute =
-  ApiPublicParseTripIntentRouteImport.update({
-    id: '/api/public/parse-trip-intent',
-    path: '/api/public/parse-trip-intent',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicParkAndRideRoute = ApiPublicParkAndRideRouteImport.update({
-  id: '/api/public/park-and-ride',
-  path: '/api/public/park-and-ride',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicMobilePaymentSheetRoute =
-  ApiPublicMobilePaymentSheetRouteImport.update({
-    id: '/api/public/mobile-payment-sheet',
-    path: '/api/public/mobile-payment-sheet',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicLastMileChainRoute = ApiPublicLastMileChainRouteImport.update({
-  id: '/api/public/last-mile-chain',
-  path: '/api/public/last-mile-chain',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicKapnosRoute = ApiPublicKapnosRouteImport.update({
-  id: '/api/public/kapnos',
-  path: '/api/public/kapnos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicIntercityIntelRoute = ApiPublicIntercityIntelRouteImport.update({
-  id: '/api/public/intercity-intel',
-  path: '/api/public/intercity-intel',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicIndexnowRoute = ApiPublicIndexnowRouteImport.update({
-  id: '/api/public/indexnow',
-  path: '/api/public/indexnow',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicGtfsHeadsignsRoute = ApiPublicGtfsHeadsignsRouteImport.update({
-  id: '/api/public/gtfs-headsigns',
-  path: '/api/public/gtfs-headsigns',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicGbfsDotjsonRoute = ApiPublicGbfsDotjsonRouteImport.update({
-  id: '/api/public/gbfs.json',
-  path: '/api/public/gbfs.json',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicExpoPushRegisterRoute =
-  ApiPublicExpoPushRegisterRouteImport.update({
-    id: '/api/public/expo-push-register',
-    path: '/api/public/expo-push-register',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicDustAdvisoryRoute = ApiPublicDustAdvisoryRouteImport.update({
-  id: '/api/public/dust-advisory',
-  path: '/api/public/dust-advisory',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicBoltScooterRoute = ApiPublicBoltScooterRouteImport.update({
-  id: '/api/public/bolt-scooter',
-  path: '/api/public/bolt-scooter',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicBikeShareRoute = ApiPublicBikeShareRouteImport.update({
-  id: '/api/public/bike-share',
-  path: '/api/public/bike-share',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicBedrockTestRoute = ApiPublicBedrockTestRouteImport.update({
-  id: '/api/public/bedrock-test',
-  path: '/api/public/bedrock-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicAirportRoute = ApiPublicAirportRouteImport.update({
-  id: '/api/public/airport',
-  path: '/api/public/airport',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Char91DotmcpChar93InvokeToolToolRoute =
-  Char91DotmcpChar93InvokeToolToolRouteImport.update({
-    id: '/.mcp/invoke-tool/$tool',
-    path: '/.mcp/invoke-tool/$tool',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
-  id: '/lovable/email/auth/preview',
-  path: '/lovable/email/auth/preview',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicWalletPassRoute = ApiPublicWalletPassRouteImport.update({
-  id: '/pass',
-  path: '/pass',
-  getParentRoute: () => ApiPublicWalletRoute,
-} as any)
-const ApiPublicWalletOcrRoute = ApiPublicWalletOcrRouteImport.update({
-  id: '/ocr',
-  path: '/ocr',
-  getParentRoute: () => ApiPublicWalletRoute,
-} as any)
-const ApiPublicPaymentsWebhookRoute =
-  ApiPublicPaymentsWebhookRouteImport.update({
-    id: '/api/public/payments/webhook',
-    path: '/api/public/payments/webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksTrainRoute = ApiPublicHooksTrainRouteImport.update({
-  id: '/api/public/hooks/train',
-  path: '/api/public/hooks/train',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicHooksPulseWeatherRoute =
-  ApiPublicHooksPulseWeatherRouteImport.update({
-    id: '/api/public/hooks/pulse-weather',
-    path: '/api/public/hooks/pulse-weather',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksPulseTrafficRoute =
-  ApiPublicHooksPulseTrafficRouteImport.update({
-    id: '/api/public/hooks/pulse-traffic',
-    path: '/api/public/hooks/pulse-traffic',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksPulseNewsRoute = ApiPublicHooksPulseNewsRouteImport.update({
-  id: '/api/public/hooks/pulse-news',
-  path: '/api/public/hooks/pulse-news',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicHooksPulseMetWarningsRoute =
-  ApiPublicHooksPulseMetWarningsRouteImport.update({
-    id: '/api/public/hooks/pulse-met-warnings',
-    path: '/api/public/hooks/pulse-met-warnings',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksPulseMarineRoute =
-  ApiPublicHooksPulseMarineRouteImport.update({
-    id: '/api/public/hooks/pulse-marine',
-    path: '/api/public/hooks/pulse-marine',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksPulseFootballRoute =
-  ApiPublicHooksPulseFootballRouteImport.update({
-    id: '/api/public/hooks/pulse-football',
-    path: '/api/public/hooks/pulse-football',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksPulseFlightsRoute =
-  ApiPublicHooksPulseFlightsRouteImport.update({
-    id: '/api/public/hooks/pulse-flights',
-    path: '/api/public/hooks/pulse-flights',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksPulseEventsRoute =
-  ApiPublicHooksPulseEventsRouteImport.update({
-    id: '/api/public/hooks/pulse-events',
-    path: '/api/public/hooks/pulse-events',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksPulseCruisesRoute =
-  ApiPublicHooksPulseCruisesRouteImport.update({
-    id: '/api/public/hooks/pulse-cruises',
-    path: '/api/public/hooks/pulse-cruises',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksPulseAirRoute = ApiPublicHooksPulseAirRouteImport.update({
-  id: '/api/public/hooks/pulse-air',
-  path: '/api/public/hooks/pulse-air',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicHooksIngestScheduleRoute =
-  ApiPublicHooksIngestScheduleRouteImport.update({
-    id: '/api/public/hooks/ingest-schedule',
-    path: '/api/public/hooks/ingest-schedule',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksDepartureTickRoute =
-  ApiPublicHooksDepartureTickRouteImport.update({
-    id: '/api/public/hooks/departure-tick',
-    path: '/api/public/hooks/departure-tick',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicGbfsVehicle_typesDotjsonRoute =
-  ApiPublicGbfsVehicle_typesDotjsonRouteImport.update({
-    id: '/api/public/gbfs/vehicle_types.json',
-    path: '/api/public/gbfs/vehicle_types.json',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicGbfsSystem_informationDotjsonRoute =
-  ApiPublicGbfsSystem_informationDotjsonRouteImport.update({
-    id: '/api/public/gbfs/system_information.json',
-    path: '/api/public/gbfs/system_information.json',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicGbfsStation_statusDotjsonRoute =
-  ApiPublicGbfsStation_statusDotjsonRouteImport.update({
-    id: '/api/public/gbfs/station_status.json',
-    path: '/api/public/gbfs/station_status.json',
+const ApiPublicGbfsFree_bike_statusDotjsonRoute =
+  ApiPublicGbfsFree_bike_statusDotjsonRouteImport.update({
+    id: '/api/public/gbfs/free_bike_status.json',
+    path: '/api/public/gbfs/free_bike_status.json',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicGbfsStation_informationDotjsonRoute =
@@ -585,20 +466,139 @@ const ApiPublicGbfsStation_informationDotjsonRoute =
     path: '/api/public/gbfs/station_information.json',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicGbfsFree_bike_statusDotjsonRoute =
-  ApiPublicGbfsFree_bike_statusDotjsonRouteImport.update({
-    id: '/api/public/gbfs/free_bike_status.json',
-    path: '/api/public/gbfs/free_bike_status.json',
+const ApiPublicGbfsStation_statusDotjsonRoute =
+  ApiPublicGbfsStation_statusDotjsonRouteImport.update({
+    id: '/api/public/gbfs/station_status.json',
+    path: '/api/public/gbfs/station_status.json',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicOgPlanTokenRoute = ApiPublicOgPlanTokenRouteImport.update({
-  id: '/api/public/og/plan/$token',
-  path: '/api/public/og/plan/$token',
+const ApiPublicGbfsSystem_informationDotjsonRoute =
+  ApiPublicGbfsSystem_informationDotjsonRouteImport.update({
+    id: '/api/public/gbfs/system_information.json',
+    path: '/api/public/gbfs/system_information.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicGbfsVehicle_typesDotjsonRoute =
+  ApiPublicGbfsVehicle_typesDotjsonRouteImport.update({
+    id: '/api/public/gbfs/vehicle_types.json',
+    path: '/api/public/gbfs/vehicle_types.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksDepartureTickRoute =
+  ApiPublicHooksDepartureTickRouteImport.update({
+    id: '/api/public/hooks/departure-tick',
+    path: '/api/public/hooks/departure-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksIngestScheduleRoute =
+  ApiPublicHooksIngestScheduleRouteImport.update({
+    id: '/api/public/hooks/ingest-schedule',
+    path: '/api/public/hooks/ingest-schedule',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPulseAirRoute = ApiPublicHooksPulseAirRouteImport.update({
+  id: '/api/public/hooks/pulse-air',
+  path: '/api/public/hooks/pulse-air',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksPulseCruisesRoute =
+  ApiPublicHooksPulseCruisesRouteImport.update({
+    id: '/api/public/hooks/pulse-cruises',
+    path: '/api/public/hooks/pulse-cruises',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPulseEventsRoute =
+  ApiPublicHooksPulseEventsRouteImport.update({
+    id: '/api/public/hooks/pulse-events',
+    path: '/api/public/hooks/pulse-events',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPulseFlightsRoute =
+  ApiPublicHooksPulseFlightsRouteImport.update({
+    id: '/api/public/hooks/pulse-flights',
+    path: '/api/public/hooks/pulse-flights',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPulseFootballRoute =
+  ApiPublicHooksPulseFootballRouteImport.update({
+    id: '/api/public/hooks/pulse-football',
+    path: '/api/public/hooks/pulse-football',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPulseMarineRoute =
+  ApiPublicHooksPulseMarineRouteImport.update({
+    id: '/api/public/hooks/pulse-marine',
+    path: '/api/public/hooks/pulse-marine',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPulseMetWarningsRoute =
+  ApiPublicHooksPulseMetWarningsRouteImport.update({
+    id: '/api/public/hooks/pulse-met-warnings',
+    path: '/api/public/hooks/pulse-met-warnings',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPulseNewsRoute = ApiPublicHooksPulseNewsRouteImport.update({
+  id: '/api/public/hooks/pulse-news',
+  path: '/api/public/hooks/pulse-news',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksPulseTrafficRoute =
+  ApiPublicHooksPulseTrafficRouteImport.update({
+    id: '/api/public/hooks/pulse-traffic',
+    path: '/api/public/hooks/pulse-traffic',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPulseWeatherRoute =
+  ApiPublicHooksPulseWeatherRouteImport.update({
+    id: '/api/public/hooks/pulse-weather',
+    path: '/api/public/hooks/pulse-weather',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksTrainRoute = ApiPublicHooksTrainRouteImport.update({
+  id: '/api/public/hooks/train',
+  path: '/api/public/hooks/train',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicWalletOcrRoute = ApiPublicWalletOcrRouteImport.update({
+  id: '/ocr',
+  path: '/ocr',
+  getParentRoute: () => ApiPublicWalletRoute,
+} as any)
+const ApiPublicWalletPassRoute = ApiPublicWalletPassRouteImport.update({
+  id: '/pass',
+  path: '/pass',
+  getParentRoute: () => ApiPublicWalletRoute,
+} as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicOgGroupCodeRoute = ApiPublicOgGroupCodeRouteImport.update({
   id: '/api/public/og/group/$code',
   path: '/api/public/og/group/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicOgPlanTokenRoute = ApiPublicOgPlanTokenRouteImport.update({
+  id: '/api/public/og/plan/$token',
+  path: '/api/public/og/plan/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -1279,67 +1279,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/welcome': {
-      id: '/welcome'
-      path: '/welcome'
-      fullPath: '/welcome'
-      preLoaderRoute: typeof WelcomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/wallet': {
-      id: '/wallet'
-      path: '/wallet'
-      fullPath: '/wallet'
-      preLoaderRoute: typeof WalletRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/trips': {
-      id: '/trips'
-      path: '/trips'
-      fullPath: '/trips'
-      preLoaderRoute: typeof TripsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/saved': {
-      id: '/saved'
-      path: '/saved'
-      fullPath: '/saved'
-      preLoaderRoute: typeof SavedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/qa': {
-      id: '/qa'
-      path: '/qa'
-      fullPath: '/qa'
-      preLoaderRoute: typeof QaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pulse': {
-      id: '/pulse'
-      path: '/pulse'
-      fullPath: '/pulse'
-      preLoaderRoute: typeof PulseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -1349,123 +1293,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/trip/$id': {
-      id: '/trip/$id'
-      path: '/trip/$id'
-      fullPath: '/trip/$id'
-      preLoaderRoute: typeof TripIdRouteImport
+    '/pulse': {
+      id: '/pulse'
+      path: '/pulse'
+      fullPath: '/pulse'
+      preLoaderRoute: typeof PulseRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/trip-info/$tripId': {
-      id: '/trip-info/$tripId'
-      path: '/trip-info/$tripId'
-      fullPath: '/trip-info/$tripId'
-      preLoaderRoute: typeof TripInfoTripIdRouteImport
+    '/qa': {
+      id: '/qa'
+      path: '/qa'
+      fullPath: '/qa'
+      preLoaderRoute: typeof QaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/stop/$stopId': {
-      id: '/stop/$stopId'
-      path: '/stop/$stopId'
-      fullPath: '/stop/$stopId'
-      preLoaderRoute: typeof StopStopIdRouteImport
+    '/saved': {
+      id: '/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof SavedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/route/$routeId': {
-      id: '/route/$routeId'
-      path: '/route/$routeId'
-      fullPath: '/route/$routeId'
-      preLoaderRoute: typeof RouteRouteIdRouteImport
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/plan/$token': {
-      id: '/plan/$token'
-      path: '/plan/$token'
-      fullPath: '/plan/$token'
-      preLoaderRoute: typeof PlanTokenRouteImport
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/internal/bedrock-usage': {
-      id: '/internal/bedrock-usage'
-      path: '/internal/bedrock-usage'
-      fullPath: '/internal/bedrock-usage'
-      preLoaderRoute: typeof InternalBedrockUsageRouteImport
+    '/trips': {
+      id: '/trips'
+      path: '/trips'
+      fullPath: '/trips'
+      preLoaderRoute: typeof TripsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/internal/bedrock': {
-      id: '/internal/bedrock'
-      path: '/internal/bedrock'
-      fullPath: '/internal/bedrock'
-      preLoaderRoute: typeof InternalBedrockRouteImport
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/guide/getting-around-cyprus': {
-      id: '/guide/getting-around-cyprus'
-      path: '/guide/getting-around-cyprus'
-      fullPath: '/guide/getting-around-cyprus'
-      preLoaderRoute: typeof GuideGettingAroundCyprusRouteImport
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/group/$code': {
-      id: '/group/$code'
-      path: '/group/$code'
-      fullPath: '/group/$code'
-      preLoaderRoute: typeof GroupCodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/eta/$token': {
-      id: '/eta/$token'
-      path: '/eta/$token'
-      fullPath: '/eta/$token'
-      preLoaderRoute: typeof EtaTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/debug/multileg': {
-      id: '/debug/multileg'
-      path: '/debug/multileg'
-      fullPath: '/debug/multileg'
-      preLoaderRoute: typeof DebugMultilegRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/debug/graph': {
-      id: '/debug/graph'
-      path: '/debug/graph'
-      fullPath: '/debug/graph'
-      preLoaderRoute: typeof DebugGraphRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/debug/eta': {
-      id: '/debug/eta'
-      path: '/debug/eta'
-      fullPath: '/debug/eta'
-      preLoaderRoute: typeof DebugEtaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkout/return': {
-      id: '/checkout/return'
-      path: '/checkout/return'
-      fullPath: '/checkout/return'
-      preLoaderRoute: typeof CheckoutReturnRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/airport/$code': {
-      id: '/airport/$code'
-      path: '/airport/$code'
-      fullPath: '/airport/$code'
-      preLoaderRoute: typeof AirportCodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/seo': {
-      id: '/admin/seo'
-      path: '/admin/seo'
-      fullPath: '/admin/seo'
-      preLoaderRoute: typeof AdminSeoRouteImport
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.well-known/oauth-protected-resource': {
@@ -1475,11 +1370,375 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.mcp/list-tools': {
-      id: '/.mcp/list-tools'
-      path: '/.mcp/list-tools'
-      fullPath: '/.mcp/list-tools'
-      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+    '/admin/seo': {
+      id: '/admin/seo'
+      path: '/admin/seo'
+      fullPath: '/admin/seo'
+      preLoaderRoute: typeof AdminSeoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/airport/$code': {
+      id: '/airport/$code'
+      path: '/airport/$code'
+      fullPath: '/airport/$code'
+      preLoaderRoute: typeof AirportCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/debug/eta': {
+      id: '/debug/eta'
+      path: '/debug/eta'
+      fullPath: '/debug/eta'
+      preLoaderRoute: typeof DebugEtaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/debug/graph': {
+      id: '/debug/graph'
+      path: '/debug/graph'
+      fullPath: '/debug/graph'
+      preLoaderRoute: typeof DebugGraphRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/debug/multileg': {
+      id: '/debug/multileg'
+      path: '/debug/multileg'
+      fullPath: '/debug/multileg'
+      preLoaderRoute: typeof DebugMultilegRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eta/$token': {
+      id: '/eta/$token'
+      path: '/eta/$token'
+      fullPath: '/eta/$token'
+      preLoaderRoute: typeof EtaTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/group/$code': {
+      id: '/group/$code'
+      path: '/group/$code'
+      fullPath: '/group/$code'
+      preLoaderRoute: typeof GroupCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/getting-around-cyprus': {
+      id: '/guide/getting-around-cyprus'
+      path: '/guide/getting-around-cyprus'
+      fullPath: '/guide/getting-around-cyprus'
+      preLoaderRoute: typeof GuideGettingAroundCyprusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/internal/bedrock': {
+      id: '/internal/bedrock'
+      path: '/internal/bedrock'
+      fullPath: '/internal/bedrock'
+      preLoaderRoute: typeof InternalBedrockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/internal/bedrock-usage': {
+      id: '/internal/bedrock-usage'
+      path: '/internal/bedrock-usage'
+      fullPath: '/internal/bedrock-usage'
+      preLoaderRoute: typeof InternalBedrockUsageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan/$token': {
+      id: '/plan/$token'
+      path: '/plan/$token'
+      fullPath: '/plan/$token'
+      preLoaderRoute: typeof PlanTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/route/$routeId': {
+      id: '/route/$routeId'
+      path: '/route/$routeId'
+      fullPath: '/route/$routeId'
+      preLoaderRoute: typeof RouteRouteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stop/$stopId': {
+      id: '/stop/$stopId'
+      path: '/stop/$stopId'
+      fullPath: '/stop/$stopId'
+      preLoaderRoute: typeof StopStopIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trip-info/$tripId': {
+      id: '/trip-info/$tripId'
+      path: '/trip-info/$tripId'
+      fullPath: '/trip-info/$tripId'
+      preLoaderRoute: typeof TripInfoTripIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trip/$id': {
+      id: '/trip/$id'
+      path: '/trip/$id'
+      fullPath: '/trip/$id'
+      preLoaderRoute: typeof TripIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/airport': {
+      id: '/api/public/airport'
+      path: '/api/public/airport'
+      fullPath: '/api/public/airport'
+      preLoaderRoute: typeof ApiPublicAirportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/bedrock-test': {
+      id: '/api/public/bedrock-test'
+      path: '/api/public/bedrock-test'
+      fullPath: '/api/public/bedrock-test'
+      preLoaderRoute: typeof ApiPublicBedrockTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/bike-share': {
+      id: '/api/public/bike-share'
+      path: '/api/public/bike-share'
+      fullPath: '/api/public/bike-share'
+      preLoaderRoute: typeof ApiPublicBikeShareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/bolt-scooter': {
+      id: '/api/public/bolt-scooter'
+      path: '/api/public/bolt-scooter'
+      fullPath: '/api/public/bolt-scooter'
+      preLoaderRoute: typeof ApiPublicBoltScooterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/dust-advisory': {
+      id: '/api/public/dust-advisory'
+      path: '/api/public/dust-advisory'
+      fullPath: '/api/public/dust-advisory'
+      preLoaderRoute: typeof ApiPublicDustAdvisoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/expo-push-register': {
+      id: '/api/public/expo-push-register'
+      path: '/api/public/expo-push-register'
+      fullPath: '/api/public/expo-push-register'
+      preLoaderRoute: typeof ApiPublicExpoPushRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/gbfs.json': {
+      id: '/api/public/gbfs.json'
+      path: '/api/public/gbfs.json'
+      fullPath: '/api/public/gbfs.json'
+      preLoaderRoute: typeof ApiPublicGbfsDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/gtfs-headsigns': {
+      id: '/api/public/gtfs-headsigns'
+      path: '/api/public/gtfs-headsigns'
+      fullPath: '/api/public/gtfs-headsigns'
+      preLoaderRoute: typeof ApiPublicGtfsHeadsignsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/indexnow': {
+      id: '/api/public/indexnow'
+      path: '/api/public/indexnow'
+      fullPath: '/api/public/indexnow'
+      preLoaderRoute: typeof ApiPublicIndexnowRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/intercity-intel': {
+      id: '/api/public/intercity-intel'
+      path: '/api/public/intercity-intel'
+      fullPath: '/api/public/intercity-intel'
+      preLoaderRoute: typeof ApiPublicIntercityIntelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/kapnos': {
+      id: '/api/public/kapnos'
+      path: '/api/public/kapnos'
+      fullPath: '/api/public/kapnos'
+      preLoaderRoute: typeof ApiPublicKapnosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/last-mile-chain': {
+      id: '/api/public/last-mile-chain'
+      path: '/api/public/last-mile-chain'
+      fullPath: '/api/public/last-mile-chain'
+      preLoaderRoute: typeof ApiPublicLastMileChainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/mobile-payment-sheet': {
+      id: '/api/public/mobile-payment-sheet'
+      path: '/api/public/mobile-payment-sheet'
+      fullPath: '/api/public/mobile-payment-sheet'
+      preLoaderRoute: typeof ApiPublicMobilePaymentSheetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/park-and-ride': {
+      id: '/api/public/park-and-ride'
+      path: '/api/public/park-and-ride'
+      fullPath: '/api/public/park-and-ride'
+      preLoaderRoute: typeof ApiPublicParkAndRideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/parse-trip-intent': {
+      id: '/api/public/parse-trip-intent'
+      path: '/api/public/parse-trip-intent'
+      fullPath: '/api/public/parse-trip-intent'
+      preLoaderRoute: typeof ApiPublicParseTripIntentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/place': {
+      id: '/api/public/place'
+      path: '/api/public/place'
+      fullPath: '/api/public/place'
+      preLoaderRoute: typeof ApiPublicPlaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/places-autocomplete': {
+      id: '/api/public/places-autocomplete'
+      path: '/api/public/places-autocomplete'
+      fullPath: '/api/public/places-autocomplete'
+      preLoaderRoute: typeof ApiPublicPlacesAutocompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/plan': {
+      id: '/api/public/plan'
+      path: '/api/public/plan'
+      fullPath: '/api/public/plan'
+      preLoaderRoute: typeof ApiPublicPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/plan-share': {
+      id: '/api/public/plan-share'
+      path: '/api/public/plan-share'
+      fullPath: '/api/public/plan-share'
+      preLoaderRoute: typeof ApiPublicPlanShareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pulse': {
+      id: '/api/public/pulse'
+      path: '/api/public/pulse'
+      fullPath: '/api/public/pulse'
+      preLoaderRoute: typeof ApiPublicPulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/realtime': {
+      id: '/api/public/realtime'
+      path: '/api/public/realtime'
+      fullPath: '/api/public/realtime'
+      preLoaderRoute: typeof ApiPublicRealtimeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/rider-fix': {
+      id: '/api/public/rider-fix'
+      path: '/api/public/rider-fix'
+      fullPath: '/api/public/rider-fix'
+      preLoaderRoute: typeof ApiPublicRiderFixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/route-reliability': {
+      id: '/api/public/route-reliability'
+      path: '/api/public/route-reliability'
+      fullPath: '/api/public/route-reliability'
+      preLoaderRoute: typeof ApiPublicRouteReliabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/sighting': {
+      id: '/api/public/sighting'
+      path: '/api/public/sighting'
+      fullPath: '/api/public/sighting'
+      preLoaderRoute: typeof ApiPublicSightingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/snapshot': {
+      id: '/api/public/snapshot'
+      path: '/api/public/snapshot'
+      fullPath: '/api/public/snapshot'
+      preLoaderRoute: typeof ApiPublicSnapshotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stop-reliability': {
+      id: '/api/public/stop-reliability'
+      path: '/api/public/stop-reliability'
+      fullPath: '/api/public/stop-reliability'
+      preLoaderRoute: typeof ApiPublicStopReliabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stops': {
+      id: '/api/public/stops'
+      path: '/api/public/stops'
+      fullPath: '/api/public/stops'
+      preLoaderRoute: typeof ApiPublicStopsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/streetview': {
+      id: '/api/public/streetview'
+      path: '/api/public/streetview'
+      fullPath: '/api/public/streetview'
+      preLoaderRoute: typeof ApiPublicStreetviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stt': {
+      id: '/api/public/stt'
+      path: '/api/public/stt'
+      fullPath: '/api/public/stt'
+      preLoaderRoute: typeof ApiPublicSttRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/traffic-alerts': {
+      id: '/api/public/traffic-alerts'
+      path: '/api/public/traffic-alerts'
+      fullPath: '/api/public/traffic-alerts'
+      preLoaderRoute: typeof ApiPublicTrafficAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/trip-alerts': {
+      id: '/api/public/trip-alerts'
+      path: '/api/public/trip-alerts'
+      fullPath: '/api/public/trip-alerts'
+      preLoaderRoute: typeof ApiPublicTripAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/trip-groups': {
+      id: '/api/public/trip-groups'
+      path: '/api/public/trip-groups'
+      fullPath: '/api/public/trip-groups'
+      preLoaderRoute: typeof ApiPublicTripGroupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/tts': {
+      id: '/api/public/tts'
+      path: '/api/public/tts'
+      fullPath: '/api/public/tts'
+      preLoaderRoute: typeof ApiPublicTtsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/walk-directions': {
+      id: '/api/public/walk-directions'
+      path: '/api/public/walk-directions'
+      fullPath: '/api/public/walk-directions'
+      preLoaderRoute: typeof ApiPublicWalkDirectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/wallet': {
+      id: '/api/public/wallet'
+      path: '/api/public/wallet'
+      fullPath: '/api/public/wallet'
+      preLoaderRoute: typeof ApiPublicWalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/weather': {
+      id: '/api/public/weather'
+      path: '/api/public/weather'
+      fullPath: '/api/public/weather'
+      preLoaderRoute: typeof ApiPublicWeatherRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/internal/funding/': {
@@ -1496,417 +1755,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InternalFundingDocsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/weather': {
-      id: '/api/public/weather'
-      path: '/api/public/weather'
-      fullPath: '/api/public/weather'
-      preLoaderRoute: typeof ApiPublicWeatherRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/wallet': {
-      id: '/api/public/wallet'
-      path: '/api/public/wallet'
-      fullPath: '/api/public/wallet'
-      preLoaderRoute: typeof ApiPublicWalletRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/walk-directions': {
-      id: '/api/public/walk-directions'
-      path: '/api/public/walk-directions'
-      fullPath: '/api/public/walk-directions'
-      preLoaderRoute: typeof ApiPublicWalkDirectionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/tts': {
-      id: '/api/public/tts'
-      path: '/api/public/tts'
-      fullPath: '/api/public/tts'
-      preLoaderRoute: typeof ApiPublicTtsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/trip-groups': {
-      id: '/api/public/trip-groups'
-      path: '/api/public/trip-groups'
-      fullPath: '/api/public/trip-groups'
-      preLoaderRoute: typeof ApiPublicTripGroupsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/trip-alerts': {
-      id: '/api/public/trip-alerts'
-      path: '/api/public/trip-alerts'
-      fullPath: '/api/public/trip-alerts'
-      preLoaderRoute: typeof ApiPublicTripAlertsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/traffic-alerts': {
-      id: '/api/public/traffic-alerts'
-      path: '/api/public/traffic-alerts'
-      fullPath: '/api/public/traffic-alerts'
-      preLoaderRoute: typeof ApiPublicTrafficAlertsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/stt': {
-      id: '/api/public/stt'
-      path: '/api/public/stt'
-      fullPath: '/api/public/stt'
-      preLoaderRoute: typeof ApiPublicSttRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/streetview': {
-      id: '/api/public/streetview'
-      path: '/api/public/streetview'
-      fullPath: '/api/public/streetview'
-      preLoaderRoute: typeof ApiPublicStreetviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/stops': {
-      id: '/api/public/stops'
-      path: '/api/public/stops'
-      fullPath: '/api/public/stops'
-      preLoaderRoute: typeof ApiPublicStopsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/stop-reliability': {
-      id: '/api/public/stop-reliability'
-      path: '/api/public/stop-reliability'
-      fullPath: '/api/public/stop-reliability'
-      preLoaderRoute: typeof ApiPublicStopReliabilityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/snapshot': {
-      id: '/api/public/snapshot'
-      path: '/api/public/snapshot'
-      fullPath: '/api/public/snapshot'
-      preLoaderRoute: typeof ApiPublicSnapshotRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/sighting': {
-      id: '/api/public/sighting'
-      path: '/api/public/sighting'
-      fullPath: '/api/public/sighting'
-      preLoaderRoute: typeof ApiPublicSightingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/route-reliability': {
-      id: '/api/public/route-reliability'
-      path: '/api/public/route-reliability'
-      fullPath: '/api/public/route-reliability'
-      preLoaderRoute: typeof ApiPublicRouteReliabilityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/rider-fix': {
-      id: '/api/public/rider-fix'
-      path: '/api/public/rider-fix'
-      fullPath: '/api/public/rider-fix'
-      preLoaderRoute: typeof ApiPublicRiderFixRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/realtime': {
-      id: '/api/public/realtime'
-      path: '/api/public/realtime'
-      fullPath: '/api/public/realtime'
-      preLoaderRoute: typeof ApiPublicRealtimeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/pulse': {
-      id: '/api/public/pulse'
-      path: '/api/public/pulse'
-      fullPath: '/api/public/pulse'
-      preLoaderRoute: typeof ApiPublicPulseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/plan-share': {
-      id: '/api/public/plan-share'
-      path: '/api/public/plan-share'
-      fullPath: '/api/public/plan-share'
-      preLoaderRoute: typeof ApiPublicPlanShareRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/plan': {
-      id: '/api/public/plan'
-      path: '/api/public/plan'
-      fullPath: '/api/public/plan'
-      preLoaderRoute: typeof ApiPublicPlanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/places-autocomplete': {
-      id: '/api/public/places-autocomplete'
-      path: '/api/public/places-autocomplete'
-      fullPath: '/api/public/places-autocomplete'
-      preLoaderRoute: typeof ApiPublicPlacesAutocompleteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/place': {
-      id: '/api/public/place'
-      path: '/api/public/place'
-      fullPath: '/api/public/place'
-      preLoaderRoute: typeof ApiPublicPlaceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/parse-trip-intent': {
-      id: '/api/public/parse-trip-intent'
-      path: '/api/public/parse-trip-intent'
-      fullPath: '/api/public/parse-trip-intent'
-      preLoaderRoute: typeof ApiPublicParseTripIntentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/park-and-ride': {
-      id: '/api/public/park-and-ride'
-      path: '/api/public/park-and-ride'
-      fullPath: '/api/public/park-and-ride'
-      preLoaderRoute: typeof ApiPublicParkAndRideRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/mobile-payment-sheet': {
-      id: '/api/public/mobile-payment-sheet'
-      path: '/api/public/mobile-payment-sheet'
-      fullPath: '/api/public/mobile-payment-sheet'
-      preLoaderRoute: typeof ApiPublicMobilePaymentSheetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/last-mile-chain': {
-      id: '/api/public/last-mile-chain'
-      path: '/api/public/last-mile-chain'
-      fullPath: '/api/public/last-mile-chain'
-      preLoaderRoute: typeof ApiPublicLastMileChainRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/kapnos': {
-      id: '/api/public/kapnos'
-      path: '/api/public/kapnos'
-      fullPath: '/api/public/kapnos'
-      preLoaderRoute: typeof ApiPublicKapnosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/intercity-intel': {
-      id: '/api/public/intercity-intel'
-      path: '/api/public/intercity-intel'
-      fullPath: '/api/public/intercity-intel'
-      preLoaderRoute: typeof ApiPublicIntercityIntelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/indexnow': {
-      id: '/api/public/indexnow'
-      path: '/api/public/indexnow'
-      fullPath: '/api/public/indexnow'
-      preLoaderRoute: typeof ApiPublicIndexnowRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/gtfs-headsigns': {
-      id: '/api/public/gtfs-headsigns'
-      path: '/api/public/gtfs-headsigns'
-      fullPath: '/api/public/gtfs-headsigns'
-      preLoaderRoute: typeof ApiPublicGtfsHeadsignsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/gbfs.json': {
-      id: '/api/public/gbfs.json'
-      path: '/api/public/gbfs.json'
-      fullPath: '/api/public/gbfs.json'
-      preLoaderRoute: typeof ApiPublicGbfsDotjsonRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/expo-push-register': {
-      id: '/api/public/expo-push-register'
-      path: '/api/public/expo-push-register'
-      fullPath: '/api/public/expo-push-register'
-      preLoaderRoute: typeof ApiPublicExpoPushRegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/dust-advisory': {
-      id: '/api/public/dust-advisory'
-      path: '/api/public/dust-advisory'
-      fullPath: '/api/public/dust-advisory'
-      preLoaderRoute: typeof ApiPublicDustAdvisoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/bolt-scooter': {
-      id: '/api/public/bolt-scooter'
-      path: '/api/public/bolt-scooter'
-      fullPath: '/api/public/bolt-scooter'
-      preLoaderRoute: typeof ApiPublicBoltScooterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/bike-share': {
-      id: '/api/public/bike-share'
-      path: '/api/public/bike-share'
-      fullPath: '/api/public/bike-share'
-      preLoaderRoute: typeof ApiPublicBikeShareRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/bedrock-test': {
-      id: '/api/public/bedrock-test'
-      path: '/api/public/bedrock-test'
-      fullPath: '/api/public/bedrock-test'
-      preLoaderRoute: typeof ApiPublicBedrockTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/airport': {
-      id: '/api/public/airport'
-      path: '/api/public/airport'
-      fullPath: '/api/public/airport'
-      preLoaderRoute: typeof ApiPublicAirportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/auth/webhook': {
-      id: '/lovable/email/auth/webhook'
-      path: '/lovable/email/auth/webhook'
-      fullPath: '/lovable/email/auth/webhook'
-      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/auth/preview': {
-      id: '/lovable/email/auth/preview'
-      path: '/lovable/email/auth/preview'
-      fullPath: '/lovable/email/auth/preview'
-      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/wallet/pass': {
-      id: '/api/public/wallet/pass'
-      path: '/pass'
-      fullPath: '/api/public/wallet/pass'
-      preLoaderRoute: typeof ApiPublicWalletPassRouteImport
-      parentRoute: typeof ApiPublicWalletRoute
-    }
-    '/api/public/wallet/ocr': {
-      id: '/api/public/wallet/ocr'
-      path: '/ocr'
-      fullPath: '/api/public/wallet/ocr'
-      preLoaderRoute: typeof ApiPublicWalletOcrRouteImport
-      parentRoute: typeof ApiPublicWalletRoute
-    }
-    '/api/public/payments/webhook': {
-      id: '/api/public/payments/webhook'
-      path: '/api/public/payments/webhook'
-      fullPath: '/api/public/payments/webhook'
-      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/train': {
-      id: '/api/public/hooks/train'
-      path: '/api/public/hooks/train'
-      fullPath: '/api/public/hooks/train'
-      preLoaderRoute: typeof ApiPublicHooksTrainRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/pulse-weather': {
-      id: '/api/public/hooks/pulse-weather'
-      path: '/api/public/hooks/pulse-weather'
-      fullPath: '/api/public/hooks/pulse-weather'
-      preLoaderRoute: typeof ApiPublicHooksPulseWeatherRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/pulse-traffic': {
-      id: '/api/public/hooks/pulse-traffic'
-      path: '/api/public/hooks/pulse-traffic'
-      fullPath: '/api/public/hooks/pulse-traffic'
-      preLoaderRoute: typeof ApiPublicHooksPulseTrafficRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/pulse-news': {
-      id: '/api/public/hooks/pulse-news'
-      path: '/api/public/hooks/pulse-news'
-      fullPath: '/api/public/hooks/pulse-news'
-      preLoaderRoute: typeof ApiPublicHooksPulseNewsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/pulse-met-warnings': {
-      id: '/api/public/hooks/pulse-met-warnings'
-      path: '/api/public/hooks/pulse-met-warnings'
-      fullPath: '/api/public/hooks/pulse-met-warnings'
-      preLoaderRoute: typeof ApiPublicHooksPulseMetWarningsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/pulse-marine': {
-      id: '/api/public/hooks/pulse-marine'
-      path: '/api/public/hooks/pulse-marine'
-      fullPath: '/api/public/hooks/pulse-marine'
-      preLoaderRoute: typeof ApiPublicHooksPulseMarineRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/pulse-football': {
-      id: '/api/public/hooks/pulse-football'
-      path: '/api/public/hooks/pulse-football'
-      fullPath: '/api/public/hooks/pulse-football'
-      preLoaderRoute: typeof ApiPublicHooksPulseFootballRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/pulse-flights': {
-      id: '/api/public/hooks/pulse-flights'
-      path: '/api/public/hooks/pulse-flights'
-      fullPath: '/api/public/hooks/pulse-flights'
-      preLoaderRoute: typeof ApiPublicHooksPulseFlightsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/pulse-events': {
-      id: '/api/public/hooks/pulse-events'
-      path: '/api/public/hooks/pulse-events'
-      fullPath: '/api/public/hooks/pulse-events'
-      preLoaderRoute: typeof ApiPublicHooksPulseEventsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/pulse-cruises': {
-      id: '/api/public/hooks/pulse-cruises'
-      path: '/api/public/hooks/pulse-cruises'
-      fullPath: '/api/public/hooks/pulse-cruises'
-      preLoaderRoute: typeof ApiPublicHooksPulseCruisesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/pulse-air': {
-      id: '/api/public/hooks/pulse-air'
-      path: '/api/public/hooks/pulse-air'
-      fullPath: '/api/public/hooks/pulse-air'
-      preLoaderRoute: typeof ApiPublicHooksPulseAirRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/ingest-schedule': {
-      id: '/api/public/hooks/ingest-schedule'
-      path: '/api/public/hooks/ingest-schedule'
-      fullPath: '/api/public/hooks/ingest-schedule'
-      preLoaderRoute: typeof ApiPublicHooksIngestScheduleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/departure-tick': {
-      id: '/api/public/hooks/departure-tick'
-      path: '/api/public/hooks/departure-tick'
-      fullPath: '/api/public/hooks/departure-tick'
-      preLoaderRoute: typeof ApiPublicHooksDepartureTickRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/gbfs/vehicle_types.json': {
-      id: '/api/public/gbfs/vehicle_types.json'
-      path: '/api/public/gbfs/vehicle_types.json'
-      fullPath: '/api/public/gbfs/vehicle_types.json'
-      preLoaderRoute: typeof ApiPublicGbfsVehicle_typesDotjsonRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/gbfs/system_information.json': {
-      id: '/api/public/gbfs/system_information.json'
-      path: '/api/public/gbfs/system_information.json'
-      fullPath: '/api/public/gbfs/system_information.json'
-      preLoaderRoute: typeof ApiPublicGbfsSystem_informationDotjsonRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/gbfs/station_status.json': {
-      id: '/api/public/gbfs/station_status.json'
-      path: '/api/public/gbfs/station_status.json'
-      fullPath: '/api/public/gbfs/station_status.json'
-      preLoaderRoute: typeof ApiPublicGbfsStation_statusDotjsonRouteImport
+    '/api/public/gbfs/free_bike_status.json': {
+      id: '/api/public/gbfs/free_bike_status.json'
+      path: '/api/public/gbfs/free_bike_status.json'
+      fullPath: '/api/public/gbfs/free_bike_status.json'
+      preLoaderRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/gbfs/station_information.json': {
@@ -1916,18 +1769,158 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGbfsStation_informationDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/gbfs/free_bike_status.json': {
-      id: '/api/public/gbfs/free_bike_status.json'
-      path: '/api/public/gbfs/free_bike_status.json'
-      fullPath: '/api/public/gbfs/free_bike_status.json'
-      preLoaderRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRouteImport
+    '/api/public/gbfs/station_status.json': {
+      id: '/api/public/gbfs/station_status.json'
+      path: '/api/public/gbfs/station_status.json'
+      fullPath: '/api/public/gbfs/station_status.json'
+      preLoaderRoute: typeof ApiPublicGbfsStation_statusDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/og/plan/$token': {
-      id: '/api/public/og/plan/$token'
-      path: '/api/public/og/plan/$token'
-      fullPath: '/api/public/og/plan/$token'
-      preLoaderRoute: typeof ApiPublicOgPlanTokenRouteImport
+    '/api/public/gbfs/system_information.json': {
+      id: '/api/public/gbfs/system_information.json'
+      path: '/api/public/gbfs/system_information.json'
+      fullPath: '/api/public/gbfs/system_information.json'
+      preLoaderRoute: typeof ApiPublicGbfsSystem_informationDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/gbfs/vehicle_types.json': {
+      id: '/api/public/gbfs/vehicle_types.json'
+      path: '/api/public/gbfs/vehicle_types.json'
+      fullPath: '/api/public/gbfs/vehicle_types.json'
+      preLoaderRoute: typeof ApiPublicGbfsVehicle_typesDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/departure-tick': {
+      id: '/api/public/hooks/departure-tick'
+      path: '/api/public/hooks/departure-tick'
+      fullPath: '/api/public/hooks/departure-tick'
+      preLoaderRoute: typeof ApiPublicHooksDepartureTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/ingest-schedule': {
+      id: '/api/public/hooks/ingest-schedule'
+      path: '/api/public/hooks/ingest-schedule'
+      fullPath: '/api/public/hooks/ingest-schedule'
+      preLoaderRoute: typeof ApiPublicHooksIngestScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pulse-air': {
+      id: '/api/public/hooks/pulse-air'
+      path: '/api/public/hooks/pulse-air'
+      fullPath: '/api/public/hooks/pulse-air'
+      preLoaderRoute: typeof ApiPublicHooksPulseAirRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pulse-cruises': {
+      id: '/api/public/hooks/pulse-cruises'
+      path: '/api/public/hooks/pulse-cruises'
+      fullPath: '/api/public/hooks/pulse-cruises'
+      preLoaderRoute: typeof ApiPublicHooksPulseCruisesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pulse-events': {
+      id: '/api/public/hooks/pulse-events'
+      path: '/api/public/hooks/pulse-events'
+      fullPath: '/api/public/hooks/pulse-events'
+      preLoaderRoute: typeof ApiPublicHooksPulseEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pulse-flights': {
+      id: '/api/public/hooks/pulse-flights'
+      path: '/api/public/hooks/pulse-flights'
+      fullPath: '/api/public/hooks/pulse-flights'
+      preLoaderRoute: typeof ApiPublicHooksPulseFlightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pulse-football': {
+      id: '/api/public/hooks/pulse-football'
+      path: '/api/public/hooks/pulse-football'
+      fullPath: '/api/public/hooks/pulse-football'
+      preLoaderRoute: typeof ApiPublicHooksPulseFootballRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pulse-marine': {
+      id: '/api/public/hooks/pulse-marine'
+      path: '/api/public/hooks/pulse-marine'
+      fullPath: '/api/public/hooks/pulse-marine'
+      preLoaderRoute: typeof ApiPublicHooksPulseMarineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pulse-met-warnings': {
+      id: '/api/public/hooks/pulse-met-warnings'
+      path: '/api/public/hooks/pulse-met-warnings'
+      fullPath: '/api/public/hooks/pulse-met-warnings'
+      preLoaderRoute: typeof ApiPublicHooksPulseMetWarningsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pulse-news': {
+      id: '/api/public/hooks/pulse-news'
+      path: '/api/public/hooks/pulse-news'
+      fullPath: '/api/public/hooks/pulse-news'
+      preLoaderRoute: typeof ApiPublicHooksPulseNewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pulse-traffic': {
+      id: '/api/public/hooks/pulse-traffic'
+      path: '/api/public/hooks/pulse-traffic'
+      fullPath: '/api/public/hooks/pulse-traffic'
+      preLoaderRoute: typeof ApiPublicHooksPulseTrafficRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pulse-weather': {
+      id: '/api/public/hooks/pulse-weather'
+      path: '/api/public/hooks/pulse-weather'
+      fullPath: '/api/public/hooks/pulse-weather'
+      preLoaderRoute: typeof ApiPublicHooksPulseWeatherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/train': {
+      id: '/api/public/hooks/train'
+      path: '/api/public/hooks/train'
+      fullPath: '/api/public/hooks/train'
+      preLoaderRoute: typeof ApiPublicHooksTrainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/wallet/ocr': {
+      id: '/api/public/wallet/ocr'
+      path: '/ocr'
+      fullPath: '/api/public/wallet/ocr'
+      preLoaderRoute: typeof ApiPublicWalletOcrRouteImport
+      parentRoute: typeof ApiPublicWalletRoute
+    }
+    '/api/public/wallet/pass': {
+      id: '/api/public/wallet/pass'
+      path: '/pass'
+      fullPath: '/api/public/wallet/pass'
+      preLoaderRoute: typeof ApiPublicWalletPassRouteImport
+      parentRoute: typeof ApiPublicWalletRoute
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/og/group/$code': {
@@ -1935,6 +1928,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/og/group/$code'
       fullPath: '/api/public/og/group/$code'
       preLoaderRoute: typeof ApiPublicOgGroupCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/og/plan/$token': {
+      id: '/api/public/og/plan/$token'
+      path: '/api/public/og/plan/$token'
+      fullPath: '/api/public/og/plan/$token'
+      preLoaderRoute: typeof ApiPublicOgPlanTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
