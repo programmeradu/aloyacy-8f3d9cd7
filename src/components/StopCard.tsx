@@ -191,11 +191,13 @@ function TierChip({
       {blurb &&
         tier !== "live" &&
         tier !== "rider-confirmed" &&
+        tier !== "scheduled" &&
         blurb.trim().toLowerCase() !== tierLabel.trim().toLowerCase() && (
           <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-ink-soft/60 text-right max-w-[10rem]">
             {blurb}
           </span>
         )}
+
 
     </div>
   );
