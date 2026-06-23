@@ -169,35 +169,55 @@ function TripInfo() {
             />
           </section>
 
-          <section className="mt-6 px-6 grid grid-cols-3 gap-2 animate-rise" style={{ animationDelay: "160ms" }}>
-            <Insight
-              label={t("tripInfo.nextStop")}
-              value={
-                trip.nextIdx === -1
-                  ? "—"
-                  : trip.stops[trip.nextIdx]?.meta?.name ?? "—"
-              }
-            />
-
-            <Insight
-              label={t("tripInfo.etaThere")}
-              value={
-                trip.nextIdx === -1
-                  ? "—"
-                  : fmtClock(trip.stops[trip.nextIdx].arrivalUnix)
-              }
-            />
-            <Insight
-              label={t("tripInfo.runningLabel")}
-              value={(() => {
-                if (trip.nextIdx === -1) return t("tripInfo.finished");
-                const d = trip.stops[trip.nextIdx].delaySec;
-                if (d > 60) return t("tripInfo.mLate", { m: Math.round(d / 60) });
-                if (d < -60) return t("tripInfo.mEarly", { m: Math.round(-d / 60) });
-                return t("tripInfo.onTime");
-              })()}
-            />
-          </section>
+          {(() => {
+            const finished = trip.nextIdx === -1;
+            const nextStop = finished ? null : trip.stops[trip.nextIdx];
+            const nextName = nextStop?.meta?.name ?? "—";
+            const nextCode = nextStop?.meta?.code ?? null;
+            const eta = nextStop ? fmtClock(nextStop.arrivalUnix) : "—";
+            const minsTo = nextStop
+              ? Math.max(0, Math.round((nextStop.arrivalUnix - Date.now() / 1000) / 60))
+              : null;
+            const delay = nextStop?.delaySec ?? 0;
+            const status: "ontime" | "late" | "early" | "done" = finished
+              ? "done"
+              : delay > 60
+                ? "late"
+                : delay < -60
+                  ? "early"
+                  : "ontime";
+            const statusText = finished
+              ? t("tripInfo.finished")
+              : status === "late"
+                ? t("tripInfo.mLate", { m: Math.round(delay / 60) })
+                : status === "early"
+                  ? t("tripInfo.mEarly", { m: Math.round(-delay / 60) })
+                  : t("tripInfo.onTime");
+            return (
+              <section className="mt-6 px-6 space-y-2 animate-rise" style={{ animationDelay: "160ms" }}>
+                <NextStopCard
+                  label={t("tripInfo.nextStop")}
+                  name={nextName}
+                  code={nextCode}
+                  minsTo={minsTo}
+                  finished={finished}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <EtaCard
+                    label={t("tripInfo.etaThere")}
+                    eta={eta}
+                    minsTo={minsTo}
+                    finished={finished}
+                  />
+                  <StatusCard
+                    label={t("tripInfo.runningLabel")}
+                    status={status}
+                    text={statusText}
+                  />
+                </div>
+              </section>
+            );
+          })()}
 
           <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "200ms" }}>
             <div className="flex items-end justify-between mb-3">
