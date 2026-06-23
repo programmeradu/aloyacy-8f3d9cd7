@@ -237,8 +237,8 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
     const labelW = ctx.measureText("Aloya").width;
     ctx.font =
       "500 14px 'JetBrains Mono', ui-monospace, monospace";
-    const subW = ctx.measureText("CYPRUS TRANSIT").width;
-    const chipW = padX * 2 + labelW + 20 + subW;
+    const subW = measureTracked(ctx, "CYPRUS TRANSIT", 2.4);
+    const chipW = padX * 2 + labelW + 22 + subW + 14;
     const chipH = 56;
     ctx.fillStyle = "rgba(250,246,238,0.94)";
     roundRect(ctx, x, y, chipW, chipH, chipH / 2);
