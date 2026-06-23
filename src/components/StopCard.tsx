@@ -232,7 +232,7 @@ function AmenityRow({
   const positives = items.filter((c) => c.on);
   if (positives.length === 0) return null;
   return (
-    <ul className="-mt-1 flex flex-wrap items-center gap-1.5">
+    <ul className="-mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
       {positives.map((c) => (
         <li key={c.key} className="leading-none">
           <AmenityIcon kind={c.key} />
