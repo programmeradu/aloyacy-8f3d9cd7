@@ -7,5 +7,9 @@
   "observability": { "enabled": true },
   "triggers": {
     "crons": ["*/2 * * * *"]
+  },
+  "vars": {
+    "TARGET_URL": "https://app.aloya.cy/api/public/snapshot",
+    "SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2cWhzamVlY2twdGJzenJmbHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNjg5NTQsImV4cCI6MjEwMTk0NDk1NH0.UxSTJl2xlef_TOUXt8FiY3x4_dqJDu37bufUy3erM3c"
   }
 }
