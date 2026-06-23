@@ -237,6 +237,31 @@ function StopDetail() {
           </div>
         )}
       </section>
+
+      {stop && (
+        <ShareSheet
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          ctx={{
+            stop: { id: stop.id, code: stop.code, name: stop.name, agency: stop.agency },
+            routes: Array.from(
+              new Map(
+                departures
+                  .map((d) => getRoute(d.routeId))
+                  .filter((r): r is NonNullable<typeof r> => !!r)
+                  .map((r) => [r.id, { short: r.short }]),
+              ).values(),
+            ),
+            nextEtaMin: departures[0]?.eta.etaMin ?? null,
+            nextHeadsign: departures[0]
+              ? getHeadsignSync(departures[0].tripId, departures[0].routeId)
+              : null,
+            locale,
+            url: `https://app.aloya.cy/stop/${stop.id}`,
+          }}
+        />
+      )}
     </AppShell>
+
   );
 }
