@@ -25,7 +25,6 @@ export const Route = createFileRoute("/terms")({
       { property: "og:image:alt", content: "Cypriot limestone wall split by a shaft of aegean-blue light." },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://app.aloya.cy/og/og-privacy.jpg" },
-      { name: "robots", content: "noindex, follow" },
     ],
     links: [{ rel: "canonical", href: "https://app.aloya.cy/terms" }],
   }),
