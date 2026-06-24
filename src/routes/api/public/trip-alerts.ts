@@ -496,7 +496,7 @@ export const Route = createFileRoute("/api/public/trip-alerts")({
           // ignore vault lookup failures and fall back to env
         }
         const legacyHeader = request.headers.get("x-cron-secret");
-        const validApiKey = apikey && apikey === process.env.SUPABASE_PUBLISHABLE_KEY;
+        const validApiKey = apikey && apikey === (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY);
         const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
         const validLegacy = legacySecret && legacyHeader && legacyHeader === legacySecret;
         if (!validApiKey && !validCron && !validLegacy) {
