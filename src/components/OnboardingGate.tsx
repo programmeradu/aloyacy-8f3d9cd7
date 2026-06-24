@@ -10,6 +10,13 @@ import { fetchOnboardedAt, isOnboardedCached } from "@/lib/onboarding";
 
 const EXEMPT_PREFIXES = ["/welcome", "/privacy", "/terms", "/auth", "/api", "/checkout"];
 
+function isCrawlerVisit() {
+  if (typeof navigator === "undefined") return false;
+  return /bot|crawler|spider|crawling|googlebot|google inspection tool|bingpreview|facebookexternalhit|linkedinbot|slackbot|twitterbot/i.test(
+    navigator.userAgent,
+  );
+}
+
 export function OnboardingGate() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -19,10 +26,13 @@ export function OnboardingGate() {
     if (loading || !user) return;
     if (EXEMPT_PREFIXES.some((p) => pathname.startsWith(p))) return;
     if (pathname !== "/") return; // only intercept the home landing
+    // Search engines execute JavaScript. If we redirect them to /welcome,
+    // Google sees the welcome route's intentional noindex tag instead of the
+    // indexable home page.
+    if (isCrawlerVisit()) return;
     // Skip on the marketing domain — "/" there is the landing page, not the app.
     if (typeof window !== "undefined") {
       const h = window.location.hostname.toLowerCase();
-      if (h === "aloya.cy" || h === "www.aloya.cy") return;
       if (h === "aloya.cy" || h === "www.aloya.cy") return;
     }
     const cached = isOnboardedCached();
