@@ -161,24 +161,43 @@ async function ingest() {
     }
 
     let statsUpdated = 0;
-    // Merge each bucket via select-then-upsert with running mean.
-    for (const b of buckets.values()) {
-      const { data: existing } = await supabaseAdmin
+    // Fix N+1: fetch existing records in batches, compute in memory, then bulk upsert.
+    const bucketArray = Array.from(buckets.values());
+    const CHUNK_SIZE = 50; // Smaller chunk for complex `or` filter to avoid URL length limits
+
+    for (let i = 0; i < bucketArray.length; i += CHUNK_SIZE) {
+      const chunk = bucketArray.slice(i, i + CHUNK_SIZE);
+      
+      // Build an `or` filter for this chunk
+      const orFilter = chunk
+        .map((b) => `and(route_id.eq.${b.route_id},stop_id.eq.${b.stop_id},hour_of_day.eq.${b.hour_of_day},day_of_week.eq.${b.day_of_week})`)
+        .join(',');
+
+      const { data: existingRecords, error: fetchError } = await supabaseAdmin
         .from("delay_stats")
-        .select("mean_delay_sec, sample_count")
-        .eq("route_id", b.route_id)
-        .eq("stop_id", b.stop_id)
-        .eq("hour_of_day", b.hour_of_day)
-        .eq("day_of_week", b.day_of_week)
-        .maybeSingle();
+        .select("route_id, stop_id, hour_of_day, day_of_week, mean_delay_sec, sample_count")
+        .or(orFilter);
 
-      const prevMean = existing?.mean_delay_sec ?? 0;
-      const prevN = existing?.sample_count ?? 0;
-      const newN = prevN + b.count;
-      const newMean = (prevMean * prevN + b.sum) / newN;
+      if (fetchError) {
+        console.error("Failed to fetch existing delay_stats for chunk", fetchError);
+        continue;
+      }
 
-      const { error } = await supabaseAdmin.from("delay_stats").upsert(
-        {
+      const existingMap = new Map();
+      for (const ex of (existingRecords || [])) {
+        existingMap.set(`${ex.route_id}|${ex.stop_id}|${ex.hour_of_day}|${ex.day_of_week}`, ex);
+      }
+
+      const upserts = chunk.map((b) => {
+        const key = `${b.route_id}|${b.stop_id}|${b.hour_of_day}|${b.day_of_week}`;
+        const existing = existingMap.get(key);
+        
+        const prevMean = existing?.mean_delay_sec ?? 0;
+        const prevN = existing?.sample_count ?? 0;
+        const newN = prevN + b.count;
+        const newMean = (prevMean * prevN + b.sum) / newN;
+
+        return {
           route_id: b.route_id,
           stop_id: b.stop_id,
           hour_of_day: b.hour_of_day,
@@ -186,10 +205,18 @@ async function ingest() {
           mean_delay_sec: newMean,
           sample_count: newN,
           updated_at: new Date().toISOString(),
-        },
-        { onConflict: "route_id,stop_id,hour_of_day,day_of_week" },
-      );
-      if (!error) statsUpdated++;
+        };
+      });
+
+      const { error: upsertError } = await supabaseAdmin
+        .from("delay_stats")
+        .upsert(upserts, { onConflict: "route_id,stop_id,hour_of_day,day_of_week" });
+        
+      if (upsertError) {
+        console.error("Failed to bulk upsert delay_stats", upsertError);
+      } else {
+        statsUpdated += upserts.length;
+      }
     }
 
     return json({ ok: true, inserted, stats_updated: statsUpdated });
