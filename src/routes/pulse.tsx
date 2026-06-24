@@ -49,6 +49,7 @@ export const Route = createFileRoute("/pulse")({
       },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://app.aloya.cy/og/og-pulse.jpg" },
+      { name: "robots", content: "noindex, follow" },
     ],
     links: [
       { rel: "canonical", href: "https://app.aloya.cy/pulse" },
