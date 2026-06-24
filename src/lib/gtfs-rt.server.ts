@@ -8,7 +8,7 @@
 // passenger sees a smoother bus and better ETAs.
 
 import gr from "gtfs-realtime-bindings";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabase } from "@/integrations/supabase/client";
 import { fetchFeedOverSocket } from "@/lib/gtfs-socket.server";
 
 // Feed sources, tried in order until one returns a decodable protobuf.
@@ -192,7 +192,7 @@ async function fetchUpstream(): Promise<{
 
 async function fetchRiderFixes(): Promise<LiveVehicle[]> {
   const cutoff = new Date(Date.now() - 60_000).toISOString();
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from("rider_vehicle_fixes")
     .select("trip_id, route_id, lat, lng, bearing, speed_mps, reported_at")
     .gte("reported_at", cutoff)
@@ -230,13 +230,13 @@ async function fetchSightings(): Promise<RiderConfirmedTrip[]> {
   const cutoff = new Date(now - WINDOW_SEC * 1000).toISOString();
   const trustCutoff = new Date(now - 7 * 86_400_000).toISOString();
   const [{ data: recent, error }, { data: history }] = await Promise.all([
-    supabaseAdmin
+    supabase
       .from("bus_sightings")
       .select("trip_id, device_id, reported_at")
       .gte("reported_at", cutoff)
       .order("reported_at", { ascending: false })
       .limit(500),
-    supabaseAdmin
+    supabase
       .from("bus_sightings")
       .select("device_id")
       .gte("reported_at", trustCutoff)

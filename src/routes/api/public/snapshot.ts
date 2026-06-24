@@ -4,7 +4,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabase } from "@/integrations/supabase/client";
 import { fetchRealtime } from "@/lib/gtfs-rt.server";
 
 const CORS = {
@@ -28,7 +28,7 @@ async function guard(request: Request): Promise<Response | null> {
   const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   let legacySecret: string | null = process.env.CRON_SECRET ?? null;
   try {
-    const { data } = await supabaseAdmin
+    const { data } = await supabase
       .schema("vault" as never)
       .from("decrypted_secrets" as never)
       .select("decrypted_secret")
@@ -95,24 +95,7 @@ async function ingest() {
       delay_sec: a.delaySec,
     }));
 
-    // Insert raw snapshots (chunked to be polite)
-    const chunkSize = 500;
-    let inserted = 0;
-    for (let i = 0; i < rows.length; i += chunkSize) {
-      const chunk = rows.slice(i, i + chunkSize);
-      const { error } = await supabaseAdmin.from("rt_snapshots").insert(chunk);
-      if (error) {
-        console.error("rt_snapshots insert error", error);
-      } else {
-        inserted += chunk.length;
-      }
-    }
-
     // Update observed_arrivals (last known prediction per trip+stop)
-    // Deduplicate by (trip_id, stop_id) — the RT feed can list the same
-    // stop twice per trip (loop routes, split predictions). Postgres rejects
-    // upserts that touch the same conflict target twice in one command, so
-    // collapse to the newest arrival per pair before sending.
     const observedMap = new Map<string, typeof fresh[number]>();
     for (const a of fresh) {
       const key = `${a.tripId}|${a.stopId}`;
@@ -128,16 +111,7 @@ async function ingest() {
       last_seen_at: new Date(snap.fetchedAt * 1000).toISOString(),
     }));
 
-    for (let i = 0; i < observed.length; i += chunkSize) {
-      const chunk = observed.slice(i, i + chunkSize);
-      const { error } = await supabaseAdmin
-        .from("observed_arrivals")
-        .upsert(chunk, { onConflict: "trip_id,stop_id" });
-      if (error) console.error("observed_arrivals upsert", error);
-    }
-
     // Incrementally update delay_stats per (route, stop, hour, dow).
-    // Aggregate this batch first, then merge into the running average via RPC-less SQL.
     const buckets = new Map<
       string,
       { route_id: string; stop_id: string; hour_of_day: number; day_of_week: number; sum: number; count: number }
@@ -160,44 +134,35 @@ async function ingest() {
       buckets.set(key, b);
     }
 
-    let statsUpdated = 0;
-    // Fix N+1: fetch existing records in batches, compute in memory, then bulk upsert.
     const bucketArray = Array.from(buckets.values());
-    const CHUNK_SIZE = 50; // Smaller chunk for complex `or` filter to avoid URL length limits
+    const CHUNK_SIZE = 50;
+    const upserts = [];
 
     for (let i = 0; i < bucketArray.length; i += CHUNK_SIZE) {
       const chunk = bucketArray.slice(i, i + CHUNK_SIZE);
-      
-      // Build an `or` filter for this chunk
       const orFilter = chunk
         .map((b) => `and(route_id.eq.${b.route_id},stop_id.eq.${b.stop_id},hour_of_day.eq.${b.hour_of_day},day_of_week.eq.${b.day_of_week})`)
         .join(',');
 
-      const { data: existingRecords, error: fetchError } = await supabaseAdmin
+      const { data: existingRecords } = await supabase
         .from("delay_stats")
         .select("route_id, stop_id, hour_of_day, day_of_week, mean_delay_sec, sample_count")
         .or(orFilter);
-
-      if (fetchError) {
-        console.error("Failed to fetch existing delay_stats for chunk", fetchError);
-        continue;
-      }
 
       const existingMap = new Map();
       for (const ex of (existingRecords || [])) {
         existingMap.set(`${ex.route_id}|${ex.stop_id}|${ex.hour_of_day}|${ex.day_of_week}`, ex);
       }
 
-      const upserts = chunk.map((b) => {
+      for (const b of chunk) {
         const key = `${b.route_id}|${b.stop_id}|${b.hour_of_day}|${b.day_of_week}`;
         const existing = existingMap.get(key);
-        
         const prevMean = existing?.mean_delay_sec ?? 0;
         const prevN = existing?.sample_count ?? 0;
         const newN = prevN + b.count;
         const newMean = (prevMean * prevN + b.sum) / newN;
 
-        return {
+        upserts.push({
           route_id: b.route_id,
           stop_id: b.stop_id,
           hour_of_day: b.hour_of_day,
@@ -205,17 +170,30 @@ async function ingest() {
           mean_delay_sec: newMean,
           sample_count: newN,
           updated_at: new Date().toISOString(),
-        };
-      });
+        });
+      }
+    }
 
-      const { error: upsertError } = await supabaseAdmin
-        .from("delay_stats")
-        .upsert(upserts, { onConflict: "route_id,stop_id,hour_of_day,day_of_week" });
-        
-      if (upsertError) {
-        console.error("Failed to bulk upsert delay_stats", upsertError);
+    // Call the RPC in chunks to avoid payload limits
+    const RPC_CHUNK_SIZE = 500;
+    let inserted = 0;
+    let statsUpdated = upserts.length;
+    
+    for (let i = 0; i < rows.length; i += RPC_CHUNK_SIZE) {
+      const chunkRows = rows.slice(i, i + RPC_CHUNK_SIZE);
+      const chunkObserved = observed.slice(i, i + RPC_CHUNK_SIZE);
+      const chunkStats = upserts.slice(i, i + RPC_CHUNK_SIZE);
+
+      const { error } = await supabase.rpc("ingest_gtfs_snapshots", {
+        snapshots: chunkRows,
+        observed: chunkObserved,
+        stats: chunkStats
+      });
+      
+      if (error) {
+        console.error("RPC ingest_gtfs_snapshots error", error);
       } else {
-        statsUpdated += upserts.length;
+        inserted += chunkRows.length;
       }
     }
 
