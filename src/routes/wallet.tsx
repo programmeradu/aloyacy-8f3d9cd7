@@ -57,6 +57,7 @@ export const Route = createFileRoute("/wallet")({
       { property: "og:image:alt", content: "A transit card resting on Cypriot limestone with olive-tree shadow." },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://app.aloya.cy/og/og-wallet.jpg" },
+      { name: "robots", content: "noindex, follow" },
     ],
     links: [{ rel: "canonical", href: "https://app.aloya.cy/wallet" }],
   }),

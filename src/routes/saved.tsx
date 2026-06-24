@@ -31,6 +31,7 @@ export const Route = createFileRoute("/saved")({
       { property: "og:image:alt", content: "A worn paper map of Cyprus held against a limestone wall, ochre ribbon marking a place." },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://app.aloya.cy/og/og-saved.jpg" },
+      { name: "robots", content: "noindex, follow" },
     ],
     links: [{ rel: "canonical", href: "https://app.aloya.cy/saved" }],
   }),
