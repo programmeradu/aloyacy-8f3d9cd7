@@ -58,6 +58,7 @@ export const Route = createFileRoute("/trips")({
       { property: "og:image:alt", content: "Cypriot aegean-blue shutters slightly ajar on a sun-warmed limestone wall." },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://app.aloya.cy/og/og-trips.jpg" },
+      { name: "robots", content: "noindex, follow" },
     ],
     links: [
       { rel: "canonical", href: "https://app.aloya.cy/trips" },
