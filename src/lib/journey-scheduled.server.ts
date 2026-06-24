@@ -10,7 +10,7 @@
 // Returns the same Itinerary shape as the realtime planner so the UI is
 // indifferent to which planner produced a given result.
 
-import { loadScheduleForDate, todayLocalDate } from "./schedule-loader.server";
+import { loadScheduleForDate, todayLocalDate, serviceDateToUnix } from "./schedule-loader.server";
 
 /** Cyprus-local YYYYMMDD for a given unix second timestamp. */
 export function localDateForUnix(unix: number): string {
@@ -33,6 +33,12 @@ export type ScheduledDiagnostics = RaptorDiagnostics & {
   walkRefineMs: number;
   walkLegsVerified: number;
   itinerariesDroppedAfterRefine: number;
+  /** Set when the 4h "leave now" window was empty and we widened to 24h. */
+  widenedHorizon?: boolean;
+  /** Set when nothing ran again today and results come from the next service day. */
+  rolledToNextDay?: boolean;
+  /** The service date the returned itineraries actually belong to. */
+  serviceDate?: string;
 };
 
 export class NoScheduleAvailableError extends Error {
@@ -52,27 +58,76 @@ export async function planMultiLegScheduled(
   const date = opts?.date ?? localDateForUnix(departureUnix);
 
   const tLoad0 = Date.now();
-  let schedule;
-  try {
-    schedule = await loadScheduleForDate(date);
-  } catch (err) {
-    const msg = (err as Error).message || "";
-    // Loader reports "→ 404" when the shard isn't published yet.
-    if (/→\s*404/.test(msg) || /404/.test(msg)) {
-      throw new NoScheduleAvailableError(date);
+  async function loadOrThrow(d: string) {
+    try {
+      return await loadScheduleForDate(d);
+    } catch (err) {
+      const msg = (err as Error).message || "";
+      // Loader reports "→ 404" when the shard isn't published yet.
+      if (/404/.test(msg)) throw new NoScheduleAvailableError(d);
+      throw err;
     }
-    throw err;
   }
+  let schedule = await loadOrThrow(date);
   const loadMs = Date.now() - tLoad0;
 
   const tRap0 = Date.now();
-  const { itineraries, diagnostics } = await planRaptor(
+  let searchDate = date;
+  let searchDepartureUnix = departureUnix;
+  let rolledToNextDay = false;
+  let widenedHorizon = false;
+
+  let { itineraries, diagnostics } = await planRaptor(
     schedule,
     from,
     to,
     departureUnix,
-    opts?.explicitTime ? { searchHorizonSec: 24 * 3600 } : undefined,
+    opts?.explicitTime ? { searchHorizonSec: 24 * 3600, maxJourneySec: 30 * 3600 } : undefined,
   );
+
+  // "Leave now" defaults to a 4h horizon so the common case stays fast. When
+  // that finds nothing — overnight, Sundays, holidays, or a sparse intercity
+  // corridor — escalate rather than telling the rider there is no route:
+  //   1. same service day, full 24h horizon
+  //   2. the next service day, from the start of its service window
+  // Riders get "first bus at 05:40" instead of a dead end.
+  if (!opts?.explicitTime && itineraries.length === 0) {
+    widenedHorizon = true;
+    const wide = await planRaptor(schedule, from, to, departureUnix, {
+      searchHorizonSec: 24 * 3600,
+      maxJourneySec: 30 * 3600,
+    });
+    itineraries = wide.itineraries;
+    diagnostics = wide.diagnostics;
+
+    if (itineraries.length === 0) {
+      // Roll to the next service day. Search from that day's midnight so the
+      // very first departure is reachable; the journey cap is widened to
+      // cover the overnight wait.
+      const nextDate = localDateForUnix(departureUnix + 24 * 3600);
+      try {
+        const nextSchedule = await loadOrThrow(nextDate);
+        const nextStart = serviceDateToUnix(nextDate, 0);
+        const rolled = await planRaptor(nextSchedule, from, to, nextStart, {
+          searchHorizonSec: 24 * 3600,
+          maxJourneySec: 30 * 3600,
+        });
+        if (rolled.itineraries.length > 0) {
+          itineraries = rolled.itineraries;
+          diagnostics = rolled.diagnostics;
+          schedule = nextSchedule;
+          searchDate = nextDate;
+          searchDepartureUnix = nextStart;
+          rolledToNextDay = true;
+        }
+      } catch (err) {
+        // No shard for tomorrow yet — keep the empty same-day result.
+        console.warn("[scheduled] next-day rollover skipped:", (err as Error).message);
+      }
+    }
+  }
+  void schedule;
+  void searchDepartureUnix;
   const raptorMs = Date.now() - tRap0;
 
   // ---- Realtime overlay --------------------------------------------------
@@ -149,6 +204,9 @@ export async function planMultiLegScheduled(
       walkRefineMs,
       walkLegsVerified,
       itinerariesDroppedAfterRefine,
+      widenedHorizon,
+      rolledToNextDay,
+      serviceDate: searchDate,
     },
   };
 }
