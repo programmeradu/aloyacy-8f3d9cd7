@@ -38,7 +38,7 @@ function candidateUrls(path: string): string[] {
   // pg_cron job, no redeploy needed. `path` is /data/schedule/<rest>, so we
   // strip the prefix when mapping to the bucket key.
   const bucketKey = path.replace(/^\/data\/schedule\//, "");
-  const supaUrl = process.env.SUPABASE_URL;
+  const supaUrl = process.env.CUSTOM_SUPABASE_URL;
   if (supaUrl) urls.push(`${supaUrl}/storage/v1/object/public/schedule/${bucketKey}`);
   // Fallback: the bundled snapshot in /public, served by the origin.
   try {
