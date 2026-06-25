@@ -950,10 +950,11 @@ export const en = {
   "proacc.plan.default": "Aloya Pro",
 
   // Pulse
-  "pulse.meta.title": "Pulse — Aloya",
-  "pulse.meta.desc": "Network reliability for Cyprus buses, learned in real time. Reliability index, hot and steady routes, refreshed every minute.",
-  "pulse.og.title": "Aloya Pulse — the island's transit, in motion",
-  "pulse.og.desc": "Real reliability for Cyprus public transport, learned from the live feed.",
+  "pulse.meta.title": "Cyprus Bus Pulse — Live Network Reliability | Aloya",
+  "pulse.meta.desc": "Live reliability for Cyprus buses: on-time, late and early arrivals across the island, hourly trend, hottest and steadiest routes — refreshed every minute from the operators' live feed.",
+  "pulse.og.title": "Cyprus Bus Pulse — the island's transit, live",
+  "pulse.og.desc": "On-time, late and early arrivals across every Cyprus bus route, learned from the live feed and refreshed each minute.",
+
   "pulse.kicker": "Network, learned in real time",
   "pulse.title1": "The island,",
   "pulse.title2": "in motion.",
