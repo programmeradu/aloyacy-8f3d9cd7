@@ -27,7 +27,7 @@ function relayUrl(): string | null {
 }
 
 function feedSources(): string[] {
-  const base = process.env.CUSTOM_SUPABASE_URL ?? "https://avqhsjeeckptbszrflva.supabase.co";
+  const base = process.env.CUSTOM_SUPABASE_URL ?? "https://hxtuxxrowwfnwphkdziq.supabase.co";
   const custom = relayUrl();
   return [
     ...(custom ? [custom] : []),
