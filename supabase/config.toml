@@ -6,5 +6,8 @@ site_url = "https://app.aloya.cy"
 additional_redirect_urls = ["https://app.aloya.cy/**", "https://aloya.cy/**"]
 enable_anonymous_sign_ins = true
 
+[auth.email]
+otp_length = 8
+
 [functions.gtfs-proxy]
 verify_jwt = false
