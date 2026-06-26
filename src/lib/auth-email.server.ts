@@ -146,6 +146,7 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
           purpose: "transactional",
           label: isNewUser ? "signup" : "magiclink",
           message_id: messageId,
+          idempotency_key: messageId,
         } as Parameters<typeof sendLovableEmail>[0],
         { apiKey, sendUrl: process.env.LOVABLE_SEND_URL },
       );
