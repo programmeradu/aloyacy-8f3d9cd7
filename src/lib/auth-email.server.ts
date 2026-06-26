@@ -85,7 +85,9 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
     return { ok: false, error: "Could not generate a sign-in code.", code: "no_token" };
   }
 
-  const Template = isNewUser ? SignupEmail : MagicLinkEmail;
+  const Template = (isNewUser ? SignupEmail : MagicLinkEmail) as React.ComponentType<
+    Record<string, unknown>
+  >;
   const element = React.createElement(Template, {
     siteName: SITE_NAME,
     siteUrl: `https://${ROOT_DOMAIN}`,
