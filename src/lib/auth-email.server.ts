@@ -100,23 +100,65 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
   const text = await render(element, { plainText: true });
   const messageId = crypto.randomUUID();
 
-  try {
-    await sendLovableEmail(
-      {
-        to: email,
-        from: `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`,
-        sender_domain: SENDER_DOMAIN,
-        subject: isNewUser ? "Confirm your email" : "Your Aloya sign-in code",
-        html,
-        text,
-        purpose: "transactional",
-        label: isNewUser ? "signup" : "magiclink",
-        message_id: messageId,
-      } as Parameters<typeof sendLovableEmail>[0],
-      { apiKey, sendUrl: process.env.LOVABLE_SEND_URL },
-    );
-  } catch (err) {
-    const error = err instanceof Error ? err.message : "Could not send the code.";
+  const subject = isNewUser ? "Confirm your email" : "Your Aloya sign-in code";
+  const from = `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`;
+  const attempts: string[] = [];
+
+  // 1) Resend, when a key is configured. This is the only channel that works
+  //    independently of the Lovable platform, which is why it goes first now
+  //    that auth lives on our own Supabase project.
+  let delivered = false;
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ from, to: [email], subject, html, text }),
+      });
+      if (!res.ok) {
+        attempts.push(`resend ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      } else {
+        delivered = true;
+      }
+    } catch (err) {
+      attempts.push(`resend: ${err instanceof Error ? err.message : "failed"}`);
+    }
+  } else {
+    attempts.push("resend: no RESEND_API_KEY");
+  }
+
+  // 2) Lovable's sender as a fallback (works only while the project still has
+  //    a platform email run available to it).
+  if (!delivered) {
+    try {
+      await sendLovableEmail(
+        {
+          to: email,
+          from,
+          sender_domain: SENDER_DOMAIN,
+          subject,
+          html,
+          text,
+          purpose: "transactional",
+          label: isNewUser ? "signup" : "magiclink",
+          message_id: messageId,
+        } as Parameters<typeof sendLovableEmail>[0],
+        { apiKey, sendUrl: process.env.LOVABLE_SEND_URL },
+      );
+      delivered = true;
+    } catch (err) {
+      attempts.push(
+        `lovable: ${err instanceof Error ? err.message.slice(0, 200) : "failed"}`,
+      );
+    }
+  }
+
+  if (!delivered) {
+    const error = attempts.join(" | ");
     console.error("[auth-email] send failed", { email: redact(email), error });
     void supabaseAdmin.from("email_send_log").insert({
       message_id: messageId,
@@ -125,8 +167,13 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
       status: "failed",
       error_message: error,
     });
-    return { ok: false, error, code: "send_failed" };
+    return {
+      ok: false,
+      error: "We couldn't send the code right now. Please try again shortly.",
+      code: "send_failed",
+    };
   }
+
 
   void supabaseAdmin.from("email_send_log").insert({
     message_id: messageId,
