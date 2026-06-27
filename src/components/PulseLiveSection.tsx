@@ -780,6 +780,4 @@ function TrafficCard({
   );
 }
 
-  );
-}
 
