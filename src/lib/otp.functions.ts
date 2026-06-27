@@ -8,19 +8,10 @@
 // We do NOT call Resend directly here anymore.
 
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-function publicClient() {
-  const url = process.env.CUSTOM_SUPABASE_URL ?? import.meta.env.VITE_CUSTOM_SUPABASE_URL;
-  const key =
-    process.env.CUSTOM_SUPABASE_ANON_KEY ??
-    import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY;
-  if (!url || !key) throw new Error("Supabase env not configured");
-  return createClient(url, key, { auth: { persistSession: false } });
-}
 
 // Per-email throttle so a hammered button can't drain quota.
 const lastSentAt = new Map<string, number>();
@@ -55,12 +46,9 @@ export const requestEmailOtp = createServerFn({ method: "POST" })
     }
 
     try {
-      const client = publicClient();
-      const { error } = await client.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: true },
-      });
-      if (error) throw error;
+      const { sendAuthOtpEmail } = await import("@/lib/auth-email.server");
+      const sent = await sendAuthOtpEmail(email);
+      if (!sent.ok) throw new Error(sent.error);
       return { ok: true as const, throttled: false as const };
     } catch (err) {
       lastSentAt.delete(email);
@@ -144,19 +132,16 @@ export const linkEmailAndRequestOtp = createServerFn({ method: "POST" })
         };
       }
 
-      // Now request OTP via the public client — Supabase fires the
-      // auth email hook → branded MagicLinkEmail with the 6-digit token.
-      const client = publicClient();
-      const { error } = await client.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: false },
-      });
-      if (error) {
+      // Mint + deliver the branded code ourselves (Supabase's own sender is
+      // not used — see auth-email.server.ts).
+      const { sendAuthOtpEmail } = await import("@/lib/auth-email.server");
+      const sent = await sendAuthOtpEmail(email);
+      if (!sent.ok) {
         lastSentAt.delete(email);
         return {
           ok: false as const,
           code: "otp_failed" as const,
-          error: error.message,
+          error: sent.error,
         };
       }
 
