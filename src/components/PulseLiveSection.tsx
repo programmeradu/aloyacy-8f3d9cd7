@@ -727,18 +727,89 @@ function friendlyTrafficHeadline(
 /** Generic feed strings we should NOT surface — fall back to synthesized copy. */
 const GENERIC_HEADLINE_RE = /^(traffic event reported|incident|συμβάν|γεγονός)\.?$/i;
 
+/** Structured DATEX rows like "City:Strovolos, Street:Agias Marinas, Category:ROAD_CLOSED.NO_SUBTYPE". */
+const STRUCTURED_RE = /city\s*:\s*([^,\n]+).*?street\s*:\s*([^,\n]+).*?category\s*:\s*([A-Za-z0-9_.-]+)/i;
+
+const CITY_TRANSLIT: Record<string, { en: string; el: string }> = {
+  "lefkosia":   { en: "Nicosia",   el: "Λευκωσία" },
+  "nicosia":    { en: "Nicosia",   el: "Λευκωσία" },
+  "strovolos":  { en: "Strovolos", el: "Στρόβολος" },
+  "lemesos":    { en: "Limassol",  el: "Λεμεσός" },
+  "limassol":   { en: "Limassol",  el: "Λεμεσός" },
+  "larnaka":    { en: "Larnaca",   el: "Λάρνακα" },
+  "larnaca":    { en: "Larnaca",   el: "Λάρνακα" },
+  "pafos":      { en: "Paphos",    el: "Πάφος" },
+  "paphos":     { en: "Paphos",    el: "Πάφος" },
+  "ammochostos":{ en: "Famagusta", el: "Αμμόχωστος" },
+  "famagusta":  { en: "Famagusta", el: "Αμμόχωστος" },
+  "paralimni":  { en: "Paralimni", el: "Παραλίμνι" },
+  "aglantzia":  { en: "Aglantzia", el: "Αγλαντζιά" },
+  "lakatamia":  { en: "Lakatamia", el: "Λακατάμια" },
+  "engomi":     { en: "Engomi",    el: "Έγκωμη" },
+};
+
+function localizeCity(raw: string, isEl: boolean): string {
+  const hit = CITY_TRANSLIT[raw.trim().toLowerCase()];
+  if (hit) return isEl ? hit.el : hit.en;
+  return raw.trim();
+}
+
+function categoryToKind(cat: string): TrafficKind {
+  const c = cat.toUpperCase();
+  if (c.includes("ROADWORK") || c.includes("CONSTRUCTION") || c.includes("MAINTENANCE")) return "roadworks";
+  if (c.includes("ROAD_CLOSED") || c.includes("CLOSURE") || c.includes("BLOCKED")) return "closure";
+  if (c.includes("ACCIDENT") || c.includes("CRASH")) return "accident";
+  if (c.includes("CONGESTION") || c.includes("JAM") || c.includes("HEAVY")) return "congestion";
+  if (c.includes("WEATHER") || c.includes("RAIN") || c.includes("FOG") || c.includes("SNOW") || c.includes("WIND")) return "weather";
+  return "other";
+}
+
+/** Parse a structured "City:..., Street:..., Category:..." row → friendly copy. */
+function parseStructured(
+  headline: string | null,
+  isEl: boolean,
+): { headline: string; line: string; kind: TrafficKind } | null {
+  if (!headline) return null;
+  const m = headline.match(STRUCTURED_RE);
+  if (!m) return null;
+  const cityRaw = m[1].trim();
+  const street = m[2].trim();
+  const kind = categoryToKind(m[3]);
+  const city = localizeCity(cityRaw, isEl);
+  const where = isEl ? `στην ${street}, ${city}` : `on ${street}, ${city}`;
+  const head = isEl
+    ? (kind === "roadworks" ? `Έργα οδοποιίας ${where}`
+      : kind === "closure"   ? `Κλειστός δρόμος ${where}`
+      : kind === "accident"  ? `Ατύχημα ${where}`
+      : kind === "congestion"? `Πυκνή κίνηση ${where}`
+      : kind === "weather"   ? `Καιρικό συμβάν ${where}`
+      :                        `Συμβάν ${where}`)
+    : (kind === "roadworks" ? `Roadworks ${where}`
+      : kind === "closure"   ? `Road closed ${where}`
+      : kind === "accident"  ? `Crash ${where}`
+      : kind === "congestion"? `Heavy traffic ${where}`
+      : kind === "weather"   ? `Weather delay ${where}`
+      :                        `Incident ${where}`);
+  const kShort = isEl
+    ? (kind === "roadworks" ? "Έργα" : kind === "closure" ? "Κλειστός" : kind === "accident" ? "Ατύχημα" : kind === "congestion" ? "Κίνηση" : kind === "weather" ? "Καιρός" : "Συμβάν")
+    : (kind === "roadworks" ? "Roadworks" : kind === "closure" ? "Closed" : kind === "accident" ? "Crash" : kind === "congestion" ? "Heavy traffic" : kind === "weather" ? "Weather" : "Incident");
+  return { headline: head, line: `${kShort} · ${street}, ${city}`, kind };
+}
+
 /**
  * If the DATEX feed gave us a specific description that matches the active
  * locale's script, prefer it over the synthesized one-liner. Returns null
- * when the feed text is empty, generic, or in the wrong script.
+ * when the feed text is empty, generic, structured, or in the wrong script.
  */
 function specificFromFeed(headline: string | null, isEl: boolean): string | null {
   if (!headline) return null;
   const t = headline.trim().replace(/\s+/g, " ");
   if (t.length < 12) return null;
   if (GENERIC_HEADLINE_RE.test(t)) return null;
+  // Never surface structured key:value rows — they're machine data, not copy.
+  if (STRUCTURED_RE.test(t)) return null;
+  if (/\b(city|street|category)\s*:/i.test(t)) return null;
   const hasGreek = GREEK_RE.test(t);
-  // Always allow road-code-bearing strings through (A1, B8 are locale-agnostic).
   const hasCode = ROAD_CODE_RE.test(t);
   if (isEl && !hasGreek && !hasCode) return null;
   if (!isEl && hasGreek && !hasCode) return null;
