@@ -178,6 +178,7 @@ export type PulseLiveBundle = {
   news: NewsPayload | null;
   events: EventsPayload | null;
   fixtures: FixturesPayload | null;
+  traffic: TrafficLivePayload | null;
 };
 
 // ---------- Loader ----------------------------------------------------------
