@@ -185,7 +185,9 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
       await sendLovableEmail(
         {
           to: email,
-          from,
+          // Lovable's sender is tied to the delegated notify.* domain, so it
+          // must use the branded address regardless of the Resend sender.
+          from: `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`,
           sender_domain: SENDER_DOMAIN,
           subject,
           html,
