@@ -608,3 +608,48 @@ function relativeAgo(iso: string, isEl: boolean): string {
   const d = Math.round(h / 24);
   return isEl ? `πριν ${d} ημ.` : `${d}d ago`;
 }
+
+/* ────────────── Traffic — CyNAP DATEX II live incidents ─────────────── */
+
+function TrafficCard({
+  payload,
+  city,
+  isEl,
+}: {
+  payload: NonNullable<PulseLiveBundle["traffic"]>;
+  city: string;
+  isEl: boolean;
+}) {
+  const top = payload.incidents[0];
+  if (!top) return null;
+  const ring =
+    payload.highest === "high"
+      ? "ring-ochre/40 bg-ochre/8"
+      : payload.highest === "medium"
+        ? "ring-aegean-deep/25 bg-aegean-deep/5"
+        : "ring-ink/12 bg-limestone";
+  const kindLabel = (() => {
+    const k = top.kind;
+    if (isEl) {
+      return k === "roadworks" ? "Έργα" : k === "closure" ? "Κλειστός δρόμος" : k === "accident" ? "Ατύχημα" : k === "congestion" ? "Κίνηση" : k === "weather" ? "Καιρός" : "Συμβάν";
+    }
+    return k === "roadworks" ? "Roadworks" : k === "closure" ? "Closure" : k === "accident" ? "Accident" : k === "congestion" ? "Congestion" : k === "weather" ? "Weather" : "Event";
+  })();
+  const more = payload.count - 1;
+  return (
+    <article className={`relative overflow-hidden rounded-[22px] ring-1 px-5 py-4 ${ring}`}>
+      <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.24em] text-ink-soft mb-1.5">
+        {(isEl ? "Κυκλοφορία · " : "Traffic · ") + city}
+      </p>
+      <h3 className="font-display text-[17px] leading-tight text-ink text-balance">
+        {top.headline}
+      </h3>
+      <p className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink-soft">
+        {kindLabel}
+        {top.road ? ` · ${top.road}` : ""}
+        {more > 0 ? (isEl ? ` · +${more} ακόμη` : ` · +${more} more`) : ""}
+      </p>
+    </article>
+  );
+}
+}
