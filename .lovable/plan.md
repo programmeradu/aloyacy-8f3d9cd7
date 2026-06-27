@@ -1,89 +1,89 @@
-# Park & Ride + Live Traffic — Scope
+# Quick-Win Moats — Ship Plan
 
-Turn a static "drive to the edge, take the bus in" suggestion into a **live, defensible recommendation** that only fires when the traffic data says the city drive is actually painful.
+Four shippable-this-week features. All free data. All defensible.
 
-## What ships
+---
 
-A new suggestion card on `/trips`, alongside Nextbike / Bolt / Kapnos:
+## 1. Dust alerts on trip cards
 
-> **Park & Ride saves you ~18 min right now**
-> Drive to **Latsia P+R** (12 min, normally 7 — heavy traffic on A1) → Route 158 to city centre (14 min)
-> vs. driving all the way in: 38 min (jammed)
-> *Why we're suggesting this: A1 inbound is in the red on Google traffic right now.*
-> [Open in Google Maps] [See bus times]
+**Why:** `pulse-air.ts` already flags `dustAlert: pm10 ≥ 80` per zone. Currently only visible on `/pulse`. Move it to the surface that matters — the trip itinerary.
 
-Only appears when there's measurable benefit. Stays silent otherwise — no noise.
+**Build:**
+- New `getDustAdvisory({ originLat, originLng, destLat, destLng })` server fn in `src/lib/pulse-live.functions.ts` — reads the closest two PULSE_ZONES from `pulse_signals` `key='air'`, returns `{ active, band, pm10, label, advice }` (advice copy varies by walk distance + sensitivity).
+- New `<DustAdvisoryBanner>` component (limestone/ochre tokens, no icons beyond bespoke SVG) shown above the itinerary when `active && hasWalkLeg ≥ 200m`. Copy patterns: "Dust front in Limassol — swap the 600 m walk for the 30 bus" / "PM10 110 — covered wait at Solomos suggested".
+- Wire into `src/routes/trips.tsx` next to the existing weather chip.
 
-## Where the intelligence comes from
+**Moat:** Health-aware routing. Pame/Cyprus Bus don't touch air quality. EU Accessibility Act tailwind.
 
-**Traffic source: Google Routes API** (already on our roadmap, already wired through the Google Maps Platform connector). Two calls per eligible trip:
+---
 
-1. `computeRoutes` origin → city destination, `routingPreference: TRAFFIC_AWARE_OPTIMAL` → "all-the-way drive" duration with live traffic.
-2. `computeRoutes` origin → nearest P+R lot, same mode → "drive leg only" duration with live traffic.
+## 2. GBFS aggregator endpoint
 
-Then add the known bus leg duration from our GTFS (P+R stop → destination, next departure). Compare totals.
+**Why:** No competitor publishes a canonical CY micromobility feed. We already have Nextbike (5 cities) + Bolt (Nicosia, 255 zones). Publishing a GBFS-spec endpoint at `/api/public/gbfs.json` makes Aloya the data layer anyone building MaaS in CY has to integrate with.
 
-No Waze. Not viable on a consumer app — confirmed in prior message.
+**Build:**
+- `src/routes/api/public/gbfs.json.ts` — GBFS 3.0 auto-discovery file pointing to:
+  - `/api/public/gbfs/system_information.json`
+  - `/api/public/gbfs/station_information.json` (Nextbike stations)
+  - `/api/public/gbfs/station_status.json` (Nextbike live bikes/docks)
+  - `/api/public/gbfs/free_bike_status.json` (Bolt zones as virtual stations)
+  - `/api/public/gbfs/vehicle_types.json`
+- All routes read existing snapshots from `bikeshare.functions.ts` and `bolt-scooter.functions.ts` data sources (no new ingestion).
+- CORS open (`*`), 60 s `Cache-Control`. Compliant with [GBFS 3.0 spec](https://github.com/MobilityData/gbfs).
+- Linked from `public/llms.txt` + sitemap so MobilityData crawlers find it.
 
-## When the card fires
+**Moat:** Once registered with MobilityData's GBFS catalog, Aloya becomes the canonical CY operator entry. Trip-planner SDKs (OTP, Transitland) auto-pick it up. Data-layer lock-in.
 
-Hard gates (all must be true):
-- Destination is inside one of the city cores we tag as **traffic-prone** (Nicosia centre, Limassol centre — start there; expand later).
-- Origin is **outside** that core (otherwise P+R is nonsense).
-- A P+R lot exists between origin and destination (within a 3km corridor of the driving route, geographically "on the way").
-- Time of day is plausible: 06:30–10:30 or 15:00–19:30 weekdays, or any time the live drive duration exceeds free-flow by ≥30%.
-- `(drive-to-P+R + walk + bus + walk)` ≤ `direct-drive − 8 min`. 8-minute floor prevents marginal suggestions.
-- Next bus from the P+R is within 20 min (else the wait kills the win).
+---
 
-If any gate fails → no card. Silence is a feature.
+## 3. CyNAP DATEX II traffic fusion
 
-## Data we need to add
+**Why:** `traffic4cyprus.org.cy` publishes free DATEX II v2.3 — roadworks, closures, incidents. Nobody fuses it with bus ETAs.
 
-- **P+R lot registry** (`src/data/park-ride.ts`): hand-curated list. Realistic Cyprus set to start:
-  - Latsia P+R (Nicosia)
-  - GSP Stadium area (Nicosia)
-  - Limassol Linear Park / Mouttagiaka edges (verify)
-  Each entry: name (en/el), lat/lon, capacity, nearest GTFS stop_id, served routes.
-  *Curated manually — there is no national P+R registry. ~5–8 lots covers the real demand.*
-- **Traffic-prone city polygons** (`src/data/traffic-zones.ts`): rough bboxes for Nicosia + Limassol cores.
+**Build:**
+- New cron route `src/routes/api/public/hooks/pulse-traffic.ts` (15 min interval) — fetches the DATEX II XML feed, parses with `fast-xml-parser` (already in deps? check; if not, `bun add fast-xml-parser`), normalises to `{ id, kind, severity, road, coords, validFrom, validTo, headline }`, upserts into `pulse_signals` `key='traffic'`, scope per island region + `'island'` rollup.
+- `getTrafficNearRoute(routeId)` server fn — geometric match: incident within 250 m of any route shape segment → return affected incidents.
+- ETA confidence penalty: if active incident on a route shape, downgrade `confidence` band one notch in `eta-v2.ts` (or wherever the confidence label is computed).
+- Show `<TrafficIncidentChip>` on affected route cards (`/route/$routeId`) + a new "Traffic" tile on `/pulse`.
 
-## Server function
+**Moat:** Cross-validation. When the GTFS-RT bus is "on time" but a closure is on its path, we know it isn't. First CY app to fuse the two.
 
-`src/lib/park-ride.functions.ts` — `suggestParkRide({ origin, destination, departAt })`:
+---
 
-1. Gate by city polygon + corridor geometry (cheap, local).
-2. Pick candidate P+R (closest one on-route).
-3. Two Google Routes calls in parallel via the connector gateway (`routes/directions/v2:computeRoutes`).
-4. Look up next bus from P+R stop using our existing realtime helper.
-5. Return `{ candidate, directDriveMin, viaParkRideMin, savingsMin, trafficSeverity, nextBus, reason }` or `null`.
+## 4. Cruise surge banner on /pulse
 
-Cache key: `${pnrId}:${minute-bucket}` for 60s — traffic shifts that fast.
+**Why:** Limassol cruise days = surge demand on routes to Old Port / city centre. DP World publishes 2025-27 schedule as PDF. Static JSON is enough.
 
-## UI
+**Build:**
+- `src/data/cyprus-cruise-schedule.json` — hand-curated from DP World PDF: `[{ date, vessel, line, paxCapacity, berth, etaLocal, etdLocal }]` for next 90 days; refresh quarterly via a one-line update.
+- `getCruiseSurge()` server fn in `src/lib/pulse.functions.ts` — returns today's + tomorrow's calls with computed `surgeBand` (low <2k pax, med 2-4k, high >4k).
+- New `<CruiseSurgeTile>` on `/pulse` (Limassol scope only) — editorial line ("MSC World Europa in port today — expect heavier loads on 30 / 21 / 25 between 09:00 and 17:00"). No surge claim when `band='low'`.
+- Reuses existing PulseLiveSection tile pattern.
 
-`src/components/ParkRideCard.tsx`. Same visual language as Bolt/Kapnos cards. Three-step itinerary (drive → park → bus). Prominent **"why"** line citing the live traffic delta ("A1 inbound 18 min slower than usual"). Deep links: Google Maps for the drive leg, internal `/stops/{id}` for the bus leg.
+**Moat:** Vessel-aware demand prediction. Operational signal Pame doesn't have.
 
-## Bilingual
+---
 
-`pnr.*` namespace in `en.ts` / `el.ts`. Strings: title, savings line, traffic reason, walk/wait labels, CTAs, capacity warning.
+## Order of work (one commit per feature)
 
-## Out of scope (deliberately)
+1. Dust on trips (smallest, immediate user value)
+2. Cruise surge tile (static data, fast)
+3. GBFS aggregator (data-layer claim)
+4. DATEX fusion (biggest, needs cron + ETA changes)
 
-- Live parking availability at the lot. No feed exists for Cyprus lots. Show static capacity + "usually has space" / "fills by 09:00" annotations.
-- Hazard/incident overlay on the map. Routes API gives us duration-in-traffic — that's the only signal we actually act on. Surfacing raw incidents is noise without a map.
-- Limassol/Paphos before we validate Nicosia. Ship Nicosia-only, measure, then expand.
+## Technical notes
 
-## Risk / cost
+- All new server routes use the `apikey` header guard pattern (matches existing `pulse-*` hooks).
+- pg_cron schedules: traffic every 15 min, no new cron for dust/cruise/GBFS.
+- All UI uses limestone/ink/aegean/ochre tokens. Bricolage + Geist. No icons beyond `src/components/Icons.tsx`. No bullet dots. No emojis.
+- No new dependencies except `fast-xml-parser` (check first).
+- All copy bilingual (en + el dictionaries).
 
-- **Google Routes is paid**: ~$5 / 1000 calls. Gated by polygon + time window, two calls per qualifying trip, cached 60s → realistically <50k calls/month at our scale. ~$0.25/mo. Negligible.
-- **P+R lot accuracy**: lots get reconfigured. Note the curation date in the data file; treat as 6-month maintenance item.
+## Out of scope (called out so it's explicit)
 
-## Build order
+- Wheelchair routing (#5) — needs OpenRouteService self-host, separate sprint.
+- Limassol parking (#6) — needs municipal partnership.
+- BLE beacons / LoRaWAN (#7, #8) — hardware, not this sprint.
+- Cruise PDF auto-scrape — manual JSON refresh is fine quarterly; Firecrawl scrape later if it becomes a chore.
 
-1. Curate `park-ride.ts` + `traffic-zones.ts` (data only).
-2. `park-ride.functions.ts` with Google Routes calls through the connector gateway.
-3. `ParkRideCard.tsx` + bilingual strings.
-4. Wire into `src/routes/trips.tsx` alongside the other Wave 3 cards.
-5. Verify against real Nicosia A1 rush-hour traffic before declaring done.
-
-Roughly a day of focused work. Lower effort than Kapnos, higher trust payoff than EV chargers.
+After this ships I'll come back with the "bigger moats / path to revenue + recognition" strategy you asked for.
