@@ -37,6 +37,7 @@ import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sight
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
+import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -53,6 +54,11 @@ import { Route as ApiPublicHooksPulseCruisesRouteImport } from './routes/api/pub
 import { Route as ApiPublicHooksPulseAirRouteImport } from './routes/api/public/hooks/pulse-air'
 import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
 import { Route as ApiPublicHooksDepartureTickRouteImport } from './routes/api/public/hooks/departure-tick'
+import { Route as ApiPublicGbfsVehicle_typesDotjsonRouteImport } from './routes/api/public/gbfs/vehicle_types[.]json'
+import { Route as ApiPublicGbfsSystem_informationDotjsonRouteImport } from './routes/api/public/gbfs/system_information[.]json'
+import { Route as ApiPublicGbfsStation_statusDotjsonRouteImport } from './routes/api/public/gbfs/station_status[.]json'
+import { Route as ApiPublicGbfsStation_informationDotjsonRouteImport } from './routes/api/public/gbfs/station_information[.]json'
+import { Route as ApiPublicGbfsFree_bike_statusDotjsonRouteImport } from './routes/api/public/gbfs/free_bike_status[.]json'
 
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
@@ -195,6 +201,11 @@ const ApiPublicIndexnowRoute = ApiPublicIndexnowRouteImport.update({
   path: '/api/public/indexnow',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicGbfsDotjsonRoute = ApiPublicGbfsDotjsonRouteImport.update({
+  id: '/api/public/gbfs.json',
+  path: '/api/public/gbfs.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
     id: '/lovable/email/queue/process',
@@ -286,6 +297,36 @@ const ApiPublicHooksDepartureTickRoute =
     path: '/api/public/hooks/departure-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicGbfsVehicle_typesDotjsonRoute =
+  ApiPublicGbfsVehicle_typesDotjsonRouteImport.update({
+    id: '/api/public/gbfs/vehicle_types.json',
+    path: '/api/public/gbfs/vehicle_types.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicGbfsSystem_informationDotjsonRoute =
+  ApiPublicGbfsSystem_informationDotjsonRouteImport.update({
+    id: '/api/public/gbfs/system_information.json',
+    path: '/api/public/gbfs/system_information.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicGbfsStation_statusDotjsonRoute =
+  ApiPublicGbfsStation_statusDotjsonRouteImport.update({
+    id: '/api/public/gbfs/station_status.json',
+    path: '/api/public/gbfs/station_status.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicGbfsStation_informationDotjsonRoute =
+  ApiPublicGbfsStation_informationDotjsonRouteImport.update({
+    id: '/api/public/gbfs/station_information.json',
+    path: '/api/public/gbfs/station_information.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicGbfsFree_bike_statusDotjsonRoute =
+  ApiPublicGbfsFree_bike_statusDotjsonRouteImport.update({
+    id: '/api/public/gbfs/free_bike_status.json',
+    path: '/api/public/gbfs/free_bike_status.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -309,6 +350,7 @@ export interface FileRoutesByFullPath {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -316,6 +358,11 @@ export interface FileRoutesByFullPath {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
+  '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
+  '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
+  '/api/public/gbfs/system_information.json': typeof ApiPublicGbfsSystem_informationDotjsonRoute
+  '/api/public/gbfs/vehicle_types.json': typeof ApiPublicGbfsVehicle_typesDotjsonRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
@@ -355,6 +402,7 @@ export interface FileRoutesByTo {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -362,6 +410,11 @@ export interface FileRoutesByTo {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
+  '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
+  '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
+  '/api/public/gbfs/system_information.json': typeof ApiPublicGbfsSystem_informationDotjsonRoute
+  '/api/public/gbfs/vehicle_types.json': typeof ApiPublicGbfsVehicle_typesDotjsonRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
@@ -402,6 +455,7 @@ export interface FileRoutesById {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -409,6 +463,11 @@ export interface FileRoutesById {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
+  '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
+  '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
+  '/api/public/gbfs/system_information.json': typeof ApiPublicGbfsSystem_informationDotjsonRoute
+  '/api/public/gbfs/vehicle_types.json': typeof ApiPublicGbfsVehicle_typesDotjsonRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
@@ -450,6 +509,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/api/public/gbfs.json'
     | '/api/public/indexnow'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -457,6 +517,11 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
+    | '/api/public/gbfs/free_bike_status.json'
+    | '/api/public/gbfs/station_information.json'
+    | '/api/public/gbfs/station_status.json'
+    | '/api/public/gbfs/system_information.json'
+    | '/api/public/gbfs/vehicle_types.json'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
@@ -496,6 +561,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/api/public/gbfs.json'
     | '/api/public/indexnow'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -503,6 +569,11 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
+    | '/api/public/gbfs/free_bike_status.json'
+    | '/api/public/gbfs/station_information.json'
+    | '/api/public/gbfs/station_status.json'
+    | '/api/public/gbfs/system_information.json'
+    | '/api/public/gbfs/vehicle_types.json'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
@@ -542,6 +613,7 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/api/public/gbfs.json'
     | '/api/public/indexnow'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -549,6 +621,11 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
+    | '/api/public/gbfs/free_bike_status.json'
+    | '/api/public/gbfs/station_information.json'
+    | '/api/public/gbfs/station_status.json'
+    | '/api/public/gbfs/system_information.json'
+    | '/api/public/gbfs/vehicle_types.json'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
@@ -589,6 +666,7 @@ export interface RootRouteChildren {
   StopStopIdRoute: typeof StopStopIdRoute
   TripInfoTripIdRoute: typeof TripInfoTripIdRoute
   TripIdRoute: typeof TripIdRoute
+  ApiPublicGbfsDotjsonRoute: typeof ApiPublicGbfsDotjsonRoute
   ApiPublicIndexnowRoute: typeof ApiPublicIndexnowRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
@@ -596,6 +674,11 @@ export interface RootRouteChildren {
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
+  ApiPublicGbfsFree_bike_statusDotjsonRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
+  ApiPublicGbfsStation_informationDotjsonRoute: typeof ApiPublicGbfsStation_informationDotjsonRoute
+  ApiPublicGbfsStation_statusDotjsonRoute: typeof ApiPublicGbfsStation_statusDotjsonRoute
+  ApiPublicGbfsSystem_informationDotjsonRoute: typeof ApiPublicGbfsSystem_informationDotjsonRoute
+  ApiPublicGbfsVehicle_typesDotjsonRoute: typeof ApiPublicGbfsVehicle_typesDotjsonRoute
   ApiPublicHooksDepartureTickRoute: typeof ApiPublicHooksDepartureTickRoute
   ApiPublicHooksIngestScheduleRoute: typeof ApiPublicHooksIngestScheduleRoute
   ApiPublicHooksPulseAirRoute: typeof ApiPublicHooksPulseAirRoute
@@ -812,6 +895,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIndexnowRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/gbfs.json': {
+      id: '/api/public/gbfs.json'
+      path: '/api/public/gbfs.json'
+      fullPath: '/api/public/gbfs.json'
+      preLoaderRoute: typeof ApiPublicGbfsDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
       path: '/lovable/email/queue/process'
@@ -924,6 +1014,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDepartureTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/gbfs/vehicle_types.json': {
+      id: '/api/public/gbfs/vehicle_types.json'
+      path: '/api/public/gbfs/vehicle_types.json'
+      fullPath: '/api/public/gbfs/vehicle_types.json'
+      preLoaderRoute: typeof ApiPublicGbfsVehicle_typesDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/gbfs/system_information.json': {
+      id: '/api/public/gbfs/system_information.json'
+      path: '/api/public/gbfs/system_information.json'
+      fullPath: '/api/public/gbfs/system_information.json'
+      preLoaderRoute: typeof ApiPublicGbfsSystem_informationDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/gbfs/station_status.json': {
+      id: '/api/public/gbfs/station_status.json'
+      path: '/api/public/gbfs/station_status.json'
+      fullPath: '/api/public/gbfs/station_status.json'
+      preLoaderRoute: typeof ApiPublicGbfsStation_statusDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/gbfs/station_information.json': {
+      id: '/api/public/gbfs/station_information.json'
+      path: '/api/public/gbfs/station_information.json'
+      fullPath: '/api/public/gbfs/station_information.json'
+      preLoaderRoute: typeof ApiPublicGbfsStation_informationDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/gbfs/free_bike_status.json': {
+      id: '/api/public/gbfs/free_bike_status.json'
+      path: '/api/public/gbfs/free_bike_status.json'
+      fullPath: '/api/public/gbfs/free_bike_status.json'
+      preLoaderRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -949,6 +1074,7 @@ const rootRouteChildren: RootRouteChildren = {
   StopStopIdRoute: StopStopIdRoute,
   TripInfoTripIdRoute: TripInfoTripIdRoute,
   TripIdRoute: TripIdRoute,
+  ApiPublicGbfsDotjsonRoute: ApiPublicGbfsDotjsonRoute,
   ApiPublicIndexnowRoute: ApiPublicIndexnowRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
@@ -956,6 +1082,16 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
+  ApiPublicGbfsFree_bike_statusDotjsonRoute:
+    ApiPublicGbfsFree_bike_statusDotjsonRoute,
+  ApiPublicGbfsStation_informationDotjsonRoute:
+    ApiPublicGbfsStation_informationDotjsonRoute,
+  ApiPublicGbfsStation_statusDotjsonRoute:
+    ApiPublicGbfsStation_statusDotjsonRoute,
+  ApiPublicGbfsSystem_informationDotjsonRoute:
+    ApiPublicGbfsSystem_informationDotjsonRoute,
+  ApiPublicGbfsVehicle_typesDotjsonRoute:
+    ApiPublicGbfsVehicle_typesDotjsonRoute,
   ApiPublicHooksDepartureTickRoute: ApiPublicHooksDepartureTickRoute,
   ApiPublicHooksIngestScheduleRoute: ApiPublicHooksIngestScheduleRoute,
   ApiPublicHooksPulseAirRoute: ApiPublicHooksPulseAirRoute,
