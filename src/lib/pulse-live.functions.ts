@@ -264,6 +264,7 @@ export const getPulseLive = createServerFn({ method: "GET" })
     const news = pick<NewsPayload>("news", ["island"]);
     const events = pick<EventsPayload>("events", ["island"]);
     const fixtures = pick<FixturesPayload>("football", ["island"]);
+    const traffic = pick<TrafficLivePayload>("traffic", [focusZone.id, "island"]);
 
     return {
       generatedAt: Math.floor(now / 1000),
