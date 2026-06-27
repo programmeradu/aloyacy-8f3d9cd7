@@ -1,0 +1,143 @@
+_format_version: "2.1"
+_transform: true
+
+# Routing table for the single public entrypoint. Mirrors Supabase Cloud's
+# paths exactly, so /auth/v1, /rest/v1, /realtime/v1 and /storage/v1 all
+# behave identically to the hosted project the app is leaving.
+
+consumers:
+  - username: DASHBOARD
+  - username: anon
+    keyauth_credentials:
+      - key: $SUPABASE_ANON_KEY
+  - username: service_role
+    keyauth_credentials:
+      - key: $SUPABASE_SERVICE_KEY
+
+acls:
+  - consumer: anon
+    group: anon
+  - consumer: service_role
+    group: admin
+
+basicauth_credentials:
+  - consumer: DASHBOARD
+    username: $DASHBOARD_USERNAME
+    password: $DASHBOARD_PASSWORD
+
+keyauth_plugin: &keyauth_plugin
+  name: key-auth
+  config:
+    hide_credentials: false
+    key_names:
+      - apikey
+
+# The app is called from app.aloya.cy, the mobile bundle, and the
+# Cloudflare workers. CORS has to allow all of them plus preflight.
+cors_plugin: &cors_plugin
+  name: cors
+  config:
+    origins:
+      - "*"
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+      - HEAD
+    headers:
+      - Accept
+      - Authorization
+      - Content-Type
+      - Content-Profile
+      - Accept-Profile
+      - Prefer
+      - Range
+      - X-Client-Info
+      - apikey
+      - x-upsert
+    exposed_headers:
+      - Content-Range
+      - Content-Profile
+      - X-Total-Count
+    credentials: true
+    max_age: 3600
+
+services:
+  # Auth is deliberately key-auth free: sign-up, OTP verify and token
+  # refresh all send the anon key as a header, not as a Kong credential.
+  - name: auth-v1-open
+    url: http://auth:9999/
+    routes:
+      - name: auth-v1-open
+        strip_path: true
+        paths:
+          - /auth/v1/
+    plugins:
+      - <<: *cors_plugin
+
+  - name: rest-v1
+    url: http://rest:3000/
+    routes:
+      - name: rest-v1-all
+        strip_path: true
+        paths:
+          - /rest/v1/
+    plugins:
+      - <<: *cors_plugin
+      - <<: *keyauth_plugin
+      - name: acl
+        config:
+          hide_groups_header: true
+          allow:
+            - admin
+            - anon
+
+  - name: realtime-v1-ws
+    url: http://realtime:4000/socket
+    protocol: http
+    routes:
+      - name: realtime-v1-ws
+        strip_path: true
+        paths:
+          - /realtime/v1/
+    plugins:
+      - <<: *cors_plugin
+      - <<: *keyauth_plugin
+      - name: acl
+        config:
+          hide_groups_header: true
+          allow:
+            - admin
+            - anon
+
+  - name: storage-v1
+    url: http://storage:5000/
+    routes:
+      - name: storage-v1-all
+        strip_path: true
+        paths:
+          - /storage/v1/
+    plugins:
+      - <<: *cors_plugin
+
+  - name: meta
+    url: http://meta:8080/
+    routes:
+      - name: meta-all
+        strip_path: true
+        paths:
+          - /pg/
+    plugins:
+      - name: key-auth
+        config:
+          hide_credentials: false
+          key_names:
+            - apikey
+      - name: acl
+        config:
+          hide_groups_header: true
+          allow:
+            - admin
