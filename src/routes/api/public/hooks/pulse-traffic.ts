@@ -201,13 +201,13 @@ function parseDatex(xml: string): TrafficIncident[] {
     for (const rec of records) {
       const r = rec as AnyNode;
       const recId = String(r["@_id"] ?? `${id}-${out.length}`);
-      const kind = classifyKind(r);
+      const headline = extractHeadline(r) ?? "Traffic event reported";
+      const kind = classifyKind(r, headline);
       const severity = classifySeverity(r);
       const [lat, lng] = extractPoint(r);
-      const validity = (r.validity as AnyNode | undefined)?.validityTimeSpecification as
-        | AnyNode
-        | undefined;
-      const headline = extractHeadline(r) ?? "Traffic event reported";
+      const validity =
+        ((r.validity as AnyNode | undefined)?.validityTimeSpecification as AnyNode | undefined) ??
+        (r.validityTimeSpecification as AnyNode | undefined);
       const road = extractRoad(r);
       out.push({
         id: recId,
@@ -227,18 +227,22 @@ function parseDatex(xml: string): TrafficIncident[] {
 }
 
 function collectSituations(doc: AnyNode): unknown[] {
-  // DATEX II nests: payloadPublication > situation[] (or situations.situation)
+  // DATEX II v2: d2LogicalModel|messageContainer > payloadPublication > situation[]
+  // DATEX II v3 (CyNAP): <payload xsi:type="SituationPublication"> > situation[]
   const root =
     (doc.d2LogicalModel as AnyNode | undefined) ??
     (doc.messageContainer as AnyNode | undefined) ??
     doc;
   const payload =
     ((root.payloadPublication as AnyNode | undefined) ??
-      ((root.payload as AnyNode | undefined)?.payloadPublication as AnyNode | undefined)) ??
+      ((root.payload as AnyNode | undefined)?.payloadPublication as AnyNode | undefined) ??
+      (root.payload as AnyNode | undefined)) ??
     root;
   const sits =
     (payload?.situation as unknown) ??
-    ((payload?.situations as AnyNode | undefined)?.situation as unknown);
+    ((payload?.situations as AnyNode | undefined)?.situation as unknown) ??
+    (root.situation as unknown) ??
+    (doc.situation as unknown);
   return toArray(sits);
 }
 
@@ -247,19 +251,27 @@ function toArray(x: unknown): unknown[] {
   return Array.isArray(x) ? x : [x];
 }
 
-function classifyKind(r: AnyNode): TrafficIncident["kind"] {
+function classifyKind(r: AnyNode, headline?: string): TrafficIncident["kind"] {
   const t = String(r["@_xsi:type"] ?? r["@_type"] ?? "").toLowerCase();
   if (t.includes("roadwork") || t.includes("maintenanceworks")) return "roadworks";
   if (t.includes("closure") || t.includes("roadblockage")) return "closure";
   if (t.includes("accident")) return "accident";
   if (t.includes("congestion") || t.includes("abnormaltraffic")) return "congestion";
   if (t.includes("weather") || t.includes("poorenvironment")) return "weather";
+  // CyNAP feed uses GenericSituationRecord — derive from headline keywords (EN + EL).
+  const h = (headline ?? "").toLowerCase();
+  if (/εργασ|ασφαλτ|κατασκευ|roadwork|works|maintenance/.test(h)) return "roadworks";
+  if (/κλειστ|αποκλε|closure|closed|blocked/.test(h)) return "closure";
+  if (/ατύχημα|τροχαί|accident|crash|collision/.test(h)) return "accident";
+  if (/κυκλοφοριακή|συμφόρ|congestion|traffic jam|delay/.test(h)) return "congestion";
+  if (/βροχ|ομίχλ|χιόν|weather|rain|fog|snow|wind/.test(h)) return "weather";
   return "other";
 }
 
 function classifySeverity(r: AnyNode): TrafficIncident["severity"] {
   const s = String(r.severity ?? r.impact ?? "").toLowerCase();
-  if (s.includes("high") || s.includes("serious")) return "high";
+  if (s.includes("highest") || s.includes("serious")) return "high";
+  if (s.includes("high")) return "high";
   if (s.includes("low") || s.includes("none")) return "low";
   if (s.includes("medium")) return "medium";
   const probability = String(r.probabilityOfOccurrence ?? "").toLowerCase();
@@ -268,17 +280,21 @@ function classifySeverity(r: AnyNode): TrafficIncident["severity"] {
 }
 
 function extractPoint(r: AnyNode): [number | null, number | null] {
+  // DATEX v3 puts coords under locationReference; v2 uses groupOfLocations/location.
   const loc =
+    (r.locationReference as AnyNode | undefined) ??
     (r.groupOfLocations as AnyNode | undefined) ??
     (r.location as AnyNode | undefined) ??
     {};
   const point =
+    (loc.pointByCoordinates as AnyNode | undefined) ??
     (loc.locationContainedInGroup as AnyNode | undefined) ??
     (loc.alertCPoint as AnyNode | undefined) ??
     loc;
   const coords =
     (point.pointCoordinates as AnyNode | undefined) ??
-    ((point.pointByCoordinates as AnyNode | undefined)?.pointCoordinates as AnyNode | undefined);
+    ((point.pointByCoordinates as AnyNode | undefined)?.pointCoordinates as AnyNode | undefined) ??
+    point;
   const lat = numberOrNull(coords?.latitude);
   const lng = numberOrNull(coords?.longitude);
   if (lat == null || lng == null) return [null, null];
@@ -287,6 +303,14 @@ function extractPoint(r: AnyNode): [number | null, number | null] {
 }
 
 function extractHeadline(r: AnyNode): string | null {
+  // DATEX v3 (CyNAP): freeform Greek/English text under _situationRecordExtension.description
+  const ext = r._situationRecordExtension as AnyNode | undefined;
+  const extDesc = ext?.description;
+  if (typeof extDesc === "string" && extDesc.trim()) return extDesc.trim().slice(0, 240);
+  if (typeof (extDesc as AnyNode | undefined)?.["#text"] === "string") {
+    return String((extDesc as AnyNode)["#text"]).trim().slice(0, 240);
+  }
+  // DATEX v2 fallbacks
   const comments =
     (r.generalPublicComment as AnyNode | undefined) ??
     (r.nonGeneralPublicComment as AnyNode | undefined) ??
@@ -310,6 +334,7 @@ function extractHeadline(r: AnyNode): string | null {
 
 function extractRoad(r: AnyNode): string | null {
   const loc =
+    (r.locationReference as AnyNode | undefined) ??
     (r.groupOfLocations as AnyNode | undefined) ??
     (r.location as AnyNode | undefined) ??
     {};
