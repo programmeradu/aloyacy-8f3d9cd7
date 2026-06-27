@@ -798,7 +798,9 @@ function TrafficCard({
     ? payload.highest === "high" ? "Σοβαρό" : payload.highest === "medium" ? "Μέτριο" : "Ήπιο"
     : payload.highest === "high" ? "Severe" : payload.highest === "medium" ? "Notable" : "Minor";
 
-  const heroHeadline = friendlyTrafficHeadline(top.kind, top.road, top.zone, city, isEl);
+  const heroHeadline =
+    specificFromFeed(top.headline, isEl) ??
+    friendlyTrafficHeadline(top.kind, top.road, top.zone, city, isEl);
   const heroImg = pickTrafficImage(top.kind);
   const rest = payload.incidents.slice(1, 4);
 
