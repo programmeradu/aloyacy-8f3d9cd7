@@ -251,13 +251,20 @@ function toArray(x: unknown): unknown[] {
   return Array.isArray(x) ? x : [x];
 }
 
-function classifyKind(r: AnyNode): TrafficIncident["kind"] {
+function classifyKind(r: AnyNode, headline?: string): TrafficIncident["kind"] {
   const t = String(r["@_xsi:type"] ?? r["@_type"] ?? "").toLowerCase();
   if (t.includes("roadwork") || t.includes("maintenanceworks")) return "roadworks";
   if (t.includes("closure") || t.includes("roadblockage")) return "closure";
   if (t.includes("accident")) return "accident";
   if (t.includes("congestion") || t.includes("abnormaltraffic")) return "congestion";
   if (t.includes("weather") || t.includes("poorenvironment")) return "weather";
+  // CyNAP feed uses GenericSituationRecord — derive from headline keywords (EN + EL).
+  const h = (headline ?? "").toLowerCase();
+  if (/εργασ|ασφαλτ|κατασκευ|roadwork|works|maintenance/.test(h)) return "roadworks";
+  if (/κλειστ|αποκλε|closure|closed|blocked/.test(h)) return "closure";
+  if (/ατύχημα|τροχαί|accident|crash|collision/.test(h)) return "accident";
+  if (/κυκλοφοριακή|συμφόρ|congestion|traffic jam|delay/.test(h)) return "congestion";
+  if (/βροχ|ομίχλ|χιόν|weather|rain|fog|snow|wind/.test(h)) return "weather";
   return "other";
 }
 
