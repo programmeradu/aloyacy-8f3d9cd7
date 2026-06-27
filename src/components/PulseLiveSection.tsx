@@ -65,6 +65,9 @@ export function PulseLiveSection({
         {bundle.air && shouldShowAir(bundle.air) && (
           <AirCard payload={bundle.air} city={focusLabel} isEl={isEl} />
         )}
+        {bundle.traffic && bundle.traffic.count > 0 && (
+          <TrafficCard payload={bundle.traffic} city={focusLabel} isEl={isEl} />
+        )}
       </div>
 
       {bundle.fixtures && bundle.fixtures.count > 0 && (
