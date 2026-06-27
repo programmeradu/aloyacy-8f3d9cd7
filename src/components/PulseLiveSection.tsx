@@ -620,6 +620,23 @@ function relativeAgo(iso: string, isEl: boolean): string {
 
 type TrafficKind = NonNullable<PulseLiveBundle["traffic"]>["incidents"][number]["kind"];
 
+const GREEK_RE = /[\u0370-\u03FF\u1F00-\u1FFF]/;
+/** Cyprus motorway/primary codes (A1–A9, B1–B23, F1xx, E1xx) — universal in both locales. */
+const ROAD_CODE_RE = /\b([ABEF]\d{1,3})\b/;
+
+const PLACE_TRANSLITERATIONS: Record<string, { en: string; el: string }> = {
+  "λεμεσού":   { en: "Limassol", el: "Λεμεσού" },
+  "λεμεσος":   { en: "Limassol", el: "Λεμεσός" },
+  "λευκωσίας": { en: "Nicosia",  el: "Λευκωσίας" },
+  "λευκωσία":  { en: "Nicosia",  el: "Λευκωσία" },
+  "λάρνακας":  { en: "Larnaca",  el: "Λάρνακας" },
+  "λάρνακα":   { en: "Larnaca",  el: "Λάρνακα" },
+  "πάφου":     { en: "Paphos",   el: "Πάφου" },
+  "πάφος":     { en: "Paphos",   el: "Πάφος" },
+  "αμμοχώστου":{ en: "Famagusta",el: "Αμμοχώστου" },
+  "παραλιμνίου":{en: "Paralimni",el: "Παραλιμνίου" },
+};
+
 /** Tidy a raw road string from DATEX — strip prefixes, collapse whitespace. */
 function tidyRoad(road: string | null): string | null {
   if (!road) return null;
@@ -630,52 +647,100 @@ function tidyRoad(road: string | null): string | null {
   return t.length > 0 ? t : null;
 }
 
-/** Friendly rider-facing one-liner derived from kind + road, not raw DATEX prose. */
+function zoneLabel(zoneId: string | null, isEl: boolean): string | null {
+  if (!zoneId) return null;
+  const z = PULSE_ZONES.find((p) => p.id === (zoneId as PulseZone));
+  if (!z) return null;
+  return isEl ? z.labelEl : z.label;
+}
+
+/**
+ * Build a locale-correct location phrase from raw road + zone.
+ * Returns an object so callers can decide between "on the A1" vs "near Nicosia".
+ */
+function localizedPlace(
+  road: string | null,
+  zoneId: string | null,
+  fallbackCity: string,
+  isEl: boolean,
+): { kind: "road" | "near"; label: string } {
+  const tidy = tidyRoad(road);
+
+  // 1. Cyprus road codes (A1, B8, etc.) — universal, locale-agnostic.
+  const code = tidy?.match(ROAD_CODE_RE)?.[1];
+  if (code) return { kind: "road", label: code };
+
+  // 2. Tidy road string, but only if it matches the active locale's script.
+  if (tidy) {
+    const hasGreek = GREEK_RE.test(tidy);
+    if (isEl && hasGreek) return { kind: "road", label: tidy };
+    if (!isEl && !hasGreek) return { kind: "road", label: tidy };
+    // 2b. Token-level transliteration for common place names.
+    const tokens = tidy.toLowerCase().split(/\s+/);
+    const mapped = tokens
+      .map((tok) => PLACE_TRANSLITERATIONS[tok]?.[isEl ? "el" : "en"])
+      .filter(Boolean) as string[];
+    if (mapped.length > 0) return { kind: "near", label: mapped[0] };
+  }
+
+  // 3. Fall back to the incident's nearest editorial zone.
+  const z = zoneLabel(zoneId, isEl);
+  if (z) return { kind: "near", label: z };
+
+  // 4. Last resort — the focus city the card is already showing.
+  return { kind: "near", label: fallbackCity };
+}
+
+/** Friendly rider-facing one-liner derived from kind + locale-aware place. */
 function friendlyTrafficHeadline(
   kind: TrafficKind,
   road: string | null,
+  zoneId: string | null,
   city: string,
   isEl: boolean,
 ): string {
-  const r = tidyRoad(road);
-  const where = r ? r : isEl ? `στην περιοχή ${city}` : `near ${city}`;
-  const onWhere = r ? (isEl ? `στον ${r}` : `on the ${r}`) : where;
+  const p = localizedPlace(road, zoneId, city, isEl);
+  const where = isEl
+    ? p.kind === "road" ? `στον ${p.label}` : `κοντά στη ${p.label}`
+    : p.kind === "road" ? `on the ${p.label}` : `near ${p.label}`;
 
   if (isEl) {
     switch (kind) {
-      case "roadworks":   return `Έργα οδοποιίας ${onWhere}`;
-      case "closure":     return r ? `Κλειστός δρόμος — ${r}` : `Κλειστός δρόμος ${where}`;
-      case "accident":    return `Ατύχημα ${onWhere}`;
-      case "congestion":  return `Πυκνή κίνηση ${onWhere}`;
-      case "weather":     return `Καιρικό συμβάν ${onWhere}`;
-      default:            return r ? `Συμβάν στον ${r}` : `Συμβάν ${where}`;
+      case "roadworks":   return `Έργα οδοποιίας ${where}`;
+      case "closure":     return `Κλειστός δρόμος ${where}`;
+      case "accident":    return `Ατύχημα ${where}`;
+      case "congestion":  return `Πυκνή κίνηση ${where}`;
+      case "weather":     return `Καιρικό συμβάν ${where}`;
+      default:            return `Συμβάν ${where}`;
     }
   }
   switch (kind) {
-    case "roadworks":   return `Roadworks ${onWhere}`;
-    case "closure":     return r ? `Road closed — ${r}` : `Road closed ${where}`;
-    case "accident":    return `Crash reported ${onWhere}`;
-    case "congestion":  return `Heavy traffic ${onWhere}`;
-    case "weather":     return `Weather-related delay ${onWhere}`;
-    default:            return r ? `Incident on the ${r}` : `Incident ${where}`;
+    case "roadworks":   return `Roadworks ${where}`;
+    case "closure":     return `Road closed ${where}`;
+    case "accident":    return `Crash reported ${where}`;
+    case "congestion":  return `Heavy traffic ${where}`;
+    case "weather":     return `Weather-related delay ${where}`;
+    default:            return `Incident ${where}`;
   }
 }
 
-/** Tiny secondary-line summary: "{kind} · {road or area}". */
+/** Tiny secondary-line summary: "{kind} · {locale-aware place}". */
 function friendlyTrafficLine(
   kind: TrafficKind,
   road: string | null,
+  zoneId: string | null,
   city: string,
   isEl: boolean,
 ): string {
-  const r = tidyRoad(road);
+  const p = localizedPlace(road, zoneId, city, isEl);
   if (isEl) {
     const k = kind === "roadworks" ? "Έργα" : kind === "closure" ? "Κλειστός" : kind === "accident" ? "Ατύχημα" : kind === "congestion" ? "Κίνηση" : kind === "weather" ? "Καιρός" : "Συμβάν";
-    return r ? `${k} · ${r}` : `${k} · ${city}`;
+    return `${k} · ${p.label}`;
   }
   const k = kind === "roadworks" ? "Roadworks" : kind === "closure" ? "Closed" : kind === "accident" ? "Crash" : kind === "congestion" ? "Heavy traffic" : kind === "weather" ? "Weather" : "Incident";
-  return r ? `${k} · ${r}` : `${k} · ${city}`;
+  return `${k} · ${p.label}`;
 }
+
 
 /** Pick an editorial illustration that matches the dominant kind in view. */
 function pickTrafficImage(kind: TrafficKind): string {
