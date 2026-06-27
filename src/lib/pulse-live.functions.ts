@@ -309,6 +309,7 @@ function emptyBundle(focusZone: (typeof PULSE_ZONES)[number]): PulseLiveBundle {
     news: null,
     events: null,
     fixtures: null,
+    traffic: null,
   };
 }
 
