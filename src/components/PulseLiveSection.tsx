@@ -625,33 +625,97 @@ function TrafficCard({
 }) {
   const top = payload.incidents[0];
   if (!top) return null;
-  const ring =
-    payload.highest === "high"
-      ? "ring-ochre/40 bg-ochre/8"
-      : payload.highest === "medium"
-        ? "ring-aegean-deep/25 bg-aegean-deep/5"
-        : "ring-ink/12 bg-limestone";
-  const kindLabel = (() => {
-    const k = top.kind;
+
+  const labelFor = (k: typeof top.kind) => {
     if (isEl) {
-      return k === "roadworks" ? "Έργα" : k === "closure" ? "Κλειστός δρόμος" : k === "accident" ? "Ατύχημα" : k === "congestion" ? "Κίνηση" : k === "weather" ? "Καιρός" : "Συμβάν";
+      return k === "roadworks" ? "Έργα" : k === "closure" ? "Κλειστός" : k === "accident" ? "Ατύχημα" : k === "congestion" ? "Κίνηση" : k === "weather" ? "Καιρός" : "Συμβάν";
     }
     return k === "roadworks" ? "Roadworks" : k === "closure" ? "Closure" : k === "accident" ? "Accident" : k === "congestion" ? "Congestion" : k === "weather" ? "Weather" : "Event";
-  })();
-  const more = payload.count - 1;
+  };
+
+  const severityTone =
+    payload.highest === "high"
+      ? "text-ochre"
+      : payload.highest === "medium"
+        ? "text-aegean-deep"
+        : "text-olive";
+
+  const severityLabel = isEl
+    ? payload.highest === "high" ? "Σοβαρό" : payload.highest === "medium" ? "Μέτριο" : "Ήπιο"
+    : payload.highest === "high" ? "Severe" : payload.highest === "medium" ? "Notable" : "Minor";
+
+  const rest = payload.incidents.slice(1, 4);
+
   return (
-    <article className={`relative overflow-hidden rounded-[22px] ring-1 px-5 py-4 ${ring}`}>
-      <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.24em] text-ink-soft mb-1.5">
-        {(isEl ? "Κυκλοφορία · " : "Traffic · ") + city}
-      </p>
-      <h3 className="font-display text-[17px] leading-tight text-ink text-balance">
-        {top.headline}
-      </h3>
-      <p className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink-soft">
-        {kindLabel}
-        {top.road ? ` · ${top.road}` : ""}
-        {more > 0 ? (isEl ? ` · +${more} ακόμη` : ` · +${more} more`) : ""}
-      </p>
+    <article className="relative mt-3 overflow-hidden rounded-[24px] bg-card ring-1 ring-line">
+      <div className="relative aspect-[21/9] w-full overflow-hidden">
+        <img
+          src={pulseTrafficImg}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          width={1600}
+          height={896}
+          className="absolute inset-0 h-full w-full object-cover select-none"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--color-card) 40%, transparent) 60%, var(--color-card) 100%)",
+          }}
+        />
+      </div>
+      <div className="relative px-6 pt-3 pb-5">
+        <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ochre">
+          {(isEl ? "Κυκλοφορία · " : "Traffic · ") + city}
+        </p>
+        <div className="mt-1 flex items-baseline gap-3">
+          <span className="font-display text-[34px] leading-none text-ink tabular-nums tracking-[-0.02em]">
+            {payload.count}
+          </span>
+          <span className="font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink-soft">
+            {payload.count === 1
+              ? (isEl ? "ενεργό συμβάν" : "live incident")
+              : (isEl ? "ενεργά συμβάντα" : "live incidents")}
+          </span>
+          <span className={`ml-auto font-eyebrow text-[9.5px] uppercase tracking-[0.22em] tabular-nums ${severityTone}`}>
+            {severityLabel}
+          </span>
+        </div>
+
+        <div className="mt-3 border-t border-line/60 pt-3">
+          <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink-soft">
+            {labelFor(top.kind)}{top.road ? ` · ${top.road}` : ""}
+          </p>
+          <h3 className="mt-1 font-display text-[18px] leading-tight text-ink text-balance">
+            {top.headline}
+          </h3>
+        </div>
+
+        {rest.length > 0 && (
+          <ul className="mt-3 space-y-1.5">
+            {rest.map((inc) => (
+              <li key={inc.id} className="flex items-baseline gap-3 text-[12.5px] leading-snug">
+                <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft shrink-0 w-[78px]">
+                  {labelFor(inc.kind)}
+                </span>
+                <span className="text-ink-soft text-pretty truncate">
+                  {inc.road ? `${inc.road} — ` : ""}{inc.headline}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {payload.count > rest.length + 1 && (
+          <p className="mt-3 font-eyebrow text-[9.5px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
+            +{payload.count - rest.length - 1} {isEl ? "ακόμη ενεργά" : "more active"}
+          </p>
+        )}
+      </div>
     </article>
   );
 }
+
