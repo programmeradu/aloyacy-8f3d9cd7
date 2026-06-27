@@ -15,6 +15,9 @@ import pulseSeaImg from "@/assets/pulse-sea-card.jpg";
 import pulseSkyImg from "@/assets/pulse-sky-card.jpg";
 import pulseCruiseImg from "@/assets/pulse-cruise-card.jpg";
 import pulseTrafficImg from "@/assets/pulse-traffic-card.jpg";
+import pulseTrafficRoadworksImg from "@/assets/pulse-traffic-roadworks.jpg";
+import pulseTrafficClosureImg from "@/assets/pulse-traffic-closure.jpg";
+import pulseTrafficCongestionImg from "@/assets/pulse-traffic-congestion.jpg";
 
 type Locale = "en" | "el";
 
