@@ -889,6 +889,7 @@ function Plan() {
         {results && results.length > 0 && origin && destination && (
           <div className="flex flex-col gap-3">
             {dustAdvisory && <DustAdvisoryBanner advisory={dustAdvisory} />}
+            {kapnos && (
               <KapnosShuttleCard
                 suggestion={kapnos}
                 firstMile={firstMileItin}
