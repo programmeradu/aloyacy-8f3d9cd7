@@ -204,9 +204,9 @@ function parseDatex(xml: string): TrafficIncident[] {
       const kind = classifyKind(r);
       const severity = classifySeverity(r);
       const [lat, lng] = extractPoint(r);
-      const validity = (r.validity as AnyNode | undefined)?.validityTimeSpecification as
-        | AnyNode
-        | undefined;
+      const validity =
+        ((r.validity as AnyNode | undefined)?.validityTimeSpecification as AnyNode | undefined) ??
+        (r.validityTimeSpecification as AnyNode | undefined);
       const headline = extractHeadline(r) ?? "Traffic event reported";
       const road = extractRoad(r);
       out.push({
@@ -227,18 +227,22 @@ function parseDatex(xml: string): TrafficIncident[] {
 }
 
 function collectSituations(doc: AnyNode): unknown[] {
-  // DATEX II nests: payloadPublication > situation[] (or situations.situation)
+  // DATEX II v2: d2LogicalModel|messageContainer > payloadPublication > situation[]
+  // DATEX II v3 (CyNAP): <payload xsi:type="SituationPublication"> > situation[]
   const root =
     (doc.d2LogicalModel as AnyNode | undefined) ??
     (doc.messageContainer as AnyNode | undefined) ??
     doc;
   const payload =
     ((root.payloadPublication as AnyNode | undefined) ??
-      ((root.payload as AnyNode | undefined)?.payloadPublication as AnyNode | undefined)) ??
+      ((root.payload as AnyNode | undefined)?.payloadPublication as AnyNode | undefined) ??
+      (root.payload as AnyNode | undefined)) ??
     root;
   const sits =
     (payload?.situation as unknown) ??
-    ((payload?.situations as AnyNode | undefined)?.situation as unknown);
+    ((payload?.situations as AnyNode | undefined)?.situation as unknown) ??
+    (root.situation as unknown) ??
+    (doc.situation as unknown);
   return toArray(sits);
 }
 
