@@ -33,10 +33,14 @@ function feedSources(): string[] {
   // out of the chain automatically once CUSTOM_SUPABASE_URL moves — the
   // relay and the direct socket path still cover it.
   const base = process.env.CUSTOM_SUPABASE_URL?.replace(/\/+$/, "");
-  const edgeProxy =
-    base && /\.supabase\.co$/.test(new URL(base).hostname)
-      ? `${base}/functions/v1/gtfs-proxy`
-      : null;
+  let edgeProxy: string | null = null;
+  try {
+    if (base && new URL(base).hostname.endsWith(".supabase.co")) {
+      edgeProxy = `${base}/functions/v1/gtfs-proxy`;
+    }
+  } catch {
+    // Malformed CUSTOM_SUPABASE_URL — skip the edge hop rather than throw.
+  }
   return [
     ...(custom ? [custom] : []),
     ...(edgeProxy ? [edgeProxy] : []),
