@@ -228,6 +228,7 @@ function RootComponent() {
       <CloudSyncBridge />
       <OnboardingGate />
       <Outlet />
+      <InstallPrompt />
       <GlobalPaywall />
       <Toaster position="top-center" />
     </QueryClientProvider>
