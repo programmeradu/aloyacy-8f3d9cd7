@@ -76,6 +76,22 @@ export function RemindMeButtonMobile({
       if (triggerDate.getTime() <= Date.now() + 30_000) {
         throw new Error("Too soon to schedule");
       }
+      const blocked = notificationsUnsupportedReason();
+      if (blocked) {
+        Alert.alert("Reminders unavailable", blocked, [{ text: "OK" }]);
+        setState("idle");
+        return;
+      }
+      const N = getNotifications();
+      if (!N) {
+        Alert.alert(
+          "Reminders unavailable",
+          "This build can't schedule notifications on your device.",
+          [{ text: "OK" }],
+        );
+        setState("idle");
+        return;
+      }
       const granted = await ensurePermission();
       if (!granted) {
         Alert.alert(
