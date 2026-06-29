@@ -52,34 +52,99 @@ export default function ArGuideScreen() {
   const targetLat = parseFloat(lat ?? "0");
   const targetLng = parseFloat(lng ?? "0");
 
+  const hasTarget =
+    Number.isFinite(targetLat) &&
+    Number.isFinite(targetLng) &&
+    !(targetLat === 0 && targetLng === 0);
+
   const [permission, requestPermission] = useCameraPermissions();
   const [heading, setHeading] = useState(0);
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
-  const [distance, setDistance] = useState(0);
-
-  // Bearing to the target stop
-  const [bearing, setBearing] = useState(0);
+  const [locError, setLocError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!permission?.granted) requestPermission();
+    if (!permission?.granted) void requestPermission();
+  }, [permission?.granted, requestPermission]);
 
-    const sub = Magnetometer.addListener((data) => {
-      // Calculate heading from X and Y
-      let angle = Math.atan2(data.y, data.x) * (180 / Math.PI);
-      angle = angle < 0 ? angle + 360 : angle;
-      setHeading(Math.round(angle));
-    });
+  // Compass. Prefer the OS-fused (true north) heading; fall back to the raw
+  // magnetometer when the platform can't provide one.
+  useEffect(() => {
+    let headingSub: Location.LocationSubscription | null = null;
+    let magSub: { remove: () => void } | null = null;
+    let cancelled = false;
 
-    Magnetometer.setUpdateInterval(100);
+    (async () => {
+      try {
+        headingSub = await Location.watchHeadingAsync((h) => {
+          if (cancelled) return;
+          const deg = h.trueHeading >= 0 ? h.trueHeading : h.magHeading;
+          if (Number.isFinite(deg) && deg >= 0) setHeading((deg + 360) % 360);
+        });
+      } catch {
+        Magnetometer.setUpdateInterval(100);
+        magSub = Magnetometer.addListener((data) => {
+          if (cancelled) return;
+          let angle = Math.atan2(data.y, data.x) * (180 / Math.PI);
+          angle = angle < 0 ? angle + 360 : angle;
+          setHeading(angle);
+        });
+      }
+    })();
 
-    return () => sub.remove();
-  }, [permission]);
+    return () => {
+      cancelled = true;
+      headingSub?.remove();
+      magSub?.remove();
+    };
+  }, []);
 
-  // Math: Calculate relative position of the marker on screen
-  // This is a simplified projection for a "Heads Up Display"
-  const relativeBearing = (bearing - heading + 540) % 360 - 180;
-  const isVisible = Math.abs(relativeBearing) < 45; // 90 degree field of view
-  const screenX = SCREEN_W / 2 + (relativeBearing / 45) * (SCREEN_W / 2);
+  // Rider position — this is what makes the marker point at the real stop.
+  useEffect(() => {
+    let sub: Location.LocationSubscription | null = null;
+    let cancelled = false;
+
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (cancelled) return;
+      if (status !== "granted") {
+        setLocError("Location permission is required to aim at the stop.");
+        return;
+      }
+      setLocError(null);
+      try {
+        sub = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.High, timeInterval: 1000, distanceInterval: 2 },
+          (pos) => {
+            if (cancelled) return;
+            setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          },
+        );
+      } catch {
+        if (!cancelled) setLocError("Couldn't read your location.");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      sub?.remove();
+    };
+  }, []);
+
+  const target = { lat: targetLat, lng: targetLng };
+  const bearing = userLoc && hasTarget ? bearingDegrees(userLoc, target) : null;
+  const distance = userLoc && hasTarget ? distanceMeters(userLoc, target) : null;
+
+  // Relative position of the marker on screen (90° field of view).
+  const relativeBearing = bearing === null ? null : ((bearing - heading + 540) % 360) - 180;
+  const isVisible = relativeBearing !== null && Math.abs(relativeBearing) < 45;
+  const screenX =
+    relativeBearing === null
+      ? SCREEN_W / 2
+      : Math.min(
+          SCREEN_W - 20,
+          Math.max(20, SCREEN_W / 2 + (relativeBearing / 45) * (SCREEN_W / 2)),
+        );
+  const arrived = distance !== null && distance < 15;
 
   return (
     <View style={styles.container}>
