@@ -105,15 +105,18 @@ export function RemindMeButtonMobile({
         setState("idle");
         return;
       }
-      const id = await Notifications.scheduleNotificationAsync({
+      await ensureTripAlertChannel();
+      const id = await N.scheduleNotificationAsync({
         content: {
           title: `Time to leave for ${destination.label}`,
           body: `Walk to your bus now to catch the ${firstRide?.routeShort ?? "next"} on time.`,
           data: { kind: "remind-me", sigKey },
+          ...(Platform.OS === "android" ? { channelId: "trip-alerts" } : null),
         },
         trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          type: N.SchedulableTriggerInputTypes.DATE,
           date: triggerDate,
+          ...(Platform.OS === "android" ? { channelId: "trip-alerts" } : null),
         },
       });
       await AsyncStorage.setItem(sigKey, String(itinerary.departureUnix));
