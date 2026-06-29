@@ -210,6 +210,7 @@ async function ingest() {
         console.error("RPC ingest_gtfs_snapshots error", error);
       } else {
         inserted += chunkRows.length;
+        statsUpdated += chunkStats.length;
       }
     }
 
