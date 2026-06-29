@@ -2,7 +2,7 @@
 // before the rider needs to start walking. Pro-gated (mirrors web). Shown
 // only when the trip departs at least 20 min from now.
 import { useEffect, useState } from "react";
-import { View, Text, Pressable, Alert, Linking } from "react-native";
+import { View, Text, Pressable, Alert, Linking, Platform } from "react-native";
 import * as Haptics from "expo-haptics";
 import {
   ensureTripAlertChannel,
