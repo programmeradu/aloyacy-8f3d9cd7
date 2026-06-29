@@ -163,9 +163,13 @@ export default function ArGuideScreen() {
               <Pressable onPress={() => router.back()} style={styles.closeBtn}>
                 <X color={palette.white} size={24} />
               </Pressable>
-              <View>
-                <Text style={styles.title}>{label || "Target Stop"}</Text>
-                <Text style={styles.subtitle}>AR Guide Active</Text>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.title} numberOfLines={2}>
+                  {label || "Target stop"}
+                </Text>
+                <Text style={styles.subtitle}>
+                  {relativeBearing === null ? "FINDING YOUR POSITION" : "AR GUIDE ACTIVE"}
+                </Text>
               </View>
             </View>
 
@@ -176,36 +180,64 @@ export default function ArGuideScreen() {
                   <Navigation color={palette.white} size={32} />
                 </View>
                 <View style={styles.markerTag}>
-                  <Text style={styles.markerText}>{label}</Text>
+                  <Text style={styles.markerText} numberOfLines={2}>
+                    {label || "Stop"}
+                    {distance !== null ? ` · ${Math.round(distance)}m` : ""}
+                  </Text>
                 </View>
               </View>
             )}
 
-            {/* Guidance Arrows */}
-            {!isVisible && (
+            {/* Guidance */}
+            {relativeBearing === null ? (
               <View style={styles.guidance}>
-                <Navigation
-                  color={palette.ochre}
-                  size={48}
-                  style={{
-                    transform: [{ rotate: `${relativeBearing > 0 ? 90 : -90}deg` }],
-                  }}
-                />
                 <Text style={styles.guidanceText}>
-                  Turn {relativeBearing > 0 ? "Right" : "Left"}
+                  {locError ??
+                    (hasTarget ? "Locating you…" : "No stop coordinates provided")}
                 </Text>
               </View>
+            ) : arrived ? (
+              <View style={styles.guidance}>
+                <Text style={styles.guidanceText}>You're at the stop</Text>
+              </View>
+            ) : (
+              !isVisible && (
+                <View style={styles.guidance}>
+                  <Navigation
+                    color={palette.ochre}
+                    size={48}
+                    style={{
+                      transform: [{ rotate: `${relativeBearing > 0 ? 90 : -90}deg` }],
+                    }}
+                  />
+                  <Text style={styles.guidanceText}>
+                    Turn {relativeBearing > 0 ? "right" : "left"}
+                  </Text>
+                </View>
+              )
             )}
 
             {/* Footer Stats */}
             <View style={styles.footer}>
               <View style={styles.stat}>
-                <Text style={styles.statVal}>{Math.round(distance)}m</Text>
+                <Text style={styles.statVal}>
+                  {distance === null
+                    ? "—"
+                    : distance >= 1000
+                      ? `${(distance / 1000).toFixed(1)}km`
+                      : `${Math.round(distance)}m`}
+                </Text>
                 <Text style={styles.statLab}>DISTANCE</Text>
               </View>
               <View style={styles.stat}>
                 <Text style={styles.statVal}>{Math.round(heading)}°</Text>
                 <Text style={styles.statLab}>HEADING</Text>
+              </View>
+              <View style={styles.stat}>
+                <Text style={styles.statVal}>
+                  {bearing === null ? "—" : `${Math.round(bearing)}°`}
+                </Text>
+                <Text style={styles.statLab}>TO STOP</Text>
               </View>
             </View>
           </View>
