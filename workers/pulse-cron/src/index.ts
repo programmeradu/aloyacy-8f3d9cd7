@@ -75,25 +75,33 @@ function headersFor(env: Env): Headers {
   return h;
 }
 
-async function run(env: Env, jobs: Job[]): Promise<void> {
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Jobs run one at a time with a short stagger. Firing them all at once made
+ * several heavy hooks (train roll-up, scrapes, schedule ingest) share a single
+ * app worker instance, which ran out of memory and returned 502s.
+ */
+async function run(env: Env, jobs: Job[], staggerMs = 5000): Promise<void> {
   const origin = originOf(env);
   const headers = headersFor(env);
-  await Promise.all(
-    jobs.map(async ({ path, label }) => {
-      const url = `${origin}${path}`;
-      try {
-        const res = await fetch(url, { method: "POST", headers, body: "{}" });
-        const text = await res.text();
-        if (!res.ok) {
-          console.error(`[cron] ${label} failed ${res.status}: ${text.slice(0, 300)}`);
-        } else {
-          console.log(`[cron] ${label} ok: ${text.slice(0, 200)}`);
-        }
-      } catch (e) {
-        console.error(`[cron] ${label} threw:`, e instanceof Error ? e.message : e);
+
+  for (let i = 0; i < jobs.length; i++) {
+    const { path, label } = jobs[i]!;
+    if (i > 0) await sleep(staggerMs);
+    const url = `${origin}${path}`;
+    try {
+      const res = await fetch(url, { method: "POST", headers, body: "{}" });
+      const text = await res.text();
+      if (!res.ok) {
+        console.error(`[cron] ${label} failed ${res.status}: ${text.slice(0, 300)}`);
+      } else {
+        console.log(`[cron] ${label} ok: ${text.slice(0, 200)}`);
       }
-    }),
-  );
+    } catch (e) {
+      console.error(`[cron] ${label} threw:`, e instanceof Error ? e.message : e);
+    }
+  }
 }
 
 export default {
