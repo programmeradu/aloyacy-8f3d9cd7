@@ -44,30 +44,48 @@ export const getBedrockUsageStats = createServerFn({ method: "GET" })
     const days = Math.min(Math.max(data?.days ?? 30, 1), 365);
     const since = new Date(Date.now() - days * 86400_000).toISOString();
 
-    // Lifetime totals (small aggregate — cap rows by not selecting body)
-    const lifetimeQuery = supabaseAdmin
-      .from("bedrock_usage")
-      .select("input_tokens,output_tokens,est_cost_usd,ok", { count: "exact" });
-    if (data?.keyHint) lifetimeQuery.eq("access_key_hint", data.keyHint);
-    const lifetime = await lifetimeQuery;
+    // PostgREST caps a single response at 1000 rows, so any unpaged read
+    // silently under-counts (the dashboard "froze" once usage passed 1k).
+    const PAGE = 1000;
 
+    // Lifetime totals — paged, narrow projection, ordered so paging is stable.
     let lifeCalls = 0, lifeOk = 0, lifeIn = 0, lifeOut = 0, lifeCost = 0;
-    for (const r of lifetime.data ?? []) {
-      lifeCalls++;
-      if (r.ok) lifeOk++;
-      lifeIn += r.input_tokens ?? 0;
-      lifeOut += r.output_tokens ?? 0;
-      lifeCost += Number(r.est_cost_usd ?? 0);
+    for (let from = 0; ; from += PAGE) {
+      const q = supabaseAdmin
+        .from("bedrock_usage")
+        .select("input_tokens,output_tokens,est_cost_usd,ok")
+        .order("created_at", { ascending: true })
+        .range(from, from + PAGE - 1);
+      if (data?.keyHint) q.eq("access_key_hint", data.keyHint);
+      const { data: page, error } = await q;
+      if (error) throw error;
+      for (const r of page ?? []) {
+        lifeCalls++;
+        if (r.ok) lifeOk++;
+        lifeIn += r.input_tokens ?? 0;
+        lifeOut += r.output_tokens ?? 0;
+        lifeCost += Number(r.est_cost_usd ?? 0);
+      }
+      if (!page || page.length < PAGE) break;
+      if (from + PAGE >= 200_000) break; // hard safety stop
     }
 
-    const windowQuery = supabaseAdmin
-      .from("bedrock_usage")
-      .select("*")
-      .gte("created_at", since)
-      .order("created_at", { ascending: false })
-      .limit(5000);
-    if (data?.keyHint) windowQuery.eq("access_key_hint", data.keyHint);
-    const rows = ((await windowQuery).data ?? []) as BedrockUsageRow[];
+    // Windowed detail rows — also paged, capped so the payload stays sane.
+    const CAP = Math.min(Math.max(data?.cap ?? 5000, PAGE), 20_000);
+    const rows: BedrockUsageRow[] = [];
+    for (let from = 0; from < CAP; from += PAGE) {
+      const q = supabaseAdmin
+        .from("bedrock_usage")
+        .select("*")
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .range(from, Math.min(from + PAGE, CAP) - 1);
+      if (data?.keyHint) q.eq("access_key_hint", data.keyHint);
+      const { data: page, error } = await q;
+      if (error) throw error;
+      rows.push(...((page ?? []) as BedrockUsageRow[]));
+      if (!page || page.length < PAGE) break;
+    }
 
     let wCalls = 0, wOk = 0, wIn = 0, wOut = 0, wCost = 0;
     const dayMap = new Map<string, { calls: number; estCostUsd: number; tokens: number }>();
