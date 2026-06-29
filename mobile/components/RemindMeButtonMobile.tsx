@@ -22,13 +22,7 @@ type WalkLeg = Extract<Itinerary["legs"][number], { kind: "walk" }>;
 
 async function ensurePermission(): Promise<boolean> {
   if (!Device.isDevice) return false;
-  const cur = await Notifications.getPermissionsAsync();
-  if (cur.granted) return true;
-  if (cur.canAskAgain) {
-    const req = await Notifications.requestPermissionsAsync();
-    return req.granted;
-  }
-  return false;
+  return (await requestNotificationPermissionState()) === "granted";
 }
 
 export function RemindMeButtonMobile({
