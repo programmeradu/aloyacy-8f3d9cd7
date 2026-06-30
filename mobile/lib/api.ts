@@ -27,7 +27,7 @@ export type RealtimeSnapshot = {
   vehicles: RealtimeVehicle[];
   arrivals: RealtimeArrival[];
   ghostTripIds?: string[];
-  riderConfirmedTrips?: string[];
+  riderConfirmedTrips?: { tripId: string; ageSec: number }[];
   stale?: boolean;
 };
 
