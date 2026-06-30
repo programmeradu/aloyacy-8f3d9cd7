@@ -32,6 +32,7 @@ import { Route as AirportCodeRouteImport } from './routes/airport.$code'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
+import { Route as ApiPublicStopsRouteImport } from './routes/api/public/stops'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sighting'
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
@@ -175,6 +176,11 @@ const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
 const ApiPublicStreetviewRoute = ApiPublicStreetviewRouteImport.update({
   id: '/api/public/streetview',
   path: '/api/public/streetview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicStopsRoute = ApiPublicStopsRouteImport.update({
+  id: '/api/public/stops',
+  path: '/api/public/stops',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicSnapshotRoute = ApiPublicSnapshotRouteImport.update({
@@ -363,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
+  '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
@@ -416,6 +423,7 @@ export interface FileRoutesByTo {
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
+  '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
@@ -470,6 +478,7 @@ export interface FileRoutesById {
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
+  '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
@@ -525,6 +534,7 @@ export interface FileRouteTypes {
     | '/api/public/rider-fix'
     | '/api/public/sighting'
     | '/api/public/snapshot'
+    | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
     | '/api/public/gbfs/free_bike_status.json'
@@ -578,6 +588,7 @@ export interface FileRouteTypes {
     | '/api/public/rider-fix'
     | '/api/public/sighting'
     | '/api/public/snapshot'
+    | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
     | '/api/public/gbfs/free_bike_status.json'
@@ -631,6 +642,7 @@ export interface FileRouteTypes {
     | '/api/public/rider-fix'
     | '/api/public/sighting'
     | '/api/public/snapshot'
+    | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/trip-alerts'
     | '/api/public/gbfs/free_bike_status.json'
@@ -685,6 +697,7 @@ export interface RootRouteChildren {
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
   ApiPublicSightingRoute: typeof ApiPublicSightingRoute
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
+  ApiPublicStopsRoute: typeof ApiPublicStopsRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
   ApiPublicGbfsFree_bike_statusDotjsonRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
@@ -872,6 +885,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/streetview'
       fullPath: '/api/public/streetview'
       preLoaderRoute: typeof ApiPublicStreetviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stops': {
+      id: '/api/public/stops'
+      path: '/api/public/stops'
+      fullPath: '/api/public/stops'
+      preLoaderRoute: typeof ApiPublicStopsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/snapshot': {
@@ -1101,6 +1121,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
   ApiPublicSightingRoute: ApiPublicSightingRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
+  ApiPublicStopsRoute: ApiPublicStopsRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
   ApiPublicGbfsFree_bike_statusDotjsonRoute:
