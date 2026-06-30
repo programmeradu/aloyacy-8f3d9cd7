@@ -2,10 +2,13 @@ import { useMemo } from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { palette } from "@/constants/theme";
 import { Card } from "@/components/Card";
 import { RouteChip } from "@/components/RouteChip";
+import { IntercityPatternsCard } from "@/components/IntercityPatternsCard";
 import { useRealtime, useStopsBundle } from "@/lib/hooks";
+import { fetchIntercityInsights } from "@/lib/wave3";
 
 export default function RouteDetailScreen() {
   const { routeId } = useLocalSearchParams<{ routeId: string }>();
@@ -13,6 +16,19 @@ export default function RouteDetailScreen() {
   const rt = useRealtime();
   const bundle = useStopsBundle();
   const meta = bundle.data?.routes[routeId];
+
+  // IC routes get cross-island intelligence; urban routes don't (yet).
+  const isIntercity = useMemo(() => {
+    if (!meta) return false;
+    return meta.feedId === 6 || /^IC/i.test(meta.short ?? "");
+  }, [meta]);
+
+  const intel = useQuery({
+    queryKey: ["intercity-intel", routeId],
+    queryFn: () => fetchIntercityInsights(routeId!),
+    enabled: !!routeId && isIntercity,
+    staleTime: 30 * 60_000,
+  });
 
   const liveVehicles = useMemo(
     () => (rt.data?.vehicles ?? []).filter((v) => v.routeId === routeId),
@@ -54,7 +70,7 @@ export default function RouteDetailScreen() {
             letterSpacing: 1,
           }}
         >
-          ROUTE
+          {isIntercity ? "INTERCITY ROUTE" : "ROUTE"}
         </Text>
       </View>
       <Text
@@ -106,17 +122,7 @@ export default function RouteDetailScreen() {
         </Text>
       </Card>
 
-      <Text
-        style={{
-          fontFamily: "Geist_500Medium",
-          fontSize: 13,
-          color: palette.inkSoft,
-          marginTop: 24,
-          lineHeight: 19,
-        }}
-      >
-        Live map, stop sequence, and reliability badge land in Wave 2.
-      </Text>
+      {isIntercity && intel.data && <IntercityPatternsCard data={intel.data} />}
     </ScrollView>
   );
 }
