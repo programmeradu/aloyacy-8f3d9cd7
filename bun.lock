@@ -105,6 +105,7 @@
       "name": "mobile",
       "version": "1.0.0",
       "dependencies": {
+        "@aloya/core": "workspace:*",
         "@expo-google-fonts/bricolage-grotesque": "^0.4.1",
         "@expo-google-fonts/geist": "^0.4.2",
         "@expo-google-fonts/jetbrains-mono": "^0.4.1",
@@ -126,6 +127,7 @@
         "expo-splash-screen": "~56.0.10",
         "expo-status-bar": "~56.0.4",
         "expo-symbols": "~56.0.6",
+        "expo-tracking-transparency": "~6.0.2",
         "expo-web-browser": "~56.0.5",
         "nativewind": "^4.2.6",
         "react": "19.2.3",
@@ -1537,6 +1539,8 @@
     "expo-status-bar": ["expo-status-bar@56.0.4", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-status-bar/-/expo-status-bar-56.0.4.tgz", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-IGs/fDfkHXofy2ZQrGiXayhFK04HB85FZXorhcEhDZEcqASKgSqpak+HwUtAaR0MeTJwWyHNF7I6VmVbbp8EcA=="],
 
     "expo-symbols": ["expo-symbols@56.0.6", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-symbols/-/expo-symbols-56.0.6.tgz", { "dependencies": { "@expo-google-fonts/material-symbols": "^0.4.1", "sf-symbols-typescript": "^2.0.0" }, "peerDependencies": { "expo": "*", "expo-font": "*", "react": "*", "react-native": "*" } }, "sha512-BrA81DjcNafdj7gXVhdrExb9LtUiSVyOf/NavyMmDAHgHMY1GqeR5cnn1PSAZeYKnSgQhee/H89XUpAxtog5hg=="],
+
+    "expo-tracking-transparency": ["expo-tracking-transparency@6.0.8", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-tracking-transparency/-/expo-tracking-transparency-6.0.8.tgz", { "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-4/NW47Kmrtj3J0udUmzxiq01gRY+vG8wFsUop6CTOVWlk+2MypjDFwBSscHcyiS2dJGNQLOQSBZ1RNhLdgSBOQ=="],
 
     "expo-web-browser": ["expo-web-browser@56.0.5", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-web-browser/-/expo-web-browser-56.0.5.tgz", { "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-kaN+wcR5lHwPCH1IgrU1XyPUQvBRzdF1TMp65uAF9iUCyipqYnmrvV87eqAmrdkFFopWVgU7FcxPu1UZw+gvUQ=="],
 
