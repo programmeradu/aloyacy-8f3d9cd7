@@ -10,8 +10,14 @@ import {
   Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import { palette } from "@/constants/theme";
+import {
+  BikeShareCardMobile,
+  BoltScooterCardMobile,
+  LastMileChainCardMobile,
+} from "@/components/AltModeCards";
+import { fetchBikeShare, fetchBoltScooter, fetchLastMileChain } from "@/lib/wave3";
 import { useStopsBundle, useGeoFix } from "@/lib/hooks";
 import { distanceMeters, formatDistance } from "@/lib/format";
 import { fetchPlan, type PlanResult } from "@/lib/plan";
