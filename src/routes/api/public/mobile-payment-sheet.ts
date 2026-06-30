@@ -57,10 +57,8 @@ export const Route = createFileRoute("/api/public/mobile-payment-sheet")({
         if (!parsed.success) return json({ error: parsed.error.flatten() }, 400);
 
         const env = parsed.data.environment as StripeEnv;
-        const publishableKey =
-          env === "live"
-            ? process.env.PAYMENTS_LIVE_CLIENT_TOKEN
-            : process.env.PAYMENTS_SANDBOX_CLIENT_TOKEN;
+        // Publishable key is safe to expose; matches the web client token.
+        const publishableKey = process.env.VITE_PAYMENTS_CLIENT_TOKEN ?? null;
 
         try {
           const stripe = createStripeClient(env);
