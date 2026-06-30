@@ -5,6 +5,7 @@
     "": {
       "name": "tanstack_start_ts",
       "dependencies": {
+        "@aloya/core": "workspace:*",
         "@cloudflare/vite-plugin": "^1.25.5",
         "@googlemaps/markerclusterer": "^2.6.2",
         "@hookform/resolvers": "^5.2.2",
