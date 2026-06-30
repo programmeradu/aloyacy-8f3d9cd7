@@ -1,19 +1,38 @@
-import { useMemo } from "react";
+// Stop detail — mobile parity rewire on SmartEtaV2 + DepartureRow.
+//
+// Mirror of `src/routes/stop.$stopId.tsx`:
+//   - same upcoming-trip filter (next 30 s back, distinct tripIds, ≤ 8)
+//   - same Smart ETA v2 algorithm (shared with web; mobile port lives in
+//     `mobile/lib/eta-v2.ts`)
+//   - ghost-bus advisory banner when the soonest departure has no GPS
+//   - editorial header, mediterranean palette, JetBrains Mono micro-meta
+//
+// Native enhancements layered on top:
+//   - haptic feedback on row press
+//   - safe-area aware scroll padding
+//   - pull-to-refresh hook into useRealtime
+//
+// Headsigns / shapes / learned-bias / segment-stats are not yet ported —
+// the algorithm degrades gracefully (operator-only fallback). Wave C will
+// wire them in once `MapView` + shape prefetch land.
+
+import { useMemo, useCallback } from "react";
 import {
   View,
   Text,
   Pressable,
   ScrollView,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
+import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { palette } from "@/constants/theme";
-import { Card } from "@/components/Card";
-import { EtaPill } from "@/components/EtaPill";
-import { RouteChip } from "@/components/RouteChip";
+import { DepartureRow } from "@/components/DepartureRow";
 import { useRealtime, useStopsBundle } from "@/lib/hooks";
-import { etaFromUnix } from "@/lib/format";
+import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
+import { getStop } from "@/lib/gtfs";
 
 export default function StopDetailScreen() {
   const { stopId } = useLocalSearchParams<{ stopId: string }>();
@@ -21,21 +40,48 @@ export default function StopDetailScreen() {
   const rt = useRealtime();
   const bundle = useStopsBundle();
 
-  const stop = useMemo(
-    () => bundle.data?.stops.find((s) => s.id === stopId),
-    [bundle.data, stopId],
-  );
+  const stop = useMemo(() => getStop(stopId), [stopId, bundle.dataUpdatedAt]);
+  const routeMeta = bundle.data?.routes;
 
   const departures = useMemo(() => {
     if (!rt.data) return [];
-    const now = Date.now();
-    return rt.data.arrivals
-      .filter((a) => a.stopId === stopId && a.arrivalUnix * 1000 > now - 60_000)
+    const now = Math.floor(Date.now() / 1000);
+    const seen = new Set<string>();
+    const here = rt.data.arrivals
+      .filter((a) => a.stopId === stopId && a.arrivalUnix >= now - 30)
       .sort((a, b) => a.arrivalUnix - b.arrivalUnix)
-      .slice(0, 12);
-  }, [rt.data, stopId]);
+      .filter((a) => (seen.has(a.tripId) ? false : (seen.add(a.tripId), true)));
+    return here
+      .map((a) => {
+        const eta = smartEtaV2({
+          stopId,
+          arrivals: rt.data!.arrivals,
+          vehicles: rt.data!.vehicles,
+          nowSec: now,
+          agency: stop?.agency,
+        });
+        return { ...a, eta };
+      })
+      .filter(
+        (d): d is typeof d & { eta: SmartEtaV2 } =>
+          d.eta != null && d.eta.etaMin <= 180,
+      )
+      .slice(0, 8);
+  }, [rt.data, stopId, stop?.agency]);
 
   const stale = rt.data?.stale === true;
+  const ghostFirst =
+    departures.length > 0 && departures[0].eta.tier === "ghost";
+
+  const onRefresh = useCallback(() => {
+    rt.refetch();
+    bundle.refetch();
+  }, [rt, bundle]);
+
+  const handleRowPress = useCallback((tripId: string) => {
+    Haptics.selectionAsync().catch(() => {});
+    router.push(`/trip-info/${tripId}`);
+  }, []);
 
   return (
     <ScrollView
@@ -43,136 +89,235 @@ export default function StopDetailScreen() {
       contentContainerStyle={{
         paddingTop: insets.top + 12,
         paddingHorizontal: 20,
-        paddingBottom: 40,
+        paddingBottom: 48,
       }}
+      refreshControl={
+        <RefreshControl
+          refreshing={rt.isFetching && !rt.isLoading}
+          onRefresh={onRefresh}
+          tintColor={palette.aegeanDeep}
+        />
+      }
     >
-      <Pressable
-        onPress={() => router.back()}
-        hitSlop={10}
-        style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, marginBottom: 14 })}
-      >
-        <Text
-          style={{
-            fontFamily: "Geist_600SemiBold",
-            fontSize: 14,
-            color: palette.aegeanDeep,
-          }}
-        >
-          ← Back
-        </Text>
-      </Pressable>
-
-      <Text
-        style={{
-          fontFamily: "JetBrainsMono_500Medium",
-          fontSize: 12,
-          color: palette.oliveSoft,
-          letterSpacing: 1.2,
-        }}
-      >
-        STOP {stop?.code ?? stopId}
-      </Text>
-      <Text
-        style={{
-          fontFamily: "BricolageGrotesque_800ExtraBold",
-          fontSize: 30,
-          lineHeight: 34,
-          color: palette.ink,
-          marginTop: 6,
-          letterSpacing: -0.6,
-        }}
-      >
-        {stop?.name ?? "Loading…"}
-      </Text>
-
       <View
         style={{
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          marginTop: 26,
-          marginBottom: 10,
+          marginBottom: 18,
         }}
       >
-        <Text
-          style={{
-            fontFamily: "BricolageGrotesque_700Bold",
-            fontSize: 18,
-            color: palette.ink,
-          }}
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={({ pressed }) => ({
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: palette.white,
+            borderWidth: 1,
+            borderColor: palette.line,
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: pressed ? 0.6 : 1,
+          })}
         >
-          Departures
-        </Text>
+          <Text
+            style={{
+              fontFamily: "Geist_600SemiBold",
+              fontSize: 16,
+              color: palette.ink,
+              marginTop: -2,
+            }}
+          >
+            ←
+          </Text>
+        </Pressable>
         <Text
           style={{
             fontFamily: "JetBrainsMono_500Medium",
-            fontSize: 11,
-            color: stale ? palette.ochre : palette.oliveSoft,
-            letterSpacing: 0.8,
+            fontSize: 10,
+            letterSpacing: 2.2,
+            color: palette.inkSoft,
+            textTransform: "uppercase",
           }}
         >
-          {stale ? "FEED STALE" : "LIVE · 15s"}
+          Stop {stop?.code ?? stopId}
+        </Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <Text
+        style={{
+          fontFamily: "BricolageGrotesque_800ExtraBold",
+          fontSize: 34,
+          lineHeight: 38,
+          letterSpacing: -0.8,
+          color: palette.ink,
+        }}
+      >
+        {stop?.name ?? (bundle.isLoading ? "Loading…" : "Unknown stop")}
+      </Text>
+      {stop ? (
+        <Text
+          style={{
+            marginTop: 8,
+            fontFamily: "Geist_500Medium",
+            fontSize: 13,
+            color: palette.inkSoft,
+          }}
+        >
+          {stop.agency === "IC" ? "Intercity service" : "Urban service"} —{" "}
+          {stop.lat.toFixed(4)}, {stop.lng.toFixed(4)}
+        </Text>
+      ) : null}
+
+      {ghostFirst ? (
+        <View
+          style={{
+            marginTop: 20,
+            borderRadius: 20,
+            backgroundColor: palette.ochreSoft,
+            borderWidth: 1,
+            borderColor: "rgba(201,133,58,0.35)",
+            paddingHorizontal: 18,
+            paddingVertical: 14,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "JetBrainsMono_500Medium",
+              fontSize: 10,
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              color: palette.ink,
+            }}
+          >
+            Bus missing from feed
+          </Text>
+          <Text
+            style={{
+              marginTop: 4,
+              fontFamily: "Geist_500Medium",
+              fontSize: 13,
+              lineHeight: 19,
+              color: palette.inkSoft,
+            }}
+          >
+            The operator stopped reporting this bus. We're showing the scheduled
+            time. Tap to confirm if you spot it.
+          </Text>
+        </View>
+      ) : null}
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          marginTop: 30,
+          marginBottom: 14,
+          gap: 12,
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontFamily: "JetBrainsMono_500Medium",
+              fontSize: 9.5,
+              letterSpacing: 2.4,
+              color: palette.inkSoft,
+              textTransform: "uppercase",
+            }}
+          >
+            Live · Smart ETA
+          </Text>
+          <Text
+            style={{
+              marginTop: 4,
+              fontFamily: "BricolageGrotesque_700Bold",
+              fontSize: 22,
+              lineHeight: 24,
+              letterSpacing: -0.4,
+              color: palette.ink,
+            }}
+          >
+            Next departures
+          </Text>
+        </View>
+        <Text
+          style={{
+            fontFamily: "JetBrainsMono_500Medium",
+            fontSize: 10,
+            letterSpacing: 1.8,
+            color: stale ? palette.ochre : palette.aegeanDeep,
+            textTransform: "uppercase",
+            paddingBottom: 2,
+          }}
+        >
+          {stale ? "Feed stale" : rt.isLoading ? "Loading" : "Live · 15s"}
         </Text>
       </View>
 
       {rt.isLoading || bundle.isLoading ? (
-        <View style={{ paddingVertical: 40, alignItems: "center" }}>
+        <View style={{ paddingVertical: 48, alignItems: "center" }}>
           <ActivityIndicator color={palette.aegeanDeep} />
         </View>
       ) : departures.length === 0 ? (
-        <Card style={{ padding: 20 }}>
+        <View
+          style={{
+            borderRadius: 22,
+            backgroundColor: palette.white,
+            borderWidth: 1,
+            borderColor: palette.line,
+            padding: 22,
+          }}
+        >
           <Text
             style={{
-              fontFamily: "Geist_500Medium",
-              color: palette.inkSoft,
-              fontSize: 14,
-              lineHeight: 20,
+              fontFamily: "BricolageGrotesque_700Bold",
+              fontSize: 17,
+              color: palette.ink,
             }}
           >
-            No live departures right now. The schedule may have ended for today
-            or the feed is between updates.
+            Nothing upcoming
           </Text>
-        </Card>
+          <Text
+            style={{
+              marginTop: 6,
+              fontFamily: "Geist_500Medium",
+              fontSize: 13,
+              lineHeight: 19,
+              color: palette.inkSoft,
+            }}
+          >
+            The schedule may have ended for today or the feed is between
+            updates. Pull to refresh.
+          </Text>
+        </View>
       ) : (
-        <View style={{ gap: 10 }}>
+        <View style={{ gap: 12 }}>
           {departures.map((d, i) => {
-            const meta = bundle.data?.routes[d.routeId];
-            const eta = etaFromUnix(d.arrivalUnix);
+            const meta = routeMeta?.[d.routeId];
             return (
-              <Pressable
-                key={`${d.tripId}-${i}`}
-                onPress={() => router.push(`/route/${d.routeId}`)}
-                style={({ pressed }) => ({
-                  transform: [{ scale: pressed ? 0.985 : 1 }],
-                })}
-              >
-                <Card
-                  style={{
-                    padding: 14,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <RouteChip
-                    short={meta?.short ?? "—"}
-                    color={meta?.color}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      numberOfLines={1}
-                      style={{
-                        fontFamily: "Geist_600SemiBold",
-                        fontSize: 15,
-                        color: palette.ink,
-                      }}
-                    >
-                      {meta?.long ?? "Route"}
-                    </Text>
-                  </View>
-                  <EtaPill label={eta.label} tier={eta.tier} stale={stale} />
-                </Card>
-              </Pressable>
+              <DepartureRow
+                key={`${d.tripId}-${d.routeId}-${i}`}
+                tripId={d.tripId}
+                routeId={d.routeId}
+                routeShort={meta?.short ?? "—"}
+                routeLong={meta?.long ?? "Route"}
+                routeColor={meta?.color}
+                stopId={stopId}
+                arrivalUnix={d.arrivalUnix}
+                eta={{
+                  etaMin: d.eta.tier === "ghost" ? null : d.eta.etaMin,
+                  band: d.eta.band,
+                  tier: d.eta.tier,
+                  confidence: d.eta.confidence,
+                  operatorEtaMin: d.eta.operatorEtaMin,
+                }}
+                onPress={() => handleRowPress(d.tripId)}
+              />
             );
           })}
         </View>
