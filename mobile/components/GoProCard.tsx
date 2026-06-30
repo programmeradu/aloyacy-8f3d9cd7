@@ -3,6 +3,7 @@ import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import { palette } from "@/constants/theme";
 import { Card } from "./Card";
 import { startProCheckout, type PlanKey } from "@/lib/wallet";
+import { useSession } from "@/lib/auth";
 
 const PLANS: { id: PlanKey; label: string; price: string; cadence: string; note?: string }[] = [
   { id: "pro_weekly", label: "Weekly", price: "€1.99", cadence: "/week" },
@@ -10,20 +11,31 @@ const PLANS: { id: PlanKey; label: string; price: string; cadence: string; note?
 ];
 
 export function GoProCard() {
+  const { user, signedIn } = useSession();
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<PlanKey>("pro_monthly");
   const [busy, setBusy] = useState(false);
 
+  const effectiveEmail = signedIn ? (user?.email ?? "") : email;
+
   async function handlePay() {
-    if (!email.includes("@")) {
+    if (!signedIn && !email.includes("@")) {
       Alert.alert("Email required", "Enter the email tied to your Aloya account.");
       return;
     }
     setBusy(true);
-    const res = await startProCheckout({ email: email.trim(), planKey: plan });
+    const res = await startProCheckout({
+      email: signedIn ? undefined : email.trim(),
+      planKey: plan,
+    });
     setBusy(false);
     if (res.ok) {
-      Alert.alert("Welcome to Pro", "Your subscription is being activated.");
+      Alert.alert(
+        "Welcome to Pro",
+        res.linkedUserId
+          ? "Your subscription is linked to your account."
+          : "Your subscription is being activated. Sign in to link it to your account.",
+      );
     } else if (!res.canceled) {
       Alert.alert("Checkout failed", res.message);
     }
@@ -117,27 +129,72 @@ export function GoProCard() {
         })}
       </View>
 
-      <TextInput
-        autoCapitalize="none"
-        autoCorrect={false}
-        keyboardType="email-address"
-        placeholder="you@example.com"
-        placeholderTextColor="#9aa0a6"
-        value={email}
-        onChangeText={setEmail}
-        style={{
-          marginTop: 14,
-          borderWidth: 1,
-          borderColor: palette.line,
-          borderRadius: 12,
-          paddingHorizontal: 14,
-          paddingVertical: 12,
-          fontFamily: "Geist_500Medium",
-          fontSize: 14,
-          color: palette.ink,
-          backgroundColor: "#fff",
-        }}
-      />
+      {signedIn ? (
+        <View
+          style={{
+            marginTop: 14,
+            borderWidth: 1,
+            borderColor: palette.line,
+            borderRadius: 12,
+            paddingHorizontal: 14,
+            paddingVertical: 12,
+            backgroundColor: "#fff",
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "JetBrainsMono_500Medium",
+              fontSize: 9,
+              color: palette.olive,
+              letterSpacing: 1.4,
+            }}
+          >
+            BILLING TO
+          </Text>
+          <Text
+            style={{
+              fontFamily: "Geist_600SemiBold",
+              fontSize: 14,
+              color: palette.ink,
+              marginTop: 4,
+            }}
+          >
+            {effectiveEmail}
+          </Text>
+          <Text
+            style={{
+              fontFamily: "Geist_500Medium",
+              fontSize: 11,
+              color: palette.inkSoft ?? palette.olive,
+              marginTop: 4,
+            }}
+          >
+            Linked to your Aloya account on every device.
+          </Text>
+        </View>
+      ) : (
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          placeholder="you@example.com"
+          placeholderTextColor="#9aa0a6"
+          value={email}
+          onChangeText={setEmail}
+          style={{
+            marginTop: 14,
+            borderWidth: 1,
+            borderColor: palette.line,
+            borderRadius: 12,
+            paddingHorizontal: 14,
+            paddingVertical: 12,
+            fontFamily: "Geist_500Medium",
+            fontSize: 14,
+            color: palette.ink,
+            backgroundColor: "#fff",
+          }}
+        />
+      )}
 
       <Pressable
         disabled={busy}
