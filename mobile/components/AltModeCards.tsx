@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { View, Text, Pressable, Linking } from "react-native";
 import { palette } from "@/constants/theme";
 import { Card } from "./Card";
