@@ -289,10 +289,6 @@ export function DepartureRow({
           ) : null}
         </View>
       </View>
-      {/* swallow unused-prop lint */}
-      <View style={{ height: 0, width: 0 }} pointerEvents="none">
-        <Text>{routeId}</Text>
-      </View>
     </Pressable>
   );
 }
