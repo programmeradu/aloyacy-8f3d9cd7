@@ -20,8 +20,10 @@ import {
   Text,
   View,
 } from "react-native";
-// import * as Notifications from "expo-notifications";
-const Notifications: any = null;
+import {
+  getNotificationPermission,
+  notificationsUnsupportedReason,
+} from "@/lib/notifications";
 
 import * as Device from "expo-device";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
@@ -36,14 +38,21 @@ export function NotificationsCard() {
   const [message, setMessage] = useState<string | null>(null);
 
   const detect = useCallback(async () => {
-    if (!Device.isDevice) {
+    if (!Device.isDevice || notificationsUnsupportedReason()) {
       setStatus("unsupported");
       return;
     }
-    const settings = await Notifications.getPermissionsAsync();
-    if (settings.status === "denied") setStatus("denied");
-    else if (settings.status === "granted") setStatus("on");
-    else setStatus("off");
+    try {
+      const permission = await getNotificationPermission();
+      if (permission === "denied") setStatus("denied");
+      else if (permission === "granted") setStatus("on");
+      else if (permission === "unsupported") setStatus("unsupported");
+      else setStatus("off");
+    } catch {
+      // Never leave the card stuck on "Checking…" — fall back to the
+      // actionable state so the rider can still tap to enable.
+      setStatus("off");
+    }
   }, []);
 
   useEffect(() => {

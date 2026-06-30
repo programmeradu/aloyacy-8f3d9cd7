@@ -2,10 +2,14 @@
 // before the rider needs to start walking. Pro-gated (mirrors web). Shown
 // only when the trip departs at least 20 min from now.
 import { useEffect, useState } from "react";
-import { View, Text, Pressable, Alert, Linking } from "react-native";
+import { View, Text, Pressable, Alert, Linking, Platform } from "react-native";
 import * as Haptics from "expo-haptics";
-// import * as Notifications from "expo-notifications";
-const Notifications: any = null;
+import {
+  ensureTripAlertChannel,
+  getNotifications,
+  notificationsUnsupportedReason,
+  requestNotificationPermissionState,
+} from "@/lib/notifications";
 
 import * as Device from "expo-device";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,13 +22,7 @@ type WalkLeg = Extract<Itinerary["legs"][number], { kind: "walk" }>;
 
 async function ensurePermission(): Promise<boolean> {
   if (!Device.isDevice) return false;
-  const cur = await Notifications.getPermissionsAsync();
-  if (cur.granted) return true;
-  if (cur.canAskAgain) {
-    const req = await Notifications.requestPermissionsAsync();
-    return req.granted;
-  }
-  return false;
+  return (await requestNotificationPermissionState()) === "granted";
 }
 
 export function RemindMeButtonMobile({
@@ -78,6 +76,22 @@ export function RemindMeButtonMobile({
       if (triggerDate.getTime() <= Date.now() + 30_000) {
         throw new Error("Too soon to schedule");
       }
+      const blocked = notificationsUnsupportedReason();
+      if (blocked) {
+        Alert.alert("Reminders unavailable", blocked, [{ text: "OK" }]);
+        setState("idle");
+        return;
+      }
+      const N = getNotifications();
+      if (!N) {
+        Alert.alert(
+          "Reminders unavailable",
+          "This build can't schedule notifications on your device.",
+          [{ text: "OK" }],
+        );
+        setState("idle");
+        return;
+      }
       const granted = await ensurePermission();
       if (!granted) {
         Alert.alert(
@@ -91,15 +105,18 @@ export function RemindMeButtonMobile({
         setState("idle");
         return;
       }
-      const id = await Notifications.scheduleNotificationAsync({
+      await ensureTripAlertChannel();
+      const id = await N.scheduleNotificationAsync({
         content: {
           title: `Time to leave for ${destination.label}`,
           body: `Walk to your bus now to catch the ${firstRide?.routeShort ?? "next"} on time.`,
           data: { kind: "remind-me", sigKey },
+          ...(Platform.OS === "android" ? { channelId: "trip-alerts" } : null),
         },
         trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          type: N.SchedulableTriggerInputTypes.DATE,
           date: triggerDate,
+          ...(Platform.OS === "android" ? { channelId: "trip-alerts" } : null),
         },
       });
       await AsyncStorage.setItem(sigKey, String(itinerary.departureUnix));
