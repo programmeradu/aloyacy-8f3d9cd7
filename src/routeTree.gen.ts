@@ -38,6 +38,7 @@ import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sight
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
+import { Route as ApiPublicMobilePaymentSheetRouteImport } from './routes/api/public/mobile-payment-sheet'
 import { Route as ApiPublicLastMileChainRouteImport } from './routes/api/public/last-mile-chain'
 import { Route as ApiPublicIntercityIntelRouteImport } from './routes/api/public/intercity-intel'
 import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
@@ -214,6 +215,12 @@ const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
   path: '/api/public/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMobilePaymentSheetRoute =
+  ApiPublicMobilePaymentSheetRouteImport.update({
+    id: '/api/public/mobile-payment-sheet',
+    path: '/api/public/mobile-payment-sheet',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicLastMileChainRoute = ApiPublicLastMileChainRouteImport.update({
   id: '/api/public/last-mile-chain',
   path: '/api/public/last-mile-chain',
@@ -407,6 +414,7 @@ export interface FileRoutesByFullPath {
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
+  '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -467,6 +475,7 @@ export interface FileRoutesByTo {
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
+  '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -528,6 +537,7 @@ export interface FileRoutesById {
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
+  '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -590,6 +600,7 @@ export interface FileRouteTypes {
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
     | '/api/public/last-mile-chain'
+    | '/api/public/mobile-payment-sheet'
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -650,6 +661,7 @@ export interface FileRouteTypes {
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
     | '/api/public/last-mile-chain'
+    | '/api/public/mobile-payment-sheet'
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -710,6 +722,7 @@ export interface FileRouteTypes {
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
     | '/api/public/last-mile-chain'
+    | '/api/public/mobile-payment-sheet'
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -771,6 +784,7 @@ export interface RootRouteChildren {
   ApiPublicIndexnowRoute: typeof ApiPublicIndexnowRoute
   ApiPublicIntercityIntelRoute: typeof ApiPublicIntercityIntelRoute
   ApiPublicLastMileChainRoute: typeof ApiPublicLastMileChainRoute
+  ApiPublicMobilePaymentSheetRoute: typeof ApiPublicMobilePaymentSheetRoute
   ApiPublicPlanRoute: typeof ApiPublicPlanRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
@@ -1008,6 +1022,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPlanRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/mobile-payment-sheet': {
+      id: '/api/public/mobile-payment-sheet'
+      path: '/api/public/mobile-payment-sheet'
+      fullPath: '/api/public/mobile-payment-sheet'
+      preLoaderRoute: typeof ApiPublicMobilePaymentSheetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/last-mile-chain': {
       id: '/api/public/last-mile-chain'
       path: '/api/public/last-mile-chain'
@@ -1243,6 +1264,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIndexnowRoute: ApiPublicIndexnowRoute,
   ApiPublicIntercityIntelRoute: ApiPublicIntercityIntelRoute,
   ApiPublicLastMileChainRoute: ApiPublicLastMileChainRoute,
+  ApiPublicMobilePaymentSheetRoute: ApiPublicMobilePaymentSheetRoute,
   ApiPublicPlanRoute: ApiPublicPlanRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
