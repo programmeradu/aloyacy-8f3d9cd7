@@ -67,6 +67,26 @@ export default function RootLayout() {
     };
   }, [loaded]);
 
+  // Ask for App Tracking Transparency once, after fonts have settled so the
+  // system sheet doesn't fight the splash screen. iOS-only; Android + web
+  // short-circuit to "unavailable" inside the helper.
+  useEffect(() => {
+    if (!loaded) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { ensureTrackingDecision } = await import("@/lib/tracking");
+        if (cancelled) return;
+        await ensureTrackingDecision();
+      } catch (e) {
+        console.warn("[att] prompt threw", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loaded]);
+
   if (!loaded) return null;
 
   return (
