@@ -160,10 +160,13 @@ async function ingest() {
       Math.ceil(statDeltas.length / RPC_CHUNK_SIZE),
     );
 
-    const rpc = supabase.rpc as unknown as (
-      fn: string,
-      args: Record<string, unknown>,
-    ) => Promise<{ error: { message: string } | null }>;
+    // Bound: `supabase` is a lazy Proxy, so a detached `.rpc` reference
+    // would lose its receiver and throw on the internal `this.rest` access.
+    const rpc = (fn: string, args: Record<string, unknown>) =>
+      (supabase.rpc as unknown as (
+        f: string,
+        a: Record<string, unknown>,
+      ) => Promise<{ error: { message: string } | null }>).call(supabase, fn, args);
 
     for (let b = 0; b < batches; b++) {
       if (Date.now() > DEADLINE) {
