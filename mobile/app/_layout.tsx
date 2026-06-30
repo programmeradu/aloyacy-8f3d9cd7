@@ -46,6 +46,27 @@ export default function RootLayout() {
     if (loaded) SplashScreen.hideAsync();
   }, [loaded]);
 
+  // Register for native push on first launch. Best-effort — failures are
+  // logged but never block the UI; user can re-trigger from Settings.
+  useEffect(() => {
+    if (!loaded) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { registerForPushNotifications } = await import("@/lib/push");
+        const result = await registerForPushNotifications();
+        if (!cancelled && !result.ok) {
+          console.log("[push] not registered:", result.reason, result.message ?? "");
+        }
+      } catch (e) {
+        console.warn("[push] registration threw", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loaded]);
+
   if (!loaded) return null;
 
   return (
