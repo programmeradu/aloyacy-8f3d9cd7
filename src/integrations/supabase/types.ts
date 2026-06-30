@@ -380,6 +380,36 @@ export type Database = {
         }
         Relationships: []
       }
+      expo_push_tokens: {
+        Row: {
+          app_version: string | null
+          created_at: string
+          device_id: string
+          expo_token: string
+          id: string
+          last_seen_at: string
+          platform: string
+        }
+        Insert: {
+          app_version?: string | null
+          created_at?: string
+          device_id: string
+          expo_token: string
+          id?: string
+          last_seen_at?: string
+          platform: string
+        }
+        Update: {
+          app_version?: string | null
+          created_at?: string
+          device_id?: string
+          expo_token?: string
+          id?: string
+          last_seen_at?: string
+          platform?: string
+        }
+        Relationships: []
+      }
       feed_truth_delta: {
         Row: {
           day_of_week: number

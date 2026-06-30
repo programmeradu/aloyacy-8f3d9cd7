@@ -42,6 +42,7 @@ import { Route as ApiPublicLastMileChainRouteImport } from './routes/api/public/
 import { Route as ApiPublicIntercityIntelRouteImport } from './routes/api/public/intercity-intel'
 import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
 import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
+import { Route as ApiPublicExpoPushRegisterRouteImport } from './routes/api/public/expo-push-register'
 import { Route as ApiPublicBoltScooterRouteImport } from './routes/api/public/bolt-scooter'
 import { Route as ApiPublicBikeShareRouteImport } from './routes/api/public/bike-share'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -233,6 +234,12 @@ const ApiPublicGbfsDotjsonRoute = ApiPublicGbfsDotjsonRouteImport.update({
   path: '/api/public/gbfs.json',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicExpoPushRegisterRoute =
+  ApiPublicExpoPushRegisterRouteImport.update({
+    id: '/api/public/expo-push-register',
+    path: '/api/public/expo-push-register',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicBoltScooterRoute = ApiPublicBoltScooterRouteImport.update({
   id: '/api/public/bolt-scooter',
   path: '/api/public/bolt-scooter',
@@ -395,6 +402,7 @@ export interface FileRoutesByFullPath {
   '/trip/$id': typeof TripIdRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
@@ -454,6 +462,7 @@ export interface FileRoutesByTo {
   '/trip/$id': typeof TripIdRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
@@ -514,6 +523,7 @@ export interface FileRoutesById {
   '/trip/$id': typeof TripIdRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
@@ -575,6 +585,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
+    | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
@@ -634,6 +645,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
+    | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
@@ -693,6 +705,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
+    | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
@@ -753,6 +766,7 @@ export interface RootRouteChildren {
   TripIdRoute: typeof TripIdRoute
   ApiPublicBikeShareRoute: typeof ApiPublicBikeShareRoute
   ApiPublicBoltScooterRoute: typeof ApiPublicBoltScooterRoute
+  ApiPublicExpoPushRegisterRoute: typeof ApiPublicExpoPushRegisterRoute
   ApiPublicGbfsDotjsonRoute: typeof ApiPublicGbfsDotjsonRoute
   ApiPublicIndexnowRoute: typeof ApiPublicIndexnowRoute
   ApiPublicIntercityIntelRoute: typeof ApiPublicIntercityIntelRoute
@@ -1022,6 +1036,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGbfsDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/expo-push-register': {
+      id: '/api/public/expo-push-register'
+      path: '/api/public/expo-push-register'
+      fullPath: '/api/public/expo-push-register'
+      preLoaderRoute: typeof ApiPublicExpoPushRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/bolt-scooter': {
       id: '/api/public/bolt-scooter'
       path: '/api/public/bolt-scooter'
@@ -1217,6 +1238,7 @@ const rootRouteChildren: RootRouteChildren = {
   TripIdRoute: TripIdRoute,
   ApiPublicBikeShareRoute: ApiPublicBikeShareRoute,
   ApiPublicBoltScooterRoute: ApiPublicBoltScooterRoute,
+  ApiPublicExpoPushRegisterRoute: ApiPublicExpoPushRegisterRoute,
   ApiPublicGbfsDotjsonRoute: ApiPublicGbfsDotjsonRoute,
   ApiPublicIndexnowRoute: ApiPublicIndexnowRoute,
   ApiPublicIntercityIntelRoute: ApiPublicIntercityIntelRoute,
