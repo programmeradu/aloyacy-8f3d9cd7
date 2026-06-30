@@ -56,3 +56,19 @@ export function MoreIcon({ color, size = 24 }: IconProps) {
     </Svg>
   );
 }
+
+export function PlanIcon({ color, size = 24 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M5 18c2.5 0 2.5-4 5-4s2.5 4 5 4 4.5-4 4.5-4"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Circle cx={5} cy={7} r={1.8} stroke={color} strokeWidth={1.8} />
+      <Circle cx={19} cy={11} r={1.8} stroke={color} strokeWidth={1.8} />
+    </Svg>
+  );
+}
