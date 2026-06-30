@@ -38,8 +38,12 @@ import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sight
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
+import { Route as ApiPublicLastMileChainRouteImport } from './routes/api/public/last-mile-chain'
+import { Route as ApiPublicIntercityIntelRouteImport } from './routes/api/public/intercity-intel'
 import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
 import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
+import { Route as ApiPublicBoltScooterRouteImport } from './routes/api/public/bolt-scooter'
+import { Route as ApiPublicBikeShareRouteImport } from './routes/api/public/bike-share'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -209,6 +213,16 @@ const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
   path: '/api/public/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicLastMileChainRoute = ApiPublicLastMileChainRouteImport.update({
+  id: '/api/public/last-mile-chain',
+  path: '/api/public/last-mile-chain',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIntercityIntelRoute = ApiPublicIntercityIntelRouteImport.update({
+  id: '/api/public/intercity-intel',
+  path: '/api/public/intercity-intel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicIndexnowRoute = ApiPublicIndexnowRouteImport.update({
   id: '/api/public/indexnow',
   path: '/api/public/indexnow',
@@ -217,6 +231,16 @@ const ApiPublicIndexnowRoute = ApiPublicIndexnowRouteImport.update({
 const ApiPublicGbfsDotjsonRoute = ApiPublicGbfsDotjsonRouteImport.update({
   id: '/api/public/gbfs.json',
   path: '/api/public/gbfs.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBoltScooterRoute = ApiPublicBoltScooterRouteImport.update({
+  id: '/api/public/bolt-scooter',
+  path: '/api/public/bolt-scooter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBikeShareRoute = ApiPublicBikeShareRouteImport.update({
+  id: '/api/public/bike-share',
+  path: '/api/public/bike-share',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LovableEmailQueueProcessRoute =
@@ -369,8 +393,12 @@ export interface FileRoutesByFullPath {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/api/public/bike-share': typeof ApiPublicBikeShareRoute
+  '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
+  '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
+  '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -424,8 +452,12 @@ export interface FileRoutesByTo {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/api/public/bike-share': typeof ApiPublicBikeShareRoute
+  '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
+  '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
+  '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -480,8 +512,12 @@ export interface FileRoutesById {
   '/stop/$stopId': typeof StopStopIdRoute
   '/trip-info/$tripId': typeof TripInfoTripIdRoute
   '/trip/$id': typeof TripIdRoute
+  '/api/public/bike-share': typeof ApiPublicBikeShareRoute
+  '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
+  '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
+  '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
@@ -537,8 +573,12 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/api/public/bike-share'
+    | '/api/public/bolt-scooter'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
+    | '/api/public/intercity-intel'
+    | '/api/public/last-mile-chain'
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -592,8 +632,12 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/api/public/bike-share'
+    | '/api/public/bolt-scooter'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
+    | '/api/public/intercity-intel'
+    | '/api/public/last-mile-chain'
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -647,8 +691,12 @@ export interface FileRouteTypes {
     | '/stop/$stopId'
     | '/trip-info/$tripId'
     | '/trip/$id'
+    | '/api/public/bike-share'
+    | '/api/public/bolt-scooter'
     | '/api/public/gbfs.json'
     | '/api/public/indexnow'
+    | '/api/public/intercity-intel'
+    | '/api/public/last-mile-chain'
     | '/api/public/plan'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
@@ -703,8 +751,12 @@ export interface RootRouteChildren {
   StopStopIdRoute: typeof StopStopIdRoute
   TripInfoTripIdRoute: typeof TripInfoTripIdRoute
   TripIdRoute: typeof TripIdRoute
+  ApiPublicBikeShareRoute: typeof ApiPublicBikeShareRoute
+  ApiPublicBoltScooterRoute: typeof ApiPublicBoltScooterRoute
   ApiPublicGbfsDotjsonRoute: typeof ApiPublicGbfsDotjsonRoute
   ApiPublicIndexnowRoute: typeof ApiPublicIndexnowRoute
+  ApiPublicIntercityIntelRoute: typeof ApiPublicIntercityIntelRoute
+  ApiPublicLastMileChainRoute: typeof ApiPublicLastMileChainRoute
   ApiPublicPlanRoute: typeof ApiPublicPlanRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
@@ -942,6 +994,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPlanRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/last-mile-chain': {
+      id: '/api/public/last-mile-chain'
+      path: '/api/public/last-mile-chain'
+      fullPath: '/api/public/last-mile-chain'
+      preLoaderRoute: typeof ApiPublicLastMileChainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/intercity-intel': {
+      id: '/api/public/intercity-intel'
+      path: '/api/public/intercity-intel'
+      fullPath: '/api/public/intercity-intel'
+      preLoaderRoute: typeof ApiPublicIntercityIntelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/indexnow': {
       id: '/api/public/indexnow'
       path: '/api/public/indexnow'
@@ -954,6 +1020,20 @@ declare module '@tanstack/react-router' {
       path: '/api/public/gbfs.json'
       fullPath: '/api/public/gbfs.json'
       preLoaderRoute: typeof ApiPublicGbfsDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/bolt-scooter': {
+      id: '/api/public/bolt-scooter'
+      path: '/api/public/bolt-scooter'
+      fullPath: '/api/public/bolt-scooter'
+      preLoaderRoute: typeof ApiPublicBoltScooterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/bike-share': {
+      id: '/api/public/bike-share'
+      path: '/api/public/bike-share'
+      fullPath: '/api/public/bike-share'
+      preLoaderRoute: typeof ApiPublicBikeShareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/queue/process': {
@@ -1135,8 +1215,12 @@ const rootRouteChildren: RootRouteChildren = {
   StopStopIdRoute: StopStopIdRoute,
   TripInfoTripIdRoute: TripInfoTripIdRoute,
   TripIdRoute: TripIdRoute,
+  ApiPublicBikeShareRoute: ApiPublicBikeShareRoute,
+  ApiPublicBoltScooterRoute: ApiPublicBoltScooterRoute,
   ApiPublicGbfsDotjsonRoute: ApiPublicGbfsDotjsonRoute,
   ApiPublicIndexnowRoute: ApiPublicIndexnowRoute,
+  ApiPublicIntercityIntelRoute: ApiPublicIntercityIntelRoute,
+  ApiPublicLastMileChainRoute: ApiPublicLastMileChainRoute,
   ApiPublicPlanRoute: ApiPublicPlanRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
