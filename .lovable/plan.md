@@ -20,7 +20,7 @@ Infra: `@aloya/core` wired as a workspace dep in `mobile/package.json`; metro no
 5. ✅ **Stop screen rewire** (`mobile/app/stop/[stopId].tsx`) → SmartEtaV2 + DepartureRow + ghost-bus banner + haptics + pull-to-refresh. (SightingButton + ShareSheet deferred to Wave C.)
 6. ✅ **Home screen rewire** (`mobile/app/(tabs)/index.tsx`) → live ETAs via `smartEtaV2`, RN `StopCard` with tier chip + ConfidenceIcon, pull-to-refresh, feed-stale label, empty state. WeatherStamp, QuickStat tiles, NLPlannerCard, CommuteSuggestionCard, landmark chips deferred to Wave D polish.
 7. ✅ **Saved screen** (`mobile/app/(tabs)/saved.tsx`) → `useSavedPlaces`/`useRecents`, pin/unpin with haptics, RecentRow inline label editor, pro-gate via `useProSubscription`, native `NotificationsCard` (Expo perms + Linking to Settings), `OfflineSchedulesCard`, `GoProCard` upsell for free riders.
-8. **Plan screen** (`mobile/app/(tabs)/plan.tsx`) → Google Places autocomplete via `maps.functions`, time picker, `useQuery` + `refetchInterval`, ParkAndRideCard, KapnosShuttleCard, DustAdvisoryBanner, RemindMeButton, pro-gate.
+8. ✅ **Plan screen** (`mobile/app/(tabs)/plan.tsx`) → Google Places autocomplete (new `/api/public/places-autocomplete` + `/api/public/place`) with debounced suggestions, native datetime `TimePicker` (now / depart at / arrive by), `useQuery` + `refetchInterval: 30s` keyed off realtime tick, parallel `useQueries` for PnR/Kapnos/Dust/bike/scooter/chain. Native `ParkAndRideCardMobile`, `KapnosShuttleCardMobile`, `DustAdvisoryBannerMobile`, `RemindMeButtonMobile` (Expo local notifications + pro-gate via `useProSubscription`). Pull-to-refresh, feed-stale label, empty state.
 
 ## Wave C — Map + deep screens
 
