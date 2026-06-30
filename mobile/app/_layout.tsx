@@ -67,6 +67,16 @@ export default function RootLayout() {
     };
   }, [loaded]);
 
+  // Hydrate the local-first trip store (saved places, recents, active trip)
+  // from AsyncStorage as soon as the app shell is ready. Fire-and-forget —
+  // hooks render with empty state until hydration completes.
+  useEffect(() => {
+    if (!loaded) return;
+    void import("@/lib/trip-store").then(({ hydrateTripStore }) =>
+      hydrateTripStore(),
+    );
+  }, [loaded]);
+
   // Ask for App Tracking Transparency once, after fonts have settled so the
   // system sheet doesn't fight the splash screen. iOS-only; Android + web
   // short-circuit to "unavailable" inside the helper.

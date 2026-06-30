@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import * as Location from "expo-location";
 import { fetchRealtime, fetchStopsBundle } from "./api";
+import { setStops } from "./gtfs";
 
 export function useRealtime() {
   return useQuery({
@@ -13,12 +14,18 @@ export function useRealtime() {
 }
 
 export function useStopsBundle() {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["stops-bundle"],
     queryFn: fetchStopsBundle,
     staleTime: 24 * 60 * 60_000,
     gcTime: 24 * 60 * 60_000,
   });
+  // Mirror stops into the module-level registry so synchronous lookups
+  // (eta-v2, DepartureRow, MapView) work without prop-drilling.
+  useEffect(() => {
+    if (query.data?.stops) setStops(query.data.stops);
+  }, [query.data]);
+  return query;
 }
 
 export type Fix = { lat: number; lng: number; accuracyM: number } | null;
