@@ -41,7 +41,8 @@ export type JourneyOption = {
 
 export type {
   Itinerary,
-  ItineraryLeg,
+  Leg,
   RideLeg,
   WalkLeg,
+  WaitLeg,
 } from "@aloya/core/itinerary-types";
