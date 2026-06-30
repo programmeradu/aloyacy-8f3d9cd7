@@ -5,6 +5,7 @@ import { Card } from "@/components/Card";
 import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
 import { GoProCard } from "@/components/GoProCard";
 import { AuthCard } from "@/components/AuthCard";
+import { MotionCardCard } from "@/components/MotionCardCard";
 
 const ROWS = [
   { label: "Language", value: "English" },
@@ -70,6 +71,7 @@ export default function MoreScreen() {
         ))}
       </Card>
       <AuthCard />
+      <MotionCardCard />
       <GoProCard />
       <OfflineSchedulesCard />
     </ScrollView>
