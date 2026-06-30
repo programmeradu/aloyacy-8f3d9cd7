@@ -1,0 +1,27 @@
+{
+  "name": "@aloya/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./cities": "./src/cities.ts",
+    "./freshness": "./src/freshness.ts",
+    "./geo": "./src/geo.ts",
+    "./geo-fusion": "./src/geo-fusion.ts",
+    "./headsigns": "./src/headsigns.ts",
+    "./itinerary-rationale": "./src/itinerary-rationale.ts",
+    "./itinerary-types": "./src/itinerary-types.ts",
+    "./journey-copy": "./src/journey-copy.ts",
+    "./journey-phase": "./src/journey-phase.ts",
+    "./learned-types": "./src/learned-types.ts",
+    "./motion-pass": "./src/motion-pass.ts",
+    "./pulse-zones": "./src/pulse-zones.ts",
+    "./shapes": "./src/shapes.ts",
+    "./dictionaries/en": "./src/dictionaries/en.ts",
+    "./dictionaries/el": "./src/dictionaries/el.ts"
+  },
+  "dependencies": {
+    "@mapbox/polyline": "^1.2.1"
+  }
+}
