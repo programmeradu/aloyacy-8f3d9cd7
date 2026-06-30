@@ -6,8 +6,8 @@
 
 export type ExpoPushMessage = {
   to: string; // ExponentPushToken[...]
-  title: string;
-  body: string;
+  title?: string;
+  body?: string;
   data?: Record<string, unknown>;
   channelId?: string;
   sound?: "default" | null;
