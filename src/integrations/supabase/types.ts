@@ -1402,6 +1402,69 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_plan_shares: {
+        Row: {
+          arrival_unix: number
+          created_at: string
+          creator_name: string | null
+          departure_unix: number
+          destination_label: string
+          destination_lat: number
+          destination_lng: number
+          expires_at: string
+          id: string
+          legs: Json
+          note: string | null
+          origin_label: string
+          origin_lat: number
+          origin_lng: number
+          owner_id: string | null
+          token: string
+          total_duration_sec: number
+          transfers: number
+        }
+        Insert: {
+          arrival_unix: number
+          created_at?: string
+          creator_name?: string | null
+          departure_unix: number
+          destination_label: string
+          destination_lat: number
+          destination_lng: number
+          expires_at?: string
+          id?: string
+          legs: Json
+          note?: string | null
+          origin_label: string
+          origin_lat: number
+          origin_lng: number
+          owner_id?: string | null
+          token: string
+          total_duration_sec: number
+          transfers?: number
+        }
+        Update: {
+          arrival_unix?: number
+          created_at?: string
+          creator_name?: string | null
+          departure_unix?: number
+          destination_label?: string
+          destination_lat?: number
+          destination_lng?: number
+          expires_at?: string
+          id?: string
+          legs?: Json
+          note?: string | null
+          origin_label?: string
+          origin_lat?: number
+          origin_lng?: number
+          owner_id?: string | null
+          token?: string
+          total_duration_sec?: number
+          transfers?: number
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           accessibility_prefs: Json
