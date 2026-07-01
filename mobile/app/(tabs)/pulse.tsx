@@ -1016,7 +1016,7 @@ function NewsCard({ payload }: { payload: NewsPayload }) {
   const item = items[i];
   if (!item) return null;
   return (
-    <SignalCard tone={palette.aegeanDeep} kicker={`News · ${item.source}`}>
+    <SignalCard tone={palette.aegeanDeep} kicker={`News · ${item.source}`} image={assets.pulse_news_kafenion}>
       <Pressable
         onPress={async () => {
           await Haptics.selectionAsync();
