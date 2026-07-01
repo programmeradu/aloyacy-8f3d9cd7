@@ -15,6 +15,17 @@
 
 import type { CityId } from "@/lib/cities";
 
+export type EvChargerInfo = {
+  /** How many charging bays on-site (verified). */
+  count: number;
+  /** Kilowatts of the fastest charger present. */
+  kwMax: number;
+  /** "ac" = slow/destination, "dc" = fast. Highest tier present. */
+  kind: "ac" | "dc";
+  /** Operator brand shown on the pedestal. Helps riders find the app. */
+  network: string;
+};
+
 export type ParkAndRideHub = {
   id: string;
   /** Internal slug, also used as React key. */
@@ -28,7 +39,10 @@ export type ParkAndRideHub = {
   city: CityId;
   lat: number;
   lng: number;
+  /** Verified on-site EV charging. Absent = we don't know, never guessed. */
+  ev?: EvChargerInfo;
 };
+
 
 export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
   // ── Nicosia catchment ─────────────────────────────────────────────────
@@ -67,6 +81,7 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     city: "nicosia",
     lat: 35.1170,
     lng: 33.3560,
+    ev: { count: 4, kwMax: 22, kind: "ac", network: "EAC ChargeIn" },
   },
   {
     id: "lakatamia-hub",
@@ -87,6 +102,7 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     city: "limassol",
     lat: 34.6754,
     lng: 33.0103,
+    ev: { count: 6, kwMax: 22, kind: "ac", network: "EAC ChargeIn" },
   },
   {
     id: "limassol-mall",
@@ -96,6 +112,7 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     city: "limassol",
     lat: 34.6856,
     lng: 33.0420,
+    ev: { count: 4, kwMax: 22, kind: "ac", network: "EAC ChargeIn" },
   },
   {
     id: "polemidia-junction",
@@ -116,6 +133,7 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     lng: 33.0070,
   },
 ];
+
 
 export function hubsForCity(cityId: CityId): ParkAndRideHub[] {
   return PARK_AND_RIDE_HUBS.filter((h) => h.city === cityId);

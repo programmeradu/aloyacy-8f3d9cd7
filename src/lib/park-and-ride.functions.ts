@@ -44,7 +44,14 @@ export type ParkAndRideSuggestion = {
     note?: string;
     lat: number;
     lng: number;
+    ev?: {
+      count: number;
+      kwMax: number;
+      kind: "ac" | "dc";
+      network: string;
+    };
   };
+
   driveSec: number;
   driveMeters: number;
   bus: {
@@ -229,6 +236,7 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
         note: top.c.hub.note,
         lat: top.c.hub.lat,
         lng: top.c.hub.lng,
+        ev: top.c.hub.ev,
       },
       driveSec: top.drive.durationSec,
       driveMeters: top.drive.distanceMeters,

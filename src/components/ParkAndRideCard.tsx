@@ -119,6 +119,30 @@ export function ParkAndRideCard({
         </p>
       )}
 
+      {suggestion.hub.ev && (
+        <section className="rounded-2xl bg-olive-soft/40 ring-1 ring-olive/30 p-3.5 flex flex-col gap-1.5">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive-deep">
+            {t("pnr.evLabel")}
+          </p>
+          <p className="font-display text-[15px] leading-snug text-ink text-balance">
+            {t("pnr.evLine", {
+              count: suggestion.hub.ev.count,
+              kw: suggestion.hub.ev.kwMax,
+              kind: t(
+                suggestion.hub.ev.kind === "dc"
+                  ? "pnr.evKindDc"
+                  : "pnr.evKindAc",
+              ),
+              network: suggestion.hub.ev.network,
+            })}
+          </p>
+          <p className="font-sans text-[12px] leading-snug text-ink-soft">
+            {t("pnr.evHint")}
+          </p>
+        </section>
+      )}
+
+
       <a
         href={mapsHref}
         target="_blank"
