@@ -247,7 +247,12 @@ export function BoltScooterCardMobile({ s }: { s: BoltScooterSuggestion }) {
       : "Bolt scooter is legal here";
   return (
     <Card style={{ padding: 20 }}>
-      <Eyebrow>E-SCOOTER · NICOSIA</Eyebrow>
+      <OperatorHeader
+        source={assets.bolt_logo}
+        name="Bolt"
+        eyebrow="E-scooter · Nicosia"
+        logoWidth={52}
+      />
       <Text
         style={{
           fontFamily: "BricolageGrotesque_800ExtraBold",
