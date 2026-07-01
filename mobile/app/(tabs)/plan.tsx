@@ -615,3 +615,177 @@ export default function PlanScreen() {
     </View>
   );
 }
+
+function FieldRow({
+  icon,
+  label,
+  value,
+  placeholder,
+  onPress,
+  accessory,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  placeholder?: boolean;
+  onPress: () => void;
+  accessory?: React.ReactNode;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [planStyles.field, pressed && { backgroundColor: palette.limestoneSoft }]}
+    >
+      <View style={planStyles.fieldIcon}>{icon}</View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={planStyles.fieldLabel}>{label}</Text>
+        <Text
+          style={[planStyles.fieldValue, placeholder && { color: palette.inkSoft }]}
+          numberOfLines={2}
+        >
+          {value}
+        </Text>
+      </View>
+      {accessory ?? (
+        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+          <Path d="m9 6 6 6-6 6" stroke={palette.inkSoft} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
+      )}
+    </Pressable>
+  );
+}
+
+const planStyles = StyleSheet.create({
+  hero: {
+    marginHorizontal: 20,
+    marginTop: 4,
+    height: 200,
+    borderRadius: 24,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: palette.line,
+    justifyContent: "flex-end",
+  },
+  heroWash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(31,30,24,0.35)",
+  },
+  heroContent: {
+    padding: 20,
+    gap: 6,
+  },
+  heroKicker: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 10,
+    letterSpacing: 2.6,
+    color: palette.limestone,
+    opacity: 0.9,
+  },
+  heroTitle: {
+    fontFamily: "BricolageGrotesque_800ExtraBold",
+    fontSize: 30,
+    lineHeight: 32,
+    letterSpacing: -0.8,
+    color: palette.limestone,
+  },
+  heroSub: {
+    fontFamily: "Geist_500Medium",
+    fontSize: 13,
+    color: palette.limestone,
+    opacity: 0.85,
+  },
+  heroBadge: {
+    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: "rgba(246,241,231,0.18)",
+  },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  heroBadgeText: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 9.5,
+    letterSpacing: 1.4,
+    color: palette.limestone,
+  },
+  formCard: {
+    backgroundColor: palette.white,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: palette.line,
+    padding: 6,
+  },
+  field: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+  },
+  fieldIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.limestoneSoft,
+  },
+  fieldLabel: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 9.5,
+    letterSpacing: 1.8,
+    color: palette.inkSoft,
+  },
+  fieldValue: {
+    fontFamily: "Geist_600SemiBold",
+    fontSize: 15.5,
+    color: palette.ink,
+    marginTop: 3,
+    letterSpacing: -0.2,
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 14,
+    gap: 8,
+  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: palette.line },
+  swapBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.white,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  locateBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: palette.ink,
+    minWidth: 92,
+    justifyContent: "center",
+  },
+  locateBtnText: {
+    fontFamily: "Geist_600SemiBold",
+    fontSize: 11,
+    color: palette.limestone,
+    letterSpacing: 0.2,
+  },
+  locErr: {
+    marginTop: 10,
+    fontFamily: "Geist_500Medium",
+    fontSize: 12,
+    color: palette.ochre,
+  },
+});
