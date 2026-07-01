@@ -2,8 +2,7 @@ import { View, Text, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { palette } from "@/constants/theme";
 import { Card } from "@/components/Card";
-import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
-import { GoProCard } from "@/components/GoProCard";
+import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
 import { AuthCard } from "@/components/AuthCard";
 import { MotionCardCard } from "@/components/MotionCardCard";
 
