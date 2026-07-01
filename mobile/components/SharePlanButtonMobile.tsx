@@ -8,7 +8,7 @@ import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import { palette } from "@/constants/theme";
 import { API_BASE } from "@/lib/api";
-import type { Itinerary } from "@aloya/core/itinerary-types";
+import type { Itinerary } from "@/lib/plan";
 
 const PUBLIC_BASE = "https://app.aloya.cy";
 
