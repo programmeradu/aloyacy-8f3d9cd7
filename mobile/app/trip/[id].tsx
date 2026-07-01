@@ -38,6 +38,7 @@ import {
 import { useRealtime } from "@/lib/hooks";
 import { fetchWalkingDirections } from "@/lib/walk";
 import { useJourney, type LivePhase } from "@/lib/useJourney";
+import { useTrafficWatch } from "@/lib/useTrafficWatch";
 
 type Phase =
   | "leave-soon"
@@ -246,6 +247,25 @@ function SingleLegCompanion({
     }
     return out;
   }, [walkingPhase, active, view]);
+
+  // Wave 3 · CyNAP incident overlay for the trip map — only the hits that
+  // fall on this trip's corridor, mirroring the banner.
+  const trafficAlert = useTrafficWatch(active);
+  const trafficIncidents = useMemo(() => {
+    if (!trafficAlert) return [];
+    return trafficAlert.incidents
+      .filter((i) => i.lat != null && i.lng != null)
+      .map((i) => ({
+        id: i.id,
+        lat: i.lat as number,
+        lng: i.lng as number,
+        severity: i.severity,
+        headline: i.headline,
+        road: i.road,
+        kind: i.kind,
+      }));
+  }, [trafficAlert]);
+
 
   // Early returns — after all hooks.
   if (!active && !hydrated) {
@@ -466,6 +486,7 @@ function SingleLegCompanion({
           focusRouteId={bus.routeId}
           vehicleOverrides={vehicleOverrides}
           userLocation={userLocation}
+          trafficIncidents={trafficIncidents}
           fitToContent
         />
       </View>
