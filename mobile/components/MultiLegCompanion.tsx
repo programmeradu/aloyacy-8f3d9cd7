@@ -47,7 +47,9 @@ import {
   type MultiLegLive,
 } from "@/lib/useMultiLegJourney";
 import { useDisruptionWatch, type DisruptionKind } from "@/lib/useDisruptionWatch";
+import { useTrafficWatch } from "@/lib/useTrafficWatch";
 import { DisruptionBanner } from "@/components/DisruptionBanner";
+import { TrafficRouteBanner } from "@/components/TrafficRouteBanner";
 import { fetchWalkingDirections } from "@/lib/walk";
 import { distanceM } from "@aloya/core/geo";
 import type {
@@ -83,6 +85,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const itin = active.itinerary!;
   const live = useMultiLegJourney(active);
   const disruption = useDisruptionWatch(active, live);
+  const trafficAlert = useTrafficWatch(active);
   const [replanKind, setReplanKind] = useState<DisruptionKind | "early-alight" | null>(null);
 
   // ---- Walk directions for the current walk leg (lazy per-leg) -----------
@@ -288,6 +291,9 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           <PhaseSub live={live} itin={itin} destLabel={active.to.label} />
         </View>
       </View>
+      {/* Traffic-on-route (CyNAP DATEX II) — corridor-scoped */}
+      {trafficAlert && <TrafficRouteBanner alert={trafficAlert} />}
+
       {/* Proactive disruption assistant — opens inline replan sheet */}
       <DisruptionBanner
         signal={disruption}
