@@ -40,6 +40,15 @@ export type VehicleOverride = {
   lat: number; lng: number; bearing?: number; routeId?: string;
   label?: string; source?: "feed" | "rider" | "feed+rider" | "synthetic";
 };
+export type TrafficIncidentMarker = {
+  id: string;
+  lat: number;
+  lng: number;
+  severity: "low" | "medium" | "high";
+  headline?: string;
+  road?: string | null;
+  kind?: string;
+};
 export type MapViewProps = {
   height?: number;
   center?: { lat: number; lng: number };
@@ -53,6 +62,7 @@ export type MapViewProps = {
   vehicleOverrides?: Record<string, VehicleOverride>;
   userLocation?: { lat: number; lng: number } | null;
   fitToContent?: boolean;
+  trafficIncidents?: TrafficIncidentMarker[];
 };
 
 declare global {
