@@ -48,7 +48,7 @@ export function useShareEta(opts: {
     if (creating) return null;
     setCreating(true);
     try {
-      const token = Crypto.randomUUID().replace(/-/g, "");
+      const token = randomToken();
       const { data: { user } } = await supabase.auth.getUser();
       const { error } = await supabase.from("shared_trips").insert({
         token,
