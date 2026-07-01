@@ -9,7 +9,7 @@
 // Kept intentionally simple: no on-device LLM. The heavy AI parsing lives
 // server-side; the mobile card just captures intent and routes.
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -23,12 +23,20 @@ import {
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
+import {
+  AudioModule,
+  RecordingPresets,
+  useAudioRecorder,
+  useAudioRecorderState,
+} from "expo-audio";
+import * as FileSystem from "expo-file-system/legacy";
 import Svg, { Path } from "react-native-svg";
 
 import { palette } from "@/constants/theme";
 import { assets } from "@/lib/assets";
 import { useGeoFix } from "@/lib/hooks";
 import { resolveAskAloya } from "@/lib/nl-planner";
+import { API_BASE } from "@/lib/api";
 
 const SUGGESTIONS = [
   "To Eleftheria Square in 20 min",
@@ -41,7 +49,13 @@ export function AskAloyaCard() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
   const { fix } = useGeoFix();
+
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorderState = useAudioRecorderState(recorder);
+  const isRecording = recorderState.isRecording;
+  const permissionAsked = useRef(false);
 
   const submit = useCallback(
     async (value: string) => {
@@ -84,6 +98,90 @@ export function AskAloyaCard() {
     [busy, fix?.lat, fix?.lng],
   );
 
+  const toggleMic = useCallback(async () => {
+    if (busy || transcribing) return;
+    if (isRecording) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      try {
+        await recorder.stop();
+      } catch {
+        setError("Recording failed. Try again.");
+        return;
+      }
+      const uri = recorder.uri;
+      if (!uri) {
+        setError("Recording failed. Try again.");
+        return;
+      }
+      setTranscribing(true);
+      setError(null);
+      try {
+        const info = await FileSystem.getInfoAsync(uri);
+        if (!info.exists || (info.size ?? 0) < 2048) {
+          setError("That was too short — hold to record.");
+          setTranscribing(false);
+          return;
+        }
+        const form = new FormData();
+        // React Native FormData accepts the { uri, name, type } shape.
+        form.append(
+          "file",
+          {
+            uri,
+            name: uri.split("/").pop() ?? "recording.m4a",
+            type: "audio/m4a",
+          } as unknown as Blob,
+        );
+        const res = await fetch(`${API_BASE}/api/public/stt`, {
+          method: "POST",
+          body: form,
+        });
+        if (!res.ok) throw new Error(`STT ${res.status}`);
+        const data = (await res.json()) as { text?: string };
+        const heard = (data.text ?? "").trim();
+        if (!heard) {
+          setError("Didn't catch that — try again.");
+        } else {
+          setText(heard);
+          Haptics.notificationAsync(
+            Haptics.NotificationFeedbackType.Success,
+          ).catch(() => {});
+          void submit(heard);
+        }
+      } catch {
+        setError("Couldn't transcribe. Try again.");
+      } finally {
+        setTranscribing(false);
+      }
+      return;
+    }
+    // start recording
+    if (!permissionAsked.current) {
+      permissionAsked.current = true;
+      const perm = await AudioModule.requestRecordingPermissionsAsync();
+      if (!perm.granted) {
+        setError("Microphone permission is needed for voice input.");
+        return;
+      }
+    }
+    setError(null);
+    Haptics.selectionAsync().catch(() => {});
+    try {
+      await recorder.prepareToRecordAsync();
+      await recorder.record();
+    } catch {
+      setError("Couldn't start recording.");
+    }
+  }, [busy, transcribing, isRecording, recorder, submit]);
+
+  useEffect(() => {
+    return () => {
+      if (recorder.isRecording) {
+        recorder.stop().catch(() => {});
+      }
+    };
+  }, [recorder]);
+
 
   return (
     <View style={styles.card}>
@@ -125,6 +223,39 @@ export function AskAloyaCard() {
           maxLength={200}
           editable={!busy}
         />
+        <Pressable
+          onPress={toggleMic}
+          disabled={busy || transcribing}
+          style={({ pressed }) => [
+            styles.mic,
+            isRecording && { backgroundColor: palette.ochre },
+            (busy || transcribing) && { opacity: 0.5 },
+            pressed && { opacity: 0.85 },
+          ]}
+          hitSlop={8}
+          accessibilityLabel={isRecording ? "Stop recording" : "Voice input"}
+        >
+          {transcribing ? (
+            <ActivityIndicator size="small" color={palette.ink} />
+          ) : isRecording ? (
+            <Svg width={12} height={12} viewBox="0 0 24 24">
+              <Path d="M6 6h12v12H6z" fill={palette.limestone} />
+            </Svg>
+          ) : (
+            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"
+                fill={palette.ink}
+              />
+              <Path
+                d="M5 11a7 7 0 0 0 14 0M12 18v3"
+                stroke={palette.ink}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+          )}
+        </Pressable>
         <Pressable
           onPress={() => submit(text)}
           disabled={text.trim().length < 3 || busy}
@@ -262,6 +393,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     transform: [{ rotate: "45deg" }],
+  },
+  mic: {
+    width: 36,
+    height: 36,
+    marginRight: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.limestone,
+    alignItems: "center",
+    justifyContent: "center",
   },
   chipsRow: {
     paddingHorizontal: 20,
