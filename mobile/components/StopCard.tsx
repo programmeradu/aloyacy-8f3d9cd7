@@ -77,39 +77,32 @@ export function StopCard({ stop }: { stop: StopCardData }) {
         backgroundColor: palette.white,
         borderWidth: 1,
         borderColor: palette.line,
-        padding: 18,
         transform: [{ translateY: pressed ? -1 : 0 }],
       })}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 14,
-        }}
-      >
-        <View style={{ flex: 1, minWidth: 0, gap: 10 }}>
-          <View>
+      {/* Editorial photo wash on the right edge — the shelter photograph
+          leans into the card so the composition feels rooted in place. */}
+      <Image
+        source={assets.stop_shelter}
+        style={cardStyles.washImage}
+        resizeMode="cover"
+        pointerEvents="none"
+      />
+      <View style={cardStyles.washTint} pointerEvents="none" />
+      {/* Left rail — accent colour drives from the freshness tier. */}
+      <View style={[cardStyles.rail, { backgroundColor: accent }]} pointerEvents="none" />
+
+      <View style={{ padding: 18, paddingLeft: 22, flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 14 }}>
+        <View style={{ flex: 1, minWidth: 0, gap: 12 }}>
+          <View style={{ gap: 6 }}>
+            <StopCode code={stop.code} />
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
-                fontSize: 9.5,
-                letterSpacing: 1.8,
-                color: "rgba(90,87,78,0.7)",
-                textTransform: "uppercase",
-              }}
-            >
-              Stop {stop.code}
-            </Text>
-            <Text
-              style={{
-                fontFamily: "BricolageGrotesque_700Bold",
-                fontSize: 20,
-                lineHeight: 24,
-                letterSpacing: -0.3,
+                fontFamily: "BricolageGrotesque_800ExtraBold",
+                fontSize: 21,
+                lineHeight: 25,
+                letterSpacing: -0.4,
                 color: palette.ink,
-                marginTop: 2,
               }}
               numberOfLines={2}
             >
@@ -120,13 +113,14 @@ export function StopCard({ stop }: { stop: StopCardData }) {
                 fontFamily: "Geist_500Medium",
                 fontSize: 12,
                 color: palette.inkSoft,
-                marginTop: 4,
+                letterSpacing: -0.1,
               }}
               numberOfLines={1}
             >
               {stop.towards}
             </Text>
           </View>
+
 
           <RouteList routes={stop.routes} />
         </View>
