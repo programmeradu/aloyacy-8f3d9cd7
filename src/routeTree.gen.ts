@@ -214,6 +214,12 @@ const ApiPublicRouteReliabilityRoute =
     path: '/api/public/route-reliability',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicWalkDirectionsRoute =
+  ApiPublicWalkDirectionsRouteImport.update({
+    id: '/api/public/walk-directions',
+    path: '/api/public/walk-directions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicRiderFixRoute = ApiPublicRiderFixRouteImport.update({
   id: '/api/public/rider-fix',
   path: '/api/public/rider-fix',
