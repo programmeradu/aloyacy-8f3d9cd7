@@ -71,8 +71,8 @@ export default function MoreScreen() {
       </Card>
       <AuthCard />
       <MotionCardCard />
-      <GoProCard />
-      <OfflineSchedulesCard />
-    </ScrollView>
+      <View style={{ marginTop: 18 }}>
+        <ProFeaturesUpsell />
+      </View>
   );
 }
