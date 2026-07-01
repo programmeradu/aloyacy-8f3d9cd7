@@ -15,6 +15,7 @@ import {
   ScrollView, View, Text, Pressable, RefreshControl, StyleSheet, Alert,
   Platform, Linking,
 } from "react-native";
+import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { palette } from "@/constants/theme";
@@ -37,6 +38,7 @@ import {
 } from "@/lib/motionPass";
 import { jccLogin, jccRefresh, jccSync, verifyMotionCard, getMotionCardOptions } from "@/lib/walletApi";
 import { timeAgo } from "@/lib/walletFormat";
+import { FadeSection } from "@/components/FadeSection";
 
 const fareUrban = require("@/assets/wallet/fare-urban.jpg");
 const fareNight = require("@/assets/wallet/fare-night.jpg");
@@ -318,22 +320,22 @@ export default function WalletScreen() {
           </View>
 
           {/* Fare grid */}
-          <View style={{ paddingHorizontal: 22, marginTop: 24 }}>
+          <FadeSection index={0} style={{ paddingHorizontal: 22, marginTop: 24 }}>
             <View style={{ flexDirection: "row", gap: 10 }}>
               <FareTile label="Urban" value="€1.50" sub="90 min" image={fareUrban} />
               <FareTile label="Night" value="€2.50" sub="21:00–05:00" image={fareNight} tone="dark" />
               <FareTile label="Intercity" value="€7.00" sub="single ride" image={fareIntercity} />
             </View>
-          </View>
+          </FadeSection>
 
           {/* History */}
-          <View style={{ paddingHorizontal: 22, marginTop: 28 }}>
+          <FadeSection index={1} style={{ paddingHorizontal: 22, marginTop: 28 }}>
             {linked ? (
               <TransactionList transactions={pass.transactions} />
             ) : (
               <TopupHistory pass={pass} />
             )}
-          </View>
+          </FadeSection>
         </>
       ) : (
         <View style={{ paddingHorizontal: 22, marginTop: 22 }}>
@@ -348,28 +350,23 @@ export default function WalletScreen() {
       )}
 
       {/* Account + settings — moved here from the retired More tab. */}
-      <View style={{ paddingHorizontal: 22, marginTop: 34 }}>
+      <FadeSection index={2} style={{ paddingHorizontal: 22, marginTop: 34 }}>
         <Text style={styles.sectionEyebrow}>ACCOUNT · SETTINGS</Text>
         <AuthCard />
         <NotificationsCard />
         <OfflineSchedulesCard />
-      </View>
+      </FadeSection>
 
       <View style={{ paddingHorizontal: 22, marginTop: 20 }}>
+        <SettingsRow
+          label="App settings"
+          value="Language · Notifications · Legal"
+          onPress={() => router.push("/settings")}
+        />
         <SettingsRow
           label="About Aloya"
           value="v0.1"
           onPress={() => void Linking.openURL("https://app.aloya.cy/about")}
-        />
-        <SettingsRow
-          label="Privacy"
-          value="Read"
-          onPress={() => void Linking.openURL("https://app.aloya.cy/privacy")}
-        />
-        <SettingsRow
-          label="Terms"
-          value="Read"
-          onPress={() => void Linking.openURL("https://app.aloya.cy/terms")}
         />
       </View>
 

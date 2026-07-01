@@ -144,6 +144,10 @@ export default function RootLayout() {
             name="route/[routeId]"
             options={{ presentation: "card" }}
           />
+          <Stack.Screen
+            name="settings"
+            options={{ presentation: "card", animation: "slide_from_bottom" }}
+          />
         </Stack>
       </SafeAreaProvider>
     </QueryClientProvider>
