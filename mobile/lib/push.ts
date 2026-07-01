@@ -57,7 +57,11 @@ export type RegisterResult =
   | { ok: false; reason: "unsupported" | "denied" | "no-project-id" | "error"; message?: string };
 
 export async function registerForPushNotifications(): Promise<RegisterResult> {
+  // Web push requires a VAPID key we don't ship — treat as unsupported
+  // to keep the console clean. Native builds proceed normally.
+  if (Platform.OS === "web") return { ok: false, reason: "unsupported" };
   if (!Device.isDevice) return { ok: false, reason: "unsupported" };
+
 
   await ensureAndroidChannel();
 
