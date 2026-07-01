@@ -592,7 +592,25 @@ export default function PlanScreen() {
             ) : (
               result.itineraries.map((it, idx) => (
                 <View key={it.id} style={{ gap: 10 }}>
-                  <ItineraryCard itinerary={it} />
+                  <ItineraryCard
+                    itinerary={it}
+                    onStart={(chosen) =>
+                      destination &&
+                      startItinerary(
+                        chosen,
+                        {
+                          lat: effectiveOrigin.lat,
+                          lng: effectiveOrigin.lng,
+                          label: effectiveOrigin.label,
+                        },
+                        {
+                          lat: destination.lat,
+                          lng: destination.lng,
+                          label: destination.label,
+                        },
+                      )
+                    }
+                  />
                   {idx === 0 && destination && (
                     <RemindMeButtonMobile
                       itinerary={it}
