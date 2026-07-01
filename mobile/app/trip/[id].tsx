@@ -26,6 +26,7 @@ import * as Haptics from "expo-haptics";
 
 import { palette } from "@/constants/theme";
 import { MapView, type MapMarker, type VehicleOverride } from "@/components/MapView";
+import { ExpandableMap } from "@/components/ExpandableMap";
 import { JourneyHUD } from "@/components/JourneyHUD";
 import { WalkGuidance } from "@/components/WalkGuidance";
 import { RouteChip } from "@/components/RouteChip";
@@ -473,7 +474,7 @@ function SingleLegCompanion({
 
       {/* Live map */}
       <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
-        <MapView
+        <ExpandableMap
           height={220}
           spanKm={1.5}
           center={{
