@@ -279,16 +279,8 @@ export default function TodayScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={palette.aegeanDeep} />
       }
     >
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.logo}>ALOYA CY</Text>
-          <Text style={styles.locale}>EN  ΕΛ  RU</Text>
-        </View>
-        <View style={styles.weatherStamp}>
-          <Text style={styles.weatherDay}>WED</Text>
-          <WeatherGlyph />
-        </View>
-      </View>
+      <HomeHeader here={fix ? { lat: fix.lat, lng: fix.lng } : null} />
+
 
       <View style={styles.heroWrap}>
         <Text style={styles.heroTitle}>
@@ -360,19 +352,23 @@ export default function TodayScreen() {
       </ScrollView>
 
       <View style={styles.mapBand}>
-        <MapView
+        <ExpandableMap
           height={238}
           center={here}
           markers={mapMarkers}
           userLocation={fix ? { lat: fix.lat, lng: fix.lng } : null}
           liveVehicles
-          spanKm={9}
+          spanKm={2.2}
+          fitToContent={false}
+          overlay={
+            <View pointerEvents="none" style={styles.mapOverlay}>
+              <Text style={styles.mapKicker}>{usingFallback ? "Nicosia preview" : "Around you"}</Text>
+              <Text style={styles.mapTitle}>{area}</Text>
+            </View>
+          }
         />
-        <View pointerEvents="none" style={styles.mapOverlay}>
-          <Text style={styles.mapKicker}>{usingFallback ? "Nicosia preview" : "Around you"}</Text>
-          <Text style={styles.mapTitle}>{area}</Text>
-        </View>
       </View>
+
 
       <View style={styles.statsGrid}>
         <QuickStat label="Live buses" value={liveCount ? String(liveCount) : "—"} tone="aegean" image={assets.stat_bus} />
