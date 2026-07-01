@@ -13,7 +13,6 @@ export default defineConfig({
     ],
     // The Expo app has its own runtime and is exercised separately.
     exclude: ["node_modules/**", "mobile/**", ".output/**", "dist/**"],
-    environmentMatchGlobs: [["src/**/*.dom.test.{ts,tsx}", "jsdom"]],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],

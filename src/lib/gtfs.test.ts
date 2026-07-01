@@ -24,8 +24,8 @@ describe("distanceKm", () => {
 
   it("matches the known Nicosia → Larnaca distance", () => {
     const km = distanceKm({ lat: 35.174, lng: 33.365 }, { lat: 34.9183, lng: 33.6354 });
-    expect(km).toBeGreaterThan(38);
-    expect(km).toBeLessThan(39.5);
+    expect(km).toBeGreaterThan(37.2);
+    expect(km).toBeLessThan(38);
   });
 });
 

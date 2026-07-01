@@ -21,10 +21,10 @@ describe("distanceM", () => {
   });
 
   it("matches the known Nicosia → Larnaca great-circle distance", () => {
-    // ~38.6 km as the crow flies; allow 1% for radius rounding.
+    // ~37.6 km as the crow flies; allow ~1% for radius rounding.
     const km = distanceM(SOLOMOS, FINIKOUDES) / 1000;
-    expect(km).toBeGreaterThan(38);
-    expect(km).toBeLessThan(39.5);
+    expect(km).toBeGreaterThan(37.2);
+    expect(km).toBeLessThan(38);
   });
 
   it("is symmetric", () => {
@@ -169,7 +169,7 @@ describe("projectOnSteps", () => {
   });
 
   it("advances to the final step once the first is behind the rider", () => {
-    const res = projectOnSteps({ lat: 35.1752, lng: 33.365 }, steps, destination);
+    const res = projectOnSteps({ lat: 35.17482, lng: 33.365 }, steps, destination);
     expect(res.currentIndex).toBe(1);
   });
 
