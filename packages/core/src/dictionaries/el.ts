@@ -421,6 +421,11 @@ export const el: Record<keyof typeof en, string> = {
   "pnr.eyebrowTraffic": "Park & ride — {m} λεπτά γρηγορότερα τώρα",
   "pnr.whyLabel": "Γιατί το προτείνουμε",
   "pnr.whyTrafficLine": "Η κίνηση τώρα κάνει την απευθείας οδήγηση {delay} λεπτά πιο αργή από το συνηθισμένο ({pct}%). Με αυτοκίνητο μέχρι μέσα θα έπαιρνε γύρω στα {direct} λεπτά.",
+  "pnr.evLabel": "Φόρτιση EV στον χώρο",
+  "pnr.evLine": "{count} θέσεις {kind} έως {kw} kW — {network}",
+  "pnr.evKindAc": "AC",
+  "pnr.evKindDc": "ταχείας DC",
+  "pnr.evHint": "Βάλτε στην πρίζα, πάρτε το λεωφορείο, γυρίστε σε γεμάτο αυτοκίνητο.",
 
   // chain — μετάβαση με ταξί για το τελευταίο κομμάτι (Wave 3)
   "chain.eyebrowLongLate": "Τελευταίο κομμάτι — μετά τις 21:00",
