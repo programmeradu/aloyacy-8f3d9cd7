@@ -172,41 +172,49 @@ export default function StopDetailScreen() {
         </Text>
       ) : null}
 
-      {ghostFirst ? (
-        <View
-          style={{
-            marginTop: 20,
-            borderRadius: 20,
-            backgroundColor: palette.ochreSoft,
-            borderWidth: 1,
-            borderColor: "rgba(201,133,58,0.35)",
-            paddingHorizontal: 18,
-            paddingVertical: 14,
-          }}
-        >
-          <Text
+      {ghostFirst && stop ? (
+        <View style={{ marginTop: 20, gap: 12 }}>
+          <View
             style={{
-              fontFamily: "Geist_700Bold",
-              fontSize: 10,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: palette.ink,
+              borderRadius: 20,
+              backgroundColor: palette.ochreSoft,
+              borderWidth: 1,
+              borderColor: "rgba(201,133,58,0.35)",
+              paddingHorizontal: 18,
+              paddingVertical: 14,
             }}
           >
-            Bus missing from feed
-          </Text>
-          <Text
-            style={{
-              marginTop: 4,
-              fontFamily: "Geist_500Medium",
-              fontSize: 13,
-              lineHeight: 19,
-              color: palette.inkSoft,
-            }}
-          >
-            The operator stopped reporting this bus. We're showing the scheduled
-            time. Tap to confirm if you spot it.
-          </Text>
+            <Text
+              style={{
+                fontFamily: "Geist_700Bold",
+                fontSize: 10,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                color: palette.ink,
+              }}
+            >
+              Bus missing from feed
+            </Text>
+            <Text
+              style={{
+                marginTop: 4,
+                fontFamily: "Geist_500Medium",
+                fontSize: 13,
+                lineHeight: 19,
+                color: palette.inkSoft,
+              }}
+            >
+              The operator stopped reporting this bus. We're showing the
+              scheduled time. Tap below to confirm if you spot it.
+            </Text>
+          </View>
+          <SightingButton
+            tripId={departures[0].tripId}
+            routeId={departures[0].routeId}
+            stopId={stopId}
+            lat={stop.lat}
+            lng={stop.lng}
+          />
         </View>
       ) : null}
 
