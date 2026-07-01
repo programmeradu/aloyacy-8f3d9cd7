@@ -208,13 +208,13 @@ export default function StopDetailScreen() {
               spanKm={2}
               markers={[
                 {
-                  id: `stop-${stop.id}`,
                   lat: stop.lat,
                   lng: stop.lng,
                   kind: "origin",
                   label: stop.name,
-                } as MapMarker,
+                },
               ]}
+
               restrictTripIds={
                 departures.length ? departures.map((d) => d.tripId) : undefined
               }
