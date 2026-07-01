@@ -35,7 +35,12 @@ const schema = z.object({
   email: z.string().email().max(254).optional(),
   planKey: z.enum(["pro_weekly", "pro_monthly"]),
   environment: z.enum(["sandbox", "live"]).default("sandbox"),
+  deviceId: z.string().min(6).max(128).optional(),
+  promotionCode: z.string().min(1).max(64).optional(),
 });
+
+const TRIAL_DAYS = 7;
+
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
