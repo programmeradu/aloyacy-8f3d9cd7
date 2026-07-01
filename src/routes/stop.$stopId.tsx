@@ -300,9 +300,10 @@ function StopDetail() {
 }
 
 /**
- * Per-stop reliability strip. Editorial numerals, olive/ochre/red dot
- * matched to the tier. Only rendered when we have real observations —
- * caller gates on sampleCount > 0.
+ * Per-stop reliability card. Editorial, Mediterranean, mobile-first.
+ * Renders a hero on-time percentage, a tier chip, a soft progress rail,
+ * and split metric cells for sample size and mean deviation. Tone shifts
+ * subtly by tier via a radial wash rather than a coloured block.
  */
 function StopReliabilityStrip({
   r,
@@ -316,35 +317,149 @@ function StopReliabilityStrip({
   };
   t: (k: never, vars?: Record<string, string | number>) => string;
 }) {
+  const rated = r.tier !== "unknown";
+  const late = r.meanDelaySec > 0;
+  const early = r.meanDelaySec < 0;
+
   const tone =
     r.tier === "high"
-      ? { dot: "bg-olive", num: "text-olive" }
+      ? {
+          num: "text-olive",
+          bar: "bg-olive",
+          chipBg: "bg-olive-soft/45",
+          chipInk: "text-olive",
+          wash:
+            "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-olive-soft)_75%,transparent)_0%,transparent_60%)]",
+          label: "Reliable",
+        }
       : r.tier === "medium"
-        ? { dot: "bg-ochre", num: "text-ink" }
+        ? {
+            num: "text-ink",
+            bar: "bg-ochre",
+            chipBg: "bg-ochre-soft/60",
+            chipInk: "text-ink",
+            wash:
+              "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-ochre-soft)_70%,transparent)_0%,transparent_60%)]",
+            label: "Steady",
+          }
         : r.tier === "low"
-          ? { dot: "bg-destructive", num: "text-destructive" }
-          : { dot: "bg-ink-soft/40", num: "text-ink-soft" };
-  const rated = r.tier !== "unknown";
-  const delaySign = r.meanDelaySec >= 0 ? "+" : "−";
+          ? {
+              num: "text-destructive",
+              bar: "bg-destructive",
+              chipBg: "bg-destructive/12",
+              chipInk: "text-destructive",
+              wash:
+                "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-destructive)_18%,transparent)_0%,transparent_60%)]",
+              label: "Uneven",
+            }
+          : {
+              num: "text-ink-soft",
+              bar: "bg-ink-soft/30",
+              chipBg: "bg-limestone-soft",
+              chipInk: "text-ink-soft",
+              wash: "",
+              label: "Learning",
+            };
+
+  const deltaCopy = !rated
+    ? t("reliability.subLearning" as never)
+    : Math.abs(r.meanDelaySec) < 20
+      ? t("reliability.subAvgOnTime" as never)
+      : late
+        ? t("reliability.subAvgLate" as never, { sec: r.meanDelaySec })
+        : t("reliability.subAvgEarly" as never, { sec: Math.abs(r.meanDelaySec) });
+
+  const delaySign = late ? "+" : early ? "−" : "±";
+  const deltaMagnitude = Math.abs(r.meanDelaySec);
+
+  // Ceiling the bar for tiny sample sizes so we don't over-promise a full rail.
+  const barPct = rated ? Math.max(4, Math.min(100, r.onTimePct)) : 0;
+
   return (
-    <div className="flex items-center justify-between gap-4 rounded-3xl bg-card px-5 py-4 ring-1 ring-line">
-      <div className="min-w-0">
-        <p className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.22em] text-ink-soft">
-          <span className={`size-1.5 rounded-full ${tone.dot}`} aria-hidden />
-          {t("reliability.stopEyebrow" as never)}
-        </p>
-        <p className="mt-1 text-[12px] text-ink-soft">
-          {rated
-            ? t("reliability.stopSub" as never, {
-                n: r.sampleCount,
-                sec: `${delaySign}${Math.abs(r.meanDelaySec)}`,
-              })
-            : t("reliability.stopLearning" as never)}
-        </p>
+    <article className="relative overflow-hidden rounded-[28px] bg-card ring-1 ring-line">
+      <div className={`absolute inset-0 pointer-events-none ${tone.wash}`} aria-hidden />
+      <div className="relative p-6 sm:p-7">
+        <header className="flex items-center justify-between gap-3">
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.28em] text-ink-soft">
+            {t("reliability.stopEyebrow" as never)}
+          </span>
+          <span
+            className={`font-mono text-[9px] uppercase tracking-[0.24em] px-2.5 py-1 rounded-full ${tone.chipBg} ${tone.chipInk}`}
+          >
+            {tone.label}
+          </span>
+        </header>
+
+        <div className="mt-5 flex items-end justify-between gap-5">
+          <div className="min-w-0">
+            <div
+              className={`font-display leading-[0.9] tabular-nums -tracking-[0.03em] ${tone.num}`}
+            >
+              <span className="text-[76px] sm:text-[92px]">
+                {rated ? r.onTimePct : "—"}
+              </span>
+              {rated && (
+                <span className="text-[28px] sm:text-[34px] text-ink-soft/70 align-top ml-1">
+                  %
+                </span>
+              )}
+            </div>
+            <p className="mt-2 font-display text-[15px] sm:text-[16px] text-ink leading-snug">
+              {rated ? t("reliability.stopHeadline" as never, { pct: r.onTimePct }) : t("reliability.stopLearning" as never)}
+            </p>
+          </div>
+        </div>
+
+        <div
+          className="mt-6 h-[3px] w-full rounded-full bg-limestone-soft overflow-hidden"
+          role="progressbar"
+          aria-valuenow={rated ? r.onTimePct : 0}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <div
+            className={`h-full rounded-full ${tone.bar} transition-[width] duration-700 ease-out`}
+            style={{ width: `${barPct}%` }}
+          />
+        </div>
+
+        <dl className="mt-6 grid grid-cols-2 gap-x-6">
+          <div className="border-r border-line pr-6">
+            <dt className="font-mono text-[9px] uppercase tracking-[0.24em] text-ink-soft">
+              Sample
+            </dt>
+            <dd className="mt-1.5 font-display text-[26px] leading-none text-ink tabular-nums -tracking-[0.01em]">
+              {r.sampleCount.toLocaleString()}
+            </dd>
+            <p className="mt-1 text-[11.5px] text-ink-soft">
+              {t("reliability.samples" as never, { n: r.sampleCount })
+                .replace(/^\d[\d,]*\s*/, "")
+                .trim() || "observations"}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <dt className="font-mono text-[9px] uppercase tracking-[0.24em] text-ink-soft">
+              Avg deviation
+            </dt>
+            <dd
+              className={`mt-1.5 font-display text-[26px] leading-none tabular-nums -tracking-[0.01em] ${
+                rated ? (late ? "text-ochre" : early ? "text-aegean-deep" : "text-olive") : "text-ink-soft"
+              }`}
+            >
+              {rated ? (
+                <>
+                  {delaySign}
+                  {deltaMagnitude}
+                  <span className="text-[15px] text-ink-soft/80 ml-0.5">s</span>
+                </>
+              ) : (
+                "—"
+              )}
+            </dd>
+            <p className="mt-1 text-[11.5px] text-ink-soft leading-snug">{deltaCopy}</p>
+          </div>
+        </dl>
       </div>
-      <div className={`shrink-0 font-display text-[34px] leading-none ${tone.num}`}>
-        {rated ? `${r.onTimePct}%` : "—"}
-      </div>
-    </div>
+    </article>
   );
 }
