@@ -932,6 +932,57 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_trips: {
+        Row: {
+          created_at: string
+          destination_label: string
+          destination_lat: number
+          destination_lng: number
+          eta_minutes: number | null
+          expires_at: string
+          id: string
+          last_lat: number | null
+          last_lng: number | null
+          last_updated: string | null
+          origin_label: string | null
+          owner_id: string | null
+          status: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          destination_label: string
+          destination_lat: number
+          destination_lng: number
+          eta_minutes?: number | null
+          expires_at?: string
+          id?: string
+          last_lat?: number | null
+          last_lng?: number | null
+          last_updated?: string | null
+          origin_label?: string | null
+          owner_id?: string | null
+          status?: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          destination_label?: string
+          destination_lat?: number
+          destination_lng?: number
+          eta_minutes?: number | null
+          expires_at?: string
+          id?: string
+          last_lat?: number | null
+          last_lng?: number | null
+          last_updated?: string | null
+          origin_label?: string | null
+          owner_id?: string | null
+          status?: string
+          token?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean

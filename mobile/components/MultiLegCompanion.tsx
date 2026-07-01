@@ -31,6 +31,7 @@ import {
 import { RouteChip } from "@/components/RouteChip";
 import { WalkGuidance } from "@/components/WalkGuidance";
 import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
+import { ShareEtaButton } from "@/components/ShareEtaButton";
 import { LiveWalkBanner } from "@/components/LiveWalkBanner";
 import { CrowdHint } from "@/components/CrowdHint";
 import { SightingButton } from "@/components/SightingButton";
@@ -76,6 +77,24 @@ function fmtClock(unix: number): string {
   if (!unix) return "";
   const d = new Date(unix * 1000);
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function etaToDestinationMinutes(live: MultiLegLive, itin: Itinerary): number | null {
+  if (!live.active) return null;
+  const idx = live.currentLegIndex;
+  let secs = 0;
+  if (typeof live.secsToCurrentAlight === "number" && Number.isFinite(live.secsToCurrentAlight)) {
+    secs += Math.max(0, live.secsToCurrentAlight);
+  } else if (live.currentLeg && "durationSec" in live.currentLeg) {
+    secs += Math.max(0, live.currentLeg.durationSec ?? 0);
+  }
+  for (let i = idx + 1; i < itin.legs.length; i++) {
+    const leg = itin.legs[i] as Leg;
+    if ("durationSec" in leg && typeof leg.durationSec === "number") {
+      secs += Math.max(0, leg.durationSec);
+    }
+  }
+  return Math.max(0, Math.round(secs / 60));
 }
 
 // ---------------------------------------------------------------------------
@@ -292,6 +311,16 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           <PhaseSub live={live} itin={itin} destLabel={active.to.label} />
         </View>
       </View>
+
+      {/* Share my ETA — signed public link, live position + ETA */}
+      <View style={{ paddingHorizontal: 20 }}>
+        <ShareEtaButton
+          active={active}
+          fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
+          etaMinutes={etaToDestinationMinutes(live, itin)}
+        />
+      </View>
+
       {/* Traffic-on-route (CyNAP DATEX II) — corridor-scoped */}
       {trafficAlert && <TrafficRouteBanner alert={trafficAlert} />}
 
