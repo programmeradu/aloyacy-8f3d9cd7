@@ -43,6 +43,26 @@ export function ReliabilityBadge({
   const sampleLine = isRated ? t("reliability.samples", { n: sampleCount }) : null;
 
   if (variant === "stack") {
+    const late = meanDelaySec > 0;
+    const summary = !isRated
+      ? t("reliability.summaryLearning")
+      : Math.abs(meanDelaySec) < 60
+        ? t("reliability.summaryOnTime")
+        : late
+          ? meanDelaySec < 180
+            ? t("reliability.summaryLateSmall")
+            : t("reliability.summaryLateBig")
+          : Math.abs(meanDelaySec) < 180
+            ? t("reliability.summaryEarlySmall")
+            : t("reliability.summaryEarlyBig");
+    const hint = !isRated
+      ? t("reliability.hintLearning")
+      : tier === "high"
+        ? t("reliability.hintHigh")
+        : tier === "medium"
+          ? t("reliability.hintMedium")
+          : t("reliability.hintLow");
+
     return (
       <div className="flex flex-col gap-1">
         <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
@@ -51,14 +71,18 @@ export function ReliabilityBadge({
         </span>
         <span className={`font-display text-[28px] leading-none ${tone.text}`}>
           {isRated ? `${onTimePct}%` : "—"}
+          {isRated && (
+            <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/80 align-middle">
+              {t("reliability.onTime")}
+            </span>
+          )}
         </span>
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/80">
-          {subline}
-          {sampleLine ? ` · ${sampleLine}` : ""}
-        </span>
+        <span className="text-[13px] text-ink leading-snug">{summary}</span>
+        <span className="text-[11.5px] text-ink-soft leading-snug">{hint}</span>
       </div>
     );
   }
+
 
   return (
     <span
