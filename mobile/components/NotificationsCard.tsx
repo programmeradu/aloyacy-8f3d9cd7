@@ -16,6 +16,7 @@ import {
   Linking,
   Platform,
   Pressable,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
