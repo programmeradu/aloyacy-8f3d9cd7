@@ -39,7 +39,10 @@ import {
 import { ParkAndRideCardMobile } from "@/components/ParkAndRideCardMobile";
 import { KapnosShuttleCardMobile } from "@/components/KapnosShuttleCardMobile";
 import { DustAdvisoryBannerMobile } from "@/components/DustAdvisoryBannerMobile";
+import { TrafficAlertsCardMobile } from "@/components/TrafficAlertsCardMobile";
+import { fetchItineraryTrafficAlerts, itinerarySamplePoints } from "@/lib/traffic-alerts";
 import { RemindMeButtonMobile } from "@/components/RemindMeButtonMobile";
+
 import { SharePlanButtonMobile } from "@/components/SharePlanButtonMobile";
 import {
   PlacesAutocomplete,
