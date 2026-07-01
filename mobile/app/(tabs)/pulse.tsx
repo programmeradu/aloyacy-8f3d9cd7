@@ -62,6 +62,18 @@ const SANS_BOLD = "Geist_700Bold";
 const MONO = "Geist_700Bold";
 const EYEBROW = "Geist_700Bold";
 
+const THEME_HERO: Record<TodayTheme, { uri: string }> = {
+  derby: assets.today_derby,
+  festival: assets.today_festival,
+  holiday: assets.today_calm,
+  cruise: assets.today_cruise,
+  heatwave: assets.today_heatwave,
+  storm: assets.today_storm,
+  calm: assets.today_calm,
+};
+
+
+
 export default function PulseScreen() {
   const insets = useSafeAreaInsets();
   const { fix } = useGeoFix();
@@ -292,8 +304,25 @@ function TodayHero({
   focus: TodayBriefing["focus"];
 }) {
   return (
-    <View style={{ height: 172, backgroundColor: heroBg(theme) }}>
-      <HeroArt theme={theme} />
+    <View style={{ height: 200, backgroundColor: heroBg(theme), overflow: "hidden" }}>
+      <Image
+        source={THEME_HERO[theme] ?? assets.today_calm}
+        style={StyleSheet.absoluteFill}
+        resizeMode="cover"
+      />
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: "55%",
+          backgroundColor: palette.white,
+          opacity: 0.35,
+        }}
+      />
+
       <View
         style={{
           position: "absolute",
@@ -772,7 +801,7 @@ function RoadPulseCard({
         <View style={{ position: "relative", width: "100%", aspectRatio: 16 / 7 }}>
           <Image
             source={assets.pulse_network_band}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             resizeMode="cover"
           />
           {/* Bottom fade into card */}
