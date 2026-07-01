@@ -40,6 +40,7 @@ import { Route as ApiPublicRouteReliabilityRouteImport } from './routes/api/publ
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
+import { Route as ApiPublicPulseRouteImport } from './routes/api/public/pulse'
 import { Route as ApiPublicPlacesAutocompleteRouteImport } from './routes/api/public/places-autocomplete'
 import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
 import { Route as ApiPublicParkAndRideRouteImport } from './routes/api/public/park-and-ride'
