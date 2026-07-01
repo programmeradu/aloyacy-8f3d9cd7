@@ -491,6 +491,7 @@ export interface FileRoutesByFullPath {
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
+  '/api/public/wallet': typeof ApiPublicWalletRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
