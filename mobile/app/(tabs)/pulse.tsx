@@ -15,6 +15,8 @@ import {
   RefreshControl,
   ActivityIndicator,
   Linking,
+  Image,
+  StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
