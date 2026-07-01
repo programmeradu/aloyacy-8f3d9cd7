@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback, useState, useEffect } from "react";
 import {
   ScrollView,
   View,
@@ -20,6 +20,8 @@ import { useGeoFix, useStopsBundle, useRealtime } from "@/lib/hooks";
 import { distanceMeters, formatDistance, timeOfDayGreeting } from "@/lib/format";
 import { smartEtaV2 } from "@/lib/eta-v2";
 import { assets } from "@/lib/assets";
+import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
+import { AskAloyaCard } from "@/components/AskAloyaCard";
 import type { Stop } from "@/lib/api";
 
 const FALLBACK = { lat: 35.1856, lng: 33.3823 };
@@ -43,6 +45,13 @@ export default function TodayScreen() {
   const rt = useRealtime();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [, setHeadsignsTick] = useState(0);
+
+  useEffect(() => {
+    prefetchHeadsigns();
+    const off = onHeadsignsLoaded(() => setHeadsignsTick((n) => n + 1));
+    return () => { off(); };
+  }, []);
 
   const here = fix ?? FALLBACK;
   const usingFallback = !fix;
@@ -91,11 +100,12 @@ export default function TodayScreen() {
         .slice(0, 3)
         .map((a) => {
           const meta = routesMeta[a.routeId];
+          const headsign = getHeadsignSync(a.tripId, a.routeId);
           return {
             code: meta?.short ?? a.routeId,
             tone: toneForRoute(a.routeId),
             color: meta?.color,
-            headsign: null,
+            headsign,
           };
         });
 
@@ -262,15 +272,7 @@ export default function TodayScreen() {
         <QuickStat label="Next ride" value={stopCards[0]?.etaMin != null ? `${stopCards[0].etaMin}′` : "—"} tone="ochre" image={assets.stat_road} />
       </View>
 
-      <View style={styles.editorialCard}>
-        <Image source={assets.nl_planner_illustration} style={StyleSheet.absoluteFill} resizeMode="cover" />
-        <View style={styles.editorialWash} />
-        <View style={styles.editorialContent}>
-          <Text style={styles.editorialKicker}>Natural planner</Text>
-          <Text style={styles.editorialTitle}>Tell Aloya where you’re going.</Text>
-          <Text style={styles.editorialBody}>Use routes, stop codes, landmarks, airports, or live bus labels from one search surface.</Text>
-        </View>
-      </View>
+      <AskAloyaCard />
 
       <View style={styles.sectionHead}>
         <View>
