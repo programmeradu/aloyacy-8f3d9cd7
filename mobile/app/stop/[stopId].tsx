@@ -25,8 +25,20 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
+import { useQuery } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useLocalSearchParams, router } from "expo-router";
+import { palette } from "@/constants/theme";
+import { DepartureRow } from "@/components/DepartureRow";
+import { SightingButton } from "@/components/SightingButton";
+import { StreetViewSheet } from "@/components/StreetViewSheet";
+import { StopReliabilityStrip } from "@/components/StopReliabilityStrip";
+import { useRealtime, useStopsBundle } from "@/lib/hooks";
+import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
+import { getStop } from "@/lib/gtfs";
+import { fetchStopReliability } from "@/lib/reliability";
+
 import { useLocalSearchParams, router } from "expo-router";
 import { palette } from "@/constants/theme";
 import { DepartureRow } from "@/components/DepartureRow";
@@ -73,6 +85,18 @@ export default function StopDetailScreen() {
       )
       .slice(0, 8);
   }, [rt.data, stopId, stop?.agency]);
+
+  const routeIds = useMemo(
+    () => Array.from(new Set(departures.map((d) => d.routeId))).slice(0, 30),
+    [departures],
+  );
+  const reliability = useQuery({
+    queryKey: ["stop-reliability", stopId, routeIds.slice().sort().join(",")],
+    queryFn: () => fetchStopReliability(stopId, routeIds),
+    enabled: routeIds.length > 0,
+    staleTime: 5 * 60_000,
+  });
+
 
   const stale = rt.data?.stale === true;
   const ghostFirst =
@@ -257,6 +281,18 @@ export default function StopDetailScreen() {
           />
         </View>
       ) : null}
+
+      {reliability.data && reliability.data.sampleCount > 0 ? (
+        <View style={{ marginTop: 20 }}>
+          <StopReliabilityStrip
+            tier={reliability.data.tier}
+            onTimePct={reliability.data.onTimePct}
+            meanDelaySec={reliability.data.meanDelaySec}
+          />
+        </View>
+      ) : null}
+
+
 
       <View
         style={{
