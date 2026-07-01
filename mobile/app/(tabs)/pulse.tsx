@@ -60,7 +60,7 @@ import type {
 
 const DISPLAY = "BricolageGrotesque_700Bold";
 const DISPLAY_MED = "BricolageGrotesque_700Bold";
-const SANS = "Geist_500Medium";
+const SANS = "Geist_600SemiBold";
 const SANS_BOLD = "Geist_700Bold";
 const MONO = "JetBrainsMono_500Medium";
 const EYEBROW = "JetBrainsMono_500Medium";
