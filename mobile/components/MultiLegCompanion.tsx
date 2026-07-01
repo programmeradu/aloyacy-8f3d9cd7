@@ -282,6 +282,8 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           <PhaseSub live={live} itin={itin} destLabel={active.to.label} />
         </View>
       </View>
+      {/* Proactive disruption assistant — takes precedence over honest banners */}
+      <DisruptionBanner signal={disruption} active={active} />
 
       {/* Honest banners */}
       {live.active && live.tripGhost && !live.vehicleLost && (
