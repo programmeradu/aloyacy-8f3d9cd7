@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ScrollView, View, Text, Pressable, RefreshControl, StyleSheet, Alert,
-  Platform, Linking,
+  Linking,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -39,10 +39,11 @@ import {
 import { jccLogin, jccRefresh, jccSync, verifyMotionCard, getMotionCardOptions } from "@/lib/walletApi";
 import { timeAgo } from "@/lib/walletFormat";
 import { FadeSection } from "@/components/FadeSection";
+import { assets } from "@/lib/assets";
 
-const fareUrban = require("@/assets/wallet/fare-urban.jpg");
-const fareNight = require("@/assets/wallet/fare-night.jpg");
-const fareIntercity = require("@/assets/wallet/fare-intercity.jpg");
+const fareUrban = assets.fare_urban;
+const fareNight = assets.fare_night;
+const fareIntercity = assets.fare_intercity;
 
 export default function WalletScreen() {
   const insets = useSafeAreaInsets();
@@ -219,7 +220,7 @@ export default function WalletScreen() {
     >
       <View style={styles.headerRow}>
         <View style={{ width: 40 }} />
-        <Text style={styles.kicker}>WALLET · MOTION</Text>
+        <Text style={styles.kicker}>WALLET MOTION</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -253,7 +254,7 @@ export default function WalletScreen() {
               value={`€${pass.balanceEur.toFixed(2)}`}
               foot={
                 pass.balanceUpdatedAt
-                  ? `Live · ${timeAgo(pass.balanceUpdatedAt)}`
+                  ? `Live ${timeAgo(pass.balanceUpdatedAt)}`
                   : "Tap to check"
               }
               onPress={() => void runPublicSync()}
@@ -351,7 +352,7 @@ export default function WalletScreen() {
 
       {/* Account + settings — moved here from the retired More tab. */}
       <FadeSection index={2} style={{ paddingHorizontal: 22, marginTop: 34 }}>
-        <Text style={styles.sectionEyebrow}>ACCOUNT · SETTINGS</Text>
+        <Text style={styles.sectionEyebrow}>ACCOUNT SETTINGS</Text>
         <AuthCard />
         <NotificationsCard />
         <OfflineSchedulesCard />
@@ -360,7 +361,7 @@ export default function WalletScreen() {
       <View style={{ paddingHorizontal: 22, marginTop: 20 }}>
         <SettingsRow
           label="App settings"
-          value="Language · Notifications · Legal"
+          value="Language, notifications, legal"
           onPress={() => router.push("/settings")}
         />
         <SettingsRow
