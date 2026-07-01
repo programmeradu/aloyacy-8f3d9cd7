@@ -35,7 +35,7 @@ import { useGeoFix } from "@/lib/hooks";
 import { fetchPulseBundle } from "@/lib/pulse";
 import { assets } from "@/lib/assets";
 import { API_BASE } from "@/lib/api";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { createAudioPlayer } from "expo-audio";
 import type {
   TodayBriefing,
