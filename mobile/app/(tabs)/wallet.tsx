@@ -357,19 +357,14 @@ export default function WalletScreen() {
 
       <View style={{ paddingHorizontal: 22, marginTop: 20 }}>
         <SettingsRow
+          label="App settings"
+          value="Language · Notifications · Legal"
+          onPress={() => router.push("/settings")}
+        />
+        <SettingsRow
           label="About Aloya"
           value="v0.1"
           onPress={() => void Linking.openURL("https://app.aloya.cy/about")}
-        />
-        <SettingsRow
-          label="Privacy"
-          value="Read"
-          onPress={() => void Linking.openURL("https://app.aloya.cy/privacy")}
-        />
-        <SettingsRow
-          label="Terms"
-          value="Read"
-          onPress={() => void Linking.openURL("https://app.aloya.cy/terms")}
         />
       </View>
 
