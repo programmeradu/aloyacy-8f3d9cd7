@@ -366,6 +366,7 @@ export function MapView({
   fitToContent,
 }: MapViewProps) {
   const { data: rt } = useRealtime();
+  const busIcon = useImage(BUS_ICON_SRC, { maxWidth: 64, maxHeight: 64 });
 
   const polylinePoints = useMemo(
     () => (polyline ? decodePolyline(polyline) : []),
