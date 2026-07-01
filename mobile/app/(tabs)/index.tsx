@@ -45,6 +45,13 @@ export default function TodayScreen() {
   const rt = useRealtime();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [, setHeadsignsTick] = useState(0);
+
+  useEffect(() => {
+    prefetchHeadsigns();
+    const off = onHeadsignsLoaded(() => setHeadsignsTick((n) => n + 1));
+    return () => { off(); };
+  }, []);
 
   const here = fix ?? FALLBACK;
   const usingFallback = !fix;
