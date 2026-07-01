@@ -283,7 +283,7 @@ export function MapView({
     [polyline],
   );
 
-  const vehicles = useMemo(() => {
+  const feedVehicles = useMemo(() => {
     if (!liveVehicles || !rt?.vehicles) return [] as RealtimeVehicle[];
     return filterVehicles(
       rt.vehicles,
@@ -301,6 +301,11 @@ export function MapView({
     restrictTripIds?.join(","),
     vehicleOverrides && JSON.stringify(vehicleOverrides),
   ]);
+
+  // Smoothed vehicles — tween lat/lng between 20s feed refreshes at ~10fps
+  // so buses glide instead of teleporting. Modest rate on native since each
+  // tick re-renders the expo-maps view.
+  const vehicles = useSmoothedVehicles(feedVehicles);
 
   // Bucket markers: stops are clusterable, anchors render directly.
   const { anchors, clusteredStops } = useMemo(() => {
