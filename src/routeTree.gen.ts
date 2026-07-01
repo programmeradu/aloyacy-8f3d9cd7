@@ -492,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/wallet': typeof ApiPublicWalletRoute
+  '/api/public/wallet': typeof ApiPublicWalletRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
@@ -563,6 +564,7 @@ export interface FileRoutesByTo {
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
+  '/api/public/wallet': typeof ApiPublicWalletRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
@@ -635,6 +637,7 @@ export interface FileRoutesById {
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
   '/api/public/pulse': typeof ApiPublicPulseRoute
+  '/api/public/wallet': typeof ApiPublicWalletRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
@@ -708,6 +711,7 @@ export interface FileRouteTypes {
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
     | '/api/public/pulse'
+    | '/api/public/wallet'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
@@ -779,6 +783,7 @@ export interface FileRouteTypes {
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
     | '/api/public/pulse'
+    | '/api/public/wallet'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
@@ -850,6 +855,7 @@ export interface FileRouteTypes {
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
     | '/api/public/pulse'
+    | '/api/public/wallet'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
@@ -922,6 +928,7 @@ export interface RootRouteChildren {
   ApiPublicPlacesAutocompleteRoute: typeof ApiPublicPlacesAutocompleteRoute
   ApiPublicPlanRoute: typeof ApiPublicPlanRoute
   ApiPublicPulseRoute: typeof ApiPublicPulseRoute
+  ApiPublicWalletRoute: typeof ApiPublicWalletRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
   ApiPublicRouteReliabilityRoute: typeof ApiPublicRouteReliabilityRoute
@@ -1173,6 +1180,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/pulse'
       fullPath: '/api/public/pulse'
       preLoaderRoute: typeof ApiPublicPulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/wallet': {
+      id: '/api/public/wallet'
+      path: '/api/public/wallet'
+      fullPath: '/api/public/wallet'
+      preLoaderRoute: typeof ApiPublicWalletRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/plan': {
@@ -1482,6 +1496,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPlacesAutocompleteRoute: ApiPublicPlacesAutocompleteRoute,
   ApiPublicPlanRoute: ApiPublicPlanRoute,
   ApiPublicPulseRoute: ApiPublicPulseRoute,
+  ApiPublicWalletRoute: ApiPublicWalletRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
   ApiPublicRouteReliabilityRoute: ApiPublicRouteReliabilityRoute,
