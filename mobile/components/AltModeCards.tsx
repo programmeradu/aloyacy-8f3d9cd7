@@ -149,7 +149,11 @@ export function BikeShareCardMobile({ s }: { s: BikeShareSuggestion }) {
       : "Cycle there with Nextbike";
   return (
     <Card style={{ padding: 20 }}>
-      <Eyebrow>BIKE SHARE · {s.cityName.toUpperCase()}</Eyebrow>
+      <OperatorHeader
+        source={assets.nextbike_logo}
+        name="Nextbike"
+        eyebrow={`Bike share · ${s.cityName}`}
+      />
       <Text
         style={{
           fontFamily: "BricolageGrotesque_800ExtraBold",
