@@ -50,6 +50,7 @@ import {
   type MultiLegLive,
 } from "@/lib/useMultiLegJourney";
 import { useDisruptionWatch, type DisruptionKind } from "@/lib/useDisruptionWatch";
+import { startLiveTracking } from "@/lib/useJourney";
 import { useTrafficWatch } from "@/lib/useTrafficWatch";
 import { DisruptionBanner } from "@/components/DisruptionBanner";
 import { TrafficRouteBanner } from "@/components/TrafficRouteBanner";
@@ -910,8 +911,8 @@ function MultiLegActions({
         body="We'll follow every leg, hurry you when needed, and tell you exactly when to press stop."
         cta="Tap when you leave"
         onPress={() => {
-          // Live tracking starts when the trip is started elsewhere;
-          // no-op fallback keeps this action idempotent.
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          startLiveTracking();
         }}
       />
     );
