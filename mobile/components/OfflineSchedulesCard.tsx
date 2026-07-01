@@ -5,6 +5,7 @@ import { Card } from "./Card";
 import {
   type DownloadProgress,
   type OfflineStatus,
+  OFFLINE_SUPPORTED,
   clearOfflineSchedules,
   downloadOfflineSchedules,
   formatBytes,
