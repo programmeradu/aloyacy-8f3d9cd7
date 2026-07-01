@@ -1,5 +1,8 @@
 // Lovable Cloud public API surface. Same backend as the web app — never fork.
-export const API_BASE = "https://aloyacy.lovable.app";
+// Prefer the custom domain — the *.lovable.app subdomain does not send
+// permissive CORS headers, which breaks Expo web running on localhost.
+export const API_BASE =
+  process.env.EXPO_PUBLIC_API_BASE ?? "https://app.aloya.cy";
 
 export type RealtimeArrival = {
   stopId: string;
