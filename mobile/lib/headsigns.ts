@@ -25,7 +25,7 @@ export function onHeadsignsLoaded(fn: () => void): () => void {
 async function loadIndex(): Promise<HeadsignsIndex> {
   if (cache) return cache;
   if (inflight) return inflight;
-  inflight = fetch(`${API_BASE}/gtfs-headsigns.json`, { cache: "force-cache" as RequestCache })
+  inflight = fetch(`${API_BASE}/api/public/gtfs-headsigns`, { cache: "force-cache" as RequestCache })
     .then((r) => (r.ok ? r.json() : {}))
     .then((j) => {
       cache = j as HeadsignsIndex;
