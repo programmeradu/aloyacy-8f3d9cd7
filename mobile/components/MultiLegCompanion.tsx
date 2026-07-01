@@ -79,6 +79,24 @@ function fmtClock(unix: number): string {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+function etaToDestinationMinutes(live: MultiLegLive, itin: Itinerary): number | null {
+  if (!live.active) return null;
+  const idx = live.currentLegIndex;
+  let secs = 0;
+  if (typeof live.secsToCurrentAlight === "number" && Number.isFinite(live.secsToCurrentAlight)) {
+    secs += Math.max(0, live.secsToCurrentAlight);
+  } else if (live.currentLeg && "durationSec" in live.currentLeg) {
+    secs += Math.max(0, live.currentLeg.durationSec ?? 0);
+  }
+  for (let i = idx + 1; i < itin.legs.length; i++) {
+    const leg = itin.legs[i] as Leg;
+    if ("durationSec" in leg && typeof leg.durationSec === "number") {
+      secs += Math.max(0, leg.durationSec);
+    }
+  }
+  return Math.max(0, Math.round(secs / 60));
+}
+
 // ---------------------------------------------------------------------------
 // Screen
 // ---------------------------------------------------------------------------
