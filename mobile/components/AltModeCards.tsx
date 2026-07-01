@@ -362,7 +362,12 @@ export function LastMileChainCardMobile({ s }: { s: LastMileChainSuggestion }) {
   const fare = `€${s.fareLow.toFixed(2)}–€${s.fareHigh.toFixed(2)}`;
   return (
     <Card style={{ padding: 20 }}>
-      <Eyebrow>{s.isNightRate ? "TAXI · NIGHT RATE" : "TAXI HANDOFF"}</Eyebrow>
+      <OperatorHeader
+        source={assets.bolt_logo}
+        name="Bolt"
+        eyebrow={s.isNightRate ? "Taxi · Night rate" : "Taxi handoff"}
+        logoWidth={52}
+      />
       <Text
         style={{
           fontFamily: "BricolageGrotesque_800ExtraBold",
