@@ -5,6 +5,7 @@ import { Card } from "./Card";
 import {
   type DownloadProgress,
   type OfflineStatus,
+  OFFLINE_SUPPORTED,
   clearOfflineSchedules,
   downloadOfflineSchedules,
   formatBytes,
@@ -132,10 +133,10 @@ export function OfflineSchedulesCard() {
         </View>
         <Pressable
           accessibilityRole="button"
-          disabled={busy}
+          disabled={busy || !OFFLINE_SUPPORTED}
           onPress={onDownload}
           style={({ pressed }) => ({
-            backgroundColor: palette.aegean,
+            backgroundColor: OFFLINE_SUPPORTED ? palette.aegean : palette.line,
             paddingHorizontal: 18,
             paddingVertical: 12,
             borderRadius: 14,
@@ -151,15 +152,28 @@ export function OfflineSchedulesCard() {
               style={{
                 fontFamily: "Geist_700Bold",
                 fontSize: 13,
-                color: palette.white,
+                color: OFFLINE_SUPPORTED ? palette.white : palette.inkSoft,
                 letterSpacing: 0.2,
               }}
             >
-              {has ? "Refresh" : "Download"}
+              {!OFFLINE_SUPPORTED ? "App only" : has ? "Refresh" : "Download"}
             </Text>
           )}
         </Pressable>
       </View>
+
+      {!OFFLINE_SUPPORTED && (
+        <Text
+          style={{
+            marginTop: 12,
+            fontFamily: "Geist_500Medium",
+            fontSize: 12,
+            color: palette.inkSoft,
+          }}
+        >
+          Offline timetables need native file storage — available on the iOS and Android builds, not in the web preview.
+        </Text>
+      )}
 
       {progress && (
         <View style={{ marginTop: 14 }}>
