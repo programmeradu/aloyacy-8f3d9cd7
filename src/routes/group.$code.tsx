@@ -133,6 +133,7 @@ function GroupWatchPage() {
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col gap-4 px-5 py-6">
         <Header code={group.code} expired={expired} />
         <DestinationCard group={group} activeMembers={members.filter((m) => m.status === "active").length} />
+        <ConvergeCard members={members} expired={expired} />
         <GroupMap group={group} members={members} />
         <MembersList members={members} />
         {!expired && <JoinCard group={group} />}
