@@ -50,6 +50,7 @@ import { Route as ApiPublicLastMileChainRouteImport } from './routes/api/public/
 import { Route as ApiPublicKapnosRouteImport } from './routes/api/public/kapnos'
 import { Route as ApiPublicIntercityIntelRouteImport } from './routes/api/public/intercity-intel'
 import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
+import { Route as ApiPublicGtfsHeadsignsRouteImport } from './routes/api/public/gtfs-headsigns'
 import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
 import { Route as ApiPublicExpoPushRegisterRouteImport } from './routes/api/public/expo-push-register'
 import { Route as ApiPublicDustAdvisoryRouteImport } from './routes/api/public/dust-advisory'
@@ -289,6 +290,11 @@ const ApiPublicIndexnowRoute = ApiPublicIndexnowRouteImport.update({
   path: '/api/public/indexnow',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicGtfsHeadsignsRoute = ApiPublicGtfsHeadsignsRouteImport.update({
+  id: '/api/public/gtfs-headsigns',
+  path: '/api/public/gtfs-headsigns',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicGbfsDotjsonRoute = ApiPublicGbfsDotjsonRouteImport.update({
   id: '/api/public/gbfs.json',
   path: '/api/public/gbfs.json',
@@ -481,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
+  '/api/public/gtfs-headsigns': typeof ApiPublicGtfsHeadsignsRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
@@ -553,6 +560,7 @@ export interface FileRoutesByTo {
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
+  '/api/public/gtfs-headsigns': typeof ApiPublicGtfsHeadsignsRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
@@ -626,6 +634,7 @@ export interface FileRoutesById {
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
+  '/api/public/gtfs-headsigns': typeof ApiPublicGtfsHeadsignsRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
@@ -700,6 +709,7 @@ export interface FileRouteTypes {
     | '/api/public/dust-advisory'
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
+    | '/api/public/gtfs-headsigns'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
     | '/api/public/kapnos'
@@ -772,6 +782,7 @@ export interface FileRouteTypes {
     | '/api/public/dust-advisory'
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
+    | '/api/public/gtfs-headsigns'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
     | '/api/public/kapnos'
@@ -844,6 +855,7 @@ export interface FileRouteTypes {
     | '/api/public/dust-advisory'
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
+    | '/api/public/gtfs-headsigns'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
     | '/api/public/kapnos'
@@ -917,6 +929,7 @@ export interface RootRouteChildren {
   ApiPublicDustAdvisoryRoute: typeof ApiPublicDustAdvisoryRoute
   ApiPublicExpoPushRegisterRoute: typeof ApiPublicExpoPushRegisterRoute
   ApiPublicGbfsDotjsonRoute: typeof ApiPublicGbfsDotjsonRoute
+  ApiPublicGtfsHeadsignsRoute: typeof ApiPublicGtfsHeadsignsRoute
   ApiPublicIndexnowRoute: typeof ApiPublicIndexnowRoute
   ApiPublicIntercityIntelRoute: typeof ApiPublicIntercityIntelRoute
   ApiPublicKapnosRoute: typeof ApiPublicKapnosRoute
@@ -1250,6 +1263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIndexnowRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/gtfs-headsigns': {
+      id: '/api/public/gtfs-headsigns'
+      path: '/api/public/gtfs-headsigns'
+      fullPath: '/api/public/gtfs-headsigns'
+      preLoaderRoute: typeof ApiPublicGtfsHeadsignsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/gbfs.json': {
       id: '/api/public/gbfs.json'
       path: '/api/public/gbfs.json'
@@ -1496,6 +1516,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDustAdvisoryRoute: ApiPublicDustAdvisoryRoute,
   ApiPublicExpoPushRegisterRoute: ApiPublicExpoPushRegisterRoute,
   ApiPublicGbfsDotjsonRoute: ApiPublicGbfsDotjsonRoute,
+  ApiPublicGtfsHeadsignsRoute: ApiPublicGtfsHeadsignsRoute,
   ApiPublicIndexnowRoute: ApiPublicIndexnowRoute,
   ApiPublicIntercityIntelRoute: ApiPublicIntercityIntelRoute,
   ApiPublicKapnosRoute: ApiPublicKapnosRoute,
