@@ -21,6 +21,8 @@ function TabLabel({ label, focused }: { label: string; focused: boolean }) {
 }
 
 export default function TabLayout() {
+  const { t } = useLocale();
+  const label = (key: I18nKey) => t(key);
   return (
     <Tabs
       screenOptions={{
