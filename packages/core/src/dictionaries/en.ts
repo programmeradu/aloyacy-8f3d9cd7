@@ -1173,6 +1173,17 @@ export const en = {
   "reliability.stopHeadline": "On time {pct}%",
   "reliability.stopLearning": "Learning this stop",
   "reliability.stopSub": "{n} observations · avg {sec}s",
+  "reliability.onTime": "on time",
+  "reliability.summaryLearning": "Still learning this line",
+  "reliability.summaryOnTime": "Usually runs on time",
+  "reliability.summaryLateSmall": "Usually a minute or two late",
+  "reliability.summaryLateBig": "Often runs late",
+  "reliability.summaryEarlySmall": "Sometimes leaves a touch early",
+  "reliability.summaryEarlyBig": "Often leaves early",
+  "reliability.hintLearning": "Not enough rider data yet",
+  "reliability.hintHigh": "Safe to plan tight connections",
+  "reliability.hintMedium": "Give yourself a small buffer",
+  "reliability.hintLow": "Leave a few minutes of buffer",
 
   // Wave 2.4 — "Why this route?" rationale tags
   "rationale.eyebrow": "Why this option",
