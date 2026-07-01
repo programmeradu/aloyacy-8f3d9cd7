@@ -215,9 +215,6 @@ export default function StopDetailScreen() {
                 },
               ]}
 
-              restrictTripIds={
-                departures.length ? departures.map((d) => d.tripId) : undefined
-              }
               fitToContent={false}
             />
           </View>
