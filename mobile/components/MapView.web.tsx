@@ -165,7 +165,7 @@ export function MapView(props: MapViewProps) {
   const {
     height = 256, center = NICOSIA_CENTER, spanKm = 8, polyline,
     markers, liveVehicles = true, focusTripId, focusRouteId, restrictTripIds,
-    vehicleOverrides, userLocation, fitToContent,
+    vehicleOverrides, userLocation, fitToContent, trafficIncidents,
   } = props;
 
   const { data: rt } = useRealtime();
@@ -178,8 +178,10 @@ export function MapView(props: MapViewProps) {
     busMarkers: Map<string, google.maps.Marker>;
     busState: Map<string, BusState>;
     userMarker?: google.maps.Marker;
+    incidentMarkers: Map<string, { marker: google.maps.Marker; halo: google.maps.Circle }>;
+    incidentInfo?: google.maps.InfoWindow;
     raf?: number;
-  }>({ stopMarkers: [], anchorMarkers: [], busMarkers: new Map(), busState: new Map() });
+  }>({ stopMarkers: [], anchorMarkers: [], busMarkers: new Map(), busState: new Map(), incidentMarkers: new Map() });
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
