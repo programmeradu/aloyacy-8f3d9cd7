@@ -28,9 +28,7 @@ import {
 } from "@/lib/trip-store";
 import { useProSubscription } from "@/lib/usePro";
 import { useSession } from "@/lib/auth";
-import { NotificationsCard } from "@/components/NotificationsCard";
-import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
-import { GoProCard } from "@/components/GoProCard";
+import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
 
 const TONE_CYCLE: SavedPlace["tone"][] = ["aegean", "ochre", "olive"];
 
