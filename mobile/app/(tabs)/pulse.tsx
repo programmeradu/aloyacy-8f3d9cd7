@@ -60,7 +60,7 @@ import type {
 
 const DISPLAY = "BricolageGrotesque_700Bold";
 const DISPLAY_MED = "BricolageGrotesque_700Bold";
-const SANS = "Geist_500Medium";
+const SANS = "Geist_600SemiBold";
 const SANS_BOLD = "Geist_700Bold";
 const MONO = "JetBrainsMono_500Medium";
 const EYEBROW = "JetBrainsMono_500Medium";
@@ -950,27 +950,26 @@ function GreekWordCard({
           hitSlop={10}
           accessibilityLabel="Hear pronunciation"
           style={({ pressed }) => ({
-            width: 44,
-            height: 44,
+            width: 36,
+            height: 36,
             borderRadius: 999,
-            backgroundColor: playing ? palette.aegean : palette.ink,
+            backgroundColor: "rgba(63,74,54,0.12)",
+            borderWidth: playing ? 2 : 0,
+            borderColor: "rgba(63,74,54,0.4)",
             alignItems: "center",
             justifyContent: "center",
             opacity: pressed ? 0.85 : 1,
           })}
         >
           {playing ? (
-            <ActivityIndicator size="small" color={palette.limestone} />
+            <ActivityIndicator size="small" color={palette.olive} />
           ) : (
-            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+              <Path d="M4 10v4h3l5 4V6L7 10H4Z" fill={palette.olive} />
               <Path
-                d="M11 5 6 9H3v6h3l5 4V5Z"
-                fill={palette.limestone}
-              />
-              <Path
-                d="M15.5 8.5a5 5 0 0 1 0 7M18.5 6a9 9 0 0 1 0 12"
-                stroke={palette.limestone}
-                strokeWidth={1.8}
+                d="M15 9c1.2 1 1.2 5 0 6 M17.5 7c2.5 2 2.5 8 0 10"
+                stroke={palette.olive}
+                strokeWidth={1.6}
                 strokeLinecap="round"
               />
             </Svg>
