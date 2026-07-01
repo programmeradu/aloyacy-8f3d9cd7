@@ -236,6 +236,11 @@ const ApiPublicPlanRoute = ApiPublicPlanRouteImport.update({
   path: '/api/public/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPulseRoute = ApiPublicPulseRouteImport.update({
+  id: '/api/public/pulse',
+  path: '/api/public/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPlacesAutocompleteRoute =
   ApiPublicPlacesAutocompleteRouteImport.update({
     id: '/api/public/places-autocomplete',
@@ -479,6 +484,7 @@ export interface FileRoutesByFullPath {
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
+  '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
@@ -549,6 +555,7 @@ export interface FileRoutesByTo {
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
+  '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
@@ -620,6 +627,7 @@ export interface FileRoutesById {
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
+  '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
@@ -692,6 +700,7 @@ export interface FileRouteTypes {
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
+    | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
@@ -762,6 +771,7 @@ export interface FileRouteTypes {
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
+    | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
@@ -832,6 +842,7 @@ export interface FileRouteTypes {
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
+    | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
     | '/api/public/route-reliability'
@@ -903,6 +914,7 @@ export interface RootRouteChildren {
   ApiPublicPlaceRoute: typeof ApiPublicPlaceRoute
   ApiPublicPlacesAutocompleteRoute: typeof ApiPublicPlacesAutocompleteRoute
   ApiPublicPlanRoute: typeof ApiPublicPlanRoute
+  ApiPublicPulseRoute: typeof ApiPublicPulseRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
   ApiPublicRouteReliabilityRoute: typeof ApiPublicRouteReliabilityRoute
@@ -1154,6 +1166,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/plan'
       fullPath: '/api/public/plan'
       preLoaderRoute: typeof ApiPublicPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pulse': {
+      id: '/api/public/pulse'
+      path: '/api/public/pulse'
+      fullPath: '/api/public/pulse'
+      preLoaderRoute: typeof ApiPublicPulseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/places-autocomplete': {
@@ -1455,6 +1474,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPlaceRoute: ApiPublicPlaceRoute,
   ApiPublicPlacesAutocompleteRoute: ApiPublicPlacesAutocompleteRoute,
   ApiPublicPlanRoute: ApiPublicPlanRoute,
+  ApiPublicPulseRoute: ApiPublicPulseRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
   ApiPublicRouteReliabilityRoute: ApiPublicRouteReliabilityRoute,
