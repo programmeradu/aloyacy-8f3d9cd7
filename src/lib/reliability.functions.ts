@@ -118,3 +118,132 @@ export const getRouteReliability = createServerFn({ method: "GET" })
       };
     });
   });
+
+// ────────────────────────────────────────────────────────────────────────────
+// Per-stop reliability (Wave 1.4 completion)
+//
+// Same math as `getRouteReliability`, but filtered to the (stop, route)
+// buckets a single stop actually observes. Answers the honest question
+// "how reliable is this route AT THIS STOP" — always weaker than the
+// route-wide average once we have enough samples, because early stops
+// on a route drag the network mean up.
+//
+// Returns one row per requested route. Missing = unknown (never fake data).
+// ────────────────────────────────────────────────────────────────────────────
+
+export type StopReliability = RouteReliability & { stopId: string };
+
+export const getStopReliability = createServerFn({ method: "GET" })
+  .inputValidator((input: { stopId: string; routeIds: string[] }) =>
+    z
+      .object({
+        stopId: z.string().min(1),
+        routeIds: z.array(z.string()).min(1).max(30),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("delay_stats")
+      .select("route_id, mean_delay_sec, stddev_delay_sec, sample_count")
+      .eq("stop_id", data.stopId)
+      .in("route_id", data.routeIds)
+      .gte("sample_count", 3);
+
+    if (error || !rows) {
+      return data.routeIds.map<StopReliability>((routeId) => ({
+        routeId,
+        stopId: data.stopId,
+        onTimePct: 0,
+        meanDelaySec: 0,
+        sampleCount: 0,
+        tier: "unknown",
+      }));
+    }
+
+    const agg = new Map<
+      string,
+      { sumWeightedOnTime: number; sumWeightedDelay: number; samples: number }
+    >();
+    for (const r of rows) {
+      const n = Number(r.sample_count) || 0;
+      if (n < 3) continue;
+      const mean = Number(r.mean_delay_sec) || 0;
+      const std = Number(r.stddev_delay_sec) || 0;
+      const stdSafe = Math.max(std, 30);
+      const p = probWithin(mean, stdSafe, ON_TIME_WINDOW_SEC);
+
+      const slot =
+        agg.get(r.route_id) ?? { sumWeightedOnTime: 0, sumWeightedDelay: 0, samples: 0 };
+      slot.sumWeightedOnTime += p * n;
+      slot.sumWeightedDelay += mean * n;
+      slot.samples += n;
+      agg.set(r.route_id, slot);
+    }
+
+    return data.routeIds.map<StopReliability>((routeId) => {
+      const slot = agg.get(routeId);
+      if (!slot || slot.samples === 0) {
+        return {
+          routeId,
+          stopId: data.stopId,
+          onTimePct: 0,
+          meanDelaySec: 0,
+          sampleCount: 0,
+          tier: "unknown",
+        };
+      }
+      const onTimePct = Math.round((slot.sumWeightedOnTime / slot.samples) * 100);
+      const meanDelaySec = Math.round(slot.sumWeightedDelay / slot.samples);
+      return {
+        routeId,
+        stopId: data.stopId,
+        onTimePct,
+        meanDelaySec,
+        sampleCount: slot.samples,
+        tier: tierFor(onTimePct, slot.samples),
+      };
+    });
+  });
+
+/**
+ * Aggregate multiple per-route stop-scoped rows into a single stop-wide
+ * reliability score. Weights each route by its observation count so a
+ * high-frequency route dominates fairly. Returns `unknown` tier when the
+ * combined sample size is below the rated threshold.
+ */
+export function aggregateStopReliability(
+  rows: StopReliability[],
+): Omit<StopReliability, "routeId"> & { routeIds: string[] } {
+  const rated = rows.filter((r) => r.sampleCount > 0);
+  if (rated.length === 0) {
+    return {
+      stopId: rows[0]?.stopId ?? "",
+      routeIds: rows.map((r) => r.routeId),
+      onTimePct: 0,
+      meanDelaySec: 0,
+      sampleCount: 0,
+      tier: "unknown",
+    };
+  }
+  let sumOnTime = 0;
+  let sumDelay = 0;
+  let samples = 0;
+  for (const r of rated) {
+    sumOnTime += (r.onTimePct / 100) * r.sampleCount;
+    sumDelay += r.meanDelaySec * r.sampleCount;
+    samples += r.sampleCount;
+  }
+  const onTimePct = Math.round((sumOnTime / samples) * 100);
+  const meanDelaySec = Math.round(sumDelay / samples);
+  return {
+    stopId: rated[0].stopId,
+    routeIds: rows.map((r) => r.routeId),
+    onTimePct,
+    meanDelaySec,
+    sampleCount: samples,
+    tier: tierFor(onTimePct, samples),
+  };
+}
+
