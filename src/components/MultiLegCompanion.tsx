@@ -672,11 +672,15 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
             {t("ml.act.startBody")}
           </p>
           <button
-            onClick={async () => {
-              await requestCompassPermission();
+            type="button"
+            onClick={() => {
+              // Start immediately so the UI flips into live mode even if
+              // the compass permission prompt stalls or the user dismisses
+              // it. Compass is an enhancement, not a gate.
               startLiveTracking();
+              void requestCompassPermission().catch(() => {});
             }}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone active:scale-[0.98] transition"
           >
             {t("ml.act.startCta")}
             <IconArrowUpRight className="size-3.5" />
