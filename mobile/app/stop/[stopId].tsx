@@ -282,6 +282,18 @@ export default function StopDetailScreen() {
         </View>
       ) : null}
 
+      {reliability.data && reliability.data.sampleCount > 0 ? (
+        <View style={{ marginTop: 20 }}>
+          <StopReliabilityStrip
+            tier={reliability.data.tier}
+            onTimePct={reliability.data.onTimePct}
+            meanDelaySec={reliability.data.meanDelaySec}
+          />
+        </View>
+      ) : null}
+
+
+
       <View
         style={{
           flexDirection: "row",
