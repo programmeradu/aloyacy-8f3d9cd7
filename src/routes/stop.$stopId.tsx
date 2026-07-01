@@ -315,7 +315,7 @@ function StopReliabilityStrip({
     sampleCount: number;
     tier: "high" | "medium" | "low" | "unknown";
   };
-  t: (k: never, vars?: Record<string, string | number>) => string;
+  t?: (k: never, vars?: Record<string, string | number>) => string;
 }) {
 
   const rated = r.tier !== "unknown";
