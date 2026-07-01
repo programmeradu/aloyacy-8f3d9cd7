@@ -667,7 +667,7 @@ const planStyles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   heroWash: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(31,30,24,0.35)",
   },
   heroContent: {
