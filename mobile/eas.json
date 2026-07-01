@@ -11,7 +11,8 @@
       "ios": { "simulator": true, "resourceClass": "m-medium" },
       "android": { "buildType": "apk" },
       "env": {
-        "EXPO_PUBLIC_API_BASE": "https://app.aloya.cy"
+        "EXPO_PUBLIC_API_BASE": "https://app.aloya.cy",
+        "EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY": "REPLACE_WITH_ANDROID_MAPS_KEY"
       }
     },
     "preview": {
@@ -20,7 +21,8 @@
       "ios": { "resourceClass": "m-medium" },
       "android": { "buildType": "apk" },
       "env": {
-        "EXPO_PUBLIC_API_BASE": "https://app.aloya.cy"
+        "EXPO_PUBLIC_API_BASE": "https://app.aloya.cy",
+        "EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY": "REPLACE_WITH_ANDROID_MAPS_KEY"
       }
     },
     "production": {
@@ -29,9 +31,11 @@
       "ios": { "resourceClass": "m-medium" },
       "android": { "buildType": "app-bundle" },
       "env": {
-        "EXPO_PUBLIC_API_BASE": "https://app.aloya.cy"
+        "EXPO_PUBLIC_API_BASE": "https://app.aloya.cy",
+        "EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY": "REPLACE_WITH_ANDROID_MAPS_KEY"
       }
     }
+
   },
   "submit": {
     "production": {
