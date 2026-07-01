@@ -30,7 +30,7 @@ import {
   useAudioRecorderState,
 } from "expo-audio";
 import * as FileSystem from "expo-file-system";
-import Svg, { Path, Circle } from "react-native-svg";
+import Svg, { Path } from "react-native-svg";
 
 import { palette } from "@/constants/theme";
 import { assets } from "@/lib/assets";
