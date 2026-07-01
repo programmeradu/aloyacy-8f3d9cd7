@@ -17,17 +17,21 @@ import {
 } from "@stripe/stripe-react-native";
 import { API_BASE } from "./api";
 import { supabase } from "./supabase";
+import { getOrCreateDeviceId } from "./push";
 
 export type PlanKey = "pro_weekly" | "pro_monthly";
 
 type PrepResponse = {
   customer: string;
   ephemeralKey: string;
-  paymentIntent: string;
+  paymentIntent: string | null;
+  setupIntent: string | null;
+  trialDays: number | null;
   publishableKey: string | null;
   subscriptionId: string;
   linkedUserId: string | null;
 };
+
 
 let stripeReady = false;
 
