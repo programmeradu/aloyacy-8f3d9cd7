@@ -161,6 +161,18 @@ function StopDetail() {
         </p>
       </header>
 
+      {stopReliability && stopReliability.sampleCount > 0 && (
+        <section
+          className="px-6 pb-5 animate-rise"
+          style={{ animationDelay: "90ms" }}
+          aria-label={t("reliability.stopEyebrow")}
+        >
+          <StopReliabilityStrip r={stopReliability} t={t} />
+        </section>
+      )}
+
+
+
       <section className="px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MapPreview
           height="h-56"
