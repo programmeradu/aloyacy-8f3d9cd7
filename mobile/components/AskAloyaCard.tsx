@@ -116,7 +116,7 @@ export function AskAloyaCard() {
       setTranscribing(true);
       setError(null);
       try {
-        const info = await FileSystem.getInfoAsync(uri, { size: true });
+        const info = await FileSystem.getInfoAsync(uri);
         if (!info.exists || (info.size ?? 0) < 2048) {
           setError("That was too short — hold to record.");
           setTranscribing(false);
