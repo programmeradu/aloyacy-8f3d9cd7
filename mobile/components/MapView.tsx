@@ -25,9 +25,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, Platform, StyleSheet, View } from "react-native";
 import { GoogleMaps, AppleMaps } from "expo-maps";
+import { useImage } from "expo-image";
 import { useRealtime } from "@/lib/hooks";
 import type { RealtimeVehicle } from "@/lib/api";
 import { AppText } from "./AppText";
+
+const BUS_ICON_SRC = require("../assets/images/bus-premium.png");
 import { assets } from "@/lib/assets";
 
 const LIMESTONE = "#f3ede1";
