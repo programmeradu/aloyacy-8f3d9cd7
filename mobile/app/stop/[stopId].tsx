@@ -30,6 +30,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { palette } from "@/constants/theme";
 import { DepartureRow } from "@/components/DepartureRow";
+import { SightingButton } from "@/components/SightingButton";
 import { useRealtime, useStopsBundle } from "@/lib/hooks";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getStop } from "@/lib/gtfs";
