@@ -1,13 +1,68 @@
 import type { ReactNode } from "react";
-import { View, Text, Pressable, Linking } from "react-native";
+import { View, Text, Pressable, Linking, Image } from "react-native";
 import { palette } from "@/constants/theme";
 import { Card } from "./Card";
 import { formatDistance } from "@/lib/format";
+import { assets } from "@/lib/assets";
 import type {
   BikeShareSuggestion,
   BoltScooterSuggestion,
   LastMileChainSuggestion,
 } from "@/lib/wave3";
+
+// ── Operator logo header ──────────────────────────────────────────────────
+function OperatorHeader({
+  source,
+  name,
+  eyebrow,
+  logoWidth = 68,
+  logoHeight = 20,
+}: {
+  source: { uri: string };
+  name: string;
+  eyebrow: string;
+  logoWidth?: number;
+  logoHeight?: number;
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 10,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <Image
+          source={source}
+          accessibilityLabel={`${name} logo`}
+          style={{ width: logoWidth, height: logoHeight }}
+          resizeMode="contain"
+        />
+        <View
+          style={{
+            width: 1,
+            height: 14,
+            backgroundColor: palette.line,
+          }}
+        />
+        <Text
+          style={{
+            fontFamily: "Geist_700Bold",
+            fontSize: 10,
+            letterSpacing: 1.4,
+            color: palette.inkSoft,
+            textTransform: "uppercase",
+          }}
+        >
+          {eyebrow}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 
 // ── Shared atoms ──────────────────────────────────────────────────────────
 function Eyebrow({ children }: { children: ReactNode }) {
@@ -94,7 +149,11 @@ export function BikeShareCardMobile({ s }: { s: BikeShareSuggestion }) {
       : "Cycle there with Nextbike";
   return (
     <Card style={{ padding: 20 }}>
-      <Eyebrow>BIKE SHARE · {s.cityName.toUpperCase()}</Eyebrow>
+      <OperatorHeader
+        source={assets.nextbike_logo}
+        name="Nextbike"
+        eyebrow={`Bike share · ${s.cityName}`}
+      />
       <Text
         style={{
           fontFamily: "BricolageGrotesque_800ExtraBold",
@@ -188,7 +247,12 @@ export function BoltScooterCardMobile({ s }: { s: BoltScooterSuggestion }) {
       : "Bolt scooter is legal here";
   return (
     <Card style={{ padding: 20 }}>
-      <Eyebrow>E-SCOOTER · NICOSIA</Eyebrow>
+      <OperatorHeader
+        source={assets.bolt_logo}
+        name="Bolt"
+        eyebrow="E-scooter · Nicosia"
+        logoWidth={52}
+      />
       <Text
         style={{
           fontFamily: "BricolageGrotesque_800ExtraBold",
@@ -298,7 +362,12 @@ export function LastMileChainCardMobile({ s }: { s: LastMileChainSuggestion }) {
   const fare = `€${s.fareLow.toFixed(2)}–€${s.fareHigh.toFixed(2)}`;
   return (
     <Card style={{ padding: 20 }}>
-      <Eyebrow>{s.isNightRate ? "TAXI · NIGHT RATE" : "TAXI HANDOFF"}</Eyebrow>
+      <OperatorHeader
+        source={assets.bolt_logo}
+        name="Bolt"
+        eyebrow={s.isNightRate ? "Taxi · Night rate" : "Taxi handoff"}
+        logoWidth={52}
+      />
       <Text
         style={{
           fontFamily: "BricolageGrotesque_800ExtraBold",

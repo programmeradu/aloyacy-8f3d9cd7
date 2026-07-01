@@ -2,10 +2,11 @@
 // coaches with a "book online" handoff. Pickup/dropoff distance shown so
 // riders can decide if the walk is reasonable.
 import { useState } from "react";
-import { View, Text, Pressable, Linking } from "react-native";
+import { View, Text, Pressable, Linking, Image } from "react-native";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { palette } from "@/constants/theme";
+import { assets } from "@/lib/assets";
 import type { KapnosSuggestion } from "@/lib/kapnos";
 import { startKapnosCompanion } from "@/lib/kapnos-companion";
 
@@ -48,21 +49,31 @@ export function KapnosShuttleCardMobile({
       <View
         style={{
           flexDirection: "row",
-          alignItems: "baseline",
+          alignItems: "center",
           justifyContent: "space-between",
           gap: 10,
         }}
       >
-        <Text
-          style={{
-            fontFamily: "Geist_700Bold",
-            fontSize: 10,
-            color: palette.aegeanDeep,
-            letterSpacing: 0.6,
-          }}
-        >
-          KAPNOS COACH
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <Image
+            source={assets.kapnos_logo}
+            accessibilityLabel="Kapnos logo"
+            style={{ width: 78, height: 22 }}
+            resizeMode="contain"
+          />
+          <View style={{ width: 1, height: 14, backgroundColor: palette.line }} />
+          <Text
+            style={{
+              fontFamily: "Geist_700Bold",
+              fontSize: 10,
+              color: palette.aegeanDeep,
+              letterSpacing: 1.4,
+              textTransform: "uppercase",
+            }}
+          >
+            Airport coach
+          </Text>
+        </View>
         <Text
           style={{
             fontFamily: "Geist_700Bold",
