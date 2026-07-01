@@ -317,6 +317,7 @@ function StopReliabilityStrip({
   };
   t: (k: never, vars?: Record<string, string | number>) => string;
 }) {
+
   const rated = r.tier !== "unknown";
   const late = r.meanDelaySec > 0;
 
