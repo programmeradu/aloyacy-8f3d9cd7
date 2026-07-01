@@ -18,6 +18,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Localization from "expo-localization";
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { supabase } from "./supabase";
+
 
 export const LOCALES = ["en", "el", "ru"] as const;
 export type Locale = (typeof LOCALES)[number];
