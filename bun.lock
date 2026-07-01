@@ -116,6 +116,7 @@
         "@tanstack/react-query": "^5.101.2",
         "expo": "~56.0.12",
         "expo-camera": "~56.0.6",
+        "expo-clipboard": "^57.0.0",
         "expo-constants": "~56.0.18",
         "expo-device": "^56.0.4",
         "expo-file-system": "^56.0.8",
@@ -136,6 +137,7 @@
         "react": "19.2.3",
         "react-dom": "19.2.3",
         "react-native": "0.85.3",
+        "react-native-qrcode-svg": "^6.3.21",
         "react-native-reanimated": "4.3.1",
         "react-native-safe-area-context": "~5.7.0",
         "react-native-screens": "4.25.2",
@@ -1509,6 +1511,8 @@
 
     "expo-camera": ["expo-camera@56.0.8", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-camera/-/expo-camera-56.0.8.tgz", { "dependencies": { "barcode-detector": "^3.0.0" }, "peerDependencies": { "expo": "*", "react": "*", "react-native": "*", "react-native-web": "*" }, "optionalPeers": ["react-native-web"] }, "sha512-UDOpUUMisFRmCv1XQV1MJCKGAH2CsIC1Rs6P9Bbc6JLVmbxEKAd5dK68y6cScOdWURxVfJ0PRcjYnSuc8ayyIQ=="],
 
+    "expo-clipboard": ["expo-clipboard@57.0.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-clipboard/-/expo-clipboard-57.0.0.tgz", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-eIt47f6kvR33HOnIEWvs9l1AUAY4GeLY27szwamSuwRl7nntNythSFFbmnrEtiSUaz//y8XVqCG9WLpdMkOpjA=="],
+
     "expo-constants": ["expo-constants@56.0.18", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-constants/-/expo-constants-56.0.18.tgz", { "dependencies": { "@expo/env": "~2.3.0" }, "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-8AMtbDGl/WVPnWlmbpGmvcdnNCy9E4PFnwdVwj600vljkMDPSxcAcjw8GVXEPk3PpZ+ngTqsrkltWyj0UKYAxw=="],
 
     "expo-device": ["expo-device@56.0.4", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-device/-/expo-device-56.0.4.tgz", { "dependencies": { "ua-parser-js": "^0.7.33" }, "peerDependencies": { "expo": "*" } }, "sha512-ucVcGPkvBrl2QHuy7XcYex2Y6BETvJ6TREutZrwLGUDnlvbpKS8KfQoNZOpvkyo5Nmm9RrasYQ0CrXmBHho2mg=="],
@@ -2177,6 +2181,8 @@
 
     "react-native-is-edge-to-edge": ["react-native-is-edge-to-edge@1.3.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.3.1.tgz", { "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-NIXU/iT5+ORyCc7p0z2nnlkouYKX425vuU1OEm6bMMtWWR9yvb+Xg5AZmImTKoF9abxCPqrKC3rOZsKzUYgYZA=="],
 
+    "react-native-qrcode-svg": ["react-native-qrcode-svg@6.3.21", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-native-qrcode-svg/-/react-native-qrcode-svg-6.3.21.tgz", { "dependencies": { "prop-types": "^15.8.0", "qrcode": "^1.5.4", "text-encoding": "^0.7.0" }, "peerDependencies": { "react": "*", "react-native": ">=0.63.4", "react-native-svg": ">=14.0.0" } }, "sha512-6vcj4rcdpWedvphDR+NSJcudJykNuLgNGFwm2p4xYjR8RdyTzlrELKI5LkO4ANS9cQUbqsfkpippPv64Q2tUtA=="],
+
     "react-native-reanimated": ["react-native-reanimated@4.3.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-native-reanimated/-/react-native-reanimated-4.3.1.tgz", { "dependencies": { "react-native-is-edge-to-edge": "^1.3.1", "semver": "^7.7.3" }, "peerDependencies": { "react": "*", "react-native": "0.81 - 0.85", "react-native-worklets": "0.8.x" } }, "sha512-KhGsS0YkCA+gusgyzlf9hnqzVPIR398KTpqXyqq/+yYJJPAvyEEPKcxlB0xtOOXSMrR2A9uRKVARVQhZwrOh+Q=="],
 
     "react-native-safe-area-context": ["react-native-safe-area-context@5.7.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-native-safe-area-context/-/react-native-safe-area-context-5.7.0.tgz", { "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-/9/MtQz8ODphjsLdZ+GZAIcC/RtoqW9EeShf7Uvnfgm/pzYrJ75y3PV/J1wuAV1T5Dye5ygq4EAW20RoBq0ABQ=="],
@@ -2412,6 +2418,8 @@
     "tesseract.js": ["tesseract.js@7.0.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/tesseract.js/-/tesseract.js-7.0.0.tgz", { "dependencies": { "bmp-js": "^0.1.0", "idb-keyval": "^6.2.0", "is-url": "^1.2.4", "node-fetch": "^2.6.9", "opencollective-postinstall": "^2.0.3", "regenerator-runtime": "^0.13.3", "tesseract.js-core": "^7.0.0", "wasm-feature-detect": "^1.8.0", "zlibjs": "^0.3.1" } }, "sha512-exPBkd+z+wM1BuMkx/Bjv43OeLBxhL5kKWsz/9JY+DXcXdiBjiAch0V49QR3oAJqCaL5qURE0vx9Eo+G5YE7mA=="],
 
     "tesseract.js-core": ["tesseract.js-core@7.0.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/tesseract.js-core/-/tesseract.js-core-7.0.0.tgz", {}, "sha512-WnNH518NzmbSq9zgTPeoF8c+xmilS8rFIl1YKbk/ptuuc7p6cLNELNuPAzcmsYw450ca6bLa8j3t0VAtq435Vw=="],
+
+    "text-encoding": ["text-encoding@0.7.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/text-encoding/-/text-encoding-0.7.0.tgz", {}, "sha512-oJQ3f1hrOnbRLOcwKz0Liq2IcrvDeZRHXhd9RgLrsT+DjWY/nty1Hi7v3dtkaEYbPYe0mUoOfzRrMwfXXwgPUA=="],
 
     "thenify": ["thenify@3.3.1", "", { "dependencies": { "any-promise": "^1.0.0" } }, "sha512-RVZSIV5IG10Hk3enotrhvz0T9em6cyHBLkH/YAZuKqd8hRkKhSfCGIcP2KUY0EPxndzANBmNllzWPwak+bheSw=="],
 
