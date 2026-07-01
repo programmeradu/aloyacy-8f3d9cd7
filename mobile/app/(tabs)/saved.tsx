@@ -1,9 +1,9 @@
 // Saved — native mirror of `src/routes/saved.tsx`.
 //
-// Surfaces pinned places, recent destinations, and (for Pro) the
-// Notifications + Offline Schedules controls. Free riders see the
-// GoProCard upsell so the surface is never empty / never lies about
-// what's behind the paywall.
+// Surfaces pinned places and recent destinations. Non-Pro riders see the
+// editorial ProFeaturesUpsell which opens the paywall sheet. Notification
+// + offline-schedule controls live on the Settings screen (single source
+// of truth — they used to be duplicated across Saved / Wallet / More).
 
 import { useCallback, useState } from "react";
 import {
