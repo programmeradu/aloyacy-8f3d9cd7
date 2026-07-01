@@ -177,9 +177,15 @@ export function setActiveTrip(trip: ActiveTrip) {
 }
 
 export function clearActiveTrip() {
+  const prev = cache[ACTIVE_KEY];
   cache[ACTIVE_KEY] = null;
   void writeKey<null>(ACTIVE_KEY, null);
   emit(ACTIVE_KEY);
+  // Fire-and-forget: log completed trips to the local chain so the home
+  // screen can suggest a return leg. Import is lazy to avoid a cycle.
+  if (prev) {
+    void import("./trip-chain").then((m) => m.logCompletedTrip(prev)).catch(() => {});
+  }
 }
 
 export function getActiveTrip(): ActiveTrip | null {
