@@ -963,11 +963,7 @@ function GreekWordCard({
       const res = await fetch(`${API_BASE}/api/public/tts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          input: `${el}. ${translit}. In English: ${en}.`,
-          instructions:
-            "Pronounce the Greek word clearly and slowly first, then the transliteration, then the English translation. Warm and encouraging tone.",
-        }),
+        body: JSON.stringify({ input: el }),
       });
       if (!res.ok) {
         // 402 (out of credits), 403, 429, 5xx → fall back to device TTS
