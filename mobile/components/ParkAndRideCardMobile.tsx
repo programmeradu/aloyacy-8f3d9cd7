@@ -266,3 +266,86 @@ function Stat({
     </View>
   );
 }
+
+function EvBlock({ ev }: { ev: NonNullable<ParkAndRideSuggestion["hub"]["ev"]> }) {
+  const live = ev.live;
+  const totalDisplay = Math.max(ev.count, live?.total ?? 0);
+  const kwDisplay = Math.max(ev.kwMax, live?.kwMax ?? 0);
+  const kindDisplay = live?.kind === "dc" || ev.kind === "dc" ? "DC fast" : "AC";
+  const network = live?.operator ?? ev.network;
+
+  let fresh = "Curated bay count · live status unavailable";
+  if (live?.updatedUnix) {
+    const ageSec = Math.max(0, Math.floor(Date.now() / 1000) - live.updatedUnix);
+    if (ageSec <= 90) fresh = "Live · updated just now";
+    else if (ageSec <= 60 * 60) fresh = `Live · updated ${Math.round(ageSec / 60)} min ago`;
+  } else if (live && live.available === null) {
+    fresh = "Operator doesn't publish live availability";
+  }
+
+  const line =
+    live && live.available !== null
+      ? `${live.available} of ${totalDisplay} bays free · ${kwDisplay} kW ${kindDisplay} · ${network}`
+      : `${totalDisplay} bays · ${kwDisplay} kW ${kindDisplay} · ${network}`;
+
+  return (
+    <View
+      style={{
+        backgroundColor: "rgba(63,74,54,0.10)",
+        borderRadius: 16,
+        padding: 12,
+        gap: 4,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <Text
+          style={{
+            fontFamily: "Geist_700Bold",
+            fontSize: 10,
+            color: palette.olive,
+            letterSpacing: 0.6,
+            textTransform: "uppercase",
+          }}
+        >
+          EV charging on site
+        </Text>
+        {live ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: palette.olive }} />
+            <Text
+              style={{
+                fontFamily: "Geist_700Bold",
+                fontSize: 9.5,
+                letterSpacing: 0.6,
+                color: palette.olive,
+                textTransform: "uppercase",
+              }}
+            >
+              LIVE
+            </Text>
+          </View>
+        ) : null}
+      </View>
+      <Text
+        style={{
+          fontFamily: "Geist_600SemiBold",
+          fontSize: 14,
+          lineHeight: 20,
+          color: palette.ink,
+        }}
+      >
+        {line}
+      </Text>
+      <Text
+        style={{
+          fontFamily: "Geist_500Medium",
+          fontSize: 11,
+          color: palette.inkSoft,
+        }}
+      >
+        {fresh}
+      </Text>
+    </View>
+  );
+}
+
