@@ -247,3 +247,31 @@ function RouteList({ routes }: { routes: StopCardRoute[] }) {
     </View>
   );
 }
+
+const cardStyles = StyleSheet.create({
+  washImage: {
+    position: "absolute",
+    right: -20,
+    top: -10,
+    bottom: -10,
+    width: "55%",
+    opacity: 0.14,
+  },
+  washTint: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255,255,255,0.4)",
+  },
+  rail: {
+    position: "absolute",
+    left: 0,
+    top: 14,
+    bottom: 14,
+    width: 4,
+    borderRadius: 4,
+  },
+});
+
