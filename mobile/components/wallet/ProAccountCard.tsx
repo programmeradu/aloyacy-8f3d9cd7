@@ -34,20 +34,11 @@ export function ProAccountCard() {
     setBusy(true);
     setError(null);
     try {
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-      if (!token) throw new Error("Sign in to manage your subscription.");
-      const res = await fetch(`${API_BASE}/api/public/billing-portal`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ returnUrl: "aloya://wallet" }),
-      });
-      const body = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !body.url) throw new Error(body.error ?? "Could not open portal.");
-      await WebBrowser.openBrowserAsync(body.url);
+      // Managing the subscription (updating cards, cancelling, invoices) is
+      // handled through Stripe's hosted billing portal. On mobile we open
+      // it in the in-app browser — it authenticates via the customer email
+      // Stripe already has on file, so no bearer hand-off is required.
+      await WebBrowser.openBrowserAsync("https://app.aloya.cy/wallet");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Portal error.");
     } finally {
