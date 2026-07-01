@@ -16,7 +16,7 @@ import * as Haptics from "expo-haptics";
 import { useQuery } from "@tanstack/react-query";
 import { palette } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
-import { useAuthSession } from "@/lib/auth";
+import { useSession } from "@/lib/auth";
 
 type CommuteSuggestion = {
   fromLabel: string;
@@ -82,7 +82,7 @@ async function fetchTopCommute(
 }
 
 export function CommuteSuggestionCard() {
-  const { session } = useAuthSession();
+  const { session } = useSession();
   const userId = session?.user?.id ?? null;
 
   const { data } = useQuery({
