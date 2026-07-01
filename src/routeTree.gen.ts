@@ -69,6 +69,7 @@ import { Route as ApiPublicLastMileChainRouteImport } from './routes/api/public/
 import { Route as ApiPublicKapnosRouteImport } from './routes/api/public/kapnos'
 import { Route as ApiPublicIntercityIntelRouteImport } from './routes/api/public/intercity-intel'
 import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicGtfsHeadsignsRouteImport } from './routes/api/public/gtfs-headsigns'
 import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
 import { Route as ApiPublicExpoPushRegisterRouteImport } from './routes/api/public/expo-push-register'
@@ -414,6 +415,11 @@ const ApiPublicIndexnowRoute = ApiPublicIndexnowRouteImport.update({
   path: '/api/public/indexnow',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicGtfsHeadsignsRoute = ApiPublicGtfsHeadsignsRouteImport.update({
   id: '/api/public/gtfs-headsigns',
   path: '/api/public/gtfs-headsigns',
@@ -654,6 +660,7 @@ export interface FileRoutesByFullPath {
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/gtfs-headsigns': typeof ApiPublicGtfsHeadsignsRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
@@ -752,6 +759,7 @@ export interface FileRoutesByTo {
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/gtfs-headsigns': typeof ApiPublicGtfsHeadsignsRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
@@ -851,6 +859,7 @@ export interface FileRoutesById {
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/gtfs-headsigns': typeof ApiPublicGtfsHeadsignsRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
@@ -951,6 +960,7 @@ export interface FileRouteTypes {
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
     | '/api/public/gtfs-headsigns'
+    | '/api/public/health'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
     | '/api/public/kapnos'
@@ -1049,6 +1059,7 @@ export interface FileRouteTypes {
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
     | '/api/public/gtfs-headsigns'
+    | '/api/public/health'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
     | '/api/public/kapnos'
@@ -1147,6 +1158,7 @@ export interface FileRouteTypes {
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
     | '/api/public/gtfs-headsigns'
+    | '/api/public/health'
     | '/api/public/indexnow'
     | '/api/public/intercity-intel'
     | '/api/public/kapnos'
@@ -1246,6 +1258,7 @@ export interface RootRouteChildren {
   ApiPublicExpoPushRegisterRoute: typeof ApiPublicExpoPushRegisterRoute
   ApiPublicGbfsDotjsonRoute: typeof ApiPublicGbfsDotjsonRoute
   ApiPublicGtfsHeadsignsRoute: typeof ApiPublicGtfsHeadsignsRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicIndexnowRoute: typeof ApiPublicIndexnowRoute
   ApiPublicIntercityIntelRoute: typeof ApiPublicIntercityIntelRoute
   ApiPublicKapnosRoute: typeof ApiPublicKapnosRoute
@@ -1725,6 +1738,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIndexnowRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/gtfs-headsigns': {
       id: '/api/public/gtfs-headsigns'
       path: '/api/public/gtfs-headsigns'
@@ -2035,6 +2055,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicExpoPushRegisterRoute: ApiPublicExpoPushRegisterRoute,
   ApiPublicGbfsDotjsonRoute: ApiPublicGbfsDotjsonRoute,
   ApiPublicGtfsHeadsignsRoute: ApiPublicGtfsHeadsignsRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicIndexnowRoute: ApiPublicIndexnowRoute,
   ApiPublicIntercityIntelRoute: ApiPublicIntercityIntelRoute,
   ApiPublicKapnosRoute: ApiPublicKapnosRoute,
