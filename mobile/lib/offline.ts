@@ -18,11 +18,15 @@
 
 import * as FileSystem from "expo-file-system/legacy";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 import { API_BASE } from "./api";
+
+export const OFFLINE_SUPPORTED = Platform.OS !== "web";
 
 const STATUS_KEY = "aloya.offline.status.v1";
 const ROOT = `${FileSystem.documentDirectory ?? ""}schedule/`;
 const BY_DATE_ROOT = `${ROOT}by-date/`;
+
 
 const BASE_FILES = [
   "feeds.json",
