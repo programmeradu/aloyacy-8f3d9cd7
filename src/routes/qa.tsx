@@ -41,7 +41,7 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
   const [error, setError] = useState(false);
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (value === PASSWORD) {
+    if (PASSPHRASE && value === PASSPHRASE) {
       window.sessionStorage.setItem(STORAGE_KEY, "1");
       onUnlock();
     } else {
