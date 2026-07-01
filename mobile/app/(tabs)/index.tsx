@@ -300,44 +300,42 @@ export default function TodayScreen() {
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search stops or stop codes"
+              placeholder="Stops, routes, buses, airports"
               placeholderTextColor={palette.inkSoft}
               autoCorrect={false}
               returnKeyType="search"
               onSubmitEditing={() => {
                 const first = searchResults[0];
-                if (first) router.push(`/stop/${first.id}`);
+                if (first) router.push(hitHref(first));
               }}
               style={styles.searchInput}
             />
-            <Text style={styles.searchHint}>Tap to search the full live network</Text>
+            <Text style={styles.searchHint}>Search the full live network</Text>
           </View>
         </View>
         {searchQuery.trim().length > 0 && (
           <View style={styles.searchResults}>
             {searchResults.length === 0 ? (
-              <Text style={styles.searchEmpty}>No stops match “{searchQuery.trim()}”.</Text>
+              <Text style={styles.searchEmpty}>No matches for “{searchQuery.trim()}”.</Text>
             ) : (
-              searchResults.map((s) => (
+              searchResults.map((h) => (
                 <Pressable
-                  key={s.id}
-                  onPress={() => router.push(`/stop/${s.id}`)}
+                  key={`${h.kind}:${h.id}`}
+                  onPress={() => router.push(hitHref(h))}
                   style={({ pressed }) => [styles.searchResultRow, pressed && { opacity: 0.65 }]}
                 >
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.searchResultName} numberOfLines={2}>{s.name}</Text>
-                    <Text style={styles.searchResultMeta}>Stop {s.code}  {s.agency}</Text>
+                    <Text style={styles.searchResultName} numberOfLines={2}>{h.primary}</Text>
+                    <Text style={styles.searchResultMeta}>{hitBadge(h)}  {h.meta}</Text>
                   </View>
                   <Text style={styles.searchResultGo}>OPEN</Text>
                 </Pressable>
               ))
             )}
-            <Pressable onPress={() => router.push("/search")} style={styles.fullSearchLink}>
-              <Text style={styles.fullSearchText}>Full search</Text>
-            </Pressable>
           </View>
         )}
       </View>
+
 
       <ScrollView
         horizontal
