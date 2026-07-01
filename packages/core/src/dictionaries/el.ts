@@ -519,6 +519,23 @@ export const el: Record<keyof typeof en, string> = {
   "kapnos.lastMile.tapHint": "Πατήστε για αναλυτικές οδηγίες",
   "kapnos.moreLabel": "Περισσότερες αναχωρήσεις & κράτηση",
 
+  // trip-level traffic alerts (CyNAP DATEX ingest, itinerary-scoped)
+  "traffic.eyebrow": "Ζωντανές οδικές ειδοποιήσεις",
+  "traffic.headlineOne": "1 συμβάν στη διαδρομή σας",
+  "traffic.headlineMany": "{n} συμβάντα στη διαδρομή σας",
+  "traffic.sev.low": "Ήπιο",
+  "traffic.sev.medium": "Προσοχή",
+  "traffic.sev.high": "Σοβαρό",
+  "traffic.kind.roadworks": "Έργα οδοποιίας",
+  "traffic.kind.closure": "Κλειστός δρόμος",
+  "traffic.kind.accident": "Ατύχημα",
+  "traffic.kind.congestion": "Αργή κυκλοφορία",
+  "traffic.kind.weather": "Καιρικές συνθήκες",
+  "traffic.kind.other": "Ενημέρωση",
+  "traffic.source": "Από το εθνικό σύστημα οδικών ειδοποιήσεων",
+  "traffic.updated": "Ενημερώθηκε {when}",
+
+
 
   // saved
   "saved.kicker": "Ο άτλας σας",
