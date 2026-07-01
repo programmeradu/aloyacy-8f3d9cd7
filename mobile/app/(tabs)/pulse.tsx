@@ -17,6 +17,8 @@ import {
   Linking,
   Image,
   StyleSheet,
+  Platform,
+  type TextStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
@@ -60,10 +62,21 @@ import type {
 
 const DISPLAY = "BricolageGrotesque_700Bold";
 const DISPLAY_MED = "BricolageGrotesque_700Bold";
-const SANS = "Geist_600SemiBold";
+const SANS = "Geist_700Bold";
 const SANS_BOLD = "Geist_700Bold";
-const MONO = "JetBrainsMono_500Medium";
-const EYEBROW = "JetBrainsMono_500Medium";
+const MONO = "Geist_700Bold";
+const EYEBROW = "Geist_700Bold";
+
+const GREEK_WORD_TYPE: TextStyle =
+  Platform.select<TextStyle>({
+    web: {
+      fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontWeight: "800",
+    },
+    ios: { fontWeight: "800" },
+    android: { fontFamily: "sans-serif-condensed", fontWeight: "700" },
+    default: { fontFamily: SANS_BOLD },
+  }) ?? { fontFamily: SANS_BOLD };
 
 const THEME_HERO: Record<TodayTheme, { uri: string }> = {
   derby: assets.today_derby,
