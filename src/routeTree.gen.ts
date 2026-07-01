@@ -44,6 +44,7 @@ import { Route as ApiPublicPulseRouteImport } from './routes/api/public/pulse'
 import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
 import { Route as ApiPublicPlacesAutocompleteRouteImport } from './routes/api/public/places-autocomplete'
 import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
+import { Route as ApiPublicParseTripIntentRouteImport } from './routes/api/public/parse-trip-intent'
 import { Route as ApiPublicParkAndRideRouteImport } from './routes/api/public/park-and-ride'
 import { Route as ApiPublicMobilePaymentSheetRouteImport } from './routes/api/public/mobile-payment-sheet'
 import { Route as ApiPublicLastMileChainRouteImport } from './routes/api/public/last-mile-chain'
@@ -259,6 +260,12 @@ const ApiPublicPlaceRoute = ApiPublicPlaceRouteImport.update({
   path: '/api/public/place',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicParseTripIntentRoute =
+  ApiPublicParseTripIntentRouteImport.update({
+    id: '/api/public/parse-trip-intent',
+    path: '/api/public/parse-trip-intent',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicParkAndRideRoute = ApiPublicParkAndRideRouteImport.update({
   id: '/api/public/park-and-ride',
   path: '/api/public/park-and-ride',
@@ -494,6 +501,7 @@ export interface FileRoutesByFullPath {
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
+  '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
@@ -567,6 +575,7 @@ export interface FileRoutesByTo {
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
+  '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
@@ -641,6 +650,7 @@ export interface FileRoutesById {
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
+  '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
   '/api/public/place': typeof ApiPublicPlaceRoute
   '/api/public/places-autocomplete': typeof ApiPublicPlacesAutocompleteRoute
   '/api/public/plan': typeof ApiPublicPlanRoute
@@ -716,6 +726,7 @@ export interface FileRouteTypes {
     | '/api/public/last-mile-chain'
     | '/api/public/mobile-payment-sheet'
     | '/api/public/park-and-ride'
+    | '/api/public/parse-trip-intent'
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
@@ -789,6 +800,7 @@ export interface FileRouteTypes {
     | '/api/public/last-mile-chain'
     | '/api/public/mobile-payment-sheet'
     | '/api/public/park-and-ride'
+    | '/api/public/parse-trip-intent'
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
@@ -862,6 +874,7 @@ export interface FileRouteTypes {
     | '/api/public/last-mile-chain'
     | '/api/public/mobile-payment-sheet'
     | '/api/public/park-and-ride'
+    | '/api/public/parse-trip-intent'
     | '/api/public/place'
     | '/api/public/places-autocomplete'
     | '/api/public/plan'
@@ -936,6 +949,7 @@ export interface RootRouteChildren {
   ApiPublicLastMileChainRoute: typeof ApiPublicLastMileChainRoute
   ApiPublicMobilePaymentSheetRoute: typeof ApiPublicMobilePaymentSheetRoute
   ApiPublicParkAndRideRoute: typeof ApiPublicParkAndRideRoute
+  ApiPublicParseTripIntentRoute: typeof ApiPublicParseTripIntentRoute
   ApiPublicPlaceRoute: typeof ApiPublicPlaceRoute
   ApiPublicPlacesAutocompleteRoute: typeof ApiPublicPlacesAutocompleteRoute
   ApiPublicPlanRoute: typeof ApiPublicPlanRoute
@@ -1219,6 +1233,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/place'
       fullPath: '/api/public/place'
       preLoaderRoute: typeof ApiPublicPlaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/parse-trip-intent': {
+      id: '/api/public/parse-trip-intent'
+      path: '/api/public/parse-trip-intent'
+      fullPath: '/api/public/parse-trip-intent'
+      preLoaderRoute: typeof ApiPublicParseTripIntentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/park-and-ride': {
@@ -1523,6 +1544,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicLastMileChainRoute: ApiPublicLastMileChainRoute,
   ApiPublicMobilePaymentSheetRoute: ApiPublicMobilePaymentSheetRoute,
   ApiPublicParkAndRideRoute: ApiPublicParkAndRideRoute,
+  ApiPublicParseTripIntentRoute: ApiPublicParseTripIntentRoute,
   ApiPublicPlaceRoute: ApiPublicPlaceRoute,
   ApiPublicPlacesAutocompleteRoute: ApiPublicPlacesAutocompleteRoute,
   ApiPublicPlanRoute: ApiPublicPlanRoute,
