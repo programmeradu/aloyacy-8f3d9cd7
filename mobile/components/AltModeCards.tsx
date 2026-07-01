@@ -1,13 +1,68 @@
 import type { ReactNode } from "react";
-import { View, Text, Pressable, Linking } from "react-native";
+import { View, Text, Pressable, Linking, Image } from "react-native";
 import { palette } from "@/constants/theme";
 import { Card } from "./Card";
 import { formatDistance } from "@/lib/format";
+import { assets } from "@/lib/assets";
 import type {
   BikeShareSuggestion,
   BoltScooterSuggestion,
   LastMileChainSuggestion,
 } from "@/lib/wave3";
+
+// ── Operator logo header ──────────────────────────────────────────────────
+function OperatorHeader({
+  source,
+  name,
+  eyebrow,
+  logoWidth = 68,
+  logoHeight = 20,
+}: {
+  source: { uri: string };
+  name: string;
+  eyebrow: string;
+  logoWidth?: number;
+  logoHeight?: number;
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 10,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <Image
+          source={source}
+          accessibilityLabel={`${name} logo`}
+          style={{ width: logoWidth, height: logoHeight }}
+          resizeMode="contain"
+        />
+        <View
+          style={{
+            width: 1,
+            height: 14,
+            backgroundColor: palette.line,
+          }}
+        />
+        <Text
+          style={{
+            fontFamily: "Geist_700Bold",
+            fontSize: 10,
+            letterSpacing: 1.4,
+            color: palette.inkSoft,
+            textTransform: "uppercase",
+          }}
+        >
+          {eyebrow}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 
 // ── Shared atoms ──────────────────────────────────────────────────────────
 function Eyebrow({ children }: { children: ReactNode }) {
