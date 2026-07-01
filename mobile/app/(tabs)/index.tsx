@@ -274,6 +274,8 @@ export default function TodayScreen() {
         <QuickStat label="Next ride" value={stopCards[0]?.etaMin != null ? `${stopCards[0].etaMin}′` : "—"} tone="ochre" image={assets.stat_road} />
       </View>
 
+      <ReturnTripSuggestionCard here={fix ? { lat: fix.lat, lng: fix.lng } : null} />
+
       <CommuteSuggestionCard />
 
       <AskAloyaCard />
