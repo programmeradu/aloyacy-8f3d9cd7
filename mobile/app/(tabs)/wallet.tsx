@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ScrollView, View, Text, Pressable, RefreshControl, StyleSheet, Alert,
-  Platform, Linking,
+  Linking,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
