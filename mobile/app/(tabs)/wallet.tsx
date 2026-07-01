@@ -382,7 +382,7 @@ export default function WalletScreen() {
           onLink={handleLink}
         />
       )}
-      {scanning && <CardScanSheet onClose={() => setScanning(false)} />}
+      {scanning && <CardScanSheet visible={scanning} onClose={() => setScanning(false)} />}
     </ScrollView>
   );
 }
