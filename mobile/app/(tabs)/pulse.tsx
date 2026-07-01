@@ -59,8 +59,8 @@ const DISPLAY = "BricolageGrotesque_700Bold";
 const DISPLAY_MED = "BricolageGrotesque_700Bold";
 const SANS = "Geist_500Medium";
 const SANS_BOLD = "Geist_700Bold";
-const MONO = "Geist_700Bold";
-const EYEBROW = "Geist_700Bold";
+const MONO = "JetBrainsMono_500Medium";
+const EYEBROW = "JetBrainsMono_500Medium";
 
 const THEME_HERO: Record<TodayTheme, { uri: string }> = {
   derby: assets.today_derby,
