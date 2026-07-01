@@ -21,9 +21,13 @@ const KICKER = {
 export function DisruptionBanner({
   signal,
   active,
+  onReplan: onReplanProp,
 }: {
   signal: DisruptionSignal | null;
   active: ActiveTrip | null;
+  /** When provided, invoked instead of the default "jump to planner"
+   *  action — lets the companion open an inline replan sheet. */
+  onReplan?: () => void;
 }) {
   if (!signal || !active) return null;
 
@@ -61,6 +65,10 @@ export function DisruptionBanner({
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch {}
+    if (onReplanProp) {
+      onReplanProp();
+      return;
+    }
     try {
       await AsyncStorage.setItem(
         "aloya:nl-plan",
