@@ -29,6 +29,7 @@ import { MapView, type MapMarker, type VehicleOverride } from "@/components/MapV
 import { JourneyHUD } from "@/components/JourneyHUD";
 import { WalkGuidance } from "@/components/WalkGuidance";
 import { RouteChip } from "@/components/RouteChip";
+import { MultiLegCompanion } from "@/components/MultiLegCompanion";
 import {
   useActiveTrip,
   clearActiveTrip,
@@ -60,7 +61,7 @@ export default function TripCompanionScreen() {
   useEffect(() => setHydrated(true), []);
 
   if (active && isMultiLeg(active.itinerary)) {
-    return <MultiLegNotice />;
+    return <MultiLegCompanion active={active} />;
   }
   return (
     <SingleLegCompanion
@@ -960,70 +961,6 @@ function NoTripState({ topInset }: { topInset: number }) {
   );
 }
 
-function MultiLegNotice() {
-  const insets = useSafeAreaInsets();
-  return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: palette.limestone }}
-      contentContainerStyle={{
-        paddingTop: insets.top + 24,
-        paddingHorizontal: 20,
-        paddingBottom: 48,
-      }}
-    >
-      <Text style={{ ...KICKER, color: palette.ochre }}>Multi-leg trip</Text>
-      <Text
-        style={{
-          marginTop: 10,
-          fontFamily: "BricolageGrotesque_800ExtraBold",
-          fontSize: 32,
-          lineHeight: 36,
-          letterSpacing: -0.8,
-          color: palette.ink,
-        }}
-      >
-        Multi-leg companion arriving next.
-      </Text>
-      <Text
-        style={{
-          marginTop: 10,
-          fontFamily: "Geist_500Medium",
-          fontSize: 13,
-          lineHeight: 20,
-          color: palette.inkSoft,
-        }}
-      >
-        This journey has more than one bus, so we're finishing the leg-aware
-        experience (transfer windows, cascade re-plan) in the next step. For
-        now, the web app has full live guidance for this itinerary.
-      </Text>
-      <ActivityIndicator style={{ marginTop: 24 }} color={palette.ochre} />
-      <Pressable
-        onPress={() => {
-          clearActiveTrip();
-          router.replace("/(tabs)/plan");
-        }}
-        style={({ pressed }) => ({
-          marginTop: 24,
-          alignSelf: "flex-start",
-          backgroundColor: palette.ink,
-          paddingHorizontal: 22,
-          paddingVertical: 14,
-          borderRadius: 999,
-          opacity: pressed ? 0.85 : 1,
-        })}
-      >
-        <Text
-          style={{
-            fontFamily: "Geist_700Bold",
-            fontSize: 14,
-            color: palette.limestone,
-            letterSpacing: -0.2,
-          }}
-        >
-          End trip
-        </Text>
-      </Pressable>
-    </ScrollView>
-  );
-}
+// Multi-leg experience lives in `MultiLegCompanion` and is dispatched
+// from `TripCompanionScreen` above.
+
