@@ -18,11 +18,18 @@ export function useWeather(coords: { lat: number; lng: number } | null) {
     staleTime: 10 * 60_000,
     refetchInterval: 15 * 60_000,
     queryFn: async () => {
-      const res = await fetch(
-        `${API_BASE}/api/public/weather?lat=${coords!.lat}&lng=${coords!.lng}`,
-      );
-      if (!res.ok) return null;
-      return (await res.json()) as MobileWeather | null;
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/public/weather?lat=${coords!.lat}&lng=${coords!.lng}`,
+        );
+        if (!res.ok) return null;
+        return (await res.json()) as MobileWeather | null;
+      } catch {
+        // Endpoint may not be deployed yet on the target environment, or the
+        // device is offline — degrade silently, header falls back to the dash.
+        return null;
+      }
     },
   });
 }
+
