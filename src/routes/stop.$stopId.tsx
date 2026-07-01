@@ -66,6 +66,24 @@ function StopDetail() {
     return Array.from(set);
   }, [rt, stopId]);
   const etaStats = useEtaStats(routeIdsHere);
+
+  // Wave 1.4 completion — per-stop reliability. Only fetches once we know
+  // which routes actually serve this stop, and only when there's at least
+  // one candidate. Returns per-route rows that we fold into a single
+  // stop-wide score for the hero strip.
+  const stopReliabilityFn = useServerFn(getStopReliability);
+  const { data: stopReliabilityRows } = useQuery({
+    queryKey: ["stopReliability", stopId, routeIdsHere.slice().sort().join(",")],
+    queryFn: () =>
+      stopReliabilityFn({ data: { stopId, routeIds: routeIdsHere } }),
+    enabled: routeIdsHere.length > 0,
+    staleTime: 5 * 60_000,
+  });
+  const stopReliability = useMemo(
+    () => (stopReliabilityRows ? aggregateStopReliability(stopReliabilityRows) : null),
+    [stopReliabilityRows],
+  );
+
   const [, forceHeadsigns] = useState(0);
   useEffect(() => {
     prefetchShapes();
