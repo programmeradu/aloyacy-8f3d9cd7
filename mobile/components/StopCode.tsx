@@ -33,7 +33,7 @@ export function StopCode({ code, size = "md" }: { code: string; size?: "sm" | "m
       />
       <Text
         style={{
-          fontFamily: "JetBrainsMono_500Medium",
+          fontFamily: "Geist_700Bold",
           fontSize: isSm ? 10 : 11,
           letterSpacing: 1.4,
           color: palette.ink,

@@ -52,7 +52,7 @@ function minutesFromNow(unix: number) {
 }
 
 const MONO_KICKER = {
-  fontFamily: "JetBrainsMono_500Medium" as const,
+  fontFamily: "Geist_700Bold" as const,
   fontSize: 10,
   letterSpacing: 2.2,
 };
@@ -764,7 +764,7 @@ function NextDepartureCard({
         <Text
           style={{
             marginTop: 8,
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 11,
             letterSpacing: 1.6,
             color: "rgba(246,241,231,0.7)",

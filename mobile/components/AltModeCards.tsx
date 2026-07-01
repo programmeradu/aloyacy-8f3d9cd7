@@ -14,7 +14,7 @@ function Eyebrow({ children }: { children: ReactNode }) {
   return (
     <Text
       style={{
-        fontFamily: "JetBrainsMono_500Medium",
+        fontFamily: "Geist_700Bold",
         fontSize: 10,
         letterSpacing: 1,
         color: palette.oliveSoft,
@@ -137,7 +137,7 @@ export function BikeShareCardMobile({ s }: { s: BikeShareSuggestion }) {
           </Text>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 11,
               color: palette.inkSoft,
               marginTop: 2,
@@ -161,7 +161,7 @@ export function BikeShareCardMobile({ s }: { s: BikeShareSuggestion }) {
           </Text>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 11,
               color: palette.inkSoft,
               marginTop: 2,
@@ -244,7 +244,7 @@ export function BoltScooterCardMobile({ s }: { s: BoltScooterSuggestion }) {
           </Text>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 11,
               color: palette.inkSoft,
               marginTop: 2,
@@ -268,7 +268,7 @@ export function BoltScooterCardMobile({ s }: { s: BoltScooterSuggestion }) {
           </Text>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 11,
               color: palette.inkSoft,
               marginTop: 2,

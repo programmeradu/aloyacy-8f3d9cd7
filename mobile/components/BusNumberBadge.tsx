@@ -22,7 +22,7 @@ export function BusNumberBadge({ number }: { number: string }) {
     >
       <Text
         style={{
-          fontFamily: "JetBrainsMono_500Medium",
+          fontFamily: "Geist_700Bold",
           fontSize: 9,
           letterSpacing: 1.6,
           color: palette.ochreSoft,

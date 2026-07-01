@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   eyebrow: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9,
     letterSpacing: 2,
     color: palette.inkSoft,
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     color: palette.ink,
   },
   status: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 1.8,
     color: palette.inkSoft,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   capToggle: {
     marginTop: 3,
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9,
     letterSpacing: 1.6,
     color: palette.inkSoft,
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   capValue: {
     minWidth: 62,
     textAlign: "center",
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 13,
     color: palette.ink,
   },
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     borderColor: palette.line,
   },
   stepBtnLabel: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 14,
     color: palette.ink,
   },

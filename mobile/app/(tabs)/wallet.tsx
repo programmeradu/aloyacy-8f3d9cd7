@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   kicker: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2.2,
     color: palette.inkSoft,
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
     minHeight: 108,
   },
   tileEyebrow: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,
     color: palette.inkSoft,
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   linkedKicker: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9,
     letterSpacing: 2,
     color: palette.inkSoft,
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
     color: palette.ink,
   },
   unlink: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,
     color: palette.inkSoft,
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   linkKicker: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9,
     letterSpacing: 2,
     color: "rgba(246,241,231,0.7)",
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
     color: palette.limestone,
   },
   linkAction: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2.2,
     color: palette.limestone,
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   addLabel: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 11,
     letterSpacing: 2.4,
     color: palette.limestone,
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
     color: palette.inkSoft,
   },
   sectionEyebrow: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2.2,
     color: palette.inkSoft,

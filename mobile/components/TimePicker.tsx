@@ -118,7 +118,7 @@ export function TimePicker({
         {subLabel ? (
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 11,
               color: active ? palette.limestoneSoft : palette.inkSoft,
               letterSpacing: 0.3,

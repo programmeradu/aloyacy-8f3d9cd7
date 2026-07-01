@@ -53,7 +53,7 @@ import type {
 } from "@/lib/journey-types";
 
 const KICKER = {
-  fontFamily: "JetBrainsMono_500Medium" as const,
+  fontFamily: "Geist_700Bold" as const,
   fontSize: 10,
   letterSpacing: 2.2,
   textTransform: "uppercase" as const,
@@ -462,7 +462,7 @@ function LegRibbon({
           >
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 10,
                 color: fg,
                 opacity: 0.7,

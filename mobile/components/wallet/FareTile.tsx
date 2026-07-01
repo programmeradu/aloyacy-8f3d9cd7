@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   label: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9,
     letterSpacing: 1.8,
   },

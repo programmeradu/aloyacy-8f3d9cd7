@@ -86,7 +86,7 @@ export function ConfidenceIcon({
         >
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9,
               letterSpacing: 1.4,
               color: palette.limestone,

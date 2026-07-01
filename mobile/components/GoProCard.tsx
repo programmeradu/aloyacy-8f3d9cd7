@@ -45,7 +45,7 @@ export function GoProCard() {
     <Card style={{ marginTop: 18, padding: 20 }}>
       <Text
         style={{
-          fontFamily: "JetBrainsMono_500Medium",
+          fontFamily: "Geist_700Bold",
           fontSize: 10,
           color: palette.olive,
           letterSpacing: 2,
@@ -92,7 +92,7 @@ export function GoProCard() {
                 {p.note && (
                   <Text
                     style={{
-                      fontFamily: "JetBrainsMono_500Medium",
+                      fontFamily: "Geist_700Bold",
                       fontSize: 9,
                       color: palette.olive,
                       letterSpacing: 1.4,
@@ -115,7 +115,7 @@ export function GoProCard() {
                 </Text>
                 <Text
                   style={{
-                    fontFamily: "JetBrainsMono_500Medium",
+                    fontFamily: "Geist_700Bold",
                     fontSize: 9,
                     color: palette.inkSoft ?? palette.ink,
                     letterSpacing: 1.2,
@@ -143,7 +143,7 @@ export function GoProCard() {
         >
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9,
               color: palette.olive,
               letterSpacing: 1.4,

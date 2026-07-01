@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     maxWidth: 340,
   },
   eyebrow: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 11,
     letterSpacing: 1.4,
     color: palette.oliveSoft,
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   versionLine: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 11,
     color: palette.inkSoft,
     letterSpacing: 0.6,

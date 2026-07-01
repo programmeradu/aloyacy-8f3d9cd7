@@ -48,7 +48,7 @@ type Phase =
   | "arrived";
 
 const KICKER = {
-  fontFamily: "JetBrainsMono_500Medium" as const,
+  fontFamily: "Geist_700Bold" as const,
   fontSize: 10,
   letterSpacing: 2.2,
   textTransform: "uppercase" as const,

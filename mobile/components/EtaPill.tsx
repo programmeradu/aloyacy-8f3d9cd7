@@ -43,7 +43,7 @@ export function EtaPill({
       <Text
         style={{
           color: c.fg,
-          fontFamily: "JetBrainsMono_500Medium",
+          fontFamily: "Geist_700Bold",
           fontSize: 13,
           letterSpacing: 0.3,
         }}

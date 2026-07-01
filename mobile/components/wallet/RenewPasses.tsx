@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   },
   italic: { fontStyle: "italic", color: palette.aegeanDeep },
   count: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,
     color: palette.inkSoft,
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   meta: {
     marginTop: 4,
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9,
     letterSpacing: 1.4,
     color: palette.inkSoft,
