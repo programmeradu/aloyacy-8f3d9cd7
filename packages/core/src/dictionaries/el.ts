@@ -426,6 +426,11 @@ export const el: Record<keyof typeof en, string> = {
   "pnr.evKindAc": "AC",
   "pnr.evKindDc": "ταχείας DC",
   "pnr.evHint": "Βάλτε στην πρίζα, πάρτε το λεωφορείο, γυρίστε σε γεμάτο αυτοκίνητο.",
+  "pnr.evLiveBadge": "Ζωντανά",
+  "pnr.evLiveAvailable": "{free} από {total} θέσεις {kind} διαθέσιμες τώρα · έως {kw} kW · {network}",
+  "pnr.evFreshJust": "Ενημερώθηκε μόλις τώρα — από την εθνική ροή EV.",
+  "pnr.evFreshMin": "Ενημερώθηκε πριν {m} λεπτά — από την εθνική ροή EV.",
+  "pnr.evNoLive": "Ο πάροχος δεν δημοσιεύει ζωντανή κατάσταση — ελέγξτε την εφαρμογή πριν συνδέσετε.",
 
   // chain — μετάβαση με ταξί για το τελευταίο κομμάτι (Wave 3)
   "chain.eyebrowLongLate": "Τελευταίο κομμάτι — μετά τις 21:00",

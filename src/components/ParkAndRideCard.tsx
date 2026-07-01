@@ -119,28 +119,73 @@ export function ParkAndRideCard({
         </p>
       )}
 
-      {suggestion.hub.ev && (
-        <section className="rounded-2xl bg-olive-soft/40 ring-1 ring-olive/30 p-3.5 flex flex-col gap-1.5">
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive-deep">
-            {t("pnr.evLabel")}
-          </p>
-          <p className="font-display text-[15px] leading-snug text-ink text-balance">
-            {t("pnr.evLine", {
-              count: suggestion.hub.ev.count,
-              kw: suggestion.hub.ev.kwMax,
-              kind: t(
-                suggestion.hub.ev.kind === "dc"
-                  ? "pnr.evKindDc"
-                  : "pnr.evKindAc",
-              ),
-              network: suggestion.hub.ev.network,
-            })}
-          </p>
-          <p className="font-sans text-[12px] leading-snug text-ink-soft">
-            {t("pnr.evHint")}
-          </p>
-        </section>
-      )}
+      {suggestion.hub.ev && (() => {
+        const ev = suggestion.hub.ev;
+        const live = ev.live;
+        // Total to display: prefer live feed count when it exceeds our
+        // curated number (feed sometimes reports newly-added bays first).
+        const totalDisplay = Math.max(ev.count, live?.total ?? 0);
+        const kwDisplay = Math.max(ev.kwMax, live?.kwMax ?? 0);
+        const kindDisplay = live?.kind === "dc" || ev.kind === "dc" ? "dc" : "ac";
+        const networkDisplay = live?.operator ?? ev.network;
+
+        // Freshness copy — "just now" ≤ 90 s, "N min ago" ≤ 60 min,
+        // otherwise fall back to the "live status unavailable" line.
+        let freshness: { key: "pnr.evFreshJust" | "pnr.evFreshMin" | null; m: number } = { key: null, m: 0 };
+        if (live?.updatedUnix) {
+          const ageSec = Math.max(0, Math.floor(Date.now() / 1000) - live.updatedUnix);
+          if (ageSec <= 90) freshness = { key: "pnr.evFreshJust", m: 0 };
+          else if (ageSec <= 60 * 60) freshness = { key: "pnr.evFreshMin", m: Math.round(ageSec / 60) };
+        }
+
+        return (
+          <section className="rounded-2xl bg-olive-soft/40 ring-1 ring-olive/30 p-3.5 flex flex-col gap-1.5">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive-deep">
+                {t("pnr.evLabel")}
+              </p>
+              {live && (
+                <span className="inline-flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.2em] text-olive-deep">
+                  <span className="h-1.5 w-1.5 rounded-full bg-olive-deep animate-pulse" />
+                  {t("pnr.evLiveBadge")}
+                </span>
+              )}
+            </div>
+
+            {live && live.available !== null ? (
+              <p className="font-display text-[17px] leading-snug text-ink text-balance">
+                {t("pnr.evLiveAvailable", {
+                  free: live.available,
+                  total: totalDisplay,
+                  kw: kwDisplay,
+                  kind: t(kindDisplay === "dc" ? "pnr.evKindDc" : "pnr.evKindAc"),
+                  network: networkDisplay,
+                })}
+              </p>
+            ) : (
+              <p className="font-display text-[15px] leading-snug text-ink text-balance">
+                {t("pnr.evLine", {
+                  count: totalDisplay,
+                  kw: kwDisplay,
+                  kind: t(kindDisplay === "dc" ? "pnr.evKindDc" : "pnr.evKindAc"),
+                  network: networkDisplay,
+                })}
+              </p>
+            )}
+
+            <p className="font-sans text-[12px] leading-snug text-ink-soft">
+              {freshness.key === "pnr.evFreshJust"
+                ? t("pnr.evFreshJust")
+                : freshness.key === "pnr.evFreshMin"
+                  ? t("pnr.evFreshMin", { m: freshness.m })
+                  : live && live.available === null
+                    ? t("pnr.evNoLive")
+                    : t("pnr.evHint")}
+            </p>
+          </section>
+        );
+      })()}
+
 
 
       <a

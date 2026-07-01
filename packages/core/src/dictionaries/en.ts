@@ -432,6 +432,11 @@ export const en = {
   "pnr.evKindAc": "AC",
   "pnr.evKindDc": "fast DC",
   "pnr.evHint": "Plug in, hop on the bus, come back to a topped-up car.",
+  "pnr.evLiveBadge": "Live",
+  "pnr.evLiveAvailable": "{free} of {total} {kind} bays free right now · up to {kw} kW · {network}",
+  "pnr.evFreshJust": "Updated just now — from the national EV feed.",
+  "pnr.evFreshMin": "Updated {m} min ago — from the national EV feed.",
+  "pnr.evNoLive": "Operator doesn't publish live status — check the app before you plug in.",
 
   // chain — last-mile taxi / rideshare handoff (Wave 3)
   "chain.eyebrowLongLate": "Last-mile handoff — after-hours",
