@@ -9,7 +9,7 @@
 // Kept intentionally simple: no on-device LLM. The heavy AI parsing lives
 // server-side; the mobile card just captures intent and routes.
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -23,12 +23,20 @@ import {
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
-import Svg, { Path } from "react-native-svg";
+import {
+  AudioModule,
+  RecordingPresets,
+  useAudioRecorder,
+  useAudioRecorderState,
+} from "expo-audio";
+import * as FileSystem from "expo-file-system";
+import Svg, { Path, Circle } from "react-native-svg";
 
 import { palette } from "@/constants/theme";
 import { assets } from "@/lib/assets";
 import { useGeoFix } from "@/lib/hooks";
 import { resolveAskAloya } from "@/lib/nl-planner";
+import { API_BASE } from "@/lib/api";
 
 const SUGGESTIONS = [
   "To Eleftheria Square in 20 min",
