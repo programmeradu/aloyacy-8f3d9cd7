@@ -1236,4 +1236,10 @@ export const en = {
  "share.openLabel": "Share this stop",
  "share.waFallback": "Image saved — attach it in WhatsApp",
  "share.saved": "Saved to your device",
+ "share.plan.cta": "Share this plan",
+ "share.plan.creating": "Making link…",
+ "share.plan.copied": "Link ready — share it",
+ "share.plan.retry": "Try again",
+ "share.plan.title": "A trip plan",
+ "share.plan.text": "Here's our plan to get to {where}.",
 } as const;
