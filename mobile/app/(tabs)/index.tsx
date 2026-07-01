@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Image,
   StyleSheet,
+  TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -41,6 +42,7 @@ export default function TodayScreen() {
   const bundle = useStopsBundle();
   const rt = useRealtime();
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const here = fix ?? FALLBACK;
   const usingFallback = !fix;
@@ -123,6 +125,13 @@ export default function TodayScreen() {
   }, [rt.data]);
 
   const landmarkChips = nearby.slice(0, 4);
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q || !bundle.data) return [];
+    return bundle.data.stops
+      .filter((s) => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q))
+      .slice(0, 5);
+  }, [bundle.data, searchQuery]);
   const mapMarkers = nearby.map((s) => ({
     lat: s.lat,
     lng: s.lng,
@@ -169,16 +178,49 @@ export default function TodayScreen() {
       </View>
 
       <View style={styles.searchWrap}>
-        <Pressable
-          onPress={() => router.push("/search")}
-          style={({ pressed }) => [styles.smartSearch, pressed && { transform: [{ scale: 0.99 }] }]}
-        >
+        <View style={styles.smartSearch}>
           <SearchGlyph />
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.searchPlaceholder}>Search stops, routes, buses, airports</Text>
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search stops or stop codes"
+              placeholderTextColor={palette.inkSoft}
+              autoCorrect={false}
+              returnKeyType="search"
+              onSubmitEditing={() => {
+                const first = searchResults[0];
+                if (first) router.push(`/stop/${first.id}`);
+              }}
+              style={styles.searchInput}
+            />
             <Text style={styles.searchHint}>Tap to search the full live network</Text>
           </View>
-        </Pressable>
+        </View>
+        {searchQuery.trim().length > 0 && (
+          <View style={styles.searchResults}>
+            {searchResults.length === 0 ? (
+              <Text style={styles.searchEmpty}>No stops match “{searchQuery.trim()}”.</Text>
+            ) : (
+              searchResults.map((s) => (
+                <Pressable
+                  key={s.id}
+                  onPress={() => router.push(`/stop/${s.id}`)}
+                  style={({ pressed }) => [styles.searchResultRow, pressed && { opacity: 0.65 }]}
+                >
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.searchResultName} numberOfLines={2}>{s.name}</Text>
+                    <Text style={styles.searchResultMeta}>Stop {s.code}  {s.agency}</Text>
+                  </View>
+                  <Text style={styles.searchResultGo}>OPEN</Text>
+                </Pressable>
+              ))
+            )}
+            <Pressable onPress={() => router.push("/search")} style={styles.fullSearchLink}>
+              <Text style={styles.fullSearchText}>Full search</Text>
+            </Pressable>
+          </View>
+        )}
       </View>
 
       <ScrollView
@@ -360,10 +402,12 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },
   },
-  searchPlaceholder: {
+  searchInput: {
     fontFamily: "Geist_600SemiBold",
     fontSize: 15.5,
     color: palette.ink,
+    padding: 0,
+    minHeight: 24,
   },
   searchHint: {
     marginTop: 2,
@@ -371,6 +415,65 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     letterSpacing: 1.4,
     color: palette.inkSoft,
+    textTransform: "uppercase",
+  },
+  searchResults: {
+    marginTop: 8,
+    borderRadius: 22,
+    backgroundColor: palette.white,
+    borderWidth: 1,
+    borderColor: palette.line,
+    overflow: "hidden",
+  },
+  searchResultRow: {
+    minHeight: 62,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.line,
+  },
+  searchResultName: {
+    fontFamily: "Geist_600SemiBold",
+    fontSize: 15,
+    lineHeight: 19,
+    color: palette.ink,
+  },
+  searchResultMeta: {
+    marginTop: 3,
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 10,
+    letterSpacing: 1.5,
+    color: palette.inkSoft,
+    textTransform: "uppercase",
+  },
+  searchResultGo: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 9.5,
+    letterSpacing: 1.8,
+    color: palette.aegeanDeep,
+  },
+  searchEmpty: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontFamily: "Geist_500Medium",
+    fontSize: 13,
+    lineHeight: 18,
+    color: palette.inkSoft,
+  },
+  fullSearchLink: {
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    alignItems: "center",
+    backgroundColor: palette.limestoneSoft,
+  },
+  fullSearchText: {
+    fontFamily: "JetBrainsMono_500Medium",
+    fontSize: 10,
+    letterSpacing: 2,
+    color: palette.ink,
     textTransform: "uppercase",
   },
   chipsRow: { paddingHorizontal: 20, paddingTop: 14, gap: 8 },
