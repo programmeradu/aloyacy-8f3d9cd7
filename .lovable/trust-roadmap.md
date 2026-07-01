@@ -179,8 +179,14 @@ Goal: chain modes intelligently when the bus-only answer is poor.
 - Honesty: seat counts as-published (never rounded up), deep-link to Kapnos for the transaction (we don't intermediate), gone-departures filtered in Cyprus local time.
 - Bilingual copy under `kapnos.*`.
 
+### Traffic alerts on your route (CyNAP DATEX) — SHIPPED 2026-07-01
+- Ingest already existed at `/api/public/hooks/pulse-traffic` (DATEX II v2/v3 parser, per-zone + island rollups into `pulse_signals`). Rendered ambiently on Pulse via `TrafficCard`.
+- NEW: trip-level surface. `src/lib/traffic-alerts.functions.ts` `getItineraryTrafficAlerts({ points })` — dedupes across all fresh (≤60 min) traffic rows, filters incidents within 500 m of any itinerary sample point (board/alight coords + walk endpoints), sorts by severity then proximity, caps at 4 alerts. Returns `null` when nothing intersects — no fake "all clear" ribbon.
+- `TrafficAlertsCard` on `/trips` renders above `ItineraryResults` only when the top itinerary is actually affected: eyebrow + severity chip (low=olive, medium=ochre, high=aegean-deep), numbered rail with kind/road/headline + distance-from-route, source + freshness footer.
+- Bilingual EN/EL copy under `traffic.*` (eyebrows, severities, kinds, source/updated labels).
+- Honesty: distance rounded to 50 m, never overstates severity, ignores incidents older than 60 min, silently degrades when the feed hasn't been configured or ingest hasn't fired.
+
 ### Still planned
-- Waze traffic + alerts overlay (CyNAP XML) — next up.
 - Group trips beyond share-links: live ETAs to multiple riders on the same plan.
 
 ---

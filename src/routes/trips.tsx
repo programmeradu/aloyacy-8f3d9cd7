@@ -41,6 +41,8 @@ import { KapnosShuttleCard } from "@/components/KapnosShuttleCard";
 import { BoltScooterCard } from "@/components/BoltScooterCard";
 import { getDustAdvisory } from "@/lib/pulse-live.functions";
 import { DustAdvisoryBanner } from "@/components/DustAdvisoryBanner";
+import { getItineraryTrafficAlerts } from "@/lib/traffic-alerts.functions";
+import { TrafficAlertsCard } from "@/components/TrafficAlertsCard";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
@@ -289,6 +291,42 @@ function Plan() {
     refetchOnWindowFocus: false,
   });
   const lastMileChain = chainQuery.data ?? null;
+
+  // Wave 3 — Traffic alerts overlay. Extract sample points from the top
+  // itinerary (board/alight + walk endpoints) and check the CyNAP DATEX
+  // feed for anything within 500 m. The server does the freshness gate.
+  const trafficFn = useServerFn(getItineraryTrafficAlerts);
+  const trafficPoints = (() => {
+    if (!topItin) return [] as Array<{ lat: number; lng: number }>;
+    const pts: Array<{ lat: number; lng: number }> = [];
+    for (const l of topItin.legs) {
+      if (l.kind === "ride") {
+        pts.push({ lat: l.board.lat, lng: l.board.lng });
+        pts.push({ lat: l.alight.lat, lng: l.alight.lng });
+      } else if (l.kind === "walk") {
+        pts.push({ lat: l.from.lat, lng: l.from.lng });
+        pts.push({ lat: l.to.lat, lng: l.to.lng });
+      }
+    }
+    return pts;
+  })();
+  const trafficKey = trafficPoints.map((p) => `${p.lat.toFixed(3)},${p.lng.toFixed(3)}`).join("|");
+  const trafficQuery = useQuery({
+    queryKey: ["itinTraffic", trafficKey],
+    queryFn: async () => {
+      if (trafficPoints.length === 0) return null;
+      try {
+        return await trafficFn({ data: { points: trafficPoints } });
+      } catch {
+        return null;
+      }
+    },
+    enabled: trafficPoints.length > 0,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const trafficReport = trafficQuery.data ?? null;
+
 
   // Wave 3 — Bike-share alternative (Nextbike). Short to mid-distance
   // intra-city trips where docked bikes + free racks are within a short
@@ -922,6 +960,7 @@ function Plan() {
             )}
             {bikeShare && <BikeShareCard suggestion={bikeShare} />}
             {boltScooter && <BoltScooterCard suggestion={boltScooter} />}
+            {trafficReport && <TrafficAlertsCard report={trafficReport} />}
             <ItineraryResults results={results} origin={origin} destination={destination} />
             {lastMileChain && <LastMileChainCard suggestion={lastMileChain} />}
           </div>
