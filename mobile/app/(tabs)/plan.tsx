@@ -665,6 +665,14 @@ export default function PlanScreen() {
           </View>
         )}
 
+        {/* ── Live traffic on this route ─────────────────────────────── */}
+        {trafficReport && (
+          <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
+            <TrafficAlertsCardMobile report={trafficReport} />
+          </View>
+        )}
+
+
         {/* ── Other ways (bike / scooter / chain) ────────────────────── */}
         {result && (bike || bolt || chain) && (
           <View style={{ paddingHorizontal: 20, marginTop: 24, gap: 12 }}>
