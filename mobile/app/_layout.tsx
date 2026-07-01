@@ -150,6 +150,14 @@ export default function RootLayout() {
             name="settings"
             options={{ presentation: "card", animation: "slide_from_bottom" }}
           />
+          <Stack.Screen
+            name="group/[code]"
+            options={{ presentation: "card", animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="plan/[token]"
+            options={{ presentation: "card", animation: "slide_from_right" }}
+          />
         </Stack>
         <ResumeTripPill />
         <PaywallSheet />
