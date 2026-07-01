@@ -83,6 +83,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const itin = active.itinerary!;
   const live = useMultiLegJourney(active);
   const disruption = useDisruptionWatch(active, live);
+  const [replanKind, setReplanKind] = useState<DisruptionKind | "early-alight" | null>(null);
 
   // ---- Walk directions for the current walk leg (lazy per-leg) -----------
   const currentWalk =
