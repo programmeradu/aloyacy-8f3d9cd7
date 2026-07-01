@@ -132,6 +132,7 @@
         "expo-notifications": "^56.0.18",
         "expo-router": "~56.2.11",
         "expo-sensors": "~14.1.4",
+        "expo-speech": "^57.0.0",
         "expo-splash-screen": "~56.0.10",
         "expo-status-bar": "~56.0.4",
         "expo-symbols": "~56.0.6",
@@ -1557,6 +1558,8 @@
     "expo-sensors": ["expo-sensors@14.1.4", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-sensors/-/expo-sensors-14.1.4.tgz", { "dependencies": { "invariant": "^2.2.4" }, "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-KHROi5C8dhXedMwx7fZ5eyv9p382F5XOIex4a+GpdOTL3OY4xyk08kt7x64FtMeeoT87gYD3mb9LrBpHyNubkg=="],
 
     "expo-server": ["expo-server@56.0.5", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-server/-/expo-server-56.0.5.tgz", {}, "sha512-SmM2p2g3Jrktpiazcst+OxhjSzOHXKAY4BPURHYHXvApzzoybMmrNF4IEZ8DKZ145BhSe4ydAmlEFCRTsdtgUQ=="],
+
+    "expo-speech": ["expo-speech@57.0.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-speech/-/expo-speech-57.0.0.tgz", { "peerDependencies": { "expo": "*" } }, "sha512-AOTdEkrFEq6t7ilQLOOZbrLkQrLYDSBC8aqcbhQMHgxe89yKqAAJ+r1hE0HqkNeK9YyV0mQ1+XizEmIX/djh5Q=="],
 
     "expo-splash-screen": ["expo-splash-screen@56.0.10", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-splash-screen/-/expo-splash-screen-56.0.10.tgz", { "dependencies": { "@expo/config-plugins": "~56.0.8", "@expo/image-utils": "^0.10.1", "xml2js": "0.6.0" }, "peerDependencies": { "expo": "*" } }, "sha512-vDIlo8hzt9HlCZQ0kSY66v83D1WEXOJbVMeyPDfXDu9tbDdPMNUyDpi4WGJXikAjxnAKfbt5Mv5NnEbxINy+VA=="],
 
