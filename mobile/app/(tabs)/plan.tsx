@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,12 +6,18 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
+  Image,
+  StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueries, useQuery, keepPreviousData } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
+import * as Location from "expo-location";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Svg, { Circle, Path } from "react-native-svg";
 
 import { palette } from "@/constants/theme";
+import { assets } from "@/lib/assets";
 import { useGeoFix, useRealtime } from "@/lib/hooks";
 import { fetchPlan, type PlanResult, type Itinerary, type Leg } from "@/lib/plan";
 import {
