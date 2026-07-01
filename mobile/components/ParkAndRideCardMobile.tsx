@@ -164,6 +164,10 @@ export function ParkAndRideCardMobile({
         </Text>
       ) : null}
 
+      {suggestion.hub.ev ? <EvBlock ev={suggestion.hub.ev} /> : null}
+
+
+
       <Pressable
         onPress={() => {
           Haptics.selectionAsync().catch(() => {});

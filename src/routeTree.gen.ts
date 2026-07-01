@@ -36,7 +36,9 @@ import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as ApiPublicWalletRouteImport } from './routes/api/public/wallet'
 import { Route as ApiPublicWalkDirectionsRouteImport } from './routes/api/public/walk-directions'
 import { Route as ApiPublicTtsRouteImport } from './routes/api/public/tts'
+import { Route as ApiPublicTripGroupsRouteImport } from './routes/api/public/trip-groups'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
+import { Route as ApiPublicTrafficAlertsRouteImport } from './routes/api/public/traffic-alerts'
 import { Route as ApiPublicSttRouteImport } from './routes/api/public/stt'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicStopsRouteImport } from './routes/api/public/stops'
@@ -224,9 +226,19 @@ const ApiPublicTtsRoute = ApiPublicTtsRouteImport.update({
   path: '/api/public/tts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTripGroupsRoute = ApiPublicTripGroupsRouteImport.update({
+  id: '/api/public/trip-groups',
+  path: '/api/public/trip-groups',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
   id: '/api/public/trip-alerts',
   path: '/api/public/trip-alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTrafficAlertsRoute = ApiPublicTrafficAlertsRouteImport.update({
+  id: '/api/public/traffic-alerts',
+  path: '/api/public/traffic-alerts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicSttRoute = ApiPublicSttRouteImport.update({
@@ -554,7 +566,9 @@ export interface FileRoutesByFullPath {
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/stt': typeof ApiPublicSttRoute
+  '/api/public/traffic-alerts': typeof ApiPublicTrafficAlertsRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/trip-groups': typeof ApiPublicTripGroupsRoute
   '/api/public/tts': typeof ApiPublicTtsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
@@ -634,7 +648,9 @@ export interface FileRoutesByTo {
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/stt': typeof ApiPublicSttRoute
+  '/api/public/traffic-alerts': typeof ApiPublicTrafficAlertsRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/trip-groups': typeof ApiPublicTripGroupsRoute
   '/api/public/tts': typeof ApiPublicTtsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
@@ -715,7 +731,9 @@ export interface FileRoutesById {
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/stt': typeof ApiPublicSttRoute
+  '/api/public/traffic-alerts': typeof ApiPublicTrafficAlertsRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/trip-groups': typeof ApiPublicTripGroupsRoute
   '/api/public/tts': typeof ApiPublicTtsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
@@ -797,7 +815,9 @@ export interface FileRouteTypes {
     | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/stt'
+    | '/api/public/traffic-alerts'
     | '/api/public/trip-alerts'
+    | '/api/public/trip-groups'
     | '/api/public/tts'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
@@ -877,7 +897,9 @@ export interface FileRouteTypes {
     | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/stt'
+    | '/api/public/traffic-alerts'
     | '/api/public/trip-alerts'
+    | '/api/public/trip-groups'
     | '/api/public/tts'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
@@ -957,7 +979,9 @@ export interface FileRouteTypes {
     | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/stt'
+    | '/api/public/traffic-alerts'
     | '/api/public/trip-alerts'
+    | '/api/public/trip-groups'
     | '/api/public/tts'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
@@ -1038,7 +1062,9 @@ export interface RootRouteChildren {
   ApiPublicStopsRoute: typeof ApiPublicStopsRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
   ApiPublicSttRoute: typeof ApiPublicSttRoute
+  ApiPublicTrafficAlertsRoute: typeof ApiPublicTrafficAlertsRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
+  ApiPublicTripGroupsRoute: typeof ApiPublicTripGroupsRoute
   ApiPublicTtsRoute: typeof ApiPublicTtsRoute
   ApiPublicWalkDirectionsRoute: typeof ApiPublicWalkDirectionsRoute
   ApiPublicWalletRoute: typeof ApiPublicWalletRouteWithChildren
@@ -1257,11 +1283,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTtsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/trip-groups': {
+      id: '/api/public/trip-groups'
+      path: '/api/public/trip-groups'
+      fullPath: '/api/public/trip-groups'
+      preLoaderRoute: typeof ApiPublicTripGroupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/trip-alerts': {
       id: '/api/public/trip-alerts'
       path: '/api/public/trip-alerts'
       fullPath: '/api/public/trip-alerts'
       preLoaderRoute: typeof ApiPublicTripAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/traffic-alerts': {
+      id: '/api/public/traffic-alerts'
+      path: '/api/public/traffic-alerts'
+      fullPath: '/api/public/traffic-alerts'
+      preLoaderRoute: typeof ApiPublicTrafficAlertsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/stt': {
@@ -1681,7 +1721,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicStopsRoute: ApiPublicStopsRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
   ApiPublicSttRoute: ApiPublicSttRoute,
+  ApiPublicTrafficAlertsRoute: ApiPublicTrafficAlertsRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
+  ApiPublicTripGroupsRoute: ApiPublicTripGroupsRoute,
   ApiPublicTtsRoute: ApiPublicTtsRoute,
   ApiPublicWalkDirectionsRoute: ApiPublicWalkDirectionsRoute,
   ApiPublicWalletRoute: ApiPublicWalletRouteWithChildren,
@@ -1716,13 +1758,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
