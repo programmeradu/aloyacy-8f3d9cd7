@@ -265,6 +265,81 @@ export function MapView(props: MapViewProps) {
     }
   }, [ready, userLocation?.lat, userLocation?.lng]);
 
+  // Traffic / CyNAP incident overlay
+  useEffect(() => {
+    const map = mapRef.current; if (!ready || !map) return;
+    const list = trafficIncidents ?? [];
+    const seen = new Set<string>();
+    const SEV_FILL: Record<"low" | "medium" | "high", string> = {
+      low: "#e0b23a",
+      medium: "#c86a1f",
+      high: "#a1211c",
+    };
+    const SEV_HALO: Record<"low" | "medium" | "high", string> = {
+      low: "rgba(224,178,58,0.22)",
+      medium: "rgba(200,106,31,0.24)",
+      high: "rgba(161,33,28,0.28)",
+    };
+    for (const inc of list) {
+      if (!Number.isFinite(inc.lat) || !Number.isFinite(inc.lng)) continue;
+      seen.add(inc.id);
+      const fill = SEV_FILL[inc.severity];
+      const halo = SEV_HALO[inc.severity];
+      const existing = layerRef.current.incidentMarkers.get(inc.id);
+      if (existing) {
+        existing.marker.setPosition({ lat: inc.lat, lng: inc.lng });
+        existing.halo.setCenter({ lat: inc.lat, lng: inc.lng });
+        existing.halo.setOptions({ fillColor: halo, strokeColor: fill });
+        existing.marker.setIcon({
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: fill, fillOpacity: 1,
+          strokeColor: "#ffffff", strokeWeight: 2,
+          scale: inc.severity === "high" ? 8 : inc.severity === "medium" ? 7 : 6,
+        });
+        continue;
+      }
+      const haloCircle = new google.maps.Circle({
+        map, center: { lat: inc.lat, lng: inc.lng },
+        radius: inc.severity === "high" ? 260 : inc.severity === "medium" ? 200 : 150,
+        fillColor: halo, fillOpacity: 1,
+        strokeColor: fill, strokeOpacity: 0.55, strokeWeight: 1,
+        clickable: false, zIndex: 300,
+      });
+      const marker = new google.maps.Marker({
+        position: { lat: inc.lat, lng: inc.lng }, map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: fill, fillOpacity: 1,
+          strokeColor: "#ffffff", strokeWeight: 2,
+          scale: inc.severity === "high" ? 8 : inc.severity === "medium" ? 7 : 6,
+        },
+        title: inc.headline ?? inc.road ?? "Traffic",
+        zIndex: 320,
+      });
+      marker.addListener("click", () => {
+        if (!layerRef.current.incidentInfo) {
+          layerRef.current.incidentInfo = new google.maps.InfoWindow();
+        }
+        const road = inc.road ? `<div style="font:600 11px/1 -apple-system,Segoe UI,Roboto;letter-spacing:1.2px;text-transform:uppercase;color:#5a574e;margin-bottom:4px">${inc.road}</div>` : "";
+        const title = inc.headline ?? "Traffic incident";
+        const kind = inc.kind ? `<div style="font:500 11px/1.3 -apple-system,Segoe UI,Roboto;color:#5a574e;margin-top:4px;text-transform:capitalize">${inc.kind} · ${inc.severity}</div>` : "";
+        layerRef.current.incidentInfo.setContent(
+          `<div style="max-width:220px;color:#1f1e18">${road}<div style="font:600 13px/1.3 -apple-system,Segoe UI,Roboto">${title}</div>${kind}</div>`,
+        );
+        layerRef.current.incidentInfo.open({ map, anchor: marker });
+      });
+      layerRef.current.incidentMarkers.set(inc.id, { marker, halo: haloCircle });
+    }
+    for (const [k, v] of layerRef.current.incidentMarkers) {
+      if (!seen.has(k)) {
+        v.marker.setMap(null);
+        v.halo.setMap(null);
+        layerRef.current.incidentMarkers.delete(k);
+      }
+    }
+  }, [ready, trafficIncidents]);
+
+
   // Fit content
   useEffect(() => {
     const map = mapRef.current; if (!ready || !map) return;
