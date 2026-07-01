@@ -1,6 +1,15 @@
-import { useState } from "react";
-import { PRO_PLANS, type PlanId } from "@/lib/billing";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { PRO_PLANS, type PlanId, getStripeEnvironment } from "@/lib/billing";
 import { useAuth } from "@/lib/useAuth";
+import { useProSubscription } from "@/lib/usePro";
+import { getDeviceId } from "@/lib/device-id";
+import {
+  claimAutoTrial,
+  redeemPromoCode,
+  getTrialStatus,
+} from "@/lib/trial.functions";
 import { AuthSheet } from "./AuthSheet";
 import { StripeEmbeddedCheckoutPane } from "./StripeEmbeddedCheckout";
 import proHero from "@/assets/pro-hero.jpg";
@@ -17,9 +26,39 @@ const FEATURE_KEYS: { title: DictKey; body: DictKey }[] = [
 export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useI18n();
   const { isPermanent } = useAuth();
+  const { isPro } = useProSubscription();
   const [plan, setPlan] = useState<PlanId>("monthly");
   const [authOpen, setAuthOpen] = useState(false);
   const [stage, setStage] = useState<"plan" | "checkout">("plan");
+
+  // Trial state
+  const [trialEligible, setTrialEligible] = useState<boolean | null>(null);
+  const [claiming, setClaiming] = useState(false);
+  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
+
+  const claimAuto = useServerFn(claimAutoTrial);
+  const redeem = useServerFn(redeemPromoCode);
+  const status = useServerFn(getTrialStatus);
+
+  useEffect(() => {
+    if (!open || !isPermanent || isPro) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await status({
+          data: { deviceId: getDeviceId(), environment: getStripeEnvironment() },
+        });
+        if (!cancelled) setTrialEligible(res.eligibleAuto);
+      } catch {
+        if (!cancelled) setTrialEligible(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, isPermanent, isPro, status]);
 
   if (!open) return null;
 
@@ -30,6 +69,56 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
     }
     setStage("checkout");
   }
+
+  async function handleClaimAuto() {
+    if (!isPermanent) {
+      setAuthOpen(true);
+      return;
+    }
+    setClaiming(true);
+    try {
+      const res = await claimAuto({
+        data: { deviceId: getDeviceId(), environment: getStripeEnvironment() },
+      });
+      if (res.ok) {
+        toast.success("Your 7-day Pro trial is active. Enjoy Aloya.");
+        onClose();
+      } else {
+        toast.error(res.reason);
+        setTrialEligible(false);
+      }
+    } catch {
+      toast.error("Could not start trial. Please try again.");
+    } finally {
+      setClaiming(false);
+    }
+  }
+
+  async function handleRedeem() {
+    const code = promoCode.trim();
+    if (code.length < 2) return;
+    if (!isPermanent) {
+      setAuthOpen(true);
+      return;
+    }
+    setRedeeming(true);
+    try {
+      const res = await redeem({
+        data: { code, deviceId: getDeviceId(), environment: getStripeEnvironment() },
+      });
+      if (res.ok) {
+        toast.success(`Code applied — Pro unlocked for ${Math.max(1, Math.round((new Date(res.expiresAt).getTime() - Date.now()) / 86400000))} days.`);
+        onClose();
+      } else {
+        toast.error(res.reason);
+      }
+    } catch {
+      toast.error("Could not redeem code. Please try again.");
+    } finally {
+      setRedeeming(false);
+    }
+  }
+
 
   const returnUrl =
     typeof window !== "undefined"
