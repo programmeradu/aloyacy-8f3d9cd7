@@ -49,21 +49,31 @@ export function KapnosShuttleCardMobile({
       <View
         style={{
           flexDirection: "row",
-          alignItems: "baseline",
+          alignItems: "center",
           justifyContent: "space-between",
           gap: 10,
         }}
       >
-        <Text
-          style={{
-            fontFamily: "Geist_700Bold",
-            fontSize: 10,
-            color: palette.aegeanDeep,
-            letterSpacing: 0.6,
-          }}
-        >
-          KAPNOS COACH
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <Image
+            source={assets.kapnos_logo}
+            accessibilityLabel="Kapnos logo"
+            style={{ width: 78, height: 22 }}
+            resizeMode="contain"
+          />
+          <View style={{ width: 1, height: 14, backgroundColor: palette.line }} />
+          <Text
+            style={{
+              fontFamily: "Geist_700Bold",
+              fontSize: 10,
+              color: palette.aegeanDeep,
+              letterSpacing: 1.4,
+              textTransform: "uppercase",
+            }}
+          >
+            Airport coach
+          </Text>
+        </View>
         <Text
           style={{
             fontFamily: "Geist_700Bold",
