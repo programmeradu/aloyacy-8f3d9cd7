@@ -82,13 +82,14 @@ export function StopCard({ stop }: { stop: StopCardData }) {
     >
       {/* Editorial photo wash on the right edge — the shelter photograph
           leans into the card so the composition feels rooted in place. */}
-      <Image
-        source={assets.stop_shelter}
-        style={cardStyles.washImage}
-        resizeMode="cover"
-        pointerEvents="none"
-      />
-      <View style={cardStyles.washTint} pointerEvents="none" />
+      <View pointerEvents="none" style={cardStyles.washWrap}>
+        <Image
+          source={assets.stop_shelter}
+          style={cardStyles.washImage}
+          resizeMode="cover"
+        />
+        <View style={cardStyles.washTint} />
+      </View>
       {/* Left rail — accent colour drives from the freshness tier. */}
       <View style={[cardStyles.rail, { backgroundColor: accent }]} pointerEvents="none" />
 
