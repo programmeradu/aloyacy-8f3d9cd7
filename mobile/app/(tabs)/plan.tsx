@@ -30,6 +30,7 @@ import { fetchKapnos } from "@/lib/kapnos";
 import { fetchDustAdvisory } from "@/lib/dust";
 
 import { ItineraryCard } from "@/components/ItineraryCard";
+import { startItinerary } from "@/lib/itineraryToTrip";
 import {
   BikeShareCardMobile,
   BoltScooterCardMobile,
