@@ -81,14 +81,18 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         .limit(1)
         .maybeSingle();
 
+      // Allow upgrading during a trial (status='trialing'); only block a
+      // fully paid active subscription. Trials are ephemeral rows without a
+      // stripe_subscription_id — checkout replaces them with the real thing.
       if (
         existing &&
-        (existing.status === "active" || existing.status === "trialing") &&
+        existing.status === "active" &&
         (!existing.current_period_end ||
           new Date(existing.current_period_end as string) > new Date())
       ) {
         return { error: "You already have an active Pro subscription." };
       }
+
 
       const price = await findPriceByPlanKey(stripe, data.planKey);
       if (!price) return { error: "Plan not available right now." };
