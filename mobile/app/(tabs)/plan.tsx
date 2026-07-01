@@ -40,6 +40,7 @@ import { ParkAndRideCardMobile } from "@/components/ParkAndRideCardMobile";
 import { KapnosShuttleCardMobile } from "@/components/KapnosShuttleCardMobile";
 import { DustAdvisoryBannerMobile } from "@/components/DustAdvisoryBannerMobile";
 import { RemindMeButtonMobile } from "@/components/RemindMeButtonMobile";
+import { SharePlanButtonMobile } from "@/components/SharePlanButtonMobile";
 import {
   PlacesAutocomplete,
   type PickedPlace,
@@ -613,6 +614,13 @@ export default function PlanScreen() {
                   />
                   {idx === 0 && destination && (
                     <RemindMeButtonMobile
+                      itinerary={it}
+                      origin={effectiveOrigin}
+                      destination={destination}
+                    />
+                  )}
+                  {destination && (
+                    <SharePlanButtonMobile
                       itinerary={it}
                       origin={effectiveOrigin}
                       destination={destination}
