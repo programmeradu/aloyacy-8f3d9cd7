@@ -287,8 +287,12 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           <PhaseSub live={live} itin={itin} destLabel={active.to.label} />
         </View>
       </View>
-      {/* Proactive disruption assistant — takes precedence over honest banners */}
-      <DisruptionBanner signal={disruption} active={active} />
+      {/* Proactive disruption assistant — opens inline replan sheet */}
+      <DisruptionBanner
+        signal={disruption}
+        active={active}
+        onReplan={() => disruption && setReplanKind(disruption.kind)}
+      />
 
       {/* Honest banners */}
       {live.active && live.tripGhost && !live.vehicleLost && (
@@ -298,6 +302,27 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           body="This trip is on the schedule but the operator hasn't reported it yet. Countdowns are on schedule until GPS appears."
         />
       )}
+
+      {/* Rider sighting CTA — surface when the current bus is a ghost and
+          the rider is close enough to the boarding stop to physically
+          confirm it. Costs one tap and rescues every other rider. */}
+      {live.active &&
+        live.tripGhost &&
+        live.currentRideLeg &&
+        (live.phase === "waiting-to-board" ||
+          live.phase === "walking-to-board") &&
+        live.metersToTarget < 120 && (
+          <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+            <SightingButton
+              tripId={live.currentRideLeg.tripId}
+              routeId={live.currentRideLeg.routeId}
+              stopId={live.currentRideLeg.board.stopId}
+              lat={live.currentRideLeg.board.lat}
+              lng={live.currentRideLeg.board.lng}
+            />
+          </View>
+        )}
+
       {live.active && live.vehicleLost && (
         <BannerCard
           tone="aegean"
@@ -327,6 +352,17 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           />
         )}
 
+      {/* Crowd / comfort — surface while a ride leg is active */}
+      {live.currentRideLeg &&
+        (live.phase === "riding" ||
+          live.phase === "alight-soon" ||
+          live.phase === "waiting-to-board") && (
+          <CrowdHint
+            routeId={live.currentRideLeg.routeId}
+            tripId={live.currentRideLeg.tripId}
+          />
+        )}
+
       {/* Live map */}
       <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
         <MapView
@@ -344,25 +380,44 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
 
       {/* Action HUD */}
       <View style={{ marginTop: 22 }}>
-        <MultiLegActions live={live} active={active} onImOff={handleImOff} />
+        <MultiLegActions
+          live={live}
+          active={active}
+          onImOff={handleImOff}
+          onGetOffHere={() => setReplanKind("early-alight")}
+        />
       </View>
 
-      {/* Walk turn-by-turn for the current walk leg */}
+      {/* Walk turn-by-turn: live banner + full step list */}
       {currentWalk && directions && directions.steps.length > 0 && (
-        <View style={{ marginTop: 26 }}>
-          <WalkGuidance
+        <>
+          <LiveWalkBanner
             title={
               live.phase === "walking-to-board"
-                ? `Walk to ${currentWalk.to.name}`
+                ? `To ${currentWalk.to.name}`
                 : live.phase === "walking-to-transfer"
-                  ? `Walk to bus ${live.nextRideLeg?.routeShort ?? ""}`
-                  : `Walk to ${currentWalk.to.name}`
+                  ? `To bus ${live.nextRideLeg?.routeShort ?? ""}`
+                  : `To ${currentWalk.to.name}`
             }
             steps={directions.steps}
-            totalDurationSec={directions.durationSec}
-            totalDistanceMeters={directions.distanceMeters}
+            fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
+            to={{ lat: currentWalk.to.lat, lng: currentWalk.to.lng }}
           />
-        </View>
+          <View style={{ marginTop: 20 }}>
+            <WalkGuidance
+              title={
+                live.phase === "walking-to-board"
+                  ? `Walk to ${currentWalk.to.name}`
+                  : live.phase === "walking-to-transfer"
+                    ? `Walk to bus ${live.nextRideLeg?.routeShort ?? ""}`
+                    : `Walk to ${currentWalk.to.name}`
+              }
+              steps={directions.steps}
+              totalDurationSec={directions.durationSec}
+              totalDistanceMeters={directions.distanceMeters}
+            />
+          </View>
+        </>
       )}
 
       {/* Full timeline */}
