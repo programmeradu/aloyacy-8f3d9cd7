@@ -1,9 +1,9 @@
 // Saved — native mirror of `src/routes/saved.tsx`.
 //
-// Surfaces pinned places, recent destinations, and (for Pro) the
-// Notifications + Offline Schedules controls. Free riders see the
-// GoProCard upsell so the surface is never empty / never lies about
-// what's behind the paywall.
+// Surfaces pinned places and recent destinations. Non-Pro riders see the
+// editorial ProFeaturesUpsell which opens the paywall sheet. Notification
+// + offline-schedule controls live on the Settings screen (single source
+// of truth — they used to be duplicated across Saved / Wallet / More).
 
 import { useCallback, useState } from "react";
 import {
@@ -28,9 +28,7 @@ import {
 } from "@/lib/trip-store";
 import { useProSubscription } from "@/lib/usePro";
 import { useSession } from "@/lib/auth";
-import { NotificationsCard } from "@/components/NotificationsCard";
-import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
-import { GoProCard } from "@/components/GoProCard";
+import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
 
 const TONE_CYCLE: SavedPlace["tone"][] = ["aegean", "ochre", "olive"];
 
@@ -350,17 +348,12 @@ export default function SavedScreen() {
         </View>
       )}
 
-      {/* Pro surfaces */}
-      <View style={{ marginTop: 32, gap: 16 }}>
-        {proLoading ? null : isPro ? (
-          <>
-            <NotificationsCard />
-            <OfflineSchedulesCard />
-          </>
-        ) : (
-          <GoProCard />
-        )}
-      </View>
+      {/* Pro upsell — non-Pro riders only. Alerts + offline live on Settings. */}
+      {!proLoading && !isPro && (
+        <View style={{ marginTop: 32 }}>
+          <ProFeaturesUpsell />
+        </View>
+      )}
     </ScrollView>
   );
 }
