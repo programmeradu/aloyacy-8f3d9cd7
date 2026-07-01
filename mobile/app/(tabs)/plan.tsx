@@ -484,7 +484,7 @@ export default function PlanScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 10,
               color: palette.inkSoft,
               letterSpacing: 0.5,
@@ -535,7 +535,7 @@ export default function PlanScreen() {
             <ActivityIndicator color={palette.aegean} />
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 color: palette.inkSoft,
                 fontSize: 11,
                 letterSpacing: 0.5,
@@ -566,7 +566,7 @@ export default function PlanScreen() {
           <View style={{ paddingHorizontal: 20, marginTop: 22, gap: 12 }}>
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 color: palette.inkSoft,
                 fontSize: 11,
                 letterSpacing: 0.4,
@@ -627,7 +627,7 @@ export default function PlanScreen() {
           <View style={{ paddingHorizontal: 20, marginTop: 24, gap: 12 }}>
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 color: palette.inkSoft,
                 fontSize: 11,
                 letterSpacing: 0.4,
@@ -704,7 +704,7 @@ const planStyles = StyleSheet.create({
     gap: 6,
   },
   heroKicker: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2.6,
     color: palette.limestone,
@@ -736,7 +736,7 @@ const planStyles = StyleSheet.create({
   },
   dot: { width: 6, height: 6, borderRadius: 3 },
   heroBadgeText: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9.5,
     letterSpacing: 1.4,
     color: palette.limestone,
@@ -765,7 +765,7 @@ const planStyles = StyleSheet.create({
     backgroundColor: palette.limestoneSoft,
   },
   fieldLabel: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 9.5,
     letterSpacing: 1.8,
     color: palette.inkSoft,

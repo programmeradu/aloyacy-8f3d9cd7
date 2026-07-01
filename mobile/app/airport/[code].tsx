@@ -114,7 +114,7 @@ export default function AirportScreen() {
       >
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             letterSpacing: 2.4,
             color: palette.aegeanDeep,
@@ -235,7 +235,7 @@ export default function AirportScreen() {
         </Pressable>
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             letterSpacing: 2.2,
             color: palette.inkSoft,
@@ -331,7 +331,7 @@ export default function AirportScreen() {
         >
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 10,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -368,7 +368,7 @@ export default function AirportScreen() {
         <View style={{ flex: 1 }}>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9.5,
               letterSpacing: 2.4,
               color: palette.inkSoft,
@@ -392,7 +392,7 @@ export default function AirportScreen() {
         </View>
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             letterSpacing: 1.8,
             color: stale ? palette.ochre : palette.aegeanDeep,
@@ -534,7 +534,7 @@ function CoachLineCard({ line }: { line: AirportCoachLine }) {
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9.5,
               letterSpacing: 2.2,
               textTransform: "uppercase",
@@ -560,7 +560,7 @@ function CoachLineCard({ line }: { line: AirportCoachLine }) {
         <View style={{ alignItems: "flex-end" }}>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 11,
               letterSpacing: 1.4,
               color: palette.ink,
@@ -573,7 +573,7 @@ function CoachLineCard({ line }: { line: AirportCoachLine }) {
             <Text
               style={{
                 marginTop: 2,
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 10,
                 letterSpacing: 1.2,
                 color: palette.inkSoft,
@@ -633,7 +633,7 @@ function CoachLineCard({ line }: { line: AirportCoachLine }) {
                   </Text>
                   <Text
                     style={{
-                      fontFamily: "JetBrainsMono_500Medium",
+                      fontFamily: "Geist_700Bold",
                       fontSize: 12,
                       color: palette.inkSoft,
                     }}
@@ -642,7 +642,7 @@ function CoachLineCard({ line }: { line: AirportCoachLine }) {
                   </Text>
                   <Text
                     style={{
-                      fontFamily: "JetBrainsMono_500Medium",
+                      fontFamily: "Geist_700Bold",
                       fontSize: 12,
                       color: palette.ink,
                       fontVariant: ["tabular-nums"],
@@ -653,7 +653,7 @@ function CoachLineCard({ line }: { line: AirportCoachLine }) {
                   {d.dayChip ? (
                     <Text
                       style={{
-                        fontFamily: "JetBrainsMono_500Medium",
+                        fontFamily: "Geist_700Bold",
                         fontSize: 9,
                         letterSpacing: 1.6,
                         textTransform: "uppercase",
@@ -666,7 +666,7 @@ function CoachLineCard({ line }: { line: AirportCoachLine }) {
                 </View>
                 <Text
                   style={{
-                    fontFamily: "JetBrainsMono_500Medium",
+                    fontFamily: "Geist_700Bold",
                     fontSize: 9.5,
                     letterSpacing: 1.6,
                     textTransform: "uppercase",
@@ -696,7 +696,7 @@ function CoachLineCard({ line }: { line: AirportCoachLine }) {
       >
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 9.5,
             letterSpacing: 1.6,
             textTransform: "uppercase",

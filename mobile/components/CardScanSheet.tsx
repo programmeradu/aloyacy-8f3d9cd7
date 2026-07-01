@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   eyebrow: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2.4,
     textTransform: "uppercase",
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.ochre,
   },
   toggleLabel: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2.4,
     textTransform: "uppercase",
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(31,30,24,0.7)",
   },
   statusText: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,
     textTransform: "uppercase",
@@ -653,7 +653,7 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   fieldLabel: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,
     textTransform: "uppercase",
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
   fieldValue: {
     flex: 1,
     textAlign: "right",
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 13,
     color: "rgba(246,241,231,0.3)",
   },
@@ -700,7 +700,7 @@ const styles = StyleSheet.create({
   },
   footnote: {
     textAlign: "center",
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2,
     textTransform: "uppercase",

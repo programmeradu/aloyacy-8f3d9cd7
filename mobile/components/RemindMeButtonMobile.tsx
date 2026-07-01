@@ -165,7 +165,7 @@ export function RemindMeButtonMobile({
       {state === "saved" && (
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             color: palette.inkSoft,
             letterSpacing: 0.4,
@@ -177,7 +177,7 @@ export function RemindMeButtonMobile({
       {err && (
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             color: palette.ochre,
             letterSpacing: 0.3,

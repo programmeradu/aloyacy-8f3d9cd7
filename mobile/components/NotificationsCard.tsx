@@ -133,7 +133,7 @@ export function NotificationsCard() {
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 10,
               letterSpacing: 2,
               color: palette.inkSoft,
@@ -160,7 +160,7 @@ export function NotificationsCard() {
         </View>
         <Text
           style={{
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 10,
             letterSpacing: 2,
             color: isOn
@@ -233,7 +233,7 @@ export function NotificationsCard() {
             style={{
               position: "absolute",
               left: 16,
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9,
               letterSpacing: 1.8,
               color: "rgba(246,241,231,0.9)",
@@ -246,7 +246,7 @@ export function NotificationsCard() {
             style={{
               position: "absolute",
               right: 15,
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 9,
               letterSpacing: 1.8,
               color: palette.inkSoft,
@@ -298,7 +298,7 @@ export function NotificationsCard() {
           </Text>
           <Text
             style={{
-              fontFamily: "JetBrainsMono_500Medium",
+              fontFamily: "Geist_700Bold",
               fontSize: 10,
               letterSpacing: 1.8,
               color: palette.inkSoft,
@@ -324,7 +324,7 @@ export function NotificationsCard() {
         <Text
           style={{
             marginTop: 14,
-            fontFamily: "JetBrainsMono_500Medium",
+            fontFamily: "Geist_700Bold",
             fontSize: 11,
             letterSpacing: 0.4,
             color: palette.inkSoft,
@@ -353,7 +353,7 @@ export function NotificationsCard() {
           >
             <Text
               style={{
-                fontFamily: "JetBrainsMono_500Medium",
+                fontFamily: "Geist_700Bold",
                 fontSize: 10,
                 letterSpacing: 1.8,
                 color: palette.inkSoft,

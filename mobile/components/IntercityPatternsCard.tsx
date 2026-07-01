@@ -32,7 +32,7 @@ function Label({ children }: { children: string }) {
   return (
     <Text
       style={{
-        fontFamily: "JetBrainsMono_500Medium",
+        fontFamily: "Geist_700Bold",
         fontSize: 10,
         letterSpacing: 1,
         color: palette.oliveSoft,
@@ -78,7 +78,7 @@ function AnomalyRow({ a, baseline }: { a: IntercityAnomaly; baseline: number }) 
       </Text>
       <Text
         style={{
-          fontFamily: "JetBrainsMono_500Medium",
+          fontFamily: "Geist_700Bold",
           fontSize: 11,
           color: palette.inkSoft,
           marginTop: 4,
@@ -189,7 +189,7 @@ export function IntercityPatternsCard({ data }: { data: IntercityInsights }) {
               </Text>
               <Text
                 style={{
-                  fontFamily: "JetBrainsMono_500Medium",
+                  fontFamily: "Geist_700Bold",
                   fontSize: 11,
                   color: palette.inkSoft,
                   marginTop: 2,

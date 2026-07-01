@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     paddingRight: 120,
   },
   kicker: {
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_700Bold",
     fontSize: 10,
     letterSpacing: 2.4,
     color: palette.aegeanDeep,
