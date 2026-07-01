@@ -42,7 +42,7 @@ export default function TabLayout() {
         options={{
           tabBarIcon: ({ focused }) => (
             <View>
-              <HomeIcon color={focused ? palette.ink : palette.inkSoft} />
+              <HomeIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
             </View>
           ),
           tabBarLabel: ({ focused }) => <TabLabel label="Today" focused={focused} />,
@@ -52,7 +52,7 @@ export default function TabLayout() {
         name="pulse"
         options={{
           tabBarIcon: ({ focused }) => (
-            <PulseIcon color={focused ? palette.ink : palette.inkSoft} />
+            <PulseIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
           ),
           tabBarLabel: ({ focused }) => <TabLabel label="Pulse" focused={focused} />,
         }}
@@ -61,7 +61,7 @@ export default function TabLayout() {
         name="plan"
         options={{
           tabBarIcon: ({ focused }) => (
-            <PlanIcon color={focused ? palette.ink : palette.inkSoft} />
+            <PlanIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
           ),
           tabBarLabel: ({ focused }) => <TabLabel label="Plan" focused={focused} />,
         }}
@@ -70,7 +70,7 @@ export default function TabLayout() {
         name="search"
         options={{
           tabBarIcon: ({ focused }) => (
-            <SearchIcon color={focused ? palette.ink : palette.inkSoft} />
+            <SearchIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
           ),
           tabBarLabel: ({ focused }) => <TabLabel label="Search" focused={focused} />,
         }}
@@ -79,7 +79,7 @@ export default function TabLayout() {
         name="saved"
         options={{
           tabBarIcon: ({ focused }) => (
-            <SavedIcon color={focused ? palette.ink : palette.inkSoft} />
+            <SavedIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
           ),
           tabBarLabel: ({ focused }) => <TabLabel label="Saved" focused={focused} />,
         }}
@@ -88,7 +88,7 @@ export default function TabLayout() {
         name="wallet"
         options={{
           tabBarIcon: ({ focused }) => (
-            <WalletIcon color={focused ? palette.ink : palette.inkSoft} />
+            <WalletIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
           ),
           tabBarLabel: ({ focused }) => <TabLabel label="Wallet" focused={focused} />,
         }}
