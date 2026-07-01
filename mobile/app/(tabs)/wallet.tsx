@@ -15,6 +15,7 @@ import {
   ScrollView, View, Text, Pressable, RefreshControl, StyleSheet, Alert,
   Platform, Linking,
 } from "react-native";
+import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { palette } from "@/constants/theme";
