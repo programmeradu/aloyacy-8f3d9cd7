@@ -16,6 +16,10 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { palette } from "@/constants/theme";
 import { StopCard, type StopCardData, type StopCardRoute } from "@/components/StopCard";
 import { MapView } from "@/components/MapView";
+import { ExpandableMap } from "@/components/ExpandableMap";
+import { HomeHeader } from "@/components/HomeHeader";
+void MapView;
+
 import { useGeoFix, useStopsBundle, useRealtime } from "@/lib/hooks";
 import { distanceMeters, formatDistance, timeOfDayGreeting } from "@/lib/format";
 import { smartEtaV2 } from "@/lib/eta-v2";
