@@ -32,7 +32,6 @@ import { AppText } from "./AppText";
 import { assets } from "@/lib/assets";
 
 const BUS_ICON_SRC = require("../assets/images/bus-premium.png");
-import { assets } from "@/lib/assets";
 
 const LIMESTONE = "#f3ede1";
 const INK = "#2a261f";
