@@ -10,12 +10,10 @@ import { useRealtime } from "@/lib/hooks";
 import type { RealtimeVehicle } from "@/lib/api";
 import { AppText } from "./AppText";
 
-const KEY =
-  process.env.EXPO_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ??
-  "AIzaSyA3COtlmbtIdqAAV_bEVU56OkIELFCD6Hw";
-const CHANNEL =
-  process.env.EXPO_PUBLIC_GOOGLE_MAPS_TRACKING_ID ??
-  "bcf7a7f51a787313ea032ccb12bb9417";
+// Browser-restricted Maps key. Supplied through mobile/.env (see
+// mobile/.env.example) — never hardcoded, so a fork ships with no key of ours.
+const KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? "";
+const CHANNEL = process.env.EXPO_PUBLIC_GOOGLE_MAPS_TRACKING_ID ?? "";
 
 const NICOSIA_CENTER = { lat: 35.1856, lng: 33.3823 };
 const LIMESTONE = "#F6F1E7";
