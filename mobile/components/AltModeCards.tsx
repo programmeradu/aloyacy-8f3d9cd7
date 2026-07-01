@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { View, Text, Pressable, Linking, Image } from "react-native";
-import { SvgUri } from "react-native-svg";
 import { palette } from "@/constants/theme";
 import { Card } from "./Card";
 import { formatDistance } from "@/lib/format";
@@ -35,20 +34,20 @@ function OperatorHeader({
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        {source.uri.toLowerCase().endsWith(".svg") ? (
-          <SvgUri
-            uri={source.uri}
-            width={logoWidth}
-            height={logoHeight}
-          />
-        ) : (
+        <View
+          style={{
+            width: logoWidth,
+            height: logoHeight,
+            justifyContent: "center",
+          }}
+        >
           <Image
             source={source}
             accessibilityLabel={`${name} logo`}
-            style={{ width: logoWidth, height: logoHeight }}
+            style={{ width: "100%", height: "100%" }}
             resizeMode="contain"
           />
-        )}
+        </View>
         <View
           style={{
             width: 1,
