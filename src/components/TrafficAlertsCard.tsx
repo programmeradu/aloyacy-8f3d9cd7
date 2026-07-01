@@ -27,8 +27,8 @@ export function TrafficAlertsCard({
 }: {
   report: ItineraryTrafficReport;
 }) {
-  const { t, lang } = useI18n();
-  const isEl = lang === "el";
+  const { t, locale } = useI18n();
+  const isEl = locale === "el";
 
   const accent =
     report.highest === "high"
