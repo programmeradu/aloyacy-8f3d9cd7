@@ -1,6 +1,15 @@
-import { useState } from "react";
-import { PRO_PLANS, type PlanId } from "@/lib/billing";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { PRO_PLANS, type PlanId, getStripeEnvironment } from "@/lib/billing";
 import { useAuth } from "@/lib/useAuth";
+import { useProSubscription } from "@/lib/usePro";
+import { getDeviceId } from "@/lib/device-id";
+import {
+  claimAutoTrial,
+  redeemPromoCode,
+  getTrialStatus,
+} from "@/lib/trial.functions";
 import { AuthSheet } from "./AuthSheet";
 import { StripeEmbeddedCheckoutPane } from "./StripeEmbeddedCheckout";
 import proHero from "@/assets/pro-hero.jpg";
@@ -17,9 +26,39 @@ const FEATURE_KEYS: { title: DictKey; body: DictKey }[] = [
 export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useI18n();
   const { isPermanent } = useAuth();
+  const { isPro } = useProSubscription();
   const [plan, setPlan] = useState<PlanId>("monthly");
   const [authOpen, setAuthOpen] = useState(false);
   const [stage, setStage] = useState<"plan" | "checkout">("plan");
+
+  // Trial state
+  const [trialEligible, setTrialEligible] = useState<boolean | null>(null);
+  const [claiming, setClaiming] = useState(false);
+  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
+
+  const claimAuto = useServerFn(claimAutoTrial);
+  const redeem = useServerFn(redeemPromoCode);
+  const status = useServerFn(getTrialStatus);
+
+  useEffect(() => {
+    if (!open || !isPermanent || isPro) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await status({
+          data: { deviceId: getDeviceId(), environment: getStripeEnvironment() },
+        });
+        if (!cancelled) setTrialEligible(res.eligibleAuto);
+      } catch {
+        if (!cancelled) setTrialEligible(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, isPermanent, isPro, status]);
 
   if (!open) return null;
 
@@ -30,6 +69,56 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
     }
     setStage("checkout");
   }
+
+  async function handleClaimAuto() {
+    if (!isPermanent) {
+      setAuthOpen(true);
+      return;
+    }
+    setClaiming(true);
+    try {
+      const res = await claimAuto({
+        data: { deviceId: getDeviceId(), environment: getStripeEnvironment() },
+      });
+      if (res.ok) {
+        toast.success("Your 7-day Pro trial is active. Enjoy Aloya.");
+        onClose();
+      } else {
+        toast.error(res.reason);
+        setTrialEligible(false);
+      }
+    } catch {
+      toast.error("Could not start trial. Please try again.");
+    } finally {
+      setClaiming(false);
+    }
+  }
+
+  async function handleRedeem() {
+    const code = promoCode.trim();
+    if (code.length < 2) return;
+    if (!isPermanent) {
+      setAuthOpen(true);
+      return;
+    }
+    setRedeeming(true);
+    try {
+      const res = await redeem({
+        data: { code, deviceId: getDeviceId(), environment: getStripeEnvironment() },
+      });
+      if (res.ok) {
+        toast.success(`Code applied — Pro unlocked for ${Math.max(1, Math.round((new Date(res.expiresAt).getTime() - Date.now()) / 86400000))} days.`);
+        onClose();
+      } else {
+        toast.error(res.reason);
+      }
+    } catch {
+      toast.error("Could not redeem code. Please try again.");
+    } finally {
+      setRedeeming(false);
+    }
+  }
+
 
   const returnUrl =
     typeof window !== "undefined"
@@ -81,7 +170,75 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
                 ))}
               </ul>
 
+              {/* Free trial + promo code */}
+              {!isPro && (
+                <div className="mt-7 rounded-2xl border border-aegean-deep/25 bg-white/70 p-4">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className="font-display text-[15px] font-semibold tracking-tight text-ink">
+                      Try Pro free for 7 days
+                    </p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                      One per device
+                    </p>
+                  </div>
+                  <p className="mt-1 text-[12.5px] leading-relaxed text-ink-soft">
+                    No card required. Cancel anytime — we won&rsquo;t bill you when the week ends.
+                  </p>
+
+                  {trialEligible !== false ? (
+                    <button
+                      type="button"
+                      disabled={claiming || trialEligible === null}
+                      onClick={handleClaimAuto}
+                      className="mt-3 w-full rounded-xl bg-aegean-deep py-3 text-[13px] font-semibold text-limestone transition disabled:opacity-60"
+                    >
+                      {claiming
+                        ? "Starting your trial…"
+                        : trialEligible === null
+                          ? "Checking eligibility…"
+                          : "Start 7-day free trial"}
+                    </button>
+                  ) : (
+                    <p className="mt-3 rounded-xl bg-limestone/60 px-3 py-2 text-[12px] text-ink-soft">
+                      Free trial already used on this device or account.
+                    </p>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setPromoOpen((v) => !v)}
+                    className="mt-3 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft underline-offset-4 hover:underline"
+                  >
+                    {promoOpen ? "Hide code" : "Have a promo code?"}
+                  </button>
+
+                  {promoOpen && (
+                    <div className="mt-2 flex gap-2">
+                      <input
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        placeholder="ALOYA7"
+                        autoCapitalize="characters"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        maxLength={40}
+                        className="min-w-0 flex-1 rounded-xl border border-line bg-white px-3 py-2.5 font-mono text-[13px] tracking-[0.14em] text-ink placeholder:text-ink-soft/60 focus:border-ink focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        disabled={redeeming || promoCode.trim().length < 2}
+                        onClick={handleRedeem}
+                        className="rounded-xl bg-ink px-4 text-[12px] font-semibold text-limestone transition disabled:opacity-60"
+                      >
+                        {redeeming ? "…" : "Redeem"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="mt-8 space-y-2">
+
                 {(Object.keys(PRO_PLANS) as PlanId[]).map((id) => {
                   const p = PRO_PLANS[id];
                   const active = plan === id;
