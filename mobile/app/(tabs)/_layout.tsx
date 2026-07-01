@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { View, Text, Platform } from "react-native";
 import { palette } from "@/constants/theme";
-import { HomeIcon, SearchIcon, SavedIcon, PlanIcon, PulseIcon, WalletIcon } from "@/components/TabIcon";
+import { HomeIcon, SavedIcon, PlanIcon, PulseIcon, WalletIcon } from "@/components/TabIcon";
 import { useLocale, type I18nKey } from "@/lib/i18n";
 
 function TabLabel({ label, focused }: { label: string; focused: boolean }) {
@@ -71,12 +71,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="search"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <SearchIcon color={focused ? palette.ink : palette.inkSoft} focused={focused} />
-          ),
-          tabBarLabel: ({ focused }) => <TabLabel label={label("tab.search")} focused={focused} />,
-        }}
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="saved"
