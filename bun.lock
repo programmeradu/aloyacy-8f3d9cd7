@@ -122,6 +122,7 @@
         "expo-file-system": "^56.0.8",
         "expo-font": "~56.0.7",
         "expo-haptics": "^56.0.3",
+        "expo-image": "^57.0.0",
         "expo-linking": "~56.0.14",
         "expo-localization": "^57.0.0",
         "expo-location": "^56.0.18",
@@ -1525,6 +1526,8 @@
     "expo-glass-effect": ["expo-glass-effect@56.0.4", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-glass-effect/-/expo-glass-effect-56.0.4.tgz", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-xI9rXtDwi7RW82uAlfyaXO6+k21ApWJ2tHAWYqPr/FjfmZbKsgNJ4Q0iZzGPCwboqjTGxaRZ61SZxBl8hDt5iA=="],
 
     "expo-haptics": ["expo-haptics@56.0.3", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-haptics/-/expo-haptics-56.0.3.tgz", { "peerDependencies": { "expo": "*" } }, "sha512-ycoahZJnR9tWAVh/0mJYxbETtHRYaWjiWS8cHlP6aDGU6Q6Y8rZ5NKsuBwWw6HR2Pe30mfVFgbF2HrBR6gtYmw=="],
+
+    "expo-image": ["expo-image@57.0.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-image/-/expo-image-57.0.0.tgz", { "dependencies": { "sf-symbols-typescript": "^2.2.0" }, "peerDependencies": { "expo": "*", "react": "*", "react-native": "*", "react-native-web": "*" }, "optionalPeers": ["react-native-web"] }, "sha512-vR7q07izYiPzUDBCBZf9t6EmtCPp9mIvWimX0TqWQb17AKg/wZytuJD6VWLQxnUlzqXsVBysNcz1jnXkBBQrIg=="],
 
     "expo-keep-awake": ["expo-keep-awake@56.0.3", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-keep-awake/-/expo-keep-awake-56.0.3.tgz", { "peerDependencies": { "expo": "*", "react": "*" } }, "sha512-CLMJXtEiMKknD3Rpm8CRwE6ZJUzu2yCEmRk1sgfHAJ1zIbuEWY3dpPDubtsnuzWm+2k6Sru+yaFbYsvPWmTiBA=="],
 
