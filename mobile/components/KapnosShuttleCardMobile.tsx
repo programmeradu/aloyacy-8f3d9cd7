@@ -3,9 +3,11 @@
 // riders can decide if the walk is reasonable.
 import { useState } from "react";
 import { View, Text, Pressable, Linking } from "react-native";
+import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { palette } from "@/constants/theme";
-import type { KapnosSuggestion } from "@/lib/kapnos";
+import type { KapnosDeparture, KapnosSuggestion } from "@/lib/kapnos";
+import { startKapnosCompanion } from "@/lib/kapnos-companion";
 
 function fmtWalk(m: number): string {
   if (m < 950) return `${Math.round(m / 10) * 10} m`;
