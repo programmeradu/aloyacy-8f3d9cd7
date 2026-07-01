@@ -11,7 +11,7 @@
       "ios": { "simulator": true, "resourceClass": "m-medium" },
       "android": { "buildType": "apk" },
       "env": {
-        "EXPO_PUBLIC_API_BASE": "https://aloyacy.lovable.app"
+        "EXPO_PUBLIC_API_BASE": "https://app.aloya.cy"
       }
     },
     "preview": {
@@ -20,7 +20,7 @@
       "ios": { "resourceClass": "m-medium" },
       "android": { "buildType": "apk" },
       "env": {
-        "EXPO_PUBLIC_API_BASE": "https://aloyacy.lovable.app"
+        "EXPO_PUBLIC_API_BASE": "https://app.aloya.cy"
       }
     },
     "production": {
@@ -29,7 +29,7 @@
       "ios": { "resourceClass": "m-medium" },
       "android": { "buildType": "app-bundle" },
       "env": {
-        "EXPO_PUBLIC_API_BASE": "https://aloyacy.lovable.app"
+        "EXPO_PUBLIC_API_BASE": "https://app.aloya.cy"
       }
     }
   },
