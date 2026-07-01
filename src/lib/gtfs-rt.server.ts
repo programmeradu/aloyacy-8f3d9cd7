@@ -45,6 +45,11 @@ export type RiderConfirmedTrip = {
   tripId: string;
   /** Seconds since the most recent rider sighting. */
   ageSec: number;
+  /** Distinct riders that confirmed this trip in the trust window. */
+  count: number;
+  /** Trust-weighted confidence 0..1 combining distinct-rider count,
+   *  recency, and each rider's historical trust score. */
+  confidence: number;
 };
 
 export type RealtimeSnapshot = {
