@@ -307,8 +307,8 @@ function StopDetail() {
  */
 function StopReliabilityStrip({
   r,
-  t,
 }: {
+
   r: {
     onTimePct: number;
     meanDelaySec: number;
