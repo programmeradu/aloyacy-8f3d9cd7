@@ -1145,6 +1145,98 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_group_members: {
+        Row: {
+          display_name: string
+          eta_minutes: number | null
+          group_id: string
+          id: string
+          is_creator: boolean
+          joined_at: string
+          last_lat: number | null
+          last_lng: number | null
+          last_updated: string | null
+          member_token: string
+          origin_label: string | null
+          owner_id: string | null
+          status: string
+        }
+        Insert: {
+          display_name: string
+          eta_minutes?: number | null
+          group_id: string
+          id?: string
+          is_creator?: boolean
+          joined_at?: string
+          last_lat?: number | null
+          last_lng?: number | null
+          last_updated?: string | null
+          member_token: string
+          origin_label?: string | null
+          owner_id?: string | null
+          status?: string
+        }
+        Update: {
+          display_name?: string
+          eta_minutes?: number | null
+          group_id?: string
+          id?: string
+          is_creator?: boolean
+          joined_at?: string
+          last_lat?: number | null
+          last_lng?: number | null
+          last_updated?: string | null
+          member_token?: string
+          origin_label?: string | null
+          owner_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "trip_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_groups: {
+        Row: {
+          code: string
+          created_at: string
+          created_by_id: string | null
+          created_by_name: string | null
+          destination_label: string
+          destination_lat: number
+          destination_lng: number
+          expires_at: string
+          id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by_id?: string | null
+          created_by_name?: string | null
+          destination_label: string
+          destination_lat: number
+          destination_lng: number
+          expires_at?: string
+          id?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by_id?: string | null
+          created_by_name?: string | null
+          destination_label?: string
+          destination_lat?: number
+          destination_lng?: number
+          expires_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       trip_history: {
         Row: {
           device_id: string
