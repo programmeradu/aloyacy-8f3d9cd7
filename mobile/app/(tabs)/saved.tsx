@@ -348,17 +348,12 @@ export default function SavedScreen() {
         </View>
       )}
 
-      {/* Pro surfaces */}
-      <View style={{ marginTop: 32, gap: 16 }}>
-        {proLoading ? null : isPro ? (
-          <>
-            <NotificationsCard />
-            <OfflineSchedulesCard />
-          </>
-        ) : (
-          <GoProCard />
-        )}
-      </View>
+      {/* Pro upsell — non-Pro riders only. Alerts + offline live on Settings. */}
+      {!proLoading && !isPro && (
+        <View style={{ marginTop: 32 }}>
+          <ProFeaturesUpsell />
+        </View>
+      )}
     </ScrollView>
   );
 }
