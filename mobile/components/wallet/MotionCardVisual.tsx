@@ -1,15 +1,13 @@
 // Motion Card visual — native reproduction of the printed plastic.
 //
-// Editorial-grade: photoreal aegean gradient body, holder + tier band
-// under the wordmark, valid-until below, live QR (the card number) in
-// the top-right photo square. Overlays are all typographic — no
-// generic icon set. Renders at any width; scales via aspectRatio.
+// Editorial-grade: uses the same generated Motion card artwork as web, then
+// overlays holder/tier/expiry and the live QR in the printed positions.
 
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Image, Pressable, Text, View, StyleSheet } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import Svg, { Defs, LinearGradient, Rect, Stop, Path } from "react-native-svg";
 import { palette } from "@/constants/theme";
-import { formatCardNumber, type MotionPass } from "@/lib/motionPass";
+import { assets } from "@/lib/assets";
+import { type MotionPass } from "@/lib/motionPass";
 import * as Haptics from "expo-haptics";
 
 export function MotionCardVisual({
@@ -41,35 +39,15 @@ export function MotionCardVisual({
         })}
       >
         <View style={styles.card}>
-          {/* Painted background — editorial aegean-to-lagoon gradient stands in
-              for the Motion card face artwork. */}
-          <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
-            <Defs>
-              <LinearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0" stopColor="#12455B" />
-                <Stop offset="0.55" stopColor="#1F6C82" />
-                <Stop offset="1" stopColor="#0E2F44" />
-              </LinearGradient>
-            </Defs>
-            <Rect x={0} y={0} width="100%" height="100%" fill="url(#g)" />
-            {/* Wordmark strokes as decorative lines */}
-            <Path
-              d="M6 20 L60 20"
-              stroke="#E7D6A8"
-              strokeWidth={1.5}
-              opacity={0.7}
-            />
-          </Svg>
-
-          {/* Wordmark */}
-          <View style={styles.wordmark}>
-            <Text style={styles.brandTop}>MOTION</Text>
-            <Text style={styles.brandBottom}>BUS CARD</Text>
-          </View>
+          <Image
+            source={assets.motion_card_base}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+          />
 
           {/* QR — printed top-right square */}
           <View style={styles.qr}>
-            <QRCode value={qrValue} size={80} color="#12455B" backgroundColor="#FFFFFF" />
+            <QRCode value={qrValue} size={82} color="#1A2A6C" backgroundColor="#FFFFFF" />
           </View>
 
           {/* Holder + tier */}
@@ -86,17 +64,9 @@ export function MotionCardVisual({
             <Text style={styles.tier} numberOfLines={1}>{tierLabel}</Text>
           </View>
 
-          {/* Valid until printed strip */}
+          {/* Valid until — aligned to the printed label on the real artwork. */}
           <View style={styles.validRow}>
-            <Text style={styles.validLabel}>ΙΣΧΥΕΙ ΜΕΧΡΙ / VALID UNTIL</Text>
             <Text style={styles.validValue}>{validUntil}</Text>
-          </View>
-
-          {/* Card number strip along the bottom */}
-          <View style={styles.numberStrip}>
-            <Text style={styles.numberText}>
-              {hasCard ? formatCardNumber(pass.number) : "•• •••• •••• ••"}
-            </Text>
           </View>
         </View>
       </Pressable>
@@ -127,92 +97,53 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: "hidden",
     position: "relative",
-    shadowColor: "#0C2432",
-    shadowOpacity: 0.28,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 14 },
-  },
-  wordmark: {
-    position: "absolute",
-    top: 18,
-    left: 18,
-  },
-  brandTop: {
-    fontFamily: "BricolageGrotesque_800ExtraBold",
-    color: "#E7D6A8",
-    fontSize: 22,
-    letterSpacing: 1.2,
-    lineHeight: 22,
-  },
-  brandBottom: {
-    fontFamily: "JetBrainsMono_500Medium",
-    color: "#E7D6A8",
-    fontSize: 10,
-    letterSpacing: 3,
-    marginTop: 2,
+    shadowColor: "#081C28",
+    shadowOpacity: 0.32,
+    shadowRadius: 26,
+    shadowOffset: { width: 0, height: 16 },
   },
   qr: {
     position: "absolute",
-    top: "16%",
-    right: "6%",
+    top: "17%",
+    left: "58%",
+    width: "36%",
+    height: "56%",
     backgroundColor: "#FFF",
-    padding: 6,
-    borderRadius: 4,
+    padding: "2.2%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   holderBand: {
     position: "absolute",
-    top: "44%",
-    left: 20,
+    top: "37%",
+    left: "5%",
     right: "45%",
   },
   holderName: {
     fontFamily: "Geist_600SemiBold",
-    color: "#EFC98C",
-    fontSize: 14,
-    letterSpacing: 1.1,
+    color: "#9B1C1C",
+    fontSize: 13,
+    letterSpacing: 0.4,
   },
   tier: {
     marginTop: 4,
-    fontFamily: "JetBrainsMono_500Medium",
+    fontFamily: "Geist_500Medium",
     fontSize: 10,
-    letterSpacing: 1.8,
-    color: "#B9DFEC",
+    letterSpacing: 0.9,
+    color: "#1A2A6C",
   },
   validRow: {
     position: "absolute",
-    bottom: 46,
-    left: 20,
-    right: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "baseline",
-  },
-  validLabel: {
-    fontFamily: "JetBrainsMono_500Medium",
-    fontSize: 8,
-    letterSpacing: 1.6,
-    color: "rgba(231,214,168,0.75)",
+    top: "68%",
+    left: "33%",
+    width: "24%",
+    alignItems: "center",
   },
   validValue: {
     fontFamily: "JetBrainsMono_500Medium",
-    fontSize: 12,
-    letterSpacing: 1.4,
-    color: "#EFC98C",
-  },
-  numberStrip: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: "rgba(6,20,32,0.55)",
-  },
-  numberText: {
-    fontFamily: "JetBrainsMono_500Medium",
-    fontSize: 14,
-    letterSpacing: 3,
-    color: "#F6F1E7",
+    fontSize: 11,
+    letterSpacing: 0.5,
+    color: "#1A2A6C",
   },
   scanBtn: {
     position: "absolute",
