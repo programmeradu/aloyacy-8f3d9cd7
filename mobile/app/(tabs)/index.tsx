@@ -137,13 +137,81 @@ export default function TodayScreen() {
   }, [rt.data]);
 
   const landmarkChips = nearby.slice(0, 4);
-  const searchResults = useMemo(() => {
+  const searchResults = useMemo<SearchHit[]>(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q || !bundle.data) return [];
-    return bundle.data.stops
+    const hits: SearchHit[] = [];
+
+    // Airports — match IATA, city, or "airport".
+    for (const a of AIRPORTS) {
+      const hay = `${a.iata} ${a.name} ${a.nameEl} ${a.city} ${a.cityEl} airport αεροδρόμιο`.toLowerCase();
+      if (a.iata.toLowerCase() === q || a.city.toLowerCase().startsWith(q) || hay.includes(q)) {
+        hits.push({ kind: "airport", id: a.code, primary: a.name, meta: `${a.iata}  ${a.city}` });
+      }
+    }
+
+    // Routes — exact short first, then startsWith, then long-name substring.
+    const routeEntries = Object.entries(bundle.data.routes);
+    const routeMatches = routeEntries
+      .map(([id, r]) => {
+        const short = r.short.toLowerCase();
+        const long = r.long.toLowerCase();
+        let rank = -1;
+        if (short === q) rank = 0;
+        else if (short.startsWith(q)) rank = 1;
+        else if (long.includes(q)) rank = 2;
+        return { id, r, rank };
+      })
+      .filter((x) => x.rank >= 0)
+      .sort((a, b) => a.rank - b.rank)
+      .slice(0, 6);
+    for (const { id, r } of routeMatches) {
+      hits.push({
+        kind: "route",
+        id,
+        primary: `Route ${r.short}`,
+        meta: r.long,
+      });
+    }
+
+    // Vehicles — by label / route code / vehicle id.
+    const vehicles = rt.data?.vehicles ?? [];
+    const vMatches = vehicles
+      .filter((v) => {
+        const meta = bundle.data!.routes[v.routeId];
+        return (
+          v.label?.toLowerCase().includes(q) ||
+          meta?.short.toLowerCase().startsWith(q) ||
+          v.id.toLowerCase().includes(q)
+        );
+      })
+      .slice(0, 3);
+    for (const v of vMatches) {
+      const meta = bundle.data.routes[v.routeId];
+      const d = distanceMeters(here, { lat: v.lat, lng: v.lng });
+      hits.push({
+        kind: "vehicle",
+        id: v.tripId,
+        primary: v.label || `Bus ${v.id}`,
+        meta: `Route ${meta?.short ?? "—"}  ${formatDistance(d)} away`,
+      });
+    }
+
+    // Stops
+    const stopMatches = bundle.data.stops
       .filter((s) => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q))
-      .slice(0, 5);
-  }, [bundle.data, searchQuery]);
+      .slice(0, 8);
+    for (const s of stopMatches) {
+      hits.push({
+        kind: "stop",
+        id: s.id,
+        primary: s.name,
+        meta: `Stop ${s.code}  ${s.agency}`,
+      });
+    }
+
+    return hits.slice(0, 18);
+  }, [bundle.data, searchQuery, rt.data, here.lat, here.lng]);
   const mapMarkers = nearby.map((s) => ({
     lat: s.lat,
     lng: s.lng,
