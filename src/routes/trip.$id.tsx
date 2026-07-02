@@ -19,6 +19,7 @@ import { useJourney } from "@/lib/useJourney";
 import { useCompass } from "@/lib/useCompass";
 import { distanceM as haversineMeters, bearingDeg } from "@/lib/geo";
 import { JourneyHUD } from "@/components/JourneyHUD";
+import { WatchTogetherButton } from "@/components/WatchTogetherButton";
 import { useTick } from "@/hooks/use-tick";
 import companionHero from "@/assets/companion-hero.jpg";
 import { useI18n } from "@/lib/i18n";
