@@ -473,6 +473,17 @@ function SingleLegCompanion({
         </View>
       </View>
 
+      {/* Watch together — prominent below the hero so friends can be
+          invited before the trip really begins. Returning to this page
+          also brings the rider back to their group. */}
+      <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
+        <GroupTripButton
+          active={active}
+          fix={live.fix ? { lat: live.fix.lat, lng: live.fix.lng } : null}
+          etaMinutes={minToDoor}
+        />
+      </View>
+
       {/* Live map */}
       <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
         <ExpandableMap
