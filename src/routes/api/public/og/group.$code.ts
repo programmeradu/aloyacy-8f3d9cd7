@@ -2,9 +2,9 @@
 // trip. Fetches destination + latest member snapshot on every request so
 // shared links update as friends join, move, and get closer to arrival.
 //
-// Rendered as an SVG card (see src/lib/og-render.server.ts) so it ships
-// identically in Node dev and Cloudflare Workers production without any
-// WASM asset resolution surprises.
+// Rendered as PNG via workers-og (satori + resvg-wasm) so previews show
+// on Facebook, WhatsApp, Twitter/X, iMessage, LinkedIn — SVG is silently
+// dropped by every one of those.
 
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -16,7 +16,7 @@ import {
   OG_WIDTH,
   clip,
   esc,
-  ogSvgResponse,
+  ogPngResponse,
 } from "@/lib/og-render.server";
 
 const GROUP_BG_PATH = "/__l5e/assets-v1/c1152100-2b4c-41b1-ae85-6efb490103e0/og-group-bg.jpg";
@@ -69,53 +69,41 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
             ? "Be the first to join"
             : `${memberCount} ${memberCount === 1 ? "person" : "people"} converging${arrivedCount ? ` · ${arrivedCount} arrived` : ""}`;
 
-        const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
-  <defs>
-    <linearGradient id="wash" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="${OG_PALETTE.limestone}" stop-opacity="0"/>
-      <stop offset="0.32" stop-color="${OG_PALETTE.limestone}" stop-opacity="0.94"/>
-      <stop offset="1" stop-color="${OG_PALETTE.limestone}" stop-opacity="1"/>
-    </linearGradient>
-  </defs>
-  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="${OG_PALETTE.limestone}"/>
-  <image href="${esc(bg)}" x="0" y="0" width="${OG_WIDTH}" height="${OG_HEIGHT}" preserveAspectRatio="xMidYMid slice"/>
-  <rect x="560" y="0" width="640" height="${OG_HEIGHT}" fill="url(#wash)"/>
+        const html = `
+<div style="display:flex;width:${OG_WIDTH}px;height:${OG_HEIGHT}px;background:${OG_PALETTE.limestone};font-family:${OG_FONT_BODY};position:relative;">
+  <img src="${esc(bg)}" width="${OG_WIDTH}" height="${OG_HEIGHT}" style="position:absolute;top:0;left:0;width:${OG_WIDTH}px;height:${OG_HEIGHT}px;object-fit:cover;"/>
+  <div style="display:flex;position:absolute;top:0;left:520px;width:680px;height:${OG_HEIGHT}px;background:linear-gradient(to right, rgba(243,237,225,0), rgba(243,237,225,0.94) 22%, ${OG_PALETTE.limestone} 100%);"></div>
 
-  <!-- Wordmark -->
-  <g transform="translate(48,52)">
-    <rect x="0" y="0" width="40" height="40" rx="12" fill="${OG_PALETTE.ink}"/>
-    <text x="20" y="29" text-anchor="middle" font-family="${OG_FONT_DISPLAY}" font-weight="800" font-size="24" fill="${OG_PALETTE.limestone}">A</text>
-    <text x="54" y="27" font-family="${OG_FONT_BODY}" font-weight="700" font-size="16" letter-spacing="2" fill="${OG_PALETTE.ink}">ALOYA · CYPRUS</text>
-  </g>
+  <div style="display:flex;align-items:center;position:absolute;top:52px;left:48px;">
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:${OG_PALETTE.ink};color:${OG_PALETTE.limestone};font-family:${OG_FONT_DISPLAY};font-weight:800;font-size:24px;">A</div>
+    <div style="display:flex;margin-left:14px;color:${OG_PALETTE.ink};font-weight:700;font-size:16px;letter-spacing:2px;">ALOYA · CYPRUS</div>
+  </div>
 
-  <!-- Kicker -->
-  <g transform="translate(600,168)">
-    <circle cx="6" cy="0" r="6" fill="${OG_PALETTE.aegeanDeep}"/>
-    <text x="22" y="6" font-family="${OG_FONT_BODY}" font-weight="700" font-size="15" letter-spacing="2.4" fill="${OG_PALETTE.aegeanDeep}">${esc(kicker.toUpperCase())}</text>
-  </g>
+  <div style="display:flex;flex-direction:column;position:absolute;top:150px;left:600px;width:540px;">
+    <div style="display:flex;align-items:center;color:${OG_PALETTE.aegeanDeep};font-weight:700;font-size:15px;letter-spacing:2.4px;">
+      <div style="display:flex;width:12px;height:12px;border-radius:999px;background:${OG_PALETTE.aegeanDeep};margin-right:12px;"></div>
+      ${esc(kicker.toUpperCase())}
+    </div>
+    <div style="display:flex;margin-top:18px;color:${OG_PALETTE.inkSoft};font-weight:500;font-size:20px;">${esc(host)} · Converging on</div>
+    <div style="display:flex;margin-top:22px;color:${OG_PALETTE.ink};font-family:${OG_FONT_DISPLAY};font-weight:800;font-size:68px;letter-spacing:-1.6px;line-height:1;">${esc(destination)}</div>
 
-  <!-- Sub-kicker -->
-  <text x="600" y="216" font-family="${OG_FONT_BODY}" font-weight="500" font-size="20" fill="${OG_PALETTE.inkSoft}">${esc(host)} · Converging on</text>
+    <div style="display:flex;flex-direction:column;margin-top:38px;padding:26px 28px;border-radius:22px;background:rgba(255,255,255,0.78);border:1px solid ${OG_PALETTE.line};">
+      <div style="display:flex;align-items:center;color:${OG_PALETTE.ink};font-weight:700;font-size:22px;">
+        <div style="display:flex;width:12px;height:12px;border-radius:999px;background:${OG_PALETTE.ochre};margin-right:16px;"></div>
+        ${esc(etaLine)}
+      </div>
+      <div style="display:flex;align-items:center;margin-top:16px;color:${OG_PALETTE.inkSoft};font-weight:500;font-size:20px;">
+        <div style="display:flex;width:12px;height:12px;border-radius:999px;background:${OG_PALETTE.olive};margin-right:16px;"></div>
+        ${esc(peopleLine)}
+      </div>
+    </div>
+  </div>
 
-  <!-- Destination -->
-  <text x="600" y="298" font-family="${OG_FONT_DISPLAY}" font-weight="800" font-size="68" letter-spacing="-1.6" fill="${OG_PALETTE.ink}">${esc(destination)}</text>
+  <div style="display:flex;position:absolute;left:48px;bottom:34px;color:${OG_PALETTE.inkSoft};font-weight:700;font-size:13px;letter-spacing:2.6px;">LIVE · WATCH TOGETHER</div>
+  <div style="display:flex;position:absolute;right:48px;bottom:34px;color:${OG_PALETTE.inkSoft};font-weight:500;font-size:13px;letter-spacing:2.4px;">APP.ALOYA.CY/GROUP/${esc(code)}</div>
+</div>`;
 
-  <!-- Live status card -->
-  <g transform="translate(600,340)">
-    <rect x="0" y="0" width="540" height="150" rx="22" fill="${OG_PALETTE.white}" fill-opacity="0.72" stroke="${OG_PALETTE.line}" stroke-width="1"/>
-    <circle cx="28" cy="46" r="6" fill="${OG_PALETTE.ochre}"/>
-    <text x="46" y="52" font-family="${OG_FONT_BODY}" font-weight="700" font-size="22" fill="${OG_PALETTE.ink}">${esc(etaLine)}</text>
-    <circle cx="28" cy="100" r="6" fill="${OG_PALETTE.olive}"/>
-    <text x="46" y="106" font-family="${OG_FONT_BODY}" font-weight="500" font-size="20" fill="${OG_PALETTE.inkSoft}">${esc(peopleLine)}</text>
-  </g>
-
-  <!-- Footer -->
-  <text x="48" y="596" font-family="${OG_FONT_BODY}" font-weight="700" font-size="13" letter-spacing="2.6" fill="${OG_PALETTE.inkSoft}">LIVE · WATCH TOGETHER</text>
-  <text x="${OG_WIDTH - 48}" y="596" text-anchor="end" font-family="${OG_FONT_BODY}" font-weight="500" font-size="13" letter-spacing="2.4" fill="${OG_PALETTE.inkSoft}">APP.ALOYA.CY/GROUP/${esc(code)}</text>
-</svg>`;
-
-        return ogSvgResponse(svg, 30);
+        return ogPngResponse(html, 30);
       },
     },
   },
