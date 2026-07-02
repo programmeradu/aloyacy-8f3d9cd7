@@ -118,7 +118,10 @@ export function GroupTripButton({
             { transform: [{ scale: haloScale }], opacity: haloOpacity },
           ]}
         />
-        <View style={styles.dot} />
+        <FriendsGlyph />
+        <View style={styles.livePip}>
+          <View style={styles.livePipInner} />
+        </View>
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.label, isLive && { color: palette.ink }]}>
