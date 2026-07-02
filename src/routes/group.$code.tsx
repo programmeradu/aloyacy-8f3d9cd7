@@ -78,10 +78,11 @@ export const Route = createFileRoute("/group/$code")({
     const code = String(params.code || "").toUpperCase();
     const title = `Group trip · ${code} — Aloya`;
     const desc = "Everyone in your group, converging on one place. Live positions and arrival ETAs update as friends move.";
-    // Static branded PNG — SVG OG images are rejected by WhatsApp, iMessage,
-    // Facebook, LinkedIn, Slack, and Twitter, so previews never render.
-    // We serve a real PNG until a Worker-safe SVG→PNG rasterizer is wired up.
-    const ogImage = "https://app.aloya.cy/og/group-default.png";
+    // Dynamic per-group PNG (rasterized from our brand SVG on the Worker).
+    // Minute-bucket cache-buster nudges platforms that key by URL to re-scrape
+    // as members join and ETAs slide.
+    const bucket = Math.floor(Date.now() / 60_000);
+    const ogImage = `https://app.aloya.cy/api/public/og/group/${encodeURIComponent(code)}?v=${bucket}`;
     const pageUrl = `https://app.aloya.cy/group/${encodeURIComponent(code)}`;
     return {
       meta: [
@@ -98,10 +99,12 @@ export const Route = createFileRoute("/group/$code")({
         { property: "og:image:height", content: "630" },
         { property: "og:image:type", content: "image/png" },
         { property: "og:image:alt", content: "Live group trip preview — destination, host, and joined members" },
+        { property: "og:updated_time", content: String(bucket * 60) },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: desc },
         { name: "twitter:image", content: ogImage },
+
 
       ],
     };
