@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
         // render a branded fallback so shared links never look broken.
         const { data: group } = await supabaseAdmin
           .from("trip_groups")
-          .select("code, destination_label, created_by_name, expires_at")
+          .select("id, code, destination_label, created_by_name, expires_at")
           .eq("code", code)
           .maybeSingle();
 
@@ -33,15 +33,11 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
         let nextEta: number | null = null;
         let creator = group?.created_by_name ?? null;
 
-        if (group) {
+        if (group?.id) {
           const { data: members } = await supabaseAdmin
             .from("trip_group_members")
             .select("display_name, eta_minutes, status, is_creator")
-            .eq("group_id", (await supabaseAdmin
-              .from("trip_groups")
-              .select("id")
-              .eq("code", code)
-              .maybeSingle()).data?.id ?? "");
+            .eq("group_id", group.id);
           if (members) {
             memberCount = members.length;
             arrivedCount = members.filter((m) => m.status === "arrived").length;
@@ -52,6 +48,7 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
             if (!creator) creator = members.find((m) => m.is_creator)?.display_name ?? null;
           }
         }
+
 
         const destination = clip(group?.destination_label ?? "A trip on Aloya", 48);
         const kicker = group ? `Watch together · ${code}` : "Group trip";
