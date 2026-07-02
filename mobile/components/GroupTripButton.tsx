@@ -2,8 +2,8 @@
 // tap creates a group and shares the invite; subsequent taps re-open
 // the share sheet. Long-press to leave.
 
-import { useCallback } from "react";
-import { View, Text, Pressable, StyleSheet, Share, Alert } from "react-native";
+import { useCallback, useEffect, useRef } from "react";
+import { View, Text, Pressable, StyleSheet, Share, Alert, Animated, Easing } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import { palette } from "@/constants/theme";
@@ -51,6 +51,31 @@ export function GroupTripButton({
 
   const isLive = !!session;
 
+  // Pulsing halo behind the leading dot — makes the CTA read as "live" at
+  // a glance rather than "another card".
+  const pulse = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 1400,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+  const haloScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.6, 2.2] });
+  const haloOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0] });
+
   return (
     <Pressable
       onPress={onPress}
@@ -59,24 +84,28 @@ export function GroupTripButton({
       style={({ pressed }) => [
         styles.button,
         isLive ? styles.buttonLive : styles.buttonIdle,
-        pressed && { opacity: 0.85 },
+        pressed && { opacity: 0.9, transform: [{ scale: 0.995 }] },
       ]}
     >
-      <View style={styles.codeBadge}>
-        <Text style={[styles.codeBadgeLabel, isLive && { color: palette.ink }]}>
-          {isLive ? session!.code : "NEW"}
-        </Text>
+      <View style={styles.leadIcon}>
+        <Animated.View
+          style={[
+            styles.halo,
+            { transform: [{ scale: haloScale }], opacity: haloOpacity },
+          ]}
+        />
+        <View style={styles.dot} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.label, isLive && { color: palette.ink }]}>
-          {isLive ? "Group trip live" : "Start group trip"}
+          {isLive ? "Group trip live" : "Watch together — live"}
         </Text>
-        <Text style={[styles.sub, isLive && { color: "rgba(0,0,0,0.55)" }]}>
+        <Text style={[styles.sub, isLive && { color: "rgba(0,0,0,0.6)" }]}>
           {busy
             ? "Starting group…"
             : isLive
-              ? "Tap to invite · long-press to leave"
-              : "Everyone converging on one place"}
+              ? `Tap to invite · code ${session!.code} · long-press to leave`
+              : "Invite friends · one map, real ETAs, no account"}
         </Text>
       </View>
       <Text style={[styles.chev, isLive && { color: palette.ink }]}>›</Text>
@@ -89,8 +118,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    padding: 14,
-    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    borderRadius: 20,
     marginTop: 10,
     borderWidth: 1,
   },
@@ -102,31 +132,39 @@ const styles = StyleSheet.create({
     backgroundColor: palette.ochreSoft ?? "#F7E7BF",
     borderColor: palette.ochreSoft ?? "#F7E7BF",
   },
-  codeBadge: {
-    minWidth: 46,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: palette.ink,
+  leadIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: palette.aegeanDeep,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
-  codeBadgeLabel: {
-    fontFamily: "Geist_700Bold",
-    fontSize: 11,
-    letterSpacing: 1.6,
-    color: palette.white,
+  halo: {
+    position: "absolute",
+    width: 12,
+    height: 12,
+    borderRadius: 999,
+    backgroundColor: palette.limestone,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: palette.limestone,
   },
   label: {
     fontFamily: "BricolageGrotesque_700Bold",
     fontSize: 15,
+    letterSpacing: -0.2,
     color: palette.ink,
   },
   sub: {
     marginTop: 2,
     fontFamily: "Geist_500Medium",
-    fontSize: 11,
-    letterSpacing: 0.4,
+    fontSize: 11.5,
+    letterSpacing: 0.2,
     color: palette.inkSoft,
   },
   chev: {

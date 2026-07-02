@@ -1145,6 +1145,33 @@ export type Database = {
         }
         Relationships: []
       }
+      trial_grants: {
+        Row: {
+          device_id: string
+          environment: string
+          expires_at: string
+          granted_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          device_id: string
+          environment: string
+          expires_at: string
+          granted_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          device_id?: string
+          environment?: string
+          expires_at?: string
+          granted_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       trip_group_members: {
         Row: {
           display_name: string

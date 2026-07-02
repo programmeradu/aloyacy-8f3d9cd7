@@ -15,6 +15,7 @@ import * as Haptics from "expo-haptics";
 import { palette } from "@/constants/theme";
 import type { WalkStep } from "@aloya/core/geo";
 import { streetViewUrl } from "@/lib/walk";
+import { StreetViewSheet } from "@/components/StreetViewSheet";
 
 function fmtDist(m: number) {
   if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
@@ -99,6 +100,7 @@ function TurnStep({
   done: boolean;
 }) {
   const [svFailed, setSvFailed] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const url = streetViewUrl({
     lat: step.start.lat,
     lng: step.start.lng,
@@ -107,9 +109,13 @@ function TurnStep({
   const maneuver = (step.maneuver || "straight")
     .toLowerCase()
     .replace(/[-_]/g, " ");
+  const canOpenViewer = !svFailed;
   return (
     <Pressable
-      onPress={() => Haptics.selectionAsync().catch(() => {})}
+      onPress={() => {
+        Haptics.selectionAsync().catch(() => {});
+        if (canOpenViewer) setViewerOpen(true);
+      }}
       style={({ pressed }) => ({
         overflow: "hidden",
         borderRadius: 24,
@@ -216,6 +222,14 @@ function TurnStep({
           {step.instruction}
         </Text>
       </View>
+      <StreetViewSheet
+        open={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        lat={step.start.lat}
+        lng={step.start.lng}
+        heading={step.heading ?? 0}
+        label={step.instruction}
+      />
     </Pressable>
   );
 }

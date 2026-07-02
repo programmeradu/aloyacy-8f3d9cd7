@@ -17,17 +17,21 @@ import {
 } from "@stripe/stripe-react-native";
 import { API_BASE } from "./api";
 import { supabase } from "./supabase";
+import { getOrCreateDeviceId } from "./push";
 
 export type PlanKey = "pro_weekly" | "pro_monthly";
 
 type PrepResponse = {
   customer: string;
   ephemeralKey: string;
-  paymentIntent: string;
+  paymentIntent: string | null;
+  setupIntent: string | null;
+  trialDays: number | null;
   publishableKey: string | null;
   subscriptionId: string;
   linkedUserId: string | null;
 };
+
 
 let stripeReady = false;
 
@@ -48,11 +52,13 @@ export type CheckoutResult =
 export async function startProCheckout(opts: {
   email?: string;
   planKey: PlanKey;
+  promotionCode?: string;
 }): Promise<CheckoutResult> {
   const { data: sess } = await supabase.auth.getSession();
   const token = sess.session?.access_token ?? null;
   const sessionEmail = sess.session?.user?.email ?? null;
   const email = opts.email?.trim() || sessionEmail || undefined;
+  const deviceId = await getOrCreateDeviceId();
 
   let prep: PrepResponse;
   try {
@@ -67,6 +73,8 @@ export async function startProCheckout(opts: {
         ...(email ? { email } : {}),
         planKey: opts.planKey,
         environment: "sandbox",
+        deviceId,
+        ...(opts.promotionCode ? { promotionCode: opts.promotionCode } : {}),
       }),
     });
     const body = (await res.json()) as PrepResponse | { error: unknown };
@@ -88,11 +96,16 @@ export async function startProCheckout(opts: {
 
   await ensureStripeInitialised(prep.publishableKey);
 
+  // Trial → SetupIntent (save card, charge later). No trial → PaymentIntent.
+  const trialing = !!prep.setupIntent;
+
   const init = await initPaymentSheet({
     merchantDisplayName: "Aloya",
     customerId: prep.customer,
     customerEphemeralKeySecret: prep.ephemeralKey,
-    paymentIntentClientSecret: prep.paymentIntent,
+    ...(trialing
+      ? { setupIntentClientSecret: prep.setupIntent as string }
+      : { paymentIntentClientSecret: prep.paymentIntent as string }),
     allowsDelayedPaymentMethods: false,
     returnURL: "aloya://checkout-return",
     applePay: { merchantCountryCode: "CY" },
@@ -101,8 +114,12 @@ export async function startProCheckout(opts: {
       currencyCode: "EUR",
       testEnv: true,
     },
+    primaryButtonLabel: trialing
+      ? `Start ${prep.trialDays ?? 7}-day free trial`
+      : undefined,
   });
   if (init.error) return { ok: false, message: init.error.message };
+
 
   const present = await presentPaymentSheet();
   if (present.error) {

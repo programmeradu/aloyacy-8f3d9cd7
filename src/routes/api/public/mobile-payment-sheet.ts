@@ -35,7 +35,12 @@ const schema = z.object({
   email: z.string().email().max(254).optional(),
   planKey: z.enum(["pro_weekly", "pro_monthly"]),
   environment: z.enum(["sandbox", "live"]).default("sandbox"),
+  deviceId: z.string().min(6).max(128).optional(),
+  promotionCode: z.string().min(1).max(64).optional(),
 });
+
+const TRIAL_DAYS = 7;
+
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -136,18 +141,83 @@ export const Route = createFileRoute("/api/public/mobile-payment-sheet")({
             });
           }
 
+          // Trial eligibility: one 7-day trial per (user, env) AND per
+          // (device, env). We pre-insert trial_grants so a race can't grant
+          // two trials. Only signed-in users on a known device are eligible.
+          let trialDays: number | undefined;
+          if (sessionUser && parsed.data.deviceId) {
+            const { supabaseAdmin } = await import(
+              "@/integrations/supabase/client.server"
+            );
+            const { error: grantErr } = await supabaseAdmin
+              .from("trial_grants")
+              .insert({
+                user_id: sessionUser.id,
+                device_id: parsed.data.deviceId,
+                environment: env,
+                expires_at: new Date(
+                  Date.now() + TRIAL_DAYS * 86_400_000,
+                ).toISOString(),
+              });
+            if (!grantErr) trialDays = TRIAL_DAYS;
+          }
+
+          // Optional promo code (typed in the mobile UI). Stripe's native
+          // PaymentSheet has no promo input, so we resolve it server-side.
+          let discounts: { promotion_code: string }[] | undefined;
+          if (parsed.data.promotionCode) {
+            const promos = await stripe.promotionCodes.list({
+              code: parsed.data.promotionCode,
+              active: true,
+              limit: 1,
+            });
+            if (promos.data[0]) {
+              discounts = [{ promotion_code: promos.data[0].id }];
+            } else {
+              // Roll back trial reservation before failing.
+              if (trialDays && sessionUser && parsed.data.deviceId) {
+                const { supabaseAdmin } = await import(
+                  "@/integrations/supabase/client.server"
+                );
+                await supabaseAdmin
+                  .from("trial_grants")
+                  .delete()
+                  .eq("user_id", sessionUser.id)
+                  .eq("environment", env);
+              }
+              return json({ error: "Invalid promotion code." }, 400);
+            }
+          }
+
           const subscription = await stripe.subscriptions.create({
             customer: customer.id,
             items: [{ price: price.id }],
             payment_behavior: "default_incomplete",
             payment_settings: { save_default_payment_method: "on_subscription" },
-            expand: ["latest_invoice.payment_intent"],
+            expand: [
+              "latest_invoice.payment_intent",
+              "pending_setup_intent",
+            ],
+            ...(trialDays ? { trial_period_days: trialDays } : {}),
+            ...(discounts ? { discounts } : {}),
             metadata: {
               plan_key: parsed.data.planKey,
               source: "mobile_app",
               ...(sessionUser ? { user_id: sessionUser.id } : {}),
             },
           });
+
+          // With a trial, no invoice is charged now — Stripe returns a
+          // SetupIntent to collect + save the card for later auto-charge.
+          // Without a trial we get the usual PaymentIntent path.
+          const setupIntent = subscription.pending_setup_intent as
+            | { client_secret?: string | null }
+            | string
+            | null;
+          const setupSecret =
+            setupIntent && typeof setupIntent === "object"
+              ? setupIntent.client_secret ?? null
+              : null;
 
           const invoice = subscription.latest_invoice as {
             payment_intent?: { client_secret?: string | null } | string | null;
@@ -156,8 +226,9 @@ export const Route = createFileRoute("/api/public/mobile-payment-sheet")({
             invoice && typeof invoice.payment_intent === "object"
               ? invoice.payment_intent
               : null;
-          const clientSecret = pi?.client_secret ?? null;
-          if (!clientSecret) {
+          const paymentSecret = pi?.client_secret ?? null;
+
+          if (!setupSecret && !paymentSecret) {
             return json({ error: "Stripe did not return a payment secret." }, 502);
           }
 
@@ -169,11 +240,14 @@ export const Route = createFileRoute("/api/public/mobile-payment-sheet")({
           return json({
             customer: customer.id,
             ephemeralKey: ephemeralKey.secret,
-            paymentIntent: clientSecret,
+            paymentIntent: paymentSecret,
+            setupIntent: setupSecret,
+            trialDays: trialDays ?? null,
             publishableKey: publishableKey ?? null,
             subscriptionId: subscription.id,
             linkedUserId: sessionUser?.id ?? null,
           });
+
         } catch (error) {
           return json({ error: getStripeErrorMessage(error) }, 500);
         }
