@@ -100,6 +100,7 @@ function TurnStep({
   done: boolean;
 }) {
   const [svFailed, setSvFailed] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const url = streetViewUrl({
     lat: step.start.lat,
     lng: step.start.lng,
@@ -108,9 +109,13 @@ function TurnStep({
   const maneuver = (step.maneuver || "straight")
     .toLowerCase()
     .replace(/[-_]/g, " ");
+  const canOpenViewer = !svFailed;
   return (
     <Pressable
-      onPress={() => Haptics.selectionAsync().catch(() => {})}
+      onPress={() => {
+        Haptics.selectionAsync().catch(() => {});
+        if (canOpenViewer) setViewerOpen(true);
+      }}
       style={({ pressed }) => ({
         overflow: "hidden",
         borderRadius: 24,
