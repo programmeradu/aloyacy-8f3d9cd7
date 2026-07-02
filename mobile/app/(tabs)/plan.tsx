@@ -309,6 +309,101 @@ export default function PlanScreen() {
   const bolt = alts[4].data ?? null;
   const chain = alts[5].data ?? null;
 
+  // Kapnos first-/last-mile bus plans. Mirrors src/routes/trips.tsx —
+  // when the coach pickup / dropoff isn't a reasonable walk, plan a
+  // bus leg to get the rider there (and away from the dropoff on the
+  // far side) rather than the useless "walk 20 km" fallback.
+  const KAPNOS_WALKABLE_M = 1_200;
+  const kapnosPickupFar =
+    !!kapnos && kapnos.pickup.distanceM > KAPNOS_WALKABLE_M;
+  const kapnosDropoffFar =
+    !!kapnos && kapnos.dropoff.distanceM > KAPNOS_WALKABLE_M;
+  const kapnosNext = kapnos?.departures[0];
+  const parseKapnosLocalUnix = (local: string): number | undefined => {
+    if (!local) return undefined;
+    const t = Date.parse(local.replace(" ", "T") + ":00+03:00");
+    return Number.isFinite(t) ? Math.floor(t / 1000) : undefined;
+  };
+  const coachDepartUnix = kapnosNext
+    ? parseKapnosLocalUnix(kapnosNext.departLocal)
+    : undefined;
+  const coachArriveUnix = kapnosNext
+    ? parseKapnosLocalUnix(kapnosNext.arriveLocal)
+    : undefined;
+
+  const firstMileQuery = useQuery({
+    queryKey: [
+      "kapnos.firstMile",
+      effectiveOrigin.lat,
+      effectiveOrigin.lng,
+      kapnos?.pickup.lat ?? null,
+      kapnos?.pickup.lng ?? null,
+      coachDepartUnix ?? null,
+    ],
+    queryFn: async () => {
+      if (!kapnos || !kapnosPickupFar) return null;
+      try {
+        const res = await fetchPlan({
+          from: {
+            lat: effectiveOrigin.lat,
+            lng: effectiveOrigin.lng,
+            label: effectiveOrigin.label,
+          },
+          to: {
+            lat: kapnos.pickup.lat,
+            lng: kapnos.pickup.lng,
+            label: kapnos.pickup.name,
+          },
+          arriveByUnix: coachDepartUnix,
+        });
+        return res.itineraries[0] ?? null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!kapnos && kapnosPickupFar,
+    staleTime: 2 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const firstMileItin = firstMileQuery.data ?? null;
+
+  const lastMileQuery = useQuery({
+    queryKey: [
+      "kapnos.lastMile",
+      kapnos?.dropoff.lat ?? null,
+      kapnos?.dropoff.lng ?? null,
+      destination?.lat ?? null,
+      destination?.lng ?? null,
+      coachArriveUnix ?? null,
+    ],
+    queryFn: async () => {
+      if (!kapnos || !destination || !kapnosDropoffFar) return null;
+      try {
+        const res = await fetchPlan({
+          from: {
+            lat: kapnos.dropoff.lat,
+            lng: kapnos.dropoff.lng,
+            label: kapnos.dropoff.name,
+          },
+          to: {
+            lat: destination.lat,
+            lng: destination.lng,
+            label: destination.label,
+          },
+          departAtUnix: coachArriveUnix,
+        });
+        return res.itineraries[0] ?? null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!kapnos && !!destination && kapnosDropoffFar,
+    staleTime: 2 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const lastMileItin = lastMileQuery.data ?? null;
+
+
   // Live traffic alerts along the top itinerary — CyNAP incident feed
   // intersected with board/alight/walk points. Silent when nothing hits.
   const trafficPoints = useMemo(() => (topItin ? itinerarySamplePoints(topItin) : []), [topItin]);
