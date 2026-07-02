@@ -61,6 +61,7 @@ export const Route = createFileRoute("/api/public/streetview")({
         if (!token) {
           return new Response("MAPILLARY_ACCESS_TOKEN not configured", {
             status: 503,
+            headers: CORS,
           });
         }
 
@@ -86,13 +87,13 @@ export const Route = createFileRoute("/api/public/streetview")({
         if (!search.ok) {
           return new Response(
             `Mapillary search failed: ${search.status}`,
-            { status: 502 },
+            { status: 502, headers: CORS },
           );
         }
         const searchJson = (await search.json()) as { data?: MapillaryImage[] };
         const candidates = (searchJson.data ?? []).filter((i) => i.thumb_1024_url);
         if (candidates.length === 0) {
-          return new Response("No imagery", { status: 404 });
+          return new Response("No imagery", { status: 404, headers: CORS });
         }
 
         // 2. Rank: prefer images whose compass angle is close to the walking
@@ -116,7 +117,7 @@ export const Route = createFileRoute("/api/public/streetview")({
 
         const best = ranked[0].img;
         if (!best.thumb_1024_url) {
-          return new Response("No imagery", { status: 404 });
+          return new Response("No imagery", { status: 404, headers: CORS });
         }
 
         // Meta mode: return only the image id. The JPEG is fetched via the
@@ -130,6 +131,7 @@ export const Route = createFileRoute("/api/public/streetview")({
               headers: {
                 "Content-Type": "application/json",
                 "Cache-Control": "public, max-age=3600",
+                ...CORS,
               },
             },
           );
@@ -141,7 +143,7 @@ export const Route = createFileRoute("/api/public/streetview")({
         if (!img.ok) {
           return new Response(
             `Mapillary thumbnail fetch failed: ${img.status}`,
-            { status: 502 },
+            { status: 502, headers: CORS },
           );
         }
         const buf = await img.arrayBuffer();
@@ -151,6 +153,7 @@ export const Route = createFileRoute("/api/public/streetview")({
             "Content-Type": img.headers.get("Content-Type") ?? "image/jpeg",
             "Cache-Control": "public, max-age=86400, immutable",
             "X-Mapillary-Image-Id": best.id,
+            ...CORS,
           },
         });
       },
