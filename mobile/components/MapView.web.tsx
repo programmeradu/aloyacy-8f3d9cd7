@@ -78,15 +78,32 @@ function loadMaps(): Promise<typeof google> {
   if (window.google?.maps) return Promise.resolve(window.google);
   if (window.__aloyaGmapsPromise) return window.__aloyaGmapsPromise;
   window.__aloyaGmapsPromise = new Promise((resolve, reject) => {
-    window.__aloyaGmapsInit = () => resolve(window.google!);
+    window.__aloyaGmapsInit = async () => {
+      try {
+        // With `loading=async`, the bootstrap callback fires before the
+        // core `maps` library is actually attached to `google.maps` — so
+        // `new google.maps.Map(...)` throws "Map is not a constructor"
+        // on the first mount. Explicitly import the libraries we use
+        // before resolving so every consumer sees a fully-ready SDK.
+        await Promise.all([
+          window.google!.maps.importLibrary("maps"),
+          window.google!.maps.importLibrary("marker"),
+          window.google!.maps.importLibrary("geometry"),
+        ]);
+        resolve(window.google!);
+      } catch (e) {
+        reject(e instanceof Error ? e : new Error(String(e)));
+      }
+    };
     const s = document.createElement("script");
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${KEY}&loading=async&callback=__aloyaGmapsInit&libraries=geometry&channel=${CHANNEL}`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${KEY}&loading=async&callback=__aloyaGmapsInit&libraries=geometry,marker&channel=${CHANNEL}`;
     s.async = true; s.defer = true;
     s.onerror = () => reject(new Error("maps failed"));
     document.head.appendChild(s);
   });
   return window.__aloyaGmapsPromise;
 }
+
 
 const MAP_STYLE: google.maps.MapTypeStyle[] = [
   { elementType: "geometry", stylers: [{ color: "#f3ede1" }] },
