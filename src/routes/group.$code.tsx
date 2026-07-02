@@ -200,12 +200,14 @@ function GroupWatchPage() {
           />
           <ConvergeCard members={orderedMembers} expired={expired} />
           <GroupMap group={group} members={orderedMembers} meToken={myToken} />
+          {!expired && <PlanRouteCard group={group} joined={me != null} />}
           <MembersList members={orderedMembers} meToken={myToken} />
           {!expired && (me == null) && <JoinCard group={group} onJoined={setMyToken} />}
           {!expired && me != null && <LiveShareCard group={group} me={me} onLeft={() => setMyToken(null)} />}
           <HowThisWorks />
           <Footer code={group.code} />
         </div>
+
       </div>
     </Shell>
   );
