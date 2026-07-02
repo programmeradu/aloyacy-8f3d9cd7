@@ -202,3 +202,37 @@ function KeywordTable({ title, rows, empty }: { title: string; rows: Record<stri
     </section>
   );
 }
+
+function RefDomainsTable({ title, rows, empty }: { title: string; rows: Record<string, string>[]; empty?: string }) {
+  return (
+    <section className="mt-10">
+      <h2 className="font-display text-xl text-foreground">{title}</h2>
+      {rows.length === 0 ? (
+        <p className="mt-3 text-sm text-muted-foreground">{empty ?? "No data."}</p>
+      ) : (
+        <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-card">
+          <table className="min-w-full font-mono text-xs">
+            <thead className="bg-muted/40 text-left text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2">Referring domain</th>
+                <th className="px-3 py-2">Authority</th>
+                <th className="px-3 py-2">Backlinks</th>
+                <th className="px-3 py-2">IP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i} className="border-t border-border">
+                  <td className="px-3 py-2 text-foreground">{r.domain}</td>
+                  <td className="px-3 py-2">{num(r.domain_ascore)}</td>
+                  <td className="px-3 py-2">{num(r.backlinks_num)}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{r.ip || "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
