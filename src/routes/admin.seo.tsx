@@ -106,6 +106,52 @@ function SeoPanel() {
             <KeywordTable title="Intercity Buses — top organic keywords (CY)" rows={data.incumbentOrganic} />
             <KeywordTable title="Intercity Buses — paid-search keywords (CY)" rows={data.incumbentPaid} />
             <KeywordTable title="Aloya — current organic keywords (CY)" rows={data.aloyaOrganic} empty="Not yet ranking. Publish and wait for the index — first impressions usually arrive in 4–8 weeks." />
+
+            <section className="mt-10">
+              <h2 className="font-display text-xl text-foreground">Backlink profile</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Authority Score and referring-domain counts. Semrush crawl, not the whole web — use for direction.
+              </p>
+              <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-card">
+                <table className="min-w-full font-mono text-xs">
+                  <thead className="bg-muted/40 text-left text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2">Domain</th>
+                      <th className="px-3 py-2">Authority</th>
+                      <th className="px-3 py-2">Backlinks</th>
+                      <th className="px-3 py-2">Ref domains</th>
+                      <th className="px-3 py-2">Ref URLs</th>
+                      <th className="px-3 py-2">Follow</th>
+                      <th className="px-3 py-2">Nofollow</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.backlinks.map((b, i) => (
+                      <tr key={i} className="border-t border-border">
+                        <td className="px-3 py-2 text-foreground">{b.domain}</td>
+                        {b.ok ? (
+                          <>
+                            <td className="px-3 py-2">{num(b.row.ascore)}</td>
+                            <td className="px-3 py-2">{num(b.row.total)}</td>
+                            <td className="px-3 py-2">{num(b.row.domains_num)}</td>
+                            <td className="px-3 py-2">{num(b.row.urls_num)}</td>
+                            <td className="px-3 py-2">{num(b.row.follows_num)}</td>
+                            <td className="px-3 py-2">{num(b.row.nofollows_num)}</td>
+                          </>
+                        ) : (
+                          <td className="px-3 py-2 text-muted-foreground" colSpan={6}>
+                            {b.error}
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <RefDomainsTable title="Intercity Buses — top referring domains" rows={data.incumbentRefDomains} />
+            <RefDomainsTable title="Aloya — top referring domains" rows={data.aloyaRefDomains} empty="No referring domains crawled yet." />
           </>
         )}
 
@@ -147,6 +193,40 @@ function KeywordTable({ title, rows, empty }: { title: string; rows: Record<stri
                   <td className="px-3 py-2">{num(r.Nq)}</td>
                   <td className="px-3 py-2">{r.Cp}</td>
                   <td className="px-3 py-2">{r.Tr}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function RefDomainsTable({ title, rows, empty }: { title: string; rows: Record<string, string>[]; empty?: string }) {
+  return (
+    <section className="mt-10">
+      <h2 className="font-display text-xl text-foreground">{title}</h2>
+      {rows.length === 0 ? (
+        <p className="mt-3 text-sm text-muted-foreground">{empty ?? "No data."}</p>
+      ) : (
+        <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-card">
+          <table className="min-w-full font-mono text-xs">
+            <thead className="bg-muted/40 text-left text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2">Referring domain</th>
+                <th className="px-3 py-2">Authority</th>
+                <th className="px-3 py-2">Backlinks</th>
+                <th className="px-3 py-2">IP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i} className="border-t border-border">
+                  <td className="px-3 py-2 text-foreground">{r.domain}</td>
+                  <td className="px-3 py-2">{num(r.domain_ascore)}</td>
+                  <td className="px-3 py-2">{num(r.backlinks_num)}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{r.ip || "—"}</td>
                 </tr>
               ))}
             </tbody>
