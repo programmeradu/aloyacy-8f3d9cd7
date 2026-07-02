@@ -51,6 +51,31 @@ export function GroupTripButton({
 
   const isLive = !!session;
 
+  // Pulsing halo behind the leading dot — makes the CTA read as "live" at
+  // a glance rather than "another card".
+  const pulse = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 1400,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+  const haloScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.6, 2.2] });
+  const haloOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0] });
+
   return (
     <Pressable
       onPress={onPress}
@@ -59,24 +84,28 @@ export function GroupTripButton({
       style={({ pressed }) => [
         styles.button,
         isLive ? styles.buttonLive : styles.buttonIdle,
-        pressed && { opacity: 0.85 },
+        pressed && { opacity: 0.9, transform: [{ scale: 0.995 }] },
       ]}
     >
-      <View style={styles.codeBadge}>
-        <Text style={[styles.codeBadgeLabel, isLive && { color: palette.ink }]}>
-          {isLive ? session!.code : "NEW"}
-        </Text>
+      <View style={styles.leadIcon}>
+        <Animated.View
+          style={[
+            styles.halo,
+            { transform: [{ scale: haloScale }], opacity: haloOpacity },
+          ]}
+        />
+        <View style={styles.dot} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.label, isLive && { color: palette.ink }]}>
-          {isLive ? "Group trip live" : "Start group trip"}
+          {isLive ? "Group trip live" : "Watch together — live"}
         </Text>
-        <Text style={[styles.sub, isLive && { color: "rgba(0,0,0,0.55)" }]}>
+        <Text style={[styles.sub, isLive && { color: "rgba(0,0,0,0.6)" }]}>
           {busy
             ? "Starting group…"
             : isLive
-              ? "Tap to invite · long-press to leave"
-              : "Everyone converging on one place"}
+              ? `Tap to invite · code ${session!.code} · long-press to leave`
+              : "Invite friends · one map, real ETAs, no account"}
         </Text>
       </View>
       <Text style={[styles.chev, isLive && { color: palette.ink }]}>›</Text>
