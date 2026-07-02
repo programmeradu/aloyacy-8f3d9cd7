@@ -103,11 +103,11 @@ function Plan() {
     const toLng = parseFloat(sp.get("toLng") ?? "");
     const fromLabel = sp.get("fromLabel") ?? "";
     const toLabel = sp.get("toLabel") ?? "";
-    if (
-      Number.isFinite(fromLat) && Number.isFinite(fromLng) &&
-      Number.isFinite(toLat) && Number.isFinite(toLng) &&
-      fromLabel && toLabel
-    ) {
+    const hasFrom =
+      Number.isFinite(fromLat) && Number.isFinite(fromLng) && !!fromLabel;
+    const hasTo =
+      Number.isFinite(toLat) && Number.isFinite(toLng) && !!toLabel;
+    if (hasFrom && hasTo) {
       hydratedFromUrlRef.current = true;
       setOrigin({ lat: fromLat, lng: fromLng, label: fromLabel });
       setDestination({ lat: toLat, lng: toLng, label: toLabel });
@@ -122,7 +122,15 @@ function Plan() {
       }
       // Clean the URL so it reads as /trips going forward.
       window.history.replaceState({}, "", "/trips");
+    } else if (hasTo) {
+      // Destination-only prefill (from the group page). Focus the origin
+      // picker so the rider only has to say where they're starting from.
+      hydratedFromUrlRef.current = true;
+      setDestination({ lat: toLat, lng: toLng, label: toLabel });
+      setActive("from");
+      window.history.replaceState({}, "", "/trips");
     }
+
   }, []);
 
   const planFn = useServerFn(planMultiLeg);
