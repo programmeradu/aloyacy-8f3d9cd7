@@ -398,6 +398,17 @@ function SingleLegCompanion({
         </article>
       </section>
 
+      {/* Watch together — prominent right under the hero so the rider
+          can invite friends before the trip really starts. Returning to
+          this page after the trip is live also brings them back to their
+          group. */}
+      <section className="mt-4 px-6 animate-rise" style={{ animationDelay: "90ms" }}>
+        <WatchTogetherButton
+          origin={{ lat: active.from.lat, lng: active.from.lng, label: active.from.label }}
+          destination={{ lat: active.to.lat, lng: active.to.lng, label: active.to.label }}
+        />
+      </section>
+
       {/* Live map */}
       <section className="mt-5 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MapPreview
