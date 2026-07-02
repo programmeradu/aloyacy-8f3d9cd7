@@ -222,6 +222,14 @@ function TurnStep({
           {step.instruction}
         </Text>
       </View>
+      <StreetViewSheet
+        open={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        lat={step.start.lat}
+        lng={step.start.lng}
+        heading={step.heading ?? 0}
+        label={step.instruction}
+      />
     </Pressable>
   );
 }
