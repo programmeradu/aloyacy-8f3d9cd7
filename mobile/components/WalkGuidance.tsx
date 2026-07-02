@@ -100,12 +100,34 @@ function TurnStep({
   done: boolean;
 }) {
   const [svFailed, setSvFailed] = useState(false);
+  const [svReady, setSvReady] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
   const url = streetViewUrl({
     lat: step.start.lat,
     lng: step.start.lng,
     heading: step.heading ?? 0,
   });
+  // Preflight the proxy: React Native's <Image> onError is unreliable across
+  // platforms (silent fails on Android/Expo web), so we HEAD-check first and
+  // only mount the <Image> once we know a JPEG is coming back. Mirrors the
+  // web StreetViewSheet flow.
+  useEffect(() => {
+    let cancelled = false;
+    setSvFailed(false);
+    setSvReady(false);
+    fetch(url, { method: "GET" })
+      .then((r) => {
+        if (cancelled) return;
+        if (!r.ok) setSvFailed(true);
+        else setSvReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setSvFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
   const maneuver = (step.maneuver || "straight")
     .toLowerCase()
     .replace(/[-_]/g, " ");
