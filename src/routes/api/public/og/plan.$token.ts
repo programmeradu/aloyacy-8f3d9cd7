@@ -33,7 +33,7 @@ function fmtDur(sec: number): string {
   return r ? `${h}h ${r}m` : `${h}h`;
 }
 
-export const Route = createFileRoute("/api/public/og/plan/$token.png")({
+export const Route = createFileRoute("/api/public/og/plan/$token")({
   server: {
     handlers: {
       GET: async ({ params, request }) => {
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/api/public/og/plan/$token.png")({
         const origin = new URL(request.url).origin;
 
         const { data: plan } = await supabaseAdmin
-          .from("plan_shares")
+          .from("trip_plan_shares")
           .select(
             "creator_name, origin_label, destination_label, departure_unix, arrival_unix, total_duration_sec, transfers, legs",
           )
