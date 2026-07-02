@@ -4,6 +4,7 @@ import { palette } from "@/constants/theme";
 import { Card } from "./Card";
 import { startProCheckout, type PlanKey } from "@/lib/wallet";
 import { useSession } from "@/lib/auth";
+import { useTrialEligibility } from "@/lib/useTrialEligibility";
 
 const PLANS: { id: PlanKey; label: string; price: string; cadence: string; note?: string }[] = [
   { id: "pro_weekly", label: "Weekly", price: "€1.99", cadence: "/week" },
