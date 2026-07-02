@@ -24,7 +24,10 @@ const KnownKind = z.enum([
 // schema churn.
 const Kind = z.union([
   KnownKind,
-  z.string().regex(/^(ui|ai):[a-z0-9-]+(\.[a-z0-9-]+)*$/).max(64),
+  z
+    .string()
+    .regex(/^(ui|ai):[a-z0-9-]+(\.[a-z0-9-]+)*$/)
+    .max(64),
 ]);
 
 const Schema = z.object({

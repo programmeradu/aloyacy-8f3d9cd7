@@ -26,9 +26,7 @@ export function PassSheet({
   const [holder, setHolder] = useState(pass.holder ?? "");
   const [tier, setTier] = useState(pass.tier ?? "");
   const [validUntil, setValidUntil] = useState(pass.validUntil ?? "");
-  const [balance, setBalance] = useState(
-    pass.balanceEur > 0 ? pass.balanceEur.toFixed(2) : "",
-  );
+  const [balance, setBalance] = useState(pass.balanceEur > 0 ? pass.balanceEur.toFixed(2) : "");
   const [topup, setTopup] = useState("");
   const [email, setEmail] = useState(pass.jcc?.email ?? "");
   const [password, setPassword] = useState("");
@@ -155,7 +153,9 @@ export function PassSheet({
           <div className="space-y-4">
             <Field label={t("wallet.sheet.balanceLabel")}>
               <div className="flex items-center bg-card rounded-2xl ring-1 ring-line px-4 py-3 focus-within:ring-aegean-deep/40">
-                <span className="font-sans font-medium text-[22px] text-ink-soft mr-2 tabular-nums">€</span>
+                <span className="font-sans font-medium text-[22px] text-ink-soft mr-2 tabular-nums">
+                  €
+                </span>
                 <input
                   inputMode="decimal"
                   autoFocus
@@ -168,7 +168,9 @@ export function PassSheet({
             </Field>
             <p className="text-[11px] text-ink-soft">
               {t("wallet.sheet.lastUpdated", {
-                when: pass.balanceUpdatedAt ? timeAgo(pass.balanceUpdatedAt) : t("wallet.sheet.never"),
+                when: pass.balanceUpdatedAt
+                  ? timeAgo(pass.balanceUpdatedAt)
+                  : t("wallet.sheet.never"),
               })}
             </p>
           </div>
@@ -178,7 +180,9 @@ export function PassSheet({
           <div className="space-y-4">
             <Field label={t("wallet.sheet.topupLabel")}>
               <div className="flex items-center bg-card rounded-2xl ring-1 ring-line px-4 py-3 focus-within:ring-aegean-deep/40">
-                <span className="font-sans font-medium text-[22px] text-ink-soft mr-2 tabular-nums">€</span>
+                <span className="font-sans font-medium text-[22px] text-ink-soft mr-2 tabular-nums">
+                  €
+                </span>
                 <input
                   inputMode="decimal"
                   autoFocus
@@ -230,9 +234,7 @@ export function PassSheet({
                 className="w-full bg-card rounded-2xl ring-1 ring-line px-4 py-3 text-[15px] text-ink focus:outline-none focus:ring-aegean-deep/40"
               />
             </Field>
-            {linkError && (
-              <p className="text-[12px] text-destructive">{linkError}</p>
-            )}
+            {linkError && <p className="text-[12px] text-destructive">{linkError}</p>}
           </div>
         )}
 
@@ -252,13 +254,7 @@ export function PassSheet({
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
       <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
@@ -300,7 +296,9 @@ function NfcScanBlock({
     const uid = await nfc.scan();
     if (uid?.digits) {
       onUid(uid.digits);
-      toast.success(t("wallet.nfc.scanned"), { description: t("wallet.nfc.scannedDesc", { uid: uid.digits }) });
+      toast.success(t("wallet.nfc.scanned"), {
+        description: t("wallet.nfc.scannedDesc", { uid: uid.digits }),
+      });
     }
   }
 
@@ -329,7 +327,9 @@ function NfcScanBlock({
             <span className="absolute inline-flex size-full rounded-full bg-aegean-deep opacity-60 animate-pulse-ring" />
             <span className="relative inline-flex size-3 rounded-full bg-aegean-deep" />
           </span>
-          <span className="font-mono text-[11px] text-aegean-deep">{t("wallet.nfc.listening")}</span>
+          <span className="font-mono text-[11px] text-aegean-deep">
+            {t("wallet.nfc.listening")}
+          </span>
         </div>
       )}
       {nfc.status === "error" && nfc.error && (

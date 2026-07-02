@@ -60,11 +60,7 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
             <>
               {/* Editorial hero */}
               <div className="relative h-56 w-full overflow-hidden">
-                <img
-                  src={proHero}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
+                <img src={proHero} alt="" className="absolute inset-0 h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-limestone/10 to-limestone" />
                 <div className="absolute left-1/2 top-3 h-1 w-10 -translate-x-1/2 rounded-full bg-white/70 backdrop-blur" />
                 <div className="absolute bottom-3 left-6 right-6">
@@ -76,11 +72,11 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
 
               <div className="px-6 pb-10 -mt-2">
                 <h2 className="font-display text-[2.1rem] leading-[1.05] tracking-tight text-ink">
-                  {t("pay.titleA")}<br />{t("pay.titleB")}
+                  {t("pay.titleA")}
+                  <br />
+                  {t("pay.titleB")}
                 </h2>
-                <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                  {t("pay.lede")}
-                </p>
+                <p className="mt-3 text-sm leading-relaxed text-ink-soft">{t("pay.lede")}</p>
 
                 <ul className="mt-7 space-y-5">
                   {FEATURE_KEYS.map((f) => (
@@ -102,8 +98,8 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
                       </p>
                     </div>
                     <p className="mt-1 text-[12.5px] leading-relaxed text-ink-soft">
-                      Card required so Stripe can renew your plan when the trial
-                      ends. Cancel anytime before day 7 — you won&rsquo;t be charged.
+                      Card required so Stripe can renew your plan when the trial ends. Cancel
+                      anytime before day 7 — you won&rsquo;t be charged.
                     </p>
                   </div>
                 )}
@@ -167,10 +163,7 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
               >
                 {t("pay.back")}
               </button>
-              <StripeEmbeddedCheckoutPane
-                planKey={PRO_PLANS[plan].key}
-                returnUrl={returnUrl}
-              />
+              <StripeEmbeddedCheckoutPane planKey={PRO_PLANS[plan].key} returnUrl={returnUrl} />
             </div>
           )}
         </div>

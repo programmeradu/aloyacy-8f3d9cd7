@@ -24,14 +24,10 @@ export function useUserDataRealtime() {
     // Public counter — works for signed-out users too.
     const counters = supabase
       .channel("rt-alert-counters")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "alert_counters" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["alert-counters"] });
-          queryClient.invalidateQueries({ queryKey: ["service-alerts"] });
-        },
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "alert_counters" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["alert-counters"] });
+        queryClient.invalidateQueries({ queryKey: ["service-alerts"] });
+      })
       .subscribe();
 
     if (!userId) {
@@ -46,7 +42,6 @@ export function useUserDataRealtime() {
       // (it contains Stripe IDs). Rely on cache invalidation on webhook writes
       // + the natural refetch cadence instead.
       .on(
-
         "postgres_changes",
         {
           event: "*",

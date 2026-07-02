@@ -30,31 +30,15 @@
 
 import type { LiveArrival, LiveVehicle } from "./gtfs-rt.server";
 import { getStop } from "./gtfs";
-import {
-  distanceM,
-  snapToPolyline,
-  polylineLengthM,
-  type LatLng,
-} from "./geo";
+import { distanceM, snapToPolyline, polylineLengthM, type LatLng } from "./geo";
 import type { LearnedBias } from "./learned-types";
-import {
-  classifyFreshness,
-  type FreshnessTier,
-} from "./freshness";
-
-
+import { classifyFreshness, type FreshnessTier } from "./freshness";
 
 export type SegmentSpeedKey = string; // `${routeId}|${fromStopId}|${toStopId}`
 export type DwellKey = string; // `${routeId}|${stopId}`
 
-export type SegmentStatMap = Record<
-  SegmentSpeedKey,
-  { meanMps: number; sampleCount: number }
->;
-export type DwellStatMap = Record<
-  DwellKey,
-  { meanDwellSec: number; sampleCount: number }
->;
+export type SegmentStatMap = Record<SegmentSpeedKey, { meanMps: number; sampleCount: number }>;
+export type DwellStatMap = Record<DwellKey, { meanDwellSec: number; sampleCount: number }>;
 
 /** Source/freshness tier for the colour chip. */
 export type EtaFreshness = "live" | "predicted" | "scheduled";
@@ -87,7 +71,6 @@ export type SmartEtaV2 = {
   /** Ping age of the vehicle in seconds (Infinity if no vehicle). */
   pingAgeSec: number;
 };
-
 
 const URBAN_FALLBACK_MPS = 18 / 3.6;
 const INTERCITY_FALLBACK_MPS = 40 / 3.6;
@@ -136,9 +119,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   // distance-based and operator-fallback ETAs equally).
   const learned = input.learnedByRoute?.[next.routeId];
   const learnedBiasSec =
-    learned && learned.sampleCount >= LEARNED_BIAS_MIN_SAMPLES
-      ? learned.meanDelaySec
-      : 0;
+    learned && learned.sampleCount >= LEARNED_BIAS_MIN_SAMPLES ? learned.meanDelaySec : 0;
 
   const operatorEtaSec = Math.max(0, next.arrivalUnix - now);
   const operatorEtaMin = Math.round(operatorEtaSec / 60);
@@ -146,8 +127,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   // A rider sighting acts as a synthetic fresh ping: use min(real ping age,
   // sighting age) so the classifier sees a young enough signal to upgrade.
   const sightingAge = input.riderConfirmedAgeSec;
-  const riderConfirmed =
-    typeof sightingAge === "number" && Number.isFinite(sightingAge);
+  const riderConfirmed = typeof sightingAge === "number" && Number.isFinite(sightingAge);
   const pingAgeSec = riderConfirmed
     ? Math.min(rawPingAgeSec, sightingAge as number)
     : rawPingAgeSec;
@@ -162,10 +142,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
 
   // ----- Fallback path: no usable geometry, lean on the operator number. ---
   if (targetIdx < 0 || verts.length < 2) {
-    const adjusted = Math.max(
-      0,
-      operatorEtaSec + learnedBiasSec * LEARNED_BIAS_WEIGHT,
-    );
+    const adjusted = Math.max(0, operatorEtaSec + learnedBiasSec * LEARNED_BIAS_WEIGHT);
     const adjMin = Math.max(0, Math.round(adjusted / 60));
     const cls = classifyFreshness({
       hasVehicle: hasVehicleForClassifier,
@@ -198,7 +175,6 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     };
   }
 
-
   // ----- Snap the bus to the route geometry --------------------------------
   // Shape mode: snap vehicle + every stop vertex onto the real polyline and
   // measure remaining distance along the road. Chord-mode (no shape) falls
@@ -211,10 +187,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
 
   if (vehicle) {
     if (shape) {
-      const vehSnap = snapToPolyline(
-        { lat: vehicle.lat, lng: vehicle.lng },
-        shape,
-      );
+      const vehSnap = snapToPolyline({ lat: vehicle.lat, lng: vehicle.lng }, shape);
       const stopAlong = verts.map((v) => {
         const s = snapToPolyline({ lat: v.lat, lng: v.lng }, shape);
         return s ? s.alongM : 0;
@@ -235,10 +208,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
       }
     } else {
       const chord = verts.map((v) => ({ lat: v.lat, lng: v.lng }));
-      const snap = snapToPolyline(
-        { lat: vehicle.lat, lng: vehicle.lng },
-        chord,
-      );
+      const snap = snapToPolyline({ lat: vehicle.lat, lng: vehicle.lng }, chord);
       if (snap) {
         startIdx = snap.segIndex;
         firstLegM = Math.max(
@@ -249,10 +219,8 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     }
   }
 
-  const fallbackMps =
-    input.agency === "IC" ? INTERCITY_FALLBACK_MPS : URBAN_FALLBACK_MPS;
-  const fallbackDwell =
-    input.agency === "IC" ? INTERCITY_DWELL_SEC : URBAN_DWELL_SEC;
+  const fallbackMps = input.agency === "IC" ? INTERCITY_FALLBACK_MPS : URBAN_FALLBACK_MPS;
+  const fallbackDwell = input.agency === "IC" ? INTERCITY_DWELL_SEC : URBAN_DWELL_SEC;
 
   let p50 = 0;
   let pessFactor = 1; // pessimistic multiplier (low samples → wider band)
@@ -287,16 +255,11 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     }
     const stat = input.segments?.[`${next.routeId}|${fromId}|${toId}`];
     const speed =
-      stat && stat.sampleCount >= MIN_SAMPLES_TRUST
-        ? Math.max(2, stat.meanMps)
-        : fallbackMps;
+      stat && stat.sampleCount >= MIN_SAMPLES_TRUST ? Math.max(2, stat.meanMps) : fallbackMps;
     p50 += distMSeg / speed;
     if (i + 1 < targetIdx) {
       const d = input.dwells?.[`${next.routeId}|${toId}`];
-      p50 +=
-        d && d.sampleCount >= MIN_SAMPLES_TRUST
-          ? Math.max(0, d.meanDwellSec)
-          : fallbackDwell;
+      p50 += d && d.sampleCount >= MIN_SAMPLES_TRUST ? Math.max(0, d.meanDwellSec) : fallbackDwell;
     }
     segSamples += stat?.sampleCount ?? 0;
     totalSegs += 1;
@@ -330,10 +293,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   const upperMin = Math.max(lowerMin + 1, Math.round(upperSec / 60));
   const etaMin = Math.max(0, Math.round(p50 / 60));
 
-  const band =
-    upperMin - lowerMin <= 1
-      ? `≈${etaMin} min`
-      : `${lowerMin}–${upperMin} min`;
+  const band = upperMin - lowerMin <= 1 ? `≈${etaMin} min` : `${lowerMin}–${upperMin} min`;
 
   // Freshness — shared classifier is source of truth. Map its rich `tier`
   // back to the legacy three-value `freshness` field for back-compat (ghost
@@ -370,7 +330,6 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   };
 }
 
-
 function blurbFor(
   tier: FreshnessTier,
   pingAgeSec: number,
@@ -386,9 +345,7 @@ function blurbFor(
     Math.abs(biasMin) >= 2 &&
     (tier === "live" || tier === "rider-confirmed" || tier === "predicted")
   ) {
-    return biasMin > 0
-      ? `usually ${biasMin} min late`
-      : `usually ${-biasMin} min early`;
+    return biasMin > 0 ? `usually ${biasMin} min late` : `usually ${-biasMin} min early`;
   }
   if (tier === "ghost") return "no gps — using schedule";
   if (tier === "scheduled") return "scheduled";
@@ -396,4 +353,3 @@ function blurbFor(
   if (tier === "predicted" && pingAgeSec > 240) return "stale ping";
   return tier;
 }
-

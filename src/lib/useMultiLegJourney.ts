@@ -22,11 +22,7 @@ import type { LiveFix } from "./useGeoWatch";
 import { useFusedFix } from "./useFusedFix";
 import { distanceM } from "./geo";
 import { useDriveEta } from "./useDriveEta";
-import {
-  advanceToNextLeg,
-  patchCurrentLeg,
-  type ActiveTrip,
-} from "./trip-store";
+import { advanceToNextLeg, patchCurrentLeg, type ActiveTrip } from "./trip-store";
 import type { Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
 import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
@@ -145,11 +141,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     const onBoard = !!per.onBoardConfirmedAt && !per.alightedAt;
     if (!onBoard) return { onBoard: false, busPos: null, alightLoc: null, tripId: null };
     const v = rt?.vehicles.find((x) => x.tripId === currentLeg.tripId);
-    const busPos = v
-      ? { lat: v.lat, lng: v.lng }
-      : fix
-        ? { lat: fix.lat, lng: fix.lng }
-        : null;
+    const busPos = v ? { lat: v.lat, lng: v.lng } : fix ? { lat: fix.lat, lng: fix.lng } : null;
     return {
       onBoard,
       busPos,
@@ -162,8 +154,6 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     from: driveInputs.busPos,
     to: driveInputs.alightLoc,
   });
-
-
 
   const result = useMemo<MultiLegLive>(() => {
     const baseInactive: MultiLegLive = {
@@ -194,7 +184,6 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
 
     if (!itin || !legState || !started) return baseInactive;
 
-
     const now = Math.floor(Date.now() / 1000);
     const idx = Math.min(legState.currentLegIndex, itin.legs.length - 1);
     const currentLeg = itin.legs[idx];
@@ -209,36 +198,29 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     // Current ride: the one with i === idx (when riding) OR the next ride
     // ahead of the current walk/wait (when walking to it).
     const currentRideEntry =
-      ridesAll.find((r) => r.i === idx) ??
-      ridesAll.find((r) => r.i > idx) ??
-      null;
+      ridesAll.find((r) => r.i === idx) ?? ridesAll.find((r) => r.i > idx) ?? null;
     const currentRideLeg = currentRideEntry?.leg ?? null;
     const currentRideOrdinal = currentRideEntry
       ? ridesAll.findIndex((r) => r.i === currentRideEntry.i) + 1
       : 0;
     const nextRideEntry = currentRideEntry
-      ? ridesAll.find((r) => r.i > currentRideEntry.i) ?? null
+      ? (ridesAll.find((r) => r.i > currentRideEntry.i) ?? null)
       : null;
     const nextRideLeg = nextRideEntry?.leg ?? null;
 
     // Live-overlay ETAs.
     const liveFor = (ride: RideLeg | null, stopId: string | undefined) =>
       ride && stopId
-        ? rt?.arrivals.find(
-            (a) => a.tripId === ride.tripId && a.stopId === stopId,
-          )
+        ? rt?.arrivals.find((a) => a.tripId === ride.tripId && a.stopId === stopId)
         : undefined;
 
     const liveCurBoard = liveFor(currentRideLeg, currentRideLeg?.board.stopId);
     const liveCurAlight = liveFor(currentRideLeg, currentRideLeg?.alight.stopId);
     const liveNextBoard = liveFor(nextRideLeg, nextRideLeg?.board.stopId);
 
-    const curBoardUnix =
-      liveCurBoard?.arrivalUnix ?? currentRideLeg?.board.departureUnix ?? 0;
-    const curAlightUnix =
-      liveCurAlight?.arrivalUnix ?? currentRideLeg?.alight.arrivalUnix ?? 0;
-    const nextBoardUnix =
-      liveNextBoard?.arrivalUnix ?? nextRideLeg?.board.departureUnix ?? 0;
+    const curBoardUnix = liveCurBoard?.arrivalUnix ?? currentRideLeg?.board.departureUnix ?? 0;
+    const curAlightUnix = liveCurAlight?.arrivalUnix ?? currentRideLeg?.alight.arrivalUnix ?? 0;
+    const nextBoardUnix = liveNextBoard?.arrivalUnix ?? nextRideLeg?.board.departureUnix ?? 0;
 
     const secsToCurrentBoard = curBoardUnix ? curBoardUnix - now : 0;
     const secsToCurrentAlight = curAlightUnix ? curAlightUnix - now : 0;
@@ -285,9 +267,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
         const within =
           fix &&
           metersToTarget <
-            (phase === "walking-to-destination"
-              ? DEST_ARRIVAL_RADIUS_M
-              : STOP_ARRIVAL_RADIUS_M);
+            (phase === "walking-to-destination" ? DEST_ARRIVAL_RADIUS_M : STOP_ARRIVAL_RADIUS_M);
         let arrivedHere = within;
         if (phase === "walking-to-destination") {
           const enteredAt = legState.perLeg[idx]?.enteredAt ?? 0;
@@ -304,9 +284,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
           else if (phase === "walking-to-board") phase = "waiting-to-board";
           // walking-to-transfer → next leg (wait or ride) handled via effect.
         }
-
       } else if (currentLeg.kind === "wait") {
-
         phase = "waiting-for-connection";
       } else {
         // ride
@@ -328,7 +306,8 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
           const closeByDistance = distToAlight < 350;
           const closeByEta = secsToCurrentAlight > 0 && secsToCurrentAlight <= 60;
           if (closeByDistance && closeByEta) phase = "alight-soon";
-          else if (distToAlight < 120) phase = "alight-soon"; // very close — trust GPS even if ETA is wrong
+          else if (distToAlight < 120)
+            phase = "alight-soon"; // very close — trust GPS even if ETA is wrong
           else phase = "riding";
         } else {
           // Ride leg active but on-board not confirmed → still waiting.
@@ -340,14 +319,11 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     // ---- GPS vehicle fallback (on-board, current ride) --------------------
     // When the rider is on board the current ride but its tripId disappears
     // from the live feed, drive the bus marker from their phone GPS.
-    const currentVehicle =
-      currentRideLeg
-        ? rt?.vehicles.find((v) => v.tripId === currentRideLeg.tripId) ?? null
-        : null;
+    const currentVehicle = currentRideLeg
+      ? (rt?.vehicles.find((v) => v.tripId === currentRideLeg.tripId) ?? null)
+      : null;
     const onBoardCurrent =
-      !!per.onBoardConfirmedAt &&
-      !per.alightedAt &&
-      currentLeg?.kind === "ride";
+      !!per.onBoardConfirmedAt && !per.alightedAt && currentLeg?.kind === "ride";
     let fusedCurrentVehicle: MultiLegLive["fusedCurrentVehicle"] = null;
     let vehicleLost = false;
     if (currentRideLeg) {
@@ -391,10 +367,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
         fusedSecsToCurrentAlight = Math.max(minPossibleEta, drive.etaSec);
       } else if (vehicleLost) {
         const speed = gpsSpeed > 2 ? gpsSpeed : 6;
-        fusedSecsToCurrentAlight = Math.max(
-          minPossibleEta,
-          Math.round(distToAlight / speed),
-        );
+        fusedSecsToCurrentAlight = Math.max(minPossibleEta, Math.round(distToAlight / speed));
       } else if (gpsSpeed > 2) {
         const gpsEta = Math.round(distToAlight / Math.max(3, gpsSpeed));
         fusedSecsToCurrentAlight = Math.max(
@@ -423,11 +396,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
 
     // ---- Wrong-stop reroute hint (Google-Maps-style) --------------------
     let rerouteHint: RerouteHint = null;
-    if (
-      (phase === "walking-to-board" || phase === "waiting-to-board") &&
-      currentRideLeg &&
-      fix
-    ) {
+    if ((phase === "walking-to-board" || phase === "waiting-to-board") && currentRideLeg && fix) {
       rerouteHint = detectWrongStop({
         fixLat: fix.lat,
         fixLng: fix.lng,
@@ -514,7 +483,15 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       const per = legState.perLeg[idx];
       if (per?.alightedAt) advanceToNextLeg();
     }
-  }, [result.active, result.currentLegIndex, result.currentLeg, result.fix, result.metersToTarget, itin, legState]);
+  }, [
+    result.active,
+    result.currentLegIndex,
+    result.currentLeg,
+    result.fix,
+    result.metersToTarget,
+    itin,
+    legState,
+  ]);
 
   // ---- GPS-based auto-confirm boarding on ride legs ----------------------
   // Mirrors useJourney: if the rider's GPS shows sustained bus-speed motion
@@ -545,9 +522,7 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       ? { lat: result.currentRideLeg.board.lat, lng: result.currentRideLeg.board.lng }
       : null;
     const departed =
-      !!result.fix &&
-      !!boardLoc &&
-      distanceM(result.fix, boardLoc) > RIDING_DISPLACEMENT_M;
+      !!result.fix && !!boardLoc && distanceM(result.fix, boardLoc) > RIDING_DISPLACEMENT_M;
     if (!departed) {
       ridingStartedAtRef.current = null;
       return;
@@ -568,8 +543,6 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     result.fix,
     legState,
   ]);
-
-
 
   // ---- Push alerts on phase transition ------------------------------------
   // Idempotent via a per-(legIdx,kind) key set. The server-side cron also
@@ -723,7 +696,6 @@ export function multiLegMarkArrived() {
 export function multiLegMarkMissed() {
   patchCurrentLeg({ missedAt: Date.now() });
 }
-
 
 // Type re-exports for convenience.
 export type { Leg, RideLeg, WalkLeg, WaitLeg };

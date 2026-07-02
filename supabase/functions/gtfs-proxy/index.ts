@@ -22,17 +22,16 @@ Deno.serve(async (req) => {
     const upstream = await fetch(UPSTREAM, {
       headers: {
         Accept: "application/octet-stream",
-        "User-Agent":
-          "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
+        "User-Agent": "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
       },
       signal: AbortSignal.timeout(12_000),
     });
 
     if (!upstream.ok) {
-      return new Response(
-        JSON.stringify({ error: `upstream ${upstream.status}` }),
-        { status: 502, headers: { "Content-Type": "application/json", ...CORS } },
-      );
+      return new Response(JSON.stringify({ error: `upstream ${upstream.status}` }), {
+        status: 502,
+        headers: { "Content-Type": "application/json", ...CORS },
+      });
     }
 
     const buf = await upstream.arrayBuffer();

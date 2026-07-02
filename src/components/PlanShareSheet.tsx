@@ -6,13 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { renderPlanShareCard, type PlanCardCtx } from "@/lib/shareCard";
-import {
-  IconClose,
-  IconDownload,
-  IconLink,
-  IconShare,
-  IconWhatsApp,
-} from "@/components/Icons";
+import { IconClose, IconDownload, IconLink, IconShare, IconWhatsApp } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
 
 type Props = {
@@ -36,7 +30,12 @@ export function PlanShareSheet({ open, onClose, ctx }: Props) {
   }
 
   function fileName(): string {
-    const dest = ctx.destinationLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32) || "plan";
+    const dest =
+      ctx.destinationLabel
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 32) || "plan";
     return `aloya-plan-${dest}.jpg`;
   }
   function makeFile(): File | null {
@@ -70,9 +69,13 @@ export function PlanShareSheet({ open, onClose, ctx }: Props) {
         setBlob(r.blob);
         setPreview(r.dataUrl);
       })
-      .catch(() => { /* preview just won't appear */ })
+      .catch(() => {
+        /* preview just won't appear */
+      })
       .finally(() => !cancelled && setBusy(false));
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [open, ctx]);
 
   useEffect(() => {
@@ -104,13 +107,24 @@ export function PlanShareSheet({ open, onClose, ctx }: Props) {
     if (!file) return;
     if (canShareFile(file)) {
       try {
-        await navigator.share({ files: [file], title: t("share.plan.title"), text: shareTextWithUrl });
+        await navigator.share({
+          files: [file],
+          title: t("share.plan.title"),
+          text: shareTextWithUrl,
+        });
         return;
-      } catch { return; }
+      } catch {
+        return;
+      }
     }
     const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
     if (nav.canShare?.({ text: shareText, url: ctx.url })) {
-      try { await navigator.share({ text: shareText, url: ctx.url }); return; } catch { return; }
+      try {
+        await navigator.share({ text: shareText, url: ctx.url });
+        return;
+      } catch {
+        return;
+      }
     }
     triggerDownload(file);
   }
@@ -120,18 +134,26 @@ export function PlanShareSheet({ open, onClose, ctx }: Props) {
     if (!file) return;
     if (canShareFile(file)) {
       try {
-        await navigator.share({ files: [file], title: t("share.plan.title"), text: shareTextWithUrl });
+        await navigator.share({
+          files: [file],
+          title: t("share.plan.title"),
+          text: shareTextWithUrl,
+        });
         return;
-      } catch { return; }
+      } catch {
+        return;
+      }
     }
     triggerDownload(file);
-    try { await navigator.clipboard.writeText(shareTextWithUrl); } catch { /* noop */ }
+    try {
+      await navigator.clipboard.writeText(shareTextWithUrl);
+    } catch {
+      /* noop */
+    }
     const wa = `https://web.whatsapp.com/send?text=${encodeURIComponent(shareTextWithUrl)}`;
     window.open(wa, "_blank", "noopener,noreferrer");
     flash(t("share.waFallback"));
   }
-
-
 
   async function handleSave() {
     const file = makeFile();
@@ -164,7 +186,9 @@ export function PlanShareSheet({ open, onClose, ctx }: Props) {
       await navigator.clipboard.writeText(ctx.url);
       setCopied(true);
       setTimeout(() => setCopied(false), 1400);
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
 
   return createPortal(
@@ -201,9 +225,7 @@ export function PlanShareSheet({ open, onClose, ctx }: Props) {
           <h2 className="font-display text-[22px] leading-tight text-ink">
             {t("share.plan.title")}
           </h2>
-          <p className="mt-1 text-[12px] text-ink-soft">
-            {t("share.subtitle")}
-          </p>
+          <p className="mt-1 text-[12px] text-ink-soft">{t("share.subtitle")}</p>
         </div>
 
         <div className="px-5">
@@ -228,10 +250,30 @@ export function PlanShareSheet({ open, onClose, ctx }: Props) {
         </div>
 
         <div className="px-5 pt-4 pb-6 grid grid-cols-2 gap-2.5">
-          <ActionButton primary onClick={handleNativeShare} icon={<IconShare className="size-4" />} label={t("share.share")} disabled={!blob} />
-          <ActionButton onClick={handleWhatsApp} icon={<IconWhatsApp className="size-[18px] text-[#25D366]" />} label={t("share.whatsapp")} disabled={!blob} />
-          <ActionButton onClick={handleSave} icon={<IconDownload className="size-4" />} label={t("share.save")} disabled={!blob} />
-          <ActionButton onClick={handleCopy} icon={<IconLink className="size-4" />} label={copied ? t("share.copied") : t("share.copyLink")} />
+          <ActionButton
+            primary
+            onClick={handleNativeShare}
+            icon={<IconShare className="size-4" />}
+            label={t("share.share")}
+            disabled={!blob}
+          />
+          <ActionButton
+            onClick={handleWhatsApp}
+            icon={<IconWhatsApp className="size-[18px] text-[#25D366]" />}
+            label={t("share.whatsapp")}
+            disabled={!blob}
+          />
+          <ActionButton
+            onClick={handleSave}
+            icon={<IconDownload className="size-4" />}
+            label={t("share.save")}
+            disabled={!blob}
+          />
+          <ActionButton
+            onClick={handleCopy}
+            icon={<IconLink className="size-4" />}
+            label={copied ? t("share.copied") : t("share.copyLink")}
+          />
         </div>
 
         {notice ? (
@@ -250,7 +292,11 @@ export function PlanShareSheet({ open, onClose, ctx }: Props) {
 }
 
 function ActionButton({
-  onClick, icon, label, primary, disabled,
+  onClick,
+  icon,
+  label,
+  primary,
+  disabled,
 }: {
   onClick: () => void;
   icon: React.ReactNode;
@@ -284,7 +330,10 @@ function isLikelyMobile(): boolean {
 
 function fmtHM(unix: number, locale: "en" | "el"): string {
   return new Date(unix * 1000).toLocaleTimeString(locale === "el" ? "el-GR" : "en-GB", {
-    hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Nicosia",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Nicosia",
   });
 }
 
@@ -292,11 +341,7 @@ function buildText(ctx: PlanCardCtx): string {
   const el = ctx.locale === "el";
   const lines: string[] = [];
   lines.push(el ? `Πλάνο για ${ctx.destinationLabel}` : `Plan to ${ctx.destinationLabel}`);
-  lines.push(
-    el
-      ? `Από ${ctx.originLabel}`
-      : `From ${ctx.originLabel}`,
-  );
+  lines.push(el ? `Από ${ctx.originLabel}` : `From ${ctx.originLabel}`);
   const dep = fmtHM(ctx.departureUnix, ctx.locale);
   const arr = fmtHM(ctx.arrivalUnix, ctx.locale);
   lines.push(el ? `Αναχώρηση ${dep} — Άφιξη ${arr}` : `Depart ${dep} — Arrive ${arr}`);

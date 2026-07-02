@@ -58,14 +58,21 @@ function EtaWatchPage() {
     refetchIntervalInBackground: false,
   });
 
-
   const trip = query.data;
 
   if (query.isLoading) {
-    return <Shell><Placeholder title="Loading trip…" /></Shell>;
+    return (
+      <Shell>
+        <Placeholder title="Loading trip…" />
+      </Shell>
+    );
   }
   if (query.isError) {
-    return <Shell><Placeholder title="Couldn't load this trip" body="Check the link and try again." /></Shell>;
+    return (
+      <Shell>
+        <Placeholder title="Couldn't load this trip" body="Check the link and try again." />
+      </Shell>
+    );
   }
   if (!trip) {
     return (
@@ -78,7 +85,11 @@ function EtaWatchPage() {
     );
   }
 
-  return <Shell><LiveView trip={trip} /></Shell>;
+  return (
+    <Shell>
+      <LiveView trip={trip} />
+    </Shell>
+  );
 }
 
 function LiveView({ trip }: { trip: SharedTripRow }) {
@@ -96,7 +107,13 @@ function LiveView({ trip }: { trip: SharedTripRow }) {
   const staleFeed = lastUpdateSec != null && lastUpdateSec > 90;
 
   const markers = useMemo(() => {
-    const list: { lat: number; lng: number; label: string; kind: "pin" | "destination"; tone?: "aegean" | "ochre" }[] = [
+    const list: {
+      lat: number;
+      lng: number;
+      label: string;
+      kind: "pin" | "destination";
+      tone?: "aegean" | "ochre";
+    }[] = [
       {
         lat: trip.destination_lat,
         lng: trip.destination_lng,
@@ -118,7 +135,10 @@ function LiveView({ trip }: { trip: SharedTripRow }) {
   }, [trip, hasFix]);
 
   const center = hasFix
-    ? { lat: (trip.last_lat! + trip.destination_lat) / 2, lng: (trip.last_lng! + trip.destination_lng) / 2 }
+    ? {
+        lat: (trip.last_lat! + trip.destination_lat) / 2,
+        lng: (trip.last_lng! + trip.destination_lng) / 2,
+      }
     : { lat: trip.destination_lat, lng: trip.destination_lng };
 
   return (
@@ -158,15 +178,14 @@ function LiveView({ trip }: { trip: SharedTripRow }) {
               </span>
             </>
           ) : (
-            <span className="font-display text-[22px] font-semibold text-ink">
-              En route
-            </span>
+            <span className="font-display text-[22px] font-semibold text-ink">En route</span>
           )}
         </div>
 
         {lastUpdateSec != null && !expired && (
           <p className="mt-3 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
-            Updated {lastUpdateSec < 60 ? `${lastUpdateSec}s` : `${Math.round(lastUpdateSec / 60)}m`} ago
+            Updated{" "}
+            {lastUpdateSec < 60 ? `${lastUpdateSec}s` : `${Math.round(lastUpdateSec / 60)}m`} ago
           </p>
         )}
       </div>

@@ -55,17 +55,13 @@ export function JourneyHUD({
         live.phase === "hurry-urgent" ||
         live.phase === "walking-to-dest") &&
         steps &&
-        steps.length > 0 && (
-          <LiveStepCard live={live} steps={steps} />
-        )}
+        steps.length > 0 && <LiveStepCard live={live} steps={steps} />}
 
       {/* Arrived at stop */}
       {live.phase === "at-stop" && <AtStopCard trip={trip} live={live} />}
 
       {/* Bus is at the stop — confirm boarding */}
-      {live.phase === "boarding" && (
-        <BoardingPrompt trip={trip} live={live} />
-      )}
+      {live.phase === "boarding" && <BoardingPrompt trip={trip} live={live} />}
 
       {/* Bus left without us */}
       {live.phase === "missed-bus" && <MissedBusCard trip={trip} />}
@@ -137,9 +133,7 @@ function HurryBanner({ urgent, live }: { urgent: boolean; live: LiveJourney }) {
     <section className="px-6 animate-rise">
       <div
         className={`rounded-[28px] p-5 ring-1 ${
-          urgent
-            ? "bg-ochre-soft ring-ochre/40"
-            : "bg-ochre-soft/50 ring-ochre/25"
+          urgent ? "bg-ochre-soft ring-ochre/40" : "bg-ochre-soft/50 ring-ochre/25"
         }`}
       >
         <div className="flex items-center justify-between">
@@ -230,19 +224,20 @@ function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
           {t("hud.atStop.body", { name: bus.board.name })}
         </p>
       </div>
-      {needsSighting && (() => {
-        const s = getStop(bus.board.stopId);
-        if (!s) return null;
-        return (
-          <SightingButton
-            tripId={bus.tripId}
-            routeId={bus.routeId}
-            stopId={bus.board.stopId}
-            lat={s.lat}
-            lng={s.lng}
-          />
-        );
-      })()}
+      {needsSighting &&
+        (() => {
+          const s = getStop(bus.board.stopId);
+          if (!s) return null;
+          return (
+            <SightingButton
+              tripId={bus.tripId}
+              routeId={bus.routeId}
+              stopId={bus.board.stopId}
+              lat={s.lat}
+              lng={s.lng}
+            />
+          );
+        })()}
     </section>
   );
 }
@@ -322,7 +317,10 @@ function MissedBusCard({ trip }: { trip: ActiveTrip }) {
     setErr(null);
     try {
       const { options, error } = await fetchPlan({
-        data: { from: { lat: trip.from.lat, lng: trip.from.lng }, to: { lat: trip.to.lat, lng: trip.to.lng } },
+        data: {
+          from: { lat: trip.from.lat, lng: trip.from.lng },
+          to: { lat: trip.to.lat, lng: trip.to.lng },
+        },
       });
       if (error || !options || options.length === 0) {
         setErr(error ?? t("hud.missed.err"));
@@ -375,9 +373,7 @@ function MissedBusCard({ trip }: { trip: ActiveTrip }) {
             {t("trip.endTrip")}
           </button>
         </div>
-        {err && (
-          <p className="mt-3 font-mono text-[11px] text-ochre">{err}</p>
-        )}
+        {err && <p className="mt-3 font-mono text-[11px] text-ochre">{err}</p>}
       </div>
     </section>
   );

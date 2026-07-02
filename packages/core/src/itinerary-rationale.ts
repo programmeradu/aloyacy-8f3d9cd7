@@ -17,8 +17,8 @@
 
 import type { Itinerary, RationaleTag, RideLeg } from "./itinerary-types";
 
-const FASTEST_MIN_DELTA_SEC = 180;       // 3 min
-const SOONER_MIN_DELTA_SEC = 120;        // 2 min
+const FASTEST_MIN_DELTA_SEC = 180; // 3 min
+const SOONER_MIN_DELTA_SEC = 120; // 2 min
 const LESS_WALKING_MIN_DELTA_M = 150;
 const RELIABLE_MIN_DELAY_DELTA_SEC = 120; // peer must be ≥2 min more delayed
 

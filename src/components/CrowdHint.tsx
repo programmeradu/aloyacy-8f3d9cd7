@@ -42,7 +42,6 @@ function useWeatherClause(w: CurrentWeather | null | undefined): string | null {
   return null;
 }
 
-
 export function CrowdHint({
   routeId,
   tripId,

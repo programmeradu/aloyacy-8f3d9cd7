@@ -3,14 +3,7 @@
 // request so previews reflect the actual planned journey.
 
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  OG_HEIGHT,
-  OG_PALETTE,
-  OG_WIDTH,
-  clip,
-  esc,
-  ogPngResponse,
-} from "@/lib/og-render.server";
+import { OG_HEIGHT, OG_PALETTE, OG_WIDTH, clip, esc, ogPngResponse } from "@/lib/og-render.server";
 
 function fmtTime(unix: number): string {
   return new Date(unix * 1000).toLocaleTimeString("en-GB", {
@@ -44,9 +37,7 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
 
         // Load lazily inside the handler — supabaseAdmin lives in a *.server
         // file that must not be pulled into the client module graph.
-        const { supabaseAdmin } = await import(
-          "@/integrations/supabase/client.server"
-        );
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         const { data: plan } = await supabaseAdmin
           .from("trip_plan_shares")
@@ -91,7 +82,6 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
     </g>`
           : "";
 
-
         const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
   <defs>
@@ -135,11 +125,15 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
   </g>
 
   <!-- chip: journey (only when there's no bus chip taking the right slot) -->
-  ${routeShort ? "" : `<g transform="translate(864, 470)">
+  ${
+    routeShort
+      ? ""
+      : `<g transform="translate(864, 470)">
     <rect width="240" height="82" rx="16" fill="rgba(255,255,255,0.85)" stroke="${OG_PALETTE.line}"/>
     <text x="20" y="30" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="2.4" fill="${OG_PALETTE.inkSoft}">JOURNEY</text>
     <text x="20" y="66" font-family="Bricolage Grotesque, Georgia, serif" font-size="26" font-weight="800" letter-spacing="-0.4" fill="${OG_PALETTE.ink}">${esc(journeyText)}</text>
-  </g>`}
+  </g>`
+  }
   ${busChip}
   ${routeShort ? `<text x="560" y="588" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" font-weight="600" letter-spacing="0.2" fill="${OG_PALETTE.inkSoft}">Journey ${esc(journeyText)}</text>` : ""}
 

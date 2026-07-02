@@ -32,9 +32,11 @@ function json(body: unknown, status = 200) {
 async function guard(request: Request): Promise<Response | null> {
   const apikey = request.headers.get("apikey");
   const legacy =
-    request.headers.get("x-cron-secret") ??
-    new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey = apikey && apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+    request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
+  const validApiKey =
+    apikey &&
+    apikey ===
+      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
   const validLegacy = legacy && process.env.CRON_SECRET && legacy === process.env.CRON_SECRET;
   if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
@@ -234,9 +236,9 @@ function collectSituations(doc: AnyNode): unknown[] {
     (doc.messageContainer as AnyNode | undefined) ??
     doc;
   const payload =
-    ((root.payloadPublication as AnyNode | undefined) ??
-      ((root.payload as AnyNode | undefined)?.payloadPublication as AnyNode | undefined) ??
-      (root.payload as AnyNode | undefined)) ??
+    (root.payloadPublication as AnyNode | undefined) ??
+    ((root.payload as AnyNode | undefined)?.payloadPublication as AnyNode | undefined) ??
+    (root.payload as AnyNode | undefined) ??
     root;
   const sits =
     (payload?.situation as unknown) ??
@@ -308,7 +310,9 @@ function extractHeadline(r: AnyNode): string | null {
   const extDesc = ext?.description;
   if (typeof extDesc === "string" && extDesc.trim()) return extDesc.trim().slice(0, 240);
   if (typeof (extDesc as AnyNode | undefined)?.["#text"] === "string") {
-    return String((extDesc as AnyNode)["#text"]).trim().slice(0, 240);
+    return String((extDesc as AnyNode)["#text"])
+      .trim()
+      .slice(0, 240);
   }
   // DATEX v2 fallbacks
   const comments =
@@ -322,12 +326,13 @@ function extractHeadline(r: AnyNode): string | null {
     const v = values.find((x) => typeof x === "string") as string | undefined;
     if (v) return v.trim().slice(0, 240);
     const obj = values.find((x) => typeof (x as AnyNode)?.["#text"] === "string") as
-      | AnyNode
-      | undefined;
+      AnyNode | undefined;
     if (obj) return String(obj["#text"]).trim().slice(0, 240);
   }
   if (typeof (values as AnyNode | undefined)?.["#text"] === "string") {
-    return String((values as AnyNode)["#text"]).trim().slice(0, 240);
+    return String((values as AnyNode)["#text"])
+      .trim()
+      .slice(0, 240);
   }
   return null;
 }

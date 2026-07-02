@@ -12,9 +12,7 @@ export function distanceM(a: LatLng, b: LatLng): number {
   const dLng = toRad(b.lng - a.lng);
   const la1 = toRad(a.lat);
   const la2 = toRad(b.lat);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
@@ -23,9 +21,7 @@ export function bearingDeg(from: LatLng, to: LatLng): number {
   const φ2 = toRad(to.lat);
   const Δλ = toRad(to.lng - from.lng);
   const y = Math.sin(Δλ) * Math.cos(φ2);
-  const x =
-    Math.cos(φ1) * Math.sin(φ2) -
-    Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
@@ -49,10 +45,7 @@ export type SnapResult = {
   alongM: number;
 };
 
-export function snapToPolyline(
-  point: LatLng,
-  path: LatLng[],
-): SnapResult | null {
+export function snapToPolyline(point: LatLng, path: LatLng[]): SnapResult | null {
   if (path.length < 2) return null;
   const M_LAT = 110_540;
   const M_LNG = 111_320 * Math.cos((point.lat * Math.PI) / 180);
@@ -101,7 +94,6 @@ export function polylineLengthM(path: LatLng[]): number {
   for (let i = 0; i < path.length - 1; i++) sum += distanceM(path[i], path[i + 1]);
   return sum;
 }
-
 
 export type WalkStep = {
   instruction: string;

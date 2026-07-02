@@ -25,8 +25,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { distanceM } from "./geo";
 
-const FEED_URL =
-  "https://maps.nextbike.net/maps/nextbike-live.json?city=190,206,940,957,889";
+const FEED_URL = "https://maps.nextbike.net/maps/nextbike-live.json?city=190,206,940,957,889";
 
 const CITY_BY_UID: Record<number, { id: string; name: string; web: string }> = {
   190: { id: "limassol", name: "Limassol", web: "https://www.nextbike.com.cy/en/limassol/" },
@@ -214,8 +213,7 @@ export const suggestBikeShare = createServerFn({ method: "POST" })
     const pickup = pickups[0];
     // Prefer a dropoff in the same city as the pickup (we don't expect
     // anyone to cycle between cities, but it's a defensive filter).
-    const dropoff =
-      dropoffs.find((d) => d.cityId === pickup.cityId) ?? dropoffs[0];
+    const dropoff = dropoffs.find((d) => d.cityId === pickup.cityId) ?? dropoffs[0];
     if (dropoff.cityId !== pickup.cityId) return null;
 
     const rideM = distanceM(
@@ -225,8 +223,7 @@ export const suggestBikeShare = createServerFn({ method: "POST" })
     if (rideM < 800) return null; // too short to be worth unlocking
 
     const rideSec = Math.round(rideM / BIKE_M_PER_S);
-    const totalSec =
-      pickup.walkSec + UNLOCK_SEC + rideSec + RETURN_SEC + dropoff.walkSec;
+    const totalSec = pickup.walkSec + UNLOCK_SEC + rideSec + RETURN_SEC + dropoff.walkSec;
 
     const busOnly = data.busOnlyDurationSec ?? null;
     let reason: BikeShareSuggestion["reason"];
@@ -240,9 +237,12 @@ export const suggestBikeShare = createServerFn({ method: "POST" })
       return null;
     }
 
-    const cityMeta = CITY_BY_UID[
-      Object.entries(CITY_BY_UID).find(([, m]) => m.id === pickup.cityId)?.[0] as unknown as number
-    ];
+    const cityMeta =
+      CITY_BY_UID[
+        Object.entries(CITY_BY_UID).find(
+          ([, m]) => m.id === pickup.cityId,
+        )?.[0] as unknown as number
+      ];
 
     return {
       pickup,

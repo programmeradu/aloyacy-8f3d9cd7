@@ -50,10 +50,7 @@ export async function cwGetMetricData(
     params.set(`MetricDataQueries.member.${n}.Id`, q.id);
     params.set(`MetricDataQueries.member.${n}.Expression`, q.expression);
     params.set(`MetricDataQueries.member.${n}.Period`, String(q.period ?? 300));
-    params.set(
-      `MetricDataQueries.member.${n}.ReturnData`,
-      String(q.returnData ?? true),
-    );
+    params.set(`MetricDataQueries.member.${n}.ReturnData`, String(q.returnData ?? true));
     if (q.label) params.set(`MetricDataQueries.member.${n}.Label`, q.label);
   });
 

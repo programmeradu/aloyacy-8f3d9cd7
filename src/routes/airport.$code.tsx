@@ -67,19 +67,22 @@ function buildFaq(city: string): { q: string; a: string }[] {
   ];
 }
 
-const COPY: Record<Locale, {
-  coachKicker: string;
-  seatsLeft: (n: number) => string;
-  sold: string;
-  bookCta: string;
-  timetableCta: string;
-  pickup: string;
-  fromLabel: string;
-  emptyTitle: string;
-  emptyBody: string;
-  notInDataset: string;
-  serviceLabel: string;
-}> = {
+const COPY: Record<
+  Locale,
+  {
+    coachKicker: string;
+    seatsLeft: (n: number) => string;
+    sold: string;
+    bookCta: string;
+    timetableCta: string;
+    pickup: string;
+    fromLabel: string;
+    emptyTitle: string;
+    emptyBody: string;
+    notInDataset: string;
+    serviceLabel: string;
+  }
+> = {
   en: {
     coachKicker: "Direct coach",
     seatsLeft: (n) => `${n} seats`,
@@ -114,9 +117,7 @@ export const Route = createFileRoute("/airport/$code")({
     if (!ALLOWED.includes(lower as AirportCode)) throw notFound();
   },
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(
-      airportQuery(params.code.toLowerCase() as AirportCode),
-    ),
+    context.queryClient.ensureQueryData(airportQuery(params.code.toLowerCase() as AirportCode)),
   head: ({ params }) => {
     const code = params.code.toLowerCase() as AirportCode;
     const a = AIRPORTS[code];
@@ -184,7 +185,10 @@ export const Route = createFileRoute("/airport/$code")({
           <p className="mt-2 text-[14px] text-ink-soft">{error.message}</p>
           <button
             type="button"
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="mt-6 rounded-full bg-ink px-4 py-2 font-sans text-[13px] font-semibold text-limestone"
           >
             Try again
@@ -206,13 +210,22 @@ export const Route = createFileRoute("/airport/$code")({
           </h1>
           <p className="mt-4 text-[15px] text-ink-soft">
             Try{" "}
-            <Link to="/airport/$code" params={{ code: "lca" }} className="underline-offset-4 hover:underline">
+            <Link
+              to="/airport/$code"
+              params={{ code: "lca" }}
+              className="underline-offset-4 hover:underline"
+            >
               Larnaca (LCA)
             </Link>{" "}
             or{" "}
-            <Link to="/airport/$code" params={{ code: "pfo" }} className="underline-offset-4 hover:underline">
+            <Link
+              to="/airport/$code"
+              params={{ code: "pfo" }}
+              className="underline-offset-4 hover:underline"
+            >
               Paphos (PFO)
-            </Link>.
+            </Link>
+            .
           </p>
         </div>
       </AppShell>
@@ -319,9 +332,11 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
           height="h-56"
           center={center}
           spanKm={2}
-          markers={[
-            { lat: airport.lat, lng: airport.lng, kind: "origin", label: airportName },
-          ] as MapMarker[]}
+          markers={
+            [
+              { lat: airport.lat, lng: airport.lng, kind: "origin", label: airportName },
+            ] as MapMarker[]
+          }
           restrictTripIds={departures.map((d) => d.tripId)}
           fitToContent={false}
         />
@@ -356,11 +371,7 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
         ) : (
           <div className="space-y-3">
             {data.coachLines.map((line) => (
-              <CoachLineCard
-                key={`${line.routeId}-${line.destinationCity}`}
-                line={line}
-                c={c}
-              />
+              <CoachLineCard key={`${line.routeId}-${line.destinationCity}`} line={line} c={c} />
             ))}
             {departures.map((d, i) => {
               const route = getRoute(d.routeId);
@@ -434,13 +445,7 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
 // Kapnos intercity coach — rendered as a row in the same departures list
 // as the urban DepartureRows. Card shape matches DepartureRow chrome so
 // the page reads as one continuous list, not a separate article section.
-function CoachLineCard({
-  line,
-  c,
-}: {
-  line: AirportCoachLine;
-  c: (typeof COPY)["en"];
-}) {
+function CoachLineCard({ line, c }: { line: AirportCoachLine; c: (typeof COPY)["en"] }) {
   const next = line.nextDepartures[0];
   return (
     <article className="rounded-[24px] bg-card ring-1 ring-line p-4">

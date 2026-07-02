@@ -72,18 +72,16 @@ export const Route = createFileRoute("/api/public/rider-fix")({
           return json(403, { error: "trip mismatch" });
         }
 
-        const { error: insErr } = await supabaseAdmin
-          .from("rider_vehicle_fixes")
-          .insert({
-            trip_id: parsed.tripId,
-            route_id: parsed.routeId ?? null,
-            lat: parsed.lat,
-            lng: parsed.lng,
-            bearing: parsed.bearing ?? null,
-            speed_mps: parsed.speedMps ?? null,
-            accuracy_m: parsed.accuracyM ?? null,
-            device_id: parsed.deviceId,
-          });
+        const { error: insErr } = await supabaseAdmin.from("rider_vehicle_fixes").insert({
+          trip_id: parsed.tripId,
+          route_id: parsed.routeId ?? null,
+          lat: parsed.lat,
+          lng: parsed.lng,
+          bearing: parsed.bearing ?? null,
+          speed_mps: parsed.speedMps ?? null,
+          accuracy_m: parsed.accuracyM ?? null,
+          device_id: parsed.deviceId,
+        });
         if (insErr) {
           return json(500, { error: "insert failed" });
         }

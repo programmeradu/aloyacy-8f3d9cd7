@@ -19,9 +19,6 @@ import { getStop, getRoute } from "@/lib/gtfs";
 import { getStopReliability, aggregateStopReliability } from "@/lib/reliability.functions";
 import { useI18n } from "@/lib/i18n";
 
-
-
-
 export const Route = createFileRoute("/stop/$stopId")({
   head: ({ params }) => {
     const title = `Stop ${params.stopId} — Aloya`;
@@ -74,8 +71,7 @@ function StopDetail() {
   const stopReliabilityFn = useServerFn(getStopReliability);
   const { data: stopReliabilityRows } = useQuery({
     queryKey: ["stopReliability", stopId, routeIdsHere.slice().sort().join(",")],
-    queryFn: () =>
-      stopReliabilityFn({ data: { stopId, routeIds: routeIdsHere } }),
+    queryFn: () => stopReliabilityFn({ data: { stopId, routeIds: routeIdsHere } }),
     enabled: routeIdsHere.length > 0,
     staleTime: 5 * 60_000,
   });
@@ -117,13 +113,9 @@ function StopDetail() {
         });
         return { ...a, eta };
       })
-      .filter(
-        (d): d is typeof d & { eta: SmartEtaV2 } =>
-          d.eta != null && d.eta.etaMin <= 180,
-      )
+      .filter((d): d is typeof d & { eta: SmartEtaV2 } => d.eta != null && d.eta.etaMin <= 180)
       .slice(0, 8);
   }, [rt, stopId, learnedByStop, stop?.agency, etaStats, riderConfirmedAge]);
-
 
   const center = stop ? { lat: stop.lat, lng: stop.lng } : undefined;
 
@@ -151,7 +143,6 @@ function StopDetail() {
 
       <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
         <h1 className="font-display text-[40px] leading-[1.05] text-ink">
-
           {stop?.name ?? t("stop.unknown")}
         </h1>
         <p className="mt-2 text-[13px] text-ink-soft">
@@ -171,8 +162,6 @@ function StopDetail() {
         </section>
       )}
 
-
-
       <section className="px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MapPreview
           height="h-56"
@@ -187,9 +176,10 @@ function StopDetail() {
           }
           restrictTripIds={departures.map((d) => d.tripId)}
           liveLabel={{
-            active: departures.length === 1
-              ? t("stop.busesServingOne")
-              : t("stop.busesServingN", { n: departures.length }),
+            active:
+              departures.length === 1
+                ? t("stop.busesServingOne")
+                : t("stop.busesServingN", { n: departures.length }),
             empty: t("stop.noBusesNear"),
           }}
           fitToContent={false}
@@ -204,10 +194,7 @@ function StopDetail() {
         </div>
       )}
 
-      <section
-        className="mt-8 px-6 animate-rise"
-        style={{ animationDelay: "180ms" }}
-      >
+      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
         <div className="flex items-end justify-between gap-4 mb-4">
           <div className="min-w-0">
             <span className="font-mono text-[9.5px] uppercase tracking-[0.24em] text-ink-soft">
@@ -225,9 +212,7 @@ function StopDetail() {
         {departures.length === 0 ? (
           <div className="rounded-3xl bg-card p-6 text-center ring-1 ring-line">
             <p className="font-display text-lg text-ink">{t("stop.noUpcomingTitle")}</p>
-            <p className="mt-1 text-[12px] text-ink-soft">
-              {t("stop.noUpcomingBody")}
-            </p>
+            <p className="mt-1 text-[12px] text-ink-soft">{t("stop.noUpcomingBody")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -295,7 +280,6 @@ function StopDetail() {
         />
       )}
     </AppShell>
-
   );
 }
 
@@ -308,7 +292,6 @@ function StopDetail() {
 function StopReliabilityStrip({
   r,
 }: {
-
   r: {
     onTimePct: number;
     meanDelaySec: number;
@@ -317,7 +300,6 @@ function StopReliabilityStrip({
   };
   t?: (k: never, vars?: Record<string, string | number>) => string;
 }) {
-
   const rated = r.tier !== "unknown";
   const late = r.meanDelaySec > 0;
 
@@ -327,8 +309,7 @@ function StopReliabilityStrip({
           num: "text-olive",
           chipBg: "bg-olive-soft/45",
           chipInk: "text-olive",
-          wash:
-            "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-olive-soft)_60%,transparent)_0%,transparent_65%)]",
+          wash: "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-olive-soft)_60%,transparent)_0%,transparent_65%)]",
           label: "Reliable",
         }
       : r.tier === "medium"
@@ -336,8 +317,7 @@ function StopReliabilityStrip({
             num: "text-ink",
             chipBg: "bg-ochre-soft/60",
             chipInk: "text-ink",
-            wash:
-              "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-ochre-soft)_55%,transparent)_0%,transparent_65%)]",
+            wash: "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-ochre-soft)_55%,transparent)_0%,transparent_65%)]",
             label: "Steady",
           }
         : r.tier === "low"
@@ -345,8 +325,7 @@ function StopReliabilityStrip({
               num: "text-destructive",
               chipBg: "bg-destructive/12",
               chipInk: "text-destructive",
-              wash:
-                "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-destructive)_14%,transparent)_0%,transparent_65%)]",
+              wash: "bg-[radial-gradient(120%_90%_at_10%_0%,color-mix(in_oklab,var(--color-destructive)_14%,transparent)_0%,transparent_65%)]",
               label: "Uneven",
             }
           : {
@@ -356,8 +335,6 @@ function StopReliabilityStrip({
               wash: "",
               label: "Learning",
             };
-
-
 
   // Human-readable summary. No jargon, no numbers unless useful.
   const summary = !rated
@@ -388,7 +365,9 @@ function StopReliabilityStrip({
           className={`shrink-0 flex flex-col items-center justify-center w-14 h-14 rounded-full ${tone.chipBg}`}
           aria-hidden
         >
-          <span className={`font-display text-[20px] leading-none tabular-nums -tracking-[0.02em] ${tone.num}`}>
+          <span
+            className={`font-display text-[20px] leading-none tabular-nums -tracking-[0.02em] ${tone.num}`}
+          >
             {rated ? r.onTimePct : "—"}
           </span>
           {rated && (
@@ -398,9 +377,7 @@ function StopReliabilityStrip({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-display text-[15px] sm:text-[16px] text-ink leading-snug">
-            {summary}
-          </p>
+          <p className="font-display text-[15px] sm:text-[16px] text-ink leading-snug">{summary}</p>
           <p className="mt-0.5 text-[12.5px] text-ink-soft leading-snug">{hint}</p>
         </div>
         <span
@@ -412,4 +389,3 @@ function StopReliabilityStrip({
     </article>
   );
 }
-

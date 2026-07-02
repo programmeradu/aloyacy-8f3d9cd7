@@ -93,8 +93,14 @@ export const getQaStats = createServerFn({ method: "POST" })
 
     const list = (rows ?? []) as Row[];
 
-    const byHour = new Map<number, { shown: number; confirmed: number; errors: number; fp: number }>();
-    const byRoute = new Map<string, { shown: number; confirmed: number; errors: number; fp: number }>();
+    const byHour = new Map<
+      number,
+      { shown: number; confirmed: number; errors: number; fp: number }
+    >();
+    const byRoute = new Map<
+      string,
+      { shown: number; confirmed: number; errors: number; fp: number }
+    >();
     const phaseErrorMap = new Map<string, number>();
     let phaseTransitions = 0;
     let phaseErrors = 0;
@@ -109,7 +115,10 @@ export const getQaStats = createServerFn({ method: "POST" })
       e[k] += 1;
       byHour.set(h, e);
     };
-    const bumpRoute = (r: string | null | undefined, k: "shown" | "confirmed" | "errors" | "fp") => {
+    const bumpRoute = (
+      r: string | null | undefined,
+      k: "shown" | "confirmed" | "errors" | "fp",
+    ) => {
       if (!r) return;
       const e = byRoute.get(r) ?? { shown: 0, confirmed: 0, errors: 0, fp: 0 };
       e[k] += 1;
@@ -118,7 +127,8 @@ export const getQaStats = createServerFn({ method: "POST" })
 
     for (const row of list) {
       const p = (row.payload ?? {}) as Record<string, unknown>;
-      const hour = typeof p.hourOfDay === "number" ? p.hourOfDay : new Date(row.recorded_at).getHours();
+      const hour =
+        typeof p.hourOfDay === "number" ? p.hourOfDay : new Date(row.recorded_at).getHours();
       const route = (p.routeShort as string | undefined) ?? null;
       if (row.kind === "phase-transition") {
         phaseTransitions += 1;
@@ -183,9 +193,12 @@ export const getQaStats = createServerFn({ method: "POST" })
       const p = (r.payload ?? {}) as Record<string, unknown>;
       let summary = "";
       if (r.kind === "phase-transition") summary = `${p.from} → ${p.to} · ${p.routeShort ?? "—"}`;
-      else if (r.kind === "boarding-prompt-shown") summary = `prompt shown · ${p.routeShort ?? "—"} @ ${p.stopId ?? "—"}`;
-      else if (r.kind === "boarding-prompt-confirmed") summary = `confirmed · ${p.routeShort ?? "—"}`;
-      else if (r.kind === "missed-bus-false-positive") summary = `false miss · ${p.routeShort ?? "—"} (gap ${Math.round(((p.gapMs as number) ?? 0) / 1000)}s)`;
+      else if (r.kind === "boarding-prompt-shown")
+        summary = `prompt shown · ${p.routeShort ?? "—"} @ ${p.stopId ?? "—"}`;
+      else if (r.kind === "boarding-prompt-confirmed")
+        summary = `confirmed · ${p.routeShort ?? "—"}`;
+      else if (r.kind === "missed-bus-false-positive")
+        summary = `false miss · ${p.routeShort ?? "—"} (gap ${Math.round(((p.gapMs as number) ?? 0) / 1000)}s)`;
       else {
         const bits: string[] = [];
         for (const k of ["query", "intent", "reason", "route", "label", "ms"]) {

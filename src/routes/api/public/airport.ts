@@ -22,10 +22,10 @@ export const Route = createFileRoute("/api/public/airport")({
         const url = new URL(request.url);
         const code = (url.searchParams.get("code") || "").toLowerCase();
         if (code !== "lca" && code !== "pfo") {
-          return new Response(
-            JSON.stringify({ error: "code must be lca or pfo" }),
-            { status: 400, headers: CORS },
-          );
+          return new Response(JSON.stringify({ error: "code must be lca or pfo" }), {
+            status: 400,
+            headers: CORS,
+          });
         }
         try {
           const data = await getAirportPage({ data: { code: code as AirportCode } });

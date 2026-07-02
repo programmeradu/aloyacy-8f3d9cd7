@@ -18,7 +18,10 @@ export const Route = createFileRoute("/api/public/places-autocomplete")({
         try {
           body = await request.json();
         } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: CORS });
+          return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+            status: 400,
+            headers: CORS,
+          });
         }
         try {
           const result = await autocompletePlaces({ data: body as never });

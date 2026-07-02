@@ -108,11 +108,7 @@ export function SharePlanButton({
         <span className="leading-none">{label}</span>
       </button>
       {sheetCtx ? (
-        <PlanShareSheet
-          open={!!sheetCtx}
-          onClose={() => setSheetCtx(null)}
-          ctx={sheetCtx}
-        />
+        <PlanShareSheet open={!!sheetCtx} onClose={() => setSheetCtx(null)} ctx={sheetCtx} />
       ) : null}
     </>
   );

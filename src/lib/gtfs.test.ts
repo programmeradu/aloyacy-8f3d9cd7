@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { distanceKm, getRoute, getStop, nearestStops, ROUTES, routeTone, STOPS, stopKind } from "./gtfs";
+import {
+  distanceKm,
+  getRoute,
+  getStop,
+  nearestStops,
+  ROUTES,
+  routeTone,
+  STOPS,
+  stopKind,
+} from "./gtfs";
 
 describe("bundled static feed", () => {
   it("ships stops and routes", () => {

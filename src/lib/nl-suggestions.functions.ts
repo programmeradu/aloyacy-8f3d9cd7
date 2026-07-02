@@ -43,13 +43,49 @@ type Poi = {
 };
 
 const POIS: Poi[] = [
-  { label: "Larnaca airport", lat: 34.875, lng: 33.624, hours: [4, 5, 6, 7, 8, 9, 15, 16, 17, 18, 19, 20, 21] },
-  { label: "Paphos airport", lat: 34.718, lng: 32.485, hours: [5, 6, 7, 8, 9, 15, 16, 17, 18, 19, 20] },
-  { label: "the University of Cyprus", lat: 35.144, lng: 33.411, hours: [7, 8, 9, 10, 13, 14, 15, 16, 17] },
-  { label: "Eleftheria Square", lat: 35.172, lng: 33.362, hours: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22] },
-  { label: "Mall of Cyprus", lat: 35.131, lng: 33.301, hours: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21] },
-  { label: "Finikoudes beach", lat: 34.917, lng: 33.640, hours: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], weekend: true },
-  { label: "Ledra Street", lat: 35.173, lng: 33.359, hours: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22] },
+  {
+    label: "Larnaca airport",
+    lat: 34.875,
+    lng: 33.624,
+    hours: [4, 5, 6, 7, 8, 9, 15, 16, 17, 18, 19, 20, 21],
+  },
+  {
+    label: "Paphos airport",
+    lat: 34.718,
+    lng: 32.485,
+    hours: [5, 6, 7, 8, 9, 15, 16, 17, 18, 19, 20],
+  },
+  {
+    label: "the University of Cyprus",
+    lat: 35.144,
+    lng: 33.411,
+    hours: [7, 8, 9, 10, 13, 14, 15, 16, 17],
+  },
+  {
+    label: "Eleftheria Square",
+    lat: 35.172,
+    lng: 33.362,
+    hours: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+  },
+  {
+    label: "Mall of Cyprus",
+    lat: 35.131,
+    lng: 33.301,
+    hours: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
+  },
+  {
+    label: "Finikoudes beach",
+    lat: 34.917,
+    lng: 33.64,
+    hours: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+    weekend: true,
+  },
+  {
+    label: "Ledra Street",
+    lat: 35.173,
+    lng: 33.359,
+    hours: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+  },
 ];
 
 function pickPoiFallback(hour: number, dow: number, excludeLabels: Set<string>): Poi | null {
@@ -118,7 +154,14 @@ export const getNlSuggestions = createServerFn({ method: "POST" })
         .limit(120);
 
       if (rows && rows.length > 0) {
-        type G = { label: string; lat: number; lng: number; count: number; hours: number[]; lastUsed: number };
+        type G = {
+          label: string;
+          lat: number;
+          lng: number;
+          count: number;
+          hours: number[];
+          lastUsed: number;
+        };
         const groups = new Map<string, G>();
         for (const r of rows) {
           const key = `${bucket(r.to_lat)},${bucket(r.to_lng)}`;
@@ -129,13 +172,22 @@ export const getNlSuggestions = createServerFn({ method: "POST" })
             g.hours.push(r.hour);
             g.lastUsed = Math.max(g.lastUsed, ts);
           } else {
-            groups.set(key, { label: r.to_label, lat: r.to_lat, lng: r.to_lng, count: 1, hours: [r.hour], lastUsed: ts });
+            groups.set(key, {
+              label: r.to_label,
+              lat: r.to_lat,
+              lng: r.to_lng,
+              count: 1,
+              hours: [r.hour],
+              lastUsed: ts,
+            });
           }
         }
         const ranked = [...groups.values()].sort((a, b) => b.count - a.count);
 
         // Same-hour match → "to X in ~N min" using their typical leave-time pattern
-        const sameHour = ranked.find((g) => g.hours.some((h) => Math.abs(h - hour) <= 2 || Math.abs(h - hour) >= 22));
+        const sameHour = ranked.find((g) =>
+          g.hours.some((h) => Math.abs(h - hour) <= 2 || Math.abs(h - hour) >= 22),
+        );
         if (sameHour) {
           out.push({ text: phraseSoon(sameHour.label, 20), reason: "personal" });
           usedLabels.add(sameHour.label.toLowerCase());

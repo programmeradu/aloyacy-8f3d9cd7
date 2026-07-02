@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type Stripe from "stripe";
-import {
-  type StripeEnv,
-  createStripeClient,
-  getWebhookSecret,
-} from "@/lib/stripe.server";
+import { type StripeEnv, createStripeClient, getWebhookSecret } from "@/lib/stripe.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 function parseEnv(url: URL): StripeEnv {
@@ -39,7 +35,8 @@ async function sendWelcomeEmail(to: string, planKey: string | null) {
   const lovable = process.env.LOVABLE_API_KEY;
   const resend = process.env.RESEND_API_KEY;
   if (!lovable || !resend) return;
-  const planLabel = planKey === "pro_weekly" ? "Weekly" : planKey === "pro_monthly" ? "Monthly" : "Pro";
+  const planLabel =
+    planKey === "pro_weekly" ? "Weekly" : planKey === "pro_monthly" ? "Monthly" : "Pro";
   try {
     await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
@@ -111,8 +108,7 @@ async function upsertFromSubscription(
       stripe_subscription_id: sub.id,
       status: sub.status,
       price_id: price?.id ?? null,
-      product_id:
-        typeof price?.product === "string" ? price.product : price?.product?.id ?? null,
+      product_id: typeof price?.product === "string" ? price.product : (price?.product?.id ?? null),
       plan_key: planKey,
       current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
       cancel_at_period_end: sub.cancel_at_period_end,
@@ -140,11 +136,7 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
         const stripe = createStripeClient(env);
         let event: Stripe.Event;
         try {
-          event = await stripe.webhooks.constructEventAsync(
-            body,
-            signature,
-            getWebhookSecret(env),
-          );
+          event = await stripe.webhooks.constructEventAsync(body, signature, getWebhookSecret(env));
         } catch (err) {
           return new Response(
             `Invalid signature: ${err instanceof Error ? err.message : "unknown"}`,
@@ -157,27 +149,20 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
             case "checkout.session.completed": {
               const session = event.data.object as Stripe.Checkout.Session;
               if (session.subscription) {
-                const sub = await stripe.subscriptions.retrieve(
-                  session.subscription as string,
-                );
+                const sub = await stripe.subscriptions.retrieve(session.subscription as string);
                 await upsertFromSubscription(sub, env, { sendWelcome: true });
               }
               break;
             }
             case "customer.subscription.created": {
-              await upsertFromSubscription(
-                event.data.object as Stripe.Subscription,
-                env,
-                { sendWelcome: true },
-              );
+              await upsertFromSubscription(event.data.object as Stripe.Subscription, env, {
+                sendWelcome: true,
+              });
               break;
             }
             case "customer.subscription.updated":
             case "customer.subscription.deleted": {
-              await upsertFromSubscription(
-                event.data.object as Stripe.Subscription,
-                env,
-              );
+              await upsertFromSubscription(event.data.object as Stripe.Subscription, env);
               break;
             }
             default:

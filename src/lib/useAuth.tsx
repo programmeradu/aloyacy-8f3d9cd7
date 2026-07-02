@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { isAnonymousUser } from "./anon-auth";
@@ -20,11 +13,10 @@ async function linkDeviceIfPossible(session: Session | null) {
   if (!uid || linkedUsers.has(uid)) return;
   linkedUsers.add(uid);
   try {
-    const [{ linkDeviceToUser }, { getDeviceId, getDeviceToken }] =
-      await Promise.all([
-        import("./suggestions.functions"),
-        import("./pwa"),
-      ]);
+    const [{ linkDeviceToUser }, { getDeviceId, getDeviceToken }] = await Promise.all([
+      import("./suggestions.functions"),
+      import("./pwa"),
+    ]);
     const token = await getDeviceToken();
     if (!token) return;
     await linkDeviceToUser({
@@ -62,14 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       void linkDeviceIfPossible(data.session);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, s) => {
-        setSession(s);
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
-          void linkDeviceIfPossible(s);
-        }
-      },
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s);
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+        void linkDeviceIfPossible(s);
+      }
+    });
     return () => {
       mounted = false;
       subscription.unsubscribe();

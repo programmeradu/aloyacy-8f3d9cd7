@@ -20,8 +20,7 @@ export function applyAccessibilityWeights(
   prefs: AccessibilityPrefs,
 ): void {
   if (itineraries.length === 0) return;
-  const active =
-    prefs.stepFree || prefs.preferShade || prefs.maxWalkMeters != null;
+  const active = prefs.stepFree || prefs.preferShade || prefs.maxWalkMeters != null;
   if (!active) return;
 
   for (const it of itineraries) {

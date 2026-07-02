@@ -39,8 +39,14 @@ async function guard(request: Request): Promise<Response | null> {
     // ignore vault lookup failures and fall back to env
   }
   const legacyHeader =
-    request.headers.get("X-Cron-Secret") ?? request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey = apikey && (apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY) || apikey === import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY);
+    request.headers.get("X-Cron-Secret") ??
+    request.headers.get("x-cron-secret") ??
+    new URL(request.url).searchParams.get("cron_secret");
+  const validApiKey =
+    apikey &&
+    (apikey ===
+      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY) ||
+      apikey === import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY);
   const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
   const validLegacy = legacySecret && legacyHeader && legacyHeader === legacySecret;
   if (!validApiKey && !validCron && !validLegacy) {
@@ -96,7 +102,7 @@ async function ingest() {
     }));
 
     // Update observed_arrivals (last known prediction per trip+stop)
-    const observedMap = new Map<string, typeof fresh[number]>();
+    const observedMap = new Map<string, (typeof fresh)[number]>();
     for (const a of fresh) {
       const key = `${a.tripId}|${a.stopId}`;
       const prev = observedMap.get(key);
@@ -121,7 +127,14 @@ async function ingest() {
     // writing anything. That is what silently killed every downstream feed.
     const buckets = new Map<
       string,
-      { route_id: string; stop_id: string; hour_of_day: number; day_of_week: number; sum_delay_sec: number; count: number }
+      {
+        route_id: string;
+        stop_id: string;
+        hour_of_day: number;
+        day_of_week: number;
+        sum_delay_sec: number;
+        count: number;
+      }
     >();
     for (const a of fresh) {
       const d = new Date(a.arrivalUnix * 1000);
@@ -163,10 +176,12 @@ async function ingest() {
     // Bound: `supabase` is a lazy Proxy, so a detached `.rpc` reference
     // would lose its receiver and throw on the internal `this.rest` access.
     const rpc = (fn: string, args: Record<string, unknown>) =>
-      (supabase.rpc as unknown as (
-        f: string,
-        a: Record<string, unknown>,
-      ) => Promise<{ error: { message: string } | null }>).call(supabase, fn, args);
+      (
+        supabase.rpc as unknown as (
+          f: string,
+          a: Record<string, unknown>,
+        ) => Promise<{ error: { message: string } | null }>
+      ).call(supabase, fn, args);
 
     for (let b = 0; b < batches; b++) {
       if (Date.now() > DEADLINE) {
@@ -222,13 +237,9 @@ async function ingest() {
       ...(truncated ? { truncated: true } : {}),
       ...(lastError ? { last_error: lastError } : {}),
     });
-
   } catch (e) {
     console.error("snapshot ingest failed", e);
-    return json(
-      { ok: false, error: e instanceof Error ? e.message : "ingest failed" },
-      502,
-    );
+    return json({ ok: false, error: e instanceof Error ? e.message : "ingest failed" }, 502);
   }
 }
 

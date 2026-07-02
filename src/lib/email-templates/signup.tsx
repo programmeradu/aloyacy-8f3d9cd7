@@ -1,5 +1,5 @@
-import * as React from 'react'
-import { Text } from '@react-email/components'
+import * as React from "react";
+import { Text } from "@react-email/components";
 import {
   Layout,
   bodyText,
@@ -8,14 +8,14 @@ import {
   fineprint,
   inlineLink,
   sectionLabel,
-} from './_layout'
+} from "./_layout";
 
 interface SignupEmailProps {
-  siteName: string
-  siteUrl: string
-  recipient: string
-  confirmationUrl?: string
-  token?: string
+  siteName: string;
+  siteUrl: string;
+  recipient: string;
+  confirmationUrl?: string;
+  token?: string;
 }
 
 export const SignupEmail = ({ recipient, token }: SignupEmailProps) => (
@@ -27,16 +27,15 @@ export const SignupEmail = ({ recipient, token }: SignupEmailProps) => (
     heroAlt="Olive branch on warm linen, Cyprus limestone"
   >
     <Text style={bodyText}>
-      You're a tap away from smarter bus journeys across Cyprus —
-      live arrivals, accurate transfers, and routes that actually
-      make sense.
+      You're a tap away from smarter bus journeys across Cyprus — live arrivals, accurate transfers,
+      and routes that actually make sense.
     </Text>
 
     <Text style={sectionLabel}>Confirmation code</Text>
-    <div style={codeBlock}>{token ?? '------'}</div>
+    <div style={codeBlock}>{token ?? "------"}</div>
 
     <Text style={bodyTextMuted}>
-      We're confirming{' '}
+      We're confirming{" "}
       <a href={`mailto:${recipient}`} style={inlineLink}>
         {recipient}
       </a>
@@ -44,10 +43,9 @@ export const SignupEmail = ({ recipient, token }: SignupEmailProps) => (
     </Text>
 
     <Text style={fineprint}>
-      Didn't sign up for Aloya? You can safely ignore this message —
-      no account will be created.
+      Didn't sign up for Aloya? You can safely ignore this message — no account will be created.
     </Text>
   </Layout>
-)
+);
 
-export default SignupEmail
+export default SignupEmail;

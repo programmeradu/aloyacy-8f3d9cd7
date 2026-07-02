@@ -14,10 +14,7 @@ import type { MultiLegLive } from "./useMultiLegJourney";
 import { logTrainingEvent } from "./training.functions";
 import { getDeviceId } from "./pwa";
 
-export function useTrainingSignals(
-  active: ActiveTrip | null,
-  live: MultiLegLive,
-) {
+export function useTrainingSignals(active: ActiveTrip | null, live: MultiLegLive) {
   const sentRef = useRef<Set<string>>(new Set());
   const prevPhaseRef = useRef<string | null>(null);
   const missedAtRef = useRef<Map<number, number>>(new Map());
@@ -137,7 +134,6 @@ export function useTrainingSignals(
         );
       }
     }
-
 
     // Walk-complete: when a walk leg was just completed (any previous leg
     // marked completedAt and was a walk).

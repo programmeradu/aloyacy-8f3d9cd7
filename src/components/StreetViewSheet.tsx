@@ -102,9 +102,7 @@ export function StreetViewSheet({
         aria-label="Close street view"
       >
         <IconArrowLeft className="size-4" />
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em]">
-          Close
-        </span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em]">Close</span>
       </button>
       {label && (
         <div className="pointer-events-none absolute inset-x-0 bottom-[max(20px,env(safe-area-inset-bottom))] z-10 px-6">
@@ -112,9 +110,7 @@ export function StreetViewSheet({
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/60">
               Street view
             </p>
-            <p className="mt-0.5 font-display text-base text-limestone leading-snug">
-              {label}
-            </p>
+            <p className="mt-0.5 font-display text-base text-limestone leading-snug">{label}</p>
           </div>
         </div>
       )}

@@ -43,7 +43,6 @@ export type ParkAndRideHub = {
   ev?: EvChargerInfo;
 };
 
-
 export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
   // ── Nicosia catchment ─────────────────────────────────────────────────
   {
@@ -79,8 +78,8 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     label: "Mall of Cyprus",
     note: "Covered free parking, intercity + urban links.",
     city: "nicosia",
-    lat: 35.1170,
-    lng: 33.3560,
+    lat: 35.117,
+    lng: 33.356,
     ev: { count: 4, kwMax: 22, kind: "ac", network: "EAC ChargeIn" },
   },
   {
@@ -89,8 +88,8 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     label: "Lakatamia transport hub",
     note: "Park-and-ride friendly, southern catchment.",
     city: "nicosia",
-    lat: 35.1100,
-    lng: 33.3290,
+    lat: 35.11,
+    lng: 33.329,
   },
 
   // ── Limassol catchment (Wave 2.5) ─────────────────────────────────────
@@ -111,7 +110,7 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     note: "Free covered parking, frequent inbound EMEL routes.",
     city: "limassol",
     lat: 34.6856,
-    lng: 33.0420,
+    lng: 33.042,
     ev: { count: 4, kwMax: 22, kind: "ac", network: "EAC ChargeIn" },
   },
   {
@@ -129,11 +128,10 @@ export const PARK_AND_RIDE_HUBS: ParkAndRideHub[] = [
     label: "Limassol New Port",
     note: "Large open lots, fast bus link into the centre.",
     city: "limassol",
-    lat: 34.6470,
-    lng: 33.0070,
+    lat: 34.647,
+    lng: 33.007,
   },
 ];
-
 
 export function hubsForCity(cityId: CityId): ParkAndRideHub[] {
   return PARK_AND_RIDE_HUBS.filter((h) => h.city === cityId);

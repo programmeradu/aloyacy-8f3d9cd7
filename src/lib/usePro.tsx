@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "./billing";
 import { useAuth } from "./useAuth";
@@ -84,10 +77,7 @@ export function ProSubscriptionProvider({ children }: { children: ReactNode }) {
     return ACTIVE_STATUSES.has(sub.status) && endOk;
   })();
 
-  const value = useMemo(
-    () => ({ isPro: isActive, sub, loading }),
-    [isActive, sub, loading],
-  );
+  const value = useMemo(() => ({ isPro: isActive, sub, loading }), [isActive, sub, loading]);
 
   return <ProContext.Provider value={value}>{children}</ProContext.Provider>;
 }

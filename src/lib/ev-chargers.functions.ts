@@ -17,8 +17,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { distanceM } from "./geo";
 
-const FEED_URL =
-  "https://fixcyprus.cy/gnosis/open/api/nap/datasets/electric_vehicle_chargers/";
+const FEED_URL = "https://fixcyprus.cy/gnosis/open/api/nap/datasets/electric_vehicle_chargers/";
 
 const CACHE_TTL_MS = 10 * 60_000;
 const MATCH_RADIUS_M = 200; // charger within 200 m of a hub centroid counts
@@ -65,16 +64,11 @@ function parseFeed(xml: string): EvChargerStation[] {
     if (!block) continue;
 
     const idM =
-      block.match(/<common:identifier>([^<]+)<\/common:identifier>/) ??
-      block.match(/id="([^"]+)"/);
+      block.match(/<common:identifier>([^<]+)<\/common:identifier>/) ?? block.match(/id="([^"]+)"/);
     const nameM =
-      block.match(
-        /<name>[\s\S]*?<common:value>([^<]+)<\/common:value>/,
-      ) ??
+      block.match(/<name>[\s\S]*?<common:value>([^<]+)<\/common:value>/) ??
       block.match(/<siteName>([^<]+)<\/siteName>/);
-    const opM = block.match(
-      /<operator>[\s\S]*?<common:value>([^<]+)<\/common:value>/,
-    );
+    const opM = block.match(/<operator>[\s\S]*?<common:value>([^<]+)<\/common:value>/);
     const pointM = block.match(
       /<common:latitude>([\d.+-]+)<\/common:latitude>[\s\S]*?<common:longitude>([\d.+-]+)<\/common:longitude>/,
     );
@@ -90,10 +84,8 @@ function parseFeed(xml: string): EvChargerStation[] {
     const bays: EvBayStatus[] = statusMatches.map((m) => {
       const v = m[1].trim().toLowerCase();
       if (v.includes("avail")) return "available";
-      if (v.includes("occup") || v.includes("inuse") || v.includes("in_use"))
-        return "occupied";
-      if (v.includes("offline") || v.includes("outofservice"))
-        return "offline";
+      if (v.includes("occup") || v.includes("inuse") || v.includes("in_use")) return "occupied";
+      if (v.includes("offline") || v.includes("outofservice")) return "offline";
       return "unknown";
     });
 
@@ -103,28 +95,17 @@ function parseFeed(xml: string): EvChargerStation[] {
 
     // Power / connector kind.
     const powerMatches = Array.from(
-      block.matchAll(
-        /<maximumPowerAtSocket[^>]*>([\d.]+)<\/maximumPowerAtSocket>/g,
-      ),
+      block.matchAll(/<maximumPowerAtSocket[^>]*>([\d.]+)<\/maximumPowerAtSocket>/g),
     );
-    const kws = powerMatches
-      .map((m) => Number(m[1]))
-      .filter((n) => Number.isFinite(n));
+    const kws = powerMatches.map((m) => Number(m[1])).filter((n) => Number.isFinite(n));
     const kwMax = kws.length > 0 ? Math.max(...kws) : 22;
     const kind: "ac" | "dc" = kwMax >= 43 ? "dc" : "ac";
 
-    const tsM = block.match(
-      /<common:timestamp>([^<]+)<\/common:timestamp>/,
-    );
-    const updatedUnix = tsM
-      ? Math.floor(Date.parse(tsM[1]) / 1000) || null
-      : null;
+    const tsM = block.match(/<common:timestamp>([^<]+)<\/common:timestamp>/);
+    const updatedUnix = tsM ? Math.floor(Date.parse(tsM[1]) / 1000) || null : null;
 
     const known = bays.filter((b) => b !== "unknown");
-    const available =
-      known.length > 0
-        ? known.filter((b) => b === "available").length
-        : null;
+    const available = known.length > 0 ? known.filter((b) => b === "available").length : null;
 
     out.push({
       id: idM[1],
@@ -195,10 +176,7 @@ export const nearestEvChargers = createServerFn({ method: "POST" })
 /** Server-internal (no server-fn overhead). Returns the aggregated live EV
  *  snapshot for a hub coordinate, or null when the feed is unreachable /
  *  no charger is registered within `MATCH_RADIUS_M`. */
-export async function liveEvForHub(hub: {
-  lat: number;
-  lng: number;
-}): Promise<{
+export async function liveEvForHub(hub: { lat: number; lng: number }): Promise<{
   total: number;
   available: number | null;
   kwMax: number;
@@ -217,18 +195,15 @@ export async function liveEvForHub(hub: {
 
   const total = nearby.reduce((n, s) => n + s.total, 0);
   const anyLive = nearby.some((s) => s.available !== null);
-  const available = anyLive
-    ? nearby.reduce((n, s) => n + (s.available ?? 0), 0)
-    : null;
+  const available = anyLive ? nearby.reduce((n, s) => n + (s.available ?? 0), 0) : null;
   const kwMax = Math.max(...nearby.map((s) => s.kwMax));
-  const kind: "ac" | "dc" = nearby.some((s) => s.kind === "dc")
-    ? "dc"
-    : "ac";
+  const kind: "ac" | "dc" = nearby.some((s) => s.kind === "dc") ? "dc" : "ac";
   const operator = nearby.find((s) => s.operator)?.operator ?? null;
-  const updatedUnix = nearby
-    .map((s) => s.updatedUnix)
-    .filter((n): n is number => typeof n === "number")
-    .sort((a, b) => b - a)[0] ?? null;
+  const updatedUnix =
+    nearby
+      .map((s) => s.updatedUnix)
+      .filter((n): n is number => typeof n === "number")
+      .sort((a, b) => b - a)[0] ?? null;
 
   return { total, available, kwMax, kind, operator, updatedUnix };
 }

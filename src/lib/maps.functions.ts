@@ -13,9 +13,7 @@ export const autocompletePlaces = createServerFn({ method: "POST" })
     z
       .object({
         query: z.string().min(1).max(200),
-        bias: z
-          .object({ lat: z.number(), lng: z.number() })
-          .optional(),
+        bias: z.object({ lat: z.number(), lng: z.number() }).optional(),
       })
       .parse(input),
   )
@@ -42,9 +40,7 @@ export const getPlace = createServerFn({ method: "POST" })
   .handler(async ({ data }) => resolvePlace(data.placeId));
 
 export const reverseLookup = createServerFn({ method: "POST" })
-  .inputValidator((input) =>
-    z.object({ lat: z.number(), lng: z.number() }).parse(input),
-  )
+  .inputValidator((input) => z.object({ lat: z.number(), lng: z.number() }).parse(input))
   .handler(async ({ data }) => ({
     address: await reverseGeocode(data.lat, data.lng),
   }));
@@ -73,9 +69,7 @@ export const getWalkingDirections = createServerFn({ method: "POST" })
 const Pt = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) });
 
 export const getDriveEta = createServerFn({ method: "POST" })
-  .inputValidator((input) =>
-    z.object({ from: Pt, to: Pt }).parse(input),
-  )
+  .inputValidator((input) => z.object({ from: Pt, to: Pt }).parse(input))
   .handler(async ({ data }) => {
     const route = await drivingRoute(data.from, data.to);
     return { route };

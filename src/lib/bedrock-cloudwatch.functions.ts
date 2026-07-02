@@ -22,7 +22,13 @@ export type BedrockCwStats = {
     estCostUsd: number;
   };
   perModel: BedrockCwPerModel[];
-  perMinute: Array<{ t: string; invocations: number; inputTokens: number; outputTokens: number; estCostUsd: number }>;
+  perMinute: Array<{
+    t: string;
+    invocations: number;
+    inputTokens: number;
+    outputTokens: number;
+    estCostUsd: number;
+  }>;
 };
 
 /**
@@ -52,25 +58,47 @@ export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
     const startTime = new Date(endTime.getTime() - hours * 3600_000);
     // Period tuned so we get ~15-60 buckets per window (good bar chart density).
     const period =
-      hours <= 0.5 ? 60 :
-      hours <= 3 ? 60 :
-      hours <= 12 ? 300 :
-      hours <= 48 ? 900 :
-      hours <= 168 ? 3600 :
-      21600; // 6h buckets for very long windows
+      hours <= 0.5
+        ? 60
+        : hours <= 3
+          ? 60
+          : hours <= 12
+            ? 300
+            : hours <= 48
+              ? 900
+              : hours <= 168
+                ? 3600
+                : 21600; // 6h buckets for very long windows
 
     // SEARCH returns one time series per model, per metric. We force the
     // Label to just the ModelId so we can attribute each series unambiguously
     // (default labels vary and can drop the "ModelId=" prefix entirely).
     const label = "${PROP('Dim.ModelId')}";
     const queries = [
-      { id: "inv", expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="Invocations"', 'Sum', ${period})`, label },
-      { id: "in", expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="InputTokenCount"', 'Sum', ${period})`, label },
-      { id: "out", expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="OutputTokenCount"', 'Sum', ${period})`, label },
+      {
+        id: "inv",
+        expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="Invocations"', 'Sum', ${period})`,
+        label,
+      },
+      {
+        id: "in",
+        expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="InputTokenCount"', 'Sum', ${period})`,
+        label,
+      },
+      {
+        id: "out",
+        expression: `SEARCH('{AWS/Bedrock,ModelId} MetricName="OutputTokenCount"', 'Sum', ${period})`,
+        label,
+      },
     ];
 
     const series = await cwGetMetricData(
-      { accessKeyId: data.accessKeyId, secretAccessKey: data.secretAccessKey, sessionToken: data.sessionToken, region },
+      {
+        accessKeyId: data.accessKeyId,
+        secretAccessKey: data.secretAccessKey,
+        sessionToken: data.sessionToken,
+        region,
+      },
       { startTime, endTime, queries },
     );
 
@@ -78,13 +106,20 @@ export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
     // regex parsing for any series where CloudWatch couldn't resolve the
     // template (e.g. metric-math results with no dimensions).
     const modelIndex = new Map<string, BedrockCwPerModel>();
-    const minuteMap = new Map<string, { invocations: number; inputTokens: number; outputTokens: number; estCostUsd: number }>();
+    const minuteMap = new Map<
+      string,
+      { invocations: number; inputTokens: number; outputTokens: number; estCostUsd: number }
+    >();
     let latestTs: string | null = null;
 
     for (const s of series) {
       const raw = s.label?.trim() ?? "";
       const modelId =
-        raw && !raw.includes(" ") && raw !== "Invocations" && raw !== "InputTokenCount" && raw !== "OutputTokenCount"
+        raw &&
+        !raw.includes(" ") &&
+        raw !== "Invocations" &&
+        raw !== "InputTokenCount" &&
+        raw !== "OutputTokenCount"
           ? raw
           : (/ModelId=([^\s]+)/.exec(raw)?.[1] ?? "unknown");
       const bucket = modelIndex.get(modelId) ?? {
@@ -94,8 +129,11 @@ export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
         outputTokens: 0,
         estCostUsd: 0,
       };
-      const kind: "inv" | "in" | "out" =
-        s.id.startsWith("inv") ? "inv" : s.id.startsWith("in") ? "in" : "out";
+      const kind: "inv" | "in" | "out" = s.id.startsWith("inv")
+        ? "inv"
+        : s.id.startsWith("in")
+          ? "in"
+          : "out";
 
       for (let i = 0; i < s.timestamps.length; i++) {
         const ts = s.timestamps[i];
@@ -107,7 +145,12 @@ export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
         else bucket.outputTokens += v;
 
         // Per-minute (or per-period) rollup for the sparkline
-        const m = minuteMap.get(ts) ?? { invocations: 0, inputTokens: 0, outputTokens: 0, estCostUsd: 0 };
+        const m = minuteMap.get(ts) ?? {
+          invocations: 0,
+          inputTokens: 0,
+          outputTokens: 0,
+          estCostUsd: 0,
+        };
         if (kind === "inv") m.invocations += v;
         else if (kind === "in") m.inputTokens += v;
         else m.outputTokens += v;
@@ -131,7 +174,8 @@ export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
         // Cost approximation: allocate this bucket's tokens across models
         // proportionally to lifetime shares. Simple + stable.
         const totalIn = Array.from(modelIndex.values()).reduce((a, b) => a + b.inputTokens, 0) || 1;
-        const totalOut = Array.from(modelIndex.values()).reduce((a, b) => a + b.outputTokens, 0) || 1;
+        const totalOut =
+          Array.from(modelIndex.values()).reduce((a, b) => a + b.outputTokens, 0) || 1;
         let cost = 0;
         for (const b of modelIndex.values()) {
           const shareIn = b.inputTokens / totalIn;

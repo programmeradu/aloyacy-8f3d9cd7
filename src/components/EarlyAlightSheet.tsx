@@ -6,11 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { rerouteFromHere } from "@/lib/reroute.functions";
 import { logTripOverride } from "@/lib/overrides.functions";
-import {
-  setActiveTrip,
-  initialLegState,
-  type ActiveTrip,
-} from "@/lib/trip-store";
+import { setActiveTrip, initialLegState, type ActiveTrip } from "@/lib/trip-store";
 import { getDeviceId } from "@/lib/pwa";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
@@ -123,9 +119,7 @@ export function EarlyAlightSheet({
           </button>
         </div>
 
-        {isLoading && (
-          <p className="mt-4 text-[13px] text-ink-soft">{t("replan.searching")}</p>
-        )}
+        {isLoading && <p className="mt-4 text-[13px] text-ink-soft">{t("replan.searching")}</p>}
         {!isLoading && options.length === 0 && (
           <p className="mt-4 text-[13px] text-ink-soft">{t("alight.empty")}</p>
         )}
@@ -162,10 +156,16 @@ export function EarlyAlightSheet({
                   className="w-full text-left rounded-[24px] bg-card ring-1 ring-line p-4 hover:ring-aegean-deep transition"
                 >
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                    {summary} — {it.transfers === 0 ? t("replan.noChange") : t("replan.changes", { n: it.transfers })}
+                    {summary} —{" "}
+                    {it.transfers === 0
+                      ? t("replan.noChange")
+                      : t("replan.changes", { n: it.transfers })}
                   </p>
                   <p className="mt-1 font-display text-[20px] leading-tight text-ink">
-                    {t("replan.headToDest", { mins: fmtMin(it.totalDurationSec), dest: active.to.label })}
+                    {t("replan.headToDest", {
+                      mins: fmtMin(it.totalDurationSec),
+                      dest: active.to.label,
+                    })}
                   </p>
                   <p className="mt-1 text-[12px] text-ink-soft">
                     {t("replan.walkingTotal", { m: Math.round(it.totalWalkMeters) })}

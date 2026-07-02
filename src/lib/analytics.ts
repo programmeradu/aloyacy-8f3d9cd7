@@ -22,20 +22,14 @@ export function track(event: EventName, payload: Payload = {}): void {
   if (typeof window === "undefined") return;
   try {
     const deviceId = getDeviceId();
-    void logTrainingEvent({ data: { deviceId, kind: event, payload } }).catch(
-      () => {},
-    );
+    void logTrainingEvent({ data: { deviceId, kind: event, payload } }).catch(() => {});
   } catch {
     // ignore
   }
 }
 
 /** Track an impression at most once per session per key. */
-export function trackImpression(
-  event: EventName,
-  payload: Payload = {},
-  key?: string,
-): void {
+export function trackImpression(event: EventName, payload: Payload = {}, key?: string): void {
   const k = key ?? event;
   if (seen.has(k)) return;
   seen.add(k);

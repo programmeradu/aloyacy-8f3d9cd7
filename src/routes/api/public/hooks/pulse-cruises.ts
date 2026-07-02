@@ -23,9 +23,11 @@ function json(body: unknown, status = 200) {
 async function guard(request: Request): Promise<Response | null> {
   const apikey = request.headers.get("apikey");
   const legacy =
-    request.headers.get("x-cron-secret") ??
-    new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey = apikey && apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+    request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
+  const validApiKey =
+    apikey &&
+    apikey ===
+      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
   const validLegacy = legacy && process.env.CRON_SECRET && legacy === process.env.CRON_SECRET;
   if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
@@ -44,7 +46,7 @@ export const Route = createFileRoute("/api/public/hooks/pulse-cruises")({
 const CruiseSchema = z.object({
   shipName: z.string().min(2).max(80),
   line: z.string().max(80).nullable(),
-  arrival: z.string().nullable(),  // HH:MM local
+  arrival: z.string().nullable(), // HH:MM local
   departure: z.string().nullable(),
   passengers: z.number().int().min(0).max(10000).nullable(),
 });
@@ -167,23 +169,21 @@ async function ingest() {
     fetchedAt: new Date().toISOString(),
   });
 
-  const { error } = await supabaseAdmin
-    .from("pulse_signals")
-    .upsert(
-      [
-        {
-          key: "cruises",
-          scope: "port-limassol",
-          source: "cruisemapper-firecrawl",
-          payload: payload as unknown as Record<string, unknown>,
-          // Daily refresh — keep cached row valid for 36h so a single failed
-          // scrape doesn't blank the tile.
-          ttl_seconds: 86400,
-          fetched_at: payload.fetchedAt,
-        },
-      ] as never,
-      { onConflict: "key,scope" },
-    );
+  const { error } = await supabaseAdmin.from("pulse_signals").upsert(
+    [
+      {
+        key: "cruises",
+        scope: "port-limassol",
+        source: "cruisemapper-firecrawl",
+        payload: payload as unknown as Record<string, unknown>,
+        // Daily refresh — keep cached row valid for 36h so a single failed
+        // scrape doesn't blank the tile.
+        ttl_seconds: 86400,
+        fetched_at: payload.fetchedAt,
+      },
+    ] as never,
+    { onConflict: "key,scope" },
+  );
 
   if (error) return json({ ok: false, error: error.message }, 500);
   return json({ ok: true, count: ships.length, totalPassengers, confidence });

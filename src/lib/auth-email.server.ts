@@ -53,9 +53,7 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
   if (link.error) {
     const msg = link.error.message.toLowerCase();
     const missing =
-      msg.includes("not found") ||
-      msg.includes("signups not allowed") ||
-      msg.includes("no user");
+      msg.includes("not found") || msg.includes("signups not allowed") || msg.includes("no user");
     if (!missing) {
       return { ok: false, error: link.error.message, code: "generate_failed" };
     }
@@ -77,16 +75,15 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
     }
   }
 
-  const props = link.data.properties as
-    | { email_otp?: string; action_link?: string }
-    | null;
+  const props = link.data.properties as { email_otp?: string; action_link?: string } | null;
   const token = props?.email_otp;
   if (!token) {
     return { ok: false, error: "Could not generate a sign-in code.", code: "no_token" };
   }
 
-  const Template = (isNewUser ? SignupEmail : MagicLinkEmail) as unknown as
-    React.ComponentType<Record<string, unknown>>;
+  const Template = (isNewUser ? SignupEmail : MagicLinkEmail) as unknown as React.ComponentType<
+    Record<string, unknown>
+  >;
   const element = React.createElement(Template, {
     siteName: SITE_NAME,
     siteUrl: `https://${ROOT_DOMAIN}`,
@@ -105,8 +102,7 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
   // Once notify.aloya.cy verifies, set AUTH_EMAIL_FROM to
   // "aloyacy <noreply@notify.aloya.cy>" — no code change needed.
   const VERIFIED_DOMAIN = "stauniverse.tech";
-  const from =
-    process.env.AUTH_EMAIL_FROM?.trim() || `${SITE_NAME} <noreply@${VERIFIED_DOMAIN}>`;
+  const from = process.env.AUTH_EMAIL_FROM?.trim() || `${SITE_NAME} <noreply@${VERIFIED_DOMAIN}>`;
   const attempts: string[] = [];
 
   // 1) Resend. RESEND_API_KEY here is the Lovable connector's *connection*
@@ -135,8 +131,7 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
   // account yet, retry once from a domain that is, so sign-in never breaks
   // on a DNS/plan issue. AUTH_EMAIL_FROM_FALLBACK overrides the default.
   const fallbackFrom =
-    process.env.AUTH_EMAIL_FROM_FALLBACK?.trim() ||
-    `${SITE_NAME} <noreply@stauniverse.tech>`;
+    process.env.AUTH_EMAIL_FROM_FALLBACK?.trim() || `${SITE_NAME} <noreply@stauniverse.tech>`;
 
   const postResend = async (sender: string) => {
     const res = await fetch(endpoint, {
@@ -176,8 +171,6 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
     attempts.push("resend: no key configured");
   }
 
-
-
   // 2) Lovable's sender as a fallback (works only while the project still has
   //    a platform email run available to it).
   if (!delivered) {
@@ -201,9 +194,7 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
       );
       delivered = true;
     } catch (err) {
-      attempts.push(
-        `lovable: ${err instanceof Error ? err.message.slice(0, 200) : "failed"}`,
-      );
+      attempts.push(`lovable: ${err instanceof Error ? err.message.slice(0, 200) : "failed"}`);
     }
   }
 
@@ -223,7 +214,6 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
       code: "send_failed",
     };
   }
-
 
   void supabaseAdmin.from("email_send_log").insert({
     message_id: messageId,

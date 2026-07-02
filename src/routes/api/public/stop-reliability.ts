@@ -3,10 +3,7 @@
 // Body: { stopId: string, routeIds: string[] }. Returns the aggregated row.
 
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  getStopReliability,
-  aggregateStopReliability,
-} from "@/lib/reliability.functions";
+import { getStopReliability, aggregateStopReliability } from "@/lib/reliability.functions";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",

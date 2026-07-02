@@ -18,14 +18,23 @@ export default defineTool({
   description:
     "Search Aloya's Cyprus-wide bus stop directory (Nicosia, Limassol, Larnaca, Paphos, Intercity) by name or stop code. Returns matching stops with coordinates and agency.",
   inputSchema: {
-    query: z.string().trim().min(1).describe("Stop name or code fragment, e.g. 'Eleftheria' or '1234'."),
+    query: z
+      .string()
+      .trim()
+      .min(1)
+      .describe("Stop name or code fragment, e.g. 'Eleftheria' or '1234'."),
     limit: z.number().int().min(1).max(50).optional().describe("Max results (default 10)."),
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
   handler: async ({ query, limit }) => {
-    const res = await fetch(`${BASE}/api/public/stops`, { headers: { Accept: "application/json" } });
+    const res = await fetch(`${BASE}/api/public/stops`, {
+      headers: { Accept: "application/json" },
+    });
     if (!res.ok) {
-      return { content: [{ type: "text", text: `Stops fetch failed: ${res.status}` }], isError: true };
+      return {
+        content: [{ type: "text", text: `Stops fetch failed: ${res.status}` }],
+        isError: true,
+      };
     }
     const data = (await res.json()) as { stops: Stop[] };
     const q = query.toLowerCase();

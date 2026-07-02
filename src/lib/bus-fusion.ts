@@ -64,12 +64,16 @@ export function fuseBusPosition(input: {
   const feedAgeSec = v?.timestamp
     ? Math.max(0, now / 1000 - v.timestamp)
     : v
-    ? 0 // assume fresh if no timestamp on feed object
-    : Infinity;
+      ? 0 // assume fresh if no timestamp on feed object
+      : Infinity;
 
-  let raw:
-    | { lat: number; lng: number; bearing: number | null; speedMps: number | null; source: FusedBusPosition["source"] }
-    | null = null;
+  let raw: {
+    lat: number;
+    lng: number;
+    bearing: number | null;
+    speedMps: number | null;
+    source: FusedBusPosition["source"];
+  } | null = null;
 
   if (v && feedAgeSec < FEED_STALE_SEC) {
     // Fresh feed wins. If rider is on-bus and close, blend bearing/speed.

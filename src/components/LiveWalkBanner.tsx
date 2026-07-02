@@ -72,10 +72,7 @@ export function LiveWalkBanner({
   const maneuverKey = `walk.maneuver.${normalized}` as DictKey;
   const maneuverLabel = t(maneuverKey) === maneuverKey ? normalized : t(maneuverKey);
   // ETA = remaining distance ÷ walking pace, floor at 60s.
-  const etaSec = Math.max(
-    60,
-    Math.round(projection.metersToDestination / WALK_M_PER_S),
-  );
+  const etaSec = Math.max(60, Math.round(projection.metersToDestination / WALK_M_PER_S));
 
   return (
     <section className="mt-5 px-6 animate-rise">

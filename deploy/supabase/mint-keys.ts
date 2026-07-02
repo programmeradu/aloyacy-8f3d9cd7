@@ -13,7 +13,9 @@ import { createHmac } from "node:crypto";
 
 const secret = process.env.JWT_SECRET;
 if (!secret) {
-  console.error("JWT_SECRET is not set. Generate one with:\n  openssl rand -base64 48 | tr -d '\\n'");
+  console.error(
+    "JWT_SECRET is not set. Generate one with:\n  openssl rand -base64 48 | tr -d '\\n'",
+  );
   process.exit(1);
 }
 
@@ -31,9 +33,7 @@ function b64url(input: string | Buffer): string {
 function sign(role: "anon" | "service_role"): string {
   const iat = Math.floor(Date.now() / 1000);
   const header = b64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-  const payload = b64url(
-    JSON.stringify({ role, iss: "supabase", iat, exp: iat + TEN_YEARS_SEC }),
-  );
+  const payload = b64url(JSON.stringify({ role, iss: "supabase", iat, exp: iat + TEN_YEARS_SEC }));
   const body = `${header}.${payload}`;
   const sig = b64url(createHmac("sha256", secret!).update(body).digest());
   return `${body}.${sig}`;

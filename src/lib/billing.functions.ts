@@ -1,11 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import {
-  type StripeEnv,
-  createStripeClient,
-  getStripeErrorMessage,
-} from "./stripe.server";
+import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "./stripe.server";
 
 const CheckoutInput = z.object({
   planKey: z.enum(["pro_weekly", "pro_monthly"]),
@@ -16,13 +12,9 @@ const CheckoutInput = z.object({
 
 const TRIAL_DAYS = 7;
 
-
 type CheckoutResult = { clientSecret: string } | { error: string };
 
-async function findPriceByPlanKey(
-  stripe: ReturnType<typeof createStripeClient>,
-  planKey: string,
-) {
+async function findPriceByPlanKey(stripe: ReturnType<typeof createStripeClient>, planKey: string) {
   if (!/^[a-zA-Z0-9_-]+$/.test(planKey)) throw new Error("Invalid planKey");
   const prices = await stripe.prices.search({
     query: `active:'true' AND metadata['lovable_external_id']:'${planKey}'`,
@@ -96,7 +88,6 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       ) {
         return { error: "You already have an active Pro subscription." };
       }
-
 
       const price = await findPriceByPlanKey(stripe, data.planKey);
       if (!price) return { error: "Plan not available right now." };

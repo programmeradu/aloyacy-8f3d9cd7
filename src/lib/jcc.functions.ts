@@ -86,7 +86,6 @@ export const jccLogin = createServerFn({ method: "POST" })
       };
     }
 
-
     const body = (await res.json()) as {
       accessToken?: string;
       refreshToken?: string;

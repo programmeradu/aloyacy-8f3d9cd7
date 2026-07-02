@@ -128,20 +128,17 @@ function TripInfo() {
           <h1 className="font-display text-[36px] leading-tight text-ink">
             {isLoading ? t("tripInfo.loading") : t("tripInfo.notLive.title")}
           </h1>
-          <p className="mt-3 text-[13px] text-ink-soft">
-            {t("tripInfo.notLive.body")}
-          </p>
+          <p className="mt-3 text-[13px] text-ink-soft">{t("tripInfo.notLive.body")}</p>
         </section>
       ) : (
         <>
           <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
             <div className="flex items-center gap-3">
-              <RouteChip
-                code={trip.route?.short ?? "?"}
-                tone={routeTone(trip.routeId)}
-              />
+              <RouteChip code={trip.route?.short ?? "?"} tone={routeTone(trip.routeId)} />
               <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                {trip.vehicle?.label ? t("tripInfo.busLabel", { label: trip.vehicle.label }) : t("tripInfo.live")}
+                {trip.vehicle?.label
+                  ? t("tripInfo.busLabel", { label: trip.vehicle.label })
+                  : t("tripInfo.live")}
               </span>
             </div>
             <h1 className="mt-3 font-display text-[36px] leading-[1.05] text-ink text-balance">
@@ -194,7 +191,10 @@ function TripInfo() {
                   ? t("tripInfo.mEarly", { m: Math.round(-delay / 60) })
                   : t("tripInfo.onTime");
             return (
-              <section className="mt-6 px-6 space-y-2 animate-rise" style={{ animationDelay: "160ms" }}>
+              <section
+                className="mt-6 px-6 space-y-2 animate-rise"
+                style={{ animationDelay: "160ms" }}
+              >
                 <NextStopCard
                   label={t("tripInfo.nextStop")}
                   name={nextName}
@@ -251,23 +251,29 @@ function TripInfo() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className={`font-display text-[17px] leading-tight text-pretty line-clamp-2 break-words ${
-                        s.passed ? "text-ink-soft line-through decoration-1" : "text-ink"
-                      }`}>
+                      <p
+                        className={`font-display text-[17px] leading-tight text-pretty line-clamp-2 break-words ${
+                          s.passed ? "text-ink-soft line-through decoration-1" : "text-ink"
+                        }`}
+                      >
                         {s.meta?.name ?? t("tripInfo.stopFallback", { id: s.stopId })}
                       </p>
 
                       <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
                         {s.next && <IconBus className="size-3 text-ochre" />}
-                        {s.meta?.code ? t("tripInfo.stopCode", { code: s.meta.code }) : t("tripInfo.stopIndex", { n: s.index + 1 })}
+                        {s.meta?.code
+                          ? t("tripInfo.stopCode", { code: s.meta.code })
+                          : t("tripInfo.stopIndex", { n: s.index + 1 })}
                         {s.next && t("tripInfo.approaching")}
                         {isHighlight && t("tripInfo.youAreHere")}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className={`font-display text-lg leading-none ${
-                        s.next ? "text-ochre" : s.passed ? "text-ink-soft" : "text-ink"
-                      }`}>
+                      <p
+                        className={`font-display text-lg leading-none ${
+                          s.next ? "text-ochre" : s.passed ? "text-ink-soft" : "text-ink"
+                        }`}
+                      >
                         {fmtClock(s.arrivalUnix)}
                       </p>
                       {Math.abs(s.delaySec) > 60 && (
@@ -398,21 +404,31 @@ function EtaCard({
         className="pointer-events-none absolute -right-6 -bottom-6 h-28 w-28 opacity-[0.18]"
       >
         <circle cx="60" cy="60" r="46" fill="none" stroke="var(--aegean-deep)" strokeWidth="1.2" />
-        <circle cx="60" cy="60" r="36" fill="none" stroke="var(--aegean-deep)" strokeWidth="0.6" strokeDasharray="2 6" />
+        <circle
+          cx="60"
+          cy="60"
+          r="36"
+          fill="none"
+          stroke="var(--aegean-deep)"
+          strokeWidth="0.6"
+          strokeDasharray="2 6"
+        />
         <g transform={`rotate(${angle} 60 60)`}>
-          <line x1="60" y1="60" x2="60" y2="24" stroke="var(--aegean-deep)" strokeWidth="2" strokeLinecap="round" />
+          <line
+            x1="60"
+            y1="60"
+            x2="60"
+            y2="24"
+            stroke="var(--aegean-deep)"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
         </g>
         <circle cx="60" cy="60" r="2.5" fill="var(--aegean-deep)" />
       </svg>
-      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
-        {label}
-      </p>
-      <p className="mt-2 font-display text-[26px] leading-none text-ink tabular-nums">
-        {eta}
-      </p>
-      <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
-        clock
-      </p>
+      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">{label}</p>
+      <p className="mt-2 font-display text-[26px] leading-none text-ink tabular-nums">{eta}</p>
+      <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">clock</p>
     </div>
   );
 }
@@ -449,16 +465,26 @@ function StatusCard({
         preserveAspectRatio="none"
       >
         <path d={wave} fill="none" stroke="currentColor" strokeWidth="1.2" className={tone} />
-        <path d={wave} fill="none" stroke="currentColor" strokeWidth="0.6" strokeDasharray="3 5" className={tone} transform="translate(0 6)" />
+        <path
+          d={wave}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="0.6"
+          strokeDasharray="3 5"
+          className={tone}
+          transform="translate(0 6)"
+        />
       </svg>
-      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
-        {label}
-      </p>
-      <p className={`mt-2 font-display text-[20px] leading-[1.1] text-pretty ${tone}`}>
-        {text}
-      </p>
+      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">{label}</p>
+      <p className={`mt-2 font-display text-[20px] leading-[1.1] text-pretty ${tone}`}>{text}</p>
       <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
-        {status === "done" ? "end" : status === "ontime" ? "steady" : status === "late" ? "delayed" : "ahead"}
+        {status === "done"
+          ? "end"
+          : status === "ontime"
+            ? "steady"
+            : status === "late"
+              ? "delayed"
+              : "ahead"}
       </p>
     </div>
   );

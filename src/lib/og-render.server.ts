@@ -8,20 +8,14 @@
 // exactly as it does in-app; no system fonts exist in the Worker sandbox.
 
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
-import {
-  BRICOLAGE_BOLD_B64,
-  GEIST_BOLD_B64,
-  GEIST_MEDIUM_B64,
-} from "./og-fonts.server";
+import { BRICOLAGE_BOLD_B64, GEIST_BOLD_B64, GEIST_MEDIUM_B64 } from "./og-fonts.server";
 
 // The resvg WASM binary. Fetched from a CDN because Vite's default WASM
 // pipeline (`.wasm` ESM integration) is unsupported in the Worker runtime,
 // and `?init` returns an Instance that initWasm() can't consume. `fetch()`
 // works identically in dev (Node) and prod (Cloudflare Worker), and the
 // module is cached per-isolate after the first request.
-const RESVG_WASM_URL =
-  "https://cdn.jsdelivr.net/npm/@resvg/resvg-wasm@2.6.2/index_bg.wasm";
-
+const RESVG_WASM_URL = "https://cdn.jsdelivr.net/npm/@resvg/resvg-wasm@2.6.2/index_bg.wasm";
 
 export const OG_PALETTE = {
   limestone: "#f3ede1",
@@ -91,10 +85,7 @@ function loadFonts(): Uint8Array[] {
 }
 
 /** Rasterize an SVG string to a PNG Response with crawler-friendly headers. */
-export async function ogPngResponse(
-  svg: string,
-  cacheSeconds = 60,
-): Promise<Response> {
+export async function ogPngResponse(svg: string, cacheSeconds = 60): Promise<Response> {
   await ensureWasm();
   const resvg = new Resvg(svg, {
     fitTo: { mode: "width", value: OG_WIDTH },

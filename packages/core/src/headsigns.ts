@@ -19,7 +19,10 @@ const listeners = new Set<() => void>();
 /** Subscribe to "headsigns finished loading" — React hook below uses this to
  *  re-render dependent components once the lazy bundle resolves. */
 export function onHeadsignsLoaded(fn: () => void): () => void {
-  if (cache) { fn(); return () => {}; }
+  if (cache) {
+    fn();
+    return () => {};
+  }
   listeners.add(fn);
   return () => listeners.delete(fn);
 }

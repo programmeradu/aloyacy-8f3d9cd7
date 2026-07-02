@@ -23,13 +23,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 // ─── Thresholds ───────────────────────────────────────────────────────────
-const MIN_BUCKET_SAMPLES = 5;        // ignore buckets below this
-const MIN_TOTAL_SAMPLES_RATED = 60;  // route is "rated" only above this
-const ANOMALY_DELTA_SEC = 90;        // bucket must exceed baseline by 90s
-const ANOMALY_Z_MIN = 1.0;           // and clear 1.0σ against the route spread
-const MAX_ANOMALIES = 3;             // surface at most 3 callouts
+const MIN_BUCKET_SAMPLES = 5; // ignore buckets below this
+const MIN_TOTAL_SAMPLES_RATED = 60; // route is "rated" only above this
+const ANOMALY_DELTA_SEC = 90; // bucket must exceed baseline by 90s
+const ANOMALY_Z_MIN = 1.0; // and clear 1.0σ against the route spread
+const MAX_ANOMALIES = 3; // surface at most 3 callouts
 const WEEKEND_DAYS = new Set([0, 6]); // Postgres dow: 0=Sun, 6=Sat
-const STDDEV_FLOOR_SEC = 60;         // IC feed noisier than urban; 60s floor
+const STDDEV_FLOOR_SEC = 60; // IC feed noisier than urban; 60s floor
 
 // ─── Types ────────────────────────────────────────────────────────────────
 export type IntercityInsightTier = "rated" | "learning" | "unknown";
@@ -74,7 +74,7 @@ export type IntercityInsights = {
 type BucketAgg = {
   dow: number;
   hour: number;
-  sumDelay: number;   // Σ (mean_delay_sec × sample_count)
+  sumDelay: number; // Σ (mean_delay_sec × sample_count)
   samples: number;
 };
 
@@ -82,9 +82,7 @@ function bucketKey(dow: number, hour: number) {
   return `${dow}:${hour}`;
 }
 
-function weightedMean(
-  rows: { mean: number; n: number }[],
-): number | null {
+function weightedMean(rows: { mean: number; n: number }[]): number | null {
   let s = 0;
   let n = 0;
   for (const r of rows) {

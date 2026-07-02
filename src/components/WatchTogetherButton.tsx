@@ -80,8 +80,7 @@ export function WatchTogetherButton({
       if (!groups.length) return null;
       const norm = (s: string) => s.trim().toLowerCase();
       const match =
-        groups.find((g) => norm(g.destination_label) === norm(destination.label)) ??
-        groups[0];
+        groups.find((g) => norm(g.destination_label) === norm(destination.label)) ?? groups[0];
       const members = match.members ?? [];
       const active = members.filter((m) => m.status === "active").length;
       return {
@@ -91,7 +90,6 @@ export function WatchTogetherButton({
         activeMembers: active,
       };
     },
-
   });
   const existing = existingQuery.data ?? null;
 
@@ -169,18 +167,19 @@ export function WatchTogetherButton({
   // Already in an active group — resume it instead of spinning up a duplicate.
   if (existing && !shared && !open) {
     const sameDest =
-      existing.destination_label.trim().toLowerCase() ===
-      destination.label.trim().toLowerCase();
+      existing.destination_label.trim().toLowerCase() === destination.label.trim().toLowerCase();
     const count = existing.activeMembers || existing.memberCount;
-    const peopleLabel =
-      count <= 1 ? "just you so far" : `${count} on board`;
+    const peopleLabel = count <= 1 ? "just you so far" : `${count} on board`;
     return (
       <a
         href={`/group/${existing.code}`}
         className="group flex w-full items-center gap-3 rounded-2xl bg-aegean-deep px-4 py-3.5 text-left text-limestone ring-1 ring-aegean-deep transition-opacity hover:opacity-95"
       >
         <span className="relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-limestone/15">
-          <span aria-hidden className="pointer-events-none absolute inset-0 rounded-xl bg-limestone/10 animate-ping" />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-xl bg-limestone/10 animate-ping"
+          />
           <FriendsGlyph className="relative h-6 w-7" />
           <span aria-hidden className="absolute right-1 top-1 grid size-2.5 place-items-center">
             <span className="absolute inline-flex size-2.5 animate-ping rounded-full bg-ochre" />
@@ -229,7 +228,10 @@ export function WatchTogetherButton({
         className="group flex w-full items-center gap-3 rounded-2xl bg-card px-4 py-3.5 text-left ring-1 ring-line transition-colors hover:bg-limestone-soft/60"
       >
         <span className="relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-aegean-deep to-aegean text-limestone shadow-[0_6px_16px_-8px_rgba(31,108,130,0.55)]">
-          <span aria-hidden className="pointer-events-none absolute inset-0 rounded-xl bg-aegean/40 animate-ping" />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-xl bg-aegean/40 animate-ping"
+          />
           <FriendsGlyph className="relative h-6 w-7" />
           <span aria-hidden className="absolute right-1 top-1 grid size-2.5 place-items-center">
             <span className="absolute inline-flex size-2.5 animate-ping rounded-full bg-ochre/80" />
@@ -257,7 +259,8 @@ export function WatchTogetherButton({
         Start a live group trip
       </p>
       <p className="mt-1 font-sans text-[12px] font-medium text-ink-soft">
-        We'll create a short code and copy the link. Anyone you send it to sees your live ETA and you see theirs — one map, one destination.
+        We'll create a short code and copy the link. Anyone you send it to sees your live ETA and
+        you see theirs — one map, one destination.
       </p>
       <div className="mt-3 flex gap-2">
         <input
@@ -276,9 +279,7 @@ export function WatchTogetherButton({
           {busy ? "Starting…" : "Create"}
         </button>
       </div>
-      {err && (
-        <p className="mt-2 font-sans text-[12px] font-semibold text-red-700">{err}</p>
-      )}
+      {err && <p className="mt-2 font-sans text-[12px] font-semibold text-red-700">{err}</p>}
     </div>
   );
 }
@@ -308,12 +309,8 @@ function FriendsGlyph({ className }: { className?: string }) {
       <circle cx="10" cy="8" r="3.2" fill="currentColor" opacity="0.55" />
       <circle cx="22" cy="8" r="3.2" fill="currentColor" opacity="0.55" />
       {/* front friend — larger, forward */}
-      <path
-        d="M7 23c1.4-4.2 4.7-6.4 9-6.4s7.6 2.2 9 6.4H7Z"
-        fill="currentColor"
-      />
+      <path d="M7 23c1.4-4.2 4.7-6.4 9-6.4s7.6 2.2 9 6.4H7Z" fill="currentColor" />
       <circle cx="16" cy="7.2" r="4" fill="currentColor" />
     </svg>
   );
 }
-

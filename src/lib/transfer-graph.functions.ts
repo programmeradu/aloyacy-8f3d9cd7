@@ -3,11 +3,7 @@
 // importing the .server module directly.
 
 import { createServerFn } from "@tanstack/react-start";
-import {
-  getGraphStats,
-  getStopRoutes,
-  getTransferCandidates,
-} from "./transfer-graph.server";
+import { getGraphStats, getStopRoutes, getTransferCandidates } from "./transfer-graph.server";
 import { STOPS } from "./gtfs";
 
 export type GraphDiagnostics = {
@@ -55,8 +51,7 @@ export const getTransferGraphDiagnostics = createServerFn({ method: "GET" }).han
     ];
     const histogram = buckets.map((b) => ({
       bucket: b.label,
-      stops: [...tc.values()].filter((l) => l.length >= b.lo && l.length <= b.hi)
-        .length,
+      stops: [...tc.values()].filter((l) => l.length >= b.lo && l.length <= b.hi).length,
     }));
 
     return {

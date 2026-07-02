@@ -34,17 +34,10 @@ const hostRedirectMiddleware = createMiddleware().server(async ({ next }) => {
     const url = new URL(req.url);
     // Never redirect internal email infra routes or the public unsubscribe
     // page — these must stay reachable on any host (including preview).
-    if (
-      url.pathname.startsWith("/lovable/") ||
-      url.pathname === "/email/unsubscribe"
-    ) {
+    if (url.pathname.startsWith("/lovable/") || url.pathname === "/email/unsubscribe") {
       return next();
     }
-    const host = (
-      req.headers.get("x-forwarded-host") ||
-      req.headers.get("host") ||
-      ""
-    )
+    const host = (req.headers.get("x-forwarded-host") || req.headers.get("host") || "")
       .toLowerCase()
       .split(":")[0];
     maybePingIndexNow(host);
@@ -55,8 +48,7 @@ const hostRedirectMiddleware = createMiddleware().server(async ({ next }) => {
     if (host === "app.aloyacy.live") target = `https://app.aloya.cy${url.pathname}${url.search}`;
     else if (host === "aloyacy.live" || host === "www.aloyacy.live")
       target = `https://aloya.cy${url.pathname}${url.search}`;
-    else if (host === "www.aloya.cy")
-      target = `https://aloya.cy${url.pathname}${url.search}`;
+    else if (host === "www.aloya.cy") target = `https://aloya.cy${url.pathname}${url.search}`;
     if (target) {
       return new Response(null, { status: 301, headers: { Location: target } });
     }
@@ -85,4 +77,3 @@ export const startInstance = createStart(() => ({
   requestMiddleware: [hostRedirectMiddleware, errorMiddleware],
   functionMiddleware: [attachSupabaseAuth],
 }));
-

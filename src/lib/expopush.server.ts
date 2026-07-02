@@ -23,8 +23,7 @@ export type ExpoSendResult = {
 };
 
 type Ticket =
-  | { status: "ok"; id: string }
-  | { status: "error"; message: string; details?: { error?: string } };
+  { status: "ok"; id: string } | { status: "error"; message: string; details?: { error?: string } };
 
 const ENDPOINT = "https://exp.host/--/api/v2/push/send";
 

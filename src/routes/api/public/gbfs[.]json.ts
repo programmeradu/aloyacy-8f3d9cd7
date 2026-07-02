@@ -30,9 +30,15 @@ export const Route = createFileRoute("/api/public/gbfs.json")({
           data: {
             en: {
               feeds: [
-                { name: "system_information", url: `${base}/api/public/gbfs/system_information.json` },
+                {
+                  name: "system_information",
+                  url: `${base}/api/public/gbfs/system_information.json`,
+                },
                 { name: "vehicle_types", url: `${base}/api/public/gbfs/vehicle_types.json` },
-                { name: "station_information", url: `${base}/api/public/gbfs/station_information.json` },
+                {
+                  name: "station_information",
+                  url: `${base}/api/public/gbfs/station_information.json`,
+                },
                 { name: "station_status", url: `${base}/api/public/gbfs/station_status.json` },
                 { name: "free_bike_status", url: `${base}/api/public/gbfs/free_bike_status.json` },
               ],

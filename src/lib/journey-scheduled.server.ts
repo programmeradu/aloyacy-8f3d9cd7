@@ -140,7 +140,7 @@ export async function planMultiLegScheduled(
     // Index live arrivals by (tripId, stopId) for O(1) lookup.
     // RT feed uses raw GTFS IDs; our scheduled legs have feed-namespaced IDs
     // ("10:6117"). Strip the namespace before matching.
-    const stripNs = (id: string) => id.includes(":") ? id.slice(id.indexOf(":") + 1) : id;
+    const stripNs = (id: string) => (id.includes(":") ? id.slice(id.indexOf(":") + 1) : id);
     const byKey = new Map<string, { arrivalUnix: number; delaySec: number }>();
     for (const a of rt.arrivals) {
       byKey.set(`${a.tripId}|${a.stopId}`, { arrivalUnix: a.arrivalUnix, delaySec: a.delaySec });

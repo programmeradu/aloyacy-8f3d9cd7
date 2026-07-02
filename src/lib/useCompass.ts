@@ -20,11 +20,8 @@ export type CompassState = {
 
 export function useCompass(enabled: boolean): CompassState {
   const [headingDeg, setHeadingDeg] = useState<number | null>(null);
-  const [permission, setPermission] = useState<"granted" | "denied" | "prompt">(
-    "granted",
-  );
-  const supported =
-    typeof window !== "undefined" && "DeviceOrientationEvent" in window;
+  const [permission, setPermission] = useState<"granted" | "denied" | "prompt">("granted");
+  const supported = typeof window !== "undefined" && "DeviceOrientationEvent" in window;
   const smoothedRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -38,8 +35,7 @@ export function useCompass(enabled: boolean): CompassState {
       // webkitCompassHeading is iOS's true-north heading (0 = N).
       // alpha is rotation around z-axis — already compass-like on most
       // Android browsers when absolute=true; we accept it as a fallback.
-      const webkit = (e as unknown as { webkitCompassHeading?: number })
-        .webkitCompassHeading;
+      const webkit = (e as unknown as { webkitCompassHeading?: number }).webkitCompassHeading;
       let h: number | null = null;
       if (typeof webkit === "number" && !Number.isNaN(webkit)) {
         h = webkit;
@@ -49,10 +45,7 @@ export function useCompass(enabled: boolean): CompassState {
       if (h == null) return;
       // Low-pass filter to kill jitter while still feeling responsive.
       const prev = smoothedRef.current;
-      const next =
-        prev == null
-          ? h
-          : prev + shortestArc(prev, h) * 0.25;
+      const next = prev == null ? h : prev + shortestArc(prev, h) * 0.25;
       smoothedRef.current = ((next % 360) + 360) % 360;
       setHeadingDeg(smoothedRef.current);
     };
@@ -64,9 +57,7 @@ export function useCompass(enabled: boolean): CompassState {
 }
 
 /** Trigger the iOS permission prompt. Must be called from a user gesture. */
-export async function requestCompassPermission(): Promise<
-  "granted" | "denied" | "unsupported"
-> {
+export async function requestCompassPermission(): Promise<"granted" | "denied" | "unsupported"> {
   if (typeof window === "undefined") return "unsupported";
   const ctor = window.DeviceOrientationEvent as IOSOrientationCtor | undefined;
   if (!ctor || typeof ctor.requestPermission !== "function") return "granted";

@@ -30,7 +30,10 @@ export function ResumeTripPill() {
   const destination = active.to.label;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 84px)" }}>
+    <div
+      className="pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4"
+      style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 84px)" }}
+    >
       <Link
         to="/trip/$id"
         params={{ id: active.option.id }}
@@ -60,7 +63,17 @@ export function ResumeTripPill() {
         </span>
         <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-limestone px-3 py-1.5 font-sans text-[12px] font-semibold text-ink">
           {t("resume.cta")}
-          <svg viewBox="0 0 12 12" className="size-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h6M7 3l3 3-3 3" /></svg>
+          <svg
+            viewBox="0 0 12 12"
+            className="size-3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 6h6M7 3l3 3-3 3" />
+          </svg>
         </span>
       </Link>
     </div>

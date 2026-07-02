@@ -217,8 +217,12 @@ function TodayEditorial({
             {briefing.focus.scope !== "island" && (
               <p className="inline-flex items-center rounded-full bg-ink/85 backdrop-blur-sm px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-card ring-1 ring-ink/40">
                 {briefing.focus.scope === "trip"
-                  ? isEl ? `Προς ${briefing.focus.cityEl}` : `Heading to ${briefing.focus.city}`
-                  : isEl ? `Στη ${briefing.focus.cityEl}` : `Around ${briefing.focus.city}`}
+                  ? isEl
+                    ? `Προς ${briefing.focus.cityEl}`
+                    : `Heading to ${briefing.focus.city}`
+                  : isEl
+                    ? `Στη ${briefing.focus.cityEl}`
+                    : `Around ${briefing.focus.city}`}
               </p>
             )}
           </div>
@@ -293,7 +297,10 @@ function TodayEditorial({
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-gradient-to-bl from-olive/12 via-transparent to-ochre/5"
         />
-        <GreekWordGlyph word={briefing.greekWord.el} className="pointer-events-none absolute -right-3 -top-3 h-32 w-32" />
+        <GreekWordGlyph
+          word={briefing.greekWord.el}
+          className="pointer-events-none absolute -right-3 -top-3 h-32 w-32"
+        />
         <div className="relative p-5">
           <div className="flex items-baseline justify-between gap-3">
             <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.24em] text-olive">
@@ -309,9 +316,7 @@ function TodayEditorial({
             </p>
             <SpeakGreekButton text={briefing.greekWord.el} />
           </div>
-          <p className="mt-2 font-display text-[15px] text-olive">
-            {briefing.greekWord.en}
-          </p>
+          <p className="mt-2 font-display text-[15px] text-olive">{briefing.greekWord.en}</p>
           <p className="mt-3 text-[13.5px] leading-relaxed text-ink-soft text-pretty">
             {briefing.greekWord.meaning}
           </p>
@@ -326,20 +331,20 @@ function TodayTileCard({ tile, isEl }: { tile: TodayBriefing["tiles"][number]; i
     tile.accent === "ochre"
       ? "text-ochre"
       : tile.accent === "aegean"
-      ? "text-aegean-deep"
-      : tile.accent === "olive"
-      ? "text-olive"
-      : "text-ink";
+        ? "text-aegean-deep"
+        : tile.accent === "olive"
+          ? "text-olive"
+          : "text-ink";
 
   // Soft wash background tinted by accent — replaces the lazy "line on the left".
   const wash =
     tile.accent === "ochre"
       ? "from-ochre/8"
       : tile.accent === "aegean"
-      ? "from-aegean-deep/8"
-      : tile.accent === "olive"
-      ? "from-olive/8"
-      : "from-ink/6";
+        ? "from-aegean-deep/8"
+        : tile.accent === "olive"
+          ? "from-olive/8"
+          : "from-ink/6";
 
   return (
     <article className="relative overflow-hidden rounded-[22px] bg-card ring-1 ring-line">
@@ -561,11 +566,7 @@ function ActivityComb({
           <span
             key={i}
             className={`flex-1 rounded-[2px] ${
-              isNow
-                ? "bg-ink"
-                : isEmpty
-                ? "bg-line"
-                : "bg-aegean-deep/35"
+              isNow ? "bg-ink" : isEmpty ? "bg-line" : "bg-aegean-deep/35"
             }`}
             style={{ height: `${h}px` }}
           />
@@ -622,9 +623,7 @@ function Sparkline({ buckets, nowHour }: { buckets: HourBucket[]; nowHour: numbe
           strokeLinejoin="round"
         />
       )}
-      {nowPt && nowPt.has && (
-        <circle cx={nowPt.x} cy={nowPt.y} r="3" fill="var(--color-ink)" />
-      )}
+      {nowPt && nowPt.has && <circle cx={nowPt.x} cy={nowPt.y} r="3" fill="var(--color-ink)" />}
     </svg>
   );
 }
@@ -633,14 +632,30 @@ function Sparkline({ buckets, nowHour }: { buckets: HourBucket[]; nowHour: numbe
 // motif that fits its meaning, so the illustration changes day-to-day.
 type GreekCategory = "greeting" | "courtesy" | "transit" | "food" | "place" | "vibe";
 const GREEK_CATEGORY: Record<string, GreekCategory> = {
-  "Καλημέρα": "greeting", "Καλησπέρα": "greeting", "Γεια σου": "greeting",
-  "Καλώς ήρθες": "greeting", "Καληνύχτα": "greeting",
-  "Ευχαριστώ": "courtesy", "Παρακαλώ": "courtesy", "Συγγνώμη": "courtesy",
-  "Ναι": "courtesy", "Όχι": "courtesy",
-  "Στάση": "transit", "Λεωφορείο": "transit", "Εισιτήριο": "transit", "Ένα λεπτό": "transit",
-  "Καφές": "food", "Χαλλούμι": "food", "Σούβλα": "food", "Νόστιμο": "food",
-  "Φέρτε μου": "food", "Λογαριασμό": "food", "Στην υγειά σου": "food",
-  "Παραλία": "place", "Νερό": "place", "Πού είναι;": "place",
+  Καλημέρα: "greeting",
+  Καλησπέρα: "greeting",
+  "Γεια σου": "greeting",
+  "Καλώς ήρθες": "greeting",
+  Καληνύχτα: "greeting",
+  Ευχαριστώ: "courtesy",
+  Παρακαλώ: "courtesy",
+  Συγγνώμη: "courtesy",
+  Ναι: "courtesy",
+  Όχι: "courtesy",
+  Στάση: "transit",
+  Λεωφορείο: "transit",
+  Εισιτήριο: "transit",
+  "Ένα λεπτό": "transit",
+  Καφές: "food",
+  Χαλλούμι: "food",
+  Σούβλα: "food",
+  Νόστιμο: "food",
+  "Φέρτε μου": "food",
+  Λογαριασμό: "food",
+  "Στην υγειά σου": "food",
+  Παραλία: "place",
+  Νερό: "place",
+  "Πού είναι;": "place",
 };
 
 function GreekWordGlyph({ word, className }: { word: string; className?: string }) {
@@ -671,9 +686,25 @@ function GreekWordGlyph({ word, className }: { word: string; className?: string 
         <svg {...common}>
           {wash}
           <circle cx="86" cy="46" r="18" fill="var(--color-ochre)" opacity="0.85" />
-          <circle cx="86" cy="46" r="26" stroke="var(--color-ochre)" strokeWidth="1" fill="none" opacity="0.35" />
-          <path d="M0 92 Q32 70 60 86 Q92 104 128 80 L128 128 L0 128 Z" fill="var(--color-olive)" opacity="0.2" />
-          <path d="M0 104 Q40 88 76 100 Q104 110 128 96 L128 128 L0 128 Z" fill="var(--color-olive)" opacity="0.55" />
+          <circle
+            cx="86"
+            cy="46"
+            r="26"
+            stroke="var(--color-ochre)"
+            strokeWidth="1"
+            fill="none"
+            opacity="0.35"
+          />
+          <path
+            d="M0 92 Q32 70 60 86 Q92 104 128 80 L128 128 L0 128 Z"
+            fill="var(--color-olive)"
+            opacity="0.2"
+          />
+          <path
+            d="M0 104 Q40 88 76 100 Q104 110 128 96 L128 128 L0 128 Z"
+            fill="var(--color-olive)"
+            opacity="0.55"
+          />
         </svg>
       );
 
@@ -684,11 +715,24 @@ function GreekWordGlyph({ word, className }: { word: string; className?: string 
           {wash}
           {[-1, 1].map((s) => (
             <g key={s} transform={`translate(64 70) scale(${s} 1)`}>
-              <path d="M0 -32 Q24 -20 26 0 Q24 22 0 32" stroke="var(--color-olive)" strokeWidth="1.4" fill="none" opacity="0.6" />
+              <path
+                d="M0 -32 Q24 -20 26 0 Q24 22 0 32"
+                stroke="var(--color-olive)"
+                strokeWidth="1.4"
+                fill="none"
+                opacity="0.6"
+              />
               {[-24, -10, 4, 18].map((y, i) => (
-                <ellipse key={i} cx="24" cy={y} rx="7" ry="3.2" fill="var(--color-olive)"
+                <ellipse
+                  key={i}
+                  cx="24"
+                  cy={y}
+                  rx="7"
+                  ry="3.2"
+                  fill="var(--color-olive)"
                   opacity={0.55 + (i % 2) * 0.2}
-                  transform={`rotate(${-30 + i * 18} 24 ${y})`} />
+                  transform={`rotate(${-30 + i * 18} 24 ${y})`}
+                />
               ))}
             </g>
           ))}
@@ -701,10 +745,42 @@ function GreekWordGlyph({ word, className }: { word: string; className?: string 
       return (
         <svg {...common}>
           {wash}
-          <rect x="20" y="50" width="80" height="38" rx="8" fill="var(--color-aegean-deep)" opacity="0.85" />
-          <rect x="26" y="56" width="20" height="14" rx="2" fill="var(--color-card)" opacity="0.9" />
-          <rect x="50" y="56" width="20" height="14" rx="2" fill="var(--color-card)" opacity="0.9" />
-          <rect x="74" y="56" width="20" height="14" rx="2" fill="var(--color-card)" opacity="0.9" />
+          <rect
+            x="20"
+            y="50"
+            width="80"
+            height="38"
+            rx="8"
+            fill="var(--color-aegean-deep)"
+            opacity="0.85"
+          />
+          <rect
+            x="26"
+            y="56"
+            width="20"
+            height="14"
+            rx="2"
+            fill="var(--color-card)"
+            opacity="0.9"
+          />
+          <rect
+            x="50"
+            y="56"
+            width="20"
+            height="14"
+            rx="2"
+            fill="var(--color-card)"
+            opacity="0.9"
+          />
+          <rect
+            x="74"
+            y="56"
+            width="20"
+            height="14"
+            rx="2"
+            fill="var(--color-card)"
+            opacity="0.9"
+          />
           <rect x="20" y="80" width="80" height="3" fill="var(--color-ink)" opacity="0.25" />
           <circle cx="36" cy="92" r="7" fill="var(--color-ink)" opacity="0.85" />
           <circle cx="36" cy="92" r="2.6" fill="var(--color-card)" />
@@ -718,8 +794,18 @@ function GreekWordGlyph({ word, className }: { word: string; className?: string 
       return (
         <svg {...common}>
           {wash}
-          <path d="M40 70 L88 70 L84 100 Q84 106 78 106 L50 106 Q44 106 44 100 Z" fill="var(--color-olive)" opacity="0.85" />
-          <path d="M88 76 Q102 76 102 86 Q102 96 88 96" stroke="var(--color-olive)" strokeWidth="2.5" fill="none" opacity="0.7" />
+          <path
+            d="M40 70 L88 70 L84 100 Q84 106 78 106 L50 106 Q44 106 44 100 Z"
+            fill="var(--color-olive)"
+            opacity="0.85"
+          />
+          <path
+            d="M88 76 Q102 76 102 86 Q102 96 88 96"
+            stroke="var(--color-olive)"
+            strokeWidth="2.5"
+            fill="none"
+            opacity="0.7"
+          />
           <ellipse cx="64" cy="70" rx="24" ry="4" fill="var(--color-ink)" opacity="0.25" />
           {[52, 64, 76].map((x, i) => (
             <path

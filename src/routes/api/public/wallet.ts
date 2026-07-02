@@ -119,7 +119,9 @@ async function handleLogin(email: string, password: string) {
     try {
       const j = JSON.parse(text) as { message?: string };
       if (j?.message) jccMsg = String(j.message).split("\n")[0];
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
     return {
       ok: false as const,
       error: isAuth
@@ -190,7 +192,9 @@ async function handleSync(accessToken: string, cardUid: string, period: string) 
     try {
       const j = JSON.parse(body) as { message?: string };
       if (j?.message) jccMsg = String(j.message).split("\n")[0];
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
     return {
       ok: false as const,
       code: "card" as const,
@@ -236,7 +240,10 @@ async function handleSync(accessToken: string, cardUid: string, period: string) 
 
 async function handleVerify(cardNumber: string) {
   const url = `${PTC}/VerifyCard?cardNumber=${encodeURIComponent(cardNumber)}`;
-  const res = await fetch(url, { method: "POST", headers: { ...PTC_HEADERS, "content-length": "0" } });
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { ...PTC_HEADERS, "content-length": "0" },
+  });
   if (!res.ok) return { ok: false as const, error: `Lookup failed (${res.status}).` };
   const body = (await res.json()) as {
     result?: { balance?: number; cardType?: string | null; result?: string };
@@ -269,17 +276,18 @@ async function handleOptions(cardNumber: string) {
   const passes = (r.cptPassList ?? []).flatMap((entry) => {
     const rec = flattenEntry(entry);
     const top = rec.topUpList as
-      | { code?: string; name?: string; price?: string; validityPeriods?: string }
-      | undefined;
+      { code?: string; name?: string; price?: string; validityPeriods?: string } | undefined;
     if (!top) return [];
     const days = top.validityPeriods ? parseInt(top.validityPeriods, 10) : NaN;
-    return [{
-      code: String(top.code ?? rec.code ?? ""),
-      name: String(rec.name ?? top.name ?? ""),
-      priceEur: Number(top.price ?? 0),
-      validityDays: Number.isFinite(days) ? days : null,
-      companyCode: String(rec.companyCode ?? ""),
-    }];
+    return [
+      {
+        code: String(top.code ?? rec.code ?? ""),
+        name: String(rec.name ?? top.name ?? ""),
+        priceEur: Number(top.price ?? 0),
+        validityDays: Number.isFinite(days) ? days : null,
+        companyCode: String(rec.companyCode ?? ""),
+      },
+    ];
   });
   return {
     ok: true as const,
