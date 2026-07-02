@@ -4,11 +4,35 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { View, Text, Pressable, StyleSheet, Share, Alert, Animated, Easing } from "react-native";
+import Svg, { Path, Circle } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import { palette } from "@/constants/theme";
 import { useGroupTrip } from "@/lib/useGroupTrip";
 import type { ActiveTrip } from "@/lib/trip-store";
+
+// Bespoke trio-of-friends glyph — mirrors the web WatchTogetherButton mark.
+// Three overlapping shoulders + heads drawn as a single-color SVG so it sits
+// cleanly on the aegean tile; not a stock icon.
+function FriendsGlyph({ size = 26, color = palette.limestone }: { size?: number; color?: string }) {
+  const h = (size * 24) / 32;
+  return (
+    <Svg width={size} height={h} viewBox="0 0 32 24">
+      <Path
+        d="M3 22c1-4 4-6 7-6s6 2 7 6H3Zm12 0c1-4 4-6 7-6s6 2 7 6H15Z"
+        fill={color}
+        opacity={0.55}
+      />
+      <Circle cx={10} cy={8} r={3.2} fill={color} opacity={0.55} />
+      <Circle cx={22} cy={8} r={3.2} fill={color} opacity={0.55} />
+      <Path
+        d="M7 23c1.4-4.2 4.7-6.4 9-6.4s7.6 2.2 9 6.4H7Z"
+        fill={color}
+      />
+      <Circle cx={16} cy={7.2} r={4} fill={color} />
+    </Svg>
+  );
+}
 
 export function GroupTripButton({
   active,
