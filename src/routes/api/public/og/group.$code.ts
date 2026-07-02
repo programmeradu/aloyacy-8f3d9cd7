@@ -9,7 +9,7 @@ import {
   OG_WIDTH,
   clip,
   esc,
-  ogSvgResponse,
+  ogPngResponse,
 } from "@/lib/og-render.server";
 
 export const Route = createFileRoute("/api/public/og/group/$code")({
@@ -103,7 +103,7 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
   <text x="${OG_WIDTH - 48}" y="596" text-anchor="end" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" font-weight="500" letter-spacing="2.4" fill="${OG_PALETTE.inkSoft}">APP.ALOYA.CY/GROUP/${esc(code)}</text>
 </svg>`;
 
-        return ogSvgResponse(svg, 30);
+        return await ogPngResponse(svg, 30);
       },
     },
   },
