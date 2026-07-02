@@ -4,11 +4,35 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { View, Text, Pressable, StyleSheet, Share, Alert, Animated, Easing } from "react-native";
+import Svg, { Path, Circle } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import { palette } from "@/constants/theme";
 import { useGroupTrip } from "@/lib/useGroupTrip";
 import type { ActiveTrip } from "@/lib/trip-store";
+
+// Bespoke trio-of-friends glyph — mirrors the web WatchTogetherButton mark.
+// Three overlapping shoulders + heads drawn as a single-color SVG so it sits
+// cleanly on the aegean tile; not a stock icon.
+function FriendsGlyph({ size = 26, color = palette.limestone }: { size?: number; color?: string }) {
+  const h = (size * 24) / 32;
+  return (
+    <Svg width={size} height={h} viewBox="0 0 32 24">
+      <Path
+        d="M3 22c1-4 4-6 7-6s6 2 7 6H3Zm12 0c1-4 4-6 7-6s6 2 7 6H15Z"
+        fill={color}
+        opacity={0.55}
+      />
+      <Circle cx={10} cy={8} r={3.2} fill={color} opacity={0.55} />
+      <Circle cx={22} cy={8} r={3.2} fill={color} opacity={0.55} />
+      <Path
+        d="M7 23c1.4-4.2 4.7-6.4 9-6.4s7.6 2.2 9 6.4H7Z"
+        fill={color}
+      />
+      <Circle cx={16} cy={7.2} r={4} fill={color} />
+    </Svg>
+  );
+}
 
 export function GroupTripButton({
   active,
@@ -94,7 +118,10 @@ export function GroupTripButton({
             { transform: [{ scale: haloScale }], opacity: haloOpacity },
           ]}
         />
-        <View style={styles.dot} />
+        <FriendsGlyph />
+        <View style={styles.livePip}>
+          <View style={styles.livePipInner} />
+        </View>
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.label, isLive && { color: palette.ink }]}>
@@ -133,26 +160,41 @@ const styles = StyleSheet.create({
     borderColor: palette.ochreSoft ?? "#F7E7BF",
   },
   leadIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     backgroundColor: palette.aegeanDeep,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+    shadowColor: palette.aegeanDeep,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   halo: {
     position: "absolute",
-    width: 12,
-    height: 12,
+    width: 24,
+    height: 24,
     borderRadius: 999,
-    backgroundColor: palette.limestone,
+    backgroundColor: palette.aegean,
   },
-  dot: {
+  livePip: {
+    position: "absolute",
+    top: 4,
+    right: 4,
     width: 10,
     height: 10,
     borderRadius: 999,
-    backgroundColor: palette.limestone,
+    backgroundColor: palette.aegeanDeep,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  livePipInner: {
+    width: 6,
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: palette.ochre,
   },
   label: {
     fontFamily: "BricolageGrotesque_700Bold",
