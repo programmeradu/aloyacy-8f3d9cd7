@@ -116,10 +116,22 @@ export function WatchTogetherButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center justify-center gap-2 rounded-full bg-limestone-soft px-4 py-2 font-sans text-[13px] font-semibold text-ink ring-1 ring-line transition-colors hover:bg-limestone-soft/70"
+        className="group flex w-full items-center gap-3 rounded-2xl bg-card px-4 py-3.5 text-left ring-1 ring-line transition-colors hover:bg-limestone-soft/60"
       >
-        <PulseDot />
-        Watch together — live
+        <span className="grid size-10 place-items-center rounded-xl bg-aegean-deep text-limestone shadow-sm">
+          <PulseDot />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-display text-[14.5px] font-semibold leading-tight text-ink">
+            Watch together — live
+          </span>
+          <span className="mt-0.5 block font-sans text-[11.5px] font-medium text-ink-soft">
+            Invite friends · one map, real ETAs, no account
+          </span>
+        </span>
+        <span className="font-display text-lg text-ink-soft transition-transform group-hover:translate-x-0.5">
+          ›
+        </span>
       </button>
     );
   }
