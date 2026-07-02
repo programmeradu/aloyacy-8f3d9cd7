@@ -18,6 +18,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPreview } from "@/components/MapPreview";
 import { pingGroupMember, joinTripGroup, leaveTripGroup } from "@/lib/trip-groups.functions";
+import { useActiveTrip } from "@/lib/trip-store";
 import heroArtAsset from "@/assets/group-converge-hero.jpg.asset.json";
 const heroArt = heroArtAsset.url;
 
