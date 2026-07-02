@@ -2,13 +2,15 @@
 // tap creates a group and shares the invite; subsequent taps re-open
 // the share sheet. Long-press to leave.
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, StyleSheet, Share, Alert, Animated, Easing } from "react-native";
 import Svg, { Path, Circle } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
+import { router } from "expo-router";
 import { palette } from "@/constants/theme";
 import { useGroupTrip } from "@/lib/useGroupTrip";
+import { supabase } from "@/lib/supabase";
 import type { ActiveTrip } from "@/lib/trip-store";
 
 // Bespoke trio-of-friends glyph — mirrors the web WatchTogetherButton mark.
@@ -47,13 +49,16 @@ export function GroupTripButton({
 
   const onPress = useCallback(async () => {
     void Haptics.selectionAsync();
-    let s = session;
+    // Already in a group → jump straight to the group page instead of
+    // creating a new one or re-opening the share sheet.
+    if (session) {
+      router.push(`/group/${session.code}` as never);
+      return;
+    }
+    const s = await create();
     if (!s) {
-      s = await create();
-      if (!s) {
-        Alert.alert("Couldn't start group", "Check your connection and try again.");
-        return;
-      }
+      Alert.alert("Couldn't start group", "Check your connection and try again.");
+      return;
     }
     const message = `Join my trip to ${active.to.label} on Aloya. Code ${s.code}\n${s.url}`;
     try {
@@ -74,6 +79,37 @@ export function GroupTripButton({
   }, [session, leave]);
 
   const isLive = !!session;
+
+  // Live member count for the resume label — reflects real people on the map.
+  const [memberCount, setMemberCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (!session) {
+      setMemberCount(null);
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      const { data: g } = await supabase
+        .from("trip_groups")
+        .select("id")
+        .eq("code", session.code)
+        .maybeSingle();
+      if (!g || cancelled) return;
+      const { count } = await supabase
+        .from("trip_group_members")
+        .select("id", { count: "exact", head: true })
+        .eq("group_id", (g as { id: string }).id)
+        .gte("last_seen_at", new Date(Date.now() - 5 * 60_000).toISOString());
+      if (!cancelled) setMemberCount(count ?? null);
+    };
+    void load();
+    const t = setInterval(load, 15_000);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
+  }, [session]);
+
 
   // Pulsing halo behind the leading dot — makes the CTA read as "live" at
   // a glance rather than "another card".
@@ -125,13 +161,15 @@ export function GroupTripButton({
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.label, isLive && { color: palette.ink }]}>
-          {isLive ? "Group trip live" : "Watch together — live"}
+          {isLive
+            ? `Group ${session!.code}${memberCount ? ` · ${memberCount} on board` : ""}`
+            : "Watch together — live"}
         </Text>
         <Text style={[styles.sub, isLive && { color: "rgba(0,0,0,0.6)" }]}>
           {busy
             ? "Starting group…"
             : isLive
-              ? `Tap to invite · code ${session!.code} · long-press to leave`
+              ? "Tap to open the group map · long-press to leave"
               : "Invite friends · one map, real ETAs, no account"}
         </Text>
       </View>
