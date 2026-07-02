@@ -28,10 +28,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { palette } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { API_BASE } from "@/lib/api";
+import { GroupMap, type GroupMapMember } from "@/components/GroupMap";
+import {
+  startGroupBackgroundLocation,
+  stopGroupBackgroundLocation,
+} from "@/lib/groupBackgroundLocation";
 
 const HERO =
   "https://app.aloya.cy/__l5e/assets-v1/5c4831ab-cd68-46d1-ae67-05259fc19a64/group-converge-hero.jpg";
 const PING_INTERVAL_MS = 25_000;
+const STALE_MS = 75_000;
 const TOKEN_KEY = (code: string) => `aloya.group.${code}.token`;
 const NAME_KEY = "aloya.group.lastName";
 
@@ -97,6 +103,25 @@ function timeAgo(iso: string | null): string {
   if (diffSec < 45) return "just now";
   if (diffSec < 3600) return `${Math.round(diffSec / 60)} min ago`;
   return `${Math.round(diffSec / 3600)} h ago`;
+}
+
+function isStale(iso: string | null): boolean {
+  if (!iso) return true;
+  return Date.now() - new Date(iso).getTime() > STALE_MS;
+}
+
+function toMapMembers(members: MemberRow[], meToken: string | null): GroupMapMember[] {
+  return members
+    .filter((m) => m.status === "active")
+    .map((m) => ({
+      id: m.id,
+      displayName: m.display_name,
+      lat: m.last_lat,
+      lng: m.last_lng,
+      lastUpdated: m.last_updated,
+      isMe: m.member_token === meToken,
+      isCreator: m.is_creator,
+    }));
 }
 
 export default function GroupWatchScreen() {
@@ -166,7 +191,9 @@ export default function GroupWatchScreen() {
     [members, myToken],
   );
 
-  // Continuous location ping while joined
+  // Continuous location ping while joined — foreground for immediate
+  // updates, background (TaskManager) so pings continue when the app is
+  // minimised or the screen is off.
   useEffect(() => {
     if (!me || !myToken) return;
     let cancelled = false;
@@ -188,16 +215,23 @@ export default function GroupWatchScreen() {
           });
         },
       );
+      // Also start background updates so a pocketed phone keeps pinging.
+      void startGroupBackgroundLocation(myToken, code);
     })();
     return () => {
       cancelled = true;
       subscription?.remove();
     };
-  }, [me?.id, myToken]);
+  }, [me?.id, myToken, code]);
+
+  // Auto-stop background updates if the trip has ended.
+  const expired = group ? new Date(group.expires_at).getTime() < Date.now() : false;
+  useEffect(() => {
+    if (expired) void stopGroupBackgroundLocation();
+  }, [expired]);
 
   const isLoading = groupQuery.isLoading;
   const isMissing = !isLoading && (groupQuery.isError || !group);
-  const expired = group ? new Date(group.expires_at).getTime() < Date.now() : false;
 
   return (
     <>
@@ -238,6 +272,11 @@ export default function GroupWatchScreen() {
                 hostName={group.created_by_name}
               />
               <ConvergeCard members={members} expired={expired} />
+              <GroupMap
+                members={toMapMembers(members, myToken)}
+                destination={{ lat: group.destination_lat, lng: group.destination_lng }}
+                destinationLabel={group.destination_label}
+              />
               <MembersList members={members} meToken={myToken} />
               {!expired && !me && <JoinCard code={group.code} onJoined={setMyToken} />}
               {!expired && me && (
@@ -245,8 +284,13 @@ export default function GroupWatchScreen() {
                   group={group}
                   me={me}
                   onLeft={async () => {
+                    await stopGroupBackgroundLocation();
                     setMyToken(null);
                     await AsyncStorage.removeItem(TOKEN_KEY(code));
+                  }}
+                  onEnded={async () => {
+                    await stopGroupBackgroundLocation();
+                    void queryClient.invalidateQueries({ queryKey: ["mobile-trip-group", code] });
                   }}
                 />
               )}
@@ -529,6 +573,7 @@ function MembersList({ members, meToken }: { members: MemberRow[]; meToken: stri
       {members.map((m, i) => {
         const tone = MEMBER_TONES[i % MEMBER_TONES.length];
         const isMe = m.member_token === meToken;
+        const stale = m.status === "active" && m.last_lat != null && isStale(m.last_updated);
         return (
           <View
             key={m.id}
@@ -547,9 +592,10 @@ function MembersList({ members, meToken }: { members: MemberRow[]; meToken: stri
                 width: 40,
                 height: 40,
                 borderRadius: 999,
-                backgroundColor: tone,
+                backgroundColor: stale ? "#9a9689" : tone,
                 alignItems: "center",
                 justifyContent: "center",
+                opacity: stale ? 0.7 : 1,
               }}
             >
               <Text style={{ fontFamily: "Geist_700Bold", fontSize: 13, color: palette.white }}>
@@ -562,12 +608,21 @@ function MembersList({ members, meToken }: { members: MemberRow[]; meToken: stri
                 {isMe ? "  — you" : ""}
                 {m.is_creator ? "  · host" : ""}
               </Text>
-              <Text style={{ marginTop: 2, fontFamily: "Geist_500Medium", fontSize: 12, color: palette.inkSoft }}>
+              <Text
+                style={{
+                  marginTop: 2,
+                  fontFamily: "Geist_500Medium",
+                  fontSize: 12,
+                  color: stale ? palette.ochre : palette.inkSoft,
+                }}
+              >
                 {m.status === "left"
                   ? "Left the group"
                   : m.last_lat == null
                     ? "Waiting for location"
-                    : `Updated ${timeAgo(m.last_updated)}`}
+                    : stale
+                      ? `Signal lost · last seen ${timeAgo(m.last_updated)}`
+                      : `Updated ${timeAgo(m.last_updated)}`}
               </Text>
             </View>
             <View style={{ alignItems: "flex-end" }}>
@@ -736,8 +791,19 @@ function JoinCard({ code, onJoined }: { code: string; onJoined: (t: string) => v
 
 /* ——————————————————————————— Live card (already joined) ——————————————————————————— */
 
-function LiveCard({ group, me, onLeft }: { group: GroupRow; me: MemberRow; onLeft: () => Promise<void> }) {
+function LiveCard({
+  group,
+  me,
+  onLeft,
+  onEnded,
+}: {
+  group: GroupRow;
+  me: MemberRow;
+  onLeft: () => Promise<void>;
+  onEnded: () => Promise<void>;
+}) {
   const [busy, setBusy] = useState(false);
+  const [ending, setEnding] = useState(false);
 
   const share = useCallback(async () => {
     void Haptics.selectionAsync();
@@ -770,6 +836,30 @@ function LiveCard({ group, me, onLeft }: { group: GroupRow; me: MemberRow; onLef
       },
     ]);
   }, [me.member_token, onLeft]);
+
+  const endTrip = useCallback(() => {
+    Alert.alert(
+      "End this group trip?",
+      "The group will be disbanded for everyone immediately. This can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "End trip",
+          style: "destructive",
+          onPress: async () => {
+            setEnding(true);
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            try {
+              await callGroups("end", { memberToken: me.member_token });
+              await onEnded();
+            } finally {
+              setEnding(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [me.member_token, onEnded]);
 
   return (
     <View
@@ -829,6 +919,26 @@ function LiveCard({ group, me, onLeft }: { group: GroupRow; me: MemberRow; onLef
           {busy ? "Leaving…" : "Leave the group"}
         </Text>
       </Pressable>
+      {me.is_creator && (
+        <Pressable
+          onPress={endTrip}
+          disabled={ending}
+          style={({ pressed }) => ({
+            marginTop: 10,
+            paddingVertical: 12,
+            borderRadius: 14,
+            backgroundColor: "rgba(184,52,52,0.08)",
+            borderWidth: 1,
+            borderColor: "rgba(184,52,52,0.35)",
+            alignItems: "center",
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <Text style={{ fontFamily: "Geist_700Bold", fontSize: 13, color: "#8a2828" }}>
+            {ending ? "Ending trip…" : "End group trip for everyone"}
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 }
