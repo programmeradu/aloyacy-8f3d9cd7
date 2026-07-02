@@ -33,6 +33,7 @@ import {
   startGroupBackgroundLocation,
   stopGroupBackgroundLocation,
 } from "@/lib/groupBackgroundLocation";
+import { useActiveTrip } from "@/lib/trip-store";
 
 const HERO =
   "https://app.aloya.cy/__l5e/assets-v1/5c4831ab-cd68-46d1-ae67-05259fc19a64/group-converge-hero.jpg";
