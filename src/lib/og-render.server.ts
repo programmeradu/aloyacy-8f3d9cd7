@@ -1,15 +1,12 @@
-// Edge-safe OG image renderer — pure SVG, no WASM. Both share endpoints
-// (group + plan) render 1200×630 SVG cards. We serve SVG because:
+// Edge-safe OG image renderer — rasterizes to PNG via workers-og (satori
+// + resvg-wasm) so previews render on Facebook, WhatsApp, Twitter/X,
+// iMessage, LinkedIn and every other platform that silently drops SVG.
 //
-//  1. No WASM asset resolution issues across Node dev + Cloudflare Workers
-//     production. Ships identically in both.
-//  2. Data-driven cards can be built with real design tokens and web fonts
-//     via <foreignObject> when needed, or crisp native SVG text otherwise.
-//  3. Every modern share preview stack (LinkedIn, Discord, Slack, iMessage,
-//     Signal, Bluesky, WhatsApp on modern iOS/Android) renders SVG. Legacy
-//     Facebook crawlers fall back to the site's default og:image.
-//
-// Endpoints declare the layout; this file owns tokens + response shape.
+// Endpoints declare the layout as an HTML string (Satori parses a small
+// CSS-in-HTML subset); this file owns tokens, fonts, and the response
+// shape so every card is visually consistent.
+
+import { ImageResponse, loadGoogleFont } from "workers-og";
 
 export const OG_PALETTE = {
   limestone: "#f3ede1",
@@ -24,14 +21,17 @@ export const OG_PALETTE = {
   line: "rgba(31,30,24,0.12)",
 } as const;
 
-/** XML-escape a string for safe embedding inside SVG text/attribute values. */
+export const OG_WIDTH = 1200;
+export const OG_HEIGHT = 630;
+
+/** HTML-escape for safe embedding inside satori HTML. */
 export function esc(s: string): string {
   return String(s)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
+    .replace(/'/g, "&#39;");
 }
 
 /** Truncate copy with an ellipsis so it never breaks the card layout. */
@@ -41,30 +41,62 @@ export function clip(s: string, max: number): string {
   return t.length > max ? `${t.slice(0, max - 1).trimEnd()}…` : t;
 }
 
-/** Standard SVG response headers — short cache so previews refresh often. */
-export function ogSvgResponse(svg: string, cacheSeconds = 60): Response {
-  return new Response(svg, {
+// Font families exposed to satori. Kept close to the app's design system.
+export const OG_FONT_DISPLAY = "Bricolage Grotesque";
+export const OG_FONT_BODY = "Geist";
+
+// Fonts are fetched from Google once per Worker isolate and reused
+// across every render. Weights match what the cards actually use.
+type FontEntry = { name: string; weight: 500 | 700 | 800; data: ArrayBuffer; style: "normal" };
+let fontsPromise: Promise<FontEntry[]> | null = null;
+
+function loadFonts(): Promise<FontEntry[]> {
+  if (fontsPromise) return fontsPromise;
+  fontsPromise = Promise.all([
+    loadGoogleFont({ family: "Bricolage Grotesque", weight: 800 }).then((data) => ({
+      name: OG_FONT_DISPLAY,
+      weight: 800 as const,
+      data,
+      style: "normal" as const,
+    })),
+    loadGoogleFont({ family: "Geist", weight: 500 }).then((data) => ({
+      name: OG_FONT_BODY,
+      weight: 500 as const,
+      data,
+      style: "normal" as const,
+    })),
+    loadGoogleFont({ family: "Geist", weight: 700 }).then((data) => ({
+      name: OG_FONT_BODY,
+      weight: 700 as const,
+      data,
+      style: "normal" as const,
+    })),
+  ]).catch((err) => {
+    // Reset so the next request can retry rather than caching a failure.
+    fontsPromise = null;
+    throw err;
+  });
+  return fontsPromise;
+}
+
+/** Render an HTML card to a PNG Response with crawler-friendly headers. */
+export async function ogPngResponse(html: string, cacheSeconds = 60): Promise<Response> {
+  const fonts = await loadFonts();
+  const res = new ImageResponse(html, {
+    width: OG_WIDTH,
+    height: OG_HEIGHT,
+    format: "png",
+    fonts,
+  });
+  // Re-wrap so we control cache headers (ImageResponse only sets Content-Type).
+  const body = await res.arrayBuffer();
+  return new Response(body, {
     status: 200,
     headers: {
-      "Content-Type": "image/svg+xml; charset=utf-8",
+      "Content-Type": "image/png",
       "Cache-Control": `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=300`,
       "Access-Control-Allow-Origin": "*",
-      // Hint to crawlers this is a rendered card, not a decorative graphic.
       "X-Content-Type-Options": "nosniff",
     },
   });
 }
-
-/**
- * Shared SVG scaffolding: 1200×630 viewport, tuned type stack that ships
- * with all target platforms so the card never depends on a fetched web
- * font. Bricolage/Geist are the design system — the stack degrades to a
- * comparable OS font when the crawler doesn't have them installed.
- */
-export const OG_FONT_DISPLAY =
-  "'Bricolage Grotesque','SF Pro Display','Segoe UI',system-ui,-apple-system,sans-serif";
-export const OG_FONT_BODY =
-  "'Geist','SF Pro Text','Segoe UI',system-ui,-apple-system,sans-serif";
-
-export const OG_WIDTH = 1200;
-export const OG_HEIGHT = 630;
