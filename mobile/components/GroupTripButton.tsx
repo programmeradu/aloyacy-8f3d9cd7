@@ -80,6 +80,37 @@ export function GroupTripButton({
 
   const isLive = !!session;
 
+  // Live member count for the resume label — reflects real people on the map.
+  const [memberCount, setMemberCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (!session) {
+      setMemberCount(null);
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      const { data: g } = await supabase
+        .from("trip_groups")
+        .select("id")
+        .eq("code", session.code)
+        .maybeSingle();
+      if (!g || cancelled) return;
+      const { count } = await supabase
+        .from("trip_group_members")
+        .select("id", { count: "exact", head: true })
+        .eq("group_id", (g as { id: string }).id)
+        .gte("last_seen_at", new Date(Date.now() - 5 * 60_000).toISOString());
+      if (!cancelled) setMemberCount(count ?? null);
+    };
+    void load();
+    const t = setInterval(load, 15_000);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
+  }, [session]);
+
+
   // Pulsing halo behind the leading dot — makes the CTA read as "live" at
   // a glance rather than "another card".
   const pulse = useRef(new Animated.Value(0)).current;
