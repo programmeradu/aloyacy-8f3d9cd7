@@ -71,6 +71,65 @@ export function GoProCard() {
         Faster planning,{"\n"}quieter notifications.
       </Text>
 
+      {trialEligible && (
+        <View
+          style={{
+            marginTop: 14,
+            borderWidth: 1,
+            borderColor: palette.aegeanDeep + "40",
+            borderRadius: 14,
+            paddingHorizontal: 14,
+            paddingVertical: 12,
+            backgroundColor: "#fff",
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "BricolageGrotesque_700Bold",
+                fontSize: 14,
+                color: palette.ink,
+                letterSpacing: -0.2,
+                flexShrink: 1,
+              }}
+            >
+              7 days free, then auto-renews
+            </Text>
+            <Text
+              style={{
+                fontFamily: "Geist_700Bold",
+                fontSize: 9,
+                color: palette.inkSoft ?? palette.olive,
+                letterSpacing: 1.4,
+              }}
+            >
+              ONE PER DEVICE
+            </Text>
+          </View>
+          <Text
+            style={{
+              marginTop: 4,
+              fontFamily: "Geist_500Medium",
+              fontSize: 11.5,
+              lineHeight: 16,
+              color: palette.inkSoft ?? palette.olive,
+            }}
+          >
+            {signedIn
+              ? "Card required so we can renew when the trial ends. Cancel before day 7 and you won\u2019t be charged."
+              : "Sign in on the next step to start your 7-day free trial. Cancel before day 7 and you won\u2019t be charged."}
+          </Text>
+        </View>
+      )}
+
+
       <View style={{ marginTop: 16, gap: 8 }}>
         {PLANS.map((p) => {
           const active = plan === p.id;
