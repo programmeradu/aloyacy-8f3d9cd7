@@ -78,11 +78,10 @@ export const Route = createFileRoute("/group/$code")({
     const code = String(params.code || "").toUpperCase();
     const title = `Group trip · ${code} — Aloya`;
     const desc = "Everyone in your group, converging on one place. Live positions and arrival ETAs update as friends move.";
-    // Absolute OG image URL is rendered on demand from the current group
-    // state. A cache-buster minute-bucket nudges platforms that key by URL
-    // to re-fetch periodically so previews don't stay stale for hours.
-    const bucket = Math.floor(Date.now() / 60_000);
-    const ogImage = `https://app.aloya.cy/api/public/og/group/${encodeURIComponent(code)}?v=${bucket}`;
+    // Static branded PNG — SVG OG images are rejected by WhatsApp, iMessage,
+    // Facebook, LinkedIn, Slack, and Twitter, so previews never render.
+    // We serve a real PNG until a Worker-safe SVG→PNG rasterizer is wired up.
+    const ogImage = "https://app.aloya.cy/og/group-default.png";
     const pageUrl = `https://app.aloya.cy/group/${encodeURIComponent(code)}`;
     return {
       meta: [
@@ -94,15 +93,16 @@ export const Route = createFileRoute("/group/$code")({
         { property: "og:type", content: "website" },
         { property: "og:url", content: pageUrl },
         { property: "og:image", content: ogImage },
+        { property: "og:image:secure_url", content: ogImage },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
-        { property: "og:image:type", content: "image/svg+xml" },
+        { property: "og:image:type", content: "image/png" },
         { property: "og:image:alt", content: "Live group trip preview — destination, host, and joined members" },
-        { property: "og:updated_time", content: String(bucket * 60) },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: desc },
         { name: "twitter:image", content: ogImage },
+
       ],
     };
   },
