@@ -131,36 +131,17 @@ export function RemindMeButton({
           ? t("remind.cta")
           : t("remind.ctaPro");
 
-  const sub = err
-    ? err
-    : state === "saved"
-      ? t("remind.foot")
-      : `In ${departIn} min · we'll ping 5 min before you leave`;
-
   return (
     <>
       <button
         type="button"
         onClick={handleClick}
         disabled={state === "saving" || state === "saved"}
-        className="group flex h-full w-full items-center gap-3 rounded-2xl bg-card ring-1 ring-line px-4 py-3 text-left transition-colors hover:bg-limestone-soft disabled:opacity-70 disabled:cursor-not-allowed"
+        title={err ?? undefined}
+        className="group inline-flex h-9 items-center gap-2 rounded-full bg-card ring-1 ring-line px-3.5 font-sans text-[12.5px] font-semibold text-ink transition-colors hover:bg-limestone-soft disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-limestone-soft ring-1 ring-line">
-          <IconClock className="size-4 text-ink" />
-        </span>
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="font-display text-[14px] font-semibold text-ink leading-tight">
-            {label}
-          </span>
-          <span
-            className={`mt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] ${err ? "text-ochre" : "text-ink-soft"}`}
-          >
-            {sub}
-          </span>
-        </span>
-        <span className="font-mono text-[16px] text-ink-soft leading-none transition-transform group-hover:translate-x-0.5">
-          ›
-        </span>
+        <IconClock className={`size-3.5 ${err ? "text-ochre" : "text-ink-soft"}`} />
+        <span className="leading-none">{label}</span>
       </button>
       <AuthSheet
         open={authOpen}
