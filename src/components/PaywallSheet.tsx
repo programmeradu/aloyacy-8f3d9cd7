@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import { PRO_PLANS, type PlanId, getStripeEnvironment } from "@/lib/billing";
+import { useState } from "react";
+import { PRO_PLANS, type PlanId } from "@/lib/billing";
 import { useAuth } from "@/lib/useAuth";
 import { useProSubscription } from "@/lib/usePro";
-import { getDeviceId } from "@/lib/device-id";
-import { getTrialEligibility } from "@/lib/trial.functions";
+import { useTrialEligibility } from "@/lib/useTrialEligibility";
 import { AuthSheet } from "./AuthSheet";
 import { StripeEmbeddedCheckoutPane } from "./StripeEmbeddedCheckout";
 import proHero from "@/assets/pro-hero.jpg";
@@ -25,30 +23,7 @@ export function PaywallSheet({ open, onClose }: { open: boolean; onClose: () => 
   const [plan, setPlan] = useState<PlanId>("monthly");
   const [authOpen, setAuthOpen] = useState(false);
   const [stage, setStage] = useState<"plan" | "checkout">("plan");
-  const [trialEligible, setTrialEligible] = useState<boolean | null>(null);
-
-  const eligibilityFn = useServerFn(getTrialEligibility);
-
-  useEffect(() => {
-    if (!open || !isPermanent || isPro) {
-      setTrialEligible(null);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await eligibilityFn({
-          data: { deviceId: getDeviceId(), environment: getStripeEnvironment() },
-        });
-        if (!cancelled) setTrialEligible(res.eligible);
-      } catch {
-        if (!cancelled) setTrialEligible(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [open, isPermanent, isPro, eligibilityFn]);
+  const trialEligible = useTrialEligibility();
 
   if (!open) return null;
 
