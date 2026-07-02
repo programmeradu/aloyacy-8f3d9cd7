@@ -281,20 +281,6 @@ export function GoProCard() {
         }}
       />
 
-      {signedIn && (
-        <Text
-          style={{
-            marginTop: 10,
-            fontFamily: "Geist_500Medium",
-            fontSize: 11,
-            color: palette.inkSoft ?? palette.olive,
-            textAlign: "center",
-          }}
-        >
-          New here? Your first 7 days are free — cancel anytime before day 7 and you won't be charged.
-        </Text>
-      )}
-
       <Pressable
         disabled={busy}
         onPress={handlePay}
@@ -308,9 +294,14 @@ export function GoProCard() {
         }}
       >
         <Text style={{ fontFamily: "Geist_600SemiBold", fontSize: 14, color: palette.limestone }}>
-          {busy ? "Opening payment sheet…" : "Continue to payment"}
+          {busy
+            ? "Opening payment sheet\u2026"
+            : trialEligible
+              ? "Start 7-day free trial"
+              : "Continue to payment"}
         </Text>
       </Pressable>
+
 
     </Card>
   );
