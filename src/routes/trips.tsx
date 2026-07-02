@@ -1414,7 +1414,7 @@ function ItineraryRow({
         onStart={start}
         startLabel={t("trips.startThis")}
       />
-      <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2 px-1">
+      <div className="px-1 flex flex-wrap items-center gap-2">
         <RemindMeButton
           itinerary={itinerary}
           origin={origin}
