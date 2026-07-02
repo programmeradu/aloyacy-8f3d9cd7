@@ -12,7 +12,7 @@ import { palette } from "@/constants/theme";
 import { assets } from "@/lib/assets";
 import type { KapnosSuggestion } from "@/lib/kapnos";
 import { startKapnosCompanion } from "@/lib/kapnos-companion";
-import { startItinerary } from "@/lib/itineraryToTrip";
+
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/journey-types";
 
 const WALKABLE_M = 1_200;
