@@ -2,13 +2,15 @@
 // tap creates a group and shares the invite; subsequent taps re-open
 // the share sheet. Long-press to leave.
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, StyleSheet, Share, Alert, Animated, Easing } from "react-native";
 import Svg, { Path, Circle } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
+import { router } from "expo-router";
 import { palette } from "@/constants/theme";
 import { useGroupTrip } from "@/lib/useGroupTrip";
+import { supabase } from "@/lib/supabase";
 import type { ActiveTrip } from "@/lib/trip-store";
 
 // Bespoke trio-of-friends glyph — mirrors the web WatchTogetherButton mark.
