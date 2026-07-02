@@ -150,14 +150,14 @@ function TurnStep({
       <View style={{ aspectRatio: 16 / 9, backgroundColor: palette.limestoneSoft }}>
         {svFailed ? (
           <ManeuverFallback maneuver={maneuver} />
-        ) : (
+        ) : svReady ? (
           <Image
             source={{ uri: url }}
             resizeMode="cover"
             style={{ width: "100%", height: "100%" }}
             onError={() => setSvFailed(true)}
           />
-        )}
+        ) : null}
         <View
           style={{
             position: "absolute",
