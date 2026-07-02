@@ -88,6 +88,43 @@ function Plan() {
     arriveByISO: string | null;
   } | null>(null);
 
+  // Prefill from /plan/:token → "Open this plan in Aloya" deep-link.
+  // The share page appends fromLabel/fromLat/fromLng/toLabel/toLat/toLng/dep
+  // — we hydrate origin, destination, and leave-by time, then strip the
+  // params so refreshes don't keep re-triggering the same plan.
+  const hydratedFromUrlRef = useRef(false);
+  useEffect(() => {
+    if (hydratedFromUrlRef.current) return;
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const fromLat = parseFloat(sp.get("fromLat") ?? "");
+    const fromLng = parseFloat(sp.get("fromLng") ?? "");
+    const toLat = parseFloat(sp.get("toLat") ?? "");
+    const toLng = parseFloat(sp.get("toLng") ?? "");
+    const fromLabel = sp.get("fromLabel") ?? "";
+    const toLabel = sp.get("toLabel") ?? "";
+    if (
+      Number.isFinite(fromLat) && Number.isFinite(fromLng) &&
+      Number.isFinite(toLat) && Number.isFinite(toLng) &&
+      fromLabel && toLabel
+    ) {
+      hydratedFromUrlRef.current = true;
+      setOrigin({ lat: fromLat, lng: fromLng, label: fromLabel });
+      setDestination({ lat: toLat, lng: toLng, label: toLabel });
+      const dep = parseInt(sp.get("dep") ?? "", 10);
+      if (Number.isFinite(dep) && dep > 0) {
+        // Only honour a future departure — a past `dep` from a stale link
+        // would return an empty plan; falling back to "leave now" is kinder.
+        const iso = new Date(dep * 1000).toISOString();
+        if (dep * 1000 > Date.now() - 60_000) {
+          setTimeIntent({ leaveByISO: iso, arriveByISO: null });
+        }
+      }
+      // Clean the URL so it reads as /trips going forward.
+      window.history.replaceState({}, "", "/trips");
+    }
+  }, []);
+
   const planFn = useServerFn(planMultiLeg);
   const reverseFn = useServerFn(reverseLookup);
   const fetchSuggestions = useServerFn(getTripSuggestions);
