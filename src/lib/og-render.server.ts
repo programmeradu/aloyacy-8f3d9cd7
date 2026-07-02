@@ -97,7 +97,7 @@ export async function ogPngResponse(
     shapeRendering: 2,
   });
   const png = resvg.render().asPng();
-  return new Response(png, {
+  return new Response(png as BlobPart, {
     status: 200,
     headers: {
       "Content-Type": "image/png",
