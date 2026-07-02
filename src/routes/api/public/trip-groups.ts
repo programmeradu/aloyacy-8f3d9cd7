@@ -47,6 +47,9 @@ export const Route = createFileRoute("/api/public/trip-groups")({
             case "leave":
               result = await leaveTripGroup({ data: payload as never });
               break;
+            case "end":
+              result = await endTripGroup({ data: payload as never });
+              break;
             default:
               return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: CORS });
           }
