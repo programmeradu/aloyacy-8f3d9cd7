@@ -472,6 +472,17 @@ function SingleLegCompanion({
         <JourneyHUD trip={active} live={live} steps={directions?.steps ?? null} />
       </div>
 
+      {/* Watch together — start a live group so friends converging on the
+          same destination see each other on one map. Sits on the trip
+          page so the rider can invite mid-journey and return here to
+          rejoin the group any time. */}
+      <div className="mt-4 px-6">
+        <WatchTogetherButton
+          origin={{ lat: active.from.lat, lng: active.from.lng, label: active.from.label }}
+          destination={{ lat: active.to.lat, lng: active.to.lng, label: active.to.label }}
+        />
+      </div>
+
       {/* Long final walk hint — shown whenever the rider is on the egress
           walk (live or static) and the distance is too long to be a pleasant
           stroll. Sits above the turn-by-turn so the rider sees the choice
