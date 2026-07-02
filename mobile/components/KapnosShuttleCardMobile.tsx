@@ -461,6 +461,3 @@ function Endpoint({
   );
 }
 
-// Re-export the itinerary starter used by the plan screen when wiring up
-// tap handlers. Keeps consumers importing from one place.
-export { startItinerary };
