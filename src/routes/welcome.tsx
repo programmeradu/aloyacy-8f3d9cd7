@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/useAuth";
@@ -34,7 +34,7 @@ function WelcomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [direction, setDirection] = useState<1 | -1>(1);
+  const [, setDirection] = useState<1 | -1>(1);
 
   const finish = async () => {
     if (user) await markOnboarded(user.id);

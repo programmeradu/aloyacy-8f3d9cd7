@@ -22,7 +22,7 @@
 
 import type { LoadedSchedule, ScheduleStop } from "./schedule-loader.server";
 import { serviceDateToUnix } from "./schedule-loader.server";
-import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
+import type { Itinerary, Leg, RideLeg, WalkLeg } from "./itinerary-types";
 
 // Cross-island journeys can legitimately require a local feeder, an
 // intercity service, and one or two airport-side connections. Three rounds
@@ -39,7 +39,6 @@ const MIN_TRANSFER_BUFFER_SEC = 90;
 const MAX_TOTAL_JOURNEY_SEC = 300 * 60; // cross-island + airport connections
 const TOP_K_RESULTS = 5;
 const DEFAULT_SEARCH_HORIZON_SEC = 4 * 3600; // "leave now" — 4h is plenty
-const EXPLICIT_SEARCH_HORIZON_SEC = 24 * 3600; // when an explicit time is set, scan a full day
 const WALK_M_PER_S = 1.35;
 const WALK_DETOUR = 1.35;
 

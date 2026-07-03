@@ -111,7 +111,6 @@ export async function planJourney(
 
   const originIds = new Set(originStops.map((s) => s.id));
   const destIds = new Set(destStops.map((s) => s.id));
-  const originDistById = new Map(originStops.map((s) => [s.id, s.distanceKm]));
   const destDistById = new Map(destStops.map((s) => [s.id, s.distanceKm]));
 
   // 2. Pull live feed and index arrivals by trip.

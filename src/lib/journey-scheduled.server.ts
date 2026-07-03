@@ -22,7 +22,7 @@ void todayLocalDate;
 import { planRaptor, type RaptorDiagnostics } from "./raptor.server";
 import { fetchRealtime } from "./gtfs-rt.server";
 import { refineAllItineraries } from "./walk-refine.server";
-import type { Itinerary, RideLeg } from "./itinerary-types";
+import type { Itinerary } from "./itinerary-types";
 
 export type ScheduledDiagnostics = RaptorDiagnostics & {
   liveArrivalCount: number;

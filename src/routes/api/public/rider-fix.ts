@@ -45,7 +45,7 @@ export const Route = createFileRoute("/api/public/rider-fix")({
         let parsed;
         try {
           parsed = Body.parse(await request.json());
-        } catch (e) {
+        } catch {
           return json(400, { error: "Invalid payload" });
         }
 

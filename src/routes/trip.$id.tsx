@@ -6,7 +6,6 @@ import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowLeft, IconBus, IconClock, IconPin } from "@/components/Icons";
-import { StreetViewSheet } from "@/components/StreetViewSheet";
 import { TurnStep } from "@/components/WalkGuidance";
 import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
 import { StaleFeedBanner } from "@/components/StaleFeedBanner";

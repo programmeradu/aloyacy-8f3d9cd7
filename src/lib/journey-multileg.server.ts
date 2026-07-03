@@ -305,7 +305,6 @@ export async function planMultiLegJourney(
   for (const d of destStops) diag.destTripCount += (tripsByStop.get(d.id) ?? []).length;
 
   // 3) Static topology indexes (for pruning transfer candidates).
-  const stopRoutes = getStopRoutes();
   const transferIndex = getTransferCandidates();
 
   const itineraries: Itinerary[] = [];
@@ -578,8 +577,6 @@ export async function planMultiLegJourney(
 
 // ---- Itinerary assembly helpers ------------------------------------------
 function finalise(legs: Leg[], now: number, source: Itinerary["source"]): Itinerary {
-  const first = legs[0];
-  const last = legs[legs.length - 1];
   const rides = legs.filter((l): l is RideLeg => l.kind === "ride");
   const walks = legs.filter((l): l is WalkLeg => l.kind === "walk");
 

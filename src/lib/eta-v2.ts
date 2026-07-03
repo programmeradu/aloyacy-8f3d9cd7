@@ -273,15 +273,13 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   // Confidence + band
   const avgSamples = totalSegs > 0 ? segSamples / totalSegs : 0;
   const stopsAway = Math.max(0, targetIdx - startIdx);
-  let confidence: SmartEtaV2["confidence"];
+  // The published confidence comes from the shared freshness classifier
+  // (`cls.confidence`); the sample count only widens the pessimistic bound.
   if (avgSamples >= 10) {
-    confidence = "high";
     pessFactor = 1.18;
   } else if (avgSamples >= 4) {
-    confidence = "medium";
     pessFactor = 1.3;
   } else {
-    confidence = "low";
     pessFactor = 1.5;
   }
   if (pingAgeSec > PING_STALE_SEC) pessFactor += 0.1;
