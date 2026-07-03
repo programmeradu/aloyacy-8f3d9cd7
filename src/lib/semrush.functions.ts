@@ -4,9 +4,15 @@ const GATEWAY = "https://connector-gateway.lovable.dev/semrush";
 
 type Row = Record<string, string>;
 
-function parseTable(json: any): Row[] {
+/** Shape of a Semrush Analytics table response (columns + positional rows). */
+type SemrushTable = {
+  data?: { columnNames?: string[]; rows?: unknown[][] };
+  error?: string;
+};
+
+function parseTable(json: SemrushTable): Row[] {
   const cols: string[] = json?.data?.columnNames ?? [];
-  const rows: any[][] = json?.data?.rows ?? [];
+  const rows: unknown[][] = json?.data?.rows ?? [];
   return rows.map((r) => Object.fromEntries(cols.map((c, i) => [c, String(r[i] ?? "")])));
 }
 
@@ -23,7 +29,7 @@ async function call(path: string, params: Record<string, string>) {
     },
   });
   const text = await res.text();
-  let json: any;
+  let json: SemrushTable;
   try {
     json = JSON.parse(text);
   } catch {

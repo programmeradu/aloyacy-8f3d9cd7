@@ -147,7 +147,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
 
   try {
     const res = await fetch(url.toString());
-    const json: any = await res.json();
+    const json = (await res.json()) as DirectionsResponse;
 
     if (json.status === "ZERO_RESULTS") {
       // Persist a sentinel so we don't keep hammering Google for unreachable pairs.

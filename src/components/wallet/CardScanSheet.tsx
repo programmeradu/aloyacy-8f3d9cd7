@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { Worker as TesseractWorker } from "tesseract.js";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { IconClose } from "@/components/Icons";
@@ -31,7 +32,7 @@ const NAME_RE = /\b([A-Z]{2,}(?:\s+[A-Z]{2,}){1,3})\b/;
 export function CardScanSheet({ onClose }: { onClose: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const workerRef = useRef<any>(null);
+  const workerRef = useRef<TesseractWorker | null>(null);
   const runningRef = useRef(true);
   const sideRef = useRef<Side>("front");
   const accRef = useRef<Detected>({});
@@ -96,9 +97,9 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
         workerRef.current = worker;
         setStatus("scanning");
         loop();
-      } catch (e: any) {
+      } catch (e) {
         setStatus("error");
-        setErrMsg(e?.message ?? "Camera unavailable");
+        setErrMsg(e instanceof Error ? e.message : "Camera unavailable");
       }
     }
 
