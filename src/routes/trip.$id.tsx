@@ -150,8 +150,8 @@ function SingleLegCompanion({
       minToDoor,
       phase,
     };
-  // `tick` is a deliberate 1s heartbeat that forces countdown recomputation.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // `tick` is a deliberate 1s heartbeat that forces countdown recomputation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, rt, tick]);
 
   // Compute walking phase/leg defensively so hook order stays stable when
