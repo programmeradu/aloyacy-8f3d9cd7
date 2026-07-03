@@ -183,8 +183,8 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
     const link: WalkLink = {
       fromStopId: lo,
       toStopId: hi,
-      distanceM: Math.round(leg.distance.value),
-      durationSec: Math.round(leg.duration.value),
+      distanceM: Math.round(leg.distance?.value ?? 0),
+      durationSec: Math.round(leg.duration?.value ?? 0),
       polyline: json.routes[0].overview_polyline?.points ?? "",
       verified: true,
     };
