@@ -576,57 +576,6 @@ function ActivityComb({
   );
 }
 
-function Sparkline({ buckets, nowHour }: { buckets: HourBucket[]; nowHour: number }) {
-  const W = 280;
-  const H = 44;
-  const pad = 2;
-  // Map delay to y, clamped to ±240s
-  const yOf = (d: number) => {
-    const c = Math.max(-240, Math.min(240, d));
-    return H / 2 - (c / 240) * (H / 2 - pad);
-  };
-  const points = buckets.map((b, i) => {
-    const x = pad + (i / (buckets.length - 1 || 1)) * (W - pad * 2);
-    const y = b.sampleCount === 0 ? H / 2 : yOf(b.meanDelaySec);
-    return { x, y, has: b.sampleCount > 0, h: b.hour };
-  });
-
-  // Smooth path via simple polyline (good enough at this size)
-  const linePath = points
-    .filter((p) => p.has)
-    .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(2)}`)
-    .join(" ");
-
-  const areaPath = (() => {
-    const pts = points.filter((p) => p.has);
-    if (pts.length === 0) return "";
-    const start = `M${pts[0].x.toFixed(1)} ${H / 2}`;
-    const line = pts.map((p) => `L${p.x.toFixed(1)} ${p.y.toFixed(2)}`).join(" ");
-    const end = `L${pts[pts.length - 1].x.toFixed(1)} ${H / 2} Z`;
-    return `${start} ${line} ${end}`;
-  })();
-
-  const nowPt = points[nowHour];
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-11" aria-hidden>
-      {/* Zero baseline */}
-      <line x1="0" x2={W} y1={H / 2} y2={H / 2} stroke="var(--color-ink)" strokeOpacity="0.1" />
-      {areaPath && <path d={areaPath} fill="var(--color-aegean-deep)" opacity="0.12" />}
-      {linePath && (
-        <path
-          d={linePath}
-          fill="none"
-          stroke="var(--color-aegean-deep)"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      )}
-      {nowPt && nowPt.has && <circle cx={nowPt.x} cy={nowPt.y} r="3" fill="var(--color-ink)" />}
-    </svg>
-  );
-}
 
 // Word→category map. Each Greek word in src/data/cyprus-greek-words.json gets a
 // motif that fits its meaning, so the illustration changes day-to-day.

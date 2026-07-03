@@ -759,11 +759,6 @@ export function MapPreview({
   }, [expanded, fallbackOverlay, api]);
 
   const liveCount = focused || restricted ? (vehicles?.length ?? 0) : (rt?.vehicles.length ?? 0);
-  const placeLabel = useMemo(() => {
-    // Sub-degree → meters; round to avoid janky decimals.
-    const km = spanKm;
-    return km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`;
-  }, [spanKm]);
 
   // -------- Debug telemetry (stress test on /qa) --------
   const [debugRows, setDebugRows] = useState<ReturnType<AnimatedBus["getDebug"]>[]>([]);
@@ -976,7 +971,7 @@ class AnimatedBus {
     variant: "premium" | "triangle" = "premium",
     path: { lat: number; lng: number }[] | null = null,
     stale = false,
-    speedMps = 0,
+    _speedMps = 0,
   ) {
     this.api = api;
     this.map = map;
@@ -1045,6 +1040,9 @@ class AnimatedBus {
     this.setPath(path);
 
     // Build OverlayView
+    // Google's OverlayView subclass rebinds `this`; capture the marker
+    // instance so the overlay callbacks can reach it.
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     class BusOverlay extends api.maps.OverlayView {
       onAdd() {
@@ -1649,6 +1647,9 @@ class UserHereOverlay {
     this.applyAccuracy(map);
     this.applyHeading();
 
+    // Google's OverlayView subclass rebinds `this`; capture the marker
+    // instance so the overlay callbacks can reach it.
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     class HereOverlay extends api.maps.OverlayView {
       onAdd() {
