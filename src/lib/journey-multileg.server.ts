@@ -26,7 +26,7 @@
 
 import { fetchRealtime } from "./gtfs-rt.server";
 import { STOPS, ROUTES, distanceKm } from "./gtfs";
-import { getStopRoutes, getTransferCandidates } from "./transfer-graph.server";
+import { getTransferCandidates } from "./transfer-graph.server";
 import { getWalkLink } from "./walk-links.server";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
 

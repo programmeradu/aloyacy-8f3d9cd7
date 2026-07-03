@@ -370,7 +370,7 @@ function reconstruct(
   to: { lat: number; lng: number; label?: string },
   departureUnix: number,
 ): Itinerary | null {
-  const { stops, routes, trips, stopTimes } = schedule;
+  const { stops, routes, stopTimes } = schedule;
   type Chain = { stopId: string; round: number; label: Label };
   const chain: Chain[] = [];
   let curStop = endStopId;
