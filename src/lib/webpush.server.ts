@@ -63,11 +63,6 @@ function u32be(n: number): Uint8Array<ArrayBuffer> {
 }
 
 // ---------- VAPID JWT (ES256) ----------
-async function importVapidPrivateKey(privateKeyB64Url: string): Promise<CryptoKey> {
-  // Need the public key to construct a JWK. Derive nothing — re-import as raw d
-  // with a fixed dummy x,y is impossible; we require the public key too.
-  throw new Error("use importVapidKeypair");
-}
 
 async function importVapidKeypair(
   publicKeyB64Url: string,

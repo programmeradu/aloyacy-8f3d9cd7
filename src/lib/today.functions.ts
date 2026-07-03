@@ -263,13 +263,6 @@ async function cruiseInPortLive(): Promise<CruiseToday> {
 // happening on the current calendar day whose city we recognise. Falls back
 // to the hand-authored `activeFestival` list when no live event matches.
 type LiveEvent = { name: string; nameEl: string; city: string };
-const CITY_EL: Record<string, string> = {
-  Nicosia: "Λευκωσία",
-  Limassol: "Λεμεσός",
-  Larnaca: "Λάρνακα",
-  Paphos: "Πάφος",
-  Famagusta: "Αμμόχωστος",
-};
 function normaliseCity(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const s = raw.toLowerCase();

@@ -47,24 +47,6 @@ function buildUserPrompt(text: string, nowISO?: string, tzOffsetMin?: number) {
   ].join("\n");
 }
 
-const responseSchemaJSON = {
-  type: "object",
-  additionalProperties: false,
-  properties: {
-    from: { type: ["string", "null"] },
-    to: { type: ["string", "null"] },
-    leaveByISO: { type: ["string", "null"] },
-    arriveByISO: { type: ["string", "null"] },
-    dayHint: {
-      type: "string",
-      enum: ["now", "today", "tonight", "tomorrow", "weekend", "specific"],
-    },
-    confidence: { type: "number" },
-    notes: { type: "string" },
-  },
-  required: ["from", "to", "leaveByISO", "arriveByISO", "dayHint", "confidence"],
-} as const;
-
 export const parseTripIntent = createServerFn({ method: "POST" })
   .inputValidator((input) => inputSchema.parse(input))
   .handler(async ({ data }): Promise<TripIntent | null> => {

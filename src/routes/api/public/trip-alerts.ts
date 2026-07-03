@@ -35,13 +35,6 @@ type ActiveTripRow = {
   total_arrival_unix: number | null;
 };
 
-type AlertKind =
-  | "board-soon"
-  | "hurry-soft"
-  | "at-stop"
-  | "alight-soon"
-  | "arrived"
-  | "delayed"
   // Multi-leg additions:
   | "alight-leg" // get off at next stop, for ride leg i
   | "walk-to-transfer" // walk this way to next stop, after alighting leg i
