@@ -68,5 +68,17 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Providers, shadcn primitives and email builders intentionally export
+    // hooks/variants alongside components; Fast Refresh granularity is not a
+    // quality signal for these vendor-shaped modules.
+    files: [
+      "src/components/ui/**/*.tsx",
+      "src/lib/email-templates/**/*.tsx",
+      "src/lib/useAuth.tsx",
+      "src/lib/usePro.tsx",
+    ],
+    rules: { "react-refresh/only-export-components": "off" },
+  },
   eslintPluginPrettier,
 );
