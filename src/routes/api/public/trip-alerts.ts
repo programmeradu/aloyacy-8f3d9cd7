@@ -35,12 +35,6 @@ type ActiveTripRow = {
   total_arrival_unix: number | null;
 };
 
-  // Multi-leg additions:
-  | "alight-leg" // get off at next stop, for ride leg i
-  | "walk-to-transfer" // walk this way to next stop, after alighting leg i
-  | "connection-approaching" // next bus is < ~90s out at transfer stop
-  | "connection-delayed"; // next leg is running > 5 min late
-
 type SingleLegKind =
   "board-soon" | "hurry-soft" | "at-stop" | "alight-soon" | "arrived" | "delayed";
 
