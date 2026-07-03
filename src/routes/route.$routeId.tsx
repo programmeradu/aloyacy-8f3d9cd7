@@ -178,6 +178,8 @@ function RoutePage() {
     }
 
     return { trips, vehicles, stopIds, longest, busesOnLine };
+  // Derived purely from `data`; `stopOf` is a stable lookup over the static feed.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rt, routeId]);
 
   const markers: MapMarker[] = useMemo(() => {
@@ -192,6 +194,8 @@ function RoutePage() {
         kind: i === 0 ? "origin" : i === arr.length - 1 ? "destination" : "stop",
         tone: "aegean",
       }));
+  // Derived purely from `data`; `stopOf` is a stable lookup over the static feed.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const tone = routeTone(routeId);

@@ -54,6 +54,9 @@ export function LiveWalkBanner({
     queryFn: () => fetchDirections({ data: { from, to, locale } }),
     staleTime: 10 * 60 * 1000,
   });
+  // The fetched steps array is re-created per query result; memoising on the
+  // resolved value (not the array identity) is intentional.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const steps: WalkStep[] = data?.directions?.steps ?? [];
 
   const projection = useMemo(() => {
