@@ -130,67 +130,44 @@ export default function GroupWatchScreen() {
   const code = (params.code ?? "").toUpperCase();
   const queryClient = useQueryClient();
 
-  const groupQuery = useQuery({
-    queryKey: ["mobile-trip-group", code],
-    enabled: !!code,
-    queryFn: async (): Promise<GroupRow | null> => {
-      const { data, error } = await supabase
-        .from("trip_groups")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
-      if (error) throw error;
-      return (data as GroupRow | null) ?? null;
-    },
-  });
-
-  const group = groupQuery.data ?? null;
-  const groupId = group?.id ?? null;
-
-  const membersQuery = useQuery({
-    queryKey: ["mobile-trip-group-members", groupId],
-    enabled: !!groupId,
-    queryFn: async (): Promise<MemberRow[]> => {
-      const { data, error } = await supabase
-        .from("trip_group_members")
-        .select("*")
-        .eq("group_id", groupId!)
-        .order("joined_at", { ascending: true });
-      if (error) throw error;
-      return (data as MemberRow[]) ?? [];
-    },
-    refetchInterval: 20_000,
-  });
-
-  useEffect(() => {
-    if (!groupId) return;
-    const channel = supabase
-      .channel(`mobile-trip-group-${groupId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "trip_group_members", filter: `group_id=eq.${groupId}` },
-        () => {
-          void queryClient.invalidateQueries({ queryKey: ["mobile-trip-group-members", groupId] });
-        },
-      )
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [groupId, queryClient]);
-
-  // Load persisted member token for this code
+  // Load persisted member token for this code (browser-local capability).
   const [myToken, setMyToken] = useState<string | null>(null);
   useEffect(() => {
     if (!code) return;
     void AsyncStorage.getItem(TOKEN_KEY(code)).then((t) => setMyToken(t));
   }, [code]);
 
-  const members = membersQuery.data ?? [];
+  const viewQuery = useQuery({
+    queryKey: ["mobile-trip-group-view", code, myToken],
+    enabled: !!code,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_trip_group_view", {
+        p_code: code,
+        p_member_token: myToken ?? undefined,
+      });
+      if (error) throw error;
+      return (data as (GroupRow & { members: MemberRow[]; me_id: string | null }) | null) ?? null;
+    },
+    refetchInterval: 15_000,
+  });
+
+  const group: GroupRow | null = viewQuery.data
+    ? (({ members: _m, me_id: _me, ...g }) => g as GroupRow)(viewQuery.data)
+    : null;
+  const groupId = group?.id ?? null;
+  const meId = viewQuery.data?.me_id ?? null;
+  const members: MemberRow[] = viewQuery.data?.members ?? [];
+  const groupQuery = viewQuery;
+  const membersQuery = { data: members, isLoading: viewQuery.isLoading, isError: viewQuery.isError };
+  void groupId;
+  void queryClient;
+  void membersQuery;
+
   const me = useMemo(
-    () => (myToken ? members.find((m) => m.member_token === myToken) ?? null : null),
-    [members, myToken],
+    () => (meId ? members.find((m) => m.id === meId) ?? null : null),
+    [members, meId],
   );
+
 
   // Continuous location ping while joined — foreground for immediate
   // updates, background (TaskManager) so pings continue when the app is
