@@ -50,6 +50,9 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Dependency audit
+        run: bun audit --audit-level=high
+
       - name: Build
         run: bun run build
 
