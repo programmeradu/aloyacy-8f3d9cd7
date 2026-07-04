@@ -1644,6 +1644,14 @@ export type Database = {
         }
         Returns: number
       }
+      pulse_hour_strip: {
+        Args: never
+        Returns: {
+          hour_of_day: number
+          mean_delay_sec: number
+          sample_count: number
+        }[]
+      }
       pulse_route_stats: {
         Args: never
         Returns: {
