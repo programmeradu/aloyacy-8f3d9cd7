@@ -9,8 +9,7 @@ export const Route = createFileRoute("/privacy")({
       { title: "Privacy — Aloya" },
       {
         name: "description",
-        content:
-          "How Aloya collects, stores, and protects your travel data on Cyprus buses.",
+        content: "How Aloya collects, stores, and protects your travel data on Cyprus buses.",
       },
       { property: "og:title", content: "Privacy — Aloya" },
       {
@@ -22,13 +21,14 @@ export const Route = createFileRoute("/privacy")({
       { property: "og:image", content: "https://app.aloya.cy/og/og-privacy.jpg" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "Cypriot limestone wall split by a shaft of aegean-blue light." },
+      {
+        property: "og:image:alt",
+        content: "Cypriot limestone wall split by a shaft of aegean-blue light.",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://app.aloya.cy/og/og-privacy.jpg" },
     ],
-    links: [
-      { rel: "canonical", href: "https://app.aloya.cy/privacy" },
-    ],
+    links: [{ rel: "canonical", href: "https://app.aloya.cy/privacy" }],
   }),
   component: PrivacyPage,
 });
@@ -59,9 +59,7 @@ function PrivacyPage() {
           {t("privacy.updated", { date: updated })}
         </p>
 
-        <p className="mt-8 text-[15px] leading-relaxed text-ink/80">
-          {t("privacy.intro")}
-        </p>
+        <p className="mt-8 text-[15px] leading-relaxed text-ink/80">{t("privacy.intro")}</p>
 
         <Section title={t("privacy.section.data")} body={t("privacy.data.body")} />
         <Section title={t("privacy.section.account")} body={t("privacy.account.body")} />
@@ -82,9 +80,7 @@ function PrivacyPage() {
 function Section({ title, body }: { title: string; body: string }) {
   return (
     <section className="mt-10">
-      <h2 className="font-display text-[22px] leading-tight tracking-tight text-ink">
-        {title}
-      </h2>
+      <h2 className="font-display text-[22px] leading-tight tracking-tight text-ink">{title}</h2>
       <p className="mt-3 text-[15px] leading-relaxed text-ink/75">{body}</p>
     </section>
   );

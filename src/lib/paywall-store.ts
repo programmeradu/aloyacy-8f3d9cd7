@@ -28,9 +28,5 @@ export const paywallStore = {
 };
 
 export function usePaywallOpen() {
-  return useSyncExternalStore(
-    paywallStore.subscribe,
-    paywallStore.get,
-    () => false,
-  );
+  return useSyncExternalStore(paywallStore.subscribe, paywallStore.get, () => false);
 }

@@ -22,7 +22,6 @@ async function hmac(key: ArrayBuffer | Uint8Array, data: string): Promise<ArrayB
   return crypto.subtle.sign("HMAC", cryptoKey, enc.encode(data));
 }
 
-
 function hex(bytes: Uint8Array): string {
   let s = "";
   for (const b of bytes) s += b.toString(16).padStart(2, "0");
@@ -67,7 +66,8 @@ export async function signRequest(
   const payloadHash = await sha256Hex(input.body);
 
   const headers: Record<string, string> = {
-    "content-type": input.headers?.["Content-Type"] ?? input.headers?.["content-type"] ?? "application/json",
+    "content-type":
+      input.headers?.["Content-Type"] ?? input.headers?.["content-type"] ?? "application/json",
     host,
     "x-amz-date": amzDate,
     "x-amz-content-sha256": payloadHash,
@@ -81,7 +81,8 @@ export async function signRequest(
 
   const signedHeaderNames = Object.keys(headers).sort();
   const canonicalHeaders =
-    signedHeaderNames.map((h) => `${h}:${headers[h].trim().replace(/\s+/g, " ")}`).join("\n") + "\n";
+    signedHeaderNames.map((h) => `${h}:${headers[h].trim().replace(/\s+/g, " ")}`).join("\n") +
+    "\n";
   const signedHeaders = signedHeaderNames.join(";");
 
   const canonicalRequest = [

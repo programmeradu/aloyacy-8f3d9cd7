@@ -42,8 +42,16 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
           const prompt = (body.prompt || "").trim();
           const maxTokens = Math.min(Math.max(body.maxTokens ?? 1024, 1), 32000);
 
-          if (!modelId) return new Response(JSON.stringify({ error: "Missing modelId" }), { status: 400, headers: cors });
-          if (!prompt) return new Response(JSON.stringify({ error: "Missing prompt" }), { status: 400, headers: cors });
+          if (!modelId)
+            return new Response(JSON.stringify({ error: "Missing modelId" }), {
+              status: 400,
+              headers: cors,
+            });
+          if (!prompt)
+            return new Response(JSON.stringify({ error: "Missing prompt" }), {
+              status: 400,
+              headers: cors,
+            });
 
           const url = `https://bedrock-runtime.${region}.amazonaws.com/model/${encodeURIComponent(modelId)}/converse`;
           const payload = JSON.stringify({
@@ -76,7 +84,11 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
             reqHeaders = { ...signed.headers, Accept: "application/json" };
           } else {
             const apiKey = (body.apiKey || "").trim();
-            if (!apiKey) return new Response(JSON.stringify({ error: "Missing apiKey" }), { status: 400, headers: cors });
+            if (!apiKey)
+              return new Response(JSON.stringify({ error: "Missing apiKey" }), {
+                status: 400,
+                headers: cors,
+              });
             reqHeaders = {
               Authorization: `Bearer ${apiKey}`,
               "Content-Type": "application/json",
@@ -93,24 +105,30 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
           const elapsed = Date.now() - started;
           const text = await upstream.text();
           let parsed: unknown = null;
-          try { parsed = JSON.parse(text); } catch { /* keep raw */ }
+          try {
+            parsed = JSON.parse(text);
+          } catch {
+            /* keep raw */
+          }
 
           // Extract token usage from Converse response and log to Supabase.
           let inputTokens = 0;
           let outputTokens = 0;
           if (parsed && typeof parsed === "object") {
-            const usage = (parsed as { usage?: { inputTokens?: number; outputTokens?: number } }).usage;
+            const usage = (parsed as { usage?: { inputTokens?: number; outputTokens?: number } })
+              .usage;
             inputTokens = Math.max(0, Math.floor(usage?.inputTokens ?? 0));
             outputTokens = Math.max(0, Math.floor(usage?.outputTokens ?? 0));
           }
           const estCost = estimateCost(modelId, inputTokens, outputTokens);
-          const keyHint = authMode === "sigv4"
-            ? (body.accessKeyId || "").trim().slice(-4)
-            : (body.apiKey || "").trim().slice(-4);
+          const keyHint =
+            authMode === "sigv4"
+              ? (body.accessKeyId || "").trim().slice(-4)
+              : (body.apiKey || "").trim().slice(-4);
           const errText = !upstream.ok
-            ? (typeof parsed === "object" && parsed && "message" in parsed
-                ? String((parsed as { message?: unknown }).message ?? "")
-                : text.slice(0, 500))
+            ? typeof parsed === "object" && parsed && "message" in parsed
+              ? String((parsed as { message?: unknown }).message ?? "")
+              : text.slice(0, 500)
             : null;
 
           try {
@@ -128,7 +146,9 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
               ok: upstream.ok,
               error: errText,
             });
-          } catch { /* logging must not break the response */ }
+          } catch {
+            /* logging must not break the response */
+          }
 
           return new Response(
             JSON.stringify({

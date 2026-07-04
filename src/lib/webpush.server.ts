@@ -63,11 +63,6 @@ function u32be(n: number): Uint8Array<ArrayBuffer> {
 }
 
 // ---------- VAPID JWT (ES256) ----------
-async function importVapidPrivateKey(privateKeyB64Url: string): Promise<CryptoKey> {
-  // Need the public key to construct a JWK. Derive nothing — re-import as raw d
-  // with a fixed dummy x,y is impossible; we require the public key too.
-  throw new Error("use importVapidKeypair");
-}
 
 async function importVapidKeypair(
   publicKeyB64Url: string,
@@ -128,11 +123,7 @@ async function signVapidJwt(opts: {
   const enc = (obj: unknown) => b64urlEncode(utf8(JSON.stringify(obj)));
   const unsigned = `${enc(header)}.${enc(payload)}`;
   const key = await importVapidKeypair(opts.publicKey, opts.privateKey);
-  const sig = await crypto.subtle.sign(
-    { name: "ECDSA", hash: "SHA-256" },
-    key,
-    utf8(unsigned),
-  );
+  const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, utf8(unsigned));
   return `${unsigned}.${b64urlEncode(sig)}`;
 }
 
@@ -162,11 +153,9 @@ async function encryptAes128Gcm(opts: {
   uaAuthSecret: Uint8Array<ArrayBuffer>; // 16 bytes
 }): Promise<Uint8Array<ArrayBuffer>> {
   // Generate ephemeral ECDH keypair.
-  const ephKeypair = await crypto.subtle.generateKey(
-    { name: "ECDH", namedCurve: "P-256" },
-    true,
-    ["deriveBits"],
-  );
+  const ephKeypair = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, [
+    "deriveBits",
+  ]);
   const exported = await crypto.subtle.exportKey("raw", ephKeypair.publicKey);
   const asPublicRaw = new Uint8Array(new ArrayBuffer(exported.byteLength));
   asPublicRaw.set(new Uint8Array(exported));
@@ -206,9 +195,7 @@ async function encryptAes128Gcm(opts: {
   const delim = new Uint8Array(new ArrayBuffer(1));
   delim[0] = 0x02;
   const padded = concat(opts.payload, delim);
-  const aesKey = await crypto.subtle.importKey("raw", cek, { name: "AES-GCM" }, false, [
-    "encrypt",
-  ]);
+  const aesKey = await crypto.subtle.importKey("raw", cek, { name: "AES-GCM" }, false, ["encrypt"]);
   const ctBits = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, aesKey, padded);
   const ct = new Uint8Array(new ArrayBuffer(ctBits.byteLength));
   ct.set(new Uint8Array(ctBits));

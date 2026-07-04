@@ -39,9 +39,6 @@ export async function markOnboarded(userId: string): Promise<void> {
   }
   const { error } = await supabase
     .from("user_settings")
-    .upsert(
-      { user_id: userId, onboarded_at: new Date().toISOString() },
-      { onConflict: "user_id" },
-    );
+    .upsert({ user_id: userId, onboarded_at: new Date().toISOString() }, { onConflict: "user_id" });
   if (error) console.warn("[onboarding] mark failed:", error.message);
 }

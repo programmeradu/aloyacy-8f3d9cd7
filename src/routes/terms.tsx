@@ -9,8 +9,7 @@ export const Route = createFileRoute("/terms")({
       { title: "Terms — Aloya" },
       {
         name: "description",
-        content:
-          "The agreement between Aloya and riders using the app on Cyprus buses.",
+        content: "The agreement between Aloya and riders using the app on Cyprus buses.",
       },
       { property: "og:title", content: "Terms — Aloya" },
       {
@@ -22,7 +21,10 @@ export const Route = createFileRoute("/terms")({
       { property: "og:image", content: "https://app.aloya.cy/og/og-privacy.jpg" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "Cypriot limestone wall split by a shaft of aegean-blue light." },
+      {
+        property: "og:image:alt",
+        content: "Cypriot limestone wall split by a shaft of aegean-blue light.",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://app.aloya.cy/og/og-privacy.jpg" },
     ],
@@ -57,9 +59,7 @@ function TermsPage() {
           {t("terms.updated", { date: updated })}
         </p>
 
-        <p className="mt-8 text-[15px] leading-relaxed text-ink/80">
-          {t("terms.intro")}
-        </p>
+        <p className="mt-8 text-[15px] leading-relaxed text-ink/80">{t("terms.intro")}</p>
 
         <Section title={t("terms.section.service")} body={t("terms.service.body")} />
         <Section title={t("terms.section.use")} body={t("terms.use.body")} />
@@ -81,9 +81,7 @@ function TermsPage() {
 function Section({ title, body }: { title: string; body: string }) {
   return (
     <section className="mt-10">
-      <h2 className="font-display text-[22px] leading-tight tracking-tight text-ink">
-        {title}
-      </h2>
+      <h2 className="font-display text-[22px] leading-tight tracking-tight text-ink">{title}</h2>
       <p className="mt-3 text-[15px] leading-relaxed text-ink/75">{body}</p>
     </section>
   );

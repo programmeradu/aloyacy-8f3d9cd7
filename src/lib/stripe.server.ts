@@ -11,9 +11,7 @@ export type StripeEnv = "sandbox" | "live";
 const GATEWAY_STRIPE_BASE = "https://connector-gateway.lovable.dev/stripe";
 
 export function getConnectionApiKey(env: StripeEnv): string {
-  return env === "sandbox"
-    ? getEnv("STRIPE_SANDBOX_API_KEY")
-    : getEnv("STRIPE_LIVE_API_KEY");
+  return env === "sandbox" ? getEnv("STRIPE_SANDBOX_API_KEY") : getEnv("STRIPE_LIVE_API_KEY");
 }
 
 export function createStripeClient(env: StripeEnv): Stripe {
@@ -23,7 +21,8 @@ export function createStripeClient(env: StripeEnv): Stripe {
   return new Stripe(connectionApiKey, {
     apiVersion: "2026-03-25.dahlia",
     httpClient: Stripe.createFetchHttpClient(((input: URL | RequestInfo, init?: RequestInit) => {
-      const urlStr = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      const urlStr =
+        typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
       const gatewayUrl = urlStr.replace("https://api.stripe.com", GATEWAY_STRIPE_BASE);
       return fetch(gatewayUrl, {
         ...init,

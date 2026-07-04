@@ -40,13 +40,19 @@ function newToken(): string {
 // Loose leg schema — mirrors packages/core Itinerary but permissive so we
 // don't couple this endpoint to internal changes. Bounded size + primitive
 // types only.
-const LegSchema = z.record(z.string(), z.union([
-  z.string().max(300),
-  z.number().finite(),
-  z.boolean(),
-  z.null(),
-  z.record(z.string(), z.union([z.string().max(300), z.number().finite(), z.boolean(), z.null()])),
-]));
+const LegSchema = z.record(
+  z.string(),
+  z.union([
+    z.string().max(300),
+    z.number().finite(),
+    z.boolean(),
+    z.null(),
+    z.record(
+      z.string(),
+      z.union([z.string().max(300), z.number().finite(), z.boolean(), z.null()]),
+    ),
+  ]),
+);
 
 const CY_LAT = z.number().min(34).max(36);
 const CY_LNG = z.number().min(32).max(35);
@@ -62,7 +68,11 @@ const CreateBody = z.object({
   destinationLng: CY_LNG,
   departureUnix: z.number().int().min(1),
   arrivalUnix: z.number().int().min(1),
-  totalDurationSec: z.number().int().min(0).max(24 * 60 * 60),
+  totalDurationSec: z
+    .number()
+    .int()
+    .min(0)
+    .max(24 * 60 * 60),
   transfers: z.number().int().min(0).max(6),
   legs: z.array(LegSchema).min(1).max(12),
 });
@@ -104,10 +114,7 @@ export const Route = createFileRoute("/api/public/plan-share")({
         // Sanity: arrival after departure, both within ±14 days.
         const nowSec = Math.floor(Date.now() / 1000);
         const bound = 14 * 24 * 60 * 60;
-        if (
-          p.arrivalUnix < p.departureUnix ||
-          Math.abs(p.departureUnix - nowSec) > bound
-        ) {
+        if (p.arrivalUnix < p.departureUnix || Math.abs(p.departureUnix - nowSec) > bound) {
           return jsonRes(400, { error: "invalid_times" });
         }
 

@@ -68,9 +68,10 @@ function writeCache(p: AccessibilityPrefs): void {
 /** Clamp/coerce arbitrary input into a safe AccessibilityPrefs. */
 export function normalise(p: Partial<AccessibilityPrefs> | null | undefined): AccessibilityPrefs {
   if (!p || typeof p !== "object") return DEFAULT_PREFS;
-  const cap = typeof p.maxWalkMeters === "number" && Number.isFinite(p.maxWalkMeters)
-    ? Math.max(100, Math.min(3000, Math.round(p.maxWalkMeters)))
-    : null;
+  const cap =
+    typeof p.maxWalkMeters === "number" && Number.isFinite(p.maxWalkMeters)
+      ? Math.max(100, Math.min(3000, Math.round(p.maxWalkMeters)))
+      : null;
   return {
     stepFree: !!p.stepFree,
     preferShade: !!p.preferShade,
@@ -96,9 +97,6 @@ export async function savePrefs(userId: string | null, next: AccessibilityPrefs)
   if (!userId) return; // anon riders keep prefs in localStorage only
   const { error } = await supabase
     .from("user_settings")
-    .upsert(
-      { user_id: userId, accessibility_prefs: next },
-      { onConflict: "user_id" },
-    );
+    .upsert({ user_id: userId, accessibility_prefs: next }, { onConflict: "user_id" });
   if (error) console.warn("[a11y-prefs] save failed:", error.message);
 }

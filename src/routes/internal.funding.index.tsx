@@ -18,7 +18,9 @@ function Section({ children }: { children: React.ReactNode }) {
 function Row({ k, a, b, c }: { k: string; a: string; b: string; c: string }) {
   return (
     <div className="grid grid-cols-12 gap-4 py-4 border-t border-line">
-      <div className="col-span-12 md:col-span-3 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-soft">{k}</div>
+      <div className="col-span-12 md:col-span-3 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-soft">
+        {k}
+      </div>
       <div className="col-span-4 md:col-span-3 font-display text-lg text-ink">{a}</div>
       <div className="col-span-4 md:col-span-2 text-sm text-ink">{b}</div>
       <div className="col-span-4 md:col-span-4 text-sm text-ink-soft">{c}</div>
@@ -36,7 +38,8 @@ function FundingLanding() {
             Internal / Funding &amp; Positioning · v1 · Jul 2026
           </div>
           <h1 className="font-display text-[44px] md:text-[68px] leading-[0.95] tracking-[-0.02em]">
-            Aloya is the <em className="italic text-aegean-deep">trust layer</em><br />
+            Aloya is the <em className="italic text-aegean-deep">trust layer</em>
+            <br />
             for Cyprus public transport.
           </h1>
           <p className="mt-8 text-lg md:text-xl text-ink-soft max-w-[640px] leading-relaxed">
@@ -65,11 +68,13 @@ function FundingLanding() {
       {/* Thesis */}
       <Section>
         <div className="py-16 border-t border-line">
-          <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-ochre mb-4">Thesis</div>
+          <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-ochre mb-4">
+            Thesis
+          </div>
           <p className="font-display text-2xl md:text-3xl leading-[1.25] tracking-[-0.01em]">
             Cyprus has world-class open transit data and no citizen-facing product that treats it
-            with respect. Journey planners exist. <em className="italic">Trust</em> does not.
-            Aloya wins the rider by being right when the feed is wrong.
+            with respect. Journey planners exist. <em className="italic">Trust</em> does not. Aloya
+            wins the rider by being right when the feed is wrong.
           </p>
         </div>
       </Section>
@@ -87,12 +92,42 @@ function FundingLanding() {
               </div>
             </div>
 
-            <Row k="Now" a="RIF Fast Track" b="€50–150k" c="Cyprus-only · ~70% co-funding · 3-month decision · realistic first win" />
-            <Row k="Now" a="ESF+ Upskilling" b="€30–80k" c="Human Resource Development Authority (AnAD) — train riders + city staff on digital mobility literacy; pairs with an Aloya-in-the-classroom module" />
-            <Row k="Q4 2026" a="CEF Digital · MMTIS" b="€200–500k" c="EU consortium bid with UCY/CUT + an operator (OSEL/Motion) around NAP/GTFS-RT quality" />
-            <Row k="2027" a="Horizon Cluster 5" b="€1–3M share" c="CIVITAS consortium — join as digital/data partner, not lead" />
-            <Row k="2027" a="Interreg Euro-MED" b="€150–400k" c="Cross-border small-island mobility — Cyprus + Malta + Crete/Balearics" />
-            <Row k="After traction" a="EIC Accelerator" b="€2.5M + €15M eq." c="Requires paying users, LOI from Ministry/PTA, international expansion narrative" />
+            <Row
+              k="Now"
+              a="RIF Fast Track"
+              b="€50–150k"
+              c="Cyprus-only · ~70% co-funding · 3-month decision · realistic first win"
+            />
+            <Row
+              k="Now"
+              a="ESF+ Upskilling"
+              b="€30–80k"
+              c="Human Resource Development Authority (AnAD) — train riders + city staff on digital mobility literacy; pairs with an Aloya-in-the-classroom module"
+            />
+            <Row
+              k="Q4 2026"
+              a="CEF Digital · MMTIS"
+              b="€200–500k"
+              c="EU consortium bid with UCY/CUT + an operator (OSEL/Motion) around NAP/GTFS-RT quality"
+            />
+            <Row
+              k="2027"
+              a="Horizon Cluster 5"
+              b="€1–3M share"
+              c="CIVITAS consortium — join as digital/data partner, not lead"
+            />
+            <Row
+              k="2027"
+              a="Interreg Euro-MED"
+              b="€150–400k"
+              c="Cross-border small-island mobility — Cyprus + Malta + Crete/Balearics"
+            />
+            <Row
+              k="After traction"
+              a="EIC Accelerator"
+              b="€2.5M + €15M eq."
+              c="Requires paying users, LOI from Ministry/PTA, international expansion narrative"
+            />
           </div>
         </Section>
       </div>
@@ -107,12 +142,13 @@ function FundingLanding() {
             Upskilling grants pay us to teach Cyprus how to ride.
           </h2>
           <p className="text-lg text-ink-soft leading-relaxed max-w-[640px]">
-            ESF+ (European Social Fund Plus) funds <strong className="text-ink">people, not products</strong> —
-            digital literacy, green-skills training, workforce transition. Aloya qualifies as the
+            ESF+ (European Social Fund Plus) funds{" "}
+            <strong className="text-ink">people, not products</strong> — digital literacy,
+            green-skills training, workforce transition. Aloya qualifies as the
             <em className="italic"> delivery mechanism</em> for a digital-mobility literacy program:
             older riders, tourists, low-income commuters, municipal staff. AnAD (HRDA) administers
-            the Cyprus tranche. Typical envelope: €30–80k per pilot cohort. It won't build the app
-            — it funds the human infrastructure around it, and every trained user is a permanent
+            the Cyprus tranche. Typical envelope: €30–80k per pilot cohort. It won't build the app —
+            it funds the human infrastructure around it, and every trained user is a permanent
             rider.
           </p>
         </div>
@@ -126,13 +162,16 @@ function FundingLanding() {
               Expansion / What Aloya becomes
             </div>
             <h2 className="font-display text-4xl md:text-5xl tracking-[-0.02em] leading-[1] mb-10">
-              The bus is the wedge.<br />
+              The bus is the wedge.
+              <br />
               <span className="text-aegean">Mobility is the market.</span>
             </h2>
 
             <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">V2 · Micromobility</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">
+                  V2 · Micromobility
+                </div>
                 <h3 className="font-display text-2xl mb-2">Bikes, scooters, shared cars.</h3>
                 <p className="text-limestone/70 leading-relaxed">
                   Nextbike, Bolt, and Kapnos already integrated as data sources. Promote to
@@ -140,15 +179,19 @@ function FundingLanding() {
                 </p>
               </div>
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">V3 · Ferries &amp; airport</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">
+                  V3 · Ferries &amp; airport
+                </div>
                 <h3 className="font-display text-2xl mb-2">Sea legs, arrivals, transfers.</h3>
                 <p className="text-limestone/70 leading-relaxed">
-                  Paphos/Larnaca airport shuttles, Kyrenia ferry connections, cruise-day
-                  disruption feeds. Tourist arrival → first ride, without the friction.
+                  Paphos/Larnaca airport shuttles, Kyrenia ferry connections, cruise-day disruption
+                  feeds. Tourist arrival → first ride, without the friction.
                 </p>
               </div>
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">V4 · Accessibility OS</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">
+                  V4 · Accessibility OS
+                </div>
                 <h3 className="font-display text-2xl mb-2">Real-time inclusive routing.</h3>
                 <p className="text-limestone/70 leading-relaxed">
                   Wheelchair-verified stops, step-count, low-floor bus detection, audio-first
@@ -157,15 +200,19 @@ function FundingLanding() {
                 </p>
               </div>
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">V5 · Regional expansion</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">
+                  V5 · Regional expansion
+                </div>
                 <h3 className="font-display text-2xl mb-2">Malta, Crete, Balearics.</h3>
                 <p className="text-limestone/70 leading-relaxed">
-                  Same problem, same GTFS-RT gap, same tourist-heavy island economics. Aloya as
-                  the Mediterranean small-island mobility standard — the EIC narrative.
+                  Same problem, same GTFS-RT gap, same tourist-heavy island economics. Aloya as the
+                  Mediterranean small-island mobility standard — the EIC narrative.
                 </p>
               </div>
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">V6 · Carbon &amp; MaaS wallet</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">
+                  V6 · Carbon &amp; MaaS wallet
+                </div>
                 <h3 className="font-display text-2xl mb-2">Green Deal money.</h3>
                 <p className="text-limestone/70 leading-relaxed">
                   Per-trip CO₂ ledger, employer commute subsidies, integrated Motion Pass +
@@ -173,12 +220,14 @@ function FundingLanding() {
                 </p>
               </div>
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">V7 · Rider data commons</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50 mb-2">
+                  V7 · Rider data commons
+                </div>
                 <h3 className="font-display text-2xl mb-2">The signal, published back.</h3>
                 <p className="text-limestone/70 leading-relaxed">
                   Anonymised reliability signals shared as open data with CyNAP, universities,
-                  operators. Positions Aloya as public-interest infrastructure — the moat, and
-                  the LOI generator.
+                  operators. Positions Aloya as public-interest infrastructure — the moat, and the
+                  LOI generator.
                 </p>
               </div>
             </div>
@@ -189,7 +238,9 @@ function FundingLanding() {
       {/* CTA */}
       <Section>
         <div className="py-20 text-center">
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft mb-4">Next</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft mb-4">
+            Next
+          </p>
           <h2 className="font-display text-3xl md:text-4xl tracking-[-0.01em] mb-6">
             Draft the RIF Fast Track one-pager. Scope the CEF consortium.
           </h2>

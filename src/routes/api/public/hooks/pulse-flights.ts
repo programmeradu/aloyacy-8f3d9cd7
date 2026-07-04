@@ -26,9 +26,11 @@ function json(body: unknown, status = 200) {
 async function guard(request: Request): Promise<Response | null> {
   const apikey = request.headers.get("apikey");
   const legacy =
-    request.headers.get("x-cron-secret") ??
-    new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey = apikey && apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+    request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
+  const validApiKey =
+    apikey &&
+    apikey ===
+      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
   const validLegacy = legacy && process.env.CRON_SECRET && legacy === process.env.CRON_SECRET;
   if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
@@ -47,8 +49,8 @@ export const Route = createFileRoute("/api/public/hooks/pulse-flights")({
 const FlightSchema = z.object({
   callsign: z.string().nullable(),
   direction: z.enum(["arrival", "departure"]),
-  otherAirport: z.string().nullable(),  // ICAO of the other end
-  scheduled: z.string(),                // ISO local
+  otherAirport: z.string().nullable(), // ICAO of the other end
+  scheduled: z.string(), // ISO local
   estimated: z.string().nullable(),
 });
 type Flight = z.infer<typeof FlightSchema>;
@@ -79,8 +81,8 @@ type OpenSkyFlight = {
 };
 
 const AIRPORTS = [
-  { icao: "LCLK" as const, city: "Larnaca",  scope: "airport-lca" },
-  { icao: "LCPH" as const, city: "Paphos",   scope: "airport-pfo" },
+  { icao: "LCLK" as const, city: "Larnaca", scope: "airport-lca" },
+  { icao: "LCPH" as const, city: "Paphos", scope: "airport-pfo" },
 ];
 
 async function ingest() {
@@ -91,7 +93,8 @@ async function ingest() {
   const end = now + 2 * 3600;
   const fetchedAt = new Date().toISOString();
 
-  const results: Array<{ airport: string; ok: boolean; payload?: AirportPayload; error?: string }> = [];
+  const results: Array<{ airport: string; ok: boolean; payload?: AirportPayload; error?: string }> =
+    [];
 
   for (const a of AIRPORTS) {
     try {
@@ -105,7 +108,7 @@ async function ingest() {
           callsign: f.callsign?.trim() || null,
           direction: "arrival" as const,
           otherAirport: f.estDepartureAirport ?? null,
-          scheduled: new Date(((f.lastSeen ?? now) * 1000)).toISOString(),
+          scheduled: new Date((f.lastSeen ?? now) * 1000).toISOString(),
           estimated: null,
         });
         return parsed.success ? [parsed.data] : [];
@@ -116,7 +119,7 @@ async function ingest() {
           callsign: f.callsign?.trim() || null,
           direction: "departure" as const,
           otherAirport: f.estArrivalAirport ?? null,
-          scheduled: new Date(((f.firstSeen ?? now) * 1000)).toISOString(),
+          scheduled: new Date((f.firstSeen ?? now) * 1000).toISOString(),
           estimated: null,
         });
         return parsed.success ? [parsed.data] : [];
@@ -127,10 +130,12 @@ async function ingest() {
 
       const sixtyFromNow = now + 3600;
       const arrivalsNext60 = arrivals.filter(
-        (f) => Date.parse(f.scheduled) / 1000 >= now && Date.parse(f.scheduled) / 1000 <= sixtyFromNow,
+        (f) =>
+          Date.parse(f.scheduled) / 1000 >= now && Date.parse(f.scheduled) / 1000 <= sixtyFromNow,
       ).length;
       const departuresNext60 = departures.filter(
-        (f) => Date.parse(f.scheduled) / 1000 >= now && Date.parse(f.scheduled) / 1000 <= sixtyFromNow,
+        (f) =>
+          Date.parse(f.scheduled) / 1000 >= now && Date.parse(f.scheduled) / 1000 <= sixtyFromNow,
       ).length;
 
       const payload = AirportPayloadSchema.parse({
@@ -148,21 +153,19 @@ async function ingest() {
         fetchedAt,
       });
 
-      const { error } = await supabaseAdmin
-        .from("pulse_signals")
-        .upsert(
-          [
-            {
-              key: "flights",
-              scope: a.scope,
-              source: "opensky",
-              payload: payload as unknown as Record<string, unknown>,
-              ttl_seconds: 900,
-              fetched_at: fetchedAt,
-            },
-          ] as never,
-          { onConflict: "key,scope" },
-        );
+      const { error } = await supabaseAdmin.from("pulse_signals").upsert(
+        [
+          {
+            key: "flights",
+            scope: a.scope,
+            source: "opensky",
+            payload: payload as unknown as Record<string, unknown>,
+            ttl_seconds: 900,
+            fetched_at: fetchedAt,
+          },
+        ] as never,
+        { onConflict: "key,scope" },
+      );
       if (error) {
         results.push({ airport: a.icao, ok: false, error: error.message });
       } else {

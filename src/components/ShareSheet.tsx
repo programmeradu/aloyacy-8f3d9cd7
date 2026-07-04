@@ -11,13 +11,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { renderStopShareCard, type StopCardCtx } from "@/lib/shareCard";
-import {
-  IconClose,
-  IconDownload,
-  IconLink,
-  IconShare,
-  IconWhatsApp,
-} from "@/components/Icons";
+import { IconClose, IconDownload, IconLink, IconShare, IconWhatsApp } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
 
 type Props = {
@@ -101,13 +95,25 @@ export function ShareSheet({ open, onClose, ctx }: Props) {
     if (!file) return;
     if (canShareFile(file)) {
       try {
-        await navigator.share({ files: [file], title: ctx.stop.name, text: shareText, url: ctx.url });
+        await navigator.share({
+          files: [file],
+          title: ctx.stop.name,
+          text: shareText,
+          url: ctx.url,
+        });
         return;
-      } catch { return; }
+      } catch {
+        return;
+      }
     }
     const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
     if (nav.canShare?.({ text: shareText, url: ctx.url })) {
-      try { await navigator.share({ text: shareText, url: ctx.url }); return; } catch { return; }
+      try {
+        await navigator.share({ text: shareText, url: ctx.url });
+        return;
+      } catch {
+        return;
+      }
     }
     triggerDownload(file);
   }
@@ -119,14 +125,25 @@ export function ShareSheet({ open, onClose, ctx }: Props) {
     // and the card lands as a real picture, not just a link preview.
     if (canShareFile(file)) {
       try {
-        await navigator.share({ files: [file], title: ctx.stop.name, text: shareText, url: ctx.url });
+        await navigator.share({
+          files: [file],
+          title: ctx.stop.name,
+          text: shareText,
+          url: ctx.url,
+        });
         return;
-      } catch { return; }
+      } catch {
+        return;
+      }
     }
     // Fallback (desktop / unsupported): save the image locally, copy text to
     // clipboard, then open WhatsApp Web so the user can paste + attach.
     triggerDownload(file);
-    try { await navigator.clipboard.writeText(`${shareText}\n${ctx.url}`); } catch { /* noop */ }
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n${ctx.url}`);
+    } catch {
+      /* noop */
+    }
     const wa = `https://web.whatsapp.com/send?text=${encodeURIComponent(shareText + "\n" + ctx.url)}`;
     window.open(wa, "_blank", "noopener,noreferrer");
     flash(t("share.waFallback"));
@@ -204,12 +221,8 @@ export function ShareSheet({ open, onClose, ctx }: Props) {
         </div>
 
         <div className="px-5 pb-3">
-          <h2 className="font-display text-[22px] leading-tight text-ink">
-            {t("share.title")}
-          </h2>
-          <p className="mt-1 text-[12px] text-ink-soft">
-            {t("share.subtitle")}
-          </p>
+          <h2 className="font-display text-[22px] leading-tight text-ink">{t("share.title")}</h2>
+          <p className="mt-1 text-[12px] text-ink-soft">{t("share.subtitle")}</p>
         </div>
 
         {/* Preview */}
@@ -320,9 +333,7 @@ function buildShareText(ctx: StopCardCtx): string {
   lines.push(el ? `Στάση ${ctx.stop.name}` : `${ctx.stop.name} bus stop`);
   if (ctx.nextEtaMin != null) {
     lines.push(
-      el
-        ? `Επόμενο λεωφορείο σε ${ctx.nextEtaMin} λεπτά`
-        : `Next bus in ${ctx.nextEtaMin} min`,
+      el ? `Επόμενο λεωφορείο σε ${ctx.nextEtaMin} λεπτά` : `Next bus in ${ctx.nextEtaMin} min`,
     );
   }
   if (ctx.routes.length) {
@@ -330,9 +341,7 @@ function buildShareText(ctx: StopCardCtx): string {
       .slice(0, 5)
       .map((r) => r.short)
       .join(", ");
-    lines.push(
-      el ? `Γραμμές ${codes}` : `Routes ${codes}`,
-    );
+    lines.push(el ? `Γραμμές ${codes}` : `Routes ${codes}`);
   }
   lines.push(el ? "Ζωντανά στο Aloya" : "Live on Aloya");
   return lines.join("\n");

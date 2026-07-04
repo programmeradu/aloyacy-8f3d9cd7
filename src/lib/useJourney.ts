@@ -18,7 +18,6 @@ import { getShapeForTripSync, prefetchShapes, type LatLng } from "./shapes";
 import ROUTE_SEQUENCES from "@/data/route_sequences.json";
 import { useTick } from "@/hooks/use-tick";
 
-
 const SEQUENCES = ROUTE_SEQUENCES as Record<string, string[]>;
 
 // Rough urban-bus heuristics for the vehicle-position-based ETA floor.
@@ -108,7 +107,7 @@ export type LiveJourney = {
   fusedVehicle: { lat: number; lng: number; bearing: number; tripId: string } | null;
   // Diagnostics
   onBoardSuggested: boolean; // GPS suggests user is moving with bus
-  missedSuggested: boolean;  // bus departed without user confirmation
+  missedSuggested: boolean; // bus departed without user confirmation
   /** True when on-board confirmed but the bus disappeared from the live feed.
    *  We're falling back to the rider's own GPS as the vehicle position. */
   vehicleLost: boolean;
@@ -126,12 +125,11 @@ export type LiveJourney = {
   rerouteHint: RerouteHint;
 };
 
-
-const ARRIVAL_RADIUS_M = 30;   // "at stop" / "arrived at destination"
+const ARRIVAL_RADIUS_M = 30; // "at stop" / "arrived at destination"
 const BUS_MATCH_RADIUS_M = 60; // user near a live vehicle
-const RIDING_SPEED_MPS = 5;    // ~18 km/h, well above walking
-const HURRY_SOFT_GAP_S = 180;  // walking ETA within 3 min of bus ETA
-const HURRY_URGENT_GAP_S = 0;  // walking ETA exceeds bus ETA
+const RIDING_SPEED_MPS = 5; // ~18 km/h, well above walking
+const HURRY_SOFT_GAP_S = 180; // walking ETA within 3 min of bus ETA
+const HURRY_URGENT_GAP_S = 0; // walking ETA exceeds bus ETA
 
 export function useJourney(opts: {
   active: ActiveTrip | null;
@@ -144,7 +142,9 @@ export function useJourney(opts: {
 
   // Active polyline for snap-to-route: walking step polyline pre-board,
   // the GTFS trip shape once riding. Recomputed cheaply per render.
-  useEffect(() => { prefetchShapes(); }, []);
+  useEffect(() => {
+    prefetchShapes();
+  }, []);
   const bus0 = active?.option.legs.find((l) => l.kind === "bus");
   const onBoardEarly = !!live?.onBoardConfirmedAt && !live?.alightedAt;
   const activePath: LatLng[] | null = useMemo(() => {
@@ -180,8 +180,6 @@ export function useJourney(opts: {
   // RidingCard (which uses live.fusedSecsToAlight) to drift by ~1 minute.
   const tick = useTick(5_000);
 
-
-
   const bus = useMemo(() => {
     if (!active) return null;
     const b = active.option.legs.find((l) => l.kind === "bus");
@@ -203,10 +201,7 @@ export function useJourney(opts: {
     return null;
   }, [bus, rt, onBoard, fix]);
   const alightLoc = useMemo(
-    () =>
-      walkOut?.kind === "walk"
-        ? { lat: walkOut.from.lat, lng: walkOut.from.lng }
-        : null,
+    () => (walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null),
     [walkOut],
   );
   const drive = useDriveEta({
@@ -214,7 +209,6 @@ export function useJourney(opts: {
     from: busPos,
     to: alightLoc,
   });
-
 
   const result = useMemo<LiveJourney>(() => {
     const baseInactive: LiveJourney = {
@@ -239,9 +233,8 @@ export function useJourney(opts: {
       rerouteHint: null,
     };
 
-
     if (!active || !bus || !started) return baseInactive;
-    if (live?.alightedAt || walkingPhase === null && live?.onBoardConfirmedAt && bus) {
+    if (live?.alightedAt || (walkingPhase === null && live?.onBoardConfirmedAt && bus)) {
       // continue, handled below
     }
 
@@ -259,11 +252,7 @@ export function useJourney(opts: {
 
     // Walking projection
     const targetLeg =
-      walkingPhase === "to-stop"
-        ? walkIn
-        : walkingPhase === "to-dest"
-          ? walkOut
-          : null;
+      walkingPhase === "to-stop" ? walkIn : walkingPhase === "to-dest" ? walkOut : null;
     const destination =
       targetLeg && targetLeg.kind === "walk"
         ? { lat: targetLeg.to.lat, lng: targetLeg.to.lng }
@@ -310,9 +299,7 @@ export function useJourney(opts: {
     // After-the-bus leg
     if (live?.alightedAt) {
       const destLoc =
-        walkOut?.kind === "walk"
-          ? { lat: walkOut.to.lat, lng: walkOut.to.lng }
-          : null;
+        walkOut?.kind === "walk" ? { lat: walkOut.to.lat, lng: walkOut.to.lng } : null;
       const distToDest = fix && destLoc ? distanceM(fix, destLoc) : Infinity;
       if (fix && destLoc && distToDest < ARRIVAL_RADIUS_M) phase = "arrived";
       else phase = "walking-to-dest";
@@ -325,10 +312,7 @@ export function useJourney(opts: {
     } else {
       // Pre-board phase. The bus leg only stores stopId/name, so use the
       // walk-in leg's `to` coordinate as the board-stop location.
-      const boardLoc =
-        walkIn?.kind === "walk"
-          ? { lat: walkIn.to.lat, lng: walkIn.to.lng }
-          : null;
+      const boardLoc = walkIn?.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null;
       const distToBoardStop = fix && boardLoc ? distanceM(fix, boardLoc) : Infinity;
       const atStop = !!fix && !!boardLoc && distToBoardStop < ARRIVAL_RADIUS_M;
 
@@ -374,12 +358,7 @@ export function useJourney(opts: {
         const busFromStop = distanceM(vehicle, boardLoc);
         const riderFarFromBus = !fix || distanceM(fix, vehicle) > 250;
         const riderStillNearStop = !!fix && distToBoardStop < 60;
-        if (
-          busFromStop > 250 &&
-          now > boardUnix + 60 &&
-          riderFarFromBus &&
-          riderStillNearStop
-        ) {
+        if (busFromStop > 250 && now > boardUnix + 60 && riderFarFromBus && riderStillNearStop) {
           phase = "missed-bus";
         }
       }
@@ -387,9 +366,7 @@ export function useJourney(opts: {
 
     // On-board auto-detection heuristic (suggest prompt, never auto-skip)
     const onBoardSuggested =
-      !!fix &&
-      (fix.speedMps ?? 0) > RIDING_SPEED_MPS &&
-      !live?.onBoardConfirmedAt;
+      !!fix && (fix.speedMps ?? 0) > RIDING_SPEED_MPS && !live?.onBoardConfirmedAt;
 
     const missedSuggested = phase === "missed-bus";
 
@@ -407,10 +384,7 @@ export function useJourney(opts: {
       const gpsSpeed = fix?.speedMps ?? 0;
       const distToVehicle = fix && vehicle ? distanceM(fix, vehicle) : Infinity;
       const ridingWithBus =
-        !!fix &&
-        !!vehicle &&
-        gpsSpeed > RIDING_SPEED_MPS &&
-        distToVehicle < 250;
+        !!fix && !!vehicle && gpsSpeed > RIDING_SPEED_MPS && distToVehicle < 250;
 
       if (vehicle && ridingWithBus && fix) {
         // Both signals agree the rider is on the bus → light blend that
@@ -473,10 +447,7 @@ export function useJourney(opts: {
           );
         } else if (vehicleLost) {
           const speed = gpsSpeed > 2 ? gpsSpeed : 6;
-          fusedSecsToAlight = Math.max(
-            minPossibleEta,
-            Math.round(distToAlight / speed),
-          );
+          fusedSecsToAlight = Math.max(minPossibleEta, Math.round(distToAlight / speed));
         } else {
           fusedSecsToAlight = Math.max(minPossibleEta, secsToAlight);
         }
@@ -488,11 +459,7 @@ export function useJourney(opts: {
     // Feed is healthy but no vehicle for this tripId yet. Very common before
     // departure or at night. Surface a banner instead of silently empty map.
     const vehicleNotTracked =
-      !feedStale &&
-      !!rt &&
-      !vehicle &&
-      !live?.onBoardConfirmedAt &&
-      !live?.alightedAt;
+      !feedStale && !!rt && !vehicle && !live?.onBoardConfirmedAt && !live?.alightedAt;
 
     // ---- Wrong-stop reroute hint (Google-Maps-style) ----------------------
     let rerouteHint: RerouteHint = null;
@@ -533,8 +500,24 @@ export function useJourney(opts: {
 
       rerouteHint,
     };
-  }, [active, bus, fix, live, rt, started, walkIn, walkOut, walkingPhase, walkingSteps, feedStale, drive.etaSec, onBoard, tick]);
-
+    // `tick` is a deliberate 1s heartbeat that forces countdown recomputation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    active,
+    bus,
+    fix,
+    live,
+    rt,
+    started,
+    walkIn,
+    walkOut,
+    walkingPhase,
+    walkingSteps,
+    feedStale,
+    drive.etaSec,
+    onBoard,
+    tick,
+  ]);
 
   // ---- GPS-based auto-confirm boarding -------------------------------------
   // If the rider's GPS shows sustained bus-speed motion AND they've left the
@@ -553,10 +536,8 @@ export function useJourney(opts: {
       ridingStartedAtRef.current = null;
       return;
     }
-    const boardLoc =
-      walkIn?.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null;
-    const departed =
-      !!fix && !!boardLoc && distanceM(fix, boardLoc) > RIDING_DISPLACEMENT_M;
+    const boardLoc = walkIn?.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null;
+    const departed = !!fix && !!boardLoc && distanceM(fix, boardLoc) > RIDING_DISPLACEMENT_M;
     if (!departed) {
       ridingStartedAtRef.current = null;
       return;
@@ -571,10 +552,6 @@ export function useJourney(opts: {
     }
   }, [result.active, bus, fix, live, walkIn]);
 
-
-
-
-
   // ---- Push alerting on phase transition -----------------------------------
   const sentRef = useRef<Set<string>>(new Set());
   const sendAlert = useServerFn(sendTripAlert);
@@ -587,7 +564,7 @@ export function useJourney(opts: {
       sentRef.current.add(key);
       fn();
     };
-    const url = `/trip/${(active!.option.id)}`;
+    const url = `/trip/${active!.option.id}`;
 
     if (result.phase === "hurry-soft") {
       fireOnce("hurry-soft", () =>
@@ -680,10 +657,7 @@ export function useJourney(opts: {
             import("./suggestions.functions"),
             import("./pwa"),
           ]);
-          const [token, accessToken] = await Promise.all([
-            getDeviceToken(),
-            getAccessToken(),
-          ]);
+          const [token, accessToken] = await Promise.all([getDeviceToken(), getAccessToken()]);
           if (!token) return;
           await recordTripHistory({
             data: {
@@ -699,7 +673,15 @@ export function useJourney(opts: {
         })();
       });
     }
-  }, [result.phase, result.onBoardSuggested, result.secsToBoard, result.active, active, bus, sendAlert]);
+  }, [
+    result.phase,
+    result.onBoardSuggested,
+    result.secsToBoard,
+    result.active,
+    active,
+    bus,
+    sendAlert,
+  ]);
 
   return result;
 }

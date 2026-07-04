@@ -14,11 +14,7 @@
 import { Link } from "@tanstack/react-router";
 import { RouteChip } from "@/components/RouteChip";
 import { routeTone } from "@/lib/gtfs";
-import {
-  tierAccent,
-  type FreshnessTier,
-  type FreshnessConfidence,
-} from "@/lib/freshness";
+import { tierAccent, type FreshnessTier, type FreshnessConfidence } from "@/lib/freshness";
 import { useI18n, type DictKey } from "@/lib/i18n";
 import { ConfidenceIcon } from "@/components/ConfidenceIcon";
 import accentAsset from "@/assets/route-card-accent.jpg.asset.json";
@@ -51,7 +47,6 @@ const TIER_KEYS: Record<FreshnessTier, DictKey> = {
   scheduled: "eta.tier.scheduled",
 };
 
-
 export function DepartureRow({
   tripId,
   routeId,
@@ -67,9 +62,7 @@ export function DepartureRow({
   const tierLabel = t(TIER_KEYS[eta.tier]);
 
   const isLiveish =
-    eta.tier === "live" ||
-    eta.tier === "rider-confirmed" ||
-    eta.tier === "predicted";
+    eta.tier === "live" || eta.tier === "rider-confirmed" || eta.tier === "predicted";
 
   const shifted =
     isLiveish &&
@@ -108,7 +101,6 @@ export function DepartureRow({
         className="pointer-events-none absolute inset-y-0 right-0 h-full w-[62%] object-cover object-right opacity-[0.32] sm:opacity-[0.38] mix-blend-multiply"
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-card via-card/80 to-transparent" />
-
 
       <div className="relative p-4 sm:p-5">
         {/* Top row: route chip · journey title · ETA numeral */}
@@ -182,11 +174,7 @@ function bandIsInformative(band: string, headlineMin: number | null): boolean {
   const lo = Number(m[1]);
   const hi = Number(m[2]);
   if (hi - lo <= 1) return false;
-  if (
-    headlineMin != null &&
-    Math.abs(lo - headlineMin) <= 1 &&
-    Math.abs(hi - headlineMin) <= 1
-  )
+  if (headlineMin != null && Math.abs(lo - headlineMin) <= 1 && Math.abs(hi - headlineMin) <= 1)
     return false;
   return true;
 }

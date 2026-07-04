@@ -40,19 +40,14 @@ function angularDelta(a: number, b: number) {
   return d;
 }
 
-function distanceMeters(
-  a: { lat: number; lng: number },
-  b: { lat: number; lng: number },
-) {
+function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
   const toRad = (n: number) => (n * Math.PI) / 180;
   const r = 6_371_000;
   const dLat = toRad(b.lat - a.lat);
   const dLng = toRad(b.lng - a.lng);
   const lat1 = toRad(a.lat);
   const lat2 = toRad(b.lat);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
   return 2 * r * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
@@ -61,22 +56,11 @@ function imagePoint(img: MapillaryImage) {
   return coords ? { lng: coords[0], lat: coords[1] } : null;
 }
 
-function searchUrlForRadius(args: {
-  lat: number;
-  lng: number;
-  radius: number;
-  fields: string;
-}) {
+function searchUrlForRadius(args: { lat: number; lng: number; radius: number; fields: string }) {
   const dLat = args.radius / 111_000;
   const dLng =
-    args.radius /
-    (111_000 * Math.max(0.2, Math.abs(Math.cos((args.lat * Math.PI) / 180))));
-  const bbox = [
-    args.lng - dLng,
-    args.lat - dLat,
-    args.lng + dLng,
-    args.lat + dLat,
-  ].join(",");
+    args.radius / (111_000 * Math.max(0.2, Math.abs(Math.cos((args.lat * Math.PI) / 180))));
+  const bbox = [args.lng - dLng, args.lat - dLat, args.lng + dLng, args.lat + dLat].join(",");
   return `${GRAPH}/images?bbox=${bbox}&limit=50&fields=${args.fields}`;
 }
 
@@ -92,14 +76,11 @@ export const Route = createFileRoute("/api/public/streetview")({
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
         const url = new URL(request.url);
-        const parsed = QuerySchema.safeParse(
-          Object.fromEntries(url.searchParams.entries()),
-        );
+        const parsed = QuerySchema.safeParse(Object.fromEntries(url.searchParams.entries()));
         if (!parsed.success) {
           return new Response("Bad request", { status: 400, headers: CORS });
         }
         const { lat, lng, heading, radius, meta } = parsed.data;
-
 
         const token = process.env.MAPILLARY_ACCESS_TOKEN;
         if (!token) {
@@ -124,9 +105,7 @@ export const Route = createFileRoute("/api/public/streetview")({
         // indexed from the carriageway or the opposite side of the junction.
         const seen = new Set<string>();
         const candidates: MapillaryImage[] = [];
-        const radii = Array.from(
-          new Set([radius, 120, 200, 350, 500].filter((r) => r >= radius)),
-        );
+        const radii = Array.from(new Set([radius, 120, 200, 350, 500].filter((r) => r >= radius)));
         for (const searchRadius of radii) {
           const search = await fetch(
             searchUrlForRadius({ lat, lng, radius: searchRadius, fields }),
@@ -158,15 +137,11 @@ export const Route = createFileRoute("/api/public/streetview")({
         const now = Date.now() / 1000;
         const ranked = candidates
           .map((img) => {
-            const angle =
-              img.computed_compass_angle ?? img.compass_angle ?? 0;
-            const headingScore =
-              heading == null ? 0 : angularDelta(angle, heading); // lower is better
+            const angle = img.computed_compass_angle ?? img.compass_angle ?? 0;
+            const headingScore = heading == null ? 0 : angularDelta(angle, heading); // lower is better
             const point = imagePoint(img);
             const distanceScore = point ? distanceMeters({ lat, lng }, point) : 500;
-            const ageDays = img.captured_at
-              ? (now - img.captured_at / 1000) / 86400
-              : 365 * 5;
+            const ageDays = img.captured_at ? (now - img.captured_at / 1000) / 86400 : 365 * 5;
             // Weight: proximity first, then heading, with recency as a light
             // tiebreaker. A nearby side-facing image is better guidance than
             // a perfectly headed image several blocks away.
@@ -187,27 +162,24 @@ export const Route = createFileRoute("/api/public/streetview")({
         // default mode of this same endpoint so the access token never
         // leaves the server.
         if (meta === "1") {
-          return new Response(
-            JSON.stringify({ imageId: best.id }),
-            {
-              status: 200,
-              headers: {
-                "Content-Type": "application/json",
-                "Cache-Control": "public, max-age=3600",
-                ...CORS,
-              },
+          return new Response(JSON.stringify({ imageId: best.id }), {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "Cache-Control": "public, max-age=3600",
+              ...CORS,
             },
-          );
+          });
         }
 
         // Default: stream the JPEG back so the browser doesn't need a
         // Mapillary token for thumbnails and we keep one cacheable origin.
         const img = await fetch(best.thumb_1024_url);
         if (!img.ok) {
-          return new Response(
-            `Mapillary thumbnail fetch failed: ${img.status}`,
-            { status: 502, headers: CORS },
-          );
+          return new Response(`Mapillary thumbnail fetch failed: ${img.status}`, {
+            status: 502,
+            headers: CORS,
+          });
         }
         const buf = await img.arrayBuffer();
         return new Response(buf, {

@@ -22,7 +22,7 @@
 
 import type { LoadedSchedule, ScheduleStop } from "./schedule-loader.server";
 import { serviceDateToUnix } from "./schedule-loader.server";
-import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
+import type { Itinerary, Leg, RideLeg, WalkLeg } from "./itinerary-types";
 
 // Cross-island journeys can legitimately require a local feeder, an
 // intercity service, and one or two airport-side connections. Three rounds
@@ -39,7 +39,6 @@ const MIN_TRANSFER_BUFFER_SEC = 90;
 const MAX_TOTAL_JOURNEY_SEC = 300 * 60; // cross-island + airport connections
 const TOP_K_RESULTS = 5;
 const DEFAULT_SEARCH_HORIZON_SEC = 4 * 3600; // "leave now" — 4h is plenty
-const EXPLICIT_SEARCH_HORIZON_SEC = 24 * 3600; // when an explicit time is set, scan a full day
 const WALK_M_PER_S = 1.35;
 const WALK_DETOUR = 1.35;
 
@@ -114,7 +113,7 @@ export async function planRaptor(
   // caller widens the horizon it must widen this too, otherwise "first bus
   // tomorrow morning" gets pruned before it is ever scored.
   const MAX_JOURNEY_SEC = opts?.maxJourneySec ?? MAX_TOTAL_JOURNEY_SEC;
-  const { date, stops, routes, trips, stopTrips, stopTimes } = schedule;
+  const { date, stops, trips, stopTrips, stopTimes } = schedule;
   const diag: RaptorDiagnostics = {
     date,
     scheduleStopsLoaded: Object.keys(stops).length,
@@ -138,13 +137,14 @@ export async function planRaptor(
   diag.destStopCount = dests.length;
   diag.nearestOriginStopKm = origins[0]?.distKm ?? null;
   diag.nearestDestStopKm = dests[0]?.distKm ?? null;
-  if (origins.length === 0) diag.reasons.push(`No schedule stop within ${MAX_ACCESS_WALK_KM}km of origin`);
-  if (dests.length === 0) diag.reasons.push(`No schedule stop within ${MAX_EGRESS_WALK_KM}km of destination`);
+  if (origins.length === 0)
+    diag.reasons.push(`No schedule stop within ${MAX_ACCESS_WALK_KM}km of origin`);
+  if (dests.length === 0)
+    diag.reasons.push(`No schedule stop within ${MAX_EGRESS_WALK_KM}km of destination`);
   if (origins.length === 0 || dests.length === 0) return { itineraries: [], diagnostics: diag };
 
   const destSet = new Map<string, { stop: ScheduleStop; id: string; distKm: number }>();
   for (const d of dests) destSet.set(d.id, { id: d.id, stop: d.stop, distKm: d.distKm });
-
 
   // Spatial bucket index for nearby-stop lookups (cheap walk transfers).
   // Bucket by 0.005° (~500m at Cyprus); a stop and its neighbours fall in
@@ -160,7 +160,11 @@ export async function planRaptor(
   for (const o of origins) {
     const walkSec = walkSecFromMeters(o.distKm * 1000);
     const arr = departureUnix + walkSec;
-    labels[0].set(o.id, { kind: "access", arrivalUnix: arr, meters: Math.round(o.distKm * 1000 * WALK_DETOUR) });
+    labels[0].set(o.id, {
+      kind: "access",
+      arrivalUnix: arr,
+      meters: Math.round(o.distKm * 1000 * WALK_DETOUR),
+    });
     bestArrival.set(o.id, arr);
   }
 
@@ -276,16 +280,7 @@ export async function planRaptor(
       const label = labels[k].get(destStopId);
       if (!label || label.kind !== "ride") continue;
       // Reconstruct
-      const it = reconstruct(
-        labels,
-        k,
-        destStopId,
-        destMeta,
-        schedule,
-        from,
-        to,
-        departureUnix,
-      );
+      const it = reconstruct(labels, k, destStopId, destMeta, schedule, from, to, departureUnix);
       if (it) itineraries.push(it);
     }
   }
@@ -375,7 +370,7 @@ function reconstruct(
   to: { lat: number; lng: number; label?: string },
   departureUnix: number,
 ): Itinerary | null {
-  const { stops, routes, trips, stopTimes } = schedule;
+  const { stops, routes, stopTimes } = schedule;
   type Chain = { stopId: string; round: number; label: Label };
   const chain: Chain[] = [];
   let curStop = endStopId;
@@ -426,7 +421,6 @@ function reconstruct(
     if (label.kind === "ride") {
       const boardStop = stops[prev.stopId];
       const alightStop = stops[node.stopId];
-      const tripMeta = trips[label.tripId];
       const routeMeta = routes[label.routeId];
       const tripSt = stopTimes[label.tripId];
       if (!tripSt) return null;

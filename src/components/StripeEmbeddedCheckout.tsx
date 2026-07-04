@@ -1,8 +1,5 @@
 import { useCallback } from "react";
-import {
-  EmbeddedCheckoutProvider,
-  EmbeddedCheckout,
-} from "@stripe/react-stripe-js";
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { useServerFn } from "@tanstack/react-start";
 import { createCheckoutSession } from "@/lib/billing.functions";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
@@ -29,7 +26,6 @@ export function StripeEmbeddedCheckoutPane({
     if ("error" in result) throw new Error(result.error);
     return result.clientSecret;
   }, [checkoutFn, planKey, returnUrl]);
-
 
   return (
     <div id="checkout" className="w-full">

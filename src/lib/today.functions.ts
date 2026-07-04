@@ -10,13 +10,7 @@ import events from "@/data/cyprus-events.json";
 import greekWords from "@/data/cyprus-greek-words.json";
 
 export type TodayTheme =
-  | "derby"
-  | "festival"
-  | "holiday"
-  | "cruise"
-  | "heatwave"
-  | "storm"
-  | "calm";
+  "derby" | "festival" | "holiday" | "cruise" | "heatwave" | "storm" | "calm";
 
 export type TodayTileKind =
   | "match"
@@ -142,8 +136,7 @@ async function fetchCyprusWeather(lat = 35.1856, lng = 33.3823): Promise<Weather
     const lk = process.env.LOVABLE_API_KEY;
     const gk = process.env.GOOGLE_MAPS_API_KEY;
     if (!lk || !gk) return null;
-    const url =
-      `https://connector-gateway.lovable.dev/google_maps/weather/v1/currentConditions:lookup?location.latitude=${lat}&location.longitude=${lng}&unitsSystem=METRIC&languageCode=en`;
+    const url = `https://connector-gateway.lovable.dev/google_maps/weather/v1/currentConditions:lookup?location.latitude=${lat}&location.longitude=${lng}&unitsSystem=METRIC&languageCode=en`;
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${lk}`, "X-Connection-Api-Key": gk },
       signal: AbortSignal.timeout(6000),
@@ -156,7 +149,8 @@ async function fetchCyprusWeather(lat = 35.1856, lng = 33.3823): Promise<Weather
     const code = (json.weatherCondition?.type ?? "").toUpperCase();
     let iconKey = "sun";
     if (code.includes("THUNDER")) iconKey = "storm";
-    else if (code.includes("RAIN") || code.includes("SHOWER") || code.includes("DRIZZLE")) iconKey = "rain";
+    else if (code.includes("RAIN") || code.includes("SHOWER") || code.includes("DRIZZLE"))
+      iconKey = "rain";
     else if (code.includes("CLOUD")) iconKey = "cloud";
     return {
       tempC: Math.round(json.temperature?.degrees ?? 0),
@@ -189,7 +183,8 @@ function isLikelyMatchday(
     venue: venue.name,
     venueEl: venue.nameEl,
     city: venue.city,
-    cityEl: venue.city === "Nicosia" ? "Λευκωσία" : venue.city === "Limassol" ? "Λεμεσός" : "Λάρνακα",
+    cityEl:
+      venue.city === "Nicosia" ? "Λευκωσία" : venue.city === "Limassol" ? "Λεμεσός" : "Λάρνακα",
     routes: venue.routeIds,
   };
 }
@@ -209,7 +204,8 @@ function activeFestival(d: Date): { name: string; nameEl: string; city: string }
     if (rule === "first-weekend" && dayNum <= 7) return e;
     if (rule === "late-month" && dayNum >= 22) return e;
     if (rule === "last-week" && dayNum >= 22) return e;
-    if (rule === "monday-after-pentecost" && dayNum >= 1 && dayNum <= 14 && d.getUTCDay() === 1) return e;
+    if (rule === "monday-after-pentecost" && dayNum >= 1 && dayNum <= 14 && d.getUTCDay() === 1)
+      return e;
   }
   return null;
 }
@@ -245,7 +241,11 @@ async function cruiseInPortLive(): Promise<CruiseToday> {
     if (!data) return null;
     const ttlMs = (Number(data.ttl_seconds) || 86_400) * 1000;
     if (Date.now() - Date.parse(data.fetched_at as string) > ttlMs) return null;
-    const p = (data.payload ?? {}) as { count?: number; summary?: string; totalPassengers?: number };
+    const p = (data.payload ?? {}) as {
+      count?: number;
+      summary?: string;
+      totalPassengers?: number;
+    };
     const count = Number(p.count) || 0;
     if (count <= 0) return null;
     return {
@@ -263,13 +263,6 @@ async function cruiseInPortLive(): Promise<CruiseToday> {
 // happening on the current calendar day whose city we recognise. Falls back
 // to the hand-authored `activeFestival` list when no live event matches.
 type LiveEvent = { name: string; nameEl: string; city: string };
-const CITY_EL: Record<string, string> = {
-  Nicosia: "Λευκωσία",
-  Limassol: "Λεμεσός",
-  Larnaca: "Λάρνακα",
-  Paphos: "Πάφος",
-  Famagusta: "Αμμόχωστος",
-};
 function normaliseCity(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const s = raw.toLowerCase();
@@ -277,7 +270,8 @@ function normaliseCity(raw: string | null | undefined): string | null {
   if (s.includes("limas") || s.includes("lemes") || s.includes("λεμ")) return "Limassol";
   if (s.includes("larna") || s.includes("λαρ")) return "Larnaca";
   if (s.includes("paph") || s.includes("paf") || s.includes("πάφ")) return "Paphos";
-  if (s.includes("famag") || s.includes("αμμό") || s.includes("ayia napa") || s.includes("paralim")) return "Famagusta";
+  if (s.includes("famag") || s.includes("αμμό") || s.includes("ayia napa") || s.includes("paralim"))
+    return "Famagusta";
   return null;
 }
 async function liveEventToday(d: Date, preferCity?: string): Promise<LiveEvent | null> {
@@ -294,7 +288,14 @@ async function liveEventToday(d: Date, preferCity?: string): Promise<LiveEvent |
     if (!data) return null;
     const ttlMs = (Number(data.ttl_seconds) || 86_400) * 1000;
     if (Date.now() - Date.parse(data.fetched_at as string) > ttlMs) return null;
-    const p = (data.payload ?? {}) as { events?: Array<{ title?: string; city?: string | null; startDate?: string | null; endDate?: string | null }> };
+    const p = (data.payload ?? {}) as {
+      events?: Array<{
+        title?: string;
+        city?: string | null;
+        startDate?: string | null;
+        endDate?: string | null;
+      }>;
+    };
     const evts = Array.isArray(p.events) ? p.events : [];
     if (evts.length === 0) return null;
     const today = d.toISOString().slice(0, 10);
@@ -307,9 +308,7 @@ async function liveEventToday(d: Date, preferCity?: string): Promise<LiveEvent |
     });
     const pool = active.length > 0 ? active : [];
     if (pool.length === 0) return null;
-    const cityHit = preferCity
-      ? pool.find((e) => normaliseCity(e.city) === preferCity)
-      : undefined;
+    const cityHit = preferCity ? pool.find((e) => normaliseCity(e.city) === preferCity) : undefined;
     const chosen = cityHit ?? pool[0];
     const city = normaliseCity(chosen.city) ?? preferCity ?? "Cyprus";
     const title = (chosen.title ?? "").trim();
@@ -342,49 +341,229 @@ function rhythmForDay(dow: number, city: string): TodayTile | null {
 type RhythmNote = { title: string; titleEl: string; detail: string; detailEl: string };
 const RHYTHM: Record<string, Record<number, RhythmNote>> = {
   Nicosia: {
-    0: { title: "Sunday slow-down", titleEl: "Κυριακάτικος ρυθμός", detail: "Old town quiet until lunch; Ledra Street fills after 17:00 as families walk in.", detailEl: "Παλιά πόλη ήσυχη μέχρι το μεσημέρι· η Λήδρας γεμίζει μετά τις 17:00." },
-    1: { title: "Office Monday", titleEl: "Δευτέρα γραφείων", detail: "Routes 158 and 259 heaviest 07:30–08:30 and 16:30–18:00 around the ministries.", detailEl: "Οι γραμμές 158 και 259 φορτώνουν 07:30–08:30 και 16:30–18:00 γύρω από τα υπουργεία." },
-    2: { title: "Market morning", titleEl: "Πρωινό λαϊκής", detail: "Ochi Square farmers' stalls bring foot traffic 08:00–13:00. Park-and-ride from Pallouriotissa.", detailEl: "Πάγκοι παραγωγών στην Πλατεία Ελευθερίας 08:00–13:00." },
-    3: { title: "Midweek calm", titleEl: "Μεσοβδόμαδη ηρεμία", detail: "Steady all day. Cafés around Faneromeni busy after 19:00 — bus 158 still the smoothest in.", detailEl: "Σταθερή κίνηση. Καφέ γύρω από τη Φανερωμένη μετά τις 19:00." },
-    4: { title: "Thursday students", titleEl: "Πέμπτη φοιτητών", detail: "UCY and EUC let out around 14:00 — expect crowded 121 and 138 across the river.", detailEl: "Πανεπιστήμιο και ΕΠΛ σχολούν 14:00 — φορτωμένες οι 121 και 138." },
-    5: { title: "Friday night out", titleEl: "Παρασκευή έξω", detail: "Old town tavernas fill from 20:00. Last city buses thin out — plan the return by 22:30.", detailEl: "Ταβέρνες στην παλιά πόλη γεμάτες από 20:00. Τελευταία αστικά μετά τις 22:30." },
-    6: { title: "Saturday brunch", titleEl: "Σαββατιάτικο brunch", detail: "Strovolos and Engomi cafés rammed 10:00–13:00. Centre quieter than weekdays.", detailEl: "Καφέ σε Στρόβολο και Έγκωμη γεμάτα 10:00–13:00." },
+    0: {
+      title: "Sunday slow-down",
+      titleEl: "Κυριακάτικος ρυθμός",
+      detail: "Old town quiet until lunch; Ledra Street fills after 17:00 as families walk in.",
+      detailEl: "Παλιά πόλη ήσυχη μέχρι το μεσημέρι· η Λήδρας γεμίζει μετά τις 17:00.",
+    },
+    1: {
+      title: "Office Monday",
+      titleEl: "Δευτέρα γραφείων",
+      detail: "Routes 158 and 259 heaviest 07:30–08:30 and 16:30–18:00 around the ministries.",
+      detailEl:
+        "Οι γραμμές 158 και 259 φορτώνουν 07:30–08:30 και 16:30–18:00 γύρω από τα υπουργεία.",
+    },
+    2: {
+      title: "Market morning",
+      titleEl: "Πρωινό λαϊκής",
+      detail:
+        "Ochi Square farmers' stalls bring foot traffic 08:00–13:00. Park-and-ride from Pallouriotissa.",
+      detailEl: "Πάγκοι παραγωγών στην Πλατεία Ελευθερίας 08:00–13:00.",
+    },
+    3: {
+      title: "Midweek calm",
+      titleEl: "Μεσοβδόμαδη ηρεμία",
+      detail:
+        "Steady all day. Cafés around Faneromeni busy after 19:00 — bus 158 still the smoothest in.",
+      detailEl: "Σταθερή κίνηση. Καφέ γύρω από τη Φανερωμένη μετά τις 19:00.",
+    },
+    4: {
+      title: "Thursday students",
+      titleEl: "Πέμπτη φοιτητών",
+      detail: "UCY and EUC let out around 14:00 — expect crowded 121 and 138 across the river.",
+      detailEl: "Πανεπιστήμιο και ΕΠΛ σχολούν 14:00 — φορτωμένες οι 121 και 138.",
+    },
+    5: {
+      title: "Friday night out",
+      titleEl: "Παρασκευή έξω",
+      detail:
+        "Old town tavernas fill from 20:00. Last city buses thin out — plan the return by 22:30.",
+      detailEl: "Ταβέρνες στην παλιά πόλη γεμάτες από 20:00. Τελευταία αστικά μετά τις 22:30.",
+    },
+    6: {
+      title: "Saturday brunch",
+      titleEl: "Σαββατιάτικο brunch",
+      detail: "Strovolos and Engomi cafés rammed 10:00–13:00. Centre quieter than weekdays.",
+      detailEl: "Καφέ σε Στρόβολο και Έγκωμη γεμάτα 10:00–13:00.",
+    },
   },
   Limassol: {
-    0: { title: "Beach Sunday", titleEl: "Παραλιακή Κυριακή", detail: "Lady's Mile and Dasoudi packed from 10:00. Seafront route 30 doubles its load by noon.", detailEl: "Lady's Mile και Δασούδι γεμάτα από 10:00." },
-    1: { title: "Port Monday", titleEl: "Δευτέρα στο λιμάνι", detail: "Old port quiet by morning; new marina lunch rush 12:30–14:00.", detailEl: "Παλιό λιμάνι ήσυχο το πρωί· νέα μαρίνα γεμάτη 12:30–14:00." },
-    2: { title: "Midweek waterfront", titleEl: "Μεσοβδόμαδη παραλιακή", detail: "Promenade joggers at sunrise; tourist coaches block the seafront 11:00–13:00.", detailEl: "Δρομείς στην παραλιακή με την ανατολή· τουριστικά πούλμαν 11:00–13:00." },
-    3: { title: "Quiet midweek", titleEl: "Ήσυχη μεσοβδόμαδη", detail: "Routes flow well all day — the easiest Limassol day to get around.", detailEl: "Όλες οι γραμμές κυλούν — η πιο εύκολη μέρα." },
-    4: { title: "Pre-weekend", titleEl: "Παραμονή Σαββατοκύριακου", detail: "Bar street fills early — by 21:00 the old town walking is faster than driving.", detailEl: "Στενά μπαρ γεμάτα νωρίς — μετά τις 21:00 το περπάτημα νικά το αυτοκίνητο." },
-    5: { title: "Friday seafront", titleEl: "Παρασκευή στην παραλιακή", detail: "Marina restaurants fully booked 20:00 onwards. Park near Molos and walk.", detailEl: "Εστιατόρια στη μαρίνα γεμάτα από 20:00. Πάρκαρε στον Μόλο και πεζός." },
-    6: { title: "Saturday crowd", titleEl: "Σαββατιάτικη συγκέντρωση", detail: "Old port to castle is one slow stream of strollers between 18:00 and 23:00.", detailEl: "Από το παλιό λιμάνι ως το κάστρο ένα συνεχές ρεύμα κόσμου 18:00–23:00." },
+    0: {
+      title: "Beach Sunday",
+      titleEl: "Παραλιακή Κυριακή",
+      detail:
+        "Lady's Mile and Dasoudi packed from 10:00. Seafront route 30 doubles its load by noon.",
+      detailEl: "Lady's Mile και Δασούδι γεμάτα από 10:00.",
+    },
+    1: {
+      title: "Port Monday",
+      titleEl: "Δευτέρα στο λιμάνι",
+      detail: "Old port quiet by morning; new marina lunch rush 12:30–14:00.",
+      detailEl: "Παλιό λιμάνι ήσυχο το πρωί· νέα μαρίνα γεμάτη 12:30–14:00.",
+    },
+    2: {
+      title: "Midweek waterfront",
+      titleEl: "Μεσοβδόμαδη παραλιακή",
+      detail: "Promenade joggers at sunrise; tourist coaches block the seafront 11:00–13:00.",
+      detailEl: "Δρομείς στην παραλιακή με την ανατολή· τουριστικά πούλμαν 11:00–13:00.",
+    },
+    3: {
+      title: "Quiet midweek",
+      titleEl: "Ήσυχη μεσοβδόμαδη",
+      detail: "Routes flow well all day — the easiest Limassol day to get around.",
+      detailEl: "Όλες οι γραμμές κυλούν — η πιο εύκολη μέρα.",
+    },
+    4: {
+      title: "Pre-weekend",
+      titleEl: "Παραμονή Σαββατοκύριακου",
+      detail: "Bar street fills early — by 21:00 the old town walking is faster than driving.",
+      detailEl: "Στενά μπαρ γεμάτα νωρίς — μετά τις 21:00 το περπάτημα νικά το αυτοκίνητο.",
+    },
+    5: {
+      title: "Friday seafront",
+      titleEl: "Παρασκευή στην παραλιακή",
+      detail: "Marina restaurants fully booked 20:00 onwards. Park near Molos and walk.",
+      detailEl: "Εστιατόρια στη μαρίνα γεμάτα από 20:00. Πάρκαρε στον Μόλο και πεζός.",
+    },
+    6: {
+      title: "Saturday crowd",
+      titleEl: "Σαββατιάτικη συγκέντρωση",
+      detail: "Old port to castle is one slow stream of strollers between 18:00 and 23:00.",
+      detailEl: "Από το παλιό λιμάνι ως το κάστρο ένα συνεχές ρεύμα κόσμου 18:00–23:00.",
+    },
   },
   Larnaca: {
-    0: { title: "Sunday salt lake", titleEl: "Κυριακή στην αλυκή", detail: "Promenade Phinikoudes busy 10:00–14:00, then quiet again until sunset.", detailEl: "Φοινικούδες γεμάτες 10:00–14:00." },
-    1: { title: "Airport Monday", titleEl: "Αεροδρόμιο Δευτέρα", detail: "Shuttles to LCA peak 05:30–07:00 and 18:00–20:00. Route 425 best for early flights.", detailEl: "Σαττλ προς αεροδρόμιο 05:30–07:00 και 18:00–20:00." },
-    2: 	{ title: "Calm midweek", titleEl: "Ήσυχη μεσοβδόμαδη", detail: "Town quiet, beachfront cafés open. Good day for the Hala Sultan walk.", detailEl: "Ήσυχη πόλη, καφέ στην παραλία ανοιχτά." },
-    3: { title: "Wednesday old town", titleEl: "Τετάρτη στην παλιά πόλη", detail: "Laiki Geitonia tavernas fill from 19:30 — Mackenzie buses run late.", detailEl: "Ταβέρνες στη Λαϊκή Γειτονιά γεμάτες από 19:30." },
-    4: { title: "Pre-weekend ramp", titleEl: "Προς το Σαββατοκύριακο", detail: "Phinikoudes promenade busy after 18:00. Bus 421 the smoothest into town.", detailEl: "Φοινικούδες γεμάτες μετά τις 18:00." },
-    5: { title: "Friday Mackenzie", titleEl: "Παρασκευή στο Μακένζι", detail: "Beach bars from 20:00 onwards. Last buses out before midnight.", detailEl: "Beach bars στο Μακένζι από 20:00." },
-    6: { title: "Saturday seafront", titleEl: "Σαββατιάτικη παραλιακή", detail: "Promenade and marina full sunrise to late. Parking impossible after 11:00.", detailEl: "Φοινικούδες και μαρίνα γεμάτες όλη μέρα." },
+    0: {
+      title: "Sunday salt lake",
+      titleEl: "Κυριακή στην αλυκή",
+      detail: "Promenade Phinikoudes busy 10:00–14:00, then quiet again until sunset.",
+      detailEl: "Φοινικούδες γεμάτες 10:00–14:00.",
+    },
+    1: {
+      title: "Airport Monday",
+      titleEl: "Αεροδρόμιο Δευτέρα",
+      detail: "Shuttles to LCA peak 05:30–07:00 and 18:00–20:00. Route 425 best for early flights.",
+      detailEl: "Σαττλ προς αεροδρόμιο 05:30–07:00 και 18:00–20:00.",
+    },
+    2: {
+      title: "Calm midweek",
+      titleEl: "Ήσυχη μεσοβδόμαδη",
+      detail: "Town quiet, beachfront cafés open. Good day for the Hala Sultan walk.",
+      detailEl: "Ήσυχη πόλη, καφέ στην παραλία ανοιχτά.",
+    },
+    3: {
+      title: "Wednesday old town",
+      titleEl: "Τετάρτη στην παλιά πόλη",
+      detail: "Laiki Geitonia tavernas fill from 19:30 — Mackenzie buses run late.",
+      detailEl: "Ταβέρνες στη Λαϊκή Γειτονιά γεμάτες από 19:30.",
+    },
+    4: {
+      title: "Pre-weekend ramp",
+      titleEl: "Προς το Σαββατοκύριακο",
+      detail: "Phinikoudes promenade busy after 18:00. Bus 421 the smoothest into town.",
+      detailEl: "Φοινικούδες γεμάτες μετά τις 18:00.",
+    },
+    5: {
+      title: "Friday Mackenzie",
+      titleEl: "Παρασκευή στο Μακένζι",
+      detail: "Beach bars from 20:00 onwards. Last buses out before midnight.",
+      detailEl: "Beach bars στο Μακένζι από 20:00.",
+    },
+    6: {
+      title: "Saturday seafront",
+      titleEl: "Σαββατιάτικη παραλιακή",
+      detail: "Promenade and marina full sunrise to late. Parking impossible after 11:00.",
+      detailEl: "Φοινικούδες και μαρίνα γεμάτες όλη μέρα.",
+    },
   },
   Paphos: {
-    0: { title: "Sunday harbour", titleEl: "Κυριακή στο λιμάνι", detail: "Kato Paphos harbour packed 11:00–15:00. Castle photo crowd peaks at sunset.", detailEl: "Λιμάνι Κάτω Πάφου γεμάτο 11:00–15:00." },
-    1: { title: "Mosaics Monday", titleEl: "Δευτέρα ψηφιδωτών", detail: "Archaeological park opens 08:30. Tourist buses dominate the harbour road by 10:00.", detailEl: "Αρχαιολογικό πάρκο ανοίγει 08:30." },
-    2: { title: "Akamas midweek", titleEl: "Ακάμας μεσοβδόμαδα", detail: "Quietest day for Aphrodite's Baths trips — bus 622 runs comfortably.", detailEl: "Πιο ήσυχη μέρα για Λουτρά Αφροδίτης." },
-    3: { title: "Old town quiet", titleEl: "Ήσυχη παλιά πόλη", detail: "Pano Paphos cafés relaxed all afternoon. Good day for the agora.", detailEl: "Καφέ στην Άνω Πάφο χαλαρά όλο το απόγευμα." },
-    4: { title: "Thursday tavernas", titleEl: "Πέμπτη ταβέρνες", detail: "Geroskipou meze nights from 20:00 — book a table by 19:00.", detailEl: "Μεζεδοπωλεία Γεροσκήπου από 20:00." },
-    5: { title: "Friday harbour", titleEl: "Παρασκευή στο λιμάνι", detail: "Cocktail bars by the castle fill from 21:00. Last harbour buses around 23:00.", detailEl: "Bars δίπλα στο κάστρο γεμάτα από 21:00." },
-    6: { title: "Saturday Coral Bay", titleEl: "Σαββατιάτικος Κόλπος Κοραλλίων", detail: "Bus 615 packed all morning — go early or wait it out until 16:00.", detailEl: "Γραμμή 615 γεμάτη όλο το πρωί." },
+    0: {
+      title: "Sunday harbour",
+      titleEl: "Κυριακή στο λιμάνι",
+      detail: "Kato Paphos harbour packed 11:00–15:00. Castle photo crowd peaks at sunset.",
+      detailEl: "Λιμάνι Κάτω Πάφου γεμάτο 11:00–15:00.",
+    },
+    1: {
+      title: "Mosaics Monday",
+      titleEl: "Δευτέρα ψηφιδωτών",
+      detail: "Archaeological park opens 08:30. Tourist buses dominate the harbour road by 10:00.",
+      detailEl: "Αρχαιολογικό πάρκο ανοίγει 08:30.",
+    },
+    2: {
+      title: "Akamas midweek",
+      titleEl: "Ακάμας μεσοβδόμαδα",
+      detail: "Quietest day for Aphrodite's Baths trips — bus 622 runs comfortably.",
+      detailEl: "Πιο ήσυχη μέρα για Λουτρά Αφροδίτης.",
+    },
+    3: {
+      title: "Old town quiet",
+      titleEl: "Ήσυχη παλιά πόλη",
+      detail: "Pano Paphos cafés relaxed all afternoon. Good day for the agora.",
+      detailEl: "Καφέ στην Άνω Πάφο χαλαρά όλο το απόγευμα.",
+    },
+    4: {
+      title: "Thursday tavernas",
+      titleEl: "Πέμπτη ταβέρνες",
+      detail: "Geroskipou meze nights from 20:00 — book a table by 19:00.",
+      detailEl: "Μεζεδοπωλεία Γεροσκήπου από 20:00.",
+    },
+    5: {
+      title: "Friday harbour",
+      titleEl: "Παρασκευή στο λιμάνι",
+      detail: "Cocktail bars by the castle fill from 21:00. Last harbour buses around 23:00.",
+      detailEl: "Bars δίπλα στο κάστρο γεμάτα από 21:00.",
+    },
+    6: {
+      title: "Saturday Coral Bay",
+      titleEl: "Σαββατιάτικος Κόλπος Κοραλλίων",
+      detail: "Bus 615 packed all morning — go early or wait it out until 16:00.",
+      detailEl: "Γραμμή 615 γεμάτη όλο το πρωί.",
+    },
   },
   Cyprus: {
-    0: { title: "Sunday seaside", titleEl: "Κυριακάτικη παραλία", detail: "Coastal routes busiest, mountain villages emptiest. Bring a swim and a snack.", detailEl: "Παραλιακές γραμμές γεμάτες, ορεινά χωριά άδεια." },
-    1: { title: "Monday commute", titleEl: "Δευτέρα στη δουλειά", detail: "Intercity buses peak 06:30–08:30. Quiet again after 09:30.", detailEl: "Υπεραστικά γεμάτα 06:30–08:30." },
-    2: { title: "Midweek calm", titleEl: "Ήσυχη μεσοβδόμαδη", detail: "Roads moving, sky settled. A good day for a Troodos detour.", detailEl: "Καλή μέρα για μια απόδραση στον Τρόοδος." },
-    3: { title: "Quiet Wednesday", titleEl: "Ήσυχη Τετάρτη", detail: "Everything flowing. Tourist sites at their most relaxed.", detailEl: "Όλα κυλούν. Τουριστικά μέρη χαλαρά." },
-    4: { title: "Thursday warm-up", titleEl: "Πέμπτη με ζεστασιά", detail: "City centres pick up after 18:00 as the weekend draws near.", detailEl: "Κέντρα πόλεων ζωντανεύουν μετά τις 18:00." },
-    5: { title: "Friday night", titleEl: "Παρασκευή βράδυ", detail: "Bars and tavernas across the island full from 20:00 onwards.", detailEl: "Μπαρ και ταβέρνες παντού γεμάτες από 20:00." },
-    6: { title: "Saturday rush", titleEl: "Σαββατιάτικη φόρα", detail: "Beaches, markets and tavernas peak. Parking premium near the coast.", detailEl: "Παραλίες, αγορές, ταβέρνες στο φουλ." },
+    0: {
+      title: "Sunday seaside",
+      titleEl: "Κυριακάτικη παραλία",
+      detail: "Coastal routes busiest, mountain villages emptiest. Bring a swim and a snack.",
+      detailEl: "Παραλιακές γραμμές γεμάτες, ορεινά χωριά άδεια.",
+    },
+    1: {
+      title: "Monday commute",
+      titleEl: "Δευτέρα στη δουλειά",
+      detail: "Intercity buses peak 06:30–08:30. Quiet again after 09:30.",
+      detailEl: "Υπεραστικά γεμάτα 06:30–08:30.",
+    },
+    2: {
+      title: "Midweek calm",
+      titleEl: "Ήσυχη μεσοβδόμαδη",
+      detail: "Roads moving, sky settled. A good day for a Troodos detour.",
+      detailEl: "Καλή μέρα για μια απόδραση στον Τρόοδος.",
+    },
+    3: {
+      title: "Quiet Wednesday",
+      titleEl: "Ήσυχη Τετάρτη",
+      detail: "Everything flowing. Tourist sites at their most relaxed.",
+      detailEl: "Όλα κυλούν. Τουριστικά μέρη χαλαρά.",
+    },
+    4: {
+      title: "Thursday warm-up",
+      titleEl: "Πέμπτη με ζεστασιά",
+      detail: "City centres pick up after 18:00 as the weekend draws near.",
+      detailEl: "Κέντρα πόλεων ζωντανεύουν μετά τις 18:00.",
+    },
+    5: {
+      title: "Friday night",
+      titleEl: "Παρασκευή βράδυ",
+      detail: "Bars and tavernas across the island full from 20:00 onwards.",
+      detailEl: "Μπαρ και ταβέρνες παντού γεμάτες από 20:00.",
+    },
+    6: {
+      title: "Saturday rush",
+      titleEl: "Σαββατιάτικη φόρα",
+      detail: "Beaches, markets and tavernas peak. Parking premium near the coast.",
+      detailEl: "Παραλίες, αγορές, ταβέρνες στο φουλ.",
+    },
   },
 };
 
@@ -485,11 +664,17 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
       };
     } else if (theme === "cruise" && cruise) {
       headline = {
-        en: cruise.count > 1 ? `${cruise.count} ships in Limassol port.` : "Cruise day in Limassol.",
-        el: cruise.count > 1 ? `${cruise.count} πλοία στο λιμάνι της Λεμεσού.` : "Μέρα κρουαζιέρας στη Λεμεσό.",
+        en:
+          cruise.count > 1 ? `${cruise.count} ships in Limassol port.` : "Cruise day in Limassol.",
+        el:
+          cruise.count > 1
+            ? `${cruise.count} πλοία στο λιμάνι της Λεμεσού.`
+            : "Μέρα κρουαζιέρας στη Λεμεσό.",
       };
       lede = {
-        en: cruise.summary ?? "Old town and seafront buses run busier than usual through the afternoon.",
+        en:
+          cruise.summary ??
+          "Old town and seafront buses run busier than usual through the afternoon.",
         el: "Τα λεωφορεία στην παλιά πόλη και στην παραλιακή φορτώνουν περισσότερο τα απογεύματα.",
       };
     } else if (theme === "heatwave" && weather) {
@@ -542,9 +727,11 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
         kicker: "PORT TODAY",
         kickerEl: "ΣΤΟ ΛΙΜΑΝΙ",
         title: cruise.count > 1 ? `${cruise.count} cruise ships` : "Cruise ship docked",
-        titleEl: cruise.count > 1 ? `${cruise.count} κρουαζιερόπλοια` : "Κρουαζιερόπλοιο στο λιμάνι",
+        titleEl:
+          cruise.count > 1 ? `${cruise.count} κρουαζιερόπλοια` : "Κρουαζιερόπλοιο στο λιμάνι",
         detail: cruise.summary ?? "Limassol seafront and old town routes busier from midday.",
-        detailEl: "Οι γραμμές της παραλιακής και της παλιάς πόλης Λεμεσού φορτώνουν από το μεσημέρι.",
+        detailEl:
+          "Οι γραμμές της παραλιακής και της παλιάς πόλης Λεμεσού φορτώνουν από το μεσημέρι.",
         accent: "aegean",
       });
     }
@@ -567,8 +754,14 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
         kickerEl: "ΟΝΟΜΑΣΤΙΚΗ",
         title: `Chronia Polla ${nd.name}`,
         titleEl: `Χρόνια Πολλά ${nd.nameEl}`,
-        detail: nd.scale === "huge" ? "Expect family gatherings — coastal villages busy through evening." : "Wish your friends — and watch dinner-time bus crowds.",
-        detailEl: nd.scale === "huge" ? "Οικογενειακά τραπέζια — παραλιακά χωριά φορτωμένα ως αργά." : "Πες χρόνια πολλά στους φίλους σου — προσοχή στις βραδινές γραμμές.",
+        detail:
+          nd.scale === "huge"
+            ? "Expect family gatherings — coastal villages busy through evening."
+            : "Wish your friends — and watch dinner-time bus crowds.",
+        detailEl:
+          nd.scale === "huge"
+            ? "Οικογενειακά τραπέζια — παραλιακά χωριά φορτωμένα ως αργά."
+            : "Πες χρόνια πολλά στους φίλους σου — προσοχή στις βραδινές γραμμές.",
         accent: "olive",
       });
     }
@@ -585,8 +778,8 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
         weather.iconKey === "rain" || weather.iconKey === "storm"
           ? "weather-rain"
           : weather.iconKey === "cloud"
-          ? "weather-cloud"
-          : "weather-sun";
+            ? "weather-cloud"
+            : "weather-sun";
       tiles.push({
         kind: wKind,
         kicker: "WEATHER",
@@ -596,13 +789,13 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
         detail: beachOk
           ? "Beach index: high. Fig Tree Bay, Konnos and Lady's Mile busy after 10:00."
           : weather.iconKey === "rain"
-          ? "Carry an umbrella — buses may dwell longer at sheltered stops."
-          : "Comfortable across the island.",
+            ? "Carry an umbrella — buses may dwell longer at sheltered stops."
+            : "Comfortable across the island.",
         detailEl: beachOk
           ? "Δείκτης παραλίας: υψηλός. Φυκιά, Κόννος και Lady's Mile γεμάτες μετά τις 10:00."
           : weather.iconKey === "rain"
-          ? "Πάρε ομπρέλα — τα λεωφορεία μπορεί να καθυστερούν σε στεγασμένες στάσεις."
-          : "Άνετος καιρός σε όλο το νησί.",
+            ? "Πάρε ομπρέλα — τα λεωφορεία μπορεί να καθυστερούν σε στεγασμένες στάσεις."
+            : "Άνετος καιρός σε όλο το νησί.",
         accent: weather.iconKey === "rain" ? "ink" : "ochre",
       });
     }
@@ -610,18 +803,36 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
     // ─── Verdict — one closing sentence ───────────────────────────────────
     const verdict =
       theme === "derby"
-        ? { en: "Leave a little earlier if you're crossing town.", el: "Φύγε λίγο πιο νωρίς αν διασχίζεις την πόλη." }
+        ? {
+            en: "Leave a little earlier if you're crossing town.",
+            el: "Φύγε λίγο πιο νωρίς αν διασχίζεις την πόλη.",
+          }
         : theme === "festival"
-        ? { en: "Bring a layer — sea breeze drops the temperature after dark.", el: "Πάρε ένα ρούχο μαζί — βραδιάζει με αεράκι από τη θάλασσα." }
-        : theme === "holiday"
-        ? { en: "Coast for the morning, mountains for the afternoon.", el: "Παραλία το πρωί, βουνό το απόγευμα." }
-        : theme === "storm"
-        ? { en: "Plan ten extra minutes and you'll arrive dry.", el: "Υπολόγισε δέκα λεπτά παραπάνω και θα φτάσεις στεγνός." }
-        : theme === "cruise"
-        ? { en: "Skip the seafront route between 14:00 and 17:00 if you can.", el: "Απόφυγε την παραλιακή γραμμή 14:00–17:00 αν μπορείς." }
-        : theme === "heatwave"
-        ? { en: "Carry water. Buses help, but the walk between stops doesn't.", el: "Πάρε νερό. Το λεωφορείο βοηθά, η απόσταση μεταξύ στάσεων όχι." }
-        : { en: "A good day to ride.", el: "Καλή μέρα για να πάρεις λεωφορείο." };
+          ? {
+              en: "Bring a layer — sea breeze drops the temperature after dark.",
+              el: "Πάρε ένα ρούχο μαζί — βραδιάζει με αεράκι από τη θάλασσα.",
+            }
+          : theme === "holiday"
+            ? {
+                en: "Coast for the morning, mountains for the afternoon.",
+                el: "Παραλία το πρωί, βουνό το απόγευμα.",
+              }
+            : theme === "storm"
+              ? {
+                  en: "Plan ten extra minutes and you'll arrive dry.",
+                  el: "Υπολόγισε δέκα λεπτά παραπάνω και θα φτάσεις στεγνός.",
+                }
+              : theme === "cruise"
+                ? {
+                    en: "Skip the seafront route between 14:00 and 17:00 if you can.",
+                    el: "Απόφυγε την παραλιακή γραμμή 14:00–17:00 αν μπορείς.",
+                  }
+                : theme === "heatwave"
+                  ? {
+                      en: "Carry water. Buses help, but the walk between stops doesn't.",
+                      el: "Πάρε νερό. Το λεωφορείο βοηθά, η απόσταση μεταξύ στάσεων όχι.",
+                    }
+                  : { en: "A good day to ride.", el: "Καλή μέρα για να πάρεις λεωφορείο." };
 
     // ─── Rotating fact — refreshes every 2 hours ──────────────────────────
     const factPool = facts as Array<{ en: string; el: string; tag: "local" | "tourist" }>;
@@ -629,7 +840,12 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
     const fact = factPool[Math.abs(twoHourSlot) % factPool.length];
 
     // ─── Greek word of the day — rotates daily ────────────────────────────
-    const wordPool = greekWords as Array<{ el: string; translit: string; en: string; meaning: string }>;
+    const wordPool = greekWords as Array<{
+      el: string;
+      translit: string;
+      en: string;
+      meaning: string;
+    }>;
     const greekWord = wordPool[dayOfYear(d) % wordPool.length];
 
     return {

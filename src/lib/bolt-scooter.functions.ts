@@ -25,8 +25,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { distanceM } from "./geo";
 
-const FEED_URL =
-  "https://fixcyprus.cy/gnosis/open/api/nap/datasets/boltstations/";
+const FEED_URL = "https://fixcyprus.cy/gnosis/open/api/nap/datasets/boltstations/";
 
 // Pace assumptions tuned for Nicosia: scooter speed limited to 20 km/h on
 // shared paths and 15 km/h on sidewalks; 14 km/h average accounts for
@@ -222,8 +221,7 @@ export const suggestBoltScooter = createServerFn({ method: "POST" })
     if (rideM < 600) return null;
 
     const rideSec = Math.round(rideM / SCOOT_M_PER_S);
-    const totalSec =
-      pickup.walkSec + UNLOCK_SEC + rideSec + PARK_SEC + dropoff.walkSec;
+    const totalSec = pickup.walkSec + UNLOCK_SEC + rideSec + PARK_SEC + dropoff.walkSec;
 
     const busOnly = data.busOnlyDurationSec ?? null;
     let reason: BoltScooterSuggestion["reason"];

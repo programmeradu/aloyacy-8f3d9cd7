@@ -21,9 +21,11 @@ function json(body: unknown, status = 200) {
 async function guard(request: Request): Promise<Response | null> {
   const apikey = request.headers.get("apikey");
   const legacy =
-    request.headers.get("x-cron-secret") ??
-    new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey = apikey && apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+    request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
+  const validApiKey =
+    apikey &&
+    apikey ===
+      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
   const validLegacy = legacy && process.env.CRON_SECRET && legacy === process.env.CRON_SECRET;
   if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
@@ -89,7 +91,11 @@ async function ingest() {
   const targetUrl = "https://www.visitcyprus.com/events/";
   const fetchedAt = new Date().toISOString();
 
-  let scrape: { json?: { events?: unknown }; markdown?: string; data?: { json?: { events?: unknown }; markdown?: string } };
+  let scrape: {
+    json?: { events?: unknown };
+    markdown?: string;
+    data?: { json?: { events?: unknown }; markdown?: string };
+  };
   try {
     const res = await fetch("https://api.firecrawl.dev/v2/scrape", {
       method: "POST",
@@ -129,7 +135,8 @@ async function ingest() {
         title: typeof r.title === "string" ? r.title.trim() : "",
         city: typeof r.city === "string" && r.city.trim() ? r.city.trim() : null,
         venue: typeof r.venue === "string" && r.venue.trim() ? r.venue.trim() : null,
-        startDate: typeof r.startDate === "string" && r.startDate.trim() ? r.startDate.trim() : null,
+        startDate:
+          typeof r.startDate === "string" && r.startDate.trim() ? r.startDate.trim() : null,
         endDate: typeof r.endDate === "string" && r.endDate.trim() ? r.endDate.trim() : null,
         category: typeof r.category === "string" && r.category.trim() ? r.category.trim() : null,
         url: typeof r.url === "string" && /^https?:\/\//.test(r.url) ? r.url.trim() : null,
@@ -143,7 +150,9 @@ async function ingest() {
     // Markdown fallback — pull bullet/heading lines that look like event titles.
     const lines = markdown.split(/\r?\n/);
     for (const line of lines) {
-      const m = line.match(/^[#*\-\s]*([A-Z][^|·\n]{4,120}?)(?:\s+\|\s+|\s+—\s+|\s+-\s+)([\w\s,]+)?$/);
+      const m = line.match(
+        /^[#*\-\s]*([A-Z][^|·\n]{4,120}?)(?:\s+\|\s+|\s+—\s+|\s+-\s+)([\w\s,]+)?$/,
+      );
       if (!m) continue;
       const parsed = EventSchema.safeParse({
         title: m[1].trim(),
@@ -170,21 +179,19 @@ async function ingest() {
     fetchedAt,
   });
 
-  const { error } = await supabaseAdmin
-    .from("pulse_signals")
-    .upsert(
-      [
-        {
-          key: "events",
-          scope: "island",
-          source: "visitcyprus",
-          payload: payload as unknown as Record<string, unknown>,
-          ttl_seconds: 60 * 60 * 24, // 24h
-          fetched_at: fetchedAt,
-        },
-      ] as never,
-      { onConflict: "key,scope" },
-    );
+  const { error } = await supabaseAdmin.from("pulse_signals").upsert(
+    [
+      {
+        key: "events",
+        scope: "island",
+        source: "visitcyprus",
+        payload: payload as unknown as Record<string, unknown>,
+        ttl_seconds: 60 * 60 * 24, // 24h
+        fetched_at: fetchedAt,
+      },
+    ] as never,
+    { onConflict: "key,scope" },
+  );
 
   if (error) return json({ ok: false, error: error.message }, 500);
   return json({ ok: true, count: events.length, confidence });

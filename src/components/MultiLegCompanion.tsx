@@ -61,8 +61,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
 
   // Shortcut detector: prompt to walk the rest when destination is in reach.
   const isOnFinalWalk =
-    live.currentLeg?.kind === "walk" &&
-    live.currentLegIndex === itin.legs.length - 1;
+    live.currentLeg?.kind === "walk" && live.currentLegIndex === itin.legs.length - 1;
   const shortcut = useShortcutDetector({
     active,
     fix: live.fix,
@@ -130,8 +129,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const EARLY_ALIGHT_THRESHOLD_M = 150;
   const handleImOff = () => {
     const alight = live.currentRideLeg?.alight;
-    const dist =
-      live.fix && alight ? distanceM(live.fix, { lat: alight.lat, lng: alight.lng }) : 0;
+    const dist = live.fix && alight ? distanceM(live.fix, { lat: alight.lat, lng: alight.lng }) : 0;
     if (dist > EARLY_ALIGHT_THRESHOLD_M) {
       setEarlyAlightOpen(true);
     } else {
@@ -150,8 +148,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
     if (live.currentRideLeg) ids.push(live.currentRideLeg.tripId);
     if (
       live.nextRideLeg &&
-      (live.phase === "walking-to-transfer" ||
-        live.phase === "waiting-for-connection")
+      (live.phase === "walking-to-transfer" || live.phase === "waiting-for-connection")
     ) {
       ids.push(live.nextRideLeg.tripId);
     }
@@ -160,13 +157,35 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
 
   const mapMarkers: MapMarker[] = useMemo(() => {
     const out: MapMarker[] = [];
-    out.push({ lat: active.from.lat, lng: active.from.lng, kind: "origin", label: active.from.label });
-    out.push({ lat: active.to.lat, lng: active.to.lng, kind: "destination", label: active.to.label });
+    out.push({
+      lat: active.from.lat,
+      lng: active.from.lng,
+      kind: "origin",
+      label: active.from.label,
+    });
+    out.push({
+      lat: active.to.lat,
+      lng: active.to.lng,
+      kind: "destination",
+      label: active.to.label,
+    });
     // Drop a pin at every board + alight stop so the rider sees the chain.
     for (const leg of itin.legs) {
       if (leg.kind === "ride") {
-        out.push({ lat: leg.board.lat, lng: leg.board.lng, kind: "stop", label: leg.board.name, tone: "aegean" });
-        out.push({ lat: leg.alight.lat, lng: leg.alight.lng, kind: "stop", label: leg.alight.name, tone: "ochre" });
+        out.push({
+          lat: leg.board.lat,
+          lng: leg.board.lng,
+          kind: "stop",
+          label: leg.board.name,
+          tone: "aegean",
+        });
+        out.push({
+          lat: leg.alight.lat,
+          lng: leg.alight.lng,
+          kind: "stop",
+          label: leg.alight.name,
+          tone: "ochre",
+        });
       }
     }
     return out;
@@ -184,7 +203,8 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         </Link>
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
           {t("ml.rideOfN", {
-            label: itin.transfers === 1 ? t("ml.changesOne") : t("ml.changesN", { n: itin.transfers }),
+            label:
+              itin.transfers === 1 ? t("ml.changesOne") : t("ml.changesN", { n: itin.transfers }),
             n: Math.max(1, live.rideOrdinal),
             total: live.totalRides,
           })}
@@ -222,19 +242,27 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
 
       {/* Resilience banners */}
       {live.active && live.tripGhost && !live.vehicleLost && (
-        <div className="mt-3"><StaleFeedBanner variant="ghost-bus" /></div>
+        <div className="mt-3">
+          <StaleFeedBanner variant="ghost-bus" />
+        </div>
       )}
       {live.active && live.vehicleLost && (
-        <div className="mt-3"><StaleFeedBanner variant="vehicle-lost" /></div>
+        <div className="mt-3">
+          <StaleFeedBanner variant="vehicle-lost" />
+        </div>
       )}
       {live.active && !live.vehicleLost && !live.tripGhost && live.feedStale && (
-        <div className="mt-3"><StaleFeedBanner variant="feed-stale" /></div>
+        <div className="mt-3">
+          <StaleFeedBanner variant="feed-stale" />
+        </div>
       )}
       {live.active &&
         (live.phase === "walking-to-transfer" || live.phase === "waiting-for-connection") &&
         live.nextRideLeg &&
         !live.nextVehicleTracked && (
-          <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
+          <div className="mt-3">
+            <StaleFeedBanner variant="next-not-tracked" />
+          </div>
         )}
 
       {/* Rider-confirmed sighting CTA — appears next to ghost/vehicle-lost banners
@@ -265,14 +293,11 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           </div>
         )}
 
-
       {/* Proactive disruption assistant */}
       <DisruptionBanner
         signal={disruption}
         onReplan={live.fix ? () => setLiveReplanOpen(true) : undefined}
       />
-
-
 
       {/* Wrong-stop adaptive hint while walking to board */}
       {live.active && live.rerouteHint?.kind === "switch-boarding" && (
@@ -293,9 +318,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
               {t("ml.differentStop")}
             </p>
-            <p className="mt-1 text-[13px] text-ink">
-              {live.rerouteHint.reason}
-            </p>
+            <p className="mt-1 text-[13px] text-ink">{live.rerouteHint.reason}</p>
             <button
               onClick={() => setEarlyAlightOpen(true)}
               className="mt-2 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-[12px] text-limestone"
@@ -310,7 +333,9 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           at the alight stop for intercity routes (longer rides where the
           weather at arrival actually changes the decision). */}
       {live.active &&
-        (live.phase === "riding" || live.phase === "alight-soon" || live.phase === "waiting-to-board") &&
+        (live.phase === "riding" ||
+          live.phase === "alight-soon" ||
+          live.phase === "waiting-to-board") &&
         live.currentRideLeg && (
           <CrowdHint
             routeId={live.currentRideLeg.routeId}
@@ -339,7 +364,12 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           }
           userLocation={
             live.fix
-              ? { lat: live.fix.lat, lng: live.fix.lng, accuracyM: live.fix.accuracyM, headingDeg: live.fix.headingDeg }
+              ? {
+                  lat: live.fix.lat,
+                  lng: live.fix.lng,
+                  accuracyM: live.fix.accuracyM,
+                  headingDeg: live.fix.headingDeg,
+                }
               : null
           }
         />
@@ -378,7 +408,6 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           onClose={() => setLiveReplanOpen(false)}
         />
       )}
-
 
       {/* Turn-by-turn for any walk leg — initial, transfer, or final.
           LiveWalkBanner gives the rider the imminent maneuver + meters
@@ -435,7 +464,10 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         <div className="flex items-end justify-between mb-3">
           <h2 className="font-display text-2xl text-ink">{t("trip.yourJourney")}</h2>
           <span className="font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
-            {t("ml.minArr", { m: Math.round(itin.totalDurationSec / 60), t: fmtTime(itin.arrivalUnix) })}
+            {t("ml.minArr", {
+              m: Math.round(itin.totalDurationSec / 60),
+              t: fmtTime(itin.arrivalUnix),
+            })}
           </span>
         </div>
 
@@ -478,7 +510,11 @@ function PhaseLabel({ live, itin }: { live: MultiLegLive; itin: Itinerary }) {
         : live.phase === "waiting-to-board"
           ? t("ml.phase.waitFor", { code: live.currentRideLeg?.routeShort ?? "" })
           : live.phase === "riding"
-            ? t("ml.phase.onBus", { code: live.currentRideLeg?.routeShort ?? "", n: live.rideOrdinal, total: live.totalRides })
+            ? t("ml.phase.onBus", {
+                code: live.currentRideLeg?.routeShort ?? "",
+                n: live.rideOrdinal,
+                total: live.totalRides,
+              })
             : live.phase === "alight-soon"
               ? t("ml.phase.alightNext")
               : live.phase === "walking-to-transfer"
@@ -513,9 +549,15 @@ function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itinerary }) 
   if (live.phase === "walking-to-board" && live.currentRideLeg) {
     return (
       <h1 className={base}>
-        {t("ml.hl.walkTo")} <span className="text-aegean-deep">{live.currentRideLeg.board.name}</span>
+        {t("ml.hl.walkTo")}{" "}
+        <span className="text-aegean-deep">{live.currentRideLeg.board.name}</span>
         <br />
-        <span className="italic text-olive-soft">{t("ml.hl.busInBoard", { code: live.currentRideLeg.routeShort, min: fmtMin(live.secsToCurrentBoard) })}</span>
+        <span className="italic text-olive-soft">
+          {t("ml.hl.busInBoard", {
+            code: live.currentRideLeg.routeShort,
+            min: fmtMin(live.secsToCurrentBoard),
+          })}
+        </span>
       </h1>
     );
   }
@@ -523,21 +565,35 @@ function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itinerary }) 
     return (
       <h1 className={base}>
         {t("ml.hl.busIn", { code: live.currentRideLeg.routeShort })}{" "}
-        <span className="text-aegean-deep">{Math.max(0, Math.round(live.secsToCurrentBoard / 60))}</span>
-        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">{t("common.minUnit")}</span>
+        <span className="text-aegean-deep">
+          {Math.max(0, Math.round(live.secsToCurrentBoard / 60))}
+        </span>
+        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">
+          {t("common.minUnit")}
+        </span>
         <br />
-        <span className="italic text-olive-soft">{t("ml.hl.atName", { name: live.currentRideLeg.board.name })}</span>
+        <span className="italic text-olive-soft">
+          {t("ml.hl.atName", { name: live.currentRideLeg.board.name })}
+        </span>
       </h1>
     );
   }
   if (live.phase === "riding" && live.currentRideLeg) {
     const tail = live.nextRideLeg
-      ? t("ml.hl.atNameThenChange", { name: live.currentRideLeg.alight.name, code: live.nextRideLeg.routeShort })
+      ? t("ml.hl.atNameThenChange", {
+          name: live.currentRideLeg.alight.name,
+          code: live.nextRideLeg.routeShort,
+        })
       : t("ml.hl.atNameDot", { name: live.currentRideLeg.alight.name });
     return (
       <h1 className={base}>
-        {t("ml.hl.offIn")} <span className="text-aegean-deep">{Math.max(0, Math.round(live.secsToCurrentAlight / 60))}</span>
-        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">{t("common.minUnit")}</span>
+        {t("ml.hl.offIn")}{" "}
+        <span className="text-aegean-deep">
+          {Math.max(0, Math.round(live.secsToCurrentAlight / 60))}
+        </span>
+        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">
+          {t("common.minUnit")}
+        </span>
         <br />
         <span className="italic text-olive-soft">{tail}</span>
       </h1>
@@ -552,13 +608,20 @@ function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itinerary }) 
       </h1>
     );
   }
-  if (live.phase === "walking-to-transfer" && live.nextRideLeg && live.currentLeg?.kind === "walk") {
+  if (
+    live.phase === "walking-to-transfer" &&
+    live.nextRideLeg &&
+    live.currentLeg?.kind === "walk"
+  ) {
     return (
       <h1 className={base}>
         {t("ml.hl.walkTo")} <span className="text-aegean-deep">{live.nextRideLeg.board.name}</span>
         <br />
         <span className="italic text-olive-soft">
-          {t("ml.hl.walkForBus", { code: live.nextRideLeg.routeShort, min: fmtMin(live.currentLeg.durationSec) })}
+          {t("ml.hl.walkForBus", {
+            code: live.nextRideLeg.routeShort,
+            min: fmtMin(live.currentLeg.durationSec),
+          })}
         </span>
       </h1>
     );
@@ -570,9 +633,13 @@ function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itinerary }) 
         <span className={live.nextBoardLate ? "text-ochre" : "text-aegean-deep"}>
           {Math.max(0, Math.round(live.secsToNextBoard / 60))}
         </span>
-        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">{t("common.minUnit")}</span>
+        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">
+          {t("common.minUnit")}
+        </span>
         <br />
-        <span className="italic text-olive-soft">{t("ml.hl.atName", { name: live.nextRideLeg.board.name })}</span>
+        <span className="italic text-olive-soft">
+          {t("ml.hl.atName", { name: live.nextRideLeg.board.name })}
+        </span>
       </h1>
     );
   }
@@ -581,7 +648,14 @@ function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itinerary }) 
       <h1 className={base}>
         {t("ml.hl.finalStretch")}
         <br />
-        <span className="italic text-olive-soft">{t("ml.hl.minOnFoot", { m: Math.max(0, Math.round((live.currentLeg?.kind === "walk" ? live.currentLeg.durationSec : 0) / 60)) })}</span>
+        <span className="italic text-olive-soft">
+          {t("ml.hl.minOnFoot", {
+            m: Math.max(
+              0,
+              Math.round((live.currentLeg?.kind === "walk" ? live.currentLeg.durationSec : 0) / 60),
+            ),
+          })}
+        </span>
       </h1>
     );
   }
@@ -598,8 +672,11 @@ function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itinerary }) 
   const firstRide = itin.legs.find((l): l is RideLeg => l.kind === "ride");
   return (
     <h1 className={base}>
-      {t("ml.hl.doorToDoor")} <span className="text-aegean-deep">{Math.round(itin.totalDurationSec / 60)}</span>
-      <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">{t("common.minUnit")}</span>
+      {t("ml.hl.doorToDoor")}{" "}
+      <span className="text-aegean-deep">{Math.round(itin.totalDurationSec / 60)}</span>
+      <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">
+        {t("common.minUnit")}
+      </span>
       <br />
       <span className="italic text-olive-soft">
         {t("ml.hl.startingOn", { code: firstRide?.routeShort ?? "" })}
@@ -618,7 +695,8 @@ function PhaseSub({
   destLabel: string;
 }) {
   const { t } = useI18n();
-  const changesLabel = itin.transfers === 1 ? t("ml.changesOne") : t("ml.changesN", { n: itin.transfers });
+  const changesLabel =
+    itin.transfers === 1 ? t("ml.changesOne") : t("ml.changesN", { n: itin.transfers });
   const text =
     live.phase === "idle"
       ? t("ml.sub.idle", { changes: changesLabel })
@@ -628,22 +706,47 @@ function PhaseSub({
           ? t("ml.sub.waitBoard")
           : live.phase === "riding"
             ? live.nextRideLeg
-              ? t("ml.sub.ridingChange", { code: live.nextRideLeg.routeShort, name: live.currentRideLeg?.alight.name ?? "" })
+              ? t("ml.sub.ridingChange", {
+                  code: live.nextRideLeg.routeShort,
+                  name: live.currentRideLeg?.alight.name ?? "",
+                })
               : t("ml.sub.ridingSit")
             : live.phase === "alight-soon"
               ? live.nextRideLeg
-                ? t("ml.sub.alightChange", { name: live.nextRideLeg.board.name, code: live.nextRideLeg.routeShort })
+                ? t("ml.sub.alightChange", {
+                    name: live.nextRideLeg.board.name,
+                    code: live.nextRideLeg.routeShort,
+                  })
                 : t("ml.sub.alightFinal", { name: destLabel })
               : live.phase === "walking-to-transfer"
                 ? live.nextRideLeg
-                  ? t("ml.sub.walkTransfer", { code: live.nextRideLeg.routeShort, min: fmtMin(live.secsToNextBoard) })
+                  ? t("ml.sub.walkTransfer", {
+                      code: live.nextRideLeg.routeShort,
+                      min: fmtMin(live.secsToNextBoard),
+                    })
                   : t("ml.sub.walkTransferNo")
                 : live.phase === "waiting-for-connection"
                   ? live.nextBoardLate
-                    ? t("ml.sub.waitConnLate", { m: Math.round((live.secsToNextBoard - (live.nextRideLeg?.board.departureUnix ?? 0) + Math.floor(Date.now()/1000)) / 60) })
+                    ? t("ml.sub.waitConnLate", {
+                        m: Math.round(
+                          (live.secsToNextBoard -
+                            (live.nextRideLeg?.board.departureUnix ?? 0) +
+                            Math.floor(Date.now() / 1000)) /
+                            60,
+                        ),
+                      })
                     : t("ml.sub.waitConn")
                   : live.phase === "walking-to-destination"
-                    ? t("ml.sub.finalWalk", { m: Math.max(0, Math.round((live.currentLeg?.kind === "walk" ? live.currentLeg.durationSec : 0) / 60)), name: destLabel })
+                    ? t("ml.sub.finalWalk", {
+                        m: Math.max(
+                          0,
+                          Math.round(
+                            (live.currentLeg?.kind === "walk" ? live.currentLeg.durationSec : 0) /
+                              60,
+                          ),
+                        ),
+                        name: destLabel,
+                      })
                     : t("ml.sub.welcome", { name: destLabel });
   return (
     <p className="mt-4 flex items-start gap-2 text-[13px] text-ink-soft leading-relaxed">
@@ -655,7 +758,15 @@ function PhaseSub({
 
 // ---- Action HUD ----------------------------------------------------------
 
-function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active: ActiveTrip; onImOff: () => void }) {
+function MultiLegActions({
+  live,
+  active,
+  onImOff,
+}: {
+  live: MultiLegLive;
+  active: ActiveTrip;
+  onImOff: () => void;
+}) {
   const { t } = useI18n();
   const navigate = useNavigate();
   if (!live.active) {
@@ -668,9 +779,7 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
           <p className="mt-2 font-display text-[26px] leading-tight text-ink">
             {t("ml.act.startTitle", { name: active.to.label })}
           </p>
-          <p className="mt-2 text-[13px] text-ink-soft">
-            {t("ml.act.startBody")}
-          </p>
+          <p className="mt-2 text-[13px] text-ink-soft">{t("ml.act.startBody")}</p>
           <button
             type="button"
             onClick={() => {
@@ -748,9 +857,7 @@ function MultiLegActions({ live, active, onImOff }: { live: MultiLegLive; active
           <p className="mt-2 font-display text-[22px] leading-tight text-ink">
             {t("ml.act.finalTitle", { name: active.to.label })}
           </p>
-          <p className="mt-2 text-[13px] text-ink-soft">
-            {t("ml.act.finalBody")}
-          </p>
+          <p className="mt-2 text-[13px] text-ink-soft">{t("ml.act.finalBody")}</p>
           <button
             onClick={() => multiLegMarkArrived()}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
@@ -828,7 +935,9 @@ function LegTimelineRow({
     glyph = <IconBus className="size-3.5" />;
     title = (
       <>
-        {t("ml.timeline.boardPrefix")} <span className="text-aegean-deep">{t("trip.boardBusName", { code: leg.routeShort })}</span> — {leg.routeLong}
+        {t("ml.timeline.boardPrefix")}{" "}
+        <span className="text-aegean-deep">{t("trip.boardBusName", { code: leg.routeShort })}</span>{" "}
+        — {leg.routeLong}
       </>
     );
     sub = t("ml.timeline.rideSub", {
@@ -846,7 +955,10 @@ function LegTimelineRow({
         {t("ml.timeline.walkTo")} <span className="text-ink">{(leg as WalkLeg).to.name}</span>
       </>
     );
-    sub = t("ml.timeline.walkSub", { min: fmtMin((leg as WalkLeg).durationSec), d: (leg as WalkLeg).distanceMeters });
+    sub = t("ml.timeline.walkSub", {
+      min: fmtMin((leg as WalkLeg).durationSec),
+      d: (leg as WalkLeg).distanceMeters,
+    });
   } else {
     glyph = <IconClock className="size-3.5" />;
     title = <>{t("ml.timeline.waitAt", { name: (leg as WaitLeg).name })}</>;
@@ -855,16 +967,18 @@ function LegTimelineRow({
 
   return (
     <li className="flex items-start gap-4">
-      <span className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full ring-1 transition-colors ${ring}`}>
+      <span
+        className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full ring-1 transition-colors ${ring}`}
+      >
         {glyph}
       </span>
       <div className="min-w-0 flex-1">
-        <p className={`font-display text-[19px] font-semibold leading-tight ${isActive ? "text-ink" : "text-ink-soft"}`}>
+        <p
+          className={`font-display text-[19px] font-semibold leading-tight ${isActive ? "text-ink" : "text-ink-soft"}`}
+        >
           {title}
         </p>
-        <p className="mt-1 font-sans text-[13px] font-medium text-ink-soft leading-snug">
-          {sub}
-        </p>
+        <p className="mt-1 font-sans text-[13px] font-medium text-ink-soft leading-snug">{sub}</p>
       </div>
       {accent}
     </li>
@@ -874,7 +988,10 @@ function LegTimelineRow({
 // ---- Geometry helpers ----------------------------------------------------
 
 function boundsFor(it: Itinerary) {
-  let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+  let minLat = Infinity,
+    maxLat = -Infinity,
+    minLng = Infinity,
+    maxLng = -Infinity;
   for (const leg of it.legs) {
     const pts: Array<{ lat: number; lng: number }> =
       leg.kind === "ride"
@@ -897,9 +1014,6 @@ function boundsFor(it: Itinerary) {
   }
   const center = { lat: (minLat + maxLat) / 2, lng: (minLng + maxLng) / 2 };
   // Rough span — 1 deg lat ≈ 111 km.
-  const spanKm = Math.max(
-    1.5,
-    Math.max((maxLat - minLat) * 111, (maxLng - minLng) * 95) * 1.3,
-  );
+  const spanKm = Math.max(1.5, Math.max((maxLat - minLat) * 111, (maxLng - minLng) * 95) * 1.3);
   return { center, spanKm };
 }

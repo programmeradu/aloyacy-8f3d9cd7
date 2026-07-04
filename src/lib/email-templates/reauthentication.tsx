@@ -1,15 +1,9 @@
-import * as React from 'react'
-import { Text } from '@react-email/components'
-import {
-  Layout,
-  bodyText,
-  codeBlock,
-  fineprint,
-  sectionLabel,
-} from './_layout'
+import * as React from "react";
+import { Text } from "@react-email/components";
+import { Layout, bodyText, codeBlock, fineprint, sectionLabel } from "./_layout";
 
 interface ReauthenticationEmailProps {
-  token: string
+  token: string;
 }
 
 export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => (
@@ -21,18 +15,18 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
     heroAlt="Brass padlock and ceramic dish on limestone with a dried olive leaf"
   >
     <Text style={bodyText}>
-      Enter the code below in the Aloya app to continue. It's
-      single-use and expires in a few minutes.
+      Enter the code below in the Aloya app to continue. It's single-use and expires in a few
+      minutes.
     </Text>
 
     <Text style={sectionLabel}>Verification code</Text>
     <Text style={codeBlock}>{token}</Text>
 
     <Text style={fineprint}>
-      If you didn't request this code, you can safely ignore the
-      message — no changes have been made to your account.
+      If you didn't request this code, you can safely ignore the message — no changes have been made
+      to your account.
     </Text>
   </Layout>
-)
+);
 
-export default ReauthenticationEmail
+export default ReauthenticationEmail;

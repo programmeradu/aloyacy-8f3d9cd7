@@ -12,9 +12,7 @@ export function useLearnedStats(stopIds: string[]) {
     enabled: stopIds.length > 0,
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const results = await Promise.all(
-        stopIds.map((id) => fn({ data: { stopId: id } })),
-      );
+      const results = await Promise.all(stopIds.map((id) => fn({ data: { stopId: id } })));
       const map = new Map<string, Map<string, LearnedStat>>();
       results.forEach((r, i) => {
         const inner = new Map<string, LearnedStat>();

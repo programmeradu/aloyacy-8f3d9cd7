@@ -19,6 +19,16 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { STOPS, distanceKm } from "./gtfs";
 
+/** Minimal shape of the Google Directions API walking response we consume. */
+type DirectionsResponse = {
+  status?: string;
+  error_message?: string;
+  routes?: Array<{
+    overview_polyline?: { points?: string };
+    legs?: Array<{ distance?: { value?: number }; duration?: { value?: number } }>;
+  }>;
+};
+
 const STOP_BY_ID = new Map(STOPS.map((s) => [s.id, s]));
 
 const WALK_PACE_MPS = 1.35; // ~4.86 km/h, a calm Mediterranean walk
@@ -140,6 +150,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
   }
 
   const url = new URL("https://maps.googleapis.com/maps/api/directions/json");
+
   url.searchParams.set("origin", `${a.lat},${a.lng}`);
   url.searchParams.set("destination", `${b.lat},${b.lng}`);
   url.searchParams.set("mode", "walking");
@@ -147,7 +158,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
 
   try {
     const res = await fetch(url.toString());
-    const json: any = await res.json();
+    const json = (await res.json()) as DirectionsResponse;
 
     if (json.status === "ZERO_RESULTS") {
       // Persist a sentinel so we don't keep hammering Google for unreachable pairs.
@@ -172,8 +183,8 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
     const link: WalkLink = {
       fromStopId: lo,
       toStopId: hi,
-      distanceM: Math.round(leg.distance.value),
-      durationSec: Math.round(leg.duration.value),
+      distanceM: Math.round(leg.distance?.value ?? 0),
+      durationSec: Math.round(leg.duration?.value ?? 0),
       polyline: json.routes[0].overview_polyline?.points ?? "",
       verified: true,
     };

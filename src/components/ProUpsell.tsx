@@ -45,8 +45,7 @@ export function ProUpsellCard() {
           <p className="mt-1.5 text-[11.5px] leading-snug text-limestone/55">
             {trialEligible ? (
               <>
-                7-day free trial, then{" "}
-                <span className="tabular-nums text-limestone/80">€1.99</span>
+                7-day free trial, then <span className="tabular-nums text-limestone/80">€1.99</span>
                 /wk · cancel anytime
               </>
             ) : (

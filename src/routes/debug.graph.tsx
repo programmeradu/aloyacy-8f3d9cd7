@@ -34,9 +34,8 @@ function DebugGraph() {
             <span className="italic text-aegean-deep">skeleton.</span>
           </h1>
           <p className="mt-3 max-w-[52ch] text-[13px] text-ink-soft leading-relaxed">
-            Stop adjacency and the candidate set the multi-leg search will
-            explore. Built once per server cold-start, in memory. Numbers
-            below are the sanity check before Phase 2.
+            Stop adjacency and the candidate set the multi-leg search will explore. Built once per
+            server cold-start, in memory. Numbers below are the sanity check before Phase 2.
           </p>
         </header>
 
@@ -55,9 +54,7 @@ function DebugGraph() {
         </div>
 
         {!data ? (
-          <p className="mt-10 font-mono text-[11px] text-ink-soft">
-            Loading the graph…
-          </p>
+          <p className="mt-10 font-mono text-[11px] text-ink-soft">Loading the graph…</p>
         ) : (
           <>
             <section className="mt-10 grid grid-cols-2 gap-3">
@@ -67,14 +64,8 @@ function DebugGraph() {
                 label="Stops with transfer candidates"
                 value={data.stats.stopsWithTransferCandidates}
               />
-              <Tile
-                label="Candidate pairs"
-                value={data.stats.totalTransferCandidatePairs}
-              />
-              <Tile
-                label="Avg candidates / stop"
-                value={data.stats.avgCandidatesPerStop}
-              />
+              <Tile label="Candidate pairs" value={data.stats.totalTransferCandidatePairs} />
+              <Tile label="Avg candidates / stop" value={data.stats.avgCandidatesPerStop} />
               <Tile label="Build time" value={`${data.buildMs} ms`} />
             </section>
 
@@ -92,9 +83,7 @@ function DebugGraph() {
                       key={h.bucket}
                       className="flex items-center gap-4 py-2 border-b border-line/50 last:border-0"
                     >
-                      <span className="w-16 font-mono text-[11px] text-ink-soft">
-                        {h.bucket}
-                      </span>
+                      <span className="w-16 font-mono text-[11px] text-ink-soft">{h.bucket}</span>
                       <div className="flex-1 h-2 bg-limestone-soft rounded-full overflow-hidden">
                         <div
                           className="h-full bg-aegean-deep rounded-full"
@@ -148,9 +137,7 @@ function DebugGraph() {
 function Tile({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-2xl bg-card ring-1 ring-line p-4">
-      <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
-        {label}
-      </p>
+      <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">{label}</p>
       <p className="mt-2 font-display text-[28px] leading-none text-ink tabular-nums tracking-[-0.01em]">
         {typeof value === "number" ? value.toLocaleString() : value}
       </p>

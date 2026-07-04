@@ -7,7 +7,11 @@ export const Route = createFileRoute("/admin/seo")({
   head: () => ({
     meta: [
       { title: "SEO panel — Aloya admin" },
-      { name: "description", content: "Live Semrush rankings, traffic and paid-search visibility for Aloya and competitors." },
+      {
+        name: "description",
+        content:
+          "Live Semrush rankings, traffic and paid-search visibility for Aloya and competitors.",
+      },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -39,7 +43,8 @@ function SeoPanel() {
               Live search visibility
             </h1>
             <p className="mt-2 max-w-prose text-sm text-muted-foreground">
-              Semrush data for Aloya, Intercity Buses, and Motion Bus Card across Cyprus, the UK and Germany. Rankings refresh hourly on cache; click Refresh to pull live.
+              Semrush data for Aloya, Intercity Buses, and Motion Bus Card across Cyprus, the UK and
+              Germany. Rankings refresh hourly on cache; click Refresh to pull live.
             </p>
           </div>
           <button
@@ -103,14 +108,25 @@ function SeoPanel() {
               </div>
             </section>
 
-            <KeywordTable title="Intercity Buses — top organic keywords (CY)" rows={data.incumbentOrganic} />
-            <KeywordTable title="Intercity Buses — paid-search keywords (CY)" rows={data.incumbentPaid} />
-            <KeywordTable title="Aloya — current organic keywords (CY)" rows={data.aloyaOrganic} empty="Not yet ranking. Publish and wait for the index — first impressions usually arrive in 4–8 weeks." />
+            <KeywordTable
+              title="Intercity Buses — top organic keywords (CY)"
+              rows={data.incumbentOrganic}
+            />
+            <KeywordTable
+              title="Intercity Buses — paid-search keywords (CY)"
+              rows={data.incumbentPaid}
+            />
+            <KeywordTable
+              title="Aloya — current organic keywords (CY)"
+              rows={data.aloyaOrganic}
+              empty="Not yet ranking. Publish and wait for the index — first impressions usually arrive in 4–8 weeks."
+            />
 
             <section className="mt-10">
               <h2 className="font-display text-xl text-foreground">Backlink profile</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Authority Score and referring-domain counts. Semrush crawl, not the whole web — use for direction.
+                Authority Score and referring-domain counts. Semrush crawl, not the whole web — use
+                for direction.
               </p>
               <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-card">
                 <table className="min-w-full font-mono text-xs">
@@ -150,8 +166,15 @@ function SeoPanel() {
               </div>
             </section>
 
-            <RefDomainsTable title="Intercity Buses — top referring domains" rows={data.incumbentRefDomains} />
-            <RefDomainsTable title="Aloya — top referring domains" rows={data.aloyaRefDomains} empty="No referring domains crawled yet." />
+            <RefDomainsTable
+              title="Intercity Buses — top referring domains"
+              rows={data.incumbentRefDomains}
+            />
+            <RefDomainsTable
+              title="Aloya — top referring domains"
+              rows={data.aloyaRefDomains}
+              empty="No referring domains crawled yet."
+            />
           </>
         )}
 
@@ -165,7 +188,15 @@ function SeoPanel() {
   );
 }
 
-function KeywordTable({ title, rows, empty }: { title: string; rows: Record<string, string>[]; empty?: string }) {
+function KeywordTable({
+  title,
+  rows,
+  empty,
+}: {
+  title: string;
+  rows: Record<string, string>[];
+  empty?: string;
+}) {
   return (
     <section className="mt-10">
       <h2 className="font-display text-xl text-foreground">{title}</h2>
@@ -203,7 +234,15 @@ function KeywordTable({ title, rows, empty }: { title: string; rows: Record<stri
   );
 }
 
-function RefDomainsTable({ title, rows, empty }: { title: string; rows: Record<string, string>[]; empty?: string }) {
+function RefDomainsTable({
+  title,
+  rows,
+  empty,
+}: {
+  title: string;
+  rows: Record<string, string>[];
+  empty?: string;
+}) {
   return (
     <section className="mt-10">
       <h2 className="font-display text-xl text-foreground">{title}</h2>

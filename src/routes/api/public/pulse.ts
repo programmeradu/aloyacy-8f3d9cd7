@@ -41,10 +41,10 @@ export const Route = createFileRoute("/api/public/pulse")({
             getPulseHourStrip(),
             getPulseLive({ data: { lat, lng } }),
           ]);
-          return new Response(
-            JSON.stringify({ today, live, hourly, signals }),
-            { status: 200, headers: CORS },
-          );
+          return new Response(JSON.stringify({ today, live, hourly, signals }), {
+            status: 200,
+            headers: CORS,
+          });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "pulse fetch failed";
           return new Response(JSON.stringify({ error: msg }), {

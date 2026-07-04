@@ -28,7 +28,10 @@ export const Route = createFileRoute("/api/public/trip-groups")({
         try {
           body = (await request.json()) as typeof body;
         } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: CORS });
+          return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+            status: 400,
+            headers: CORS,
+          });
         }
         const action = body.action;
         const payload = body.payload;
@@ -51,7 +54,10 @@ export const Route = createFileRoute("/api/public/trip-groups")({
               result = await endTripGroup({ data: payload as never });
               break;
             default:
-              return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: CORS });
+              return new Response(JSON.stringify({ error: "Unknown action" }), {
+                status: 400,
+                headers: CORS,
+              });
           }
           return new Response(JSON.stringify(result), { status: 200, headers: CORS });
         } catch (e) {

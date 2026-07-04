@@ -46,7 +46,8 @@ export const Route = createFileRoute("/plan/$token")({
   head: ({ params }) => {
     const token = String(params.token || "");
     const title = "A trip plan — Aloya";
-    const desc = "Someone shared a Cyprus bus plan with you. Meeting point, bus, timing — open before you leave.";
+    const desc =
+      "Someone shared a Cyprus bus plan with you. Meeting point, bus, timing — open before you leave.";
     // Dynamic per-plan PNG (rasterized from our brand SVG on the Worker).
     // Minute-bucket cache-buster nudges platforms that key by URL to re-scrape.
     const bucket = Math.floor(Date.now() / 60_000);
@@ -66,20 +67,20 @@ export const Route = createFileRoute("/plan/$token")({
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { property: "og:image:type", content: "image/png" },
-        { property: "og:image:alt", content: "Shared trip plan preview — from, to, departure, bus and journey" },
+        {
+          property: "og:image:alt",
+          content: "Shared trip plan preview — from, to, departure, bus and journey",
+        },
         { property: "og:updated_time", content: String(bucket * 60) },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: desc },
         { name: "twitter:image", content: ogImage },
-
-
       ],
     };
   },
   component: PlanSharePage,
 });
-
 
 function fmtTime(unix: number) {
   return new Date(unix * 1000).toLocaleTimeString([], {
@@ -114,7 +115,12 @@ function PlanSharePage() {
     },
   });
 
-  if (q.isLoading) return <Shell><Placeholder title="Loading plan…" /></Shell>;
+  if (q.isLoading)
+    return (
+      <Shell>
+        <Placeholder title="Loading plan…" />
+      </Shell>
+    );
   if (q.isError)
     return (
       <Shell>
@@ -131,7 +137,11 @@ function PlanSharePage() {
       </Shell>
     );
 
-  return <Shell><PlanView plan={q.data} /></Shell>;
+  return (
+    <Shell>
+      <PlanView plan={q.data} />
+    </Shell>
+  );
 }
 
 function PlanView({ plan }: { plan: PlanShare }) {
@@ -168,7 +178,9 @@ function PlanView({ plan }: { plan: PlanShare }) {
         .replace(/\.\d{3}Z$/, "Z");
     const desc = [
       `Meet at ${boardStop}`,
-      firstRide?.routeShort ? `Take ${firstRide.routeShort} at ${fmtTime(plan.departure_unix)}` : "",
+      firstRide?.routeShort
+        ? `Take ${firstRide.routeShort} at ${fmtTime(plan.departure_unix)}`
+        : "",
       `Arrive ${plan.destination_label} around ${fmtTime(plan.arrival_unix)}`,
       plan.note ? `\\n${plan.note}` : "",
     ]
@@ -199,7 +211,11 @@ function PlanView({ plan }: { plan: PlanShare }) {
           Trip plan
         </p>
         <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
-          {isPast ? "past" : plan.transfers === 0 ? "direct" : `${plan.transfers} change${plan.transfers > 1 ? "s" : ""}`}
+          {isPast
+            ? "past"
+            : plan.transfers === 0
+              ? "direct"
+              : `${plan.transfers} change${plan.transfers > 1 ? "s" : ""}`}
         </p>
       </header>
 

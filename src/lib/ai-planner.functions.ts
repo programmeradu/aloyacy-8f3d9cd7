@@ -16,9 +16,7 @@ const intentSchema = z.object({
   to: z.string().min(1).max(160).nullable(),
   leaveByISO: z.string().datetime().nullable(),
   arriveByISO: z.string().datetime().nullable(),
-  dayHint: z
-    .enum(["now", "today", "tonight", "tomorrow", "weekend", "specific"])
-    .default("now"),
+  dayHint: z.enum(["now", "today", "tonight", "tomorrow", "weekend", "specific"]).default("now"),
   confidence: z.number().min(0).max(1),
   notes: z.string().max(280).optional(),
 });
@@ -48,24 +46,6 @@ function buildUserPrompt(text: string, nowISO?: string, tzOffsetMin?: number) {
     `Country context: Cyprus. Popular stops: Eleftheria Square (Nicosia), Larnaca Airport, Paphos Harbour, Limassol Old Port, University of Cyprus.`,
   ].join("\n");
 }
-
-const responseSchemaJSON = {
-  type: "object",
-  additionalProperties: false,
-  properties: {
-    from: { type: ["string", "null"] },
-    to: { type: ["string", "null"] },
-    leaveByISO: { type: ["string", "null"] },
-    arriveByISO: { type: ["string", "null"] },
-    dayHint: {
-      type: "string",
-      enum: ["now", "today", "tonight", "tomorrow", "weekend", "specific"],
-    },
-    confidence: { type: "number" },
-    notes: { type: "string" },
-  },
-  required: ["from", "to", "leaveByISO", "arriveByISO", "dayHint", "confidence"],
-} as const;
 
 export const parseTripIntent = createServerFn({ method: "POST" })
   .inputValidator((input) => inputSchema.parse(input))
@@ -168,12 +148,11 @@ function extractExplicitTime(
   }
   if (!best) return null;
 
-
   const now = new Date(nowISO);
   // Walk to the caller's local Y/M/D.
   const local = new Date(now.getTime() + tzMin * 60_000);
-  let y = local.getUTCFullYear();
-  let mo = local.getUTCMonth();
+  const y = local.getUTCFullYear();
+  const mo = local.getUTCMonth();
   let d = local.getUTCDate();
 
   if (/\btomorrow\b/.test(t)) d += 1;

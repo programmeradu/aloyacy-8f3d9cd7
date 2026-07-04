@@ -28,10 +28,7 @@ describe("distanceM", () => {
   });
 
   it("is symmetric", () => {
-    expect(distanceM(SOLOMOS, FINIKOUDES)).toBeCloseTo(
-      distanceM(FINIKOUDES, SOLOMOS),
-      6,
-    );
+    expect(distanceM(SOLOMOS, FINIKOUDES)).toBeCloseTo(distanceM(FINIKOUDES, SOLOMOS), 6);
   });
 
   it("resolves sub-metre offsets", () => {
@@ -157,9 +154,7 @@ describe("projectOnSteps", () => {
     const res = projectOnSteps(SOLOMOS, [], destination);
     expect(res.currentIndex).toBe(0);
     expect(res.metersToStepEnd).toBeCloseTo(res.metersToDestination, 6);
-    expect(res.walkingEtaSec).toBe(
-      Math.round(distanceM(SOLOMOS, destination) / WALK_M_PER_S),
-    );
+    expect(res.walkingEtaSec).toBe(Math.round(distanceM(SOLOMOS, destination) / WALK_M_PER_S));
   });
 
   it("keeps the rider on the first step at the start of the walk", () => {

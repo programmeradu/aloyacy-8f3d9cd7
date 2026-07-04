@@ -3,12 +3,20 @@ import { z } from "zod";
 
 const BASE = "https://app.aloya.cy";
 
-type Arrival = { stopId: string; routeId: string; tripId: string; arrivalUnix: number; delaySec: number };
+type Arrival = {
+  stopId: string;
+  routeId: string;
+  tripId: string;
+  arrivalUnix: number;
+  delaySec: number;
+};
 
 type ArrivalWithEta = Arrival & { etaSec: number };
 
 async function fetchArrivals(stopId: string) {
-  const res = await fetch(`${BASE}/api/public/realtime`, { headers: { Accept: "application/json" } });
+  const res = await fetch(`${BASE}/api/public/realtime`, {
+    headers: { Accept: "application/json" },
+  });
   if (!res.ok) throw new Error(`Realtime ${res.status}`);
   const data = (await res.json()) as { arrivals: Arrival[]; stale?: boolean };
   const now = Math.floor(Date.now() / 1000);
@@ -27,8 +35,20 @@ export default defineTool({
   inputSchema: {
     stopId: z.string().trim().min(1).describe("Stop id from search_stops."),
     routeId: z.string().trim().optional().describe("Optional: only watch this route id."),
-    alertWithinSec: z.number().int().min(30).max(1800).optional().describe("Trigger when next bus ETA <= this (default 300 = 5 min)."),
-    timeoutSec: z.number().int().min(5).max(25).optional().describe("Max seconds to wait before returning current state (default 20)."),
+    alertWithinSec: z
+      .number()
+      .int()
+      .min(30)
+      .max(1800)
+      .optional()
+      .describe("Trigger when next bus ETA <= this (default 300 = 5 min)."),
+    timeoutSec: z
+      .number()
+      .int()
+      .min(5)
+      .max(25)
+      .optional()
+      .describe("Max seconds to wait before returning current state (default 20)."),
   },
   annotations: { readOnlyHint: true, idempotentHint: false, openWorldHint: true },
   handler: async ({ stopId, routeId, alertWithinSec, timeoutSec }) => {
@@ -37,7 +57,8 @@ export default defineTool({
     const pollMs = 5000;
 
     const initial = await fetchArrivals(stopId);
-    const filter = (list: ArrivalWithEta[]) => (routeId ? list.filter((a) => a.routeId === routeId) : list);
+    const filter = (list: ArrivalWithEta[]) =>
+      routeId ? list.filter((a) => a.routeId === routeId) : list;
     const baseline = new Map(filter(initial.arrivals).map((a) => [a.tripId, a.arrivalUnix]));
 
     while (true) {
@@ -47,7 +68,8 @@ export default defineTool({
 
       const triggered =
         (next && next.etaSec <= alertAt && !baseline.has(next.tripId)) ||
-        (next && Math.abs((baseline.get(next.tripId) ?? next.arrivalUnix) - next.arrivalUnix) > 60) ||
+        (next &&
+          Math.abs((baseline.get(next.tripId) ?? next.arrivalUnix) - next.arrivalUnix) > 60) ||
         (next && next.etaSec <= alertAt) ||
         Date.now() >= deadline;
 
@@ -67,8 +89,7 @@ export default defineTool({
                 : "eta_shift",
           arrivals: list.slice(0, 5),
           validUntilUnix: snap.now + validForSec,
-          hint:
-            "Data is a live snapshot. Call watch_stop_arrivals again to get the next update; do not ask the user to reprompt.",
+          hint: "Data is a live snapshot. Call watch_stop_arrivals again to get the next update; do not ask the user to reprompt.",
         };
         return {
           content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],

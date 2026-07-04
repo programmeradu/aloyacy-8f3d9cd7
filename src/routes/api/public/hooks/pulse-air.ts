@@ -22,9 +22,11 @@ function json(body: unknown, status = 200) {
 async function guard(request: Request): Promise<Response | null> {
   const apikey = request.headers.get("apikey");
   const legacy =
-    request.headers.get("x-cron-secret") ??
-    new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey = apikey && apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+    request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
+  const validApiKey =
+    apikey &&
+    apikey ===
+      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
   const validLegacy = legacy && process.env.CRON_SECRET && legacy === process.env.CRON_SECRET;
   if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;

@@ -49,7 +49,6 @@ function fmtClock(unix: number) {
   });
 }
 
-
 function useMinutesFromNow() {
   const { t } = useI18n();
   return (unix: number) => {
@@ -122,9 +121,7 @@ function RoutePage() {
       (best, t) => (t.arrivals.length > (best?.arrivals.length ?? 0) ? t : best),
       trips[0],
     );
-    const stopIds = longest
-      ? Array.from(new Set(longest.arrivals.map((a) => a.stopId)))
-      : [];
+    const stopIds = longest ? Array.from(new Set(longest.arrivals.map((a) => a.stopId))) : [];
 
     // For each live vehicle, determine which stop in the canonical sequence
     // it is at (<120m) or approaching (next scheduled stop on its trip).
@@ -169,9 +166,7 @@ function RoutePage() {
           .sort((a, b) => a.arrivalUnix - b.arrivalUnix)
           .find((a) => a.arrivalUnix >= now2 - 30);
         const targetStopId = nextScheduled?.stopId;
-        const targetIdx = targetStopId
-          ? stopIds.indexOf(targetStopId)
-          : nearestIdx;
+        const targetIdx = targetStopId ? stopIds.indexOf(targetStopId) : nearestIdx;
         busesOnLine.push({
           vehicleId: v.id,
           tripId: v.tripId,
@@ -183,6 +178,8 @@ function RoutePage() {
     }
 
     return { trips, vehicles, stopIds, longest, busesOnLine };
+    // Derived purely from `data`; `stopOf` is a stable lookup over the static feed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rt, routeId]);
 
   const markers: MapMarker[] = useMemo(() => {
@@ -197,6 +194,8 @@ function RoutePage() {
         kind: i === 0 ? "origin" : i === arr.length - 1 ? "destination" : "stop",
         tone: "aegean",
       }));
+    // Derived purely from `data`; `stopOf` is a stable lookup over the static feed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const tone = routeTone(routeId);
@@ -221,7 +220,9 @@ function RoutePage() {
         <div className="flex items-center gap-3">
           <RouteChip code={route?.short ?? routeId} tone={tone} />
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-            {t("route.lineSuffix", { agency: route?.agency === "IC" ? t("route.intercity") : t("route.nicosia") })}
+            {t("route.lineSuffix", {
+              agency: route?.agency === "IC" ? t("route.intercity") : t("route.nicosia"),
+            })}
           </span>
         </div>
         <h1 className="mt-3 font-display text-[36px] leading-[1.05] text-ink text-balance">
@@ -285,86 +286,90 @@ function RoutePage() {
       </section>
 
       {/* Next departure / Live status card */}
-      {data?.trips.length ? (() => {
-        const firstTrip = data.trips[0];
-        const liveBus = data.busesOnLine.find((b) => b.tripId === firstTrip.tripId);
-        const nextStopName =
-          stopOf(firstTrip.nextArrival.stopId)?.name ?? t("route.upcomingStop");
-        const terminusName = stopOf(firstTrip.lastStop.stopId)?.name ?? t("route.terminus");
+      {data?.trips.length
+        ? (() => {
+            const firstTrip = data.trips[0];
+            const liveBus = data.busesOnLine.find((b) => b.tripId === firstTrip.tripId);
+            const nextStopName =
+              stopOf(firstTrip.nextArrival.stopId)?.name ?? t("route.upcomingStop");
+            const terminusName = stopOf(firstTrip.lastStop.stopId)?.name ?? t("route.terminus");
 
-        let kicker = t("route.nextDeparture");
-        let kickerTone = "text-limestone/60";
-        let bigText = nextStopName;
-        let footer = t("route.endsAt", {
-          time: fmtClock(firstTrip.nextArrival.arrivalUnix),
-          terminus: terminusName,
-        });
-        let pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
+            let kicker = t("route.nextDeparture");
+            let kickerTone = "text-limestone/60";
+            let bigText = nextStopName;
+            let footer = t("route.endsAt", {
+              time: fmtClock(firstTrip.nextArrival.arrivalUnix),
+              terminus: terminusName,
+            });
+            let pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
 
-        if (liveBus) {
-          const atStop = stopOf(data.stopIds[liveBus.stopIndex]);
-          if (liveBus.status === "departing") {
-            kicker = t("route.aboutToDepart");
-            kickerTone = "text-ochre";
-            bigText = atStop?.name ?? nextStopName;
-            footer = t("route.boardingOrigin", { terminus: terminusName });
-            pillText = t("route.boardingPill");
-          } else if (liveBus.status === "at") {
-            kicker = t("route.busAtStop");
-            kickerTone = "text-ochre";
-            bigText = atStop?.name ?? nextStopName;
-            footer = t("route.doorsOpen", { name: nextStopName });
-            pillText = t("route.atStopPill");
-          } else {
-            const kmh = Math.round(liveBus.speed * 3.6);
-            kicker = kmh > 3 ? t("route.busInMotion") : t("route.busEnRoute");
-            kickerTone = "text-ochre";
-            bigText = t("route.headingTo", { name: nextStopName });
-            footer =
-              (kmh > 3 ? t("route.kmhPrefix", { kmh }) : "") +
-              t("route.arrivingEnds", {
-                time: fmtClock(firstTrip.nextArrival.arrivalUnix),
-                terminus: terminusName,
-              });
-            pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
-          }
-        }
+            if (liveBus) {
+              const atStop = stopOf(data.stopIds[liveBus.stopIndex]);
+              if (liveBus.status === "departing") {
+                kicker = t("route.aboutToDepart");
+                kickerTone = "text-ochre";
+                bigText = atStop?.name ?? nextStopName;
+                footer = t("route.boardingOrigin", { terminus: terminusName });
+                pillText = t("route.boardingPill");
+              } else if (liveBus.status === "at") {
+                kicker = t("route.busAtStop");
+                kickerTone = "text-ochre";
+                bigText = atStop?.name ?? nextStopName;
+                footer = t("route.doorsOpen", { name: nextStopName });
+                pillText = t("route.atStopPill");
+              } else {
+                const kmh = Math.round(liveBus.speed * 3.6);
+                kicker = kmh > 3 ? t("route.busInMotion") : t("route.busEnRoute");
+                kickerTone = "text-ochre";
+                bigText = t("route.headingTo", { name: nextStopName });
+                footer =
+                  (kmh > 3 ? t("route.kmhPrefix", { kmh }) : "") +
+                  t("route.arrivingEnds", {
+                    time: fmtClock(firstTrip.nextArrival.arrivalUnix),
+                    terminus: terminusName,
+                  });
+                pillText = minutesFromNow(firstTrip.nextArrival.arrivalUnix);
+              }
+            }
 
-        return (
-          <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "160ms" }}>
-            <Link
-              to="/trip-info/$tripId"
-              params={{ tripId: firstTrip.tripId }}
-              className="block rounded-[28px] bg-ink text-limestone p-5 ring-1 ring-ink/10 transition-transform active:scale-[0.99]"
-            >
-              <div className="flex items-center justify-between">
-                <p className={`font-mono text-[10px] uppercase tracking-[0.22em] ${kickerTone}`}>
-                  {liveBus ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="relative inline-flex">
-                        <span className="size-1.5 rounded-full bg-ochre" />
-                        <span className="absolute inset-0 size-1.5 rounded-full bg-ochre animate-ping opacity-70" />
-                      </span>
-                      {kicker}
-                    </span>
-                  ) : (
-                    kicker
-                  )}
-                </p>
-                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-                  {pillText}
-                </p>
-              </div>
-              <p className="mt-3 font-display text-[28px] leading-[1.05] text-limestone text-balance">
-                {bigText}
-              </p>
-              <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-limestone/70">
-                {footer}
-              </p>
-            </Link>
-          </section>
-        );
-      })() : null}
+            return (
+              <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "160ms" }}>
+                <Link
+                  to="/trip-info/$tripId"
+                  params={{ tripId: firstTrip.tripId }}
+                  className="block rounded-[28px] bg-ink text-limestone p-5 ring-1 ring-ink/10 transition-transform active:scale-[0.99]"
+                >
+                  <div className="flex items-center justify-between">
+                    <p
+                      className={`font-mono text-[10px] uppercase tracking-[0.22em] ${kickerTone}`}
+                    >
+                      {liveBus ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="relative inline-flex">
+                            <span className="size-1.5 rounded-full bg-ochre" />
+                            <span className="absolute inset-0 size-1.5 rounded-full bg-ochre animate-ping opacity-70" />
+                          </span>
+                          {kicker}
+                        </span>
+                      ) : (
+                        kicker
+                      )}
+                    </p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+                      {pillText}
+                    </p>
+                  </div>
+                  <p className="mt-3 font-display text-[28px] leading-[1.05] text-limestone text-balance">
+                    {bigText}
+                  </p>
+                  <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-limestone/70">
+                    {footer}
+                  </p>
+                </Link>
+              </section>
+            );
+          })()
+        : null}
 
       {/* Wave 3 — Cross-island intercity intelligence (IC only) */}
       {isIntercity && (
@@ -372,8 +377,6 @@ function RoutePage() {
           <IntercityPatternsCard insights={intercity} isLoading={intercityLoading} />
         </section>
       )}
-
-
 
       {/* Upcoming runs */}
       {data && data.trips.length > 1 ? (
@@ -405,7 +408,12 @@ function RoutePage() {
                       {live && <IconBus className="size-3 text-ochre" />}
                       {live ? t("route.liveNow") : t("route.scheduled")}
                       {" — "}
-                      {t("route.toName", { name: stopOf(trip.lastStop.stopId)?.name.split(/[·\-,]/)[0].trim() ?? t("route.terminus") })}
+                      {t("route.toName", {
+                        name:
+                          stopOf(trip.lastStop.stopId)
+                            ?.name.split(/[·\-,]/)[0]
+                            .trim() ?? t("route.terminus"),
+                      })}
                     </p>
                   </div>
                   <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
@@ -510,9 +518,7 @@ function RoutePage() {
             <p className="font-display text-[20px] leading-tight text-ink">
               {t("route.stopsAppearTitle")}
             </p>
-            <p className="mt-2 text-[13px] text-ink-soft">
-              {t("route.stopsAppearBody")}
-            </p>
+            <p className="mt-2 text-[13px] text-ink-soft">{t("route.stopsAppearBody")}</p>
           </div>
         </section>
       ) : null}

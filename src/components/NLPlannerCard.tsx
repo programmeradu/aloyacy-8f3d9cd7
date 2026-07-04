@@ -25,21 +25,12 @@ import { track, trackImpression } from "@/lib/analytics";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
 import { nearestCity } from "@/lib/cities";
 import { getDeviceId, getDeviceToken } from "@/lib/pwa";
-import {
-  IconArrowUp,
-  IconClose,
-  IconMic,
-  IconNav,
-  IconClockSmall,
-} from "@/components/Icons";
+import { IconArrowUp, IconClose, IconMic, IconNav, IconClockSmall } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
 
 // Generic cold-start fallbacks. Used only when the server-side suggestion
 // fetch fails entirely; the hook below populates real, dynamic chips.
-const FALLBACK_EXAMPLES = [
-  "to Eleftheria Square in 20 min",
-  "to Larnaca airport tomorrow 7am",
-];
+const FALLBACK_EXAMPLES = ["to Eleftheria Square in 20 min", "to Larnaca airport tomorrow 7am"];
 
 const SELF_REFS = new Set([
   "my place",
@@ -75,12 +66,16 @@ function extractHeuristicIntent(text: string, tzMin: number): LocalIntent {
   let to: string | null = null;
 
   // "from A to B"
-  const fromTo = lower.match(/\bfrom\s+(.+?)\s+to\s+(.+?)(?:\s+(?:tomorrow|tonight|today|at|by|in|leave|arrive|before|after|on)\b|$)/);
+  const fromTo = lower.match(
+    /\bfrom\s+(.+?)\s+to\s+(.+?)(?:\s+(?:tomorrow|tonight|today|at|by|in|leave|arrive|before|after|on)\b|$)/,
+  );
   if (fromTo) {
     from = sliceOriginal(t, fromTo[1]);
     to = sliceOriginal(t, fromTo[2]);
   } else {
-    const toMatch = lower.match(/\bto\s+(.+?)(?:\s+(?:tomorrow|tonight|today|at|by|in|leave|arrive|before|after|on)\b|$)/);
+    const toMatch = lower.match(
+      /\bto\s+(.+?)(?:\s+(?:tomorrow|tonight|today|at|by|in|leave|arrive|before|after|on)\b|$)/,
+    );
     if (toMatch) to = sliceOriginal(t, toMatch[1]);
     else {
       const inMin = lower.match(/^(.+?)\s+in\s+\d+\s*(?:min|minutes|mins)\b/);
@@ -117,7 +112,8 @@ function extractClockTime(
 ): { iso: string; preferArrive: boolean } | null {
   const tomorrow = /\btomorrow\b/.test(lower);
   const tonight = /\btonight\b/.test(lower);
-  const re = /\b(at|by|before|leave at|leave by|depart at|depart by|arrive by|arrive at)?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/g;
+  const re =
+    /\b(at|by|before|leave at|leave by|depart at|depart by|arrive by|arrive at)?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/g;
   for (const m of lower.matchAll(re)) {
     const verb = m[1];
     let hh = parseInt(m[2], 10);
@@ -131,8 +127,8 @@ function extractClockTime(
     if (tonight && hh < 17) hh += 12;
     const now = new Date();
     const local = new Date(now.getTime() + tzMin * 60_000);
-    let y = local.getUTCFullYear();
-    let mo = local.getUTCMonth();
+    const y = local.getUTCFullYear();
+    const mo = local.getUTCMonth();
     let d = local.getUTCDate();
     if (tomorrow) d += 1;
     const ms = Date.UTC(y, mo, d, hh, mm) - tzMin * 60_000;
@@ -162,7 +158,8 @@ function createRecognizer(): SpeechRec | null {
   if (typeof window === "undefined") return null;
   const Ctor =
     (window as unknown as { SpeechRecognition?: new () => SpeechRec }).SpeechRecognition ??
-    (window as unknown as { webkitSpeechRecognition?: new () => SpeechRec }).webkitSpeechRecognition;
+    (window as unknown as { webkitSpeechRecognition?: new () => SpeechRec })
+      .webkitSpeechRecognition;
   if (!Ctor) return null;
   const rec = new Ctor();
   rec.lang = "en-US";
@@ -228,8 +225,7 @@ export function NLPlannerCard() {
   });
   // Always fall back to FALLBACK_EXAMPLES until real data arrives, so SSR
   // and the first client render produce identical HTML (avoids React #418).
-  const examples =
-    suggestionsQuery.data?.suggestions?.map((s) => s.text) ?? FALLBACK_EXAMPLES;
+  const examples = suggestionsQuery.data?.suggestions?.map((s) => s.text) ?? FALLBACK_EXAMPLES;
 
   useEffect(() => {
     trackImpression("ui:nl-planner.impression");
@@ -245,8 +241,7 @@ export function NLPlannerCard() {
     // not be funnelled into Nicosia results.
     const bias = (() => {
       try {
-        const raw =
-          typeof window !== "undefined" ? localStorage.getItem("aloya:geo") : null;
+        const raw = typeof window !== "undefined" ? localStorage.getItem("aloya:geo") : null;
         if (!raw) return NICOSIA_CENTER;
         const parsed = JSON.parse(raw) as { lat?: number; lng?: number };
         if (typeof parsed.lat !== "number" || typeof parsed.lng !== "number") {

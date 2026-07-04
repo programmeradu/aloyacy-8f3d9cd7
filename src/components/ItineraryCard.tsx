@@ -72,16 +72,15 @@ export function ItineraryCard({
   const firstRide = rides[0];
 
   const totalMin = Math.round(itinerary.totalDurationSec / 60);
-  const departIn = Math.max(
-    0,
-    Math.round((itinerary.departureUnix - Date.now() / 1000) / 60),
-  );
+  const departIn = Math.max(0, Math.round((itinerary.departureUnix - Date.now() / 1000) / 60));
 
   const reliability = useMemo(() => {
     const totalDelay = rides.reduce((s, r) => s + (r.delaySec || 0), 0);
     if (rides.every((r) => r.live)) {
-      if (totalDelay > 90) return { tone: "ochre", text: t("itin.usualPlus", { m: Math.round(totalDelay / 60) }) };
-      if (totalDelay < -90) return { tone: "olive", text: t("itin.usualMinus", { m: Math.round(totalDelay / 60) }) };
+      if (totalDelay > 90)
+        return { tone: "ochre", text: t("itin.usualPlus", { m: Math.round(totalDelay / 60) }) };
+      if (totalDelay < -90)
+        return { tone: "olive", text: t("itin.usualMinus", { m: Math.round(totalDelay / 60) }) };
       return { tone: "aegean", text: t("itin.onTime") };
     }
     if (itinerary.source === "mixed") return { tone: "aegean", text: t("itin.liveSched") };
@@ -92,7 +91,6 @@ export function ItineraryCard({
     itinerary.source === "live"
       ? t("itin.leavesIn", { n: departIn })
       : t("itin.leavesAt", { t: fmtTime(itinerary.departureUnix) });
-
 
   return (
     <article
@@ -105,9 +103,7 @@ export function ItineraryCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="font-sans text-[12px] font-semibold text-ink-soft">
-            {sourceLabel}
-          </p>
+          <p className="font-sans text-[12px] font-semibold text-ink-soft">{sourceLabel}</p>
           <h3 className="mt-1.5 font-display text-[24px] font-semibold leading-tight text-ink text-pretty">
             {itinerary.transfers === 0 ? (
               <>
@@ -116,12 +112,10 @@ export function ItineraryCard({
               </>
             ) : (
               <>
-                {itinerary.transfers === 1 ? t("itin.oneChange") : t("itin.changes", { n: itinerary.transfers })}{" "}
-                {t("itin.via")}{" "}
-
-                <span className="text-aegean-deep">
-                  {firstRide?.alight.name}
-                </span>
+                {itinerary.transfers === 1
+                  ? t("itin.oneChange")
+                  : t("itin.changes", { n: itinerary.transfers })}{" "}
+                {t("itin.via")} <span className="text-aegean-deep">{firstRide?.alight.name}</span>
               </>
             )}
           </h3>
@@ -177,9 +171,7 @@ export function ItineraryCard({
             {t("rationale.eyebrow")}
           </p>
           <p className="mt-1 font-sans text-[13px] font-semibold leading-snug text-ink text-pretty">
-            {itinerary.rationale
-              .map((tag) => rationaleToCopy(tag, t))
-              .join(" — ")}
+            {itinerary.rationale.map((tag) => rationaleToCopy(tag, t)).join(" — ")}
           </p>
         </div>
       ) : null}
@@ -225,8 +217,8 @@ export function ItineraryCard({
                     {leg.alight.name.split(",")[0]}
                   </p>
                   <p className="font-sans text-[12px] font-semibold text-ink-soft mt-1 tabular-nums">
-                    {fmtTime(leg.board.departureUnix)} —{" "}
-                    {fmtTime(leg.alight.arrivalUnix)} · {leg.live
+                    {fmtTime(leg.board.departureUnix)} — {fmtTime(leg.alight.arrivalUnix)} ·{" "}
+                    {leg.live
                       ? t("itin.stopsLive", { n: leg.stopCount })
                       : t("itin.stops", { n: leg.stopCount })}
                   </p>
@@ -245,15 +237,15 @@ export function ItineraryCard({
                   <span className="font-sans text-[12px] font-bold mr-2 text-ink tabular-nums">
                     {t("itin.wait")} {fmtMin(leg.durationSec)}
                   </span>
-                  <span className="text-ink-soft">{t("itin.at")} {leg.name.split(",")[0]}</span>
+                  <span className="text-ink-soft">
+                    {t("itin.at")} {leg.name.split(",")[0]}
+                  </span>
                 </p>
               )}
             </li>
           ))}
         </ol>
       ) : null}
-
-
 
       <button
         onClick={onStart}
@@ -267,7 +259,6 @@ export function ItineraryCard({
         {startLabel}
         {!startDisabled ? <IconArrowUpRight className="size-4" /> : null}
       </button>
-
     </article>
   );
 }

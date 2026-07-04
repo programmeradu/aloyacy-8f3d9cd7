@@ -44,13 +44,7 @@ function fmtDelay(sec: number, t: TFn) {
   return m >= 1 ? t("intercity.earlyMin", { m }) : t("intercity.earlySec", { s: abs });
 }
 
-function WindowLine({
-  label,
-  window,
-}: {
-  label: string;
-  window: IntercityWindow;
-}) {
+function WindowLine({ label, window }: { label: string; window: IntercityWindow }) {
   const { t } = useI18n();
   const day = t(`day.short.${dayKey(window.dayOfWeek)}` as DictKey);
   return (
@@ -102,9 +96,7 @@ export function IntercityPatternsCard({ insights, isLoading }: Props) {
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
           {t("intercity.eyebrow")}
         </p>
-        <p className="mt-3 font-display text-[18px] text-ink-soft">
-          {t("intercity.loading")}
-        </p>
+        <p className="mt-3 font-display text-[18px] text-ink-soft">{t("intercity.loading")}</p>
       </section>
     );
   }

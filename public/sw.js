@@ -13,9 +13,7 @@ self.addEventListener("activate", (event) => {
     (async () => {
       const names = await caches.keys();
       await Promise.all(
-        names
-          .filter((n) => n !== CACHE && n !== SCHEDULE_CACHE)
-          .map((n) => caches.delete(n)),
+        names.filter((n) => n !== CACHE && n !== SCHEDULE_CACHE).map((n) => caches.delete(n)),
       );
       await self.clients.claim();
     })(),

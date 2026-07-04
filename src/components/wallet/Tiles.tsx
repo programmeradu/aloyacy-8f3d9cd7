@@ -23,9 +23,7 @@ export function ActionTile({
       className="text-left rounded-[24px] bg-card ring-1 ring-line p-4 hover:ring-aegean-deep/30 transition-all w-full"
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          {eyebrow}
-        </p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">{eyebrow}</p>
         {adornment && <div className="shrink-0">{adornment}</div>}
       </div>
       <p
@@ -93,11 +91,7 @@ export function Fare({
           >
             {value}
           </p>
-          <p
-            className={`text-[10px] ${isDark ? "text-limestone/75" : "text-ink-soft"}`}
-          >
-            {sub}
-          </p>
+          <p className={`text-[10px] ${isDark ? "text-limestone/75" : "text-ink-soft"}`}>{sub}</p>
         </div>
       </div>
     </article>

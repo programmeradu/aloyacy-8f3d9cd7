@@ -3,24 +3,17 @@
 // request so shared previews update as friends join and move.
 
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  OG_HEIGHT,
-  OG_PALETTE,
-  OG_WIDTH,
-  clip,
-  esc,
-  ogPngResponse,
-} from "@/lib/og-render.server";
+import { OG_HEIGHT, OG_PALETTE, OG_WIDTH, clip, esc, ogPngResponse } from "@/lib/og-render.server";
 
 export const Route = createFileRoute("/api/public/og/group/$code")({
   server: {
     handlers: {
       GET: async ({ params }) => {
-        const code = String(params.code || "").toUpperCase().slice(0, 12);
+        const code = String(params.code || "")
+          .toUpperCase()
+          .slice(0, 12);
 
-        const { supabaseAdmin } = await import(
-          "@/integrations/supabase/client.server"
-        );
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         const { data: group } = await supabaseAdmin
           .from("trip_groups")

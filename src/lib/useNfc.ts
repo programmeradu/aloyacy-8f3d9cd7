@@ -64,8 +64,7 @@ export function useNfcScan() {
   const [lastUid, setLastUid] = useState<{ hex: string; digits: string } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const supported =
-    typeof window !== "undefined" && typeof window.NDEFReader === "function";
+  const supported = typeof window !== "undefined" && typeof window.NDEFReader === "function";
 
   useEffect(() => {
     if (!supported) setStatus("unsupported");

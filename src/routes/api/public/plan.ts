@@ -23,10 +23,10 @@ export const Route = createFileRoute("/api/public/plan")({
         try {
           body = await request.json();
         } catch {
-          return new Response(
-            JSON.stringify({ error: "Invalid JSON body" }),
-            { status: 400, headers: CORS },
-          );
+          return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+            status: 400,
+            headers: CORS,
+          });
         }
         try {
           // planMultiLeg validates the input with Zod internally and

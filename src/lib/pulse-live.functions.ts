@@ -197,9 +197,7 @@ export const getPulseLive = createServerFn({ method: "GET" })
 
     // Resolve focus zone from coords (default Nicosia — capital, most riders).
     const focusZone =
-      data.lat != null && data.lng != null
-        ? nearestZone(data.lat, data.lng)
-        : PULSE_ZONES[0];
+      data.lat != null && data.lng != null ? nearestZone(data.lat, data.lng) : PULSE_ZONES[0];
 
     // Pull every fresh row in one query. Server-side TTL filter keeps payload tight.
     const { data: rows, error } = await supabaseAdmin
@@ -380,7 +378,6 @@ export const getDustAdvisory = createServerFn({ method: "GET" })
         : direct;
 
     const pm10 = typeof payload.pm10 === "number" ? (payload.pm10 as number) : null;
-    const aqi = typeof payload.europeanAqi === "number" ? (payload.europeanAqi as number) : null;
     const band = (payload.band ?? null) as DustAdvisory["band"];
 
     let severity: DustAdvisory["severity"] | null = null;
@@ -390,7 +387,7 @@ export const getDustAdvisory = createServerFn({ method: "GET" })
     else if (band === "poor" || band === "very-poor") severity = "poor-air";
     if (!severity) return null;
 
-    const walk = Math.round((data.walkMeters ?? 0));
+    const walk = Math.round(data.walkMeters ?? 0);
     const long = walk >= 400;
 
     const headline =

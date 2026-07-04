@@ -28,7 +28,12 @@ describe("classifyFreshness", () => {
   });
 
   it("calls a fresh, nearby vehicle live", () => {
-    const r = classifyFreshness({ hasVehicle: true, pingAgeSec: 20, stopsAway: 2, modelSamples: 12 });
+    const r = classifyFreshness({
+      hasVehicle: true,
+      pingAgeSec: 20,
+      stopsAway: 2,
+      modelSamples: 12,
+    });
     expect(r.tier).toBe("live");
     expect(r.token).toBe("live");
     expect(r.confidence).toBe("high");
@@ -51,7 +56,12 @@ describe("classifyFreshness", () => {
   });
 
   it("demotes to ghost at the urban cutoff", () => {
-    const r = classifyFreshness({ hasVehicle: true, pingAgeSec: 180, stopsAway: 1, modelSamples: 500 });
+    const r = classifyFreshness({
+      hasVehicle: true,
+      pingAgeSec: 180,
+      stopsAway: 1,
+      modelSamples: 500,
+    });
     expect(r.tier).toBe("ghost");
     expect(r.token).toBe("no gps");
     expect(r.confidence).toBe("low");

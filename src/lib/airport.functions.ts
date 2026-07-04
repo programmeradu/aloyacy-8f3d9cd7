@@ -50,7 +50,7 @@ export const AIRPORTS: Record<AirportCode, AirportMeta> = {
     nameEl: "Διεθνές Αεροδρόμιο Πάφου",
     city: "Paphos",
     cityEl: "Πάφος",
-    lat: 34.7180,
+    lat: 34.718,
     lng: 32.4857,
     pulseScope: "airport-pfo",
   },
@@ -126,16 +126,24 @@ function addLocalSeconds(local: string, addSec: number): string {
 function nowCyprusLocal(): string {
   return new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Asia/Nicosia",
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
     hour12: false,
-  }).format(new Date()).replace("T", " ");
+  })
+    .format(new Date())
+    .replace("T", " ");
 }
 
 function todayCyprus(): string {
   return new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Asia/Nicosia",
-    year: "numeric", month: "2-digit", day: "2-digit",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   }).format(new Date());
 }
 
@@ -152,13 +160,19 @@ function dayChip(local: string): string {
   const diff = Math.round((Date.UTC(Y, M - 1, D) - Date.UTC(tY, tM - 1, tD)) / 86_400_000);
   if (diff === 1) return "tomorrow";
   return new Intl.DateTimeFormat("en-GB", {
-    weekday: "short", day: "numeric", month: "short", timeZone: "UTC",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
   }).format(new Date(Date.UTC(Y, M - 1, D)));
 }
 
 function prettyCity(name: string): string {
   // Strip leading code and lowercase the rest. "NICOSIA - CITY (CO1)" -> "Nicosia"
-  const stripped = name.replace(/^\([A-Z0-9]+\)\s*/i, "").replace(/\s*-\s*.*$/, "").trim();
+  const stripped = name
+    .replace(/^\([A-Z0-9]+\)\s*/i, "")
+    .replace(/\s*-\s*.*$/, "")
+    .trim();
   return stripped.charAt(0).toUpperCase() + stripped.slice(1).toLowerCase();
 }
 
@@ -258,7 +272,11 @@ async function fetchFlights(scope: "airport-lca" | "airport-pfo"): Promise<Airpo
       departuresNext60?: number;
       summary?: string;
       arrivals?: Array<{ callsign: string | null; otherAirport: string | null; scheduled: string }>;
-      departures?: Array<{ callsign: string | null; otherAirport: string | null; scheduled: string }>;
+      departures?: Array<{
+        callsign: string | null;
+        otherAirport: string | null;
+        scheduled: string;
+      }>;
     };
     const tz = (iso: string): string =>
       new Intl.DateTimeFormat("en-GB", {
@@ -267,7 +285,11 @@ async function fetchFlights(scope: "airport-lca" | "airport-pfo"): Promise<Airpo
         minute: "2-digit",
         hour12: false,
       }).format(new Date(iso));
-    const mapFlight = (f: { callsign: string | null; otherAirport: string | null; scheduled: string }): AirportFlightRow => ({
+    const mapFlight = (f: {
+      callsign: string | null;
+      otherAirport: string | null;
+      scheduled: string;
+    }): AirportFlightRow => ({
       callsign: f.callsign,
       otherAirport: f.otherAirport,
       scheduled: tz(f.scheduled),

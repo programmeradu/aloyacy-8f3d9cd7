@@ -2,8 +2,7 @@ import { useState } from "react";
 import type { MotionPassOption } from "@/lib/motion-pass";
 import { useI18n } from "@/lib/i18n";
 
-const TOPUP_URL =
-  "https://www.publictransport.com.cy/topup/page/topup-travel-card";
+const TOPUP_URL = "https://www.publictransport.com.cy/topup/page/topup-travel-card";
 
 async function copyToClipboard(text: string) {
   try {
@@ -68,14 +67,9 @@ export function RenewPasses({
         {passes.map((p) => {
           const justCopied = copiedCode === p.code;
           return (
-            <li
-              key={p.code}
-              className="flex items-center justify-between gap-3 p-4"
-            >
+            <li key={p.code} className="flex items-center justify-between gap-3 p-4">
               <div className="min-w-0">
-                <p className="text-[13px] text-ink leading-tight truncate">
-                  {p.name}
-                </p>
+                <p className="text-[13px] text-ink leading-tight truncate">{p.name}</p>
                 <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
                   {justCopied
                     ? t("wallet.renewCopied")

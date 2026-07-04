@@ -19,7 +19,13 @@ const BUCKET = "schedule";
 
 type RouteOut = { short: string; long: string; color: string; feedId: number; type: number };
 type ServiceOut = { feedId: number; dates: string[] };
-type TripOut = { routeId: string; serviceId: string; direction: 0 | 1; headsign: string; feedId: number };
+type TripOut = {
+  routeId: string;
+  serviceId: string;
+  direction: 0 | 1;
+  headsign: string;
+  feedId: number;
+};
 type StopOut = { name: string; lat: number; lng: number; feedId: number };
 type StopTimeRow = [string, number, number, number];
 type StopTripRow = [string, number, string];
@@ -63,7 +69,9 @@ async function uploadJson(path: string, data: unknown) {
   return { raw: bytes.length, gz: gz.length };
 }
 
-async function runIngest(days: number): Promise<{ ok: true; trips: number; stops: number; dates: string[]; bytes: number }> {
+async function runIngest(
+  days: number,
+): Promise<{ ok: true; trips: number; stops: number; dates: string[]; bytes: number }> {
   const routes: Record<string, RouteOut> = {};
   const services: Record<string, ServiceOut> = {};
   const trips: Record<string, TripOut> = {};
@@ -72,11 +80,16 @@ async function runIngest(days: number): Promise<{ ok: true; trips: number; stops
 
   for (const feedId of FEED_IDS) {
     const url = `${BASE}${feedId}_google_transit.zip&rel=True`;
-    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(45_000) });
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(45_000),
+    });
     if (!res.ok) throw new Error(`download feed ${feedId} → ${res.status}`);
     const buf = new Uint8Array(await res.arrayBuffer());
     const files = unzipSync(buf, {
-      filter: (f) => /\.(txt)$/.test(f.name) && /(stops|routes|calendar_dates|trips|stop_times)\.txt$/.test(f.name),
+      filter: (f) =>
+        /\.(txt)$/.test(f.name) &&
+        /(stops|routes|calendar_dates|trips|stop_times)\.txt$/.test(f.name),
     });
     const ns = (raw: string) => `${feedId}:${raw}`;
     const txt = (name: string) => {
@@ -88,10 +101,14 @@ async function runIngest(days: number): Promise<{ ok: true; trips: number; stops
     // stops
     {
       const { header, rows } = parseCsv(txt("stops.txt"));
-      const iId = col(header, "stop_id"), iN = col(header, "stop_name"), iLa = col(header, "stop_lat"), iLn = col(header, "stop_lon");
+      const iId = col(header, "stop_id"),
+        iN = col(header, "stop_name"),
+        iLa = col(header, "stop_lat"),
+        iLn = col(header, "stop_lon");
       for (const r of rows) {
         if (!r[iId]) continue;
-        const lat = Number(r[iLa]), lng = Number(r[iLn]);
+        const lat = Number(r[iLa]),
+          lng = Number(r[iLn]);
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
         stops[ns(r[iId])] = { name: r[iN] ?? "", lat, lng, feedId };
       }
@@ -99,13 +116,26 @@ async function runIngest(days: number): Promise<{ ok: true; trips: number; stops
     // routes
     {
       const { header, rows } = parseCsv(txt("routes.txt"));
-      const iId = col(header, "route_id"), iS = col(header, "route_short_name"), iL = col(header, "route_long_name"), iC = header.indexOf("route_color"), iT = col(header, "route_type");
-      for (const r of rows) routes[ns(r[iId])] = { short: r[iS] ?? "", long: r[iL] ?? "", color: iC >= 0 ? r[iC] ?? "" : "", feedId, type: Number(r[iT]) };
+      const iId = col(header, "route_id"),
+        iS = col(header, "route_short_name"),
+        iL = col(header, "route_long_name"),
+        iC = header.indexOf("route_color"),
+        iT = col(header, "route_type");
+      for (const r of rows)
+        routes[ns(r[iId])] = {
+          short: r[iS] ?? "",
+          long: r[iL] ?? "",
+          color: iC >= 0 ? (r[iC] ?? "") : "",
+          feedId,
+          type: Number(r[iT]),
+        };
     }
     // calendar_dates
     {
       const { header, rows } = parseCsv(txt("calendar_dates.txt"));
-      const iSv = col(header, "service_id"), iD = col(header, "date"), iE = col(header, "exception_type");
+      const iSv = col(header, "service_id"),
+        iD = col(header, "date"),
+        iE = col(header, "exception_type");
       for (const r of rows) {
         if (r[iE] !== "1") continue;
         const sid = ns(r[iSv]);
@@ -115,13 +145,28 @@ async function runIngest(days: number): Promise<{ ok: true; trips: number; stops
     // trips
     {
       const { header, rows } = parseCsv(txt("trips.txt"));
-      const iR = col(header, "route_id"), iSv = col(header, "service_id"), iT = col(header, "trip_id"), iH = col(header, "trip_headsign"), iD = col(header, "direction_id");
-      for (const r of rows) trips[ns(r[iT])] = { routeId: ns(r[iR]), serviceId: ns(r[iSv]), direction: (Number(r[iD]) || 0) as 0 | 1, headsign: r[iH] ?? "", feedId };
+      const iR = col(header, "route_id"),
+        iSv = col(header, "service_id"),
+        iT = col(header, "trip_id"),
+        iH = col(header, "trip_headsign"),
+        iD = col(header, "direction_id");
+      for (const r of rows)
+        trips[ns(r[iT])] = {
+          routeId: ns(r[iR]),
+          serviceId: ns(r[iSv]),
+          direction: (Number(r[iD]) || 0) as 0 | 1,
+          headsign: r[iH] ?? "",
+          feedId,
+        };
     }
     // stop_times
     {
       const { header, rows } = parseCsv(txt("stop_times.txt"));
-      const iT = col(header, "trip_id"), iA = col(header, "arrival_time"), iD = col(header, "departure_time"), iS = col(header, "stop_id"), iQ = col(header, "stop_sequence");
+      const iT = col(header, "trip_id"),
+        iA = col(header, "arrival_time"),
+        iD = col(header, "departure_time"),
+        iS = col(header, "stop_id"),
+        iQ = col(header, "stop_sequence");
       for (const r of rows) {
         const tid = ns(r[iT]);
         (stopTimes[tid] ??= []).push([ns(r[iS]), hms(r[iD]), hms(r[iA]), Number(r[iQ])]);
@@ -144,7 +189,9 @@ async function runIngest(days: number): Promise<{ ok: true; trips: number; stops
   const now = new Date();
   for (let i = 0; i < days; i++) {
     const d = new Date(now.getTime() + (3 + i * 24) * 3600 * 1000);
-    dates.push(`${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`);
+    dates.push(
+      `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`,
+    );
   }
   const dateSet = new Set(dates);
 
@@ -153,16 +200,25 @@ async function runIngest(days: number): Promise<{ ok: true; trips: number; stops
     for (const d of svc.dates) {
       if (!dateSet.has(d)) continue;
       let s = servicesByDate.get(d);
-      if (!s) { s = new Set(); servicesByDate.set(d, s); }
+      if (!s) {
+        s = new Set();
+        servicesByDate.set(d, s);
+      }
       s.add(sid);
     }
   }
 
   let totalBytes = 0;
-  const shardIndex: Record<string, { trips: number; rows: number; stopTimesKb: number; stopTripsKb: number }> = {};
+  const shardIndex: Record<
+    string,
+    { trips: number; rows: number; stopTimesKb: number; stopTripsKb: number }
+  > = {};
 
   // globals
-  const feedsMeta = FEED_IDS.map((id) => ({ id, source: `${BASE}${id}_google_transit.zip&rel=True` }));
+  const feedsMeta = FEED_IDS.map((id) => ({
+    id,
+    source: `${BASE}${id}_google_transit.zip&rel=True`,
+  }));
   for (const [name, data] of [
     ["feeds.json", feedsMeta],
     ["stops.json", stops],
@@ -202,7 +258,13 @@ async function runIngest(days: number): Promise<{ ok: true; trips: number; stops
 
   await uploadJson("by-date/index.json", shardIndex);
 
-  return { ok: true, trips: Object.keys(trips).length, stops: Object.keys(stops).length, dates, bytes: totalBytes };
+  return {
+    ok: true,
+    trips: Object.keys(trips).length,
+    stops: Object.keys(stops).length,
+    dates,
+    bytes: totalBytes,
+  };
 }
 
 export const Route = createFileRoute("/api/public/hooks/ingest-schedule")({
@@ -212,27 +274,42 @@ export const Route = createFileRoute("/api/public/hooks/ingest-schedule")({
         // Auth: anon key in apikey header, or Bearer CRON_SECRET
         const apikey = request.headers.get("apikey");
         const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-        const validApiKey = apikey && apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+        const validApiKey =
+          apikey &&
+          apikey ===
+            (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
         const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
         if (!validApiKey && !validCron) {
-          return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+          return new Response(JSON.stringify({ error: "unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
         }
 
         let body: { days?: number } = {};
-        try { body = (await request.json()) as { days?: number }; } catch { /* ignore */ }
+        try {
+          body = (await request.json()) as { days?: number };
+        } catch {
+          /* ignore */
+        }
         const days = Math.max(1, Math.min(14, body.days ?? 14));
 
         const t0 = Date.now();
         try {
           const result = await runIngest(days);
           return new Response(JSON.stringify({ ...result, ms: Date.now() - t0 }), {
-            status: 200, headers: { "Content-Type": "application/json" },
+            status: 200,
+            headers: { "Content-Type": "application/json" },
           });
         } catch (err) {
           console.error("[ingest-schedule] failed:", err);
-          return new Response(JSON.stringify({ error: (err as Error).message, ms: Date.now() - t0 }), {
-            status: 500, headers: { "Content-Type": "application/json" },
-          });
+          return new Response(
+            JSON.stringify({ error: (err as Error).message, ms: Date.now() - t0 }),
+            {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
         }
       },
     },

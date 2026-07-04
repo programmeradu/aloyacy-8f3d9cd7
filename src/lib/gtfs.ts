@@ -44,25 +44,17 @@ export const getStop = (id: string, agency?: string) => {
 };
 
 // Haversine, km
-export function distanceKm(
-  a: { lat: number; lng: number },
-  b: { lat: number; lng: number },
-) {
+export function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
   const R = 6371;
   const dLat = ((b.lat - a.lat) * Math.PI) / 180;
   const dLng = ((b.lng - a.lng) * Math.PI) / 180;
   const la1 = (a.lat * Math.PI) / 180;
   const la2 = (b.lat * Math.PI) / 180;
-  const x =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
-export function nearestStops(
-  from: { lat: number; lng: number },
-  limit = 6,
-) {
+export function nearestStops(from: { lat: number; lng: number }, limit = 6) {
   return STOPS.map((s) => ({ ...s, distanceKm: distanceKm(from, s) }))
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, limit);
@@ -81,13 +73,14 @@ export function routeTone(routeId: string | undefined): "aegean" | "ochre" | "ol
 }
 
 // Pretty city / area name for the stop list
-export const NICOSIA_CENTER = { lat: 35.1740, lng: 33.3650 };
+export const NICOSIA_CENTER = { lat: 35.174, lng: 33.365 };
 
 // Heuristic stop classification — GTFS bundle has no location_type, so we
 // derive a visual archetype from agency + name patterns. Used to pick a
 // painted vignette per stop card.
 export type StopKind = "shelter" | "pole" | "terminal";
-const TERMINAL_RE = /\b(station|terminal|interchange|airport|port|depot|square|stadium|hospital)\b/i;
+const TERMINAL_RE =
+  /\b(station|terminal|interchange|airport|port|depot|square|stadium|hospital)\b/i;
 export function stopKind(stop: { name: string; agency: string }): StopKind {
   if (TERMINAL_RE.test(stop.name)) return "terminal";
   if (stop.agency === "IC") return "pole";

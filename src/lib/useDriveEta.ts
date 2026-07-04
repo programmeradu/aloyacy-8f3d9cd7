@@ -22,11 +22,7 @@ const REFETCH_MS = 30_000;
 
 type Pt = { lat: number; lng: number };
 
-export function useDriveEta(opts: {
-  enabled: boolean;
-  from: Pt | null;
-  to: Pt | null;
-}): {
+export function useDriveEta(opts: { enabled: boolean; from: Pt | null; to: Pt | null }): {
   etaSec: number | null;
   distanceMeters: number | null;
   fetchedAt: number | null;
@@ -41,10 +37,7 @@ export function useDriveEta(opts: {
   const q = (n: number) => Math.round(n * 5000) / 5000;
   const keyFrom = from ? `${q(from.lat)},${q(from.lng)}` : null;
   const keyTo = to ? `${q(to.lat)},${q(to.lng)}` : null;
-  const queryKey = useMemo(
-    () => ["drive-eta", keyFrom, keyTo] as const,
-    [keyFrom, keyTo],
-  );
+  const queryKey = useMemo(() => ["drive-eta", keyFrom, keyTo] as const, [keyFrom, keyTo]);
 
   // Track last fetched position so we can skip refetch when the bus barely
   // moved (e.g. dwelling at a stop or red light).
@@ -80,9 +73,7 @@ export function useDriveEta(opts: {
   // early to grab a fresh number ahead of the regular interval.
   useEffect(() => {
     if (!enabled || !from || !data) return;
-    const moved = lastFromRef.current
-      ? distanceM(lastFromRef.current, from)
-      : Infinity;
+    const moved = lastFromRef.current ? distanceM(lastFromRef.current, from) : Infinity;
     if (moved > MIN_MOVE_M && now - data.fetchedAt > 8_000) {
       qc.invalidateQueries({ queryKey });
     }

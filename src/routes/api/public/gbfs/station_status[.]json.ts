@@ -31,9 +31,7 @@ export const Route = createFileRoute("/api/public/gbfs/station_status.json")({
               is_renting: s.bikes > 0,
               is_returning: s.freeRacks > 0,
               last_reported: now,
-              vehicle_types_available: [
-                { vehicle_type_id: "nextbike_ebike", count: s.bikes },
-              ],
+              vehicle_types_available: [{ vehicle_type_id: "nextbike_ebike", count: s.bikes }],
             })),
           },
         };

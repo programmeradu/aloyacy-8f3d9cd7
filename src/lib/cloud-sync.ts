@@ -8,10 +8,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { readPass, writePass, type MotionPass } from "./motion-pass";
-import {
-  listSavedPlaces,
-  type SavedPlace,
-} from "./trip-store";
+import { listSavedPlaces, type SavedPlace } from "./trip-store";
 
 let lastPushedUserId: string | null = null;
 let pushTimer: number | null = null;
@@ -52,9 +49,7 @@ function passToRow(pass: MotionPass, userId: string): Omit<MotionRow, "updated_a
     // Tokens are sensitive — only sync after client-side encryption.
     // Until that's wired, leave null (linked account on this device only).
     jcc_tokens_encrypted: null,
-    jcc_linked_at: pass.jcc?.linkedAt
-      ? new Date(pass.jcc.linkedAt).toISOString()
-      : null,
+    jcc_linked_at: pass.jcc?.linkedAt ? new Date(pass.jcc.linkedAt).toISOString() : null,
     last_sync_at: pass.lastSyncAt ? new Date(pass.lastSyncAt).toISOString() : null,
     pass_name: pass.passName || null,
   };
@@ -72,9 +67,7 @@ function rowToPass(row: MotionRow, current: MotionPass): MotionPass {
     balanceUpdatedAt: row.balance_updated_at
       ? new Date(row.balance_updated_at).getTime()
       : current.balanceUpdatedAt,
-    lastSyncAt: row.last_sync_at
-      ? new Date(row.last_sync_at).getTime()
-      : current.lastSyncAt,
+    lastSyncAt: row.last_sync_at ? new Date(row.last_sync_at).getTime() : current.lastSyncAt,
     passName: row.pass_name || current.passName,
   };
   return next;
@@ -106,9 +99,7 @@ async function pushMotionCard(userId: string): Promise<void> {
   const local = readPass();
   if (!local.number || local.number.replace(/\D/g, "").length < 6) return;
   const row = passToRow(local, userId);
-  const { error } = await supabase
-    .from("motion_card")
-    .upsert(row, { onConflict: "user_id" });
+  const { error } = await supabase.from("motion_card").upsert(row, { onConflict: "user_id" });
   if (error) console.warn("[cloud-sync] motion push:", error.message);
 }
 
@@ -144,10 +135,7 @@ async function pushSavedPlaces(userId: string): Promise<void> {
 }
 
 async function pullSavedPlaces(userId: string): Promise<void> {
-  const { data, error } = await supabase
-    .from("saved_places")
-    .select("*")
-    .eq("user_id", userId);
+  const { data, error } = await supabase.from("saved_places").select("*").eq("user_id", userId);
   if (error || !data) return;
   if (!data.length) {
     // Cloud empty — migrate local up if any.
@@ -169,9 +157,7 @@ async function pullSavedPlaces(userId: string): Promise<void> {
   }));
   if (typeof window !== "undefined") {
     window.localStorage.setItem("aloya:saved-places", JSON.stringify(mapped));
-    window.dispatchEvent(
-      new CustomEvent("aloya:store", { detail: { key: "aloya:saved-places" } }),
-    );
+    window.dispatchEvent(new CustomEvent("aloya:store", { detail: { key: "aloya:saved-places" } }));
   }
 }
 

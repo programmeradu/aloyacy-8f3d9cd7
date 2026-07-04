@@ -65,35 +65,26 @@ export const Route = createFileRoute("/api/public/tts")({
         const elevenKey = process.env.ELEVENLABS_API_KEY;
         const lovableKey = process.env.LOVABLE_API_KEY;
         if (!elevenKey && !lovableKey) {
-          return new Response(
-            JSON.stringify({ error: "TTS not configured" }),
-            {
-              status: 500,
-              headers: { ...CORS, "Content-Type": "application/json" },
-            },
-          );
+          return new Response(JSON.stringify({ error: "TTS not configured" }), {
+            status: 500,
+            headers: { ...CORS, "Content-Type": "application/json" },
+          });
         }
         let body: { input?: string; voice?: string; instructions?: string };
         try {
           body = (await request.json()) as typeof body;
         } catch {
-          return new Response(
-            JSON.stringify({ error: "Invalid JSON" }),
-            {
-              status: 400,
-              headers: { ...CORS, "Content-Type": "application/json" },
-            },
-          );
+          return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+            status: 400,
+            headers: { ...CORS, "Content-Type": "application/json" },
+          });
         }
         const input = (body.input ?? "").toString().slice(0, 400).trim();
         if (!input) {
-          return new Response(
-            JSON.stringify({ error: "Missing 'input'" }),
-            {
-              status: 400,
-              headers: { ...CORS, "Content-Type": "application/json" },
-            },
-          );
+          return new Response(JSON.stringify({ error: "Missing 'input'" }), {
+            status: 400,
+            headers: { ...CORS, "Content-Type": "application/json" },
+          });
         }
         const instructions =
           body.instructions ??
@@ -117,8 +108,7 @@ export const Route = createFileRoute("/api/public/tts")({
               status: resp.status,
               headers: {
                 ...CORS,
-                "Content-Type":
-                  resp.headers.get("content-type") ?? "application/json",
+                "Content-Type": resp.headers.get("content-type") ?? "application/json",
               },
             });
           }
@@ -132,8 +122,7 @@ export const Route = createFileRoute("/api/public/tts")({
             status: resp.status,
             headers: {
               ...CORS,
-              "Content-Type":
-                resp.headers.get("content-type") ?? "application/json",
+              "Content-Type": resp.headers.get("content-type") ?? "application/json",
             },
           });
         }

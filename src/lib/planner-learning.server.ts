@@ -93,11 +93,23 @@ function delayKey(routeId: string, stopId: string, hour: number, dow: number) {
   return `${routeId}|${stopId}|${hour}|${dow}`;
 }
 
-function segmentKey(routeId: string, fromStopId: string, toStopId: string, hour: number, dow: number) {
+function segmentKey(
+  routeId: string,
+  fromStopId: string,
+  toStopId: string,
+  hour: number,
+  dow: number,
+) {
   return `${routeId}|${fromStopId}|${toStopId}|${hour}|${dow}`;
 }
 
-function transferKey(fromRoute: string, toRoute: string, atStopId: string, hour: number, dow: number) {
+function transferKey(
+  fromRoute: string,
+  toRoute: string,
+  atStopId: string,
+  hour: number,
+  dow: number,
+) {
   return `${fromRoute}|${toRoute}|${atStopId}|${hour}|${dow}`;
 }
 
@@ -111,13 +123,13 @@ export async function loadPlannerLearningContext(
 ): Promise<PlannerLearningContext> {
   if (itineraries.length === 0) return EMPTY_CONTEXT;
 
-  const rides = itineraries.flatMap((it) => it.legs.filter((leg): leg is RideLeg => leg.kind === "ride"));
+  const rides = itineraries.flatMap((it) =>
+    it.legs.filter((leg): leg is RideLeg => leg.kind === "ride"),
+  );
   if (rides.length === 0) return EMPTY_CONTEXT;
 
   const routeIds = uniqStrings(rides.map((ride) => ride.routeId));
-  const stopIds = uniqStrings(
-    rides.flatMap((ride) => [ride.board.stopId, ride.alight.stopId]),
-  );
+  const stopIds = uniqStrings(rides.flatMap((ride) => [ride.board.stopId, ride.alight.stopId]));
   const hours = uniqNumbers(
     rides.flatMap((ride) => [
       timeParts(ride.board.departureUnix).hour,
@@ -146,7 +158,9 @@ export async function loadPlannerLearningContext(
       .gte("sample_count", 2),
     supabaseAdmin
       .from("segment_runtimes")
-      .select("route_id, from_stop_id, to_stop_id, hour_of_day, day_of_week, mean_runtime_sec, sample_count")
+      .select(
+        "route_id, from_stop_id, to_stop_id, hour_of_day, day_of_week, mean_runtime_sec, sample_count",
+      )
       .in("route_id", routeIds)
       .in("from_stop_id", stopIds)
       .in("to_stop_id", stopIds)
@@ -170,7 +184,9 @@ export async function loadPlannerLearningContext(
       .gte("sample_count", 2),
     supabaseAdmin
       .from("transfer_outcomes")
-      .select("from_route, to_route, at_stop_id, hour_of_day, day_of_week, planned_wait_sec, attempts, successes")
+      .select(
+        "from_route, to_route, at_stop_id, hour_of_day, day_of_week, planned_wait_sec, attempts, successes",
+      )
       .in("from_route", routeIds)
       .in("to_route", routeIds)
       .in("at_stop_id", stopIds)
@@ -179,7 +195,9 @@ export async function loadPlannerLearningContext(
       .gte("attempts", 2),
     supabaseAdmin
       .from("headway_observations")
-      .select("route_id, stop_id, hour_of_day, day_of_week, observed_headway_sec, sample_count, bunching_count")
+      .select(
+        "route_id, stop_id, hour_of_day, day_of_week, observed_headway_sec, sample_count, bunching_count",
+      )
       .in("route_id", routeIds)
       .in("stop_id", stopIds)
       .in("hour_of_day", hours)
@@ -196,7 +214,13 @@ export async function loadPlannerLearningContext(
     ),
     segmentByKey: new Map(
       (segmentRes.data ?? []).map((row) => [
-        segmentKey(row.route_id, row.from_stop_id, row.to_stop_id, row.hour_of_day, row.day_of_week),
+        segmentKey(
+          row.route_id,
+          row.from_stop_id,
+          row.to_stop_id,
+          row.hour_of_day,
+          row.day_of_week,
+        ),
         row as SegmentRow,
       ]),
     ),
@@ -231,7 +255,9 @@ function baseScore(itinerary: Itinerary) {
   const rides = itinerary.legs.filter((leg): leg is RideLeg => leg.kind === "ride");
   const reliabilitySec = rides.reduce((acc, ride) => acc + Math.max(0, ride.delaySec), 0);
   const walkPenaltySec = Math.max(0, itinerary.totalWalkMeters - 500) * 0.4;
-  return itinerary.totalDurationSec + itinerary.transfers * 120 + reliabilitySec * 0.5 + walkPenaltySec;
+  return (
+    itinerary.totalDurationSec + itinerary.transfers * 120 + reliabilitySec * 0.5 + walkPenaltySec
+  );
 }
 
 export function scoreItineraryWithLearning(
@@ -254,11 +280,19 @@ export function scoreItineraryWithLearning(
     );
     if ((!ride.live || ride.delaySec <= 30) && learnedDelay && learnedDelay.sample_count >= 3) {
       learnedPenalty +=
-        Math.max(0, learnedDelay.mean_delay_sec) * confidenceWeight(learnedDelay.sample_count, 12) * 0.35;
+        Math.max(0, learnedDelay.mean_delay_sec) *
+        confidenceWeight(learnedDelay.sample_count, 12) *
+        0.35;
     }
 
     const learnedRuntime = context.segmentByKey.get(
-      segmentKey(ride.routeId, ride.board.stopId, ride.alight.stopId, boardTime.hour, boardTime.dow),
+      segmentKey(
+        ride.routeId,
+        ride.board.stopId,
+        ride.alight.stopId,
+        boardTime.hour,
+        boardTime.dow,
+      ),
     );
     if (learnedRuntime && learnedRuntime.sample_count >= 3) {
       learnedPenalty +=
@@ -275,7 +309,9 @@ export function scoreItineraryWithLearning(
         learnedDwell.mean_dwell_sec * confidenceWeight(learnedDwell.sample_count, 10) * 0.25;
     }
 
-    const feedTruth = context.feedTruthByKey.get(`${ride.routeId}|${boardTime.hour}|${boardTime.dow}`);
+    const feedTruth = context.feedTruthByKey.get(
+      `${ride.routeId}|${boardTime.hour}|${boardTime.dow}`,
+    );
     if (feedTruth && feedTruth.sample_count >= 3) {
       learnedPenalty +=
         Math.max(0, Math.abs(feedTruth.mean_delta_sec) - 20) *
@@ -297,7 +333,13 @@ export function scoreItineraryWithLearning(
     const toRide = rides[i + 1];
     const boardTime = timeParts(toRide.board.departureUnix);
     const transfer = context.transferByKey.get(
-      transferKey(fromRide.routeId, toRide.routeId, toRide.board.stopId, boardTime.hour, boardTime.dow),
+      transferKey(
+        fromRide.routeId,
+        toRide.routeId,
+        toRide.board.stopId,
+        boardTime.hour,
+        boardTime.dow,
+      ),
     );
     if (!transfer || transfer.attempts < 3) continue;
 

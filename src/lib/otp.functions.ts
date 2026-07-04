@@ -12,7 +12,6 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-
 // Per-email throttle so a hammered button can't drain quota.
 const lastSentAt = new Map<string, number>();
 const MIN_INTERVAL_MS = 20_000;
@@ -78,8 +77,7 @@ export const linkEmailAndRequestOtp = createServerFn({ method: "POST" })
     const email = data.email.trim().toLowerCase();
     const userId = context.userId;
 
-    const isAnon =
-      (context.claims as { is_anonymous?: boolean }).is_anonymous === true;
+    const isAnon = (context.claims as { is_anonymous?: boolean }).is_anonymous === true;
     if (!isAnon) {
       return {
         ok: false as const,

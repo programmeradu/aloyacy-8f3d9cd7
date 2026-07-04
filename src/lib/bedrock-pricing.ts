@@ -32,7 +32,10 @@ const PRICES: Record<string, Price> = {
 // table above. Keeps totals accurate as AWS ships new dated versions.
 const FAMILY_PRICES: Array<{ match: RegExp; price: Price }> = [
   { match: /claude-opus/, price: { input: 0.015, output: 0.075 } },
-  { match: /claude-sonnet|claude-3-7-sonnet|claude-3-5-sonnet/, price: { input: 0.003, output: 0.015 } },
+  {
+    match: /claude-sonnet|claude-3-7-sonnet|claude-3-5-sonnet/,
+    price: { input: 0.003, output: 0.015 },
+  },
   { match: /claude-haiku-4|claude-3-5-haiku/, price: { input: 0.001, output: 0.005 } },
   { match: /claude-3-haiku/, price: { input: 0.00025, output: 0.00125 } },
   { match: /nova-pro/, price: { input: 0.0008, output: 0.0032 } },
@@ -69,11 +72,7 @@ function lookupPrice(modelId: string): Price | null {
   return null;
 }
 
-export function estimateCost(
-  modelId: string,
-  inputTokens: number,
-  outputTokens: number,
-): number {
+export function estimateCost(modelId: string, inputTokens: number, outputTokens: number): number {
   const p = lookupPrice(modelId);
   if (!p) return 0;
   return (inputTokens / 1000) * p.input + (outputTokens / 1000) * p.output;

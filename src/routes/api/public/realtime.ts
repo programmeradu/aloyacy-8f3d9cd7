@@ -51,7 +51,7 @@ export const Route = createFileRoute("/api/public/realtime")({
               stale: true,
               error: e instanceof Error ? e.message : "upstream error",
             }),
-            { status: 200, headers: { "Content-Type": "application/json", ...CORS } }
+            { status: 200, headers: { "Content-Type": "application/json", ...CORS } },
           );
         }
       },

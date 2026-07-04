@@ -5,15 +5,9 @@ import stopShelter from "@/assets/stop-shelter.png";
 import stopPole from "@/assets/stop-pole.png";
 import stopTerminal from "@/assets/stop-terminal.png";
 import { useI18n } from "@/lib/i18n";
-import {
-  tierAccent,
-  type FreshnessConfidence,
-  type FreshnessTier,
-} from "@/lib/freshness";
+import { tierAccent, type FreshnessConfidence, type FreshnessTier } from "@/lib/freshness";
 import { ConfidenceIcon } from "@/components/ConfidenceIcon";
 import { AmenityIcon } from "@/components/AmenityIcon";
-
-
 
 type Tone = "aegean" | "ochre" | "olive";
 export type StopKind = "shelter" | "pole" | "terminal";
@@ -49,10 +43,7 @@ export type Stop = {
   };
 };
 
-const VIGNETTES: Record<
-  StopKind,
-  { src: string; className: string; mask: string }
-> = {
+const VIGNETTES: Record<StopKind, { src: string; className: string; mask: string }> = {
   shelter: {
     src: stopShelter,
     className: "-right-5 -bottom-3 w-40",
@@ -85,9 +76,10 @@ export function StopCard({ stop }: { stop: Stop }) {
   const v = VIGNETTES[stop.kind ?? "shelter"];
   const tier = tierFromLegacy(stop.etaTier, stop.etaConfidence);
   const isGhost = tier === "ghost";
-  const accent = stop.highlight && (tier === "live" || tier === "rider-confirmed")
-    ? "text-aegean-deep"
-    : tierAccent(tier);
+  const accent =
+    stop.highlight && (tier === "live" || tier === "rider-confirmed")
+      ? "text-aegean-deep"
+      : tierAccent(tier);
   const showTierChip = stop.etaMin != null;
   // Ghost: replace the number with "—" so we never claim live time we lack.
   const displayMin = stop.etaMin == null || isGhost ? null : stop.etaMin;
@@ -120,7 +112,9 @@ export function StopCard({ stop }: { stop: Stop }) {
             <h3 className="mt-0.5 font-display text-[22px] leading-tight text-pretty text-ink">
               {stop.name}
             </h3>
-            <p className="mt-1 text-xs text-ink-soft">{t("stopCard.towards", { name: stop.towards })}</p>
+            <p className="mt-1 text-xs text-ink-soft">
+              {t("stopCard.towards", { name: stop.towards })}
+            </p>
           </div>
           <RouteList routes={stop.routes} />
           {stop.amenities ? <AmenityRow a={stop.amenities} t={t} /> : null}
@@ -129,18 +123,14 @@ export function StopCard({ stop }: { stop: Stop }) {
         <div className="flex flex-col items-end gap-1">
           {displayMin === null ? (
             <>
-              <span className={`font-display text-5xl leading-none ${accent}`}>
-                —
-              </span>
+              <span className={`font-display text-5xl leading-none ${accent}`}>—</span>
               <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/70 text-right max-w-[7rem]">
                 {isGhost ? t("eta.tier.ghost") : t("stopCard.noLiveBus")}
               </span>
             </>
           ) : (
             <>
-              <span className={`font-display text-5xl leading-none ${accent}`}>
-                {displayMin}
-              </span>
+              <span className={`font-display text-5xl leading-none ${accent}`}>{displayMin}</span>
               <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/70">
                 {t("stopCard.minAway")}
               </span>
@@ -195,23 +185,15 @@ function TierChip({
             {blurb}
           </span>
         )}
-
-
     </div>
   );
 }
-
 
 /**
  * Wave 2.2 — surfaces stop affordances when we have curated data. We
  * deliberately render nothing when amenities are undefined.
  */
-function AmenityRow({
-  a,
-}: {
-  a: NonNullable<Stop["amenities"]>;
-  t: (k: never) => string;
-}) {
+function AmenityRow({ a }: { a: NonNullable<Stop["amenities"]>; t: (k: never) => string }) {
   const items: { key: import("./AmenityIcon").AmenityKey; on: boolean }[] = [
     { key: "shelter", on: a.shelter },
     { key: "shade", on: a.shade },
@@ -230,10 +212,6 @@ function AmenityRow({
     </ul>
   );
 }
-
-
-
-
 
 /**
  * Renders the route list compactly. When a stop has many routes (4+), we
@@ -269,9 +247,10 @@ function RouteList({ routes }: { routes: Stop["routes"] }) {
 
   // Compact: show all chips in a wrapped row, plus a single "destinations"
   // summary line beneath listing up to 2 headsigns.
-  const destSummary = Array.from(
-    new Set(withHeadsigns.map((r) => r.headsign as string)),
-  ).slice(0, 2);
+  const destSummary = Array.from(new Set(withHeadsigns.map((r) => r.headsign as string))).slice(
+    0,
+    2,
+  );
   const extraDest = Math.max(
     0,
     new Set(withHeadsigns.map((r) => r.headsign)).size - destSummary.length,
@@ -288,11 +267,8 @@ function RouteList({ routes }: { routes: Stop["routes"] }) {
       </ul>
       {destSummary.length > 0 && (
         <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft truncate">
-          <span className="text-ink-soft/50">→</span>{" "}
-          {destSummary.join("  ")}
-          {extraDest > 0 ? (
-            <span className="text-ink-soft/60"> +{extraDest}</span>
-          ) : null}
+          <span className="text-ink-soft/50">→</span> {destSummary.join("  ")}
+          {extraDest > 0 ? <span className="text-ink-soft/60"> +{extraDest}</span> : null}
         </p>
       )}
     </div>

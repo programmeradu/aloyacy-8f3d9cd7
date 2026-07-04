@@ -27,9 +27,7 @@ async function resolveUserId(accessToken?: string | null): Promise<string | null
 }
 
 export const claimDeviceToken = createServerFn({ method: "POST" })
-  .inputValidator((input) =>
-    z.object({ deviceId: z.string().min(8).max(128) }).parse(input),
-  )
+  .inputValidator((input) => z.object({ deviceId: z.string().min(8).max(128) }).parse(input))
   .handler(async ({ data }) => {
     const result = await ensureDeviceToken(data.deviceId);
     if (!result.ok) return { ok: false as const, error: result.error };
@@ -136,9 +134,7 @@ export const getTripSuggestions = createServerFn({ method: "POST" })
     const since = new Date(Date.now() - 90 * 86_400_000).toISOString();
     let query = supabaseAdmin
       .from("trip_history")
-      .select(
-        "from_lat,from_lng,from_label,to_lat,to_lng,to_label,recorded_at,dow,hour",
-      )
+      .select("from_lat,from_lng,from_label,to_lat,to_lng,to_label,recorded_at,dow,hour")
       .gte("recorded_at", since)
       .order("recorded_at", { ascending: false })
       .limit(200);
@@ -175,10 +171,7 @@ export const getTripSuggestions = createServerFn({ method: "POST" })
     for (const r of rows) {
       const key = `${bucket(r.to_lat)},${bucket(r.to_lng)}`;
       const ts = new Date(r.recorded_at).getTime();
-      const hourDelta = Math.min(
-        Math.abs(r.hour - nowHour),
-        24 - Math.abs(r.hour - nowHour),
-      );
+      const hourDelta = Math.min(Math.abs(r.hour - nowHour), 24 - Math.abs(r.hour - nowHour));
       const hourMatch = hourDelta <= 2 ? 1 : 0;
       const dowMatch = r.dow === nowDow ? 1 : 0;
       const existing = groups.get(key);
@@ -208,8 +201,7 @@ export const getTripSuggestions = createServerFn({ method: "POST" })
     for (const g of groups.values()) {
       const daysAgo = (Date.now() - g.lastUsed) / 86_400_000;
       const recency = Math.exp(-daysAgo / 14);
-      const score =
-        g.count * recency + g.hourBonus * 1.5 + g.dowBonus * 0.5;
+      const score = g.count * recency + g.hourBonus * 1.5 + g.dowBonus * 0.5;
 
       let blurb = "Recent destination";
       if (g.hourBonus >= 2 && g.count >= 2) blurb = "Usually around now";

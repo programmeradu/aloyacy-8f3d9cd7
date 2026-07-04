@@ -68,9 +68,7 @@ async function summarizeTrip(tripId: string) {
     const ts = new Date(r.reported_at).getTime();
     if (ts > mostRecent) mostRecent = ts;
   }
-  const ageSec = mostRecent
-    ? Math.max(0, Math.floor((now - mostRecent) / 1000))
-    : TRUST_WINDOW_SEC;
+  const ageSec = mostRecent ? Math.max(0, Math.floor((now - mostRecent) / 1000)) : TRUST_WINDOW_SEC;
   const recency = Math.max(0, 1 - ageSec / TRUST_WINDOW_SEC);
   const density = Math.min(1, devices.size / 3);
   const confidence = Math.round((0.35 * recency + 0.65 * density) * 100) / 100;
@@ -90,9 +88,7 @@ export const Route = createFileRoute("/api/public/sighting")({
         }
 
         // Rate limit: reject if this device sighted this trip recently.
-        const cutoff = new Date(
-          Date.now() - RATE_LIMIT_SEC * 1000,
-        ).toISOString();
+        const cutoff = new Date(Date.now() - RATE_LIMIT_SEC * 1000).toISOString();
         const { data: recent } = await supabaseAdmin
           .from("bus_sightings")
           .select("id")
@@ -105,16 +101,14 @@ export const Route = createFileRoute("/api/public/sighting")({
           return json(200, { ok: true, dedup: true, ...summary });
         }
 
-        const { error: insErr } = await supabaseAdmin
-          .from("bus_sightings")
-          .insert({
-            trip_id: parsed.tripId,
-            route_id: parsed.routeId ?? null,
-            stop_id: parsed.stopId ?? null,
-            lat: parsed.lat,
-            lng: parsed.lng,
-            device_id: parsed.deviceId,
-          });
+        const { error: insErr } = await supabaseAdmin.from("bus_sightings").insert({
+          trip_id: parsed.tripId,
+          route_id: parsed.routeId ?? null,
+          stop_id: parsed.stopId ?? null,
+          lat: parsed.lat,
+          lng: parsed.lng,
+          device_id: parsed.deviceId,
+        });
         if (insErr) {
           return json(500, { error: "insert failed" });
         }
@@ -137,9 +131,7 @@ export const Route = createFileRoute("/api/public/sighting")({
         } catch {
           return json(400, { error: "Invalid payload" });
         }
-        const cutoff = new Date(
-          Date.now() - UNDO_WINDOW_SEC * 1000,
-        ).toISOString();
+        const cutoff = new Date(Date.now() - UNDO_WINDOW_SEC * 1000).toISOString();
         const { error } = await supabaseAdmin
           .from("bus_sightings")
           .delete()

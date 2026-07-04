@@ -1,5 +1,5 @@
-import * as React from 'react'
-import { Button, Text } from '@react-email/components'
+import * as React from "react";
+import { Button, Text } from "@react-email/components";
 import {
   Layout,
   bodyText,
@@ -10,14 +10,14 @@ import {
   inlineLink,
   sectionLabel,
   colors,
-} from './_layout'
+} from "./_layout";
 
 interface EmailChangeEmailProps {
-  siteName: string
-  oldEmail: string
-  email: string
-  newEmail: string
-  confirmationUrl: string
+  siteName: string;
+  oldEmail: string;
+  email: string;
+  newEmail: string;
+  confirmationUrl: string;
 }
 
 export const EmailChangeEmail = ({
@@ -33,8 +33,8 @@ export const EmailChangeEmail = ({
     heroAlt="Two cream envelopes joined by an olive sprig on limestone"
   >
     <Text style={bodyText}>
-      You requested to change the email on your Aloya account.
-      Confirm the change to finish updating your sign-in.
+      You requested to change the email on your Aloya account. Confirm the change to finish updating
+      your sign-in.
     </Text>
 
     <table
@@ -43,20 +43,20 @@ export const EmailChangeEmail = ({
       cellSpacing={0}
       role="presentation"
       style={{
-        margin: '0 0 28px',
+        margin: "0 0 28px",
         border: `1px solid ${colors.line}`,
         backgroundColor: colors.limestone,
       }}
     >
       <tbody>
         <tr>
-          <td style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.line}` }}>
+          <td style={{ padding: "16px 20px", borderBottom: `1px solid ${colors.line}` }}>
             <Text style={sectionLabel}>From</Text>
             <Text style={{ ...bodyText, margin: 0, fontWeight: 500 }}>{oldEmail}</Text>
           </td>
         </tr>
         <tr>
-          <td style={{ padding: '16px 20px' }}>
+          <td style={{ padding: "16px 20px" }}>
             <Text style={sectionLabel}>To</Text>
             <Text style={{ ...bodyText, margin: 0, fontWeight: 500 }}>{newEmail}</Text>
           </td>
@@ -79,10 +79,9 @@ export const EmailChangeEmail = ({
     </Text>
 
     <Text style={fineprint}>
-      Didn't request this change? Secure your account immediately
-      by resetting your password.
+      Didn't request this change? Secure your account immediately by resetting your password.
     </Text>
   </Layout>
-)
+);
 
-export default EmailChangeEmail
+export default EmailChangeEmail;

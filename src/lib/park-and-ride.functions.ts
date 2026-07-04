@@ -21,10 +21,8 @@ import { hubsForCity } from "@/data/park-and-ride";
 import { nearestCity, distanceKm as cityDistanceKm } from "./cities";
 import type { Itinerary, RideLeg } from "./itinerary-types";
 
-const distanceKm = (
-  a: { lat: number; lng: number },
-  b: { lat: number; lng: number },
-) => distanceM(a, b) / 1000;
+const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) =>
+  distanceM(a, b) / 1000;
 
 const Pt = z.object({
   lat: z.number().min(34).max(36),
@@ -163,18 +161,16 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
         candidates.map(async (c) => {
           const [drive, busPlan] = await Promise.all([
             drivingRoute(from, { lat: c.hub.lat, lng: c.hub.lng }),
-            planMultiLegJourney(
-              { lat: c.hub.lat, lng: c.hub.lng, label: c.hub.label },
-              to,
-            ).catch(() => ({ itineraries: [] as Itinerary[] })),
+            planMultiLegJourney({ lat: c.hub.lat, lng: c.hub.lng, label: c.hub.label }, to).catch(
+              () => ({ itineraries: [] as Itinerary[] }),
+            ),
           ]);
           if (!drive || drive.durationSec <= 0) return null;
           const bestBus = busPlan.itineraries
             .filter((it) => it.transfers <= 1)
             .sort((a, b) => a.score - b.score)[0];
           if (!bestBus) return null;
-          const totalSec =
-            drive.durationSec + PARK_BUFFER_SEC + bestBus.totalDurationSec;
+          const totalSec = drive.durationSec + PARK_BUFFER_SEC + bestBus.totalDurationSec;
           return { c, drive, bestBus, totalSec };
         }),
       ),
@@ -190,10 +186,7 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
     // Build the live-traffic intelligence block (if Google answered).
     let liveTraffic: ParkAndRideSuggestion["liveTraffic"] | undefined;
     if (directDrive && directDrive.staticDurationSec > 0) {
-      const delaySec = Math.max(
-        0,
-        directDrive.durationSec - directDrive.staticDurationSec,
-      );
+      const delaySec = Math.max(0, directDrive.durationSec - directDrive.staticDurationSec);
       const severity = delaySec / directDrive.staticDurationSec;
       liveTraffic = {
         directDriveSec: directDrive.durationSec,
@@ -235,15 +228,12 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
       return null;
     }
 
-    const firstRide = top.bestBus.legs.find(
-      (l): l is RideLeg => l.kind === "ride",
-    );
+    const firstRide = top.bestBus.legs.find((l): l is RideLeg => l.kind === "ride");
 
     // Live EV enrichment — only for hubs that carry a curated `ev` entry
     // (we've already vouched for on-site charging existing there). The
     // feed adds "3 of 4 bays free right now" on top; failure is silent.
-    let liveEv: NonNullable<ParkAndRideSuggestion["hub"]["ev"]>["live"] =
-      undefined;
+    let liveEv: NonNullable<ParkAndRideSuggestion["hub"]["ev"]>["live"] = undefined;
     if (top.c.hub.ev) {
       try {
         const { liveEvForHub } = await import("./ev-chargers.functions");
@@ -264,9 +254,7 @@ export const suggestParkAndRide = createServerFn({ method: "POST" })
         note: top.c.hub.note,
         lat: top.c.hub.lat,
         lng: top.c.hub.lng,
-        ev: top.c.hub.ev
-          ? { ...top.c.hub.ev, live: liveEv }
-          : undefined,
+        ev: top.c.hub.ev ? { ...top.c.hub.ev, live: liveEv } : undefined,
       },
       driveSec: top.drive.durationSec,
       driveMeters: top.drive.distanceMeters,

@@ -13,7 +13,7 @@ export type LatLng = { lat: number; lng: number };
 
 type ShapeBundle = {
   shapes: Record<string, string>; // shapeId -> encoded polyline
-  trips: Record<string, string>;  // tripId -> shapeId
+  trips: Record<string, string>; // tripId -> shapeId
 };
 type ShapesIndex = Record<string, ShapeBundle>; // routeId -> bundle
 
@@ -35,13 +35,21 @@ async function loadIndex(): Promise<ShapesIndex> {
   if (inflight) return inflight;
   inflight = fetch("/gtfs-shapes.json", { cache: "force-cache" })
     .then((r) => (r.ok ? r.json() : {}))
-    .then((j) => { cache = j as ShapesIndex; return cache!; })
-    .catch(() => { cache = {}; return cache!; });
+    .then((j) => {
+      cache = j as ShapesIndex;
+      return cache!;
+    })
+    .catch(() => {
+      cache = {};
+      return cache!;
+    });
   return inflight;
 }
 
 /** Kick off the fetch in the background. Safe to call repeatedly. */
-export function prefetchShapes() { void loadIndex(); }
+export function prefetchShapes() {
+  void loadIndex();
+}
 
 /** Synchronous lookup — returns null until the index has finished loading. */
 export function getShapeForTripSync(tripId: string, routeId?: string): LatLng[] | null {
@@ -52,7 +60,10 @@ export function getShapeForTripSync(tripId: string, routeId?: string): LatLng[] 
     const sid = b.trips[tripId];
     if (!sid) return null;
     let pts = decoded.get(sid);
-    if (!pts) { pts = decodePolyline(b.shapes[sid] ?? ""); decoded.set(sid, pts); }
+    if (!pts) {
+      pts = decodePolyline(b.shapes[sid] ?? "");
+      decoded.set(sid, pts);
+    }
     return pts.length >= 2 ? pts : null;
   };
   if (routeId) {
@@ -75,7 +86,10 @@ export function getAnyShapeForRouteSync(routeId: string): LatLng[] | null {
   const sid = Object.keys(b.shapes)[0];
   if (!sid) return null;
   let pts = decoded.get(sid);
-  if (!pts) { pts = decodePolyline(b.shapes[sid]); decoded.set(sid, pts); }
+  if (!pts) {
+    pts = decodePolyline(b.shapes[sid]);
+    decoded.set(sid, pts);
+  }
   return pts.length >= 2 ? pts : null;
 }
 

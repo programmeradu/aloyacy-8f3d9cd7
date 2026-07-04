@@ -95,10 +95,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:locale:alternate", content: "el" },
       { property: "og:type", content: "website" },
       { property: "og:title", content: "Aloya — Cyprus transit, beautifully" },
-      { property: "og:description", content: "A calm, intelligent navigation system for Cyprus buses." },
+      {
+        property: "og:description",
+        content: "A calm, intelligent navigation system for Cyprus buses.",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Aloya — Cyprus transit, beautifully" },
-      { name: "twitter:description", content: "A calm, intelligent navigation system for Cyprus buses." },
+      {
+        name: "twitter:description",
+        content: "A calm, intelligent navigation system for Cyprus buses.",
+      },
       // og:image is set per-route at leaf level so the hero of each page becomes its share image.
     ],
     links: [
@@ -151,11 +157,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               name: "Aloya",
               url: "https://app.aloya.cy/",
               logo: "https://app.aloya.cy/icon-512.png",
-              description: "Unified live bus information, planning and ticketing across Cyprus — covering OSEL (Nicosia), EMEL (Limassol), Zenon (Larnaca), OSYPA (Paphos) and Intercity services.",
+              description:
+                "Unified live bus information, planning and ticketing across Cyprus — covering OSEL (Nicosia), EMEL (Limassol), Zenon (Larnaca), OSYPA (Paphos) and Intercity services.",
               areaServed: { "@type": "Country", name: "Cyprus" },
-              sameAs: [
-                "https://motionbuscard.org.cy/",
-              ],
+              sameAs: ["https://motionbuscard.org.cy/"],
             },
             {
               "@type": "MobileApplication",
@@ -163,7 +168,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               operatingSystem: "Web, iOS, Android",
               applicationCategory: "TravelApplication",
               url: "https://app.aloya.cy/",
-              description: "Plan, track and ride Cyprus buses with live ETAs, nearby stops, and smart routing.",
+              description:
+                "Plan, track and ride Cyprus buses with live ETAs, nearby stops, and smart routing.",
               offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
             },
           ],
@@ -244,7 +250,6 @@ function GlobalPaywall() {
   const open = usePaywallOpen();
   return <PaywallSheet open={open} onClose={() => paywallStore.close()} />;
 }
-
 
 // Lives inside QueryClientProvider so it can grab the queryClient via hook.
 function RealtimeBridge() {

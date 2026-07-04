@@ -22,9 +22,11 @@ function json(body: unknown, status = 200) {
 async function guard(request: Request): Promise<Response | null> {
   const apikey = request.headers.get("apikey");
   const legacy =
-    request.headers.get("x-cron-secret") ??
-    new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey = apikey && apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+    request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
+  const validApiKey =
+    apikey &&
+    apikey ===
+      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
   const validLegacy = legacy && process.env.CRON_SECRET && legacy === process.env.CRON_SECRET;
   if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
@@ -105,7 +107,11 @@ async function ingest() {
   const targetUrl = "https://int.soccerway.com/national/cyprus/first-division/";
   const fetchedAt = new Date().toISOString();
 
-  let scrape: { json?: { fixtures?: unknown }; markdown?: string; data?: { json?: { fixtures?: unknown }; markdown?: string } };
+  let scrape: {
+    json?: { fixtures?: unknown };
+    markdown?: string;
+    data?: { json?: { fixtures?: unknown }; markdown?: string };
+  };
   try {
     const res = await fetch("https://api.firecrawl.dev/v2/scrape", {
       method: "POST",
@@ -149,7 +155,10 @@ async function ingest() {
         kickoff: typeof r.kickoff === "string" && r.kickoff.trim() ? r.kickoff.trim() : null,
         venue,
         city: inferCity(venue, cityHint),
-        competition: typeof r.competition === "string" && r.competition.trim() ? r.competition.trim() : "Cyprus First Division",
+        competition:
+          typeof r.competition === "string" && r.competition.trim()
+            ? r.competition.trim()
+            : "Cyprus First Division",
       });
       return parsed.success ? [parsed.data] : [];
     });
@@ -160,7 +169,9 @@ async function ingest() {
     // Markdown fallback: lines like "Team A - Team B" or "Team A vs Team B".
     const lines = markdown.split(/\r?\n/);
     for (const line of lines) {
-      const m = line.match(/^\s*([A-Z][\w\s.&'-]{1,40})\s+(?:vs?|-|–|—)\s+([A-Z][\w\s.&'-]{1,40})\s*$/);
+      const m = line.match(
+        /^\s*([A-Z][\w\s.&'-]{1,40})\s+(?:vs?|-|–|—)\s+([A-Z][\w\s.&'-]{1,40})\s*$/,
+      );
       if (!m) continue;
       const parsed = FixtureSchema.safeParse({
         home: m[1].trim(),
@@ -191,21 +202,19 @@ async function ingest() {
     fetchedAt,
   });
 
-  const { error } = await supabaseAdmin
-    .from("pulse_signals")
-    .upsert(
-      [
-        {
-          key: "football",
-          scope: "island",
-          source: "soccerway",
-          payload: payload as unknown as Record<string, unknown>,
-          ttl_seconds: 60 * 60 * 12, // 12h
-          fetched_at: fetchedAt,
-        },
-      ] as never,
-      { onConflict: "key,scope" },
-    );
+  const { error } = await supabaseAdmin.from("pulse_signals").upsert(
+    [
+      {
+        key: "football",
+        scope: "island",
+        source: "soccerway",
+        payload: payload as unknown as Record<string, unknown>,
+        ttl_seconds: 60 * 60 * 12, // 12h
+        fetched_at: fetchedAt,
+      },
+    ] as never,
+    { onConflict: "key,scope" },
+  );
 
   if (error) return json({ ok: false, error: error.message }, 500);
   return json({ ok: true, count: fixtures.length, confidence });

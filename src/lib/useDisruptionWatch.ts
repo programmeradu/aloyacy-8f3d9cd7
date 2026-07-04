@@ -115,8 +115,7 @@ export function useDisruptionWatch(
     //    flagged late by the feed).
     if (
       live.nextRideLeg &&
-      (live.phase === "walking-to-transfer" ||
-        live.phase === "waiting-for-connection")
+      (live.phase === "walking-to-transfer" || live.phase === "waiting-for-connection")
     ) {
       if (
         live.secsToNextBoard > 0 &&
@@ -134,10 +133,7 @@ export function useDisruptionWatch(
     }
 
     // 4) Current ride running late vs the planned alight time.
-    if (
-      (live.phase === "riding" || live.phase === "alight-soon") &&
-      live.currentRideLeg
-    ) {
+    if ((live.phase === "riding" || live.phase === "alight-soon") && live.currentRideLeg) {
       const slip = computeAlightSlipSec(live, live.currentRideLeg);
       if (slip >= LATE_THRESHOLD_SEC) {
         const slipMin = Math.round(slip / 60);

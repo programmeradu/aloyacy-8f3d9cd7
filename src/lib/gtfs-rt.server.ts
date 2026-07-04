@@ -41,15 +41,8 @@ function feedSources(): string[] {
   } catch {
     // Malformed CUSTOM_SUPABASE_URL — skip the edge hop rather than throw.
   }
-  return [
-    ...(custom ? [custom] : []),
-    ...(edgeProxy ? [edgeProxy] : []),
-    DIRECT_FEED,
-  ];
+  return [...(custom ? [custom] : []), ...(edgeProxy ? [edgeProxy] : []), DIRECT_FEED];
 }
-
-
-
 
 /** Rider fixes are trusted over upstream when they are this fresh. */
 const RIDER_FIX_TRUST_SEC = 25;
@@ -110,7 +103,6 @@ export type RealtimeSnapshot = {
   error?: string;
 };
 
-
 /** Fetch the raw protobuf, trying each source until one yields bytes. */
 async function fetchFeedBytes(): Promise<Uint8Array> {
   const failures: string[] = [];
@@ -130,8 +122,7 @@ async function fetchFeedBytes(): Promise<Uint8Array> {
     try {
       const headers: Record<string, string> = {
         Accept: "application/octet-stream",
-        "User-Agent":
-          "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
+        "User-Agent": "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
       };
       if (token && url === process.env["GTFS_RELAY_URL"]) {
         headers["Authorization"] = `Bearer ${token}`;
@@ -151,9 +142,7 @@ async function fetchFeedBytes(): Promise<Uint8Array> {
       }
       return buf;
     } catch (e) {
-      failures.push(
-        `${new URL(url).host} ${e instanceof Error ? e.message : String(e)}`,
-      );
+      failures.push(`${new URL(url).host} ${e instanceof Error ? e.message : String(e)}`);
     }
   }
   throw new Error(`GTFS-RT upstream unreachable (${failures.join("; ")})`);
@@ -165,7 +154,6 @@ async function fetchUpstream(): Promise<{
 }> {
   const buf = await fetchFeedBytes();
   const feed = gr.transit_realtime.FeedMessage.decode(buf);
-
 
   const vehicles: LiveVehicle[] = [];
   const arrivals: LiveArrival[] = [];
@@ -248,11 +236,7 @@ async function fetchSightings(): Promise<RiderConfirmedTrip[]> {
       .gte("reported_at", cutoff)
       .order("reported_at", { ascending: false })
       .limit(500),
-    supabase
-      .from("bus_sightings")
-      .select("device_id")
-      .gte("reported_at", trustCutoff)
-      .limit(5000),
+    supabase.from("bus_sightings").select("device_id").gte("reported_at", trustCutoff).limit(5000),
   ]);
   if (error || !recent || recent.length === 0) return [];
 
@@ -387,5 +371,3 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
     riderConfirmedTrips: sightings,
   };
 }
-
-

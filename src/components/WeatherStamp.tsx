@@ -50,7 +50,6 @@ export function WeatherStamp({ dayLabel, tempC, iconKey, Icon, tone }: Props) {
         </span>
       )}
 
-
       <div className="flex flex-col items-end leading-none">
         <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-ink-soft">
           {dayLabel}

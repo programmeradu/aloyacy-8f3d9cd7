@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { Worker as TesseractWorker } from "tesseract.js";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { IconClose } from "@/components/Icons";
@@ -31,7 +32,7 @@ const NAME_RE = /\b([A-Z]{2,}(?:\s+[A-Z]{2,}){1,3})\b/;
 export function CardScanSheet({ onClose }: { onClose: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const workerRef = useRef<any>(null);
+  const workerRef = useRef<TesseractWorker | null>(null);
   const runningRef = useRef(true);
   const sideRef = useRef<Side>("front");
   const accRef = useRef<Detected>({});
@@ -73,7 +74,11 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
     async function start() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
           audio: false,
         });
         if (videoRef.current) {
@@ -87,15 +92,14 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
           langPath: "https://tessdata.projectnaptha.com/4.0.0",
         });
         await worker.setParameters({
-          tessedit_char_whitelist:
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 /:.-",
+          tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 /:.-",
         });
         workerRef.current = worker;
         setStatus("scanning");
         loop();
-      } catch (e: any) {
+      } catch (e) {
         setStatus("error");
-        setErrMsg(e?.message ?? "Camera unavailable");
+        setErrMsg(e instanceof Error ? e.message : "Camera unavailable");
       }
     }
 
@@ -133,7 +137,10 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
               const digits = m[0].replace(/\D/g, "");
               if (digits.length >= 14 && digits.length <= 16) {
                 if (acc.number === digits) hits.number++;
-                else { acc.number = digits; hits.number = 1; }
+                else {
+                  acc.number = digits;
+                  hits.number = 1;
+                }
                 if (hits.number >= 2 && !backDoneRef.current) {
                   backDoneRef.current = true;
                   if (!frontDoneRef.current) {
@@ -151,7 +158,10 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
               const dateMatch = text.match(DATE_RE);
               if (dateMatch) {
                 if (acc.validUntil === dateMatch[1]) hits.validUntil++;
-                else { acc.validUntil = dateMatch[1]; hits.validUntil = 1; }
+                else {
+                  acc.validUntil = dateMatch[1];
+                  hits.validUntil = 1;
+                }
               }
             }
             if (!acc.holder || hits.holder < 2) {
@@ -163,12 +173,15 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
               if (nameMatch) {
                 const candidate = nameMatch[1].trim();
                 if (acc.holder === candidate) hits.holder++;
-                else { acc.holder = candidate; hits.holder = 1; }
+                else {
+                  acc.holder = candidate;
+                  hits.holder = 1;
+                }
               }
             }
             const nameOk = !!acc.holder && hits.holder >= 2;
             const dateOk = !!acc.validUntil && hits.validUntil >= 2;
-            if ((nameOk || dateOk) && (nameOk && dateOk || hits.holder + hits.validUntil >= 4)) {
+            if ((nameOk || dateOk) && ((nameOk && dateOk) || hits.holder + hits.validUntil >= 4)) {
               if (!frontDoneRef.current) {
                 frontDoneRef.current = true;
                 if (!backDoneRef.current) {
@@ -198,10 +211,7 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
 
   if (typeof document === "undefined") return null;
 
-  const sideHint =
-    side === "front"
-      ? "Front · name & valid-until"
-      : "Back · 14–16 digit UID";
+  const sideHint = side === "front" ? "Front · name & valid-until" : "Back · 14–16 digit UID";
 
   return createPortal(
     <div className="fixed inset-0 z-[120] bg-ink/95 backdrop-blur-sm flex flex-col">
@@ -210,7 +220,10 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
           Scan your card
         </p>
         <button
-          onClick={() => { runningRef.current = false; onClose(); }}
+          onClick={() => {
+            runningRef.current = false;
+            onClose();
+          }}
           aria-label="Close scanner"
           className="flex size-10 items-center justify-center rounded-full bg-limestone/10 text-limestone ring-1 ring-limestone/20"
         >
@@ -249,7 +262,7 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
 
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-6">
           <div className="relative w-full max-w-[420px] aspect-[1.586/1]">
-            {(["tl","tr","bl","br"] as const).map((p) => (
+            {(["tl", "tr", "bl", "br"] as const).map((p) => (
               <span
                 key={p}
                 className="absolute size-8 border-ochre"
