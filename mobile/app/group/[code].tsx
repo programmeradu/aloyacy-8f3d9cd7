@@ -58,7 +58,6 @@ type GroupRow = {
 type MemberRow = {
   id: string;
   group_id: string;
-  member_token: string;
   display_name: string;
   origin_label: string | null;
   last_lat: number | null;
@@ -111,7 +110,7 @@ function isStale(iso: string | null): boolean {
   return Date.now() - new Date(iso).getTime() > STALE_MS;
 }
 
-function toMapMembers(members: MemberRow[], meToken: string | null): GroupMapMember[] {
+function toMapMembers(members: MemberRow[], meId: string | null): GroupMapMember[] {
   return members
     .filter((m) => m.status === "active")
     .map((m) => ({
@@ -120,7 +119,7 @@ function toMapMembers(members: MemberRow[], meToken: string | null): GroupMapMem
       lat: m.last_lat,
       lng: m.last_lng,
       lastUpdated: m.last_updated,
-      isMe: m.member_token === meToken,
+      isMe: m.id === meId,
       isCreator: m.is_creator,
     }));
 }
@@ -130,67 +129,44 @@ export default function GroupWatchScreen() {
   const code = (params.code ?? "").toUpperCase();
   const queryClient = useQueryClient();
 
-  const groupQuery = useQuery({
-    queryKey: ["mobile-trip-group", code],
-    enabled: !!code,
-    queryFn: async (): Promise<GroupRow | null> => {
-      const { data, error } = await supabase
-        .from("trip_groups")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
-      if (error) throw error;
-      return (data as GroupRow | null) ?? null;
-    },
-  });
-
-  const group = groupQuery.data ?? null;
-  const groupId = group?.id ?? null;
-
-  const membersQuery = useQuery({
-    queryKey: ["mobile-trip-group-members", groupId],
-    enabled: !!groupId,
-    queryFn: async (): Promise<MemberRow[]> => {
-      const { data, error } = await supabase
-        .from("trip_group_members")
-        .select("*")
-        .eq("group_id", groupId!)
-        .order("joined_at", { ascending: true });
-      if (error) throw error;
-      return (data as MemberRow[]) ?? [];
-    },
-    refetchInterval: 20_000,
-  });
-
-  useEffect(() => {
-    if (!groupId) return;
-    const channel = supabase
-      .channel(`mobile-trip-group-${groupId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "trip_group_members", filter: `group_id=eq.${groupId}` },
-        () => {
-          void queryClient.invalidateQueries({ queryKey: ["mobile-trip-group-members", groupId] });
-        },
-      )
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [groupId, queryClient]);
-
-  // Load persisted member token for this code
+  // Load persisted member token for this code (browser-local capability).
   const [myToken, setMyToken] = useState<string | null>(null);
   useEffect(() => {
     if (!code) return;
     void AsyncStorage.getItem(TOKEN_KEY(code)).then((t) => setMyToken(t));
   }, [code]);
 
-  const members = membersQuery.data ?? [];
+  const viewQuery = useQuery({
+    queryKey: ["mobile-trip-group-view", code, myToken],
+    enabled: !!code,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_trip_group_view", {
+        p_code: code,
+        p_member_token: myToken ?? undefined,
+      });
+      if (error) throw error;
+      return (data as (GroupRow & { members: MemberRow[]; me_id: string | null }) | null) ?? null;
+    },
+    refetchInterval: 15_000,
+  });
+
+  const group: GroupRow | null = viewQuery.data
+    ? (({ members: _m, me_id: _me, ...g }) => g as GroupRow)(viewQuery.data)
+    : null;
+  const groupId = group?.id ?? null;
+  const meId = viewQuery.data?.me_id ?? null;
+  const members: MemberRow[] = viewQuery.data?.members ?? [];
+  const groupQuery = viewQuery;
+  const membersQuery = { data: members, isLoading: viewQuery.isLoading, isError: viewQuery.isError };
+  void groupId;
+  void queryClient;
+  void membersQuery;
+
   const me = useMemo(
-    () => (myToken ? members.find((m) => m.member_token === myToken) ?? null : null),
-    [members, myToken],
+    () => (meId ? members.find((m) => m.id === meId) ?? null : null),
+    [members, meId],
   );
+
 
   // Continuous location ping while joined — foreground for immediate
   // updates, background (TaskManager) so pings continue when the app is
@@ -274,18 +250,19 @@ export default function GroupWatchScreen() {
               />
               <ConvergeCard members={members} expired={expired} />
               <GroupMap
-                members={toMapMembers(members, myToken)}
+                members={toMapMembers(members, meId)}
                 destination={{ lat: group.destination_lat, lng: group.destination_lng }}
                 destinationLabel={group.destination_label}
               />
               {!expired && group ? <PlanRouteCard group={group} joined={!!me} /> : null}
-              <MembersList members={members} meToken={myToken} />
+              <MembersList members={members} meId={meId} />
 
               {!expired && !me && <JoinCard code={group.code} onJoined={setMyToken} />}
-              {!expired && me && (
+              {!expired && me && myToken && (
                 <LiveCard
                   group={group}
                   me={me}
+                  memberToken={myToken}
                   onLeft={async () => {
                     await stopGroupBackgroundLocation();
                     setMyToken(null);
@@ -293,10 +270,11 @@ export default function GroupWatchScreen() {
                   }}
                   onEnded={async () => {
                     await stopGroupBackgroundLocation();
-                    void queryClient.invalidateQueries({ queryKey: ["mobile-trip-group", code] });
+                    void queryClient.invalidateQueries({ queryKey: ["mobile-trip-group-view", code] });
                   }}
                 />
               )}
+
               <HowThisWorks />
             </View>
           ) : null}
@@ -532,7 +510,7 @@ function ConvergeCard({ members, expired }: { members: MemberRow[]; expired: boo
 
 /* ——————————————————————————— Members list ——————————————————————————— */
 
-function MembersList({ members, meToken }: { members: MemberRow[]; meToken: string | null }) {
+function MembersList({ members, meId }: { members: MemberRow[]; meId: string | null }) {
   if (members.length === 0) {
     return (
       <View
@@ -575,7 +553,7 @@ function MembersList({ members, meToken }: { members: MemberRow[]; meToken: stri
       </View>
       {members.map((m, i) => {
         const tone = MEMBER_TONES[i % MEMBER_TONES.length];
-        const isMe = m.member_token === meToken;
+        const isMe = m.id === meId;
         const stale = m.status === "active" && m.last_lat != null && isStale(m.last_updated);
         return (
           <View
@@ -797,14 +775,17 @@ function JoinCard({ code, onJoined }: { code: string; onJoined: (t: string) => v
 function LiveCard({
   group,
   me,
+  memberToken,
   onLeft,
   onEnded,
 }: {
   group: GroupRow;
   me: MemberRow;
+  memberToken: string;
   onLeft: () => Promise<void>;
   onEnded: () => Promise<void>;
 }) {
+  void me;
   const [busy, setBusy] = useState(false);
   const [ending, setEnding] = useState(false);
 
@@ -830,7 +811,7 @@ function LiveCard({
           setBusy(true);
           void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           try {
-            await callGroups("leave", { memberToken: me.member_token });
+            await callGroups("leave", { memberToken });
             await onLeft();
           } finally {
             setBusy(false);
@@ -838,7 +819,7 @@ function LiveCard({
         },
       },
     ]);
-  }, [me.member_token, onLeft]);
+  }, [memberToken, onLeft]);
 
   const endTrip = useCallback(() => {
     Alert.alert(
@@ -853,7 +834,7 @@ function LiveCard({
             setEnding(true);
             void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             try {
-              await callGroups("end", { memberToken: me.member_token });
+              await callGroups("end", { memberToken });
               await onEnded();
             } finally {
               setEnding(false);
@@ -862,7 +843,8 @@ function LiveCard({
         },
       ],
     );
-  }, [me.member_token, onEnded]);
+  }, [memberToken, onEnded]);
+
 
   return (
     <View

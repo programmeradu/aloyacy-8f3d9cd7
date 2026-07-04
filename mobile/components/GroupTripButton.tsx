@@ -89,19 +89,13 @@ export function GroupTripButton({
     }
     let cancelled = false;
     const load = async () => {
-      const { data: g } = await supabase
-        .from("trip_groups")
-        .select("id")
-        .eq("code", session.code)
-        .maybeSingle();
-      if (!g || cancelled) return;
-      const { count } = await supabase
-        .from("trip_group_members")
-        .select("id", { count: "exact", head: true })
-        .eq("group_id", (g as { id: string }).id)
-        .gte("last_seen_at", new Date(Date.now() - 5 * 60_000).toISOString());
-      if (!cancelled) setMemberCount(count ?? null);
+      const { data } = await supabase.rpc("get_trip_group_view", { p_code: session.code });
+      if (cancelled) return;
+      const members = (data as { members?: Array<{ status: string }> } | null)?.members ?? [];
+      const active = members.filter((m) => m.status === "active").length;
+      setMemberCount(active || members.length || null);
     };
+
     void load();
     const t = setInterval(load, 15_000);
     return () => {
