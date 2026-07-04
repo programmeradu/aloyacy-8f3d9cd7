@@ -1630,6 +1630,11 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_shared_trip_view: { Args: { p_token: string }; Returns: Json }
+      get_trip_group_view: {
+        Args: { p_code: string; p_member_token?: string }
+        Returns: Json
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
