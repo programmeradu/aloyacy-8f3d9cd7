@@ -125,12 +125,17 @@ describe("annotateRationales", () => {
 
   it("caps every itinerary at two tags so the UI stays one line", () => {
     const results = annotateRationales([
+      itin({ id: "winner", arrivalUnix: 2_000, departureUnix: 1_000, totalWalkMeters: 100 }, [
+        ride({ live: true, delaySec: 0 }),
+      ]),
       itin(
-        { id: "winner", arrivalUnix: 2_000, departureUnix: 1_000, totalWalkMeters: 100 },
-        [ride({ live: true, delaySec: 0 })],
-      ),
-      itin(
-        { id: "loser", arrivalUnix: 3_000, departureUnix: 1_400, totalWalkMeters: 900, transfers: 2 },
+        {
+          id: "loser",
+          arrivalUnix: 3_000,
+          departureUnix: 1_400,
+          totalWalkMeters: 900,
+          transfers: 2,
+        },
         [ride({ live: false, delaySec: 600 })],
       ),
     ]);
