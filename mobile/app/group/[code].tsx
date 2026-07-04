@@ -258,10 +258,11 @@ export default function GroupWatchScreen() {
               <MembersList members={members} meId={meId} />
 
               {!expired && !me && <JoinCard code={group.code} onJoined={setMyToken} />}
-              {!expired && me && (
+              {!expired && me && myToken && (
                 <LiveCard
                   group={group}
                   me={me}
+                  memberToken={myToken}
                   onLeft={async () => {
                     await stopGroupBackgroundLocation();
                     setMyToken(null);
@@ -269,10 +270,11 @@ export default function GroupWatchScreen() {
                   }}
                   onEnded={async () => {
                     await stopGroupBackgroundLocation();
-                    void queryClient.invalidateQueries({ queryKey: ["mobile-trip-group", code] });
+                    void queryClient.invalidateQueries({ queryKey: ["mobile-trip-group-view", code] });
                   }}
                 />
               )}
+
               <HowThisWorks />
             </View>
           ) : null}
