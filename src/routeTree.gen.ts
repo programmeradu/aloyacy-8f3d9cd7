@@ -24,6 +24,7 @@ import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
 import { Route as StopStopIdRouteImport } from './routes/stop.$stopId'
 import { Route as RouteRouteIdRouteImport } from './routes/route.$routeId'
 import { Route as PlanTokenRouteImport } from './routes/plan.$token'
+import { Route as InternalFundingRouteImport } from './routes/internal.funding'
 import { Route as GuideGettingAroundCyprusRouteImport } from './routes/guide.getting-around-cyprus'
 import { Route as GroupCodeRouteImport } from './routes/group.$code'
 import { Route as EtaTokenRouteImport } from './routes/eta.$token'
@@ -33,6 +34,7 @@ import { Route as DebugEtaRouteImport } from './routes/debug.eta'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AirportCodeRouteImport } from './routes/airport.$code'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
+import { Route as InternalFundingDocsRouteImport } from './routes/internal.funding.docs'
 import { Route as ApiPublicWeatherRouteImport } from './routes/api/public/weather'
 import { Route as ApiPublicWalletRouteImport } from './routes/api/public/wallet'
 import { Route as ApiPublicWalkDirectionsRouteImport } from './routes/api/public/walk-directions'
@@ -169,6 +171,11 @@ const PlanTokenRoute = PlanTokenRouteImport.update({
   path: '/plan/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InternalFundingRoute = InternalFundingRouteImport.update({
+  id: '/internal/funding',
+  path: '/internal/funding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GuideGettingAroundCyprusRoute =
   GuideGettingAroundCyprusRouteImport.update({
     id: '/guide/getting-around-cyprus',
@@ -214,6 +221,11 @@ const AdminSeoRoute = AdminSeoRouteImport.update({
   id: '/admin/seo',
   path: '/admin/seo',
   getParentRoute: () => rootRouteImport,
+} as any)
+const InternalFundingDocsRoute = InternalFundingDocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => InternalFundingRoute,
 } as any)
 const ApiPublicWeatherRoute = ApiPublicWeatherRouteImport.update({
   id: '/api/public/weather',
@@ -559,6 +571,7 @@ export interface FileRoutesByFullPath {
   '/eta/$token': typeof EtaTokenRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
+  '/internal/funding': typeof InternalFundingRouteWithChildren
   '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -599,6 +612,7 @@ export interface FileRoutesByFullPath {
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/weather': typeof ApiPublicWeatherRoute
+  '/internal/funding/docs': typeof InternalFundingDocsRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -645,6 +659,7 @@ export interface FileRoutesByTo {
   '/eta/$token': typeof EtaTokenRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
+  '/internal/funding': typeof InternalFundingRouteWithChildren
   '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -685,6 +700,7 @@ export interface FileRoutesByTo {
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/weather': typeof ApiPublicWeatherRoute
+  '/internal/funding/docs': typeof InternalFundingDocsRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -732,6 +748,7 @@ export interface FileRoutesById {
   '/eta/$token': typeof EtaTokenRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
+  '/internal/funding': typeof InternalFundingRouteWithChildren
   '/plan/$token': typeof PlanTokenRoute
   '/route/$routeId': typeof RouteRouteIdRoute
   '/stop/$stopId': typeof StopStopIdRoute
@@ -772,6 +789,7 @@ export interface FileRoutesById {
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/weather': typeof ApiPublicWeatherRoute
+  '/internal/funding/docs': typeof InternalFundingDocsRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -820,6 +838,7 @@ export interface FileRouteTypes {
     | '/eta/$token'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
+    | '/internal/funding'
     | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -860,6 +879,7 @@ export interface FileRouteTypes {
     | '/api/public/walk-directions'
     | '/api/public/wallet'
     | '/api/public/weather'
+    | '/internal/funding/docs'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -906,6 +926,7 @@ export interface FileRouteTypes {
     | '/eta/$token'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
+    | '/internal/funding'
     | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -946,6 +967,7 @@ export interface FileRouteTypes {
     | '/api/public/walk-directions'
     | '/api/public/wallet'
     | '/api/public/weather'
+    | '/internal/funding/docs'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -992,6 +1014,7 @@ export interface FileRouteTypes {
     | '/eta/$token'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
+    | '/internal/funding'
     | '/plan/$token'
     | '/route/$routeId'
     | '/stop/$stopId'
@@ -1032,6 +1055,7 @@ export interface FileRouteTypes {
     | '/api/public/walk-directions'
     | '/api/public/wallet'
     | '/api/public/weather'
+    | '/internal/funding/docs'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -1079,6 +1103,7 @@ export interface RootRouteChildren {
   EtaTokenRoute: typeof EtaTokenRoute
   GroupCodeRoute: typeof GroupCodeRoute
   GuideGettingAroundCyprusRoute: typeof GuideGettingAroundCyprusRoute
+  InternalFundingRoute: typeof InternalFundingRouteWithChildren
   PlanTokenRoute: typeof PlanTokenRoute
   RouteRouteIdRoute: typeof RouteRouteIdRoute
   StopStopIdRoute: typeof StopStopIdRoute
@@ -1252,6 +1277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/internal/funding': {
+      id: '/internal/funding'
+      path: '/internal/funding'
+      fullPath: '/internal/funding'
+      preLoaderRoute: typeof InternalFundingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/guide/getting-around-cyprus': {
       id: '/guide/getting-around-cyprus'
       path: '/guide/getting-around-cyprus'
@@ -1314,6 +1346,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/seo'
       preLoaderRoute: typeof AdminSeoRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/internal/funding/docs': {
+      id: '/internal/funding/docs'
+      path: '/docs'
+      fullPath: '/internal/funding/docs'
+      preLoaderRoute: typeof InternalFundingDocsRouteImport
+      parentRoute: typeof InternalFundingRoute
     }
     '/api/public/weather': {
       id: '/api/public/weather'
@@ -1738,6 +1777,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface InternalFundingRouteChildren {
+  InternalFundingDocsRoute: typeof InternalFundingDocsRoute
+}
+
+const InternalFundingRouteChildren: InternalFundingRouteChildren = {
+  InternalFundingDocsRoute: InternalFundingDocsRoute,
+}
+
+const InternalFundingRouteWithChildren = InternalFundingRoute._addFileChildren(
+  InternalFundingRouteChildren,
+)
+
 interface ApiPublicWalletRouteChildren {
   ApiPublicWalletOcrRoute: typeof ApiPublicWalletOcrRoute
 }
@@ -1770,6 +1821,7 @@ const rootRouteChildren: RootRouteChildren = {
   EtaTokenRoute: EtaTokenRoute,
   GroupCodeRoute: GroupCodeRoute,
   GuideGettingAroundCyprusRoute: GuideGettingAroundCyprusRoute,
+  InternalFundingRoute: InternalFundingRouteWithChildren,
   PlanTokenRoute: PlanTokenRoute,
   RouteRouteIdRoute: RouteRouteIdRoute,
   StopStopIdRoute: StopStopIdRoute,
@@ -1843,13 +1895,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
