@@ -70,7 +70,7 @@ describe("itineraryToJourneyOption", () => {
   });
 
   it("marks the option scheduled when the itinerary is not live", () => {
-    const opt = itineraryToJourneyOption(itinerary([ride("30", false)], { source: "schedule" }))!;
+    const opt = itineraryToJourneyOption(itinerary([ride("30", false)], { source: "estimated" }))!;
     expect(opt.scheduled).toBe(true);
   });
 });
