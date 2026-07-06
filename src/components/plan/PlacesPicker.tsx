@@ -166,7 +166,9 @@ function PlacesPickerContent({
                   <IconPin className="size-4 text-aegean-deep shrink-0" />
                   <div className="min-w-0">
                     <p className="truncate text-[14px] font-medium text-ink">{s.primary}</p>
-                    {s.secondary && <p className="truncate text-[11px] text-ink-soft">{s.secondary}</p>}
+                    {s.secondary && (
+                      <p className="truncate text-[11px] text-ink-soft">{s.secondary}</p>
+                    )}
                   </div>
                 </button>
               </li>

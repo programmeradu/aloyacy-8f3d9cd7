@@ -15,11 +15,7 @@ import {
   trafficPoints,
 } from "@/lib/plan-bridge";
 
-const walk = (
-  from: [number, number],
-  to: [number, number],
-  distanceMeters = 400,
-): Leg =>
+const walk = (from: [number, number], to: [number, number], distanceMeters = 400): Leg =>
   ({
     kind: "walk",
     from: { lat: from[0], lng: from[1], name: "A" },
@@ -149,7 +145,10 @@ describe("parsePlanDeepLink", () => {
     expect(r.matched).toBe(true);
     expect(r.origin).toEqual({ lat: 35.1, lng: 33.3, label: "Home" });
     expect(r.destination?.label).toBe("Paphos");
-    expect(r.timeIntent).toEqual({ leaveByISO: new Date(dep * 1000).toISOString(), arriveByISO: null });
+    expect(r.timeIntent).toEqual({
+      leaveByISO: new Date(dep * 1000).toISOString(),
+      arriveByISO: null,
+    });
   });
 
   it("ignores a stale departure so the trip replans from now", () => {

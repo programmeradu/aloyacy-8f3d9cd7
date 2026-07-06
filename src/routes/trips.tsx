@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
-import { IconArrowUpRight, IconPin, IconSearch } from "@/components/Icons";
 import { reverseLookup } from "@/lib/maps.functions";
 import { planMultiLeg } from "@/lib/multileg.functions";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
@@ -11,7 +10,7 @@ import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
 import { nearestCity } from "@/lib/cities";
 import { pushRecent, setActiveTrip } from "@/lib/trip-store";
-import { getTripSuggestions, type TripSuggestion } from "@/lib/suggestions.functions";
+import { getTripSuggestions } from "@/lib/suggestions.functions";
 import { getDeviceId } from "@/lib/pwa";
 import planHero from "@/assets/plan-hero.jpg";
 import type { Point } from "@/lib/plan-types";
@@ -25,7 +24,6 @@ import {
   PlanningSkeleton,
   TimeIntentChip,
 } from "@/components/plan/PlanPieces";
-
 
 import { useAuth } from "@/lib/useAuth";
 import { useI18n } from "@/lib/i18n";
@@ -81,8 +79,6 @@ export const Route = createFileRoute("/trips")({
   }),
   component: Plan,
 });
-
-
 
 function Plan() {
   const { t } = useI18n();
@@ -508,7 +504,6 @@ function Plan() {
   const kapnosDropoffFar = !!kapnos && kapnos.dropoff.distanceM > KAPNOS_WALKABLE_M;
 
   // Kapnos wall-clock → unix seconds (DST-safe) lives in plan-bridge.
-
 
   // Tie the first-mile bus search to the coach we're trying to catch (arriveBy
   // = coach departure). Last-mile starts when the coach arrives. This is what
@@ -1037,4 +1032,3 @@ function Plan() {
     </AppShell>
   );
 }
-

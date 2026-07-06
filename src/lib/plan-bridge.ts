@@ -211,7 +211,9 @@ export function parsePlanDeepLink(search: string, now: number = Date.now()): Pla
     return {
       origin: { lat: fromLat, lng: fromLng, label: fromLabel },
       destination: { lat: toLat, lng: toLng, label: toLabel },
-      timeIntent: depFresh ? { leaveByISO: new Date(dep * 1000).toISOString(), arriveByISO: null } : null,
+      timeIntent: depFresh
+        ? { leaveByISO: new Date(dep * 1000).toISOString(), arriveByISO: null }
+        : null,
       focus: null,
       matched: true,
     };
@@ -277,12 +279,6 @@ export function suggestionLabel(raw: string): { text: string; sizeClass: string 
   const text = raw.split(/[,—-]/)[0].trim();
   const len = text.length;
   const sizeClass =
-    len > 38
-      ? "text-[13px]"
-      : len > 28
-        ? "text-[15px]"
-        : len > 20
-          ? "text-[16px]"
-          : "text-[18px]";
+    len > 38 ? "text-[13px]" : len > 28 ? "text-[15px]" : len > 20 ? "text-[16px]" : "text-[18px]";
   return { text, sizeClass };
 }
