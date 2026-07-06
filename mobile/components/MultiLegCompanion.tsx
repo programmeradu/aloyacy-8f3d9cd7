@@ -55,7 +55,7 @@ import { useTrafficWatch } from "@/lib/useTrafficWatch";
 import { DisruptionBanner } from "@/components/DisruptionBanner";
 import { TrafficRouteBanner } from "@/components/TrafficRouteBanner";
 import { fetchWalkingDirections } from "@/lib/walk";
-import { distanceM } from "@aloya/core/geo";
+import { boundsForItineraryNative } from "@aloya/core/itinerary-bounds";
 import type {
   Itinerary,
   Leg,
@@ -137,7 +137,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const directions = walkQuery.data ?? null;
 
   // ---- Map: dual-vehicle fusion + full-itinerary markers ------------------
-  const bounds = useMemo(() => boundsFor(itin), [itin]);
+  const bounds = useMemo(() => boundsForItineraryNative(itin), [itin]);
   const restrictTripIds = useMemo(() => {
     const ids: string[] = [];
     if (live.currentRideLeg) ids.push(live.currentRideLeg.tripId);
@@ -1322,46 +1322,4 @@ function BannerCard({
       </View>
     </View>
   );
-}
-
-// ---------------------------------------------------------------------------
-// Geometry helpers
-// ---------------------------------------------------------------------------
-function boundsFor(it: Itinerary): {
-  center: { lat: number; lng: number };
-  spanKm: number;
-} {
-  let minLat = Infinity,
-    maxLat = -Infinity,
-    minLng = Infinity,
-    maxLng = -Infinity;
-  for (const leg of it.legs) {
-    const pts: Array<{ lat: number; lng: number }> =
-      leg.kind === "ride"
-        ? [
-            { lat: leg.board.lat, lng: leg.board.lng },
-            { lat: leg.alight.lat, lng: leg.alight.lng },
-          ]
-        : leg.kind === "walk"
-          ? [
-              { lat: leg.from.lat, lng: leg.from.lng },
-              { lat: leg.to.lat, lng: leg.to.lng },
-            ]
-          : [{ lat: leg.lat, lng: leg.lng }];
-    for (const p of pts) {
-      minLat = Math.min(minLat, p.lat);
-      maxLat = Math.max(maxLat, p.lat);
-      minLng = Math.min(minLng, p.lng);
-      maxLng = Math.max(maxLng, p.lng);
-    }
-  }
-  if (!isFinite(minLat)) {
-    return { center: { lat: 35.17, lng: 33.36 }, spanKm: 4 };
-  }
-  const center = { lat: (minLat + maxLat) / 2, lng: (minLng + maxLng) / 2 };
-  const nw = { lat: maxLat, lng: minLng };
-  const se = { lat: minLat, lng: maxLng };
-  const diagM = distanceM(nw, se);
-  const spanKm = Math.max(1, Math.min(60, (diagM / 1000) * 1.2));
-  return { center, spanKm };
 }
