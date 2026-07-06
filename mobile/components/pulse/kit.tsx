@@ -2,6 +2,7 @@
 // error/footer states and date formatting. Extracted from the Pulse screen so
 // each card group lives in its own file under the 500-LOC ceiling.
 
+import { useMemo } from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
 import { palette } from "@/constants/theme";
 

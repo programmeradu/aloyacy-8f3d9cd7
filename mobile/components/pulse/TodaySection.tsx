@@ -1,6 +1,7 @@
 // Pulse — "Today" editorial block: hero, tiles, editor's note, Greek word of
 // the day and the fact card. Split out of the Pulse screen.
 
+import { useMemo } from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
 import { palette } from "@/constants/theme";
 import { assets } from "@/lib/assets";

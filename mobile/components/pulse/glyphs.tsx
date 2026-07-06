@@ -2,7 +2,17 @@
 // day. Kept separate from the Today layout so neither file carries both the
 // artwork and the composition.
 
-import Svg, { Path, Circle, Rect, G, Line, Ellipse } from "react-native-svg";
+import Svg, {
+  Path,
+  Circle,
+  Rect,
+  G,
+  Line,
+  Ellipse,
+  Defs,
+  RadialGradient as SvgRadialGradient,
+  Stop as SvgStop,
+} from "react-native-svg";
 import { palette } from "@/constants/theme";
 import type { TodayTile } from "@/lib/pulse";
 

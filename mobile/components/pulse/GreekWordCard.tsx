@@ -2,7 +2,8 @@
 // with an on-device Speech fallback).
 
 import { useCallback, useState } from "react";
-import { View, Text, Pressable, ActivityIndicator, type TextStyle } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, Platform, type TextStyle } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
 import * as FileSystem from "expo-file-system/legacy";

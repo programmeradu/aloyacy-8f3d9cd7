@@ -1,7 +1,7 @@
 // Pulse — live signals stack: weather warnings, news, sea, air, traffic,
 // cruises, flights, events and fixtures.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, Pressable, Linking } from "react-native";
 import * as Haptics from "expo-haptics";
 import { palette } from "@/constants/theme";
@@ -22,6 +22,7 @@ import {
   DISPLAY,
   DISPLAY_MED,
   SANS,
+  SANS_BOLD,
   MONO,
   EYEBROW,
   Eyebrow,
