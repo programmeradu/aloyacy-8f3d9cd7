@@ -10,6 +10,7 @@
     "./geo": { "types": "./src/geo.ts", "default": "./src/geo.ts" },
     "./geo-fusion": { "types": "./src/geo-fusion.ts", "default": "./src/geo-fusion.ts" },
     "./headsigns": { "types": "./src/headsigns.ts", "default": "./src/headsigns.ts" },
+    "./itinerary-bounds": { "types": "./src/itinerary-bounds.ts", "default": "./src/itinerary-bounds.ts" },
     "./itinerary-rationale": { "types": "./src/itinerary-rationale.ts", "default": "./src/itinerary-rationale.ts" },
     "./itinerary-types": { "types": "./src/itinerary-types.ts", "default": "./src/itinerary-types.ts" },
     "./journey-copy": { "types": "./src/journey-copy.ts", "default": "./src/journey-copy.ts" },
