@@ -3,32 +3,29 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
-import { ItineraryCard } from "@/components/ItineraryCard";
-import { createPortal } from "react-dom";
-import {
-  IconArrowUpRight,
-  IconBriefcase,
-  IconClock,
-  IconClose,
-  IconHome,
-  IconPin,
-  IconSearch,
-  IconStar,
-} from "@/components/Icons";
-import { autocompletePlaces, getPlace, reverseLookup } from "@/lib/maps.functions";
+import { IconArrowUpRight, IconPin, IconSearch } from "@/components/Icons";
+import { reverseLookup } from "@/lib/maps.functions";
 import { planMultiLeg } from "@/lib/multileg.functions";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
-import type { JourneyOption } from "@/lib/journey.server";
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
 import { nearestCity } from "@/lib/cities";
-import { pushRecent, setActiveTrip, useRecents, useSavedPlaces } from "@/lib/trip-store";
+import { pushRecent, setActiveTrip } from "@/lib/trip-store";
 import { getTripSuggestions, type TripSuggestion } from "@/lib/suggestions.functions";
 import { getDeviceId } from "@/lib/pwa";
 import planHero from "@/assets/plan-hero.jpg";
-import { ProGate } from "@/components/ProGate";
-import { RemindMeButton } from "@/components/RemindMeButton";
-import { SharePlanButton } from "@/components/SharePlanButton";
+import type { Point } from "@/lib/plan-types";
+import { cyprusLocalToUnix, formatYYYYMMDD, itineraryToJourneyOption } from "@/lib/plan-bridge";
+import { ItineraryResults } from "@/components/plan/ItineraryResults";
+import { PlacesPickerSheet } from "@/components/plan/PlacesPicker";
+import {
+  EmptyState,
+  FieldRow,
+  PersonalSuggestions,
+  PlanningSkeleton,
+  TimeIntentChip,
+} from "@/components/plan/PlanPieces";
+
 
 import { useAuth } from "@/lib/useAuth";
 import { useI18n } from "@/lib/i18n";
