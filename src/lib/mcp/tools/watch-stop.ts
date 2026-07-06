@@ -5,19 +5,18 @@ const BASE = "https://app.aloya.cy";
 
 type Arrival = { stopId: string; routeId: string; tripId: string; arrivalUnix: number; delaySec: number };
 
+type ArrivalWithEta = Arrival & { etaSec: number };
+
 async function fetchArrivals(stopId: string) {
   const res = await fetch(`${BASE}/api/public/realtime`, { headers: { Accept: "application/json" } });
   if (!res.ok) throw new Error(`Realtime ${res.status}`);
   const data = (await res.json()) as { arrivals: Arrival[]; stale?: boolean };
   const now = Math.floor(Date.now() / 1000);
-  return {
-    now,
-    stale: data.stale ?? false,
-    arrivals: data.arrivals
-      .filter((a) => a.stopId === stopId && a.arrivalUnix >= now - 60)
-      .sort((a, b) => a.arrivalUnix - b.arrivalUnix)
-      .map((a) => ({ ...a, etaSec: a.arrivalUnix - now })),
-  };
+  const arrivals: ArrivalWithEta[] = data.arrivals
+    .filter((a) => a.stopId === stopId && a.arrivalUnix >= now - 60)
+    .sort((a, b) => a.arrivalUnix - b.arrivalUnix)
+    .map((a) => ({ ...a, etaSec: a.arrivalUnix - now }));
+  return { now, stale: data.stale ?? false, arrivals };
 }
 
 export default defineTool({
@@ -38,7 +37,7 @@ export default defineTool({
     const pollMs = 5000;
 
     const initial = await fetchArrivals(stopId);
-    const filter = (list: Arrival[]) => (routeId ? list.filter((a) => a.routeId === routeId) : list);
+    const filter = (list: ArrivalWithEta[]) => (routeId ? list.filter((a) => a.routeId === routeId) : list);
     const baseline = new Map(filter(initial.arrivals).map((a) => [a.tripId, a.arrivalUnix]));
 
     while (true) {
