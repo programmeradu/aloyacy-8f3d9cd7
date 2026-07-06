@@ -82,7 +82,7 @@ export const Route = createFileRoute("/trips")({
   component: Plan,
 });
 
-type Point = { lat: number; lng: number; label: string };
+
 
 function Plan() {
   const { t } = useI18n();
