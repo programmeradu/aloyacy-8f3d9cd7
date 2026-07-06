@@ -251,7 +251,8 @@ export function formatYYYYMMDD(s: string): string {
  */
 export function formatIntentLabel(
   iso: string,
-  t: (key: string, vars?: Record<string, string | number>) => string,
+  // Narrow key type keeps this assignable from the app's typed `t`.
+  t: (key: "trips.intentTomorrow", vars?: Record<string, string | number>) => string,
   now: Date = new Date(),
 ): string {
   try {
