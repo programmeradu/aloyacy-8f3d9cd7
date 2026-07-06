@@ -1,40 +1,15 @@
 // Pulse — "Today" editorial block: hero, tiles, editor's note, Greek word of
 // the day and the fact card. Split out of the Pulse screen.
 
-import { useCallback, useState } from "react";
-import { View, Text, Image, Pressable, StyleSheet, ActivityIndicator, Platform, type TextStyle } from "react-native";
-import Svg, {
-  Path,
-  Circle,
-  Rect,
-  G,
-  Line,
-  Ellipse,
-  Defs,
-  LinearGradient as SvgLinearGradient,
-  RadialGradient as SvgRadialGradient,
-  Stop as SvgStop,
-} from "react-native-svg";
-import * as Haptics from "expo-haptics";
-import * as Speech from "expo-speech";
-import * as FileSystem from "expo-file-system/legacy";
-import { createAudioPlayer } from "expo-audio";
+import { View, Text, Image, StyleSheet } from "react-native";
 import { palette } from "@/constants/theme";
 import { assets } from "@/lib/assets";
-import { API_BASE } from "@/lib/api";
 import type { TodayBriefing, TodayTile, TodayTheme } from "@/lib/pulse";
-import { DISPLAY, DISPLAY_MED, SANS, SANS_BOLD, MONO, EYEBROW, Eyebrow } from "./kit";
+import { DISPLAY, DISPLAY_MED, SANS, MONO, EYEBROW, Eyebrow } from "./kit";
+import { TileGlyph } from "./glyphs";
+import { GreekWordCard } from "./GreekWordCard";
 
-const GREEK_WORD_TYPE: TextStyle =
-  Platform.select<TextStyle>({
-    web: {
-      fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      fontWeight: "800",
-    },
-    ios: { fontWeight: "800" },
-    android: { fontFamily: "sans-serif-condensed", fontWeight: "700" },
-    default: { fontFamily: SANS_BOLD },
-  }) ?? { fontFamily: SANS_BOLD };
+
 
 const THEME_HERO: Record<TodayTheme, { uri: string }> = {
   derby: assets.today_derby,
