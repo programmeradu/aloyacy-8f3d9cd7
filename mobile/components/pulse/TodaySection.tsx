@@ -6,7 +6,7 @@ import { View, Text, Image, StyleSheet } from "react-native";
 import { palette } from "@/constants/theme";
 import { assets } from "@/lib/assets";
 import type { TodayBriefing, TodayTile, TodayTheme } from "@/lib/pulse";
-import { DISPLAY, DISPLAY_MED, SANS, MONO, EYEBROW, Eyebrow } from "./kit";
+import { DISPLAY, DISPLAY_MED, SANS, EYEBROW, Eyebrow } from "./kit";
 import { TileGlyph } from "./glyphs";
 import { GreekWordCard } from "./GreekWordCard";
 

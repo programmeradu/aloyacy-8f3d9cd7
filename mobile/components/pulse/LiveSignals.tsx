@@ -19,7 +19,7 @@ import type {
   MetWarningsPayload,
 } from "@/lib/pulse";
 import {
-  DISPLAY,
+
   DISPLAY_MED,
   SANS,
   SANS_BOLD,

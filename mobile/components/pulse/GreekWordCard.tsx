@@ -10,7 +10,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import { createAudioPlayer } from "expo-audio";
 import { palette } from "@/constants/theme";
 import { API_BASE } from "@/lib/api";
-import { DISPLAY, DISPLAY_MED, SANS, SANS_BOLD, MONO, EYEBROW } from "./kit";
+import { DISPLAY_MED, SANS, SANS_BOLD, MONO, EYEBROW } from "./kit";
 import { GreekWordGlyph } from "./glyphs";
 
 const GREEK_WORD_TYPE: TextStyle =
