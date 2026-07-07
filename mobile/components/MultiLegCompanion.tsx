@@ -57,7 +57,7 @@ import { TrafficRouteBanner } from "@/components/TrafficRouteBanner";
 import { fetchWalkingDirections } from "@/lib/walk";
 import { boundsForItineraryNative } from "@aloya/core/itinerary-bounds";
 import { remainingMinutesToDestination } from "@aloya/core/multileg-eta";
-import { fmtMin, fmtClock } from "./multileg/kit";
+import { KICKER, fmtMin, fmtClock } from "./multileg/kit";
 import { LegRibbon } from "./multileg/LegRibbon";
 import { PhaseLabel, PhaseHeadline, PhaseSub } from "./multileg/PhaseCopy";
 import { MultiLegActions } from "./multileg/MultiLegActions";

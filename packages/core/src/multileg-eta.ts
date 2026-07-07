@@ -14,8 +14,11 @@ export type MultiLegProgress = {
   currentLegDurationSec?: number | null;
 };
 
-/** Any leg-shaped object; only `durationSec` matters here. */
-export type DurationLeg = { durationSec?: number | null };
+/**
+ * Any leg-shaped object; only `durationSec` matters here. The index signature
+ * keeps ride legs (which carry no duration at all) assignable without a cast.
+ */
+export type DurationLeg = { durationSec?: number | null; [key: string]: unknown };
 
 /**
  * Minutes from now to the end of the itinerary: the remainder of the current
@@ -40,7 +43,7 @@ export function remainingMinutesToDestination(
   }
 
   for (let i = progress.currentLegIndex + 1; i < legs.length; i++) {
-    const d = legs[i]?.durationSec;
+    const d = legs[i]?.["durationSec"];
     if (typeof d === "number" && Number.isFinite(d)) secs += Math.max(0, d);
   }
 
