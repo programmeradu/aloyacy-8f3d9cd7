@@ -29,6 +29,10 @@
       "types": "./src/geo-fusion.ts",
       "default": "./src/geo-fusion.ts"
     },
+    "./group-format": {
+      "types": "./src/group-format.ts",
+      "default": "./src/group-format.ts"
+    },
     "./headsigns": {
       "types": "./src/headsigns.ts",
       "default": "./src/headsigns.ts"
