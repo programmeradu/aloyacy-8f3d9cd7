@@ -17,6 +17,7 @@
     "./journey-phase": { "types": "./src/journey-phase.ts", "default": "./src/journey-phase.ts" },
     "./learned-types": { "types": "./src/learned-types.ts", "default": "./src/learned-types.ts" },
     "./motion-pass": { "types": "./src/motion-pass.ts", "default": "./src/motion-pass.ts" },
+    "./path-geometry": { "types": "./src/path-geometry.ts", "default": "./src/path-geometry.ts" },
     "./pulse-zones": { "types": "./src/pulse-zones.ts", "default": "./src/pulse-zones.ts" },
     "./shapes": { "types": "./src/shapes.ts", "default": "./src/shapes.ts" },
     "./dictionaries/en": { "types": "./src/dictionaries/en.ts", "default": "./src/dictionaries/en.ts" },
