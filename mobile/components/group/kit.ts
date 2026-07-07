@@ -49,8 +49,10 @@ export type MemberRow = {
   joined_at: string;
 };
 
+export type GroupAction = "join" | "ping" | "leave" | "end";
+
 export async function callGroups<T>(
-  action: "join" | "ping" | "leave",
+  action: GroupAction,
   payload: unknown,
 ): Promise<T | null> {
   try {

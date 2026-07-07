@@ -51,7 +51,7 @@ import {
   type GroupRow,
   type MemberRow,
 } from "@/components/group/kit";
-import { Hero, IdentityRibbon } from "@/components/group/GroupHeader";
+import { BackChip, CodeChip, Hero, IdentityRibbon } from "@/components/group/GroupHeader";
 import { ConvergeCard, MembersList } from "@/components/group/GroupMembers";
 import { JoinCard } from "@/components/group/JoinCard";
 import { LiveCard } from "@/components/group/LiveCard";
