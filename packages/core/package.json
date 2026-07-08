@@ -80,6 +80,10 @@
     "./shapes": {
       "types": "./src/shapes.ts",
       "default": "./src/shapes.ts"
+    },
+    "./trip-alert-copy": {
+      "types": "./src/trip-alert-copy.ts",
+      "default": "./src/trip-alert-copy.ts"
     }
   },
   "dependencies": {
