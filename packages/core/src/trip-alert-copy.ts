@@ -11,6 +11,7 @@ export type TripAlertKind =
   | "hurry-urgent"
   | "board-now"
   | "press-stop"
+  | "confirm-onboard"
   | "missed-bus"
   | "arrived"
   | "disruption";
@@ -75,6 +76,12 @@ export function buildTripAlertCopy(ctx: TripAlertContext): TripAlertCopy {
         id,
         title: "Press stop now",
         body: `${capitalize(stop(ctx.stopName))} is next on ${bus(ctx.routeShort)}.`,
+      };
+    case "confirm-onboard":
+      return {
+        id,
+        title: `Are you on ${bus(ctx.routeShort)}?`,
+        body: `Confirm and we'll count down to ${stop(ctx.stopName)}.`,
       };
     case "missed-bus":
       return {

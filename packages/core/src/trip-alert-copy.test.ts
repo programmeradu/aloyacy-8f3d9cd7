@@ -31,6 +31,7 @@ describe("buildTripAlertCopy", () => {
       "hurry-urgent",
       "board-now",
       "press-stop",
+      "confirm-onboard",
       "missed-bus",
       "arrived",
       "disruption",
