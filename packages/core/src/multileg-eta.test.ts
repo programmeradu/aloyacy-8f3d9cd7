@@ -35,10 +35,11 @@ describe("remainingMinutesToDestination", () => {
   });
 
   it("floors negative durations to zero instead of rewinding the ETA", () => {
-    const out = remainingMinutesToDestination(
-      { currentLegIndex: 0, secsToCurrentAlight: -500 },
-      [{ durationSec: 300 }, { durationSec: -900 }, { durationSec: 600 }],
-    );
+    const out = remainingMinutesToDestination({ currentLegIndex: 0, secsToCurrentAlight: -500 }, [
+      { durationSec: 300 },
+      { durationSec: -900 },
+      { durationSec: 600 },
+    ]);
     expect(out).toBe(10);
   });
 
