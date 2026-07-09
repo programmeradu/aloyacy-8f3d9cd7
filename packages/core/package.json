@@ -29,6 +29,10 @@
       "types": "./src/geo-fusion.ts",
       "default": "./src/geo-fusion.ts"
     },
+    "./group-converge": {
+      "types": "./src/group-converge.ts",
+      "default": "./src/group-converge.ts"
+    },
     "./group-format": {
       "types": "./src/group-format.ts",
       "default": "./src/group-format.ts"

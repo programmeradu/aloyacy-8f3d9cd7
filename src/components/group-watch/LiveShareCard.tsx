@@ -57,7 +57,11 @@ export function LiveShareCard({
       } catch {
         /* ignore */
       }
-      if (watchRef.current != null && typeof navigator !== "undefined" && "geolocation" in navigator) {
+      if (
+        watchRef.current != null &&
+        typeof navigator !== "undefined" &&
+        "geolocation" in navigator
+      ) {
         navigator.geolocation.clearWatch(watchRef.current);
         watchRef.current = null;
       }
