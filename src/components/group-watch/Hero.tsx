@@ -2,7 +2,7 @@
 // ribbon that tells the current viewer which member card is them.
 
 import { initials } from "@aloya/core/group-format";
-import { heroArt, PulseDot, toneClasses, toneForIndex, type GroupRow, type MemberRow } from "./kit";
+import { heroArt, toneClasses, toneForIndex, type GroupRow, type MemberRow } from "./kit";
 import { PulseDot } from "./chrome";
 
 export function Hero({
