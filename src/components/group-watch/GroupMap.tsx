@@ -4,6 +4,7 @@
 import { useMemo } from "react";
 import { MapPreview } from "@/components/MapPreview";
 import { PulseDot, toneForIndex, type GroupRow, type MemberRow, type Tone } from "./kit";
+import { PulseDot } from "./chrome";
 
 export function GroupMap({
   group,

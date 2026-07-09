@@ -1,7 +1,7 @@
-// Shared primitives for the public group-watch page: row shapes, the member
-// colour system, and the small chrome pieces every section reuses.
+// Shared data shapes and pure helpers for the public group-watch page: row
+// types, the member colour system, and the geolocation read. Components live
+// alongside in chrome.tsx and the section files.
 
-import type { ReactNode } from "react";
 import heroArtAsset from "@/assets/group-converge-hero.jpg.asset.json";
 
 export const heroArt = heroArtAsset.url;
@@ -83,17 +83,4 @@ export function readPosition(
       options,
     );
   });
-}
-
-export function Shell({ children }: { children: ReactNode }) {
-  return <main className="min-h-dvh bg-limestone text-ink">{children}</main>;
-}
-
-export function PulseDot() {
-  return (
-    <span className="relative inline-flex size-2">
-      <span className="absolute inline-flex size-full animate-ping rounded-full bg-aegean-deep opacity-60" />
-      <span className="relative inline-flex size-2 rounded-full bg-aegean-deep" />
-    </span>
-  );
 }

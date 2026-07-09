@@ -25,12 +25,8 @@ import { LiveShareCard } from "@/components/group-watch/LiveShareCard";
 import { ConvergeCard, MembersList } from "@/components/group-watch/MembersList";
 import { PlanRouteCard } from "@/components/group-watch/PlanRouteCard";
 import { Footer, HowThisWorks, LoadingState, MissingState } from "@/components/group-watch/states";
-import {
-  MEMBER_TOKEN_KEY,
-  Shell,
-  type GroupRow,
-  type MemberRow,
-} from "@/components/group-watch/kit";
+import { MEMBER_TOKEN_KEY, type GroupRow, type MemberRow } from "@/components/group-watch/kit";
+import { Shell } from "@/components/group-watch/chrome";
 
 export const Route = createFileRoute("/group/$code")({
   head: ({ params }) => {

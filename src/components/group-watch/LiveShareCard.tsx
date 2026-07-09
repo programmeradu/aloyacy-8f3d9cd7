@@ -4,7 +4,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { leaveTripGroup, pingGroupMember } from "@/lib/trip-groups.functions";
-import { MEMBER_TOKEN_KEY, PING_INTERVAL_MS, PulseDot, type GroupRow } from "./kit";
+import { MEMBER_TOKEN_KEY, PING_INTERVAL_MS, type GroupRow } from "./kit";
+import { PulseDot } from "./chrome";
+import { PulseDot } from "./chrome";
 
 export function LiveShareCard({
   group,

@@ -3,6 +3,7 @@
 
 import { initials } from "@aloya/core/group-format";
 import { heroArt, PulseDot, toneClasses, toneForIndex, type GroupRow, type MemberRow } from "./kit";
+import { PulseDot } from "./chrome";
 
 export function Hero({
   group,

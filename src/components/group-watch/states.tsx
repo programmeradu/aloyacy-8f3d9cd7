@@ -1,6 +1,8 @@
 // Explainer, footer and the loading / not-found shells for the group page.
 
-import { heroArt, PulseDot } from "./kit";
+import { heroArt } from "./kit";
+import { PulseDot } from "./chrome";
+import { PulseDot } from "./chrome";
 
 export function HowThisWorks() {
   const items: [string, string][] = [
