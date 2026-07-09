@@ -2,7 +2,6 @@
 
 import { heroArt } from "./kit";
 import { PulseDot } from "./chrome";
-import { PulseDot } from "./chrome";
 
 export function HowThisWorks() {
   const items: [string, string][] = [
