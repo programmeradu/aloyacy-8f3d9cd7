@@ -19,12 +19,13 @@ export type PlanClock = {
 export type PlanPlace = { lat: number; lng: number; label: string };
 
 /** Minimal structural shape of an itinerary leg — matches web + mobile DTOs. */
-export type WalkLegLike = {
-  kind: "walk";
-  from: { stopId?: string; name: string; lat: number; lng: number };
-  distanceMeters: number;
+export type LegLike = {
+  kind: string;
+  /** Present on walk legs only. */
+  distanceMeters?: number;
+  /** Present on walk legs only — the point the rider starts walking from. */
+  from?: { stopId?: string; name: string; lat: number; lng: number };
 };
-export type LegLike = { kind: string } & Partial<WalkLegLike>;
 
 /**
  * Translate a rider's time intent into the planner's unix arguments.
