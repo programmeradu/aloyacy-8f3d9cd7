@@ -77,6 +77,10 @@
       "types": "./src/path-geometry.ts",
       "default": "./src/path-geometry.ts"
     },
+    "./plan-intent": {
+      "types": "./src/plan-intent.ts",
+      "default": "./src/plan-intent.ts"
+    },
     "./pulse-zones": {
       "types": "./src/pulse-zones.ts",
       "default": "./src/pulse-zones.ts"
