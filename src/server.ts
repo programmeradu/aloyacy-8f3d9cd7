@@ -2,6 +2,11 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { createLogger } from "./lib/logger";
+
+// Structured, one-line-JSON logs so SSR failures are searchable in the
+// platform log viewer by `scope` and `level` rather than by eyeballing stacks.
+const log = createLogger("ssr");
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -62,7 +67,9 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
     return response;
   }
 
-  console.error(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`));
+  log.error("catastrophic SSR failure", consumeLastCapturedError() ?? new Error(body), {
+    status: response.status,
+  });
   return brandedErrorResponse();
 }
 
@@ -73,7 +80,10 @@ export default {
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
-      console.error(error);
+      log.error("unhandled request failure", error, {
+        method: request.method,
+        path: new URL(request.url).pathname,
+      });
       return brandedErrorResponse();
     }
   },
