@@ -56,7 +56,7 @@ describe("zodDetails", () => {
   it("falls back to the bare message when there is no path", () => {
     const result = z.string().safeParse(42);
     if (result.success) throw new Error("expected failure");
-    expect(zodDetails(result.error)[0]).not.toContain(":");
+    expect(zodDetails(result.error)[0]).toBe(result.error.issues[0].message);
   });
 });
 
