@@ -3,6 +3,8 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { getCurrentWeather } from "@/lib/weather.functions";
+import { jsonResponse, parseQuery } from "@/lib/http/validate";
+import { WeatherQuerySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -17,21 +19,14 @@ export const Route = createFileRoute("/api/public/weather")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
-        const url = new URL(request.url);
-        const lat = Number(url.searchParams.get("lat"));
-        const lng = Number(url.searchParams.get("lng"));
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-          return new Response(JSON.stringify({ error: "lat/lng required" }), {
-            status: 400,
-            headers: CORS,
-          });
-        }
+        const parsed = parseQuery(new URL(request.url), WeatherQuerySchema, CORS);
+        if (!parsed.ok) return parsed.response;
         try {
-          const data = await getCurrentWeather({ data: { lat, lng } });
-          return new Response(JSON.stringify(data), { status: 200, headers: CORS });
+          const data = await getCurrentWeather({ data: parsed.data });
+          return jsonResponse(200, data, CORS);
         } catch (e) {
           const msg = e instanceof Error ? e.message : "weather fetch failed";
-          return new Response(JSON.stringify({ error: msg }), { status: 500, headers: CORS });
+          return jsonResponse(500, { error: msg }, CORS);
         }
       },
     },

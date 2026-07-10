@@ -70,26 +70,16 @@ export const Route = createFileRoute("/api/public/tts")({
             headers: { ...CORS, "Content-Type": "application/json" },
           });
         }
-        let body: { input?: string; voice?: string; instructions?: string };
-        try {
-          body = (await request.json()) as typeof body;
-        } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-            status: 400,
-            headers: { ...CORS, "Content-Type": "application/json" },
-          });
-        }
-        const input = (body.input ?? "").toString().slice(0, 400).trim();
-        if (!input) {
-          return new Response(JSON.stringify({ error: "Missing 'input'" }), {
-            status: 400,
-            headers: { ...CORS, "Content-Type": "application/json" },
-          });
-        }
+        const parsed = await parseJsonBody(request, TtsSchema, {
+          ...CORS,
+          "Content-Type": "application/json",
+        });
+        if (!parsed.ok) return parsed.response;
+        const input = parsed.data.input;
         const instructions =
-          body.instructions ??
+          parsed.data.instructions ??
           "Clear, gentle, natural pronunciation. Slightly slower pace for language learners.";
-        const voiceId = body.voice || DEFAULT_VOICE_ID;
+        const voiceId = parsed.data.voice || DEFAULT_VOICE_ID;
 
         // Primary: ElevenLabs (best Greek pronunciation).
         if (elevenKey) {

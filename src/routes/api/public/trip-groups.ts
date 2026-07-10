@@ -1,6 +1,9 @@
 // Anon-safe HTTP surface for live group trips — mobile calls this since
 // it can't import server functions directly. Dispatches by `action` to
-// keep one endpoint (create / ping / leave / join).
+// keep one endpoint (create / join / ping / leave / end).
+//
+// The envelope is validated here; each server function applies its own
+// payload schema, so a malformed payload fails as a 400 rather than a 500.
 
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -10,6 +13,8 @@ import {
   leaveTripGroup,
   pingGroupMember,
 } from "@/lib/trip-groups.functions";
+import { jsonResponse, parseJsonBody } from "@/lib/http/validate";
+import { TripGroupsEnvelopeSchema, type TripGroupAction } from "@/lib/schemas/public-api";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -19,50 +24,28 @@ const CORS = {
   "Cache-Control": "no-store",
 };
 
+const HANDLERS: Record<TripGroupAction, (payload: unknown) => Promise<unknown>> = {
+  create: (payload) => createTripGroup({ data: payload as never }),
+  join: (payload) => joinTripGroup({ data: payload as never }),
+  ping: (payload) => pingGroupMember({ data: payload as never }),
+  leave: (payload) => leaveTripGroup({ data: payload as never }),
+  end: (payload) => endTripGroup({ data: payload as never }),
+};
+
 export const Route = createFileRoute("/api/public/trip-groups")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        let body: { action?: string; payload?: unknown };
+        const parsed = await parseJsonBody(request, TripGroupsEnvelopeSchema, CORS);
+        if (!parsed.ok) return parsed.response;
+        const { action, payload } = parsed.data;
         try {
-          body = (await request.json()) as typeof body;
-        } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-            status: 400,
-            headers: CORS,
-          });
-        }
-        const action = body.action;
-        const payload = body.payload;
-        try {
-          let result: unknown;
-          switch (action) {
-            case "create":
-              result = await createTripGroup({ data: payload as never });
-              break;
-            case "join":
-              result = await joinTripGroup({ data: payload as never });
-              break;
-            case "ping":
-              result = await pingGroupMember({ data: payload as never });
-              break;
-            case "leave":
-              result = await leaveTripGroup({ data: payload as never });
-              break;
-            case "end":
-              result = await endTripGroup({ data: payload as never });
-              break;
-            default:
-              return new Response(JSON.stringify({ error: "Unknown action" }), {
-                status: 400,
-                headers: CORS,
-              });
-          }
-          return new Response(JSON.stringify(result), { status: 200, headers: CORS });
+          const result = await HANDLERS[action](payload ?? {});
+          return jsonResponse(200, result, CORS);
         } catch (e) {
           const msg = e instanceof Error ? e.message : "trip-groups failed";
-          return new Response(JSON.stringify({ error: msg }), { status: 400, headers: CORS });
+          return jsonResponse(400, { error: msg }, CORS);
         }
       },
     },
