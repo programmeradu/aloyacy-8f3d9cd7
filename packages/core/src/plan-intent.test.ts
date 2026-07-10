@@ -87,14 +87,16 @@ describe("resolveOrigin", () => {
   });
 
   it("falls back to the city centroid with no fix", () => {
-    expect(resolveOrigin({ useCurrent: true, fix: null, picked: null, fallback })).toEqual(fallback);
+    expect(resolveOrigin({ useCurrent: true, fix: null, picked: null, fallback })).toEqual(
+      fallback,
+    );
   });
 
   it("uses the picked place when the rider chose one", () => {
     const picked = { lat: 35.17, lng: 33.36, label: "Nicosia" };
-    expect(resolveOrigin({ useCurrent: false, fix: { lat: 35, lng: 33 }, picked, fallback })).toEqual(
-      picked,
-    );
+    expect(
+      resolveOrigin({ useCurrent: false, fix: { lat: 35, lng: 33 }, picked, fallback }),
+    ).toEqual(picked);
   });
 });
 

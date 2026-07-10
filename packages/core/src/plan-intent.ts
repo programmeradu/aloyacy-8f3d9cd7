@@ -7,9 +7,7 @@
 // unit-tested without mounting a screen.
 
 export type PlanTimeIntent =
-  | { kind: "now" }
-  | { kind: "leaveBy"; iso: string }
-  | { kind: "arriveBy"; iso: string };
+  { kind: "now" } | { kind: "leaveBy"; iso: string } | { kind: "arriveBy"; iso: string };
 
 export type PlanClock = {
   departAtUnix?: number;
