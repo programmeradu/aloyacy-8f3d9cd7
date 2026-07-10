@@ -55,7 +55,9 @@ describe("parseKapnosLocalUnix", () => {
 describe("walk legs", () => {
   it("reports the access walk, or zero when the trip starts on a bus", () => {
     expect(firstWalkMeters([walk(240.4), ride()])).toBe(240);
+    // Only walking before the first ride counts as access; egress does not.
     expect(firstWalkMeters([ride(), walk(100)])).toBe(0);
+    expect(firstWalkMeters([walk(100), walk(50.4), ride(), walk(900)])).toBe(150);
     expect(firstWalkMeters(null)).toBeNull();
   });
 

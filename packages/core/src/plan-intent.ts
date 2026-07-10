@@ -53,8 +53,12 @@ export function parseKapnosLocalUnix(local: string | null | undefined): number |
 /** Metres of the access walk before the first ride. 0 when the trip starts on a bus. */
 export function firstWalkMeters(legs: readonly LegLike[] | null | undefined): number | null {
   if (!legs) return null;
-  const w = legs.find((l) => l.kind === "walk");
-  return w && typeof w.distanceMeters === "number" ? Math.round(w.distanceMeters) : 0;
+  let metres = 0;
+  for (const leg of legs) {
+    if (leg.kind === "ride") break;
+    if (leg.kind === "walk" && typeof leg.distanceMeters === "number") metres += leg.distanceMeters;
+  }
+  return Math.round(metres);
 }
 
 export type FinalWalk = {
