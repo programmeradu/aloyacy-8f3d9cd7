@@ -18,6 +18,21 @@ export default defineConfig({
       reporter: ["text", "lcov"],
       include: ["src/lib/**/*.ts", "packages/core/src/**/*.ts"],
       exclude: ["**/*.test.ts", "**/*.server.ts"],
+      // Enforced floors, ratcheted upward as tests land. The shared domain
+      // core is the part every client depends on, so it carries a much
+      // higher bar than the app-glue average.
+      thresholds: {
+        lines: 12,
+        statements: 12,
+        functions: 60,
+        branches: 80,
+        "packages/core/src/**/*.ts": {
+          lines: 80,
+          statements: 80,
+          functions: 85,
+          branches: 90,
+        },
+      },
     },
   },
 });
