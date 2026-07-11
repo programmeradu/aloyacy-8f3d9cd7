@@ -5,6 +5,8 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { getRouteReliability } from "@/lib/reliability.functions";
+import { jsonResponse, parseJsonBody } from "@/lib/http/validate";
+import { RouteReliabilitySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -19,24 +21,14 @@ export const Route = createFileRoute("/api/public/route-reliability")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        let body: unknown;
+        const parsed = await parseJsonBody(request, RouteReliabilitySchema, CORS);
+        if (!parsed.ok) return parsed.response;
         try {
-          body = await request.json();
-        } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-            status: 400,
-            headers: CORS,
-          });
-        }
-        try {
-          const result = await getRouteReliability({ data: body as never });
-          return new Response(JSON.stringify(result), { status: 200, headers: CORS });
+          const result = await getRouteReliability({ data: parsed.data });
+          return jsonResponse(200, result, CORS);
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Reliability failed";
-          return new Response(JSON.stringify({ error: msg }), {
-            status: 400,
-            headers: CORS,
-          });
+          return jsonResponse(400, { error: msg }, CORS);
         }
       },
     },

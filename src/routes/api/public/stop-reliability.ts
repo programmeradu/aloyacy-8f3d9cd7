@@ -4,6 +4,8 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { getStopReliability, aggregateStopReliability } from "@/lib/reliability.functions";
+import { jsonResponse, parseJsonBody } from "@/lib/http/validate";
+import { StopReliabilitySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -18,25 +20,15 @@ export const Route = createFileRoute("/api/public/stop-reliability")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        let body: unknown;
+        const parsed = await parseJsonBody(request, StopReliabilitySchema, CORS);
+        if (!parsed.ok) return parsed.response;
         try {
-          body = await request.json();
-        } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-            status: 400,
-            headers: CORS,
-          });
-        }
-        try {
-          const rows = await getStopReliability({ data: body as never });
+          const rows = await getStopReliability({ data: parsed.data });
           const agg = aggregateStopReliability(rows);
-          return new Response(JSON.stringify(agg), { status: 200, headers: CORS });
+          return jsonResponse(200, agg, CORS);
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Reliability failed";
-          return new Response(JSON.stringify({ error: msg }), {
-            status: 400,
-            headers: CORS,
-          });
+          return jsonResponse(400, { error: msg }, CORS);
         }
       },
     },
