@@ -147,6 +147,14 @@ goes through `import.meta.env.VITE_*`.
 ## Testing
 
 Vitest, run with `bun run test` (`bun run test:watch`, `bun run test:coverage`).
+Coverage thresholds are enforced in `vitest.config.ts` — `test:coverage` fails
+below them, and the floors are ratcheted upward as tests land.
+
+Every public endpoint validates its input at the boundary: `src/lib/schemas/`
+holds the Zod schemas and `src/lib/http/validate.ts` turns a bad payload into a
+uniform `400 { error, details }`. Server-side diagnostics go through the
+structured logger in `src/lib/logger.ts` (one JSON object per line, scoped by
+subsystem).
 Specs live next to the module they cover (`packages/core/src/geo.test.ts`) and
 cover the pure domain layer: geo maths and polyline snapping, the freshness
 classifier's tier thresholds, journey-phase predicates, the city catalogue,

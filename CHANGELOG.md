@@ -7,6 +7,16 @@ All notable changes to Aloya are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- Shared request-validation boundary for the public HTTP API
+  (`src/lib/http/validate.ts` + `src/lib/schemas/public-api.ts`): every
+  `/api/public/*` payload and query string is parsed with a Zod schema and
+  rejected with a uniform `400 { error, details }` before any database call
+  or paid upstream request, with unit tests pinning each schema.
+- Structured JSON logging (`src/lib/logger.ts`): levelled, scoped, one line
+  per record, safe against circular references and non-`Error` throws. Wired
+  into the SSR entry point so catastrophic failures are searchable.
+- Enforced coverage thresholds in `vitest.config.ts`, with a higher floor for
+  the shared domain core than for app glue.
 - Automated test suite (Vitest) covering the pure domain layer: geo maths and
   polyline snapping, freshness classification, journey phases, the Cyprus city
   catalogue, ETA copy formatting, Motion card formatting and static GTFS
