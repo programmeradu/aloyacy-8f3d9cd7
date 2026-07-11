@@ -71,7 +71,9 @@ describe("reliability schemas", () => {
     expect(RouteReliabilitySchema.safeParse({ routeIds: ids(51) }).success).toBe(false);
     expect(RouteReliabilitySchema.safeParse({ routeIds: [] }).success).toBe(false);
     expect(StopReliabilitySchema.safeParse({ stopId: "s1", routeIds: ids(30) }).success).toBe(true);
-    expect(StopReliabilitySchema.safeParse({ stopId: "s1", routeIds: ids(31) }).success).toBe(false);
+    expect(StopReliabilitySchema.safeParse({ stopId: "s1", routeIds: ids(31) }).success).toBe(
+      false,
+    );
     expect(StopReliabilitySchema.safeParse({ routeIds: ["r1"] }).success).toBe(false);
   });
 });
@@ -125,6 +127,8 @@ describe("TripGroupsEnvelopeSchema", () => {
 
   it("rejects an unknown action or a non-object payload", () => {
     expect(TripGroupsEnvelopeSchema.safeParse({ action: "delete" }).success).toBe(false);
-    expect(TripGroupsEnvelopeSchema.safeParse({ action: "ping", payload: "x" }).success).toBe(false);
+    expect(TripGroupsEnvelopeSchema.safeParse({ action: "ping", payload: "x" }).success).toBe(
+      false,
+    );
   });
 });
