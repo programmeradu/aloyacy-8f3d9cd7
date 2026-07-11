@@ -89,6 +89,10 @@
       "types": "./src/shapes.ts",
       "default": "./src/shapes.ts"
     },
+    "./single-leg-phase": {
+      "types": "./src/single-leg-phase.ts",
+      "default": "./src/single-leg-phase.ts"
+    },
     "./trip-alert-copy": {
       "types": "./src/trip-alert-copy.ts",
       "default": "./src/trip-alert-copy.ts"
