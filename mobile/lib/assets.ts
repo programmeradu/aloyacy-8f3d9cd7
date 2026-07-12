@@ -72,6 +72,8 @@ export const assets = {
   welcome_card: { uri: "https://aloyacy.lovable.app/__l5e/assets-v1/b085a3b1-0e62-4c13-b653-0fce39ab9d98/welcome-card.jpg" }, // welcome-card.jpg
   welcome_location: { uri: "https://aloyacy.lovable.app/__l5e/assets-v1/8acee9e9-cb39-4751-a647-0b59763d66e9/welcome-location.jpg" }, // welcome-location.jpg
   welcome_notifications: { uri: "https://aloyacy.lovable.app/__l5e/assets-v1/3b53ddb5-9f48-42f0-b47d-264ff545bc55/welcome-notifications.jpg" }, // welcome-notifications.jpg
+  apple_wallet: { uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Apple_Wallet_Logo.svg/2560px-Apple_Wallet_Logo.svg.png" },
+  google_wallet: { uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Google_Wallet_logo_2022.svg/2560px-Google_Wallet_logo_2022.svg.png" },
 } as const;
 
 export type AssetKey = keyof typeof assets;

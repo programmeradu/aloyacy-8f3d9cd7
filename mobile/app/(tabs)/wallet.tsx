@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ScrollView, View, Text, Pressable, RefreshControl, StyleSheet, Alert,
-  Linking,
+  Linking, Platform, Image,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -35,7 +35,8 @@ import {
   type MotionPass,
 } from "@/lib/motionPass";
 import { scanCardUid, isNfcSupported } from "@/lib/nfc";
-import { jccLogin, jccRefresh, jccSync, verifyMotionCard, getMotionCardOptions, API_BASE } from "@/lib/walletApi";
+import { jccLogin, jccRefresh, jccSync, verifyMotionCard, getMotionCardOptions } from "@/lib/walletApi";
+import { API_BASE } from "@/lib/api";
 import { timeAgo } from "@/lib/walletFormat";
 import { FadeSection } from "@/components/FadeSection";
 import { assets } from "@/lib/assets";
