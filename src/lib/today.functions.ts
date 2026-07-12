@@ -433,7 +433,9 @@ export const getTodayBriefing = createServerFn({ method: "GET" })
     // ─── Rank signals into a single theme ─────────────────────────────────
     const holiday = publicHoliday(d);
     const nd = nameDayToday(d);
-    const festival = activeFestival(d);
+    const festival =
+      (await liveEventToday(d, focus.scope !== "island" ? focus.city : undefined)) ??
+      activeFestival(d);
     const fixture = isLikelyMatchday(d, focus.scope !== "island" ? focus.city : undefined);
     const cruise = await cruiseInPortLive();
     const isHot = weather && weather.tempC >= 35;
