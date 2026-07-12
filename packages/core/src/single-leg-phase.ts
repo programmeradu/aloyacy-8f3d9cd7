@@ -7,12 +7,7 @@
 // the two clients.
 
 export type SingleLegPhase =
-  | "leave-soon"
-  | "walking"
-  | "waiting"
-  | "on-bus"
-  | "alight-soon"
-  | "arrived";
+  "leave-soon" | "walking" | "waiting" | "on-bus" | "alight-soon" | "arrived";
 
 /** Phase names emitted by the GPS-truth journey tracker. */
 export type LiveJourneyPhase =
@@ -248,9 +243,6 @@ export function phaseSubcopy(i: SubcopyInput): string {
 }
 
 /** True when the "press stop" alert should be on screen. */
-export function shouldShowAlightAlert(
-  phase: SingleLegPhase,
-  minToAlight: number,
-): boolean {
+export function shouldShowAlightAlert(phase: SingleLegPhase, minToAlight: number): boolean {
   return phase === "alight-soon" || (phase === "on-bus" && minToAlight <= 3);
 }

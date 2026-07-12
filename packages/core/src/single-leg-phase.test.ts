@@ -46,9 +46,9 @@ describe("deriveSchedulePhase", () => {
 
   it("falls through to on-bus and arrived from the clock alone", () => {
     expect(base({ boardUnix: NOW - 60, walkInSec: 0 }).phase).toBe("on-bus");
-    expect(
-      base({ boardUnix: NOW - 600, alightUnix: NOW - 300, walkInSec: 0 }).phase,
-    ).toBe("arrived");
+    expect(base({ boardUnix: NOW - 600, alightUnix: NOW - 300, walkInSec: 0 }).phase).toBe(
+      "arrived",
+    );
   });
 
   it("keeps a started rider walking until the access walk is nearly done", () => {
@@ -64,9 +64,7 @@ describe("deriveSchedulePhase", () => {
 
   it("treats an alighted rider with walk left as almost there", () => {
     expect(base({ alighted: true, alightUnix: NOW - 60 }).phase).toBe("alight-soon");
-    expect(
-      base({ alighted: true, alightUnix: NOW - 600, walkOutSec: 60 }).phase,
-    ).toBe("arrived");
+    expect(base({ alighted: true, alightUnix: NOW - 600, walkOutSec: 60 }).phase).toBe("arrived");
   });
 });
 
