@@ -61,12 +61,16 @@
           "data": [
             { "scheme": "https", "host": "app.aloya.cy", "pathPrefix": "/group/" },
             { "scheme": "https", "host": "app.aloya.cy", "pathPrefix": "/plan/" },
+            { "scheme": "https", "host": "app.aloya.cy", "pathPrefix": "/eta/" },
             { "scheme": "https", "host": "aloyacy.live", "pathPrefix": "/group/" },
             { "scheme": "https", "host": "aloyacy.live", "pathPrefix": "/plan/" },
+            { "scheme": "https", "host": "aloyacy.live", "pathPrefix": "/eta/" },
             { "scheme": "https", "host": "www.aloyacy.live", "pathPrefix": "/group/" },
             { "scheme": "https", "host": "www.aloyacy.live", "pathPrefix": "/plan/" },
+            { "scheme": "https", "host": "www.aloyacy.live", "pathPrefix": "/eta/" },
             { "scheme": "https", "host": "app.aloyacy.live", "pathPrefix": "/group/" },
-            { "scheme": "https", "host": "app.aloyacy.live", "pathPrefix": "/plan/" }
+            { "scheme": "https", "host": "app.aloyacy.live", "pathPrefix": "/plan/" },
+            { "scheme": "https", "host": "app.aloyacy.live", "pathPrefix": "/eta/" }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         },

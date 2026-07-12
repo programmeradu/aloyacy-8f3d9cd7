@@ -34,7 +34,8 @@ import {
   readPass, writePass, mergePass, clearJccLink, subscribePass,
   type MotionPass,
 } from "@/lib/motionPass";
-import { jccLogin, jccRefresh, jccSync, verifyMotionCard, getMotionCardOptions } from "@/lib/walletApi";
+import { scanCardUid, isNfcSupported } from "@/lib/nfc";
+import { jccLogin, jccRefresh, jccSync, verifyMotionCard, getMotionCardOptions, API_BASE } from "@/lib/walletApi";
 import { timeAgo } from "@/lib/walletFormat";
 import { FadeSection } from "@/components/FadeSection";
 import { assets } from "@/lib/assets";
@@ -48,6 +49,7 @@ export default function WalletScreen() {
   const [pass, setPass] = useState<MotionPass | null>(null);
   const [editing, setEditing] = useState<"none" | SheetMode>("none");
   const [scanning, setScanning] = useState(false);
+  const [nfcAvailable, setNfcAvailable] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -57,6 +59,7 @@ export default function WalletScreen() {
       if (alive) setPass(p);
     });
     const off = subscribePass((p) => setPass(p));
+    void isNfcSupported().then(setNfcAvailable);
     return () => {
       alive = false;
       off();
@@ -99,6 +102,50 @@ export default function WalletScreen() {
     }
     if (changed) await update(next);
   }, [update]);
+
+  const onNfcScan = useCallback(async () => {
+    const res = await scanCardUid();
+    if (res.ok) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await update({ ...(pass ?? (await readPass())), number: res.cardUid });
+      await runPublicSync();
+    } else if (res.reason === "error") {
+      Alert.alert("NFC Error", res.message);
+    }
+  }, [pass, update, runPublicSync]);
+
+  const onAddToWallet = useCallback(async () => {
+    if (!pass || !hasCard) return;
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/public/wallet/pass`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          platform: Platform.OS === "ios" ? "ios" : "android",
+          cardNumber: pass.number.replace(/\D/g, ""),
+          holderName: pass.holder,
+          balance: pass.balanceEur,
+        }),
+      });
+
+      const body = await res.json();
+      if (res.ok && body.url) {
+        // In a real build with expo-web-browser or react-native-wallet
+        // we would open the .pkpass file or the Google Pay link.
+        Alert.alert(
+          "Wallet integration",
+          "Pass generation logic is ready. To go live, this feature requires Apple/Google Developer certificates to sign the digital passes.",
+          [{ text: "Learn more", onPress: () => Linking.openURL("https://developer.apple.com/apple-wallet/") }, { text: "OK" }]
+        );
+      } else {
+        throw new Error(body.error || "Failed to generate pass");
+      }
+    } catch (e) {
+      Alert.alert("Wallet Error", "Couldn't connect to pass server.");
+    }
+  }, [pass, hasCard]);
 
   // -- JCC linked sync --
   const runSync = useCallback(
@@ -236,11 +283,33 @@ export default function WalletScreen() {
 
       {/* The Pass */}
       <View style={{ paddingHorizontal: 22, marginTop: 22 }}>
-        <MotionCardVisual
-          pass={pass}
-          onTap={() => setEditing("card")}
-          onScan={() => setScanning(true)}
-        />
+          <MotionCardVisual
+            pass={pass}
+            onTap={() => setEditing("card")}
+            onScan={() => setScanning(true)}
+            onNfc={nfcAvailable ? onNfcScan : undefined}
+          />
+
+          {hasCard && (
+            <FadeSection index={1} style={{ marginTop: 16 }}>
+              <Pressable
+                onPress={onAddToWallet}
+                style={({ pressed }) => [
+                  styles.walletBtn,
+                  pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
+                ]}
+              >
+                <Image
+                  source={Platform.OS === 'ios' ? assets.apple_wallet : assets.google_wallet}
+                  style={styles.walletIcon}
+                  resizeMode="contain"
+                />
+                <Text style={styles.walletText}>
+                  Add to {Platform.OS === 'ios' ? 'Apple' : 'Google'} Wallet
+                </Text>
+              </Pressable>
+            </FadeSection>
+          )}
       </View>
 
       {hasCard ? (
@@ -587,5 +656,25 @@ const styles = StyleSheet.create({
     fontFamily: "Geist_500Medium",
     fontSize: 13,
     color: palette.inkSoft,
+  },
+  walletBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.ink,
+    borderRadius: 16,
+    paddingVertical: 14,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  walletIcon: {
+    width: 24,
+    height: 24,
+  },
+  walletText: {
+    fontFamily: "Geist_600SemiBold",
+    fontSize: 15,
+    color: palette.white,
   },
 });
