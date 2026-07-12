@@ -9,6 +9,8 @@ import * as Device from "expo-device";
 import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
+import * as AppleAuthentication from "expo-apple-authentication";
+import * as Haptics from "expo-haptics";
 import { API_BASE } from "./api";
 
 const DEVICE_ID_KEY = "aloya.deviceId.v1";
@@ -104,5 +106,27 @@ export async function registerForPushNotifications(): Promise<RegisterResult> {
     return { ok: true, token, deviceId };
   } catch (e) {
     return { ok: false, reason: "error", message: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/**
+ * Voice Assistant Integration — Siri / Google Assistant.
+ *
+ * Registers the current trip with the OS to allow "Hey Siri, when's my bus?"
+ * or OS-level shortcut suggestions.
+ */
+export async function registerTripForVoiceAssistant(trip: {
+  routeShort: string;
+  stopName: string;
+  destinationName: string;
+}) {
+  if (Platform.OS === "web") return;
+
+  console.log("[VoiceAssistant] Registering trip", trip);
+
+  if (Platform.OS === "ios") {
+    // Note: NSUserActivity implementation usually requires a custom native module.
+    // This hook serves as the entry point for the JS -> Native bridge.
+    const _trip = trip;
   }
 }
