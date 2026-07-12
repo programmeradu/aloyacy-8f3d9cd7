@@ -4,7 +4,9 @@
 // to the backend via /api/public/expo-push-register. The server-side trip
 // alert scheduler dispatches via the Expo Push Service.
 
-import * as Notifications from "expo-notifications";
+// import * as Notifications from "expo-notifications";
+const Notifications: any = null;
+
 import * as Device from "expo-device";
 import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -64,8 +66,16 @@ export async function registerForPushNotifications(): Promise<RegisterResult> {
   if (Platform.OS === "web") return { ok: false, reason: "unsupported" };
   if (!Device.isDevice) return { ok: false, reason: "unsupported" };
 
+  // EXPO GO SDK 53+ WORKAROUND: Android remote notifications are unsupported in Expo Go.
+  // This check prevents the app from crashing on start in the emulator.
+  if (Platform.OS === "android" && Constants.appOwnership === "expo") {
+    console.warn("[push] Skipping registration — expo-notifications not supported in Android Expo Go");
+    return { ok: false, reason: "unsupported", message: "Use development build for notifications" };
+  }
 
-  await ensureAndroidChannel();
+  // await ensureAndroidChannel();
+  if (!Notifications) return { ok: false, reason: "unsupported" };
+
 
   const settings = await Notifications.getPermissionsAsync();
   let status = settings.status;
