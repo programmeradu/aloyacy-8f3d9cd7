@@ -37,7 +37,7 @@ describe("deriveSchedulePhase", () => {
   });
 
   it("switches to walking once leaving time has passed", () => {
-    expect(base({ walkInSec: 60 }).phase).toBe("walking");
+    expect(base({ boardUnix: NOW + 180, walkInSec: 150 }).phase).toBe("walking");
   });
 
   it("waits at the stop in the last minute before departure", () => {
