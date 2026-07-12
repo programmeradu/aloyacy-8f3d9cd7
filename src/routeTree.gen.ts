@@ -77,6 +77,7 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicWalletPassRouteImport } from './routes/api/public/wallet/pass'
 import { Route as ApiPublicWalletOcrRouteImport } from './routes/api/public/wallet/ocr'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
@@ -451,6 +452,11 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWalletPassRoute = ApiPublicWalletPassRouteImport.update({
+  id: '/pass',
+  path: '/pass',
+  getParentRoute: () => ApiPublicWalletRoute,
+} as any)
 const ApiPublicWalletOcrRoute = ApiPublicWalletOcrRouteImport.update({
   id: '/ocr',
   path: '/ocr',
@@ -664,6 +670,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
+  '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -756,6 +763,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
+  '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -849,6 +857,7 @@ export interface FileRoutesById {
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
+  '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -943,6 +952,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
     | '/api/public/wallet/ocr'
+    | '/api/public/wallet/pass'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1035,6 +1045,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
     | '/api/public/wallet/ocr'
+    | '/api/public/wallet/pass'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1127,6 +1138,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
     | '/api/public/wallet/ocr'
+    | '/api/public/wallet/pass'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1704,6 +1716,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/wallet/pass': {
+      id: '/api/public/wallet/pass'
+      path: '/pass'
+      fullPath: '/api/public/wallet/pass'
+      preLoaderRoute: typeof ApiPublicWalletPassRouteImport
+      parentRoute: typeof ApiPublicWalletRoute
+    }
     '/api/public/wallet/ocr': {
       id: '/api/public/wallet/ocr'
       path: '/ocr'
@@ -1863,10 +1882,12 @@ declare module '@tanstack/react-router' {
 
 interface ApiPublicWalletRouteChildren {
   ApiPublicWalletOcrRoute: typeof ApiPublicWalletOcrRoute
+  ApiPublicWalletPassRoute: typeof ApiPublicWalletPassRoute
 }
 
 const ApiPublicWalletRouteChildren: ApiPublicWalletRouteChildren = {
   ApiPublicWalletOcrRoute: ApiPublicWalletOcrRoute,
+  ApiPublicWalletPassRoute: ApiPublicWalletPassRoute,
 }
 
 const ApiPublicWalletRouteWithChildren = ApiPublicWalletRoute._addFileChildren(
