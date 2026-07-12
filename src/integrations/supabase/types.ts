@@ -1630,6 +1630,11 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_shared_trip_view: { Args: { p_token: string }; Returns: Json }
+      get_trip_group_view: {
+        Args: { p_code: string; p_member_token?: string }
+        Returns: Json
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -1638,6 +1643,14 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      pulse_hour_strip: {
+        Args: never
+        Returns: {
+          hour_of_day: number
+          mean_delay_sec: number
+          sample_count: number
+        }[]
       }
       pulse_route_stats: {
         Args: never

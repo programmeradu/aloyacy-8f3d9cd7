@@ -306,36 +306,39 @@ function cyprusOffsetMinutes(d: Date): number {
 }
 
 export const getPulseHourStrip = createServerFn({ method: "GET" }).handler(async () => {
-  const [{ supabaseAdmin }] = await Promise.all([
-    import("@/integrations/supabase/client.server"),
-  ]);
-  const sinceIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const PAGE = 1000;
-  const HARD_CAP = 20_000;
-  type Row = { delay_sec: number; captured_at: string };
-  const rows: Row[] = [];
-  for (let from = 0; from < HARD_CAP; from += PAGE) {
-    const { data, error } = await supabaseAdmin
-      .from("rt_snapshots")
-      .select("delay_sec, captured_at")
-      .gte("captured_at", sinceIso)
-      .order("captured_at", { ascending: false })
-      .range(from, from + PAGE - 1);
-    if (error) break;
-    if (!data || data.length === 0) break;
-    rows.push(...(data as Row[]));
-    if (data.length < PAGE) break;
-  }
-
   const sums = new Array(24).fill(0);
   const counts = new Array(24).fill(0);
-  for (const r of rows) {
-    const d = new Date(r.captured_at);
-    const localMinutes = d.getUTCHours() * 60 + d.getUTCMinutes() + cyprusOffsetMinutes(d);
-    const h = ((Math.floor(localMinutes / 60) % 24) + 24) % 24;
-    sums[h] += r.delay_sec;
-    counts[h] += 1;
+
+  try {
+    const url = process.env.SUPABASE_URL!;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const res = await fetch(`${url}/rest/v1/rpc/pulse_hour_strip`, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: "{}",
+    });
+    if (res.ok) {
+      const data = (await res.json()) as Array<{
+        hour_of_day: number;
+        sample_count: number;
+        mean_delay_sec: number;
+      }>;
+      for (const row of data) {
+        const h = ((row.hour_of_day % 24) + 24) % 24;
+        counts[h] = Number(row.sample_count) || 0;
+        sums[h] = (Number(row.mean_delay_sec) || 0) * counts[h];
+      }
+    } else {
+      console.error("pulse_hour_strip RPC failed", res.status, await res.text());
+    }
+  } catch (e) {
+    console.error("pulse_hour_strip RPC threw", e);
   }
+
   const now = new Date();
   const nowMinutes = now.getUTCHours() * 60 + now.getUTCMinutes() + cyprusOffsetMinutes(now);
   const nowHour = ((Math.floor(nowMinutes / 60) % 24) + 24) % 24;
@@ -351,3 +354,5 @@ export const getPulseHourStrip = createServerFn({ method: "GET" }).handler(async
     buckets,
   } satisfies HourStrip;
 });
+
+

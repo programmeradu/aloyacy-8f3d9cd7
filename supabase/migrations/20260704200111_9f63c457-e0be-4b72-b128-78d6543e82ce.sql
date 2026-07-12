@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.pulse_hour_strip() TO anon, authenticated;

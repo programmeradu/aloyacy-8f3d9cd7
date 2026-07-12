@@ -109,7 +109,17 @@ async function ingest() {
     }
 
     // Update observed_arrivals (last known prediction per trip+stop)
-    const observed = fresh.map((a) => ({
+    // Deduplicate by (trip_id, stop_id) — the RT feed can list the same
+    // stop twice per trip (loop routes, split predictions). Postgres rejects
+    // upserts that touch the same conflict target twice in one command, so
+    // collapse to the newest arrival per pair before sending.
+    const observedMap = new Map<string, typeof fresh[number]>();
+    for (const a of fresh) {
+      const key = `${a.tripId}|${a.stopId}`;
+      const prev = observedMap.get(key);
+      if (!prev || a.arrivalUnix > prev.arrivalUnix) observedMap.set(key, a);
+    }
+    const observed = [...observedMap.values()].map((a) => ({
       trip_id: a.tripId,
       stop_id: a.stopId,
       route_id: a.routeId,
@@ -117,6 +127,7 @@ async function ingest() {
       last_delay_sec: a.delaySec,
       last_seen_at: new Date(snap.fetchedAt * 1000).toISOString(),
     }));
+
     for (let i = 0; i < observed.length; i += chunkSize) {
       const chunk = observed.slice(i, i + chunkSize);
       const { error } = await supabaseAdmin
