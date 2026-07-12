@@ -1,53 +1,39 @@
-// Native live-journey orchestrator. Mirror of `src/lib/useJourney.ts` —
-// same phase machine, same GPS×feed fusion, same one-shot alert fanout,
-// adapted for React Native:
+// Native live-journey orchestrator. Twin of `src/lib/useJourney.ts` — both
+// now share one phase machine, one fusion model and one alert policy from
+// `@aloya/core/journey-live`, so copy, escalation timing and the
+// boarding/missed/alight heuristics can never drift between the platforms.
 //
+// Native specifics handled here:
 //   - GPS comes from `useFusedFix` (expo-location + GeoFuser)
-//   - realtime comes from the existing mobile `useRealtime`
+//   - realtime comes from the mobile `useRealtime`
 //   - trip persistence is AsyncStorage via `mobile/lib/trip-store`
 //   - alerts are LOCAL via `sendLocalTripAlert` (expo-notifications)
 //
-// Deferred to later 12 slices (kept as TODO to make the gaps explicit):
+// Still web-only (kept explicit so the gap is visible):
 //   - Google Routes drive-ETA fusion (needs `/api/public/drive-eta`)
 //   - wrong-stop-reroute hint (needs route_stops.json bundled on device)
 //   - trip-history recording (needs deviceToken + access token plumbing)
-//
-// The phase machine itself is identical to web so copy, escalation
-// timing, and the boarding/missed/alight heuristics behave the same.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  distanceM,
-  projectOnSteps,
-  WALK_M_PER_S,
-  type WalkStep,
-} from "@aloya/core/geo";
+import { distanceM, projectOnSteps, WALK_M_PER_S, type WalkStep } from "@aloya/core/geo";
 import { getShapeForTripSync, prefetchShapes, type LatLng } from "@aloya/core/shapes";
 import type { JourneyPhase } from "@aloya/core/journey-phase";
+import {
+  alertForPhase,
+  fuseVehicleAndEta,
+  resolveLivePhase,
+  shouldAutoConfirmBoarding,
+  type FusedVehicle,
+  type LivePhase as CoreLivePhase,
+} from "@aloya/core/journey-live";
 import { useRealtime } from "./hooks";
 import { useFusedFix, type FusedFix } from "./useFusedFix";
-import {
-  patchActiveTripLive,
-  type ActiveTrip,
-} from "./trip-store";
+import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
 import { sendLocalTripAlert } from "./tripAlerts";
 
 export type { JourneyPhase } from "@aloya/core/journey-phase";
 
-export type LivePhase = Extract<
-  JourneyPhase,
-  | "idle"
-  | "walking-to-stop"
-  | "at-stop"
-  | "hurry-soft"
-  | "hurry-urgent"
-  | "boarding"
-  | "missed-bus"
-  | "on-bus"
-  | "alight-soon"
-  | "walking-to-dest"
-  | "arrived"
->;
+export type LivePhase = Extract<JourneyPhase, CoreLivePhase>;
 
 export type LiveFix = {
   lat: number;
@@ -69,12 +55,7 @@ export type LiveJourney = {
   secsToBoard: number;
   secsToAlight: number;
   fusedSecsToAlight: number;
-  fusedVehicle: {
-    lat: number;
-    lng: number;
-    bearing: number;
-    tripId: string;
-  } | null;
+  fusedVehicle: FusedVehicle | null;
   onBoardSuggested: boolean;
   missedSuggested: boolean;
   vehicleLost: boolean;
@@ -82,15 +63,6 @@ export type LiveJourney = {
   tripGhost: boolean;
   vehicleNotTracked: boolean;
 };
-
-// ---- Heuristic constants (kept in lockstep with web) -----------------------
-const ARRIVAL_RADIUS_M = 30;
-const BUS_MATCH_RADIUS_M = 60;
-const RIDING_SPEED_MPS = 5; // ~18 km/h
-const HURRY_SOFT_GAP_S = 180;
-const HURRY_URGENT_GAP_S = 0;
-const SUSTAINED_RIDING_MS = 12_000;
-const RIDING_DISPLACEMENT_M = 80;
 
 // ---- Re-derive ETAs every 5s so countdowns don't freeze between GPS fixes.
 function useTick(ms: number): number {
@@ -133,16 +105,13 @@ export function useJourney(opts: {
 
   const { fix: fused } = useFusedFix({ enabled: started, activePath });
 
-  const fix: LiveFix | null = useMemo(() => {
-    if (!fused) return null;
-    return fusedToLive(fused);
-  }, [fused]);
+  const fix: LiveFix | null = useMemo(() => (fused ? fusedToLive(fused) : null), [fused]);
 
   const rtQuery = useRealtime();
   const rt = rtQuery.data;
   const feedStale = !!rtQuery.isStale;
 
-  useTick(5_000); // keep countdowns moving between fixes
+  const tick = useTick(5_000); // keeps countdowns moving between fixes
 
   const bus = useMemo(() => {
     if (!active) return null;
@@ -157,7 +126,7 @@ export function useJourney(opts: {
     const inactive: LiveJourney = {
       active: false,
       fix,
-      phase: "idle" as LivePhase,
+      phase: "idle",
       currentStepIndex: 0,
       metersToStepEnd: 0,
       metersToDestination: 0,
@@ -189,11 +158,7 @@ export function useJourney(opts: {
 
     // Walking projection
     const targetLeg =
-      walkingPhase === "to-stop"
-        ? walkIn
-        : walkingPhase === "to-dest"
-          ? walkOut
-          : null;
+      walkingPhase === "to-stop" ? walkIn : walkingPhase === "to-dest" ? walkOut : null;
     const destination =
       targetLeg && targetLeg.kind === "walk"
         ? { lat: targetLeg.to.lat, lng: targetLeg.to.lng }
@@ -215,158 +180,44 @@ export function useJourney(opts: {
       walkingEtaSec = Math.round(metersToDestination / WALK_M_PER_S);
     }
 
-    const vehicle = rt?.vehicles.find((v) => v.tripId === bus.tripId);
-    const distToBus = fix && vehicle ? distanceM(fix, vehicle) : Infinity;
+    const vehicle = rt?.vehicles.find((v) => v.tripId === bus.tripId) ?? null;
 
-    // ---- Phase resolution ---------------------------------------------------
-    let phase: LivePhase = "walking-to-stop";
+    const boardLoc = walkIn?.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null;
+    const destLoc = walkOut?.kind === "walk" ? { lat: walkOut.to.lat, lng: walkOut.to.lng } : null;
+    const fusionAlightLoc =
+      walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
 
-    if (live?.alightedAt) {
-      const destLoc =
-        walkOut?.kind === "walk"
-          ? { lat: walkOut.to.lat, lng: walkOut.to.lng }
-          : null;
-      const distToDest = fix && destLoc ? distanceM(fix, destLoc) : Infinity;
-      phase = fix && destLoc && distToDest < ARRIVAL_RADIUS_M
-        ? "arrived"
-        : "walking-to-dest";
-    } else if (live?.onBoardConfirmedAt) {
-      phase = secsToAlight <= 60 ? "alight-soon" : "on-bus";
-    } else if (live?.missedAt) {
-      phase = "missed-bus";
-    } else {
-      const boardLoc =
-        walkIn?.kind === "walk"
-          ? { lat: walkIn.to.lat, lng: walkIn.to.lng }
-          : null;
-      const distToBoardStop =
-        fix && boardLoc ? distanceM(fix, boardLoc) : Infinity;
-      const atStop =
-        !!fix && !!boardLoc && distToBoardStop < ARRIVAL_RADIUS_M;
-      const gpsSpeed = fix?.speedMps ?? 0;
-      const ridingByGps = gpsSpeed > RIDING_SPEED_MPS;
-      const departedStop = distToBoardStop > RIDING_DISPLACEMENT_M;
-      const inBoardingWindow = secsToBoard <= 120 && secsToBoard >= -180;
+    const { phase, onBoardSuggested, missedSuggested } = resolveLivePhase({
+      nowUnix: now,
+      fix,
+      vehicle,
+      boardLoc,
+      destLoc,
+      secsToBoard,
+      secsToAlight,
+      walkingEtaSec,
+      boardUnix,
+      onBoardConfirmedAt: live?.onBoardConfirmedAt ?? null,
+      missedAt: live?.missedAt ?? null,
+      alightedAt: live?.alightedAt ?? null,
+    });
 
-      if (atStop) {
-        const vehicleAtStop = !!vehicle && distToBus < BUS_MATCH_RADIUS_M;
-        phase =
-          vehicleAtStop || ridingByGps || inBoardingWindow
-            ? "boarding"
-            : "at-stop";
-      } else if (ridingByGps && departedStop && inBoardingWindow) {
-        phase = "boarding";
-      } else {
-        phase = "walking-to-stop";
-        if (secsToBoard > 0) {
-          const gap = secsToBoard - walkingEtaSec;
-          if (gap <= HURRY_URGENT_GAP_S) phase = "hurry-urgent";
-          else if (gap <= HURRY_SOFT_GAP_S) phase = "hurry-soft";
-        }
-      }
-
-      // Missed-bus detection
-      if (vehicle && bus && !ridingByGps && boardLoc) {
-        const busFromStop = distanceM(vehicle, boardLoc);
-        const riderFarFromBus = !fix || distanceM(fix, vehicle) > 250;
-        const riderStillNearStop =
-          !!fix && distToBoardStop < 60;
-        if (
-          busFromStop > 250 &&
-          now > boardUnix + 60 &&
-          riderFarFromBus &&
-          riderStillNearStop
-        ) {
-          phase = "missed-bus";
-        }
-      }
-    }
-
-    const onBoardSuggested =
-      !!fix &&
-      (fix.speedMps ?? 0) > RIDING_SPEED_MPS &&
-      !live?.onBoardConfirmedAt;
-    const missedSuggested = phase === "missed-bus";
-
-    // ---- GPS × feed fusion (on-board) --------------------------------------
-    let fusedVehicle: LiveJourney["fusedVehicle"] = null;
-    let fusedSecsToAlight = secsToAlight;
-    let vehicleLost = false;
     const onBoard = !!live?.onBoardConfirmedAt && !live?.alightedAt;
-    if (onBoard && bus) {
-      const gpsSpeed = fix?.speedMps ?? 0;
-      const distToVehicle =
-        fix && vehicle ? distanceM(fix, vehicle) : Infinity;
-      const ridingWithBus =
-        !!fix &&
-        !!vehicle &&
-        gpsSpeed > RIDING_SPEED_MPS &&
-        distToVehicle < 250;
-
-      if (vehicle && ridingWithBus && fix) {
-        fusedVehicle = {
-          lat: fix.lat * 0.35 + vehicle.lat * 0.65,
-          lng: fix.lng * 0.35 + vehicle.lng * 0.65,
-          bearing:
-            vehicle.bearing != null
-              ? vehicle.bearing
-              : gpsSpeed > 2 && fix.headingDeg != null
-                ? fix.headingDeg
-                : 0,
+    const fusion = onBoard
+      ? fuseVehicleAndEta({
           tripId: bus.tripId,
-        };
-      } else if (vehicle) {
-        fusedVehicle = {
-          lat: vehicle.lat,
-          lng: vehicle.lng,
-          bearing: vehicle.bearing ?? 0,
-          tripId: bus.tripId,
-        };
-      } else if (fix) {
-        vehicleLost = true;
-        fusedVehicle = {
-          lat: fix.lat,
-          lng: fix.lng,
-          bearing: fix.headingDeg ?? 0,
-          tripId: bus.tripId,
-        };
-      }
-
-      const fusionAlightLoc =
-        walkOut?.kind === "walk"
-          ? { lat: walkOut.from.lat, lng: walkOut.from.lng }
-          : null;
-      if (fusionAlightLoc && fusedVehicle) {
-        const distToAlight = distanceM(fusedVehicle, fusionAlightLoc);
-        const FLOOR_SPEED_MPS = 11;
-        const minPossibleEta = Math.round(distToAlight / FLOOR_SPEED_MPS);
-
-        // TODO(12b): blend Google Routes drive-ETA when /api/public/drive-eta lands.
-        if (ridingWithBus && gpsSpeed > 2) {
-          const gpsEta = Math.round(distToAlight / Math.max(3, gpsSpeed));
-          fusedSecsToAlight = Math.max(
-            minPossibleEta,
-            Math.round(0.6 * gpsEta + 0.4 * secsToAlight),
-          );
-        } else if (vehicleLost) {
-          const speed = gpsSpeed > 2 ? gpsSpeed : 6;
-          fusedSecsToAlight = Math.max(
-            minPossibleEta,
-            Math.round(distToAlight / speed),
-          );
-        } else {
-          fusedSecsToAlight = Math.max(minPossibleEta, secsToAlight);
-        }
-        fusedSecsToAlight = Math.max(0, fusedSecsToAlight);
-      }
-    }
+          fix,
+          vehicle,
+          alightLoc: fusionAlightLoc,
+          secsToAlight,
+          // TODO: blend the Routes drive-ETA once /api/public/drive-eta is
+          // wired on device; web already passes it here.
+          driveEtaSec: null,
+        })
+      : { fusedVehicle: null, vehicleLost: false, fusedSecsToAlight: secsToAlight };
 
     const vehicleNotTracked =
-      !feedStale &&
-      !!rt &&
-      !vehicle &&
-      !live?.onBoardConfirmedAt &&
-      !live?.alightedAt;
+      !feedStale && !!rt && !vehicle && !live?.onBoardConfirmedAt && !live?.alightedAt;
 
     return {
       active: true,
@@ -378,15 +229,17 @@ export function useJourney(opts: {
       walkingEtaSec,
       secsToBoard,
       secsToAlight,
-      fusedSecsToAlight,
-      fusedVehicle,
+      fusedSecsToAlight: fusion.fusedSecsToAlight,
+      fusedVehicle: fusion.fusedVehicle,
       onBoardSuggested,
       missedSuggested,
-      vehicleLost,
+      vehicleLost: fusion.vehicleLost,
       feedStale,
       tripGhost: !!(bus?.tripId && rtQuery.ghostTripIds?.has(bus.tripId)),
       vehicleNotTracked,
     };
+    // `tick` is a deliberate heartbeat that forces countdown recomputation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     active,
     bus,
@@ -400,6 +253,7 @@ export function useJourney(opts: {
     walkingPhase,
     walkingSteps,
     feedStale,
+    tick,
   ]);
 
   // ---- GPS-based auto-confirm boarding -------------------------------------
@@ -410,111 +264,39 @@ export function useJourney(opts: {
       ridingStartedAtRef.current = null;
       return;
     }
-    const gpsSpeed = fix?.speedMps ?? 0;
-    if (gpsSpeed <= RIDING_SPEED_MPS) {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    const boardLoc =
-      walkIn?.kind === "walk"
-        ? { lat: walkIn.to.lat, lng: walkIn.to.lng }
-        : null;
-    const departed =
-      !!fix && !!boardLoc && distanceM(fix, boardLoc) > RIDING_DISPLACEMENT_M;
-    if (!departed) {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    if (ridingStartedAtRef.current == null) {
-      ridingStartedAtRef.current = Date.now();
-      return;
-    }
-    if (Date.now() - ridingStartedAtRef.current >= SUSTAINED_RIDING_MS) {
-      patchActiveTripLive({ onBoardConfirmedAt: Date.now() });
-      ridingStartedAtRef.current = null;
-    }
+    const boardLoc = walkIn?.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null;
+    const next = shouldAutoConfirmBoarding({
+      fix,
+      boardLoc,
+      ridingSinceMs: ridingStartedAtRef.current,
+      nowMs: Date.now(),
+    });
+    ridingStartedAtRef.current = next.ridingSinceMs;
+    if (next.confirm) patchActiveTripLive({ onBoardConfirmedAt: Date.now() });
   }, [result.active, bus, fix, live, walkIn]);
 
   // ---- One-shot alerts on phase transition ---------------------------------
   const sentRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (!result.active || !bus) return;
-    const url = `/trip/${active!.option.id}`;
-    const fireOnce = (key: string, fn: () => void) => {
-      if (sentRef.current.has(key)) return;
-      sentRef.current.add(key);
-      fn();
-    };
+    if (!result.active || !bus || !active) return;
+    const alert = alertForPhase({
+      phase: result.phase,
+      onBoardSuggested: result.onBoardSuggested,
+      secsToBoard: result.secsToBoard,
+      boardName: bus.board.name,
+      alightName: bus.alight.name,
+    });
+    if (!alert || sentRef.current.has(alert.key)) return;
+    sentRef.current.add(alert.key);
 
-    if (result.phase === "hurry-soft") {
-      fireOnce("hurry-soft", () =>
-        void sendLocalTripAlert({
-          kind: "hurry-soft",
-          routeShort: bus.routeShort,
-          stopName: bus.board.name,
-          minutes: Math.max(0, Math.round(result.secsToBoard / 60)),
-          url,
-        }),
-      );
-    } else if (result.phase === "hurry-urgent") {
-      fireOnce("hurry-urgent", () =>
-        void sendLocalTripAlert({
-          kind: "hurry-urgent",
-          routeShort: bus.routeShort,
-          stopName: bus.board.name,
-          minutes: Math.max(0, Math.round(result.secsToBoard / 60)),
-          url,
-        }),
-      );
-    } else if (result.phase === "at-stop") {
-      fireOnce("at-stop", () =>
-        void sendLocalTripAlert({
-          kind: "at-stop",
-          routeShort: bus.routeShort,
-          stopName: bus.board.name,
-          minutes: Math.max(0, Math.round(result.secsToBoard / 60)),
-          url,
-        }),
-      );
-    } else if (result.phase === "boarding" && result.onBoardSuggested) {
-      fireOnce("confirm-onboard", () =>
-        void sendLocalTripAlert({
-          kind: "confirm-onboard",
-          routeShort: bus.routeShort,
-          url,
-        }),
-      );
-    } else if (result.phase === "missed-bus") {
-      fireOnce("missed-bus", () =>
-        void sendLocalTripAlert({
-          kind: "missed-bus",
-          routeShort: bus.routeShort,
-          stopName: bus.board.name,
-          url,
-        }),
-      );
-    } else if (result.phase === "alight-soon") {
-      fireOnce("press-stop", () =>
-        void sendLocalTripAlert({
-          kind: "press-stop",
-          routeShort: bus.routeShort,
-          stopName: bus.alight.name,
-          url,
-        }),
-      );
-    } else if (result.phase === "arrived") {
-      fireOnce("arrived", () =>
-        void sendLocalTripAlert({ kind: "arrived", url }),
-      );
-    }
-  }, [
-    result.phase,
-    result.onBoardSuggested,
-    result.secsToBoard,
-    result.active,
-    active,
-    bus,
-  ]);
+    void sendLocalTripAlert({
+      kind: alert.kind,
+      routeShort: bus.routeShort,
+      ...(alert.stopName ? { stopName: alert.stopName } : {}),
+      ...(alert.minutes != null ? { minutes: alert.minutes } : {}),
+      url: `/trip/${active.option.id}`,
+    });
+  }, [result.phase, result.onBoardSuggested, result.secsToBoard, result.active, active, bus]);
 
   return result;
 }
