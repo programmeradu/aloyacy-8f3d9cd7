@@ -57,6 +57,10 @@
       "types": "./src/journey-copy.ts",
       "default": "./src/journey-copy.ts"
     },
+    "./journey-live": {
+      "types": "./src/journey-live.ts",
+      "default": "./src/journey-live.ts"
+    },
     "./journey-phase": {
       "types": "./src/journey-phase.ts",
       "default": "./src/journey-phase.ts"
