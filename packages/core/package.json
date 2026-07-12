@@ -77,6 +77,10 @@
       "types": "./src/multileg-eta.ts",
       "default": "./src/multileg-eta.ts"
     },
+    "./multileg-journey": {
+      "types": "./src/multileg-journey.ts",
+      "default": "./src/multileg-journey.ts"
+    },
     "./path-geometry": {
       "types": "./src/path-geometry.ts",
       "default": "./src/path-geometry.ts"
