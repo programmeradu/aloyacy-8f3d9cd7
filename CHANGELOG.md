@@ -7,6 +7,16 @@ All notable changes to Aloya are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- `@aloya/core/single-leg-phase`: the single-leg trip companion's phase
+  machine and rider-facing copy (schedule vs. GPS-truth phase, walk routing,
+  countdown clamping, delay wording, alight alert window), pinned by 20 unit
+  tests so web and native can never word the same trip differently.
+
+### Changed
+- `mobile/app/trip/[id].tsx` split 1,006 → ~360 LOC: header, hero, feed
+  banners, journey timeline, alight alert and the no-trip state now live in
+  `mobile/components/trip/`, and the screen keeps only data wiring.
+
 - Shared request-validation boundary for the public HTTP API
   (`src/lib/http/validate.ts` + `src/lib/schemas/public-api.ts`): every
   `/api/public/*` payload and query string is parsed with a Zod schema and
