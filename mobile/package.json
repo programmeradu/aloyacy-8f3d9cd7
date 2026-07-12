@@ -30,7 +30,7 @@
     "expo-localization": "^57.0.0",
     "expo-location": "^56.0.18",
     "expo-maps": "^57.0.0",
-    "expo-notifications": "^56.0.18",
+    "@notifee/react-native": "^9.1.0",
     "expo-task-manager": "~56.0.19",
     "react-native-maps": "1.20.1",
     "react-native-nfc-manager": "^3.14.9",

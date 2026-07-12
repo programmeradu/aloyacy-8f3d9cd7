@@ -12,7 +12,8 @@
       "android": { "buildType": "apk" },
       "env": {
         "EXPO_PUBLIC_API_BASE": "https://app.aloya.cy",
-        "EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY": "REPLACE_WITH_ANDROID_MAPS_KEY"
+        "EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY": "REPLACE_WITH_ANDROID_MAPS_KEY",
+        "EAS_BUILD_BUN_INSTALL_ARGS": "--no-frozen-lockfile"
       }
     },
     "preview": {

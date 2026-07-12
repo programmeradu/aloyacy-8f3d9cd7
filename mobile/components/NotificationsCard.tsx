@@ -20,7 +20,9 @@ import {
   Text,
   View,
 } from "react-native";
-import * as Notifications from "expo-notifications";
+// import * as Notifications from "expo-notifications";
+const Notifications: any = null;
+
 import * as Device from "expo-device";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { palette } from "@/constants/theme";
