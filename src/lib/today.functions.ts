@@ -202,7 +202,10 @@ function activeFestival(d: Date): { name: string; nameEl: string; city: string }
   const dayNum = d.getUTCDate();
   for (const e of candidates) {
     const rule = e.weekRule;
+    const dow = d.getUTCDay(); // 0=Sun … 6=Sat
+    const isPerfNight = dow === 5 || dow === 6; // Fri/Sat performance nights
     if (rule === "all-month") return e;
+    if (rule === "weekend-nights" && isPerfNight) return e;
     if (rule === "first-weekend" && dayNum <= 7) return e;
     if (rule === "late-month" && dayNum >= 22) return e;
     if (rule === "last-week" && dayNum >= 22) return e;
