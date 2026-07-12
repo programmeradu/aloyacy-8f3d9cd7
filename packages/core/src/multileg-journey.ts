@@ -74,6 +74,14 @@ export type LegResolution = {
   currentRideLeg: RideLeg | null;
   /** The ride after `currentRideLeg` — the transfer target. */
   nextRideLeg: RideLeg | null;
+  /**
+   * The ride the rider is actually waiting to board next, for connection
+   * countdowns and missed-connection detection. On a ride leg that is the
+   * ride after this one; on a transfer walk or a wait leg it is the ride
+   * they are walking/waiting for (which `currentRideLeg` already points at,
+   * so `nextRideLeg` would be one ride too far ahead).
+   */
+  connectionRideLeg: RideLeg | null;
   /** 1-indexed position of `currentRideLeg` among all rides; 0 when none. */
   rideOrdinal: number;
   totalRides: number;
@@ -90,6 +98,7 @@ export function resolveLegs(legs: Leg[], currentLegIndex: number): LegResolution
     nextLeg: null,
     currentRideLeg: null,
     nextRideLeg: null,
+    connectionRideLeg: null,
     rideOrdinal: 0,
     totalRides: 0,
     ridesBefore: 0,
@@ -105,15 +114,22 @@ export function resolveLegs(legs: Leg[], currentLegIndex: number): LegResolution
   const currentEntry = rides.find((r) => r.i === index) ?? rides.find((r) => r.i > index) ?? null;
   const nextEntry = currentEntry ? (rides.find((r) => r.i > currentEntry.i) ?? null) : null;
 
+  const currentLeg = legs[index] ?? null;
+  const ridesBefore = rides.filter((r) => r.i < index).length;
+  const waitingForConnection = !!currentLeg && currentLeg.kind !== "ride" && ridesBefore > 0;
+
   return {
     index,
-    currentLeg: legs[index] ?? null,
+    currentLeg,
     nextLeg: legs[index + 1] ?? null,
     currentRideLeg: currentEntry?.leg ?? null,
     nextRideLeg: nextEntry?.leg ?? null,
+    connectionRideLeg: waitingForConnection
+      ? (currentEntry?.leg ?? null)
+      : (nextEntry?.leg ?? null),
     rideOrdinal: currentEntry ? rides.findIndex((r) => r.i === currentEntry.i) + 1 : 0,
     totalRides: rides.length,
-    ridesBefore: rides.filter((r) => r.i < index).length,
+    ridesBefore,
     ridesAfter: rides.filter((r) => r.i > index).length,
   };
 }
@@ -153,7 +169,7 @@ export function resolveMultiLegPhase(input: MultiLegPhaseInput): MultiLegPhase {
     secsToCurrentAlight,
     nextBoardUnix,
   } = input;
-  const { currentLeg, currentRideLeg, nextRideLeg, ridesBefore, ridesAfter } = resolution;
+  const { currentLeg, currentRideLeg, connectionRideLeg, ridesBefore, ridesAfter } = resolution;
   if (!currentLeg) return "idle";
 
   let phase: MultiLegPhase = "idle";
@@ -212,7 +228,7 @@ export function resolveMultiLegPhase(input: MultiLegPhaseInput): MultiLegPhase {
 
   if (
     (phase === "waiting-for-connection" || phase === "walking-to-transfer") &&
-    nextRideLeg &&
+    connectionRideLeg &&
     nextBoardUnix > 0 &&
     nowUnix - nextBoardUnix > T.MISSED_CONNECTION_BUFFER_S
   ) {
