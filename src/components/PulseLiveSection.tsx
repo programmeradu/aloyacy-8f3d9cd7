@@ -555,6 +555,88 @@ function FixturesStrip({
 }
 
 /* ────────────── Events strip ───────────────────────────────────────── */
+//
+// Only events that COVER today (start ≤ today ≤ end) render here. Multi-day
+// festivals stay visible for their full run; single-day events appear on the
+// day itself. Anything future or past is filtered out — the Pulse page is a
+// today-shaped surface, not a calendar.
+
+type EventFlavor =
+  | "music" | "running" | "sport" | "marine"
+  | "cinema" | "art" | "food" | "festival" | "culture";
+
+function classifyEvent(e: { title: string; category: string | null }): EventFlavor {
+  const hay = `${e.title} ${e.category ?? ""}`.toLowerCase();
+  if (/(run|marathon|trail|walk\b)/.test(hay)) return "running";
+  if (/(volley|basket|foot|tennis|padel|match|championship|league|cup|race|derby)/.test(hay)) return "sport";
+  if (/(apnea|dive|sail|sea|marine|regatta|swim|beach)/.test(hay)) return "marine";
+  if (/(concert|music|jazz|dj|orchestra|choir|opera|band|festival of music|συναυλ)/.test(hay)) return "music";
+  if (/(film|cinema|screen|movie|ταιν)/.test(hay)) return "cinema";
+  if (/(art|exhibit|gallery|museum|painting|έκθεσ)/.test(hay)) return "art";
+  if (/(wine|food|gastro|tast|olive|feast|κρασ|φαγητ)/.test(hay)) return "food";
+  if (/(festival|carnival|fair|φεστιβ|γιορτ|πανηγυρ)/.test(hay)) return "festival";
+  return "culture";
+}
+
+const FLAVOR_LABEL: Record<EventFlavor, { en: string; el: string }> = {
+  music:    { en: "Music",    el: "Μουσική" },
+  running:  { en: "Running",  el: "Τρέξιμο" },
+  sport:    { en: "Sport",    el: "Άθληση" },
+  marine:   { en: "Sea",      el: "Θάλασσα" },
+  cinema:   { en: "Cinema",   el: "Σινεμά" },
+  art:      { en: "Art",      el: "Τέχνη" },
+  food:     { en: "Table",    el: "Τραπέζι" },
+  festival: { en: "Festival", el: "Φεστιβάλ" },
+  culture:  { en: "Culture",  el: "Πολιτισμός" },
+};
+
+const FLAVOR_ACCENT: Record<EventFlavor, { bg: string; ink: string; ring: string }> = {
+  music:    { bg: "from-ochre/25 to-ochre/10",       ink: "text-ochre-deep",   ring: "ring-ochre/30" },
+  running:  { bg: "from-olive/25 to-olive/10",       ink: "text-olive-deep",   ring: "ring-olive/30" },
+  sport:    { bg: "from-aegean/25 to-aegean/10",     ink: "text-aegean-deep",  ring: "ring-aegean/30" },
+  marine:   { bg: "from-aegean/30 to-aegean/10",     ink: "text-aegean-deep",  ring: "ring-aegean/30" },
+  cinema:   { bg: "from-ink/15 to-ink/5",            ink: "text-ink",          ring: "ring-ink/20" },
+  art:      { bg: "from-ochre/20 to-olive/10",       ink: "text-olive-deep",   ring: "ring-olive/30" },
+  food:     { bg: "from-ochre/25 to-ochre/5",        ink: "text-ochre-deep",   ring: "ring-ochre/30" },
+  festival: { bg: "from-ochre/25 to-aegean/10",      ink: "text-ochre-deep",   ring: "ring-ochre/30" },
+  culture:  { bg: "from-aegean/20 to-olive/10",      ink: "text-aegean-deep",  ring: "ring-aegean/30" },
+};
+
+/** Bespoke line-art glyph per flavor. Painterly, hand-drawn feel — no icon set. */
+function FlavorGlyph({ flavor }: { flavor: EventFlavor }) {
+  const stroke = "currentColor";
+  const p = { fill: "none", stroke, strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  switch (flavor) {
+    case "music":
+      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M14 26V10l14-3v16"/><circle {...p} cx="12" cy="28" r="3"/><circle {...p} cx="26" cy="25" r="3"/></svg>);
+    case "running":
+      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><circle {...p} cx="25" cy="9" r="3"/><path {...p} d="M14 32l5-7 4 3 3 7"/><path {...p} d="M19 25l-2-6 6-4 4 4 4 1"/></svg>);
+    case "sport":
+      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><circle {...p} cx="20" cy="20" r="11"/><path {...p} d="M9 20h22M20 9v22M12 12l16 16M28 12L12 28"/></svg>);
+    case "marine":
+      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M6 26c3 2 5 2 8 0s5-2 8 0 5 2 8 0 4-2 4-2"/><path {...p} d="M6 32c3 2 5 2 8 0s5-2 8 0 5 2 8 0 4-2 4-2"/><path {...p} d="M20 6v14M20 6l-5 6M20 6l5 6"/></svg>);
+    case "cinema":
+      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><rect {...p} x="6" y="12" width="22" height="16" rx="2"/><path {...p} d="M28 16l6-3v14l-6-3z"/></svg>);
+    case "art":
+      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M20 6c8 0 14 6 14 12 0 4-4 5-7 5h-2c-2 0-3 2-2 4l1 2c1 3-2 5-4 5-8 0-14-6-14-14S12 6 20 6z"/><circle {...p} cx="14" cy="16" r="1.5"/><circle {...p} cx="22" cy="12" r="1.5"/><circle {...p} cx="28" cy="18" r="1.5"/></svg>);
+    case "food":
+      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M12 8v14a4 4 0 008 0V8M16 8v8"/><path {...p} d="M28 8c-3 2-4 6-4 10s1 6 4 6v8"/></svg>);
+    case "festival":
+      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M8 32l8-22 4 8 4-8 8 22z"/><path {...p} d="M12 26h16M14 20h12"/></svg>);
+    case "culture":
+    default:
+      return (<svg viewBox="0 0 40 40" className="w-7 h-7"><path {...p} d="M6 30h28M8 30V16l12-8 12 8v14"/><path {...p} d="M14 30V20M20 30V20M26 30V20"/></svg>);
+  }
+}
+
+/** Parse an event date in local time — dates from the ingest are YYYY-MM-DD. */
+function parseEventDate(s: string | null): Date | null {
+  if (!s) return null;
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return new Date(+iso[1], +iso[2] - 1, +iso[3]);
+  const t = Date.parse(s);
+  return Number.isNaN(t) ? null : new Date(t);
+}
 
 function EventsStrip({
   payload,
@@ -563,38 +645,80 @@ function EventsStrip({
   payload: NonNullable<PulseLiveBundle["events"]>;
   isEl: boolean;
 }) {
-  const now = Date.now();
-  const upcoming = useMemo(
-    () =>
-      payload.events
-        .filter((e) => !e.startDate || Date.parse(e.startDate) >= now - 24 * 3600 * 1000)
-        .slice(0, 4),
-    [payload.events, now],
-  );
-  if (upcoming.length === 0) return null;
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+  const todayStart = today.getTime();
+  const todayEnd = todayStart + 24 * 3600 * 1000 - 1;
+
+  const active = useMemo(() => {
+    return payload.events.filter((e) => {
+      const start = parseEventDate(e.startDate);
+      const end = parseEventDate(e.endDate) ?? start;
+      if (!start) return false;
+      // Event covers today if it started on/before today AND ends on/after today.
+      const startMs = start.getTime();
+      const endMs = (end ?? start).getTime() + 24 * 3600 * 1000 - 1;
+      return startMs <= todayEnd && endMs >= todayStart;
+    }).slice(0, 4);
+  }, [payload.events, todayStart, todayEnd]);
+
+  if (active.length === 0) return null;
+
   return (
-    <section className="mt-6">
-      <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ink-soft mb-2">
-        {isEl ? "Στο νησί αυτές τις μέρες" : "Around the island this week"}
+    <section className="mt-8">
+      <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ink-soft mb-3">
+        {isEl ? "Σήμερα στο νησί" : "Happening today"}
       </p>
-      <ul className="grid gap-2">
-        {upcoming.map((e, i) => {
-          const d = e.startDate ? new Date(e.startDate) : null;
-          const when = d
-            ? d.toLocaleDateString(isEl ? "el-GR" : "en-GB", { day: "numeric", month: "short" })
-            : isEl ? "συνεχίζεται" : "ongoing";
+      <ul className="grid gap-3">
+        {active.map((e, i) => {
+          const flavor = classifyEvent(e);
+          const accent = FLAVOR_ACCENT[flavor];
+          const flavorLabel = FLAVOR_LABEL[flavor][isEl ? "el" : "en"];
+          const start = parseEventDate(e.startDate);
+          const end = parseEventDate(e.endDate);
+          const multiDay = end && start && end.getTime() > start.getTime();
+          const dayFmt = (d: Date) =>
+            d.toLocaleDateString(isEl ? "el-GR" : "en-GB", { day: "numeric", month: "short" });
+          const runLabel = multiDay && start && end
+            ? isEl
+              ? `έως ${dayFmt(end)}`
+              : `through ${dayFmt(end)}`
+            : isEl ? "σήμερα" : "today";
+
           return (
             <li
               key={i}
-              className="rounded-[18px] bg-card ring-1 ring-line px-4 py-3 flex items-baseline gap-3"
+              className="group relative overflow-hidden rounded-[22px] bg-card ring-1 ring-line hover:ring-ink/15 transition-all"
             >
-              <span className="font-display text-[15px] leading-tight text-ink text-balance flex-1 min-w-0 break-soft">
-                {e.title}
-              </span>
-              <span className="font-eyebrow text-[9.5px] uppercase tracking-[0.2em] text-aegean-deep tabular-nums whitespace-nowrap">
-                {when}
-                {e.city ? ` · ${e.city}` : ""}
-              </span>
+              <div className="flex items-stretch gap-0">
+                <div
+                  className={`relative flex-shrink-0 w-[76px] bg-gradient-to-br ${accent.bg} flex items-center justify-center ${accent.ink}`}
+                >
+                  <FlavorGlyph flavor={flavor} />
+                </div>
+                <div className="flex-1 min-w-0 px-4 py-3.5 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-eyebrow text-[9px] uppercase tracking-[0.22em] ${accent.ink}`}>
+                      {flavorLabel}
+                    </span>
+                    <span className="h-px flex-1 bg-line" />
+                    <span className="font-eyebrow text-[9px] uppercase tracking-[0.22em] text-ink-soft tabular-nums whitespace-nowrap">
+                      {runLabel}
+                    </span>
+                  </div>
+                  <p className="font-display text-[15px] leading-[1.25] text-ink text-balance break-soft">
+                    {e.title}
+                  </p>
+                  {e.city && (
+                    <p className="font-sans text-[12px] text-ink-soft leading-tight">
+                      {e.venue ? `${e.venue}, ${e.city}` : e.city}
+                    </p>
+                  )}
+                </div>
+              </div>
             </li>
           );
         })}
