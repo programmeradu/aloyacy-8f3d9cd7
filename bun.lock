@@ -119,6 +119,7 @@
         "@supabase/supabase-js": "^2.45.4",
         "@tanstack/react-query": "^5.101.2",
         "expo": "~56.0.12",
+        "expo-apple-authentication": "~56.0.4",
         "expo-audio": "^57.0.0",
         "expo-camera": "~56.0.6",
         "expo-clipboard": "^57.0.0",
@@ -1594,6 +1595,8 @@
     "eventsource-parser": ["eventsource-parser@3.1.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/eventsource-parser/-/eventsource-parser-3.1.0.tgz", {}, "sha512-kJezFj9YFAMLeORyi7aCLxLbD5/qWMQnoMVlVPyHIll7lgRJCc3JVln9Vgl9nwQi0YkMnhdGTMNn7CkRRAptMg=="],
 
     "expo": ["expo@56.0.12", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo/-/expo-56.0.12.tgz", { "dependencies": { "@babel/runtime": "^7.20.0", "@expo/cli": "^56.1.16", "@expo/config": "~56.0.9", "@expo/config-plugins": "~56.0.9", "@expo/devtools": "~56.0.2", "@expo/dom-webview": "~56.0.5", "@expo/fingerprint": "^0.19.4", "@expo/local-build-cache-provider": "^56.0.8", "@expo/log-box": "^56.0.13", "@expo/metro": "~56.0.0", "@expo/metro-config": "~56.0.14", "@ungap/structured-clone": "^1.3.0", "babel-preset-expo": "~56.0.15", "expo-asset": "~56.0.17", "expo-constants": "~56.0.18", "expo-file-system": "~56.0.8", "expo-font": "~56.0.7", "expo-keep-awake": "~56.0.3", "expo-modules-autolinking": "~56.0.16", "expo-modules-core": "~56.0.17", "pretty-format": "^29.7.0", "react-refresh": "^0.14.2", "whatwg-url-minimum": "^0.1.2" }, "peerDependencies": { "@expo/metro-runtime": "*", "react": "*", "react-dom": "*", "react-native": "*", "react-native-web": "*", "react-native-webview": "*" }, "optionalPeers": ["@expo/metro-runtime", "react-dom", "react-native-web", "react-native-webview"], "bin": { "expo": "bin/cli", "expo-modules-autolinking": "bin/autolinking", "fingerprint": "bin/fingerprint" } }, "sha512-FxgdI/Yqva6iJOThZIHfvxlKPxs4EC4uScUnEswwSArR/Fj9k430O13R590LcOQTsdNsjIs+GBHwjfoAY6vmAQ=="],
+
+    "expo-apple-authentication": ["expo-apple-authentication@56.0.4", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-apple-authentication/-/expo-apple-authentication-56.0.4.tgz", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-y9cIfulRCKyWrbWBx6lV172dnJZ+aNHdyEPC7tIlGJAO2zn3J1Vq6/mcKr2eynzjdt3e5Z02qeZWQN2R7rcbrg=="],
 
     "expo-application": ["expo-application@56.0.3", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/expo-application/-/expo-application-56.0.3.tgz", { "peerDependencies": { "expo": "*" } }, "sha512-DdGGPlMuM6cSTeKhbvh6OeLr2O/+EI5BHKYrD+Do8sJPYgLwzGrgESELfyjJCpEhFzT+TgKIdmLmWXhNUQnHiw=="],
 
