@@ -258,6 +258,68 @@ async function cruiseInPortLive(): Promise<CruiseToday> {
   }
 }
 
+// Live events — read the real visitcyprus.com events feed from pulse_signals
+// (populated by /api/public/hooks/pulse-events). Returns the first event
+// happening on the current calendar day whose city we recognise. Falls back
+// to the hand-authored `activeFestival` list when no live event matches.
+type LiveEvent = { name: string; nameEl: string; city: string };
+const CITY_EL: Record<string, string> = {
+  Nicosia: "Λευκωσία",
+  Limassol: "Λεμεσός",
+  Larnaca: "Λάρνακα",
+  Paphos: "Πάφος",
+  Famagusta: "Αμμόχωστος",
+};
+function normaliseCity(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const s = raw.toLowerCase();
+  if (s.includes("nicos") || s.includes("λευκ")) return "Nicosia";
+  if (s.includes("limas") || s.includes("lemes") || s.includes("λεμ")) return "Limassol";
+  if (s.includes("larna") || s.includes("λαρ")) return "Larnaca";
+  if (s.includes("paph") || s.includes("paf") || s.includes("πάφ")) return "Paphos";
+  if (s.includes("famag") || s.includes("αμμό") || s.includes("ayia napa") || s.includes("paralim")) return "Famagusta";
+  return null;
+}
+async function liveEventToday(d: Date, preferCity?: string): Promise<LiveEvent | null> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("pulse_signals")
+      .select("payload, fetched_at, ttl_seconds")
+      .eq("key", "events")
+      .eq("scope", "island")
+      .order("fetched_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!data) return null;
+    const ttlMs = (Number(data.ttl_seconds) || 86_400) * 1000;
+    if (Date.now() - Date.parse(data.fetched_at as string) > ttlMs) return null;
+    const p = (data.payload ?? {}) as { events?: Array<{ title?: string; city?: string | null; startDate?: string | null; endDate?: string | null }> };
+    const evts = Array.isArray(p.events) ? p.events : [];
+    if (evts.length === 0) return null;
+    const today = d.toISOString().slice(0, 10);
+    // Prefer events whose date range covers today; then by matching city.
+    const active = evts.filter((e) => {
+      const start = e.startDate?.slice(0, 10);
+      const end = (e.endDate ?? e.startDate)?.slice(0, 10);
+      if (!start) return false;
+      return start <= today && today <= (end ?? start);
+    });
+    const pool = active.length > 0 ? active : [];
+    if (pool.length === 0) return null;
+    const cityHit = preferCity
+      ? pool.find((e) => normaliseCity(e.city) === preferCity)
+      : undefined;
+    const chosen = cityHit ?? pool[0];
+    const city = normaliseCity(chosen.city) ?? preferCity ?? "Cyprus";
+    const title = (chosen.title ?? "").trim();
+    if (!title) return null;
+    return { name: title, nameEl: title, city };
+  } catch {
+    return null;
+  }
+}
+
 // Weekday rhythm — a stock "what normally happens around now" note per
 // (weekday × city). Used as a fallback tile when no event/festival/cruise/
 // holiday is on, so the briefing never feels empty for the rider's city.
