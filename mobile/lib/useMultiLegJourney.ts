@@ -30,6 +30,17 @@ import {
 } from "./trip-store";
 import type { Leg, RideLeg } from "./journey-types";
 import { sendLocalTripAlert } from "./tripAlerts";
+import {
+  fuseAlightEta,
+  fuseRideVehicle,
+  isConnectionLate,
+  legTarget,
+  multiLegAlerts,
+  resolveLegs,
+  resolveMultiLegPhase,
+  shouldAdvanceLeg,
+  shouldAutoConfirmRide,
+} from "@aloya/core/multileg-journey";
 
 export type MultiLegPhase = Extract<
   JourneyPhase,
