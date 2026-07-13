@@ -675,6 +675,25 @@ describe("multiLegAlerts", () => {
     expect(alerts.map((a) => a.kind)).toEqual(["hurry-soft"]);
   });
 
+  it("tells the rider when the connection was missed", () => {
+    const alerts = multiLegAlerts({
+      phase: "missed-connection",
+      legIndex: 3,
+      currentRideLeg: null,
+      nextRideLeg: nextRide,
+      secsToNextBoard: -200,
+      nextBoardLate: false,
+    });
+    expect(alerts).toEqual([
+      {
+        key: "missed-connection:3",
+        kind: "missed-bus",
+        routeShort: "200",
+        stopName: "Stop A",
+      },
+    ]);
+  });
+
   it("fires a single global arrival alert", () => {
     const alerts = multiLegAlerts({
       phase: "arrived",

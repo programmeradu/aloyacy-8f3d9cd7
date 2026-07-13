@@ -383,7 +383,7 @@ export function shouldAutoConfirmRide(input: {
 export type MultiLegAlert = {
   /** Idempotency key — fire each at most once per journey. */
   key: string;
-  kind: "press-stop" | "at-stop" | "hurry-soft" | "arrived";
+  kind: "press-stop" | "at-stop" | "hurry-soft" | "missed-bus" | "arrived";
   routeShort?: string;
   stopName?: string;
   minutes?: number;
@@ -433,6 +433,14 @@ export function multiLegAlerts(input: {
       routeShort: nextRideLeg.routeShort,
       stopName: nextRideLeg.board.name,
       minutes: Math.max(0, Math.round(secsToNextBoard / 60)),
+    });
+  }
+  if (phase === "missed-connection" && nextRideLeg) {
+    out.push({
+      key: `missed-connection:${legIndex}`,
+      kind: "missed-bus",
+      routeShort: nextRideLeg.routeShort,
+      stopName: nextRideLeg.board.name,
     });
   }
   if (phase === "arrived") out.push({ key: "arrived", kind: "arrived" });
