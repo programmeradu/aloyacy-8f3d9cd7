@@ -57,6 +57,10 @@
       "types": "./src/journey-copy.ts",
       "default": "./src/journey-copy.ts"
     },
+    "./journey-live": {
+      "types": "./src/journey-live.ts",
+      "default": "./src/journey-live.ts"
+    },
     "./journey-phase": {
       "types": "./src/journey-phase.ts",
       "default": "./src/journey-phase.ts"
@@ -72,6 +76,10 @@
     "./multileg-eta": {
       "types": "./src/multileg-eta.ts",
       "default": "./src/multileg-eta.ts"
+    },
+    "./multileg-journey": {
+      "types": "./src/multileg-journey.ts",
+      "default": "./src/multileg-journey.ts"
     },
     "./path-geometry": {
       "types": "./src/path-geometry.ts",

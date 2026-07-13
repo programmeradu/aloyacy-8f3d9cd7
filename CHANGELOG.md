@@ -7,12 +7,34 @@ All notable changes to Aloya are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- `@aloya/core/journey-live`: the shared live-journey reasoning for single-leg
+  trips — phase resolution, the vehicle-position ETA floor, GPS/feed marker
+  fusion and alert selection — pinned by 38 unit tests.
+- `@aloya/core/multileg-journey`: the shared multi-leg reasoning — leg
+  resolution, the phase machine, on-board vehicle fusion, the alight ETA
+  floor, leg auto-advance, GPS boarding auto-confirm and connection alerts —
+  pinned by 47 unit tests.
 - `@aloya/core/single-leg-phase`: the single-leg trip companion's phase
   machine and rider-facing copy (schedule vs. GPS-truth phase, walk routing,
   countdown clamping, delay wording, alight alert window), pinned by 20 unit
   tests so web and native can never word the same trip differently.
 
 ### Changed
+- Both journey hooks now consume the shared core on web and native:
+  `src/lib/useJourney.ts` 702 → 439 LOC, `mobile/lib/useJourney.ts` 548 → 293,
+  `src/lib/useMultiLegJourney.ts` 701 → 462, `mobile/lib/useMultiLegJourney.ts`
+  552 → 362. Tuning constants live in one place, so escalation timing and copy
+  can no longer drift between platforms.
+
+### Fixed
+- Multi-leg connection countdown and missed-connection detection were dead
+  while waiting at a transfer stop: the "next ride" pointer looked one ride too
+  far ahead on walk and wait legs, so "Bus 200 in 4 min", the late-connection
+  warning and the missed-connection rescue never appeared. Core now resolves
+  the ride actually being waited for.
+- Web multi-leg trips now also raise the missed-connection alert, which
+  previously only fired on native.
+
 - `mobile/app/trip/[id].tsx` split 1,006 → ~360 LOC: header, hero, feed
   banners, journey timeline, alight alert and the no-trip state now live in
   `mobile/components/trip/`, and the screen keeps only data wiring.

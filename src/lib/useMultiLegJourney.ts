@@ -29,6 +29,17 @@ import { sendTripAlert } from "./push.functions";
 import { useRiderFixReporter } from "./useRiderFixReporter";
 import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
 import { recordCommutePattern } from "./commute-learner.functions";
+import {
+  fuseAlightEta,
+  fuseRideVehicle,
+  isConnectionLate,
+  legTarget,
+  multiLegAlerts,
+  resolveLegs,
+  resolveMultiLegPhase,
+  shouldAdvanceLeg,
+  shouldAutoConfirmRide,
+} from "@aloya/core/multileg-journey";
 
 import type { JourneyPhase } from "./journey-phase";
 export type { JourneyPhase } from "./journey-phase";
@@ -96,18 +107,6 @@ export type MultiLegLive = {
   rerouteHint: RerouteHint;
 };
 
-const STOP_ARRIVAL_RADIUS_M = 30;
-const DEST_ARRIVAL_RADIUS_M = 30;
-const CONNECTION_LATE_S = 5 * 60;
-const RIDING_SPEED_MPS = 5;
-/** How long after the scheduled connection departure we call it "missed". */
-const MISSED_CONNECTION_BUFFER_S = 90;
-/** Sustained-riding window before we auto-confirm boarding from GPS alone. */
-const SUSTAINED_RIDING_MS = 12_000;
-/** How far past the board stop the rider must travel before we treat their
- *  motion as "definitely on a bus". */
-const RIDING_DISPLACEMENT_M = 80;
-
 export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   const itin = active?.itinerary ?? null;
   const legState = active?.legState ?? null;
@@ -131,15 +130,13 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   // so we can feed them to the Google Routes drive-ETA hook (which can't
   // run inside useMemo).
   const driveInputs = useMemo(() => {
-    if (!itin || !legState) return { onBoard: false, busPos: null, alightLoc: null, tripId: null };
-    const idx = Math.min(legState.currentLegIndex, itin.legs.length - 1);
-    const currentLeg = itin.legs[idx];
-    const per = legState.perLeg[idx] ?? {};
-    if (!currentLeg || currentLeg.kind !== "ride") {
-      return { onBoard: false, busPos: null, alightLoc: null, tripId: null };
-    }
+    const none = { onBoard: false, busPos: null, alightLoc: null, tripId: null } as const;
+    if (!itin || !legState) return none;
+    const { currentLeg, index } = resolveLegs(itin.legs, legState.currentLegIndex);
+    const per = legState.perLeg[index] ?? {};
+    if (!currentLeg || currentLeg.kind !== "ride") return none;
     const onBoard = !!per.onBoardConfirmedAt && !per.alightedAt;
-    if (!onBoard) return { onBoard: false, busPos: null, alightLoc: null, tripId: null };
+    if (!onBoard) return none;
     const v = rt?.vehicles.find((x) => x.tripId === currentLeg.tripId);
     const busPos = v ? { lat: v.lat, lng: v.lng } : fix ? { lat: fix.lat, lng: fix.lng } : null;
     return {
@@ -185,214 +182,76 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     if (!itin || !legState || !started) return baseInactive;
 
     const now = Math.floor(Date.now() / 1000);
-    const idx = Math.min(legState.currentLegIndex, itin.legs.length - 1);
-    const currentLeg = itin.legs[idx];
-    const nextLeg = itin.legs[idx + 1] ?? null;
+    const res = resolveLegs(itin.legs, legState.currentLegIndex);
+    const { index: idx, currentLeg, nextLeg, currentRideLeg, connectionRideLeg } = res;
     const per = legState.perLeg[idx] ?? {};
 
-    // Resolve current + next ride legs.
-    const ridesAll = itin.legs
-      .map((l, i) => (l.kind === "ride" ? { leg: l, i } : null))
-      .filter((x): x is { leg: RideLeg; i: number } => x !== null);
-    const totalRides = ridesAll.length;
-    // Current ride: the one with i === idx (when riding) OR the next ride
-    // ahead of the current walk/wait (when walking to it).
-    const currentRideEntry =
-      ridesAll.find((r) => r.i === idx) ?? ridesAll.find((r) => r.i > idx) ?? null;
-    const currentRideLeg = currentRideEntry?.leg ?? null;
-    const currentRideOrdinal = currentRideEntry
-      ? ridesAll.findIndex((r) => r.i === currentRideEntry.i) + 1
-      : 0;
-    const nextRideEntry = currentRideEntry
-      ? (ridesAll.find((r) => r.i > currentRideEntry.i) ?? null)
-      : null;
-    const nextRideLeg = nextRideEntry?.leg ?? null;
-
     // Live-overlay ETAs.
-    const liveFor = (ride: RideLeg | null, stopId: string | undefined) =>
-      ride && stopId
-        ? rt?.arrivals.find((a) => a.tripId === ride.tripId && a.stopId === stopId)
+    const liveFor = (r: RideLeg | null, stopId: string | undefined) =>
+      r && stopId
+        ? rt?.arrivals.find((a) => a.tripId === r.tripId && a.stopId === stopId)
         : undefined;
 
     const liveCurBoard = liveFor(currentRideLeg, currentRideLeg?.board.stopId);
     const liveCurAlight = liveFor(currentRideLeg, currentRideLeg?.alight.stopId);
-    const liveNextBoard = liveFor(nextRideLeg, nextRideLeg?.board.stopId);
+    const liveNextBoard = liveFor(connectionRideLeg, connectionRideLeg?.board.stopId);
 
     const curBoardUnix = liveCurBoard?.arrivalUnix ?? currentRideLeg?.board.departureUnix ?? 0;
     const curAlightUnix = liveCurAlight?.arrivalUnix ?? currentRideLeg?.alight.arrivalUnix ?? 0;
-    const nextBoardUnix = liveNextBoard?.arrivalUnix ?? nextRideLeg?.board.departureUnix ?? 0;
+    const nextBoardUnix = liveNextBoard?.arrivalUnix ?? connectionRideLeg?.board.departureUnix ?? 0;
 
     const secsToCurrentBoard = curBoardUnix ? curBoardUnix - now : 0;
     const secsToCurrentAlight = curAlightUnix ? curAlightUnix - now : 0;
     const secsToNextBoard = nextBoardUnix ? nextBoardUnix - now : 0;
     const nextBoardSource: "live" | "scheduled" = liveNextBoard ? "live" : "scheduled";
-    const nextBoardLate =
-      !!liveNextBoard &&
-      nextRideLeg !== null &&
-      liveNextBoard.arrivalUnix - nextRideLeg.board.departureUnix >= CONNECTION_LATE_S;
+    const nextBoardLate = isConnectionLate(
+      liveNextBoard?.arrivalUnix ?? null,
+      connectionRideLeg?.board.departureUnix ?? null,
+    );
 
-    // Spatial target depends on leg kind.
-    let metersToTarget = 0;
-    if (fix && currentLeg) {
-      const target =
-        currentLeg.kind === "walk"
-          ? currentLeg.to
-          : currentLeg.kind === "wait"
-            ? { lat: currentLeg.lat, lng: currentLeg.lng }
-            : { lat: currentLeg.board.lat, lng: currentLeg.board.lng };
-      metersToTarget = distanceM(fix, target);
-    }
+    const target = legTarget(currentLeg);
+    const metersToTarget = fix && target ? distanceM(fix, target) : 0;
 
-    // Resolve phase from current leg + per-leg confirmations.
-    let phase: MultiLegPhase = "idle";
-    if (currentLeg) {
-      if (currentLeg.kind === "walk") {
-        // Is this the access walk (to first board), transfer walk, or egress?
-        const ridesBeforeThis = ridesAll.filter((r) => r.i < idx).length;
-        const ridesAfterThis = ridesAll.filter((r) => r.i > idx).length;
-        if (ridesAfterThis === 0) phase = "walking-to-destination";
-        else if (ridesBeforeThis === 0) phase = "walking-to-board";
-        else phase = "walking-to-transfer";
-
-        // Auto-advance on arrival.
-        // For the final egress walk we require the rider to actually walk:
-        // GPS must be close to the destination AND meaningfully away from
-        // the alight stop AND a brief settle window must have elapsed.
-        // Without all three, "I'm off" can flip straight to "arrived" — GPS
-        // often still reports the on-board position for several seconds, or
-        // the destination sits near the alight stop. The rider can always
-        // tap "I'm here" to force arrival (perLeg.arrivedAt).
-        const manualArrived =
-          phase === "walking-to-destination" && !!legState.perLeg[idx]?.arrivedAt;
-        const within =
-          fix &&
-          metersToTarget <
-            (phase === "walking-to-destination" ? DEST_ARRIVAL_RADIUS_M : STOP_ARRIVAL_RADIUS_M);
-        let arrivedHere = within;
-        if (phase === "walking-to-destination") {
-          const enteredAt = legState.perLeg[idx]?.enteredAt ?? 0;
-          const secsInLeg = enteredAt ? (Date.now() - enteredAt) / 1000 : 0;
-          const distFromAlightStop = fix
-            ? distanceM(fix, { lat: currentLeg.from.lat, lng: currentLeg.from.lng })
-            : 0;
-          const walkedAway = distFromAlightStop > 50;
-          const settled = secsInLeg > 20;
-          arrivedHere = !!within && walkedAway && settled;
-        }
-        if (manualArrived || arrivedHere) {
-          if (phase === "walking-to-destination") phase = "arrived";
-          else if (phase === "walking-to-board") phase = "waiting-to-board";
-          // walking-to-transfer → next leg (wait or ride) handled via effect.
-        }
-      } else if (currentLeg.kind === "wait") {
-        phase = "waiting-for-connection";
-      } else {
-        // ride
-        if (per.alightedAt) {
-          // Past this ride — should have advanced already; treat as
-          // transition state.
-          phase = "alight-soon";
-        } else if (per.onBoardConfirmedAt) {
-          // Gate "alight-soon" by BOTH schedule ETA AND physical proximity
-          // to the alight stop. The schedule alone fires several stops
-          // early when the bus is running ahead or the ETA is stale; the
-          // distance alone fires if the bus path coincidentally passes near
-          // the alight stop. Use the rider's GPS — on board, they ARE the
-          // bus, so it's the most reliable position we have.
-          const distToAlight =
-            fix && currentRideLeg
-              ? distanceM(fix, { lat: currentRideLeg.alight.lat, lng: currentRideLeg.alight.lng })
-              : Number.POSITIVE_INFINITY;
-          const closeByDistance = distToAlight < 350;
-          const closeByEta = secsToCurrentAlight > 0 && secsToCurrentAlight <= 60;
-          if (closeByDistance && closeByEta) phase = "alight-soon";
-          else if (distToAlight < 120)
-            phase = "alight-soon"; // very close — trust GPS even if ETA is wrong
-          else phase = "riding";
-        } else {
-          // Ride leg active but on-board not confirmed → still waiting.
-          phase = "waiting-to-board";
-        }
-      }
-    }
+    const phase = resolveMultiLegPhase({
+      nowUnix: now,
+      nowMs: Date.now(),
+      fix,
+      resolution: res,
+      per,
+      metersToTarget,
+      secsToCurrentAlight,
+      nextBoardUnix,
+    });
 
     // ---- GPS vehicle fallback (on-board, current ride) --------------------
-    // When the rider is on board the current ride but its tripId disappears
-    // from the live feed, drive the bus marker from their phone GPS.
     const currentVehicle = currentRideLeg
       ? (rt?.vehicles.find((v) => v.tripId === currentRideLeg.tripId) ?? null)
       : null;
     const onBoardCurrent =
       !!per.onBoardConfirmedAt && !per.alightedAt && currentLeg?.kind === "ride";
-    let fusedCurrentVehicle: MultiLegLive["fusedCurrentVehicle"] = null;
-    let vehicleLost = false;
-    if (currentRideLeg) {
-      if (currentVehicle) {
-        fusedCurrentVehicle = {
-          lat: currentVehicle.lat,
-          lng: currentVehicle.lng,
-          bearing: currentVehicle.bearing ?? 0,
-          tripId: currentRideLeg.tripId,
-        };
-      } else if (onBoardCurrent && fix) {
-        // Feed lost it — fall back to rider GPS. The rider IS the bus.
-        vehicleLost = true;
-        fusedCurrentVehicle = {
-          lat: fix.lat,
-          lng: fix.lng,
-          bearing: fix.headingDeg ?? 0,
-          tripId: currentRideLeg.tripId,
-        };
-      }
-    }
-    const nextVehicleTracked = nextRideLeg
-      ? !!rt?.vehicles.find((v) => v.tripId === nextRideLeg.tripId)
+    const { fusedCurrentVehicle, vehicleLost } = fuseRideVehicle({
+      currentRideLeg,
+      vehicle: currentVehicle,
+      fix,
+      onBoard: onBoardCurrent,
+    });
+    const nextVehicleTracked = connectionRideLeg
+      ? !!rt?.vehicles.find((v) => v.tripId === connectionRideLeg.tripId)
       : false;
 
     // ---- ETA distance floor (on-board only) -------------------------------
-    // The schedule-based countdown ticks down even when the bus is dwelling
-    // at a stop. Clamp it by what's physically possible given the remaining
-    // distance to the alight point, so the ETA freezes when we're not
-    // actually getting closer.
-    let fusedSecsToCurrentAlight = secsToCurrentAlight;
-    if (onBoardCurrent && fusedCurrentVehicle && currentRideLeg) {
-      const alightLoc = { lat: currentRideLeg.alight.lat, lng: currentRideLeg.alight.lng };
-      const distToAlight = distanceM(fusedCurrentVehicle, alightLoc);
-      const FLOOR_SPEED_MPS = 11; // ~40 km/h optimistic urban+intercity
-      const minPossibleEta = Math.round(distToAlight / FLOOR_SPEED_MPS);
-      const gpsSpeed = fix?.speedMps ?? 0;
-      if (drive.etaSec != null && driveInputs.tripId === currentRideLeg.tripId) {
-        // Google Routes drive ETA (traffic-aware, road-following) is the
-        // source of truth when available.
-        fusedSecsToCurrentAlight = Math.max(minPossibleEta, drive.etaSec);
-      } else if (vehicleLost) {
-        const speed = gpsSpeed > 2 ? gpsSpeed : 6;
-        fusedSecsToCurrentAlight = Math.max(minPossibleEta, Math.round(distToAlight / speed));
-      } else if (gpsSpeed > 2) {
-        const gpsEta = Math.round(distToAlight / Math.max(3, gpsSpeed));
-        fusedSecsToCurrentAlight = Math.max(
-          minPossibleEta,
-          Math.round(0.6 * gpsEta + 0.4 * secsToCurrentAlight),
-        );
-      } else {
-        // Bus stopped — freeze ETA at the distance floor.
-        fusedSecsToCurrentAlight = Math.max(minPossibleEta, secsToCurrentAlight);
-      }
-      fusedSecsToCurrentAlight = Math.max(0, fusedSecsToCurrentAlight);
-    }
-
-    // ---- Missed-connection detection --------------------------------------
-    // We're waiting at the transfer stop, the scheduled (or live) departure
-    // has passed by MISSED_CONNECTION_BUFFER_S, and rider hasn't confirmed
-    // boarding the next ride. Surface a rescue path.
-    if (
-      (phase === "waiting-for-connection" || phase === "walking-to-transfer") &&
-      nextRideLeg &&
-      nextBoardUnix > 0 &&
-      now - nextBoardUnix > MISSED_CONNECTION_BUFFER_S
-    ) {
-      phase = "missed-connection";
-    }
+    const fusedSecsToCurrentAlight = fuseAlightEta({
+      onBoard: onBoardCurrent,
+      fusedVehicle: fusedCurrentVehicle,
+      alightLoc: currentRideLeg
+        ? { lat: currentRideLeg.alight.lat, lng: currentRideLeg.alight.lng }
+        : null,
+      secsToAlight: secsToCurrentAlight,
+      gpsSpeedMps: fix?.speedMps ?? 0,
+      vehicleLost,
+      driveEtaSec:
+        drive.etaSec != null && driveInputs.tripId === currentRideLeg?.tripId ? drive.etaSec : null,
+    });
 
     // ---- Wrong-stop reroute hint (Google-Maps-style) --------------------
     let rerouteHint: RerouteHint = null;
@@ -414,9 +273,10 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
       currentLeg,
       nextLeg,
       currentRideLeg,
-      nextRideLeg,
-      rideOrdinal: currentRideOrdinal,
-      totalRides,
+      // The UI's "next bus" is always the one being connected to.
+      nextRideLeg: connectionRideLeg,
+      rideOrdinal: res.rideOrdinal,
+      totalRides: res.totalRides,
       secsToCurrentBoard,
       secsToCurrentAlight: fusedSecsToCurrentAlight,
       secsToNextBoard,
@@ -444,44 +304,18 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   useEffect(() => {
     if (!result.active || !itin || !legState) return;
     const idx = result.currentLegIndex;
-    const leg = result.currentLeg;
-    if (!leg) return;
-
-    // Walk leg auto-advance when GPS arrives at target (unless it's the
-    // final egress walk — that ends at "arrived").
-    if (leg.kind === "walk") {
-      const isFinal = idx === itin.legs.length - 1;
-      if (isFinal) return; // egress; UI handles "arrived" → done
-      const radius = STOP_ARRIVAL_RADIUS_M;
-      if (result.fix && result.metersToTarget < radius) {
-        advanceToNextLeg();
-      } else {
-        // Failsafe: if walk duration has long elapsed since entering this
-        // leg, advance anyway so a missing/poor GPS doesn't strand the rider.
-        const enteredAt = legState.perLeg[idx]?.enteredAt;
-        if (enteredAt && leg.kind === "walk") {
-          const elapsed = (Date.now() - enteredAt) / 1000;
-          if (elapsed > leg.durationSec + 120) advanceToNextLeg();
-        }
-      }
-    }
-
-    // Wait leg auto-advance when the wait window is up. The actual onboard
-    // confirmation happens via the user tap on the next (ride) leg.
-    if (leg.kind === "wait") {
-      const enteredAt = legState.perLeg[idx]?.enteredAt;
-      if (enteredAt) {
-        const elapsed = (Date.now() - enteredAt) / 1000;
-        // Move forward 30 s before the wait ends so the ride-leg UI is
-        // visible by the time the bus arrives.
-        if (elapsed > Math.max(0, leg.durationSec - 30)) advanceToNextLeg();
-      }
-    }
-
-    // Ride leg auto-advance when rider tapped alighted.
-    if (leg.kind === "ride") {
-      const per = legState.perLeg[idx];
-      if (per?.alightedAt) advanceToNextLeg();
+    if (
+      shouldAdvanceLeg({
+        leg: result.currentLeg,
+        isFinalLeg: idx === itin.legs.length - 1,
+        hasFix: !!result.fix,
+        metersToTarget: result.metersToTarget,
+        enteredAt: legState.perLeg[idx]?.enteredAt ?? null,
+        per: legState.perLeg[idx] ?? {},
+        nowMs: Date.now(),
+      })
+    ) {
+      advanceToNextLeg();
     }
   }, [
     result.active,
@@ -494,47 +328,27 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   ]);
 
   // ---- GPS-based auto-confirm boarding on ride legs ----------------------
-  // Mirrors useJourney: if the rider's GPS shows sustained bus-speed motion
-  // AND they've left the board stop while a ride leg is active but unconfirmed,
-  // mark them on-board automatically. Covers the feed-blackout failure mode.
+  // If the rider's GPS shows sustained bus-speed motion AND they've left the
+  // board stop while a ride leg is active but unconfirmed, mark them on board
+  // automatically. Covers the feed-blackout failure mode.
   const ridingStartedAtRef = useRef<number | null>(null);
   useEffect(() => {
     if (!result.active || !legState) {
       ridingStartedAtRef.current = null;
       return;
     }
-    const leg = result.currentLeg;
-    if (!leg || leg.kind !== "ride") {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    const per = legState.perLeg[result.currentLegIndex];
-    if (per?.onBoardConfirmedAt || per?.alightedAt || per?.missedAt) {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    const speed = result.fix?.speedMps ?? 0;
-    if (speed <= RIDING_SPEED_MPS) {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    const boardLoc = result.currentRideLeg
-      ? { lat: result.currentRideLeg.board.lat, lng: result.currentRideLeg.board.lng }
-      : null;
-    const departed =
-      !!result.fix && !!boardLoc && distanceM(result.fix, boardLoc) > RIDING_DISPLACEMENT_M;
-    if (!departed) {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    if (ridingStartedAtRef.current == null) {
-      ridingStartedAtRef.current = Date.now();
-      return;
-    }
-    if (Date.now() - ridingStartedAtRef.current >= SUSTAINED_RIDING_MS) {
-      patchCurrentLeg({ onBoardConfirmedAt: Date.now() });
-      ridingStartedAtRef.current = null;
-    }
+    const next = shouldAutoConfirmRide({
+      leg: result.currentLeg,
+      per: legState.perLeg[result.currentLegIndex] ?? {},
+      fix: result.fix,
+      boardLoc: result.currentRideLeg
+        ? { lat: result.currentRideLeg.board.lat, lng: result.currentRideLeg.board.lng }
+        : null,
+      ridingSinceMs: ridingStartedAtRef.current,
+      nowMs: Date.now(),
+    });
+    ridingStartedAtRef.current = next.ridingSinceMs;
+    if (next.confirm) patchCurrentLeg({ onBoardConfirmedAt: Date.now() });
   }, [
     result.active,
     result.currentLegIndex,
@@ -556,78 +370,27 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     if (!result.active || !active || !itin) return;
     const deviceId = getDeviceId();
     const url = `/trip/${active.option.id}`;
-    const fireOnce = (key: string, fn: () => void) => {
-      if (sentRef.current.has(key)) return;
-      sentRef.current.add(key);
-      fn();
-    };
 
-    if (result.phase === "alight-soon" && result.currentRideLeg) {
-      fireOnce(`press-stop:${result.currentLegIndex}`, () =>
-        sendAlert({
-          data: {
-            deviceId,
-            kind: "press-stop",
-            routeShort: result.currentRideLeg!.routeShort,
-            stopName: result.currentRideLeg!.alight.name,
-            url,
-          },
-        }).catch(() => {}),
-      );
-    }
-    if (result.phase === "walking-to-transfer" && result.nextRideLeg) {
-      fireOnce(`walk-transfer:${result.currentLegIndex}`, () =>
-        sendAlert({
-          data: {
-            deviceId,
-            kind: "at-stop",
-            routeShort: result.nextRideLeg!.routeShort,
-            stopName: result.nextRideLeg!.board.name,
-            minutes: Math.max(0, Math.round(result.secsToNextBoard / 60)),
-            url,
-          },
-        }).catch(() => {}),
-      );
-    }
-    if (
-      result.phase === "waiting-for-connection" &&
-      result.nextRideLeg &&
-      result.secsToNextBoard <= 90 &&
-      result.secsToNextBoard > 0
-    ) {
-      fireOnce(`connection-arriving:${result.currentLegIndex}`, () =>
-        sendAlert({
-          data: {
-            deviceId,
-            kind: "at-stop",
-            routeShort: result.nextRideLeg!.routeShort,
-            stopName: result.nextRideLeg!.board.name,
-            minutes: Math.max(1, Math.round(result.secsToNextBoard / 60)),
-            url,
-          },
-        }).catch(() => {}),
-      );
-    }
-    if (result.nextBoardLate && result.nextRideLeg) {
-      fireOnce(`connection-late:${result.currentLegIndex}`, () =>
-        sendAlert({
-          data: {
-            deviceId,
-            kind: "hurry-soft",
-            routeShort: result.nextRideLeg!.routeShort,
-            stopName: result.nextRideLeg!.board.name,
-            minutes: Math.max(0, Math.round(result.secsToNextBoard / 60)),
-            url,
-          },
-        }).catch(() => {}),
-      );
-    }
-    if (result.phase === "arrived") {
-      fireOnce(`arrived`, () =>
-        sendAlert({
-          data: { deviceId, kind: "arrived", url },
-        }).catch(() => {}),
-      );
+    for (const alert of multiLegAlerts({
+      phase: result.phase,
+      legIndex: result.currentLegIndex,
+      currentRideLeg: result.currentRideLeg,
+      nextRideLeg: result.nextRideLeg,
+      secsToNextBoard: result.secsToNextBoard,
+      nextBoardLate: result.nextBoardLate,
+    })) {
+      if (sentRef.current.has(alert.key)) continue;
+      sentRef.current.add(alert.key);
+      sendAlert({
+        data: {
+          deviceId,
+          kind: alert.kind,
+          url,
+          ...(alert.routeShort ? { routeShort: alert.routeShort } : {}),
+          ...(alert.stopName ? { stopName: alert.stopName } : {}),
+          ...(alert.minutes != null ? { minutes: alert.minutes } : {}),
+        },
+      }).catch(() => {});
     }
   }, [
     result.active,
