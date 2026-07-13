@@ -29,6 +29,17 @@ import { sendTripAlert } from "./push.functions";
 import { useRiderFixReporter } from "./useRiderFixReporter";
 import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
 import { recordCommutePattern } from "./commute-learner.functions";
+import {
+  fuseAlightEta,
+  fuseRideVehicle,
+  isConnectionLate,
+  legTarget,
+  multiLegAlerts,
+  resolveLegs,
+  resolveMultiLegPhase,
+  shouldAdvanceLeg,
+  shouldAutoConfirmRide,
+} from "@aloya/core/multileg-journey";
 
 import type { JourneyPhase } from "./journey-phase";
 export type { JourneyPhase } from "./journey-phase";
