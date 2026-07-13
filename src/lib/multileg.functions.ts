@@ -193,12 +193,24 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     // Dedupe by (signature). Prefer "live" or "mixed" over "estimated".
     const sourceRank = { live: 0, mixed: 1, estimated: 2 } as const;
     const dedup = new Map<string, Itinerary>();
+    const dropped = { tooLong: 0, arriveBy: 0, departAt: 0 };
+    const tooLong: Itinerary[] = [];
     for (const it of merged) {
-      if (travelSec(it) > MAX_TOTAL_JOURNEY_SEC) continue;
+      if (travelSec(it) > MAX_TOTAL_JOURNEY_SEC) {
+        dropped.tooLong++;
+        tooLong.push(it);
+        continue;
+      }
       // Honour arrive-by: 10 min slack so a near-miss still shows with a warning upstream.
-      if (data.arriveByUnix && it.arrivalUnix > data.arriveByUnix + 600) continue;
+      if (data.arriveByUnix && it.arrivalUnix > data.arriveByUnix + 600) {
+        dropped.arriveBy++;
+        continue;
+      }
       // Honour depart-at: keep options that depart within 2h of the requested time.
-      if (departureUnix && it.departureUnix < departureUnix - 300) continue;
+      if (departureUnix && it.departureUnix < departureUnix - 300) {
+        dropped.departAt++;
+        continue;
+      }
       const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
       const key = rides.map((r) => `${r.routeId}|${r.board.stopId}|${r.alight.stopId}`).join("→");
       const existing = dedup.get(key);
@@ -210,7 +222,22 @@ export const planMultiLeg = createServerFn({ method: "POST" })
         dedup.set(key, it);
       }
     }
+
+    // Last-resort honesty: a sparse rural corridor can legitimately need a
+    // long mid-journey wait (village services run a handful of times a day).
+    // Pruning those to zero tells the rider "no route exists", which is a
+    // lie. When the journey cap wiped out every option, keep the shortest
+    // over-cap ones rather than returning an empty result.
+    if (dedup.size === 0 && tooLong.length > 0) {
+      const rescued = [...tooLong].sort((a, b) => travelSec(a) - travelSec(b)).slice(0, TOP_K);
+      for (const it of rescued) {
+        const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
+        const key = rides.map((r) => `${r.routeId}|${r.board.stopId}|${r.alight.stopId}`).join("→");
+        if (!dedup.has(key)) dedup.set(key, it);
+      }
+    }
     const afterDedup = dedup.size;
+
 
     // No-mediocrity: a transfer itinerary must beat best direct by ≥ 3min or ≥ 15%.
     const all = [...dedup.values()];
