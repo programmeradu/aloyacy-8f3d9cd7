@@ -60,7 +60,10 @@ export type MultiLegResult = {
     live?: MultiLegDiagnostics;
     scheduled?: ScheduledDiagnostics;
     mergedRaw: number;
+    /** Candidates removed by the journey-cap / arrive-by / depart-at filters. */
+    dropped?: { tooLong: number; arriveBy: number; departAt: number };
     afterDedup: number;
+
     prunedMediocre: number;
     finalCount: number;
   };
