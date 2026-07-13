@@ -302,44 +302,18 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   useEffect(() => {
     if (!result.active || !itin || !legState) return;
     const idx = result.currentLegIndex;
-    const leg = result.currentLeg;
-    if (!leg) return;
-
-    // Walk leg auto-advance when GPS arrives at target (unless it's the
-    // final egress walk — that ends at "arrived").
-    if (leg.kind === "walk") {
-      const isFinal = idx === itin.legs.length - 1;
-      if (isFinal) return; // egress; UI handles "arrived" → done
-      const radius = STOP_ARRIVAL_RADIUS_M;
-      if (result.fix && result.metersToTarget < radius) {
-        advanceToNextLeg();
-      } else {
-        // Failsafe: if walk duration has long elapsed since entering this
-        // leg, advance anyway so a missing/poor GPS doesn't strand the rider.
-        const enteredAt = legState.perLeg[idx]?.enteredAt;
-        if (enteredAt && leg.kind === "walk") {
-          const elapsed = (Date.now() - enteredAt) / 1000;
-          if (elapsed > leg.durationSec + 120) advanceToNextLeg();
-        }
-      }
-    }
-
-    // Wait leg auto-advance when the wait window is up. The actual onboard
-    // confirmation happens via the user tap on the next (ride) leg.
-    if (leg.kind === "wait") {
-      const enteredAt = legState.perLeg[idx]?.enteredAt;
-      if (enteredAt) {
-        const elapsed = (Date.now() - enteredAt) / 1000;
-        // Move forward 30 s before the wait ends so the ride-leg UI is
-        // visible by the time the bus arrives.
-        if (elapsed > Math.max(0, leg.durationSec - 30)) advanceToNextLeg();
-      }
-    }
-
-    // Ride leg auto-advance when rider tapped alighted.
-    if (leg.kind === "ride") {
-      const per = legState.perLeg[idx];
-      if (per?.alightedAt) advanceToNextLeg();
+    if (
+      shouldAdvanceLeg({
+        leg: result.currentLeg,
+        isFinalLeg: idx === itin.legs.length - 1,
+        hasFix: !!result.fix,
+        metersToTarget: result.metersToTarget,
+        enteredAt: legState.perLeg[idx]?.enteredAt ?? null,
+        per: legState.perLeg[idx] ?? {},
+        nowMs: Date.now(),
+      })
+    ) {
+      advanceToNextLeg();
     }
   }, [
     result.active,
@@ -352,47 +326,27 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
   ]);
 
   // ---- GPS-based auto-confirm boarding on ride legs ----------------------
-  // Mirrors useJourney: if the rider's GPS shows sustained bus-speed motion
-  // AND they've left the board stop while a ride leg is active but unconfirmed,
-  // mark them on-board automatically. Covers the feed-blackout failure mode.
+  // If the rider's GPS shows sustained bus-speed motion AND they've left the
+  // board stop while a ride leg is active but unconfirmed, mark them on board
+  // automatically. Covers the feed-blackout failure mode.
   const ridingStartedAtRef = useRef<number | null>(null);
   useEffect(() => {
     if (!result.active || !legState) {
       ridingStartedAtRef.current = null;
       return;
     }
-    const leg = result.currentLeg;
-    if (!leg || leg.kind !== "ride") {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    const per = legState.perLeg[result.currentLegIndex];
-    if (per?.onBoardConfirmedAt || per?.alightedAt || per?.missedAt) {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    const speed = result.fix?.speedMps ?? 0;
-    if (speed <= RIDING_SPEED_MPS) {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    const boardLoc = result.currentRideLeg
-      ? { lat: result.currentRideLeg.board.lat, lng: result.currentRideLeg.board.lng }
-      : null;
-    const departed =
-      !!result.fix && !!boardLoc && distanceM(result.fix, boardLoc) > RIDING_DISPLACEMENT_M;
-    if (!departed) {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    if (ridingStartedAtRef.current == null) {
-      ridingStartedAtRef.current = Date.now();
-      return;
-    }
-    if (Date.now() - ridingStartedAtRef.current >= SUSTAINED_RIDING_MS) {
-      patchCurrentLeg({ onBoardConfirmedAt: Date.now() });
-      ridingStartedAtRef.current = null;
-    }
+    const next = shouldAutoConfirmRide({
+      leg: result.currentLeg,
+      per: legState.perLeg[result.currentLegIndex] ?? {},
+      fix: result.fix,
+      boardLoc: result.currentRideLeg
+        ? { lat: result.currentRideLeg.board.lat, lng: result.currentRideLeg.board.lng }
+        : null,
+      ridingSinceMs: ridingStartedAtRef.current,
+      nowMs: Date.now(),
+    });
+    ridingStartedAtRef.current = next.ridingSinceMs;
+    if (next.confirm) patchCurrentLeg({ onBoardConfirmedAt: Date.now() });
   }, [
     result.active,
     result.currentLegIndex,
@@ -414,78 +368,27 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     if (!result.active || !active || !itin) return;
     const deviceId = getDeviceId();
     const url = `/trip/${active.option.id}`;
-    const fireOnce = (key: string, fn: () => void) => {
-      if (sentRef.current.has(key)) return;
-      sentRef.current.add(key);
-      fn();
-    };
 
-    if (result.phase === "alight-soon" && result.currentRideLeg) {
-      fireOnce(`press-stop:${result.currentLegIndex}`, () =>
-        sendAlert({
-          data: {
-            deviceId,
-            kind: "press-stop",
-            routeShort: result.currentRideLeg!.routeShort,
-            stopName: result.currentRideLeg!.alight.name,
-            url,
-          },
-        }).catch(() => {}),
-      );
-    }
-    if (result.phase === "walking-to-transfer" && result.nextRideLeg) {
-      fireOnce(`walk-transfer:${result.currentLegIndex}`, () =>
-        sendAlert({
-          data: {
-            deviceId,
-            kind: "at-stop",
-            routeShort: result.nextRideLeg!.routeShort,
-            stopName: result.nextRideLeg!.board.name,
-            minutes: Math.max(0, Math.round(result.secsToNextBoard / 60)),
-            url,
-          },
-        }).catch(() => {}),
-      );
-    }
-    if (
-      result.phase === "waiting-for-connection" &&
-      result.nextRideLeg &&
-      result.secsToNextBoard <= 90 &&
-      result.secsToNextBoard > 0
-    ) {
-      fireOnce(`connection-arriving:${result.currentLegIndex}`, () =>
-        sendAlert({
-          data: {
-            deviceId,
-            kind: "at-stop",
-            routeShort: result.nextRideLeg!.routeShort,
-            stopName: result.nextRideLeg!.board.name,
-            minutes: Math.max(1, Math.round(result.secsToNextBoard / 60)),
-            url,
-          },
-        }).catch(() => {}),
-      );
-    }
-    if (result.nextBoardLate && result.nextRideLeg) {
-      fireOnce(`connection-late:${result.currentLegIndex}`, () =>
-        sendAlert({
-          data: {
-            deviceId,
-            kind: "hurry-soft",
-            routeShort: result.nextRideLeg!.routeShort,
-            stopName: result.nextRideLeg!.board.name,
-            minutes: Math.max(0, Math.round(result.secsToNextBoard / 60)),
-            url,
-          },
-        }).catch(() => {}),
-      );
-    }
-    if (result.phase === "arrived") {
-      fireOnce(`arrived`, () =>
-        sendAlert({
-          data: { deviceId, kind: "arrived", url },
-        }).catch(() => {}),
-      );
+    for (const alert of multiLegAlerts({
+      phase: result.phase,
+      legIndex: result.currentLegIndex,
+      currentRideLeg: result.currentRideLeg,
+      nextRideLeg: result.nextRideLeg,
+      secsToNextBoard: result.secsToNextBoard,
+      nextBoardLate: result.nextBoardLate,
+    })) {
+      if (sentRef.current.has(alert.key)) continue;
+      sentRef.current.add(alert.key);
+      sendAlert({
+        data: {
+          deviceId,
+          kind: alert.kind,
+          url,
+          ...(alert.routeShort ? { routeShort: alert.routeShort } : {}),
+          ...(alert.stopName ? { stopName: alert.stopName } : {}),
+          ...(alert.minutes != null ? { minutes: alert.minutes } : {}),
+        },
+      }).catch(() => {});
     }
   }, [
     result.active,
