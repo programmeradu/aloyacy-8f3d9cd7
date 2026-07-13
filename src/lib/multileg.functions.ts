@@ -312,7 +312,9 @@ export const planMultiLeg = createServerFn({ method: "POST" })
             live: liveResult?.diagnostics,
             scheduled: schedResult?.diagnostics,
             mergedRaw,
+            dropped,
             afterDedup,
+
             prunedMediocre,
             finalCount: top.length,
           }
