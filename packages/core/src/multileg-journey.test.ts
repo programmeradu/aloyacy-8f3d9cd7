@@ -122,6 +122,19 @@ describe("resolveLegs", () => {
     expect(r.ridesAfter).toBe(0);
   });
 
+  it("points the connection ride at the bus being waited for", () => {
+    const legs = twoRideItinerary();
+    // access walk → connection is the second ride (first is `currentRideLeg`)
+    expect(resolveLegs(legs, 0).connectionRideLeg?.tripId).toBe("T2");
+    // riding leg 1 → connection is the ride after
+    expect(resolveLegs(legs, 1).connectionRideLeg?.tripId).toBe("T2");
+    // transfer walk and wait → the ride they are heading for, not one beyond
+    expect(resolveLegs(legs, 2).connectionRideLeg?.tripId).toBe("T2");
+    expect(resolveLegs(legs, 3).connectionRideLeg?.tripId).toBe("T2");
+    // final egress walk → nothing left to connect to
+    expect(resolveLegs(legs, 5).connectionRideLeg).toBeNull();
+  });
+
   it("exposes the next leg for 'next up' copy", () => {
     expect(resolveLegs(twoRideItinerary(), 1).nextLeg?.kind).toBe("walk");
     expect(resolveLegs(twoRideItinerary(), 5).nextLeg).toBeNull();
