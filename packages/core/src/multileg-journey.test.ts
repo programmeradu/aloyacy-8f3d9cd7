@@ -164,9 +164,7 @@ describe("resolveMultiLegPhase", () => {
   const legs = twoRideItinerary();
 
   it("is idle without a current leg", () => {
-    expect(
-      resolveMultiLegPhase({ ...basePhase, resolution: resolveLegs([], 0) }),
-    ).toBe("idle");
+    expect(resolveMultiLegPhase({ ...basePhase, resolution: resolveLegs([], 0) })).toBe("idle");
   });
 
   it("names the access, transfer and egress walks distinctly", () => {
@@ -320,9 +318,9 @@ describe("resolveMultiLegPhase", () => {
 
 describe("fuseRideVehicle", () => {
   it("returns nothing without a ride leg", () => {
-    expect(fuseRideVehicle({ currentRideLeg: null, vehicle: null, fix: null, onBoard: true })).toEqual(
-      { fusedCurrentVehicle: null, vehicleLost: false },
-    );
+    expect(
+      fuseRideVehicle({ currentRideLeg: null, vehicle: null, fix: null, onBoard: true }),
+    ).toEqual({ fusedCurrentVehicle: null, vehicleLost: false });
   });
 
   it("prefers the feed vehicle", () => {

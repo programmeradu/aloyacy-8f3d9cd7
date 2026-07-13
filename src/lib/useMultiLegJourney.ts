@@ -188,7 +188,9 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
 
     // Live-overlay ETAs.
     const liveFor = (r: RideLeg | null, stopId: string | undefined) =>
-      r && stopId ? rt?.arrivals.find((a) => a.tripId === r.tripId && a.stopId === stopId) : undefined;
+      r && stopId
+        ? rt?.arrivals.find((a) => a.tripId === r.tripId && a.stopId === stopId)
+        : undefined;
 
     const liveCurBoard = liveFor(currentRideLeg, currentRideLeg?.board.stopId);
     const liveCurAlight = liveFor(currentRideLeg, currentRideLeg?.alight.stopId);

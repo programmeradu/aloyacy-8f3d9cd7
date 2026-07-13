@@ -194,9 +194,7 @@ export function resolveMultiLegPhase(input: MultiLegPhaseInput): MultiLegPhase {
         ? distanceM(fix, { lat: currentLeg.from.lat, lng: currentLeg.from.lng })
         : 0;
       arrivedHere =
-        within &&
-        distFromAlightStop > T.EGRESS_WALKED_AWAY_M &&
-        secsInLeg > T.EGRESS_SETTLE_S;
+        within && distFromAlightStop > T.EGRESS_WALKED_AWAY_M && secsInLeg > T.EGRESS_SETTLE_S;
     }
 
     const manualArrived = phase === "walking-to-destination" && !!per.arrivedAt;
@@ -417,7 +415,12 @@ export function multiLegAlerts(input: {
       minutes: Math.max(0, Math.round(secsToNextBoard / 60)),
     });
   }
-  if (phase === "waiting-for-connection" && nextRideLeg && secsToNextBoard > 0 && secsToNextBoard <= 90) {
+  if (
+    phase === "waiting-for-connection" &&
+    nextRideLeg &&
+    secsToNextBoard > 0 &&
+    secsToNextBoard <= 90
+  ) {
     out.push({
       key: `connection-arriving:${legIndex}`,
       kind: "at-stop",
