@@ -30,7 +30,8 @@ export const RAPTOR_TUNING = {
   maxTransferNeighbours: 6,
 } as const;
 
-export type StopLike = { lat: number; lng: number; name: string; feedId?: string };
+/** Minimum shape the planner needs from a schedule stop. */
+export type StopLike = { lat: number; lng: number; name: string };
 
 export function haversineKm(
   a: { lat: number; lng: number },

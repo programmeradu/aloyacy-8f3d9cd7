@@ -17,7 +17,7 @@ import type { Leg } from "./itinerary-types";
 const NICOSIA = { lat: 35.1667, lng: 33.3667 };
 
 function stop(name: string, lat: number, lng: number): StopLike {
-  return { name, lat, lng, feedId: "10" };
+  return { name, lat, lng };
 }
 
 describe("distance and walking", () => {
