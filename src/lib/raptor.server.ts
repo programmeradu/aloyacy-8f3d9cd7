@@ -22,39 +22,34 @@
 
 import type { LoadedSchedule, ScheduleStop } from "./schedule-loader.server";
 import { serviceDateToUnix } from "./schedule-loader.server";
-import type { Itinerary, Leg, RideLeg, WalkLeg } from "./itinerary-types";
+import type { Itinerary, Leg } from "./itinerary-types";
+import {
+  RAPTOR_TUNING,
+  buildSpatialBuckets,
+  finalise,
+  nearbyStops,
+  nearestStops,
+  walkMetersOnStreet,
+  walkSecFromMeters,
+} from "@aloya/core/raptor-core";
 
 // Cross-island journeys can legitimately require a local feeder, an
 // intercity service, and one or two airport-side connections. Three rounds
 // silently made those destinations look unreachable even though the schedule
 // contained a valid path. Keep the search bounded, but allow the complete
 // Cyprus network to be traversed.
-const MAX_ROUNDS = 5; // 1 ride + up to 4 optional transfer rides
-const MAX_ACCESS_WALK_KM = 2.0;
-const MAX_EGRESS_WALK_KM = 2.0;
-const MAX_TRANSFER_WALK_M = 600;
-const TOP_ORIGIN_STOPS = 8;
-const TOP_DEST_STOPS = 8;
-const MIN_TRANSFER_BUFFER_SEC = 90;
-const MAX_TOTAL_JOURNEY_SEC = 300 * 60; // cross-island + airport connections
-const TOP_K_RESULTS = 5;
-const DEFAULT_SEARCH_HORIZON_SEC = 4 * 3600; // "leave now" — 4h is plenty
-const WALK_M_PER_S = 1.35;
-const WALK_DETOUR = 1.35;
-
-function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
-  const R = 6371;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const la1 = (a.lat * Math.PI) / 180;
-  const la2 = (b.lat * Math.PI) / 180;
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
-
-function walkSecFromMeters(m: number): number {
-  return Math.round((m * WALK_DETOUR) / WALK_M_PER_S);
-}
+const {
+  maxRounds: MAX_ROUNDS,
+  maxAccessWalkKm: MAX_ACCESS_WALK_KM,
+  maxEgressWalkKm: MAX_EGRESS_WALK_KM,
+  maxTransferWalkM: MAX_TRANSFER_WALK_M,
+  topOriginStops: TOP_ORIGIN_STOPS,
+  topDestStops: TOP_DEST_STOPS,
+  minTransferBufferSec: MIN_TRANSFER_BUFFER_SEC,
+  maxTotalJourneySec: MAX_TOTAL_JOURNEY_SEC,
+  topKResults: TOP_K_RESULTS,
+  defaultSearchHorizonSec: DEFAULT_SEARCH_HORIZON_SEC,
+} = RAPTOR_TUNING;
 
 // ---- Labels: the state we track per stop -------------------------------
 // For each stop we keep the best arrival per round k. We need round-k
@@ -163,7 +158,7 @@ export async function planRaptor(
     labels[0].set(o.id, {
       kind: "access",
       arrivalUnix: arr,
-      meters: Math.round(o.distKm * 1000 * WALK_DETOUR),
+      meters: walkMetersOnStreet(o.distKm * 1000),
     });
     bestArrival.set(o.id, arr);
   }
@@ -293,68 +288,6 @@ export async function planRaptor(
 
 // ---- helpers --------------------------------------------------------------
 
-function nearestStops(
-  list: [string, ScheduleStop][],
-  point: { lat: number; lng: number },
-  maxKm: number,
-  topN: number,
-): Array<{ id: string; stop: ScheduleStop; distKm: number } & ScheduleStop> {
-  const out: Array<{ id: string; stop: ScheduleStop; distKm: number } & ScheduleStop> = [];
-  for (const [id, s] of list) {
-    if (Math.abs(s.lat - point.lat) > 0.03) continue;
-    if (Math.abs(s.lng - point.lng) > 0.035) continue;
-    const distKm = haversineKm(s, point);
-    if (distKm > maxKm) continue;
-    out.push({ id, stop: s, distKm, name: s.name, lat: s.lat, lng: s.lng, feedId: s.feedId });
-  }
-  out.sort((a, b) => a.distKm - b.distKm);
-  return out.slice(0, topN);
-}
-
-type Buckets = Map<string, string[]>;
-const BUCKET_DEG = 0.005;
-function bkey(lat: number, lng: number): string {
-  return `${Math.floor(lat / BUCKET_DEG)}:${Math.floor(lng / BUCKET_DEG)}`;
-}
-function buildSpatialBuckets(stops: Record<string, ScheduleStop>): Buckets {
-  const b: Buckets = new Map();
-  for (const [id, s] of Object.entries(stops)) {
-    const k = bkey(s.lat, s.lng);
-    let bucket = b.get(k);
-    if (!bucket) {
-      bucket = [];
-      b.set(k, bucket);
-    }
-    bucket.push(id);
-  }
-  return b;
-}
-function nearbyStops(
-  buckets: Buckets,
-  stops: Record<string, ScheduleStop>,
-  from: ScheduleStop,
-  maxMeters: number,
-): Array<[string, number]> {
-  const out: Array<[string, number]> = [];
-  const baseLat = Math.floor(from.lat / BUCKET_DEG);
-  const baseLng = Math.floor(from.lng / BUCKET_DEG);
-  for (let dy = -1; dy <= 1; dy++) {
-    for (let dx = -1; dx <= 1; dx++) {
-      const list = buckets.get(`${baseLat + dy}:${baseLng + dx}`);
-      if (!list) continue;
-      for (const id of list) {
-        const s = stops[id];
-        const m = haversineKm(from, s) * 1000;
-        if (m > maxMeters) continue;
-        out.push([id, Math.round(m * WALK_DETOUR)]);
-      }
-    }
-  }
-  // Cap to nearest 6 to keep per-stop fanout small.
-  out.sort((a, b) => a[1] - b[1]);
-  return out.slice(0, 6);
-}
-
 function unixToServiceSec(date: string, unix: number): number {
   const midnight = serviceDateToUnix(date, 0);
   return unix - midnight;
@@ -482,7 +415,7 @@ function reconstruct(
   // Egress walk from last alight to destination.
   const lastStopId = endStopId;
   const lastStop = stops[lastStopId];
-  const egressMeters = Math.round(endMeta.distKm * 1000 * WALK_DETOUR);
+  const egressMeters = walkMetersOnStreet(endMeta.distKm * 1000);
   const egressSec = walkSecFromMeters(endMeta.distKm * 1000);
   legs.push({
     kind: "walk",
@@ -494,40 +427,4 @@ function reconstruct(
   });
 
   return finalise(legs, departureUnix);
-}
-
-function finalise(legs: Leg[], departureUnix: number): Itinerary {
-  const rides = legs.filter((l): l is RideLeg => l.kind === "ride");
-  const walks = legs.filter((l): l is WalkLeg => l.kind === "walk");
-  const arrivalUnix = lastEnd(legs, departureUnix);
-  const totalDurationSec = arrivalUnix - departureUnix;
-  const totalWalkMeters = walks.reduce((acc, w) => acc + w.distanceMeters, 0);
-  const transfers = Math.max(0, rides.length - 1);
-  const transferPenaltySec = transfers * 120;
-  const walkPenaltySec = Math.max(0, totalWalkMeters - 500) * 0.4;
-  const score = totalDurationSec + transferPenaltySec + walkPenaltySec;
-  const sig = rides.map((r) => `${r.routeId}-${r.board.stopId}-${r.alight.stopId}`).join("+");
-  return {
-    id: `rap-${sig}-${departureUnix}`,
-    legs,
-    totalDurationSec,
-    departureUnix,
-    arrivalUnix,
-    transfers,
-    totalWalkMeters,
-    score,
-    source: "estimated",
-  };
-}
-
-function lastEnd(legs: Leg[], departureUnix: number): number {
-  let cursor = departureUnix;
-  for (const l of legs) {
-    if (l.kind === "walk" || l.kind === "wait") cursor += l.durationSec;
-    else if (l.kind === "ride") {
-      cursor = Math.max(cursor, l.board.departureUnix);
-      cursor = l.alight.arrivalUnix;
-    }
-  }
-  return cursor;
 }
