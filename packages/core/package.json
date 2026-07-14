@@ -93,6 +93,10 @@
       "types": "./src/pulse-zones.ts",
       "default": "./src/pulse-zones.ts"
     },
+    "./raptor-core": {
+      "types": "./src/raptor-core.ts",
+      "default": "./src/raptor-core.ts"
+    },
     "./shapes": {
       "types": "./src/shapes.ts",
       "default": "./src/shapes.ts"
