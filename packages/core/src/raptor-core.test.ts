@@ -144,9 +144,15 @@ function ride(routeId: string, depUnix: number, arrUnix: number): Leg {
 
 describe("lastEnd", () => {
   it("advances through walks and waits", () => {
-    expect(lastEnd([walk(300, 400), { kind: "wait", stopId: "s", name: "S", lat: 0, lng: 0, durationSec: 120 }], T0)).toBe(
-      T0 + 420,
-    );
+    expect(
+      lastEnd(
+        [
+          walk(300, 400),
+          { kind: "wait", stopId: "s", name: "S", lat: 0, lng: 0, durationSec: 120 },
+        ],
+        T0,
+      ),
+    ).toBe(T0 + 420);
   });
 
   it("jumps to the ride's alight time", () => {
