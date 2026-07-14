@@ -2,7 +2,7 @@
 // composeTodayBriefing as the always-relevant fallback tile.
 export type RhythmNote = { title: string; titleEl: string; detail: string; detailEl: string };
 
-const RHYTHM: Record<string, Record<number, RhythmNote>> = {
+export const RHYTHM: Record<string, Record<number, RhythmNote>> = {
   Nicosia: {
     0: {
       title: "Sunday slow-down",
