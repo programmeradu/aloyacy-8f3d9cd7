@@ -230,7 +230,8 @@ async function runIngest(
 
   // per-date shards (one at a time to keep memory bounded)
   for (const date of dates) {
-    const active = servicesByDate.get(date) ?? new Set();
+    const entry = resolved.get(date);
+    const active = entry?.active ?? new Set<string>();
     const shardStopTimes: Record<string, StopTimeRow[]> = {};
     const shardStopTrips: Record<string, StopTripRow[]> = {};
     let rowCount = 0;
@@ -250,7 +251,11 @@ async function runIngest(
       rows: rowCount,
       stopTimesKb: Math.round(stRes.raw / 1024),
       stopTripsKb: Math.round(trRes.raw / 1024),
+      ...(entry && entry.projectedFeeds.length
+        ? { projectedFeeds: entry.projectedFeeds, projectedFrom: entry.projectedFrom }
+        : {}),
     };
+
     totalBytes += stRes.raw + trRes.raw;
   }
 
