@@ -289,7 +289,7 @@ describe("composeTodayBriefing", () => {
   it("rotates the fact every two hours and the word daily", () => {
     const morning = composeTodayBriefing(base());
     const evening = composeTodayBriefing(
-      base({ date: new Date(Date.UTC(2026, 4, 13, 22, 0, 0)) }),
+      base({ date: new Date(Date.UTC(2026, 4, 13, 12, 0, 0)) }),
     );
     expect(morning.fact.en).not.toBe(evening.fact.en);
     expect(morning.greekWord.el).toBe("καλημέρα");
