@@ -17,8 +17,8 @@ describe("resolveServiceDates", () => {
   // Feed 6 publishes only a week and stopped on 20260816 (a Saturday).
   const shortFeed = {
     "6:weekday": { feedId: 6, dates: ["20260813", "20260814"] },
-    "6:sat": { feedId: 6, dates: ["20260815", "20260816"] },
-    "6:sun": { feedId: 6, dates: ["20260809"] },
+    "6:sat": { feedId: 6, dates: ["20260815"] },
+    "6:sun": { feedId: 6, dates: ["20260816"] },
   };
 
   it("uses published services when the date is covered", () => {
@@ -28,7 +28,6 @@ describe("resolveServiceDates", () => {
   });
 
   it("projects a stale feed forward using the same weekday", () => {
-    // 20260816 is a Sunday, 20260815 a Saturday in this fixture's shape.
     const r = resolveServiceDates(shortFeed, ["20260822"]).get("20260822")!;
     expect(r.projectedFeeds).toEqual([6]);
     // 20260822 is a Saturday; newest published Saturday is 20260815.
@@ -54,7 +53,7 @@ describe("resolveServiceDates", () => {
     const map = resolveServiceDates(shortFeed, dates);
     expect([...map.keys()]).toEqual(dates);
     // Sunday projection comes from the only published Sunday.
-    expect(map.get("20260823")!.projectedFrom[6]).toBe("20260809");
+    expect(map.get("20260823")!.projectedFrom[6]).toBe("20260816");
   });
 
   it("skips a feed with no matching weekday published", () => {
