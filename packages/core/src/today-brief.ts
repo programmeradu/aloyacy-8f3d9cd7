@@ -7,13 +7,7 @@
 import { RHYTHM } from "./today-rhythm";
 
 export type TodayTheme =
-  | "derby"
-  | "festival"
-  | "holiday"
-  | "cruise"
-  | "heatwave"
-  | "storm"
-  | "calm";
+  "derby" | "festival" | "holiday" | "cruise" | "heatwave" | "storm" | "calm";
 
 export type TodayTileKind =
   | "match"
@@ -285,11 +279,7 @@ export type FeedEvent = {
 };
 
 /** Picks the first live feed event covering `d`, preferring the rider's city. */
-export function pickLiveEvent(
-  d: Date,
-  events: FeedEvent[],
-  preferCity?: string,
-): Festival | null {
+export function pickLiveEvent(d: Date, events: FeedEvent[], preferCity?: string): Festival | null {
   if (!Array.isArray(events) || events.length === 0) return null;
   const today = d.toISOString().slice(0, 10);
   const active = events.filter((e) => {
