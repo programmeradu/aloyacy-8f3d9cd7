@@ -105,6 +105,14 @@
       "types": "./src/single-leg-phase.ts",
       "default": "./src/single-leg-phase.ts"
     },
+    "./today-brief": {
+      "types": "./src/today-brief.ts",
+      "default": "./src/today-brief.ts"
+    },
+    "./today-rhythm": {
+      "types": "./src/today-rhythm.ts",
+      "default": "./src/today-rhythm.ts"
+    },
     "./trip-alert-copy": {
       "types": "./src/trip-alert-copy.ts",
       "default": "./src/trip-alert-copy.ts"
