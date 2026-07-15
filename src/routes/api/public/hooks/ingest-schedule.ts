@@ -193,26 +193,24 @@ async function runIngest(
       `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`,
     );
   }
-  const dateSet = new Set(dates);
-
-  const servicesByDate = new Map<string, Set<string>>();
-  for (const [sid, svc] of Object.entries(services)) {
-    for (const d of svc.dates) {
-      if (!dateSet.has(d)) continue;
-      let s = servicesByDate.get(d);
-      if (!s) {
-        s = new Set();
-        servicesByDate.set(d, s);
-      }
-      s.add(sid);
-    }
-  }
+  // Feeds publish wildly different calendar windows (Limassol only seven
+  // days). Project short calendars forward by weekday so a stale feed never
+  // silently removes an entire city from the planner.
+  const resolved = resolveServiceDates(services, dates);
 
   let totalBytes = 0;
   const shardIndex: Record<
     string,
-    { trips: number; rows: number; stopTimesKb: number; stopTripsKb: number }
+    {
+      trips: number;
+      rows: number;
+      stopTimesKb: number;
+      stopTripsKb: number;
+      projectedFeeds?: number[];
+      projectedFrom?: Record<number, string>;
+    }
   > = {};
+
 
   // globals
   const feedsMeta = FEED_IDS.map((id) => ({
