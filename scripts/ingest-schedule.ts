@@ -275,27 +275,26 @@ for (let i = 0; i < SHARD_DAYS; i++) {
   );
 }
 
-// Reverse index: date → Set<serviceId>
-const servicesByDate = new Map<string, Set<string>>();
-for (const [sid, svc] of Object.entries(services)) {
-  for (const d of svc.dates) {
-    if (!dates.includes(d)) continue;
-    let set = servicesByDate.get(d);
-    if (!set) {
-      set = new Set();
-      servicesByDate.set(d, set);
-    }
-    set.add(sid);
-  }
-}
+// Reverse index: date → active service ids. Feeds that publish only a short
+// rolling calendar (Limassol publishes seven days) are projected forward by
+// weekday so a missed nightly run never erases a whole city from the planner.
+const resolved = resolveServiceDates(services, dates);
 
 const shardIndex: Record<
   string,
-  { trips: number; rows: number; stopTimesKb: number; stopTripsKb: number }
+  {
+    trips: number;
+    rows: number;
+    stopTimesKb: number;
+    stopTripsKb: number;
+    projectedFeeds?: number[];
+    projectedFrom?: Record<number, string>;
+  }
 > = {};
 
 for (const date of dates) {
-  const activeSvc = servicesByDate.get(date) ?? new Set();
+  const entry = resolved.get(date);
+  const activeSvc = entry?.active ?? new Set<string>();
   const activeTrips = new Set<string>();
   for (const [tid, t] of Object.entries(trips)) {
     if (activeSvc.has(t.serviceId)) activeTrips.add(tid);
@@ -325,8 +324,21 @@ for (const date of dates) {
     rows: rowCount,
     stopTimesKb: Math.round(stRes.raw / 1024),
     stopTripsKb: Math.round(trRes.raw / 1024),
+    ...(entry && entry.projectedFeeds.length
+      ? { projectedFeeds: entry.projectedFeeds, projectedFrom: entry.projectedFrom }
+      : {}),
   };
+  if (entry && entry.projectedFeeds.length) {
+    console.log(
+      `[ingest] ${date}: projected feeds ${entry.projectedFeeds.join(", ")} from ${Object.entries(
+        entry.projectedFrom,
+      )
+        .map(([f, d]) => `${f}←${d}`)
+        .join(", ")}`,
+    );
+  }
 }
+
 
 write("by-date/index.json", shardIndex);
 
