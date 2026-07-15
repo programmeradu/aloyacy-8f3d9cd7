@@ -97,6 +97,10 @@
       "types": "./src/raptor-core.ts",
       "default": "./src/raptor-core.ts"
     },
+    "./schedule-calendar": {
+      "types": "./src/schedule-calendar.ts",
+      "default": "./src/schedule-calendar.ts"
+    },
     "./shapes": {
       "types": "./src/shapes.ts",
       "default": "./src/shapes.ts"
