@@ -12,6 +12,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { unzipSync, gzipSync, strFromU8 } from "fflate";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { resolveServiceDates } from "@aloya/core/schedule-calendar";
 
 const FEED_IDS = [2, 4, 5, 6, 9, 10, 11];
 const BASE = "https://motionbuscard.org.cy/opendata/downloadfile?file=GTFS\\";
