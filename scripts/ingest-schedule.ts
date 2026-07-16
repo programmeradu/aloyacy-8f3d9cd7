@@ -16,7 +16,7 @@
 // ~2–5 MB raw vs 50 MB for the global indexes, so a request can fetch only
 // the day it needs and stay well within Worker memory.
 
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 import { gzipSync } from "node:zlib";
