@@ -16,10 +16,11 @@
 // ~2–5 MB raw vs 50 MB for the global indexes, so a request can fetch only
 // the day it needs and stay well within Worker memory.
 
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 import { gzipSync } from "node:zlib";
+import { resolveServiceDates } from "@aloya/core/schedule-calendar";
 
 const FEED_IDS = [2, 4, 5, 6, 9, 10, 11];
 const BASE = "https://motionbuscard.org.cy/opendata/downloadfile?file=GTFS\\";
@@ -249,15 +250,18 @@ function write(name: string, data: unknown) {
   return { raw: json.length, gz: gz.length };
 }
 
+// The global stop-times / stop-trips indexes are intentionally NOT written:
+// they are ~30 MB each, nothing at runtime loads them (the Worker reads the
+// per-date shards), and they blow past the repository's file-size limit.
 const sizes = [
   write("feeds.json", feedsMeta),
   write("stops.json", stops),
   write("routes.json", routes),
   write("services.json", services),
   write("trips.json", trips),
-  write("stop-times.json", stopTimes),
-  write("stop-trips.json", stopTrips),
 ];
+void stopTrips;
+
 
 // --- 6. Per-date shards ---------------------------------------------------
 // For every date in the next SHARD_DAYS, emit the slice of stop-times and
@@ -275,27 +279,26 @@ for (let i = 0; i < SHARD_DAYS; i++) {
   );
 }
 
-// Reverse index: date → Set<serviceId>
-const servicesByDate = new Map<string, Set<string>>();
-for (const [sid, svc] of Object.entries(services)) {
-  for (const d of svc.dates) {
-    if (!dates.includes(d)) continue;
-    let set = servicesByDate.get(d);
-    if (!set) {
-      set = new Set();
-      servicesByDate.set(d, set);
-    }
-    set.add(sid);
-  }
-}
+// Reverse index: date → active service ids. Feeds that publish only a short
+// rolling calendar (Limassol publishes seven days) are projected forward by
+// weekday so a missed nightly run never erases a whole city from the planner.
+const resolved = resolveServiceDates(services, dates);
 
 const shardIndex: Record<
   string,
-  { trips: number; rows: number; stopTimesKb: number; stopTripsKb: number }
+  {
+    trips: number;
+    rows: number;
+    stopTimesKb: number;
+    stopTripsKb: number;
+    projectedFeeds?: number[];
+    projectedFrom?: Record<number, string>;
+  }
 > = {};
 
 for (const date of dates) {
-  const activeSvc = servicesByDate.get(date) ?? new Set();
+  const entry = resolved.get(date);
+  const activeSvc = entry?.active ?? new Set<string>();
   const activeTrips = new Set<string>();
   for (const [tid, t] of Object.entries(trips)) {
     if (activeSvc.has(t.serviceId)) activeTrips.add(tid);
@@ -325,10 +328,35 @@ for (const date of dates) {
     rows: rowCount,
     stopTimesKb: Math.round(stRes.raw / 1024),
     stopTripsKb: Math.round(trRes.raw / 1024),
+    ...(entry && entry.projectedFeeds.length
+      ? { projectedFeeds: entry.projectedFeeds, projectedFrom: entry.projectedFrom }
+      : {}),
   };
+  if (entry && entry.projectedFeeds.length) {
+    console.log(
+      `[ingest] ${date}: projected feeds ${entry.projectedFeeds.join(", ")} from ${Object.entries(
+        entry.projectedFrom,
+      )
+        .map(([f, d]) => `${f}←${d}`)
+        .join(", ")}`,
+    );
+  }
+}
+
+// Drop shards for dates we no longer serve, so the checked-in bundle stays
+// small instead of accumulating every day we ever ingested.
+{
+  const keep = new Set(dates);
+  const shardRoot = join(OUT, "by-date");
+  for (const name of readdirSync(shardRoot)) {
+    if (!/^\d{8}$/.test(name) || keep.has(name)) continue;
+    rmSync(join(shardRoot, name), { recursive: true, force: true });
+    console.log(`[ingest] pruned stale shard ${name}`);
+  }
 }
 
 write("by-date/index.json", shardIndex);
+
 
 const totalRaw = sizes.reduce((a, b) => a + b.raw, 0);
 const totalGz = sizes.reduce((a, b) => a + b.gz, 0);

@@ -12,6 +12,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { unzipSync, gzipSync, strFromU8 } from "fflate";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { resolveServiceDates } from "@aloya/core/schedule-calendar";
 
 const FEED_IDS = [2, 4, 5, 6, 9, 10, 11];
 const BASE = "https://motionbuscard.org.cy/opendata/downloadfile?file=GTFS\\";
@@ -48,7 +49,33 @@ const hms = (s: string) => {
   return Number(h) * 3600 + Number(m) * 60 + Number(sec);
 };
 
+/**
+ * The bucket lives on whichever Supabase instance the deployment points at, so
+ * a fresh instance (or a migration to self-hosted) starts without it. Create it
+ * once per process instead of failing the whole ingest with "Bucket not found".
+ */
+let bucketReady: Promise<void> | null = null;
+function ensureBucket() {
+  bucketReady ??= (async () => {
+    const { data } = await supabaseAdmin.storage.getBucket(BUCKET);
+    if (data) return;
+    // No fileSizeLimit: self-hosted instances reject a per-bucket limit above
+    // their global cap, and shards are a few MB each anyway.
+    const { error } = await supabaseAdmin.storage.createBucket(BUCKET, { public: true });
+    // A parallel invocation may have won the race; that is fine.
+    if (error && !/exist/i.test(error.message)) {
+      throw new Error(`create bucket ${BUCKET}: ${error.message}`);
+    }
+  })().catch((err) => {
+    bucketReady = null;
+    throw err;
+  });
+  return bucketReady;
+}
+
 async function uploadJson(path: string, data: unknown) {
+  await ensureBucket();
+
   const json = JSON.stringify(data);
   const bytes = new TextEncoder().encode(json);
   const gz = gzipSync(bytes, { level: 9 });
@@ -193,26 +220,24 @@ async function runIngest(
       `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`,
     );
   }
-  const dateSet = new Set(dates);
-
-  const servicesByDate = new Map<string, Set<string>>();
-  for (const [sid, svc] of Object.entries(services)) {
-    for (const d of svc.dates) {
-      if (!dateSet.has(d)) continue;
-      let s = servicesByDate.get(d);
-      if (!s) {
-        s = new Set();
-        servicesByDate.set(d, s);
-      }
-      s.add(sid);
-    }
-  }
+  // Feeds publish wildly different calendar windows (Limassol only seven
+  // days). Project short calendars forward by weekday so a stale feed never
+  // silently removes an entire city from the planner.
+  const resolved = resolveServiceDates(services, dates);
 
   let totalBytes = 0;
   const shardIndex: Record<
     string,
-    { trips: number; rows: number; stopTimesKb: number; stopTripsKb: number }
+    {
+      trips: number;
+      rows: number;
+      stopTimesKb: number;
+      stopTripsKb: number;
+      projectedFeeds?: number[];
+      projectedFrom?: Record<number, string>;
+    }
   > = {};
+
 
   // globals
   const feedsMeta = FEED_IDS.map((id) => ({
@@ -232,7 +257,8 @@ async function runIngest(
 
   // per-date shards (one at a time to keep memory bounded)
   for (const date of dates) {
-    const active = servicesByDate.get(date) ?? new Set();
+    const entry = resolved.get(date);
+    const active = entry?.active ?? new Set<string>();
     const shardStopTimes: Record<string, StopTimeRow[]> = {};
     const shardStopTrips: Record<string, StopTripRow[]> = {};
     let rowCount = 0;
@@ -252,7 +278,11 @@ async function runIngest(
       rows: rowCount,
       stopTimesKb: Math.round(stRes.raw / 1024),
       stopTripsKb: Math.round(trRes.raw / 1024),
+      ...(entry && entry.projectedFeeds.length
+        ? { projectedFeeds: entry.projectedFeeds, projectedFrom: entry.projectedFrom }
+        : {}),
     };
+
     totalBytes += stRes.raw + trRes.raw;
   }
 
