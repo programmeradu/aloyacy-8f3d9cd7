@@ -250,15 +250,18 @@ function write(name: string, data: unknown) {
   return { raw: json.length, gz: gz.length };
 }
 
+// The global stop-times / stop-trips indexes are intentionally NOT written:
+// they are ~30 MB each, nothing at runtime loads them (the Worker reads the
+// per-date shards), and they blow past the repository's file-size limit.
 const sizes = [
   write("feeds.json", feedsMeta),
   write("stops.json", stops),
   write("routes.json", routes),
   write("services.json", services),
   write("trips.json", trips),
-  write("stop-times.json", stopTimes),
-  write("stop-trips.json", stopTrips),
 ];
+void stopTrips;
+
 
 // --- 6. Per-date shards ---------------------------------------------------
 // For every date in the next SHARD_DAYS, emit the slice of stop-times and
