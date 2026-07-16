@@ -49,7 +49,34 @@ const hms = (s: string) => {
   return Number(h) * 3600 + Number(m) * 60 + Number(sec);
 };
 
+/**
+ * The bucket lives on whichever Supabase instance the deployment points at, so
+ * a fresh instance (or a migration to self-hosted) starts without it. Create it
+ * once per process instead of failing the whole ingest with "Bucket not found".
+ */
+let bucketReady: Promise<void> | null = null;
+function ensureBucket() {
+  bucketReady ??= (async () => {
+    const { data } = await supabaseAdmin.storage.getBucket(BUCKET);
+    if (data) return;
+    const { error } = await supabaseAdmin.storage.createBucket(BUCKET, {
+      public: true,
+      fileSizeLimit: "64MB",
+    });
+    // A parallel invocation may have won the race; that is fine.
+    if (error && !/exist/i.test(error.message)) {
+      throw new Error(`create bucket ${BUCKET}: ${error.message}`);
+    }
+  })().catch((err) => {
+    bucketReady = null;
+    throw err;
+  });
+  return bucketReady;
+}
+
 async function uploadJson(path: string, data: unknown) {
+  await ensureBucket();
+
   const json = JSON.stringify(data);
   const bytes = new TextEncoder().encode(json);
   const gz = gzipSync(bytes, { level: 9 });
