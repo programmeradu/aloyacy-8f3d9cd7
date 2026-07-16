@@ -59,10 +59,9 @@ function ensureBucket() {
   bucketReady ??= (async () => {
     const { data } = await supabaseAdmin.storage.getBucket(BUCKET);
     if (data) return;
-    const { error } = await supabaseAdmin.storage.createBucket(BUCKET, {
-      public: true,
-      fileSizeLimit: "64MB",
-    });
+    // No fileSizeLimit: self-hosted instances reject a per-bucket limit above
+    // their global cap, and shards are a few MB each anyway.
+    const { error } = await supabaseAdmin.storage.createBucket(BUCKET, { public: true });
     // A parallel invocation may have won the race; that is fine.
     if (error && !/exist/i.test(error.message)) {
       throw new Error(`create bucket ${BUCKET}: ${error.message}`);
