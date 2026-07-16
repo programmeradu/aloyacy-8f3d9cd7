@@ -14,6 +14,7 @@ import {
   type PlanPlace,
   type PlanTimeIntent,
 } from "@aloya/core/plan-intent";
+import { ArrivalPromiseCommit } from "@/components/ArrivalPromiseCard";
 
 import { palette } from "@/constants/theme";
 import { useGeoFix, useRealtime } from "@/lib/hooks";
@@ -252,6 +253,16 @@ export default function PlanScreen() {
         {!canPlan && <PlanEmptyState />}
         {planning && <PlanningIndicator />}
         {planQuery.isError && <PlanErrorNotice />}
+
+        {result && destination && clock.arriveByUnix != null && (
+          <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
+            <ArrivalPromiseCommit
+              origin={effectiveOrigin}
+              destination={destination}
+              targetArrivalUnix={clock.arriveByUnix}
+            />
+          </View>
+        )}
 
         {result && (
           <PlanResults

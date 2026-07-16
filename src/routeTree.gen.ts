@@ -77,6 +77,7 @@ import { Route as ApiPublicDustAdvisoryRouteImport } from './routes/api/public/d
 import { Route as ApiPublicBoltScooterRouteImport } from './routes/api/public/bolt-scooter'
 import { Route as ApiPublicBikeShareRouteImport } from './routes/api/public/bike-share'
 import { Route as ApiPublicBedrockTestRouteImport } from './routes/api/public/bedrock-test'
+import { Route as ApiPublicArrivalPromiseRouteImport } from './routes/api/public/arrival-promise'
 import { Route as ApiPublicAirportRouteImport } from './routes/api/public/airport'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -98,6 +99,7 @@ import { Route as ApiPublicHooksPulseCruisesRouteImport } from './routes/api/pub
 import { Route as ApiPublicHooksPulseAirRouteImport } from './routes/api/public/hooks/pulse-air'
 import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
 import { Route as ApiPublicHooksDepartureTickRouteImport } from './routes/api/public/hooks/departure-tick'
+import { Route as ApiPublicHooksArrivalWatchTickRouteImport } from './routes/api/public/hooks/arrival-watch-tick'
 import { Route as ApiPublicGbfsVehicle_typesDotjsonRouteImport } from './routes/api/public/gbfs/vehicle_types[.]json'
 import { Route as ApiPublicGbfsSystem_informationDotjsonRouteImport } from './routes/api/public/gbfs/system_information[.]json'
 import { Route as ApiPublicGbfsStation_statusDotjsonRouteImport } from './routes/api/public/gbfs/station_status[.]json'
@@ -456,6 +458,11 @@ const ApiPublicBedrockTestRoute = ApiPublicBedrockTestRouteImport.update({
   path: '/api/public/bedrock-test',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicArrivalPromiseRoute = ApiPublicArrivalPromiseRouteImport.update({
+  id: '/api/public/arrival-promise',
+  path: '/api/public/arrival-promise',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAirportRoute = ApiPublicAirportRouteImport.update({
   id: '/api/public/airport',
   path: '/api/public/airport',
@@ -574,6 +581,12 @@ const ApiPublicHooksDepartureTickRoute =
     path: '/api/public/hooks/departure-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksArrivalWatchTickRoute =
+  ApiPublicHooksArrivalWatchTickRouteImport.update({
+    id: '/api/public/hooks/arrival-watch-tick',
+    path: '/api/public/hooks/arrival-watch-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicGbfsVehicle_typesDotjsonRoute =
   ApiPublicGbfsVehicle_typesDotjsonRouteImport.update({
     id: '/api/public/gbfs/vehicle_types.json',
@@ -653,6 +666,7 @@ export interface FileRoutesByFullPath {
   '/trip/$id': typeof TripIdRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/airport': typeof ApiPublicAirportRoute
+  '/api/public/arrival-promise': typeof ApiPublicArrivalPromiseRoute
   '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
@@ -697,6 +711,7 @@ export interface FileRoutesByFullPath {
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
   '/api/public/gbfs/system_information.json': typeof ApiPublicGbfsSystem_informationDotjsonRoute
   '/api/public/gbfs/vehicle_types.json': typeof ApiPublicGbfsVehicle_typesDotjsonRoute
+  '/api/public/hooks/arrival-watch-tick': typeof ApiPublicHooksArrivalWatchTickRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
@@ -752,6 +767,7 @@ export interface FileRoutesByTo {
   '/trip/$id': typeof TripIdRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/airport': typeof ApiPublicAirportRoute
+  '/api/public/arrival-promise': typeof ApiPublicArrivalPromiseRoute
   '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
@@ -796,6 +812,7 @@ export interface FileRoutesByTo {
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
   '/api/public/gbfs/system_information.json': typeof ApiPublicGbfsSystem_informationDotjsonRoute
   '/api/public/gbfs/vehicle_types.json': typeof ApiPublicGbfsVehicle_typesDotjsonRoute
+  '/api/public/hooks/arrival-watch-tick': typeof ApiPublicHooksArrivalWatchTickRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
@@ -852,6 +869,7 @@ export interface FileRoutesById {
   '/trip/$id': typeof TripIdRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/airport': typeof ApiPublicAirportRoute
+  '/api/public/arrival-promise': typeof ApiPublicArrivalPromiseRoute
   '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
@@ -896,6 +914,7 @@ export interface FileRoutesById {
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
   '/api/public/gbfs/system_information.json': typeof ApiPublicGbfsSystem_informationDotjsonRoute
   '/api/public/gbfs/vehicle_types.json': typeof ApiPublicGbfsVehicle_typesDotjsonRoute
+  '/api/public/hooks/arrival-watch-tick': typeof ApiPublicHooksArrivalWatchTickRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
@@ -953,6 +972,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/airport'
+    | '/api/public/arrival-promise'
     | '/api/public/bedrock-test'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
@@ -997,6 +1017,7 @@ export interface FileRouteTypes {
     | '/api/public/gbfs/station_status.json'
     | '/api/public/gbfs/system_information.json'
     | '/api/public/gbfs/vehicle_types.json'
+    | '/api/public/hooks/arrival-watch-tick'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
@@ -1052,6 +1073,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/airport'
+    | '/api/public/arrival-promise'
     | '/api/public/bedrock-test'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
@@ -1096,6 +1118,7 @@ export interface FileRouteTypes {
     | '/api/public/gbfs/station_status.json'
     | '/api/public/gbfs/system_information.json'
     | '/api/public/gbfs/vehicle_types.json'
+    | '/api/public/hooks/arrival-watch-tick'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
@@ -1151,6 +1174,7 @@ export interface FileRouteTypes {
     | '/trip/$id'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/airport'
+    | '/api/public/arrival-promise'
     | '/api/public/bedrock-test'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
@@ -1195,6 +1219,7 @@ export interface FileRouteTypes {
     | '/api/public/gbfs/station_status.json'
     | '/api/public/gbfs/system_information.json'
     | '/api/public/gbfs/vehicle_types.json'
+    | '/api/public/hooks/arrival-watch-tick'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
@@ -1251,6 +1276,7 @@ export interface RootRouteChildren {
   TripIdRoute: typeof TripIdRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicAirportRoute: typeof ApiPublicAirportRoute
+  ApiPublicArrivalPromiseRoute: typeof ApiPublicArrivalPromiseRoute
   ApiPublicBedrockTestRoute: typeof ApiPublicBedrockTestRoute
   ApiPublicBikeShareRoute: typeof ApiPublicBikeShareRoute
   ApiPublicBoltScooterRoute: typeof ApiPublicBoltScooterRoute
@@ -1295,6 +1321,7 @@ export interface RootRouteChildren {
   ApiPublicGbfsStation_statusDotjsonRoute: typeof ApiPublicGbfsStation_statusDotjsonRoute
   ApiPublicGbfsSystem_informationDotjsonRoute: typeof ApiPublicGbfsSystem_informationDotjsonRoute
   ApiPublicGbfsVehicle_typesDotjsonRoute: typeof ApiPublicGbfsVehicle_typesDotjsonRoute
+  ApiPublicHooksArrivalWatchTickRoute: typeof ApiPublicHooksArrivalWatchTickRoute
   ApiPublicHooksDepartureTickRoute: typeof ApiPublicHooksDepartureTickRoute
   ApiPublicHooksIngestScheduleRoute: typeof ApiPublicHooksIngestScheduleRoute
   ApiPublicHooksPulseAirRoute: typeof ApiPublicHooksPulseAirRoute
@@ -1794,6 +1821,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBedrockTestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/arrival-promise': {
+      id: '/api/public/arrival-promise'
+      path: '/api/public/arrival-promise'
+      fullPath: '/api/public/arrival-promise'
+      preLoaderRoute: typeof ApiPublicArrivalPromiseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/airport': {
       id: '/api/public/airport'
       path: '/api/public/airport'
@@ -1941,6 +1975,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDepartureTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/arrival-watch-tick': {
+      id: '/api/public/hooks/arrival-watch-tick'
+      path: '/api/public/hooks/arrival-watch-tick'
+      fullPath: '/api/public/hooks/arrival-watch-tick'
+      preLoaderRoute: typeof ApiPublicHooksArrivalWatchTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/gbfs/vehicle_types.json': {
       id: '/api/public/gbfs/vehicle_types.json'
       path: '/api/public/gbfs/vehicle_types.json'
@@ -2048,6 +2089,7 @@ const rootRouteChildren: RootRouteChildren = {
   TripIdRoute: TripIdRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicAirportRoute: ApiPublicAirportRoute,
+  ApiPublicArrivalPromiseRoute: ApiPublicArrivalPromiseRoute,
   ApiPublicBedrockTestRoute: ApiPublicBedrockTestRoute,
   ApiPublicBikeShareRoute: ApiPublicBikeShareRoute,
   ApiPublicBoltScooterRoute: ApiPublicBoltScooterRoute,
@@ -2097,6 +2139,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicGbfsSystem_informationDotjsonRoute,
   ApiPublicGbfsVehicle_typesDotjsonRoute:
     ApiPublicGbfsVehicle_typesDotjsonRoute,
+  ApiPublicHooksArrivalWatchTickRoute: ApiPublicHooksArrivalWatchTickRoute,
   ApiPublicHooksDepartureTickRoute: ApiPublicHooksDepartureTickRoute,
   ApiPublicHooksIngestScheduleRoute: ApiPublicHooksIngestScheduleRoute,
   ApiPublicHooksPulseAirRoute: ApiPublicHooksPulseAirRoute,

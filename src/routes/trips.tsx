@@ -26,6 +26,10 @@ import {
 } from "@/components/plan/PlanPieces";
 
 import { useAuth } from "@/lib/useAuth";
+import {
+  ArrivalPromiseCommit,
+  ArrivalPromiseWatchList,
+} from "@/components/plan/ArrivalPromiseCard";
 import { useI18n } from "@/lib/i18n";
 import { useAccessibilityPrefs } from "@/lib/useAccessibilityPrefs";
 import { isActive as isA11yActive } from "@/lib/accessibility-prefs";
@@ -462,6 +466,11 @@ function Plan() {
   const kapnosAfterUnix = timeIntent?.leaveByISO
     ? Math.floor(new Date(timeIntent.leaveByISO).getTime() / 1000)
     : undefined;
+  // The rider's arrive-by intent in unix seconds — drives the arrival promise.
+  const arriveByUnix = timeIntent?.arriveByISO
+    ? Math.floor(new Date(timeIntent.arriveByISO).getTime() / 1000)
+    : null;
+
   const kapnosBeforeUnix = timeIntent?.arriveByISO
     ? Math.floor(new Date(timeIntent.arriveByISO).getTime() / 1000)
     : undefined;
@@ -847,6 +856,10 @@ function Plan() {
         />
       </section>
 
+      <section className="mt-7 px-6 animate-rise" style={{ animationDelay: "120ms" }}>
+        <ArrivalPromiseWatchList />
+      </section>
+
       <section className="mt-7 px-6 animate-rise" style={{ animationDelay: "140ms" }}>
         <div className="mb-3 flex items-end justify-between">
           <h2 className="font-display text-2xl text-ink">
@@ -969,6 +982,13 @@ function Plan() {
         {results && results.length > 0 && origin && destination && (
           <div className="flex flex-col gap-3">
             {dustAdvisory && <DustAdvisoryBanner advisory={dustAdvisory} />}
+            {arriveByUnix != null && (
+              <ArrivalPromiseCommit
+                origin={origin}
+                destination={destination}
+                targetArrivalUnix={arriveByUnix}
+              />
+            )}
             {kapnos && (
               <KapnosShuttleCard
                 suggestion={kapnos}

@@ -29,6 +29,7 @@ import {
 import { useProSubscription } from "@/lib/usePro";
 import { useSession } from "@/lib/auth";
 import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
+import { ArrivalPromiseWatchList } from "@/components/ArrivalPromiseCard";
 
 const TONE_CYCLE: SavedPlace["tone"][] = ["aegean", "ochre", "olive"];
 
@@ -130,6 +131,10 @@ export default function SavedScreen() {
           on Aloya
         </Text>
       </Text>
+
+      <View style={{ marginTop: 24 }}>
+        <ArrivalPromiseWatchList />
+      </View>
 
       {/* Pinned */}
       <Text

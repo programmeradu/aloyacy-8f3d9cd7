@@ -5,6 +5,10 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./arrival-promise": {
+      "types": "./src/arrival-promise.ts",
+      "default": "./src/arrival-promise.ts"
+    },
     "./cities": {
       "types": "./src/cities.ts",
       "default": "./src/cities.ts"
