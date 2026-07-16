@@ -343,8 +343,20 @@ for (const date of dates) {
   }
 }
 
+// Drop shards for dates we no longer serve, so the checked-in bundle stays
+// small instead of accumulating every day we ever ingested.
+{
+  const keep = new Set(dates);
+  const shardRoot = join(OUT, "by-date");
+  for (const name of readdirSync(shardRoot)) {
+    if (!/^\d{8}$/.test(name) || keep.has(name)) continue;
+    rmSync(join(shardRoot, name), { recursive: true, force: true });
+    console.log(`[ingest] pruned stale shard ${name}`);
+  }
+}
 
 write("by-date/index.json", shardIndex);
+
 
 const totalRaw = sizes.reduce((a, b) => a + b.raw, 0);
 const totalGz = sizes.reduce((a, b) => a + b.gz, 0);
