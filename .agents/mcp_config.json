@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "lovable": {
-      "serverUrl": "https://mcp.lovable.dev/?src=settings"
+      "serverUrl": "https://mcp.lovable.dev"
     }
   }
 }
