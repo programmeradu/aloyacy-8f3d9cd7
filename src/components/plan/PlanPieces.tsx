@@ -251,14 +251,20 @@ export function TimeIntentChip({
           />
           {mode === "arrive" && (
             <div className="flex flex-wrap gap-1.5">
-              {[
-                { label: "Today 17:00", iso: (() => {
-                  const d = new Date();
-                  d.setHours(17, 0, 0, 0);
-                  return d.getTime() > Date.now() ? d.toISOString() : tomorrowAt(17);
-                })() },
-                { label: "Tomorrow 09:00", iso: tomorrowAt(9) },
-              ].map((q) => (
+              {(() => {
+                // "Today 17:00" only while it is still ahead of the rider;
+                // after that the same chip honestly reads as tomorrow.
+                const five = new Date();
+                five.setHours(17, 0, 0, 0);
+                const eveningAhead = five.getTime() > Date.now() + 5 * 60_000;
+                return [
+                  {
+                    label: eveningAhead ? t("trips.intentQuickToday") : "Tomorrow 17:00",
+                    iso: eveningAhead ? five.toISOString() : tomorrowAt(17),
+                  },
+                  { label: t("trips.intentQuickTomorrow"), iso: tomorrowAt(9) },
+                ];
+              })().map((q) => (
                 <button
                   key={q.label}
                   type="button"
