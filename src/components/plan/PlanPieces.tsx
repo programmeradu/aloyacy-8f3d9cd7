@@ -136,9 +136,42 @@ export function FieldRow({
   );
 }
 
+/** `2026-08-23T16:00` — the shape a native datetime-local input speaks. */
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromLocalInput(value: string): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/** Sensible first guess so the picker never opens on an empty field. */
+function defaultISO(mode: "leave" | "arrive"): string {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  d.setMinutes(d.getMinutes() + (mode === "arrive" ? 90 : 30));
+  // Round up to the next quarter hour — riders think in :00 / :15 / :30.
+  d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0);
+  return d.toISOString();
+}
+
+/** Tomorrow at the same wall-clock time, for the most common arrive-by ask. */
+function tomorrowAt(hour: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(hour, 0, 0, 0);
+  return d.toISOString();
+}
+
 /**
- * Surfaces a leave-by / arrive-by request from the NL planner so the rider
- * knows the search is honouring it, and can flip or clear it.
+ * The rider's departure/arrival intent: always visible, so "get me there by
+ * 16:00" is a control on the page rather than a phrase only the NL planner
+ * understands. Choosing "Arrive by" is also what unlocks the arrival promise.
  */
 export function TimeIntentChip({
   intent,
@@ -150,34 +183,103 @@ export function TimeIntentChip({
   onClear: () => void;
 }) {
   const { t } = useI18n();
-  if (!intent || (!intent.leaveByISO && !intent.arriveByISO)) return null;
-  const iso = intent.arriveByISO ?? intent.leaveByISO!;
-  const mode: "arrive" | "leave" = intent.arriveByISO ? "arrive" : "leave";
-  const label = formatIntentLabel(iso, t);
+  const mode: "now" | "leave" | "arrive" = intent?.arriveByISO
+    ? "arrive"
+    : intent?.leaveByISO
+      ? "leave"
+      : "now";
+  const iso = intent?.arriveByISO ?? intent?.leaveByISO ?? null;
+
+  const set = (next: "now" | "leave" | "arrive") => {
+    if (next === "now") {
+      onClear();
+      return;
+    }
+    const keep = iso ?? defaultISO(next);
+    onChange(next === "arrive" ? { leaveByISO: null, arriveByISO: keep } : { leaveByISO: keep, arriveByISO: null });
+  };
+
+  const setISO = (nextISO: string | null) => {
+    if (!nextISO) {
+      onClear();
+      return;
+    }
+    onChange(
+      mode === "arrive"
+        ? { leaveByISO: null, arriveByISO: nextISO }
+        : { leaveByISO: nextISO, arriveByISO: null },
+    );
+  };
+
+  const options: { key: "now" | "leave" | "arrive"; label: string }[] = [
+    { key: "now", label: t("trips.intentNow") },
+    { key: "leave", label: t("trips.intentLeave") },
+    { key: "arrive", label: t("trips.intentArriveBy") },
+  ];
+
   return (
-    <div className="mt-3 flex items-center gap-2 rounded-full bg-aegean-soft/50 ring-1 ring-aegean-soft px-3 py-2">
-      <IconClock className="size-3.5 text-aegean-deep shrink-0" />
-      <button
-        type="button"
-        onClick={() =>
-          onChange(
-            mode === "arrive"
-              ? { leaveByISO: iso, arriveByISO: null }
-              : { leaveByISO: null, arriveByISO: iso },
-          )
-        }
-        className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-aegean-deep hover:text-ink transition"
-      >
-        {mode === "arrive" ? t("trips.intentArriveBy") : t("trips.intentLeave")} {label}
-      </button>
-      <span className="flex-1" />
-      <button
-        type="button"
-        onClick={onClear}
-        className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft hover:text-ink transition"
-      >
-        {t("trips.intentNow")}
-      </button>
+    <div className="mt-3 rounded-[22px] bg-card ring-1 ring-line p-3">
+      <div className="flex items-center gap-2">
+        <IconClock className="size-3.5 shrink-0 text-aegean-deep" />
+        <div className="flex flex-wrap gap-1.5">
+          {options.map((o) => (
+            <button
+              key={o.key}
+              type="button"
+              onClick={() => set(o.key)}
+              aria-pressed={mode === o.key}
+              className={`h-8 rounded-full px-3.5 font-sans text-[12.5px] font-semibold transition-colors ${
+                mode === o.key
+                  ? "bg-ink text-limestone"
+                  : "bg-limestone-soft text-ink-soft ring-1 ring-line hover:text-ink"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {mode !== "now" && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+          <input
+            type="datetime-local"
+            value={iso ? toLocalInput(iso) : ""}
+            onChange={(e) => setISO(fromLocalInput(e.target.value))}
+            aria-label={mode === "arrive" ? t("trips.intentArriveBy") : t("trips.intentLeave")}
+            className="h-9 min-w-0 flex-1 rounded-full bg-limestone-soft px-4 font-sans text-[13px] font-semibold text-ink ring-1 ring-line outline-none focus:ring-aegean"
+          />
+          {mode === "arrive" && (
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { label: "Today 17:00", iso: (() => {
+                  const d = new Date();
+                  d.setHours(17, 0, 0, 0);
+                  return d.getTime() > Date.now() ? d.toISOString() : tomorrowAt(17);
+                })() },
+                { label: "Tomorrow 09:00", iso: tomorrowAt(9) },
+              ].map((q) => (
+                <button
+                  key={q.label}
+                  type="button"
+                  onClick={() => setISO(q.iso)}
+                  className="h-9 rounded-full bg-limestone-soft px-3.5 font-sans text-[12.5px] font-semibold text-ink-soft ring-1 ring-line transition-colors hover:text-ink"
+                >
+                  {q.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {iso && (
+        <p className="mt-2.5 font-sans text-[12.5px] leading-relaxed font-medium text-ink-soft">
+          {mode === "arrive"
+            ? `Planning to land by ${formatIntentLabel(iso, t)} — Aloya can watch this arrival for you below.`
+            : `Planning from ${formatIntentLabel(iso, t)}.`}
+        </p>
+      )}
     </div>
   );
 }
