@@ -183,6 +183,7 @@ export function ArrivalPromiseCommit({
         {error ? (
           <p className="mt-3 font-sans text-[12.5px] font-medium text-ochre">{error}</p>
         ) : null}
+        </div>
       </section>
 
       <AuthSheet
