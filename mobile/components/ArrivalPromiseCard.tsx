@@ -3,7 +3,7 @@
 // from @aloya/core/arrival-promise so both apps say exactly the same thing.
 
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Pressable, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import {
@@ -92,9 +92,16 @@ export function ArrivalPromiseCommit({
         backgroundColor: palette.white,
         borderWidth: 1,
         borderColor: palette.line,
-        padding: 20,
+        overflow: "hidden",
       }}
     >
+      <Image
+        source={require("../assets/images/arrival-promise-hero.jpg")}
+        accessibilityLabel="Coastal road curving toward a steady clock face"
+        resizeMode="cover"
+        style={{ width: "100%", height: 116 }}
+      />
+      <View style={{ padding: 20 }}>
       <Text
         style={{
           fontFamily: "JetBrainsMono_600SemiBold",
@@ -190,6 +197,7 @@ export function ArrivalPromiseCommit({
           {busy ? "Setting the watch…" : "Watch this arrival"}
         </Text>
       </Pressable>
+      </View>
     </View>
   );
 }

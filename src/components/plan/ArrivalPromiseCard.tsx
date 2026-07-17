@@ -33,6 +33,7 @@ import { getDeviceId, getOrCreatePushSubscription } from "@/lib/pwa";
 import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "@/components/AuthSheet";
 import { useTick } from "@/hooks/use-tick";
+import arrivalHero from "@/assets/arrival-promise-hero.jpg";
 
 /** Wall-clock seconds that re-render on a fixed cadence. */
 function useNowUnix(intervalMs: number): number {
@@ -120,7 +121,16 @@ export function ArrivalPromiseCommit({
 
   return (
     <>
-      <section className="rounded-3xl bg-card ring-1 ring-line p-5 sm:p-6">
+      <section className="overflow-hidden rounded-3xl bg-card ring-1 ring-line">
+        <img
+          src={arrivalHero}
+          alt="Coastal road curving toward a steady clock face — Aloya holding an arrival time"
+          width={1536}
+          height={832}
+          loading="lazy"
+          className="h-32 w-full object-cover object-right sm:h-40"
+        />
+        <div className="p-5 sm:p-6">
         <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-ink-soft">
           Arrival promise
         </p>
@@ -174,6 +184,7 @@ export function ArrivalPromiseCommit({
         {error ? (
           <p className="mt-3 font-sans text-[12.5px] font-medium text-ochre">{error}</p>
         ) : null}
+        </div>
       </section>
 
       <AuthSheet
