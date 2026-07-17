@@ -282,8 +282,8 @@ export function TimeIntentChip({
       {iso && (
         <p className="mt-2.5 font-sans text-[12.5px] leading-relaxed font-medium text-ink-soft">
           {mode === "arrive"
-            ? `Planning to land by ${formatIntentLabel(iso, t)} — Aloya can watch this arrival for you below.`
-            : `Planning from ${formatIntentLabel(iso, t)}.`}
+            ? t("trips.intentPlanArrive", { when: formatIntentLabel(iso, t) })
+            : t("trips.intentPlanLeave", { when: formatIntentLabel(iso, t) })}
         </p>
       )}
     </div>
