@@ -3,7 +3,7 @@
 // from @aloya/core/arrival-promise so both apps say exactly the same thing.
 
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Pressable, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import {
