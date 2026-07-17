@@ -197,6 +197,7 @@ export function ArrivalPromiseCommit({
           {busy ? "Setting the watch…" : "Watch this arrival"}
         </Text>
       </Pressable>
+      </View>
     </View>
   );
 }
