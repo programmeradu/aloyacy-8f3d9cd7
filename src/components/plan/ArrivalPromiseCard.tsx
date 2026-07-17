@@ -33,6 +33,7 @@ import { getDeviceId, getOrCreatePushSubscription } from "@/lib/pwa";
 import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "@/components/AuthSheet";
 import { useTick } from "@/hooks/use-tick";
+import arrivalHero from "@/assets/arrival-promise-hero.jpg";
 
 /** Wall-clock seconds that re-render on a fixed cadence. */
 function useNowUnix(intervalMs: number): number {
