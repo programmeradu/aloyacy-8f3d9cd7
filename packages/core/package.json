@@ -121,6 +121,10 @@
       "types": "./src/today-rhythm.ts",
       "default": "./src/today-rhythm.ts"
     },
+    "./time-presets": {
+      "types": "./src/time-presets.ts",
+      "default": "./src/time-presets.ts"
+    },
     "./trip-alert-copy": {
       "types": "./src/trip-alert-copy.ts",
       "default": "./src/trip-alert-copy.ts"
