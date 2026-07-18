@@ -241,39 +241,39 @@ export function TimeIntentChip({
       </div>
 
       {mode !== "now" && (
-        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+        <div className="mt-3 border-t border-line pt-3">
           <input
             type="datetime-local"
             value={iso ? toLocalInput(iso) : ""}
             onChange={(e) => setISO(fromLocalInput(e.target.value))}
             aria-label={mode === "arrive" ? t("trips.intentArriveBy") : t("trips.intentLeave")}
-            className="h-9 min-w-0 flex-1 rounded-full bg-limestone-soft px-4 font-sans text-[13px] font-semibold text-ink ring-1 ring-line outline-none focus:ring-aegean"
+            className="h-9 w-full rounded-full bg-limestone-soft px-4 font-sans text-[13px] font-semibold text-ink ring-1 ring-line outline-none focus:ring-aegean"
           />
-          {mode === "arrive" && (
-            <div className="flex flex-wrap gap-1.5">
-              {(() => {
-                // "Today 17:00" only while it is still ahead of the rider;
-                // after that the same chip honestly reads as tomorrow.
-                const five = new Date();
-                five.setHours(17, 0, 0, 0);
-                const eveningAhead = five.getTime() > Date.now() + 5 * 60_000;
-                return [
-                  {
-                    label: eveningAhead ? t("trips.intentQuickToday") : "Tomorrow 17:00",
-                    iso: eveningAhead ? five.toISOString() : tomorrowAt(17),
-                  },
-                  { label: t("trips.intentQuickTomorrow"), iso: tomorrowAt(9) },
-                ];
-              })().map((q) => (
-                <button
-                  key={q.label}
-                  type="button"
-                  onClick={() => setISO(q.iso)}
-                  className="h-9 rounded-full bg-limestone-soft px-3.5 font-sans text-[12.5px] font-semibold text-ink-soft ring-1 ring-line transition-colors hover:text-ink"
-                >
-                  {q.label}
-                </button>
-              ))}
+          {presets.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {presets.map((p) => {
+                const active = iso ? Math.abs(new Date(iso).getTime() - new Date(p.iso).getTime()) < 60_000 : false;
+                return (
+                  <button
+                    key={p.iso}
+                    type="button"
+                    onClick={() => setISO(p.iso)}
+                    aria-pressed={active}
+                    className={`flex h-9 items-center gap-1.5 rounded-full px-3.5 font-sans text-[12.5px] font-semibold ring-1 transition-colors ${
+                      active
+                        ? "bg-aegean/12 text-aegean-deep ring-aegean/40"
+                        : "bg-limestone-soft text-ink-soft ring-line hover:text-ink"
+                    }`}
+                  >
+                    <span className="whitespace-nowrap">{presetLabel(p, t, locale)}</span>
+                    {p.source === "habit" && (
+                      <span className="rounded-full bg-ochre/20 px-1.5 font-mono text-[9.5px] tracking-[0.08em] text-ink uppercase">
+                        {t("trips.presetUsual")}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
