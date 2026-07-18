@@ -420,6 +420,10 @@ export const el: Record<keyof typeof en, string> = {
   "trips.intentLeave": "Αναχώρηση",
   "trips.intentNow": "Τώρα",
   "trips.intentTomorrow": "αύριο {time}",
+  "trips.intentPlanArrive": "Άφιξη έως {when} — η Aloya μπορεί να παρακολουθεί αυτή την άφιξη πιο κάτω.",
+  "trips.intentPlanLeave": "Σχεδιασμός από {when}.",
+  "trips.intentQuickToday": "Σήμερα 17:00",
+  "trips.intentQuickTomorrow": "Αύριο 09:00",
   "trips.planFailed": "Ο σχεδιασμός απέτυχε",
 
   // park & ride (Wave 2.3)
