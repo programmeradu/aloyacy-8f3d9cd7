@@ -192,7 +192,8 @@ export function TimeIntentChip({
   onChange: (i: TimeIntent) => void;
   onClear: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const history = useTimeHistory();
   const mode: "now" | "leave" | "arrive" = intent?.arriveByISO
     ? "arrive"
     : intent?.leaveByISO
@@ -200,12 +201,30 @@ export function TimeIntentChip({
       : "now";
   const iso = intent?.arriveByISO ?? intent?.leaveByISO ?? null;
 
+  // The shortcuts are clock-relative, so they must not rot while the page is
+  // open: re-derive them every minute (and whenever the rider's habits move).
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const presets = useMemo(
+    () =>
+      mode === "now"
+        ? []
+        : buildTimePresets({ nowMs, mode: mode === "arrive" ? "arrive" : "leave", history }),
+    [mode, nowMs, history],
+  );
+
   const set = (next: "now" | "leave" | "arrive") => {
     if (next === "now") {
       onClear();
       return;
     }
-    const keep = iso ?? defaultISO(next);
+    // Open on the rider's most likely time rather than an arbitrary offset.
+    const suggested = buildTimePresets({ nowMs: Date.now(), mode: next, history, max: 1 })[0]?.iso;
+    const keep = iso ?? suggested ?? defaultISO(next);
     onChange(next === "arrive" ? { leaveByISO: null, arriveByISO: keep } : { leaveByISO: keep, arriveByISO: null });
   };
 
