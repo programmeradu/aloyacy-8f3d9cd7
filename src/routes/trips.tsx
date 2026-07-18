@@ -31,6 +31,7 @@ import {
   ArrivalPromiseWatchList,
 } from "@/components/plan/ArrivalPromiseCard";
 import { useI18n } from "@/lib/i18n";
+import { recordTimeUsage } from "@/lib/time-history";
 import { useAccessibilityPrefs } from "@/lib/useAccessibilityPrefs";
 import { isActive as isA11yActive } from "@/lib/accessibility-prefs";
 import { suggestParkAndRide } from "@/lib/park-and-ride.functions";
