@@ -424,8 +424,9 @@ export const en = {
   "trips.intentTomorrow": "tomorrow {time}",
   "trips.intentPlanArrive": "Planning to land by {when} — Aloya can watch this arrival for you below.",
   "trips.intentPlanLeave": "Planning from {when}.",
-  "trips.intentQuickToday": "Today 17:00",
-  "trips.intentQuickTomorrow": "Tomorrow 09:00",
+  "trips.presetToday": "Today {time}",
+  "trips.presetTomorrow": "Tomorrow {time}",
+  "trips.presetUsual": "usual",
   "trips.planFailed": "Plan failed",
 
   // park & ride (Wave 2.3)

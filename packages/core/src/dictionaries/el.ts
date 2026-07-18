@@ -422,8 +422,9 @@ export const el: Record<keyof typeof en, string> = {
   "trips.intentTomorrow": "αύριο {time}",
   "trips.intentPlanArrive": "Άφιξη έως {when} — η Aloya μπορεί να παρακολουθεί αυτή την άφιξη πιο κάτω.",
   "trips.intentPlanLeave": "Σχεδιασμός από {when}.",
-  "trips.intentQuickToday": "Σήμερα 17:00",
-  "trips.intentQuickTomorrow": "Αύριο 09:00",
+  "trips.presetToday": "Σήμερα {time}",
+  "trips.presetTomorrow": "Αύριο {time}",
+  "trips.presetUsual": "συνήθως",
   "trips.planFailed": "Ο σχεδιασμός απέτυχε",
 
   // park & ride (Wave 2.3)

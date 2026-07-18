@@ -1,5 +1,8 @@
+import { useEffect, useMemo, useState } from "react";
+import { buildTimePresets, type TimePreset } from "@aloya/core/time-presets";
 import { IconArrowUpRight, IconClock, IconPin } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
+import { useTimeHistory } from "@/lib/time-history";
 import { formatIntentLabel, suggestionLabel } from "@/lib/plan-bridge";
 import type { Point, TimeIntent } from "@/lib/plan-types";
 import type { TripSuggestion } from "@/lib/suggestions.functions";
@@ -160,13 +163,20 @@ function defaultISO(mode: "leave" | "arrive"): string {
   return d.toISOString();
 }
 
-/** Tomorrow at the same wall-clock time, for the most common arrive-by ask. */
-function tomorrowAt(hour: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  d.setHours(hour, 0, 0, 0);
-  return d.toISOString();
+/** "Today 17:00" / "Tomorrow 08:30" / "Thu 08:30", in the rider's language. */
+function presetLabel(
+  p: TimePreset,
+  t: (k: "trips.presetToday" | "trips.presetTomorrow", v?: Record<string, string>) => string,
+  locale: string,
+): string {
+  if (p.dayKey === "today") return t("trips.presetToday", { time: p.timeLabel });
+  if (p.dayKey === "tomorrow") return t("trips.presetTomorrow", { time: p.timeLabel });
+  const day = new Intl.DateTimeFormat(locale === "el" ? "el-CY" : "en-GB", {
+    weekday: "short",
+  }).format(new Date(p.iso));
+  return `${day} ${p.timeLabel}`;
 }
+
 
 /**
  * The rider's departure/arrival intent: always visible, so "get me there by
@@ -182,7 +192,8 @@ export function TimeIntentChip({
   onChange: (i: TimeIntent) => void;
   onClear: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const history = useTimeHistory();
   const mode: "now" | "leave" | "arrive" = intent?.arriveByISO
     ? "arrive"
     : intent?.leaveByISO
@@ -190,12 +201,30 @@ export function TimeIntentChip({
       : "now";
   const iso = intent?.arriveByISO ?? intent?.leaveByISO ?? null;
 
+  // The shortcuts are clock-relative, so they must not rot while the page is
+  // open: re-derive them every minute (and whenever the rider's habits move).
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const presets = useMemo(
+    () =>
+      mode === "now"
+        ? []
+        : buildTimePresets({ nowMs, mode: mode === "arrive" ? "arrive" : "leave", history }),
+    [mode, nowMs, history],
+  );
+
   const set = (next: "now" | "leave" | "arrive") => {
     if (next === "now") {
       onClear();
       return;
     }
-    const keep = iso ?? defaultISO(next);
+    // Open on the rider's most likely time rather than an arbitrary offset.
+    const suggested = buildTimePresets({ nowMs: Date.now(), mode: next, history, max: 1 })[0]?.iso;
+    const keep = iso ?? suggested ?? defaultISO(next);
     onChange(next === "arrive" ? { leaveByISO: null, arriveByISO: keep } : { leaveByISO: keep, arriveByISO: null });
   };
 
@@ -241,39 +270,39 @@ export function TimeIntentChip({
       </div>
 
       {mode !== "now" && (
-        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+        <div className="mt-3 border-t border-line pt-3">
           <input
             type="datetime-local"
             value={iso ? toLocalInput(iso) : ""}
             onChange={(e) => setISO(fromLocalInput(e.target.value))}
             aria-label={mode === "arrive" ? t("trips.intentArriveBy") : t("trips.intentLeave")}
-            className="h-9 min-w-0 flex-1 rounded-full bg-limestone-soft px-4 font-sans text-[13px] font-semibold text-ink ring-1 ring-line outline-none focus:ring-aegean"
+            className="h-9 w-full rounded-full bg-limestone-soft px-4 font-sans text-[13px] font-semibold text-ink ring-1 ring-line outline-none focus:ring-aegean"
           />
-          {mode === "arrive" && (
-            <div className="flex flex-wrap gap-1.5">
-              {(() => {
-                // "Today 17:00" only while it is still ahead of the rider;
-                // after that the same chip honestly reads as tomorrow.
-                const five = new Date();
-                five.setHours(17, 0, 0, 0);
-                const eveningAhead = five.getTime() > Date.now() + 5 * 60_000;
-                return [
-                  {
-                    label: eveningAhead ? t("trips.intentQuickToday") : "Tomorrow 17:00",
-                    iso: eveningAhead ? five.toISOString() : tomorrowAt(17),
-                  },
-                  { label: t("trips.intentQuickTomorrow"), iso: tomorrowAt(9) },
-                ];
-              })().map((q) => (
-                <button
-                  key={q.label}
-                  type="button"
-                  onClick={() => setISO(q.iso)}
-                  className="h-9 rounded-full bg-limestone-soft px-3.5 font-sans text-[12.5px] font-semibold text-ink-soft ring-1 ring-line transition-colors hover:text-ink"
-                >
-                  {q.label}
-                </button>
-              ))}
+          {presets.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {presets.map((p) => {
+                const active = iso ? Math.abs(new Date(iso).getTime() - new Date(p.iso).getTime()) < 60_000 : false;
+                return (
+                  <button
+                    key={p.iso}
+                    type="button"
+                    onClick={() => setISO(p.iso)}
+                    aria-pressed={active}
+                    className={`flex h-9 items-center gap-1.5 rounded-full px-3.5 font-sans text-[12.5px] font-semibold ring-1 transition-colors ${
+                      active
+                        ? "bg-aegean/12 text-aegean-deep ring-aegean/40"
+                        : "bg-limestone-soft text-ink-soft ring-line hover:text-ink"
+                    }`}
+                  >
+                    <span className="whitespace-nowrap">{presetLabel(p, t, locale)}</span>
+                    {p.source === "habit" && (
+                      <span className="rounded-full bg-ochre/20 px-1.5 font-mono text-[9.5px] tracking-[0.08em] text-ink uppercase">
+                        {t("trips.presetUsual")}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

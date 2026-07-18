@@ -31,6 +31,7 @@ import {
   ArrivalPromiseWatchList,
 } from "@/components/plan/ArrivalPromiseCard";
 import { useI18n } from "@/lib/i18n";
+import { recordTimeUsage } from "@/lib/time-history";
 import { useAccessibilityPrefs } from "@/lib/useAccessibilityPrefs";
 import { isActive as isA11yActive } from "@/lib/accessibility-prefs";
 import { suggestParkAndRide } from "@/lib/park-and-ride.functions";
@@ -196,6 +197,12 @@ function Plan() {
       const departAtUnix = timeIntent?.leaveByISO
         ? Math.floor(new Date(timeIntent.leaveByISO).getTime() / 1000)
         : undefined;
+      // Learn the rider's rhythm from times they actually planned around, so
+      // the picker's shortcuts get personal instead of staying hardcoded.
+      if (timeIntent?.arriveByISO)
+        recordTimeUsage({ atMs: new Date(timeIntent.arriveByISO).getTime(), mode: "arrive" });
+      else if (timeIntent?.leaveByISO)
+        recordTimeUsage({ atMs: new Date(timeIntent.leaveByISO).getTime(), mode: "leave" });
       const arriveByUnix = timeIntent?.arriveByISO
         ? Math.floor(new Date(timeIntent.arriveByISO).getTime() / 1000)
         : undefined;
