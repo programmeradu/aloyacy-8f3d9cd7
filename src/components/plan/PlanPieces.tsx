@@ -163,13 +163,20 @@ function defaultISO(mode: "leave" | "arrive"): string {
   return d.toISOString();
 }
 
-/** Tomorrow at the same wall-clock time, for the most common arrive-by ask. */
-function tomorrowAt(hour: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  d.setHours(hour, 0, 0, 0);
-  return d.toISOString();
+/** "Today 17:00" / "Tomorrow 08:30" / "Thu 08:30", in the rider's language. */
+function presetLabel(
+  p: TimePreset,
+  t: (k: "trips.presetToday" | "trips.presetTomorrow", v?: Record<string, string>) => string,
+  locale: string,
+): string {
+  if (p.dayKey === "today") return t("trips.presetToday", { time: p.timeLabel });
+  if (p.dayKey === "tomorrow") return t("trips.presetTomorrow", { time: p.timeLabel });
+  const day = new Intl.DateTimeFormat(locale === "el" ? "el-CY" : "en-GB", {
+    weekday: "short",
+  }).format(new Date(p.iso));
+  return `${day} ${p.timeLabel}`;
 }
+
 
 /**
  * The rider's departure/arrival intent: always visible, so "get me there by
