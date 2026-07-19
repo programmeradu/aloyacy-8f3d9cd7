@@ -549,3 +549,31 @@ export function countdownLabel(leaveByUnix: number, nowUnix: number): string {
   const rem = mins % 60;
   return rem === 0 ? `leave in ${hours} h` : `leave in ${hours} h ${rem} min`;
 }
+
+/**
+ * Explain the safety buffer without sounding like a contradiction. "Leave 6
+ * min earlier" on its own reads as if leaving early makes you late; naming the
+ * departure it is measured against ("the 03:39 option") makes it obvious the
+ * buffer is padding on the walk, not a worse plan.
+ */
+export function bufferNote(args: {
+  bufferSec: number;
+  reasonShort?: string | null;
+  /** Leave time of the option the promise is anchored on, before padding. */
+  scheduledLeaveUnix?: number | null;
+  timeZone?: string;
+}): string | null {
+  const mins = Math.round((args.bufferSec ?? 0) / 60);
+  if (mins < 1) return args.reasonShort ? `${capitalise(args.reasonShort)}.` : null;
+  const tz = args.timeZone ?? "Asia/Nicosia";
+  const anchor =
+    args.scheduledLeaveUnix != null
+      ? ` ahead of the ${formatClock(args.scheduledLeaveUnix, tz)} option`
+      : "";
+  const why = args.reasonShort ? ` — ${args.reasonShort}` : "";
+  return `Set off ${mins} min${anchor} as a cushion${why}.`;
+}
+
+function capitalise(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
