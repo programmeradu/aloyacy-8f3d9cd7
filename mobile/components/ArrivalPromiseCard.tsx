@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, Image, Pressable, Text, View } from "react-na
 import Svg, { Circle, Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import {
+  bufferNote,
   countdownLabel,
   formatClock,
   formatDayLabel,
@@ -242,6 +243,12 @@ function PromiseRow({
   const missed = promise.status === "missed";
   const leaveNow = promise.status === "leave-now" || promise.leave_by_unix - nowUnix <= 0;
   const ladder = Array.isArray(promise.ladder_json) ? promise.ladder_json : [];
+  const note = bufferNote({
+    bufferSec: promise.buffer_sec,
+    reasonShort: promise.reason_short,
+    scheduledLeaveUnix:
+      ladder.find((r) => r.recommended)?.leaveByUnix ?? promise.plan_json?.departureUnix ?? null,
+  });
   const routes = (promise.plan_json?.legs ?? [])
     .map((l) => (l.kind === "ride" ? l.routeShort : null))
     .filter((r): r is string => Boolean(r));
@@ -364,7 +371,7 @@ function PromiseRow({
         </View>
       )}
 
-      {promise.reason_short ? (
+      {note ? (
         <Text
           style={{
             marginTop: 6,
@@ -373,7 +380,7 @@ function PromiseRow({
             color: palette.inkSoft,
           }}
         >
-          Extra {Math.round(promise.buffer_sec / 60)} min built in — {promise.reason_short}.
+          {note}
         </Text>
       ) : null}
 

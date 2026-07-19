@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  bufferNote,
   countdownLabel,
   formatClock,
   formatDayLabel,
@@ -244,6 +245,12 @@ function PromiseRow({ promise }: { promise: ArrivalPromiseRow }) {
     () => (Array.isArray(promise.ladder_json) ? promise.ladder_json : ([] as LadderRung[])),
     [promise.ladder_json],
   );
+  const note = bufferNote({
+    bufferSec: promise.buffer_sec,
+    reasonShort: promise.reason_short,
+    scheduledLeaveUnix:
+      ladder.find((r) => r.recommended)?.leaveByUnix ?? promise.plan_json?.departureUnix ?? null,
+  });
   const routes = (promise.plan_json?.legs ?? [])
     .map((l) => (l.kind === "ride" ? l.routeShort : null))
     .filter((r): r is string => Boolean(r));
@@ -303,10 +310,8 @@ function PromiseRow({ promise }: { promise: ArrivalPromiseRow }) {
         </p>
       )}
 
-      {promise.reason_short ? (
-        <p className="mt-2 font-sans text-[12.5px] font-medium text-ink-soft">
-          Extra {Math.round(promise.buffer_sec / 60)} min built in — {promise.reason_short}.
-        </p>
+      {note ? (
+        <p className="mt-2 font-sans text-[12.5px] font-medium text-ink-soft">{note}</p>
       ) : null}
 
       {ladder.length > 0 ? (

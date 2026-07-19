@@ -5,6 +5,7 @@
  * network access, so it is directly unit-testable and shared by the route,
  * its sub-components and the planning hooks.
  */
+import { cyClock, cyDayDiff } from "@aloya/core/cy-time";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
 import type { Point, TimeIntent } from "@/lib/plan-types";
@@ -260,12 +261,16 @@ export function formatIntentLabel(
   try {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return iso;
-    const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-    if (d.toDateString() === now.toDateString()) return time;
-    const tomorrow = new Date(now);
-    tomorrow.setDate(now.getDate() + 1);
-    if (d.toDateString() === tomorrow.toDateString()) return t("trips.intentTomorrow", { time });
-    return `${d.toLocaleDateString([], { weekday: "short" })} ${time}`;
+    // Always Cyprus time — the label must match what the buses run on.
+    const time = cyClock(d.getTime());
+    const diff = cyDayDiff(now.getTime(), d.getTime());
+    if (diff <= 0) return time;
+    if (diff === 1) return t("trips.intentTomorrow", { time });
+    const day = new Intl.DateTimeFormat("en-GB", {
+      weekday: "short",
+      timeZone: "Asia/Nicosia",
+    }).format(d);
+    return `${day} ${time}`;
   } catch {
     return iso;
   }

@@ -7,12 +7,36 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import * as Haptics from "expo-haptics";
+import { cyParts, cyWallToMs } from "@aloya/core/cy-time";
 import { palette } from "@/constants/theme";
 
 export type TimeIntent =
   | { kind: "now" }
   | { kind: "leaveBy"; iso: string }
   | { kind: "arriveBy"; iso: string };
+
+/**
+ * The wheel shows the *device* wall clock, but a Cyprus bus leaves on Nicosia
+ * time. Reinterpret whatever the rider dialled as Cyprus local, so "08:30" is
+ * watched as 08:30 in Larnaca even when the phone is set to another zone.
+ */
+function wheelToCyprusISO(picked: Date): string {
+  return new Date(
+    cyWallToMs(
+      picked.getFullYear(),
+      picked.getMonth() + 1,
+      picked.getDate(),
+      picked.getHours(),
+      picked.getMinutes(),
+    ),
+  ).toISOString();
+}
+
+/** Inverse: show a Cyprus instant on the device-local wheel. */
+function isoToWheel(iso: string): Date {
+  const p = cyParts(new Date(iso).getTime());
+  return new Date(p.year, p.month - 1, p.day, p.hour, p.minute, 0, 0);
+}
 
 function fmtChip(iso: string): string {
   const d = new Date(iso);
@@ -44,11 +68,11 @@ export function TimePicker({
     }
     if (value.kind === mode) {
       // Tap same chip → reopen the picker to adjust.
-      setPendingDate(new Date(value.iso));
+      setPendingDate(isoToWheel(value.iso));
       setPicking(mode);
       return;
     }
-    const initial = new Date(Date.now() + 30 * 60_000);
+    const initial = isoToWheel(new Date(Date.now() + 30 * 60_000).toISOString());
     setPendingDate(initial);
     setPicking(mode);
   }
@@ -58,7 +82,7 @@ export function TimePicker({
       // Android fires one event per dismiss/confirm.
       setPicking(null);
       if (event.type === "set" && selected && picking) {
-        onChange({ kind: picking, iso: selected.toISOString() });
+        onChange({ kind: picking, iso: wheelToCyprusISO(selected) });
       }
       setPendingDate(null);
       return;
@@ -69,7 +93,7 @@ export function TimePicker({
 
   function commitIOS() {
     if (picking && pendingDate) {
-      onChange({ kind: picking, iso: pendingDate.toISOString() });
+      onChange({ kind: picking, iso: wheelToCyprusISO(pendingDate) });
     }
     setPicking(null);
     setPendingDate(null);

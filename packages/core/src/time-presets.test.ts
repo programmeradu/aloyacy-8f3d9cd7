@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { cyIsWeekend, cyWallToMs } from "./cy-time";
 import { buildTimePresets, type TimeUsage } from "./time-presets";
 
-/** Local-time helper so assertions read in wall clock, like the UI does. */
+/** Cyprus wall clock — the only clock the planner speaks, device zone aside. */
 function at(y: number, mo: number, d: number, h: number, mi = 0) {
-  return new Date(y, mo - 1, d, h, mi, 0, 0).getTime();
+  return cyWallToMs(y, mo, d, h, mi);
 }
 
 describe("buildTimePresets", () => {
@@ -68,8 +69,7 @@ describe("buildTimePresets", () => {
     const p = buildTimePresets({ nowMs: friday, mode: "leave", history });
     const habit = p.find((x) => x.source === "habit");
     expect(habit).toBeDefined();
-    const day = new Date(habit!.iso).getDay();
-    expect(day === 0 || day === 6).toBe(false);
+    expect(cyIsWeekend(new Date(habit!.iso).getTime())).toBe(false);
   });
 
   it("ignores stale history older than the habit window", () => {

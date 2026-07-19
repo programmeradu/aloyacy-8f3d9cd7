@@ -1,3 +1,4 @@
+import { cyInputToMs, cyInputValue, cyParts, cyWallToMs } from "@aloya/core/cy-time";
 import { useEffect, useMemo, useState } from "react";
 import { buildTimePresets, type TimePreset } from "@aloya/core/time-presets";
 import { IconArrowUpRight, IconClock, IconPin } from "@/components/Icons";
@@ -139,28 +140,28 @@ export function FieldRow({
   );
 }
 
-/** `2026-08-23T16:00` — the shape a native datetime-local input speaks. */
+/**
+ * The rider types Cyprus time — the buses run on Nicosia's clock no matter
+ * where the phone thinks it is. Reading the browser zone here is what turned
+ * "arrive by 08:30" into a promise watched for 11:30 on a device abroad.
+ */
 function toLocalInput(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const ms = new Date(iso).getTime();
+  return Number.isNaN(ms) ? "" : cyInputValue(ms);
 }
 
 function fromLocalInput(value: string): string | null {
-  if (!value) return null;
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+  const ms = cyInputToMs(value);
+  return ms == null ? null : new Date(ms).toISOString();
 }
 
 /** Sensible first guess so the picker never opens on an empty field. */
 function defaultISO(mode: "leave" | "arrive"): string {
-  const d = new Date();
-  d.setSeconds(0, 0);
-  d.setMinutes(d.getMinutes() + (mode === "arrive" ? 90 : 30));
+  const raw = Date.now() + (mode === "arrive" ? 90 : 30) * 60_000;
+  const p = cyParts(raw);
   // Round up to the next quarter hour — riders think in :00 / :15 / :30.
-  d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0);
-  return d.toISOString();
+  const ms = cyWallToMs(p.year, p.month, p.day, p.hour, 0) + Math.ceil(p.minute / 15) * 15 * 60_000;
+  return new Date(ms).toISOString();
 }
 
 /** "Today 17:00" / "Tomorrow 08:30" / "Thu 08:30", in the rider's language. */
@@ -173,6 +174,7 @@ function presetLabel(
   if (p.dayKey === "tomorrow") return t("trips.presetTomorrow", { time: p.timeLabel });
   const day = new Intl.DateTimeFormat(locale === "el" ? "el-CY" : "en-GB", {
     weekday: "short",
+    timeZone: "Asia/Nicosia",
   }).format(new Date(p.iso));
   return `${day} ${p.timeLabel}`;
 }

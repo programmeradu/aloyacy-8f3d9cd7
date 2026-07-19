@@ -127,7 +127,24 @@ export function buildDepartureLadder(
   all.sort((a, b) => a.leaveByUnix - b.leaveByUnix);
   if (all.length === 0) return [];
 
+  // Drop dominated options. "Leave 02:17 → arrive 10:46" next to
+  // "Leave 03:39 → arrive 09:48" reads as nonsense: the earlier departure
+  // costs the rider 82 extra minutes at home *and* lands later (it sits out a
+  // long transfer). Keep an option only when nothing that leaves later or at
+  // the same minute also arrives no later.
+  const kept: LadderRung[] = [];
+  let bestArrival = Number.POSITIVE_INFINITY;
+  for (let i = all.length - 1; i >= 0; i--) {
+    const r = all[i];
+    if (r.arrivalUnix >= bestArrival) continue;
+    bestArrival = r.arrivalUnix;
+    kept.unshift(r);
+  }
+  all.length = 0;
+  all.push(...kept);
+
   const onTime = all.filter((r) => r.slackSec >= marginSec);
+
   const pick = onTime.length
     ? onTime[onTime.length - 1]
     : // least late / closest to the target
@@ -531,4 +548,32 @@ export function countdownLabel(leaveByUnix: number, nowUnix: number): string {
   const hours = Math.floor(mins / 60);
   const rem = mins % 60;
   return rem === 0 ? `leave in ${hours} h` : `leave in ${hours} h ${rem} min`;
+}
+
+/**
+ * Explain the safety buffer without sounding like a contradiction. "Leave 6
+ * min earlier" on its own reads as if leaving early makes you late; naming the
+ * departure it is measured against ("the 03:39 option") makes it obvious the
+ * buffer is padding on the walk, not a worse plan.
+ */
+export function bufferNote(args: {
+  bufferSec: number;
+  reasonShort?: string | null;
+  /** Leave time of the option the promise is anchored on, before padding. */
+  scheduledLeaveUnix?: number | null;
+  timeZone?: string;
+}): string | null {
+  const mins = Math.round((args.bufferSec ?? 0) / 60);
+  if (mins < 1) return args.reasonShort ? `${capitalise(args.reasonShort)}.` : null;
+  const tz = args.timeZone ?? "Asia/Nicosia";
+  const anchor =
+    args.scheduledLeaveUnix != null
+      ? ` ahead of the ${formatClock(args.scheduledLeaveUnix, tz)} option`
+      : "";
+  const why = args.reasonShort ? ` — ${args.reasonShort}` : "";
+  return `Set off ${mins} min${anchor} as a cushion${why}.`;
+}
+
+function capitalise(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
