@@ -70,6 +70,17 @@ describe("buildDepartureLadder", () => {
     expect(ladder.map((r) => r.verdict)).toContain("late");
   });
 
+  it("drops options that leave earlier and still arrive later", () => {
+    const ladder = buildDepartureLadder(
+      [
+        itin({ id: "dominated", departureUnix: T, arrivalUnix: target - 40 * 60 }),
+        itin({ id: "better", departureUnix: T + 80 * 60, arrivalUnix: target - 100 * 60 }),
+      ],
+      target,
+    );
+    expect(ladder.map((r) => r.itineraryId)).toEqual(["better"]);
+  });
+
   it("treats an option inside the margin as tight, not comfortable", () => {
     const ladder = buildDepartureLadder(
       [itin({ id: "tight", arrivalUnix: target - 3 * 60 })],
