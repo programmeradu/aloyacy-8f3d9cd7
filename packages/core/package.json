@@ -9,6 +9,10 @@
       "types": "./src/arrival-promise.ts",
       "default": "./src/arrival-promise.ts"
     },
+    "./cy-time": {
+      "types": "./src/cy-time.ts",
+      "default": "./src/cy-time.ts"
+    },
     "./cities": {
       "types": "./src/cities.ts",
       "default": "./src/cities.ts"
