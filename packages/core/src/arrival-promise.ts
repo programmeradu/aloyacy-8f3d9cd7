@@ -127,7 +127,24 @@ export function buildDepartureLadder(
   all.sort((a, b) => a.leaveByUnix - b.leaveByUnix);
   if (all.length === 0) return [];
 
+  // Drop dominated options. "Leave 02:17 → arrive 10:46" next to
+  // "Leave 03:39 → arrive 09:48" reads as nonsense: the earlier departure
+  // costs the rider 82 extra minutes at home *and* lands later (it sits out a
+  // long transfer). Keep an option only when nothing that leaves later or at
+  // the same minute also arrives no later.
+  const kept: LadderRung[] = [];
+  let bestArrival = Number.POSITIVE_INFINITY;
+  for (let i = all.length - 1; i >= 0; i--) {
+    const r = all[i];
+    if (r.arrivalUnix >= bestArrival) continue;
+    bestArrival = r.arrivalUnix;
+    kept.unshift(r);
+  }
+  all.length = 0;
+  all.push(...kept);
+
   const onTime = all.filter((r) => r.slackSec >= marginSec);
+
   const pick = onTime.length
     ? onTime[onTime.length - 1]
     : // least late / closest to the target
