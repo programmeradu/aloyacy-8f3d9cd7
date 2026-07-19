@@ -17,6 +17,8 @@
  * clock itself, so this is fully testable and SSR-safe.
  */
 
+import { cyAddDays, cyDayDiff, cyIsWeekend, cyParts, cyWallToMs } from "./cy-time";
+
 export type TimePresetMode = "leave" | "arrive";
 
 /** One past use of the time control (target time, not when it was typed). */
@@ -65,35 +67,27 @@ const DEDUPE_MS = 25 * 60_000;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-function isWeekend(d: Date) {
-  const w = d.getDay();
-  return w === 0 || w === 6;
-}
+
 
 /** Next occurrence of a wall-clock time that is at least `minMs` in the future. */
 function nextAt(nowMs: number, h: number, m: number, minMs: number, weekendMatch?: boolean): number {
-  const base = new Date(nowMs);
   for (let add = 0; add < 8; add++) {
-    const d = new Date(base);
-    d.setDate(d.getDate() + add);
-    d.setHours(h, m, 0, 0);
-    if (d.getTime() < nowMs + minMs) continue;
-    if (weekendMatch !== undefined && isWeekend(d) !== weekendMatch) continue;
-    return d.getTime();
+    const at = cyAddDays(nowMs, add, h, m);
+    if (at < nowMs + minMs) continue;
+    if (weekendMatch !== undefined && cyIsWeekend(at) !== weekendMatch) continue;
+    return at;
   }
   return 0;
 }
 
 function describe(nowMs: number, atMs: number, source: TimePreset["source"]): TimePreset {
-  const d = new Date(atMs);
-  const start = new Date(nowMs);
-  start.setHours(0, 0, 0, 0);
-  const dayDiff = Math.round((new Date(d).setHours(0, 0, 0, 0) - start.getTime()) / 86_400_000);
+  const p = cyParts(atMs);
+  const dayDiff = cyDayDiff(nowMs, atMs);
   return {
-    iso: d.toISOString(),
+    iso: new Date(atMs).toISOString(),
     dayKey: dayDiff <= 0 ? "today" : dayDiff === 1 ? "tomorrow" : "later",
-    weekday: d.getDay(),
-    timeLabel: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+    weekday: p.weekday,
+    timeLabel: `${pad(p.hour)}:${pad(p.minute)}`,
     source,
   };
 }
@@ -115,10 +109,10 @@ function habitSlots(
 
   const buckets = new Map<string, { h: number; m: number; weekend: boolean; n: number; last: number }>();
   for (const u of relevant) {
-    const d = new Date(u.atMs);
-    const m = Math.round(d.getMinutes() / 15) * 15;
-    const h = (d.getHours() + (m === 60 ? 1 : 0)) % 24;
-    const weekend = isWeekend(d);
+    const p = cyParts(u.atMs);
+    const m = Math.round(p.minute / 15) * 15;
+    const h = (p.hour + (m === 60 ? 1 : 0)) % 24;
+    const weekend = cyIsWeekend(u.atMs);
     const key = `${weekend ? "e" : "d"}-${h}-${m % 60}`;
     const prev = buckets.get(key);
     if (prev) {
@@ -161,10 +155,9 @@ export function buildTimePresets(opts: {
   }
 
   // 2. A near-term slot, rounded to the quarter hour, so "soon" is one tap.
-  const soon = new Date(nowMs + (mode === "arrive" ? 60 : 25) * 60_000);
-  soon.setSeconds(0, 0);
-  soon.setMinutes(Math.ceil(soon.getMinutes() / 15) * 15, 0, 0);
-  push(soon.getTime(), "soon");
+  const soonRaw = nowMs + (mode === "arrive" ? 60 : 25) * 60_000;
+  const sp = cyParts(soonRaw);
+  push(cyWallToMs(sp.year, sp.month, sp.day, sp.hour, 0) + Math.ceil(sp.minute / 15) * 15 * 60_000, "soon");
 
   // 3. Fill the rest with the next daily anchors still ahead of the rider.
   for (const a of RHYTHM[mode]) {
