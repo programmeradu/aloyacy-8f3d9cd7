@@ -174,6 +174,7 @@ function presetLabel(
   if (p.dayKey === "tomorrow") return t("trips.presetTomorrow", { time: p.timeLabel });
   const day = new Intl.DateTimeFormat(locale === "el" ? "el-CY" : "en-GB", {
     weekday: "short",
+    timeZone: "Asia/Nicosia",
   }).format(new Date(p.iso));
   return `${day} ${p.timeLabel}`;
 }
