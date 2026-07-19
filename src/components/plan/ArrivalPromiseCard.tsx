@@ -303,10 +303,8 @@ function PromiseRow({ promise }: { promise: ArrivalPromiseRow }) {
         </p>
       )}
 
-      {promise.reason_short ? (
-        <p className="mt-2 font-sans text-[12.5px] font-medium text-ink-soft">
-          Extra {Math.round(promise.buffer_sec / 60)} min built in — {promise.reason_short}.
-        </p>
+      {note ? (
+        <p className="mt-2 font-sans text-[12.5px] font-medium text-ink-soft">{note}</p>
       ) : null}
 
       {ladder.length > 0 ? (

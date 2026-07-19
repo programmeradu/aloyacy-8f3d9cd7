@@ -364,7 +364,7 @@ function PromiseRow({
         </View>
       )}
 
-      {promise.reason_short ? (
+      {note ? (
         <Text
           style={{
             marginTop: 6,
@@ -373,7 +373,7 @@ function PromiseRow({
             color: palette.inkSoft,
           }}
         >
-          Extra {Math.round(promise.buffer_sec / 60)} min built in — {promise.reason_short}.
+          {note}
         </Text>
       ) : null}
 
