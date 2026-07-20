@@ -10,7 +10,7 @@
 // card, the push body and the native app never disagree.
 
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   bufferNote,
@@ -25,7 +25,6 @@ import {
 import {
   cancelArrivalPromise,
   createArrivalPromise,
-  listArrivalPromises,
   refreshArrivalPromise,
   type ArrivalPromiseRow,
 } from "@/lib/arrival-promise.functions";
@@ -40,7 +39,6 @@ import {
   type PromisePoint as Point,
 } from "./arrivalPromiseShared";
 
-export { useArrivalPromises };
 
 export function ArrivalPromiseCommit({
   origin,
