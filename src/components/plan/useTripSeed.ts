@@ -110,7 +110,8 @@ export function useTripSeed(): TripSeed {
 
     const fallbackToCentre = () =>
       setOrigin(
-        (cur) => cur ?? { lat: NICOSIA_CENTER.lat, lng: NICOSIA_CENTER.lng, label: "Nicosia centre" },
+        (cur) =>
+          cur ?? { lat: NICOSIA_CENTER.lat, lng: NICOSIA_CENTER.lng, label: "Nicosia centre" },
       );
 
     try {

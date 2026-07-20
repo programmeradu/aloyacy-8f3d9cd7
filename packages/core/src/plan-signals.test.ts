@@ -9,7 +9,7 @@ import {
   trafficPointsKey,
 } from "./plan-signals";
 
-const NOW = Date.UTC(2026, 7, 23, 6, 0) ;
+const NOW = Date.UTC(2026, 7, 23, 6, 0);
 
 function walk(meters: number, name = "Stop"): Leg {
   return {

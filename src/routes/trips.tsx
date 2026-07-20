@@ -122,7 +122,11 @@ function Plan() {
   const a11yKey = a11yCacheKey(a11yPrefs, a11yOn);
   const a11y = toPlanA11y(a11yPrefs, a11yOn);
 
-  const { query: planQuery, results, top } = useTripPlanQuery({
+  const {
+    query: planQuery,
+    results,
+    top,
+  } = useTripPlanQuery({
     origin,
     destination,
     timeIntent,

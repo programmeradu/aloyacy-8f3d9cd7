@@ -33,10 +33,7 @@ export function a11yCacheKey(prefs: AccessibilityPrefs, active: boolean): string
   }`;
 }
 
-export function toPlanA11y(
-  prefs: AccessibilityPrefs,
-  active: boolean,
-): A11yPlanPrefs | undefined {
+export function toPlanA11y(prefs: AccessibilityPrefs, active: boolean): A11yPlanPrefs | undefined {
   if (!active) return undefined;
   return {
     stepFree: prefs.stepFree,

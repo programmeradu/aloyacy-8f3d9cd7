@@ -179,7 +179,6 @@ function presetLabel(
   return `${day} ${p.timeLabel}`;
 }
 
-
 /**
  * The rider's departure/arrival intent: always visible, so "get me there by
  * 16:00" is a control on the page rather than a phrase only the NL planner
@@ -227,7 +226,11 @@ export function TimeIntentChip({
     // Open on the rider's most likely time rather than an arbitrary offset.
     const suggested = buildTimePresets({ nowMs: Date.now(), mode: next, history, max: 1 })[0]?.iso;
     const keep = iso ?? suggested ?? defaultISO(next);
-    onChange(next === "arrive" ? { leaveByISO: null, arriveByISO: keep } : { leaveByISO: keep, arriveByISO: null });
+    onChange(
+      next === "arrive"
+        ? { leaveByISO: null, arriveByISO: keep }
+        : { leaveByISO: keep, arriveByISO: null },
+    );
   };
 
   const setISO = (nextISO: string | null) => {
@@ -283,7 +286,9 @@ export function TimeIntentChip({
           {presets.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {presets.map((p) => {
-                const active = iso ? Math.abs(new Date(iso).getTime() - new Date(p.iso).getTime()) < 60_000 : false;
+                const active = iso
+                  ? Math.abs(new Date(iso).getTime() - new Date(p.iso).getTime()) < 60_000
+                  : false;
                 return (
                   <button
                     key={p.iso}
