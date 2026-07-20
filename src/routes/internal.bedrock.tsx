@@ -161,40 +161,40 @@ function BedrockTestPage() {
             />
           </label>
         ) : (
-          <div className="space-y-3">
-            <label className="block">
-              <span className="mb-1 block text-sm font-semibold">AWS Access Key ID</span>
-              <input
-                value={accessKeyId}
-                onChange={(e) => setAccessKeyId(e.target.value)}
-                spellCheck={false}
-                className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
-                placeholder="AKIA... or ASIA..."
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm font-semibold">AWS Secret Access Key</span>
-              <input
-                type="password"
-                value={secretAccessKey}
-                onChange={(e) => setSecretAccessKey(e.target.value)}
-                spellCheck={false}
-                className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm font-semibold">
-                Session token <span className="font-normal text-muted-foreground">(only for ASIA temporary creds)</span>
+          <label className="block">
+            <span className="mb-1 block text-sm font-semibold">
+              AWS credentials{" "}
+              <span className="font-normal text-muted-foreground">
+                (paste one line: <code>accessKeyId:secretAccessKey[:region][:sessionToken]</code>)
               </span>
-              <textarea
-                value={sessionToken}
-                onChange={(e) => setSessionToken(e.target.value)}
-                rows={2}
-                spellCheck={false}
-                className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
-              />
-            </label>
-          </div>
+            </span>
+            <textarea
+              value={credsCombined}
+              onChange={(e) => setCredsCombined(e.target.value)}
+              rows={3}
+              spellCheck={false}
+              className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
+              placeholder="AKIAXXXXXXXXXXXXXXXX:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY:us-west-2"
+            />
+            {parsedPreview && (parsedPreview.accessKeyId || parsedPreview.secretAccessKey) && (
+              <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                <span className="rounded-full border px-2 py-0.5 font-mono">
+                  key: {parsedPreview.accessKeyId ? `${parsedPreview.accessKeyId.slice(0, 6)}…${parsedPreview.accessKeyId.slice(-4)}` : "—"}
+                </span>
+                <span className="rounded-full border px-2 py-0.5 font-mono">
+                  secret: {parsedPreview.secretAccessKey ? `${parsedPreview.secretAccessKey.length} chars` : "—"}
+                </span>
+                <span className="rounded-full border px-2 py-0.5 font-mono">
+                  region: {parsedPreview.region || region}
+                </span>
+                {parsedPreview.sessionToken && (
+                  <span className="rounded-full border px-2 py-0.5 font-mono">
+                    session token: {parsedPreview.sessionToken.length} chars
+                  </span>
+                )}
+              </div>
+            )}
+          </label>
         )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
