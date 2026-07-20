@@ -119,8 +119,8 @@ describe("egressWalk", () => {
     expect(egressWalk(itin([walk(900)]))).toBeNull();
   });
 
-  it("is null when the trip ends on the bus", () => {
-    expect(egressWalk(itin([walk(300), ride()]))?.walkMeters).toBe(300);
+  it("is null when the trip ends on the bus — the only walk is the access leg", () => {
+    expect(egressWalk(itin([walk(300), ride()]))).toBeNull();
   });
 });
 
