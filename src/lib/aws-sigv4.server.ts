@@ -4,21 +4,24 @@
 const enc = new TextEncoder();
 
 async function sha256Hex(data: string | Uint8Array): Promise<string> {
-  const buf = typeof data === "string" ? enc.encode(data) : data;
+  const buf: BufferSource = typeof data === "string" ? enc.encode(data) : new Uint8Array(data);
   const hash = await crypto.subtle.digest("SHA-256", buf);
   return hex(new Uint8Array(hash));
 }
 
 async function hmac(key: ArrayBuffer | Uint8Array, data: string): Promise<ArrayBuffer> {
+  const rawKey: BufferSource =
+    key instanceof Uint8Array ? new Uint8Array(key) : new Uint8Array(key);
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
-    key,
+    rawKey,
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
   );
   return crypto.subtle.sign("HMAC", cryptoKey, enc.encode(data));
 }
+
 
 function hex(bytes: Uint8Array): string {
   let s = "";
