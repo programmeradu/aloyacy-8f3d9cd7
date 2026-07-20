@@ -242,7 +242,9 @@ describe("nextNudge", () => {
   });
 
   it("escalates to leave-now at the departure moment", () => {
-    expect(nextNudge({ ...base, leaveByUnix: T, nudgesSent: ["t60", "t30", "t15"] }, T)).toBe("now");
+    expect(nextNudge({ ...base, leaveByUnix: T, nudgesSent: ["t60", "t30", "t15"] }, T)).toBe(
+      "now",
+    );
   });
 
   it("does not fire a stale leave-now long after the fact", () => {
@@ -280,10 +282,7 @@ describe("nextNudge", () => {
 describe("promiseStatusFor", () => {
   it("flips to leave-now at the leave time", () => {
     expect(
-      promiseStatusFor(
-        { leaveByUnix: T, targetArrivalUnix: T + 3600, status: "watching" },
-        T + 10,
-      ),
+      promiseStatusFor({ leaveByUnix: T, targetArrivalUnix: T + 3600, status: "watching" }, T + 10),
     ).toBe("leave-now");
   });
 
@@ -320,13 +319,15 @@ describe("watch cadence", () => {
   });
 
   it("always plans a promise that has never been planned", () => {
-    expect(isReplanDue({ nowUnix: T, leaveByUnix: T + 20 * 3600, lastReplanUnix: null })).toBe(true);
+    expect(isReplanDue({ nowUnix: T, leaveByUnix: T + 20 * 3600, lastReplanUnix: null })).toBe(
+      true,
+    );
   });
 
   it("waits out the interval", () => {
-    expect(
-      isReplanDue({ nowUnix: T, leaveByUnix: T + 3 * 3600, lastReplanUnix: T - 5 * 60 }),
-    ).toBe(false);
+    expect(isReplanDue({ nowUnix: T, leaveByUnix: T + 3 * 3600, lastReplanUnix: T - 5 * 60 })).toBe(
+      false,
+    );
     expect(
       isReplanDue({ nowUnix: T, leaveByUnix: T + 3 * 3600, lastReplanUnix: T - 16 * 60 }),
     ).toBe(true);

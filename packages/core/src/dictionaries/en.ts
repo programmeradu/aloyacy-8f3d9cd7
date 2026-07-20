@@ -422,7 +422,8 @@ export const en = {
   "trips.intentLeave": "Leave",
   "trips.intentNow": "Now",
   "trips.intentTomorrow": "tomorrow {time}",
-  "trips.intentPlanArrive": "Planning to land by {when} — Aloya can watch this arrival for you below.",
+  "trips.intentPlanArrive":
+    "Planning to land by {when} — Aloya can watch this arrival for you below.",
   "trips.intentPlanLeave": "Planning from {when}.",
   "trips.presetToday": "Today {time}",
   "trips.presetTomorrow": "Tomorrow {time}",

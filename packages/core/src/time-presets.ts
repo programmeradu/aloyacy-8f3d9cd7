@@ -67,10 +67,14 @@ const DEDUPE_MS = 25 * 60_000;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-
-
 /** Next occurrence of a wall-clock time that is at least `minMs` in the future. */
-function nextAt(nowMs: number, h: number, m: number, minMs: number, weekendMatch?: boolean): number {
+function nextAt(
+  nowMs: number,
+  h: number,
+  m: number,
+  minMs: number,
+  weekendMatch?: boolean,
+): number {
   for (let add = 0; add < 8; add++) {
     const at = cyAddDays(nowMs, add, h, m);
     if (at < nowMs + minMs) continue;
@@ -107,7 +111,10 @@ function habitSlots(
   );
   if (relevant.length === 0) return [];
 
-  const buckets = new Map<string, { h: number; m: number; weekend: boolean; n: number; last: number }>();
+  const buckets = new Map<
+    string,
+    { h: number; m: number; weekend: boolean; n: number; last: number }
+  >();
   for (const u of relevant) {
     const p = cyParts(u.atMs);
     const m = Math.round(p.minute / 15) * 15;
@@ -157,7 +164,10 @@ export function buildTimePresets(opts: {
   // 2. A near-term slot, rounded to the quarter hour, so "soon" is one tap.
   const soonRaw = nowMs + (mode === "arrive" ? 60 : 25) * 60_000;
   const sp = cyParts(soonRaw);
-  push(cyWallToMs(sp.year, sp.month, sp.day, sp.hour, 0) + Math.ceil(sp.minute / 15) * 15 * 60_000, "soon");
+  push(
+    cyWallToMs(sp.year, sp.month, sp.day, sp.hour, 0) + Math.ceil(sp.minute / 15) * 15 * 60_000,
+    "soon",
+  );
 
   // 3. Fill the rest with the next daily anchors still ahead of the rider.
   for (const a of RHYTHM[mode]) {
@@ -165,7 +175,5 @@ export function buildTimePresets(opts: {
     push(nextAt(nowMs, a.h, a.m, minLead), "rhythm");
   }
 
-  return out
-    .sort((a, b) => new Date(a.iso).getTime() - new Date(b.iso).getTime())
-    .slice(0, max);
+  return out.sort((a, b) => new Date(a.iso).getTime() - new Date(b.iso).getTime()).slice(0, max);
 }

@@ -420,7 +420,8 @@ export const el: Record<keyof typeof en, string> = {
   "trips.intentLeave": "Αναχώρηση",
   "trips.intentNow": "Τώρα",
   "trips.intentTomorrow": "αύριο {time}",
-  "trips.intentPlanArrive": "Άφιξη έως {when} — η Aloya μπορεί να παρακολουθεί αυτή την άφιξη πιο κάτω.",
+  "trips.intentPlanArrive":
+    "Άφιξη έως {when} — η Aloya μπορεί να παρακολουθεί αυτή την άφιξη πιο κάτω.",
   "trips.intentPlanLeave": "Σχεδιασμός από {when}.",
   "trips.presetToday": "Σήμερα {time}",
   "trips.presetTomorrow": "Αύριο {time}",

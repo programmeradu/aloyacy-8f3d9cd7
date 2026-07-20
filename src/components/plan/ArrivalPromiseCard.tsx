@@ -42,7 +42,6 @@ import {
 
 export { useArrivalPromises };
 
-
 export function ArrivalPromiseCommit({
   origin,
   destination,

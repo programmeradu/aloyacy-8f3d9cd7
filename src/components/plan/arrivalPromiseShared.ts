@@ -22,10 +22,6 @@ export function useNowUnix(intervalMs: number): number {
   return useMemo(() => Math.floor(Date.now() / 1000), [tick]);
 }
 
-
-
-
-
 /** Ask for notification permission, but never block the promise on it. */
 export async function ensurePushDevice(): Promise<string | undefined> {
   try {

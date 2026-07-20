@@ -139,12 +139,10 @@ async function tick(request: Request) {
       }
     }
   } finally {
-    await db
-      .rpc("release_job_lease", { p_job: "arrival-watch", p_holder: holder })
-      .then(
-        () => undefined,
-        () => undefined,
-      );
+    await db.rpc("release_job_lease", { p_job: "arrival-watch", p_holder: holder }).then(
+      () => undefined,
+      () => undefined,
+    );
   }
 
   return json({ ok: true, replanned, notified, closed });

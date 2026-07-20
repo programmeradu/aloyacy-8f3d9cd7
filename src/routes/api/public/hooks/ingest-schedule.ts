@@ -238,7 +238,6 @@ async function runIngest(
     }
   > = {};
 
-
   // globals
   const feedsMeta = FEED_IDS.map((id) => ({
     id,
