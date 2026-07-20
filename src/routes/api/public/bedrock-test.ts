@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { signRequest } from "@/lib/aws-sigv4.server";
+import { estimateCost } from "@/lib/bedrock-pricing";
 
 // Internal test proxy for AWS Bedrock. Credentials are provided per-request
 // by the caller (BYOK from the test page) and never stored server-side.
@@ -94,6 +95,41 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
           let parsed: unknown = null;
           try { parsed = JSON.parse(text); } catch { /* keep raw */ }
 
+          // Extract token usage from Converse response and log to Supabase.
+          let inputTokens = 0;
+          let outputTokens = 0;
+          if (parsed && typeof parsed === "object") {
+            const usage = (parsed as { usage?: { inputTokens?: number; outputTokens?: number } }).usage;
+            inputTokens = Math.max(0, Math.floor(usage?.inputTokens ?? 0));
+            outputTokens = Math.max(0, Math.floor(usage?.outputTokens ?? 0));
+          }
+          const estCost = estimateCost(modelId, inputTokens, outputTokens);
+          const keyHint = authMode === "sigv4"
+            ? (body.accessKeyId || "").trim().slice(-4)
+            : (body.apiKey || "").trim().slice(-4);
+          const errText = !upstream.ok
+            ? (typeof parsed === "object" && parsed && "message" in parsed
+                ? String((parsed as { message?: unknown }).message ?? "")
+                : text.slice(0, 500))
+            : null;
+
+          try {
+            const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+            await supabaseAdmin.from("bedrock_usage").insert({
+              access_key_hint: keyHint || null,
+              auth_mode: authMode,
+              region,
+              model_id: modelId,
+              input_tokens: inputTokens,
+              output_tokens: outputTokens,
+              est_cost_usd: estCost,
+              latency_ms: elapsed,
+              http_status: upstream.status,
+              ok: upstream.ok,
+              error: errText,
+            });
+          } catch { /* logging must not break the response */ }
+
           return new Response(
             JSON.stringify({
               ok: upstream.ok,
@@ -101,6 +137,7 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
               elapsedMs: elapsed,
               endpoint: url,
               authMode,
+              usage: { inputTokens, outputTokens, estCostUsd: estCost },
               response: parsed ?? text,
             }),
             { status: 200, headers: cors },
