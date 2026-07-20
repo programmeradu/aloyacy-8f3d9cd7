@@ -9,7 +9,7 @@
 // Copy and clock formatting come from @aloya/core/arrival-promise so the
 // card, the push body and the native app never disagree.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -38,7 +38,6 @@ import {
   useNowUnix,
   type PromisePoint as Point,
 } from "./arrivalPromiseShared";
-
 
 export function ArrivalPromiseCommit({
   origin,
