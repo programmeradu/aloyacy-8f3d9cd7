@@ -130,6 +130,9 @@ function BedrockTestPage() {
           Credentials are sent to our server proxy per-request and never stored. SigV4 signing
           runs on the server (Web Crypto). Do not paste production long-lived root keys.
         </p>
+        <a href="/internal/bedrock-usage" className="mt-3 inline-block text-xs font-mono uppercase tracking-widest text-primary hover:underline">
+          → View usage &amp; spend tracker
+        </a>
       </div>
 
       <div className="space-y-4 rounded-2xl border bg-card p-6">
