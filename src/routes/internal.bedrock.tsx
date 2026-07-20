@@ -24,9 +24,7 @@ type AuthMode = "api-key" | "sigv4";
 function BedrockTestPage() {
   const [authMode, setAuthMode] = useState<AuthMode>("sigv4");
   const [apiKey, setApiKey] = useState("");
-  const [accessKeyId, setAccessKeyId] = useState("");
-  const [secretAccessKey, setSecretAccessKey] = useState("");
-  const [sessionToken, setSessionToken] = useState("");
+  const [credsCombined, setCredsCombined] = useState("");
   const [region, setRegion] = useState("us-west-2");
   const [modelId, setModelId] = useState(MODEL_PRESETS[0]);
   const [prompt, setPrompt] = useState("Say hello from Bedrock in one sentence.");
@@ -42,14 +40,48 @@ function BedrockTestPage() {
     error?: string;
   }>(null);
 
+  // Parse "AKIA...:SECRET[:region][:sessionToken]" — the shape AWS uses in
+  // its exported access-keys CSV. Colons inside the session token are kept.
+  function parseCreds(raw: string): {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region?: string;
+    sessionToken?: string;
+  } {
+    const trimmed = raw.trim().replace(/^\uFEFF/, "");
+    const parts = trimmed.split(":");
+    const accessKeyId = parts[0]?.trim() ?? "";
+    const secretAccessKey = parts[1]?.trim() ?? "";
+    const maybeRegion = parts[2]?.trim();
+    const maybeToken = parts.slice(3).join(":").trim() || undefined;
+    return {
+      accessKeyId,
+      secretAccessKey,
+      region: maybeRegion || undefined,
+      sessionToken: maybeToken,
+    };
+  }
+
   async function run() {
     setLoading(true);
     setResult(null);
     try {
-      const payload =
-        authMode === "sigv4"
-          ? { authMode, accessKeyId, secretAccessKey, sessionToken: sessionToken || undefined, region, modelId, prompt, maxTokens }
-          : { authMode, apiKey, region, modelId, prompt, maxTokens };
+      let payload: Record<string, unknown>;
+      if (authMode === "sigv4") {
+        const parsed = parseCreds(credsCombined);
+        payload = {
+          authMode,
+          accessKeyId: parsed.accessKeyId,
+          secretAccessKey: parsed.secretAccessKey,
+          sessionToken: parsed.sessionToken,
+          region: parsed.region || region,
+          modelId,
+          prompt,
+          maxTokens,
+        };
+      } else {
+        payload = { authMode, apiKey, region, modelId, prompt, maxTokens };
+      }
       const res = await fetch("/api/public/bedrock-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -79,10 +111,13 @@ function BedrockTestPage() {
     return null;
   })();
 
+  const parsedPreview = authMode === "sigv4" ? parseCreds(credsCombined) : null;
   const canRun =
     !loading &&
     !!prompt &&
-    (authMode === "api-key" ? !!apiKey : !!accessKeyId && !!secretAccessKey);
+    (authMode === "api-key"
+      ? !!apiKey
+      : !!parsedPreview?.accessKeyId && !!parsedPreview?.secretAccessKey);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
