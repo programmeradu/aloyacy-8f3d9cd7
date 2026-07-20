@@ -9,7 +9,7 @@
 // Copy and clock formatting come from @aloya/core/arrival-promise so the
 // card, the push body and the native app never disagree.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -29,53 +29,19 @@ import {
   refreshArrivalPromise,
   type ArrivalPromiseRow,
 } from "@/lib/arrival-promise.functions";
-import { saveSubscription } from "@/lib/push.functions";
-import { getDeviceId, getOrCreatePushSubscription } from "@/lib/pwa";
 import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "@/components/AuthSheet";
-import { useTick } from "@/hooks/use-tick";
 import arrivalHero from "@/assets/arrival-promise-hero.jpg";
+import {
+  ARRIVAL_PROMISE_QUERY_KEY as QUERY_KEY,
+  ensurePushDevice,
+  useArrivalPromises,
+  useNowUnix,
+  type PromisePoint as Point,
+} from "./arrivalPromiseShared";
 
-/** Wall-clock seconds that re-render on a fixed cadence. */
-function useNowUnix(intervalMs: number): number {
-  const tick = useTick(intervalMs);
-  return useMemo(() => Math.floor(Date.now() / 1000), [tick]);
-}
+export { useArrivalPromises };
 
-type Point = { lat: number; lng: number; label: string };
-
-const QUERY_KEY = ["arrival-promises"] as const;
-
-/** Ask for notification permission, but never block the promise on it. */
-async function ensurePushDevice(): Promise<string | undefined> {
-  try {
-    const deviceId = getDeviceId();
-    const sub = await getOrCreatePushSubscription();
-    if (sub.ok) {
-      await saveSubscription({
-        data: {
-          deviceId,
-          subscription: sub.subscription,
-          userAgent: navigator.userAgent.slice(0, 500),
-        },
-      });
-    }
-    return deviceId;
-  } catch {
-    return undefined;
-  }
-}
-
-export function useArrivalPromises(enabled: boolean) {
-  const list = useServerFn(listArrivalPromises);
-  return useQuery({
-    queryKey: QUERY_KEY,
-    queryFn: () => list(),
-    enabled,
-    refetchInterval: 60_000,
-    staleTime: 30_000,
-  });
-}
 
 export function ArrivalPromiseCommit({
   origin,
