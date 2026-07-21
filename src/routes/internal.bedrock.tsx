@@ -12,6 +12,10 @@ export const Route = createFileRoute("/internal/bedrock")({
 });
 
 const MODEL_PRESETS = [
+  "arn:aws:bedrock:us-west-2:362234323850:inference-profile/global.anthropic.claude-opus-4-6-v1:0",
+  "arn:aws:bedrock:us-west-2:362234323850:inference-profile/global.anthropic.claude-opus-4-5-20251101-v1:0",
+  "arn:aws:bedrock:us-west-2:362234323850:inference-profile/global.anthropic.claude-sonnet-4-6",
+  "arn:aws:bedrock:us-west-2:362234323850:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0",
   "arn:aws:bedrock:us-west-2:362234323850:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0",
   "anthropic.claude-3-5-sonnet-20241022-v2:0",
   "anthropic.claude-3-5-haiku-20241022-v1:0",
