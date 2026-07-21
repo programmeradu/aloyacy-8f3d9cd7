@@ -37,7 +37,7 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
             maxTokens?: number;
           };
           const authMode = body.authMode ?? "api-key";
-          const region = (body.region || "us-west-2").trim();
+          const region = (body.region || "sa-east-1").trim();
           const modelId = (body.modelId || "").trim();
           const prompt = (body.prompt || "").trim();
           const maxTokens = Math.min(Math.max(body.maxTokens ?? 1024, 1), 32000);
