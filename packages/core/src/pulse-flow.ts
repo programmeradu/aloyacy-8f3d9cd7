@@ -10,9 +10,7 @@ export type ActivityBucket = { sampleCount: number };
 
 /** Shape of the summary line under the proportion bar. */
 export type FlowSummary =
-  | { kind: "late"; minutes: number }
-  | { kind: "early"; minutes: number }
-  | { kind: "onTime" };
+  { kind: "late"; minutes: number } | { kind: "early"; minutes: number } | { kind: "onTime" };
 
 /**
  * Which sentence to show for the median delay. Anything inside ±60s reads as

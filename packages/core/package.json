@@ -37,6 +37,10 @@
       "types": "./src/geo-fusion.ts",
       "default": "./src/geo-fusion.ts"
     },
+    "./greek-word-motif": {
+      "types": "./src/greek-word-motif.ts",
+      "default": "./src/greek-word-motif.ts"
+    },
     "./group-converge": {
       "types": "./src/group-converge.ts",
       "default": "./src/group-converge.ts"
@@ -100,6 +104,10 @@
     "./plan-signals": {
       "types": "./src/plan-signals.ts",
       "default": "./src/plan-signals.ts"
+    },
+    "./pulse-flow": {
+      "types": "./src/pulse-flow.ts",
+      "default": "./src/pulse-flow.ts"
     },
     "./pulse-zones": {
       "types": "./src/pulse-zones.ts",

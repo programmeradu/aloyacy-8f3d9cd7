@@ -100,9 +100,33 @@ export function GreekWordGlyph({ word, className }: { word: string; className?: 
             fill="var(--color-aegean-deep)"
             opacity="0.85"
           />
-          <rect x="26" y="56" width="20" height="14" rx="2" fill="var(--color-card)" opacity="0.9" />
-          <rect x="50" y="56" width="20" height="14" rx="2" fill="var(--color-card)" opacity="0.9" />
-          <rect x="74" y="56" width="20" height="14" rx="2" fill="var(--color-card)" opacity="0.9" />
+          <rect
+            x="26"
+            y="56"
+            width="20"
+            height="14"
+            rx="2"
+            fill="var(--color-card)"
+            opacity="0.9"
+          />
+          <rect
+            x="50"
+            y="56"
+            width="20"
+            height="14"
+            rx="2"
+            fill="var(--color-card)"
+            opacity="0.9"
+          />
+          <rect
+            x="74"
+            y="56"
+            width="20"
+            height="14"
+            rx="2"
+            fill="var(--color-card)"
+            opacity="0.9"
+          />
           <rect x="20" y="80" width="80" height="3" fill="var(--color-ink)" opacity="0.25" />
           <circle cx="36" cy="92" r="7" fill="var(--color-ink)" opacity="0.85" />
           <circle cx="36" cy="92" r="2.6" fill="var(--color-card)" />
