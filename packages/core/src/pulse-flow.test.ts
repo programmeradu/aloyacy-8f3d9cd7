@@ -13,10 +13,15 @@ import {
 const strip = (counts: number[]) => counts.map((sampleCount) => ({ sampleCount }));
 
 describe("flowSummary", () => {
-  it("reads a sub-minute median as on-time in either direction", () => {
+  it("reads a median inside half a minute as on-time in either direction", () => {
     expect(flowSummary(0)).toEqual({ kind: "onTime" });
-    expect(flowSummary(44)).toEqual({ kind: "onTime" });
-    expect(flowSummary(-44)).toEqual({ kind: "onTime" });
+    expect(flowSummary(24)).toEqual({ kind: "onTime" });
+    expect(flowSummary(-24)).toEqual({ kind: "onTime" });
+  });
+
+  it("crosses into lateness once the median rounds up to a minute", () => {
+    expect(flowSummary(44)).toEqual({ kind: "late", minutes: 1 });
+    expect(flowSummary(-44)).toEqual({ kind: "early", minutes: 1 });
   });
 
   it("rounds lateness to whole minutes", () => {

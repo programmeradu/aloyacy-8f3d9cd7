@@ -13,9 +13,9 @@ export type FlowSummary =
   { kind: "late"; minutes: number } | { kind: "early"; minutes: number } | { kind: "onTime" };
 
 /**
- * Which sentence to show for the median delay. Anything inside ±60s reads as
- * on-time — riders do not experience a 40-second median as lateness, and
- * rounding it to "1 min late" would overstate what we actually measured.
+ * Which sentence to show for the median delay. The median rounds to the nearest
+ * whole minute, so anything inside ±30s reads as on-time — riders do not
+ * experience a 20-second median as lateness.
  */
 export function flowSummary(medianSec: number): FlowSummary {
   const minutes = Math.round(medianSec / 60);
