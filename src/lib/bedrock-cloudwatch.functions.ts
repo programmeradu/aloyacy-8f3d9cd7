@@ -45,7 +45,7 @@ export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { cwGetMetricData } = await import("@/lib/aws-cloudwatch.server");
-    const region = (data.region || "us-west-2").trim();
+    const region = (data.region || "sa-east-1").trim();
     // Accept fractional hours (0.083 = 5min). CloudWatch's smallest period is 60s.
     const hours = Math.min(Math.max(data.hours ?? 24, 0.05), 336); // 3min → 14d
     const endTime = new Date();
