@@ -45,7 +45,8 @@ export function recordTimeUsage(usage: TimeUsage) {
   if (typeof window === "undefined") return;
   if (!Number.isFinite(usage.atMs)) return;
   const all = read();
-  if (all.some((u) => u.mode === usage.mode && Math.abs(u.atMs - usage.atMs) < DUPLICATE_MS)) return;
+  if (all.some((u) => u.mode === usage.mode && Math.abs(u.atMs - usage.atMs) < DUPLICATE_MS))
+    return;
   const next = [usage, ...all].slice(0, MAX_ENTRIES);
   try {
     localStorage.setItem(KEY, JSON.stringify(next));

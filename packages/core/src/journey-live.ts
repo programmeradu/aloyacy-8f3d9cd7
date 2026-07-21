@@ -213,12 +213,7 @@ export function resolveLivePhase(input: PhaseInput): PhaseResult {
       const busFromStop = distanceM(vehicle, boardLoc);
       const riderFarFromBus = !fix || distanceM(fix, vehicle) > 250;
       const riderStillNearStop = !!fix && distToBoardStop < 60;
-      if (
-        busFromStop > 250 &&
-        nowUnix > boardUnix + 60 &&
-        riderFarFromBus &&
-        riderStillNearStop
-      ) {
+      if (busFromStop > 250 && nowUnix > boardUnix + 60 && riderFarFromBus && riderStillNearStop) {
         phase = "missed-bus";
       }
     }
@@ -382,11 +377,29 @@ export function alertForPhase(input: AlertInput): PhaseAlert | null {
 
   switch (phase) {
     case "hurry-soft":
-      return { key: "hurry-soft", kind: "hurry-soft", stopName: boardName, minutes, recordsHistory: false };
+      return {
+        key: "hurry-soft",
+        kind: "hurry-soft",
+        stopName: boardName,
+        minutes,
+        recordsHistory: false,
+      };
     case "hurry-urgent":
-      return { key: "hurry-urgent", kind: "hurry-urgent", stopName: boardName, minutes, recordsHistory: false };
+      return {
+        key: "hurry-urgent",
+        kind: "hurry-urgent",
+        stopName: boardName,
+        minutes,
+        recordsHistory: false,
+      };
     case "at-stop":
-      return { key: "at-stop", kind: "at-stop", stopName: boardName, minutes, recordsHistory: false };
+      return {
+        key: "at-stop",
+        kind: "at-stop",
+        stopName: boardName,
+        minutes,
+        recordsHistory: false,
+      };
     case "boarding":
       // Only worth a buzz when GPS actually suggests they've boarded.
       return onBoardSuggested

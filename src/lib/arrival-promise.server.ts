@@ -156,7 +156,11 @@ export async function computePromisePlan(args: {
   });
 
   const itineraries = (result?.itineraries ?? []) as Itinerary[];
-  const ladder = buildDepartureLadder(itineraries as unknown as ItineraryLike[], targetArrivalUnix, margin);
+  const ladder = buildDepartureLadder(
+    itineraries as unknown as ItineraryLike[],
+    targetArrivalUnix,
+    margin,
+  );
   const best = recommendedRung(ladder);
   const chosen = best ? (itineraries.find((i) => i.id === best.itineraryId) ?? null) : null;
 

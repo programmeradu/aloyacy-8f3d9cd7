@@ -9,13 +9,13 @@
       "types": "./src/arrival-promise.ts",
       "default": "./src/arrival-promise.ts"
     },
-    "./cy-time": {
-      "types": "./src/cy-time.ts",
-      "default": "./src/cy-time.ts"
-    },
     "./cities": {
       "types": "./src/cities.ts",
       "default": "./src/cities.ts"
+    },
+    "./cy-time": {
+      "types": "./src/cy-time.ts",
+      "default": "./src/cy-time.ts"
     },
     "./dictionaries/el": {
       "types": "./src/dictionaries/el.ts",
@@ -97,6 +97,10 @@
       "types": "./src/plan-intent.ts",
       "default": "./src/plan-intent.ts"
     },
+    "./plan-signals": {
+      "types": "./src/plan-signals.ts",
+      "default": "./src/plan-signals.ts"
+    },
     "./pulse-zones": {
       "types": "./src/pulse-zones.ts",
       "default": "./src/pulse-zones.ts"
@@ -117,6 +121,10 @@
       "types": "./src/single-leg-phase.ts",
       "default": "./src/single-leg-phase.ts"
     },
+    "./time-presets": {
+      "types": "./src/time-presets.ts",
+      "default": "./src/time-presets.ts"
+    },
     "./today-brief": {
       "types": "./src/today-brief.ts",
       "default": "./src/today-brief.ts"
@@ -124,10 +132,6 @@
     "./today-rhythm": {
       "types": "./src/today-rhythm.ts",
       "default": "./src/today-rhythm.ts"
-    },
-    "./time-presets": {
-      "types": "./src/time-presets.ts",
-      "default": "./src/time-presets.ts"
     },
     "./trip-alert-copy": {
       "types": "./src/trip-alert-copy.ts",

@@ -75,13 +75,7 @@ export function cyOffsetMs(atMs: number): number {
  * Turn a Cyprus wall clock into an instant. Solved iteratively so the DST
  * changeover (last Sunday of March / October) lands on the right side.
  */
-export function cyWallToMs(
-  year: number,
-  month: number,
-  day: number,
-  hour = 0,
-  minute = 0,
-): number {
+export function cyWallToMs(year: number, month: number, day: number, hour = 0, minute = 0): number {
   const naive = Date.UTC(year, month - 1, day, hour, minute, 0, 0);
   let guess = naive - 3 * 3_600_000;
   for (let i = 0; i < 3; i++) {
@@ -134,11 +128,5 @@ export function cyIsWeekend(atMs: number): boolean {
 /** Add whole Cyprus calendar days, preserving the wall clock across DST. */
 export function cyAddDays(atMs: number, days: number, hour?: number, minute?: number): number {
   const p = cyParts(atMs);
-  return cyWallToMs(
-    p.year,
-    p.month,
-    p.day + days,
-    hour ?? p.hour,
-    minute ?? p.minute,
-  );
+  return cyWallToMs(p.year, p.month, p.day + days, hour ?? p.hour, minute ?? p.minute);
 }

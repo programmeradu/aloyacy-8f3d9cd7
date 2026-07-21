@@ -222,7 +222,11 @@ export const refreshArrivalPromise = createServerFn({ method: "POST" })
         leave_by_unix: plan.leaveByUnix ?? promise.leave_by_unix,
         buffer_sec: plan.bufferSec,
         reason_short: plan.reasonShort,
-        status: plan.unmakeable ? "missed" : promise.status === "missed" ? "watching" : promise.status,
+        status: plan.unmakeable
+          ? "missed"
+          : promise.status === "missed"
+            ? "watching"
+            : promise.status,
         last_replan_at: new Date().toISOString(),
       })
       .eq("id", data.id)

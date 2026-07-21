@@ -10,7 +10,7 @@
 // card, the push body and the native app never disagree.
 
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   bufferNote,
@@ -25,57 +25,19 @@ import {
 import {
   cancelArrivalPromise,
   createArrivalPromise,
-  listArrivalPromises,
   refreshArrivalPromise,
   type ArrivalPromiseRow,
 } from "@/lib/arrival-promise.functions";
-import { saveSubscription } from "@/lib/push.functions";
-import { getDeviceId, getOrCreatePushSubscription } from "@/lib/pwa";
 import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "@/components/AuthSheet";
-import { useTick } from "@/hooks/use-tick";
 import arrivalHero from "@/assets/arrival-promise-hero.jpg";
-
-/** Wall-clock seconds that re-render on a fixed cadence. */
-function useNowUnix(intervalMs: number): number {
-  const tick = useTick(intervalMs);
-  return useMemo(() => Math.floor(Date.now() / 1000), [tick]);
-}
-
-type Point = { lat: number; lng: number; label: string };
-
-const QUERY_KEY = ["arrival-promises"] as const;
-
-/** Ask for notification permission, but never block the promise on it. */
-async function ensurePushDevice(): Promise<string | undefined> {
-  try {
-    const deviceId = getDeviceId();
-    const sub = await getOrCreatePushSubscription();
-    if (sub.ok) {
-      await saveSubscription({
-        data: {
-          deviceId,
-          subscription: sub.subscription,
-          userAgent: navigator.userAgent.slice(0, 500),
-        },
-      });
-    }
-    return deviceId;
-  } catch {
-    return undefined;
-  }
-}
-
-export function useArrivalPromises(enabled: boolean) {
-  const list = useServerFn(listArrivalPromises);
-  return useQuery({
-    queryKey: QUERY_KEY,
-    queryFn: () => list(),
-    enabled,
-    refetchInterval: 60_000,
-    staleTime: 30_000,
-  });
-}
+import {
+  ARRIVAL_PROMISE_QUERY_KEY as QUERY_KEY,
+  ensurePushDevice,
+  useArrivalPromises,
+  useNowUnix,
+  type PromisePoint as Point,
+} from "./arrivalPromiseShared";
 
 export function ArrivalPromiseCommit({
   origin,
@@ -132,59 +94,55 @@ export function ArrivalPromiseCommit({
           className="h-32 w-full object-cover object-right sm:h-40"
         />
         <div className="p-5 sm:p-6">
-        <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-ink-soft">
-          Arrival promise
-        </p>
-        <h2 className="mt-2 font-display text-[20px] leading-tight font-bold text-ink">
-          Make sure I reach {destination.label} by {when}
-        </h2>
-        <p className="mt-2 max-w-prose font-sans text-[13.5px] leading-relaxed text-ink-soft">
-          Aloya keeps re-planning this trip as the timetable, the weather and the roads change,
-          then tells you when to leave — an hour before, thirty minutes before, and at the moment
-          you need to walk out the door.
-        </p>
+          <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-ink-soft">
+            Arrival promise
+          </p>
+          <h2 className="mt-2 font-display text-[20px] leading-tight font-bold text-ink">
+            Make sure I reach {destination.label} by {when}
+          </h2>
+          <p className="mt-2 max-w-prose font-sans text-[13.5px] leading-relaxed text-ink-soft">
+            Aloya keeps re-planning this trip as the timetable, the weather and the roads change,
+            then tells you when to leave — an hour before, thirty minutes before, and at the moment
+            you need to walk out the door.
+          </p>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          {(["relaxed", "normal", "tight"] as MarginPref[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMargin(m)}
-              aria-pressed={margin === m}
-              className={`h-9 rounded-full px-4 font-sans text-[12.5px] font-semibold transition-colors ${
-                margin === m
-                  ? "bg-ink text-limestone"
-                  : "bg-limestone-soft text-ink-soft ring-1 ring-line hover:text-ink"
-              }`}
-            >
-              {m === "relaxed"
-                ? "15 min spare"
-                : m === "normal"
-                  ? "8 min spare"
-                  : "Cut it fine"}
-            </button>
-          ))}
-        </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {(["relaxed", "normal", "tight"] as MarginPref[]).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMargin(m)}
+                aria-pressed={margin === m}
+                className={`h-9 rounded-full px-4 font-sans text-[12.5px] font-semibold transition-colors ${
+                  margin === m
+                    ? "bg-ink text-limestone"
+                    : "bg-limestone-soft text-ink-soft ring-1 ring-line hover:text-ink"
+                }`}
+              >
+                {m === "relaxed" ? "15 min spare" : m === "normal" ? "8 min spare" : "Cut it fine"}
+              </button>
+            ))}
+          </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            if (!user) {
-              setAuthOpen(true);
-              return;
-            }
-            mutation.mutate();
-          }}
-          disabled={mutation.isPending}
-          className="mt-5 inline-flex h-11 items-center gap-2.5 rounded-full bg-aegean px-6 font-sans text-[13.5px] font-bold text-limestone transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
-          <WatchGlyph className="size-4" />
-          {mutation.isPending ? "Setting the watch…" : "Watch this arrival"}
-        </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!user) {
+                setAuthOpen(true);
+                return;
+              }
+              mutation.mutate();
+            }}
+            disabled={mutation.isPending}
+            className="mt-5 inline-flex h-11 items-center gap-2.5 rounded-full bg-aegean px-6 font-sans text-[13.5px] font-bold text-limestone transition-opacity hover:opacity-90 disabled:opacity-60"
+          >
+            <WatchGlyph className="size-4" />
+            {mutation.isPending ? "Setting the watch…" : "Watch this arrival"}
+          </button>
 
-        {error ? (
-          <p className="mt-3 font-sans text-[12.5px] font-medium text-ochre">{error}</p>
-        ) : null}
+          {error ? (
+            <p className="mt-3 font-sans text-[12.5px] font-medium text-ochre">{error}</p>
+          ) : null}
         </div>
       </section>
 

@@ -241,7 +241,6 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     }
     const afterDedup = dedup.size;
 
-
     // No-mediocrity: a transfer itinerary must beat best direct by ≥ 3min or ≥ 15%.
     const all = [...dedup.values()];
     const bestDirect = all

@@ -324,13 +324,7 @@ export function composeLeaveBuffer(signals: BufferSignals): BufferResult {
 
 export type NudgeKind = "t60" | "t30" | "t15" | "now" | "changed" | "unmakeable";
 
-export type PromiseStatus =
-  | "watching"
-  | "leave-now"
-  | "departed"
-  | "missed"
-  | "cancelled"
-  | "done";
+export type PromiseStatus = "watching" | "leave-now" | "departed" | "missed" | "cancelled" | "done";
 
 export type PromiseSnapshot = {
   leaveByUnix: number;
@@ -398,12 +392,15 @@ export function nextNudge(p: PromiseSnapshot, nowUnix: number): NudgeKind | null
   return null;
 }
 
-export function promiseStatusFor(p: {
-  leaveByUnix: number;
-  targetArrivalUnix: number;
-  status: PromiseStatus;
-  unmakeable?: boolean;
-}, nowUnix: number): PromiseStatus {
+export function promiseStatusFor(
+  p: {
+    leaveByUnix: number;
+    targetArrivalUnix: number;
+    status: PromiseStatus;
+    unmakeable?: boolean;
+  },
+  nowUnix: number,
+): PromiseStatus {
   if (p.status === "cancelled" || p.status === "departed" || p.status === "done") return p.status;
   if (nowUnix > p.targetArrivalUnix) return "done";
   if (p.unmakeable) return "missed";
@@ -451,14 +448,22 @@ export function formatClock(unix: number, timeZone = "Asia/Nicosia"): string {
 
 export function formatDayLabel(unix: number, nowUnix: number, timeZone = "Asia/Nicosia"): string {
   const day = (u: number) =>
-    new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" })
-      .format(new Date(u * 1000));
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(u * 1000));
   const today = day(nowUnix);
   const target = day(unix);
   if (target === today) return "today";
   if (target === day(nowUnix + 86_400)) return "tomorrow";
-  return new Intl.DateTimeFormat("en-GB", { timeZone, weekday: "long", day: "numeric", month: "short" })
-    .format(new Date(unix * 1000));
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(unix * 1000));
 }
 
 export function rungLine(rung: LadderRung, timeZone = "Asia/Nicosia"): string {
