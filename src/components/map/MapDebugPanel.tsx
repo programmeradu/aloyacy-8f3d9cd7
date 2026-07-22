@@ -7,7 +7,11 @@ type DebugRow = ReturnType<AnimatedBus["getDebug"]>;
  * Live telemetry for every animated bus (ping age, mode, speed, correction).
  * Internal stress-testing surface used by /qa — never shown to riders.
  */
-export function MapDebugPanel({ busLayer }: { busLayer: React.RefObject<Map<string, AnimatedBus>> }) {
+export function MapDebugPanel({
+  busLayer,
+}: {
+  busLayer: React.RefObject<Map<string, AnimatedBus>>;
+}) {
   const [rows, setRows] = useState<DebugRow[]>([]);
 
   useEffect(() => {

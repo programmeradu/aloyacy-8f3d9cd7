@@ -6,7 +6,11 @@ import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
 import { IconExpand, IconClose } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
 import { spanToZoom } from "@aloya/core/path-geometry";
-import { overrideSignature, selectMapVehicles, type VehicleOverride } from "@aloya/core/map-vehicles";
+import {
+  overrideSignature,
+  selectMapVehicles,
+  type VehicleOverride,
+} from "@aloya/core/map-vehicles";
 import { MapDebugPanel } from "@/components/map/MapDebugPanel";
 import { useLiveBusLayer } from "@/components/map/useLiveBusLayer";
 import { useMapFullscreen } from "@/components/map/useMapFullscreen";

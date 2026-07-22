@@ -45,7 +45,6 @@ export function useMapFullscreen(api: Api, mapRef: React.RefObject<google.maps.M
     }
   }, [openFallback]);
 
-
   // Mirror browser-driven exits (Esc, system gesture) back into React state.
   useEffect(() => {
     const onChange = () => {
