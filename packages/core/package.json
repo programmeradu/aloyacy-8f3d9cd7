@@ -81,6 +81,10 @@
       "types": "./src/learned-types.ts",
       "default": "./src/learned-types.ts"
     },
+    "./map-vehicles": {
+      "types": "./src/map-vehicles.ts",
+      "default": "./src/map-vehicles.ts"
+    },
     "./motion-pass": {
       "types": "./src/motion-pass.ts",
       "default": "./src/motion-pass.ts"

@@ -12,6 +12,7 @@ import { useLiveBusLayer } from "@/components/map/useLiveBusLayer";
 import { useMapFullscreen } from "@/components/map/useMapFullscreen";
 import { useStaticLayer } from "@/components/map/useStaticLayer";
 import { useTripPaths } from "@/components/map/useTripPaths";
+import { UserHereOverlay } from "@/components/map/UserHereOverlay";
 import type { MapMarker } from "@/components/map/types";
 
 export type { MapMarker };
@@ -226,7 +227,7 @@ function useUserHereOverlay(
   mapRef: React.RefObject<google.maps.Map | null>,
   userLocation: Props["userLocation"],
 ) {
-  const overlayRef = useRef<import("@/components/map/UserHereOverlay").UserHereOverlay | null>(null);
+  const overlayRef = useRef<UserHereOverlay | null>(null);
 
   useEffect(() => {
     const m = mapRef.current;
@@ -236,16 +237,8 @@ function useUserHereOverlay(
       overlayRef.current = null;
       return;
     }
-    let cancelled = false;
-    (async () => {
-      const { UserHereOverlay } = await import("@/components/map/UserHereOverlay");
-      if (cancelled || !mapRef.current) return;
-      if (!overlayRef.current) overlayRef.current = new UserHereOverlay(api, m, userLocation);
-      else overlayRef.current.update(userLocation);
-    })();
-    return () => {
-      cancelled = true;
-    };
+    if (!overlayRef.current) overlayRef.current = new UserHereOverlay(api, m, userLocation);
+    else overlayRef.current.update(userLocation);
     // The overlay is imperatively updated from the ref; re-running on every
     // userLocation identity change would rebuild the marker each GPS tick.
     // eslint-disable-next-line react-hooks/exhaustive-deps
