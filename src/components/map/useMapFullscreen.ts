@@ -19,6 +19,12 @@ export function useMapFullscreen(api: Api, mapRef: React.RefObject<google.maps.M
   const originalParentRef = useRef<HTMLElement | null>(null);
   const originalNextSiblingRef = useRef<Node | null>(null);
 
+  const openFallback = useCallback(() => {
+    const next = !expanded;
+    setFallbackOverlay(next);
+    setExpanded(next);
+  }, [expanded]);
+
   const toggleFullscreen = useCallback(async () => {
     const wrap = wrapperRef.current;
     if (!wrap) return;
@@ -28,25 +34,17 @@ export function useMapFullscreen(api: Api, mapRef: React.RefObject<google.maps.M
       document.fullscreenEnabled !== false;
 
     if (!canNativeFs) {
-      setFallbackOverlay((prev) => !prev || !expanded);
-      setExpanded((prev) => {
-        const next = !prev;
-        setFallbackOverlay(next);
-        return next;
-      });
+      openFallback();
       return;
     }
     try {
       if (!document.fullscreenElement) await wrap.requestFullscreen();
       else await document.exitFullscreen();
     } catch {
-      setExpanded((prev) => {
-        const next = !prev;
-        setFallbackOverlay(next);
-        return next;
-      });
+      openFallback();
     }
-  }, [expanded]);
+  }, [openFallback]);
+
 
   // Mirror browser-driven exits (Esc, system gesture) back into React state.
   useEffect(() => {
