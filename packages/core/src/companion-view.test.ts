@@ -38,7 +38,6 @@ describe("buildCompanionMarkers", () => {
     expect(buildCompanionMarkers({ ...base, walkingPhase: null, walkIn: null })).toHaveLength(1);
     const noAccessWalk = buildCompanionMarkers({ ...base, walkingPhase: "to-stop", walkIn: null });
     expect(noAccessWalk).toEqual([
-      { lat: 35.11, lng: 33.31, kind: "stop", label: "Solomou" },
       { lat: 35.2, lng: 33.4, kind: "destination", label: "Eleftheria" },
     ]);
   });
