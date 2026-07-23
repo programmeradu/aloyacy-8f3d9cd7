@@ -34,9 +34,13 @@ describe("buildCompanionMarkers", () => {
     expect(m[1]).toMatchObject({ kind: "destination", label: "Eleftheria" });
   });
 
-  it("skips ends that are not walk legs", () => {
+  it("skips ends that are not walk legs and falls back to the overview", () => {
     expect(buildCompanionMarkers({ ...base, walkingPhase: null, walkIn: null })).toHaveLength(1);
-    expect(buildCompanionMarkers({ ...base, walkingPhase: "to-stop", walkIn: null })).toEqual([]);
+    const noAccessWalk = buildCompanionMarkers({ ...base, walkingPhase: "to-stop", walkIn: null });
+    expect(noAccessWalk).toEqual([
+      { lat: 35.11, lng: 33.31, kind: "stop", label: "Solomou" },
+      { lat: 35.2, lng: 33.4, kind: "destination", label: "Eleftheria" },
+    ]);
   });
 });
 
