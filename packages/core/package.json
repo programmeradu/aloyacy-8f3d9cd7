@@ -13,6 +13,10 @@
       "types": "./src/cities.ts",
       "default": "./src/cities.ts"
     },
+    "./companion-view": {
+      "types": "./src/companion-view.ts",
+      "default": "./src/companion-view.ts"
+    },
     "./cy-time": {
       "types": "./src/cy-time.ts",
       "default": "./src/cy-time.ts"
