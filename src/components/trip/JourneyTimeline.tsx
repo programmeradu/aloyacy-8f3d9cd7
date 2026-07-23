@@ -161,7 +161,7 @@ export function AlightAlert({
         <p className="mt-1 text-[13px] text-ink-soft">
           {imminent
             ? t("trip.alight.body.now", { name: destLabel })
-            : t("trip.alight.body.soon", { m: Math.round(walkOutSec / 60), name: destLabel })}
+            : t("trip.alight.body.soon", { m: Math.round(walkOutSec / 60) })}
         </p>
       </div>
     </section>
