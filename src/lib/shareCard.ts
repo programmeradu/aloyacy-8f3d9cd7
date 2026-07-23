@@ -6,6 +6,14 @@
 // Background pick is deterministic per stop (so the same stop always renders
 // the same beautiful image), biased by name/agency keywords and time of day.
 
+import {
+  formatShareDay,
+  formatShareDuration,
+  formatShareTime,
+  pickPlanBackdrop,
+  pickStopBackdrop,
+} from "@aloya/core/share-card-copy";
+import { drawCover, drawTracked, loadImg, measureTracked, roundRect, wrap } from "@/lib/canvas-draw";
 import oldtown from "@/assets/share/share-oldtown.jpg";
 import coastDusk from "@/assets/share/share-coast-dusk.jpg";
 import mountain from "@/assets/share/share-mountain.jpg";
@@ -40,126 +48,12 @@ const BG: Record<string, Bg> = {
   urbanMorning: { src: urbanMorning, mood: "neutral" },
 };
 
-// Simple FNV-1a — stable, no dependencies.
-function hash(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
 function pickBg(stop: { id: string; name: string; agency: string }): Bg {
-  const n = stop.name.toLowerCase();
-  // Keyword bias first — context wins over randomness.
-  if (/(troodos|kakopetria|platres|pano |kalopanay|pedoulas|prodromos|omodos)/.test(n))
-    return BG.mountain;
-  if (/(phinikoud|finikoud|larnaca seafront|seafront|promenade|marina)/.test(n))
-    return BG.coastDusk;
-  if (/(pafos|paphos|harbor|harbour|kato pafos|kato paphos|coral bay)/.test(n))
-    return BG.harborNight;
-  if (
-    /(limassol|lemesos|protaras|ayia napa|agia napa|paralimni|coral|coast|beach|akamas|polis)/.test(
-      n,
-    )
-  )
-    return BG.coastRoad;
-  if (/(faneromen|ledra|laiki geitonia|old town|chrysaliniotissa|tahtakala)/.test(n))
-    return BG.oldtown;
-  if (stop.agency === "IC") return BG.coastRoad;
-  // Default: deterministic pick across urban/oldtown options.
-  const order = [BG.urbanMorning, BG.oldtown, BG.urbanMorning, BG.oldtown];
-  return order[hash(stop.id) % order.length];
+  return BG[pickStopBackdrop(stop)];
 }
 
-// Preload an image as HTMLImageElement.
-function loadImg(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
-}
-
-// Cover-fit draw with focal point biased to top-center.
-function drawCover(
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  focal = 0.4, // 0 = top, 1 = bottom
-) {
-  const ir = img.width / img.height;
-  const tr = w / h;
-  let sx = 0,
-    sy = 0,
-    sw = img.width,
-    sh = img.height;
-  if (ir > tr) {
-    sw = img.height * tr;
-    sx = (img.width - sw) / 2;
-  } else {
-    sh = img.width / tr;
-    sy = (img.height - sh) * focal;
-  }
-  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-}
-
-function roundRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  r: number,
-) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
-// Wrap text to fit width, return lines (max `maxLines`, ellipsizing last).
-function wrap(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxW: number,
-  maxLines: number,
-): string[] {
-  const words = text.split(/\s+/);
-  const lines: string[] = [];
-  let cur = "";
-  for (const w of words) {
-    const next = cur ? cur + " " + w : w;
-    if (ctx.measureText(next).width <= maxW) {
-      cur = next;
-    } else {
-      if (cur) lines.push(cur);
-      cur = w;
-      if (lines.length >= maxLines) break;
-    }
-  }
-  if (cur && lines.length < maxLines) lines.push(cur);
-  // Ellipsize last if overflow.
-  if (lines.length === maxLines) {
-    let last = lines[maxLines - 1];
-    const ell = "…";
-    if (ctx.measureText(last).width > maxW) {
-      while (last.length > 1 && ctx.measureText(last + ell).width > maxW) {
-        last = last.slice(0, -1);
-      }
-      lines[maxLines - 1] = last.trimEnd() + ell;
-    }
-  }
-  return lines;
+function pickPlanBg(destination: string): Bg {
+  return BG[pickPlanBackdrop(destination)];
 }
 
 export type StopCardCtx = {
@@ -450,26 +344,6 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
   return { blob, dataUrl, width: W, height: H };
 }
 
-// ─── Tracked-text helpers (per-char fill — canvas has no letter-spacing) ─────
-function drawTracked(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  spacing: number,
-) {
-  let cx = x;
-  for (const ch of text) {
-    ctx.fillText(ch, cx, y);
-    cx += ctx.measureText(ch).width + spacing;
-  }
-}
-function measureTracked(ctx: CanvasRenderingContext2D, text: string, spacing: number): number {
-  let w = 0;
-  for (const ch of text) w += ctx.measureText(ch).width + spacing;
-  return Math.max(0, w - spacing);
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Plan share card — mirrors the stop card, tuned for a pre-departure plan
 // ─────────────────────────────────────────────────────────────────────────────
@@ -486,47 +360,6 @@ export type PlanCardCtx = {
   locale: "en" | "el";
   url: string;
 };
-
-function pickPlanBg(destination: string): Bg {
-  const n = destination.toLowerCase();
-  if (/(troodos|kakopetria|platres|kalopanay|pedoulas|prodromos|omodos)/.test(n))
-    return BG.mountain;
-  if (/(phinikoud|finikoud|seafront|promenade|marina|larnaca)/.test(n)) return BG.coastDusk;
-  if (/(pafos|paphos|harbor|harbour|coral bay)/.test(n)) return BG.harborNight;
-  if (/(limassol|lemesos|protaras|ayia napa|agia napa|paralimni|coast|beach|akamas|polis)/.test(n))
-    return BG.coastRoad;
-  if (/(nicosia|lefkosia|ledra|faneromen|old town)/.test(n)) return BG.oldtown;
-  const order = [BG.coastRoad, BG.oldtown, BG.urbanMorning, BG.coastDusk];
-  return order[hash(destination) % order.length];
-}
-
-function fmtHM(unix: number, locale: "en" | "el"): string {
-  return new Date(unix * 1000).toLocaleTimeString(locale === "el" ? "el-GR" : "en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: "Asia/Nicosia",
-  });
-}
-function fmtDay(unix: number, locale: "en" | "el"): string {
-  return new Date(unix * 1000)
-    .toLocaleDateString(locale === "el" ? "el-GR" : "en-GB", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      timeZone: "Asia/Nicosia",
-    })
-    .toUpperCase();
-}
-function fmtDur(sec: number, locale: "en" | "el"): string {
-  const m = Math.max(1, Math.round(sec / 60));
-  if (m < 60) return locale === "el" ? `${m} λεπτά` : `${m} min`;
-  const h = Math.floor(m / 60);
-  const r = m % 60;
-  const hLbl = locale === "el" ? "ώ" : "h";
-  const mLbl = locale === "el" ? "λ" : "m";
-  return r ? `${h}${hLbl} ${r}${mLbl}` : `${h}${hLbl}`;
-}
 
 export async function renderPlanShareCard(c: PlanCardCtx): Promise<{
   blob: Blob;
@@ -629,7 +462,7 @@ export async function renderPlanShareCard(c: PlanCardCtx): Promise<{
   // Eyebrow: "PLAN · <day> · SHARED BY <name>"
   {
     const parts: string[] = [];
-    parts.push(fmtDay(c.departureUnix, c.locale));
+    parts.push(formatShareDay(c.departureUnix, c.locale));
     if (c.creatorName) {
       parts.push((c.locale === "el" ? "ΑΠΟ " : "BY ") + c.creatorName.toUpperCase());
     }
@@ -695,8 +528,8 @@ export async function renderPlanShareCard(c: PlanCardCtx): Promise<{
     );
     ctx.fillStyle = C.ink;
     ctx.font = "600 56px 'JetBrains Mono', ui-monospace, monospace";
-    const dep = fmtHM(c.departureUnix, c.locale);
-    const arr = fmtHM(c.arrivalUnix, c.locale);
+    const dep = formatShareTime(c.departureUnix, c.locale);
+    const arr = formatShareTime(c.arrivalUnix, c.locale);
     ctx.fillText(dep, PAD, dividerY + 92);
     const depW = ctx.measureText(dep).width;
     ctx.fillStyle = C.inkSoft;
@@ -709,7 +542,7 @@ export async function renderPlanShareCard(c: PlanCardCtx): Promise<{
 
     // Duration + transfers, below times
     const sub: string[] = [];
-    sub.push(fmtDur(c.totalDurationSec, c.locale));
+    sub.push(formatShareDuration(c.totalDurationSec, c.locale));
     if (c.transfers > 0) {
       sub.push(
         c.locale === "el"
