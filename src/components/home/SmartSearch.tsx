@@ -1,51 +1,12 @@
-import { useMemo, useState } from "react";
-import { searchAll, type SearchResult } from "@aloya/core/home-search";
-import { AIRPORTS, type AirportCode } from "@/lib/airport.functions";
-import { ROUTES, STOPS, routeTone } from "@/lib/gtfs";
+import { useState } from "react";
+import type { SearchResult } from "@aloya/core/home-search";
+import type { AirportCode } from "@/lib/airport.functions";
+import { routeTone } from "@/lib/gtfs";
 import { RouteChip } from "@/components/RouteChip";
 import { IconArrowUpRight, IconBus, IconPin, IconPlane, IconSearch } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
 
 export type { SearchResult };
-
-type Vehicle = {
-  id: string;
-  tripId: string;
-  routeId: string;
-  label: string;
-  lat: number;
-  lng: number;
-};
-
-/**
- * Adapter around the pure `@aloya/core/home-search` ranking: feeds it the
- * static GTFS slices plus live vehicles, and localises the secondary lines.
- */
-export function useHomeSearch(
-  query: string,
-  vehicles: Vehicle[],
-  origin: { lat: number; lng: number },
-) {
-  const { t } = useI18n();
-  return useMemo(
-    () =>
-      searchAll(query, {
-        routes: ROUTES,
-        stops: STOPS,
-        airports: Object.values(AIRPORTS),
-        vehicles,
-        origin,
-        labels: {
-          intercity: t("home.intercity"),
-          urban: t("home.urban"),
-          kmAway: (km) => t("common.kmAway", { km: km.toFixed(1) }),
-        },
-      }),
-    // `t` is stable per locale and locale changes re-render this hook's owner.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [query, vehicles, origin],
-  );
-}
 
 const ROW =
   "group w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-limestone-soft transition-colors";
