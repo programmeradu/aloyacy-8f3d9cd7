@@ -133,6 +133,10 @@
       "types": "./src/shapes.ts",
       "default": "./src/shapes.ts"
     },
+    "./share-card-copy": {
+      "types": "./src/share-card-copy.ts",
+      "default": "./src/share-card-copy.ts"
+    },
     "./single-leg-phase": {
       "types": "./src/single-leg-phase.ts",
       "default": "./src/single-leg-phase.ts"
