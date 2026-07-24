@@ -7,12 +7,10 @@ import { Logo } from "@/components/Logo";
 import { WeatherStamp } from "@/components/WeatherStamp";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { MapPreview } from "@/components/MapPreview";
-import { StopCard, type Stop } from "@/components/StopCard";
+import { StopCard } from "@/components/StopCard";
 import { NLPlannerCard } from "@/components/NLPlannerCard";
 import { CommuteSuggestionCard } from "@/components/CommuteSuggestionCard";
-import { RouteChip } from "@/components/RouteChip";
 import {
-  IconSearch,
   IconSun,
   IconMoon,
   IconCloud,
@@ -20,26 +18,21 @@ import {
   IconWind,
   IconCrosshair,
   IconArrowUpRight,
-  IconBus,
   IconPin,
-  IconPlane,
 } from "@/components/Icons";
-import { AIRPORTS, type AirportCode } from "@/lib/airport.functions";
+import { QuickStat } from "@/components/home/QuickStat";
+import { SmartSearch, useHomeSearch } from "@/components/home/SmartSearch";
+import { useLandmarkChips, useNearbyStops } from "@/components/home/useNearbyStops";
 import { useRealtime } from "@/lib/useRealtime";
-import { smartEtaV2 } from "@/lib/eta-v2";
-import { getShapeForTripSync } from "@/lib/shapes";
-import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
-import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { useTick } from "@/hooks/use-tick";
 import { getCurrentWeather } from "@/lib/weather.functions";
-import { STOPS, ROUTES, nearestStops, getRoute, routeTone, distanceKm, stopKind } from "@/lib/gtfs";
+import { nearestStops } from "@/lib/gtfs";
 import { getGreeting } from "@/lib/greeting";
 import statBus from "@/assets/stat-bus.png";
 import statDial from "@/assets/stat-dial.png";
 import statRoad from "@/assets/stat-road.png";
 import { useI18n } from "@/lib/i18n";
-import { getStopAmenities } from "@/data/stop-amenities";
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -93,7 +86,7 @@ const WEATHER_ICONS = {
 function Explore() {
   const navigate = useNavigate();
   const geo = useGeolocation();
-  const { data: rt, riderConfirmedAge } = useRealtime();
+  const { data: rt } = useRealtime();
   const getWeather = useServerFn(getCurrentWeather);
   const { t: tt } = useI18n();
 
@@ -122,125 +115,12 @@ function Explore() {
           ? "text-aegean-deep"
           : "text-ochre";
 
-  // Search state
   const [query, setQuery] = useState("");
-  const results = useMemo(
-    () => searchAll(query, rt?.vehicles ?? [], geo.coords),
-    [query, rt, geo.coords],
-  );
+  const vehicles = useMemo(() => rt?.vehicles ?? [], [rt]);
+  const results = useHomeSearch(query, vehicles, geo.coords);
 
-  // Geolocation-driven nearby stops with live ETAs
-  const nearStops = useMemo(() => nearestStops(geo.coords, 5), [geo.coords]);
-  const nearStopIds = useMemo(() => nearStops.map((s) => s.id), [nearStops]);
-  const { data: learnedByStop } = useLearnedStatsBulk(nearStopIds);
-
-  // Kick off the lazy headsigns bundle once — used to label route chips by
-  // their actual destination ("19 → Lakatamia"), disambiguating opposite
-  // directions of the same line that otherwise look identical on a card.
-  const [headsignsReady, setHeadsignsReady] = useState(0);
-  useEffect(() => {
-    prefetchHeadsigns();
-    return onHeadsignsLoaded(() => setHeadsignsReady((n) => n + 1));
-  }, []);
-
-  const stops: Stop[] = useMemo(() => {
-    const near = nearStops;
-    const t = Math.floor(Date.now() / 1000);
-    // Index arrivals by stop for the route-chip list (cheap, no snap needed).
-    const arrByStop = new Map<string, { routeId: string; tripId: string; eta: number }[]>();
-    if (rt) {
-      for (const a of rt.arrivals) {
-        const eta = Math.max(0, Math.round((a.arrivalUnix - t) / 60));
-        if (eta > 120) continue;
-        const arr = arrByStop.get(a.stopId) ?? [];
-        arr.push({ routeId: a.routeId, tripId: a.tripId, eta });
-        arrByStop.set(a.stopId, arr);
-      }
-    }
-
-    return near.map((s, idx) => {
-      const arrivals = (arrByStop.get(s.id) ?? []).sort((a, b) => a.eta - b.eta);
-
-      // Smart ETA v2: snap the running vehicle onto its trip's GTFS shape,
-      // factor in per-segment speeds, dwell, ping freshness, and learned bias.
-      let smart: ReturnType<typeof smartEtaV2> = null;
-      if (rt) {
-        // Peek the next arrival at this stop to pick its shape.
-        const nextHere = rt.arrivals
-          .filter((a) => a.stopId === s.id && a.arrivalUnix >= t - 30)
-          .sort((a, b) => a.arrivalUnix - b.arrivalUnix)[0];
-        smart = smartEtaV2({
-          stopId: s.id,
-          arrivals: rt.arrivals,
-          vehicles: rt.vehicles,
-          nowSec: t,
-          agency: s.agency,
-          learnedByRoute: learnedByStop?.get(s.id),
-          shape: nextHere ? getShapeForTripSync(nextHere.tripId, nextHere.routeId) : null,
-          riderConfirmedAgeSec: nextHere ? riderConfirmedAge.get(nextHere.tripId) : undefined,
-        });
-      }
-      const nextEta = smart ? smart.etaMin : (arrivals[0]?.eta ?? null);
-
-      // Dedupe by (routeId + headsign) so opposite-direction buses on the same
-      // line appear as two distinct entries ("19 → Lakatamia" + "19 → City
-      // Center") — the only signal that tells a rider which one helps them.
-      const seen = new Set<string>();
-      const routes = arrivals
-        .map((a) => ({ ...a, headsign: getHeadsignSync(a.tripId, a.routeId) }))
-        .filter((a) => {
-          const key = `${a.routeId}|${a.headsign ?? ""}`;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        })
-        .slice(0, 3)
-        .map((a) => {
-          const r = getRoute(a.routeId);
-          return { code: r?.short ?? "—", tone: routeTone(a.routeId), headsign: a.headsign };
-        });
-      if (routes.length === 0) routes.push({ code: "—", tone: "olive" as const, headsign: null });
-      return {
-        id: s.id,
-        code: s.code || s.id,
-        name: s.name,
-        towards:
-          s.agency === "IC"
-            ? tt("home.intercity")
-            : s.distanceKm >= 1
-              ? tt("common.kmAway", { km: s.distanceKm.toFixed(s.distanceKm >= 10 ? 0 : 1) })
-              : tt("common.mAway", { m: Math.round(s.distanceKm * 1000) }),
-
-        etaMin: nextEta,
-        etaConfidence: smart?.freshness,
-        etaTier: smart?.tier,
-        etaConfidenceLevel: smart?.confidence,
-        etaBlurb: smart?.blurb,
-
-        routes,
-        highlight: idx === 0,
-        kind: stopKind(s),
-        amenities: getStopAmenities(s.id),
-      };
-    });
-    // `tt` is the i18n translator and is stable for a given locale, which is
-    // already captured through the other dependencies.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rt, nearStops, learnedByStop, riderConfirmedAge, headsignsReady]);
-
-  // Nearby landmark chips — actual stops within range, clickable to stop page
-  const landmarkChips = useMemo(() => {
-    const near = nearestStops(geo.coords, 14).slice(0, 6);
-    const seen = new Set<string>();
-    return near
-      .filter((s) => {
-        const key = s.name.split(/[·\-,]/)[0].trim();
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      })
-      .slice(0, 4);
-  }, [geo.coords]);
+  const stops = useNearbyStops(geo.coords, 5);
+  const landmarkChips = useLandmarkChips(geo.coords);
 
   const liveCount = rt?.vehicles.length ?? 0;
   const onTimePct = useMemo(() => {
@@ -410,359 +290,5 @@ function Explore() {
         </div>
       </section>
     </AppShell>
-  );
-}
-
-function QuickStat({
-  label,
-  value,
-  tone,
-  vignette,
-  vignetteClass,
-}: {
-  label: string;
-  value: string;
-  tone: "aegean" | "ochre" | "olive";
-  vignette?: string;
-  vignetteClass?: string;
-}) {
-  const c = {
-    aegean: "text-aegean-deep",
-    ochre: "text-ochre",
-    olive: "text-olive",
-  }[tone];
-  return (
-    <div className="relative overflow-hidden rounded-2xl bg-card ring-1 ring-line">
-      {vignette && (
-        <img
-          src={vignette}
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          className={`pointer-events-none select-none absolute ${vignetteClass ?? ""}`}
-          style={{
-            maskImage: "radial-gradient(110% 110% at 100% 100%, #000 30%, transparent 75%)",
-            WebkitMaskImage: "radial-gradient(110% 110% at 100% 100%, #000 30%, transparent 75%)",
-          }}
-        />
-      )}
-      <div className="relative p-3">
-        <p className="font-eyebrow text-[9px] uppercase tracking-[0.18em] text-ink-soft">{label}</p>
-        <p className={`mt-1 font-display text-2xl leading-none ${c}`}>{value}</p>
-      </div>
-    </div>
-  );
-}
-
-/* ───────────────────────── Smart search ───────────────────────── */
-
-type SearchResult =
-  | {
-      kind: "stop";
-      id: string;
-      name: string;
-      sub: string;
-      routes: string[];
-    }
-  | {
-      kind: "route";
-      id: string;
-      code: string;
-      name: string;
-      city: string;
-      liveCount: number;
-    }
-  | {
-      kind: "vehicle";
-      id: string;
-      tripId: string;
-      routeId: string;
-      routeCode: string;
-      label: string;
-      sub: string;
-    }
-  | {
-      kind: "airport";
-      id: AirportCode;
-      iata: string;
-      name: string;
-      city: string;
-    };
-
-const AGENCY_CITY: Record<string, string> = {
-  NPT: "Nicosia",
-  LMS: "Limassol",
-  PFO: "Paphos",
-  LCA: "Larnaca",
-  FAM: "Famagusta",
-  IC: "Intercity",
-  SPC: "Pame Express",
-};
-const AGENCY_RANK: Record<string, number> = {
-  NPT: 0,
-  LMS: 1,
-  LCA: 2,
-  PFO: 3,
-  FAM: 4,
-  IC: 5,
-  SPC: 6,
-};
-
-function searchAll(
-  raw: string,
-  vehicles: {
-    id: string;
-    tripId: string;
-    routeId: string;
-    label: string;
-    lat: number;
-    lng: number;
-  }[],
-  origin: { lat: number; lng: number },
-): SearchResult[] {
-  const q = raw.trim().toLowerCase();
-  if (q.length < 1) return [];
-  const out: SearchResult[] = [];
-
-  // Airports — match IATA code, city, "airport", or full name.
-  for (const a of Object.values(AIRPORTS)) {
-    const hay =
-      `${a.iata} ${a.name} ${a.nameEl} ${a.city} ${a.cityEl} airport αεροδρόμιο`.toLowerCase();
-    if (a.iata.toLowerCase() === q || a.city.toLowerCase().startsWith(q) || hay.includes(q)) {
-      out.push({
-        kind: "airport",
-        id: a.code,
-        iata: a.iata,
-        name: a.name,
-        city: a.city,
-      });
-    }
-  }
-
-  // Routes — keep all matches across cities; rank exact short matches first, then by agency.
-  const allMatched = ROUTES.filter(
-    (r) =>
-      r.short.toLowerCase() === q ||
-      r.short.toLowerCase().startsWith(q) ||
-      r.long.toLowerCase().includes(q),
-  );
-  const matchedRoutes = allMatched
-    .map((r) => {
-      const exact = r.short.toLowerCase() === q ? 0 : r.short.toLowerCase().startsWith(q) ? 1 : 2;
-      return { r, exact, rank: AGENCY_RANK[r.agency] ?? 9 };
-    })
-    .sort((a, b) => a.exact - b.exact || a.rank - b.rank)
-    .slice(0, 8)
-    .map((x) => x.r);
-  for (const r of matchedRoutes) {
-    const live = vehicles.filter((v) => v.routeId === r.id).length;
-    out.push({
-      kind: "route",
-      id: r.id,
-      code: r.short,
-      name: r.long,
-      city: AGENCY_CITY[r.agency] ?? r.agency,
-      liveCount: live,
-    });
-  }
-
-  // Vehicles by label / route
-  if (q.length >= 1) {
-    const vMatches = vehicles
-      .filter((v) => {
-        const r = getRoute(v.routeId);
-        return (
-          v.label?.toLowerCase().includes(q) ||
-          r?.short.toLowerCase().startsWith(q) ||
-          v.id.toLowerCase().includes(q)
-        );
-      })
-      .slice(0, 4);
-    for (const v of vMatches) {
-      const r = getRoute(v.routeId);
-      const d = distanceKm({ lat: v.lat, lng: v.lng }, origin);
-      out.push({
-        kind: "vehicle",
-        id: v.id,
-        tripId: v.tripId,
-        routeId: v.routeId,
-        routeCode: r?.short ?? "—",
-        label: v.label || `Bus ${v.id}`,
-        sub: `${d.toFixed(1)} km away`,
-      });
-    }
-  }
-
-  // Stops
-  const stopMatches = STOPS.filter((s) => s.name.toLowerCase().includes(q)).slice(0, 6);
-  for (const s of stopMatches) {
-    out.push({
-      kind: "stop",
-      id: s.id,
-      name: s.name,
-      sub: s.agency === "IC" ? "Intercity" : "Urban",
-      routes: [],
-    });
-  }
-
-  return out.slice(0, 18);
-}
-
-function SmartSearch({
-  query,
-  setQuery,
-  results,
-  onPickStop,
-  onPickRoute,
-  onPickVehicle,
-  onPickAirport,
-}: {
-  query: string;
-  setQuery: (s: string) => void;
-  results: SearchResult[];
-  onPickStop: (stopId: string) => void;
-  onPickRoute: (routeId: string) => void;
-  onPickVehicle: (tripId: string) => void;
-  onPickAirport: (code: AirportCode) => void;
-}) {
-  const [focused, setFocused] = useState(false);
-  const open = focused && query.trim().length > 0;
-  const { t: tt } = useI18n();
-
-  return (
-    <div className="relative">
-      <div className="relative flex items-center">
-        <span className="absolute left-4 text-ink-soft">
-          <IconSearch className="size-4" />
-        </span>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setTimeout(() => setFocused(false), 150)}
-          placeholder={tt("home.searchPlaceholder")}
-          aria-label={tt("home.searchPlaceholder")}
-          className="w-full rounded-2xl bg-card py-4 pl-11 pr-4 text-[15px] ring-1 ring-line placeholder:text-ink-soft/60 outline-none focus:ring-aegean-deep/30 transition-all"
-        />
-        {query.length === 0 && null}
-        {query.length > 0 && (
-          <button
-            onClick={() => setQuery("")}
-            className="absolute right-3 rounded-full bg-limestone-soft px-3 py-1.5 font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
-          >
-            {tt("home.clear")}
-          </button>
-        )}
-      </div>
-
-      {open && (
-        <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl bg-card ring-1 ring-line shadow-[0_24px_60px_-24px_oklch(0.22_0.012_110/0.25)] overflow-hidden">
-          {results.length === 0 ? (
-            <div className="px-5 py-6 text-center">
-              <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                {tt("home.noMatches")}
-              </p>
-              <p className="mt-1 text-[13px] text-ink-soft">
-                {tt("home.searchHint", { example: "120" })}
-              </p>
-            </div>
-          ) : (
-            <ul className="max-h-[60vh] overflow-y-auto divide-y divide-line">
-              {results.map((r) => {
-                if (r.kind === "route") {
-                  return (
-                    <li key={`r-${r.id}`}>
-                      <button
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => onPickRoute(r.id)}
-                        className="group w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-limestone-soft transition-colors"
-                      >
-                        <RouteChip code={r.code} tone={routeTone(r.id)} size="sm" />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[14px] text-ink truncate">{r.name}</p>
-                          <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                            {r.city} · {r.liveCount > 0 ? `${r.liveCount} live` : "no live buses"}
-                          </p>
-                        </div>
-                        <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
-                      </button>
-                    </li>
-                  );
-                }
-                if (r.kind === "vehicle") {
-                  return (
-                    <li key={`v-${r.id}`}>
-                      <button
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => onPickVehicle(r.tripId)}
-                        className="group w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-limestone-soft transition-colors"
-                      >
-                        <span className="flex size-9 items-center justify-center rounded-xl bg-aegean-soft/60 text-aegean-deep">
-                          <IconBus className="size-4" />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[14px] text-ink truncate">
-                            Bus {r.label} <span className="text-ink-soft">line {r.routeCode}</span>
-                          </p>
-                          <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                            {r.sub}
-                          </p>
-                        </div>
-                        <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
-                      </button>
-                    </li>
-                  );
-                }
-                if (r.kind === "airport") {
-                  return (
-                    <li key={`a-${r.id}`}>
-                      <button
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => onPickAirport(r.id)}
-                        className="group w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-limestone-soft transition-colors"
-                      >
-                        <span className="flex size-9 items-center justify-center rounded-xl bg-aegean-soft/60 text-aegean-deep">
-                          <IconPlane className="size-4" />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[14px] text-ink truncate">
-                            {r.name} <span className="text-ink-soft">{r.iata}</span>
-                          </p>
-                          <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                            {r.city} · Airport hub
-                          </p>
-                        </div>
-                        <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
-                      </button>
-                    </li>
-                  );
-                }
-                return (
-                  <li key={`s-${r.id}`}>
-                    <button
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => onPickStop(r.id)}
-                      className="group w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-limestone-soft transition-colors"
-                    >
-                      <span className="flex size-9 items-center justify-center rounded-xl bg-ochre-soft/70 text-ochre">
-                        <IconPin className="size-4" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[14px] text-ink truncate">{r.name}</p>
-                        <p className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                          {r.sub}
-                        </p>
-                      </div>
-                      <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      )}
-    </div>
   );
 }
