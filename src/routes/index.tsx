@@ -21,7 +21,8 @@ import {
   IconPin,
 } from "@/components/Icons";
 import { QuickStat } from "@/components/home/QuickStat";
-import { SmartSearch, useHomeSearch } from "@/components/home/SmartSearch";
+import { SmartSearch } from "@/components/home/SmartSearch";
+import { useHomeSearch } from "@/components/home/useHomeSearch";
 import { useLandmarkChips, useNearbyStops } from "@/components/home/useNearbyStops";
 import { useRealtime } from "@/lib/useRealtime";
 import { useGeolocation } from "@/lib/useGeolocation";
