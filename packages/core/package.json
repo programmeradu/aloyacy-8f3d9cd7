@@ -57,6 +57,10 @@
       "types": "./src/headsigns.ts",
       "default": "./src/headsigns.ts"
     },
+    "./home-search": {
+      "types": "./src/home-search.ts",
+      "default": "./src/home-search.ts"
+    },
     "./itinerary-bounds": {
       "types": "./src/itinerary-bounds.ts",
       "default": "./src/itinerary-bounds.ts"
