@@ -48,4 +48,3 @@ export function pickBg(stop: { id: string; name: string; agency: string }): Bg {
 export function pickPlanBg(destination: string): Bg {
   return BG[pickPlanBackdrop(destination)];
 }
-

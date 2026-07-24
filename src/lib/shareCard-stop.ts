@@ -2,11 +2,6 @@
 // navigator.share({ files }) plus a data URL for in-app preview.
 
 import {
-  formatShareDay,
-  formatShareDuration,
-  formatShareTime,
-} from "@aloya/core/share-card-copy";
-import {
   drawCover,
   drawTracked,
   loadImg,

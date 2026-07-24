@@ -1,10 +1,6 @@
 // Plan share card — mirrors the stop card, tuned for a pre-departure plan.
 
-import {
-  formatShareDay,
-  formatShareDuration,
-  formatShareTime,
-} from "@aloya/core/share-card-copy";
+import { formatShareDay, formatShareDuration, formatShareTime } from "@aloya/core/share-card-copy";
 import {
   drawCover,
   drawTracked,
