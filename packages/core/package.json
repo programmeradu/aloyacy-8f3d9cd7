@@ -13,6 +13,10 @@
       "types": "./src/cities.ts",
       "default": "./src/cities.ts"
     },
+    "./companion-view": {
+      "types": "./src/companion-view.ts",
+      "default": "./src/companion-view.ts"
+    },
     "./cy-time": {
       "types": "./src/cy-time.ts",
       "default": "./src/cy-time.ts"
@@ -128,6 +132,10 @@
     "./shapes": {
       "types": "./src/shapes.ts",
       "default": "./src/shapes.ts"
+    },
+    "./share-card-copy": {
+      "types": "./src/share-card-copy.ts",
+      "default": "./src/share-card-copy.ts"
     },
     "./single-leg-phase": {
       "types": "./src/single-leg-phase.ts",
