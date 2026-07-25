@@ -57,6 +57,10 @@
       "types": "./src/headsigns.ts",
       "default": "./src/headsigns.ts"
     },
+    "./home-search": {
+      "types": "./src/home-search.ts",
+      "default": "./src/home-search.ts"
+    },
     "./itinerary-bounds": {
       "types": "./src/itinerary-bounds.ts",
       "default": "./src/itinerary-bounds.ts"
@@ -100,6 +104,14 @@
     "./multileg-journey": {
       "types": "./src/multileg-journey.ts",
       "default": "./src/multileg-journey.ts"
+    },
+    "./multileg-legs": {
+      "types": "./src/multileg-legs.ts",
+      "default": "./src/multileg-legs.ts"
+    },
+    "./multileg-search": {
+      "types": "./src/multileg-search.ts",
+      "default": "./src/multileg-search.ts"
     },
     "./path-geometry": {
       "types": "./src/path-geometry.ts",
