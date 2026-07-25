@@ -150,7 +150,7 @@ export function buildTripIndex(arrivals: MlArrival[], now: number): TripIndex {
 }
 
 // ---- Leg builders ---------------------------------------------------------
-type NearStop = MlStop & { distanceKm: number };
+export type NearStop = MlStop & { distanceKm: number };
 
 export function cheapTransferWalk(
   stopById: Map<string, MlStop>,
@@ -246,7 +246,7 @@ export function buildRideLeg(
   };
 }
 
-function waitLegAt(stop: MlStop, durationSec: number): WaitLeg {
+export function waitLegAt(stop: MlStop, durationSec: number): WaitLeg {
   return {
     kind: "wait",
     stopId: stop.id,

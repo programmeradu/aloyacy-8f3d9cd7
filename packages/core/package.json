@@ -105,6 +105,10 @@
       "types": "./src/multileg-journey.ts",
       "default": "./src/multileg-journey.ts"
     },
+    "./multileg-legs": {
+      "types": "./src/multileg-legs.ts",
+      "default": "./src/multileg-legs.ts"
+    },
     "./multileg-search": {
       "types": "./src/multileg-search.ts",
       "default": "./src/multileg-search.ts"
