@@ -1,57 +1,40 @@
-// Speech synthesis for foreground alerts.
-//
-// Push notifications fire from the service worker, which has no access to
-// speechSynthesis. The SW posts a `aloya-speak` message to every open
-// client; the page calls `speak()` here.
-//
-// iOS Safari requires a user gesture before speechSynthesis will play.
-// `primeSpeech()` runs a silent utterance from inside a click handler to
-// unlock the audio queue for the rest of the session.
+// Thin wrapper over the Web Speech API. Typing is deliberately loose — the
+// shape varies per browser and the vendor-prefixed constructor is still the
+// only one Safari ships.
 
-const PREF_KEY = "aloya:speech-enabled";
+export type SpeechRec = {
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+};
 
-export function isSpeechSupported(): boolean {
-  return typeof window !== "undefined" && "speechSynthesis" in window;
+/** Returns null when the browser has no speech recognition at all. */
+export function createRecognizer(lang = "en-US"): SpeechRec | null {
+  if (typeof window === "undefined") return null;
+  const Ctor =
+    (window as unknown as { SpeechRecognition?: new () => SpeechRec }).SpeechRecognition ??
+    (window as unknown as { webkitSpeechRecognition?: new () => SpeechRec })
+      .webkitSpeechRecognition;
+  if (!Ctor) return null;
+  const rec = new Ctor();
+  rec.lang = lang;
+  rec.interimResults = false;
+  rec.continuous = false;
+  return rec;
 }
 
-export function isSpeechEnabled(): boolean {
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem(PREF_KEY) === "1";
-}
-
-export function setSpeechEnabled(on: boolean) {
-  if (typeof window === "undefined") return;
-  if (on) localStorage.setItem(PREF_KEY, "1");
-  else localStorage.removeItem(PREF_KEY);
-}
-
-/** Call from inside a user gesture (click/tap) to unlock iOS speech. */
-export function primeSpeech() {
-  if (!isSpeechSupported()) return;
-  try {
-    const u = new SpeechSynthesisUtterance(" ");
-    u.volume = 0;
-    u.rate = 1;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  } catch {
-    /* ignore */
-  }
-}
-
-export function speak(text: string) {
-  if (!isSpeechSupported() || !isSpeechEnabled() || !text) return;
-  try {
-    const synth = window.speechSynthesis;
-    // Replace any in-flight utterance — newer alerts supersede older ones.
-    synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 1;
-    u.pitch = 1;
-    u.volume = 1;
-    u.lang = "en-US";
-    synth.speak(u);
-  } catch (e) {
-    console.warn("[speech] speak failed", e);
-  }
+/** Join a recognition result set into one trimmed transcript. */
+export function transcriptOf(e: {
+  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+}): string {
+  return Array.from(e.results)
+    .map((r) => r[0]?.transcript ?? "")
+    .join(" ")
+    .trim();
 }
