@@ -237,9 +237,11 @@ describe("searchMultiLeg", () => {
       now: NOW,
     });
     expect(diagnostics.transferRawCount).toBe(1);
-    expect(itineraries).toHaveLength(1);
-    const it = itineraries[0];
-    expect(it.transfers).toBe(1);
+    // The A→B ride also surfaces as a direct option (B is a longer, but legal,
+    // walk from the destination), so both shapes come back.
+    expect(itineraries).toHaveLength(2);
+    const it = itineraries.find((x) => x.transfers === 1)!;
+    expect(it).toBeDefined();
     expect(it.legs.filter((l) => l.kind === "walk")).toHaveLength(3); // access, transfer, egress
   });
 
@@ -259,7 +261,8 @@ describe("searchMultiLeg", () => {
       now: NOW,
     });
     expect(diagnostics.transferRawCount).toBe(0);
-    expect(itineraries).toHaveLength(0);
+    // Only the direct A→B ride survives; the impossible connection is dropped.
+    expect(itineraries.map((i) => i.transfers)).toEqual([0]);
   });
 
   it("never counts staying on the same route as a transfer", () => {
