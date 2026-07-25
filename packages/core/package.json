@@ -113,6 +113,10 @@
       "types": "./src/multileg-search.ts",
       "default": "./src/multileg-search.ts"
     },
+    "./nl-intent": {
+      "types": "./src/nl-intent.ts",
+      "default": "./src/nl-intent.ts"
+    },
     "./path-geometry": {
       "types": "./src/path-geometry.ts",
       "default": "./src/path-geometry.ts"
