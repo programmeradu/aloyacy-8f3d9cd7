@@ -174,10 +174,7 @@ export function cheapTransferWalk(
   return { meters, sec: walkSecFromMeters(meters / WALK_DETOUR) };
 }
 
-export function buildAccessWalkLeg(
-  from: LatLng & { label?: string },
-  stop: NearStop,
-): WalkLeg {
+export function buildAccessWalkLeg(from: LatLng & { label?: string }, stop: NearStop): WalkLeg {
   return {
     kind: "walk",
     from: { name: from.label ?? "Start", lat: from.lat, lng: from.lng },
@@ -293,9 +290,7 @@ export function scoreItinerary(input: {
 }): number {
   const transferPenaltySec = input.transfers * 120; // 2 min per change
   const walkPenaltySec = Math.max(0, input.totalWalkMeters - 500) * 0.4;
-  return (
-    input.totalDurationSec + transferPenaltySec + input.reliabilitySec * 0.5 + walkPenaltySec
-  );
+  return input.totalDurationSec + transferPenaltySec + input.reliabilitySec * 0.5 + walkPenaltySec;
 }
 
 export function makeId(legs: Leg[], departureUnix: number): string {
@@ -348,10 +343,7 @@ export function recomputeTotals(it: Itinerary, now: number): void {
 }
 
 // ---- Filter, dedupe, rank -------------------------------------------------
-export function rankItineraries(
-  candidates: Itinerary[],
-  diag: MultiLegDiagnostics,
-): Itinerary[] {
+export function rankItineraries(candidates: Itinerary[], diag: MultiLegDiagnostics): Itinerary[] {
   const valid = candidates.filter((it) => it.totalDurationSec <= MAX_TOTAL_JOURNEY_SEC);
   diag.validCount = valid.length;
 

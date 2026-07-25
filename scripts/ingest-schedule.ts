@@ -262,7 +262,6 @@ const sizes = [
 ];
 void stopTrips;
 
-
 // --- 6. Per-date shards ---------------------------------------------------
 // For every date in the next SHARD_DAYS, emit the slice of stop-times and
 // stop-trips containing only trips whose service is active on that date.
@@ -356,7 +355,6 @@ for (const date of dates) {
 }
 
 write("by-date/index.json", shardIndex);
-
 
 const totalRaw = sizes.reduce((a, b) => a + b.raw, 0);
 const totalGz = sizes.reduce((a, b) => a + b.gz, 0);

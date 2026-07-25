@@ -40,12 +40,7 @@ function arr(
   return { tripId, routeId, stopId, arrivalUnix: NOW + offsetMin * 60, delaySec };
 }
 
-function ride(
-  routeId: string,
-  boardUnix: number,
-  alightUnix: number,
-  delaySec = 0,
-): RideLeg {
+function ride(routeId: string, boardUnix: number, alightUnix: number, delaySec = 0): RideLeg {
   return {
     kind: "ride",
     routeId,
@@ -114,7 +109,14 @@ describe("scoring", () => {
 
   it("walks the leg chain to find the arrival time", () => {
     const legs: Leg[] = [
-      { kind: "walk", from: { name: "x", lat: 0, lng: 0 }, to: { name: "y", lat: 0, lng: 0 }, durationSec: 300, distanceMeters: 400, verified: false },
+      {
+        kind: "walk",
+        from: { name: "x", lat: 0, lng: 0 },
+        to: { name: "y", lat: 0, lng: 0 },
+        durationSec: 300,
+        distanceMeters: 400,
+        verified: false,
+      },
       ride("r1", NOW + 600, NOW + 1800),
     ];
     expect(lastEndUnix(legs, NOW)).toBe(NOW + 1800);
@@ -126,7 +128,11 @@ describe("scoring", () => {
   });
 
   it("finalises transfers and totals", () => {
-    const it = finalise([ride("r1", NOW, NOW + 600), ride("r2", NOW + 700, NOW + 1200)], NOW, "live");
+    const it = finalise(
+      [ride("r1", NOW, NOW + 600), ride("r2", NOW + 700, NOW + 1200)],
+      NOW,
+      "live",
+    );
     expect(it.transfers).toBe(1);
     expect(it.totalDurationSec).toBe(1200);
     expect(it.source).toBe("live");
@@ -135,9 +141,13 @@ describe("scoring", () => {
 
 describe("rankItineraries", () => {
   const mk = (durationSec: number, transfers: number, routeId: string): Itinerary => {
-    const legs: Leg[] = transfers === 0
-      ? [ride(routeId, NOW, NOW + durationSec)]
-      : [ride(routeId, NOW, NOW + durationSec / 2), ride(`${routeId}b`, NOW + durationSec / 2, NOW + durationSec)];
+    const legs: Leg[] =
+      transfers === 0
+        ? [ride(routeId, NOW, NOW + durationSec)]
+        : [
+            ride(routeId, NOW, NOW + durationSec / 2),
+            ride(`${routeId}b`, NOW + durationSec / 2, NOW + durationSec),
+          ];
     const it = finalise(legs, NOW, "live");
     return it;
   };

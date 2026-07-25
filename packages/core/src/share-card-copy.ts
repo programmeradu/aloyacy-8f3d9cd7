@@ -8,12 +8,7 @@
 
 /** Backdrop identities. The renderer maps these to bundled artwork. */
 export type BackdropKey =
-  | "oldtown"
-  | "coastDusk"
-  | "mountain"
-  | "coastRoad"
-  | "harborNight"
-  | "urbanMorning";
+  "oldtown" | "coastDusk" | "mountain" | "coastRoad" | "harborNight" | "urbanMorning";
 
 /** FNV-1a — stable across runs so a stop always gets the same backdrop. */
 export function hashString(s: string): number {
@@ -33,11 +28,7 @@ const COAST_ROAD =
 const OLD_TOWN = /(faneromen|ledra|laiki geitonia|old town|chrysaliniotissa|tahtakala)/;
 
 /** Backdrop for a stop card. Context beats randomness; the hash is the tiebreak. */
-export function pickStopBackdrop(stop: {
-  id: string;
-  name: string;
-  agency: string;
-}): BackdropKey {
+export function pickStopBackdrop(stop: { id: string; name: string; agency: string }): BackdropKey {
   const n = stop.name.toLowerCase();
   if (MOUNTAIN.test(n)) return "mountain";
   if (COAST_DUSK.test(n)) return "coastDusk";
