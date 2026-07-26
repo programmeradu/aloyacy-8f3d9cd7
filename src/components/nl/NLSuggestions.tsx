@@ -28,7 +28,10 @@ export function NLSuggestions({ examples, reason, loading, onPick }: Props) {
       <div className="flex flex-col gap-1.5">
         {loading && examples.length === 0
           ? Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-10 rounded-xl bg-background ring-1 ring-line animate-pulse" />
+              <div
+                key={i}
+                className="h-10 rounded-xl bg-background ring-1 ring-line animate-pulse"
+              />
             ))
           : examples.map((ex) => (
               <button

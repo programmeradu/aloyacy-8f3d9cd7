@@ -95,9 +95,7 @@ export function extractHeuristicIntent(
   let from: string | null = null;
   let to: string | null = null;
 
-  const fromTo = lower.match(
-    new RegExp(`\\bfrom\\s+(.+?)\\s+to\\s+(.+?)(?:\\s+${BOUNDARY}\\b|$)`),
-  );
+  const fromTo = lower.match(new RegExp(`\\bfrom\\s+(.+?)\\s+to\\s+(.+?)(?:\\s+${BOUNDARY}\\b|$)`));
   if (fromTo) {
     from = sliceOriginal(t, fromTo[1]);
     to = sliceOriginal(t, fromTo[2]);
@@ -156,7 +154,11 @@ export type WhenParts =
  * Break an ISO timestamp into the pieces the UI needs for a localized
  * "at 4:30 PM" / "tomorrow 7:00 AM" / "Fri 9:15 AM" phrase.
  */
-export function describeWhen(iso: string, localeTag?: string, nowMs: number = Date.now()): WhenParts {
+export function describeWhen(
+  iso: string,
+  localeTag?: string,
+  nowMs: number = Date.now(),
+): WhenParts {
   try {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return { kind: "raw", time: iso };

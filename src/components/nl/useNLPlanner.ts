@@ -21,7 +21,7 @@ import { track, trackImpression } from "@/lib/analytics";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
 import { nearestCity } from "@/lib/cities";
 import { getDeviceId, getDeviceToken } from "@/lib/pwa";
-import { createRecognizer, transcriptOf, type SpeechRec } from "@/lib/speech";
+import { createRecognizer, transcriptOf, type SpeechRec } from "@/lib/speech-recognition";
 import { useI18n } from "@/lib/i18n";
 
 export type ResolvedPoint = { lat: number; lng: number; label: string };

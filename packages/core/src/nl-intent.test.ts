@@ -90,7 +90,12 @@ describe("mergeIntents", () => {
 
   it("prefers AI place names but heuristic times", () => {
     const merged = mergeIntents(
-      { from: "Nicosia", to: "Limassol Marina", leaveByISO: "2026-01-01T00:00:00.000Z", confidence: 0.8 },
+      {
+        from: "Nicosia",
+        to: "Limassol Marina",
+        leaveByISO: "2026-01-01T00:00:00.000Z",
+        confidence: 0.8,
+      },
       heuristic,
     );
     expect(merged.to).toBe("Limassol Marina");

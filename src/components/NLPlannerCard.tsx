@@ -88,12 +88,7 @@ export function NLPlannerCard() {
         )}
 
         {p.resolved && (
-          <NLResolvedCard
-            resolved={p.resolved}
-            intent={p.intent}
-            onEdit={p.reset}
-            onGo={p.go}
-          />
+          <NLResolvedCard resolved={p.resolved} intent={p.intent} onEdit={p.reset} onGo={p.go} />
         )}
       </div>
     </div>
