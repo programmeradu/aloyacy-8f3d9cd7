@@ -1,14 +1,11 @@
-// Speech synthesis for foreground alerts.
+// Spoken alerts (text-to-speech).
 //
-// Push notifications fire from the service worker, which has no access to
-// speechSynthesis. The SW posts a `aloya-speak` message to every open
-// client; the page calls `speak()` here.
-//
-// iOS Safari requires a user gesture before speechSynthesis will play.
-// `primeSpeech()` runs a silent utterance from inside a click handler to
-// unlock the audio queue for the rest of the session.
+// Used for hands-free nudges ("your bus is two minutes away") pushed either
+// from the app or from the service worker via an "aloya-speak" message.
+// The rider opts in explicitly — browsers block synthesis until a user
+// gesture has primed it, so primeSpeech() must run inside that gesture.
 
-const PREF_KEY = "aloya:speech-enabled";
+const PREF_KEY = "aloya:speech";
 
 export function isSpeechSupported(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window;
@@ -16,42 +13,57 @@ export function isSpeechSupported(): boolean {
 
 export function isSpeechEnabled(): boolean {
   if (typeof window === "undefined") return false;
-  return localStorage.getItem(PREF_KEY) === "1";
-}
-
-export function setSpeechEnabled(on: boolean) {
-  if (typeof window === "undefined") return;
-  if (on) localStorage.setItem(PREF_KEY, "1");
-  else localStorage.removeItem(PREF_KEY);
-}
-
-/** Call from inside a user gesture (click/tap) to unlock iOS speech. */
-export function primeSpeech() {
-  if (!isSpeechSupported()) return;
   try {
-    const u = new SpeechSynthesisUtterance(" ");
-    u.volume = 0;
-    u.rate = 1;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
+    return localStorage.getItem(PREF_KEY) === "1";
   } catch {
-    /* ignore */
+    return false;
   }
 }
 
-export function speak(text: string) {
-  if (!isSpeechSupported() || !isSpeechEnabled() || !text) return;
+export function setSpeechEnabled(on: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(PREF_KEY, on ? "1" : "0");
+  } catch {
+    /* private mode — preference just won't persist */
+  }
+}
+
+/**
+ * Unlock synthesis inside a user gesture. iOS Safari and Chrome both refuse
+ * to speak later otherwise; a silent zero-length utterance is enough.
+ */
+export function primeSpeech(): void {
+  if (!isSpeechSupported()) return;
+  try {
+    const u = new SpeechSynthesisUtterance("");
+    u.volume = 0;
+    window.speechSynthesis.speak(u);
+    // Warm the voice list — it loads asynchronously on most browsers.
+    window.speechSynthesis.getVoices();
+  } catch {
+    /* non-fatal */
+  }
+}
+
+/** Speak a line, if the rider opted in and the browser can. */
+export function speak(text: string, opts?: { lang?: string; force?: boolean }): void {
+  const line = text?.trim();
+  if (!line) return;
+  if (!isSpeechSupported()) return;
+  if (!opts?.force && !isSpeechEnabled()) return;
   try {
     const synth = window.speechSynthesis;
-    // Replace any in-flight utterance — newer alerts supersede older ones.
+    // Never stack announcements — the newest one is the one that matters.
     synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
+    const u = new SpeechSynthesisUtterance(line);
+    u.lang = opts?.lang ?? "en-US";
     u.rate = 1;
     u.pitch = 1;
-    u.volume = 1;
-    u.lang = "en-US";
+    const voice = synth.getVoices().find((v) => v.lang === u.lang);
+    if (voice) u.voice = voice;
     synth.speak(u);
-  } catch (e) {
-    console.warn("[speech] speak failed", e);
+  } catch {
+    /* non-fatal */
   }
 }
