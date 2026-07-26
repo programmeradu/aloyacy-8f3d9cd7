@@ -9,6 +9,10 @@
       "types": "./src/arrival-promise.ts",
       "default": "./src/arrival-promise.ts"
     },
+    "./bedrock-metering": {
+      "types": "./src/bedrock-metering.ts",
+      "default": "./src/bedrock-metering.ts"
+    },
     "./cities": {
       "types": "./src/cities.ts",
       "default": "./src/cities.ts"
