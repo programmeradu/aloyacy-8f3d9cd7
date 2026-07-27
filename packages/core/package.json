@@ -5,6 +5,10 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./airport-board": {
+      "types": "./src/airport-board.ts",
+      "default": "./src/airport-board.ts"
+    },
     "./arrival-promise": {
       "types": "./src/arrival-promise.ts",
       "default": "./src/arrival-promise.ts"
