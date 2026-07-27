@@ -16,8 +16,9 @@ export interface BoardEta {
   etaMin: number;
   tier: string;
   band?: string;
-  confidence?: number;
-  operatorEtaMin?: number | null;
+  /** Loosely typed: callers carry richer app-specific ETA shapes through. */
+  confidence?: unknown;
+  operatorEtaMin?: unknown;
 }
 
 export interface BoardRow<A extends BoardArrival, E extends BoardEta> {
