@@ -18,7 +18,7 @@ export type BoardVehicle = {
   routeId: string;
   lat: number;
   lng: number;
-  speed?: number;
+  speed?: number | null;
 };
 
 export type BoardStop = {
