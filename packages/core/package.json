@@ -69,6 +69,10 @@
       "types": "./src/home-search.ts",
       "default": "./src/home-search.ts"
     },
+    "./hud-copy": {
+      "types": "./src/hud-copy.ts",
+      "default": "./src/hud-copy.ts"
+    },
     "./itinerary-bounds": {
       "types": "./src/itinerary-bounds.ts",
       "default": "./src/itinerary-bounds.ts"
