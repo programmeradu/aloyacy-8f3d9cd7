@@ -153,6 +153,10 @@
       "types": "./src/raptor-core.ts",
       "default": "./src/raptor-core.ts"
     },
+    "./route-board": {
+      "types": "./src/route-board.ts",
+      "default": "./src/route-board.ts"
+    },
     "./schedule-calendar": {
       "types": "./src/schedule-calendar.ts",
       "default": "./src/schedule-calendar.ts"
