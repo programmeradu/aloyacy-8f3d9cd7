@@ -134,6 +134,29 @@ export function onTimePercent(
   return Math.round((ok / sampled.length) * 100);
 }
 
+/**
+ * Cyprus international airports, mirrored from the server airport module so
+ * client search can surface them without pulling the whole module.
+ */
+export const CY_AIRPORTS = [
+  {
+    code: "lca",
+    iata: "LCA",
+    name: "Larnaca International Airport",
+    nameEl: "Διεθνές Αεροδρόμιο Λάρνακας",
+    city: "Larnaca",
+    cityEl: "Λάρνακα",
+  },
+  {
+    code: "pfo",
+    iata: "PFO",
+    name: "Paphos International Airport",
+    nameEl: "Διεθνές Αεροδρόμιο Πάφου",
+    city: "Paphos",
+    cityEl: "Πάφος",
+  },
+] as const;
+
 /** In-app route for a search hit. */
 export function searchResultHref(hit: SearchResult): string {
   switch (hit.kind) {
@@ -170,11 +193,11 @@ export function searchResultCopy(hit: SearchResult): { primary: string; meta: st
     case "route":
       return {
         primary: `Route ${hit.code}`,
-        meta: hit.liveCount > 0 ? `${hit.city} · ${hit.liveCount} live` : hit.city,
+        meta: hit.liveCount > 0 ? `${hit.city}  ${hit.liveCount} live` : hit.city,
       };
     case "vehicle":
-      return { primary: hit.label, meta: `Route ${hit.routeCode} · ${hit.sub}` };
+      return { primary: hit.label, meta: `Route ${hit.routeCode}  ${hit.sub}` };
     case "airport":
-      return { primary: hit.name, meta: `${hit.iata} · ${hit.city}` };
+      return { primary: hit.name, meta: `${hit.iata}  ${hit.city}` };
   }
 }
