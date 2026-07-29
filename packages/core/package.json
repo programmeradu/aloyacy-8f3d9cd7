@@ -65,6 +65,10 @@
       "types": "./src/headsigns.ts",
       "default": "./src/headsigns.ts"
     },
+    "./home-board": {
+      "types": "./src/home-board.ts",
+      "default": "./src/home-board.ts"
+    },
     "./home-search": {
       "types": "./src/home-search.ts",
       "default": "./src/home-search.ts"
