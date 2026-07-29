@@ -78,7 +78,9 @@ export default function TodayScreen() {
         id,
         short: r.short,
         long: r.long,
-        agency: r.agency ?? "",
+        // Route ids are agency-prefixed ("NPT:157"); the prefix is what the
+        // shared ranker uses to float the rider's own city to the top.
+        agency: id.includes(":") ? id.split(":")[0]! : "",
       })),
       stops: bundle.data.stops.map((s) => ({ id: s.id, name: s.name, agency: s.agency })),
       airports: CY_AIRPORTS.map((a) => ({ ...a })),
