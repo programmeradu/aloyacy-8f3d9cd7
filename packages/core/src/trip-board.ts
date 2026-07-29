@@ -146,9 +146,7 @@ export function tripStatusView(
 
 /** Whole minutes until an arrival, floored at zero. */
 export function minutesUntil(arrivalUnix: number, nowUnix: number): number {
-  return Math.max(0, Math.round(arrivalUnix - nowUnix) / 60 | 0) === 0
-    ? Math.max(0, Math.round((arrivalUnix - nowUnix) / 60))
-    : Math.max(0, Math.round((arrivalUnix - nowUnix) / 60));
+  return Math.max(0, Math.round((arrivalUnix - nowUnix) / 60));
 }
 
 /** Delay badge copy for a single stop row, or null when within tolerance. */
