@@ -1,7 +1,7 @@
 // Leave-time buffer: how much earlier to set off given weather, traffic,
 // rush hour and disruptions. Pure maths, capped per component.
 
-import { BUFFER_CAPS_INTERNAL_PLACEHOLDER } from "./util";
+import { clamp, minutes } from "./util";
 export type BufferReason = {
   kind: "weather" | "traffic" | "rush" | "disruption";
   sec: number;

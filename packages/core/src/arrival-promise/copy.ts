@@ -1,3 +1,7 @@
+import type { LadderRung } from "./ladder";
+import type { NudgeKind } from "./nudges";
+import { minutes, capitalise } from "./util";
+
 // Rider-facing copy — one source of truth for web, native and push bodies.
 
 export function formatClock(unix: number, timeZone = "Asia/Nicosia"): string {
@@ -140,8 +144,4 @@ export function bufferNote(args: {
       : "";
   const why = args.reasonShort ? ` — ${args.reasonShort}` : "";
   return `Set off ${mins} min${anchor} as a cushion${why}.`;
-}
-
-function capitalise(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }
