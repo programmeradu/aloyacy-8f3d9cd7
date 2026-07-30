@@ -192,6 +192,10 @@
     "./trip-alert-copy": {
       "types": "./src/trip-alert-copy.ts",
       "default": "./src/trip-alert-copy.ts"
+    },
+    "./trip-board": {
+      "types": "./src/trip-board.ts",
+      "default": "./src/trip-board.ts"
     }
   },
   "dependencies": {
