@@ -13,7 +13,7 @@
 // `?from=<stopId>` deep-link param anchors the rider on their boarding stop.
 
 import { useCallback, useMemo } from "react";
-import { View, Text, ScrollView, RefreshControl } from "react-native";
+import { View, ScrollView, RefreshControl } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
