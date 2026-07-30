@@ -2,6 +2,7 @@
 
 import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { palette } from "@/constants/theme";
+import { RouteChip } from "@/components/RouteChip";
 
 export function TripHeader({
   stale,
@@ -112,7 +113,6 @@ export function TripHero({
   title: string;
   meta: string;
 }) {
-  const { RouteChip } = require("@/components/RouteChip") as typeof import("@/components/RouteChip");
   return (
     <View style={{ paddingHorizontal: 20, marginBottom: 18 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
