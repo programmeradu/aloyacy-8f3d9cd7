@@ -24,7 +24,6 @@ import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
 import { getStop, getRoute } from "@/lib/gtfs";
 import { useI18n, type Locale } from "@/lib/i18n";
-import kapnosLogo from "@/assets/kapnos-logo.png.asset.json";
 import {
   AIRPORTS,
   getAirportPage,
