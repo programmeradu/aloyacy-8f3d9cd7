@@ -127,7 +127,7 @@ function AirportPage() {
 
 function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }) {
   const { t } = useI18n();
-  const c = COPY[locale];
+  const c = AIRPORT_COPY[locale];
   const airport = data.airport;
   const stopId = AIRPORT_STOP[airport.code];
   const stop = getStop(stopId);
