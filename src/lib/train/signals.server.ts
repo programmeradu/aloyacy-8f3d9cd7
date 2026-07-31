@@ -4,7 +4,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { blendStat } from "./shared.server";
 
-async function rollupCrowding(): Promise<number> {
+export async function rollupCrowding(): Promise<number> {
   const since = new Date(Date.now() - 3 * 3600 * 1000).toISOString();
   const { data } = await supabaseAdmin
     .from("rider_vehicle_fixes")

@@ -2,7 +2,7 @@
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-function haversineM(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+export function haversineM(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
   const R = 6371000;
   const toRad = (d: number) => (d * Math.PI) / 180;
   const dLat = toRad(b.lat - a.lat);
@@ -13,7 +13,7 @@ function haversineM(a: { lat: number; lng: number }, b: { lat: number; lng: numb
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
-async function blendStat<T extends Record<string, unknown>>(
+export async function blendStat<T extends Record<string, unknown>>(
   table: string,
   key: T,
   meanField: string,
