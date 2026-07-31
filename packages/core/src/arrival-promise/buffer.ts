@@ -88,14 +88,6 @@ export type BufferSignals = {
   disruptionLabel?: string | null;
 };
 
-function clamp(n: number, lo: number, hi: number): number {
-  return Math.min(hi, Math.max(lo, Math.round(n)));
-}
-
-function minutes(sec: number): number {
-  return Math.round(sec / 60);
-}
-
 /**
  * Merge every signal into one buffer the rider can audit. Components are
  * capped individually and again in total, and only the ones worth at least a
