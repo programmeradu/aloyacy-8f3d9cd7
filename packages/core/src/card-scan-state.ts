@@ -9,9 +9,9 @@ export type ScanSide = "front" | "back";
 
 /** Fields an OCR pass can return. Front carries name/expiry, back the number. */
 export type ScanFields = {
-  number?: string;
-  holder?: string;
-  validUntil?: string;
+  number?: string | null;
+  holder?: string | null;
+  validUntil?: string | null;
 };
 
 export type ScanHits = { number: number; holder: number; validUntil: number };
@@ -54,7 +54,7 @@ function bump(
   acc: ScanFields,
   hits: ScanHits,
   key: keyof ScanFields,
-  value: string | undefined,
+  value: string | null | undefined,
 ): void {
   if (!value) return;
   if (acc[key] === value) hits[key] += 1;
