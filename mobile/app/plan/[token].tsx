@@ -26,59 +26,20 @@ import { API_BASE } from "@/lib/api";
 const HERO =
   "https://app.aloya.cy/__l5e/assets-v1/852729ae-901a-476c-9b8f-0a68b9924687/plan-share-hero.jpg";
 
-type Leg = {
-  kind?: "ride" | "walk" | "wait";
-  routeShort?: string;
-  routeId?: string;
-  board?: { name?: string; departureUnix?: number };
-  alight?: { name?: string; arrivalUnix?: number };
-  from?: { name?: string };
-  to?: { name?: string };
-  name?: string;
-  durationSec?: number;
-  stopCount?: number;
-};
+import {
+  planClock as fmtTime,
+  planDate as fmtDate,
+  planDuration as fmtDur,
+  changesLabel,
+  legCopy,
+  meetPoint,
+  expiryLabel,
+  planShareMessage,
+  type PlanShare,
+  type PlanShareLeg as Leg,
+} from "@aloya/core/plan-share";
 
-type PlanShare = {
-  token: string;
-  creator_name: string | null;
-  note: string | null;
-  origin_label: string;
-  origin_lat: number;
-  origin_lng: number;
-  destination_label: string;
-  destination_lat: number;
-  destination_lng: number;
-  departure_unix: number;
-  arrival_unix: number;
-  total_duration_sec: number;
-  transfers: number;
-  legs: Leg[];
-  created_at: string;
-  expires_at: string;
-};
 
-function fmtTime(unix: number) {
-  return new Date(unix * 1000).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
-function fmtDate(unix: number) {
-  return new Date(unix * 1000).toLocaleDateString([], {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
-}
-function fmtDur(sec: number) {
-  const m = Math.round(sec / 60);
-  if (m < 60) return `${m} min`;
-  const h = Math.floor(m / 60);
-  const rem = m % 60;
-  return rem === 0 ? `${h} h` : `${h} h ${rem}`;
-}
 
 export default function PlanShareScreen() {
   const { token } = useLocalSearchParams<{ token: string }>();

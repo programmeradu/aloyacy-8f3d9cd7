@@ -200,6 +200,10 @@
     "./trip-board": {
       "types": "./src/trip-board.ts",
       "default": "./src/trip-board.ts"
+    },
+    "./plan-share": {
+      "types": "./src/plan-share.ts",
+      "default": "./src/plan-share.ts"
     }
   },
   "dependencies": {
