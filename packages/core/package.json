@@ -204,6 +204,10 @@
     "./plan-share": {
       "types": "./src/plan-share.ts",
       "default": "./src/plan-share.ts"
+    },
+    "./multileg-banners": {
+      "types": "./src/multileg-banners.ts",
+      "default": "./src/multileg-banners.ts"
     }
   },
   "dependencies": {
