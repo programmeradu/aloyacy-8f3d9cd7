@@ -69,9 +69,7 @@ export default function PlanShareScreen() {
     const url = `https://app.aloya.cy/plan/${cleanToken}`;
     try {
       await Share.share({
-        message: plan
-          ? `Aloya plan · ${plan.origin_label} → ${plan.destination_label} · ${fmtDate(plan.departure_unix)} ${fmtTime(plan.departure_unix)}\n${url}`
-          : url,
+        message: planShareMessage(plan, url),
         url,
       });
     } catch {
@@ -307,7 +305,7 @@ function SummaryCard({ plan }: { plan: PlanShare }) {
           {fmtDur(plan.total_duration_sec)} in transit
         </Text>
         <Text style={{ fontFamily: "Geist_600SemiBold", fontSize: 12, color: palette.inkSoft }}>
-          {plan.transfers === 0 ? "No changes" : plan.transfers === 1 ? "1 change" : `${plan.transfers} changes`}
+          {changesLabel(plan.transfers)}
         </Text>
       </View>
     </View>
@@ -346,13 +344,9 @@ function ItineraryCard({ plan }: { plan: PlanShare }) {
 }
 
 function LegRow({ leg, last }: { leg: Leg; last: boolean }) {
-  const kind = leg.kind ?? "ride";
-  const isRide = kind === "ride";
-  const isWalk = kind === "walk";
-  const fromName = leg.board?.name ?? leg.from?.name ?? leg.name ?? "—";
-  const toName = leg.alight?.name ?? leg.to?.name ?? "";
-  const depart = leg.board?.departureUnix ? fmtTime(leg.board.departureUnix) : null;
-  const arrive = leg.alight?.arrivalUnix ? fmtTime(leg.alight.arrivalUnix) : null;
+  const copy = legCopy(leg);
+  const isRide = copy.kind === "ride";
+  const isWalk = copy.kind === "walk";
 
   return (
     <View
@@ -382,26 +376,22 @@ function LegRow({ leg, last }: { leg: Leg; last: boolean }) {
               color: isRide ? palette.white : palette.ink,
             }}
           >
-            {isRide ? (leg.routeShort ?? "Bus") : isWalk ? "Walk" : "Wait"}
+            {copy.badge}
           </Text>
         </View>
       </View>
 
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: "Geist_700Bold", fontSize: 14, lineHeight: 20, color: palette.ink }} numberOfLines={2}>
-          {isRide ? `Board at ${fromName}` : isWalk ? `Walk to ${toName || fromName}` : fromName}
+          {copy.title}
         </Text>
-        {isRide && toName ? (
+        {copy.subtitle ? (
           <Text style={{ marginTop: 2, fontFamily: "Geist_500Medium", fontSize: 12, lineHeight: 18, color: palette.inkSoft }} numberOfLines={2}>
-            Off at {toName}
+            {copy.subtitle}
           </Text>
         ) : null}
         <Text style={{ marginTop: 6, fontFamily: "JetBrainsMono_500Medium", fontSize: 10, letterSpacing: 1.6, textTransform: "uppercase", color: palette.inkSoft }}>
-          {depart && arrive
-            ? `${depart} → ${arrive}`
-            : leg.durationSec
-              ? fmtDur(leg.durationSec)
-              : depart ?? ""}
+          {copy.timing}
         </Text>
       </View>
     </View>
@@ -409,8 +399,7 @@ function LegRow({ leg, last }: { leg: Leg; last: boolean }) {
 }
 
 function MeetCard({ plan }: { plan: PlanShare }) {
-  const meetName = plan.legs.find((l) => (l.kind ?? "ride") === "ride")?.board?.name ?? plan.origin_label;
-  const meetTime = plan.legs.find((l) => (l.kind ?? "ride") === "ride")?.board?.departureUnix ?? plan.departure_unix;
+  const { name: meetName, unix: meetTime } = meetPoint(plan);
   return (
     <View
       style={{
@@ -503,12 +492,7 @@ function CTAStack({ plan, onShare }: { plan: PlanShare; onShare: () => void }) {
 }
 
 function ExpiryLine({ expiresAt }: { expiresAt: string }) {
-  const label = useMemo(() => {
-    const diffH = Math.max(0, (new Date(expiresAt).getTime() - Date.now()) / 3600_000);
-    if (diffH < 1) return "This link expires within the hour.";
-    if (diffH < 24) return `This link expires in about ${Math.round(diffH)} hours.`;
-    return `This link expires in ${Math.round(diffH / 24)} days.`;
-  }, [expiresAt]);
+  const label = useMemo(() => expiryLabel(expiresAt), [expiresAt]);
   return (
     <Text style={{ marginTop: 4, fontFamily: "Geist_500Medium", fontSize: 11, textAlign: "center", color: palette.inkSoft }}>
       {label}
