@@ -17,6 +17,10 @@
       "types": "./src/bedrock-metering.ts",
       "default": "./src/bedrock-metering.ts"
     },
+    "./card-scan-state": {
+      "types": "./src/card-scan-state.ts",
+      "default": "./src/card-scan-state.ts"
+    },
     "./cities": {
       "types": "./src/cities.ts",
       "default": "./src/cities.ts"
@@ -196,6 +200,10 @@
     "./trip-board": {
       "types": "./src/trip-board.ts",
       "default": "./src/trip-board.ts"
+    },
+    "./plan-share": {
+      "types": "./src/plan-share.ts",
+      "default": "./src/plan-share.ts"
     }
   },
   "dependencies": {

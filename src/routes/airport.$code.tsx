@@ -24,23 +24,20 @@ import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
 import { getStop, getRoute } from "@/lib/gtfs";
 import { useI18n, type Locale } from "@/lib/i18n";
-import kapnosLogo from "@/assets/kapnos-logo.png.asset.json";
 import {
   AIRPORTS,
   getAirportPage,
   type AirportCode,
   type AirportPageData,
-  type AirportCoachLine,
 } from "@/lib/airport.functions";
-
-const BASE = "https://app.aloya.cy";
-
-const AIRPORT_STOP: Record<AirportCode, string> = {
-  lca: "6117", // "Larnaka Airport"
-  pfo: "1813", // "Pafos Airport"
-};
-
-const ALLOWED: AirportCode[] = ["lca", "pfo"];
+import { CoachLineCard } from "@/components/airport/CoachLineCard";
+import {
+  AIRPORT_COPY,
+  AIRPORT_STOP,
+  BASE,
+  airportHead,
+  isAirportCode,
+} from "@/lib/airport-page";
 
 function airportQuery(code: AirportCode) {
   return queryOptions({
@@ -50,131 +47,13 @@ function airportQuery(code: AirportCode) {
   });
 }
 
-function buildFaq(city: string): { q: string; a: string }[] {
-  return [
-    {
-      q: `How do I get from ${city} airport by bus?`,
-      a: `Direct intercity coaches (Kapnos) board on the arrivals forecourt to Nicosia, Limassol, Larnaca, Paphos, Ayia Napa and Protaras. Urban-bus options leave from the same stop.`,
-    },
-    {
-      q: `How much does the bus from ${city} airport cost?`,
-      a: `From €4 for short hops up to €11 for the longest leg (e.g. Paphos ↔ Larnaca). Children under 6 travel free.`,
-    },
-    {
-      q: `Do the airport coaches run at night?`,
-      a: `Yes — the main lines connect overnight flights. The live departures above reflect what is actually running tonight, not just the published timetable.`,
-    },
-  ];
-}
-
-const COPY: Record<
-  Locale,
-  {
-    coachKicker: string;
-    seatsLeft: (n: number) => string;
-    sold: string;
-    bookCta: string;
-    timetableCta: string;
-    pickup: string;
-    fromLabel: string;
-    emptyTitle: string;
-    emptyBody: string;
-    notInDataset: string;
-    serviceLabel: string;
-  }
-> = {
-  en: {
-    coachKicker: "Direct coach",
-    seatsLeft: (n) => `${n} seats`,
-    sold: "Sold out",
-    bookCta: "Book",
-    timetableCta: "Times",
-    pickup: "Boards at",
-    fromLabel: "from",
-    emptyTitle: "No upcoming buses at this stop.",
-    emptyBody: "Coaches and local buses will appear here as they're scheduled.",
-    notInDataset: "Airport stop not in dataset.",
-    serviceLabel: "Airport service",
-  },
-  el: {
-    coachKicker: "Απευθείας υπεραστικό",
-    seatsLeft: (n) => `${n} θέσεις`,
-    sold: "Εξαντλήθηκαν",
-    bookCta: "Κράτηση",
-    timetableCta: "Πρόγραμμα",
-    pickup: "Επιβίβαση",
-    fromLabel: "από",
-    emptyTitle: "Δεν υπάρχουν επόμενα λεωφορεία στη στάση.",
-    emptyBody: "Υπεραστικά και αστικά λεωφορεία θα εμφανίζονται εδώ.",
-    notInDataset: "Η στάση του αεροδρομίου δεν είναι στο σύνολο δεδομένων.",
-    serviceLabel: "Υπηρεσία αεροδρομίου",
-  },
-};
-
 export const Route = createFileRoute("/airport/$code")({
   beforeLoad: ({ params }) => {
-    const lower = params.code.toLowerCase();
-    if (!ALLOWED.includes(lower as AirportCode)) throw notFound();
+    if (!isAirportCode(params.code)) throw notFound();
   },
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(airportQuery(params.code.toLowerCase() as AirportCode)),
-  head: ({ params }) => {
-    const code = params.code.toLowerCase() as AirportCode;
-    const a = AIRPORTS[code];
-    if (!a) return { meta: [{ title: "Airport — Aloya" }] };
-    const title = `${a.name} (${a.iata}) by Bus — Live Coaches & Routes`;
-    const description = `Live intercity coach departures from ${a.name} (${a.iata}), plus urban-bus departures from the airport stop. Direct buses to Nicosia, Limassol, Larnaca, Paphos, Ayia Napa and Protaras with real seat availability.`;
-    const canonical = `${BASE}/airport/${code}`;
-    const og = `${BASE}/og/og-airport-${code}.jpg`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:url", content: canonical },
-        { property: "og:type", content: "article" },
-        { property: "og:image", content: og },
-        { property: "og:image:width", content: "1216" },
-        { property: "og:image:height", content: "640" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:image", content: og },
-      ],
-      links: [
-        { rel: "canonical", href: canonical },
-        { rel: "alternate", hrefLang: "en", href: canonical },
-        { rel: "alternate", hrefLang: "el", href: canonical },
-        { rel: "alternate", hrefLang: "x-default", href: canonical },
-      ],
-      scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Airport",
-            name: a.name,
-            iataCode: a.iata,
-            icaoCode: a.icao,
-            url: canonical,
-            geo: { "@type": "GeoCoordinates", latitude: a.lat, longitude: a.lng },
-            addressCountry: "CY",
-          }),
-        },
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: buildFaq(a.city).map((f) => ({
-              "@type": "Question",
-              name: f.q,
-              acceptedAnswer: { "@type": "Answer", text: f.a },
-            })),
-          }),
-        },
-      ],
-    };
-  },
+  head: ({ params }) => airportHead(params.code),
   component: AirportPage,
   errorComponent: AirportErrorState,
   notFoundComponent: AirportNotFoundState,
@@ -247,7 +126,7 @@ function AirportPage() {
 
 function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }) {
   const { t } = useI18n();
-  const c = COPY[locale];
+  const c = AIRPORT_COPY[locale];
   const airport = data.airport;
   const stopId = AIRPORT_STOP[airport.code];
   const stop = getStop(stopId);
@@ -443,108 +322,5 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
         />
       )}
     </AppShell>
-  );
-}
-
-// Kapnos intercity coach — rendered as a row in the same departures list
-// as the urban DepartureRows. Card shape matches DepartureRow chrome so
-// the page reads as one continuous list, not a separate article section.
-function CoachLineCard({ line, c }: { line: AirportCoachLine; c: (typeof COPY)["en"] }) {
-  const next = line.nextDepartures[0];
-  return (
-    <article className="rounded-[24px] bg-card ring-1 ring-line p-4">
-      <header className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <img
-            src={kapnosLogo.url}
-            alt=""
-            className="h-9 w-9 rounded-md object-contain bg-white ring-1 ring-line/60 p-0.5 shrink-0"
-            loading="lazy"
-          />
-          <div className="min-w-0">
-            <p className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep">
-              {c.coachKicker}
-            </p>
-            <p className="mt-0.5 font-display text-[20px] leading-tight text-ink truncate">
-              → {line.destinationCity}
-            </p>
-          </div>
-        </div>
-        <div className="text-right shrink-0">
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft tabular-nums">
-            {line.rideMin} min
-          </p>
-          {line.priceFrom ? (
-            <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink/60 tabular-nums">
-              {c.fromLabel} {line.priceFrom}
-            </p>
-          ) : null}
-        </div>
-      </header>
-
-      {line.nextDepartures.length > 0 && (
-        <ul className="mt-3 flex flex-col rounded-2xl ring-1 ring-line/60 divide-y divide-line/40">
-          {line.nextDepartures.slice(0, 3).map((d) => {
-            const sold = d.seatsAvailable <= 0;
-            const low = d.seatsAvailable > 0 && d.seatsAvailable <= 8;
-            return (
-              <li
-                key={`${d.tripId}-${d.depart}`}
-                className="flex items-baseline justify-between gap-3 px-3 py-2 font-mono text-[12px] tabular-nums"
-              >
-                <span className="flex items-baseline gap-2">
-                  <span className="font-display text-[16px] text-ink">{d.depart}</span>
-                  <span className="text-ink-soft">→</span>
-                  <span className="text-ink/80">{d.arrive}</span>
-                  {d.dayChip ? (
-                    <span className="ml-1 text-[9.5px] uppercase tracking-[0.18em] text-ochre-deep">
-                      {d.dayChip}
-                    </span>
-                  ) : null}
-                </span>
-                <span
-                  className={`text-[9.5px] uppercase tracking-[0.18em] ${
-                    sold ? "text-red-700" : low ? "text-ochre-deep" : "text-ink/55"
-                  }`}
-                >
-                  {sold ? c.sold : c.seatsLeft(d.seatsAvailable)}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      <div className="mt-3 flex items-baseline justify-between gap-3">
-        <p className="text-[12px] text-ink-soft truncate min-w-0">
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink/40">
-            {c.pickup}:
-          </span>{" "}
-          {line.pickupName}
-        </p>
-        <div className="flex gap-2 shrink-0">
-          <a
-            href="https://kapnosairportshuttle.com/timetables"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full bg-card ring-1 ring-line px-3 py-1.5 font-sans text-[12px] font-semibold text-ink hover:ring-aegean/40"
-          >
-            {c.timetableCta}
-          </a>
-          <a
-            href="https://kapnosairportshuttle.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`rounded-full px-3 py-1.5 font-sans text-[12px] font-semibold transition-colors ${
-              next && next.seatsAvailable <= 0
-                ? "bg-card ring-1 ring-line text-ink/50 pointer-events-none"
-                : "bg-ink text-limestone hover:bg-ochre-deep"
-            }`}
-          >
-            {c.bookCta}
-          </a>
-        </div>
-      </div>
-    </article>
   );
 }
