@@ -32,7 +32,7 @@ export type ArrivalPromise = {
   destination_label: string;
   destination_lat: number;
   destination_lng: number;
-  plan_json: { legs?: PromiseLeg[] } | null;
+  plan_json: { legs?: PromiseLeg[]; departureUnix?: number } | null;
   ladder_json: LadderRung[] | null;
   leave_by_unix: number;
   baseline_leave_by_unix: number;

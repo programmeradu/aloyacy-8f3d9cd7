@@ -92,7 +92,7 @@ async function downloadOne(
   try {
     const res = await FileSystem.downloadAsync(remoteUrl, localUri);
     if (res.status >= 200 && res.status < 300) {
-      const info = await FileSystem.getInfoAsync(localUri, { size: true });
+      const info = await FileSystem.getInfoAsync(localUri);
       return { ok: true, bytes: info.exists && "size" in info ? (info.size as number) : 0 };
     }
     return { ok: false, bytes: 0 };

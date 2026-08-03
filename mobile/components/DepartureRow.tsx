@@ -127,7 +127,6 @@ export function DepartureRow({
           opacity: 0.22,
         }}
         resizeMode="cover"
-        pointerEvents="none"
       />
       <LinearGradient
         colors={[palette.white, "rgba(255,255,255,0.82)", "rgba(255,255,255,0)"]}
