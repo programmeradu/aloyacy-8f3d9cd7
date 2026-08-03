@@ -38,6 +38,12 @@ jobs:
       - name: Typecheck
         run: bun run typecheck
 
+      - name: Env template parity
+        run: bun run check:env
+
+      - name: Secret scan
+        run: bun run check:secrets
+
       - name: Test
         run: bun run test:coverage
 
