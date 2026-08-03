@@ -7,10 +7,7 @@ import {
   money2,
   spendShare,
 } from "@aloya/core/bedrock-metering";
-import {
-  getBedrockCostExplorer,
-  type BedrockCeStats,
-} from "@/lib/bedrock-cost-explorer.functions";
+import { getBedrockCostExplorer, type BedrockCeStats } from "@/lib/bedrock-cost-explorer.functions";
 import { Kpi } from "./Kpi";
 import { AxisTicks, BarSeries } from "./BarSeries";
 import { useSessionCreds } from "./useSessionCreds";

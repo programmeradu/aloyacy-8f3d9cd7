@@ -28,9 +28,7 @@ describe("buildTripBoard", () => {
 
   it("returns null when the trip has no arrivals", () => {
     expect(buildTripBoard([], "T1", now, resolve)).toBeNull();
-    expect(
-      buildTripBoard([{ ...arr("a", now), tripId: "OTHER" }], "T1", now, resolve),
-    ).toBeNull();
+    expect(buildTripBoard([{ ...arr("a", now), tripId: "OTHER" }], "T1", now, resolve)).toBeNull();
   });
 
   it("orders arrivals ascending regardless of feed order", () => {
@@ -121,7 +119,11 @@ describe("tripStatusView", () => {
   });
 
   it("describes late and early runs in whole minutes", () => {
-    expect(tripStatusView(245, false)).toMatchObject({ status: "late", label: "4 min late", minutes: 4 });
+    expect(tripStatusView(245, false)).toMatchObject({
+      status: "late",
+      label: "4 min late",
+      minutes: 4,
+    });
     expect(tripStatusView(-190, false)).toMatchObject({ status: "early", label: "3 min early" });
   });
 });

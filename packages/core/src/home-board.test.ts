@@ -77,7 +77,11 @@ describe("groupArrivalsByStop", () => {
   });
 
   it("drops arrivals past the horizon", () => {
-    expect(groupArrivalsByStop(arrivals, now).get("s1")!.some((a) => a.tripId === "t9")).toBe(false);
+    expect(
+      groupArrivalsByStop(arrivals, now)
+        .get("s1")!
+        .some((a) => a.tripId === "t9"),
+    ).toBe(false);
     expect(groupArrivalsByStop(arrivals, now, 240).get("s1")).toHaveLength(3);
   });
 
@@ -135,7 +139,9 @@ describe("routeChipsForStop", () => {
 
 describe("onTimePercent", () => {
   it("counts arrivals inside the tolerance", () => {
-    expect(onTimePercent([{ delaySec: 0 }, { delaySec: 130 }, { delaySec: -60 }, { delaySec: 5 }])).toBe(75);
+    expect(
+      onTimePercent([{ delaySec: 0 }, { delaySec: 130 }, { delaySec: -60 }, { delaySec: 5 }]),
+    ).toBe(75);
   });
 
   it("returns null with no sample", () => {
@@ -150,9 +156,18 @@ describe("onTimePercent", () => {
 
 describe("search result presentation", () => {
   it("routes each hit kind to its screen", () => {
-    expect(searchResultHref({ kind: "stop", id: "s1", name: "A", sub: "Urban", routes: [] })).toBe("/stop/s1");
+    expect(searchResultHref({ kind: "stop", id: "s1", name: "A", sub: "Urban", routes: [] })).toBe(
+      "/stop/s1",
+    );
     expect(
-      searchResultHref({ kind: "route", id: "r1", code: "157", name: "L", city: "Nicosia", liveCount: 0 }),
+      searchResultHref({
+        kind: "route",
+        id: "r1",
+        code: "157",
+        name: "L",
+        city: "Nicosia",
+        liveCount: 0,
+      }),
     ).toBe("/route/r1");
     expect(
       searchResultHref({
@@ -165,14 +180,18 @@ describe("search result presentation", () => {
         sub: "1.2 km away",
       }),
     ).toBe("/trip/t9");
-    expect(searchResultHref({ kind: "airport", id: "lca", iata: "LCA", name: "L", city: "Larnaca" })).toBe(
-      "/airport/lca",
-    );
+    expect(
+      searchResultHref({ kind: "airport", id: "lca", iata: "LCA", name: "L", city: "Larnaca" }),
+    ).toBe("/airport/lca");
   });
 
   it("badges each hit kind", () => {
-    expect(searchResultBadge({ kind: "stop", id: "s", name: "A", sub: "", routes: [] })).toBe("STOP");
-    expect(searchResultBadge({ kind: "airport", id: "lca", iata: "LCA", name: "L", city: "C" })).toBe("AIRPORT");
+    expect(searchResultBadge({ kind: "stop", id: "s", name: "A", sub: "", routes: [] })).toBe(
+      "STOP",
+    );
+    expect(
+      searchResultBadge({ kind: "airport", id: "lca", iata: "LCA", name: "L", city: "C" }),
+    ).toBe("AIRPORT");
   });
 
   it("writes copy without decorative bullets", () => {
@@ -191,7 +210,14 @@ describe("search result presentation", () => {
 
   it("omits the live count when nothing is running", () => {
     expect(
-      searchResultCopy({ kind: "route", id: "r", code: "1", name: "n", city: "Paphos", liveCount: 0 }).meta,
+      searchResultCopy({
+        kind: "route",
+        id: "r",
+        code: "1",
+        name: "n",
+        city: "Paphos",
+        liveCount: 0,
+      }).meta,
     ).toBe("Paphos");
   });
 });

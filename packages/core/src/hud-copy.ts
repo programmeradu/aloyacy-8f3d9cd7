@@ -61,8 +61,7 @@ export function hudVisibility(input: {
   };
   if (!active) return { ...off, start: true };
   const hurrying = phase === "hurry-soft" || phase === "hurry-urgent";
-  const walking =
-    hurrying || phase === "walking-to-stop" || phase === "walking-to-dest";
+  const walking = hurrying || phase === "walking-to-stop" || phase === "walking-to-dest";
   return {
     ...off,
     hurry: hurrying,

@@ -42,7 +42,12 @@ describe("card-scan-state", () => {
   });
 
   it("locks the front when holder and expiry both agree twice", () => {
-    const out = feed(initialScanState(), "front", { holder: "A PAPADOPOULOU", validUntil: "12/27" }, PROMOTE_AT);
+    const out = feed(
+      initialScanState(),
+      "front",
+      { holder: "A PAPADOPOULOU", validUntil: "12/27" },
+      PROMOTE_AT,
+    );
     expect(out.state.frontDone).toBe(true);
     expect(out.promoted).toBe("front");
   });
@@ -53,20 +58,35 @@ describe("card-scan-state", () => {
   });
 
   it("flips to the other side after a promotion and clears hits", () => {
-    const front = feed(initialScanState(), "front", { holder: "X Y", validUntil: "01/30" }, PROMOTE_AT);
+    const front = feed(
+      initialScanState(),
+      "front",
+      { holder: "X Y", validUntil: "01/30" },
+      PROMOTE_AT,
+    );
     expect(front.nextSide).toBe("back");
     expect(front.state.hits).toEqual({ number: 0, holder: 0, validUntil: 0 });
   });
 
   it("stays on the same side when the other one is already done", () => {
-    const front = feed(initialScanState(), "front", { holder: "X Y", validUntil: "01/30" }, PROMOTE_AT);
+    const front = feed(
+      initialScanState(),
+      "front",
+      { holder: "X Y", validUntil: "01/30" },
+      PROMOTE_AT,
+    );
     const back = feed(front.state, "back", { number: "999888777" }, PROMOTE_AT);
     expect(back.nextSide).toBe("back");
     expect(back.complete).toBe(true);
   });
 
   it("is not complete without a card number even when both sides are done", () => {
-    const front = feed(initialScanState(), "front", { holder: "X Y", validUntil: "01/30" }, PROMOTE_AT);
+    const front = feed(
+      initialScanState(),
+      "front",
+      { holder: "X Y", validUntil: "01/30" },
+      PROMOTE_AT,
+    );
     const skipped = skipScanSide(front.state, "back");
     expect(skipped.state.backDone).toBe(true);
     expect(skipped.complete).toBe(false);

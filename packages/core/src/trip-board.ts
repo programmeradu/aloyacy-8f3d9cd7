@@ -72,9 +72,7 @@ export function buildTripBoard<M extends TripStopMeta>(
     .sort((a, b) => a.arrivalUnix - b.arrivalUnix);
   if (ordered.length === 0) return null;
 
-  const nextIdx = ordered.findIndex(
-    (a) => a.arrivalUnix >= nowUnix - NEXT_STOP_GRACE_SEC,
-  );
+  const nextIdx = ordered.findIndex((a) => a.arrivalUnix >= nowUnix - NEXT_STOP_GRACE_SEC);
 
   const stops = ordered.map((a, i) => ({
     stopId: a.stopId,
@@ -123,10 +121,7 @@ export interface TripStatusView {
   minutes: number;
 }
 
-export function tripStatusView(
-  delaySec: number,
-  finished: boolean,
-): TripStatusView {
+export function tripStatusView(delaySec: number, finished: boolean): TripStatusView {
   if (finished) return { status: "done", label: "Finished", tag: "end", minutes: 0 };
   if (delaySec > ON_TIME_TOLERANCE_SEC) {
     const minutes = Math.round(delaySec / 60);

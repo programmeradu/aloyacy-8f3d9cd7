@@ -31,13 +31,7 @@ import {
   type AirportPageData,
 } from "@/lib/airport.functions";
 import { CoachLineCard } from "@/components/airport/CoachLineCard";
-import {
-  AIRPORT_COPY,
-  AIRPORT_STOP,
-  BASE,
-  airportHead,
-  isAirportCode,
-} from "@/lib/airport-page";
+import { AIRPORT_COPY, AIRPORT_STOP, BASE, airportHead, isAirportCode } from "@/lib/airport-page";
 
 function airportQuery(code: AirportCode) {
   return queryOptions({

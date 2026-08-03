@@ -68,11 +68,7 @@ function isComplete(s: ScanState): boolean {
   return s.frontDone && s.backDone && !!s.acc.number;
 }
 
-export function ingestScanFields(
-  state: ScanState,
-  side: ScanSide,
-  fields: ScanFields,
-): ScanIngest {
+export function ingestScanFields(state: ScanState, side: ScanSide, fields: ScanFields): ScanIngest {
   const acc: ScanFields = { ...state.acc };
   const hits: ScanHits = { ...state.hits };
   let { frontDone, backDone } = state;
@@ -135,7 +131,5 @@ export function skipScanSide(state: ScanState, side: ScanSide): ScanIngest {
 
 /** Copy for the status badge under the live viewport. */
 export function sideHint(side: ScanSide): string {
-  return side === "front"
-    ? "Front — name & valid until"
-    : "Back — 14-16 digit number";
+  return side === "front" ? "Front — name & valid until" : "Back — 14-16 digit number";
 }

@@ -117,14 +117,10 @@ describe("expiryLabel", () => {
     expect(expiryLabel("2026-01-06T00:00:00Z", now)).toBe("This link expires in 5 days.");
   });
   it("reports hours within a day", () => {
-    expect(expiryLabel("2026-01-01T06:00:00Z", now)).toBe(
-      "This link expires in about 6 hours.",
-    );
+    expect(expiryLabel("2026-01-01T06:00:00Z", now)).toBe("This link expires in about 6 hours.");
   });
   it("reports the final hour", () => {
-    expect(expiryLabel("2026-01-01T00:30:00Z", now)).toBe(
-      "This link expires within the hour.",
-    );
+    expect(expiryLabel("2026-01-01T00:30:00Z", now)).toBe("This link expires within the hour.");
   });
   it("reports a past expiry", () => {
     expect(expiryLabel("2025-12-31T00:00:00Z", now)).toBe("This link has expired.");
