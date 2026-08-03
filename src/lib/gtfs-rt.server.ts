@@ -11,16 +11,14 @@ import gr from "gtfs-realtime-bindings";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 // Feed sources, tried in order until one returns a decodable protobuf.
-// The Cyprus upstream answers 403 to Cloudflare Worker egress IPs, so the
-// direct call from our own Worker usually fails — we still try it first in
-// case that ever changes (it's the lowest-latency path), then fall back to
-// our own edge-function relay, which runs on different infrastructure and
-// does reach the upstream. The old third-party Vercel proxy is gone.
+// Cloudflare Worker egress is blocked by the Cyprus upstream, so Lovable
+// Cloud is the primary relay. The direct URL remains only as an emergency
+// fallback in case the upstream later removes that block.
 const DIRECT_FEED = "http://20.19.98.194:8328/Api/api/gtfs-realtime";
 
 function feedSources(): string[] {
   const base = process.env.SUPABASE_URL ?? "https://uliqfclkndvevslmjwlu.supabase.co";
-  return [DIRECT_FEED, `${base}/functions/v1/gtfs-proxy`];
+  return [`${base}/functions/v1/gtfs-proxy`, DIRECT_FEED];
 }
 
 

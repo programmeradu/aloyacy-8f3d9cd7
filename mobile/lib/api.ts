@@ -4,6 +4,32 @@
 export const API_BASE =
   process.env.EXPO_PUBLIC_API_BASE ?? "https://app.aloya.cy";
 
+// Cloudflare custom domain first, Lovable's origin second. Native clients can
+// retry the origin when DNS, a Cloudflare edge, or a custom-domain deployment
+// is temporarily unavailable. Never retry ordinary 4xx responses: those are
+// real request errors, not infrastructure failures.
+const LOVABLE_ORIGIN = "https://aloyacy.lovable.app";
+export const API_BASES = Array.from(new Set([API_BASE, LOVABLE_ORIGIN]));
+
+export async function fetchPublicApi(
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  let lastError: unknown;
+  for (const base of API_BASES) {
+    try {
+      const response = await fetch(`${base}${path}`, init);
+      if (response.status < 500) return response;
+      lastError = new Error(`${base} returned ${response.status}`);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Aloya services are temporarily unavailable");
+}
+
 export type RealtimeArrival = {
   stopId: string;
   routeId: string;
@@ -35,7 +61,7 @@ export type RealtimeSnapshot = {
 };
 
 export async function fetchRealtime(): Promise<RealtimeSnapshot> {
-  const res = await fetch(`${API_BASE}/api/public/realtime`, {
+  const res = await fetchPublicApi("/api/public/realtime", {
     headers: { Accept: "application/json" },
   });
   if (!res.ok) throw new Error(`Realtime ${res.status}`);
@@ -65,7 +91,7 @@ export type StopsBundle = {
 };
 
 export async function fetchStopsBundle(): Promise<StopsBundle> {
-  const res = await fetch(`${API_BASE}/api/public/stops`, {
+  const res = await fetchPublicApi("/api/public/stops", {
     headers: { Accept: "application/json" },
   });
   if (!res.ok) throw new Error(`Stops ${res.status}`);

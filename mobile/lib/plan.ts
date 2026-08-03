@@ -1,4 +1,4 @@
-import { API_BASE } from "./api";
+import { fetchPublicApi } from "./api";
 
 export type PlanPoint = { lat: number; lng: number; label?: string };
 
@@ -70,7 +70,7 @@ export async function fetchPlan(args: {
   departAtUnix?: number;
   arriveByUnix?: number;
 }): Promise<PlanResult> {
-  const res = await fetch(`${API_BASE}/api/public/plan`, {
+  const res = await fetchPublicApi("/api/public/plan", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(args),
