@@ -19,7 +19,7 @@ import {
   type PlanShareLeg as Leg,
 } from "@aloya/core/plan-share";
 
-function NoteCard({ name, note }: { name: string; note: string }) {
+export function NoteCard({ name, note }: { name: string; note: string }) {
   return (
     <View
       style={{
