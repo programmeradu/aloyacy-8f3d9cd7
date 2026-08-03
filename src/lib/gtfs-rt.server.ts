@@ -16,12 +16,13 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 // case that ever changes (it's the lowest-latency path), then fall back to
 // our own edge-function relay, which runs on different infrastructure and
 // does reach the upstream. The old third-party Vercel proxy is gone.
-const EDGE_RELAY = `${process.env.SUPABASE_URL ?? "https://uliqfclkndvevslmjwlu.supabase.co"}/functions/v1/gtfs-proxy`;
+const DIRECT_FEED = "http://20.19.98.194:8328/Api/api/gtfs-realtime";
 
-const FEED_SOURCES = [
-  "http://20.19.98.194:8328/Api/api/gtfs-realtime",
-  EDGE_RELAY,
-] as const;
+function feedSources(): string[] {
+  const base = process.env.SUPABASE_URL ?? "https://uliqfclkndvevslmjwlu.supabase.co";
+  return [DIRECT_FEED, `${base}/functions/v1/gtfs-proxy`];
+}
+
 
 
 
