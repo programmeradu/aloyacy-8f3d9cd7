@@ -89,7 +89,7 @@ export type RealtimeSnapshot = {
 /** Fetch the raw protobuf, trying each source until one yields bytes. */
 async function fetchFeedBytes(): Promise<Uint8Array> {
   const failures: string[] = [];
-  for (const url of FEED_SOURCES) {
+  for (const url of feedSources()) {
     try {
       const res = await fetch(url, {
         headers: {
