@@ -25,7 +25,6 @@ import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/hea
 import { getStop, getRoute } from "@/lib/gtfs";
 import { useI18n, type Locale } from "@/lib/i18n";
 import {
-  AIRPORTS,
   getAirportPage,
   type AirportCode,
   type AirportPageData,
