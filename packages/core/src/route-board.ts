@@ -90,8 +90,7 @@ export function buildRouteBoard(input: {
   const trips: BoardTrip[] = Array.from(tripMap.entries())
     .map(([tripId, arrs]) => {
       const sorted = [...arrs].sort((x, y) => x.arrivalUnix - y.arrivalUnix);
-      const upcoming =
-        sorted.find((s) => s.arrivalUnix >= now - 30) ?? sorted[sorted.length - 1];
+      const upcoming = sorted.find((s) => s.arrivalUnix >= now - 30) ?? sorted[sorted.length - 1];
       return {
         tripId,
         arrivals: sorted,
@@ -108,9 +107,7 @@ export function buildRouteBoard(input: {
     (best, t) => (t.arrivals.length > (best?.arrivals.length ?? 0) ? t : best),
     trips[0],
   );
-  const stopIds = longest
-    ? Array.from(new Set(longest.arrivals.map((a) => a.stopId)))
-    : [];
+  const stopIds = longest ? Array.from(new Set(longest.arrivals.map((a) => a.stopId))) : [];
 
   const busesOnLine: BusOnLine[] = [];
   for (const v of vehicles) {
@@ -171,9 +168,7 @@ export function minutesFromNow(unixSec: number, nowMs = Date.now()): string {
   return `${h}h ${m % 60}m`;
 }
 
-export function isIntercityRoute(
-  meta: { feedId?: number; short?: string } | undefined,
-): boolean {
+export function isIntercityRoute(meta: { feedId?: number; short?: string } | undefined): boolean {
   if (!meta) return false;
   return meta.feedId === 6 || /^IC/i.test(meta.short ?? "");
 }
@@ -283,9 +278,7 @@ export function nextDepartureCopy(input: {
   return {
     kicker: kmh > 3 ? "BUS IN MOTION" : "BUS EN ROUTE",
     headline: `Heading to ${nextStopName}`,
-    footer:
-      (kmh > 3 ? `${kmh} km/h  ·  ` : "") +
-      `Arrives ${clock}  ·  Ends ${terminusName}`,
+    footer: (kmh > 3 ? `${kmh} km/h  ·  ` : "") + `Arrives ${clock}  ·  Ends ${terminusName}`,
     pill: minutesFromNow(input.arrivalUnix, input.nowMs).toUpperCase(),
     isLive: true,
   };

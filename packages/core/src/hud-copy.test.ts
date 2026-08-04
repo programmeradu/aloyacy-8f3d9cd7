@@ -43,9 +43,9 @@ describe("hudVisibility", () => {
   });
 
   it("hides the step card without steps", () => {
-    expect(
-      hudVisibility({ active: true, phase: "walking-to-dest", hasSteps: false }).step,
-    ).toBe(false);
+    expect(hudVisibility({ active: true, phase: "walking-to-dest", hasSteps: false }).step).toBe(
+      false,
+    );
   });
 
   it("maps the remaining phases one-to-one", () => {
@@ -72,9 +72,9 @@ describe("copy", () => {
   });
 
   it("builds boarding body copy", () => {
-    expect(
-      boardingBody({ onBoardSuggested: true, secondsLeft: 12.4, alightName: "X" }),
-    ).toBe("Looks like you're on board — auto-confirming in 12s.");
+    expect(boardingBody({ onBoardSuggested: true, secondsLeft: 12.4, alightName: "X" })).toBe(
+      "Looks like you're on board — auto-confirming in 12s.",
+    );
     expect(
       boardingBody({ onBoardSuggested: false, secondsLeft: 30, alightName: "Finikoudes" }),
     ).toContain("press-stop at Finikoudes");

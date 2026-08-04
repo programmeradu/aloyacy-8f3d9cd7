@@ -2,7 +2,6 @@
 // and no-show detection.
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { blendStat } from "./shared.server";
 
 export async function rollupCrowding(): Promise<number> {
   const since = new Date(Date.now() - 3 * 3600 * 1000).toISOString();

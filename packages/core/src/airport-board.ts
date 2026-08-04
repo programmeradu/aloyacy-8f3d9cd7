@@ -49,15 +49,7 @@ export interface SelectDeparturesOptions<A extends BoardArrival, E extends Board
 export function selectAirportDepartures<A extends BoardArrival, E extends BoardEta>(
   opts: SelectDeparturesOptions<A, E>,
 ): BoardRow<A, E>[] {
-  const {
-    arrivals,
-    stopId,
-    nowSec,
-    etaFor,
-    maxEtaMin = 180,
-    limit = 8,
-    graceSec = 30,
-  } = opts;
+  const { arrivals, stopId, nowSec, etaFor, maxEtaMin = 180, limit = 8, graceSec = 30 } = opts;
   if (!stopId || arrivals.length === 0 || limit <= 0) return [];
 
   const seen = new Set<string>();
@@ -122,11 +114,11 @@ export function airportDisplayName(code: string, fetched?: string | null): strin
 }
 
 /** Share sheet copy for an airport board. */
-export function airportShareMessage(input: {
-  code: string;
-  name: string;
-  baseUrl?: string;
-}): { title: string; message: string; url: string } {
+export function airportShareMessage(input: { code: string; name: string; baseUrl?: string }): {
+  title: string;
+  message: string;
+  url: string;
+} {
   const code = input.code.toLowerCase();
   const base = (input.baseUrl ?? "https://app.aloya.cy").replace(/\/+$/, "");
   const url = `${base}/airport/${code}`;

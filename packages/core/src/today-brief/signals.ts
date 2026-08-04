@@ -117,11 +117,6 @@ export function rhythmForDay(dow: number, city: string): TodayTile | null {
   };
 }
 
-const cityEl = (city: string) =>
-  city === "Limassol" ? "Λεμεσός" : city === "Paphos" ? "Πάφος" : city;
-const cityElAcc = (city: string) =>
-  city === "Limassol" ? "Λεμεσό" : city === "Paphos" ? "Πάφο" : city;
-
 export function pickTheme(signals: {
   fixture: Fixture | null;
   festival: Festival | null;

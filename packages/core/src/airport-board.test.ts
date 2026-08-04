@@ -18,8 +18,7 @@ function arr(tripId: string, offsetMin: number, stopId = "6117", routeId = "R1")
 const eta = (etaMin: number, tier = "live") => ({ etaMin, tier });
 
 describe("selectAirportDepartures", () => {
-  const etaFor = (a: { arrivalUnix: number }) =>
-    eta(Math.round((a.arrivalUnix - NOW) / 60));
+  const etaFor = (a: { arrivalUnix: number }) => eta(Math.round((a.arrivalUnix - NOW) / 60));
 
   it("keeps only the requested stop, sorted by time", () => {
     const rows = selectAirportDepartures({
@@ -87,9 +86,9 @@ describe("selectAirportDepartures", () => {
     expect(
       selectAirportDepartures({ arrivals: [arr("a", 1)], stopId: "", nowSec: NOW, etaFor }),
     ).toEqual([]);
-    expect(
-      selectAirportDepartures({ arrivals: [], stopId: "6117", nowSec: NOW, etaFor }),
-    ).toEqual([]);
+    expect(selectAirportDepartures({ arrivals: [], stopId: "6117", nowSec: NOW, etaFor })).toEqual(
+      [],
+    );
   });
 
   it("ignores non-finite etas", () => {
@@ -146,9 +145,9 @@ describe("airport identity helpers", () => {
     expect(s.url).toBe("https://app.aloya.cy/airport/lca");
     expect(s.title).toBe("Larnaca Airport — Aloya");
     expect(s.message).toContain("(LCA)");
-    expect(
-      airportShareMessage({ code: "pfo", name: "P", baseUrl: "https://x.dev/" }).url,
-    ).toBe("https://x.dev/airport/pfo");
+    expect(airportShareMessage({ code: "pfo", name: "P", baseUrl: "https://x.dev/" }).url).toBe(
+      "https://x.dev/airport/pfo",
+    );
   });
 
   it("formats the coordinate line safely", () => {

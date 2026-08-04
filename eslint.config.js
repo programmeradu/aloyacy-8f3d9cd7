@@ -80,5 +80,11 @@ export default tseslint.config(
     ],
     rules: { "react-refresh/only-export-components": "off" },
   },
+  {
+    // Test files build deliberately malformed/partial fixtures to exercise
+    // defensive branches; casting those through `any` is intentional.
+    files: ["**/*.test.ts", "**/*.test.tsx"],
+    rules: { "@typescript-eslint/no-explicit-any": "off" },
+  },
   eslintPluginPrettier,
 );

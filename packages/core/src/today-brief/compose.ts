@@ -1,6 +1,18 @@
 // Editorial composition: headline, lede, tiles and verdict for the day.
 
-import type { CruiseToday, GreekWord, TodayBriefing, TodayFact, TodayFocus, TodayTheme, TodayTile, TodayTileKind, Festival, Fixture, Weather } from "./types";
+import type {
+  CruiseToday,
+  GreekWord,
+  TodayBriefing,
+  TodayFact,
+  TodayFocus,
+  TodayTheme,
+  TodayTile,
+  TodayTileKind,
+  Festival,
+  Fixture,
+  Weather,
+} from "./types";
 import { WEEKDAY_EN, WEEKDAY_EL, dateString, dayOfYear, seededPick } from "./geo-time";
 import { pickTheme, rhythmForDay } from "./signals";
 

@@ -33,9 +33,7 @@ describe("companionBanners", () => {
   });
 
   it("prefers rider tracking over the ghost explanation", () => {
-    expect(ids({ ...base, tripGhost: true, vehicleLost: true })).toEqual([
-      "rider-tracking",
-    ]);
+    expect(ids({ ...base, tripGhost: true, vehicleLost: true })).toEqual(["rider-tracking"]);
   });
 
   it("suppresses the stale-feed banner while a ghost is explained", () => {
@@ -70,9 +68,7 @@ describe("companionBanners", () => {
   });
 
   it("stays quiet about connections while still riding", () => {
-    expect(
-      ids({ ...base, hasNextRide: true, nextVehicleTracked: false }),
-    ).toEqual([]);
+    expect(ids({ ...base, hasNextRide: true, nextVehicleTracked: false })).toEqual([]);
   });
 
   it("can stack rider tracking with an untracked connection", () => {

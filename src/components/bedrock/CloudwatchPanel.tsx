@@ -9,10 +9,7 @@ import {
   formatWindow,
   money,
 } from "@aloya/core/bedrock-metering";
-import {
-  getBedrockCloudwatchStats,
-  type BedrockCwStats,
-} from "@/lib/bedrock-cloudwatch.functions";
+import { getBedrockCloudwatchStats, type BedrockCwStats } from "@/lib/bedrock-cloudwatch.functions";
 import { Kpi } from "./Kpi";
 import { AxisTicks, BarSeries } from "./BarSeries";
 import { useSessionCreds } from "./useSessionCreds";

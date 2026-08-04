@@ -93,10 +93,7 @@ export function ProxyUsagePanel() {
         />
         <Kpi
           label="Success rate"
-          value={successRateLabel(
-            stats?.windowTotals.okCalls ?? 0,
-            stats?.windowTotals.calls ?? 0,
-          )}
+          value={successRateLabel(stats?.windowTotals.okCalls ?? 0, stats?.windowTotals.calls ?? 0)}
           sub={`${compact(stats?.windowTotals.okCalls ?? 0)} OK`}
         />
         <Kpi

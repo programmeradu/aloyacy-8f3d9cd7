@@ -74,11 +74,7 @@ export function companionBanners(input: BannerInput): CompanionBanner[] {
     });
   }
 
-  if (
-    TRANSFER_PHASES.has(input.phase) &&
-    input.hasNextRide &&
-    !input.nextVehicleTracked
-  ) {
+  if (TRANSFER_PHASES.has(input.phase) && input.hasNextRide && !input.nextVehicleTracked) {
     const label = input.nextRouteShort?.trim();
     out.push({
       id: "next-untracked",
@@ -112,9 +108,7 @@ export function shouldOfferSighting(input: {
 }
 
 /** Haptic cue for entering an alert-worthy phase; null means stay quiet. */
-export function phaseHaptic(
-  phase: CompanionPhase,
-): "heavy" | "success" | "warning" | null {
+export function phaseHaptic(phase: CompanionPhase): "heavy" | "success" | "warning" | null {
   if (phase === "alight-soon") return "heavy";
   if (phase === "arrived") return "success";
   if (phase === "missed-connection") return "warning";
