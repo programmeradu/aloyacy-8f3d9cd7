@@ -59,10 +59,11 @@ describe("airportHead", () => {
     const head = airportHead("lca");
     const title = head.meta.find((m) => "title" in m) as { title: string };
     expect(title.title).toContain("Larnaca");
-    const canonical = head.links.find((l) => l.rel === "canonical");
+    const links = head.links ?? [];
+    const canonical = links.find((l) => l.rel === "canonical");
     expect(canonical?.href).toBe("https://app.aloya.cy/airport/lca");
-    expect(head.links).toHaveLength(4);
-    expect(head.scripts).toHaveLength(2);
+    expect(links).toHaveLength(4);
+    expect(head.scripts ?? []).toHaveLength(2);
   });
 
   it("lowercases the code when building the head", () => {
