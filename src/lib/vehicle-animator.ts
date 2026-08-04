@@ -83,7 +83,11 @@ export class VehicleAnimator {
 
   setTarget(t: VehicleTarget) {
     const prevAt = this.lastTargetAt.get(t.id);
-    const interval = prevAt ? Math.max(800, t.recordedAt - prevAt) : 3_000;
+    // Use an explicit presence check rather than a truthy check: a valid
+    // `recordedAt` can legitimately be 0 (epoch/relative clocks), and a
+    // falsy check would wrongly treat that as "no previous ping" and fall
+    // back to the 3s default interval.
+    const interval = prevAt != null ? Math.max(800, t.recordedAt - prevAt) : 3_000;
     this.lastIntervalByVehicle.set(t.id, interval);
     this.lastTargetAt.set(t.id, t.recordedAt);
 
