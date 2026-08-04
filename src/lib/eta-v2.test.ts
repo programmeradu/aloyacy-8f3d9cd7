@@ -11,6 +11,7 @@ vi.mock("./gtfs", () => {
     E: { lat: 35.04, lng: 33.0 },
     F: { lat: 35.05, lng: 33.0 },
     G: { lat: 35.06, lng: 33.0 },
+    H: { lat: 35.07, lng: 33.0 },
   };
   return {
     getStop: vi.fn((id: string) => stops[id] ?? null),
@@ -416,9 +417,10 @@ describe("smartEtaV2 — confidence bands & freshness tiers", () => {
       arrival({ stopId: "E", tripId: "T1", arrivalUnix: NOW + 500 }),
       arrival({ stopId: "F", tripId: "T1", arrivalUnix: NOW + 600 }),
       arrival({ stopId: "G", tripId: "T1", arrivalUnix: NOW + 700 }),
+      arrival({ stopId: "H", tripId: "T1", arrivalUnix: NOW + 800 }),
     ];
     const out = smartEtaV2({
-      stopId: "G",
+      stopId: "H",
       arrivals: farArrivals,
       vehicles: [vehicle({ lat: 35.0, lng: 33.0, timestamp: NOW })],
       nowSec: NOW,
