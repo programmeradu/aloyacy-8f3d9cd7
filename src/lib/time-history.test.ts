@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { listTimeHistory, recordTimeUsage } from "./time-history";
 
 function makeMemoryStorage() {

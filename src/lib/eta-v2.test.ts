@@ -18,7 +18,7 @@ vi.mock("./gtfs", () => {
   };
 });
 
-import { smartEtaV2, type SmartEtaV2Input } from "./eta-v2";
+import { smartEtaV2 } from "./eta-v2";
 import type { LiveArrival, LiveVehicle } from "./gtfs-rt.server";
 
 const NOW = 1_700_000_000;

@@ -4,7 +4,7 @@ import type { FusedFix } from "./geo-fusion";
 
 const TARGET = { lat: 0, lng: 0, stopId: "S1" };
 
-function fix(lat: number, speedMps: number, timestamp: number): FusedFix {
+function _fix(lat: number, speedMps: number, _timestamp: number): FusedFix {
   return {
     lat,
     lng: 0,
