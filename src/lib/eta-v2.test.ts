@@ -8,6 +8,9 @@ vi.mock("./gtfs", () => {
     B: { lat: 35.01, lng: 33.0 }, // ~1.1km north of A
     C: { lat: 35.02, lng: 33.0 }, // ~1.1km north of B
     D: { lat: 35.03, lng: 33.0 },
+    E: { lat: 35.04, lng: 33.0 },
+    F: { lat: 35.05, lng: 33.0 },
+    G: { lat: 35.06, lng: 33.0 },
   };
   return {
     getStop: vi.fn((id: string) => stops[id] ?? null),
@@ -332,7 +335,7 @@ describe("smartEtaV2 — shape mode", () => {
   it("puts the bus at the leg before the target when it has already passed the target on the shape", () => {
     const arrivals: LiveArrival[] = [
       arrival({ stopId: "A", tripId: "T1", arrivalUnix: NOW - 200 }),
-      arrival({ stopId: "B", tripId: "T1", arrivalUnix: NOW - 100 }),
+      arrival({ stopId: "B", tripId: "T1", arrivalUnix: NOW - 20 }),
       arrival({ stopId: "C", tripId: "T1", arrivalUnix: NOW + 60 }),
     ];
     // Vehicle already past C along the shape.
@@ -345,6 +348,8 @@ describe("smartEtaV2 — shape mode", () => {
     })!;
     expect(out).not.toBeNull();
     expect(out.stopsAway).toBe(0);
+    expect(out.etaSec).toBe(0);
+    expect(out.tier).toBe("live");
   });
 });
 
@@ -359,13 +364,13 @@ describe("smartEtaV2 — confidence bands & freshness tiers", () => {
     const sparse = smartEtaV2({
       stopId: "C",
       arrivals,
-      vehicles: [vehicle({ lat: 35.0, lng: 33.0, timestamp: NOW })],
+      vehicles: [vehicle({ lat: 35.0, lng: 33.0, timestamp: NOW, speed: 5 })],
       nowSec: NOW,
     })!;
     const wellSampled = smartEtaV2({
       stopId: "C",
       arrivals,
-      vehicles: [vehicle({ lat: 35.0, lng: 33.0, timestamp: NOW })],
+      vehicles: [vehicle({ lat: 35.0, lng: 33.0, timestamp: NOW, speed: 5 })],
       nowSec: NOW,
       segments: {
         "R1|A|B": { meanMps: 5, sampleCount: 50 },
@@ -408,13 +413,17 @@ describe("smartEtaV2 — confidence bands & freshness tiers", () => {
       arrival({ stopId: "B", tripId: "T1", arrivalUnix: NOW + 90 }),
       arrival({ stopId: "C", tripId: "T1", arrivalUnix: NOW + 200 }),
       arrival({ stopId: "D", tripId: "T1", arrivalUnix: NOW + 400 }),
+      arrival({ stopId: "E", tripId: "T1", arrivalUnix: NOW + 500 }),
+      arrival({ stopId: "F", tripId: "T1", arrivalUnix: NOW + 600 }),
+      arrival({ stopId: "G", tripId: "T1", arrivalUnix: NOW + 700 }),
     ];
     const out = smartEtaV2({
-      stopId: "D",
+      stopId: "G",
       arrivals: farArrivals,
       vehicles: [vehicle({ lat: 35.0, lng: 33.0, timestamp: NOW })],
       nowSec: NOW,
     })!;
+    expect(out.stopsAway).toBeGreaterThan(5);
     expect(out.tier).toBe("predicted");
     expect(out.freshness).toBe("predicted");
   });
