@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Offline, deterministic tests for the lightweight i18n helper. No React
 // rendering here — we exercise the pure pieces (readLocale/setLocale via a
 // jsdom-backed window/localStorage, plus the format() interpolation logic
