@@ -120,7 +120,7 @@ describe("detectWrongStop", () => {
   });
 
   it("offers replan in reverse direction when candidate stop is not upstream of alight", () => {
-    // Board C, alight A (reverse). Rider near D, which is NOT upstream of A (index 3 > 0... 
+    // Board C, alight A (reverse). Rider near D, which is NOT upstream of A (index 3 > 0...
     // actually not valid since direction<0 requires newIdx>alightIdx(0); D idx=3>0 true).
     // Use alight=B instead so D(idx3) is not > alightIdx? still true. Instead force invalid
     // by making alight the same as candidate's far side: board=B, alight=D reverse-ish check

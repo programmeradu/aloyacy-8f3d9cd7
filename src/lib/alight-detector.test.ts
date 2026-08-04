@@ -5,7 +5,14 @@ import type { FusedFix } from "./geo-fusion";
 const TARGET = { lat: 0, lng: 0, stopId: "S1" };
 
 function fix(lat: number, speedMps: number, timestamp: number): FusedFix {
-  return { lat, lng: 0, speedMps, bearingDeg: null, uncertaintyM: 5, motion: "onboard" } as FusedFix & { timestamp: number } as any;
+  return {
+    lat,
+    lng: 0,
+    speedMps,
+    bearingDeg: null,
+    uncertaintyM: 5,
+    motion: "onboard",
+  } as FusedFix & { timestamp: number } as any;
 }
 
 // distanceM uses haversine; convert lat degrees roughly to metres (~111320 m/deg)

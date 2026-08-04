@@ -9,11 +9,36 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, extname, basename } from "node:path";
 
 const ROOTS = ["src", "packages", "workers", "deploy", "mobile", "scripts", "supabase"];
-const EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json", ".sql", ".yml", ".yaml", ".toml", ".md"]);
-const SKIP_DIRS = new Set(["node_modules", "dist", ".output", "coverage", "build", ".expo", "ios", "android"]);
+const EXTS = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".json",
+  ".sql",
+  ".yml",
+  ".yaml",
+  ".toml",
+  ".md",
+]);
+const SKIP_DIRS = new Set([
+  "node_modules",
+  "dist",
+  ".output",
+  "coverage",
+  "build",
+  ".expo",
+  "ios",
+  "android",
+]);
 
 const RULES = [
-  { name: "service-role JWT", re: /eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]*(?:c2VydmljZV9yb2xl|InNlcnZpY2Vfcm9sZSI)[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+/ },
+  {
+    name: "service-role JWT",
+    re: /eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]*(?:c2VydmljZV9yb2xl|InNlcnZpY2Vfcm9sZSI)[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+/,
+  },
   { name: "Supabase secret key", re: /\bsb_secret_[A-Za-z0-9_-]{10,}/ },
   { name: "Stripe live/secret key", re: /\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{16,}/ },
   { name: "Resend API key", re: /\bre_[A-Za-z0-9]{20,}/ },
@@ -64,7 +89,9 @@ for (const name of readdirSync(".")) {
 
 if (findings.length > 0) {
   console.error("Potential secrets committed:\n" + findings.map((f) => `  ${f}`).join("\n"));
-  console.error(`\nRemove the value, read it from process.env, and rotate it. Reviewed\nplaceholders can be annotated with a trailing "${ALLOW_MARKER}" comment.`);
+  console.error(
+    `\nRemove the value, read it from process.env, and rotate it. Reviewed\nplaceholders can be annotated with a trailing "${ALLOW_MARKER}" comment.`,
+  );
   process.exit(1);
 }
 console.log(`secret scan OK — ${files.length} files, no credential patterns found.`);

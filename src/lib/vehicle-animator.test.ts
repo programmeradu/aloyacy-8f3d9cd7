@@ -116,7 +116,7 @@ describe("VehicleAnimator", () => {
     (performance.now as any).mockReturnValue(1000); // halfway
     const mid = a.getPose("v1")!;
     // Shortest arc from 350 -> 10 passes through 0/360, not backward through 180.
-    expect(mid.bearingDeg === 0 || (mid.bearingDeg > 350 || mid.bearingDeg < 10)).toBe(true);
+    expect(mid.bearingDeg === 0 || mid.bearingDeg > 350 || mid.bearingDeg < 10).toBe(true);
   });
 
   it("removes a vehicle's track so subsequent lookups return null", () => {

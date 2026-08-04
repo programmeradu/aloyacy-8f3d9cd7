@@ -117,7 +117,6 @@ export function rhythmForDay(dow: number, city: string): TodayTile | null {
   };
 }
 
-
 export function pickTheme(signals: {
   fixture: Fixture | null;
   festival: Festival | null;

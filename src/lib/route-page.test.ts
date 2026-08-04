@@ -10,9 +10,7 @@ describe("routeHead", () => {
     expect(titleMeta).toEqual({ title: "Route 30 — Aloya" });
     const ogUrl = head.meta.find((m) => (m as any).property === "og:url");
     expect(ogUrl).toEqual({ property: "og:url", content: "https://app.aloya.cy/route/30" });
-    expect(head.links).toEqual([
-      { rel: "canonical", href: "https://app.aloya.cy/route/30" },
-    ]);
+    expect(head.links).toEqual([{ rel: "canonical", href: "https://app.aloya.cy/route/30" }]);
   });
 
   it("includes description referencing the route id in both places", () => {

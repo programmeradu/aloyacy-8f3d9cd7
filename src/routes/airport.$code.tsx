@@ -24,11 +24,7 @@ import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
 import { getStop, getRoute } from "@/lib/gtfs";
 import { useI18n, type Locale } from "@/lib/i18n";
-import {
-  getAirportPage,
-  type AirportCode,
-  type AirportPageData,
-} from "@/lib/airport.functions";
+import { getAirportPage, type AirportCode, type AirportPageData } from "@/lib/airport.functions";
 import { CoachLineCard } from "@/components/airport/CoachLineCard";
 import { AIRPORT_COPY, AIRPORT_STOP, BASE, airportHead, isAirportCode } from "@/lib/airport-page";
 
