@@ -93,6 +93,8 @@ function makeItinerary(legs: Itinerary["legs"], overrides: Partial<Itinerary> = 
   };
 }
 
+const flush = () => new Promise((r) => setTimeout(r, 0));
+
 beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
@@ -110,8 +112,7 @@ describe("active trip persistence", () => {
     const trip = makeTrip();
     tripStore.setActiveTrip(trip);
     // flush the fire-and-forget server sync microtask
-    await Promise.resolve();
-    await Promise.resolve();
+    await flush();
     const got = tripStore.getActiveTrip();
     expect(got).not.toBeNull();
     expect(got!.option.id).toBe("opt1");
@@ -123,14 +124,14 @@ describe("active trip persistence", () => {
   it("skips server sync when there is no bus leg", async () => {
     const trip = makeTrip({ option: makeOption({ legs: [] }) });
     tripStore.setActiveTrip(trip);
-    await Promise.resolve();
+    await flush();
     expect(upsertActiveTrip).not.toHaveBeenCalled();
   });
   it("clears the active trip", async () => {
     tripStore.setActiveTrip(makeTrip());
-    await Promise.resolve();
+    await flush();
     tripStore.clearActiveTrip();
-    await Promise.resolve();
+    await flush();
     expect(tripStore.getActiveTrip()).toBeNull();
     expect(removeActiveTrip).toHaveBeenCalled();
   });
@@ -138,9 +139,7 @@ describe("active trip persistence", () => {
     (upsertActiveTrip as any).mockRejectedValueOnce(new Error("boom"));
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     expect(() => tripStore.setActiveTrip(makeTrip())).not.toThrow();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await flush();
     expect(warnSpy).toHaveBeenCalled();
     warnSpy.mockRestore();
   });
@@ -202,7 +201,7 @@ describe("patchActiveTripLive", () => {
   });
   it("merges live state onto the current trip", async () => {
     tripStore.setActiveTrip(makeTrip());
-    await Promise.resolve();
+    await flush();
     tripStore.patchActiveTripLive({ onBoardConfirmedAt: 555 });
     const got = tripStore.getActiveTrip();
     expect(got!.live!.onBoardConfirmedAt).toBe(555);
@@ -229,20 +228,20 @@ describe("multi-leg helpers", () => {
     tripStore.patchCurrentLeg({ missedAt: 1 });
     expect(tripStore.getActiveTrip()).toBeNull();
     tripStore.setActiveTrip(makeTrip());
-    await Promise.resolve();
+    await flush();
     tripStore.patchCurrentLeg({ missedAt: 1 }); // trip has no legState
     expect(tripStore.getActiveTrip()!.legState).toBeUndefined();
   });
   it("patchCurrentLeg patches the current leg's state", async () => {
     tripStore.setActiveTrip(makeTrip({ legState: tripStore.initialLegState() }));
-    await Promise.resolve();
+    await flush();
     tripStore.patchCurrentLeg({ arrivedAt: 42 });
     const got = tripStore.getActiveTrip();
     expect(got!.legState!.perLeg[0].arrivedAt).toBe(42);
   });
   it("advanceToNextLeg is a no-op without legState/itinerary or at the last leg", async () => {
     tripStore.setActiveTrip(makeTrip());
-    await Promise.resolve();
+    await flush();
     tripStore.advanceToNextLeg();
     expect(tripStore.getActiveTrip()!.legState).toBeUndefined();
 
@@ -250,7 +249,7 @@ describe("multi-leg helpers", () => {
     tripStore.setActiveTrip(
       makeTrip({ itinerary, legState: { currentLegIndex: 0, perLeg: {} } }),
     );
-    await Promise.resolve();
+    await flush();
     tripStore.advanceToNextLeg(); // idx 0 is last (total legs = 1)
     expect(tripStore.getActiveTrip()!.legState!.currentLegIndex).toBe(0);
   });
@@ -259,7 +258,7 @@ describe("multi-leg helpers", () => {
     tripStore.setActiveTrip(
       makeTrip({ itinerary, legState: { currentLegIndex: 0, perLeg: { 0: { enteredAt: 1 } } } }),
     );
-    await Promise.resolve();
+    await flush();
     tripStore.advanceToNextLeg();
     const got = tripStore.getActiveTrip();
     expect(got!.legState!.currentLegIndex).toBe(1);
@@ -279,7 +278,7 @@ describe("multi-leg helpers", () => {
         to: { lat: 35.2, lng: 33.4, label: "Destination" },
       }),
     );
-    await Promise.resolve();
+    await flush();
     tripStore.collapseToFinalWalk({ lat: 35.15, lng: 33.35 });
     const got = tripStore.getActiveTrip();
     expect(got!.itinerary!.legs).toHaveLength(2); // slice(0,1) + finalWalk

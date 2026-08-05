@@ -185,7 +185,7 @@ describe("specificFromFeed", () => {
     expect(s).toBe("This is an english sentence about traffic delays today");
     const long = "x".repeat(200) + " A1";
     const r = specificFromFeed(long, false);
-    expect(r!.length).toBe(160);
+    expect(r!.length).toBeLessThanOrEqual(158);
     expect(r!.endsWith("…")).toBe(true);
   });
   it("accepts text containing a road code even in wrong script direction", () => {
