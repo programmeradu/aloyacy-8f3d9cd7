@@ -44,3 +44,9 @@ deploy/supabase/.env
 .tmp/
 *.bak
 coverage/
+
+# Build metadata
+*.tsbuildinfo
+
+# Scratch archives (raw GTFS drops etc.) — never commit
+*.zip
