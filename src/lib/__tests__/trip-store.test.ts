@@ -83,8 +83,9 @@ function makeItinerary(legs: Itinerary["legs"], overrides: Partial<Itinerary> = 
     id: "it1",
     legs,
     totalDurationSec: 1000,
-    departureUnix: 900,
-    arrivalUnix: 2300,
+    // Relative to now so the store's stale-trip expiry doesn't fire mid-test.
+    departureUnix: Math.floor(Date.now() / 1000) - 60,
+    arrivalUnix: Math.floor(Date.now() / 1000) + 3600,
     transfers: legs.filter((l) => l.kind === "ride").length - 1,
     totalWalkMeters: 800,
     score: 1,
