@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import tool from "./watch-stop";
 
+// Narrow helpers: MCP content blocks are a union, and inputSchema/content are
+// optional on the SDK types even though these tools always populate them.
+const textAt = (r: { content?: unknown }, i = 0): string =>
+  (r.content as Array<{ text?: string }> | undefined)?.[i]?.text ?? "";
+const blocks = (r: { content?: unknown }): Array<{ text?: string }> =>
+  (r.content as Array<{ text?: string }> | undefined) ?? [];
+
+
 describe("watch_stop_arrivals tool", () => {
   const fetchMock = vi.fn();
   beforeEach(() => {
@@ -15,10 +23,10 @@ describe("watch_stop_arrivals tool", () => {
   });
 
   it("validates alertWithinSec and timeoutSec bounds", () => {
-    expect(() => tool.inputSchema.alertWithinSec!.parse(29)).toThrow();
-    expect(() => tool.inputSchema.alertWithinSec!.parse(1801)).toThrow();
-    expect(() => tool.inputSchema.timeoutSec!.parse(4)).toThrow();
-    expect(() => tool.inputSchema.timeoutSec!.parse(26)).toThrow();
+    expect(() => tool.inputSchema!.alertWithinSec!.parse(29)).toThrow();
+    expect(() => tool.inputSchema!.alertWithinSec!.parse(1801)).toThrow();
+    expect(() => tool.inputSchema!.timeoutSec!.parse(4)).toThrow();
+    expect(() => tool.inputSchema!.timeoutSec!.parse(26)).toThrow();
   });
 
   it("triggers immediately when next bus is within the alert window", async () => {

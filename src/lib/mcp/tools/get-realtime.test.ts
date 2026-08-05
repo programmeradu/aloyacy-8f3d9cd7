@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import tool from "./get-realtime";
 
+// Narrow helpers: MCP content blocks are a union, and inputSchema/content are
+// optional on the SDK types even though these tools always populate them.
+const textAt = (r: { content?: unknown }, i = 0): string =>
+  (r.content as Array<{ text?: string }> | undefined)?.[i]?.text ?? "";
+const blocks = (r: { content?: unknown }): Array<{ text?: string }> =>
+  (r.content as Array<{ text?: string }> | undefined) ?? [];
+
+
 describe("get_stop_arrivals tool", () => {
   const fetchMock = vi.fn();
   beforeEach(() => {
@@ -20,12 +28,12 @@ describe("get_stop_arrivals tool", () => {
   });
 
   it("rejects empty stopId", () => {
-    expect(() => tool.inputSchema.stopId.parse("")).toThrow();
+    expect(() => tool.inputSchema!.stopId.parse("")).toThrow();
   });
 
   it("rejects limit outside 1..20", () => {
-    expect(() => tool.inputSchema.limit!.parse(21)).toThrow();
-    expect(tool.inputSchema.limit!.parse(5)).toBe(5);
+    expect(() => tool.inputSchema!.limit!.parse(21)).toThrow();
+    expect(tool.inputSchema!.limit!.parse(5)).toBe(5);
   });
 
   it("filters, sorts, slices and adds etaSec on the happy path", async () => {
@@ -65,7 +73,7 @@ describe("get_stop_arrivals tool", () => {
   it("returns a friendly message and empty array when no arrivals", async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ arrivals: [] }) });
     const result = await tool.handler({ stopId: "s1" }, {} as never);
-    expect(result.content[0].text).toBe("No upcoming arrivals for stop s1.");
+    expect(textAt(result, 0)).toBe("No upcoming arrivals for stop s1.");
     expect(result.structuredContent).toEqual({ stopId: "s1", stale: false, arrivals: [] });
   });
 
@@ -86,6 +94,6 @@ describe("get_stop_arrivals tool", () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500 });
     const result = await tool.handler({ stopId: "s1" }, {} as never);
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toBe("Realtime fetch failed: 500");
+    expect(textAt(result, 0)).toBe("Realtime fetch failed: 500");
   });
 });
