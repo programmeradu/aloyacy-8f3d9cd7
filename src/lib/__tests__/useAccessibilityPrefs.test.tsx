@@ -2,23 +2,28 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 
+const readCached = vi.fn();
+const fetchFromCloud = vi.fn();
+const savePrefs = vi.fn();
+
+vi.mock("../accessibility-prefs", () => ({
+  DEFAULT_PREFS: {
+    stepFree: false,
+    preferShade: false,
+    lowFloor: false,
+    maxWalkMeters: null,
+  },
+  readCached: (...args: unknown[]) => readCached(...args),
+  fetchFromCloud: (...args: unknown[]) => fetchFromCloud(...args),
+  savePrefs: (...args: unknown[]) => savePrefs(...args),
+}));
+
 const DEFAULT_PREFS = {
   stepFree: false,
   preferShade: false,
   lowFloor: false,
   maxWalkMeters: null,
 };
-
-const readCached = vi.fn();
-const fetchFromCloud = vi.fn();
-const savePrefs = vi.fn();
-
-vi.mock("../accessibility-prefs", () => ({
-  DEFAULT_PREFS,
-  readCached: (...args: unknown[]) => readCached(...args),
-  fetchFromCloud: (...args: unknown[]) => fetchFromCloud(...args),
-  savePrefs: (...args: unknown[]) => savePrefs(...args),
-}));
 
 const useAuthMock = vi.fn();
 vi.mock("../useAuth", () => ({

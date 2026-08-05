@@ -4,11 +4,12 @@ import { renderHook, act } from "@testing-library/react";
 
 const ingest = vi.fn();
 const extrapolate = vi.fn();
-const GeoFuserCtor = vi.fn(() => ({ ingest, extrapolate }));
 
 vi.mock("../geo-fusion", () => ({
-  GeoFuser: GeoFuserCtor,
+  GeoFuser: vi.fn(() => ({ ingest, extrapolate })),
 }));
+
+const { GeoFuser: GeoFuserCtor } = await import("../geo-fusion");
 
 import { useFusedFix } from "../useFusedFix";
 
