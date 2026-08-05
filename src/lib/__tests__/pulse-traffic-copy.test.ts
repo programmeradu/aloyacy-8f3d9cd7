@@ -68,7 +68,7 @@ describe("localizedPlace", () => {
     // English road text requested in greek locale, no known token
     expect(localizedPlace("Random Street", "paphos", "City", true)).toEqual({
       kind: "near",
-      label: "Πάφου",
+      label: "Πάφος",
     });
   });
   it("falls back to fallbackCity when nothing else matches", () => {

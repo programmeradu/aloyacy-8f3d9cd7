@@ -286,7 +286,7 @@ describe("suggestionLabel", () => {
     });
   });
   it("scales font size down for longer text", () => {
-    expect(suggestionLabel("a".repeat(19))).toEqual({ text: "a".repeat(19), sizeClass: "text-[16px]" });
+    expect(suggestionLabel("a".repeat(21))).toEqual({ text: "a".repeat(21), sizeClass: "text-[16px]" });
     expect(suggestionLabel("a".repeat(25))).toEqual({ text: "a".repeat(25), sizeClass: "text-[15px]" });
     expect(suggestionLabel("a".repeat(35))).toEqual({ text: "a".repeat(35), sizeClass: "text-[13px]" });
     expect(suggestionLabel("a".repeat(45))).toEqual({ text: "a".repeat(45), sizeClass: "text-[13px]" });
