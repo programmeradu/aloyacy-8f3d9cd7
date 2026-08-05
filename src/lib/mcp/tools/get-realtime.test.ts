@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import tool from "./get-realtime";
 
+// Optional zod fields are required keys on the inferred handler arg type.
+const defaults = { limit: undefined };
+
 // Narrow helpers: MCP content blocks are a union, and inputSchema/content are
 // optional on the SDK types even though these tools always populate them.
 const textAt = (r: { content?: unknown }, i = 0): string =>
@@ -48,7 +51,7 @@ describe("get_stop_arrivals tool", () => {
       ok: true,
       json: async () => ({ arrivals, fetchedAt: now, stale: false }),
     });
-    const result = await tool.handler({ stopId: "s1" }, {} as never);
+    const result = await tool.handler({ stopId: "s1", ...defaults }, {} as never);
     const sc = result.structuredContent as { arrivals: { tripId: string; etaSec: number }[] };
     expect(sc.arrivals.map((a) => a.tripId)).toEqual(["t2", "t1"]);
     expect(sc.arrivals[0].etaSec).toBe(100);
@@ -65,14 +68,14 @@ describe("get_stop_arrivals tool", () => {
       delaySec: 0,
     }));
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ arrivals }) });
-    const result = await tool.handler({ stopId: "s1", limit: 1 }, {} as never);
+    const result = await tool.handler({ stopId: "s1", limit: 1, ...defaults }, {} as never);
     const sc = result.structuredContent as { arrivals: unknown[] };
     expect(sc.arrivals).toHaveLength(1);
   });
 
   it("returns a friendly message and empty array when no arrivals", async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ arrivals: [] }) });
-    const result = await tool.handler({ stopId: "s1" }, {} as never);
+    const result = await tool.handler({ stopId: "s1", ...defaults }, {} as never);
     expect(textAt(result, 0)).toBe("No upcoming arrivals for stop s1.");
     expect(result.structuredContent).toEqual({ stopId: "s1", stale: false, arrivals: [] });
   });
@@ -86,13 +89,13 @@ describe("get_stop_arrivals tool", () => {
         stale: true,
       }),
     });
-    const result = await tool.handler({ stopId: "s1" }, {} as never);
+    const result = await tool.handler({ stopId: "s1", ...defaults }, {} as never);
     expect((result.structuredContent as { stale: boolean }).stale).toBe(true);
   });
 
   it("returns isError on non-ok response", async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500 });
-    const result = await tool.handler({ stopId: "s1" }, {} as never);
+    const result = await tool.handler({ stopId: "s1", ...defaults }, {} as never);
     expect(result.isError).toBe(true);
     expect(textAt(result, 0)).toBe("Realtime fetch failed: 500");
   });

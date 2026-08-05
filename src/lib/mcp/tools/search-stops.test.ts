@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import tool from "./search-stops";
 
+// Optional zod fields are required keys on the inferred handler arg type.
+const defaults = { limit: undefined };
+
 // Narrow helpers: MCP content blocks are a union, and inputSchema/content are
 // optional on the SDK types even though these tools always populate them.
 const textAt = (r: { content?: unknown }, i = 0): string =>
@@ -49,21 +52,21 @@ describe("search_stops tool", () => {
       ok: true,
       json: async () => ({ stops }),
     });
-    const result = await tool.handler({ query: "eleftheria" }, {} as never);
+    const result = await tool.handler({ query: "eleftheria", ...defaults }, {} as never);
     expect(fetchMock).toHaveBeenCalledWith(
       "https://app.aloya.cy/api/public/stops",
       expect.objectContaining({ headers: { Accept: "application/json" } }),
     );
     expect(result.isError).toBeUndefined();
     expect(result.structuredContent).toEqual({ matches: [stops[0]] });
-    expect(result.content[0].type).toBe("text");
+    expect(blocks(result)[0].type).toBe("text");
     expect(JSON.parse(textAt(result, 0) as string)).toEqual([stops[0]]);
   });
 
   it("matches by code fragment case-insensitively", async () => {
     const stops = [{ id: "1", code: "AB12", name: "Somewhere", lat: 0, lng: 0, agency: "OSEL" }];
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ stops }) });
-    const result = await tool.handler({ query: "ab1" }, {} as never);
+    const result = await tool.handler({ query: "ab1", ...defaults }, {} as never);
     expect(result.structuredContent).toEqual({ matches: stops });
   });
 
@@ -77,7 +80,7 @@ describe("search_stops tool", () => {
       agency: "OSEL",
     }));
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ stops }) });
-    const result = await tool.handler({ query: "stop", limit: 2 }, {} as never);
+    const result = await tool.handler({ query: "stop", limit: 2, ...defaults }, {} as never);
     expect((result.structuredContent as { matches: unknown[] }).matches).toHaveLength(2);
   });
 
@@ -86,14 +89,14 @@ describe("search_stops tool", () => {
       ok: true,
       json: async () => ({ stops: [{ id: "1", code: "X", name: "Y", lat: 0, lng: 0, agency: "A" }] }),
     });
-    const result = await tool.handler({ query: "zzz-no-match" }, {} as never);
+    const result = await tool.handler({ query: "zzz-no-match", ...defaults }, {} as never);
     expect(result.structuredContent).toEqual({ matches: [] });
     expect(JSON.parse(textAt(result, 0) as string)).toEqual([]);
   });
 
   it("returns isError true when fetch response is not ok", async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 503 });
-    const result = await tool.handler({ query: "x" }, {} as never);
+    const result = await tool.handler({ query: "x", ...defaults }, {} as never);
     expect(result.isError).toBe(true);
     expect(textAt(result, 0)).toBe("Stops fetch failed: 503");
     expect(result.structuredContent).toBeUndefined();

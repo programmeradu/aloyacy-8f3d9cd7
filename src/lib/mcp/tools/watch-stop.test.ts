@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import tool from "./watch-stop";
 
+// Optional zod fields are required keys on the inferred handler arg type.
+const defaults = { routeId: undefined, alertWithinSec: undefined, timeoutSec: undefined };
+
 // Narrow helpers: MCP content blocks are a union, and inputSchema/content are
 // optional on the SDK types even though these tools always populate them.
 const textAt = (r: { content?: unknown }, i = 0): string =>
@@ -79,7 +82,7 @@ describe("watch_stop_arrivals tool", () => {
   it("returns no_upcoming reason via timeout when there are no arrivals", async () => {
     vi.useFakeTimers();
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ arrivals: [], stale: false }) });
-    const promise = tool.handler({ stopId: "s1", timeoutSec: 5 }, {} as never);
+    const promise = tool.handler({ stopId: "s1", timeoutSec: 5, ...defaults }, {} as never);
     await vi.advanceTimersByTimeAsync(6000);
     const result = await promise;
     const payload = result.structuredContent as { reason: string; triggered: boolean };
@@ -90,6 +93,6 @@ describe("watch_stop_arrivals tool", () => {
 
   it("throws when the realtime fetch is not ok (propagated as handler error)", async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500 });
-    await expect(tool.handler({ stopId: "s1" }, {} as never)).rejects.toThrow("Realtime 500");
+    await expect(tool.handler({ stopId: "s1", ...defaults }, {} as never)).rejects.toThrow("Realtime 500");
   });
 });
