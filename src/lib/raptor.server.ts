@@ -24,14 +24,19 @@ import type { LoadedSchedule, ScheduleStop } from "./schedule-loader.server";
 import { serviceDateToUnix } from "./schedule-loader.server";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
 
-const MAX_ROUNDS = 3; // 1 ride + 2 optional transfer rides
+// Cross-island journeys can legitimately require a local feeder, an
+// intercity service, and one or two airport-side connections. Three rounds
+// silently made those destinations look unreachable even though the schedule
+// contained a valid path. Keep the search bounded, but allow the complete
+// Cyprus network to be traversed.
+const MAX_ROUNDS = 5; // 1 ride + up to 4 optional transfer rides
 const MAX_ACCESS_WALK_KM = 2.0;
 const MAX_EGRESS_WALK_KM = 2.0;
 const MAX_TRANSFER_WALK_M = 600;
 const TOP_ORIGIN_STOPS = 8;
 const TOP_DEST_STOPS = 8;
 const MIN_TRANSFER_BUFFER_SEC = 90;
-const MAX_TOTAL_JOURNEY_SEC = 180 * 60; // intercity-friendly
+const MAX_TOTAL_JOURNEY_SEC = 300 * 60; // cross-island + airport connections
 const TOP_K_RESULTS = 5;
 const DEFAULT_SEARCH_HORIZON_SEC = 4 * 3600; // "leave now" — 4h is plenty
 const EXPLICIT_SEARCH_HORIZON_SEC = 24 * 3600; // when an explicit time is set, scan a full day
