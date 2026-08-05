@@ -164,7 +164,9 @@ describe("active trip persistence", () => {
             alight: { stopId: "s2", name: "Alight", arrivalUnix: pastArrival },
             delaySec: 0,
             scheduled: true,
-          },
+            // legacy field the store reads directly off the last leg
+            arrivalUnix: pastArrival,
+          } as never,
         ],
       }),
     });
