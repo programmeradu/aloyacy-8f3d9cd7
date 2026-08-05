@@ -287,8 +287,8 @@ describe("suggestionLabel", () => {
   });
   it("scales font size down for longer text", () => {
     expect(suggestionLabel("a".repeat(21))).toEqual({ text: "a".repeat(21), sizeClass: "text-[16px]" });
-    expect(suggestionLabel("a".repeat(25))).toEqual({ text: "a".repeat(25), sizeClass: "text-[15px]" });
-    expect(suggestionLabel("a".repeat(35))).toEqual({ text: "a".repeat(35), sizeClass: "text-[13px]" });
+    expect(suggestionLabel("a".repeat(29))).toEqual({ text: "a".repeat(29), sizeClass: "text-[15px]" });
+    expect(suggestionLabel("a".repeat(39))).toEqual({ text: "a".repeat(39), sizeClass: "text-[13px]" });
     expect(suggestionLabel("a".repeat(45))).toEqual({ text: "a".repeat(45), sizeClass: "text-[13px]" });
   });
   it("splits on dash and em-dash too", () => {
