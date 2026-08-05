@@ -43,7 +43,9 @@ describe("useLearnedStatsBulk", () => {
       ],
     });
 
-    const { result } = renderHook(() => useLearnedStatsBulk(["s1", "s2"]), { wrapper: makeWrapper() });
+    const { result } = renderHook(() => useLearnedStatsBulk(["s1", "s2"]), {
+      wrapper: makeWrapper(),
+    });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     const byStop = result.current.data!;

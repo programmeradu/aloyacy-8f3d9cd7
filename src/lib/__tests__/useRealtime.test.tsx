@@ -3,11 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import {
-  useRealtime,
-  useInvalidateRealtime,
-  useResumeRefresh,
-} from "../useRealtime";
+import { useRealtime, useInvalidateRealtime, useResumeRefresh } from "../useRealtime";
 
 function makeWrapper(client = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
   const Wrapper = ({ children }: { children: ReactNode }) => (

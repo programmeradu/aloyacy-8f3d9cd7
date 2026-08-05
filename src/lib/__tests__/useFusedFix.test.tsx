@@ -109,9 +109,12 @@ describe("useFusedFix", () => {
     ingest.mockReturnValue({ lat: 1, lng: 1, accuracyM: 1 });
     const path1 = [{ lat: 0, lng: 0 }];
     const path2 = [{ lat: 1, lng: 1 }];
-    const { rerender } = renderHook(({ path }) => useFusedFix({ enabled: true, activePath: path }), {
-      initialProps: { path: path1 },
-    });
+    const { rerender } = renderHook(
+      ({ path }) => useFusedFix({ enabled: true, activePath: path }),
+      {
+        initialProps: { path: path1 },
+      },
+    );
 
     rerender({ path: path2 });
 
