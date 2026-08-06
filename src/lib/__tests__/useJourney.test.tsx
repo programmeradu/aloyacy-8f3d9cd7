@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { renderHook, waitFor } from "@testing-library/react";
 
 vi.mock("@tanstack/react-start", () => ({
   useServerFn: (fn: unknown) => fn,

@@ -6,10 +6,6 @@ const defaults = { routeId: undefined, alertWithinSec: undefined, timeoutSec: un
 
 // Narrow helpers: MCP content blocks are a union, and inputSchema/content are
 // optional on the SDK types even though these tools always populate them.
-const textAt = (r: { content?: unknown }, i = 0): string =>
-  (r.content as Array<{ text?: string; type?: string }> | undefined)?.[i]?.text ?? "";
-const blocks = (r: { content?: unknown }): Array<{ text?: string; type?: string }> =>
-  (r.content as Array<{ text?: string; type?: string }> | undefined) ?? [];
 
 describe("watch_stop_arrivals tool", () => {
   const fetchMock = vi.fn();
