@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import type { Itinerary, RideLeg, WalkLeg, WaitLeg } from "../itinerary-types";
 import {
   itineraryToJourneyOption,
