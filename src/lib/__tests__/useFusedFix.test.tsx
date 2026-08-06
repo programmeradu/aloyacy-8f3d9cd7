@@ -25,7 +25,7 @@ describe("useFusedFix", () => {
     errorCb = undefined;
     ingest.mockReset();
     extrapolate.mockReset();
-    GeoFuserCtor.mockClear();
+    (GeoFuserCtor as unknown as { mockClear: () => void }).mockClear();
     watchPosition = vi.fn((onSuccess, onError) => {
       successCb = onSuccess;
       errorCb = onError;

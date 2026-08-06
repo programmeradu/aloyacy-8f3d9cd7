@@ -23,7 +23,7 @@ vi.mock("../pwa", () => ({
 
 const detectWrongStopMock = vi.fn(() => null);
 vi.mock("../wrong-stop-reroute", () => ({
-  detectWrongStop: (...args: unknown[]) => detectWrongStopMock(...args),
+  detectWrongStop: (...args: unknown[]) => detectWrongStopMock(...(args as [])),
 }));
 
 vi.mock("../gtfs", () => ({
@@ -66,11 +66,11 @@ const alertForPhaseMock = vi.fn();
 const vehicleBasedSecsToBoardMock = vi.fn(() => null);
 const shouldAutoConfirmBoardingMock = vi.fn(() => ({ confirm: false, ridingSinceMs: null }));
 vi.mock("@aloya/core/journey-live", () => ({
-  resolveLivePhase: (...args: unknown[]) => resolveLivePhaseMock(...args),
-  fuseVehicleAndEta: (...args: unknown[]) => fuseVehicleAndEtaMock(...args),
-  alertForPhase: (...args: unknown[]) => alertForPhaseMock(...args),
-  vehicleBasedSecsToBoard: (...args: unknown[]) => vehicleBasedSecsToBoardMock(...args),
-  shouldAutoConfirmBoarding: (...args: unknown[]) => shouldAutoConfirmBoardingMock(...args),
+  resolveLivePhase: (...args: unknown[]) => resolveLivePhaseMock(...(args as [])),
+  fuseVehicleAndEta: (...args: unknown[]) => fuseVehicleAndEtaMock(...(args as [])),
+  alertForPhase: (...args: unknown[]) => alertForPhaseMock(...(args as [])),
+  vehicleBasedSecsToBoard: (...args: unknown[]) => vehicleBasedSecsToBoardMock(...(args as [])),
+  shouldAutoConfirmBoarding: (...args: unknown[]) => shouldAutoConfirmBoardingMock(...(args as [])),
 }));
 
 import { useJourney, startLiveTracking, confirmOnBoard, markMissed, markAlighted } from "../useJourney";
@@ -243,7 +243,7 @@ describe("useJourney", () => {
       vehicles: [{ tripId: "T1", lat: 1, lng: 1 }],
       ghostTripIds: [],
     };
-    vehicleBasedSecsToBoardMock.mockReturnValue(999999);
+    vehicleBasedSecsToBoardMock.mockReturnValue(999999 as never);
     const active = makeActive();
     renderJourney({ active });
     const call = resolveLivePhaseMock.mock.calls[0][0];
@@ -256,7 +256,7 @@ describe("useJourney", () => {
       vehicles: [{ tripId: "T1", lat: 1, lng: 1 }],
       ghostTripIds: [],
     };
-    vehicleBasedSecsToBoardMock.mockReturnValue(999999);
+    vehicleBasedSecsToBoardMock.mockReturnValue(999999 as never);
     const active = makeActive({ live: { startedAt: 1000, onBoardConfirmedAt: 2000 } });
     renderJourney({ active });
     expect(vehicleBasedSecsToBoardMock).not.toHaveBeenCalled();
@@ -322,7 +322,7 @@ describe("useJourney", () => {
   });
 
   it("auto-confirms boarding when the GPS heuristic says to", async () => {
-    shouldAutoConfirmBoardingMock.mockReturnValue({ confirm: true, ridingSinceMs: 123 });
+    shouldAutoConfirmBoardingMock.mockReturnValue({ confirm: true, ridingSinceMs: 123 } as never);
     const active = makeActive();
     renderJourney({ active });
     await waitFor(() => expect(patchActiveTripLiveMock).toHaveBeenCalledWith({ onBoardConfirmedAt: expect.any(Number) }));

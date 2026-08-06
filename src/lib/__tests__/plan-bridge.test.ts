@@ -179,7 +179,7 @@ describe("trafficKey", () => {
 describe("cyprusLocalToUnix", () => {
   it("returns undefined for malformed input", () => {
     expect(cyprusLocalToUnix("not-a-date")).toBeUndefined();
-    expect(cyprusLocalToUnix("2024-99-99")).toBe(undefined ?? cyprusLocalToUnix("2024-99-99"));
+    expect(cyprusLocalToUnix("2024-99-99")).toBeUndefined();
   });
   it("converts a summer date (EEST, UTC+3)", () => {
     const unix = cyprusLocalToUnix("2024-07-15 14:30:00");
