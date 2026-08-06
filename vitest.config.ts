@@ -19,7 +19,16 @@ export default defineConfig({
       include: ["src/lib/**/*.ts", "packages/core/src/**/*.ts"],
       // Translation dictionaries are data, not logic — counting them would
       // dilute the signal without telling us anything about behaviour.
-      exclude: ["**/*.test.ts", "**/*.server.ts", "**/dictionaries/**"],
+      // `*-types.ts` / `plan-types.ts` are type-only re-export barrels: they
+      // emit no runtime statements worth asserting on.
+      exclude: [
+        "**/*.test.ts",
+        "**/*.server.ts",
+        "**/dictionaries/**",
+        "**/*-types.ts",
+        "src/lib/headsigns.ts", // one-line re-export of packages/core/headsigns
+      ],
+
       // Enforced floors, ratcheted upward as tests land. The shared domain
       // core is the part every client depends on, so it carries a much
       // higher bar than the app-glue average.
