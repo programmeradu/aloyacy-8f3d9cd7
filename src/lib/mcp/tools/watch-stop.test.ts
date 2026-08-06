@@ -44,7 +44,7 @@ describe("watch_stop_arrivals tool", () => {
       }),
     });
     const result = await tool.handler(
-      { stopId: "s1", alertWithinSec: 300, timeoutSec: 5 },
+      { ...defaults, stopId: "s1", alertWithinSec: 300, timeoutSec: 5 },
       {} as never,
     );
     const payload = result.structuredContent as {
