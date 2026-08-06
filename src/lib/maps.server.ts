@@ -1,6 +1,10 @@
 // Server-only Google Maps gateway wrappers (Places New, Geocoding, Routes).
 // All requests go through the Lovable connector gateway — never call Google directly.
 
+import { createLogger, serializeError } from "@/lib/logger";
+
+const log = createLogger("maps");
+
 const GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
 
 function authHeaders(extra: Record<string, string> = {}) {
@@ -291,7 +295,7 @@ export async function drivingRoute(
       distanceMeters: r.distanceMeters,
     };
   } catch (e) {
-    console.warn("drivingRoute failed", e);
+    log.warn("drivingRoute failed", { ...serializeError(e) });
     return null;
   }
 }

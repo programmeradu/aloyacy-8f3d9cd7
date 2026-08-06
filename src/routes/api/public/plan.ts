@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { planMultiLeg } from "@/lib/multileg.functions";
+import { parseJsonInput } from "@/lib/http/validate";
+import { PlanBodySchema } from "@/lib/schemas/public-api";
 
 // CORS-open HTTP wrapper around the shared planner so the Aloya mobile
 // rider app (and any other first-party native client) can call the exact
@@ -19,19 +21,12 @@ export const Route = createFileRoute("/api/public/plan")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        let body: unknown;
-        try {
-          body = await request.json();
-        } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-            status: 400,
-            headers: CORS,
-          });
-        }
+        const parsed = await parseJsonInput(request, PlanBodySchema, CORS);
+        if (!parsed.ok) return parsed.response;
         try {
           // planMultiLeg validates the input with Zod internally and
           // returns a plain DTO — safe to JSON.stringify directly.
-          const result = await planMultiLeg({ data: body as never });
+          const result = await planMultiLeg({ data: parsed.data });
           return new Response(JSON.stringify(result), {
             status: 200,
             headers: CORS,

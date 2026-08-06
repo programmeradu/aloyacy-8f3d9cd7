@@ -18,6 +18,9 @@ import { render } from "@react-email/components";
 import { sendLovableEmail } from "@lovable.dev/email-js";
 import { MagicLinkEmail } from "@/lib/email-templates/magic-link";
 import { SignupEmail } from "@/lib/email-templates/signup";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("auth-email");
 
 const SITE_NAME = "aloyacy";
 const ROOT_DOMAIN = "aloya.cy";
@@ -200,7 +203,7 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
 
   if (!delivered) {
     const error = attempts.join(" | ");
-    console.error("[auth-email] send failed", { email: redact(email), error });
+    log.error("send failed", error, { email: redact(email) });
     void supabaseAdmin.from("email_send_log").insert({
       message_id: messageId,
       template_name: isNewUser ? "signup" : "magiclink",

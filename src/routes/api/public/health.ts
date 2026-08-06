@@ -51,20 +51,46 @@ async function probeDatabase(): Promise<Probe> {
   });
 }
 
+// The GTFS-RT relay is a *soft* dependency: when it is down we still serve
+// scheduled times, so it is reported separately and never flips the instance
+// out of rotation. An unconfigured relay is "skipped", not a failure.
+async function probeRelay(): Promise<Probe> {
+  const url = process.env["GTFS_RELAY_URL"];
+  if (!url) return { name: "gtfs-relay", ok: true, ms: 0, detail: "not configured" };
+  const token = process.env["GTFS_RELAY_TOKEN"];
+  return timed("gtfs-relay", async (signal) => {
+    const res = await fetch(url, {
+      method: "HEAD",
+      headers: token ? { authorization: `Bearer ${token}` } : undefined,
+      signal,
+    });
+    // Any answer below 500 proves the relay process is alive; 405 simply
+    // means it does not implement HEAD.
+    if (res.status >= 500) throw new Error(`status ${res.status}`);
+  });
+}
+
 export const Route = createFileRoute("/api/public/health")({
   server: {
     handlers: {
       GET: async () => {
         const started = Date.now();
-        const checks = [await probeDatabase()];
-        const ok = checks.every((c) => c.ok);
+        // Probes run concurrently so the worst case stays one TIMEOUT_MS.
+        const [database, relay] = await Promise.all([probeDatabase(), probeRelay()]);
+        const checks = [database, relay];
+        // Only hard dependencies decide the HTTP status.
+        const ok = database.ok;
+
         return Response.json(
           {
-            status: ok ? "ok" : "degraded",
+            // "ok" = everything green, "degraded" = live data missing but the
+            // app still works, "down" = a hard dependency failed.
+            status: !ok ? "down" : relay.ok ? "ok" : "degraded",
             uptimeCheckMs: Date.now() - started,
             time: new Date().toISOString(),
             checks,
           },
+
           {
             status: ok ? 200 : 503,
             headers: { "cache-control": "no-store" },

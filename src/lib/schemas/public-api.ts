@@ -87,3 +87,129 @@ export const TripGroupsEnvelopeSchema = z.object({
   action: z.enum(TRIP_GROUP_ACTIONS),
   payload: z.record(z.string(), z.unknown()).optional(),
 });
+
+/**
+ * Pulse tab query params. All optional — the endpoint degrades gracefully
+ * without a rider fix, but any value supplied must be a real coordinate.
+ */
+export const PulseQuerySchema = z.object({
+  lat: z.coerce.number().min(CY_LAT.min).max(CY_LAT.max).optional(),
+  lng: z.coerce.number().min(CY_LNG.min).max(CY_LNG.max).optional(),
+  destLat: z.coerce.number().min(CY_LAT.min).max(CY_LAT.max).optional(),
+  destLng: z.coerce.number().min(CY_LNG.min).max(CY_LNG.max).optional(),
+});
+
+/** Mirrors `getItineraryTrafficAlerts`'s own point-array validator. */
+export const TrafficAlertsSchema = z.object({
+  points: z
+    .array(z.object({ lat: z.number(), lng: z.number() }))
+    .min(1)
+    .max(64),
+});
+
+/**
+ * BYOK test proxy for AWS Bedrock. Credentials are per-request and never
+ * stored, so we only validate shape/bounds — not that the keys are real.
+ */
+export const BedrockTestSchema = z.object({
+  authMode: z.enum(["api-key", "sigv4"]).default("api-key"),
+  apiKey: z.string().trim().max(4096).optional(),
+  accessKeyId: z.string().trim().max(256).optional(),
+  secretAccessKey: z.string().trim().max(256).optional(),
+  sessionToken: z.string().trim().max(4096).optional(),
+  region: z.string().trim().min(1).max(64).default("sa-east-1"),
+  modelId: z.string().trim().min(1).max(256),
+  prompt: z.string().trim().min(1).max(20000),
+  maxTokens: z.coerce.number().int().min(1).max(32000).default(1024),
+});
+
+// ---------------------------------------------------------------------------
+// Phase 3 batch 1 — mirrors each server function's own `.inputValidator` so a
+// bad request is rejected here, before it reaches the server fn, feed cache,
+// or a paid upstream call. Kept in lockstep with the `*.functions.ts` schema
+// it fronts; if that schema changes, update the pair here too.
+
+export const AirportQuerySchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.enum(["lca", "pfo"])),
+});
+
+/** Shared by bike-share / bolt-scooter: an OD pair plus the bus-only baseline. */
+export const TravelPairWithBusOnlySchema = z.object({
+  from: LatLngSchema,
+  to: LatLngSchema,
+  busOnlyDurationSec: z.number().int().positive().nullable().optional(),
+});
+
+export const BikeShareBodySchema = TravelPairWithBusOnlySchema;
+export const BoltScooterBodySchema = TravelPairWithBusOnlySchema;
+
+export const DustAdvisoryQuerySchema = z.object({
+  lat: z.coerce.number().min(CY_LAT.min).max(CY_LAT.max),
+  lng: z.coerce.number().min(CY_LNG.min).max(CY_LNG.max),
+});
+
+export const IntercityIntelQuerySchema = z.object({
+  routeId: z.string().min(1),
+});
+
+export const KapnosBodySchema = z.object({
+  from: AnyPoint,
+  to: AnyPoint,
+  afterUnix: z.number().optional(),
+  beforeUnix: z.number().optional(),
+});
+
+const LastMileChainPoint = z.object({
+  lat: z.number().min(CY_LAT.min).max(CY_LAT.max),
+  lng: z.number().min(CY_LNG.min).max(CY_LNG.max),
+  name: z.string().max(200).optional(),
+});
+
+export const LastMileChainBodySchema = z.object({
+  alight: LastMileChainPoint,
+  destination: LastMileChainPoint,
+  arrivalUnix: z.number().int().positive().nullable().optional(),
+  finalWalkMeters: z.number().min(0).max(100_000).nullable().optional(),
+});
+
+const ParkAndRidePoint = z.object({
+  lat: z.number().min(CY_LAT.min).max(CY_LAT.max),
+  lng: z.number().min(CY_LNG.min).max(CY_LNG.max),
+  label: z.string().max(200).optional(),
+});
+
+export const ParkAndRideBodySchema = z.object({
+  from: ParkAndRidePoint,
+  to: ParkAndRidePoint,
+  busOnlyDurationSec: z.number().int().positive().nullable().optional(),
+  busOnlyAccessWalkM: z.number().int().min(0).nullable().optional(),
+});
+
+const PlanPoint = z.object({
+  lat: z.number().min(CY_LAT.min).max(CY_LAT.max),
+  lng: z.number().min(CY_LNG.min).max(CY_LNG.max),
+  label: z.string().max(200).optional(),
+});
+
+const PlanA11ySchema = z
+  .object({
+    stepFree: z.boolean().optional(),
+    preferShade: z.boolean().optional(),
+    lowFloor: z.boolean().optional(),
+    maxWalkMeters: z.number().int().min(100).max(3000).nullable().optional(),
+  })
+  .optional();
+
+export const PlanBodySchema = z.object({
+  from: PlanPoint,
+  to: PlanPoint,
+  debug: z.boolean().optional(),
+  mode: z.enum(["live", "scheduled", "both"]).optional(),
+  departAtUnix: z.number().int().positive().optional(),
+  arriveByUnix: z.number().int().positive().optional(),
+  a11y: PlanA11ySchema,
+});

@@ -4,7 +4,9 @@
 // functions directly into the RN bundle.
 
 import { createFileRoute } from "@tanstack/react-router";
-import { getAirportPage, type AirportCode } from "@/lib/airport.functions";
+import { getAirportPage } from "@/lib/airport.functions";
+import { parseQueryInput } from "@/lib/http/validate";
+import { AirportQuerySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -20,15 +22,10 @@ export const Route = createFileRoute("/api/public/airport")({
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
         const url = new URL(request.url);
-        const code = (url.searchParams.get("code") || "").toLowerCase();
-        if (code !== "lca" && code !== "pfo") {
-          return new Response(JSON.stringify({ error: "code must be lca or pfo" }), {
-            status: 400,
-            headers: CORS,
-          });
-        }
+        const parsed = parseQueryInput(url, AirportQuerySchema, CORS);
+        if (!parsed.ok) return parsed.response;
         try {
-          const data = await getAirportPage({ data: { code: code as AirportCode } });
+          const data = await getAirportPage({ data: { code: parsed.data.code } });
           return new Response(JSON.stringify(data), { status: 200, headers: CORS });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "airport fetch failed";

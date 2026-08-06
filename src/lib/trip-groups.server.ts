@@ -3,6 +3,10 @@
 // converging-on-a-place experience shows real minutes, not straight-line
 // haversine guesses.
 
+import { createLogger, serializeError } from "@/lib/logger";
+
+const log = createLogger("trip-groups");
+
 const GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
 
 function authHeaders(extra: Record<string, string> = {}) {
@@ -70,7 +74,7 @@ export async function memberEtaMinutes(
     const secs = parseInt(dur.replace("s", ""), 10) || 0;
     return Math.max(0, Math.round(secs / 60));
   } catch (e) {
-    console.warn("[trip-groups] eta failed", e);
+    log.warn("eta failed", { ...serializeError(e) });
     return null;
   }
 }

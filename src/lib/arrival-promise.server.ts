@@ -20,6 +20,9 @@ import type { DelaySample, WeatherCoupling } from "@/lib/leave-time-adjuster";
 import { distanceM } from "@/lib/geo";
 import type { Itinerary } from "@/lib/itinerary-types";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { createLogger, serializeError } from "@/lib/logger";
+
+const log = createLogger("arrival-promise");
 
 export type PromisePoint = { lat: number; lng: number; label: string };
 
@@ -112,7 +115,7 @@ async function disruptionSignal(points: Array<{ lat: number; lng: number }>): Pr
       label: (worst.title || worst.description || "road disruption").slice(0, 48),
     };
   } catch (e) {
-    console.warn("[arrival-promise] disruption lookup failed", e);
+    log.warn("disruption lookup failed", { ...serializeError(e) });
     return { sec: 0, label: null };
   }
 }

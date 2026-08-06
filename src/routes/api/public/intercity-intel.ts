@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getIntercityInsights } from "@/lib/intercity-intel.functions";
+import { parseQueryInput } from "@/lib/http/validate";
+import { IntercityIntelQuerySchema } from "@/lib/schemas/public-api";
 
 // CORS-open HTTP wrapper around the shared intercity-insights server fn so
 // the Aloya rider mobile app reads the exact same weekly pattern the web
@@ -19,15 +21,10 @@ export const Route = createFileRoute("/api/public/intercity-intel")({
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
         const url = new URL(request.url);
-        const routeId = url.searchParams.get("routeId");
-        if (!routeId) {
-          return new Response(JSON.stringify({ error: "routeId required" }), {
-            status: 400,
-            headers: CORS,
-          });
-        }
+        const parsed = parseQueryInput(url, IntercityIntelQuerySchema, CORS);
+        if (!parsed.ok) return parsed.response;
         try {
-          const result = await getIntercityInsights({ data: { routeId } });
+          const result = await getIntercityInsights({ data: parsed.data });
           return new Response(JSON.stringify(result), { status: 200, headers: CORS });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Intel failed";

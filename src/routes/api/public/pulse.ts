@@ -8,6 +8,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getTodayBriefing } from "@/lib/today.functions";
 import { getLivePulse, getPulseHourStrip } from "@/lib/pulse.functions";
 import { getPulseLive } from "@/lib/pulse-live.functions";
+import { jsonResponse, parseQuery } from "@/lib/http/validate";
+import { PulseQuerySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -17,22 +19,14 @@ const CORS = {
   "Cache-Control": "no-store",
 };
 
-function num(v: string | null): number | undefined {
-  if (v == null) return undefined;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : undefined;
-}
-
 export const Route = createFileRoute("/api/public/pulse")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
-        const url = new URL(request.url);
-        const lat = num(url.searchParams.get("lat"));
-        const lng = num(url.searchParams.get("lng"));
-        const destLat = num(url.searchParams.get("destLat"));
-        const destLng = num(url.searchParams.get("destLng"));
+        const parsed = parseQuery(new URL(request.url), PulseQuerySchema, CORS);
+        if (!parsed.ok) return parsed.response;
+        const { lat, lng, destLat, destLng } = parsed.data;
 
         try {
           const [today, live, hourly, signals] = await Promise.all([
@@ -41,16 +35,10 @@ export const Route = createFileRoute("/api/public/pulse")({
             getPulseHourStrip(),
             getPulseLive({ data: { lat, lng } }),
           ]);
-          return new Response(JSON.stringify({ today, live, hourly, signals }), {
-            status: 200,
-            headers: CORS,
-          });
+          return jsonResponse(200, { today, live, hourly, signals }, CORS);
         } catch (e) {
           const msg = e instanceof Error ? e.message : "pulse fetch failed";
-          return new Response(JSON.stringify({ error: msg }), {
-            status: 500,
-            headers: CORS,
-          });
+          return jsonResponse(500, { error: msg }, CORS);
         }
       },
     },

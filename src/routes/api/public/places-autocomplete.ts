@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { autocompletePlaces } from "@/lib/maps.functions";
-import { jsonResponse, parseJsonBody } from "@/lib/http/validate";
+import { parseJsonInput } from "@/lib/http/validate";
 import { PlacesAutocompleteSchema } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -16,14 +16,14 @@ export const Route = createFileRoute("/api/public/places-autocomplete")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const parsed = await parseJsonBody(request, PlacesAutocompleteSchema, CORS);
+        const parsed = await parseJsonInput(request, PlacesAutocompleteSchema, CORS);
         if (!parsed.ok) return parsed.response;
         try {
           const result = await autocompletePlaces({ data: parsed.data });
-          return jsonResponse(200, result, CORS);
+          return Response.json(result, { status: 200, headers: CORS });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Autocomplete failed";
-          return jsonResponse(400, { error: msg }, CORS);
+          return Response.json({ error: msg }, { status: 400, headers: CORS });
         }
       },
     },

@@ -27,6 +27,9 @@
 import type { Itinerary, Leg, RideLeg, WaitLeg, WalkLeg } from "./itinerary-types";
 import { getWalkLink } from "./walk-links.server";
 import { walkingRoute } from "./maps.server";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("walk-refine");
 
 async function refineWalk(walk: WalkLeg): Promise<WalkLeg> {
   try {
@@ -56,7 +59,7 @@ async function refineWalk(walk: WalkLeg): Promise<WalkLeg> {
       verified: true,
     };
   } catch (e) {
-    console.warn("[walk-refine] failed:", (e as Error).message);
+    log.warn("refine failed", { reason: (e as Error).message });
     return walk;
   }
 }
