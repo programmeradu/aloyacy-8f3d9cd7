@@ -11,7 +11,6 @@ const textAt = (r: { content?: unknown }, i = 0): string =>
 const blocks = (r: { content?: unknown }): Array<{ text?: string; type?: string }> =>
   (r.content as Array<{ text?: string; type?: string }> | undefined) ?? [];
 
-
 describe("search_stops tool", () => {
   const fetchMock = vi.fn();
   beforeEach(() => {
@@ -87,7 +86,9 @@ describe("search_stops tool", () => {
   it("returns empty matches array when nothing matches", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
-      json: async () => ({ stops: [{ id: "1", code: "X", name: "Y", lat: 0, lng: 0, agency: "A" }] }),
+      json: async () => ({
+        stops: [{ id: "1", code: "X", name: "Y", lat: 0, lng: 0, agency: "A" }],
+      }),
     });
     const result = await tool.handler({ ...defaults, query: "zzz-no-match" }, {} as never);
     expect(result.structuredContent).toEqual({ matches: [] });

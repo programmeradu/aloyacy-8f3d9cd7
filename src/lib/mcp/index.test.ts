@@ -3,11 +3,6 @@ import mcp from "./index";
 
 // Narrow helpers: MCP content blocks are a union, and inputSchema/content are
 // optional on the SDK types even though these tools always populate them.
-const textAt = (r: { content?: unknown }, i = 0): string =>
-  (r.content as Array<{ text?: string }> | undefined)?.[i]?.text ?? "";
-const blocks = (r: { content?: unknown }): Array<{ text?: string }> =>
-  (r.content as Array<{ text?: string }> | undefined) ?? [];
-
 
 describe("mcp definition", () => {
   it("declares server metadata", () => {

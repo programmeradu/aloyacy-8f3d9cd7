@@ -24,7 +24,13 @@ function makeOption(overrides: Partial<JourneyOption> = {}): JourneyOption {
     transfers: 0,
     scheduled: true,
     legs: [
-      { kind: "walk", from: { lat: 1, lng: 1, label: "A" }, to: { lat: 2, lng: 2, label: "B" }, durationSec: 300, distanceMeters: 400 },
+      {
+        kind: "walk",
+        from: { lat: 1, lng: 1, label: "A" },
+        to: { lat: 2, lng: 2, label: "B" },
+        durationSec: 300,
+        distanceMeters: 400,
+      },
       {
         kind: "bus",
         routeId: "r1",
@@ -36,7 +42,13 @@ function makeOption(overrides: Partial<JourneyOption> = {}): JourneyOption {
         delaySec: 0,
         scheduled: true,
       },
-      { kind: "walk", from: { lat: 3, lng: 3, label: "C" }, to: { lat: 4, lng: 4, label: "D" }, durationSec: 300, distanceMeters: 400 },
+      {
+        kind: "walk",
+        from: { lat: 3, lng: 3, label: "C" },
+        to: { lat: 4, lng: 4, label: "D" },
+        durationSec: 300,
+        distanceMeters: 400,
+      },
     ],
     ...overrides,
   } as JourneyOption;
@@ -249,9 +261,7 @@ describe("multi-leg helpers", () => {
     expect(tripStore.getActiveTrip()!.legState).toBeUndefined();
 
     const itinerary = makeItinerary([rideLeg()]);
-    tripStore.setActiveTrip(
-      makeTrip({ itinerary, legState: { currentLegIndex: 0, perLeg: {} } }),
-    );
+    tripStore.setActiveTrip(makeTrip({ itinerary, legState: { currentLegIndex: 0, perLeg: {} } }));
     await flush();
     tripStore.advanceToNextLeg(); // idx 0 is last (total legs = 1)
     expect(tripStore.getActiveTrip()!.legState!.currentLegIndex).toBe(0);

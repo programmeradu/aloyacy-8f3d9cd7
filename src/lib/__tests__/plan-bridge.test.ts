@@ -167,9 +167,12 @@ describe("trafficPoints", () => {
 
 describe("trafficKey", () => {
   it("builds stable pipe-joined key", () => {
-    expect(trafficKey([{ lat: 1.23456, lng: 2.3456 }, { lat: 3, lng: 4 }])).toBe(
-      "1.235,2.346|3.000,4.000",
-    );
+    expect(
+      trafficKey([
+        { lat: 1.23456, lng: 2.3456 },
+        { lat: 3, lng: 4 },
+      ]),
+    ).toBe("1.235,2.346|3.000,4.000");
   });
   it("handles empty list", () => {
     expect(trafficKey([])).toBe("");
@@ -230,12 +233,8 @@ describe("parsePlanDeepLink", () => {
     expect(r.focus).toBe("from");
   });
   it("returns unmatched when only origin present, or fields malformed", () => {
-    expect(parsePlanDeepLink("?fromLat=35.1&fromLng=33.3&fromLabel=Home", now).matched).toBe(
-      false,
-    );
-    expect(parsePlanDeepLink("?toLat=notanumber&toLng=33.4&toLabel=Work", now).matched).toBe(
-      false,
-    );
+    expect(parsePlanDeepLink("?fromLat=35.1&fromLng=33.3&fromLabel=Home", now).matched).toBe(false);
+    expect(parsePlanDeepLink("?toLat=notanumber&toLng=33.4&toLabel=Work", now).matched).toBe(false);
   });
 });
 
@@ -252,8 +251,7 @@ describe("formatYYYYMMDD", () => {
 });
 
 describe("formatIntentLabel", () => {
-  const t = (key: string, vars?: Record<string, string | number>) =>
-    `Tomorrow ${vars?.time ?? ""}`;
+  const t = (key: string, vars?: Record<string, string | number>) => `Tomorrow ${vars?.time ?? ""}`;
   it("returns iso string when unparsable", () => {
     expect(formatIntentLabel("not-a-date", t as any)).toBe("not-a-date");
   });
@@ -286,10 +284,22 @@ describe("suggestionLabel", () => {
     });
   });
   it("scales font size down for longer text", () => {
-    expect(suggestionLabel("a".repeat(21))).toEqual({ text: "a".repeat(21), sizeClass: "text-[16px]" });
-    expect(suggestionLabel("a".repeat(29))).toEqual({ text: "a".repeat(29), sizeClass: "text-[15px]" });
-    expect(suggestionLabel("a".repeat(39))).toEqual({ text: "a".repeat(39), sizeClass: "text-[13px]" });
-    expect(suggestionLabel("a".repeat(45))).toEqual({ text: "a".repeat(45), sizeClass: "text-[13px]" });
+    expect(suggestionLabel("a".repeat(21))).toEqual({
+      text: "a".repeat(21),
+      sizeClass: "text-[16px]",
+    });
+    expect(suggestionLabel("a".repeat(29))).toEqual({
+      text: "a".repeat(29),
+      sizeClass: "text-[15px]",
+    });
+    expect(suggestionLabel("a".repeat(39))).toEqual({
+      text: "a".repeat(39),
+      sizeClass: "text-[13px]",
+    });
+    expect(suggestionLabel("a".repeat(45))).toEqual({
+      text: "a".repeat(45),
+      sizeClass: "text-[13px]",
+    });
   });
   it("splits on dash and em-dash too", () => {
     expect(suggestionLabel("Place - extra")).toEqual({ text: "Place", sizeClass: "text-[18px]" });

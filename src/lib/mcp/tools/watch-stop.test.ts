@@ -11,7 +11,6 @@ const textAt = (r: { content?: unknown }, i = 0): string =>
 const blocks = (r: { content?: unknown }): Array<{ text?: string; type?: string }> =>
   (r.content as Array<{ text?: string; type?: string }> | undefined) ?? [];
 
-
 describe("watch_stop_arrivals tool", () => {
   const fetchMock = vi.fn();
   beforeEach(() => {
@@ -93,6 +92,8 @@ describe("watch_stop_arrivals tool", () => {
 
   it("throws when the realtime fetch is not ok (propagated as handler error)", async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500 });
-    await expect(tool.handler({ ...defaults, stopId: "s1" }, {} as never)).rejects.toThrow("Realtime 500");
+    await expect(tool.handler({ ...defaults, stopId: "s1" }, {} as never)).rejects.toThrow(
+      "Realtime 500",
+    );
   });
 });

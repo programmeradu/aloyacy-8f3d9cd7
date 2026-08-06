@@ -11,7 +11,6 @@ const textAt = (r: { content?: unknown }, i = 0): string =>
 const blocks = (r: { content?: unknown }): Array<{ text?: string; type?: string }> =>
   (r.content as Array<{ text?: string; type?: string }> | undefined) ?? [];
 
-
 describe("get_stop_arrivals tool", () => {
   const fetchMock = vi.fn();
   beforeEach(() => {

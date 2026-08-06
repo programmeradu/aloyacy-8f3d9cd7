@@ -41,8 +41,14 @@ vi.mock("../useRealtime", () => ({
   useRealtime: () => ({ data: realtimeData, isStale: realtimeStale }),
 }));
 
-let fusedFix: { lat: number; lng: number; uncertaintyM: number; speedMps: number; bearingDeg: number; timestamp: number } | null =
-  null;
+let fusedFix: {
+  lat: number;
+  lng: number;
+  uncertaintyM: number;
+  speedMps: number;
+  bearingDeg: number;
+  timestamp: number;
+} | null = null;
 vi.mock("../useFusedFix", () => ({
   useFusedFix: () => ({ fix: fusedFix, error: null }),
 }));
@@ -73,7 +79,13 @@ vi.mock("@aloya/core/journey-live", () => ({
   shouldAutoConfirmBoarding: (...args: unknown[]) => shouldAutoConfirmBoardingMock(...(args as [])),
 }));
 
-import { useJourney, startLiveTracking, confirmOnBoard, markMissed, markAlighted } from "../useJourney";
+import {
+  useJourney,
+  startLiveTracking,
+  confirmOnBoard,
+  markMissed,
+  markAlighted,
+} from "../useJourney";
 import type { ActiveTrip } from "../trip-store";
 import type { WalkStep } from "../geo";
 
@@ -217,7 +229,14 @@ describe("useJourney", () => {
   });
 
   it("computes walking projection fields when fix + destination + steps are present", () => {
-    fusedFix = { lat: 1, lng: 1, uncertaintyM: 5, speedMps: 1, bearingDeg: 0, timestamp: Date.now() };
+    fusedFix = {
+      lat: 1,
+      lng: 1,
+      uncertaintyM: 5,
+      speedMps: 1,
+      bearingDeg: 0,
+      timestamp: Date.now(),
+    };
     const active = makeActive();
     const { result } = renderJourney({ active, walkingSteps, walkingPhase: "to-stop" });
     expect(result.current.fix).toEqual({
@@ -231,7 +250,14 @@ describe("useJourney", () => {
   });
 
   it("falls back to straight-line walking projection without steps", () => {
-    fusedFix = { lat: 1, lng: 1, uncertaintyM: 5, speedMps: 1, bearingDeg: 0, timestamp: Date.now() };
+    fusedFix = {
+      lat: 1,
+      lng: 1,
+      uncertaintyM: 5,
+      speedMps: 1,
+      bearingDeg: 0,
+      timestamp: Date.now(),
+    };
     const active = makeActive();
     const { result } = renderJourney({ active, walkingSteps: [], walkingPhase: "to-stop" });
     expect(result.current.metersToDestination).toBeGreaterThan(0);
@@ -298,7 +324,14 @@ describe("useJourney", () => {
   });
 
   it("requests a reroute hint while walking/at-stop with a fix", () => {
-    fusedFix = { lat: 1, lng: 1, uncertaintyM: 5, speedMps: 1, bearingDeg: 0, timestamp: Date.now() };
+    fusedFix = {
+      lat: 1,
+      lng: 1,
+      uncertaintyM: 5,
+      speedMps: 1,
+      bearingDeg: 0,
+      timestamp: Date.now(),
+    };
     resolveLivePhaseMock.mockReturnValue({
       phase: "at-stop",
       onBoardSuggested: false,
@@ -310,7 +343,14 @@ describe("useJourney", () => {
   });
 
   it("does not request a reroute hint outside the pre-board phases", () => {
-    fusedFix = { lat: 1, lng: 1, uncertaintyM: 5, speedMps: 1, bearingDeg: 0, timestamp: Date.now() };
+    fusedFix = {
+      lat: 1,
+      lng: 1,
+      uncertaintyM: 5,
+      speedMps: 1,
+      bearingDeg: 0,
+      timestamp: Date.now(),
+    };
     resolveLivePhaseMock.mockReturnValue({
       phase: "on-bus",
       onBoardSuggested: false,
@@ -325,7 +365,11 @@ describe("useJourney", () => {
     shouldAutoConfirmBoardingMock.mockReturnValue({ confirm: true, ridingSinceMs: 123 } as never);
     const active = makeActive();
     renderJourney({ active });
-    await waitFor(() => expect(patchActiveTripLiveMock).toHaveBeenCalledWith({ onBoardConfirmedAt: expect.any(Number) }));
+    await waitFor(() =>
+      expect(patchActiveTripLiveMock).toHaveBeenCalledWith({
+        onBoardConfirmedAt: expect.any(Number),
+      }),
+    );
   });
 
   it("resets the riding-since ref once on-board/missed/alighted is already set", () => {
@@ -378,7 +422,9 @@ describe("useJourney", () => {
     markMissed();
     markAlighted();
     expect(patchActiveTripLiveMock).toHaveBeenCalledWith({ startedAt: expect.any(Number) });
-    expect(patchActiveTripLiveMock).toHaveBeenCalledWith({ onBoardConfirmedAt: expect.any(Number) });
+    expect(patchActiveTripLiveMock).toHaveBeenCalledWith({
+      onBoardConfirmedAt: expect.any(Number),
+    });
     expect(patchActiveTripLiveMock).toHaveBeenCalledWith({ missedAt: expect.any(Number) });
     expect(patchActiveTripLiveMock).toHaveBeenCalledWith({ alightedAt: expect.any(Number) });
   });

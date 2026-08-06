@@ -5,9 +5,6 @@ import tool from "./plan-trip";
 // optional on the SDK types even though these tools always populate them.
 const textAt = (r: { content?: unknown }, i = 0): string =>
   (r.content as Array<{ text?: string }> | undefined)?.[i]?.text ?? "";
-const blocks = (r: { content?: unknown }): Array<{ text?: string }> =>
-  (r.content as Array<{ text?: string }> | undefined) ?? [];
-
 
 describe("plan_trip tool", () => {
   const fetchMock = vi.fn();
