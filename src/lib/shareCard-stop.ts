@@ -171,6 +171,10 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
       if (longest <= innerW && lines.length <= 2) break;
       size -= 4;
     }
+    // The loop exits one step below the floor when nothing fits; clamp back so
+    // the headline never renders smaller than the designed 48px minimum
+    // (`wrap` already ellipsizes what still overflows at that size).
+    size = Math.max(size, minSize);
     const lh = size * 1.02;
     const startY = 870;
     ctx.font = `600 ${size}px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif`;
