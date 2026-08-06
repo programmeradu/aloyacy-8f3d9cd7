@@ -20,6 +20,9 @@ import {
   type MlArrival,
   type MultiLegDiagnostics,
 } from "@aloya/core/multileg-search";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("multileg");
 
 export type { MultiLegDiagnostics };
 
@@ -80,7 +83,7 @@ export async function planMultiLegJourney(
 
   const elapsed = Date.now() - t0;
   if (elapsed > 1500) {
-    console.warn(`[multileg] search took ${elapsed}ms — over budget`);
+    log.warn("search over budget", { elapsedMs: elapsed });
   }
   return { itineraries, diagnostics: opts?.collectDiagnostics ? diagnostics : undefined };
 }

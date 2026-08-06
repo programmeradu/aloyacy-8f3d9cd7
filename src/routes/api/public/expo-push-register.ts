@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("expo-push-register");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -48,7 +51,7 @@ export const Route = createFileRoute("/api/public/expo-push-register")({
           { onConflict: "device_id" },
         );
         if (error) {
-          console.error("[expo-push-register]", error);
+          log.error("register failed", error);
           return new Response("Server error", { status: 500, headers: CORS });
         }
         return new Response(JSON.stringify({ ok: true }), {

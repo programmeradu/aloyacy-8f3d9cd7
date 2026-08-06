@@ -17,6 +17,9 @@ import {
   type WeatherCondition,
   type WeatherCoupling,
 } from "@/lib/leave-time-adjuster";
+import { createLogger, serializeError } from "@/lib/logger";
+
+const log = createLogger("departure-tick");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -150,7 +153,7 @@ async function tick(request: Request) {
       if (adj.extraSec > 0) adjusted++;
     }
   } catch (e) {
-    console.warn("[departure-tick] phase1 adjust failed", e);
+    log.warn("phase1 adjust failed", { ...serializeError(e) });
   }
 
   // ============ Phase 2: send ============
@@ -221,7 +224,7 @@ async function tick(request: Request) {
           failed++;
         }
       } catch (e) {
-        console.warn("[departure-tick] send failed", e);
+        log.warn("send failed", { ...serializeError(e) });
         failed++;
       }
     }

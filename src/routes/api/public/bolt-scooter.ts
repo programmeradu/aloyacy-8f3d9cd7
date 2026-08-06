@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { suggestBoltScooter } from "@/lib/bolt-scooter.functions";
+import { parseJsonInput } from "@/lib/http/validate";
+import { BoltScooterBodySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -14,17 +16,10 @@ export const Route = createFileRoute("/api/public/bolt-scooter")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        let body: unknown;
+        const parsed = await parseJsonInput(request, BoltScooterBodySchema, CORS);
+        if (!parsed.ok) return parsed.response;
         try {
-          body = await request.json();
-        } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-            status: 400,
-            headers: CORS,
-          });
-        }
-        try {
-          const result = await suggestBoltScooter({ data: body as never });
+          const result = await suggestBoltScooter({ data: parsed.data });
           return new Response(JSON.stringify(result), { status: 200, headers: CORS });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Scooter suggestion failed";

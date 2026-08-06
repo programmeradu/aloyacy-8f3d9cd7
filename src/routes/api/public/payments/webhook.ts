@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import type Stripe from "stripe";
 import { type StripeEnv, createStripeClient, getWebhookSecret } from "@/lib/stripe.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { createLogger, serializeError } from "@/lib/logger";
+
+const log = createLogger("stripe-webhook");
 
 function parseEnv(url: URL): StripeEnv {
   return url.searchParams.get("env") === "live" ? "live" : "sandbox";
@@ -60,7 +63,7 @@ async function sendWelcomeEmail(to: string, planKey: string | null) {
       }),
     });
   } catch (err) {
-    console.warn("[stripe-webhook] welcome email failed", err);
+    log.warn("welcome email failed", { ...serializeError(err) });
   }
 }
 
@@ -74,7 +77,7 @@ async function upsertFromSubscription(
     (await fetchUserIdFromCustomer(sub.customer as string, env)) ??
     null;
   if (!userId) {
-    console.warn("[stripe-webhook] subscription without user_id", sub.id);
+    log.warn("subscription without user_id", { subscriptionId: sub.id });
     return;
   }
 
@@ -170,7 +173,7 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           }
           return Response.json({ received: true });
         } catch (err) {
-          console.error("[stripe-webhook] handler error", err);
+          log.error("handler error", err);
           return new Response("Handler error", { status: 500 });
         }
       },

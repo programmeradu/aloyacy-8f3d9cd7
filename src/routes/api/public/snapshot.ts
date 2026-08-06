@@ -6,6 +6,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchRealtime } from "@/lib/gtfs-rt.server";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("snapshot");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -222,7 +225,7 @@ async function ingest() {
 
       if (error) {
         lastError = error.message;
-        console.error("snapshot ingest RPC error", error);
+        log.error("ingest RPC error", error);
       } else {
         inserted += chunkRows.length;
         if (useV2) statsUpdated += chunkStats.length;
@@ -238,7 +241,7 @@ async function ingest() {
       ...(lastError ? { last_error: lastError } : {}),
     });
   } catch (e) {
-    console.error("snapshot ingest failed", e);
+    log.error("ingest failed", e);
     return json({ ok: false, error: e instanceof Error ? e.message : "ingest failed" }, 502);
   }
 }

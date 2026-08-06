@@ -18,6 +18,9 @@
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { STOPS, distanceKm } from "./gtfs";
+import { createLogger, serializeError } from "@/lib/logger";
+
+const log = createLogger("walk-links");
 
 /** Minimal shape of the Google Directions API walking response we consume. */
 type DirectionsResponse = {
@@ -145,7 +148,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
 
   const key = process.env.GOOGLE_MAPS_API_KEY;
   if (!key) {
-    console.warn("[walk-links] GOOGLE_MAPS_API_KEY missing — returning soft fallback");
+    log.warn("GOOGLE_MAPS_API_KEY missing — returning soft fallback");
     return softFallback(lo, hi);
   }
 
@@ -175,7 +178,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
     }
 
     if (json.status !== "OK" || !json.routes?.[0]?.legs?.[0]) {
-      console.warn("[walk-links] non-OK status:", json.status, json.error_message);
+      log.warn("non-OK status", { status: json.status, errorMessage: json.error_message });
       return softFallback(lo, hi);
     }
 
@@ -191,7 +194,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
     await writeCache(link);
     return link;
   } catch (err) {
-    console.warn("[walk-links] fetch failed:", err);
+    log.warn("fetch failed", { ...serializeError(err) });
     return softFallback(lo, hi);
   }
 }
@@ -207,5 +210,5 @@ async function writeCache(link: WalkLink): Promise<void> {
     },
     { onConflict: "from_stop_id,to_stop_id" },
   );
-  if (error) console.warn("[walk-links] cache write failed:", error.message);
+  if (error) log.warn("cache write failed", { reason: error.message });
 }

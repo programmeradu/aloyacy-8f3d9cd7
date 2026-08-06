@@ -13,6 +13,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { unzipSync, gzipSync, strFromU8 } from "fflate";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { resolveServiceDates } from "@aloya/core/schedule-calendar";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("ingest-schedule");
 
 const FEED_IDS = [2, 4, 5, 6, 9, 10, 11];
 const BASE = "https://motionbuscard.org.cy/opendata/downloadfile?file=GTFS\\";
@@ -331,7 +334,7 @@ export const Route = createFileRoute("/api/public/hooks/ingest-schedule")({
             headers: { "Content-Type": "application/json" },
           });
         } catch (err) {
-          console.error("[ingest-schedule] failed:", err);
+          log.error("ingest failed", err);
           return new Response(
             JSON.stringify({ error: (err as Error).message, ms: Date.now() - t0 }),
             {

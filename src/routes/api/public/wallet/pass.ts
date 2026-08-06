@@ -10,6 +10,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { SignJWT, importPKCS8 } from "jose";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("wallet/pass");
 
 const CORS = {
   "access-control-allow-origin": "*",
@@ -158,7 +161,7 @@ export const Route = createFileRoute("/api/public/wallet/pass")({
             headers: { ...CORS, "content-type": "application/json" },
           });
         } catch (err) {
-          console.error("[wallet/pass] Google Wallet sign failed", err);
+          log.error("Google Wallet sign failed", err);
           return new Response(JSON.stringify({ error: "Failed to mint wallet pass" }), {
             status: 500,
             headers: { ...CORS, "content-type": "application/json" },

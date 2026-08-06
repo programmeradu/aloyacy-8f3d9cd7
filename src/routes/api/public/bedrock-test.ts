@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { signRequest } from "@/lib/aws-sigv4.server";
 import { estimateCost } from "@/lib/bedrock-pricing";
+import { parseJsonBody } from "@/lib/http/validate";
+import { BedrockTestSchema } from "@/lib/schemas/public-api";
 
 // Internal test proxy for AWS Bedrock. Credentials are provided per-request
 // by the caller (BYOK from the test page) and never stored server-side.
@@ -24,34 +26,15 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
           "Access-Control-Allow-Origin": "*",
           "Content-Type": "application/json",
         };
+        const parsed = await parseJsonBody(request, BedrockTestSchema, cors);
+        if (!parsed.ok) return parsed.response;
         try {
-          const body = (await request.json()) as {
-            authMode?: "api-key" | "sigv4";
-            apiKey?: string;
-            accessKeyId?: string;
-            secretAccessKey?: string;
-            sessionToken?: string;
-            region?: string;
-            modelId?: string;
-            prompt?: string;
-            maxTokens?: number;
-          };
-          const authMode = body.authMode ?? "api-key";
-          const region = (body.region || "sa-east-1").trim();
-          const modelId = (body.modelId || "").trim();
-          const prompt = (body.prompt || "").trim();
-          const maxTokens = Math.min(Math.max(body.maxTokens ?? 1024, 1), 32000);
-
-          if (!modelId)
-            return new Response(JSON.stringify({ error: "Missing modelId" }), {
-              status: 400,
-              headers: cors,
-            });
-          if (!prompt)
-            return new Response(JSON.stringify({ error: "Missing prompt" }), {
-              status: 400,
-              headers: cors,
-            });
+          const body = parsed.data;
+          const authMode = body.authMode;
+          const region = body.region;
+          const modelId = body.modelId;
+          const prompt = body.prompt;
+          const maxTokens = body.maxTokens;
 
           const url = `https://bedrock-runtime.${region}.amazonaws.com/model/${encodeURIComponent(modelId)}/converse`;
           const payload = JSON.stringify({
@@ -104,9 +87,9 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
           });
           const elapsed = Date.now() - started;
           const text = await upstream.text();
-          let parsed: unknown = null;
+          let parsedBody: unknown = null;
           try {
-            parsed = JSON.parse(text);
+            parsedBody = JSON.parse(text);
           } catch {
             /* keep raw */
           }
@@ -114,9 +97,10 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
           // Extract token usage from Converse response and log to Supabase.
           let inputTokens = 0;
           let outputTokens = 0;
-          if (parsed && typeof parsed === "object") {
-            const usage = (parsed as { usage?: { inputTokens?: number; outputTokens?: number } })
-              .usage;
+          if (parsedBody && typeof parsedBody === "object") {
+            const usage = (
+              parsedBody as { usage?: { inputTokens?: number; outputTokens?: number } }
+            ).usage;
             inputTokens = Math.max(0, Math.floor(usage?.inputTokens ?? 0));
             outputTokens = Math.max(0, Math.floor(usage?.outputTokens ?? 0));
           }
@@ -126,8 +110,8 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
               ? (body.accessKeyId || "").trim().slice(-4)
               : (body.apiKey || "").trim().slice(-4);
           const errText = !upstream.ok
-            ? typeof parsed === "object" && parsed && "message" in parsed
-              ? String((parsed as { message?: unknown }).message ?? "")
+            ? typeof parsedBody === "object" && parsedBody && "message" in parsedBody
+              ? String((parsedBody as { message?: unknown }).message ?? "")
               : text.slice(0, 500)
             : null;
 
@@ -158,7 +142,7 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
               endpoint: url,
               authMode,
               usage: { inputTokens, outputTokens, estCostUsd: estCost },
-              response: parsed ?? text,
+              response: parsedBody ?? text,
             }),
             { status: 200, headers: cors },
           );

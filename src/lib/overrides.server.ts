@@ -3,6 +3,9 @@
 // module.
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("overrides");
 
 /** Number of "skipped-transfer" overrides recorded for an OD bucket
  *  (rounded to ~110 m) in the last 30 days. Used by the planner to demote
@@ -23,7 +26,7 @@ export async function getSkippedTransferCount(
     .eq("to_lat", round(to.lat))
     .eq("to_lng", round(to.lng));
   if (error) {
-    console.warn("[overrides] count failed", error.message);
+    log.warn("count failed", { reason: error.message });
     return 0;
   }
   return count ?? 0;

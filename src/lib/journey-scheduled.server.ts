@@ -23,6 +23,9 @@ import { planRaptor, type RaptorDiagnostics } from "./raptor.server";
 import { fetchRealtime } from "./gtfs-rt.server";
 import { refineAllItineraries } from "./walk-refine.server";
 import type { Itinerary } from "./itinerary-types";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("scheduled");
 
 export type ScheduledDiagnostics = RaptorDiagnostics & {
   liveArrivalCount: number;
@@ -122,7 +125,7 @@ export async function planMultiLegScheduled(
         }
       } catch (err) {
         // No shard for tomorrow yet — keep the empty same-day result.
-        console.warn("[scheduled] next-day rollover skipped:", (err as Error).message);
+        log.warn("next-day rollover skipped", { reason: (err as Error).message });
       }
     }
   }
@@ -172,7 +175,7 @@ export async function planMultiLegScheduled(
     }
   } catch (err) {
     // Realtime overlay is optional — never let it sink the planner.
-    console.warn("[scheduled] realtime overlay failed:", (err as Error).message);
+    log.warn("realtime overlay failed", { reason: (err as Error).message });
   }
   const overlayMs = Date.now() - tOv0;
 

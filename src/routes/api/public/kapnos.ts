@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { suggestKapnos } from "@/lib/kapnos.functions";
+import { parseJsonInput } from "@/lib/http/validate";
+import { KapnosBodySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -14,17 +16,10 @@ export const Route = createFileRoute("/api/public/kapnos")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        let body: unknown;
+        const parsed = await parseJsonInput(request, KapnosBodySchema, CORS);
+        if (!parsed.ok) return parsed.response;
         try {
-          body = await request.json();
-        } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-            status: 400,
-            headers: CORS,
-          });
-        }
-        try {
-          const result = await suggestKapnos({ data: body as never });
+          const result = await suggestKapnos({ data: parsed.data });
           return new Response(JSON.stringify(result), { status: 200, headers: CORS });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Kapnos failed";
