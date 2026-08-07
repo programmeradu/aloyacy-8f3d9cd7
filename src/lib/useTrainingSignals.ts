@@ -140,7 +140,10 @@ export function useTrainingSignals(active: ActiveTrip | null, live: MultiLegLive
     for (let i = 0; i < idx; i++) {
       const leg = itin.legs[i];
       const per = legState.perLeg[i];
-      if (!leg || leg.kind !== "walk" || !per?.enteredAt || !per?.completedAt) continue;
+      // Compare against null explicitly: a timestamp of 0 is a legitimate
+      // (if unusual) epoch value and must not be treated as "missing".
+      if (!leg || leg.kind !== "walk" || per?.enteredAt == null || per?.completedAt == null)
+        continue;
       const actualSec = Math.round((per.completedAt - per.enteredAt) / 1000);
       if (actualSec < 5 || actualSec > 3 * leg.durationSec + 300) continue;
       fireOnce(`walk-complete:${i}`, () =>
