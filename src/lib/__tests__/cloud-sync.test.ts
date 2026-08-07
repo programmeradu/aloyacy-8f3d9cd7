@@ -48,14 +48,14 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-const readPassMock = vi.fn<[], MotionPass>();
-const writePassMock = vi.fn<[MotionPass], void>();
+const readPassMock = vi.fn<() => MotionPass>();
+const writePassMock = vi.fn<(p: MotionPass) => void>();
 vi.mock("../motion-pass", () => ({
   readPass: () => readPassMock(),
   writePass: (p: MotionPass) => writePassMock(p),
 }));
 
-const listSavedPlacesMock = vi.fn<[], SavedPlace[]>();
+const listSavedPlacesMock = vi.fn<() => SavedPlace[]>();
 vi.mock("../trip-store", () => ({
   listSavedPlaces: () => listSavedPlacesMock(),
 }));
