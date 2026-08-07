@@ -60,8 +60,8 @@ let driveEta: { etaSec: number | null; distanceMeters: number | null; fetchedAt:
   distanceMeters: null,
   fetchedAt: null,
 };
-const useDriveEtaMock = vi.fn(() => driveEta);
 const useDriveEtaMock = vi.fn((..._args: unknown[]) => driveEta);
+vi.mock("../useDriveEta", () => ({
   useDriveEta: (...args: unknown[]) => useDriveEtaMock(...args),
 }));
 
