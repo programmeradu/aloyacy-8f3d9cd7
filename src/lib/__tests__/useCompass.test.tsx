@@ -3,9 +3,16 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useCompass, requestCompassPermission } from "../useCompass";
 
-function dispatchOrientation(detail: { webkitCompassHeading?: number; alpha?: number; absolute?: boolean }) {
+function dispatchOrientation(detail: {
+  webkitCompassHeading?: number;
+  alpha?: number;
+  absolute?: boolean;
+}) {
   const evt = new Event("deviceorientation") as DeviceOrientationEvent;
-  Object.defineProperty(evt, "webkitCompassHeading", { value: detail.webkitCompassHeading, configurable: true });
+  Object.defineProperty(evt, "webkitCompassHeading", {
+    value: detail.webkitCompassHeading,
+    configurable: true,
+  });
   Object.defineProperty(evt, "alpha", { value: detail.alpha ?? null, configurable: true });
   Object.defineProperty(evt, "absolute", { value: detail.absolute ?? false, configurable: true });
   act(() => {

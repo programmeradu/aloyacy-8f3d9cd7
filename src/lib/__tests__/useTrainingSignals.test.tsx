@@ -39,7 +39,10 @@ function makeWalk(overrides: Partial<WalkLeg> = {}): WalkLeg {
   } as WalkLeg;
 }
 
-function makeActive(legs: Itinerary["legs"], perLeg: Record<number, Record<string, number>> = {}): ActiveTrip {
+function makeActive(
+  legs: Itinerary["legs"],
+  perLeg: Record<number, Record<string, number>> = {},
+): ActiveTrip {
   return {
     startedAt: 1,
     option: { id: "opt1" } as ActiveTrip["option"],
@@ -123,7 +126,9 @@ describe("useTrainingSignals", () => {
     );
     await waitFor(() =>
       expect(logMock).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ kind: "boarding-prompt-shown" }) }),
+        expect.objectContaining({
+          data: expect.objectContaining({ kind: "boarding-prompt-shown" }),
+        }),
       ),
     );
     const calls = logMock.mock.calls.length;
@@ -155,7 +160,9 @@ describe("useTrainingSignals", () => {
     renderHook(() => useTrainingSignals(active, makeLive({ currentLegIndex: 0 })));
     await waitFor(() =>
       expect(logMock).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ kind: "missed-bus-false-positive" }) }),
+        expect.objectContaining({
+          data: expect.objectContaining({ kind: "missed-bus-false-positive" }),
+        }),
       ),
     );
   });
@@ -168,7 +175,9 @@ describe("useTrainingSignals", () => {
     renderHook(() => useTrainingSignals(active, makeLive({ currentLegIndex: 0 })));
     await new Promise((r) => setTimeout(r, 0));
     expect(logMock).not.toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ kind: "missed-bus-false-positive" }) }),
+      expect.objectContaining({
+        data: expect.objectContaining({ kind: "missed-bus-false-positive" }),
+      }),
     );
   });
 
@@ -243,7 +252,9 @@ describe("useTrainingSignals", () => {
     logMock.mockRejectedValueOnce(new Error("network down"));
     const active = makeActive([makeRide()], { 0: {} });
     expect(() =>
-      renderHook(() => useTrainingSignals(active, makeLive({ phase: "waiting-to-board", currentLegIndex: 0 }))),
+      renderHook(() =>
+        useTrainingSignals(active, makeLive({ phase: "waiting-to-board", currentLegIndex: 0 })),
+      ),
     ).not.toThrow();
     await waitFor(() => expect(logMock).toHaveBeenCalled());
   });

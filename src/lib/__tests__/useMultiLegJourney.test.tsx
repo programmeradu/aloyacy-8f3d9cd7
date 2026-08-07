@@ -76,20 +76,30 @@ const shouldAutoConfirmRideMock = vi.fn((): { confirm: boolean; ridingSinceMs: n
   confirm: false,
   ridingSinceMs: null,
 }));
-const multiLegAlertsMock = vi.fn(() => [] as { key: string; kind: string; routeShort?: string; stopName?: string; minutes?: number }[]);
+const multiLegAlertsMock = vi.fn(
+  () =>
+    [] as { key: string; kind: string; routeShort?: string; stopName?: string; minutes?: number }[],
+);
 vi.mock("@aloya/core/multileg-journey", () => ({
   resolveLegs: (...args: unknown[]) => resolveLegsMock(...(args as [])),
   resolveMultiLegPhase: (...args: unknown[]) => resolveMultiLegPhaseMock(...(args as [])),
   legTarget: (...args: unknown[]) => legTargetMock(...(args as [])),
   fuseRideVehicle: (...args: unknown[]) => fuseRideVehicleMock(...(args as [])),
-  fuseAlightEta: (...args: unknown[]) => fuseAlightEtaMock(...(args as [Parameters<typeof fuseAlightEtaMock>[0]])),
+  fuseAlightEta: (...args: unknown[]) =>
+    fuseAlightEtaMock(...(args as [Parameters<typeof fuseAlightEtaMock>[0]])),
   isConnectionLate: (...args: unknown[]) => isConnectionLateMock(...(args as [])),
   shouldAdvanceLeg: (...args: unknown[]) => shouldAdvanceLegMock(...(args as [])),
   shouldAutoConfirmRide: (...args: unknown[]) => shouldAutoConfirmRideMock(...(args as [])),
   multiLegAlerts: (...args: unknown[]) => multiLegAlertsMock(...(args as [])),
 }));
 
-import { useMultiLegJourney, multiLegConfirmOnBoard, multiLegMarkAlighted, multiLegMarkArrived, multiLegMarkMissed } from "../useMultiLegJourney";
+import {
+  useMultiLegJourney,
+  multiLegConfirmOnBoard,
+  multiLegMarkAlighted,
+  multiLegMarkArrived,
+  multiLegMarkMissed,
+} from "../useMultiLegJourney";
 import type { ActiveTrip } from "../trip-store";
 import type { RideLeg, WalkLeg, Itinerary } from "../itinerary-types";
 
@@ -211,7 +221,14 @@ describe("useMultiLegJourney", () => {
   });
 
   it("requests a wrong-stop reroute hint while walking to board with a fix", () => {
-    fusedFix = { lat: 1, lng: 1, uncertaintyM: 5, speedMps: 1, bearingDeg: 0, timestamp: Date.now() };
+    fusedFix = {
+      lat: 1,
+      lng: 1,
+      uncertaintyM: 5,
+      speedMps: 1,
+      bearingDeg: 0,
+      timestamp: Date.now(),
+    };
     resolveMultiLegPhaseMock.mockReturnValue("walking-to-board");
     const active = makeActive({ legState: { currentLegIndex: 0, perLeg: { 0: {} } } });
     renderHook(() => useMultiLegJourney(active));
@@ -220,7 +237,14 @@ describe("useMultiLegJourney", () => {
   });
 
   it("requests a reroute hint while waiting-to-board with a ride leg + fix", () => {
-    fusedFix = { lat: 1, lng: 1, uncertaintyM: 5, speedMps: 1, bearingDeg: 0, timestamp: Date.now() };
+    fusedFix = {
+      lat: 1,
+      lng: 1,
+      uncertaintyM: 5,
+      speedMps: 1,
+      bearingDeg: 0,
+      timestamp: Date.now(),
+    };
     resolveMultiLegPhaseMock.mockReturnValue("waiting-to-board");
     const active = makeActive();
     renderHook(() => useMultiLegJourney(active));
@@ -250,9 +274,12 @@ describe("useMultiLegJourney", () => {
   });
 
   it("resets the riding-since ref when the journey becomes inactive", () => {
-    const { rerender } = renderHook(({ active }: { active: ActiveTrip | null }) => useMultiLegJourney(active), {
-      initialProps: { active: makeActive() as ActiveTrip | null },
-    });
+    const { rerender } = renderHook(
+      ({ active }: { active: ActiveTrip | null }) => useMultiLegJourney(active),
+      {
+        initialProps: { active: makeActive() as ActiveTrip | null },
+      },
+    );
     rerender({ active: null });
     expect(shouldAutoConfirmRideMock).toHaveBeenCalledTimes(1); // only once, before going inactive
   });
@@ -260,9 +287,12 @@ describe("useMultiLegJourney", () => {
   it("sends a push alert once per alert key and skips duplicates on rerender", async () => {
     multiLegAlertsMock.mockReturnValue([{ key: "k1", kind: "hurry" }]);
     const active = makeActive();
-    const { rerender } = renderHook(({ active }: { active: ActiveTrip }) => useMultiLegJourney(active), {
-      initialProps: { active },
-    });
+    const { rerender } = renderHook(
+      ({ active }: { active: ActiveTrip }) => useMultiLegJourney(active),
+      {
+        initialProps: { active },
+      },
+    );
     await waitFor(() => expect(sendAlertMock).toHaveBeenCalledTimes(1));
     rerender({ active });
     await waitFor(() => expect(sendAlertMock).toHaveBeenCalledTimes(1));
@@ -277,7 +307,9 @@ describe("useMultiLegJourney", () => {
   });
 
   it("reports rider GPS fix while on board", () => {
-    const active = makeActive({ legState: { currentLegIndex: 1, perLeg: { 1: { onBoardConfirmedAt: 1 } } } });
+    const active = makeActive({
+      legState: { currentLegIndex: 1, perLeg: { 1: { onBoardConfirmedAt: 1 } } },
+    });
     renderHook(() => useMultiLegJourney(active));
     expect(useRiderFixReporterMock).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: true, tripId: "T1" }),
@@ -295,9 +327,12 @@ describe("useMultiLegJourney", () => {
   it("records commute pattern exactly once on arrival", async () => {
     resolveMultiLegPhaseMock.mockReturnValue("arrived");
     const active = makeActive();
-    const { rerender } = renderHook(({ active }: { active: ActiveTrip }) => useMultiLegJourney(active), {
-      initialProps: { active },
-    });
+    const { rerender } = renderHook(
+      ({ active }: { active: ActiveTrip }) => useMultiLegJourney(active),
+      {
+        initialProps: { active },
+      },
+    );
     await waitFor(() => expect(recordCommuteMock).toHaveBeenCalledTimes(1));
     rerender({ active });
     await waitFor(() => expect(recordCommuteMock).toHaveBeenCalledTimes(1));
@@ -305,7 +340,10 @@ describe("useMultiLegJourney", () => {
 
   it("does not record commute pattern if there is no ride leg", async () => {
     resolveMultiLegPhaseMock.mockReturnValue("arrived");
-    const active = makeActive({ itinerary: makeItinerary([makeWalk()]), legState: { currentLegIndex: 0, perLeg: { 0: {} } } });
+    const active = makeActive({
+      itinerary: makeItinerary([makeWalk()]),
+      legState: { currentLegIndex: 0, perLeg: { 0: {} } },
+    });
     renderHook(() => useMultiLegJourney(active));
     await new Promise((r) => setTimeout(r, 0));
     expect(recordCommuteMock).not.toHaveBeenCalled();
@@ -326,7 +364,9 @@ describe("useMultiLegJourney", () => {
   });
 
   it("passes drive-eta inputs only while on board with a resolvable vehicle position", () => {
-    const active = makeActive({ legState: { currentLegIndex: 1, perLeg: { 1: { onBoardConfirmedAt: 1 } } } });
+    const active = makeActive({
+      legState: { currentLegIndex: 1, perLeg: { 1: { onBoardConfirmedAt: 1 } } },
+    });
     realtimeData = { arrivals: [], vehicles: [{ tripId: "T1", lat: 5, lng: 5 }], ghostTripIds: [] };
     renderHook(() => useMultiLegJourney(active));
     expect(useDriveEtaMock).toHaveBeenCalledWith(

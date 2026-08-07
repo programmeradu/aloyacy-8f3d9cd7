@@ -14,8 +14,20 @@ function makeRide(overrides: Partial<RideLeg> = {}): RideLeg {
     routeLong: "Route 1",
     tripId: "T1",
     live: true,
-    board: { stopId: "S1", name: "Board", lat: 1, lng: 1, departureUnix: Math.floor(Date.now() / 1000) + 1000 },
-    alight: { stopId: "S2", name: "Alight", lat: 2, lng: 2, arrivalUnix: Math.floor(Date.now() / 1000) + 2000 },
+    board: {
+      stopId: "S1",
+      name: "Board",
+      lat: 1,
+      lng: 1,
+      departureUnix: Math.floor(Date.now() / 1000) + 1000,
+    },
+    alight: {
+      stopId: "S2",
+      name: "Alight",
+      lat: 2,
+      lng: 2,
+      arrivalUnix: Math.floor(Date.now() / 1000) + 2000,
+    },
     stopCount: 3,
     delaySec: 0,
     ...overrides,
@@ -125,7 +137,9 @@ describe("useDisruptionWatch", () => {
     const now = Math.floor(Date.now() / 1000);
     const live = makeLive({
       phase: "waiting-to-board",
-      currentRideLeg: makeRide({ board: { stopId: "S1", name: "Board", lat: 1, lng: 1, departureUnix: now + 60 } }),
+      currentRideLeg: makeRide({
+        board: { stopId: "S1", name: "Board", lat: 1, lng: 1, departureUnix: now + 60 },
+      }),
       secsToCurrentBoard: 600, // slip of 540s > 8min threshold... adjust
     });
     const { result } = renderHook(() => useDisruptionWatch(makeActive(), live));
@@ -159,7 +173,9 @@ describe("useDisruptionWatch", () => {
     const now = Math.floor(Date.now() / 1000);
     const live = makeLive({
       phase: "riding",
-      currentRideLeg: makeRide({ alight: { stopId: "S2", name: "Alight", lat: 2, lng: 2, arrivalUnix: now } }),
+      currentRideLeg: makeRide({
+        alight: { stopId: "S2", name: "Alight", lat: 2, lng: 2, arrivalUnix: now },
+      }),
       secsToCurrentAlight: 10 * 60, // arriving 10 min after plan
       nextRideLeg: makeRide({ routeShort: "7" }),
     });
@@ -172,7 +188,9 @@ describe("useDisruptionWatch", () => {
     const now = Math.floor(Date.now() / 1000);
     const live = makeLive({
       phase: "alight-soon",
-      currentRideLeg: makeRide({ alight: { stopId: "S2", name: "Alight", lat: 2, lng: 2, arrivalUnix: now } }),
+      currentRideLeg: makeRide({
+        alight: { stopId: "S2", name: "Alight", lat: 2, lng: 2, arrivalUnix: now },
+      }),
       secsToCurrentAlight: 10 * 60,
       nextRideLeg: null,
     });

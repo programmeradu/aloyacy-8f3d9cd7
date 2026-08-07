@@ -181,10 +181,7 @@ describe("cloud-sync", () => {
       const { pullAll } = await import("../cloud-sync");
       state.motionSelectError = new Error("network down");
       await expect(pullAll("user-6")).resolves.toBeUndefined();
-      expect(console.warn).toHaveBeenCalledWith(
-        "[cloud-sync] pull motion:",
-        "network down",
-      );
+      expect(console.warn).toHaveBeenCalledWith("[cloud-sync] pull motion:", "network down");
     });
 
     it("migrates local saved places up when the cloud table is empty", async () => {

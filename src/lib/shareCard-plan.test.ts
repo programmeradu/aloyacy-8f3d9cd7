@@ -182,7 +182,9 @@ describe("renderPlanShareCard", () => {
 
   it("strips the protocol from the footer URL", async () => {
     await renderPlanShareCard(baseCtx({ url: "https://aloya.app/plan/abc" }));
-    expect((ctx.fillText as any).mock.calls.some((c: any[]) => c[0] === "aloya.app/plan/abc")).toBe(true);
+    expect((ctx.fillText as any).mock.calls.some((c: any[]) => c[0] === "aloya.app/plan/abc")).toBe(
+      true,
+    );
   });
 
   it("exports the jpeg at 0.92 quality via toBlob and 0.9 via toDataURL", async () => {

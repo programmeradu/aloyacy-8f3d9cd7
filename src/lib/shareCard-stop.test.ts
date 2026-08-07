@@ -74,7 +74,9 @@ describe("renderStopShareCard", () => {
     // size, so the shrink loop must bottom out at minSize (48) and still draw
     // the (single, unwrapped) line at that size's baseline.
     const longName = "A".repeat(200);
-    await renderStopShareCard(baseCtx({ stop: { id: "s2", code: "0099", name: longName, agency: "urban" } }));
+    await renderStopShareCard(
+      baseCtx({ stop: { id: "s2", code: "0099", name: longName, agency: "urban" } }),
+    );
     const nameCall = (ctx.fillText as any).mock.calls.find(
       (c: any[]) => typeof c[0] === "string" && c[0] === longName,
     );
@@ -84,7 +86,9 @@ describe("renderStopShareCard", () => {
   });
 
   it("keeps a short stop name at the largest font size (single line, no shrink needed)", async () => {
-    await renderStopShareCard(baseCtx({ stop: { id: "s3", code: "0001", name: "Bus Stop", agency: "urban" } }));
+    await renderStopShareCard(
+      baseCtx({ stop: { id: "s3", code: "0001", name: "Bus Stop", agency: "urban" } }),
+    );
     const nameCall = (ctx.fillText as any).mock.calls.find((c: any[]) => c[0] === "Bus Stop");
     expect(nameCall).toBeTruthy();
     // startY (870) + size*0.82 baseline for a single line at the max size (80).
@@ -140,20 +144,26 @@ describe("renderStopShareCard", () => {
   });
 
   it("labels intercity stops as INTERCITY/ΥΠΕΡΑΣΤΙΚΟ and urban stops as URBAN/ΑΣΤΙΚΟ", async () => {
-    await renderStopShareCard(baseCtx({ stop: { id: "s4", code: "1", name: "X", agency: "IC" }, locale: "en" }));
+    await renderStopShareCard(
+      baseCtx({ stop: { id: "s4", code: "1", name: "X", agency: "IC" }, locale: "en" }),
+    );
     let drawn = (ctx.fillText as any).mock.calls.map((c: any[]) => c[0]).join("");
     expect(drawn).toContain("INTERCITY");
 
     ctx = createMockCtx();
     stubCanvas(ctx);
-    await renderStopShareCard(baseCtx({ stop: { id: "s5", code: "1", name: "X", agency: "urban" }, locale: "el" }));
+    await renderStopShareCard(
+      baseCtx({ stop: { id: "s5", code: "1", name: "X", agency: "urban" }, locale: "el" }),
+    );
     drawn = (ctx.fillText as any).mock.calls.map((c: any[]) => c[0]).join("");
     expect(drawn).toContain("ΑΣΤΙΚΟ");
   });
 
   it("strips the protocol from the footer URL", async () => {
     await renderStopShareCard(baseCtx({ url: "https://aloya.app/stop/s1" }));
-    expect((ctx.fillText as any).mock.calls.some((c: any[]) => c[0] === "aloya.app/stop/s1")).toBe(true);
+    expect((ctx.fillText as any).mock.calls.some((c: any[]) => c[0] === "aloya.app/stop/s1")).toBe(
+      true,
+    );
   });
 
   it("exports the jpeg at 0.92 quality via toBlob and 0.9 via toDataURL", async () => {
