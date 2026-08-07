@@ -9,16 +9,31 @@
 
 import gr from "gtfs-realtime-bindings";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { fetchFeedOverSocket } from "@/lib/gtfs-socket.server";
 
 // Feed sources, tried in order until one returns a decodable protobuf.
-// Cloudflare Worker egress is blocked by the Cyprus upstream, so Lovable
-// Cloud is the primary relay. The direct URL remains only as an emergency
-// fallback in case the upstream later removes that block.
+//
+// The upstream listens on http://20.19.98.194:8328 — a port Cloudflare's
+// `fetch()` refuses to dial, which is what surfaced as a "403" from Worker
+// egress. Raw TCP sockets have no such port restriction, so the Worker now
+// talks to the upstream itself (see gtfs-socket.server.ts). HTTP relays stay
+// in the chain as fallbacks.
 const DIRECT_FEED = "http://20.19.98.194:8328/Api/api/gtfs-realtime";
+
+/** Optional self-hosted relay (e.g. your own Cloudflare Worker). */
+function relayUrl(): string | null {
+  const u = process.env["GTFS_RELAY_URL"];
+  return u && /^https?:\/\//.test(u) ? u : null;
+}
 
 function feedSources(): string[] {
   const base = process.env.SUPABASE_URL ?? "https://uliqfclkndvevslmjwlu.supabase.co";
-  return [`${base}/functions/v1/gtfs-proxy`, DIRECT_FEED];
+  const custom = relayUrl();
+  return [
+    ...(custom ? [custom] : []),
+    `${base}/functions/v1/gtfs-proxy`,
+    DIRECT_FEED,
+  ];
 }
 
 
@@ -87,14 +102,30 @@ export type RealtimeSnapshot = {
 /** Fetch the raw protobuf, trying each source until one yields bytes. */
 async function fetchFeedBytes(): Promise<Uint8Array> {
   const failures: string[] = [];
+
+  // 1) Raw TCP straight from our own Cloudflare Worker — no relay hop.
+  try {
+    const buf = await fetchFeedOverSocket();
+    if (buf.byteLength > 0) return buf;
+    failures.push("socket empty");
+  } catch (e) {
+    failures.push(`socket ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  // 2) HTTP relays (self-hosted Worker, then Lovable Cloud, then direct).
+  const token = process.env["GTFS_RELAY_TOKEN"];
   for (const url of feedSources()) {
     try {
+      const headers: Record<string, string> = {
+        Accept: "application/octet-stream",
+        "User-Agent":
+          "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
+      };
+      if (token && url === process.env["GTFS_RELAY_URL"]) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const res = await fetch(url, {
-        headers: {
-          Accept: "application/octet-stream",
-          "User-Agent":
-            "Mozilla/5.0 (Aloya/1.0; +https://app.aloya.cy) AppleWebKit/537.36",
-        },
+        headers,
         signal: AbortSignal.timeout(12_000),
       });
       if (!res.ok) {
