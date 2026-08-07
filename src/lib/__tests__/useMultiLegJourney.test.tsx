@@ -162,7 +162,7 @@ describe("useMultiLegJourney", () => {
     driveEta = { etaSec: null, distanceMeters: null, fetchedAt: null };
     useDriveEtaMock.mockImplementation(() => driveEta);
     resolveLegsMock.mockImplementation((legs: Itinerary["legs"], idx: number) =>
-      defaultResolveLegs({ currentLegIndex: idx }, { legs }),
+      defaultResolveLegs({ currentLegIndex: idx }, { legs } as unknown as Itinerary),
     );
     resolveMultiLegPhaseMock.mockReturnValue("riding");
     shouldAdvanceLegMock.mockReturnValue(false);
