@@ -5,6 +5,7 @@
 import { vi } from "vitest";
 
 export function createMockCtx() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake ctx is built incrementally and cast at the end
   const ctx: any = {
     // State the code reads back.
     font: "",
@@ -38,6 +39,7 @@ export function createMockCtx() {
     // measureText: width approximated deterministically as
     // charCount * 10, tunable per-test via ctx.__charWidth.
     __charWidth: 10,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- `this` is the partially-built fake ctx
     measureText: vi.fn(function (this: any, s: string) {
       return { width: s.length * this.__charWidth } as TextMetrics;
     }),

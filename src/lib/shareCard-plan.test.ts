@@ -142,7 +142,6 @@ describe("renderPlanShareCard", () => {
     ctx.__charWidth = 30; // force a very wide measured route label
     await renderPlanShareCard(baseCtx({ routeShort: "X1" }));
     // roundRect(ctx, x, y, chipW, chipH, 22) — chip width is arg index 2.
-    const chipCall = (ctx.arcTo as any).mock.calls.length > 0 ? null : null;
     // roundRect uses beginPath/moveTo/arcTo, not directly inspectable for w/h,
     // so assert via the fillText call for the route label being present and
     // that drawTracked's "BUS" label is drawn (chip was rendered at all).

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { createMockCtx, createMockImage } from "./__tests__/mock-canvas";
 import { drawCover, roundRect, wrap, drawTracked, measureTracked, loadImg } from "./canvas-draw";
 
