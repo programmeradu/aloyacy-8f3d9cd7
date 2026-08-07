@@ -54,7 +54,6 @@ describe("offline-schedules", () => {
 
   it("reports unsupported when caches is absent from window", () => {
     vi.stubGlobal("caches", undefined);
-    // @ts-expect-error simulating a browser without Cache Storage support
     delete (window as { caches?: unknown }).caches;
     expect(isOfflineCacheSupported()).toBe(false);
   });
