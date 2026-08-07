@@ -61,7 +61,7 @@ let driveEta: { etaSec: number | null; distanceMeters: number | null; fetchedAt:
   fetchedAt: null,
 };
 const useDriveEtaMock = vi.fn(() => driveEta);
-vi.mock("../useDriveEta", () => ({
+const useDriveEtaMock = vi.fn((..._args: unknown[]) => driveEta);
   useDriveEta: (...args: unknown[]) => useDriveEtaMock(...args),
 }));
 
@@ -72,7 +72,10 @@ const fuseRideVehicleMock = vi.fn(() => ({ fusedCurrentVehicle: null, vehicleLos
 const fuseAlightEtaMock = vi.fn((args: { secsToAlight: number }) => args.secsToAlight);
 const isConnectionLateMock = vi.fn(() => false);
 const shouldAdvanceLegMock = vi.fn(() => false);
-const shouldAutoConfirmRideMock = vi.fn(() => ({ confirm: false, ridingSinceMs: null }));
+const shouldAutoConfirmRideMock = vi.fn((): { confirm: boolean; ridingSinceMs: number | null } => ({
+  confirm: false,
+  ridingSinceMs: null,
+}));
 const multiLegAlertsMock = vi.fn(() => [] as { key: string; kind: string; routeShort?: string; stopName?: string; minutes?: number }[]);
 vi.mock("@aloya/core/multileg-journey", () => ({
   resolveLegs: (...args: unknown[]) => resolveLegsMock(...(args as [])),
@@ -117,11 +120,11 @@ function makeRide(overrides: Partial<RideLeg> = {}): RideLeg {
 }
 
 function makeItinerary(legs: Itinerary["legs"]): Itinerary {
-  return { legs } as Itinerary;
+  return { legs } as unknown as Itinerary;
 }
 
 function makeActive(overrides: Partial<ActiveTrip> = {}): ActiveTrip {
-  const legs = [makeWalk(), makeRide(), makeWalk({ to: { lat: 2, lng: 2, label: "dest" } })];
+  const legs = [makeWalk(), makeRide(), makeWalk({ to: { lat: 2, lng: 2, name: "dest" } })];
   return {
     startedAt: 1000,
     option: { id: "opt1" } as ActiveTrip["option"],
@@ -248,7 +251,7 @@ describe("useMultiLegJourney", () => {
 
   it("resets the riding-since ref when the journey becomes inactive", () => {
     const { rerender } = renderHook(({ active }: { active: ActiveTrip | null }) => useMultiLegJourney(active), {
-      initialProps: { active: makeActive() },
+      initialProps: { active: makeActive() as ActiveTrip | null },
     });
     rerender({ active: null });
     expect(shouldAutoConfirmRideMock).toHaveBeenCalledTimes(1); // only once, before going inactive
