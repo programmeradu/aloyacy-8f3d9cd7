@@ -326,7 +326,7 @@ function Explore() {
         className="mt-4 flex gap-2 overflow-x-auto no-scrollbar px-6 pb-1 animate-rise"
         style={{ animationDelay: "140ms" }}
       >
-        {landmarkChips.length === 0 ? (
+        {!mounted || landmarkChips.length === 0 ? (
           <span className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft py-2">
             {tt("home.locating")}
           </span>
