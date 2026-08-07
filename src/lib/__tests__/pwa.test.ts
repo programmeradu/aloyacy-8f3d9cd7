@@ -56,15 +56,14 @@ describe("pwa", () => {
       expect(shouldRegisterSW()).toBe(false);
     });
 
-    it.each([
-      ["id-preview--abc.lovable.app"],
-      ["myapp.lovableproject.com"],
-      ["myapp.lovable.dev"],
-    ])("is false on preview host %s", (host) => {
-      vi.stubGlobal("navigator", { serviceWorker: {} });
-      setHostname(host);
-      expect(shouldRegisterSW()).toBe(false);
-    });
+    it.each([["id-preview--abc.lovable.app"], ["myapp.lovableproject.com"], ["myapp.lovable.dev"]])(
+      "is false on preview host %s",
+      (host) => {
+        vi.stubGlobal("navigator", { serviceWorker: {} });
+        setHostname(host);
+        expect(shouldRegisterSW()).toBe(false);
+      },
+    );
 
     it("is true on a normal production host with SW support, top-level frame", () => {
       vi.stubGlobal("navigator", { serviceWorker: {} });
@@ -289,9 +288,7 @@ describe("pwa", () => {
       vi.stubGlobal("Notification", { permission: "default", requestPermission });
       const result = await getOrCreatePushSubscription();
       expect(requestPermission).toHaveBeenCalled();
-      expect(subscribe).toHaveBeenCalledWith(
-        expect.objectContaining({ userVisibleOnly: true }),
-      );
+      expect(subscribe).toHaveBeenCalledWith(expect.objectContaining({ userVisibleOnly: true }));
       expect(result).toEqual({
         ok: true,
         subscription: { endpoint: "https://push.example/new", p256dh: "AQ", auth: "AQ" },
