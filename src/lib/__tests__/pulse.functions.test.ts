@@ -79,7 +79,7 @@ describe("getPulse", () => {
     state.rpc = { data: null, error: { message: "rpc broke" } };
     fetchRealtimeMock.mockResolvedValue({ arrivals: [], fetchedAt: 42 });
     const out = await callServerFn(getPulse, undefined);
-    expect(out.generatedAt).toBe(42);
+    expect(out.totalSamples).toBe(0);
   });
 
   it("falls back to realtime when rpc returns no rows", async () => {
@@ -87,7 +87,7 @@ describe("getPulse", () => {
     state.rpc = { data: [], error: null };
     fetchRealtimeMock.mockResolvedValue({ arrivals: [], fetchedAt: 7 });
     const out = await callServerFn(getPulse, undefined);
-    expect(out.generatedAt).toBe(7);
+    expect(out.totalSamples).toBe(0);
   });
 
   it("builds a pulse snapshot from RPC aggregates, ranking hottest/coldest/steadiest", async () => {
