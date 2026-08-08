@@ -16,7 +16,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { useUserDataRealtime } from "@/lib/useUserDataRealtime";
 import { bootstrapAnonymousAuth } from "@/lib/anon-auth";
 import { startCloudSync } from "@/lib/cloud-sync";
-import { useAuth } from "@/lib/useAuth";
+import { AuthProvider, useAuth } from "@/lib/useAuth";
+import { ProSubscriptionProvider } from "@/lib/usePro";
 import { OnboardingGate } from "@/components/OnboardingGate";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { PaywallSheet } from "@/components/PaywallSheet";
@@ -224,13 +225,17 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <RealtimeBridge />
-      <CloudSyncBridge />
-      <OnboardingGate />
-      <Outlet />
-      <InstallPrompt />
-      <GlobalPaywall />
-      <Toaster position="top-center" />
+      <AuthProvider>
+        <ProSubscriptionProvider>
+          <RealtimeBridge />
+          <CloudSyncBridge />
+          <OnboardingGate />
+          <Outlet />
+          <InstallPrompt />
+          <GlobalPaywall />
+          <Toaster position="top-center" />
+        </ProSubscriptionProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
