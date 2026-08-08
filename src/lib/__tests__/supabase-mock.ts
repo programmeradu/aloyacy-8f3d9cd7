@@ -65,10 +65,8 @@ export function makeSupabaseMock(
       });
     };
     const chain: Record<string, unknown> = {
-      then: (
-        onFulfilled?: (v: unknown) => unknown,
-        onRejected?: (e: unknown) => unknown,
-      ) => settle().then(onFulfilled, onRejected),
+      then: (onFulfilled?: (v: unknown) => unknown, onRejected?: (e: unknown) => unknown) =>
+        settle().then(onFulfilled, onRejected),
       // `.single()` / `.maybeSingle()` collapse arrays the way PostgREST does.
       single: () =>
         settle().then((r) => ({

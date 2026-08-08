@@ -69,10 +69,7 @@ export function createServerFn(config?: { method?: string }) {
 
         const chain = flatten(state.middleware);
 
-        const run = async (
-          index: number,
-          context: Record<string, unknown>,
-        ): Promise<unknown> => {
+        const run = async (index: number, context: Record<string, unknown>): Promise<unknown> => {
           const entry = chain[index];
           if (!entry?.options?.server) {
             return handlerFn({ data, context, request, method: state.method, signal: opts.signal });
