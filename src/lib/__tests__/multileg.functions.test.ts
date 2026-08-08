@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { callServerFn } from "./server-fn";
-import type { Itinerary, RideLeg, WalkLeg } from "../itinerary-types";
+import type { Itinerary, RideLeg } from "../itinerary-types";
 
 const NICOSIA = { lat: 35.1856, lng: 33.3823 };
 const LIMASSOL = { lat: 34.707, lng: 33.022 };

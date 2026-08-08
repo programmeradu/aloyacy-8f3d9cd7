@@ -41,7 +41,7 @@ const createStripeClient = vi.fn((..._args: unknown[]) => undefined as unknown);
 const getStripeErrorMessage = vi.fn((e: unknown) => (e instanceof Error ? e.message : "err"));
 vi.mock("../stripe.server", () => ({
   createStripeClient: (...args: unknown[]) => createStripeClient(...args),
-  getStripeErrorMessage: (...args: unknown[]) => getStripeErrorMessage(...args),
+  getStripeErrorMessage: (e: unknown) => getStripeErrorMessage(e),
 }));
 
 const { createCheckoutSession, createPortalSession } = await import("../billing.functions");
