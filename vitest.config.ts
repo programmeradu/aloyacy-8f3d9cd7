@@ -1,8 +1,25 @@
+import path from "node:path";
 import { defineConfig } from "vitest/config";
 import tsconfigPaths from "vite-tsconfig-paths";
 
+// Under test there is no Start Vite plugin to split `createServerFn().handler()`
+// into a client stub plus an extracted server handler, so the real factory
+// resolves to `undefined`. Swap the package for an in-process shim that runs
+// the validator, middleware and handler for real. The shim's own import of the
+// package is left alone so the other exports stay genuine.
+const startShim = {
+  name: "aloya:react-start-test-shim",
+  enforce: "pre" as const,
+  resolveId(id: string, importer?: string) {
+    if (id !== "@tanstack/react-start") return null;
+    if (importer?.includes("react-start-shim")) return null;
+    return path.resolve(import.meta.dirname, "src/test/react-start-shim.ts");
+  },
+};
+
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  plugins: [tsconfigPaths(), startShim],
+
   test: {
     environment: "node",
     globals: false,
