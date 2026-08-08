@@ -54,8 +54,20 @@ const { planMultiLeg } = await import("../multileg.functions");
 let idCounter = 0;
 function makeItinerary(over: Partial<Itinerary> = {}): Itinerary {
   idCounter++;
-  const board = { stopId: "s1", name: "Stop A", lat: NICOSIA.lat, lng: NICOSIA.lng, departureUnix: 1_700_000_000 };
-  const alight = { stopId: "s2", name: "Stop B", lat: LIMASSOL.lat, lng: LIMASSOL.lng, arrivalUnix: 1_700_001_800 };
+  const board = {
+    stopId: "s1",
+    name: "Stop A",
+    lat: NICOSIA.lat,
+    lng: NICOSIA.lng,
+    departureUnix: 1_700_000_000,
+  };
+  const alight = {
+    stopId: "s2",
+    name: "Stop B",
+    lat: LIMASSOL.lat,
+    lng: LIMASSOL.lng,
+    arrivalUnix: 1_700_001_800,
+  };
   const ride: RideLeg = {
     kind: "ride",
     routeId: `r${idCounter}`,
@@ -135,8 +147,20 @@ describe("planMultiLeg", () => {
           routeLong: "Long",
           tripId: "tl",
           live: true,
-          board: { stopId: "s1", name: "A", lat: NICOSIA.lat, lng: NICOSIA.lng, departureUnix: 1_700_000_000 },
-          alight: { stopId: "s2", name: "B", lat: LIMASSOL.lat, lng: LIMASSOL.lng, arrivalUnix: 1_700_000_000 + 400 * 60 },
+          board: {
+            stopId: "s1",
+            name: "A",
+            lat: NICOSIA.lat,
+            lng: NICOSIA.lng,
+            departureUnix: 1_700_000_000,
+          },
+          alight: {
+            stopId: "s2",
+            name: "B",
+            lat: LIMASSOL.lat,
+            lng: LIMASSOL.lng,
+            arrivalUnix: 1_700_000_000 + 400 * 60,
+          },
           stopCount: 3,
           delaySec: 0,
         } as RideLeg,
@@ -171,15 +195,18 @@ describe("planMultiLeg", () => {
   });
 
   it("applies no-mediocrity pruning: a mediocre transfer loses to the best direct option", async () => {
-    const direct = makeItinerary({ id: "direct", transfers: 0, totalDurationSec: 1000, score: 1000 });
+    const direct = makeItinerary({
+      id: "direct",
+      transfers: 0,
+      totalDurationSec: 1000,
+      score: 1000,
+    });
     const barelyBetterTransfer = makeItinerary({
       id: "transfer",
       transfers: 1,
       totalDurationSec: 950,
       score: 950,
-      legs: [
-        { ...(direct.legs[0] as RideLeg), routeId: "other-route" },
-      ],
+      legs: [{ ...(direct.legs[0] as RideLeg), routeId: "other-route" }],
     });
     state.live.itineraries = [direct, barelyBetterTransfer];
     const out = await callServerFn(planMultiLeg, {
@@ -194,7 +221,12 @@ describe("planMultiLeg", () => {
   });
 
   it("applies a learned skip-transfer penalty once skips reach the threshold", async () => {
-    const direct = makeItinerary({ id: "direct", transfers: 0, totalDurationSec: 1000, score: 1000 });
+    const direct = makeItinerary({
+      id: "direct",
+      transfers: 0,
+      totalDurationSec: 1000,
+      score: 1000,
+    });
     const muchBetterTransfer = makeItinerary({
       id: "transfer",
       transfers: 1,
@@ -211,7 +243,12 @@ describe("planMultiLeg", () => {
   });
 
   it("prunes airport-transfer noise and sorts direct-first for airport queries", async () => {
-    const direct = makeItinerary({ id: "direct", transfers: 0, totalDurationSec: 3600, score: 3600 });
+    const direct = makeItinerary({
+      id: "direct",
+      transfers: 0,
+      totalDurationSec: 3600,
+      score: 3600,
+    });
     const transfer = makeItinerary({
       id: "transfer",
       transfers: 1,

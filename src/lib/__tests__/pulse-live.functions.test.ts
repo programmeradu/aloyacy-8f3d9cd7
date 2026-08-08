@@ -15,7 +15,13 @@ const { getPulseLive, getDustAdvisory } = await import("../pulse-live.functions"
 
 const NICOSIA = { lat: 35.1856, lng: 33.3823 };
 
-function signal(key: string, scope: string, payload: Record<string, unknown>, ageMs = 0, ttl = 3600) {
+function signal(
+  key: string,
+  scope: string,
+  payload: Record<string, unknown>,
+  ageMs = 0,
+  ttl = 3600,
+) {
   return {
     key,
     scope,
@@ -110,7 +116,13 @@ describe("getDustAdvisory", () => {
 
   it("returns null when pm10/band are both benign", async () => {
     state.pulseSignals = {
-      data: [{ scope: "nicosia", payload: { pm10: 20, band: "good" }, fetched_at: new Date().toISOString() }],
+      data: [
+        {
+          scope: "nicosia",
+          payload: { pm10: 20, band: "good" },
+          fetched_at: new Date().toISOString(),
+        },
+      ],
       error: null,
     };
     expect(await callServerFn(getDustAdvisory, NICOSIA)).toBeNull();
@@ -149,7 +161,13 @@ describe("getDustAdvisory", () => {
 
   it("fires poor-air severity purely from band when pm10 is low", async () => {
     state.pulseSignals = {
-      data: [{ scope: "nicosia", payload: { pm10: 10, band: "poor" }, fetched_at: new Date().toISOString() }],
+      data: [
+        {
+          scope: "nicosia",
+          payload: { pm10: 10, band: "poor" },
+          fetched_at: new Date().toISOString(),
+        },
+      ],
       error: null,
     };
     const out = await callServerFn(getDustAdvisory, NICOSIA);

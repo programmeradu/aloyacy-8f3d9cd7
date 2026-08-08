@@ -155,9 +155,7 @@ describe("jccSync", () => {
   });
 
   it("reports a card error for a wrong cardUID", async () => {
-    fetchMock.mockResolvedValue(
-      textResponse("Wrong cardUID provided", { ok: false, status: 400 }),
-    );
+    fetchMock.mockResolvedValue(textResponse("Wrong cardUID provided", { ok: false, status: 400 }));
     const out = await callServerFn(jccSync, { accessToken: "a".repeat(20), cardUid: "1234567890" });
     expect(out).toEqual({
       ok: false,

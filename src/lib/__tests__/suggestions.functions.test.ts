@@ -29,7 +29,9 @@ vi.mock("@/integrations/supabase/client.server", () => {
   });
   (client as unknown as { auth: unknown }).auth = {
     getUser: vi.fn(async () =>
-      state.user ? { data: { user: state.user }, error: null } : { data: { user: null }, error: null },
+      state.user
+        ? { data: { user: state.user }, error: null }
+        : { data: { user: null }, error: null },
     ),
   };
   return { supabaseAdmin: client };
@@ -40,9 +42,8 @@ vi.mock("../device-auth.server", () => ({
   ensureDeviceToken: vi.fn(async () => state.ensure),
 }));
 
-const { claimDeviceToken, linkDeviceToUser, recordTripHistory, getTripSuggestions } = await import(
-  "../suggestions.functions"
-);
+const { claimDeviceToken, linkDeviceToUser, recordTripHistory, getTripSuggestions } =
+  await import("../suggestions.functions");
 
 const DEVICE = { deviceId: "device-1234567890", deviceToken: "token-1234567890123456789" };
 const POINT = { lat: 35.17, lng: 33.36, label: "Home" };

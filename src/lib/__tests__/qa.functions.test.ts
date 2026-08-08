@@ -49,9 +49,21 @@ describe("getQaStats", () => {
   it("counts phase transitions, detects backward and missed-connection errors", async () => {
     state.result = {
       data: [
-        row("phase-transition", { from: "idle", to: "riding", hourOfDay: 8, routeShort: "30" }, "2024-01-09T08:00:00Z"),
-        row("phase-transition", { from: "riding", to: "idle", hourOfDay: 8, routeShort: "30" }, "2024-01-09T08:05:00Z"),
-        row("phase-transition", { from: "riding", to: "missed-connection", hourOfDay: 9 }, "2024-01-09T09:00:00Z"),
+        row(
+          "phase-transition",
+          { from: "idle", to: "riding", hourOfDay: 8, routeShort: "30" },
+          "2024-01-09T08:00:00Z",
+        ),
+        row(
+          "phase-transition",
+          { from: "riding", to: "idle", hourOfDay: 8, routeShort: "30" },
+          "2024-01-09T08:05:00Z",
+        ),
+        row(
+          "phase-transition",
+          { from: "riding", to: "missed-connection", hourOfDay: 9 },
+          "2024-01-09T09:00:00Z",
+        ),
       ],
       error: null,
     };
@@ -60,7 +72,9 @@ describe("getQaStats", () => {
     // idle -> riding is forward (not error); riding -> idle is a "to === idle" reset
     // so excluded; riding -> missed-connection is always an error.
     expect(out.totals.phaseErrors).toBe(1);
-    expect(out.phaseErrorBreakdown).toEqual([{ from: "riding", to: "missed-connection", count: 1 }]);
+    expect(out.phaseErrorBreakdown).toEqual([
+      { from: "riding", to: "missed-connection", count: 1 },
+    ]);
     const hour8 = out.byHour.find((h) => h.hour === 8)!;
     expect(hour8.phaseErrors).toBe(0);
     const hour9 = out.byHour.find((h) => h.hour === 9)!;
@@ -91,8 +105,16 @@ describe("getQaStats", () => {
       data: [
         row("boarding-prompt-shown", { hourOfDay: 8, routeShort: "30" }, "2024-01-09T08:00:00Z"),
         row("boarding-prompt-shown", { hourOfDay: 8, routeShort: "30" }, "2024-01-09T08:01:00Z"),
-        row("boarding-prompt-confirmed", { hourOfDay: 8, routeShort: "30" }, "2024-01-09T08:02:00Z"),
-        row("missed-bus-false-positive", { hourOfDay: 8, routeShort: "30", gapMs: 5000 }, "2024-01-09T08:03:00Z"),
+        row(
+          "boarding-prompt-confirmed",
+          { hourOfDay: 8, routeShort: "30" },
+          "2024-01-09T08:02:00Z",
+        ),
+        row(
+          "missed-bus-false-positive",
+          { hourOfDay: 8, routeShort: "30", gapMs: 5000 },
+          "2024-01-09T08:03:00Z",
+        ),
         row("transfer-missed", {}, "2024-01-09T08:04:00Z"),
       ],
       error: null,

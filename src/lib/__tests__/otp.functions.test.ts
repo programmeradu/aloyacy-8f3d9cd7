@@ -64,7 +64,11 @@ describe("requestEmailOtp", () => {
     sendAuthOtpEmail.mockResolvedValue({ ok: true });
     await callServerFn(requestEmailOtp, { email: "two@example.com" });
     const out = await callServerFn(requestEmailOtp, { email: "two@example.com" });
-    expect(out).toEqual({ ok: true, throttled: true, message: expect.stringContaining("Try again") });
+    expect(out).toEqual({
+      ok: true,
+      throttled: true,
+      message: expect.stringContaining("Try again"),
+    });
   });
 
   it("allows a new request after the throttle window passes", async () => {
@@ -98,9 +102,9 @@ describe("linkEmailAndRequestOtp", () => {
   });
 
   it("rejects without auth", async () => {
-    await expect(
-      callServerFn(linkEmailAndRequestOtp, { email: "a@b.com" }),
-    ).rejects.toThrow("Unauthorized");
+    await expect(callServerFn(linkEmailAndRequestOtp, { email: "a@b.com" })).rejects.toThrow(
+      "Unauthorized",
+    );
   });
 
   it("refuses to link when the caller is not anonymous", async () => {

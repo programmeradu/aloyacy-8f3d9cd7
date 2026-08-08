@@ -34,7 +34,9 @@ vi.mock("@supabase/supabase-js", () => ({
   createClient: vi.fn(() => ({
     auth: {
       getClaims: vi.fn(async () =>
-        state.claims ? { data: { claims: state.claims }, error: null } : { data: null, error: { message: "bad token" } },
+        state.claims
+          ? { data: { claims: state.claims }, error: null }
+          : { data: null, error: { message: "bad token" } },
       ),
     },
     from: makeSupabaseMock({ arrival_promises: () => state.arrival_promises }).client.from,
@@ -42,7 +44,9 @@ vi.mock("@supabase/supabase-js", () => ({
 }));
 
 vi.mock("@tanstack/react-start/server", () => ({
-  getRequest: vi.fn(() => new Request("http://localhost/x", { headers: { authorization: "Bearer good-token" } })),
+  getRequest: vi.fn(
+    () => new Request("http://localhost/x", { headers: { authorization: "Bearer good-token" } }),
+  ),
 }));
 
 vi.mock("@/lib/arrival-promise.server", () => ({
@@ -54,12 +58,8 @@ vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: makeSupabaseMock({ push_subscriptions: { data: null, error: null } }).client,
 }));
 
-const {
-  createArrivalPromise,
-  listArrivalPromises,
-  cancelArrivalPromise,
-  refreshArrivalPromise,
-} = await import("../arrival-promise.functions");
+const { createArrivalPromise, listArrivalPromises, cancelArrivalPromise, refreshArrivalPromise } =
+  await import("../arrival-promise.functions");
 
 const ORIGIN = { lat: 35.17, lng: 33.36, label: "Home" };
 const DEST = { lat: 34.917, lng: 33.64, label: "Beach" };
@@ -123,7 +123,13 @@ describe("arrival-promise server functions (auth)", () => {
   });
 
   it("marks the promise missed when the plan is unmakeable", async () => {
-    state.plan = { ...state.plan, unmakeable: true, itinerary: null, best: null, leaveByUnix: null };
+    state.plan = {
+      ...state.plan,
+      unmakeable: true,
+      itinerary: null,
+      best: null,
+      leaveByUnix: null,
+    };
     state.arrival_promises = { data: [{ id: "p2", status: "missed" }], error: null };
     const out = await callServerFn(createArrivalPromise, {
       targetArrivalUnix: futureUnix(3600),
@@ -154,7 +160,9 @@ describe("arrival-promise server functions (auth)", () => {
 
   it("propagates a list query error", async () => {
     state.arrival_promises = { data: null, error: { message: "list failed" } };
-    await expect(callServerFn(listArrivalPromises, undefined as never)).rejects.toThrow(/list failed/);
+    await expect(callServerFn(listArrivalPromises, undefined as never)).rejects.toThrow(
+      /list failed/,
+    );
   });
 
   it("rejects a malformed id when cancelling", async () => {

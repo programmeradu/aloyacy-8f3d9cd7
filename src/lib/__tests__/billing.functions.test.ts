@@ -11,12 +11,12 @@ const dbState: { tables: Record<string, TableResult | ((calls: QueryCall[]) => T
   tables: {},
 };
 
-let sharedClient: ReturnType<typeof makeSupabaseMock>["client"];
+let _sharedClient: ReturnType<typeof makeSupabaseMock>["client"];
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient: vi.fn(() => {
     const { client } = makeSupabaseMock(dbState.tables);
-    sharedClient = client;
+    _sharedClient = client;
     return {
       ...client,
       auth: {

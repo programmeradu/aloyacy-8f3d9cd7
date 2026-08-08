@@ -55,7 +55,13 @@ describe("getNlSuggestions", () => {
       recorded_at: new Date().toISOString(),
     }));
     state.result = { data: rows, error: null };
-    const out = await callServerFn(getNlSuggestions, { ...DEVICE, hour: 9, dow: 2, lat: 35.17, lng: 33.36 });
+    const out = await callServerFn(getNlSuggestions, {
+      ...DEVICE,
+      hour: 9,
+      dow: 2,
+      lat: 35.17,
+      lng: 33.36,
+    });
     expect(out.suggestions.some((s) => s.reason === "personal")).toBe(true);
     expect(out.suggestions.some((s) => s.text.includes("Eleftheria Square"))).toBe(true);
   });
