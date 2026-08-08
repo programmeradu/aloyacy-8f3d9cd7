@@ -18,6 +18,8 @@ vi.mock("../trip-store", () => ({
 
 vi.mock("../pwa", () => ({
   getDeviceId: () => "device-1",
+  getDeviceToken: vi.fn(async () => "device-token-1"),
+  getAccessToken: vi.fn(async () => "access-token-1"),
 }));
 
 const detectWrongStopMock = vi.fn(() => null);
