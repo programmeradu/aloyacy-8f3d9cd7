@@ -17,6 +17,7 @@ import { useAuth } from "./useAuth";
 
 export function useUserDataRealtime() {
   const { user } = useAuth();
+  const userId = user?.id;
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -33,14 +34,14 @@ export function useUserDataRealtime() {
       )
       .subscribe();
 
-    if (!user) {
+    if (!userId) {
       return () => {
         void supabase.removeChannel(counters);
       };
     }
 
     const userChan = supabase
-      .channel(`rt-user-${user.id}`)
+      .channel(`rt-user-${userId}`)
       // subscriptions is intentionally NOT in the supabase_realtime publication
       // (it contains Stripe IDs). Rely on cache invalidation on webhook writes
       // + the natural refetch cadence instead.
@@ -51,7 +52,7 @@ export function useUserDataRealtime() {
           event: "*",
           schema: "public",
           table: "scheduled_departures",
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ["scheduled-departures"] });
@@ -64,7 +65,7 @@ export function useUserDataRealtime() {
           event: "*",
           schema: "public",
           table: "commute_patterns",
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ["commute-suggestion"] });
@@ -77,5 +78,5 @@ export function useUserDataRealtime() {
       void supabase.removeChannel(counters);
       void supabase.removeChannel(userChan);
     };
-  }, [user, queryClient]);
+  }, [userId, queryClient]);
 }
