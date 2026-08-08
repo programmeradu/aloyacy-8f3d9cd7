@@ -40,7 +40,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
 const createStripeClient = vi.fn();
 const getStripeErrorMessage = vi.fn((e: unknown) => (e instanceof Error ? e.message : "err"));
 vi.mock("../stripe.server", () => ({
-  createStripeClient: (...args: unknown[]) => createStripeClient(...args),
+  createStripeClient: (...args: never[]) => createStripeClient(...args),
   getStripeErrorMessage: (...args: unknown[]) => getStripeErrorMessage(...args),
 }));
 
@@ -145,8 +145,12 @@ describe("createCheckoutSession", () => {
     );
     expect(out).toEqual({ clientSecret: "secret_2" });
     expect(create).toHaveBeenCalled();
-    const sessionArgs = sessionCreate.mock.calls[0][0];
-    expect(sessionArgs.subscription_data.trial_period_days).toBe(7);
+    const sessionArgs = (
+      sessionCreate.mock.calls as unknown as Array<
+        [{ subscription_data?: { trial_period_days?: number } }]
+      >
+    )[0]![0];
+    expect(sessionArgs.subscription_data?.trial_period_days).toBe(7);
   });
 
   it("does not grant a trial when the device already redeemed one", async () => {
@@ -164,8 +168,12 @@ describe("createCheckoutSession", () => {
       { ...CHECKOUT_INPUT, deviceId: "device-12345" },
       auth(),
     );
-    const sessionArgs = sessionCreate.mock.calls[0][0];
-    expect(sessionArgs.subscription_data.trial_period_days).toBeUndefined();
+    const sessionArgs = (
+      sessionCreate.mock.calls as unknown as Array<
+        [{ subscription_data?: { trial_period_days?: number } }]
+      >
+    )[0]![0];
+    expect(sessionArgs.subscription_data?.trial_period_days).toBeUndefined();
   });
 
   it("reuses an existing customer found by email and syncs its metadata", async () => {
@@ -181,7 +189,10 @@ describe("createCheckoutSession", () => {
     });
     const out = await callServerFn(createCheckoutSession, CHECKOUT_INPUT, auth());
     expect(out).toEqual({ clientSecret: "secret_4" });
-    expect(update).toHaveBeenCalledWith("cus_email", expect.objectContaining({ metadata: expect.any(Object) }));
+    expect(update).toHaveBeenCalledWith(
+      "cus_email",
+      expect.objectContaining({ metadata: expect.any(Object) }),
+    );
   });
 
   it("returns an error and rolls back the trial when Stripe returns no secret", async () => {

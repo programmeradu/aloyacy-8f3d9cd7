@@ -18,8 +18,8 @@ vi.mock("@/integrations/supabase/client.server", () => {
 const generateGroupCode = vi.fn(() => "ABCD12");
 const memberEtaMinutes = vi.fn(async () => 7);
 vi.mock("../trip-groups.server", () => ({
-  generateGroupCode: (...args: unknown[]) => generateGroupCode(...args),
-  memberEtaMinutes: (...args: unknown[]) => memberEtaMinutes(...args),
+  generateGroupCode: (...args: never[]) => generateGroupCode(...args),
+  memberEtaMinutes: (...args: never[]) => memberEtaMinutes(...args),
 }));
 
 const { createTripGroup, pingGroupMember, leaveTripGroup, endTripGroup, joinTripGroup } =
@@ -271,9 +271,7 @@ describe("endTripGroup", () => {
       trip_group_members: { data: { id: "m1", group_id: "g1", is_creator: true }, error: null },
       trip_groups: { data: null, error: { message: "boom" } },
     };
-    await expect(callServerFn(endTripGroup, { memberToken: TOKEN })).rejects.toThrow(
-      "end failed",
-    );
+    await expect(callServerFn(endTripGroup, { memberToken: TOKEN })).rejects.toThrow("end failed");
   });
 });
 
@@ -284,9 +282,7 @@ describe("joinTripGroup", () => {
   });
 
   it("rejects a too-short code", async () => {
-    await expect(
-      callServerFn(joinTripGroup, { code: "ab", displayName: "Bo" }),
-    ).rejects.toThrow();
+    await expect(callServerFn(joinTripGroup, { code: "ab", displayName: "Bo" })).rejects.toThrow();
   });
 
   it("throws when the group lookup fails", async () => {
@@ -306,7 +302,12 @@ describe("joinTripGroup", () => {
   it("throws when the group has ended", async () => {
     state.tables = {
       trip_groups: {
-        data: { id: "g1", destination_lat: DEST.lat, destination_lng: DEST.lng, expires_at: "2020-01-01T00:00:00Z" },
+        data: {
+          id: "g1",
+          destination_lat: DEST.lat,
+          destination_lng: DEST.lng,
+          expires_at: "2020-01-01T00:00:00Z",
+        },
         error: null,
       },
     };
@@ -318,7 +319,12 @@ describe("joinTripGroup", () => {
   it("joins and computes an ETA when origin is given", async () => {
     state.tables = {
       trip_groups: {
-        data: { id: "g1", destination_lat: DEST.lat, destination_lng: DEST.lng, expires_at: "2030-01-01T00:00:00Z" },
+        data: {
+          id: "g1",
+          destination_lat: DEST.lat,
+          destination_lng: DEST.lng,
+          expires_at: "2030-01-01T00:00:00Z",
+        },
         error: null,
       },
       trip_group_members: { data: null, error: null },
@@ -335,7 +341,12 @@ describe("joinTripGroup", () => {
   it("throws when the member insert fails", async () => {
     state.tables = {
       trip_groups: {
-        data: { id: "g1", destination_lat: DEST.lat, destination_lng: DEST.lng, expires_at: "2030-01-01T00:00:00Z" },
+        data: {
+          id: "g1",
+          destination_lat: DEST.lat,
+          destination_lng: DEST.lng,
+          expires_at: "2030-01-01T00:00:00Z",
+        },
         error: null,
       },
       trip_group_members: { data: null, error: { message: "boom" } },

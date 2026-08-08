@@ -18,9 +18,8 @@ vi.mock("./webpush.server", () => ({
   sendWebPush: (...args: unknown[]) => sendWebPush(...args),
 }));
 
-const { saveSubscription, removeSubscription, sendTestPush, sendTripAlert } = await import(
-  "../push.functions"
-);
+const { saveSubscription, removeSubscription, sendTestPush, sendTripAlert } =
+  await import("../push.functions");
 
 const sub = {
   endpoint: "https://push.example.com/abc",
@@ -202,7 +201,11 @@ describe("sendTripAlert", () => {
       error: null,
     };
     sendWebPush.mockResolvedValue({ ok: true, status: 201 });
-    await callServerFn(sendTripAlert, { deviceId: "device-12345", kind: "hurry-urgent", minutes: 1 });
+    await callServerFn(sendTripAlert, {
+      deviceId: "device-12345",
+      kind: "hurry-urgent",
+      minutes: 1,
+    });
     const payload = sendWebPush.mock.calls[0][0].payload;
     expect(payload.requireInteraction).toBe(true);
   });
