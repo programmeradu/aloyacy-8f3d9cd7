@@ -15,11 +15,11 @@ vi.mock("@/integrations/supabase/client.server", () => {
   };
 });
 
-const generateGroupCode = vi.fn(() => "ABCD12");
-const memberEtaMinutes = vi.fn(async () => 7);
+const generateGroupCode = vi.fn((..._args: unknown[]) => "ABCD12");
+const memberEtaMinutes = vi.fn(async (..._args: unknown[]) => 7);
 vi.mock("../trip-groups.server", () => ({
-  generateGroupCode: (...args: never[]) => generateGroupCode(...args),
-  memberEtaMinutes: (...args: never[]) => memberEtaMinutes(...args),
+  generateGroupCode: (...args: unknown[]) => generateGroupCode(...args),
+  memberEtaMinutes: (...args: unknown[]) => memberEtaMinutes(...args),
 }));
 
 const { createTripGroup, pingGroupMember, leaveTripGroup, endTripGroup, joinTripGroup } =

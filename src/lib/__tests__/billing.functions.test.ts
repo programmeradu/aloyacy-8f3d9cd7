@@ -37,10 +37,10 @@ vi.mock("@/integrations/supabase/client.server", () => ({
   },
 }));
 
-const createStripeClient = vi.fn();
+const createStripeClient = vi.fn((..._args: unknown[]) => undefined as unknown);
 const getStripeErrorMessage = vi.fn((e: unknown) => (e instanceof Error ? e.message : "err"));
 vi.mock("../stripe.server", () => ({
-  createStripeClient: (...args: never[]) => createStripeClient(...args),
+  createStripeClient: (...args: unknown[]) => createStripeClient(...args),
   getStripeErrorMessage: (...args: unknown[]) => getStripeErrorMessage(...args),
 }));
 
