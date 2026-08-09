@@ -3,8 +3,11 @@ import type Stripe from "stripe";
 import { type StripeEnv, createStripeClient, getWebhookSecret } from "@/lib/stripe.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { createLogger, serializeError } from "@/lib/logger";
+import { parseQuery } from "@/lib/http/validate";
+import { StripeEnvQuerySchema } from "@/lib/schemas/public-api";
 
 const log = createLogger("stripe-webhook");
+
 
 
 // Validated at the edge: an unexpected `env` value would otherwise be coerced
