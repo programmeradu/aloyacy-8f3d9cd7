@@ -132,3 +132,38 @@ describe("TripGroupsEnvelopeSchema", () => {
     );
   });
 });
+
+describe("IngestScheduleBodySchema", () => {
+  it("treats an empty body as the default window", () => {
+    const parsed = IngestScheduleBodySchema.safeParse(undefined);
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.days).toBeUndefined();
+  });
+
+  it("accepts a day count inside the supported window", () => {
+    expect(IngestScheduleBodySchema.safeParse({ days: 1, force: true }).success).toBe(true);
+    expect(IngestScheduleBodySchema.safeParse({ days: 14 }).success).toBe(true);
+  });
+
+  it("rejects a window the ingest cannot serve", () => {
+    expect(IngestScheduleBodySchema.safeParse({ days: 0 }).success).toBe(false);
+    expect(IngestScheduleBodySchema.safeParse({ days: 200 }).success).toBe(false);
+    expect(IngestScheduleBodySchema.safeParse({ days: 3.5 }).success).toBe(false);
+  });
+});
+
+describe("StripeEnvQuerySchema", () => {
+  it("defaults to sandbox when the caller omits the environment", () => {
+    const parsed = StripeEnvQuerySchema.safeParse({});
+    expect(parsed.success && parsed.data.env).toBe("sandbox");
+  });
+
+  it("accepts the two real environments", () => {
+    expect(StripeEnvQuerySchema.safeParse({ env: "live" }).success).toBe(true);
+    expect(StripeEnvQuerySchema.safeParse({ env: "sandbox" }).success).toBe(true);
+  });
+
+  it("rejects an unknown environment instead of silently downgrading it", () => {
+    expect(StripeEnvQuerySchema.safeParse({ env: "prod" }).success).toBe(false);
+  });
+});
