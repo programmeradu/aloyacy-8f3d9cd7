@@ -11,6 +11,8 @@
 // Everything else is re-exported from the real package.
 export * from "@tanstack/react-start";
 
+import { runWithTestRequest } from "./start-request-context";
+
 type AnyFn = (...args: unknown[]) => unknown;
 
 type MiddlewareEntry = {
@@ -89,7 +91,7 @@ export function createServerFn(config?: { method?: string }) {
           return outcome;
         };
 
-        return run(0, { ...(opts.context ?? {}) });
+        return runWithTestRequest(request, () => run(0, { ...(opts.context ?? {}) }));
       };
 
       // Mirror the shape the real factory exposes so helpers can detect it.
