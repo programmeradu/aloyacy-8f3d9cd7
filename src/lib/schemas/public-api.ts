@@ -213,3 +213,25 @@ export const PlanBodySchema = z.object({
   arriveByUnix: z.number().int().positive().optional(),
   a11y: PlanA11ySchema,
 });
+
+/**
+ * Cron/ops hook that rebuilds the schedule shards. The body is optional — an
+ * empty POST means "default window" — but a supplied `days` is clamped by the
+ * schema rather than by hand, so an absurd value is rejected at the edge
+ * instead of quietly turning into a 200-day download.
+ */
+export const IngestScheduleBodySchema = z
+  .object({
+    days: z.number().int().min(1).max(14).optional(),
+    force: z.boolean().optional(),
+  })
+  .default({});
+
+/**
+ * Stripe posts webhooks to `?env=live` or `?env=sandbox`. Anything else is a
+ * misconfigured endpoint, and silently defaulting it would verify the payload
+ * against the wrong signing secret.
+ */
+export const StripeEnvQuerySchema = z.object({
+  env: z.enum(["live", "sandbox"]).default("sandbox"),
+});
