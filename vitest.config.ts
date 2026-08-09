@@ -65,15 +65,15 @@ export default defineConfig({
       // core is the part every client depends on, so it carries a much
       // higher bar than the app-glue average.
       thresholds: {
-        lines: 58,
-        statements: 58,
+        lines: 75,
+        statements: 75,
         functions: 90,
         branches: 88,
         "packages/core/src/**/*.ts": {
-          lines: 70,
-          statements: 70,
-          functions: 80,
-          branches: 85,
+          lines: 78,
+          statements: 78,
+          functions: 85,
+          branches: 88,
         },
       },
     },
