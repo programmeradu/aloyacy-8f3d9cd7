@@ -16,6 +16,8 @@ type ServerFnLike<TData, TResult> = {
     context?: Record<string, unknown>;
     method?: string;
     signal?: AbortSignal;
+    headers?: Record<string, string>;
+    request?: Request;
   }) => Promise<{ result: TResult; error?: unknown }>;
   method?: string;
 };
@@ -64,6 +66,8 @@ export async function callServerFn<TData, TResult>(
         data,
         context: init.context ?? {},
         method: target.method ?? "POST",
+        headers: init.headers,
+        request,
         ...(init.signal ? { signal: init.signal } : {}),
       }),
   );

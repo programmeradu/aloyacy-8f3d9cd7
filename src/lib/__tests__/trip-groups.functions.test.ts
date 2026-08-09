@@ -27,7 +27,7 @@ const { createTripGroup, pingGroupMember, leaveTripGroup, endTripGroup, joinTrip
 
 const DEST = { lat: 35.1, lng: 33.3 };
 const ORIGIN = { lat: 35.2, lng: 33.4 };
-const TOKEN = "11111111-1111-1111-1111-111111111111";
+const TOKEN = "11111111-1111-4111-8111-111111111111";
 
 describe("createTripGroup", () => {
   beforeEach(() => {

@@ -14,7 +14,7 @@ vi.mock("@/integrations/supabase/client.server", () => {
 });
 
 const sendWebPush = vi.fn();
-vi.mock("./webpush.server", () => ({
+vi.mock("../webpush.server", () => ({
   sendWebPush: (...args: unknown[]) => sendWebPush(...args),
 }));
 

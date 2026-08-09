@@ -172,7 +172,7 @@ describe("arrival-promise server functions (auth)", () => {
   it("cancels a promise by id", async () => {
     state.arrival_promises = { data: null, error: null };
     const out = await callServerFn(cancelArrivalPromise, {
-      id: "11111111-1111-1111-1111-111111111111",
+      id: "11111111-1111-4111-8111-111111111111",
     });
     expect(out).toEqual({ ok: true });
   });
@@ -181,7 +181,7 @@ describe("arrival-promise server functions (auth)", () => {
     state.arrival_promises = {
       data: [
         {
-          id: "11111111-1111-1111-1111-111111111111",
+          id: "11111111-1111-4111-8111-111111111111",
           target_arrival_unix: futureUnix(3600),
           margin_pref: "normal",
           origin_lat: ORIGIN.lat,
@@ -197,15 +197,15 @@ describe("arrival-promise server functions (auth)", () => {
       error: null,
     };
     const out = await callServerFn(refreshArrivalPromise, {
-      id: "11111111-1111-1111-1111-111111111111",
+      id: "11111111-1111-4111-8111-111111111111",
     });
-    expect((out as { id: string }).id).toBe("11111111-1111-1111-1111-111111111111");
+    expect((out as { id: string }).id).toBe("11111111-1111-4111-8111-111111111111");
   });
 
   it("throws when the promise to refresh is not found", async () => {
     state.arrival_promises = { data: null, error: { message: "not found" } };
     await expect(
-      callServerFn(refreshArrivalPromise, { id: "11111111-1111-1111-1111-111111111111" }),
+      callServerFn(refreshArrivalPromise, { id: "11111111-1111-4111-8111-111111111111" }),
     ).rejects.toThrow(/not found/);
   });
 });

@@ -129,7 +129,7 @@ describe("getQaStats", () => {
     const route30 = out.byRoute.find((r) => r.routeShort === "30")!;
     expect(route30.coveragePct).toBe(50);
     expect(route30.falsePositives).toBe(1);
-    expect(out.recent[0].summary).toContain("false miss");
+    expect(out.recent[3].summary).toContain("false miss");
   });
 
   it("falls back to recorded_at's hour when hourOfDay is missing", async () => {

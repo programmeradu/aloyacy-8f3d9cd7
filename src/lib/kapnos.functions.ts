@@ -197,7 +197,10 @@ export type KapnosSuggestion = {
   routeUrl: string;
 };
 
-const Point = z.object({ lat: z.number(), lng: z.number() });
+const Point = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+});
 
 /** Convert a unix-second instant to Cyprus-local "YYYY-MM-DD HH:MM:SS". */
 function unixToCyprusLocal(unixSec: number): string {

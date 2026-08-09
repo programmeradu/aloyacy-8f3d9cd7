@@ -11,9 +11,12 @@ const startShim = {
   name: "aloya:react-start-test-shim",
   enforce: "pre" as const,
   resolveId(id: string, importer?: string) {
-    if (id !== "@tanstack/react-start") return null;
     if (importer?.includes("react-start-shim")) return null;
-    return path.resolve(import.meta.dirname, "src/test/react-start-shim.ts");
+    if (id === "@tanstack/react-start")
+      return path.resolve(import.meta.dirname, "src/test/react-start-shim.ts");
+    if (id === "@tanstack/react-start/server")
+      return path.resolve(import.meta.dirname, "src/test/react-start-server-shim.ts");
+    return null;
   },
 };
 
@@ -22,6 +25,18 @@ export default defineConfig({
 
   test: {
     environment: "node",
+    // Server modules read their configuration from `process.env` at call time
+    // and throw when it is absent. Seed inert placeholders so suites exercise
+    // real code paths instead of the "not configured" guard; any test that
+    // cares about a specific value overrides it with `vi.stubEnv`.
+    env: {
+      CUSTOM_SUPABASE_URL: "http://supabase.test",
+      CUSTOM_SUPABASE_ANON_KEY: "test-anon-key",
+      CUSTOM_SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key",
+      CUSTOM_SUPABASE_PUBLISHABLE_KEY: "test-publishable-key",
+      VITE_SUPABASE_URL: "http://supabase.test",
+      VITE_SUPABASE_PUBLISHABLE_KEY: "test-publishable-key",
+    },
     globals: false,
     include: [
       "src/**/*.{test,spec}.{ts,tsx}",
