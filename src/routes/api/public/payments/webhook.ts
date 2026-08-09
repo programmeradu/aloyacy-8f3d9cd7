@@ -6,8 +6,13 @@ import { createLogger, serializeError } from "@/lib/logger";
 
 const log = createLogger("stripe-webhook");
 
-function parseEnv(url: URL): StripeEnv {
-  return url.searchParams.get("env") === "live" ? "live" : "sandbox";
+
+// Validated at the edge: an unexpected `env` value would otherwise be coerced
+// to "sandbox" and checked against the wrong signing secret.
+function parseEnv(url: URL): { ok: true; env: StripeEnv } | { ok: false; response: Response } {
+  const parsed = parseQuery(url, StripeEnvQuerySchema);
+  if (!parsed.ok) return { ok: false, response: parsed.response };
+  return { ok: true, env: parsed.data.env as StripeEnv };
 }
 
 async function fetchCustomerEmail(customerId: string, env: StripeEnv) {
@@ -131,7 +136,9 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const env = parseEnv(new URL(request.url));
+        const parsedEnv = parseEnv(new URL(request.url));
+        if (!parsedEnv.ok) return parsedEnv.response;
+        const env = parsedEnv.env;
         const signature = request.headers.get("stripe-signature");
         const body = await request.text();
         if (!signature) return new Response("Missing signature", { status: 400 });
