@@ -18,23 +18,36 @@ routes.
 
 ## Quick start
 
-Requirements: **Node 20+** and **Bun 1.3+** (the repo is a Bun/pnpm workspace;
-`bun.lock` and `pnpm-lock.yaml` are both committed and either installs).
+Requirements: **Node 20+** and **Bun 1.3+**. The repo is a Bun workspace and
+`bun.lock` is committed, so installs are reproducible: `bun install --frozen-lockfile`
+resolves every dependency in the root app, `packages/core` and `mobile/` from
+that single lockfile. Bun is the only supported package manager — there is no
+`pnpm-lock.yaml` or `package-lock.json`, and adding one would let the two drift.
 
 ```bash
 git clone <this repo> aloya && cd aloya
-cp .env.example .env          # fill in the values you have; see below
-bun install
-bun run dev                   # http://localhost:8080
+cp .env.example .env               # fill in the values you have; see below
+bun install --frozen-lockfile      # exactly the versions CI installs
+bun run test                       # 1700+ vitest specs, fully offline
+bun run build                      # production build
+bun run dev                        # http://localhost:8080
 ```
 
-Run the checks the CI pipeline runs:
+Those four commands are the whole path from a fresh clone to a green suite: no
+credentials, no database, no network. `bun run test` is the same command CI runs
+on every push (as `bun run test:coverage`, which additionally enforces the
+coverage floors).
+
+Run the rest of the CI gate locally:
 
 ```bash
-bun run lint        # eslint
-bun run typecheck   # tsc --noEmit
-bun run test        # vitest run
+bun run lint          # eslint, --max-warnings=0
+bun run typecheck     # tsc --noEmit
+bun run check:env     # every process.env / import.meta.env name is in .env.example
+bun run check:secrets # scan for hardcoded credentials
+bun run test:coverage # vitest with the enforced coverage thresholds
 ```
+
 
 The app boots without any secrets: the bundled static GTFS data in `src/data/`
 renders stops, routes and timetables offline. Live arrivals, trip planning,
