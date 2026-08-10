@@ -8,8 +8,6 @@ import { StripeEnvQuerySchema } from "@/lib/schemas/public-api";
 
 const log = createLogger("stripe-webhook");
 
-
-
 // Validated at the edge: an unexpected `env` value would otherwise be coerced
 // to "sandbox" and checked against the wrong signing secret.
 function parseEnv(url: URL): { ok: true; env: StripeEnv } | { ok: false; response: Response } {

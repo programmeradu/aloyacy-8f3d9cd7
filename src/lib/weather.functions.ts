@@ -2,6 +2,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { createLogger } from "./logger";
+
+const log = createLogger("weather");
 const GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
 
 export type CurrentWeather = {
@@ -54,7 +57,7 @@ export const getCurrentWeather = createServerFn({ method: "GET" })
         signal: AbortSignal.timeout(8000),
       });
       if (!res.ok) {
-        console.warn(`[weather] upstream ${res.status}`);
+        log.warn("upstream error", { status: res.status });
         return null;
       }
       const json = (await res.json()) as {
@@ -73,7 +76,7 @@ export const getCurrentWeather = createServerFn({ method: "GET" })
         isDaytime: isDay,
       };
     } catch (err) {
-      console.warn("[weather] failed", err);
+      log.warn("failed", { err: err instanceof Error ? err.message : String(err) });
       return null;
     }
   });
