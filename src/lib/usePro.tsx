@@ -40,13 +40,14 @@ export function ProSubscriptionProvider({ children }: { children: ReactNode }) {
       return;
     }
     const env = getStripeEnvironment();
+    const uid: string = userId;
     let cancelled = false;
 
     async function load() {
       const { data } = await supabase
         .from("subscriptions")
         .select("status, current_period_end, cancel_at_period_end, plan_key")
-        .eq("user_id", userId)
+        .eq("user_id", uid)
         .eq("environment", env)
         .order("created_at", { ascending: false })
         .limit(1)
