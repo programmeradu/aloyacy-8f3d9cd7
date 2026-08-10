@@ -1,7 +1,9 @@
 import { StyleSheet, View } from "react-native";
 import { AppText } from "./AppText";
-import type { MapViewProps } from "./MapView.native";
 
+export type MapMarker = any;
+export type VehicleOverride = any;
+export type MapViewProps = any;
 const LIMESTONE = "#f3ede1";
 const INK = "#2a261f";
 const AEGEAN = "#3F9BB2";

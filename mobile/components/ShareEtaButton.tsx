@@ -4,14 +4,16 @@
 // broadcast-pin glyph so it reads as a premium companion feature rather
 // than a plain row of text.
 
-import { useCallback, useEffect, useRef } from "react";
-import { View, Text, Pressable, StyleSheet, Share, Alert, Animated, Easing } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { View, Text, Pressable, StyleSheet, Share, Alert, Animated, Easing, Modal } from "react-native";
 import Svg, { Path, Circle } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
+import * as SMS from "expo-sms";
 import { palette } from "@/constants/theme";
 import { useShareEta } from "@/lib/useShareEta";
 import type { ActiveTrip } from "@/lib/trip-store";
+import { ContactPicker, type ContactSummary } from "./ContactPicker";
 
 // Bespoke "broadcast pin" glyph — a single rider silhouette inside a
 // location pin with three concentric arcs radiating outward, i.e. one
@@ -70,6 +72,7 @@ export function ShareEtaButton({
   etaMinutes: number | null;
 }) {
   const { session, create, stop, creating } = useShareEta({ active, fix, etaMinutes });
+  const [showContacts, setShowContacts] = useState(false);
 
   const onPress = useCallback(async () => {
     void Haptics.selectionAsync();
@@ -81,16 +84,47 @@ export function ShareEtaButton({
         return;
       }
     }
-    try {
-      await Share.share({
-        message: `Follow my trip to ${active.to.label}: ${s.url}`,
-        url: s.url,
-      });
-    } catch {
-      await Clipboard.setStringAsync(s.url);
-      Alert.alert("Link copied", s.url);
-    }
+
+    Alert.alert("Share tracking link", "How would you like to share your live ETA?", [
+      {
+        text: "Select from Contacts",
+        onPress: () => setShowContacts(true),
+      },
+      {
+        text: "Other Apps / Copy Link",
+        onPress: async () => {
+          try {
+            await Share.share({
+              message: `Follow my trip to ${active.to.label}: ${s!.url}`,
+              url: s!.url,
+            });
+          } catch {
+            await Clipboard.setStringAsync(s!.url);
+            Alert.alert("Link copied", s!.url);
+          }
+        },
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
   }, [session, create, active.to.label]);
+
+  const onSelectContact = useCallback(
+    async (contact: ContactSummary) => {
+      setShowContacts(false);
+      if (!session || !contact.phone) return;
+
+      const isAvailable = await SMS.isAvailableAsync();
+      if (isAvailable) {
+        await SMS.sendSMSAsync(
+          [contact.phone],
+          `Follow my trip to ${active.to.label} on Aloya: ${session.url}`
+        );
+      } else {
+        Alert.alert("SMS not available", "Try sharing via other apps instead.");
+      }
+    },
+    [session, active.to.label]
+  );
 
   const onLongPress = useCallback(() => {
     if (!session) return;
@@ -130,44 +164,58 @@ export function ShareEtaButton({
   const haloOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0] });
 
   return (
-    <Pressable
-      onPress={onPress}
-      onLongPress={onLongPress}
-      disabled={creating}
-      style={({ pressed }) => [
-        styles.button,
-        isLive ? styles.buttonLive : styles.buttonIdle,
-        pressed && { opacity: 0.9, transform: [{ scale: 0.995 }] },
-      ]}
-    >
-      <View style={styles.leadIcon}>
-        <Animated.View
-          style={[
-            styles.halo,
-            { transform: [{ scale: haloScale }], opacity: haloOpacity },
-          ]}
+    <>
+      <Pressable
+        onPress={onPress}
+        onLongPress={onLongPress}
+        disabled={creating}
+        style={({ pressed }) => [
+          styles.button,
+          isLive ? styles.buttonLive : styles.buttonIdle,
+          pressed && { opacity: 0.9, transform: [{ scale: 0.995 }] },
+        ]}
+      >
+        <View style={styles.leadIcon}>
+          <Animated.View
+            style={[
+              styles.halo,
+              { transform: [{ scale: haloScale }], opacity: haloOpacity },
+            ]}
+          />
+          <BroadcastGlyph />
+          {isLive && (
+            <View style={styles.livePip}>
+              <View style={styles.livePipInner} />
+            </View>
+          )}
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.label, isLive && { color: palette.ink }]}>
+            {isLive ? "Sharing ETA — live" : "Share my ETA"}
+          </Text>
+          <Text style={[styles.sub, isLive && { color: "rgba(0,0,0,0.6)" }]}>
+            {creating
+              ? "Creating link…"
+              : isLive
+                ? "Tap to send · long-press to stop"
+                : "Live link · anyone with it can watch"}
+          </Text>
+        </View>
+        <Text style={[styles.chev, isLive && { color: palette.ink }]}>›</Text>
+      </Pressable>
+
+      <Modal
+        visible={showContacts}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowContacts(false)}
+      >
+        <ContactPicker
+          onSelect={onSelectContact}
+          onClose={() => setShowContacts(false)}
         />
-        <BroadcastGlyph />
-        {isLive && (
-          <View style={styles.livePip}>
-            <View style={styles.livePipInner} />
-          </View>
-        )}
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={[styles.label, isLive && { color: palette.ink }]}>
-          {isLive ? "Sharing ETA — live" : "Share my ETA"}
-        </Text>
-        <Text style={[styles.sub, isLive && { color: "rgba(0,0,0,0.6)" }]}>
-          {creating
-            ? "Creating link…"
-            : isLive
-              ? "Tap to send · long-press to stop"
-              : "Live link · anyone with it can watch"}
-        </Text>
-      </View>
-      <Text style={[styles.chev, isLive && { color: palette.ink }]}>›</Text>
-    </Pressable>
+      </Modal>
+    </>
   );
 }
 

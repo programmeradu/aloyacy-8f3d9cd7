@@ -2,8 +2,8 @@ packages:
   - "packages/*"
   - "mobile"
 allowBuilds:
-  esbuild: set this to true or false
-  protobufjs: set this to true or false
-  sharp: set this to true or false
-  tesseract.js: set this to true or false
-  workerd: set this to true or false
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  tesseract.js: true
+  workerd: true
