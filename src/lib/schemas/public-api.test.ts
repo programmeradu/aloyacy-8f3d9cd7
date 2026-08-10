@@ -10,6 +10,8 @@ import {
   TtsSchema,
   IndexNowQuerySchema,
   TripGroupsEnvelopeSchema,
+  IngestScheduleBodySchema,
+  StripeEnvQuerySchema,
 } from "./public-api";
 
 describe("LatLngSchema", () => {
