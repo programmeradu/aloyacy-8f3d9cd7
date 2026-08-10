@@ -4,10 +4,16 @@
   "description": "Aloya — transit companion for Cyprus: live arrivals, trip planning and journey guidance across web and mobile.",
   "sideEffects": false,
   "type": "module",
+  "packageManager": "bun@1.3.3",
+  "engines": {
+    "node": ">=20",
+    "bun": ">=1.3.0"
+  },
   "workspaces": [
     "packages/*",
     "mobile"
   ],
+
   "scripts": {
     "dev": "vite dev",
     "build": "bun install && vite build",

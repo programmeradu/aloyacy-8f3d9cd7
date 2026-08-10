@@ -1,0 +1,42 @@
+export const hud = {
+  "hud.liveGuidance": "Live guidance",
+  "hud.startTitle": "Start the journey to {name}.",
+  "hud.startBody":
+    "We'll follow your steps, nudge you to hurry if the bus is close, let you know when you reach the stop, and guide you off at the right moment.",
+  "hud.startCta": "Start journey",
+  "hud.hurry.urgentTitle": "Hurry — bus is arriving",
+  "hud.hurry.softTitle": "Pick up the pace",
+  "hud.hurry.headline": "{board} to bus — {walk} on foot",
+  "hud.hurry.urgentBody":
+    "You will miss it at your current pace. Quicken up or we'll find the next one.",
+  "hud.hurry.softBody": "It's going to be tight. Keep moving and you'll just catch it.",
+  "hud.walking.toDest": "Walking to destination",
+  "hud.walking.toStop": "Walking to stop",
+  "hud.walking.then": "Then",
+  "hud.atStop.label": "You're at the stop",
+  "hud.atStop.headline": "BUS {code} in {min}",
+  "hud.atStop.body": "Stay near the curb at {name}. We'll prompt you the moment the bus pulls in.",
+  "hud.board.label": "Are you on board?",
+  "hud.board.headline": "BUS {code} — {long}",
+  "hud.board.bodyAuto": "Looks like you boarded. Auto-confirming in {s}s.",
+  "hud.board.body": "Confirm so we can switch to ride mode and watch for {name}.",
+  "hud.board.onboard": "I'm on board",
+  "hud.board.missed": "Missed it",
+  "hud.missed.label": "The bus has left",
+  "hud.missed.title": "Let's find the next one.",
+  "hud.missed.body":
+    "We'll re-plan from where you are now, including nearby stops that might have an earlier ride to {name}.",
+  "hud.missed.finding": "Finding…",
+  "hud.missed.find": "Find next ride",
+  "hud.missed.err": "No nearby options. Try again in a moment.",
+  "hud.riding.label": "On board — BUS {code}",
+  "hud.riding.headline": "Off in {min} at {name}.",
+  "hud.riding.lost":
+    "Feed lost the bus, so we're using your phone as the bus and keeping the stop countdown on your movement.",
+  "hud.riding.calm": "Sit back. We'll buzz when it's time to press the stop button.",
+  "hud.riding.imOff": "I'm off",
+  "hud.arrived.label": "You've arrived",
+  "hud.arrived.title": "Welcome to {name}.",
+  "hud.arrived.done": "Done",
+
+} as const;

@@ -1,0 +1,25 @@
+export const pro = {
+  "proacc.brand": "Aloya",
+  "proacc.brand2": " Pro",
+  "proacc.active": "Active",
+  "proacc.headline": "Every feature unlocked.",
+  "proacc.plan": "Plan",
+  "proacc.renews": "Renews",
+  "proacc.ends": "Ends",
+  "proacc.account": "Account",
+  "proacc.manage": "Manage",
+  "proacc.opening": "Opening…",
+  "proacc.signOut": "Sign out",
+  "proacc.errPortal": "Could not open billing",
+  "proacc.plan.weekly": "Weekly — €1.99",
+  "proacc.plan.monthly": "Monthly — €6.99",
+  "proacc.plan.default": "Aloya Pro",
+
+  "proup.taglineLead": "Hear your bus. Plan transfers.",
+  "proup.taglineTail": "Stay offline.",
+  "proup.priceFromPrefix": "From",
+  "proup.priceFromSuffix": "/wk — cancel anytime",
+  "proup.tryPro": "Try Pro",
+  "proup.unlock": "Unlock with Pro",
+
+} as const;
