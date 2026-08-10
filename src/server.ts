@@ -77,4 +77,27 @@ export default {
       return brandedErrorResponse();
     }
   },
+  async scheduled(event: unknown, env: any, ctx: unknown) {
+    try {
+      const handler = await getServerEntry();
+      // Route the scheduled event to our public snapshot endpoint internally.
+      // We use the local origin since it's resolved internally by the router.
+      const url = "http://localhost/api/public/snapshot";
+      const apiKey = env.SUPABASE_PUBLISHABLE_KEY || (typeof process !== "undefined" && process.env.SUPABASE_PUBLISHABLE_KEY) || "";
+      const request = new Request(url, {
+        method: "POST",
+        headers: {
+          "apikey": apiKey,
+        }
+      });
+      const response = await handler.fetch(request, env, ctx);
+      if (!response.ok) {
+        console.error("Scheduled snapshot task failed:", response.status, await response.text());
+      } else {
+        console.log("Scheduled snapshot task succeeded");
+      }
+    } catch (error) {
+      console.error("Scheduled snapshot task error:", error);
+    }
+  },
 };
