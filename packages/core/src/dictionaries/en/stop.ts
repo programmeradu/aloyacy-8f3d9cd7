@@ -1,3 +1,6 @@
+// English source of truth. Add a key here first, then translate in the matching el/ file.
+// Use {placeholders} for interpolation: t("greet", { name: "Andreas" }).
+
 export const stop = {
   "stopCard.code": "Stop {code}",
   "stopCard.towards": "towards {name}",

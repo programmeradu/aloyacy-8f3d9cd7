@@ -1,3 +1,6 @@
+// English source of truth. Add a key here first, then translate in the matching el/ file.
+// Use {placeholders} for interpolation: t("greet", { name: "Andreas" }).
+
 export const assistant = {
   "nl.kicker": "Ask Aloya",
   "nl.kicker2": "Plain words",

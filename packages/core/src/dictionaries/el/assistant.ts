@@ -1,3 +1,6 @@
+// Greek translations. Keep keys aligned with the matching en/ file. Missing keys fall back
+// to English at runtime, so partial coverage is safe to ship.
+
 import type { assistant as assistantEn } from "../en/assistant";
 
 export const assistant: Record<keyof typeof assistantEn, string> = {

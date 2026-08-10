@@ -1,3 +1,6 @@
+// Greek translations. Keep keys aligned with the matching en/ file. Missing keys fall back
+// to English at runtime, so partial coverage is safe to ship.
+
 import type { route as routeEn } from "../en/route";
 
 export const route: Record<keyof typeof routeEn, string> = {

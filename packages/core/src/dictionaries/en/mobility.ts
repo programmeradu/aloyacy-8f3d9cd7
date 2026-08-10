@@ -1,3 +1,6 @@
+// English source of truth. Add a key here first, then translate in the matching el/ file.
+// Use {placeholders} for interpolation: t("greet", { name: "Andreas" }).
+
 export const mobility = {
   "pnr.eyebrowFaster": "Park & ride — {m} min faster",
   "pnr.eyebrowComfort": "Park & ride — shorter walk",

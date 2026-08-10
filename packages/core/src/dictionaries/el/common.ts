@@ -1,3 +1,6 @@
+// Greek translations. Keep keys aligned with the matching en/ file. Missing keys fall back
+// to English at runtime, so partial coverage is safe to ship.
+
 import type { common as commonEn } from "../en/common";
 
 export const common: Record<keyof typeof commonEn, string> = {

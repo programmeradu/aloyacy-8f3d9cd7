@@ -1,3 +1,6 @@
+// Greek translations. Keep keys aligned with the matching en/ file. Missing keys fall back
+// to English at runtime, so partial coverage is safe to ship.
+
 import type { hud as hudEn } from "../en/hud";
 
 export const hud: Record<keyof typeof hudEn, string> = {

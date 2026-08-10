@@ -1,3 +1,6 @@
+// Greek translations. Keep keys aligned with the matching en/ file. Missing keys fall back
+// to English at runtime, so partial coverage is safe to ship.
+
 import type { multileg as multilegEn } from "../en/multileg";
 
 export const multileg: Record<keyof typeof multilegEn, string> = {

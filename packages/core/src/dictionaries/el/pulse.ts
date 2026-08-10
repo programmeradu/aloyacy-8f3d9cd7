@@ -1,3 +1,6 @@
+// Greek translations. Keep keys aligned with the matching en/ file. Missing keys fall back
+// to English at runtime, so partial coverage is safe to ship.
+
 import type { pulse as pulseEn } from "../en/pulse";
 
 export const pulse: Record<keyof typeof pulseEn, string> = {

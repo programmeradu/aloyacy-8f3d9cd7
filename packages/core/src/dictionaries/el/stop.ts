@@ -1,3 +1,6 @@
+// Greek translations. Keep keys aligned with the matching en/ file. Missing keys fall back
+// to English at runtime, so partial coverage is safe to ship.
+
 import type { stop as stopEn } from "../en/stop";
 
 export const stop: Record<keyof typeof stopEn, string> = {
