@@ -7,6 +7,14 @@ All notable changes to Aloya are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- Reproducibility guarantees for a cold clone: `bun.lock` is the single source
+  of truth for the root app, `packages/core` and `mobile/`, `packageManager`
+  and `engines` pin Bun 1.3 / Node 20, and the README's quick start is now the
+  literal four commands (`bun install --frozen-lockfile`, `test`, `build`,
+  `dev`) that take an empty directory to a green suite with no credentials.
+- `.gitattributes` marks the machine-written sources (`supabase/types.ts`,
+  `routeTree.gen.ts`, `og-fonts.server.ts`, `bun.lock`) as generated so they
+  stop counting as hand-maintained code in reviews and diffs.
 - `@aloya/core/journey-live`: the shared live-journey reasoning for single-leg
   trips — phase resolution, the vehicle-position ETA floor, GPS/feed marker
   fusion and alert selection — pinned by 38 unit tests.
