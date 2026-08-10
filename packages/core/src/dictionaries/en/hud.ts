@@ -41,5 +41,4 @@ export const hud = {
   "hud.arrived.label": "You've arrived",
   "hud.arrived.title": "Welcome to {name}.",
   "hud.arrived.done": "Done",
-
 } as const;

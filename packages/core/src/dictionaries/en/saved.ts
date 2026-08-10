@@ -37,5 +37,4 @@ export const saved = {
   "remind.error": "Could not schedule reminder",
   "remind.authTitle": "Sign in to save reminders",
   "remind.authSubtitle": "We'll buzz you when it's time to head out.",
-
 } as const;

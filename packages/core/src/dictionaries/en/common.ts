@@ -50,5 +50,4 @@ export const common = {
   "share.plan.retry": "Try again",
   "share.plan.title": "A trip plan",
   "share.plan.text": "Here's our plan to get to {where}.",
-
 } as const;

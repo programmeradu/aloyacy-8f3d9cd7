@@ -31,5 +31,4 @@ export const stop = {
   "stop.heroEyebrow": "At this stop",
   "stop.heroNote":
     "Live ETA fused from operator feeds, fresh vehicle pings, and rider sightings — surfaced as one honest number per departure.",
-
 } as const;

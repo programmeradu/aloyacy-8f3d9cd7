@@ -149,5 +149,4 @@ export const wallet: Record<keyof typeof walletEn, string> = {
   "pay.feat.priority.t": "Ανανέωση δεδομένων προτεραιότητας",
   "pay.feat.priority.b":
     "Οι ζωντανές θέσεις ενημερώνονται πιο συχνά. Πάντα οι φρεσκότερες εκτιμήσεις.",
-
 };

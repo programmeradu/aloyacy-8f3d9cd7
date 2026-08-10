@@ -82,5 +82,4 @@ export const multileg: Record<keyof typeof multilegEn, string> = {
   "ml.timeline.rideSub": "{from} → {to} — {dep} — {arr} — {n} στάσεις",
   "ml.timeline.walkSub": "{min} — {d} μ",
   "ml.timeline.waitSub": "{min} στη στάση",
-
 };

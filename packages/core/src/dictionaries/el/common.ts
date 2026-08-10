@@ -52,5 +52,4 @@ export const common: Record<keyof typeof commonEn, string> = {
   "share.plan.retry": "Δοκίμασε ξανά",
   "share.plan.title": "Πλάνο διαδρομής",
   "share.plan.text": "Το πλάνο μας για να φτάσουμε στο {where}.",
-
 };

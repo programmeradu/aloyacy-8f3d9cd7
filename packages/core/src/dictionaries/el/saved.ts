@@ -41,5 +41,4 @@ export const saved: Record<keyof typeof savedEn, string> = {
   "remind.error": "Αδυναμία προγραμματισμού υπενθύμισης",
   "remind.authTitle": "Συνδεθείτε για να αποθηκεύσετε υπενθυμίσεις",
   "remind.authSubtitle": "Θα σας ειδοποιήσουμε όταν είναι ώρα να φύγετε.",
-
 };

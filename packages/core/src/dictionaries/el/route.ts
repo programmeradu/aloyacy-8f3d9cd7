@@ -52,5 +52,4 @@ export const route: Record<keyof typeof routeEn, string> = {
   "route.due": "τώρα",
   "route.minShort": "{m} λεπ",
   "route.hourMin": "{h}ώ {m}λ",
-
 };

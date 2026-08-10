@@ -34,5 +34,4 @@ export const onboarding: Record<keyof typeof onboardingEn, string> = {
 
   "welcome.done": "Είστε έτοιμοι.",
   "welcome.done.cta": "Άνοιγμα Aloya",
-
 };

@@ -26,5 +26,4 @@ export const pro: Record<keyof typeof proEn, string> = {
   "proup.priceFromSuffix": "/εβδ — ακύρωση όποτε θες",
   "proup.tryPro": "Δοκίμασε Pro",
   "proup.unlock": "Ξεκλείδωσε με Pro",
-
 };

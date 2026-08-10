@@ -144,5 +144,4 @@ export const wallet = {
   "pay.feat.offline.b": "The whole network cached. Works underground, on planes, anywhere.",
   "pay.feat.priority.t": "Priority data refresh",
   "pay.feat.priority.b": "Live positions sync more often. Always the freshest ETAs.",
-
 } as const;

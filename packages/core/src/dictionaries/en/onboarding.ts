@@ -31,5 +31,4 @@ export const onboarding = {
 
   "welcome.done": "You're set.",
   "welcome.done.cta": "Open Aloya",
-
 } as const;

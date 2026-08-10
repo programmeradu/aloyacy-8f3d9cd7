@@ -21,5 +21,4 @@ export const home = {
   "home.urban": "Urban",
   "home.noLive": "no live buses",
   "home.someLive": "{n} live",
-
 } as const;

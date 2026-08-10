@@ -213,5 +213,4 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "walkLive.inMeters": "Σε {m}",
   "walkLive.then": "Στη συνέχεια",
   "walkLive.lastStep": "Τελευταίο βήμα — σχεδόν έφτασες",
-
 };

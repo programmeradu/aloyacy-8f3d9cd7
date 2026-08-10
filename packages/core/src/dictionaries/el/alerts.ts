@@ -111,5 +111,4 @@ export const alerts: Record<keyof typeof alertsEn, string> = {
   "rationale.moreReliable": "Μικρότερες καθυστερήσεις τώρα",
   "rationale.leavesSooner": "Φεύγει {m} λεπτά νωρίτερα",
   "rationale.bestOverall": "Καλύτερη ισορροπία χρόνου, μετεπιβιβάσεων και περπατήματος",
-
 };

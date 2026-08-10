@@ -44,5 +44,4 @@ export const legal = {
     "We may update these terms when the service changes. Material changes are announced in the app at least 14 days before they take effect.",
   "terms.section.law": "Governing law",
   "terms.law.body": "These terms are governed by the laws of the Republic of Cyprus.",
-
 } as const;

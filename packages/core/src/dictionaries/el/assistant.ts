@@ -111,5 +111,4 @@ export const assistant: Record<keyof typeof assistantEn, string> = {
   "upsell.feat.offline.d": "Τα δρομολόγια 7 ημερών, ακόμη και χωρίς σήμα.",
   "upsell.cta": "Ξεκλείδωσε από €1.99/εβδ",
   "upsell.cancel": "Ακύρωση οποτεδήποτε",
-
 };

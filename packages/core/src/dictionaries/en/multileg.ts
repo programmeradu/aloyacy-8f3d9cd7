@@ -79,5 +79,4 @@ export const multileg = {
   "ml.timeline.rideSub": "{from} → {to} — {dep} — {arr} — {n} stops",
   "ml.timeline.walkSub": "{min} — {d} m",
   "ml.timeline.waitSub": "{min} at the stop",
-
 } as const;

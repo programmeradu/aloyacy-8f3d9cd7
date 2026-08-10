@@ -77,5 +77,4 @@ export const trip = {
   "walk.maneuver.depart": "start",
   "walk.maneuver.arrive": "arrive",
   "walk.maneuver.name change": "continue",
-
 } as const;

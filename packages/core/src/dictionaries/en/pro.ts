@@ -24,5 +24,4 @@ export const pro = {
   "proup.priceFromSuffix": "/wk — cancel anytime",
   "proup.tryPro": "Try Pro",
   "proup.unlock": "Unlock with Pro",
-
 } as const;

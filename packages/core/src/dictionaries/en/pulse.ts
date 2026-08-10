@@ -210,5 +210,4 @@ export const pulse = {
   "walkLive.inMeters": "In {m}",
   "walkLive.then": "Then",
   "walkLive.lastStep": "Last step — you're almost there",
-
 } as const;

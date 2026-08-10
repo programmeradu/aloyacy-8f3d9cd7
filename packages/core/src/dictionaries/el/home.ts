@@ -23,5 +23,4 @@ export const home: Record<keyof typeof homeEn, string> = {
   "home.urban": "Αστικό",
   "home.noLive": "χωρίς ζωντανά",
   "home.someLive": "{n} ζωντανά",
-
 };

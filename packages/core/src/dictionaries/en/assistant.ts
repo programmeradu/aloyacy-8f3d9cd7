@@ -108,5 +108,4 @@ export const assistant = {
   "upsell.feat.offline.d": "The next 7 days of bus schedules, even without signal.",
   "upsell.cta": "Unlock from €1.99/wk",
   "upsell.cancel": "Cancel anytime",
-
 } as const;

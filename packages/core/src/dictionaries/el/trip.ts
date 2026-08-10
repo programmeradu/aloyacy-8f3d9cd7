@@ -80,5 +80,4 @@ export const trip: Record<keyof typeof tripEn, string> = {
   "walk.maneuver.depart": "εκκίνηση",
   "walk.maneuver.arrive": "άφιξη",
   "walk.maneuver.name change": "συνεχίστε",
-
 };

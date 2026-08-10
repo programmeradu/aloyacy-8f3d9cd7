@@ -50,5 +50,4 @@ export const route = {
   "route.due": "due",
   "route.minShort": "{m} min",
   "route.hourMin": "{h}h {m}m",
-
 } as const;

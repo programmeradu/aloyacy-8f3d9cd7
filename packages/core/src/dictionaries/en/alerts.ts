@@ -109,5 +109,4 @@ export const alerts = {
   "rationale.moreReliable": "Smaller delays right now",
   "rationale.leavesSooner": "Leaves {m} min sooner",
   "rationale.bestOverall": "Best balance of time, transfers and walking",
-
 } as const;

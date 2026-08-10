@@ -42,5 +42,4 @@ export const hud: Record<keyof typeof hudEn, string> = {
   "hud.arrived.label": "Φτάσατε",
   "hud.arrived.title": "Καλώς ήρθατε στη {name}.",
   "hud.arrived.done": "Τέλος",
-
 };
