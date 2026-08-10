@@ -195,7 +195,9 @@ async function processTrips() {
       });
     }
   } catch (e) {
-    log.warn("realtime fetch failed; using scheduled times", { err: e instanceof Error ? e.message : String(e) });
+    log.warn("realtime fetch failed; using scheduled times", {
+      err: e instanceof Error ? e.message : String(e),
+    });
   }
 
   let dispatched = 0;

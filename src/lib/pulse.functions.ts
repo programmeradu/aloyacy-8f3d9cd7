@@ -4,6 +4,9 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { ROUTES } from "@/lib/gtfs";
+import { createLogger } from "./logger";
+
+const log = createLogger("pulse");
 
 const KNOWN_ROUTE_IDS = new Set(ROUTES.map((r) => r.id));
 
@@ -330,10 +333,13 @@ export const getPulseHourStrip = createServerFn({ method: "GET" }).handler(async
         sums[h] = (Number(row.mean_delay_sec) || 0) * counts[h];
       }
     } else {
-      console.error("pulse_hour_strip RPC failed", res.status, await res.text());
+      log.error("pulse_hour_strip RPC failed", undefined, {
+        status: res.status,
+        body: await res.text(),
+      });
     }
   } catch (e) {
-    console.error("pulse_hour_strip RPC threw", e);
+    log.error("pulse_hour_strip RPC threw", e);
   }
 
   const now = new Date();

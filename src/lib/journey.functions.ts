@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { planJourney } from "./journey.server";
+import { createLogger } from "./logger";
+
+const log = createLogger("journey");
 
 const PointSchema = z.object({
   lat: z.number().min(-90).max(90),
@@ -15,7 +18,7 @@ export const planTrip = createServerFn({ method: "POST" })
       const options = await planJourney(data.from, data.to);
       return { options, error: null };
     } catch (e) {
-      console.error("planTrip failed", e);
+      log.error("planTrip failed", e);
       return {
         options: [],
         error: e instanceof Error ? e.message : "Plan failed",

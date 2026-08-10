@@ -24,6 +24,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { distanceM } from "./geo";
+import { createLogger } from "./logger";
+
+const log = createLogger("bolt-scooter");
 
 const FEED_URL = "https://fixcyprus.cy/gnosis/open/api/nap/datasets/boltstations/";
 
@@ -122,7 +125,7 @@ export async function loadZones(): Promise<BoltZone[]> {
     return data;
   } catch (err) {
     if (cache) return cache.data;
-    console.error("[bolt] feed load failed", err);
+    log.error("feed load failed", err);
     return [];
   }
 }
