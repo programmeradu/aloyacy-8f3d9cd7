@@ -15,8 +15,11 @@ import { fetchRealtime } from "@/lib/gtfs-rt.server";
 import { sendWebPush, type WebPushPayload } from "@/lib/webpush.server";
 import { sendExpoPush } from "@/lib/expopush.server";
 import { VAPID_PUBLIC_KEY } from "@/lib/vapid";
+import { createLogger } from "@/lib/logger";
 
 import type { Leg, RideLeg } from "@/lib/itinerary-types";
+
+const log = createLogger("trip-alerts");
 
 type ActiveTripRow = {
   device_id: string;
@@ -123,7 +126,7 @@ async function dispatch(deviceId: string, payload: WebPushPayload) {
             await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
           }
         } catch (e) {
-          console.error("[trip-alerts] web push dispatch threw", e);
+          log.error("web push dispatch threw", e);
         }
       }
     }
@@ -153,11 +156,11 @@ async function dispatch(deviceId: string, payload: WebPushPayload) {
         await supabaseAdmin.from("expo_push_tokens").delete().in("expo_token", r.expiredTokens);
       }
       if (r.errors.length) {
-        console.warn("[trip-alerts] expo push errors", r.errors.slice(0, 3));
+        log.warn("expo push errors", { errors: r.errors.slice(0, 3) });
       }
     }
   } catch (e) {
-    console.error("[trip-alerts] expo dispatch threw", e);
+    log.error("expo dispatch threw", e);
   }
 
   return { sent, expired };
@@ -176,7 +179,7 @@ async function processTrips() {
     .or(`alight_unix.is.null,alight_unix.gte.${cutoff}`);
 
   if (error) {
-    console.error("[trip-alerts] read failed", error);
+    log.error("read failed", error);
     return { processed: 0, dispatched: 0, error: error.message };
   }
   if (!trips || trips.length === 0) return { processed: 0, dispatched: 0 };
@@ -192,7 +195,9 @@ async function processTrips() {
       });
     }
   } catch (e) {
-    console.warn("[trip-alerts] realtime fetch failed; using scheduled times", e);
+    log.warn("realtime fetch failed; using scheduled times", {
+      err: e instanceof Error ? e.message : String(e),
+    });
   }
 
   let dispatched = 0;
@@ -440,7 +445,7 @@ export const Route = createFileRoute("/api/public/trip-alerts")({
           const result = await processTrips();
           return Response.json(result);
         } catch (e) {
-          console.error("[trip-alerts] failed", e);
+          log.error("failed", e);
           return new Response(
             JSON.stringify({ error: e instanceof Error ? e.message : String(e) }),
             { status: 500, headers: { "Content-Type": "application/json" } },

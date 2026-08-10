@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { ensureDeviceToken, verifyDeviceToken } from "./device-auth.server";
+import { createLogger } from "./logger";
+
+const log = createLogger("suggestions");
 
 // Anonymous device IDs are not secrets — anyone who learns one could read
 // or write that device's trip history. Every read/write requires the
@@ -49,7 +52,7 @@ export const linkDeviceToUser = createServerFn({ method: "POST" })
       .eq("device_id", data.deviceId)
       .is("user_id", null);
     if (error) {
-      console.error("linkDeviceToUser failed", error);
+      log.error("linkDeviceToUser failed", error);
       return { ok: false as const, error: error.message };
     }
     return { ok: true as const };
@@ -94,7 +97,7 @@ export const recordTripHistory = createServerFn({ method: "POST" })
       hour: now.getUTCHours(),
     });
     if (error) {
-      console.error("recordTripHistory failed", error);
+      log.error("recordTripHistory failed", error);
       return { ok: false as const, error: error.message };
     }
     return { ok: true as const };
@@ -144,7 +147,7 @@ export const getTripSuggestions = createServerFn({ method: "POST" })
     const { data: rows, error } = await query;
 
     if (error) {
-      console.error("getTripSuggestions failed", error);
+      log.error("getTripSuggestions failed", error);
       return { suggestions: [] };
     }
     if (!rows || rows.length === 0) return { suggestions: [] };

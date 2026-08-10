@@ -22,6 +22,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { distanceM } from "./geo";
+import { createLogger } from "./logger";
+
+const log = createLogger("kapnos");
 
 const FEED_URL = "https://kapnos.ecoachmanager.com/coachtrip/api/trip-type-all";
 
@@ -177,7 +180,7 @@ export async function fetchKapnosRoutes(): Promise<KapnosRoute[]> {
     return parsed;
   } catch (err) {
     if (cache) return cache.data; // serve stale rather than break the page
-    console.error("[kapnos] feed fetch failed:", err);
+    log.error("feed fetch failed", err);
     return [];
   }
 }

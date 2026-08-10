@@ -3,6 +3,9 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendWebPush, type WebPushPayload } from "./webpush.server";
 import { VAPID_PUBLIC_KEY } from "./vapid";
+import { createLogger } from "./logger";
+
+const log = createLogger("push");
 
 const subscriptionSchema = z.object({
   endpoint: z.string().url().max(2048),
@@ -39,7 +42,7 @@ export const saveSubscription = createServerFn({ method: "POST" })
       { onConflict: "endpoint" },
     );
     if (error) {
-      console.error("[push] save failed", error);
+      log.error("save failed", error);
       throw new Error("Could not save subscription");
     }
     return { ok: true as const };
@@ -55,7 +58,7 @@ export const removeSubscription = createServerFn({ method: "POST" })
       .delete()
       .eq("endpoint", data.endpoint);
     if (error) {
-      console.error("[push] remove failed", error);
+      log.error("remove failed", error);
     }
     return { ok: true as const };
   });
@@ -93,11 +96,11 @@ async function dispatchToDevice(deviceId: string, payload: WebPushPayload) {
         await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
       } else {
         lastError = `Push provider responded ${r.status}: ${r.error ?? "unknown error"}`;
-        console.warn("[push] send failed", r.status, r.error);
+        log.warn("send failed", { status: r.status, error: r.error });
       }
     } catch (e) {
       lastError = e instanceof Error ? e.message : String(e);
-      console.error("[push] dispatch threw", e);
+      log.error("dispatch threw", e);
       if (lastError.startsWith("Push notifications are misconfigured:")) {
         return { sent, expired, error: lastError };
       }

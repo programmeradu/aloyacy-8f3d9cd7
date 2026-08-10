@@ -7,6 +7,9 @@ import {
   reverseGeocode,
   walkingDirections,
 } from "./maps.server";
+import { createLogger } from "./logger";
+
+const log = createLogger("maps");
 
 export const autocompletePlaces = createServerFn({ method: "POST" })
   .inputValidator((input) =>
@@ -21,7 +24,7 @@ export const autocompletePlaces = createServerFn({ method: "POST" })
     try {
       return { suggestions: await placesAutocomplete(data.query, data.bias) };
     } catch (e) {
-      console.error("autocomplete failed", e);
+      log.error("autocomplete failed", e);
       return { suggestions: [] as Awaited<ReturnType<typeof placesAutocomplete>> };
     }
   });
@@ -61,7 +64,7 @@ export const getWalkingDirections = createServerFn({ method: "POST" })
         directions: await walkingDirections(data.from, data.to, data.locale ?? "en"),
       };
     } catch (e) {
-      console.error("walking directions failed", e);
+      log.error("walking directions failed", e);
       return { directions: null };
     }
   });

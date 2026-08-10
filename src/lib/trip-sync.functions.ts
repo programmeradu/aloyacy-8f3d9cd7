@@ -6,6 +6,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { createLogger } from "./logger";
+
+const log = createLogger("trip-sync");
 
 // Legs are stored as opaque jsonb on the server. We validate only the outer
 // shape here — the cron alert dispatcher does its own narrow reads with
@@ -55,7 +58,7 @@ export const upsertActiveTrip = createServerFn({ method: "POST" })
       { onConflict: "device_id" },
     );
     if (error) {
-      console.error("[trip-sync] upsert failed", error);
+      log.error("upsert failed", error);
       throw new Error("Could not save trip for background alerts");
     }
     return { ok: true as const };

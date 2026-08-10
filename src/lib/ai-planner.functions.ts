@@ -8,7 +8,9 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { createLogger } from "./logger";
 
+const log = createLogger("planner");
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 const intentSchema = z.object({
@@ -52,7 +54,7 @@ export const parseTripIntent = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<TripIntent | null> => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) {
-      console.warn("[ai-planner] LOVABLE_API_KEY missing");
+      log.warn("LOVABLE_API_KEY missing");
       return null;
     }
 
@@ -78,7 +80,7 @@ export const parseTripIntent = createServerFn({ method: "POST" })
         }),
       });
       if (!res.ok) {
-        console.warn(`[ai-planner] upstream ${res.status}`);
+        log.warn("upstream error", { status: res.status });
         return null;
       }
       const json = (await res.json()) as {
@@ -88,7 +90,7 @@ export const parseTripIntent = createServerFn({ method: "POST" })
       if (!raw) return null;
       const parsed = intentSchema.safeParse(JSON.parse(raw));
       if (!parsed.success) {
-        console.warn("[ai-planner] schema mismatch", parsed.error.flatten());
+        log.warn("schema mismatch", { issues: parsed.error.flatten() });
         return null;
       }
       // Deterministic time override: the LLM is unreliable at turning "7am"
@@ -110,7 +112,7 @@ export const parseTripIntent = createServerFn({ method: "POST" })
       }
       return parsed.data;
     } catch (err) {
-      console.warn("[ai-planner] failed", err);
+      log.warn("failed", { err: err instanceof Error ? err.message : String(err) });
       return null;
     }
   });

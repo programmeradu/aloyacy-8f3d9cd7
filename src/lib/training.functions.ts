@@ -6,6 +6,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { createLogger } from "./logger";
+
+const log = createLogger("training");
 
 const KnownKind = z.enum([
   "walk-complete",
@@ -45,7 +48,7 @@ export const logTrainingEvent = createServerFn({ method: "POST" })
       payload: data.payload as unknown as never,
     });
     if (error) {
-      console.warn("[training] insert failed", error.message);
+      log.warn("insert failed", { error: error.message });
       return { ok: false };
     }
     return { ok: true };

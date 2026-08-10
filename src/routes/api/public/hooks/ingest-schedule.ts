@@ -14,6 +14,8 @@ import { unzipSync, gzipSync, strFromU8 } from "fflate";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { resolveServiceDates } from "@aloya/core/schedule-calendar";
 import { createLogger } from "@/lib/logger";
+import { parseJsonBody } from "@/lib/http/validate";
+import { IngestScheduleBodySchema } from "@/lib/schemas/public-api";
 
 const log = createLogger("ingest-schedule");
 
@@ -318,13 +320,18 @@ export const Route = createFileRoute("/api/public/hooks/ingest-schedule")({
           });
         }
 
-        let body: { days?: number } = {};
-        try {
-          body = (await request.json()) as { days?: number };
-        } catch {
-          /* ignore */
+        // An empty POST is the normal cron shape, so a missing/blank body is
+        // valid; anything present must still satisfy the schema.
+        const rawBody = (await request.text()).trim();
+        let days = 14;
+        if (rawBody.length > 0) {
+          const parsed = await parseJsonBody(
+            new Request(request.url, { method: "POST", body: rawBody }),
+            IngestScheduleBodySchema,
+          );
+          if (!parsed.ok) return parsed.response;
+          days = parsed.data.days ?? 14;
         }
-        const days = Math.max(1, Math.min(14, body.days ?? 14));
 
         const t0 = Date.now();
         try {

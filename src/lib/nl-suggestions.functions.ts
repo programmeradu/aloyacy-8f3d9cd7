@@ -15,6 +15,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { verifyDeviceToken } from "./device-auth.server";
+import { createLogger } from "./logger";
+
+const log = createLogger("nl-suggestions");
 
 const InputSchema = z.object({
   deviceId: z.string().min(8).max(128),
@@ -242,7 +245,7 @@ export const getNlSuggestions = createServerFn({ method: "POST" })
           }
         }
       } catch (err) {
-        console.warn("[nl-suggestions] trending query failed:", (err as Error).message);
+        log.warn("trending query failed", { err: (err as Error).message });
       }
     }
 

@@ -24,6 +24,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { distanceM } from "./geo";
+import { createLogger } from "./logger";
+
+const log = createLogger("bikeshare");
 
 const FEED_URL = "https://maps.nextbike.net/maps/nextbike-live.json?city=190,206,940,957,889";
 
@@ -121,7 +124,7 @@ export async function loadStations(): Promise<BikeStation[]> {
   } catch (err) {
     // If the upstream is down, prefer stale cache over nothing.
     if (cache) return cache.data;
-    console.error("[bikeshare] feed load failed", err);
+    log.error("feed load failed", err);
     return [];
   }
 }

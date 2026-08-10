@@ -2,6 +2,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { createLogger } from "./logger";
+
+const log = createLogger("learning");
 
 export const getLearnedStatsForStop = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ stopId: z.string().min(1) }).parse(input))
@@ -16,7 +19,7 @@ export const getLearnedStatsForStop = createServerFn({ method: "POST" })
       .eq("hour_of_day", hour)
       .eq("day_of_week", dow);
     if (error) {
-      console.error("delay_stats read failed", error);
+      log.error("delay_stats read failed", error);
       return { stats: [] };
     }
     return { stats: rows ?? [] };
@@ -42,7 +45,7 @@ export const getLearnedStatsBulk = createServerFn({ method: "POST" })
       .eq("hour_of_day", hour)
       .eq("day_of_week", dow);
     if (error) {
-      console.error("delay_stats bulk read failed", error);
+      log.error("delay_stats bulk read failed", error);
       return { stats: [] };
     }
     return { stats: rows ?? [] };
@@ -74,7 +77,7 @@ export const getAccuracySnapshot = createServerFn({ method: "POST" })
       .order("last_seen_at", { ascending: false })
       .limit(data.limit);
     if (error) {
-      console.error("observed_arrivals read failed", error);
+      log.error("observed_arrivals read failed", error);
       return { recent: [], byRoute: [], totals: { count: 0, meanSec: 0, p50Sec: 0, p90Sec: 0 } };
     }
     const list = rows ?? [];

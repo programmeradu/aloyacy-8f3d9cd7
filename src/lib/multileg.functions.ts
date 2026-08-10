@@ -18,6 +18,9 @@ import { getSkippedTransferCount } from "./overrides.server";
 import type { Itinerary, RideLeg } from "./itinerary-types";
 import { annotateRationales } from "./itinerary-rationale";
 import { applyAccessibilityWeights } from "./accessibility-weights";
+import { createLogger } from "./logger";
+
+const log = createLogger("multileg");
 
 const PointSchema = z.object({
   lat: z.number().min(34).max(36),
@@ -152,7 +155,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
         ? planMultiLegJourney(data.from, data.to, {
             collectDiagnostics: data.debug ?? false,
           }).catch((e: unknown) => {
-            console.warn("[multileg] live failed:", (e as Error).message);
+            log.warn("live planner failed", { err: (e as Error).message });
             return null;
           })
         : Promise.resolve(null);
@@ -174,10 +177,10 @@ export const planMultiLeg = createServerFn({ method: "POST" })
             if (e instanceof NoScheduleAvailableError) {
               noScheduleAvailable = true;
               requestedDate = e.date;
-              console.warn("[multileg] no schedule shard for", e.date);
+              log.warn("no schedule shard", { date: e.date });
               return null;
             }
-            console.warn("[multileg] scheduled failed:", (e as Error).message);
+            log.warn("scheduled planner failed", { err: (e as Error).message });
             return null;
           })
         : Promise.resolve(null);
