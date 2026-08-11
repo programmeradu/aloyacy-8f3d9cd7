@@ -23,7 +23,7 @@ async function guard(request: Request): Promise<Response | null> {
   const legacy =
     request.headers.get("x-cron-secret") ??
     new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey = apikey && apikey === process.env.SUPABASE_PUBLISHABLE_KEY;
+  const validApiKey = apikey && apikey === (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY);
   const validLegacy = legacy && process.env.CRON_SECRET && legacy === process.env.CRON_SECRET;
   if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;

@@ -212,7 +212,7 @@ export const Route = createFileRoute("/api/public/hooks/ingest-schedule")({
         // Auth: anon key in apikey header, or Bearer CRON_SECRET
         const apikey = request.headers.get("apikey");
         const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-        const validApiKey = apikey && apikey === process.env.SUPABASE_PUBLISHABLE_KEY;
+        const validApiKey = apikey && apikey === (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY);
         const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
         if (!validApiKey && !validCron) {
           return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
