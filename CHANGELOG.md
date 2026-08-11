@@ -7,6 +7,12 @@ All notable changes to Aloya are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- First component-level test layer: colocated suites for `EtaPill`,
+  `ReliabilityBadge`, `ConfidenceIcon`, `DisruptionBanner`, `CrowdHint`,
+  `SightingButton` and `SharePlanButton` assert rendered behaviour (ghost vs.
+  live tiers, tooltip hover/focus/keyboard paths, empty and error states,
+  cooldown restore, retry labels) under jsdom with jest-dom matchers wired in
+  `src/test/dom-matchers.ts`. Suite is 1765 specs, all offline.
 - Reproducibility guarantees for a cold clone: `bun.lock` is the single source
   of truth for the root app, `packages/core` and `mobile/`, `packageManager`
   and `engines` pin Bun 1.3 / Node 20, and the README's quick start is now the
@@ -15,6 +21,12 @@ All notable changes to Aloya are documented here. Format follows
 - `.gitattributes` marks the machine-written sources (`supabase/types.ts`,
   `routeTree.gen.ts`, `og-fonts.server.ts`, `bun.lock`) as generated so they
   stop counting as hand-maintained code in reviews and diffs.
+
+### Changed
+- The 1343-line flat `en`/`el` translation tables are split into 19 matching
+  namespace modules per locale (`dictionaries/en/trip.ts`, `hud.ts`, …), each
+  well under 300 LOC, merged back in `index.ts` with the key set and ordering
+  verified byte-identical to the originals.
 - `@aloya/core/journey-live`: the shared live-journey reasoning for single-leg
   trips — phase resolution, the vehicle-position ETA floor, GPS/feed marker
   fusion and alert selection — pinned by 38 unit tests.
