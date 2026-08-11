@@ -47,7 +47,10 @@ describe("SharePlanButton", () => {
   });
 
   it("shows a retry label after a failed request", async () => {
-    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ ok: false, status: 500 });
+    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+    });
     const user = userEvent.setup();
     render(<SharePlanButton itinerary={itinerary} origin={origin} destination={destination} />);
     await user.click(screen.getByRole("button"));

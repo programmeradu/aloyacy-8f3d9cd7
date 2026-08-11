@@ -9,9 +9,7 @@ describe("ReliabilityBadge", () => {
   afterEach(cleanup);
 
   it("compact: shows on-time percentage headline when rated", () => {
-    render(
-      <ReliabilityBadge tier="high" onTimePct={92} meanDelaySec={10} sampleCount={120} />,
-    );
+    render(<ReliabilityBadge tier="high" onTimePct={92} meanDelaySec={10} sampleCount={120} />);
     expect(screen.getByText(/92/)).toBeInTheDocument();
   });
 
@@ -35,7 +33,13 @@ describe("ReliabilityBadge", () => {
 
   it("stack: renders em dash placeholder when unrated", () => {
     render(
-      <ReliabilityBadge tier="unknown" onTimePct={0} meanDelaySec={0} sampleCount={0} variant="stack" />,
+      <ReliabilityBadge
+        tier="unknown"
+        onTimePct={0}
+        meanDelaySec={0}
+        sampleCount={0}
+        variant="stack"
+      />,
     );
     expect(screen.getByText("—")).toBeInTheDocument();
   });
