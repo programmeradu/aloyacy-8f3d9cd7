@@ -36,7 +36,7 @@ export async function fetchKapnos(args: {
       body: JSON.stringify(args),
     });
     if (!res.ok) return null;
-    return res.json();
+    return await res.json();
   } catch {
     return null;
   }

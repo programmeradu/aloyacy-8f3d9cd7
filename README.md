@@ -46,6 +46,8 @@ bun run typecheck     # tsc --noEmit
 bun run check:env     # every process.env / import.meta.env name is in .env.example
 bun run check:secrets # scan for hardcoded credentials
 bun run test:coverage # vitest with the enforced coverage thresholds
+bun run test:mobile   # the Expo app's framework-free logic
+
 ```
 
 
@@ -162,6 +164,13 @@ goes through `import.meta.env.VITE_*`.
 Vitest, run with `bun run test` (`bun run test:watch`, `bun run test:coverage`).
 Coverage thresholds are enforced in `vitest.config.ts` — `test:coverage` fails
 below them, and the floors are ratcheted upward as tests land.
+
+The Expo app has its own suite, `bun run test:mobile`
+(`vitest.mobile.config.ts`). It runs the framework-free half of `mobile/lib`
+against in-memory stubs of the native surface — AsyncStorage, Haptics, the
+router — kept in `mobile/test/stubs/`. CI runs it alongside the mobile
+typecheck.
+
 
 Every public endpoint validates its input at the boundary: `src/lib/schemas/`
 holds the Zod schemas and `src/lib/http/validate.ts` turns a bad payload into a

@@ -79,3 +79,6 @@ jobs:
       - name: Typecheck mobile
         working-directory: mobile
         run: bunx tsc --noEmit
+
+      - name: Test mobile logic
+        run: bun run test:mobile
