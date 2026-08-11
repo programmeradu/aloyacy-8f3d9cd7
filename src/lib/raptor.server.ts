@@ -106,9 +106,14 @@ export async function planRaptor(
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
   departureUnix: number,
-  opts?: { searchHorizonSec?: number },
+  opts?: { searchHorizonSec?: number; maxJourneySec?: number },
 ): Promise<{ itineraries: Itinerary[]; diagnostics: RaptorDiagnostics }> {
   const SEARCH_HORIZON_SEC = opts?.searchHorizonSec ?? DEFAULT_SEARCH_HORIZON_SEC;
+  // The journey cap is measured from the requested departure, so a long wait
+  // for the first bus (overnight, Sundays, holidays) eats into it. When the
+  // caller widens the horizon it must widen this too, otherwise "first bus
+  // tomorrow morning" gets pruned before it is ever scored.
+  const MAX_JOURNEY_SEC = opts?.maxJourneySec ?? MAX_TOTAL_JOURNEY_SEC;
   const { date, stops, routes, trips, stopTrips, stopTimes } = schedule;
   const diag: RaptorDiagnostics = {
     date,
