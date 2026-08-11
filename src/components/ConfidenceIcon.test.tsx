@@ -10,22 +10,42 @@ describe("ConfidenceIcon", () => {
     expect(screen.getByRole("button")).toHaveAccessibleName(/high/i);
   });
 
-  it("shows the tooltip on click and hides it again on second click", async () => {
+  it("reveals the tooltip on hover and hides it again when the pointer leaves", async () => {
     const user = userEvent.setup();
     render(<ConfidenceIcon confidence="medium" />);
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button"));
+    await user.hover(screen.getByRole("button"));
     expect(screen.getByRole("tooltip")).toBeInTheDocument();
-    await user.click(screen.getByRole("button"));
+    await user.unhover(screen.getByRole("button"));
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
 
-  it("opens on keyboard activation (Enter)", async () => {
+  it("reveals the tooltip on keyboard focus so it is not hover-only", async () => {
     const user = userEvent.setup();
     render(<ConfidenceIcon confidence="low" />);
-    const btn = screen.getByRole("button");
-    btn.focus();
+    await user.tab();
+    expect(screen.getByRole("button")).toHaveFocus();
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  });
+
+  it("toggles with Enter while focused", async () => {
+    const user = userEvent.setup();
+    render(<ConfidenceIcon confidence="low" />);
+    await user.tab();
+    await user.keyboard("{Enter}");
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
     await user.keyboard("{Enter}");
     expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  });
+
+  it("labels every confidence level distinctly", () => {
+    const { unmount } = render(<ConfidenceIcon confidence="low" />);
+    const low = screen.getByRole("button").getAttribute("aria-label");
+    unmount();
+    render(<ConfidenceIcon confidence="high" />);
+    const high = screen.getByRole("button").getAttribute("aria-label");
+    expect(low).toBeTruthy();
+    expect(high).toBeTruthy();
+    expect(low).not.toBe(high);
   });
 });
