@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 vi.mock("@tanstack/react-start", () => ({ useServerFn: (fn: unknown) => fn }));
@@ -23,6 +23,10 @@ function renderWithClient(ui: React.ReactElement) {
 }
 
 describe("CrowdHint", () => {
+  // Setup registers jest-dom matchers only; each component suite tears its
+  // own tree down so repeated renders cannot collide in the next query.
+  afterEach(cleanup);
+
   beforeEach(() => {
     loadMock.mockReset();
     weatherMock.mockReset();

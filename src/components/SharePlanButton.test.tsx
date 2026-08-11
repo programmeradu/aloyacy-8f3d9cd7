@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Itinerary } from "@/lib/itinerary-types";
 
@@ -23,6 +23,10 @@ const origin = { lat: 1, lng: 2, label: "Home" };
 const destination = { lat: 3, lng: 4, label: "Work" };
 
 describe("SharePlanButton", () => {
+  // Setup registers jest-dom matchers only; each component suite tears its
+  // own tree down so repeated renders cannot collide in the next query.
+  afterEach(cleanup);
+
   beforeEach(() => {
     vi.stubGlobal(
       "fetch",

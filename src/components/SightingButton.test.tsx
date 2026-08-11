@@ -1,12 +1,16 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SightingButton } from "./SightingButton";
 
 vi.mock("@/lib/pwa", () => ({ getDeviceId: () => "device-abc" }));
 
 describe("SightingButton", () => {
+  // Setup registers jest-dom matchers only; each component suite tears its
+  // own tree down so repeated renders cannot collide in the next query.
+  afterEach(cleanup);
+
   beforeEach(() => {
     localStorage.clear();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));

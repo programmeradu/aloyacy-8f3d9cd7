@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, afterEach } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
 import { EtaPill, type EtaPillData } from "./EtaPill";
 
 function base(overrides: Partial<EtaPillData> = {}): EtaPillData {
@@ -8,6 +8,10 @@ function base(overrides: Partial<EtaPillData> = {}): EtaPillData {
 }
 
 describe("EtaPill", () => {
+  // Setup registers jest-dom matchers only; each component suite tears its
+  // own tree down so repeated renders cannot collide in the next query.
+  afterEach(cleanup);
+
   it("headline: shows the number and minute label", () => {
     render(<EtaPill data={base()} variant="headline" />);
     expect(screen.getByText("8")).toBeInTheDocument();

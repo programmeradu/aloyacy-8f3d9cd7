@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, afterEach } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfidenceIcon } from "./ConfidenceIcon";
 
 describe("ConfidenceIcon", () => {
+  // Setup registers jest-dom matchers only; each component suite tears its
+  // own tree down so repeated renders cannot collide in the next query.
+  afterEach(cleanup);
+
   it("has an accessible name derived from the confidence level", () => {
     render(<ConfidenceIcon confidence="high" />);
     expect(screen.getByRole("button")).toHaveAccessibleName(/high/i);

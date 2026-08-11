@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, afterEach } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
 import { ReliabilityBadge } from "./ReliabilityBadge";
 
 describe("ReliabilityBadge", () => {
+  // Setup registers jest-dom matchers only; each component suite tears its
+  // own tree down so repeated renders cannot collide in the next query.
+  afterEach(cleanup);
+
   it("compact: shows on-time percentage headline when rated", () => {
     render(
       <ReliabilityBadge tier="high" onTimePct={92} meanDelaySec={10} sampleCount={120} />,
