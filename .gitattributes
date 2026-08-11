@@ -1,2 +1,12 @@
-bun.lock text eol=lf
+# Lockfiles: text, LF, and never diffed by hand.
+bun.lock text eol=lf -diff linguist-generated=true
 bun.lockb binary
+
+# Generated sources. They are committed so the repo builds from a clean clone,
+# but they are machine-written: excluded from lint, diffs and language stats.
+src/integrations/supabase/types.ts linguist-generated=true -diff
+src/routeTree.gen.ts linguist-generated=true -diff
+src/lib/og-fonts.server.ts linguist-generated=true -diff
+
+# Flat translation tables are data, not prose.
+packages/core/src/dictionaries/** linguist-detectable=false

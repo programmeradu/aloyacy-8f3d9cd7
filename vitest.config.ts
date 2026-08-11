@@ -38,6 +38,7 @@ export default defineConfig({
       VITE_SUPABASE_PUBLISHABLE_KEY: "test-publishable-key",
     },
     globals: false,
+    setupFiles: ["./src/test/dom-matchers.ts"],
     include: [
       "src/**/*.{test,spec}.{ts,tsx}",
       "packages/*/src/**/*.{test,spec}.{ts,tsx}",

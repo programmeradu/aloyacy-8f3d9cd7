@@ -1,0 +1,53 @@
+// English source of truth. Add a key here first, then translate in the matching el/ file.
+// Use {placeholders} for interpolation: t("greet", { name: "Andreas" }).
+
+export const common = {
+  "common.back": "Back",
+  "common.close": "Close",
+  "common.save": "Save",
+  "common.cancel": "Cancel",
+  "common.continue": "Continue",
+  "common.skip": "Skip",
+  "common.loading": "Loading…",
+  "common.retry": "Try again",
+  "common.minShort": "min",
+  "common.kmAway": "{km} km away",
+  "common.mAway": "{m} m away",
+  "common.minUnit": "min",
+
+  "resume.label": "Trip in progress",
+  "resume.busTo": "Bus {code} to",
+  "resume.cta": "Resume",
+
+  "nav.explore": "Explore",
+  "nav.trips": "Trips",
+  "nav.pulse": "Pulse",
+  "nav.saved": "Saved",
+  "nav.pass": "Pass",
+
+  "locale.label": "Language",
+  "locale.english": "English",
+  "locale.greek": "Ελληνικά",
+
+  "share.eyebrow": "SHARE",
+  "share.title": "Send this stop",
+  "share.subtitle":
+    "A live, beautiful card — sends as an image so it lands instantly in WhatsApp, iMessage, anywhere.",
+  "share.previewAlt": "Share card preview",
+  "share.rendering": "RENDERING…",
+  "share.share": "Share",
+  "share.whatsapp": "WhatsApp",
+  "share.save": "Save image",
+  "share.copyLink": "Copy link",
+  "share.copied": "Copied",
+  "share.close": "Close",
+  "share.openLabel": "Share this stop",
+  "share.waFallback": "Image saved — attach it in WhatsApp",
+  "share.saved": "Saved to your device",
+  "share.plan.cta": "Share this plan",
+  "share.plan.creating": "Making link…",
+  "share.plan.copied": "Link ready — share it",
+  "share.plan.retry": "Try again",
+  "share.plan.title": "A trip plan",
+  "share.plan.text": "Here's our plan to get to {where}.",
+} as const;

@@ -1,0 +1,34 @@
+// English source of truth. Add a key here first, then translate in the matching el/ file.
+// Use {placeholders} for interpolation: t("greet", { name: "Andreas" }).
+
+export const stop = {
+  "stopCard.code": "Stop {code}",
+  "stopCard.towards": "towards {name}",
+  "stopCard.noLiveBus": "no live bus",
+  "stopCard.minAway": "min away",
+
+  "stop.unknown": "Unknown stop",
+  "stop.serviceIntercity": "Intercity service",
+  "stop.serviceUrban": "Urban service",
+  "stop.notInDataset": "Stop not in current dataset",
+  "stop.busesServingOne": "1 bus serving this stop",
+  "stop.busesServingN": "{n} buses serving this stop",
+  "stop.noBusesNear": "No buses near this stop right now",
+  "stop.departures": "Departures",
+  "stop.loading": "Loading",
+  "stop.liveSmart": "Live, smart eta",
+  "stop.noUpcomingTitle": "No upcoming departures",
+  "stop.noUpcomingBody": "The live feed has nothing scheduled for this stop in the next 3 hours.",
+  "stop.minShort": "min",
+  "stop.opShort": "op {m}",
+  "stop.routeFallback": "Route",
+  "stop.kicker": "Stop {code}",
+  "stop.routeKicker": "Route",
+  "stop.scheduledAt": "Scheduled · {time}",
+  "stop.fromLabel": "From {name}",
+  "stop.headedTo": "Headed to",
+  "stop.nextDepartures": "Next departures",
+  "stop.heroEyebrow": "At this stop",
+  "stop.heroNote":
+    "Live ETA fused from operator feeds, fresh vehicle pings, and rider sightings — surfaced as one honest number per departure.",
+} as const;
