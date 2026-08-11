@@ -73,6 +73,26 @@ const ARRIVE_BY_BACKSEARCH_SEC = 6 * 3600;
 const AIRPORT_RE = /\b(airport|terminal)\b/i;
 const AIRPORT_EXTRA_TRANSFER_MIN_SAVINGS_SEC = 45 * 60;
 
+/**
+ * Time actually spent travelling, excluding the wait before the first bus.
+ * An overnight or Sunday query legitimately waits hours for the first
+ * departure; that wait must not count against the max-journey cap, or the
+ * only real answer ("first bus at 05:40") gets pruned and the rider is told
+ * no route exists.
+ */
+function travelSec(it: Itinerary): number {
+  const firstRideIdx = it.legs.findIndex((l) => l.kind === "ride");
+  if (firstRideIdx < 0) return it.totalDurationSec;
+  const firstRide = it.legs[firstRideIdx] as RideLeg;
+  let accessSec = 0;
+  for (let i = 0; i < firstRideIdx; i++) {
+    const l = it.legs[i];
+    if (l.kind === "walk") accessSec += l.durationSec;
+  }
+  const start = firstRide.board.departureUnix - accessSec;
+  return Math.max(0, it.arrivalUnix - start);
+}
+
 function isAirportQuery(point: { label?: string }): boolean {
   return AIRPORT_RE.test(point.label ?? "");
 }
