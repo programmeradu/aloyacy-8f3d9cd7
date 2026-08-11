@@ -33,6 +33,12 @@ export type ScheduledDiagnostics = RaptorDiagnostics & {
   walkRefineMs: number;
   walkLegsVerified: number;
   itinerariesDroppedAfterRefine: number;
+  /** Set when the 4h "leave now" window was empty and we widened to 24h. */
+  widenedHorizon?: boolean;
+  /** Set when nothing ran again today and results come from the next service day. */
+  rolledToNextDay?: boolean;
+  /** The service date the returned itineraries actually belong to. */
+  serviceDate?: string;
 };
 
 export class NoScheduleAvailableError extends Error {
