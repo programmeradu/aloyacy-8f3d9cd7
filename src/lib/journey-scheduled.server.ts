@@ -10,7 +10,7 @@
 // Returns the same Itinerary shape as the realtime planner so the UI is
 // indifferent to which planner produced a given result.
 
-import { loadScheduleForDate, todayLocalDate } from "./schedule-loader.server";
+import { loadScheduleForDate, todayLocalDate, serviceDateToUnix } from "./schedule-loader.server";
 
 /** Cyprus-local YYYYMMDD for a given unix second timestamp. */
 export function localDateForUnix(unix: number): string {
