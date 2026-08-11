@@ -1,3 +1,7 @@
+// AUTO-GENERATED, DO NOT EDIT.
+// Regenerated from the database schema by the Supabase type generator; hand
+// edits are overwritten. Excluded from lint and marked linguist-generated.
+
 export type Json =
   | string
   | number
