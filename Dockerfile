@@ -6,9 +6,12 @@
 # ---------- deps ----------
 FROM oven/bun:1.3-slim AS deps
 WORKDIR /app
-COPY package.json bun.lock* pnpm-lock.yaml* pnpm-workspace.yaml* ./
+# Bun is the only supported package manager; bun.lock is committed, so the
+# install is strictly frozen — a drifted lockfile must fail the build, not
+# silently resolve fresh versions.
+COPY package.json bun.lock ./
 COPY packages/core/package.json packages/core/package.json
-RUN bun install --frozen-lockfile || bun install
+RUN bun install --frozen-lockfile
 
 # ---------- build ----------
 FROM oven/bun:1.3-slim AS build
