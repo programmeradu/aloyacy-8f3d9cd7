@@ -13,6 +13,14 @@
     "packages/*",
     "mobile"
   ],
+  "trustedDependencies": [
+    "esbuild",
+    "protobufjs",
+    "sharp",
+    "tesseract.js",
+    "workerd"
+  ],
+
 
   "scripts": {
     "dev": "vite dev",
