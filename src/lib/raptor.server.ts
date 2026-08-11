@@ -216,7 +216,7 @@ export async function planRaptor(
         for (let j = boardIdx + 1; j < tripSt.length; j++) {
           const [sid, , arrSec, seq] = tripSt[j];
           const arrUnix = serviceDateToUnix(date, arrSec);
-          if (arrUnix - departureUnix > MAX_TOTAL_JOURNEY_SEC) break;
+          if (arrUnix - departureUnix > MAX_JOURNEY_SEC) break;
           const existing = bestArrival.get(sid);
           if (existing !== undefined && arrUnix >= existing) continue;
           const tripMeta = trips[i];
