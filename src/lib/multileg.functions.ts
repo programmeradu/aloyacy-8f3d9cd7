@@ -191,7 +191,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     const sourceRank = { live: 0, mixed: 1, estimated: 2 } as const;
     const dedup = new Map<string, Itinerary>();
     for (const it of merged) {
-      if (it.totalDurationSec > MAX_TOTAL_JOURNEY_SEC) continue;
+      if (travelSec(it) > MAX_TOTAL_JOURNEY_SEC) continue;
       // Honour arrive-by: 10 min slack so a near-miss still shows with a warning upstream.
       if (data.arriveByUnix && it.arrivalUnix > data.arriveByUnix + 600) continue;
       // Honour depart-at: keep options that depart within 2h of the requested time.
