@@ -37,6 +37,18 @@ export default defineConfig({
       reporter: ["text"],
       include: ["mobile/lib/**/*.ts"],
       exclude: ["**/*.test.ts", "mobile/test/**"],
+      // The global floor tracks the whole of `mobile/lib`, most of which is
+      // still native-bridge code that cannot execute in Node — ratchet it up as
+      // more pure modules gain suites. The per-glob floor guards the modules
+      // that are already covered so they cannot regress.
+      thresholds: {
+        lines: 28,
+        functions: 85,
+        branches: 85,
+        "mobile/lib/{api,plan,places,kapnos,airport,dust,reliability,walk,pnr,headsigns,format,eta-v2,trip-store,trip-chain,home-cards,nl-planner,motionPass,walletApi,walletFormat}.ts":
+          { lines: 80, functions: 75, branches: 85 },
+      },
     },
+
   },
 });
