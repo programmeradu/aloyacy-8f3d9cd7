@@ -34,6 +34,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:mobile": "vitest run --config vitest.mobile.config.ts",
+    "test:mobile:coverage": "vitest run --config vitest.mobile.config.ts --coverage",
     "test:coverage": "vitest run --coverage",
     "format": "prettier --write ."
   },

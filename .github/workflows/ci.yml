@@ -81,4 +81,4 @@ jobs:
         run: bunx tsc --noEmit
 
       - name: Test mobile logic
-        run: bun run test:mobile
+        run: bun run test:mobile:coverage
