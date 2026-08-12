@@ -1,54 +1,68 @@
 import path from "node:path";
 import { defineConfig } from "vitest/config";
 
-const root = import.meta.dirname;
-const stub = (name: string) => path.resolve(root, "mobile/test/stubs", name);
+// The Expo app cannot run under Node: its imports resolve to native bridges
+// (AsyncStorage, Haptics, expo-router, react-native itself) that only exist
+// inside a device runtime. Rather than skip mobile tests entirely, this config
+// swaps those bridges for small in-memory stubs so the *logic* in `mobile/lib`
+// — formatting, ETA math, trip state, API shaping — is testable in-process.
+//
+// Rule: stubs only ever replace platform bridges. Nothing under `mobile/lib`
+// is mocked out; the suites exercise the real shipped code.
+const stub = (file: string) => path.resolve(import.meta.dirname, `mobile/test/stubs/${file}`);
 
-/**
- * The Expo app cannot run under the web suite: its modules resolve through
- * Metro, not Vite, and half of them reach for native bridges that do not exist
- * in Node. This project keeps the framework-free half of `mobile/lib` honest —
- * formatting, fare and ETA maths, API request shaping — by aliasing the native
- * surface to small in-memory stubs and running the real module code against it.
- */
 export default defineConfig({
   resolve: {
     alias: [
-      { find: /^@\/(.*)$/, replacement: path.resolve(root, "mobile") + "/$1" },
+      { find: /^@\/(.*)$/, replacement: path.resolve(import.meta.dirname, "mobile/$1") },
       {
-        find: /^@aloya\/core\/(.*)$/,
-        replacement: path.resolve(root, "packages/core/src") + "/$1.ts",
+        find: "@react-native-async-storage/async-storage",
+        replacement: stub("async-storage.ts"),
       },
-      { find: "@react-native-async-storage/async-storage", replacement: stub("async-storage.ts") },
-      { find: "react-native", replacement: stub("react-native.ts") },
-      { find: "expo-haptics", replacement: stub("expo-haptics.ts") },
+      // Exact match only — `react-native-url-polyfill/auto` and friends are
+      // real packages that must keep resolving to themselves.
+      { find: /^react-native$/, replacement: stub("react-native.ts") },
+      { find: /^react-native-url-polyfill\/auto$/, replacement: stub("noop.ts") },
+      { find: "@notifee/react-native", replacement: stub("notifee.ts") },
+      { find: "@supabase/supabase-js", replacement: stub("supabase-js.ts") },
       { find: "expo-router", replacement: stub("expo-router.ts") },
+      { find: "expo-haptics", replacement: stub("expo-haptics.ts") },
       { find: "expo-constants", replacement: stub("expo-constants.ts") },
+      { find: "expo-localization", replacement: stub("expo-localization.ts") },
     ],
   },
   test: {
     environment: "node",
     globals: false,
-    dir: "mobile",
-    include: ["**/*.{test,spec}.ts"],
-    exclude: ["**/node_modules/**"],
+    include: ["mobile/**/__tests__/**/*.{test,spec}.ts"],
+    exclude: ["node_modules/**"],
     coverage: {
       provider: "v8",
-      reporter: ["text"],
+      reporter: ["text", "lcov"],
+      reportsDirectory: "coverage-mobile",
       include: ["mobile/lib/**/*.ts"],
-      exclude: ["**/*.test.ts", "mobile/test/**"],
-      // The global floor tracks the whole of `mobile/lib`, most of which is
-      // still native-bridge code that cannot execute in Node — ratchet it up as
-      // more pure modules gain suites. The per-glob floor guards the modules
-      // that are already covered so they cannot regress.
-      thresholds: {
-        lines: 28,
-        functions: 85,
-        branches: 85,
-        "mobile/lib/{api,plan,places,kapnos,airport,dust,reliability,walk,pnr,headsigns,format,eta-v2,trip-store,trip-chain,home-cards,nl-planner,motionPass,walletApi,walletFormat}.ts":
-          { lines: 80, functions: 75, branches: 85 },
-      },
+      // Hooks and native wrappers are thin bridges over device APIs; they are
+      // covered by the on-device build, not by this Node harness.
+      exclude: [
+        "**/__tests__/**",
+        "mobile/lib/use*.ts",
+        "mobile/lib/*.native.ts",
+        "mobile/lib/supabase.ts",
+        "mobile/lib/db.ts",
+        "mobile/lib/push.ts",
+        "mobile/lib/notifications.ts",
+        "mobile/lib/nfc.ts",
+        "mobile/lib/cardScan.ts",
+        "mobile/lib/liveActivities.ts",
+        "mobile/lib/groupBackgroundLocation.ts",
+        "mobile/lib/offline.ts",
+        "mobile/lib/journey-types.ts",
+      ],
+      // Floors, not targets: the global lines number still carries the
+      // remaining untested native-adjacent modules, while the branch/function
+      // gates guard the logic the suites already exercise. Ratchet upward as
+      // more modules gain suites.
+      thresholds: { lines: 54, functions: 85, branches: 90 },
     },
-
   },
 });

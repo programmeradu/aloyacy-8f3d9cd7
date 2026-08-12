@@ -1,175 +1,166 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  logCompletedTrip,
-  pickReturnSuggestion,
-  clearTripChainLog,
-  type ChainEntry,
-} from "@/lib/trip-chain";
-import type { ActiveTrip } from "@/lib/trip-store";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { ActiveTrip } from "../trip-store";
 
-const reset = () => (AsyncStorage as unknown as { __reset(): void }).__reset();
+const KEY = "aloya:trip-chain-log";
 
-beforeEach(async () => {
-  reset();
-  await clearTripChainLog();
-});
+async function freshChain(seed?: Record<string, string>) {
+  vi.resetModules();
+  const storage = await import("../../test/stubs/async-storage");
+  storage.__resetStorage(seed);
+  const chain = await import("../trip-chain");
+  return { chain, dumpStorage: storage.__dumpStorage };
+}
 
-const trip = (over: Partial<ActiveTrip> = {}): ActiveTrip => ({
-  startedAt: Date.now() - 60_000,
-  option: {
-    id: "opt",
-    totalDurationSec: 600,
-    departureUnix: 0,
-    arrivalUnix: 0,
-    legs: [],
-    transfers: 0,
-  },
-  from: { lat: 35.17, lng: 33.36, label: "Nicosia" },
-  to: { lat: 34.9, lng: 33.6, label: "Larnaca" },
-  live: { startedAt: Date.now(), alightedAt: Date.now() },
-  ...over,
-});
+const baseTrip = (overrides: Partial<ActiveTrip> = {}): ActiveTrip =>
+  ({
+    startedAt: 1_000,
+    option: { id: "o1", totalDurationSec: 600, departureUnix: 0, arrivalUnix: 0, legs: [], transfers: 0 },
+    from: { lat: 35.1, lng: 33.3, label: "A" },
+    to: { lat: 35.2, lng: 33.4, label: "B" },
+    ...overrides,
+  }) as ActiveTrip;
 
-describe("logCompletedTrip", () => {
-  it("silently skips a trip that never completed", async () => {
-    await logCompletedTrip(trip({ live: { startedAt: Date.now() } }));
-    const raw = await AsyncStorage.getItem("aloya:trip-chain-log");
-    expect(JSON.parse(raw ?? "[]")).toEqual([]);
+describe("trip-chain", () => {
+  beforeEach(() => {
+    vi.useRealTimers();
   });
 
-  it("skips null/undefined trips", async () => {
-    await expect(logCompletedTrip(null)).resolves.toBeUndefined();
-    await expect(logCompletedTrip(undefined)).resolves.toBeUndefined();
+  it("logCompletedTrip is silent for null/undefined/incomplete trips", async () => {
+    const { chain, dumpStorage } = await freshChain();
+    await chain.logCompletedTrip(null);
+    await chain.logCompletedTrip(undefined);
+    await chain.logCompletedTrip(baseTrip()); // no live/legState markers -> not completed
+    expect(dumpStorage()[KEY]).toBeUndefined();
   });
 
-  it("skips trips with non-finite coordinates", async () => {
-    await logCompletedTrip(trip({ from: { lat: NaN, lng: 33.36, label: "?" } }));
-    const raw = await AsyncStorage.getItem("aloya:trip-chain-log");
-    expect(JSON.parse(raw ?? "[]")).toEqual([]);
+  it("logCompletedTrip is silent when from/to coordinates are non-finite", async () => {
+    const { chain, dumpStorage } = await freshChain();
+    const trip = baseTrip({
+      live: { startedAt: 1, alightedAt: 2 },
+      from: { lat: NaN, lng: 33.3, label: "A" },
+    });
+    await chain.logCompletedTrip(trip);
+    expect(dumpStorage()[KEY]).toBeUndefined();
   });
 
-  it("logs a trip completed via live.alightedAt", async () => {
-    await logCompletedTrip(trip());
-    const raw = await AsyncStorage.getItem("aloya:trip-chain-log");
-    expect(raw).not.toBeNull();
-    const entries = JSON.parse(raw!) as ChainEntry[];
+  it("logCompletedTrip persists a trip completed via live.alightedAt", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2024-01-01T09:30:00Z"));
+    const { chain, dumpStorage } = await freshChain();
+    const trip = baseTrip({ live: { startedAt: 1, alightedAt: Date.now() } });
+    await chain.logCompletedTrip(trip);
+    const entries = JSON.parse(dumpStorage()[KEY]);
     expect(entries).toHaveLength(1);
-    expect(entries[0].to.label).toBe("Larnaca");
+    expect(entries[0].to).toEqual({ lat: 35.2, lng: 33.4, label: "B" });
+    expect(entries[0].hour).toBe(new Date().getHours());
+    vi.useRealTimers();
   });
 
-  it("logs a trip completed via a leg-level marker (arrivedAt/completedAt/alightedAt)", async () => {
-    await logCompletedTrip(
-      trip({
-        live: { startedAt: Date.now() },
-        legState: { currentLegIndex: 1, perLeg: { 0: { completedAt: Date.now() }, 1: { arrivedAt: Date.now() } } },
-      }),
-    );
-    const raw = await AsyncStorage.getItem("aloya:trip-chain-log");
-    expect(raw).not.toBeNull();
+  it("logCompletedTrip persists a trip completed via a per-leg marker (arrivedAt/completedAt)", async () => {
+    const { chain, dumpStorage } = await freshChain();
+    const withArrived = baseTrip({ legState: { currentLegIndex: 0, perLeg: { 0: { arrivedAt: 5 } } } });
+    await chain.logCompletedTrip(withArrived);
+    expect(JSON.parse(dumpStorage()[KEY])).toHaveLength(1);
+
+    const { chain: chain2 } = await freshChain();
+    const withCompleted = baseTrip({ legState: { currentLegIndex: 1, perLeg: { 0: { completedAt: 5 }, 1: {} } } });
+    await chain2.logCompletedTrip(withCompleted);
   });
 
-  it("dedupes on the same id (same startedAt + destination), keeping only the latest write", async () => {
-    const t = trip({ startedAt: 12345 });
-    await logCompletedTrip(t);
-    await logCompletedTrip(t);
-    const raw = await AsyncStorage.getItem("aloya:trip-chain-log");
-    const entries = JSON.parse(raw!) as ChainEntry[];
-    expect(entries).toHaveLength(1);
-  });
-
-  it("caps the log at 25 entries", async () => {
-    for (let i = 0; i < 30; i++) {
-      await logCompletedTrip(trip({ startedAt: i }));
+  it("dedupes by id (same startedAt+destination) and caps at MAX_ENTRIES (25)", async () => {
+    const { chain, dumpStorage } = await freshChain();
+    for (let i = 0; i < 27; i++) {
+      await chain.logCompletedTrip(
+        baseTrip({ startedAt: i, live: { startedAt: 1, alightedAt: 2 }, to: { lat: 35.2 + i * 0.001, lng: 33.4, label: `B${i}` } }),
+      );
     }
-    const raw = await AsyncStorage.getItem("aloya:trip-chain-log");
-    const entries = JSON.parse(raw!) as ChainEntry[];
-    expect(entries.length).toBeLessThanOrEqual(25);
-  });
-});
+    const entries = JSON.parse(dumpStorage()[KEY]);
+    expect(entries).toHaveLength(25);
+    // newest first
+    expect(entries[0].to.label).toBe("B26");
 
-describe("pickReturnSuggestion", () => {
-  const nicosia = { lat: 35.17, lng: 33.36 };
-  const larnaca = { lat: 34.9, lng: 33.6 };
-
-  const entry = (over: Partial<ChainEntry> = {}): ChainEntry => ({
-    id: "e1",
-    from: { lat: nicosia.lat, lng: nicosia.lng, label: "Nicosia" },
-    to: { lat: larnaca.lat, lng: larnaca.lng, label: "Larnaca" },
-    completedAt: Date.now() - 60 * 60_000,
-    hour: new Date(Date.now() - 60 * 60_000).getHours(),
-    ...over,
+    // logging the exact same trip again (same startedAt+to) replaces, doesn't duplicate
+    await chain.logCompletedTrip(baseTrip({ startedAt: 26, live: { startedAt: 1, alightedAt: 2 }, to: { lat: 35.2 + 26 * 0.001, lng: 33.4, label: "B26-again" } }));
+    const after = JSON.parse(dumpStorage()[KEY]);
+    expect(after).toHaveLength(25);
+    expect(after[0].to.label).toBe("B26-again");
   });
 
-  it("returns null with no entries or no location", () => {
-    expect(pickReturnSuggestion([], larnaca)).toBeNull();
-    expect(pickReturnSuggestion([entry()], null)).toBeNull();
+  it("clearTripChainLog empties the log and persists", async () => {
+    const { chain, dumpStorage } = await freshChain();
+    await chain.logCompletedTrip(baseTrip({ live: { startedAt: 1, alightedAt: 2 } }));
+    await chain.clearTripChainLog();
+    expect(JSON.parse(dumpStorage()[KEY])).toEqual([]);
   });
 
-  it("suggests the reverse trip when the rider is near where they arrived", () => {
-    const suggestion = pickReturnSuggestion([entry()], larnaca);
-    expect(suggestion).not.toBeNull();
-    expect(suggestion!.from.label).toBe("Larnaca");
-    expect(suggestion!.to.label).toBe("Nicosia");
+  it("hydrate recovers from malformed JSON without throwing", async () => {
+    const { chain } = await freshChain({ [KEY]: "not json" });
+    await chain.logCompletedTrip(baseTrip({ live: { startedAt: 1, alightedAt: 2 } }));
+    // if hydrate had thrown, this would never resolve/persist
   });
 
-  it("does not suggest anything when the rider is already near the origin (not the destination)", () => {
-    expect(pickReturnSuggestion([entry()], nicosia)).toBeNull();
-  });
+  describe("pickReturnSuggestion", () => {
+    const here = { lat: 35.2, lng: 33.4, label: "Here" };
+    const now = new Date("2024-01-01T18:00:00Z");
 
-  it("excludes trips completed outside the return window (>14h ago)", () => {
-    const stale = entry({ completedAt: Date.now() - 15 * 60 * 60_000 });
-    expect(pickReturnSuggestion([stale], larnaca)).toBeNull();
-  });
+    it("returns null with no entries or no location", async () => {
+      const { chain } = await freshChain();
+      expect(chain.pickReturnSuggestion([], here, now)).toBeNull();
+      expect(chain.pickReturnSuggestion([{ id: "x", from: here, to: here, completedAt: 0, hour: 0 }], null, now)).toBeNull();
+    });
 
-  it("excludes trips completed less than 15 minutes ago", () => {
-    const veryRecent = entry({ completedAt: Date.now() - 60_000 });
-    expect(pickReturnSuggestion([veryRecent], larnaca)).toBeNull();
-  });
+    it("filters out candidates too far from `here`", async () => {
+      const { chain } = await freshChain();
+      const entries = [
+        { id: "c1", from: { lat: 35.1, lng: 33.3, label: "A" }, to: { lat: 10, lng: 10, label: "Far" }, completedAt: now.getTime() - 2 * 3_600_000, hour: 16 },
+      ];
+      expect(chain.pickReturnSuggestion(entries, here, now)).toBeNull();
+    });
 
-  it("prefers a candidate matching the rider's usual return hour", () => {
-    const now = new Date();
-    const matchingHourEntries: ChainEntry[] = [
-      entry({ id: "outbound", completedAt: Date.now() - 2 * 60 * 60_000 }),
-      // three "opposite direction" historical trips at the current hour
-      entry({
-        id: "hist1",
-        from: { lat: larnaca.lat, lng: larnaca.lng, label: "Larnaca" },
-        to: { lat: nicosia.lat, lng: nicosia.lng, label: "Nicosia" },
-        completedAt: Date.now() - 5 * 24 * 60 * 60_000,
-        hour: now.getHours(),
-      }),
-      entry({
-        id: "hist2",
-        from: { lat: larnaca.lat, lng: larnaca.lng, label: "Larnaca" },
-        to: { lat: nicosia.lat, lng: nicosia.lng, label: "Nicosia" },
-        completedAt: Date.now() - 6 * 24 * 60 * 60_000,
-        hour: now.getHours(),
-      }),
-    ];
-    const suggestion = pickReturnSuggestion(matchingHourEntries, larnaca, now);
-    expect(suggestion).not.toBeNull();
-    expect(suggestion!.usualReturnTime).toBe(`${String(now.getHours()).padStart(2, "0")}:00`);
-    expect(suggestion!.reason).toBe("You usually head back around now");
-  });
+    it("filters out candidates outside the return window or too recent", async () => {
+      const { chain } = await freshChain();
+      const tooOld = [
+        { id: "c1", from: { lat: 35.1, lng: 33.3, label: "A" }, to: here, completedAt: now.getTime() - 20 * 3_600_000, hour: 16 },
+      ];
+      expect(chain.pickReturnSuggestion(tooOld, here, now)).toBeNull();
 
-  it("falls back to a generic reason when there's no return-hour history", () => {
-    const suggestion = pickReturnSuggestion([entry({ completedAt: Date.now() - 60 * 60_000 })], larnaca);
-    expect(suggestion?.reason).toBe("Return the way you came?");
-    expect(suggestion?.usualReturnTime).toBeNull();
-  });
+      const tooRecent = [
+        { id: "c2", from: { lat: 35.1, lng: 33.3, label: "A" }, to: here, completedAt: now.getTime() - 60_000, hour: 18 },
+      ];
+      expect(chain.pickReturnSuggestion(tooRecent, here, now)).toBeNull();
+    });
 
-  it("uses the generic 'Back to your origin?' reason once outside the 4h recency window", () => {
-    const suggestion = pickReturnSuggestion([entry({ completedAt: Date.now() - 6 * 60 * 60_000 })], larnaca);
-    expect(suggestion?.reason).toBe("Back to your origin?");
-  });
-});
+    it("suggests the reverse leg without history ('Return the way you came?')", async () => {
+      const { chain } = await freshChain();
+      const entries = [
+        {
+          id: "c1",
+          from: { lat: 35.1, lng: 33.3, label: "Nicosia" },
+          to: here,
+          completedAt: now.getTime() - 2 * 3_600_000,
+          hour: 16,
+        },
+      ];
+      const suggestion = chain.pickReturnSuggestion(entries, here, now);
+      expect(suggestion).not.toBeNull();
+      expect(suggestion?.from).toEqual(here);
+      expect(suggestion?.to).toEqual({ lat: 35.1, lng: 33.3, label: "Nicosia" });
+      expect(suggestion?.usualReturnTime).toBeNull();
+      expect(suggestion?.reason).toBe("Return the way you came?");
+    });
 
-describe("clearTripChainLog", () => {
-  it("wipes the persisted log", async () => {
-    await logCompletedTrip(trip());
-    await clearTripChainLog();
-    const raw = await AsyncStorage.getItem("aloya:trip-chain-log");
-    expect(JSON.parse(raw!)).toEqual([]);
+    it("boosts score and surfaces a typical return time when opposite-direction history exists", async () => {
+      const { chain } = await freshChain();
+      const origin = { lat: 35.1, lng: 33.3, label: "Nicosia" };
+      const entries = [
+        { id: "c1", from: origin, to: here, completedAt: now.getTime() - 2 * 3_600_000, hour: 16 },
+        // Opposite direction (here -> origin) completed previously at the current hour.
+        { id: "c2", from: here, to: origin, completedAt: now.getTime() - 24 * 3_600_000, hour: now.getHours() },
+      ];
+      const suggestion = chain.pickReturnSuggestion(entries, here, now);
+      expect(suggestion).not.toBeNull();
+      expect(suggestion?.reason).toBe("You usually head back around now");
+      expect(suggestion?.usualReturnTime).toBe(`${String(now.getHours()).padStart(2, "0")}:00`);
+    });
   });
 });

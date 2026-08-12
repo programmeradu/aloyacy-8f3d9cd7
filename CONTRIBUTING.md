@@ -63,19 +63,17 @@ Vitest. Specs sit beside the module: `packages/core/src/geo.ts` →
 bun run test           # once
 bun run test:watch     # watch mode
 bun run test:coverage  # v8 coverage report
-bun run test:mobile    # Expo app's framework-free logic
+bun run test:mobile    # Expo app logic, native bridges stubbed
+bun run test:all       # both suites
 ```
 
-The Expo app cannot run under the web suite — its modules resolve through
-Metro and reach for native bridges Node does not have. `vitest.mobile.config.ts`
-covers the framework-free half of `mobile/lib` by aliasing that native surface
-to small in-memory stubs in `mobile/test/stubs/`; specs live in
-`mobile/lib/__tests__/`. Hooks and screens are out of scope there — move the
-logic worth testing into a plain function (or into `packages/core`) instead.
+Mobile specs live in `mobile/lib/__tests__/`. The harness
+(`vitest.mobile.config.ts`) aliases native bridges to `mobile/test/stubs/`;
+add a stub there when a module needs a new bridge, and never mock the module
+under test.
 
 Every bug fix ships with a test that fails before the fix. Pure domain logic
 must be covered; UI composition need not be.
-
 
 ## Database changes
 

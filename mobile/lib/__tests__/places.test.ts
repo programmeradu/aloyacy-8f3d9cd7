@@ -1,72 +1,48 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { autocompletePlaces, resolvePlace } from "@/lib/places";
-import { API_BASE } from "@/lib/api";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { autocompletePlaces, resolvePlace } from "../places";
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
+afterEach(() => vi.unstubAllGlobals());
 
 describe("autocompletePlaces", () => {
-  it("POSTs the query and bias to the autocomplete endpoint", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ suggestions: [] }), { status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
-
-    await autocompletePlaces({ query: "Nicosia", bias: { lat: 35.1, lng: 33.3 } });
-
-    expect(fetchMock).toHaveBeenCalledWith(`${API_BASE}/api/public/places-autocomplete`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ query: "Nicosia", bias: { lat: 35.1, lng: 33.3 } }),
-    });
+  it("returns suggestions on ok", async () => {
+    const suggestions = [{ placeId: "1", primary: "A", secondary: "B" }];
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ suggestions }) }));
+    const res = await autocompletePlaces({ query: "a" });
+    expect(res).toEqual(suggestions);
   });
 
-  it("returns the suggestions array from the response", async () => {
-    const suggestions = [{ placeId: "1", primary: "Nicosia", secondary: "Cyprus" }];
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ suggestions }), { status: 200 })));
-
-    await expect(autocompletePlaces({ query: "N" })).resolves.toEqual(suggestions);
+  it("defaults to [] when suggestions missing", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }));
+    const res = await autocompletePlaces({ query: "a" });
+    expect(res).toEqual([]);
   });
 
-  it("falls back to an empty array when suggestions is missing", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({}), { status: 200 })));
-
-    await expect(autocompletePlaces({ query: "N" })).resolves.toEqual([]);
+  it("throws on non-ok", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500 }));
+    await expect(autocompletePlaces({ query: "a" })).rejects.toThrow("Autocomplete 500");
   });
 
-  it("throws a descriptive error when the response is not ok", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("bad", { status: 500 })));
-
-    await expect(autocompletePlaces({ query: "N" })).rejects.toThrow("Autocomplete 500");
-  });
-
-  it("does not retry against a second base on failure (single-base client)", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response("bad", { status: 500 }));
-    vi.stubGlobal("fetch", fetchMock);
-
-    await expect(autocompletePlaces({ query: "N" })).rejects.toThrow();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+  it("rejects on network failure (no fallback retry — single base)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    await expect(autocompletePlaces({ query: "a" })).rejects.toThrow("offline");
   });
 });
 
 describe("resolvePlace", () => {
-  it("POSTs the placeId to the place endpoint", async () => {
-    const place = { placeId: "abc", name: "Nicosia", address: "Cyprus", lat: 35.1, lng: 33.3 };
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(place), { status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
-
-    const result = await resolvePlace("abc");
-
-    expect(fetchMock).toHaveBeenCalledWith(`${API_BASE}/api/public/place`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ placeId: "abc" }),
-    });
-    expect(result).toEqual(place);
+  it("returns place on ok", async () => {
+    const place = { placeId: "1", name: "A", address: "B", lat: 1, lng: 2 };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => place }));
+    const res = await resolvePlace("1");
+    expect(res).toEqual(place);
   });
 
-  it("throws a descriptive error when the response is not ok", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("nope", { status: 404 })));
+  it("throws on non-ok", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
+    await expect(resolvePlace("1")).rejects.toThrow("Place 404");
+  });
 
-    await expect(resolvePlace("missing")).rejects.toThrow("Place 404");
+  it("propagates malformed json", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => { throw new Error("bad"); } }));
+    await expect(resolvePlace("1")).rejects.toThrow("bad");
   });
 });

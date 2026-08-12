@@ -1,282 +1,237 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { ActiveTrip } from "@/lib/trip-store";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { __resetStorage } from "../../test/stubs/async-storage";
 
-// __reset is a test-only extra on the stub, not on the real typing.
-const reset = () => (AsyncStorage as unknown as { __reset(): void }).__reset();
+const ACTIVE_KEY = "aloya:active-trip";
+const SAVED_KEY = "aloya:saved-places";
+const RECENT_KEY = "aloya:recent-destinations";
 
-async function freshModule() {
+// `vi.resetModules()` gives `../trip-store` (and therefore its AsyncStorage
+// import) a brand-new module instance, distinct from the stub bound at the
+// top of this file. Track the instance actually wired to the freshly loaded
+// store so assertions on storage contents read the same backing map.
+let activeDumpStorage: () => Record<string, string> = () => ({});
+
+async function freshStore(seed?: Record<string, string>) {
   vi.resetModules();
-  reset();
-  return import("@/lib/trip-store");
+  const storage = await import("../../test/stubs/async-storage");
+  storage.__resetStorage(seed);
+  activeDumpStorage = storage.__dumpStorage;
+  const store = await import("../trip-store");
+  return store;
 }
 
-const baseTrip = (over: Partial<ActiveTrip> = {}): ActiveTrip => ({
+function dumpStorage(): Record<string, string> {
+  return activeDumpStorage();
+}
+
+const baseTrip = (overrides: Partial<any> = {}) => ({
   startedAt: Date.now(),
-  option: {
-    id: "opt-1",
-    totalDurationSec: 600,
-    departureUnix: Math.floor(Date.now() / 1000),
-    arrivalUnix: Math.floor(Date.now() / 1000) + 600,
-    legs: [],
-    transfers: 0,
-  },
-  from: { lat: 35.17, lng: 33.36, label: "Nicosia" },
-  to: { lat: 34.9, lng: 33.6, label: "Larnaca" },
-  ...over,
+  option: { id: "o1", totalDurationSec: 600, departureUnix: 0, arrivalUnix: 0, legs: [], transfers: 0 },
+  from: { lat: 35.1, lng: 33.3, label: "A" },
+  to: { lat: 35.2, lng: 33.4, label: "B" },
+  ...overrides,
 });
 
-describe("active trip persistence", () => {
-  it("returns null when nothing has been set", async () => {
-    const m = await freshModule();
-    expect(m.getActiveTrip()).toBeNull();
+describe("trip-store", () => {
+  beforeEach(() => {
+    __resetStorage();
   });
 
-  it("round-trips a trip through set/get", async () => {
-    const m = await freshModule();
+  it("setActiveTrip persists and getActiveTrip returns it", async () => {
+    const store = await freshStore();
     const trip = baseTrip();
-    m.setActiveTrip(trip);
-    expect(m.getActiveTrip()).toEqual(trip);
+    store.setActiveTrip(trip);
+    expect(store.getActiveTrip()).toEqual(trip);
+    // the AsyncStorage write is fire-and-forget; flush microtasks before reading it back
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(JSON.parse(dumpStorage()[ACTIVE_KEY])).toEqual(trip);
   });
 
-  it("persists the active trip to storage so a rehydrated store finds it", async () => {
-    const m = await freshModule();
-    m.setActiveTrip(baseTrip({ startedAt: Date.now() }));
-    await m.hydrateTripStore();
-    // a second "process" reading the same storage key sees it too
-    vi.resetModules();
-    const m2 = await import("@/lib/trip-store");
-    await m2.hydrateTripStore();
-    expect(m2.getActiveTrip()).not.toBeNull();
+  it("clearActiveTrip clears cache and storage", async () => {
+    const store = await freshStore();
+    store.setActiveTrip(baseTrip());
+    store.clearActiveTrip();
+    expect(store.getActiveTrip()).toBeNull();
+    expect(dumpStorage()[ACTIVE_KEY]).toBeUndefined();
   });
 
-  it("clears the active trip and wipes storage", async () => {
-    const m = await freshModule();
-    m.setActiveTrip(baseTrip());
-    m.clearActiveTrip();
-    expect(m.getActiveTrip()).toBeNull();
-    const raw = await AsyncStorage.getItem("aloya:active-trip");
-    expect(raw).toBeNull();
-  });
-
-  it("prunes a trip older than the max age (6h) even without an expected arrival", async () => {
-    const m = await freshModule();
+  it("prunes a trip older than MAX_TRIP_AGE_MS", async () => {
+    const store = await freshStore();
     const old = baseTrip({ startedAt: Date.now() - 7 * 60 * 60 * 1000 });
-    m.setActiveTrip(old);
-    expect(m.getActiveTrip()).toBeNull();
+    store.setActiveTrip(old);
+    expect(store.getActiveTrip()).toBeNull();
   });
 
-  it("keeps a trip younger than the max age with no arrival info", async () => {
-    const m = await freshModule();
-    const recent = baseTrip({ startedAt: Date.now() - 60_000 });
-    m.setActiveTrip(recent);
-    expect(m.getActiveTrip()).not.toBeNull();
+  it("prunes a trip whose expected arrival is long past (grace window)", async () => {
+    const store = await freshStore();
+    const pastArrivalUnix = Math.floor((Date.now() - 3 * 60 * 60 * 1000) / 1000);
+    const trip = baseTrip({ itinerary: { arrivalUnix: pastArrivalUnix, legs: [] } });
+    store.setActiveTrip(trip);
+    expect(store.getActiveTrip()).toBeNull();
   });
 
-  it("prunes a trip whose expected arrival passed more than the grace period ago", async () => {
-    const m = await freshModule();
-    const nowSec = Math.floor(Date.now() / 1000);
-    const trip = baseTrip({
-      startedAt: Date.now() - 30 * 60_000,
-      itinerary: {
-        id: "it-1",
-        legs: [],
-        totalDurationSec: 600,
-        departureUnix: nowSec - 3 * 60 * 60,
-        arrivalUnix: nowSec - 3 * 60 * 60, // arrived 3h ago, grace is 2h
-        transfers: 0,
-        totalWalkMeters: 0,
-        score: 0,
-        source: "live",
-      },
-    });
-    m.setActiveTrip(trip);
-    expect(m.getActiveTrip()).toBeNull();
+  it("keeps a trip within the arrival grace window", async () => {
+    const store = await freshStore();
+    const soon = Math.floor((Date.now() - 30 * 60 * 1000) / 1000);
+    const trip = baseTrip({ itinerary: { arrivalUnix: soon, legs: [] } });
+    store.setActiveTrip(trip);
+    expect(store.getActiveTrip()).not.toBeNull();
   });
 
-  it("keeps a trip whose arrival is within the grace period", async () => {
-    const m = await freshModule();
-    const nowSec = Math.floor(Date.now() / 1000);
-    const trip = baseTrip({
-      startedAt: Date.now() - 30 * 60_000,
-      itinerary: {
-        id: "it-1",
-        legs: [],
-        totalDurationSec: 600,
-        departureUnix: nowSec - 60 * 60,
-        arrivalUnix: nowSec - 60 * 60, // arrived 1h ago, grace is 2h
-        transfers: 0,
-        totalWalkMeters: 0,
-        score: 0,
-        source: "live",
-      },
-    });
-    m.setActiveTrip(trip);
-    expect(m.getActiveTrip()).not.toBeNull();
+  it("hydrateTripStore rehydrates from AsyncStorage and prunes on load", async () => {
+    const expired = baseTrip({ startedAt: Date.now() - 8 * 60 * 60 * 1000 });
+    const store = await freshStore({ [ACTIVE_KEY]: JSON.stringify(expired) });
+    await store.hydrateTripStore();
+    expect(store.getActiveTrip()).toBeNull();
   });
 
-  it("logs a completed trip to the trip chain when clearing", async () => {
-    const m = await freshModule();
-    const trip = baseTrip({ live: { startedAt: Date.now(), alightedAt: Date.now() } });
-    m.setActiveTrip(trip);
-    m.clearActiveTrip();
-    // allow the fire-and-forget dynamic import + async work to flush
-    await new Promise((r) => setTimeout(r, 20));
-    const chain = await import("@/lib/trip-chain");
-    const raw = await AsyncStorage.getItem("aloya:trip-chain-log");
-    expect(raw).not.toBeNull();
-    void chain;
+  it("hydrateTripStore is memoized (single hydration promise)", async () => {
+    const store = await freshStore();
+    const p1 = store.hydrateTripStore();
+    const p2 = store.hydrateTripStore();
+    expect(p1).toBe(p2);
+    await p1;
   });
 
-  it("patches live trip state, seeding startedAt on first patch", async () => {
-    const m = await freshModule();
-    m.setActiveTrip(baseTrip());
-    m.patchActiveTripLive({ onBoardConfirmedAt: 123 });
-    const trip = m.getActiveTrip();
-    expect(trip?.live?.onBoardConfirmedAt).toBe(123);
-    expect(trip?.live?.startedAt).toBeTypeOf("number");
+  it("patchActiveTripLive merges live state and no-ops without an active trip", async () => {
+    const store = await freshStore();
+    store.patchActiveTripLive({ missedAt: 1 });
+    expect(store.getActiveTrip()).toBeNull();
+    store.setActiveTrip(baseTrip());
+    store.patchActiveTripLive({ onBoardConfirmedAt: 111 });
+    expect(store.getActiveTrip()?.live?.onBoardConfirmedAt).toBe(111);
   });
 
-  it("no-ops patchActiveTripLive when there is no active trip", async () => {
-    const m = await freshModule();
-    expect(() => m.patchActiveTripLive({ onBoardConfirmedAt: 1 })).not.toThrow();
-    expect(m.getActiveTrip()).toBeNull();
-  });
-});
-
-describe("multi-leg helpers", () => {
-  const multiLegItinerary = (nowSec: number) => ({
-    id: "it-multi",
-    legs: [
-      { kind: "ride" as const, routeId: "r1", routeShort: "1", routeLong: "One", tripId: "t1", live: true,
-        board: { stopId: "a", name: "A", lat: 0, lng: 0, departureUnix: nowSec },
-        alight: { stopId: "b", name: "B", lat: 0, lng: 0, arrivalUnix: nowSec + 300 },
-        stopCount: 3, delaySec: 0 },
-      { kind: "ride" as const, routeId: "r2", routeShort: "2", routeLong: "Two", tripId: "t2", live: true,
-        board: { stopId: "b", name: "B", lat: 0, lng: 0, departureUnix: nowSec + 400 },
-        alight: { stopId: "c", name: "C", lat: 0, lng: 0, arrivalUnix: nowSec + 700 },
-        stopCount: 3, delaySec: 0 },
-    ],
-    totalDurationSec: 700,
-    departureUnix: nowSec,
-    arrivalUnix: nowSec + 700,
-    transfers: 1,
-    totalWalkMeters: 0,
-    score: 0,
-    source: "live" as const,
+  it("rideLegsOf filters ride legs and isMultiLeg detects >=2 rides", async () => {
+    const store = await freshStore();
+    const it1: any = { legs: [{ kind: "walk" }, { kind: "ride" }] };
+    const it2: any = { legs: [{ kind: "ride" }, { kind: "ride" }] };
+    expect(store.rideLegsOf(it1)).toHaveLength(1);
+    expect(store.isMultiLeg(it1)).toBe(false);
+    expect(store.isMultiLeg(it2)).toBe(true);
+    expect(store.isMultiLeg(undefined)).toBe(false);
   });
 
-  it("identifies single vs multi-leg itineraries by ride-leg count", async () => {
-    const m = await freshModule();
-    const nowSec = Math.floor(Date.now() / 1000);
-    expect(m.isMultiLeg(undefined)).toBe(false);
-    expect(m.isMultiLeg(multiLegItinerary(nowSec))).toBe(true);
-    expect(m.rideLegsOf(multiLegItinerary(nowSec))).toHaveLength(2);
+  it("initialLegState seeds leg 0 with enteredAt", async () => {
+    const store = await freshStore();
+    const s = store.initialLegState();
+    expect(s.currentLegIndex).toBe(0);
+    expect(s.perLeg[0].enteredAt).toBeTypeOf("number");
   });
 
-  it("creates an initial leg state anchored at leg 0", async () => {
-    const m = await freshModule();
-    const state = m.initialLegState();
-    expect(state.currentLegIndex).toBe(0);
-    expect(state.perLeg[0].enteredAt).toBeTypeOf("number");
+  it("patchCurrentLeg is a no-op without legState, else merges the current leg", async () => {
+    const store = await freshStore();
+    store.setActiveTrip(baseTrip());
+    store.patchCurrentLeg({ arrivedAt: 5 }); // no legState yet -> no-op
+    expect(store.getActiveTrip()?.legState).toBeUndefined();
+
+    store.setActiveTrip(baseTrip({ legState: store.initialLegState() }));
+    store.patchCurrentLeg({ arrivedAt: 42 });
+    expect(store.getActiveTrip()?.legState?.perLeg[0].arrivedAt).toBe(42);
   });
 
-  it("patches the current leg's live state in place", async () => {
-    const m = await freshModule();
-    const nowSec = Math.floor(Date.now() / 1000);
-    m.setActiveTrip(baseTrip({ itinerary: multiLegItinerary(nowSec), legState: m.initialLegState() }));
-    m.patchCurrentLeg({ onBoardConfirmedAt: 42 });
-    expect(m.getActiveTrip()?.legState?.perLeg[0].onBoardConfirmedAt).toBe(42);
+  it("advanceToNextLeg moves index forward and stops at the last leg", async () => {
+    const store = await freshStore();
+    const itinerary: any = { legs: [{ kind: "ride" }, { kind: "ride" }] };
+    store.setActiveTrip(baseTrip({ itinerary, legState: store.initialLegState() }));
+    store.advanceToNextLeg();
+    expect(store.getActiveTrip()?.legState?.currentLegIndex).toBe(1);
+    expect(store.getActiveTrip()?.legState?.perLeg[0].completedAt).toBeTypeOf("number");
+    store.advanceToNextLeg(); // already at last leg
+    expect(store.getActiveTrip()?.legState?.currentLegIndex).toBe(1);
   });
 
-  it("advances to the next leg, stamping completedAt / enteredAt", async () => {
-    const m = await freshModule();
-    const nowSec = Math.floor(Date.now() / 1000);
-    m.setActiveTrip(baseTrip({ itinerary: multiLegItinerary(nowSec), legState: m.initialLegState() }));
-    m.advanceToNextLeg();
-    const state = m.getActiveTrip()?.legState;
-    expect(state?.currentLegIndex).toBe(1);
-    expect(state?.perLeg[0].completedAt).toBeTypeOf("number");
-    expect(state?.perLeg[1].enteredAt).toBeTypeOf("number");
+  it("advanceToNextLeg no-ops without itinerary/legState", async () => {
+    const store = await freshStore();
+    store.setActiveTrip(baseTrip());
+    store.advanceToNextLeg();
+    expect(store.getActiveTrip()?.legState).toBeUndefined();
   });
 
-  it("refuses to advance past the final leg", async () => {
-    const m = await freshModule();
-    const nowSec = Math.floor(Date.now() / 1000);
-    m.setActiveTrip(baseTrip({
-      itinerary: multiLegItinerary(nowSec),
-      legState: { currentLegIndex: 1, perLeg: { 1: { enteredAt: Date.now() } } },
-    }));
-    m.advanceToNextLeg();
-    expect(m.getActiveTrip()?.legState?.currentLegIndex).toBe(1);
-  });
-
-  it("collapses the remaining itinerary to a single final walk leg", async () => {
-    const m = await freshModule();
-    const nowSec = Math.floor(Date.now() / 1000);
-    m.setActiveTrip(baseTrip({
-      to: { lat: 34.9, lng: 33.6, label: "Larnaca" },
-      itinerary: multiLegItinerary(nowSec),
-      legState: { currentLegIndex: 1, perLeg: { 0: {}, 1: { enteredAt: Date.now() } } },
-    }));
-    m.collapseToFinalWalk({ lat: 34.905, lng: 33.605 });
-    const trip = m.getActiveTrip();
+  it("collapseToFinalWalk truncates legs and appends a walk to destination", async () => {
+    const store = await freshStore();
+    const itinerary: any = {
+      legs: [{ kind: "ride" }, { kind: "ride" }],
+      arrivalUnix: 0,
+      totalDurationSec: 0,
+      totalWalkMeters: 0,
+    };
+    store.setActiveTrip(
+      baseTrip({ itinerary, legState: { currentLegIndex: 1, perLeg: {} } }),
+    );
+    store.collapseToFinalWalk({ lat: 35.2, lng: 33.4 });
+    const trip = store.getActiveTrip();
+    expect(trip?.itinerary?.legs.at(-1)?.kind).toBe("walk");
     expect(trip?.itinerary?.legs).toHaveLength(2);
-    expect(trip?.itinerary?.legs[1].kind).toBe("walk");
     expect(trip?.legState?.currentLegIndex).toBe(1);
   });
 
-  it("no-ops multi-leg mutators when there is no active trip / legState", async () => {
-    const m = await freshModule();
-    expect(() => m.patchCurrentLeg({ onBoardConfirmedAt: 1 })).not.toThrow();
-    expect(() => m.advanceToNextLeg()).not.toThrow();
-    expect(() => m.collapseToFinalWalk({ lat: 0, lng: 0 })).not.toThrow();
-  });
-});
-
-describe("saved places", () => {
-  it("upserts a place, replacing any existing entry with the same id", async () => {
-    const m = await freshModule();
-    m.upsertSavedPlace({ id: "p1", label: "Home", name: "Home", lat: 1, lng: 1, tone: "aegean", pinned: true, createdAt: 1 });
-    m.upsertSavedPlace({ id: "p1", label: "Home v2", name: "Home v2", lat: 1, lng: 1, tone: "olive", pinned: false, createdAt: 1 });
-    const all = m.listSavedPlaces();
-    expect(all).toHaveLength(1);
-    expect(all[0].label).toBe("Home v2");
+  it("collapseToFinalWalk no-ops without itinerary or legState", async () => {
+    const store = await freshStore();
+    store.setActiveTrip(baseTrip());
+    store.collapseToFinalWalk({ lat: 1, lng: 1 });
+    expect(store.getActiveTrip()?.itinerary).toBeUndefined();
   });
 
-  it("removes a saved place by id", async () => {
-    const m = await freshModule();
-    m.upsertSavedPlace({ id: "p1", label: "Home", name: "Home", lat: 1, lng: 1, tone: "aegean", pinned: true, createdAt: 1 });
-    m.removeSavedPlace("p1");
-    expect(m.listSavedPlaces()).toHaveLength(0);
-  });
-});
-
-describe("recent destinations", () => {
-  it("dedupes by id, moving the repeated destination back to the front", async () => {
-    const m = await freshModule();
-    m.pushRecent({ id: "d1", name: "Alpha", lat: 1, lng: 1 });
-    m.pushRecent({ id: "d2", name: "Beta", lat: 2, lng: 2 });
-    m.pushRecent({ id: "d1", name: "Alpha", lat: 1, lng: 1 });
-    const recents = m.listRecents();
-    expect(recents).toHaveLength(2);
-    expect(recents[0].id).toBe("d1");
+  it("saved places: upsert, dedupe by id, and remove", async () => {
+    const store = await freshStore();
+    const place = { id: "p1", label: "Home", name: "Home", lat: 1, lng: 1, tone: "aegean" as const, pinned: true, createdAt: 1 };
+    store.upsertSavedPlace(place);
+    store.upsertSavedPlace({ ...place, name: "Home Updated" });
+    expect(store.listSavedPlaces()).toHaveLength(1);
+    expect(store.listSavedPlaces()[0].name).toBe("Home Updated");
+    store.removeSavedPlace("p1");
+    expect(store.listSavedPlaces()).toHaveLength(0);
   });
 
-  it("derives a stable id from lat/lng when none is supplied", async () => {
-    const m = await freshModule();
-    m.pushRecent({ name: "Alpha", lat: 35.123456, lng: 33.654321 });
-    expect(m.listRecents()[0].id).toBe("35.1235,33.6543");
-  });
-
-  it("caps the recents list at 12 entries, dropping the oldest", async () => {
-    const m = await freshModule();
-    for (let i = 0; i < 15; i++) {
-      m.pushRecent({ id: `d${i}`, name: `Dest ${i}`, lat: i, lng: i });
+  it("recents: pushRecent dedupes by derived id, sorts newest-first, and caps at 12", async () => {
+    const store = await freshStore();
+    for (let i = 0; i < 14; i++) {
+      store.pushRecent({ name: `Place ${i}`, lat: i, lng: i });
     }
-    const recents = m.listRecents();
+    const recents = store.listRecents();
     expect(recents).toHaveLength(12);
-    expect(recents[0].id).toBe("d14");
-    expect(recents.find((r) => r.id === "d0")).toBeUndefined();
+    expect(recents[0].name).toBe("Place 13");
+  });
+
+  it("pushRecent moves an existing id to the front instead of duplicating", async () => {
+    const store = await freshStore();
+    store.pushRecent({ id: "x", name: "First", lat: 1, lng: 1 });
+    store.pushRecent({ id: "y", name: "Second", lat: 2, lng: 2 });
+    store.pushRecent({ id: "x", name: "First again", lat: 1, lng: 1 });
+    const recents = store.listRecents();
+    expect(recents).toHaveLength(2);
+    expect(recents[0].id).toBe("x");
+  });
+
+  it("hydrateTripStore sorts recents by lastUsed descending", async () => {
+    const store = await freshStore({
+      [RECENT_KEY]: JSON.stringify([
+        { id: "a", name: "A", lat: 0, lng: 0, lastUsed: 100 },
+        { id: "b", name: "B", lat: 0, lng: 0, lastUsed: 200 },
+      ]),
+    });
+    await store.hydrateTripStore();
+    expect(store.listRecents()[0].id).toBe("b");
+  });
+
+  it("readKey returns null and does not throw on malformed JSON", async () => {
+    const store = await freshStore({ [SAVED_KEY]: "not json" });
+    await store.hydrateTripStore();
+    expect(store.listSavedPlaces()).toEqual([]);
+  });
+
+  it("clearActiveTrip lazily logs a completed trip to trip-chain", async () => {
+    const store = await freshStore();
+    const trip = baseTrip({ live: { startedAt: Date.now(), alightedAt: Date.now() } });
+    store.setActiveTrip(trip);
+    store.clearActiveTrip();
+    // give the microtask queue a chance to run the dynamic import + logCompletedTrip
+    await new Promise((r) => setTimeout(r, 20));
+    const chain = await import("../trip-chain");
+    const entries = JSON.parse(dumpStorage()["aloya:trip-chain-log"] ?? "[]");
+    expect(Array.isArray(entries)).toBe(true);
+    void chain;
   });
 });

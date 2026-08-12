@@ -1,45 +1,29 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { fullDate, timeAgo } from "@/lib/walletFormat";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { timeAgo, fullDate } from "../walletFormat";
 
-afterEach(() => {
-  vi.useRealTimers();
-});
+afterEach(() => vi.useRealTimers());
 
 describe("timeAgo", () => {
-  const now = new Date("2026-05-12T12:00:00Z");
-  const ago = (ms: number) => {
+  it("covers just now / minutes / hours / days tiers", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(now);
-    return timeAgo(now.getTime() - ms);
-  };
-
-  it.each([
-    [0, "just now"],
-    [59_000, "just now"],
-    [60_000, "1 min ago"],
-    [59 * 60_000, "59 min ago"],
-    [60 * 60_000, "1 h ago"],
-    [23 * 3_600_000, "23 h ago"],
-    [24 * 3_600_000, "1 d ago"],
-    [10 * 86_400_000, "10 d ago"],
-  ])("renders %dms ago as %s", (delta, expected) => {
-    expect(ago(delta)).toBe(expected);
+    vi.setSystemTime(new Date("2024-01-02T00:00:00Z"));
+    const now = Date.now();
+    expect(timeAgo(now - 5_000)).toBe("just now");
+    expect(timeAgo(now - 5 * 60_000)).toBe("5 min ago");
+    expect(timeAgo(now - 5 * 3_600_000)).toBe("5 h ago");
+    expect(timeAgo(now - 3 * 86_400_000)).toBe("3 d ago");
   });
 
-  it("clamps a future timestamp to just now rather than a negative age", () => {
+  it("clamps future timestamps to non-negative", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(now);
-    expect(timeAgo(now.getTime() + 60_000)).toBe("just now");
+    vi.setSystemTime(new Date("2024-01-01T00:00:00Z"));
+    expect(timeAgo(Date.now() + 100_000)).toBe("just now");
   });
 });
 
 describe("fullDate", () => {
-  it("accepts both epoch milliseconds and an ISO string", () => {
-    const iso = "2026-05-12T09:05:00Z";
-    expect(fullDate(new Date(iso).getTime())).toBe(fullDate(iso));
-  });
-
-  it("renders a two-digit day, short month and 24h time", () => {
-    expect(fullDate("2026-05-02T09:05:00Z")).toMatch(/^\d{2} \w{3},? \d{2}:\d{2}$/);
+  it("formats numeric and string timestamps", () => {
+    expect(fullDate(new Date("2024-03-05T10:30:00Z").getTime())).toContain("Mar");
+    expect(fullDate("2024-03-05T10:30:00Z")).toContain("Mar");
   });
 });

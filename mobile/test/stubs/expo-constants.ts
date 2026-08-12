@@ -1,13 +1,14 @@
-/** Mirrors the shape `mobile/lib` reads: extra config plus app version. */
+// expo-constants stub: the app reads `expoConfig.extra` for build-time config.
+
 const Constants = {
   expoConfig: {
+    name: "Aloya",
+    slug: "aloya",
     version: "1.0.0",
     extra: {} as Record<string, unknown>,
-    ios: { buildNumber: "1" },
-    android: { versionCode: 1 },
   },
-  easConfig: null,
-  sessionId: "test-session",
+  executionEnvironment: "standalone",
+  platform: { ios: { model: "iPhone" } },
 };
 
 export default Constants;

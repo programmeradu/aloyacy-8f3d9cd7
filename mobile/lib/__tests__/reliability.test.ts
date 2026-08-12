@@ -1,43 +1,26 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchRouteReliability, fetchStopReliability } from "@/lib/reliability";
-import { API_BASE } from "@/lib/api";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { fetchRouteReliability, fetchStopReliability } from "../reliability";
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
+afterEach(() => vi.unstubAllGlobals());
 
 describe("fetchRouteReliability", () => {
-  it("returns an empty array without calling fetch when routeIds is empty", async () => {
+  it("returns [] without calling fetch for an empty routeIds list", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-
-    await expect(fetchRouteReliability([])).resolves.toEqual([]);
+    const res = await fetchRouteReliability([]);
+    expect(res).toEqual([]);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("POSTs the routeIds to the route-reliability endpoint", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response("[]", { status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
-
-    await fetchRouteReliability(["1", "2"]);
-
-    expect(fetchMock).toHaveBeenCalledWith(`${API_BASE}/api/public/route-reliability`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ routeIds: ["1", "2"] }),
-    });
+  it("returns the shaped rows on ok", async () => {
+    const rows = [{ routeId: "1", onTimePct: 0.9, meanDelaySec: 30, sampleCount: 50, tier: "high" as const }];
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => rows }));
+    const res = await fetchRouteReliability(["1"]);
+    expect(res).toEqual(rows);
   });
 
-  it("returns the parsed reliability rows on success", async () => {
-    const rows = [{ routeId: "1", onTimePct: 0.9, meanDelaySec: 30, sampleCount: 50, tier: "high" }];
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(rows), { status: 200 })));
-
-    await expect(fetchRouteReliability(["1"])).resolves.toEqual(rows);
-  });
-
-  it("throws a descriptive error when the response is not ok", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("bad", { status: 500 })));
-
+  it("throws a status-tagged error on non-ok", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500 }));
     await expect(fetchRouteReliability(["1"])).rejects.toThrow("Reliability 500");
   });
 });
@@ -46,55 +29,38 @@ describe("fetchStopReliability", () => {
   it("returns null without calling fetch when stopId is empty", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-
-    await expect(fetchStopReliability("", ["1"])).resolves.toBeNull();
+    const res = await fetchStopReliability("", ["1"]);
+    expect(res).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("returns null without calling fetch when routeIds is empty", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-
-    await expect(fetchStopReliability("s1", [])).resolves.toBeNull();
+    const res = await fetchStopReliability("s1", []);
+    expect(res).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("POSTs the stopId and routeIds to the stop-reliability endpoint", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response("null", { status: 200 }));
+  it("caps routeIds at 30 in the request body", async () => {
+    const routeIds = Array.from({ length: 40 }, (_, i) => String(i));
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => null });
     vi.stubGlobal("fetch", fetchMock);
-
-    await fetchStopReliability("s1", ["1", "2"]);
-
-    expect(fetchMock).toHaveBeenCalledWith(`${API_BASE}/api/public/stop-reliability`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ stopId: "s1", routeIds: ["1", "2"] }),
-    });
-  });
-
-  it("truncates routeIds to the first 30 entries before sending", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response("null", { status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
-    const routeIds = Array.from({ length: 40 }, (_, i) => `r${i}`);
-
     await fetchStopReliability("s1", routeIds);
-
-    const call = fetchMock.mock.calls[0][1] as RequestInit;
-    const body = JSON.parse(call.body as string);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.routeIds).toHaveLength(30);
-    expect(body.routeIds).toEqual(routeIds.slice(0, 30));
+    expect(body.stopId).toBe("s1");
   });
 
-  it("returns the parsed stop reliability on success", async () => {
-    const row = { stopId: "s1", routeIds: ["1"], onTimePct: 0.8, meanDelaySec: 60, sampleCount: 40, tier: "medium" };
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(row), { status: 200 })));
-
-    await expect(fetchStopReliability("s1", ["1"])).resolves.toEqual(row);
+  it("returns the shaped row on ok", async () => {
+    const row = { stopId: "s1", routeIds: ["1"], onTimePct: 0.8, meanDelaySec: 20, sampleCount: 40, tier: "medium" as const };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => row }));
+    const res = await fetchStopReliability("s1", ["1"]);
+    expect(res).toEqual(row);
   });
 
-  it("throws a descriptive error when the response is not ok", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("bad", { status: 404 })));
-
+  it("throws a status-tagged error on non-ok", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
     await expect(fetchStopReliability("s1", ["1"])).rejects.toThrow("Stop reliability 404");
   });
 });

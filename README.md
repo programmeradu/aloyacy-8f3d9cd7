@@ -46,8 +46,6 @@ bun run typecheck     # tsc --noEmit
 bun run check:env     # every process.env / import.meta.env name is in .env.example
 bun run check:secrets # scan for hardcoded credentials
 bun run test:coverage # vitest with the enforced coverage thresholds
-bun run test:mobile   # the Expo app's framework-free logic
-
 ```
 
 
@@ -165,12 +163,13 @@ Vitest, run with `bun run test` (`bun run test:watch`, `bun run test:coverage`).
 Coverage thresholds are enforced in `vitest.config.ts` — `test:coverage` fails
 below them, and the floors are ratcheted upward as tests land.
 
-The Expo app has its own suite, `bun run test:mobile`
-(`vitest.mobile.config.ts`). It runs the framework-free half of `mobile/lib`
-against in-memory stubs of the native surface — AsyncStorage, Haptics, the
-router — kept in `mobile/test/stubs/`. CI runs it alongside the mobile
-typecheck.
-
+The Expo app has its own harness: `bun run test:mobile`
+(`vitest.mobile.config.ts`). Native bridges — AsyncStorage, `react-native`,
+`expo-router`, Haptics, Constants, Localization — are aliased to in-memory
+stubs in `mobile/test/stubs/`, so the logic in `mobile/lib/` (ETA maths, trip
+state, API shaping, wallet formatting) runs unmodified under Node. Only
+bridges are stubbed; no module under test is mocked. `bun run test:all` runs
+both suites, and CI runs them in separate jobs.
 
 Every public endpoint validates its input at the boundary: `src/lib/schemas/`
 holds the Zod schemas and `src/lib/http/validate.ts` turns a bad payload into a

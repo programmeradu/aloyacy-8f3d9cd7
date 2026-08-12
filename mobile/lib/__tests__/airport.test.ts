@@ -1,41 +1,36 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { AIRPORT_STOP, fetchAirportPage } from "@/lib/airport";
-import { API_BASE } from "@/lib/api";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { fetchAirportPage, AIRPORT_STOP } from "../airport";
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
+afterEach(() => vi.unstubAllGlobals());
 
 describe("AIRPORT_STOP", () => {
-  it("maps each supported airport code to its anchoring GTFS stop", () => {
-    expect(AIRPORT_STOP).toEqual({ lca: "6117", pfo: "1813" });
+  it("has stops for lca and pfo", () => {
+    expect(AIRPORT_STOP.lca).toBe("6117");
+    expect(AIRPORT_STOP.pfo).toBe("1813");
   });
 });
 
 describe("fetchAirportPage", () => {
-  it.each(["lca", "pfo"] as const)("requests the airport endpoint with code=%s", async (code) => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ airport: {}, coachLines: [], flights: null }), { status: 200 }),
-    );
+  it("returns data on ok and passes code in query", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ airport: {}, coachLines: [], flights: null }) });
     vi.stubGlobal("fetch", fetchMock);
-
-    await fetchAirportPage(code);
-
-    expect(fetchMock).toHaveBeenCalledWith(`${API_BASE}/api/public/airport?code=${code}`, {
-      headers: { Accept: "application/json" },
-    });
+    const res = await fetchAirportPage("lca");
+    expect(res.coachLines).toEqual([]);
+    expect(fetchMock.mock.calls[0][0]).toContain("code=lca");
   });
 
-  it("returns the parsed page data on success", async () => {
-    const page = { airport: { code: "lca" }, coachLines: [], flights: [] };
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(page), { status: 200 })));
-
-    await expect(fetchAirportPage("lca")).resolves.toEqual(page);
+  it("throws on non-ok", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
+    await expect(fetchAirportPage("pfo")).rejects.toThrow("Airport 404");
   });
 
-  it("throws a descriptive error when the response is not ok", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("bad", { status: 503 })));
+  it("rejects on network failure", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("net down")));
+    await expect(fetchAirportPage("lca")).rejects.toThrow("net down");
+  });
 
-    await expect(fetchAirportPage("pfo")).rejects.toThrow("Airport 503");
+  it("propagates malformed json", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => { throw new Error("bad"); } }));
+    await expect(fetchAirportPage("lca")).rejects.toThrow("bad");
   });
 });

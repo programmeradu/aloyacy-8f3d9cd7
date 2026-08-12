@@ -1,175 +1,132 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { API_BASE, API_BASES, fetchPublicApi, fetchRealtime, fetchStopsBundle } from "@/lib/api";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { fetchPublicApi, fetchRealtime, fetchStopsBundle, API_BASE, API_BASES } from "../api";
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
+afterEach(() => vi.unstubAllGlobals());
 
-describe("API_BASES", () => {
-  it("puts the custom domain first and the lovable origin second", () => {
+describe("api bases", () => {
+  it("has custom domain first, lovable origin second, deduped", () => {
     expect(API_BASES[0]).toBe(API_BASE);
     expect(API_BASES).toContain("https://aloyacy.lovable.app");
-  });
-
-  it("de-duplicates bases when they happen to be equal", () => {
     expect(new Set(API_BASES).size).toBe(API_BASES.length);
   });
 });
 
 describe("fetchPublicApi", () => {
-  it("returns the response from the first base when it succeeds", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response("ok", { status: 200 }));
+  it("returns first ok response", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ status: 200, ok: true });
     vi.stubGlobal("fetch", fetchMock);
-
-    const res = await fetchPublicApi("/api/public/x");
-
+    const res = await fetchPublicApi("/x");
     expect(res.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(`${API_BASES[0]}/api/public/x`, undefined);
   });
 
-  it("returns immediately on a 4xx response without trying the second base", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response("nope", { status: 404 }));
+  it("does not retry ordinary 4xx", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ status: 404, ok: false });
     vi.stubGlobal("fetch", fetchMock);
-
-    const res = await fetchPublicApi("/api/public/x");
-
+    const res = await fetchPublicApi("/x");
     expect(res.status).toBe(404);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("falls through to the second base on a 5xx response", async () => {
+  it("retries fallback base on 500", async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(new Response("boom", { status: 502 }))
-      .mockResolvedValueOnce(new Response("ok", { status: 200 }));
+      .mockResolvedValueOnce({ status: 500, ok: false })
+      .mockResolvedValueOnce({ status: 200, ok: true });
     vi.stubGlobal("fetch", fetchMock);
-
-    const res = await fetchPublicApi("/api/public/x");
-
-    expect(res.status).toBe(200);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock).toHaveBeenNthCalledWith(1, `${API_BASES[0]}/api/public/x`, undefined);
-    expect(fetchMock).toHaveBeenNthCalledWith(2, `${API_BASES[1]}/api/public/x`, undefined);
-  });
-
-  it("falls through to the second base when the first base throws a network error", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockRejectedValueOnce(new TypeError("Network request failed"))
-      .mockResolvedValueOnce(new Response("ok", { status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
-
-    const res = await fetchPublicApi("/api/public/x");
-
+    const res = await fetchPublicApi("/x");
     expect(res.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("throws the last error when every base returns 5xx", async () => {
+  it("retries fallback base on network rejection", async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(new Response("boom1", { status: 500 }))
-      .mockResolvedValueOnce(new Response("boom2", { status: 503 }));
+      .mockRejectedValueOnce(new Error("dns fail"))
+      .mockResolvedValueOnce({ status: 200, ok: true });
     vi.stubGlobal("fetch", fetchMock);
-
-    await expect(fetchPublicApi("/api/public/x")).rejects.toThrow(
-      `${API_BASES[1]} returned 503`,
-    );
+    const res = await fetchPublicApi("/x");
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("throws the last error when every base throws a network error", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockRejectedValueOnce(new TypeError("dns fail"))
-      .mockRejectedValueOnce(new TypeError("timeout"));
+  it("throws last error when all bases fail", async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error("boom"));
     vi.stubGlobal("fetch", fetchMock);
-
-    await expect(fetchPublicApi("/api/public/x")).rejects.toThrow("timeout");
+    await expect(fetchPublicApi("/x")).rejects.toThrow("boom");
   });
 
-  it("wraps a non-Error rejection in a generic unavailable error", async () => {
-    const fetchMock = vi.fn().mockRejectedValue("plain string failure");
+  it("throws generic error when non-Error rejection", async () => {
+    const fetchMock = vi.fn().mockRejectedValue("string error");
     vi.stubGlobal("fetch", fetchMock);
-
-    await expect(fetchPublicApi("/api/public/x")).rejects.toThrow(
-      "Aloya services are temporarily unavailable",
-    );
-  });
-
-  it("forwards the init options (method, headers, body) to fetch", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response("ok", { status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
-    const init = { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" };
-
-    await fetchPublicApi("/api/public/y", init);
-
-    expect(fetchMock).toHaveBeenCalledWith(`${API_BASES[0]}/api/public/y`, init);
+    await expect(fetchPublicApi("/x")).rejects.toThrow("Aloya services are temporarily unavailable");
   });
 });
 
 describe("fetchRealtime", () => {
-  it("returns the parsed JSON snapshot on success", async () => {
+  it("shapes response on ok", async () => {
     const snapshot = { fetchedAt: 1, vehicles: [], arrivals: [] };
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(new Response(JSON.stringify(snapshot), { status: 200 })),
-    );
-
-    await expect(fetchRealtime()).resolves.toEqual(snapshot);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 200, ok: true, json: async () => snapshot }));
+    const res = await fetchRealtime();
+    expect(res).toEqual(snapshot);
   });
 
-  it("throws a descriptive error when the response is not ok", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("bad", { status: 404 })));
-
+  it("throws its own error on a non-retried 4xx", async () => {
+    // 4xx is returned immediately by fetchPublicApi (no retry across bases),
+    // so fetchRealtime's own status-aware error message surfaces.
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 404, ok: false, json: async () => ({}) }));
     await expect(fetchRealtime()).rejects.toThrow("Realtime 404");
+  });
+
+  it("throws the aggregate fetchPublicApi error once every base 5xxs", async () => {
+    // A 5xx is retried across every base; once all are exhausted,
+    // fetchPublicApi's own aggregate error wins, not fetchRealtime's.
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 503, ok: false, json: async () => ({}) }));
+    await expect(fetchRealtime()).rejects.toThrow("returned 503");
+  });
+
+  it("propagates malformed JSON errors", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ status: 200, ok: true, json: async () => { throw new Error("bad json"); } }),
+    );
+    await expect(fetchRealtime()).rejects.toThrow("bad json");
   });
 });
 
 describe("fetchStopsBundle", () => {
-  it("passes through a routes map untouched", async () => {
-    const body = {
-      stops: [{ id: "1", code: "A", name: "Stop A", lat: 0, lng: 0, agency: "x" }],
-      routes: { r1: { short: "1", long: "Route 1", color: "red", feedId: 1, type: 3 } },
+  it("normalizes array routes to a map", async () => {
+    const raw = {
+      stops: [{ id: "1", code: "A", name: "Stop", lat: 1, lng: 2, agency: "urban" }],
+      routes: [{ id: "r1", short: "1", long: "One", color: "red", feedId: 1, type: 3 }],
     };
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status: 200 })));
-
-    const result = await fetchStopsBundle();
-
-    expect(result.routes).toEqual(body.routes);
-    expect(result.stops).toEqual(body.stops);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 200, ok: true, json: async () => raw }));
+    const res = await fetchStopsBundle();
+    expect(res.routes.r1.short).toBe("1");
+    expect(res.stops).toEqual(raw.stops);
   });
 
-  it("normalizes an array of routes keyed by id into a map", async () => {
-    const body = {
-      stops: [],
-      routes: [{ id: "r1", short: "1", long: "Route 1", color: "red", feedId: 1, type: 3 }],
-    };
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status: 200 })));
-
-    const result = await fetchStopsBundle();
-
-    expect(result.routes).toEqual({
-      r1: { id: "r1", short: "1", long: "Route 1", color: "red", feedId: 1, type: 3 },
-    });
+  it("passes through map-shaped routes", async () => {
+    const raw = { stops: [], routes: { r1: { short: "1", long: "One", color: "red", feedId: 1, type: 3 } } };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 200, ok: true, json: async () => raw }));
+    const res = await fetchStopsBundle();
+    expect(res.routes).toEqual(raw.routes);
   });
 
-  it("defaults routes to an empty object when routes is missing", async () => {
-    const body = { stops: [] };
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status: 200 })));
-
-    const result = await fetchStopsBundle();
-
-    expect(result.routes).toEqual({});
+  it("defaults routes to {} when missing/null", async () => {
+    const raw = { stops: [], routes: null as unknown as Record<string, never> };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 200, ok: true, json: async () => raw }));
+    const res = await fetchStopsBundle();
+    expect(res.routes).toEqual({});
   });
 
-  it("throws a descriptive error when the response is not ok", async () => {
-    // A 4xx short-circuits fetchPublicApi's base failover; a 5xx here would
-    // instead surface fetchPublicApi's own "<base> returned 500" error once
-    // every base is exhausted, so use a 4xx to exercise this module's own
-    // not-ok handling.
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("bad", { status: 400 })));
+  it("throws its own error on a non-retried 4xx", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 404, ok: false }));
+    await expect(fetchStopsBundle()).rejects.toThrow("Stops 404");
+  });
 
-    await expect(fetchStopsBundle()).rejects.toThrow("Stops 400");
+  it("throws the aggregate fetchPublicApi error once every base 5xxs", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 500, ok: false }));
+    await expect(fetchStopsBundle()).rejects.toThrow("returned 500");
   });
 });

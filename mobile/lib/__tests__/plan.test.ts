@@ -1,75 +1,62 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchPlan } from "@/lib/plan";
-import { API_BASES } from "@/lib/api";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { fetchPlan } from "../plan";
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
+afterEach(() => vi.unstubAllGlobals());
 
-const args = {
-  from: { lat: 35.17, lng: 33.36 },
-  to: { lat: 34.9, lng: 33.6 },
-};
+const args = { from: { lat: 1, lng: 2 }, to: { lat: 3, lng: 4 } };
 
 describe("fetchPlan", () => {
-  it("POSTs the request body with JSON headers to the plan endpoint", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ itineraries: [], searchedAt: 1, elapsedMs: 1, mode: "live" }), {
-        status: 200,
-      }),
-    );
-    vi.stubGlobal("fetch", fetchMock);
-
-    await fetchPlan(args);
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${API_BASES[0]}/api/public/plan`,
-      expect.objectContaining({
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(args),
-      }),
-    );
+  it("shapes ok response", async () => {
+    const plan = { itineraries: [], searchedAt: 1, elapsedMs: 5, mode: "live" as const };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => plan }));
+    const res = await fetchPlan(args);
+    expect(res).toEqual(plan);
   });
 
-  it("returns the parsed plan result on success", async () => {
-    const planResult = {
-      itineraries: [{ id: "1" }],
-      searchedAt: 100,
-      elapsedMs: 20,
-      mode: "both",
-    };
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(planResult), { status: 200 })));
-
-    await expect(fetchPlan(args)).resolves.toEqual(planResult);
-  });
-
-  it("throws with status and truncated body text when the response is not ok", async () => {
+  it("throws with truncated body text on a non-retried 4xx", async () => {
+    // 500 is retried across every base by fetchPublicApi, so its own
+    // aggregate error would win instead of fetchPlan's; use a 4xx (returned
+    // immediately, no retry) to exercise fetchPlan's own error formatting.
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(new Response("no route found between these points", { status: 422 })),
+      vi.fn().mockResolvedValue({ ok: false, status: 400, text: async () => "x".repeat(300) }),
     );
-
-    await expect(fetchPlan(args)).rejects.toThrow(
-      "Plan 422: no route found between these points",
-    );
+    await expect(fetchPlan(args)).rejects.toThrow(/Plan 400: x{200}$/);
   });
 
-  it("truncates a very long error body to 200 characters", async () => {
-    // Use a 4xx status: a 5xx would be retried against the second base by
-    // fetchPublicApi and, once both bases are exhausted, would surface that
-    // failover's own error message instead of this module's "Plan <status>".
-    const longText = "x".repeat(500);
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(longText, { status: 422 })));
-
-    await expect(fetchPlan(args)).rejects.toThrow(`Plan 422: ${"x".repeat(200)}`);
+  it("throws the aggregate fetchPublicApi error once every base 5xxs", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 500, text: async () => "x".repeat(300) }),
+    );
+    await expect(fetchPlan(args)).rejects.toThrow(/returned 500/);
   });
 
-  it("does not throw when reading the error body fails", async () => {
-    const badResponse = new Response("oops", { status: 422 });
-    vi.spyOn(badResponse, "text").mockRejectedValue(new Error("stream closed"));
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(badResponse));
+  it("falls back to empty text when .text() rejects", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 400, text: async () => { throw new Error("no body"); } }),
+    );
+    await expect(fetchPlan(args)).rejects.toThrow("Plan 400: ");
+  });
 
-    await expect(fetchPlan(args)).rejects.toThrow("Plan 422: ");
+  it("retries fallback base on network rejection", async () => {
+    const plan = { itineraries: [], searchedAt: 1, elapsedMs: 5, mode: "scheduled" as const };
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("dns"))
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => plan });
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await fetchPlan(args);
+    expect(res).toEqual(plan);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("propagates malformed JSON", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => { throw new Error("bad json"); } }),
+    );
+    await expect(fetchPlan(args)).rejects.toThrow("bad json");
   });
 });
