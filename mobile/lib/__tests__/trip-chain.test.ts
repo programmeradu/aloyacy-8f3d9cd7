@@ -100,7 +100,7 @@ describe("trip-chain", () => {
   });
 
   describe("pickReturnSuggestion", () => {
-    const here = { lat: 35.2, lng: 33.4 };
+    const here = { lat: 35.2, lng: 33.4, label: "Here" };
     const now = new Date("2024-01-01T18:00:00Z");
 
     it("returns null with no entries or no location", async () => {
