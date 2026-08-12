@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { itineraryToJourneyOption, startItinerary } from "@/lib/itineraryToTrip";
 import { getActiveTrip, listRecents } from "@/lib/trip-store";
-import { navigations, __resetNavigations } from "expo-router";
+// The suite aliases `expo-router` to this stub; importing it by path keeps
+// TypeScript honest about the recorder helpers it exposes.
+import { navigations, __resetNavigations } from "../../test/stubs/expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/journey-types";
 

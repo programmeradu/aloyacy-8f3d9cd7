@@ -15,8 +15,8 @@ afterEach(() => {
 });
 
 function mockFetch(json: unknown) {
-  const fetchMock = vi.fn(async () => ({ json: async () => json })) as unknown as typeof fetch;
-  global.fetch = fetchMock;
+  const fetchMock = vi.fn(async () => ({ json: async () => json }));
+  global.fetch = fetchMock as unknown as typeof fetch;
   return fetchMock;
 }
 
@@ -28,7 +28,7 @@ describe("wallet API client", () => {
       `${API_BASE}/api/public/wallet`,
       expect.objectContaining({ method: "POST" }),
     );
-    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as RequestInit).body as string);
     expect(body).toEqual({ action: "login", email: "a@b.com", password: "secret" });
   });
 
@@ -41,7 +41,7 @@ describe("wallet API client", () => {
   it("posts a refresh action with tokens", async () => {
     const fetchMock = mockFetch({ ok: false, error: "expired" });
     const res = await jccRefresh("acc", "ref");
-    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as RequestInit).body as string);
     expect(body).toEqual({ action: "refresh", accessToken: "acc", refreshToken: "ref" });
     expect(res).toEqual({ ok: false, error: "expired" });
   });
@@ -49,28 +49,28 @@ describe("wallet API client", () => {
   it("defaults the sync period to Last30 when not supplied", async () => {
     const fetchMock = mockFetch({ ok: true, balanceEur: 1, passName: "p", transactions: [], syncedAt: 1 });
     await jccSync("acc", "card1");
-    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as RequestInit).body as string);
     expect(body.period).toBe("Last30");
   });
 
   it("passes through an explicit sync period", async () => {
     const fetchMock = mockFetch({ ok: true, balanceEur: 1, passName: "p", transactions: [], syncedAt: 1 });
     await jccSync("acc", "card1", "Today");
-    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as RequestInit).body as string);
     expect(body.period).toBe("Today");
   });
 
   it("posts a verify action with just a card number", async () => {
     const fetchMock = mockFetch({ ok: true, balanceEur: 5, cardType: "gold", syncedAt: 1 });
     await verifyMotionCard("999");
-    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as RequestInit).body as string);
     expect(body).toEqual({ action: "verify", cardNumber: "999" });
   });
 
   it("posts an options action with just a card number", async () => {
     const fetchMock = mockFetch({ ok: true, balanceEur: 5, passes: [], syncedAt: 1 });
     await getMotionCardOptions("999");
-    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as RequestInit).body as string);
     expect(body).toEqual({ action: "options", cardNumber: "999" });
   });
 
