@@ -79,3 +79,8 @@ jobs:
       - name: Typecheck mobile
         working-directory: mobile
         run: bunx tsc --noEmit
+
+      # The Expo app's logic modules run in a Node harness with the native
+      # bridges stubbed (see vitest.mobile.config.ts).
+      - name: Test mobile
+        run: bun run test:mobile

@@ -50,3 +50,4 @@ coverage/
 
 # Scratch archives (raw GTFS drops etc.) — never commit
 *.zip
+coverage-mobile/

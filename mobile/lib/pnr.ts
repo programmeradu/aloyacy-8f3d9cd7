@@ -59,7 +59,9 @@ export async function fetchParkAndRide(args: {
       body: JSON.stringify(args),
     });
     if (!res.ok) return null;
-    return res.json();
+    // Awaited inside the try on purpose: a truncated body must degrade to
+    // null here, not reject in the caller's render path.
+    return await res.json();
   } catch {
     return null;
   }

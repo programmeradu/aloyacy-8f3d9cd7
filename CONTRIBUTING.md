@@ -63,7 +63,14 @@ Vitest. Specs sit beside the module: `packages/core/src/geo.ts` →
 bun run test           # once
 bun run test:watch     # watch mode
 bun run test:coverage  # v8 coverage report
+bun run test:mobile    # Expo app logic, native bridges stubbed
+bun run test:all       # both suites
 ```
+
+Mobile specs live in `mobile/lib/__tests__/`. The harness
+(`vitest.mobile.config.ts`) aliases native bridges to `mobile/test/stubs/`;
+add a stub there when a module needs a new bridge, and never mock the module
+under test.
 
 Every bug fix ships with a test that fails before the fix. Pure domain logic
 must be covered; UI composition need not be.
