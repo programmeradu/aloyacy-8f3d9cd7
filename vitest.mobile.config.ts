@@ -58,6 +58,11 @@ export default defineConfig({
         "mobile/lib/offline.ts",
         "mobile/lib/journey-types.ts",
       ],
+      // Floors, not targets: the global lines number still carries the
+      // remaining untested native-adjacent modules, while the branch/function
+      // gates guard the logic the suites already exercise. Ratchet upward as
+      // more modules gain suites.
+      thresholds: { lines: 54, functions: 85, branches: 90 },
     },
   },
 });
