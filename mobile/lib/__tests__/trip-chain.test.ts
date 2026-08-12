@@ -35,7 +35,7 @@ describe("logCompletedTrip", () => {
   it("silently skips a trip that never completed", async () => {
     await logCompletedTrip(trip({ live: { startedAt: Date.now() } }));
     const raw = await AsyncStorage.getItem("aloya:trip-chain-log");
-    expect(raw).toBeNull();
+    expect(JSON.parse(raw ?? "[]")).toEqual([]);
   });
 
   it("skips null/undefined trips", async () => {
@@ -46,7 +46,7 @@ describe("logCompletedTrip", () => {
   it("skips trips with non-finite coordinates", async () => {
     await logCompletedTrip(trip({ from: { lat: NaN, lng: 33.36, label: "?" } }));
     const raw = await AsyncStorage.getItem("aloya:trip-chain-log");
-    expect(raw).toBeNull();
+    expect(JSON.parse(raw ?? "[]")).toEqual([]);
   });
 
   it("logs a trip completed via live.alightedAt", async () => {

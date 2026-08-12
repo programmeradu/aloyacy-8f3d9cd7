@@ -7,6 +7,10 @@ import type { Itinerary, RideLeg, WalkLeg } from "@/lib/journey-types";
 
 const reset = () => (AsyncStorage as unknown as { __reset(): void }).__reset();
 
+// The store prunes any trip whose expected arrival is more than two hours in
+// the past, so fixtures ride on a "now"-relative clock rather than epoch 0.
+const NOW_SEC = Math.floor(Date.now() / 1000);
+
 const rideLeg = (over: Partial<RideLeg> = {}): RideLeg => ({
   kind: "ride",
   routeId: "r1",
@@ -14,8 +18,8 @@ const rideLeg = (over: Partial<RideLeg> = {}): RideLeg => ({
   routeLong: "Route One",
   tripId: "t1",
   live: true,
-  board: { stopId: "a", name: "A", lat: 0, lng: 0, departureUnix: 1000 },
-  alight: { stopId: "b", name: "B", lat: 0, lng: 0, arrivalUnix: 1300 },
+  board: { stopId: "a", name: "A", lat: 0, lng: 0, departureUnix: NOW_SEC + 300 },
+  alight: { stopId: "b", name: "B", lat: 0, lng: 0, arrivalUnix: NOW_SEC + 900 },
   stopCount: 4,
   delaySec: 30,
   ...over,
@@ -35,8 +39,8 @@ const itinerary = (over: Partial<Itinerary> = {}): Itinerary => ({
   id: "it-1",
   legs: [walkLeg(), rideLeg(), walkLeg({ from: { name: "B", lat: 0, lng: 0 }, to: { name: "Work", lat: 1, lng: 1 } })],
   totalDurationSec: 900,
-  departureUnix: 900,
-  arrivalUnix: 1800,
+  departureUnix: NOW_SEC + 120,
+  arrivalUnix: NOW_SEC + 1020,
   transfers: 0,
   totalWalkMeters: 270,
   score: 1,
