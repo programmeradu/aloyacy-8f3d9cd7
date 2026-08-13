@@ -58,8 +58,8 @@ async function resolveUser(request: Request): Promise<
   if (!token) return null;
   try {
     const supa = createClient(
-      process.env.SUPABASE_URL!,
-      (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY)!,
+      process.env.CUSTOM_SUPABASE_URL!,
+      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY)!,
       { auth: { persistSession: false, autoRefreshToken: false } },
     );
     const { data, error } = await supa.auth.getUser(token);

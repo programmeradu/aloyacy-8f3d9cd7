@@ -40,7 +40,7 @@ async function guard(request: Request): Promise<Response | null> {
   }
   const legacyHeader =
     request.headers.get("X-Cron-Secret") ?? request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey = apikey && (apikey === (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY) || apikey === import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+  const validApiKey = apikey && (apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY) || apikey === import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY);
   const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
   const validLegacy = legacySecret && legacyHeader && legacyHeader === legacySecret;
   if (!validApiKey && !validCron && !validLegacy) {

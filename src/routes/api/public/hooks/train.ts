@@ -27,7 +27,7 @@ function json(body: unknown, status = 200) {
 }
 
 function guard(request: Request) {
-  const expected = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY);
+  const expected = (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
   const provided = request.headers.get("apikey");
   if (expected && provided !== expected) {
     return json({ ok: false, error: "Unauthorized" }, 401);

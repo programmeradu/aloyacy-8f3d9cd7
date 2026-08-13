@@ -310,8 +310,8 @@ export const getPulseHourStrip = createServerFn({ method: "GET" }).handler(async
   const counts = new Array(24).fill(0);
 
   try {
-    const url = process.env.SUPABASE_URL!;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const url = process.env.CUSTOM_SUPABASE_URL!;
+    const key = process.env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY!;
     const res = await fetch(`${url}/rest/v1/rpc/pulse_hour_strip`, {
       method: "POST",
       headers: {

@@ -2,7 +2,7 @@ export interface Env {
   // e.g. https://your-lovable-app.com/api/public/snapshot
   TARGET_URL: string; 
   // Required to pass the auth guard on the snapshot endpoint
-  SUPABASE_PUBLISHABLE_KEY?: string; 
+  CUSTOM_SUPABASE_ANON_KEY?: string; 
   CRON_SECRET?: string;
 }
 
@@ -18,8 +18,8 @@ export default {
     if (env.CRON_SECRET) {
       headers.set("Authorization", `Bearer ${env.CRON_SECRET}`);
     }
-    if (env.SUPABASE_PUBLISHABLE_KEY) {
-      headers.set("apikey", env.SUPABASE_PUBLISHABLE_KEY);
+    if (env.CUSTOM_SUPABASE_ANON_KEY) {
+      headers.set("apikey", env.CUSTOM_SUPABASE_ANON_KEY);
     }
 
     try {
