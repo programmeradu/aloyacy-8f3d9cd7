@@ -6,7 +6,16 @@ All notable changes to Aloya are documented here. Format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-23
+
 ### Added
+- A dedicated mobile test harness (`vitest.mobile.config.ts`) running the Expo
+  app's logic modules in Node with the native bridges stubbed
+  (`mobile/test/stubs/`): 264 specs covering motion-pass storage, wallet
+  platform branching, freshness parity with the core trust layer, rescue
+  re-planning, trip alerts, the Ask Aloya natural-language pipeline and i18n.
+  CI enforces the gate at 70% lines / 93% branches via `test:mobile:coverage`.
+
 - First component-level test layer: colocated suites for `EtaPill`,
   `ReliabilityBadge`, `ConfidenceIcon`, `DisruptionBanner`, `CrowdHint`,
   `SightingButton` and `SharePlanButton` assert rendered behaviour (ghost vs.
