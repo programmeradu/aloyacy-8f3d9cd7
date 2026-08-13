@@ -29,13 +29,17 @@ const walkLeg = () => ({
   kind: "walk" as const,
   durationSec: 240,
   distanceMeters: 300,
+  from: { name: "Solomou Square", lat: 35.17, lng: 33.36 },
   to: { name: "Solomou", lat: 35.17, lng: 33.36 },
 });
 
+let seq = 0;
 const itinerary = (legs: unknown[]) => ({
+  id: `it-${++seq}`,
+  source: "live" as const,
   departureUnix: NOW() + 120,
   arrivalUnix: NOW() + 3700,
-  durationSec: 3580,
+  totalDurationSec: 3580,
   transfers: Math.max(0, legs.filter((l) => (l as { kind: string }).kind === "ride").length - 1),
   legs,
 });

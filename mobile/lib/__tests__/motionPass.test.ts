@@ -43,8 +43,10 @@ describe("motionPass storage", () => {
   });
 
   it("hydrates a stored card and backfills missing collections", async () => {
-    await AsyncStorage.setItem(KEY, JSON.stringify({ number: "12345678", balanceEur: 4.5 }));
     const mod = await fresh();
+    // Seed through the same storage instance the freshly imported module sees.
+    const storage = (await import("@react-native-async-storage/async-storage")).default;
+    await storage.setItem(KEY, JSON.stringify({ number: "12345678", balanceEur: 4.5 }));
     const pass = await mod.readPass();
     expect(pass.number).toBe("12345678");
     expect(pass.balanceEur).toBe(4.5);
@@ -53,15 +55,17 @@ describe("motionPass storage", () => {
   });
 
   it("degrades to an empty card when the stored payload is corrupt", async () => {
-    await AsyncStorage.setItem(KEY, "{not json");
     const mod = await fresh();
+    const storage = (await import("@react-native-async-storage/async-storage")).default;
+    await storage.setItem(KEY, "{not json");
     await expect(mod.readPass()).resolves.toMatchObject({ number: "", balanceEur: 0 });
   });
 
   it("serves the cached card on subsequent reads without touching storage", async () => {
     const mod = await fresh();
+    const storage = (await import("@react-native-async-storage/async-storage")).default;
     await mod.readPass();
-    await AsyncStorage.setItem(KEY, JSON.stringify({ number: "99999999" }));
+    await storage.setItem(KEY, JSON.stringify({ number: "99999999" }));
     // Cache wins: the second read must not observe the out-of-band write.
     expect((await mod.readPass()).number).toBe("");
   });
