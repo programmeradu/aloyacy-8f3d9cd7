@@ -184,10 +184,15 @@ async function ingest() {
       const chunkObserved = observed.slice(i, i + RPC_CHUNK_SIZE);
       const chunkStats = upserts.slice(i, i + RPC_CHUNK_SIZE);
 
-      const { error } = await supabase.rpc("ingest_gtfs_snapshots", {
+      // `ingest_gtfs_snapshots` is not present in the generated types for the
+      // migrated project yet (see supabase/migrations/20260811000000_ingest_gtfs_rpc.sql).
+      const { error } = await (supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ error: { message: string } | null }>)("ingest_gtfs_snapshots", {
         snapshots: chunkRows,
         observed: chunkObserved,
-        stats: chunkStats
+        stats: chunkStats,
       });
       
       if (error) {
