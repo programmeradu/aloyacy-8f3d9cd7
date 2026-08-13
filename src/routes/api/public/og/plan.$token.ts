@@ -33,19 +33,25 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
   server: {
     handlers: {
       GET: async ({ params }) => {
-        const token = String(params.token || "").slice(0, 64);
+        // A malformed token resolves to null: we skip the lookup and still
+        // return a valid branded card, so the crawler renders *something*.
+        const token = safePlanToken(params.token);
 
-        // Load lazily inside the handler — supabaseAdmin lives in a *.server
-        // file that must not be pulled into the client module graph.
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        let plan: PlanRow | null = null;
+        if (token) {
+          // Load lazily inside the handler — supabaseAdmin lives in a *.server
+          // file that must not be pulled into the client module graph.
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        const { data: plan } = await supabaseAdmin
-          .from("trip_plan_shares")
-          .select(
-            "creator_name, origin_label, destination_label, departure_unix, arrival_unix, total_duration_sec, transfers, legs",
-          )
-          .eq("token", token)
-          .maybeSingle();
+          const { data } = await supabaseAdmin
+            .from("trip_plan_shares")
+            .select(
+              "creator_name, origin_label, destination_label, departure_unix, arrival_unix, total_duration_sec, transfers, legs",
+            )
+            .eq("token", token)
+            .maybeSingle();
+          plan = (data as PlanRow | null) ?? null;
+        }
 
         const destination = clip(plan?.destination_label ?? "A trip plan", 26);
         const originLabel = clip(plan?.origin_label ?? "Anywhere in Cyprus", 34);
