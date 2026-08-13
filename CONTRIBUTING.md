@@ -99,3 +99,13 @@ a comment explaining what it unlocks, and to the table in `README.md`.
 
 Conventional Commits: `feat:`, `fix:`, `perf:`, `refactor:`, `test:`,
 `docs:`, `chore:`. Scope where it helps — `fix(mobile): ...`.
+
+## Releasing
+
+1. Move everything under `## [Unreleased]` in `CHANGELOG.md` into a new
+   `## [x.y.z] - YYYY-MM-DD` section and leave `Unreleased` empty.
+2. Bump `version` in `package.json`, `packages/core/package.json` and
+   `mobile/package.json` together — they ship as one product.
+3. Verify the full gate locally: `bun run lint && bun run typecheck &&
+   bun run test:coverage && bun run test:mobile:coverage && bun run build`.
+4. Tag `vx.y.z` once CI is green on `main`.
