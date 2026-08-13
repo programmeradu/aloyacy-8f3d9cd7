@@ -83,4 +83,13 @@ jobs:
       # The Expo app's logic modules run in a Node harness with the native
       # bridges stubbed (see vitest.mobile.config.ts).
       - name: Test mobile
-        run: bun run test:mobile
+        run: bun run test:mobile:coverage
+
+      - name: Upload mobile coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-mobile
+          path: coverage-mobile/
+          if-no-files-found: ignore
+          retention-days: 7
