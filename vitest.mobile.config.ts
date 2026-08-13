@@ -57,12 +57,20 @@ export default defineConfig({
         "mobile/lib/groupBackgroundLocation.ts",
         "mobile/lib/offline.ts",
         "mobile/lib/journey-types.ts",
+        // Generated CDN asset registry — data only, nothing to exercise.
+        "mobile/lib/assets.ts",
+        // React Query hooks over expo-location and the API layer: the logic
+        // they wrap (api.ts, gtfs.ts) is covered directly; the hook shells
+        // need a renderer and device permissions.
+        "mobile/lib/hooks.ts",
+        // Single QueryClient construction with static defaults.
+        "mobile/lib/queryClient.ts",
       ],
       // Floors, not targets: the global lines number still carries the
-      // remaining untested native-adjacent modules, while the branch/function
-      // gates guard the logic the suites already exercise. Ratchet upward as
+      // remaining native-adjacent modules (arrival-promise, auth,
+      // kapnos-companion) that need a device session. Ratchet upward as
       // more modules gain suites.
-      thresholds: { lines: 54, functions: 85, branches: 90 },
+      thresholds: { lines: 70, functions: 85, branches: 90 },
     },
   },
 });
