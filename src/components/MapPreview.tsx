@@ -145,6 +145,10 @@ export function MapPreview({
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [fallbackOverlay, setFallbackOverlay] = useState(false);
+  // placeName is derived from browser geolocation on the client, so the SSR
+  // markup ("Cyprus") never matches. Render the badge only after hydration.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
 
   const { api, error } = useGoogleMaps();
   const { data: rt } = useRealtime();
