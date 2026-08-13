@@ -59,22 +59,47 @@ export default defineConfig({
         "**/*.server.ts",
         "**/dictionaries/**",
         "**/*-types.ts",
-        "src/lib/headsigns.ts", // one-line re-export of packages/core/headsigns
+
+        // One-line `export * from "@aloya/core/..."` compatibility shims.
+        // The implementation they point at is covered in packages/core; the
+        // shim itself has no branch, no statement and nothing to assert.
+        "src/lib/cities.ts",
+        "src/lib/freshness.ts",
+        "src/lib/geo-fusion.ts",
+        "src/lib/geo.ts",
+        "src/lib/headsigns.ts",
+        "src/lib/itinerary-rationale.ts",
+        "src/lib/journey-copy.ts",
+        "src/lib/journey-phase.ts",
+        "src/lib/motion-pass.ts",
+        "src/lib/pulse-zones.ts",
+        "src/lib/shapes.ts",
+        "src/lib/shareCard.ts", // barrel over shareCard-stop / shareCard-plan
+
+        // Thin wrappers over browser/native SDKs. Their bodies are SDK calls
+        // and permission prompts, so a test would only assert that a mock was
+        // invoked — no behaviour of ours is pinned by it. The logic these
+        // hooks feed (fusion, scan state, ETA math) is covered directly.
+        "src/lib/useGoogleMaps.ts", // Maps JS loader
+        "src/lib/useNfc.ts", // Web NFC reader
+        "src/lib/useQr.ts", // BarcodeDetector / camera
+        "src/lib/speech.ts", // SpeechSynthesis / SpeechRecognition
+        "src/lib/stripe.ts", // Stripe.js loader (env-derived, no logic)
       ],
 
       // Enforced floors, ratcheted upward as tests land. The shared domain
       // core is the part every client depends on, so it carries a much
       // higher bar than the app-glue average.
       thresholds: {
-        lines: 75,
-        statements: 75,
-        functions: 90,
-        branches: 88,
+        lines: 80,
+        statements: 80,
+        functions: 95,
+        branches: 89,
         "packages/core/src/**/*.ts": {
-          lines: 78,
-          statements: 78,
-          functions: 85,
-          branches: 88,
+          lines: 95,
+          statements: 95,
+          functions: 97,
+          branches: 91,
         },
       },
     },
