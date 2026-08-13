@@ -4,6 +4,18 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { OG_HEIGHT, OG_PALETTE, OG_WIDTH, clip, esc, ogPngResponse } from "@/lib/og-render.server";
+import { safePlanToken } from "@/lib/http/og-params";
+
+type PlanRow = {
+  creator_name: string | null;
+  origin_label: string | null;
+  destination_label: string | null;
+  departure_unix: number | null;
+  arrival_unix: number | null;
+  total_duration_sec: number | null;
+  transfers: number | null;
+  legs: unknown;
+};
 
 function fmtTime(unix: number): string {
   return new Date(unix * 1000).toLocaleTimeString("en-GB", {
