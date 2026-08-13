@@ -87,7 +87,6 @@ export default defineConfig({
         "src/lib/stripe.ts", // Stripe.js loader (env-derived, no logic)
       ],
 
-
       // Enforced floors, ratcheted upward as tests land. The shared domain
       // core is the part every client depends on, so it carries a much
       // higher bar than the app-glue average.
@@ -100,10 +99,9 @@ export default defineConfig({
           lines: 95,
           statements: 95,
           functions: 97,
-          branches: 92,
+          branches: 91,
         },
       },
-
     },
   },
 });

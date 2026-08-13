@@ -134,7 +134,9 @@ describe("getAnyShapeForRouteSync", () => {
   it("returns null for a route with no shapes", async () => {
     const empty = { "NPT-9": { shapes: {}, trips: {} } };
     const { mod } = await load(
-      vi.fn(async () => new Response(JSON.stringify(empty), { status: 200 })) as unknown as typeof fetch,
+      vi.fn(
+        async () => new Response(JSON.stringify(empty), { status: 200 }),
+      ) as unknown as typeof fetch,
     );
     await mod.getShapeForTrip("whatever");
     expect(mod.getAnyShapeForRouteSync("NPT-9")).toBeNull();

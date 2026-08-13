@@ -76,9 +76,7 @@ describe("readPass", () => {
         expiresAt: 1_800_000_000_000,
         linkedAt: 1_700_000_000_000,
       },
-      passes: [
-        { code: "P1", name: "30-day", priceEur: 40, validityDays: 30, companyCode: "NPT" },
-      ],
+      passes: [{ code: "P1", name: "30-day", priceEur: 40, validityDays: 30, companyCode: "NPT" }],
       passesUpdatedAt: 1_700_000_000_000,
     });
     writePass(pass);
