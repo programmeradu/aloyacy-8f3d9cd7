@@ -9,17 +9,20 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
   server: {
     handlers: {
       GET: async ({ params }) => {
-        const code = String(params.code || "")
-          .toUpperCase()
-          .slice(0, 12);
+        // Unusable codes never reach the database — the card falls back to
+        // its generic branded form rather than erroring at a crawler.
+        const code = safeGroupCode(params.code);
 
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-        const { data: group } = await supabaseAdmin
-          .from("trip_groups")
-          .select("id, code, destination_label, created_by_name")
-          .eq("code", code)
-          .maybeSingle();
+        let group: GroupRow | null = null;
+        if (code) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data } = await supabaseAdmin
+            .from("trip_groups")
+            .select("id, code, destination_label, created_by_name")
+            .eq("code", code)
+            .maybeSingle();
+          group = (data as GroupRow | null) ?? null;
+        }
 
         let memberCount = 0;
         let arrivedCount = 0;
