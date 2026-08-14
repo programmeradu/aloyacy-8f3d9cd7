@@ -1,8 +1,11 @@
 import { sendLovableEmail } from "@lovable.dev/email-js";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
+import { createLogger } from "@/lib/logger";
 
 const MAX_RETRIES = 5;
+const log = createLogger("email:queue");
+
 const DEFAULT_BATCH_SIZE = 10;
 const DEFAULT_SEND_DELAY_MS = 200;
 const DEFAULT_AUTH_TTL_MINUTES = 15;
@@ -56,7 +59,7 @@ async function moveToDlq(
     payload,
   });
   if (error) {
-    console.error("Failed to move message to DLQ", { queue, msg_id: msg.msg_id, reason, error });
+    log.error("failed to move message to DLQ", error, { queue, msg_id: msg.msg_id, reason });
   }
 }
 
@@ -69,7 +72,7 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
         const supabaseServiceKey = process.env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY;
 
         if (!apiKey || !supabaseUrl || !supabaseServiceKey) {
-          console.error("Missing required environment variables");
+          log.error("missing required environment variables");
           return Response.json({ error: "Server configuration error" }, { status: 500 });
         }
 
@@ -145,10 +148,7 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
               .eq("status", "failed");
 
             if (failedRowsError) {
-              console.error("Failed to load failed-attempt counters", {
-                queue,
-                error: failedRowsError,
-              });
+              log.error("failed to load failed-attempt counters", failedRowsError, { queue });
             } else {
               for (const row of failedRows ?? []) {
                 const messageId = row?.message_id;
@@ -177,7 +177,7 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
               const ageMs = Date.now() - new Date(queuedAt).getTime();
               const maxAgeMs = ttlMinutes[queue] * 60 * 1000;
               if (ageMs > maxAgeMs) {
-                console.warn("Email expired (TTL exceeded)", {
+                log.warn("email expired (TTL exceeded)", {
                   queue,
                   msg_id: msg.msg_id,
                   queued_at: queuedAt,
@@ -214,7 +214,7 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
                 .maybeSingle();
 
               if (alreadySent) {
-                console.warn("Skipping duplicate send (already sent)", {
+                log.warn("skipping duplicate send (already sent)", {
                   queue,
                   msg_id: msg.msg_id,
                   message_id: payload.message_id,
@@ -224,10 +224,9 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
                   message_id: msg.msg_id,
                 });
                 if (dupDelError) {
-                  console.error("Failed to delete duplicate message from queue", {
+                  log.error("failed to delete duplicate message from queue", dupDelError, {
                     queue,
                     msg_id: msg.msg_id,
-                    error: dupDelError,
                   });
                 }
                 continue;
@@ -267,21 +266,19 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
                 message_id: msg.msg_id,
               });
               if (delError) {
-                console.error("Failed to delete sent message from queue", {
+                log.error("failed to delete sent message from queue", delError, {
                   queue,
                   msg_id: msg.msg_id,
-                  error: delError,
                 });
               }
               totalProcessed++;
             } catch (error) {
               const errorMsg = error instanceof Error ? error.message : String(error);
-              console.error("Email send failed", {
+              log.error("email send failed", error, {
                 queue,
                 msg_id: msg.msg_id,
                 read_ct: msg.read_ct,
                 failed_attempts: failedAttempts,
-                error: errorMsg,
               });
 
               if (isRateLimited(error)) {
