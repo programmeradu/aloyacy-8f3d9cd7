@@ -121,7 +121,7 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
           });
 
           if (readError) {
-            console.error("Failed to read email batch", { queue, error: readError });
+            log.error("failed to read email batch", readError, { queue });
             continue;
           }
 
