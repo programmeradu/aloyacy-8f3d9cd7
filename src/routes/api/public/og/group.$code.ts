@@ -14,6 +14,11 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
         const code = safeGroupCode(params.code);
 
         let group: GroupRow | null = null;
+        let memberCount = 0;
+        let arrivedCount = 0;
+        let nextEta: number | null = null;
+        let creator: string | null = null;
+
         if (code) {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data } = await supabaseAdmin
@@ -22,26 +27,22 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
             .eq("code", code)
             .maybeSingle();
           group = (data as GroupRow | null) ?? null;
-        }
+          creator = group?.created_by_name ?? null;
 
-        let memberCount = 0;
-        let arrivedCount = 0;
-        let nextEta: number | null = null;
-        let creator = group?.created_by_name ?? null;
-
-        if (group?.id) {
-          const { data: members } = await supabaseAdmin
-            .from("trip_group_members")
-            .select("display_name, eta_minutes, status, is_creator")
-            .eq("group_id", group.id);
-          if (members) {
-            memberCount = members.length;
-            arrivedCount = members.filter((m) => m.status === "arrived").length;
-            const etas = members
-              .map((m) => m.eta_minutes)
-              .filter((v): v is number => typeof v === "number" && v >= 0);
-            if (etas.length) nextEta = Math.min(...etas);
-            if (!creator) creator = members.find((m) => m.is_creator)?.display_name ?? null;
+          if (group?.id) {
+            const { data: members } = await supabaseAdmin
+              .from("trip_group_members")
+              .select("display_name, eta_minutes, status, is_creator")
+              .eq("group_id", group.id);
+            if (members) {
+              memberCount = members.length;
+              arrivedCount = members.filter((m) => m.status === "arrived").length;
+              const etas = members
+                .map((m) => m.eta_minutes)
+                .filter((v): v is number => typeof v === "number" && v >= 0);
+              if (etas.length) nextEta = Math.min(...etas);
+              if (!creator) creator = members.find((m) => m.is_creator)?.display_name ?? null;
+            }
           }
         }
 
