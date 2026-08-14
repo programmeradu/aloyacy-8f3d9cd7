@@ -6,6 +6,22 @@ All notable changes to Aloya are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed
+- Every server-executed path now logs through the structured JSON logger
+  (`createLogger(scope)`) instead of raw `console.*`: the auth-email webhook
+  and the email queue worker emit one searchable object per line with `level`,
+  `scope` and typed fields, and thrown values are serialised through
+  `serializeError` rather than stringified into a message.
+
+### Added
+- `tests/server-logging.test.ts` guards the rule — it walks `src/routes/api`
+  and `src/routes/lovable` and fails on any raw `console.*`, with the logger's
+  own console sink as the single documented exemption.
+- Path-parameter validation on the dynamic Open Graph routes: group codes and
+  plan tokens are normalised through shared Zod schemas
+  (`src/lib/http/og-params.ts`), so malformed input never reaches the database
+  and crawlers still receive a branded fallback card instead of an error.
+
 ## [1.1.0] - 2026-08-23
 
 ### Added
