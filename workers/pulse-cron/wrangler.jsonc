@@ -6,10 +6,16 @@
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
   "triggers": {
-    "crons": ["*/2 * * * *"]
+    "crons": [
+      "* * * * *",
+      "*/15 * * * *",
+      "*/30 * * * *",
+      "17 * * * *",
+      "0 3 * * *"
+    ]
   },
   "vars": {
-    "TARGET_URL": "https://app.aloya.cy/api/public/snapshot",
+    "APP_ORIGIN": "https://app.aloya.cy",
     "CUSTOM_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4dHV4eHJvd3dmbndwaGtkemlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2NTU2NzIsImV4cCI6MjEwMjIzMTY3Mn0.ruIcdmiUXxiDOjc653DQxr301ke_U6STkYsPu5Ooa-U"
   }
 }
