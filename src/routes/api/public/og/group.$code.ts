@@ -4,6 +4,14 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { OG_HEIGHT, OG_PALETTE, OG_WIDTH, clip, esc, ogPngResponse } from "@/lib/og-render.server";
+import { safeGroupCode } from "@/lib/http/og-params";
+
+type GroupRow = {
+  id: string;
+  code: string;
+  destination_label: string | null;
+  created_by_name: string | null;
+};
 
 export const Route = createFileRoute("/api/public/og/group/$code")({
   server: {
