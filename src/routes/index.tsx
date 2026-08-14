@@ -410,16 +410,18 @@ function Explore() {
         <div className="flex items-end justify-between mb-4">
           <div>
             <p className="flex items-center gap-1.5 font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-              {geo.source === "live" ? (
+              {mounted && geo.source === "live" ? (
                 <IconCrosshair className="size-3 text-aegean-deep" />
               ) : (
                 <IconPin className="size-3 text-ink-soft/60" />
               )}
-              {geo.source === "live"
-                ? tt("home.aroundYou")
-                : geo.source === "cached"
-                  ? tt("home.lastKnown")
-                  : tt("home.aroundNicosia")}
+              {!mounted
+                ? tt("home.aroundNicosia")
+                : geo.source === "live"
+                  ? tt("home.aroundYou")
+                  : geo.source === "cached"
+                    ? tt("home.lastKnown")
+                    : tt("home.aroundNicosia")}
             </p>
             <h2 className="font-display text-3xl mt-1 text-ink">{tt("home.nearbyStops")}</h2>
           </div>
