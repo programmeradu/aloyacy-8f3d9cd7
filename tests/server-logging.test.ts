@@ -65,8 +65,7 @@ describe("server code logs through the structured logger", () => {
       .split("\n")
       .map((line, i) => ({ line: line.trim(), no: i + 1 }))
       .filter(
-        ({ line }) =>
-          !line.startsWith("//") && !line.startsWith("*") && CONSOLE_CALL.test(line),
+        ({ line }) => !line.startsWith("//") && !line.startsWith("*") && CONSOLE_CALL.test(line),
       );
 
     expect(
