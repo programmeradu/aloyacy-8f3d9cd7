@@ -4,41 +4,53 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { OG_HEIGHT, OG_PALETTE, OG_WIDTH, clip, esc, ogPngResponse } from "@/lib/og-render.server";
+import { safeGroupCode } from "@/lib/http/og-params";
+
+type GroupRow = {
+  id: string;
+  code: string;
+  destination_label: string | null;
+  created_by_name: string | null;
+};
 
 export const Route = createFileRoute("/api/public/og/group/$code")({
   server: {
     handlers: {
       GET: async ({ params }) => {
-        const code = String(params.code || "")
-          .toUpperCase()
-          .slice(0, 12);
+        // Unusable codes never reach the database — the card falls back to
+        // its generic branded form rather than erroring at a crawler.
+        const code = safeGroupCode(params.code);
 
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-        const { data: group } = await supabaseAdmin
-          .from("trip_groups")
-          .select("id, code, destination_label, created_by_name")
-          .eq("code", code)
-          .maybeSingle();
-
+        let group: GroupRow | null = null;
         let memberCount = 0;
         let arrivedCount = 0;
         let nextEta: number | null = null;
-        let creator = group?.created_by_name ?? null;
+        let creator: string | null = null;
 
-        if (group?.id) {
-          const { data: members } = await supabaseAdmin
-            .from("trip_group_members")
-            .select("display_name, eta_minutes, status, is_creator")
-            .eq("group_id", group.id);
-          if (members) {
-            memberCount = members.length;
-            arrivedCount = members.filter((m) => m.status === "arrived").length;
-            const etas = members
-              .map((m) => m.eta_minutes)
-              .filter((v): v is number => typeof v === "number" && v >= 0);
-            if (etas.length) nextEta = Math.min(...etas);
-            if (!creator) creator = members.find((m) => m.is_creator)?.display_name ?? null;
+        if (code) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data } = await supabaseAdmin
+            .from("trip_groups")
+            .select("id, code, destination_label, created_by_name")
+            .eq("code", code)
+            .maybeSingle();
+          group = (data as GroupRow | null) ?? null;
+          creator = group?.created_by_name ?? null;
+
+          if (group?.id) {
+            const { data: members } = await supabaseAdmin
+              .from("trip_group_members")
+              .select("display_name, eta_minutes, status, is_creator")
+              .eq("group_id", group.id);
+            if (members) {
+              memberCount = members.length;
+              arrivedCount = members.filter((m) => m.status === "arrived").length;
+              const etas = members
+                .map((m) => m.eta_minutes)
+                .filter((v): v is number => typeof v === "number" && v >= 0);
+              if (etas.length) nextEta = Math.min(...etas);
+              if (!creator) creator = members.find((m) => m.is_creator)?.display_name ?? null;
+            }
           }
         }
 
@@ -93,7 +105,7 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
   </g>
 
   <text x="48" y="596" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" font-weight="700" letter-spacing="2.6" fill="${OG_PALETTE.inkSoft}">LIVE · WATCH TOGETHER</text>
-  <text x="${OG_WIDTH - 48}" y="596" text-anchor="end" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" font-weight="500" letter-spacing="2.4" fill="${OG_PALETTE.inkSoft}">APP.ALOYA.CY/GROUP/${esc(code)}</text>
+  <text x="${OG_WIDTH - 48}" y="596" text-anchor="end" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" font-weight="500" letter-spacing="2.4" fill="${OG_PALETTE.inkSoft}">APP.ALOYA.CY/GROUP${code ? `/${esc(code)}` : ""}</text>
 </svg>`;
 
         return await ogPngResponse(svg, 30);
