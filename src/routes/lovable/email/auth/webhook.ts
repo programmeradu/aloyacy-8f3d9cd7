@@ -4,6 +4,7 @@ import { parseEmailWebhookPayload } from "@lovable.dev/email-js";
 import { WebhookError, verifyWebhookRequest } from "@lovable.dev/webhooks-js";
 import { createClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
+import { createLogger } from "@/lib/logger";
 import { SignupEmail } from "@/lib/email-templates/signup";
 import { InviteEmail } from "@/lib/email-templates/invite";
 import { MagicLinkEmail } from "@/lib/email-templates/magic-link";
@@ -31,6 +32,8 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 };
 
 // Configuration
+const log = createLogger("email:auth-webhook");
+
 const SITE_NAME = "aloyacy";
 const SENDER_DOMAIN = "notify.aloya.cy";
 const ROOT_DOMAIN = "aloya.cy";
@@ -50,7 +53,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         const apiKey = process.env.LOVABLE_API_KEY;
 
         if (!apiKey) {
-          console.error("LOVABLE_API_KEY not configured");
+          log.error("LOVABLE_API_KEY not configured");
           return Response.json({ error: "Server configuration error" }, { status: 500 });
         }
 
@@ -72,26 +75,26 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
               case "missing_timestamp":
               case "invalid_timestamp":
               case "stale_timestamp":
-                console.error("Invalid webhook signature", { error: error.message });
+                log.error("invalid webhook signature", error, { code: error.code });
                 return Response.json({ error: "Invalid signature" }, { status: 401 });
               case "invalid_payload":
               case "invalid_json":
-                console.error("Invalid webhook payload", { error: error.message });
+                log.error("invalid webhook payload", error, { code: error.code });
                 return Response.json({ error: "Invalid webhook payload" }, { status: 400 });
             }
           }
 
-          console.error("Webhook verification failed", { error });
+          log.error("webhook verification failed", error);
           return Response.json({ error: "Invalid webhook payload" }, { status: 400 });
         }
 
         if (!run_id) {
-          console.error("Webhook payload missing run_id");
+          log.error("webhook payload missing run_id");
           return Response.json({ error: "Invalid webhook payload" }, { status: 400 });
         }
 
         if (payload.version !== "1") {
-          console.error("Unsupported payload version", { version: payload.version, run_id });
+          log.error("unsupported payload version", undefined, { version: payload.version, run_id });
           return Response.json(
             { error: `Unsupported payload version: ${payload.version}` },
             { status: 400 },
@@ -101,7 +104,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         // The email action type is in payload.data.action_type (e.g., "signup", "recovery")
         // payload.type is the hook event type ("auth")
         const emailType = payload.data.action_type;
-        console.log("Received auth event", {
+        log.info("received auth event", {
           emailType,
           email_redacted: redactEmail(payload.data.email),
           run_id,
@@ -109,7 +112,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
 
         const EmailTemplate = EMAIL_TEMPLATES[emailType];
         if (!EmailTemplate) {
-          console.error("Unknown email type", { emailType, run_id });
+          log.error("unknown email type", undefined, { emailType, run_id });
           return Response.json({ error: `Unknown email type: ${emailType}` }, { status: 400 });
         }
 
@@ -135,7 +138,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         const supabaseServiceKey = process.env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY;
 
         if (!supabaseUrl || !supabaseServiceKey) {
-          console.error("Missing Supabase environment variables");
+          log.error("missing Supabase environment variables");
           return Response.json({ error: "Server configuration error" }, { status: 500 });
         }
 
@@ -168,7 +171,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         });
 
         if (enqueueError) {
-          console.error("Failed to enqueue auth email", { error: enqueueError, run_id, emailType });
+          log.error("failed to enqueue auth email", enqueueError, { run_id, emailType });
           await supabase.from("email_send_log").insert({
             message_id: messageId,
             template_name: emailType,
@@ -179,7 +182,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           return Response.json({ error: "Failed to enqueue email" }, { status: 500 });
         }
 
-        console.log("Auth email enqueued", {
+        log.info("auth email enqueued", {
           emailType,
           email_redacted: redactEmail(payload.data.email),
           run_id,
