@@ -12,11 +12,19 @@ All notable changes to Aloya are documented here. Format follows
   operational obligations and third-party attributions, and
   `"license": "UNLICENSED"` on every workspace manifest. `mobile/LICENSE` no
   longer carries the Expo template's MIT text, which never described this app.
+- `tests/file-size.test.ts` enforces the 500-line ceiling on hand-written
+  source (800 for suites) with a short, justified allowlist covering only the
+  two generated files and the vendored shadcn sidebar — and fails if an
+  allowlist entry goes stale.
 
 ### Changed
 - Mobile coverage floors ratcheted to the measured run — 78% lines/statements,
   88% functions, 93% branches — so the harness locks in its gains instead of
   sitting 8 points above a stale 70% floor.
+- The OG brand fonts moved out of the source tree: `src/lib/og-fonts.server.ts`
+  drops from 5124 lines to ~30 and reads its base64 payload from
+  `src/assets/og-fonts.json`, inlined by the bundler at build time. The file is
+  no longer lint-exempt, and card rendering is unchanged.
 - Every server-executed path now logs through the structured JSON logger
   (`createLogger(scope)`) instead of raw `console.*`: the auth-email webhook
   and the email queue worker emit one searchable object per line with `level`,
