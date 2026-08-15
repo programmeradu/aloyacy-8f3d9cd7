@@ -17,8 +17,7 @@ export default tseslint.config(
       "src/routeTree.gen.ts",
       "src/integrations/supabase/types.ts",
       "src/routes/lovable/**",
-      // Generated font payloads and MCP transport shims (vendor-formatted).
-      "src/lib/og-fonts.server.ts",
+      // MCP transport shims (vendor-formatted).
       "src/routes/mcp.ts",
       "src/routes/\\[.mcp\\]/**",
       "src/routes/\\[.well-known\\]/**",
