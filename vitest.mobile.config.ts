@@ -70,7 +70,7 @@ export default defineConfig({
       // remaining native-adjacent modules (arrival-promise, auth,
       // kapnos-companion) that need a device session. Ratchet upward as
       // more modules gain suites.
-      thresholds: { lines: 70, functions: 85, branches: 90 },
+      thresholds: { lines: 78, functions: 88, branches: 93, statements: 78 },
     },
   },
 });
