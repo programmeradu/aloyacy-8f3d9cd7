@@ -6,7 +6,17 @@ All notable changes to Aloya are documented here. Format follows
 
 ## [Unreleased]
 
+### Added
+- Licensing artefacts for commercial handover: a proprietary root `LICENSE`,
+  `COMMERCIAL.md` covering what a buyer receives, deployment-right tiers,
+  operational obligations and third-party attributions, and
+  `"license": "UNLICENSED"` on every workspace manifest. `mobile/LICENSE` no
+  longer carries the Expo template's MIT text, which never described this app.
+
 ### Changed
+- Mobile coverage floors ratcheted to the measured run — 78% lines/statements,
+  88% functions, 93% branches — so the harness locks in its gains instead of
+  sitting 8 points above a stale 70% floor.
 - Every server-executed path now logs through the structured JSON logger
   (`createLogger(scope)`) instead of raw `console.*`: the auth-email webhook
   and the email queue worker emit one searchable object per line with `level`,
