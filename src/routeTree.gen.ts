@@ -101,6 +101,7 @@ import { Route as ApiPublicGbfsSystem_informationDotjsonRouteImport } from './ro
 import { Route as ApiPublicGbfsStation_statusDotjsonRouteImport } from './routes/api/public/gbfs/station_status[.]json'
 import { Route as ApiPublicGbfsStation_informationDotjsonRouteImport } from './routes/api/public/gbfs/station_information[.]json'
 import { Route as ApiPublicGbfsFree_bike_statusDotjsonRouteImport } from './routes/api/public/gbfs/free_bike_status[.]json'
+import { Route as ApiPublicAuthOtpRouteImport } from './routes/api/public/auth/otp'
 import { Route as ApiPublicOgPlanTokenRouteImport } from './routes/api/public/og/plan.$token'
 import { Route as ApiPublicOgGroupCodeRouteImport } from './routes/api/public/og/group.$code'
 
@@ -591,6 +592,11 @@ const ApiPublicGbfsFree_bike_statusDotjsonRoute =
     path: '/api/public/gbfs/free_bike_status.json',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicAuthOtpRoute = ApiPublicAuthOtpRouteImport.update({
+  id: '/api/public/auth/otp',
+  path: '/api/public/auth/otp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicOgPlanTokenRoute = ApiPublicOgPlanTokenRouteImport.update({
   id: '/api/public/og/plan/$token',
   path: '/api/public/og/plan/$token',
@@ -671,6 +677,7 @@ export interface FileRoutesByFullPath {
   '/api/public/weather': typeof ApiPublicWeatherRoute
   '/internal/funding/docs': typeof InternalFundingDocsRoute
   '/internal/funding/': typeof InternalFundingIndexRoute
+  '/api/public/auth/otp': typeof ApiPublicAuthOtpRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -767,6 +774,7 @@ export interface FileRoutesByTo {
   '/api/public/weather': typeof ApiPublicWeatherRoute
   '/internal/funding/docs': typeof InternalFundingDocsRoute
   '/internal/funding': typeof InternalFundingIndexRoute
+  '/api/public/auth/otp': typeof ApiPublicAuthOtpRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -864,6 +872,7 @@ export interface FileRoutesById {
   '/api/public/weather': typeof ApiPublicWeatherRoute
   '/internal/funding/docs': typeof InternalFundingDocsRoute
   '/internal/funding/': typeof InternalFundingIndexRoute
+  '/api/public/auth/otp': typeof ApiPublicAuthOtpRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -962,6 +971,7 @@ export interface FileRouteTypes {
     | '/api/public/weather'
     | '/internal/funding/docs'
     | '/internal/funding/'
+    | '/api/public/auth/otp'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -1058,6 +1068,7 @@ export interface FileRouteTypes {
     | '/api/public/weather'
     | '/internal/funding/docs'
     | '/internal/funding'
+    | '/api/public/auth/otp'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -1154,6 +1165,7 @@ export interface FileRouteTypes {
     | '/api/public/weather'
     | '/internal/funding/docs'
     | '/internal/funding/'
+    | '/api/public/auth/otp'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -1251,6 +1263,7 @@ export interface RootRouteChildren {
   ApiPublicWeatherRoute: typeof ApiPublicWeatherRoute
   InternalFundingDocsRoute: typeof InternalFundingDocsRoute
   InternalFundingIndexRoute: typeof InternalFundingIndexRoute
+  ApiPublicAuthOtpRoute: typeof ApiPublicAuthOtpRoute
   ApiPublicGbfsFree_bike_statusDotjsonRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   ApiPublicGbfsStation_informationDotjsonRoute: typeof ApiPublicGbfsStation_informationDotjsonRoute
   ApiPublicGbfsStation_statusDotjsonRoute: typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -1923,6 +1936,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/auth/otp': {
+      id: '/api/public/auth/otp'
+      path: '/api/public/auth/otp'
+      fullPath: '/api/public/auth/otp'
+      preLoaderRoute: typeof ApiPublicAuthOtpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/og/plan/$token': {
       id: '/api/public/og/plan/$token'
       path: '/api/public/og/plan/$token'
@@ -2024,6 +2044,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicWeatherRoute: ApiPublicWeatherRoute,
   InternalFundingDocsRoute: InternalFundingDocsRoute,
   InternalFundingIndexRoute: InternalFundingIndexRoute,
+  ApiPublicAuthOtpRoute: ApiPublicAuthOtpRoute,
   ApiPublicGbfsFree_bike_statusDotjsonRoute:
     ApiPublicGbfsFree_bike_statusDotjsonRoute,
   ApiPublicGbfsStation_informationDotjsonRoute:
