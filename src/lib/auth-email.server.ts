@@ -103,7 +103,6 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
   try {
     await sendLovableEmail(
       {
-        run_id: messageId,
         to: email,
         from: `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`,
         sender_domain: SENDER_DOMAIN,
