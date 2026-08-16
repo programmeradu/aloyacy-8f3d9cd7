@@ -54,6 +54,14 @@ no `text-white`.
 places, call the authoritative API. Hand-rolled haversine-plus-average-speed
 maths is not an acceptable substitute for a real routing response.
 
+**500 lines per file.** `tests/file-size.test.ts` fails CI above it (800 for
+test suites). Split by responsibility rather than by line count: extract the
+pure helpers, then the sub-components, then the hooks. Large data payloads are
+not source — put them in `src/assets/*.json` and import them, the way
+`src/lib/og-fonts.server.ts` loads the OG brand fonts. The allowlist in that
+test is for generated and vendored files only; adding to it needs a reason
+written in the entry.
+
 ## Tests
 
 Vitest. Specs sit beside the module: `packages/core/src/geo.ts` →

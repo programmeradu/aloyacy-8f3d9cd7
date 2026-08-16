@@ -2,6 +2,7 @@
   "name": "@aloya/core",
   "version": "1.1.0",
   "private": true,
+  "license": "UNLICENSED",
   "type": "module",
   "sideEffects": false,
   "exports": {

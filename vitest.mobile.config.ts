@@ -66,11 +66,12 @@ export default defineConfig({
         // Single QueryClient construction with static defaults.
         "mobile/lib/queryClient.ts",
       ],
-      // Floors, not targets: the global lines number still carries the
-      // remaining native-adjacent modules (arrival-promise, auth,
-      // kapnos-companion) that need a device session. Ratchet upward as
-      // more modules gain suites.
-      thresholds: { lines: 70, functions: 85, branches: 90 },
+      // Floors set just under the measured run (78.44 lines / 88.8 funcs /
+      // 93.18 branches) so any regression fails CI. The remaining headroom is
+      // three native-adjacent modules (arrival-promise, auth,
+      // kapnos-companion) that need a device session; ratchet upward again
+      // once they gain suites.
+      thresholds: { lines: 78, functions: 88, branches: 93, statements: 78 },
     },
   },
 });
