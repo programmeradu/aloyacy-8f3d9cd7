@@ -73,7 +73,7 @@ with the command above at handover time.
 - CI gate: lint (`--max-warnings=0`) → typecheck → env parity → secret scan →
   web + mobile coverage floors → `bun audit --audit-level=high` → build. No
   step uses `continue-on-error`.
-- No secret literals in the tree; `bun run scan:secrets` walks the repo.
+- No secret literals in the tree; `bun run check:secrets` walks the repo.
 - All external input boundaries parse with `zod`.
 - Structured JSON logging; a guard test fails the build on raw `console.*` in
   server routes.
