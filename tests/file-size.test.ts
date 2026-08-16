@@ -100,8 +100,9 @@ describe("file size ceiling", () => {
 
   it("has no stale allowlist entries", () => {
     const stale = Object.keys(ALLOWLIST).filter((file) => !files.includes(file));
-    expect(stale, `Remove these from ALLOWLIST — they no longer exist: ${stale.join(", ")}`).toEqual(
-      [],
-    );
+    expect(
+      stale,
+      `Remove these from ALLOWLIST — they no longer exist: ${stale.join(", ")}`,
+    ).toEqual([]);
   });
 });
