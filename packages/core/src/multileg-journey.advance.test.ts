@@ -6,7 +6,7 @@ import {
   shouldAdvanceLeg,
   shouldAutoConfirmRide,
 } from "./multileg-journey";
-import { NIC, ride, twoRideItinerary, wait, walk } from "./__fixtures__/multileg";
+import { NIC, ride, wait, walk } from "./__fixtures__/multileg";
 
 describe("shouldAdvanceLeg", () => {
   const now = 1_000_000;

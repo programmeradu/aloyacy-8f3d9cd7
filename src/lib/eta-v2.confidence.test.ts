@@ -8,6 +8,7 @@ vi.mock("./gtfs", async () => {
 });
 
 import { smartEtaV2 } from "./eta-v2";
+import type { LiveArrival } from "./gtfs-rt.server";
 import { NOW, arrival, vehicle } from "./__fixtures__/eta-v2";
 describe("smartEtaV2 — shape mode", () => {
   // A perfectly straight shape overlapping the stop chord exactly, so the
