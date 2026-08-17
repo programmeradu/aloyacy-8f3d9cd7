@@ -129,17 +129,43 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
         "content-type": "application/json",
       };
 
+  // Sender fallback: if the branded domain isn't verified on the Resend
+  // account yet, retry once from a domain that is, so sign-in never breaks
+  // on a DNS/plan issue. AUTH_EMAIL_FROM_FALLBACK overrides the default.
+  const fallbackFrom =
+    process.env.AUTH_EMAIL_FROM_FALLBACK?.trim() ||
+    `${SITE_NAME} <noreply@stauniverse.tech>`;
+
+  const postResend = async (sender: string) => {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ from: sender, to: [email], subject, html, text }),
+    });
+    if (res.ok) return { ok: true as const, status: res.status, body: "" };
+    return {
+      ok: false as const,
+      status: res.status,
+      body: (await res.text()).slice(0, 300),
+    };
+  };
+
   if (directKey || (gatewayKey && lovableKey)) {
     try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ from, to: [email], subject, html, text }),
-      });
-      if (!res.ok) {
-        attempts.push(`resend ${res.status}: ${(await res.text()).slice(0, 200)}`);
-      } else {
+      let out = await postResend(from);
+      if (
+        !out.ok &&
+        out.status === 403 &&
+        out.body.includes("not verified") &&
+        fallbackFrom !== from
+      ) {
+        attempts.push(`resend ${out.status} (${from}): ${out.body}`);
+        out = await postResend(fallbackFrom);
+      }
+      if (out.ok) {
         delivered = true;
+      } else {
+        attempts.push(`resend ${out.status}: ${out.body}`);
       }
     } catch (err) {
       attempts.push(`resend: ${err instanceof Error ? err.message : "failed"}`);
@@ -147,6 +173,7 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
   } else {
     attempts.push("resend: no key configured");
   }
+
 
 
   // 2) Lovable's sender as a fallback (works only while the project still has
