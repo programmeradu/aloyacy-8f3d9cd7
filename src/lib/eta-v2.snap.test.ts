@@ -242,4 +242,3 @@ describe("smartEtaV2 — chord snapping (no shape)", () => {
     expect(out.tier === "ghost" || out.tier === "scheduled").toBe(true);
   });
 });
-

@@ -13,12 +13,7 @@ export {
   SidebarSeparator,
   SidebarTrigger,
 } from "./shell";
-export {
-  SidebarGroup,
-  SidebarGroupAction,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-} from "./group";
+export { SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel } from "./group";
 export {
   SidebarMenu,
   SidebarMenuAction,

@@ -14,14 +14,7 @@
 //   0 3 * * *      nightly: schedule ingest, scrapes, full training roll-up
 //
 // The job table and scheduling rules live in ./jobs so they stay testable.
-import {
-  type Env,
-  type Job,
-  JOB_GROUPS,
-  headersFor,
-  originOf,
-  planFor,
-} from "./jobs";
+import { type Env, type Job, JOB_GROUPS, headersFor, originOf, planFor } from "./jobs";
 
 export type { Env };
 

@@ -56,15 +56,13 @@ function report(missing, file) {
 }
 
 const documented = documentedIn(".env.example");
-let failed = report(
-  [...used].filter((name) => !documented.has(name)).sort(),
-  ".env.example",
-);
+let failed = report([...used].filter((name) => !documented.has(name)).sort(), ".env.example");
 
 // The Expo app has its own template and its own inlining rule: only
 // `EXPO_PUBLIC_*` reaches the bundle, so only those are worth documenting.
 const mobileUsed = new Set();
-const mobilePattern = /process\.env(?:\[\s*["'`](EXPO_PUBLIC_[A-Z0-9_]+)["'`]\s*\]|\.(EXPO_PUBLIC_[A-Z0-9_]+))/g;
+const mobilePattern =
+  /process\.env(?:\[\s*["'`](EXPO_PUBLIC_[A-Z0-9_]+)["'`]\s*\]|\.(EXPO_PUBLIC_[A-Z0-9_]+))/g;
 for (const file of walk("mobile")) {
   for (const m of readFileSync(file, "utf8").matchAll(mobilePattern)) {
     mobileUsed.add(m[1] ?? m[2]);
@@ -81,4 +79,3 @@ if (failed) process.exit(1);
 console.log(
   `env parity OK — ${used.size} web variables and ${mobileUsed.size} mobile variables, all documented.`,
 );
-

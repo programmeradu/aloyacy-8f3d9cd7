@@ -348,4 +348,3 @@ describe("fuseAlightEta", () => {
     expect(eta).toBe(0);
   });
 });
-

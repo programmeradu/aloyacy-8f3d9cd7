@@ -96,7 +96,9 @@ describe("guard", () => {
   it("answers preflight with CORS", () => {
     const res = guard(req("OPTIONS"))!;
     expect(res.status).toBe(204);
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(CORS["Access-Control-Allow-Origin"]);
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+      CORS["Access-Control-Allow-Origin"],
+    );
   });
 
   it("rejects non-GET methods", () => {

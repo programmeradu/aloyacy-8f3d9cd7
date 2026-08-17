@@ -77,9 +77,7 @@ describe("planFor", () => {
   });
 
   it("staggers heavier groups further apart", () => {
-    expect(planFor("0 3 * * *", 0).staggerMs).toBeGreaterThan(
-      planFor("* * * * *", 0).staggerMs,
-    );
+    expect(planFor("0 3 * * *", 0).staggerMs).toBeGreaterThan(planFor("* * * * *", 0).staggerMs);
   });
 
   it("treats an unknown expression as the minute loop", () => {
