@@ -40,16 +40,45 @@ for (const file of ROOTS.flatMap((r) => walk(r))) {
   }
 }
 
-const documented = new Set(
-  readFileSync(".env.example", "utf8")
-    .split("\n")
-    .map((line) => line.match(/^([A-Z0-9_]+)=/)?.[1])
-    .filter(Boolean),
+function documentedIn(file) {
+  return new Set(
+    readFileSync(file, "utf8")
+      .split("\n")
+      .map((line) => line.match(/^([A-Z0-9_]+)=/)?.[1])
+      .filter(Boolean),
+  );
+}
+
+function report(missing, file) {
+  if (missing.length === 0) return false;
+  console.error(`Missing from ${file}:\n` + missing.map((n) => `  ${n}=`).join("\n"));
+  return true;
+}
+
+const documented = documentedIn(".env.example");
+let failed = report(
+  [...used].filter((name) => !documented.has(name)).sort(),
+  ".env.example",
 );
 
-const missing = [...used].filter((name) => !documented.has(name)).sort();
-if (missing.length > 0) {
-  console.error("Missing from .env.example:\n" + missing.map((n) => `  ${n}=`).join("\n"));
-  process.exit(1);
+// The Expo app has its own template and its own inlining rule: only
+// `EXPO_PUBLIC_*` reaches the bundle, so only those are worth documenting.
+const mobileUsed = new Set();
+const mobilePattern = /process\.env(?:\[\s*["'`](EXPO_PUBLIC_[A-Z0-9_]+)["'`]\s*\]|\.(EXPO_PUBLIC_[A-Z0-9_]+))/g;
+for (const file of walk("mobile")) {
+  for (const m of readFileSync(file, "utf8").matchAll(mobilePattern)) {
+    mobileUsed.add(m[1] ?? m[2]);
+  }
 }
-console.log(`env parity OK — ${used.size} variables, all documented.`);
+const mobileDocumented = documentedIn("mobile/.env.example");
+failed =
+  report(
+    [...mobileUsed].filter((name) => !mobileDocumented.has(name)).sort(),
+    "mobile/.env.example",
+  ) || failed;
+
+if (failed) process.exit(1);
+console.log(
+  `env parity OK — ${used.size} web variables and ${mobileUsed.size} mobile variables, all documented.`,
+);
+
