@@ -101,22 +101,39 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
   const messageId = crypto.randomUUID();
 
   const subject = isNewUser ? "Confirm your email" : "Your Aloya sign-in code";
-  const from = `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`;
+  // Sender must be a domain verified in Resend. AUTH_EMAIL_FROM overrides it
+  // (set it to "aloyacy <noreply@notify.aloya.cy>" once that domain verifies).
+  const from =
+    process.env.AUTH_EMAIL_FROM?.trim() || `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`;
   const attempts: string[] = [];
 
-  // 1) Resend, when a key is configured. This is the only channel that works
-  //    independently of the Lovable platform, which is why it goes first now
-  //    that auth lives on our own Supabase project.
+  // 1) Resend. RESEND_API_KEY here is the Lovable connector's *connection*
+  //    key, not a raw Resend key — it authenticates against the connector
+  //    gateway, which holds the real provider credential. Calling
+  //    api.resend.com directly with it returns 401.
+  //    RESEND_DIRECT_API_KEY (optional, user-supplied `re_...`) bypasses the
+  //    gateway and talks to Resend directly.
   let delivered = false;
-  const resendKey = process.env.RESEND_API_KEY;
-  if (resendKey) {
+  const directKey = process.env.RESEND_DIRECT_API_KEY;
+  const gatewayKey = process.env.RESEND_API_KEY;
+  const lovableKey = process.env.LOVABLE_API_KEY;
+
+  const endpoint = directKey
+    ? "https://api.resend.com/emails"
+    : "https://connector-gateway.lovable.dev/resend/emails";
+  const headers: Record<string, string> = directKey
+    ? { Authorization: `Bearer ${directKey}`, "content-type": "application/json" }
+    : {
+        Authorization: `Bearer ${lovableKey ?? ""}`,
+        "X-Connection-Api-Key": gatewayKey ?? "",
+        "content-type": "application/json",
+      };
+
+  if (directKey || (gatewayKey && lovableKey)) {
     try {
-      const res = await fetch("https://api.resend.com/emails", {
+      const res = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          "content-type": "application/json",
-        },
+        headers,
         body: JSON.stringify({ from, to: [email], subject, html, text }),
       });
       if (!res.ok) {
@@ -128,8 +145,9 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
       attempts.push(`resend: ${err instanceof Error ? err.message : "failed"}`);
     }
   } else {
-    attempts.push("resend: no RESEND_API_KEY");
+    attempts.push("resend: no key configured");
   }
+
 
   // 2) Lovable's sender as a fallback (works only while the project still has
   //    a platform email run available to it).
