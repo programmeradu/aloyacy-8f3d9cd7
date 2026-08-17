@@ -101,10 +101,12 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
   const messageId = crypto.randomUUID();
 
   const subject = isNewUser ? "Confirm your email" : "Your Aloya sign-in code";
-  // Sender must be a domain verified in Resend. AUTH_EMAIL_FROM overrides it
-  // (set it to "aloyacy <noreply@notify.aloya.cy>" once that domain verifies).
+  // Sender must be a domain verified in Resend. Today that is stauniverse.tech.
+  // Once notify.aloya.cy verifies, set AUTH_EMAIL_FROM to
+  // "aloyacy <noreply@notify.aloya.cy>" — no code change needed.
+  const VERIFIED_DOMAIN = "stauniverse.tech";
   const from =
-    process.env.AUTH_EMAIL_FROM?.trim() || `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`;
+    process.env.AUTH_EMAIL_FROM?.trim() || `${SITE_NAME} <noreply@${VERIFIED_DOMAIN}>`;
   const attempts: string[] = [];
 
   // 1) Resend. RESEND_API_KEY here is the Lovable connector's *connection*
@@ -183,7 +185,9 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
       await sendLovableEmail(
         {
           to: email,
-          from,
+          // Lovable's sender is tied to the delegated notify.* domain, so it
+          // must use the branded address regardless of the Resend sender.
+          from: `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`,
           sender_domain: SENDER_DOMAIN,
           subject,
           html,
