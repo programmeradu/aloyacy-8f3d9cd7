@@ -6,6 +6,32 @@ All notable changes to Aloya are documented here. Format follows
 
 ## [Unreleased]
 
+### Added
+- Cloudflare worker coverage: the GTFS relay's hand-rolled HTTP/1.1 parsing
+  moved to `workers/gtfs-relay/src/http-parse.ts` and the cron scheduler's job
+  table and cron routing to `workers/pulse-cron/src/jobs.ts`, both with suites
+  (`vitest.config.ts` now collects `workers/*/src/**`). Neither worker had a
+  single test before; the socket and scheduled entry points are now thin
+  shells over tested pure logic.
+- `scripts/check-env-parity.mjs` now also checks the Expo app: every
+  `EXPO_PUBLIC_*` read under `mobile/` must exist in `mobile/.env.example`.
+- CI fails when `bun.lock` drifts from `package.json` (`git diff --exit-code`
+  after a frozen install), so a lockfile is provably committed and current.
+
+### Changed
+- `src/components/ui/sidebar.tsx` (744 lines) split into
+  `src/components/ui/sidebar/` — `context`, `shell`, `group`, `menu` and a
+  barrel — removing the last allowlist entry from the file-size ceiling; the
+  ceiling now applies to every hand-written file except two generated ones.
+- The two oversized suites split along their seams:
+  `multileg-journey` into `.phase` / `.advance` and `eta-v2` into `.snap` /
+  `.confidence`, with shared builders in `__fixtures__/`.
+
+### Removed
+- `mobile/android.bundle` — a 5.9 MB generated bundle committed by mistake,
+  now gitignored.
+
+
 ## [1.1.0] - 2026-08-23
 
 ### Added
