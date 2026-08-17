@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Lockfile is committed and up to date
+        run: git diff --exit-code -- bun.lock
+
       - name: Lint
         run: bun run lint
 

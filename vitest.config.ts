@@ -43,6 +43,7 @@ export default defineConfig({
       "src/**/*.{test,spec}.{ts,tsx}",
       "packages/*/src/**/*.{test,spec}.{ts,tsx}",
       "tests/**/*.{test,spec}.{ts,tsx}",
+      "workers/*/src/**/*.{test,spec}.ts",
     ],
     // The Expo app has its own runtime and is exercised separately.
     exclude: ["node_modules/**", "mobile/**", ".output/**", "dist/**"],
@@ -56,6 +57,7 @@ export default defineConfig({
       // emit no runtime statements worth asserting on.
       exclude: [
         "**/*.test.ts",
+        "**/__fixtures__/**",
         "**/*.server.ts",
         "**/dictionaries/**",
         "**/*-types.ts",
