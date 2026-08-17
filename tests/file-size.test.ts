@@ -26,9 +26,6 @@ const ALLOWLIST: Record<string, string> = {
   "src/routeTree.gen.ts": "generated route manifest",
   // Emitted by the Supabase type generator from the live schema.
   "src/integrations/supabase/types.ts": "generated database types",
-  // Vendored shadcn/ui primitive, kept byte-close to upstream so it can be
-  // re-synced; splitting it would fork it permanently.
-  "src/components/ui/sidebar.tsx": "vendored shadcn/ui primitive",
 };
 
 const IGNORED_DIRS = new Set([

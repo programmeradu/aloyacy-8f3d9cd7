@@ -12,76 +12,15 @@
 //   */30 * * * *   live environment feeds (weather, marine, air, traffic, flights)
 //   17 * * * *     hourly news rotator
 //   0 3 * * *      nightly: schedule ingest, scrapes, full training roll-up
+//
+// The job table and scheduling rules live in ./jobs so they stay testable.
+import { type Env, type Job, JOB_GROUPS, headersFor, originOf, planFor } from "./jobs";
 
-export interface Env {
-  /** Origin of the published app, e.g. https://app.aloya.cy */
-  APP_ORIGIN?: string;
-  /** Legacy single-target var, kept so existing deployments keep working. */
-  TARGET_URL?: string;
-  CUSTOM_SUPABASE_ANON_KEY?: string;
-  CRON_SECRET?: string;
-}
-
-type Job = { path: string; label: string };
-
-const MINUTE_JOBS: Job[] = [
-  { path: "/api/public/snapshot", label: "snapshot" },
-  { path: "/api/public/trip-alerts", label: "trip-alerts" },
-];
-
-const EVEN_MINUTE_JOBS: Job[] = [
-  { path: "/api/public/hooks/departure-tick", label: "departure-tick" },
-];
-
-const QUARTER_HOUR_JOBS: Job[] = [
-  { path: "/api/public/hooks/train?mode=fast", label: "train-fast" },
-];
-
-const HALF_HOUR_JOBS: Job[] = [
-  { path: "/api/public/hooks/pulse-weather", label: "pulse-weather" },
-  { path: "/api/public/hooks/pulse-marine", label: "pulse-marine" },
-  { path: "/api/public/hooks/pulse-air", label: "pulse-air" },
-  { path: "/api/public/hooks/pulse-traffic", label: "pulse-traffic" },
-  { path: "/api/public/hooks/pulse-flights", label: "pulse-flights" },
-];
-
-const HOURLY_JOBS: Job[] = [
-  { path: "/api/public/hooks/pulse-news", label: "pulse-news" },
-  { path: "/lovable/email/queue/process", label: "email-queue" },
-];
-
-const NIGHTLY_JOBS: Job[] = [
-  { path: "/api/public/hooks/ingest-schedule", label: "ingest-schedule" },
-  { path: "/api/public/hooks/pulse-events", label: "pulse-events" },
-  { path: "/api/public/hooks/pulse-cruises", label: "pulse-cruises" },
-  { path: "/api/public/hooks/pulse-football", label: "pulse-football" },
-  { path: "/api/public/hooks/pulse-met-warnings", label: "pulse-met-warnings" },
-  { path: "/api/public/hooks/train?mode=full", label: "train-full" },
-];
-
-function originOf(env: Env): string {
-  if (env.APP_ORIGIN) return env.APP_ORIGIN.replace(/\/+$/, "");
-  if (env.TARGET_URL) return new URL(env.TARGET_URL).origin;
-  return "https://app.aloya.cy";
-}
-
-function headersFor(env: Env): Headers {
-  const h = new Headers({ "Content-Type": "application/json" });
-  if (env.CRON_SECRET) {
-    h.set("Authorization", `Bearer ${env.CRON_SECRET}`);
-    h.set("x-cron-secret", env.CRON_SECRET);
-  }
-  if (env.CUSTOM_SUPABASE_ANON_KEY) h.set("apikey", env.CUSTOM_SUPABASE_ANON_KEY);
-  return h;
-}
+export type { Env };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/**
- * Jobs run one at a time with a short stagger. Firing them all at once made
- * several heavy hooks (train roll-up, scrapes, schedule ingest) share a single
- * app worker instance, which ran out of memory and returned 502s.
- */
+/** Jobs run one at a time with a short stagger — see planFor() for why. */
 async function run(env: Env, jobs: Job[], staggerMs = 5000): Promise<void> {
   const origin = originOf(env);
   const headers = headersFor(env);
@@ -107,17 +46,8 @@ async function run(env: Env, jobs: Job[], staggerMs = 5000): Promise<void> {
 export default {
   async scheduled(event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
     const cron = (event as ScheduledEvent & { cron?: string }).cron ?? "* * * * *";
-    const minute = new Date(event.scheduledTime).getUTCMinutes();
-
-    if (cron === "*/15 * * * *") return run(env, QUARTER_HOUR_JOBS, 10_000);
-    if (cron === "*/30 * * * *") return run(env, HALF_HOUR_JOBS, 15_000);
-    if (cron === "17 * * * *") return run(env, HOURLY_JOBS, 15_000);
-    // Nightly jobs are the heaviest — give each one plenty of room.
-    if (cron === "0 3 * * *") return run(env, NIGHTLY_JOBS, 60_000);
-
-    // Default: the every-minute loop — must finish well inside 60s.
-    const jobs = minute % 2 === 0 ? [...MINUTE_JOBS, ...EVEN_MINUTE_JOBS] : MINUTE_JOBS;
-    return run(env, jobs, 3000);
+    const { jobs, staggerMs } = planFor(cron, event.scheduledTime);
+    return run(env, jobs, staggerMs);
   },
 
   // Manual trigger for debugging: GET /?group=nightly (requires CRON_SECRET).
@@ -128,14 +58,7 @@ export default {
       return new Response("Unauthorized", { status: 401 });
     }
     const group = url.searchParams.get("group") ?? "minute";
-    const map: Record<string, Job[]> = {
-      minute: [...MINUTE_JOBS, ...EVEN_MINUTE_JOBS],
-      quarter: QUARTER_HOUR_JOBS,
-      half: HALF_HOUR_JOBS,
-      hourly: HOURLY_JOBS,
-      nightly: NIGHTLY_JOBS,
-    };
-    const jobs = map[group];
+    const jobs = JOB_GROUPS[group];
     if (!jobs) return new Response("Unknown group", { status: 400 });
     await run(env, jobs);
     return new Response(`ran ${group}: ${jobs.map((j) => j.label).join(", ")}\n`);
