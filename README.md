@@ -23,6 +23,12 @@ Requirements: **Node 20+** and **Bun 1.3+**. The repo is a Bun workspace and
 resolves every dependency in the root app, `packages/core` and `mobile/` from
 that single lockfile. Bun is the only supported package manager — there is no
 `pnpm-lock.yaml` or `package-lock.json`, and adding one would let the two drift.
+CI fails fast if `bun.lock` is ever absent from the tree, and again if an install
+would change it (`git diff --exit-code -- bun.lock`).
+
+The Expo app has its own template at `mobile/.env.example`; every
+`EXPO_PUBLIC_*` name is also mirrored in the root `.env.example` so one file
+lists the whole monorepo's configuration surface.
 
 ```bash
 git clone <this repo> aloya && cd aloya
@@ -143,6 +149,7 @@ own `mobile/.env` (template at `mobile/.env.example`) because Expo only inlines
 | `RESEND_API_KEY`, `AUTH_EMAIL_FROM` | for auth email | Sign-in codes and transactional mail |
 | `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | for web push | Departure and disruption alerts |
 | `VITE_PAYMENTS_CLIENT_TOKEN` | for Pro | Stripe publishable key |
+| `SENTRY_DSN` | optional | Sentry-compatible DSN; unset = SSR error reporting is a no-op |
 | `GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_SERVICE_ACCOUNT_JSON` | for wallet | Signed Google Wallet passes |
 | `MAPILLARY_ACCESS_TOKEN` | optional | Street-level imagery fallback |
 | `ELEVENLABS_API_KEY`, `LOVABLE_API_KEY` | optional | Voice guidance, AI trip parsing |
