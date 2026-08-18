@@ -34,6 +34,8 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: false,
+    // Same offline guarantee as the web suite: no test may open a socket.
+    setupFiles: ["./src/test/no-network.ts"],
     include: ["mobile/**/__tests__/**/*.{test,spec}.ts"],
     exclude: ["node_modules/**"],
     coverage: {

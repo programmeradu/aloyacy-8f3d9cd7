@@ -21,10 +21,20 @@ routes.
 Requirements: **Node 20+** and **Bun 1.3+**. The repo is a Bun workspace and
 `bun.lock` is committed, so installs are reproducible: `bun install --frozen-lockfile`
 resolves every dependency in the root app, `packages/core` and `mobile/` from
-that single lockfile. Bun is the only supported package manager — there is no
-`pnpm-lock.yaml` or `package-lock.json`, and adding one would let the two drift.
-CI fails fast if `bun.lock` is ever absent from the tree, and again if an install
-would change it (`git diff --exit-code -- bun.lock`).
+that single lockfile.
+
+Two lockfiles are tracked, both generated from the same `package.json` set:
+
+| File                | Manager | Command                        |
+| ------------------- | ------- | ------------------------------ |
+| `bun.lock`          | Bun     | `bun install --frozen-lockfile` |
+| `package-lock.json` | npm     | `npm ci`                        |
+
+Bun is what CI and the Dockerfile use, but npm-only environments must be able
+to install too, so the npm lockfile is committed rather than left to resolve
+freshly. Drift is not left to discipline: CI fails if either lockfile is
+missing, if `bun install` would change `bun.lock`, or if regenerating
+`package-lock.json` (`npm install --package-lock-only`) produces a diff.
 
 The Expo app has its own template at `mobile/.env.example`; every
 `EXPO_PUBLIC_*` name is also mirrored in the root `.env.example` so one file
