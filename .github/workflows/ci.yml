@@ -31,14 +31,24 @@ jobs:
 
       # Fast-fail before install: a missing lockfile means non-reproducible
       # installs, so surface it as its own red step rather than a resolver error.
-      - name: Lockfile is present
-        run: test -f bun.lock || { echo "bun.lock is missing from the tree"; exit 1; }
+      - name: Lockfiles are present
+        run: |
+          for f in bun.lock package-lock.json; do
+            test -f "$f" || { echo "$f is missing from the tree"; exit 1; }
+          done
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Lockfile is committed and up to date
+      - name: Bun lockfile is committed and up to date
         run: git diff --exit-code -- bun.lock
+
+      # npm-only environments install with `npm ci`, so the npm lockfile has to
+      # describe the same dependency set. Regenerating it must be a no-op.
+      - name: npm lockfile is in sync with package.json
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          git diff --exit-code -- package-lock.json
 
       - name: Lint
         run: bun run lint
