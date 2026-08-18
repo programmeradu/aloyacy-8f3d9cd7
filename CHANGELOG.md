@@ -7,6 +7,22 @@ All notable changes to Aloya are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- SSR error tracking (`src/lib/error-tracking.ts`): unhandled request failures
+  and catastrophic SSR responses are mirrored to a Sentry-compatible ingestion
+  endpoint alongside the structured log line. Wire-protocol only, no SDK, so it
+  stays Worker-safe; a no-op without `SENTRY_DSN`, and it never throws on a
+  failure path. Covered by `tests/error-tracking.test.ts`.
+- CI fast-fails before install when `bun.lock` is missing from the tree, in
+  addition to the existing drift check.
+
+### Fixed
+- `bun.lock` is no longer flagged `linguist-generated` in `.gitattributes`.
+  Repository scanners skip generated-flagged paths, which made the committed
+  lockfile read as absent (`lockfiles_found: []`) despite being tracked.
+- Root `.env.example` now mirrors every `EXPO_PUBLIC_*` name from
+  `mobile/.env.example` and documents `SENTRY_DSN`, so one file lists the whole
+  monorepo's configuration surface.
+
 - Cloudflare worker coverage: the GTFS relay's hand-rolled HTTP/1.1 parsing
   moved to `workers/gtfs-relay/src/http-parse.ts` and the cron scheduler's job
   table and cron routing to `workers/pulse-cron/src/jobs.ts`, both with suites
