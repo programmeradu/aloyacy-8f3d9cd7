@@ -1,6 +1,10 @@
-# Lockfiles: text, LF, and never diffed by hand.
-bun.lock text eol=lf -diff linguist-generated=true
+# Lockfiles: text, LF, and never diffed by hand. `bun.lock` is deliberately NOT
+# marked `linguist-generated`: tooling that inventories dependency lockfiles
+# skips generated-flagged paths, which made the committed lockfile invisible to
+# repository scanners even though it is tracked.
+bun.lock text eol=lf -diff
 bun.lockb binary
+
 
 # Generated sources. They are committed so the repo builds from a clean clone,
 # but they are machine-written: excluded from lint, diffs and language stats.
