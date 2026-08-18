@@ -3,7 +3,7 @@
 // than turning a 500 into a crash loop.
 
 import { describe, expect, it, vi } from "vitest";
-import { buildEnvelope, captureException, parseDsn } from "@/lib/error-tracking";
+import { buildEnvelope, captureException, parseDsn } from "../src/lib/error-tracking";
 
 const DSN = "https://abc123@o1.ingest.sentry.io/42";
 
