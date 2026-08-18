@@ -60,7 +60,10 @@ function isCatastrophicSsrErrorBody(body: string, responseStatus: number): boole
 
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
-async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
+async function normalizeCatastrophicSsrResponse(
+  response: Response,
+  request: Request,
+): Promise<Response> {
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) return response;
@@ -70,8 +73,12 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
     return response;
   }
 
-  log.error("catastrophic SSR failure", consumeLastCapturedError() ?? new Error(body), {
+  const error = consumeLastCapturedError() ?? new Error(body);
+  log.error("catastrophic SSR failure", error, { status: response.status });
+  void captureException(error, {
     status: response.status,
+    method: request.method,
+    path: new URL(request.url).pathname,
   });
   return brandedErrorResponse();
 }
@@ -81,12 +88,11 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return await normalizeCatastrophicSsrResponse(response, request);
     } catch (error) {
-      log.error("unhandled request failure", error, {
-        method: request.method,
-        path: new URL(request.url).pathname,
-      });
+      const context = { method: request.method, path: new URL(request.url).pathname };
+      log.error("unhandled request failure", error, context);
+      void captureException(error, context);
       return brandedErrorResponse();
     }
   },
