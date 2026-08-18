@@ -1,11 +1,14 @@
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
+import { captureException } from "./lib/error-tracking";
 import { renderErrorPage } from "./lib/error-page";
 import { createLogger } from "./lib/logger";
 
 // Structured, one-line-JSON logs so SSR failures are searchable in the
 // platform log viewer by `scope` and `level` rather than by eyeballing stacks.
+// The same failures are mirrored to the error tracker (no-op without
+// `SENTRY_DSN`) so they group into alertable issues instead of log noise.
 const log = createLogger("ssr");
 
 type ServerEntry = {
