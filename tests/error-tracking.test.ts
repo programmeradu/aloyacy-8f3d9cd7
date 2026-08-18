@@ -49,10 +49,14 @@ describe("buildEnvelope", () => {
 describe("captureException", () => {
   it("posts an envelope with the Sentry auth header", async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response("ok"));
-    const sent = await captureException(new Error("ssr failed"), { status: 500 }, {
-      dsn: DSN,
-      fetcher: fetcher as unknown as typeof fetch,
-    });
+    const sent = await captureException(
+      new Error("ssr failed"),
+      { status: 500 },
+      {
+        dsn: DSN,
+        fetcher: fetcher as unknown as typeof fetch,
+      },
+    );
 
     expect(sent).toBe(true);
     const [url, init] = fetcher.mock.calls[0];
@@ -72,7 +76,11 @@ describe("captureException", () => {
   it("swallows transport failures so the error page still renders", async () => {
     const fetcher = vi.fn().mockRejectedValue(new Error("network down"));
     await expect(
-      captureException(new Error("x"), {}, { dsn: DSN, fetcher: fetcher as unknown as typeof fetch }),
+      captureException(
+        new Error("x"),
+        {},
+        { dsn: DSN, fetcher: fetcher as unknown as typeof fetch },
+      ),
     ).resolves.toBe(false);
   });
 });
