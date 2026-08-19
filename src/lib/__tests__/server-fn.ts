@@ -36,16 +36,25 @@ export type CallServerFnInit = {
  * Run a server function's handler and return its resolved value.
  * Validator failures and handler throws reject, matching production.
  */
-export async function callServerFn<TData, TResult>(
-  fn: ServerFnLike<TData, TResult> | ((opts: { data: TData }) => Promise<TResult>),
-  data: TData,
+export async function callServerFn<TResult>(
+  // The input side is deliberately loose. A `createServerFn` fetcher's data
+  // type comes from its validator's *output*, which is often narrower than
+  // what a caller legitimately sends (branded unions, coerced numbers,
+  // defaulted fields). Tests must be able to hand in the raw payload the RPC
+  // layer would receive — including invalid ones, to assert the validator
+  // rejects them — so the type is not pinned here; the validator is what
+  // enforces it at runtime.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fn: ServerFnLike<any, TResult> | ((opts: { data: any }) => Promise<TResult>),
+  data: unknown,
   init: CallServerFnInit = {},
 ): Promise<TResult> {
-  const target = fn as ServerFnLike<TData, TResult>;
+  const target = fn as ServerFnLike<unknown, TResult>;
   if (typeof target.__executeServer !== "function") {
     // Plain async function (already-unwrapped handler) — call it as-is.
-    return (fn as (opts: { data: TData }) => Promise<TResult>)({ data });
+    return (fn as (opts: { data: unknown }) => Promise<TResult>)({ data });
   }
+
 
   const request = new Request(init.url ?? "http://localhost:8080/_serverFn", {
     method: "POST",
