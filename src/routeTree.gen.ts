@@ -65,6 +65,7 @@ import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
 import { Route as ApiPublicParseTripIntentRouteImport } from './routes/api/public/parse-trip-intent'
 import { Route as ApiPublicParkAndRideRouteImport } from './routes/api/public/park-and-ride'
 import { Route as ApiPublicMobilePaymentSheetRouteImport } from './routes/api/public/mobile-payment-sheet'
+import { Route as ApiPublicMetricsRouteImport } from './routes/api/public/metrics'
 import { Route as ApiPublicLastMileChainRouteImport } from './routes/api/public/last-mile-chain'
 import { Route as ApiPublicKapnosRouteImport } from './routes/api/public/kapnos'
 import { Route as ApiPublicIntercityIntelRouteImport } from './routes/api/public/intercity-intel'
@@ -397,6 +398,11 @@ const ApiPublicMobilePaymentSheetRoute =
     path: '/api/public/mobile-payment-sheet',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicMetricsRoute = ApiPublicMetricsRouteImport.update({
+  id: '/api/public/metrics',
+  path: '/api/public/metrics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicLastMileChainRoute = ApiPublicLastMileChainRouteImport.update({
   id: '/api/public/last-mile-chain',
   path: '/api/public/last-mile-chain',
@@ -679,6 +685,7 @@ export interface FileRoutesByFullPath {
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
+  '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
   '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
@@ -780,6 +787,7 @@ export interface FileRoutesByTo {
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
+  '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
   '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
@@ -882,6 +890,7 @@ export interface FileRoutesById {
   '/api/public/intercity-intel': typeof ApiPublicIntercityIntelRoute
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
+  '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
   '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
@@ -985,6 +994,7 @@ export interface FileRouteTypes {
     | '/api/public/intercity-intel'
     | '/api/public/kapnos'
     | '/api/public/last-mile-chain'
+    | '/api/public/metrics'
     | '/api/public/mobile-payment-sheet'
     | '/api/public/park-and-ride'
     | '/api/public/parse-trip-intent'
@@ -1086,6 +1096,7 @@ export interface FileRouteTypes {
     | '/api/public/intercity-intel'
     | '/api/public/kapnos'
     | '/api/public/last-mile-chain'
+    | '/api/public/metrics'
     | '/api/public/mobile-payment-sheet'
     | '/api/public/park-and-ride'
     | '/api/public/parse-trip-intent'
@@ -1187,6 +1198,7 @@ export interface FileRouteTypes {
     | '/api/public/intercity-intel'
     | '/api/public/kapnos'
     | '/api/public/last-mile-chain'
+    | '/api/public/metrics'
     | '/api/public/mobile-payment-sheet'
     | '/api/public/park-and-ride'
     | '/api/public/parse-trip-intent'
@@ -1289,6 +1301,7 @@ export interface RootRouteChildren {
   ApiPublicIntercityIntelRoute: typeof ApiPublicIntercityIntelRoute
   ApiPublicKapnosRoute: typeof ApiPublicKapnosRoute
   ApiPublicLastMileChainRoute: typeof ApiPublicLastMileChainRoute
+  ApiPublicMetricsRoute: typeof ApiPublicMetricsRoute
   ApiPublicMobilePaymentSheetRoute: typeof ApiPublicMobilePaymentSheetRoute
   ApiPublicParkAndRideRoute: typeof ApiPublicParkAndRideRoute
   ApiPublicParseTripIntentRoute: typeof ApiPublicParseTripIntentRoute
@@ -1737,6 +1750,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMobilePaymentSheetRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/metrics': {
+      id: '/api/public/metrics'
+      path: '/api/public/metrics'
+      fullPath: '/api/public/metrics'
+      preLoaderRoute: typeof ApiPublicMetricsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/last-mile-chain': {
       id: '/api/public/last-mile-chain'
       path: '/api/public/last-mile-chain'
@@ -2102,6 +2122,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIntercityIntelRoute: ApiPublicIntercityIntelRoute,
   ApiPublicKapnosRoute: ApiPublicKapnosRoute,
   ApiPublicLastMileChainRoute: ApiPublicLastMileChainRoute,
+  ApiPublicMetricsRoute: ApiPublicMetricsRoute,
   ApiPublicMobilePaymentSheetRoute: ApiPublicMobilePaymentSheetRoute,
   ApiPublicParkAndRideRoute: ApiPublicParkAndRideRoute,
   ApiPublicParseTripIntentRoute: ApiPublicParseTripIntentRoute,
