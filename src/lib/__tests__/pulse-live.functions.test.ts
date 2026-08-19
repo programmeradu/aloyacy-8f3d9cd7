@@ -103,7 +103,6 @@ describe("getDustAdvisory", () => {
     // The helper takes the raw payload on purpose; the validator is what
     // rejects it, exactly as it would for a malformed RPC from a browser.
     await expect(callServerFn(getDustAdvisory, {})).rejects.toThrow();
-
   });
 
   it("returns null when there is no fresh air row", async () => {

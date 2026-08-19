@@ -15,9 +15,8 @@ vi.mock("@/integrations/supabase/client", () => {
   return { supabase: client };
 });
 
-const { getLearnedStatsForStop, getLearnedStatsBulk, getAccuracySnapshot } = await import(
-  "../learning.functions"
-);
+const { getLearnedStatsForStop, getLearnedStatsBulk, getAccuracySnapshot } =
+  await import("../learning.functions");
 
 beforeEach(() => {
   state.delayStats = { data: [], error: null };

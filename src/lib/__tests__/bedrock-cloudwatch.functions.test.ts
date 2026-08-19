@@ -45,7 +45,11 @@ describe("getBedrockCloudwatchStats", () => {
 
     expect(cwGetMetricDataMock).toHaveBeenCalledTimes(1);
     const [credsArg, rangeArg] = cwGetMetricDataMock.mock.calls[0];
-    expect(credsArg).toMatchObject({ accessKeyId: "AKIA", secretAccessKey: "secret", region: "us-west-2" });
+    expect(credsArg).toMatchObject({
+      accessKeyId: "AKIA",
+      secretAccessKey: "secret",
+      region: "us-west-2",
+    });
     expect(rangeArg.queries).toHaveLength(3);
 
     expect(out.region).toBe("us-west-2");

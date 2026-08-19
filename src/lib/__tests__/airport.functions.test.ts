@@ -30,9 +30,7 @@ function route(overrides: Partial<KapnosRoute> = {}): KapnosRoute {
     id: "route-1",
     code: "1AT000",
     name: "LARNACA > NICOSIA",
-    pickups: [
-      { id: "p1", name: "LARNACA AIRPORT (LCA)", lat: 34.87, lng: 33.62, isAirport: true },
-    ],
+    pickups: [{ id: "p1", name: "LARNACA AIRPORT (LCA)", lat: 34.87, lng: 33.62, isAirport: true }],
     dropoffs: [
       {
         id: "d1",

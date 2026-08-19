@@ -28,9 +28,8 @@ vi.mock("@/integrations/supabase/auth-middleware", async () => {
   };
 });
 
-const { recordCommutePattern, getTopCommuteSuggestion } = await import(
-  "../commute-learner.functions"
-);
+const { recordCommutePattern, getTopCommuteSuggestion } =
+  await import("../commute-learner.functions");
 
 beforeEach(() => {
   state.patterns = { data: null, error: null };

@@ -32,7 +32,12 @@ describe("getBedrockCostExplorer", () => {
       if (req.granularity === "DAILY" && !req.groupBy) {
         return [
           { start: yesterday, end: today, total: 1.5, groups: [] },
-          { start: today, end: isoDay(new Date(Date.now() + 24 * 3600_000)), total: 0.5, groups: [] },
+          {
+            start: today,
+            end: isoDay(new Date(Date.now() + 24 * 3600_000)),
+            total: 0.5,
+            groups: [],
+          },
         ];
       }
       // main HOURLY bucket query
@@ -63,9 +68,7 @@ describe("getBedrockCostExplorer", () => {
       ]),
     );
     // Bedrock service filter should always be applied
-    const [, mainReq] = ceGetCostAndUsageMock.mock.calls.find(
-      ([, r]) => r.groupBy !== undefined,
-    )!;
+    const [, mainReq] = ceGetCostAndUsageMock.mock.calls.find(([, r]) => r.groupBy !== undefined)!;
     expect(mainReq.filter).toEqual({ Dimensions: { Key: "SERVICE", Values: ["Amazon Bedrock"] } });
   });
 
@@ -110,7 +113,11 @@ describe("getBedrockCostExplorer", () => {
       }
       return [];
     });
-    const out = await callServerFn(getBedrockCostExplorer, { ...creds, days: 1, granularity: "HOURLY" });
+    const out = await callServerFn(getBedrockCostExplorer, {
+      ...creds,
+      days: 1,
+      granularity: "HOURLY",
+    });
     expect(out.perModel[0]?.key).toBe("SomeUnrecognizedUsageType");
   });
 });

@@ -112,8 +112,6 @@ describe("getCurrentWeather", () => {
   });
 
   it("rejects out-of-range coordinates", async () => {
-    await expect(
-      callServerFn(mod.getCurrentWeather, { lat: 999, lng: 0 }),
-    ).rejects.toThrow();
+    await expect(callServerFn(mod.getCurrentWeather, { lat: 999, lng: 0 })).rejects.toThrow();
   });
 });

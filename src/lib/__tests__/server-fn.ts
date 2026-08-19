@@ -55,7 +55,6 @@ export async function callServerFn<TResult>(
     return (fn as (opts: { data: unknown }) => Promise<TResult>)({ data });
   }
 
-
   const request = new Request(init.url ?? "http://localhost:8080/_serverFn", {
     method: "POST",
     headers: init.headers,

@@ -15,13 +15,8 @@ vi.mock("../maps.server", () => ({
   drivingRoute: (...args: unknown[]) => drivingRouteMock(...args),
 }));
 
-const {
-  autocompletePlaces,
-  getPlace,
-  reverseLookup,
-  getWalkingDirections,
-  getDriveEta,
-} = await import("../maps.functions");
+const { autocompletePlaces, getPlace, reverseLookup, getWalkingDirections, getDriveEta } =
+  await import("../maps.functions");
 
 beforeEach(() => {
   placesAutocompleteMock.mockReset();

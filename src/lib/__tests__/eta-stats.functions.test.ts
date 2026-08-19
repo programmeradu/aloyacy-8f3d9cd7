@@ -31,7 +31,9 @@ describe("getEtaStatsForRoutes", () => {
 
   it("keys segment and dwell stats by route/stop composite keys", async () => {
     state.segmentSpeeds = {
-      data: [{ route_id: "r1", from_stop_id: "sA", to_stop_id: "sB", mean_mps: 8.5, sample_count: 12 }],
+      data: [
+        { route_id: "r1", from_stop_id: "sA", to_stop_id: "sB", mean_mps: 8.5, sample_count: 12 },
+      ],
       error: null,
     };
     state.dwellObservations = {
@@ -45,7 +47,15 @@ describe("getEtaStatsForRoutes", () => {
 
   it("defaults missing numeric fields to zero", async () => {
     state.segmentSpeeds = {
-      data: [{ route_id: "r1", from_stop_id: "sA", to_stop_id: "sB", mean_mps: null, sample_count: null }],
+      data: [
+        {
+          route_id: "r1",
+          from_stop_id: "sA",
+          to_stop_id: "sB",
+          mean_mps: null,
+          sample_count: null,
+        },
+      ],
       error: null,
     };
     const out = await callServerFn(getEtaStatsForRoutes, { routeIds: ["r1"] });

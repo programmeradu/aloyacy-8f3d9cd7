@@ -70,13 +70,30 @@ describe("getBedrockUsageStats", () => {
 
   it("aggregates lifetime totals, per-day/per-model/per-key rollups from windowed rows", async () => {
     state.lifetimePages = [
-      { data: [{ input_tokens: 100, output_tokens: 50, est_cost_usd: 0.01, ok: true }], error: null },
+      {
+        data: [{ input_tokens: 100, output_tokens: 50, est_cost_usd: 0.01, ok: true }],
+        error: null,
+      },
     ];
     state.windowPages = [
       {
         data: [
-          row({ model_id: "m1", access_key_hint: "k1", input_tokens: 10, output_tokens: 5, est_cost_usd: 0.001, ok: true }),
-          row({ model_id: "m2", access_key_hint: "k2", input_tokens: 20, output_tokens: 8, est_cost_usd: 0.002, ok: false }),
+          row({
+            model_id: "m1",
+            access_key_hint: "k1",
+            input_tokens: 10,
+            output_tokens: 5,
+            est_cost_usd: 0.001,
+            ok: true,
+          }),
+          row({
+            model_id: "m2",
+            access_key_hint: "k2",
+            input_tokens: 20,
+            output_tokens: 8,
+            est_cost_usd: 0.002,
+            ok: false,
+          }),
         ],
         error: null,
       },
@@ -93,12 +110,18 @@ describe("getBedrockUsageStats", () => {
   });
 
   it("paginates lifetime rows across multiple pages of PAGE size", async () => {
-    const fullPage = Array.from({ length: 1000 }, () =>
-      ({ input_tokens: 1, output_tokens: 1, est_cost_usd: 0.0001, ok: true }),
-    );
+    const fullPage = Array.from({ length: 1000 }, () => ({
+      input_tokens: 1,
+      output_tokens: 1,
+      est_cost_usd: 0.0001,
+      ok: true,
+    }));
     state.lifetimePages = [
       { data: fullPage, error: null },
-      { data: [{ input_tokens: 1, output_tokens: 1, est_cost_usd: 0.0001, ok: true }], error: null },
+      {
+        data: [{ input_tokens: 1, output_tokens: 1, est_cost_usd: 0.0001, ok: true }],
+        error: null,
+      },
     ];
     state.windowPages = [{ data: [], error: null }];
 

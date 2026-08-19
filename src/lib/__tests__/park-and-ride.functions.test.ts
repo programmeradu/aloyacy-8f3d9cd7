@@ -84,7 +84,11 @@ describe("suggestParkAndRide", () => {
 
   it("returns null when no hub candidates intercept the trip", async () => {
     planMultiLegJourneyMock.mockResolvedValue({ itineraries: [] });
-    drivingRouteMock.mockResolvedValue({ durationSec: 400, distanceMeters: 4000, staticDurationSec: 380 });
+    drivingRouteMock.mockResolvedValue({
+      durationSec: 400,
+      distanceMeters: 4000,
+      staticDurationSec: 380,
+    });
     // Origin far outside any city core geometry that would produce a candidate.
     const out = await callServerFn(suggestParkAndRide, {
       from: { lat: 34.6, lng: 33.0 }, // Limassol area, destination Nicosia — no shared hubs
@@ -101,20 +105,26 @@ describe("suggestParkAndRide", () => {
   });
 
   it("returns null when the bus leg from the hub has no viable itinerary", async () => {
-    drivingRouteMock.mockResolvedValue({ durationSec: 600, distanceMeters: 5000, staticDurationSec: 500 });
+    drivingRouteMock.mockResolvedValue({
+      durationSec: 600,
+      distanceMeters: 5000,
+      staticDurationSec: 500,
+    });
     planMultiLegJourneyMock.mockResolvedValue({ itineraries: [] });
     const out = await callServerFn(suggestParkAndRide, { from: FAR_ORIGIN, to: DOWNTOWN });
     expect(out).toBeNull();
   });
 
   it("suggests a faster park & ride when it beats the bus-only baseline by 5+ minutes", async () => {
-    drivingRouteMock.mockImplementation(async (_from: unknown, to: { lat: number; lng: number }) => {
-      // Direct drive (to === DOWNTOWN) is slow; drive-to-hub leg is quick.
-      if (to.lat === DOWNTOWN.lat && to.lng === DOWNTOWN.lng) {
-        return { durationSec: 3000, distanceMeters: 12000, staticDurationSec: 2800 };
-      }
-      return { durationSec: 400, distanceMeters: 4000, staticDurationSec: 380 };
-    });
+    drivingRouteMock.mockImplementation(
+      async (_from: unknown, to: { lat: number; lng: number }) => {
+        // Direct drive (to === DOWNTOWN) is slow; drive-to-hub leg is quick.
+        if (to.lat === DOWNTOWN.lat && to.lng === DOWNTOWN.lng) {
+          return { durationSec: 3000, distanceMeters: 12000, staticDurationSec: 2800 };
+        }
+        return { durationSec: 400, distanceMeters: 4000, staticDurationSec: 380 };
+      },
+    );
     planMultiLegJourneyMock.mockResolvedValue({ itineraries: [itinerary()] });
 
     const out = await callServerFn(suggestParkAndRide, {
@@ -132,7 +142,11 @@ describe("suggestParkAndRide", () => {
   });
 
   it("returns no-bus-only reason when there is no bus-only baseline to compare", async () => {
-    drivingRouteMock.mockResolvedValue({ durationSec: 400, distanceMeters: 4000, staticDurationSec: 380 });
+    drivingRouteMock.mockResolvedValue({
+      durationSec: 400,
+      distanceMeters: 4000,
+      staticDurationSec: 380,
+    });
     planMultiLegJourneyMock.mockResolvedValue({ itineraries: [itinerary()] });
 
     const out = await callServerFn(suggestParkAndRide, { from: FAR_ORIGIN, to: DOWNTOWN });
@@ -141,8 +155,14 @@ describe("suggestParkAndRide", () => {
   });
 
   it("returns comfort reason when P&R is roughly as fast but the bus access walk is long", async () => {
-    drivingRouteMock.mockResolvedValue({ durationSec: 400, distanceMeters: 4000, staticDurationSec: 380 });
-    planMultiLegJourneyMock.mockResolvedValue({ itineraries: [itinerary({ totalDurationSec: 400 })] });
+    drivingRouteMock.mockResolvedValue({
+      durationSec: 400,
+      distanceMeters: 4000,
+      staticDurationSec: 380,
+    });
+    planMultiLegJourneyMock.mockResolvedValue({
+      itineraries: [itinerary({ totalDurationSec: 400 })],
+    });
 
     // top.totalSec = drive(400) + buffer(180) + bus(400) = 980
     const out = await callServerFn(suggestParkAndRide, {
@@ -155,8 +175,14 @@ describe("suggestParkAndRide", () => {
   });
 
   it("returns null when bus-only is already good enough and no comfort/traffic case applies", async () => {
-    drivingRouteMock.mockResolvedValue({ durationSec: 400, distanceMeters: 4000, staticDurationSec: 380 });
-    planMultiLegJourneyMock.mockResolvedValue({ itineraries: [itinerary({ totalDurationSec: 400 })] });
+    drivingRouteMock.mockResolvedValue({
+      durationSec: 400,
+      distanceMeters: 4000,
+      staticDurationSec: 380,
+    });
+    planMultiLegJourneyMock.mockResolvedValue({
+      itineraries: [itinerary({ totalDurationSec: 400 })],
+    });
 
     const out = await callServerFn(suggestParkAndRide, {
       from: FAR_ORIGIN,
@@ -168,9 +194,16 @@ describe("suggestParkAndRide", () => {
   });
 
   it("filters out itineraries with more than one transfer when ranking the bus leg", async () => {
-    drivingRouteMock.mockResolvedValue({ durationSec: 400, distanceMeters: 4000, staticDurationSec: 380 });
+    drivingRouteMock.mockResolvedValue({
+      durationSec: 400,
+      distanceMeters: 4000,
+      staticDurationSec: 380,
+    });
     planMultiLegJourneyMock.mockResolvedValue({
-      itineraries: [itinerary({ transfers: 2, totalDurationSec: 100 }), itinerary({ transfers: 1 })],
+      itineraries: [
+        itinerary({ transfers: 2, totalDurationSec: 100 }),
+        itinerary({ transfers: 1 }),
+      ],
     });
     const out = await callServerFn(suggestParkAndRide, {
       from: FAR_ORIGIN,
@@ -183,7 +216,11 @@ describe("suggestParkAndRide", () => {
   });
 
   it("enriches the hub with live EV data when the hub has a curated ev entry", async () => {
-    drivingRouteMock.mockResolvedValue({ durationSec: 400, distanceMeters: 4000, staticDurationSec: 380 });
+    drivingRouteMock.mockResolvedValue({
+      durationSec: 400,
+      distanceMeters: 4000,
+      staticDurationSec: 380,
+    });
     planMultiLegJourneyMock.mockResolvedValue({ itineraries: [itinerary()] });
     liveEvForHubMock.mockResolvedValue({
       available: 2,
@@ -206,7 +243,11 @@ describe("suggestParkAndRide", () => {
   });
 
   it("silently drops live EV enrichment when the feed throws", async () => {
-    drivingRouteMock.mockResolvedValue({ durationSec: 400, distanceMeters: 4000, staticDurationSec: 380 });
+    drivingRouteMock.mockResolvedValue({
+      durationSec: 400,
+      distanceMeters: 4000,
+      staticDurationSec: 380,
+    });
     planMultiLegJourneyMock.mockResolvedValue({ itineraries: [itinerary()] });
     liveEvForHubMock.mockRejectedValue(new Error("feed down"));
 

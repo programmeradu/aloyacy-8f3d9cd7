@@ -87,9 +87,7 @@ describe("getSeoPanel", () => {
     });
 
     const out = await callServerFn(getSeoPanel, undefined);
-    const failedMatrixEntry = out.matrix.find(
-      (m) => m.domain === "intercity-buses.com",
-    );
+    const failedMatrixEntry = out.matrix.find((m) => m.domain === "intercity-buses.com");
     expect(failedMatrixEntry?.ok).toBe(false);
     const failedBacklink = out.backlinks.find((b) => b.domain === "intercity-buses.com");
     expect(failedBacklink?.ok).toBe(false);
@@ -99,7 +97,11 @@ describe("getSeoPanel", () => {
   });
 
   it("throws a descriptive error when the gateway body is not JSON", async () => {
-    fetchMock.mockResolvedValue({ ok: false, status: 502, text: async () => "<html>bad gateway</html>" });
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 502,
+      text: async () => "<html>bad gateway</html>",
+    });
     // domain_ranks failures are swallowed per-entry, but the underlying error message
     // should still reflect the raw non-JSON body via the `call` helper.
     const out = await callServerFn(getSeoPanel, undefined);

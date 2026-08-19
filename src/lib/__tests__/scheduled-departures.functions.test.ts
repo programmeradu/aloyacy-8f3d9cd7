@@ -19,8 +19,7 @@ vi.mock("@supabase/supabase-js", () => ({
           : { data: null, error: { message: "bad token" } },
       ),
     },
-    from: makeSupabaseMock({ scheduled_departures: () => state.scheduled_departures }).client
-      .from,
+    from: makeSupabaseMock({ scheduled_departures: () => state.scheduled_departures }).client.from,
   })),
 }));
 
@@ -32,9 +31,8 @@ vi.mock("@tanstack/react-start/server", () => ({
 
 const originalEnv = { ...process.env };
 
-const { scheduleDeparture, listScheduledDepartures, cancelScheduledDeparture } = await import(
-  "../scheduled-departures.functions"
-);
+const { scheduleDeparture, listScheduledDepartures, cancelScheduledDeparture } =
+  await import("../scheduled-departures.functions");
 
 const VALID_PLAN = {
   fromLabel: "Home",
@@ -118,17 +116,13 @@ describe("scheduled-departures.functions", () => {
 
     it("throws on query error", async () => {
       state.scheduled_departures = { data: null, error: { message: "query broke" } };
-      await expect(callServerFn(listScheduledDepartures, undefined)).rejects.toThrow(
-        "query broke",
-      );
+      await expect(callServerFn(listScheduledDepartures, undefined)).rejects.toThrow("query broke");
     });
   });
 
   describe("cancelScheduledDeparture", () => {
     it("rejects an invalid id", async () => {
-      await expect(
-        callServerFn(cancelScheduledDeparture, { id: "not-a-uuid" }),
-      ).rejects.toThrow();
+      await expect(callServerFn(cancelScheduledDeparture, { id: "not-a-uuid" })).rejects.toThrow();
     });
 
     it("cancels a scheduled departure", async () => {

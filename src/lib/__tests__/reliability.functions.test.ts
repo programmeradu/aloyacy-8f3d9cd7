@@ -13,9 +13,8 @@ vi.mock("@/integrations/supabase/client.server", () => {
   return { supabaseAdmin: client };
 });
 
-const { getRouteReliability, getStopReliability, aggregateStopReliability } = await import(
-  "../reliability.functions"
-);
+const { getRouteReliability, getStopReliability, aggregateStopReliability } =
+  await import("../reliability.functions");
 
 beforeEach(() => {
   state.delayStats = { data: [], error: null };
@@ -106,7 +105,14 @@ describe("getStopReliability", () => {
     state.delayStats = { data: null, error: { message: "boom" } };
     const out = await callServerFn(getStopReliability, { stopId: "s1", routeIds: ["r1"] });
     expect(out).toEqual([
-      { routeId: "r1", stopId: "s1", onTimePct: 0, meanDelaySec: 0, sampleCount: 0, tier: "unknown" },
+      {
+        routeId: "r1",
+        stopId: "s1",
+        onTimePct: 0,
+        meanDelaySec: 0,
+        sampleCount: 0,
+        tier: "unknown",
+      },
     ]);
   });
 
@@ -138,7 +144,14 @@ describe("getStopReliability", () => {
 describe("aggregateStopReliability", () => {
   it("returns unknown with empty routeIds when no row is rated", () => {
     const out = aggregateStopReliability([
-      { routeId: "r1", stopId: "s1", onTimePct: 0, meanDelaySec: 0, sampleCount: 0, tier: "unknown" },
+      {
+        routeId: "r1",
+        stopId: "s1",
+        onTimePct: 0,
+        meanDelaySec: 0,
+        sampleCount: 0,
+        tier: "unknown",
+      },
     ]);
     expect(out.tier).toBe("unknown");
     expect(out.stopId).toBe("s1");
@@ -147,8 +160,22 @@ describe("aggregateStopReliability", () => {
 
   it("weights routes by sampleCount when combining", () => {
     const out = aggregateStopReliability([
-      { routeId: "r1", stopId: "s1", onTimePct: 90, meanDelaySec: 10, sampleCount: 90, tier: "high" },
-      { routeId: "r2", stopId: "s1", onTimePct: 50, meanDelaySec: 500, sampleCount: 10, tier: "low" },
+      {
+        routeId: "r1",
+        stopId: "s1",
+        onTimePct: 90,
+        meanDelaySec: 10,
+        sampleCount: 90,
+        tier: "high",
+      },
+      {
+        routeId: "r2",
+        stopId: "s1",
+        onTimePct: 50,
+        meanDelaySec: 500,
+        sampleCount: 10,
+        tier: "low",
+      },
     ]);
     expect(out.sampleCount).toBe(100);
     expect(out.routeIds).toEqual(["r1", "r2"]);
