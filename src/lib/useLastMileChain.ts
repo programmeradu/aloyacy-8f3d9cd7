@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { suggestLastMileChain } from "@/lib/last-mile-chain.functions";
 import type { ActiveTrip } from "@/lib/trip-store";
+import type { WalkLeg } from "@/lib/itinerary-types";
 
 export interface UseLastMileChainOptions {
   active: ActiveTrip;
@@ -52,7 +53,7 @@ export function useLastMileChain({ active }: UseLastMileChainOptions) {
     ],
     queryFn: async () => {
       if (!finalWalk || !itin) return null;
-      if (finalWalk.distanceMeters < 800) return null;
+      if (finalWalk.distanceMeters < LAST_MILE_MIN_WALK_METERS) return null;
       try {
         return await chainFn({
           data: {
@@ -74,7 +75,7 @@ export function useLastMileChain({ active }: UseLastMileChainOptions) {
         return null;
       }
     },
-    enabled: !!finalWalk && (finalWalk.distanceMeters ?? 0) >= 800,
+    enabled: shouldChainLastMile(active),
     staleTime: 10 * 60_000,
     refetchOnWindowFocus: false,
   });
