@@ -14,9 +14,12 @@ vi.mock("@/integrations/supabase/auth-middleware", async () => {
     requireSupabaseAuth: createMiddleware({ type: "function" }).server(async ({ next }) => {
       const { client } = makeSupabaseMock({
         commute_patterns: (calls) => {
-          const last = calls[calls.length - 1];
-          if (last?.method === "update") state.updated.push(last.args);
-          if (last?.method === "insert") state.inserted.push(last.args);
+          const updateCall = calls.find((c) => c.method === "update");
+          const insertCall = calls.find((c) => c.method === "insert");
+          if (updateCall && !state.updated.includes(updateCall.args))
+            state.updated.push(updateCall.args);
+          if (insertCall && !state.inserted.includes(insertCall.args))
+            state.inserted.push(insertCall.args);
           return state.patterns;
         },
       });

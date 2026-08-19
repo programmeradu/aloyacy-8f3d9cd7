@@ -25,11 +25,14 @@ describe("getSeoPanel", () => {
     process.env.SEMRUSH_API_KEY = originalSk;
   });
 
-  it("throws when the connector keys are not configured", async () => {
+  it("surfaces a not-configured error on every entry when connector keys are missing", async () => {
     delete process.env.LOVABLE_API_KEY;
-    await expect(callServerFn(getSeoPanel, undefined)).rejects.toThrow(
-      "Semrush connector not configured",
+    const out = await callServerFn(getSeoPanel, undefined);
+    if (fetchMock.mock.calls.length !== 0) throw new Error("fetch should not be called");
+    const allFailed = out.matrix.every(
+      (m) => !m.ok && m.error === "Semrush connector not configured",
     );
+    if (!allFailed) throw new Error("expected all matrix entries to fail");
   });
 
   it("signs requests with the gateway auth headers and parses table rows", async () => {
