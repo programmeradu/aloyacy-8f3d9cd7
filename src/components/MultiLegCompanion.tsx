@@ -18,9 +18,7 @@ import { WalkGuidance } from "@/components/WalkGuidance";
 import { LiveWalkBanner } from "@/components/LiveWalkBanner";
 import { SightingButton } from "@/components/SightingButton";
 import { LastMileChainCard } from "@/components/LastMileChainCard";
-import { suggestLastMileChain } from "@/lib/last-mile-chain.functions";
-import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
+import { useLastMileChain } from "@/lib/useLastMileChain";
 import { LongFinalWalkHint } from "@/components/LongFinalWalkHint";
 import { ShortcutPrompt } from "@/components/ShortcutPrompt";
 import { EarlyAlightSheet } from "@/components/EarlyAlightSheet";
@@ -63,55 +61,9 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
     isOnFinalWalk,
   });
 
-  // Wave 3 — Last-mile chain. When the final walk to destination is long
-  // (or moderately long after-hours), pre-fetch a taxi handoff so it's
-  // ready the moment the rider hits the walking-to-destination phase.
-  // Server applies the real trigger gates and returns null when nothing
-  // would actually help.
-  const chainFn = useServerFn(suggestLastMileChain);
-  const finalLeg = itin.legs[itin.legs.length - 1];
-  const finalWalk = finalLeg?.kind === "walk" ? finalLeg : null;
-  const chainQuery = useQuery({
-    queryKey: [
-      "lastMileChain",
-      tripId,
-      finalWalk?.from.lat,
-      finalWalk?.from.lng,
-      active.to.lat,
-      active.to.lng,
-      itin.arrivalUnix,
-    ],
-    queryFn: async () => {
-      if (!finalWalk) return null;
-      if (finalWalk.distanceMeters < 800) return null;
-      try {
-        return await chainFn({
-          data: {
-            alight: {
-              lat: finalWalk.from.lat,
-              lng: finalWalk.from.lng,
-              name: finalWalk.from.name,
-            },
-            destination: {
-              lat: active.to.lat,
-              lng: active.to.lng,
-              name: active.to.label,
-            },
-            arrivalUnix: itin.arrivalUnix,
-            finalWalkMeters: Math.round(finalWalk.distanceMeters),
-          },
-        });
-      } catch {
-        return null;
-      }
-    },
-    // Pre-fetch the moment we know an itinerary exists — riders alight
-    // suddenly, the card must be there instantly, not after a network hop.
-    enabled: !!finalWalk && finalWalk.distanceMeters >= 800,
-    staleTime: 10 * 60_000,
-    refetchOnWindowFocus: false,
-  });
-  const lastMileChain = chainQuery.data ?? null;
+  // Wave 3 — Last-mile chain. When the final walk to destination is long,
+  // pre-fetch a taxi handoff so it's ready when hitting destination phase.
+  const lastMileChain = useLastMileChain({ active });
 
   // Emit training events (walk-complete, transfer-made/missed) into the
   // learning pipeline.

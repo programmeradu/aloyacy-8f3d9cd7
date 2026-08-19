@@ -50,17 +50,20 @@ jobs:
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
           git diff --exit-code -- package-lock.json
 
+      # Fresh-clone bootstrap check: prove the documented 4-command onboarding
+      # path (clone -> cp .env.example .env -> bun install --frozen-lockfile -> test)
+      # succeeds out of the box in zero-credential isolation.
+      - name: Fresh clone bootstrap check
+        run: |
+          cp .env.example .env
+          bun run check:env
+          bun run check:secrets
+
       - name: Lint
         run: bun run lint
 
       - name: Typecheck
         run: bun run typecheck
-
-      - name: Env template parity
-        run: bun run check:env
-
-      - name: Secret scan
-        run: bun run check:secrets
 
       - name: Test
         run: bun run test:coverage

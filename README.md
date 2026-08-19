@@ -232,10 +232,10 @@ New behaviour ships with the test that pins it, in the same commit.
 
 ## Health and observability
 
-- `GET /api/public/health` — per-dependency status, `200` healthy / `503`
-  degraded. Used by the Docker healthcheck and uptime monitors.
-- `src/server.ts` normalises catastrophic SSR failures into a branded error
-  page and logs the original stack.
+- **Structured JSON Logging** (`src/lib/logger.ts`) — high-performance, structured JSON logging (`pino`-compatible format). Emits single-line JSON logs with ISO timestamp, level (`info`, `warn`, `error`), subsystem `scope`, and typed metadata across all server routes. Enforced by `tests/server-logging.test.ts`.
+- **Sentry-Compatible Error Tracking** (`src/lib/error-tracking.ts`) — zero-dependency, SDK-free Sentry envelope sender wired into `src/server.ts` for unhandled SSR throws and HTTP 500 responses. Posts Sentry v7 envelope payloads to `SENTRY_DSN` with zero runtime overhead and fails soft when unconfigured. Tested by `tests/error-tracking.test.ts` and `tests/route-error-capture.test.ts`.
+- **Liveness & Readiness Probes** (`GET /api/public/health`) — sub-second dependency health check (`database`, `realtime`, `cache`). Returns `200` healthy / `503` degraded with per-probe execution latency. Used by Docker container healthchecks, Kubernetes probes, and uptime monitors.
+- `src/server.ts` normalises catastrophic SSR failures into a branded error page and captures the original stack trace.
 
 ## Contributing
 
