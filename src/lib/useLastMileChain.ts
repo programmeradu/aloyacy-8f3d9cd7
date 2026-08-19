@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { suggestLastMileChain } from "@/lib/last-mile-chain.functions";
 import type { ActiveTrip } from "@/lib/trip-store";
+import type { WalkLeg } from "@/lib/itinerary-types";
 
 export interface UseLastMileChainOptions {
   active: ActiveTrip;
@@ -13,13 +14,32 @@ export interface UseLastMileChainOptions {
  * pre-fetch a taxi handoff so it's ready the moment the rider hits the
  * walking-to-destination phase.
  */
+/** Walks shorter than this are not worth a taxi handoff. */
+export const LAST_MILE_MIN_WALK_METERS = 800;
+
+/**
+ * Returns the trip's final leg when it is a walk, otherwise null.
+ * Exported so the threshold logic is testable without rendering the hook.
+ */
+export function finalWalkLeg(active: ActiveTrip): WalkLeg | null {
+  const legs = active.itinerary?.legs;
+  if (!legs || legs.length === 0) return null;
+  const last = legs[legs.length - 1];
+  return last.kind === "walk" ? last : null;
+}
+
+/** True when the final walk is long enough to offer a last-mile handoff. */
+export function shouldChainLastMile(active: ActiveTrip): boolean {
+  const walk = finalWalkLeg(active);
+  return !!walk && walk.distanceMeters >= LAST_MILE_MIN_WALK_METERS;
+}
+
 export function useLastMileChain({ active }: UseLastMileChainOptions) {
   const itin = active.itinerary;
   const tripId = active.option.id;
   const chainFn = useServerFn(suggestLastMileChain);
 
-  const finalLeg = itin?.legs[itin.legs.length - 1];
-  const finalWalk = finalLeg?.kind === "walk" ? finalLeg : null;
+  const finalWalk = finalWalkLeg(active);
 
   const chainQuery = useQuery({
     queryKey: [
@@ -33,7 +53,7 @@ export function useLastMileChain({ active }: UseLastMileChainOptions) {
     ],
     queryFn: async () => {
       if (!finalWalk || !itin) return null;
-      if (finalWalk.distanceMeters < 800) return null;
+      if (finalWalk.distanceMeters < LAST_MILE_MIN_WALK_METERS) return null;
       try {
         return await chainFn({
           data: {
@@ -55,7 +75,7 @@ export function useLastMileChain({ active }: UseLastMileChainOptions) {
         return null;
       }
     },
-    enabled: !!finalWalk && (finalWalk.distanceMeters ?? 0) >= 800,
+    enabled: shouldChainLastMile(active),
     staleTime: 10 * 60_000,
     refetchOnWindowFocus: false,
   });
