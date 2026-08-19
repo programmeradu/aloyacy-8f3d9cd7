@@ -180,6 +180,22 @@ Vitest, run with `bun run test` (`bun run test:watch`, `bun run test:coverage`).
 Coverage thresholds are enforced in `vitest.config.ts` — `test:coverage` fails
 below them, and the floors are ratcheted upward as tests land.
 
+The suite is offline by construction, not by convention: `src/test/no-network.ts`
+replaces `fetch` and the Node HTTP clients with a guard that throws an
+attributable error, so a spec that reaches a live host fails instead of
+depending on credentials or connectivity. Both harnesses load it.
+
+Four guard suites keep the codebase's own rules enforceable rather than
+aspirational:
+
+| Suite | Rule |
+| --- | --- |
+| `tests/file-size.test.ts` | no hand-written file over 500 LOC (800 for specs) |
+| `tests/server-logging.test.ts` | server code logs through the structured logger, never bare `console` |
+| `tests/input-validation.test.ts` | every public endpoint that reads caller input parses it with a schema |
+| `tests/error-tracking.test.ts` | SSR failures reach the error reporter without throwing on the failure path |
+
+
 The Expo app has its own harness: `bun run test:mobile`
 (`vitest.mobile.config.ts`). Native bridges — AsyncStorage, `react-native`,
 `expo-router`, Haptics, Constants, Localization — are aliased to in-memory
