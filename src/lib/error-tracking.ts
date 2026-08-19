@@ -78,6 +78,14 @@ export async function captureException(
   context: Record<string, unknown> = {},
   deps: { dsn?: string; fetcher?: Fetcher } = {},
 ): Promise<boolean> {
+  // Counted before the DSN check: an instance with no DSN configured still
+  // needs its error rate visible on the metrics scrape.
+  incrementCounter(
+    "aloya_errors_total",
+    { scope: typeof context["scope"] === "string" ? context["scope"] : "unknown" },
+    1,
+    "Errors passed to captureException, by scope.",
+  );
   const dsn = parseDsn(deps.dsn ?? process.env["SENTRY_DSN"]);
   if (!dsn) return false;
   const send = deps.fetcher ?? fetch;
