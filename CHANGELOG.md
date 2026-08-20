@@ -7,6 +7,14 @@ All notable changes to Aloya are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- Prometheus metrics: a dependency-free in-process registry
+  (`src/lib/metrics.ts`) with counters, gauges and summaries, exposed as
+  `GET /api/public/metrics` in the 0.0.4 text exposition format and optionally
+  gated by `METRICS_TOKEN`. `captureException` and the health probes feed it,
+  so error rate and dependency state are scrapeable. Covered by
+  `tests/metrics.test.ts` and `tests/metrics-endpoint.test.ts`.
+- `tests/health-endpoint.test.ts` pins the `GET /api/public/health` payload
+  contract relied on by the Docker healthcheck and uptime monitors.
 - SSR error tracking (`src/lib/error-tracking.ts`): unhandled request failures
   and catastrophic SSR responses are mirrored to a Sentry-compatible ingestion
   endpoint alongside the structured log line. Wire-protocol only, no SDK, so it
