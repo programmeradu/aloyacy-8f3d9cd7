@@ -33,7 +33,7 @@ describe("GET /api/public/metrics", () => {
   });
 
   it("never returns an empty body on a cold instance", async () => {
-    expect((await scrape()).text()).resolves.not.toBe("");
+    await expect((await scrape()).text()).resolves.not.toBe("");
   });
 
   it("counts each scrape", async () => {
