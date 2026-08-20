@@ -99,7 +99,6 @@ export const Route = createFileRoute("/api/public/health")({
           );
         }
 
-
         return Response.json(
           {
             // "ok" = everything green, "degraded" = live data missing but the

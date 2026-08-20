@@ -88,11 +88,7 @@ export function observe(name: string, value: number, labels: Labels = {}, help =
 }
 
 /** Time an async operation and record its duration in seconds. */
-export async function timeIt<T>(
-  name: string,
-  labels: Labels,
-  run: () => Promise<T>,
-): Promise<T> {
+export async function timeIt<T>(name: string, labels: Labels, run: () => Promise<T>): Promise<T> {
   const started = Date.now();
   try {
     return await run();

@@ -13,8 +13,7 @@ import { readMetric, resetMetrics } from "../src/lib/metrics";
 const handler = getHandler(Route, "GET");
 const OLD_ENV = { ...process.env };
 
-const call = () =>
-  handler({ request: new Request("https://app.aloya.cy/api/public/health") });
+const call = () => handler({ request: new Request("https://app.aloya.cy/api/public/health") });
 
 beforeEach(() => {
   resetMetrics();
@@ -30,7 +29,10 @@ afterEach(() => {
 
 describe("health endpoint contract", () => {
   it("returns 200 with a per-dependency payload", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(null, { status: 200 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 200 })),
+    );
 
     const res = await call();
     const body = (await res.json()) as {
@@ -54,11 +56,14 @@ describe("health endpoint contract", () => {
   it("reports 503 down when a hard dependency is missing configuration", async () => {
     delete process.env["CUSTOM_SUPABASE_URL"];
     delete process.env["SUPABASE_URL"];
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(null, { status: 200 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 200 })),
+    );
 
     const res = await call();
     expect(res.status).toBe(503);
-    expect((await res.json() as { status: string }).status).toBe("down");
+    expect(((await res.json()) as { status: string }).status).toBe("down");
   });
 
   it("mirrors dependency state into the metrics registry", async () => {
