@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { observe, setGauge } from "@/lib/metrics";
 
 // GET /api/public/health
 //
@@ -80,6 +81,23 @@ export const Route = createFileRoute("/api/public/health")({
         const checks = [database, relay];
         // Only hard dependencies decide the HTTP status.
         const ok = database.ok;
+
+        // Feed the same probe results to /api/public/metrics so an uptime
+        // monitor and a Prometheus scrape never disagree about dependencies.
+        for (const check of checks) {
+          setGauge(
+            "aloya_dependency_up",
+            check.ok ? 1 : 0,
+            { dependency: check.name },
+            "1 when a dependency answered its probe, 0 otherwise.",
+          );
+          observe(
+            "aloya_dependency_probe_duration_seconds",
+            check.ms / 1000,
+            { dependency: check.name },
+            "Time spent probing each dependency.",
+          );
+        }
 
         return Response.json(
           {

@@ -160,6 +160,7 @@ own `mobile/.env` (template at `mobile/.env.example`) because Expo only inlines
 | `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | for web push | Departure and disruption alerts |
 | `VITE_PAYMENTS_CLIENT_TOKEN` | for Pro | Stripe publishable key |
 | `SENTRY_DSN` | optional | Sentry-compatible DSN; unset = SSR error reporting is a no-op |
+| `METRICS_TOKEN` | optional | Bearer token required by `GET /api/public/metrics`; unset = open scrape |
 | `GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_SERVICE_ACCOUNT_JSON` | for wallet | Signed Google Wallet passes |
 | `MAPILLARY_ACCESS_TOKEN` | optional | Street-level imagery fallback |
 | `ELEVENLABS_API_KEY`, `LOVABLE_API_KEY` | optional | Voice guidance, AI trip parsing |
@@ -234,7 +235,8 @@ New behaviour ships with the test that pins it, in the same commit.
 
 - **Structured JSON Logging** (`src/lib/logger.ts`) — high-performance, structured JSON logging (`pino`-compatible format). Emits single-line JSON logs with ISO timestamp, level (`info`, `warn`, `error`), subsystem `scope`, and typed metadata across all server routes. Enforced by `tests/server-logging.test.ts`.
 - **Sentry-Compatible Error Tracking** (`src/lib/error-tracking.ts`) — zero-dependency, SDK-free Sentry envelope sender wired into `src/server.ts` for unhandled SSR throws and HTTP 500 responses. Posts Sentry v7 envelope payloads to `SENTRY_DSN` with zero runtime overhead and fails soft when unconfigured. Tested by `tests/error-tracking.test.ts` and `tests/route-error-capture.test.ts`.
-- **Liveness & Readiness Probes** (`GET /api/public/health`) — sub-second dependency health check (`database`, `realtime`, `cache`). Returns `200` healthy / `503` degraded with per-probe execution latency. Used by Docker container healthchecks, Kubernetes probes, and uptime monitors.
+- **Liveness & Readiness Probes** (`GET /api/public/health`, `src/routes/api/public/health.ts`) — sub-second dependency health check (`database` hard, `gtfs-relay` soft). Returns `200` `ok`/`degraded` or `503` `down`, with per-probe latency in the payload. Used by the Docker `HEALTHCHECK`, Kubernetes probes and uptime monitors. Contract pinned by `tests/health-endpoint.test.ts`, branch behaviour by `src/routes/api/__tests__/health.test.ts`.
+- **Prometheus Metrics** (`GET /api/public/metrics`, `src/lib/metrics.ts`) — text exposition (`version=0.0.4`) of in-process counters, gauges and summaries: `aloya_errors_total{scope}`, `aloya_dependency_up{dependency}`, `aloya_dependency_probe_duration_seconds{dependency}`, `aloya_metrics_scrapes_total`. No SDK — prom-client cannot run on the Worker runtime, so the registry is ~150 lines of dependency-free code. Gate the scrape with `METRICS_TOKEN`. Tested by `tests/metrics.test.ts` and `tests/metrics-endpoint.test.ts`.
 - `src/server.ts` normalises catastrophic SSR failures into a branded error page and captures the original stack trace.
 
 ## Contributing
