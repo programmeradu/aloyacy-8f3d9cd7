@@ -12,6 +12,8 @@
 // Disabled by default — with `SENTRY_DSN` unset, `captureException` is a
 // no-op and the app behaves exactly as before.
 
+import { incrementCounter } from "./metrics";
+
 type Dsn = { url: string; key: string };
 
 /**
