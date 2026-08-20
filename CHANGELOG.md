@@ -23,6 +23,13 @@ All notable changes to Aloya are documented here. Format follows
 - CI fast-fails before install when `bun.lock` is missing from the tree, in
   addition to the existing drift check.
 
+### Changed
+- Dependency surface trimmed: dropped three unreferenced runtime packages
+  (`@hookform/resolvers`, `@tanstack/query-core`, `date-fns`) and moved the
+  build-only Vite plugins (`@cloudflare/vite-plugin`, `@tailwindcss/vite`,
+  `@tanstack/router-plugin`) from `dependencies` to `devDependencies`, so the
+  production install no longer carries build tooling.
+
 ### Fixed
 - `bun.lock` is no longer flagged `linguist-generated` in `.gitattributes`.
   Repository scanners skip generated-flagged paths, which made the committed
