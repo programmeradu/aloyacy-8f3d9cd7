@@ -8,7 +8,7 @@ import {
   setGauge,
   snapshotMetrics,
   timeIt,
-} from "@/lib/metrics";
+} from "../src/lib/metrics";
 
 beforeEach(() => resetMetrics());
 

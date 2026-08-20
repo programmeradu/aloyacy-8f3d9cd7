@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { Route } from "@/routes/api/public/metrics";
-import { getHandler } from "@/routes/api/__tests__/handler";
-import { incrementCounter, resetMetrics } from "@/lib/metrics";
+import { Route } from "../src/routes/api/public/metrics";
+import { getHandler } from "../src/routes/api/__tests__/handler";
+import { incrementCounter, resetMetrics } from "../src/lib/metrics";
 
 const handler = getHandler(Route, "GET");
 

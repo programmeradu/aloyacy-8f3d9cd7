@@ -6,9 +6,9 @@
 // Prometheus scrape — so a refactor cannot quietly change the payload shape.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Route } from "@/routes/api/public/health";
-import { getHandler } from "@/routes/api/__tests__/handler";
-import { readMetric, resetMetrics } from "@/lib/metrics";
+import { Route } from "../src/routes/api/public/health";
+import { getHandler } from "../src/routes/api/__tests__/handler";
+import { readMetric, resetMetrics } from "../src/lib/metrics";
 
 const handler = getHandler(Route, "GET");
 const OLD_ENV = { ...process.env };
