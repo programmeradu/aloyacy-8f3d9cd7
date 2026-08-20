@@ -160,6 +160,7 @@ own `mobile/.env` (template at `mobile/.env.example`) because Expo only inlines
 | `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | for web push | Departure and disruption alerts |
 | `VITE_PAYMENTS_CLIENT_TOKEN` | for Pro | Stripe publishable key |
 | `SENTRY_DSN` | optional | Sentry-compatible DSN; unset = SSR error reporting is a no-op |
+| `METRICS_TOKEN` | optional | Bearer token required by `GET /api/public/metrics`; unset = open scrape |
 | `GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_SERVICE_ACCOUNT_JSON` | for wallet | Signed Google Wallet passes |
 | `MAPILLARY_ACCESS_TOKEN` | optional | Street-level imagery fallback |
 | `ELEVENLABS_API_KEY`, `LOVABLE_API_KEY` | optional | Voice guidance, AI trip parsing |
