@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { observe, setGauge } from "@/lib/metrics";
 
 // GET /api/public/health
 //
