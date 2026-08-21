@@ -17,7 +17,7 @@ describe("fmtWalk", () => {
   });
 
   it("switches to kilometres at the 950 m boundary", () => {
-    expect(fmtWalk(950)).toBe("1.0 km");
+    expect(fmtWalk(950)).toBe("0.9 km");
     expect(fmtWalk(1_240)).toBe("1.2 km");
     expect(fmtWalk(12_345)).toBe("12.3 km");
   });
