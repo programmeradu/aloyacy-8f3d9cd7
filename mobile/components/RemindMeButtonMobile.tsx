@@ -4,8 +4,12 @@
 import { useEffect, useState } from "react";
 import { View, Text, Pressable, Alert, Linking } from "react-native";
 import * as Haptics from "expo-haptics";
-// import * as Notifications from "expo-notifications";
-const Notifications: any = null;
+import {
+  ensureTripAlertChannel,
+  getNotifications,
+  notificationsUnsupportedReason,
+  requestNotificationPermissionState,
+} from "@/lib/notifications";
 
 import * as Device from "expo-device";
 import AsyncStorage from "@react-native-async-storage/async-storage";
