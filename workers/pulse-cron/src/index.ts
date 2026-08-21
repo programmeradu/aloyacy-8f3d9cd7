@@ -109,14 +109,15 @@ export default {
     const cron = (event as ScheduledEvent & { cron?: string }).cron ?? "* * * * *";
     const minute = new Date(event.scheduledTime).getUTCMinutes();
 
-    if (cron === "*/15 * * * *") return run(env, QUARTER_HOUR_JOBS);
-    if (cron === "*/30 * * * *") return run(env, HALF_HOUR_JOBS);
-    if (cron === "17 * * * *") return run(env, HOURLY_JOBS);
-    if (cron === "0 3 * * *") return run(env, NIGHTLY_JOBS);
+    if (cron === "*/15 * * * *") return run(env, QUARTER_HOUR_JOBS, 10_000);
+    if (cron === "*/30 * * * *") return run(env, HALF_HOUR_JOBS, 15_000);
+    if (cron === "17 * * * *") return run(env, HOURLY_JOBS, 15_000);
+    // Nightly jobs are the heaviest — give each one plenty of room.
+    if (cron === "0 3 * * *") return run(env, NIGHTLY_JOBS, 60_000);
 
-    // Default: the every-minute loop.
+    // Default: the every-minute loop — must finish well inside 60s.
     const jobs = minute % 2 === 0 ? [...MINUTE_JOBS, ...EVEN_MINUTE_JOBS] : MINUTE_JOBS;
-    return run(env, jobs);
+    return run(env, jobs, 3000);
   },
 
   // Manual trigger for debugging: GET /?group=nightly (requires CRON_SECRET).
