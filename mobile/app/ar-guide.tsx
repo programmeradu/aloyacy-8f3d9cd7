@@ -1,13 +1,44 @@
-import { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, Pressable, Platform, Dimensions } from "react-native";
-import { Camera, CameraView, useCameraPermissions } from "expo-camera";
-import { DeviceMotion, Magnetometer } from "expo-sensors";
+import { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Pressable, Dimensions } from "react-native";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { Magnetometer } from "expo-sensors";
+import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
 import { palette } from "@/constants/theme";
-import { X, Navigation, Info } from "lucide-react-native";
-import * as Haptics from "expo-haptics";
+import { X, Navigation } from "lucide-react-native";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
+
+const toRad = (deg: number) => (deg * Math.PI) / 180;
+const toDeg = (rad: number) => (rad * 180) / Math.PI;
+
+/** Great-circle distance in metres. */
+function distanceMeters(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const R = 6371000;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+}
+
+/** Initial bearing from a to b, in degrees clockwise from true north. */
+function bearingDegrees(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const y = Math.sin(dLng) * Math.cos(lat2);
+  const x =
+    Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
 
 /**
  * Native AR Viewfinder.
