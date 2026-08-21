@@ -112,7 +112,7 @@ export default function SettingsScreen() {
           <Card style={{ marginTop: 10, paddingVertical: 4 }}>
             <LegalRow
               label={t("settings.support")}
-              onPress={() => void Linking.openURL("https://app.aloya.cy/qa")}
+              onPress={() => void Linking.openURL("https://app.aloya.cy/support")}
             />
             <LegalRow
               label={t("settings.about")}
