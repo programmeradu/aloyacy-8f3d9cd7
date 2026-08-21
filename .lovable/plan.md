@@ -1,101 +1,53 @@
-# Arrival Promise — "Get me to Larnaca by 4pm tomorrow"
+# Close every gap in the 72/B audit
 
-Today the app can plan an arrive-by trip, and it can set a single one-shot
-"remind me to leave" push. What's missing is the *commitment*: a trip you book
-in advance that Aloya keeps watching until you're on the bus, re-planning as
-conditions change and nudging you at the right moments.
+The score dropped because of items we can actually fix in-repo (file sizes, docs discoverability, mobile reproducibility, tighter guards) plus one item only real commit behaviour can fix (history authorship/cadence). This plan covers all four audit recommendations, marks what is and isn't fixable by code, and raises our own guard rails so we stop drifting back.
 
-## What the rider gets
+## 0. Keep the audit on file
 
-1. **Set the promise.** In the planner, once an arrive-by time is set (today or
-   any date up to 7 days out), a commit card appears: "Get me there by 16:00 —
-   Aloya will watch this trip." One tap creates the promise.
-2. **A departure ladder**, not one answer:
-   ```text
-   Leave 14:35  →  arrive 15:48   recommended · 12 min slack
-   Leave 15:05  →  arrive 16:02   too late by 2 min
-   Leave 14:05  →  arrive 15:20   early, extra 40 min buffer
-   ```
-   Each rung shows the route chain and whether it still lands before the target.
-3. **Continuous watch.** Every few minutes until departure the server re-plans
-   the same origin→destination against live feeds and shifts the recommended
-   leave time. The rider sees a live "leave by" countdown with a reason line
-   ("heavy rain + route 30 running 6 min late — leave 8 min earlier").
-4. **Escalating nudges.** Push at T-60, T-30, T-15, and "leave now", plus an
-   out-of-band alert whenever the recommended leave time moves earlier by 5+
-   minutes or the promise becomes unmakeable ("no bus now arrives before 16:00
-   — earliest is 16:24").
-5. **Watch list.** Active promises visible on web (/trips + /saved) and mobile,
-   each cancellable, with the ladder and the current reason line.
+Save the pasted report to `docs/audits/2026-08-23-datafactor-72B.md` and add `docs/audits/README.md` explaining that each audit snapshot is kept so score movement is traceable between runs. Future audits land beside it.
 
-## What decides the leave time
+## 1. Code cleanliness — pull the biggest hand-written files under 400 LOC
 
-Layered on the existing planner output, all as one auditable buffer:
+Current sizes (verified): `mobile/components/ArrivalPromiseCard.tsx` 482, `mobile/components/MapView.web.tsx` 472, `mobile/components/KapnosShuttleCardMobile.tsx` 463, `src/routes/trip.$id.tsx` 463.
 
-- **Live feed** — real vehicle positions and delays (already in the planner).
-- **Recent route delay stats** — `delay_stats` mean per route (already used).
-- **Weather** — Open-Meteo condition, learned route×condition coupling with a
-  static fallback (already in `leave-time-adjuster.ts`).
-- **Rush hour / day type** (new) — learned per-hour, per-weekday delay profile
-  from our own `delay_stats` history, with a sane Cyprus default curve
-  (07:00-09:00, 13:00-14:00 school run, 17:00-19:30), plus public-holiday and
-  reduced-Sunday-service awareness.
-- **Disruption signals** (new input, existing source) — active traffic alerts /
-  pulse anomalies touching the routes in the plan.
-- **Personal safety margin** — the rider's own slider (relaxed / normal /
-  cutting it fine), default "normal" = arrive 10 min before target.
+- `ArrivalPromiseCard.tsx` → `mobile/components/arrival-promise/`: `ArrivalPromiseCommit.tsx` (the commit/act surface), `ArrivalPromiseRow.tsx`, `ArrivalPromiseList.tsx`, with the card left as composition only.
+- `KapnosShuttleCardMobile.tsx` → `mobile/components/kapnos/`: `margins.ts` (the MARGINS constant + derivation), `Endpoint.tsx`, `MileSection.tsx`.
+- `MapView.web.tsx` → extract the Google Maps loader/library-import logic into `mobile/lib/googleMapsLoader.ts` and marker/polyline building into `mobile/lib/mapOverlays.ts`, both unit-tested without a DOM map.
+- `src/routes/trip.$id.tsx` → extract the single-leg phase-derivation memo into `src/lib/useSingleLegView.ts` with `src/lib/useSingleLegView.test.ts`, matching how `useLastMileChain` was split.
+- Tighten `tests/file-size.test.ts`: keep the 500 hard failure, add a 400-LOC warning ceiling that fails for any *new* file, with a short, dated, justified allowlist for anything left between 400 and 500. This is what stops the drift recurring.
 
-## Technical shape
+Pure extraction — no behaviour change. Lint, typecheck, web tests and mobile tests run after each split.
 
-**Core (pure, tested)** — `packages/core/src/arrival-promise.ts`
-- `buildDepartureLadder(itineraries, targetUnix, margin)` → rungs with slack,
-  verdict (`comfortable` | `tight` | `late`), and the recommended rung.
-- `composeLeaveBuffer(signals)` → `{ extraSec, reasons[] }` merging weather,
-  traffic, rush-hour and disruption components with per-component caps and one
-  global cap; reuses the existing weather/delay logic, moved here.
-- `rushHourFactor(unixSec, tz, profile?)` → seconds, learned profile or default.
-- `nextNudge(promise, nowUnix)` → which escalation step is due (T-60/30/15/now
-  / "changed" / "unmakeable"), idempotent against `nudges_sent`.
-- `promiseStatus(...)` → `watching` | `leave-now` | `departed` | `missed` |
-  `cancelled`.
-- Copy helpers so web, mobile and push bodies say the exact same thing.
+## 2. Docs & onboarding — make the custom tooling machine-discoverable
 
-**Database** — one migration, `public.arrival_promises`:
-`id, user_id, target_arrival_unix, origin/destination (label+lat/lng),
-margin_pref, plan_json (current best itinerary), ladder_json, leave_by_unix,
-baseline_leave_by_unix, reason_short, status, nudges_sent (text[]),
-last_replan_at, replan_count, push_subscription_id, created_at, updated_at`
-plus GRANTs (`authenticated`, `service_role`), RLS scoped to `auth.uid()`, and
-an index on `(status, leave_by_unix)`. A `job_leases` row backs single-flight.
+The scanner reported `logging_framework: null`, `error_tracking: null`, `has_health_endpoint: false` because our logger, error tracker and health route are bespoke modules.
 
-**Server functions** — `src/lib/arrival-promise.functions.ts`:
-`createArrivalPromise`, `listArrivalPromises`, `cancelArrivalPromise`,
-`refreshArrivalPromise` (on-demand re-plan when the rider opens the card), all
-behind `requireSupabaseAuth`, Zod-validated.
+- New `ARCHITECTURE.md`: layering (route tree, `routes/api/public` vs `createServerFn`, `packages/core`, mobile workspace), and an explicit "Operational modules" table naming `src/lib/logger.ts` (structured JSON logger), `src/lib/error-tracking.ts` (Sentry envelope reporter, `SENTRY_DSN`), `src/lib/metrics.ts` (Prometheus registry, `METRICS_TOKEN`), `GET /api/public/health`, `GET /api/public/metrics`. README links to it.
+- `package.json`: add a `lovable`/`aloya` metadata block (or top-level `config` keys) declaring `logging`, `errorTracking`, `healthEndpoint`, `metricsEndpoint` so manifest-level detection finds them, plus a comment-style note in `.env.example` next to `SENTRY_DSN` pointing at the envelope implementation.
+- Extend `tests/health-endpoint.test.ts` to assert the documented per-dependency contract exactly as README states it: hard vs soft dependency semantics, the `ok`/`degraded`/`down` tri-state, 200 vs 503, and that an unconfigured relay is reported as skipped rather than failing.
+- Add `tests/docs-contract.test.ts`: fails if `ARCHITECTURE.md` stops mentioning a module that exists, or if a documented endpoint route file is missing.
 
-**Watcher** — `src/routes/api/public/hooks/arrival-watch-tick.ts`, called by
-pg_cron every 2 minutes with the anon key in `apikey`:
-- acquires a single-flight lease (expiring row) and exits if one is held;
-- processes a bounded batch (25 promises/run), nearest leave time first;
-- adaptive cadence: >6h out → re-plan hourly, 6h-1h → every 15 min, <1h →
-  every tick;
-- re-plans via `planMultiLeg`, applies `composeLeaveBuffer`, writes the new
-  ladder, leave time and reason;
-- sends only the nudge `nextNudge` says is due and appends it to `nudges_sent`
-  in the same update (idempotent);
-- circuit breaker: pauses the whole job on repeated failures and surfaces it,
-  never loops.
+## 3. Mobile fresh-clone reproducibility
 
-**UI**
-- Web: `ArrivalPromiseCard` in the planner (commit + ladder), `PromiseWatchList`
-  on `/saved`, live countdown driven by the existing tick hook.
-- Mobile: same card and list, native push through the existing token pipeline,
-  matching glyph/typography language (bespoke SVG, no icon sets).
-- Bespoke illustration generated for the promise card empty/active state.
+- CI mobile job: `cp mobile/.env.example mobile/.env` before `bunx tsc --noEmit`, and run `bun run check:env` scoped to the mobile workspace so mobile env parity is enforced the way the web one is.
+- Extend `scripts/check-env-parity.mjs` to cover `mobile/` sources against `mobile/.env.example` (every `EXPO_PUBLIC_*` / `process.env` reference present with a placeholder and comment).
+- README Testing section: add the exact fresh-clone mobile sequence — `cd mobile && cp .env.example .env && cd .. && bun run test:mobile` — and state that it needs no Expo/EAS credentials and makes no network calls (the `src/test/no-network.ts` guard is active in the mobile config too; wire it in if it isn't).
+- Verify locally with network egress blocked, capture the passing output in the README/CHANGELOG note.
 
-**Push** — reuses `sendWebPush` + Expo push; bodies come from the shared core
-copy helpers so web and native read identically.
+## 4. History & maintenance (the 38/K score)
 
-## Out of scope for this pass
-Trip-chaining across multiple promises, calendar import, and sharing a promise
-with a friend.
+This dimension is measured from `git log`, and the platform authors commits as `lovable-dev[bot]`; no file change can retroactively re-attribute 4,153 commits. What we do in-repo:
+
+- Add `docs/COMMIT_POLICY.md` and a CONTRIBUTING section: one small human-authored commit per feature/fix, its test in the same commit, Conventional Commits prefixes (`feat:`, `fix:`, `test:`, `refactor:`, `docs:`, `chore:`).
+- Add `.gitmessage` template plus a `commitlint`-style check in CI that validates the Conventional Commits format of PR commits (advisory on existing history, blocking for new commits).
+- Add a `RELEASES.md` cadence note: tag `v1.2.0` at the end of this work and tag each subsequent milestone.
+
+Outside the repo, the only levers are yours: commit from your own git identity for hand-made changes and cut tags as milestones land. I'll flag this explicitly rather than pretend a file fixes it.
+
+## Verification gate (run at the end)
+
+`bun run lint` (0 warnings) · `bun run typecheck` · `bun run test:coverage` · `bun run test:mobile` · `node scripts/check-env-parity.mjs` · `node scripts/check-secrets.mjs` · `bun run build`. CHANGELOG entry summarising the above.
+
+## Not planned
+
+Reducing the 70 direct runtime dependencies further — the remaining ones are all imported, and cutting real features to shrink a count would trade working software for a metric. Say the word if you want that audited anyway.
