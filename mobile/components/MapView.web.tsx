@@ -3,40 +3,44 @@
 // for `Platform.OS === 'web'` before the native module (`expo-maps`) is even
 // imported, so browsers never touch the native SDK and native builds never
 // touch google.maps. Same public API as the native MapView.
+//
+// SDK loading lives in @/lib/googleMapsLoader, the skin in @/lib/mapStyle and
+// the pure maths in @/lib/map-geometry; this file is the React glue.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, View, Image } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useRealtime } from "@/lib/hooks";
 import type { RealtimeVehicle } from "@/lib/api";
+import { loadMaps } from "@/lib/googleMapsLoader";
+import {
+  AEGEAN,
+  AEGEAN_DEEP,
+  INK,
+  LIMESTONE,
+  MAP_STYLE,
+  OCHRE,
+  SEV_FILL,
+  SEV_HALO,
+  TONE,
+  type MapTone,
+} from "@/lib/mapStyle";
+import {
+  decodePolyline,
+  filterVehicles,
+  spanToZoom,
+  type VehicleOverride,
+} from "@/lib/map-geometry";
 import { AppText } from "./AppText";
 
-// Browser-restricted Maps key. Supplied through mobile/.env (see
-// mobile/.env.example) — never hardcoded, so a fork ships with no key of ours.
-const KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? "";
-const CHANNEL = process.env.EXPO_PUBLIC_GOOGLE_MAPS_TRACKING_ID ?? "";
-
 const NICOSIA_CENTER = { lat: 35.1856, lng: 33.3823 };
-const LIMESTONE = "#F6F1E7";
-const INK = "#1F1E18";
-const AEGEAN = "#3F9BB2";
-const AEGEAN_DEEP = "#1F6C82";
-const OCHRE = "#C9853A";
-const OLIVE = "#3F4A36";
 
 const BUS_PNG = "/__l5e/assets-v1/1321112e-e415-4ac7-a0cc-ff3ae7bd27fb/bus-premium.png";
 
-export type MapTone = "aegean" | "ochre" | "olive" | "ink";
-const TONE: Record<MapTone, string> = {
-  aegean: AEGEAN, ochre: OCHRE, olive: OLIVE, ink: INK,
-};
+export type { MapTone, VehicleOverride };
 
 export type MapMarker = {
   lat: number; lng: number; label?: string; tone?: MapTone;
   kind?: "origin" | "destination" | "stop" | "pin";
-};
-export type VehicleOverride = {
-  lat: number; lng: number; bearing?: number; routeId?: string;
-  label?: string; source?: "feed" | "rider" | "feed+rider" | "synthetic";
 };
 export type TrafficIncidentMarker = {
   id: string;
@@ -62,122 +66,6 @@ export type MapViewProps = {
   fitToContent?: boolean;
   trafficIncidents?: TrafficIncidentMarker[];
 };
-
-declare global {
-  interface Window {
-    google?: typeof google;
-    __aloyaGmapsInit?: () => void;
-    __aloyaGmapsPromise?: Promise<typeof google>;
-  }
-}
-
-function loadMaps(): Promise<typeof google> {
-  if (typeof window === "undefined") return Promise.reject(new Error("no window"));
-  if (window.google?.maps) return Promise.resolve(window.google);
-  if (!KEY) {
-    return Promise.reject(
-      new Error("Missing EXPO_PUBLIC_GOOGLE_MAPS_BROWSER_KEY — see mobile/.env.example"),
-    );
-  }
-  if (window.__aloyaGmapsPromise) return window.__aloyaGmapsPromise;
-  window.__aloyaGmapsPromise = new Promise((resolve, reject) => {
-    window.__aloyaGmapsInit = async () => {
-      try {
-        // With `loading=async`, the bootstrap callback fires before the
-        // core `maps` library is actually attached to `google.maps` — so
-        // `new google.maps.Map(...)` throws "Map is not a constructor"
-        // on the first mount. Explicitly import the libraries we use
-        // before resolving so every consumer sees a fully-ready SDK.
-        await Promise.all([
-          window.google!.maps.importLibrary("maps"),
-          window.google!.maps.importLibrary("marker"),
-          window.google!.maps.importLibrary("geometry"),
-        ]);
-        resolve(window.google!);
-      } catch (e) {
-        reject(e instanceof Error ? e : new Error(String(e)));
-      }
-    };
-    const s = document.createElement("script");
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${KEY}&loading=async&callback=__aloyaGmapsInit&libraries=geometry,marker&channel=${CHANNEL}`;
-    s.async = true; s.defer = true;
-    s.onerror = () => reject(new Error("maps failed"));
-    document.head.appendChild(s);
-  });
-  return window.__aloyaGmapsPromise;
-}
-
-
-const MAP_STYLE: google.maps.MapTypeStyle[] = [
-  { elementType: "geometry", stylers: [{ color: "#f3ede1" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#5a5246" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#f3ede1" }] },
-  { featureType: "administrative", elementType: "geometry", stylers: [{ visibility: "off" }] },
-  { featureType: "poi", stylers: [{ visibility: "off" }] },
-  { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#dde6cf" }] },
-  { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-  { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#c9bea4" }] },
-  { featureType: "road", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#e8c478" }] },
-  { featureType: "transit", stylers: [{ visibility: "off" }] },
-  { featureType: "water", elementType: "geometry", stylers: [{ color: "#bcd9d8" }] },
-];
-
-function decodePolyline(encoded: string): google.maps.LatLngLiteral[] {
-  if (!encoded) return [];
-  const out: google.maps.LatLngLiteral[] = [];
-  let i = 0, lat = 0, lng = 0;
-  while (i < encoded.length) {
-    let b, s = 0, r = 0;
-    do { b = encoded.charCodeAt(i++) - 63; r |= (b & 0x1f) << s; s += 5; } while (b >= 0x20);
-    lat += r & 1 ? ~(r >> 1) : r >> 1;
-    s = 0; r = 0;
-    do { b = encoded.charCodeAt(i++) - 63; r |= (b & 0x1f) << s; s += 5; } while (b >= 0x20);
-    lng += r & 1 ? ~(r >> 1) : r >> 1;
-    out.push({ lat: lat * 1e-5, lng: lng * 1e-5 });
-  }
-  return out;
-}
-
-function spanToZoom(km: number) {
-  return Math.max(6, Math.min(17, Math.round(12 - Math.log2(Math.max(0.1, km) / 8))));
-}
-
-function filterVehicles(
-  base: RealtimeVehicle[],
-  overrides: Record<string, VehicleOverride> | undefined,
-  focusTripId?: string, focusRouteId?: string, restrict?: string[],
-): RealtimeVehicle[] {
-  const apply = (list: RealtimeVehicle[]) => {
-    if (!overrides) return list;
-    const mapped = list.map((v) => {
-      const o = overrides[v.tripId];
-      return o ? { ...v, lat: o.lat, lng: o.lng, bearing: o.bearing ?? v.bearing, routeId: o.routeId ?? v.routeId, label: o.label ?? v.label, source: (o.source ?? v.source) as any } : v;
-    });
-    const seen = new Set(mapped.map((v) => v.tripId));
-    const extra: RealtimeVehicle[] = Object.entries(overrides).filter(([t]) => !seen.has(t)).map(([tid, o]) => ({
-      id: `override:${tid}`, tripId: tid, routeId: o.routeId ?? "", lat: o.lat, lng: o.lng,
-      bearing: o.bearing ?? 0, speed: 0, label: o.label ?? "",
-      timestamp: Math.floor(Date.now() / 1000), source: (o.source ?? "synthetic") as any,
-    }));
-    return [...mapped, ...extra];
-  };
-  if (focusTripId || focusRouteId) {
-    const byTrip = focusTripId ? base.filter((v) => v.tripId === focusTripId) : [];
-    if (byTrip.length) return apply(byTrip);
-    if (focusTripId && overrides?.[focusTripId]) return apply([]).filter((v) => v.tripId === focusTripId);
-    if (focusRouteId) {
-      const byRoute = base.filter((v) => v.routeId === focusRouteId);
-      return byRoute.length ? apply(byRoute) : apply([]).filter((v) => v.routeId === focusRouteId);
-    }
-    return apply([]);
-  }
-  if (restrict?.length) {
-    const s = new Set(restrict);
-    return apply(base.filter((v) => s.has(v.tripId)));
-  }
-  return apply(base);
-}
 
 type BusState = { lat: number; lng: number; bearing: number; targetLat: number; targetLng: number; targetBearing: number; startAt: number };
 
@@ -290,16 +178,6 @@ export function MapView(props: MapViewProps) {
     const map = mapRef.current; if (!ready || !map) return;
     const list = trafficIncidents ?? [];
     const seen = new Set<string>();
-    const SEV_FILL: Record<"low" | "medium" | "high", string> = {
-      low: "#e0b23a",
-      medium: "#c86a1f",
-      high: "#a1211c",
-    };
-    const SEV_HALO: Record<"low" | "medium" | "high", string> = {
-      low: "rgba(224,178,58,0.22)",
-      medium: "rgba(200,106,31,0.24)",
-      high: "rgba(161,33,28,0.28)",
-    };
     for (const inc of list) {
       if (!Number.isFinite(inc.lat) || !Number.isFinite(inc.lng)) continue;
       seen.add(inc.id);
