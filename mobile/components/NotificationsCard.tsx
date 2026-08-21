@@ -20,8 +20,10 @@ import {
   Text,
   View,
 } from "react-native";
-// import * as Notifications from "expo-notifications";
-const Notifications: any = null;
+import {
+  getNotificationPermission,
+  notificationsUnsupportedReason,
+} from "@/lib/notifications";
 
 import * as Device from "expo-device";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
