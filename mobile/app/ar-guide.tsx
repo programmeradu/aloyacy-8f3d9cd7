@@ -1,13 +1,44 @@
-import { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, Pressable, Platform, Dimensions } from "react-native";
-import { Camera, CameraView, useCameraPermissions } from "expo-camera";
-import { DeviceMotion, Magnetometer } from "expo-sensors";
+import { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Pressable, Dimensions } from "react-native";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { Magnetometer } from "expo-sensors";
+import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
 import { palette } from "@/constants/theme";
-import { X, Navigation, Info } from "lucide-react-native";
-import * as Haptics from "expo-haptics";
+import { X, Navigation } from "lucide-react-native";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
+
+const toRad = (deg: number) => (deg * Math.PI) / 180;
+const toDeg = (rad: number) => (rad * 180) / Math.PI;
+
+/** Great-circle distance in metres. */
+function distanceMeters(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const R = 6371000;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+}
+
+/** Initial bearing from a to b, in degrees clockwise from true north. */
+function bearingDegrees(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const y = Math.sin(dLng) * Math.cos(lat2);
+  const x =
+    Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
 
 /**
  * Native AR Viewfinder.
@@ -21,34 +52,99 @@ export default function ArGuideScreen() {
   const targetLat = parseFloat(lat ?? "0");
   const targetLng = parseFloat(lng ?? "0");
 
+  const hasTarget =
+    Number.isFinite(targetLat) &&
+    Number.isFinite(targetLng) &&
+    !(targetLat === 0 && targetLng === 0);
+
   const [permission, requestPermission] = useCameraPermissions();
   const [heading, setHeading] = useState(0);
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
-  const [distance, setDistance] = useState(0);
-
-  // Bearing to the target stop
-  const [bearing, setBearing] = useState(0);
+  const [locError, setLocError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!permission?.granted) requestPermission();
+    if (!permission?.granted) void requestPermission();
+  }, [permission?.granted, requestPermission]);
 
-    const sub = Magnetometer.addListener((data) => {
-      // Calculate heading from X and Y
-      let angle = Math.atan2(data.y, data.x) * (180 / Math.PI);
-      angle = angle < 0 ? angle + 360 : angle;
-      setHeading(Math.round(angle));
-    });
+  // Compass. Prefer the OS-fused (true north) heading; fall back to the raw
+  // magnetometer when the platform can't provide one.
+  useEffect(() => {
+    let headingSub: Location.LocationSubscription | null = null;
+    let magSub: { remove: () => void } | null = null;
+    let cancelled = false;
 
-    Magnetometer.setUpdateInterval(100);
+    (async () => {
+      try {
+        headingSub = await Location.watchHeadingAsync((h) => {
+          if (cancelled) return;
+          const deg = h.trueHeading >= 0 ? h.trueHeading : h.magHeading;
+          if (Number.isFinite(deg) && deg >= 0) setHeading((deg + 360) % 360);
+        });
+      } catch {
+        Magnetometer.setUpdateInterval(100);
+        magSub = Magnetometer.addListener((data) => {
+          if (cancelled) return;
+          let angle = Math.atan2(data.y, data.x) * (180 / Math.PI);
+          angle = angle < 0 ? angle + 360 : angle;
+          setHeading(angle);
+        });
+      }
+    })();
 
-    return () => sub.remove();
-  }, [permission]);
+    return () => {
+      cancelled = true;
+      headingSub?.remove();
+      magSub?.remove();
+    };
+  }, []);
 
-  // Math: Calculate relative position of the marker on screen
-  // This is a simplified projection for a "Heads Up Display"
-  const relativeBearing = (bearing - heading + 540) % 360 - 180;
-  const isVisible = Math.abs(relativeBearing) < 45; // 90 degree field of view
-  const screenX = SCREEN_W / 2 + (relativeBearing / 45) * (SCREEN_W / 2);
+  // Rider position — this is what makes the marker point at the real stop.
+  useEffect(() => {
+    let sub: Location.LocationSubscription | null = null;
+    let cancelled = false;
+
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (cancelled) return;
+      if (status !== "granted") {
+        setLocError("Location permission is required to aim at the stop.");
+        return;
+      }
+      setLocError(null);
+      try {
+        sub = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.High, timeInterval: 1000, distanceInterval: 2 },
+          (pos) => {
+            if (cancelled) return;
+            setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          },
+        );
+      } catch {
+        if (!cancelled) setLocError("Couldn't read your location.");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      sub?.remove();
+    };
+  }, []);
+
+  const target = { lat: targetLat, lng: targetLng };
+  const bearing = userLoc && hasTarget ? bearingDegrees(userLoc, target) : null;
+  const distance = userLoc && hasTarget ? distanceMeters(userLoc, target) : null;
+
+  // Relative position of the marker on screen (90° field of view).
+  const relativeBearing = bearing === null ? null : ((bearing - heading + 540) % 360) - 180;
+  const isVisible = relativeBearing !== null && Math.abs(relativeBearing) < 45;
+  const screenX =
+    relativeBearing === null
+      ? SCREEN_W / 2
+      : Math.min(
+          SCREEN_W - 20,
+          Math.max(20, SCREEN_W / 2 + (relativeBearing / 45) * (SCREEN_W / 2)),
+        );
+  const arrived = distance !== null && distance < 15;
 
   return (
     <View style={styles.container}>
@@ -67,9 +163,13 @@ export default function ArGuideScreen() {
               <Pressable onPress={() => router.back()} style={styles.closeBtn}>
                 <X color={palette.white} size={24} />
               </Pressable>
-              <View>
-                <Text style={styles.title}>{label || "Target Stop"}</Text>
-                <Text style={styles.subtitle}>AR Guide Active</Text>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.title} numberOfLines={2}>
+                  {label || "Target stop"}
+                </Text>
+                <Text style={styles.subtitle}>
+                  {relativeBearing === null ? "FINDING YOUR POSITION" : "AR GUIDE ACTIVE"}
+                </Text>
               </View>
             </View>
 
@@ -80,36 +180,64 @@ export default function ArGuideScreen() {
                   <Navigation color={palette.white} size={32} />
                 </View>
                 <View style={styles.markerTag}>
-                  <Text style={styles.markerText}>{label}</Text>
+                  <Text style={styles.markerText} numberOfLines={2}>
+                    {label || "Stop"}
+                    {distance !== null ? ` · ${Math.round(distance)}m` : ""}
+                  </Text>
                 </View>
               </View>
             )}
 
-            {/* Guidance Arrows */}
-            {!isVisible && (
+            {/* Guidance */}
+            {relativeBearing === null ? (
               <View style={styles.guidance}>
-                <Navigation
-                  color={palette.ochre}
-                  size={48}
-                  style={{
-                    transform: [{ rotate: `${relativeBearing > 0 ? 90 : -90}deg` }],
-                  }}
-                />
                 <Text style={styles.guidanceText}>
-                  Turn {relativeBearing > 0 ? "Right" : "Left"}
+                  {locError ??
+                    (hasTarget ? "Locating you…" : "No stop coordinates provided")}
                 </Text>
               </View>
+            ) : arrived ? (
+              <View style={styles.guidance}>
+                <Text style={styles.guidanceText}>You're at the stop</Text>
+              </View>
+            ) : (
+              !isVisible && (
+                <View style={styles.guidance}>
+                  <Navigation
+                    color={palette.ochre}
+                    size={48}
+                    style={{
+                      transform: [{ rotate: `${relativeBearing > 0 ? 90 : -90}deg` }],
+                    }}
+                  />
+                  <Text style={styles.guidanceText}>
+                    Turn {relativeBearing > 0 ? "right" : "left"}
+                  </Text>
+                </View>
+              )
             )}
 
             {/* Footer Stats */}
             <View style={styles.footer}>
               <View style={styles.stat}>
-                <Text style={styles.statVal}>{Math.round(distance)}m</Text>
+                <Text style={styles.statVal}>
+                  {distance === null
+                    ? "—"
+                    : distance >= 1000
+                      ? `${(distance / 1000).toFixed(1)}km`
+                      : `${Math.round(distance)}m`}
+                </Text>
                 <Text style={styles.statLab}>DISTANCE</Text>
               </View>
               <View style={styles.stat}>
                 <Text style={styles.statVal}>{Math.round(heading)}°</Text>
                 <Text style={styles.statLab}>HEADING</Text>
+              </View>
+              <View style={styles.stat}>
+                <Text style={styles.statVal}>
+                  {bearing === null ? "—" : `${Math.round(bearing)}°`}
+                </Text>
+                <Text style={styles.statLab}>TO STOP</Text>
               </View>
             </View>
           </View>

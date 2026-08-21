@@ -132,19 +132,22 @@ export default function WalletScreen() {
       });
 
       const body = await res.json();
-      if (res.ok && body.url) {
-        // In a real build with expo-web-browser or react-native-wallet
-        // we would open the .pkpass file or the Google Pay link.
-        Alert.alert(
-          "Wallet integration",
-          "Pass generation logic is ready. To go live, this feature requires Apple/Google Developer certificates to sign the digital passes.",
-          [{ text: "Learn more", onPress: () => Linking.openURL("https://developer.apple.com/apple-wallet/") }, { text: "OK" }]
-        );
-      } else {
-        throw new Error(body.error || "Failed to generate pass");
+      if (!res.ok || !body.url) {
+        throw new Error(body?.error || "Failed to generate pass");
       }
+
+      // Google Wallet returns a save link we can hand straight to the OS.
+      // Apple returns a signed .pkpass URL, which iOS opens in Wallet.
+      const canOpen = await Linking.canOpenURL(body.url).catch(() => false);
+      if (!canOpen) throw new Error("Your device can't open the wallet link.");
+      await Linking.openURL(body.url);
     } catch (e) {
-      Alert.alert("Wallet Error", "Couldn't connect to pass server.");
+      Alert.alert(
+        "Couldn't add the pass",
+        e instanceof Error && e.message
+          ? e.message
+          : "We couldn't reach the pass server. Try again in a moment.",
+      );
     }
   }, [pass, hasCard]);
 
