@@ -174,15 +174,26 @@ async function ingest() {
       }
     }
 
-    // Call the RPC in chunks to avoid payload limits
-    const RPC_CHUNK_SIZE = 500;
+    // Call the RPC in small chunks. 500-row batches were tripping the
+    // Postgres statement timeout; the three payloads are also independent
+    // lists, so each one is paged on its own instead of sharing an index.
+    const RPC_CHUNK_SIZE = 100;
     let inserted = 0;
-    let statsUpdated = upserts.length;
-    
-    for (let i = 0; i < rows.length; i += RPC_CHUNK_SIZE) {
+    let statsUpdated = 0;
+
+    const batches = Math.max(
+      Math.ceil(rows.length / RPC_CHUNK_SIZE),
+      Math.ceil(observed.length / RPC_CHUNK_SIZE),
+      Math.ceil(upserts.length / RPC_CHUNK_SIZE),
+    );
+
+    for (let b = 0; b < batches; b++) {
+      const i = b * RPC_CHUNK_SIZE;
       const chunkRows = rows.slice(i, i + RPC_CHUNK_SIZE);
       const chunkObserved = observed.slice(i, i + RPC_CHUNK_SIZE);
       const chunkStats = upserts.slice(i, i + RPC_CHUNK_SIZE);
+      if (!chunkRows.length && !chunkObserved.length && !chunkStats.length) continue;
+
 
       // `ingest_gtfs_snapshots` is not present in the generated types for the
       // migrated project yet (see supabase/migrations/20260811000000_ingest_gtfs_rpc.sql).
