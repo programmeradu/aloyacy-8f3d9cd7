@@ -17,8 +17,8 @@
 
 -- ---------------------------------------------------------------- 1. indexes
 
-create index if not exists rt_snapshots_created_at_idx
-  on public.rt_snapshots (created_at);
+create index if not exists rt_snapshots_captured_at_idx
+  on public.rt_snapshots (captured_at);
 
 create index if not exists observed_arrivals_last_seen_idx
   on public.observed_arrivals (last_seen_at);
@@ -117,7 +117,7 @@ begin
     delete from rt_snapshots
     where ctid in (
       select ctid from rt_snapshots
-      where created_at < now() - make_interval(days => days)
+      where captured_at < now() - make_interval(days => days)
       limit 20000
     );
     get diagnostics batch = row_count;
