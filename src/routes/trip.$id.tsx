@@ -130,20 +130,6 @@ function SingleLegCompanion({
       }
     : undefined;
 
-  const userLocation = live.fix
-    ? {
-        lat: live.fix.lat,
-        lng: live.fix.lng,
-        accuracyM: live.fix.accuracyM,
-        headingDeg:
-          compass.headingDeg != null
-            ? compass.headingDeg
-            : live.fix.headingDeg != null
-              ? live.fix.headingDeg
-              : derivedHeadingRef.current,
-      }
-    : null;
-
   const banner = feedBannerVariant(live);
 
   return (
