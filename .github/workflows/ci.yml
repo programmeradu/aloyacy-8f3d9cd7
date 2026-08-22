@@ -97,6 +97,13 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # Same fresh-clone promise as the web job: the Expo app must boot from
+      # its committed template with no hand-edited secrets.
+      - name: Mobile fresh clone bootstrap check
+        run: |
+          cp mobile/.env.example mobile/.env
+          bun run check:env
+
       - name: Typecheck mobile
         working-directory: mobile
         run: bunx tsc --noEmit
