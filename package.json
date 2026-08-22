@@ -1,6 +1,7 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "aloya",
   "private": true,
+  "description": "Aloya — transit companion for Cyprus: live arrivals, trip planning and journey guidance across web and mobile.",
   "sideEffects": false,
   "type": "module",
   "workspaces": [
@@ -13,6 +14,10 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "format": "prettier --write ."
   },
   "dependencies": {
