@@ -5,21 +5,8 @@
 // sight, and it stays shut when VITE_QA_PASSPHRASE is unset so a fork or a
 // misconfigured deploy never exposes it by default.
 
-import { useEffect, useState, type FormEvent } from "react";
-
-export const QA_STORAGE_KEY = "aloya-qa-unlocked";
-
-const PASSPHRASE = import.meta.env["VITE_QA_PASSPHRASE"] as string | undefined;
-
-/** Reads the per-session unlock flag after hydration. */
-export function useQaUnlocked(): [boolean, () => void] {
-  const [unlocked, setUnlocked] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setUnlocked(window.sessionStorage.getItem(QA_STORAGE_KEY) === "1");
-  }, []);
-  return [unlocked, () => setUnlocked(true)];
-}
+import { useState, type FormEvent } from "react";
+import { QA_STORAGE_KEY } from "./qa-gate";
 
 export function QaPasswordGate({ onUnlock }: { onUnlock: () => void }) {
   const [value, setValue] = useState("");
