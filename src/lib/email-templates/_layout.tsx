@@ -124,7 +124,6 @@ export const Layout = ({
 
 const display = "'Bricolage Grotesque', 'Times New Roman', Georgia, serif";
 const sans = "'Geist', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif";
-const mono = "'Geist', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif";
 
 const body: React.CSSProperties = {
   backgroundColor: "#ffffff",

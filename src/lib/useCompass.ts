@@ -3,7 +3,7 @@
 // requires a one-time user-gesture permission via
 // DeviceOrientationEvent.requestPermission(). On Android (HTTPS) it just works.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type IOSOrientationCtor = typeof DeviceOrientationEvent & {
   requestPermission?: () => Promise<"granted" | "denied">;

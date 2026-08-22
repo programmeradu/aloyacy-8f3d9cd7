@@ -64,7 +64,7 @@ function recentlyDismissed(): boolean {
 }
 
 export function InstallPrompt() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [bipEvent, setBipEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const ios = isIOS();

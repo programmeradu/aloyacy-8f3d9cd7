@@ -1,13 +1,9 @@
 import fs from "node:fs";
-import path from "node:path";
 
 const tripsRaw = JSON.parse(fs.readFileSync("public/data/schedule/trips.json", "utf-8")) as Record<
   string,
   { routeId: string; direction: 0 | 1; headsign: string; feedId: number }
 >;
-const routesRaw = JSON.parse(
-  fs.readFileSync("public/data/schedule/routes.json", "utf-8"),
-) as Record<string, { short: string; feedId: number }>;
 
 // Group by un-namespaced routeId+tripId — that's how the realtime feed reports
 // them. We strip the "<feedId>:" prefix that the ingest script adds.
