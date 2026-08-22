@@ -5,6 +5,28 @@
   "license": "UNLICENSED",
   "description": "Aloya — transit companion for Cyprus: live arrivals, trip planning and journey guidance across web and mobile.",
   "sideEffects": false,
+  "keywords": [
+    "cyprus",
+    "public-transport",
+    "gtfs",
+    "gtfs-realtime",
+    "trip-planning",
+    "tanstack-start",
+    "expo"
+  ],
+  "docs": {
+    "architecture": "ARCHITECTURE.md",
+    "contributing": "CONTRIBUTING.md",
+    "commitPolicy": "docs/COMMIT_POLICY.md",
+    "commercial": "COMMERCIAL.md",
+    "changelog": "CHANGELOG.md"
+  },
+  "operations": {
+    "health": "/api/public/health",
+    "metrics": "/api/public/metrics",
+    "logger": "src/lib/logger.ts",
+    "errorTracking": "src/lib/error-tracking.ts"
+  },
   "type": "module",
   "packageManager": "bun@1.3.3",
   "engines": {

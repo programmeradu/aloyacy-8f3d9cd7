@@ -118,6 +118,10 @@ scripts/                Data build scripts (headsign index, schedule ingest)
 
 ### Architecture
 
+Full map of deployables, boundaries and the operational modules:
+[`ARCHITECTURE.md`](ARCHITECTURE.md). History conventions:
+[`docs/COMMIT_POLICY.md`](docs/COMMIT_POLICY.md).
+
 **Data flow.** Upstream GTFS-Realtime protobuf → `workers/gtfs-relay` (a raw
 TCP relay that works around regional IP blocks) → `src/lib/gtfs-rt.server.ts`
 → `/api/public/realtime`. A cron worker snapshots each poll into Postgres via

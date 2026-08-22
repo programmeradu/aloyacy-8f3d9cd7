@@ -15,7 +15,48 @@ import { describe, expect, it } from "vitest";
 const SOURCE_CEILING = 500;
 const TEST_CEILING = 800;
 
-const ROOTS = ["src", "packages", "workers", "mobile/lib", "tests", "scripts"];
+/**
+ * The ratchet target. Every *new or edited* source file must come in under
+ * 400 lines; the files below were already above it when the rule landed and
+ * are allowed to stay only until they are next touched. The list may shrink,
+ * never grow — a file that drops under 400 must be removed from it (the
+ * "no stale entries" test enforces exactly that).
+ */
+const RATCHET_CEILING = 400;
+
+const LEGACY_OVER_RATCHET = new Set<string>([
+  "src/components/map/AnimatedBus.ts",
+  "src/lib/useMultiLegJourney.ts",
+  "packages/core/src/multileg-journey.ts",
+  "src/routes/api/public/trip-alerts.ts",
+  "src/components/pulse-live/cards.tsx",
+  "mobile/app/eta/[token].tsx",
+  "src/routes/guide.getting-around-cyprus.tsx",
+  "src/lib/pulse-live.functions.ts",
+  "src/components/JourneyHUD.tsx",
+  "src/lib/useJourney.ts",
+  "src/components/MultiLegCompanion.tsx",
+  "mobile/components/AskAloyaCard.tsx",
+  "mobile/components/AltModeCards.tsx",
+  "src/routes/wallet.tsx",
+  "src/routes/plan.$token.tsx",
+  "src/lib/raptor.server.ts",
+  "packages/core/src/journey-live.ts",
+  "mobile/components/pulse/LiveSignals.tsx",
+  "mobile/app/trip/[id].tsx",
+  "mobile/components/NotificationsCard.tsx",
+]);
+
+const ROOTS = [
+  "src",
+  "packages",
+  "workers",
+  "mobile/lib",
+  "mobile/components",
+  "mobile/app",
+  "tests",
+  "scripts",
+];
 
 /**
  * Files exempt from the ceiling, each with the reason it cannot shrink.
@@ -93,6 +134,33 @@ describe("file size ceiling", () => {
       .map(({ file, lines }) => `${file} (${lines} lines)`);
 
     expect(offenders).toEqual([]);
+  });
+
+  it("keeps every new source file under the 400-line ratchet", () => {
+    const offenders = files
+      .filter((file) => !isTest(file) && !(file in ALLOWLIST) && !LEGACY_OVER_RATCHET.has(file))
+      .map((file) => ({
+        file,
+        lines: readFileSync(path.join(repoRoot, file), "utf8").split("\n").length,
+      }))
+      .filter(({ lines }) => lines > RATCHET_CEILING)
+      .map(({ file, lines }) => `${file} (${lines} lines)`);
+
+    expect(
+      offenders,
+      `Split these into focused modules — the ratchet is ${RATCHET_CEILING} lines:\n${offenders.join("\n")}`,
+    ).toEqual([]);
+  });
+
+  it("has no stale ratchet exemptions", () => {
+    const stale = [...LEGACY_OVER_RATCHET].filter((file) => {
+      if (!files.includes(file)) return true;
+      return readFileSync(path.join(repoRoot, file), "utf8").split("\n").length <= RATCHET_CEILING;
+    });
+    expect(
+      stale,
+      `These are now under ${RATCHET_CEILING} lines (or gone) — drop them from LEGACY_OVER_RATCHET so the ratchet holds: ${stale.join(", ")}`,
+    ).toEqual([]);
   });
 
   it("has no stale allowlist entries", () => {
