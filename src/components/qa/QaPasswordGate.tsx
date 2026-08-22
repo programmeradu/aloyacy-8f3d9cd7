@@ -8,6 +8,8 @@
 import { useState, type FormEvent } from "react";
 import { QA_STORAGE_KEY } from "./qa-gate";
 
+const PASSPHRASE = import.meta.env["VITE_QA_PASSPHRASE"] as string | undefined;
+
 export function QaPasswordGate({ onUnlock }: { onUnlock: () => void }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
