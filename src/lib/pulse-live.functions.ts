@@ -378,7 +378,6 @@ export const getDustAdvisory = createServerFn({ method: "GET" })
         : direct;
 
     const pm10 = typeof payload.pm10 === "number" ? (payload.pm10 as number) : null;
-    const aqi = typeof payload.europeanAqi === "number" ? (payload.europeanAqi as number) : null;
     const band = (payload.band ?? null) as DustAdvisory["band"];
 
     let severity: DustAdvisory["severity"] | null = null;

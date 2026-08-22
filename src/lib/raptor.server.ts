@@ -113,7 +113,7 @@ export async function planRaptor(
   // caller widens the horizon it must widen this too, otherwise "first bus
   // tomorrow morning" gets pruned before it is ever scored.
   const MAX_JOURNEY_SEC = opts?.maxJourneySec ?? MAX_TOTAL_JOURNEY_SEC;
-  const { date, stops, routes, trips, stopTrips, stopTimes } = schedule;
+  const { date, stops, trips, stopTrips, stopTimes } = schedule;
   const diag: RaptorDiagnostics = {
     date,
     scheduleStopsLoaded: Object.keys(stops).length,
@@ -421,7 +421,6 @@ function reconstruct(
     if (label.kind === "ride") {
       const boardStop = stops[prev.stopId];
       const alightStop = stops[node.stopId];
-      const tripMeta = trips[label.tripId];
       const routeMeta = routes[label.routeId];
       const tripSt = stopTimes[label.tripId];
       if (!tripSt) return null;
