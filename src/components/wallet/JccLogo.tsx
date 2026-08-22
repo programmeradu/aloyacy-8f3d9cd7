@@ -6,9 +6,7 @@ export function JccLogo({ className }: { className?: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) {
     return (
-      <div
-        className={`flex items-center justify-center font-display text-ink ${className ?? ""}`}
-      >
+      <div className={`flex items-center justify-center font-display text-ink ${className ?? ""}`}>
         <span className="text-[11px] tracking-tight">JCC</span>
       </div>
     );

@@ -50,13 +50,7 @@ export const Route = createFileRoute("/trip/$id")({
   component: TripCompanion,
 });
 
-type Phase =
-  | "leave-soon"
-  | "walking"
-  | "waiting"
-  | "on-bus"
-  | "alight-soon"
-  | "arrived";
+type Phase = "leave-soon" | "walking" | "waiting" | "on-bus" | "alight-soon" | "arrived";
 
 function TripCompanion() {
   const active = useActiveTrip();
@@ -109,17 +103,13 @@ function SingleLegCompanion({
     const minToLeave = Math.round((leaveByUnix - now) / 60);
     const minToBoard = Math.round((boardUnix - now) / 60);
     const minToAlight = Math.round((alightUnix - now) / 60);
-    const minToDoor = Math.round(
-      (alightUnix + walkOut.durationSec - now) / 60,
-    );
+    const minToDoor = Math.round((alightUnix + walkOut.durationSec - now) / 60);
 
     // Anchor the walking window to when the user actually pressed "Start",
     // not to the schedule. Otherwise a trip whose board time has already
     // passed (common — RAPTOR returns the soonest option, and a minute
     // ticks by while the user picks it) skips straight to "on bus".
-    const startedAt = active?.live?.startedAt
-      ? Math.floor(active.live.startedAt / 1000)
-      : null;
+    const startedAt = active?.live?.startedAt ? Math.floor(active.live.startedAt / 1000) : null;
     const walkInSec = walkIn.durationSec;
     const onBoardConfirmed = !!active?.live?.onBoardConfirmedAt;
     const alighted = !!active?.live?.alightedAt;
@@ -194,7 +184,7 @@ function SingleLegCompanion({
       }),
     staleTime: 10 * 60 * 1000,
   });
-  const directions = walkingPhase ? dir?.directions ?? null : null;
+  const directions = walkingPhase ? (dir?.directions ?? null) : null;
 
   const live = useJourney({
     active,
@@ -227,16 +217,36 @@ function SingleLegCompanion({
     if (!view || !active) return out;
     const { bus, walkIn, walkOut } = view;
     if (walkingPhase === "to-stop" && walkIn.kind === "walk") {
-      out.push({ lat: walkIn.from.lat, lng: walkIn.from.lng, kind: "origin", label: active.from.label });
+      out.push({
+        lat: walkIn.from.lat,
+        lng: walkIn.from.lng,
+        kind: "origin",
+        label: active.from.label,
+      });
       out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
     } else if (walkingPhase === "to-dest" && walkOut.kind === "walk") {
-      out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "stop", label: bus.alight.name });
-      out.push({ lat: walkOut.to.lat, lng: walkOut.to.lng, kind: "destination", label: active.to.label });
+      out.push({
+        lat: walkOut.from.lat,
+        lng: walkOut.from.lng,
+        kind: "stop",
+        label: bus.alight.name,
+      });
+      out.push({
+        lat: walkOut.to.lat,
+        lng: walkOut.to.lng,
+        kind: "destination",
+        label: active.to.label,
+      });
     } else {
       if (walkIn.kind === "walk")
         out.push({ lat: walkIn.to.lat, lng: walkIn.to.lng, kind: "stop", label: bus.board.name });
       if (walkOut.kind === "walk")
-        out.push({ lat: walkOut.from.lat, lng: walkOut.from.lng, kind: "destination", label: bus.alight.name });
+        out.push({
+          lat: walkOut.from.lat,
+          lng: walkOut.from.lng,
+          kind: "destination",
+          label: bus.alight.name,
+        });
     }
     return out;
   }, [walkingPhase, active, view]);
@@ -244,7 +254,11 @@ function SingleLegCompanion({
   // ---- Early returns (all hooks above this line) -------------------------
 
   if (!active && !hydrated) {
-    return <AppShell><div className="px-6 pt-10" /></AppShell>;
+    return (
+      <AppShell>
+        <div className="px-6 pt-10" />
+      </AppShell>
+    );
   }
 
   if (!active) {
@@ -262,9 +276,7 @@ function SingleLegCompanion({
           <h1 className="font-display text-[36px] leading-tight text-ink">
             {t("trip.ended.title")}
           </h1>
-          <p className="mt-3 text-[13px] text-ink-soft">
-            {t("trip.ended.body")}
-          </p>
+          <p className="mt-3 text-[13px] text-ink-soft">{t("trip.ended.body")}</p>
           <Link
             to="/trips"
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
@@ -288,16 +300,16 @@ function SingleLegCompanion({
     "hurry-soft": "walking",
     "hurry-urgent": "walking",
     "at-stop": "waiting",
-    "boarding": "waiting",
+    boarding: "waiting",
     "missed-bus": "walking",
     "on-bus": "on-bus",
     "alight-soon": "alight-soon",
     "walking-to-dest": "arrived",
-    "arrived": "arrived",
+    arrived: "arrived",
   };
   const phase: Phase =
     live.active && live.phase !== "idle"
-      ? liveToHero[live.phase] ?? schedulePhase
+      ? (liveToHero[live.phase] ?? schedulePhase)
       : schedulePhase;
 
   // Prefer the GPS-driven secsToBoard so the hero countdown matches the HUD.
@@ -306,7 +318,11 @@ function SingleLegCompanion({
   }
 
   // Override schedule-based ETAs with GPS-fused estimate once on board.
-  if (live.active && live.fusedSecsToAlight > 0 && (phase === "on-bus" || phase === "alight-soon")) {
+  if (
+    live.active &&
+    live.fusedSecsToAlight > 0 &&
+    (phase === "on-bus" || phase === "alight-soon")
+  ) {
     minToAlight = Math.round(live.fusedSecsToAlight / 60);
     const walkOutSec = walkOut.kind === "walk" ? walkOut.durationSec : 0;
     minToDoor = Math.round((live.fusedSecsToAlight + walkOutSec) / 60);
@@ -336,8 +352,6 @@ function SingleLegCompanion({
               : derivedHeadingRef.current,
       }
     : null;
-
-
 
   return (
     <AppShell>
@@ -434,22 +448,33 @@ function SingleLegCompanion({
           }
           userLocation={userLocation}
         />
-
       </section>
 
       {/* Honest feed/vehicle/reroute banners */}
       {live.active && live.tripGhost && !live.vehicleLost && (
-        <div className="mt-3"><StaleFeedBanner variant="ghost-bus" /></div>
+        <div className="mt-3">
+          <StaleFeedBanner variant="ghost-bus" />
+        </div>
       )}
       {live.active && !live.tripGhost && live.feedStale && (
-        <div className="mt-3"><StaleFeedBanner variant="feed-stale" /></div>
+        <div className="mt-3">
+          <StaleFeedBanner variant="feed-stale" />
+        </div>
       )}
       {live.active && !live.feedStale && !live.tripGhost && live.vehicleLost && (
-        <div className="mt-3"><StaleFeedBanner variant="vehicle-lost" /></div>
+        <div className="mt-3">
+          <StaleFeedBanner variant="vehicle-lost" />
+        </div>
       )}
-      {live.active && !live.feedStale && !live.vehicleLost && !live.tripGhost && live.vehicleNotTracked && (
-        <div className="mt-3"><StaleFeedBanner variant="next-not-tracked" /></div>
-      )}
+      {live.active &&
+        !live.feedStale &&
+        !live.vehicleLost &&
+        !live.tripGhost &&
+        live.vehicleNotTracked && (
+          <div className="mt-3">
+            <StaleFeedBanner variant="next-not-tracked" />
+          </div>
+        )}
 
       {live.active && live.rerouteHint?.kind === "switch-boarding" && (
         <section className="px-6 mt-3 animate-rise">
@@ -469,13 +494,10 @@ function SingleLegCompanion({
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
               {t("ml.differentStop")}
             </p>
-            <p className="mt-1 text-[13px] text-ink">
-              {live.rerouteHint.reason}
-            </p>
+            <p className="mt-1 text-[13px] text-ink">{live.rerouteHint.reason}</p>
           </div>
         </section>
       )}
-
 
       {/* Live HUD: Start button, current walking step, hurry banner,
           on-board prompt, missed-bus rescue, alight & arrived cards. */}
@@ -499,10 +521,7 @@ function SingleLegCompanion({
 
       {/* Static turn-by-turn — only shown when live tracking is OFF. */}
       {!live.active && directions && directions.steps.length > 0 && (
-        <section
-          className="mt-6 px-6 animate-rise"
-          style={{ animationDelay: "150ms" }}
-        >
+        <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "150ms" }}>
           <div className="flex items-end justify-between mb-3">
             <h2 className="font-display text-2xl text-ink">
               {walkingPhase === "to-stop" ? t("trip.walkToStopH") : t("trip.walkToDestH")}
@@ -546,7 +565,10 @@ function SingleLegCompanion({
             active={phase === "leave-soon" || phase === "walking"}
             done={phase !== "leave-soon" && phase !== "walking"}
             title={t("trip.walkToName", { name: bus.board.name })}
-            sub={t("trip.walkMeters", { m: Math.round((walkIn.kind === "walk" ? walkIn.durationSec : 0) / 60), d: Math.round((walkIn.kind === "walk" ? walkIn.distanceMeters : 0)) })}
+            sub={t("trip.walkMeters", {
+              m: Math.round((walkIn.kind === "walk" ? walkIn.durationSec : 0) / 60),
+              d: Math.round(walkIn.kind === "walk" ? walkIn.distanceMeters : 0),
+            })}
           >
             <IconPin className="size-3.5" />
           </TimelineRow>
@@ -556,7 +578,11 @@ function SingleLegCompanion({
             done={phase === "arrived"}
             title={
               <>
-                {t("trip.boardBusPrefix")} <span className="text-aegean-deep">{t("trip.boardBusName", { code: bus.routeShort })}</span> — {bus.routeLong}
+                {t("trip.boardBusPrefix")}{" "}
+                <span className="text-aegean-deep">
+                  {t("trip.boardBusName", { code: bus.routeShort })}
+                </span>{" "}
+                — {bus.routeLong}
               </>
             }
             sub={t("trip.alightAt", { name: bus.alight.name })}
@@ -569,7 +595,10 @@ function SingleLegCompanion({
             active={phase === "alight-soon" || phase === "arrived"}
             done={false}
             title={t("trip.walkToName", { name: active.to.label })}
-            sub={t("trip.walkMeters", { m: Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60), d: Math.round((walkOut.kind === "walk" ? walkOut.distanceMeters : 0)) })}
+            sub={t("trip.walkMeters", {
+              m: Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60),
+              d: Math.round(walkOut.kind === "walk" ? walkOut.distanceMeters : 0),
+            })}
           >
             <IconPin className="size-3.5" />
           </TimelineRow>
@@ -588,7 +617,9 @@ function SingleLegCompanion({
           >
             <div className="flex items-center justify-between">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
-                {phase === "alight-soon" ? t("trip.alight.press") : t("trip.alight.getReady", { m: Math.max(0, minToAlight) })}
+                {phase === "alight-soon"
+                  ? t("trip.alight.press")
+                  : t("trip.alight.getReady", { m: Math.max(0, minToAlight) })}
               </p>
               {phase === "alight-soon" && (
                 <span className="relative flex size-2.5">
@@ -603,7 +634,9 @@ function SingleLegCompanion({
             <p className="mt-1 text-[13px] text-ink-soft">
               {phase === "alight-soon"
                 ? t("trip.alight.body.now", { name: active.to.label })
-                : t("trip.alight.body.soon", { m: Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60) })}
+                : t("trip.alight.body.soon", {
+                    m: Math.round((walkOut.kind === "walk" ? walkOut.durationSec : 0) / 60),
+                  })}
             </p>
           </div>
         </section>
@@ -618,26 +651,26 @@ function PhaseLabel({ phase, delaySec }: { phase: Phase; delaySec: number }) {
     phase === "arrived"
       ? "text-olive"
       : phase === "alight-soon"
-      ? "text-ochre"
-      : "text-aegean-deep";
+        ? "text-ochre"
+        : "text-aegean-deep";
   const txt =
     phase === "leave-soon"
       ? t("trip.phase.getReady")
       : phase === "walking"
-      ? t("trip.phase.onYourWay")
-      : phase === "waiting"
-      ? t("trip.phase.atStop")
-      : phase === "on-bus"
-      ? t("trip.phase.onBoard")
-      : phase === "alight-soon"
-      ? t("trip.phase.almostThere")
-      : t("trip.phase.arrived");
+        ? t("trip.phase.onYourWay")
+        : phase === "waiting"
+          ? t("trip.phase.atStop")
+          : phase === "on-bus"
+            ? t("trip.phase.onBoard")
+            : phase === "alight-soon"
+              ? t("trip.phase.almostThere")
+              : t("trip.phase.arrived");
   const delay =
     delaySec > 60
       ? t("trip.delay.late", { m: Math.round(delaySec / 60) })
       : delaySec < -60
-      ? t("trip.delay.early", { m: Math.round(-delaySec / 60) })
-      : t("trip.delay.onTime");
+        ? t("trip.delay.early", { m: Math.round(-delaySec / 60) })
+        : t("trip.delay.onTime");
   return (
     <p className={`font-sans text-[12px] font-semibold tracking-tight ${tone}`}>
       {txt} <span className="text-ink-soft/80 font-medium tabular-nums">— {delay}</span>
@@ -664,11 +697,16 @@ function PhaseHeadline({
 }) {
   const { t } = useI18n();
   const base = "mt-2 font-display text-[40px] leading-[1.04] text-ink text-balance";
-  const unit = <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">{t("common.minUnit")}</span>;
+  const unit = (
+    <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">
+      {t("common.minUnit")}
+    </span>
+  );
   if (phase === "leave-soon") {
     return (
       <h1 className={base}>
-        {t("trip.hl.leaveIn")} <span className="text-aegean-deep">{Math.max(0, minToLeave)}</span>{unit}
+        {t("trip.hl.leaveIn")} <span className="text-aegean-deep">{Math.max(0, minToLeave)}</span>
+        {unit}
         <br />
         <span className="italic text-olive-soft">{t("trip.hl.walkTo", { name: boardName })}</span>
       </h1>
@@ -677,16 +715,20 @@ function PhaseHeadline({
   if (phase === "walking") {
     return (
       <h1 className={base}>
-        {t("trip.hl.busIn")} <span className="text-aegean-deep">{Math.max(0, minToBoard)}</span>{unit}
+        {t("trip.hl.busIn")} <span className="text-aegean-deep">{Math.max(0, minToBoard)}</span>
+        {unit}
         <br />
-        <span className="italic text-olive-soft">{t("trip.hl.keepHeading", { name: boardName })}</span>
+        <span className="italic text-olive-soft">
+          {t("trip.hl.keepHeading", { name: boardName })}
+        </span>
       </h1>
     );
   }
   if (phase === "waiting") {
     return (
       <h1 className={base}>
-        {t("trip.hl.boardsIn")} <span className="text-aegean-deep">{Math.max(0, minToBoard)}</span>{unit}
+        {t("trip.hl.boardsIn")} <span className="text-aegean-deep">{Math.max(0, minToBoard)}</span>
+        {unit}
         <br />
         <span className="italic text-olive-soft">{t("trip.hl.at", { name: boardName })}</span>
       </h1>
@@ -695,7 +737,8 @@ function PhaseHeadline({
   if (phase === "on-bus") {
     return (
       <h1 className={base}>
-        {t("trip.hl.offIn")} <span className="text-aegean-deep">{Math.max(0, minToAlight)}</span>{unit}
+        {t("trip.hl.offIn")} <span className="text-aegean-deep">{Math.max(0, minToAlight)}</span>
+        {unit}
         <br />
         <span className="italic text-olive-soft">{t("trip.hl.at", { name: alightName })}</span>
       </h1>
@@ -714,7 +757,9 @@ function PhaseHeadline({
     <h1 className={base}>
       {t("trip.hl.youreThere")} <span className="text-olive">{t("trip.hl.there")}</span>
       <br />
-      <span className="italic text-olive-soft">{t("trip.hl.minWalkLeft", { m: Math.max(0, minToDoor) })}</span>
+      <span className="italic text-olive-soft">
+        {t("trip.hl.minWalkLeft", { m: Math.max(0, minToDoor) })}
+      </span>
     </h1>
   );
 }
@@ -741,14 +786,14 @@ function PhaseSub({
     phase === "leave-soon"
       ? t("trip.sub.leaveSoon", { m: Math.round(walkInSec / 60) })
       : phase === "walking"
-      ? t("trip.sub.walking", { m: Math.round(walkInSec / 60), name: boardName })
-      : phase === "waiting"
-      ? t("trip.sub.waiting", { name: boardName })
-      : phase === "on-bus"
-      ? t("trip.sub.onBus", { m: Math.round(walkOutSec / 60), name: alightName })
-      : phase === "alight-soon"
-      ? t("trip.sub.alightSoon", { m: Math.round(walkOutSec / 60), name: destName })
-      : t("trip.sub.arrived", { m: minToDoor, name: destName });
+        ? t("trip.sub.walking", { m: Math.round(walkInSec / 60), name: boardName })
+        : phase === "waiting"
+          ? t("trip.sub.waiting", { name: boardName })
+          : phase === "on-bus"
+            ? t("trip.sub.onBus", { m: Math.round(walkOutSec / 60), name: alightName })
+            : phase === "alight-soon"
+              ? t("trip.sub.alightSoon", { m: Math.round(walkOutSec / 60), name: destName })
+              : t("trip.sub.arrived", { m: minToDoor, name: destName });
   return (
     <p className="mt-4 flex items-start gap-2 text-[13px] text-ink-soft leading-relaxed">
       <IconClock className="mt-0.5 size-3.5 shrink-0 text-ink-soft" />
@@ -779,22 +824,21 @@ function TimelineRow({
           done
             ? "bg-olive/10 text-olive ring-olive/20"
             : active
-            ? "bg-aegean-deep text-white ring-aegean-deep"
-            : "bg-limestone-soft text-ink-soft ring-line"
+              ? "bg-aegean-deep text-white ring-aegean-deep"
+              : "bg-limestone-soft text-ink-soft ring-line"
         }`}
       >
         {children}
       </span>
       <div className="min-w-0 flex-1">
-        <p className={`font-display text-[19px] font-semibold leading-tight ${active ? "text-ink" : "text-ink-soft"}`}>
+        <p
+          className={`font-display text-[19px] font-semibold leading-tight ${active ? "text-ink" : "text-ink-soft"}`}
+        >
           {title}
         </p>
-        <p className="mt-1 font-sans text-[13px] font-medium text-ink-soft leading-snug">
-          {sub}
-        </p>
+        <p className="mt-1 font-sans text-[13px] font-medium text-ink-soft leading-snug">{sub}</p>
       </div>
       {accent}
     </li>
   );
 }
-

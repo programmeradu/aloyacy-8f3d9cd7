@@ -46,13 +46,7 @@ export type SightingButtonProps = {
   lng: number;
 };
 
-export function SightingButton({
-  tripId,
-  routeId,
-  stopId,
-  lat,
-  lng,
-}: SightingButtonProps) {
+export function SightingButton({ tripId, routeId, stopId, lat, lng }: SightingButtonProps) {
   const { t } = useI18n();
   const [submitting, setSubmitting] = useState(false);
   const [justConfirmed, setJustConfirmed] = useState(false);
@@ -117,10 +111,7 @@ export function SightingButton({
         role="status"
         className="flex items-start gap-3 rounded-2xl bg-aegean-soft/50 ring-1 ring-aegean/25 px-4 py-3"
       >
-        <span
-          aria-hidden
-          className="mt-1 size-2 rounded-full bg-aegean-deep"
-        />
+        <span aria-hidden className="mt-1 size-2 rounded-full bg-aegean-deep" />
         <div className="min-w-0 flex-1">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-aegean-deep">
             {t("sighting.thanksLabel")}
@@ -151,9 +142,7 @@ export function SightingButton({
         <p className="mt-0.5 font-display text-[15px] leading-tight text-ink">
           {submitting ? t("sighting.sending") : t("sighting.cta")}
         </p>
-        <p className="mt-1 text-[11.5px] leading-relaxed text-ink-soft/80">
-          {t("sighting.help")}
-        </p>
+        <p className="mt-1 text-[11.5px] leading-relaxed text-ink-soft/80">{t("sighting.help")}</p>
       </div>
     </button>
   );

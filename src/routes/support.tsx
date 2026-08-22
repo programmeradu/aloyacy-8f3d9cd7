@@ -90,15 +90,13 @@ function SupportPage() {
           <LocaleSwitcher />
         </div>
 
-        <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-aegean">
-          Help
-        </p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-aegean">Help</p>
         <h1 className="mt-2 font-display text-[42px] leading-[1.02] tracking-tight text-ink">
           Support &amp; FAQ
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-ink/80">
-          Most questions are about how live times behave, reminders, or Pro. If the
-          answer you need isn't here, write to us — a person reads every message.
+          Most questions are about how live times behave, reminders, or Pro. If the answer you need
+          isn't here, write to us — a person reads every message.
         </p>
 
         <a
@@ -123,9 +121,7 @@ function SupportPage() {
                 <dt className="font-display text-[20px] leading-snug tracking-tight text-ink">
                   {item.q}
                 </dt>
-                <dd className="mt-2 text-[15px] leading-relaxed text-ink/75">
-                  {item.a}
-                </dd>
+                <dd className="mt-2 text-[15px] leading-relaxed text-ink/75">{item.a}</dd>
               </div>
             ))}
           </dl>
@@ -136,8 +132,8 @@ function SupportPage() {
             Reporting a problem
           </h2>
           <p className="mt-3 text-[15px] leading-relaxed text-ink/75">
-            Tell us the route number, stop name, and roughly when it happened. That
-            trio is enough for us to replay the feed and see exactly what you saw.
+            Tell us the route number, stop name, and roughly when it happened. That trio is enough
+            for us to replay the feed and see exactly what you saw.
           </p>
         </section>
 

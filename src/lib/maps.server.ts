@@ -100,8 +100,7 @@ export async function resolvePlace(placeId: string): Promise<ResolvedPlace> {
 }
 
 export async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  const url =
-    `${GATEWAY}/maps/api/geocode/json?latlng=${lat},${lng}&result_type=street_address|premise|route`;
+  const url = `${GATEWAY}/maps/api/geocode/json?latlng=${lat},${lng}&result_type=street_address|premise|route`;
   const res = await fetch(url, { headers: authHeaders() });
   if (!res.ok) throw new Error(`reverse ${res.status}`);
   const json = (await res.json()) as {
@@ -123,8 +122,7 @@ export async function walkingRoute(
   const res = await fetch(`${GATEWAY}/routes/directions/v2:computeRoutes`, {
     method: "POST",
     headers: authHeaders({
-      "X-Goog-FieldMask":
-        "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline",
+      "X-Goog-FieldMask": "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline",
     }),
     body: JSON.stringify({
       origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
@@ -170,19 +168,14 @@ export type WalkDirections = {
   steps: WalkStep[];
 };
 
-function bearing(
-  a: { lat: number; lng: number },
-  b: { lat: number; lng: number },
-): number {
+function bearing(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const toRad = (d: number) => (d * Math.PI) / 180;
   const toDeg = (r: number) => (r * 180) / Math.PI;
   const dLng = toRad(b.lng - a.lng);
   const la1 = toRad(a.lat);
   const la2 = toRad(b.lat);
   const y = Math.sin(dLng) * Math.cos(la2);
-  const x =
-    Math.cos(la1) * Math.sin(la2) -
-    Math.sin(la1) * Math.cos(la2) * Math.cos(dLng);
+  const x = Math.cos(la1) * Math.sin(la2) - Math.sin(la1) * Math.cos(la2) * Math.cos(dLng);
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
@@ -235,9 +228,7 @@ export async function walkingDirections(
       lng: s.endLocation?.latLng.longitude ?? 0,
     };
     return {
-      instruction:
-        s.navigationInstruction?.instructions?.replace(/<[^>]+>/g, "") ??
-        "Continue",
+      instruction: s.navigationInstruction?.instructions?.replace(/<[^>]+>/g, "") ?? "Continue",
       distanceMeters: s.distanceMeters ?? 0,
       durationSec: parseInt((s.staticDuration ?? "0s").replace("s", ""), 10) || 0,
       start,
@@ -271,8 +262,7 @@ export async function drivingRoute(
     const res = await fetch(`${GATEWAY}/routes/directions/v2:computeRoutes`, {
       method: "POST",
       headers: authHeaders({
-        "X-Goog-FieldMask":
-          "routes.duration,routes.staticDuration,routes.distanceMeters",
+        "X-Goog-FieldMask": "routes.duration,routes.staticDuration,routes.distanceMeters",
       }),
       body: JSON.stringify({
         origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
@@ -305,5 +295,3 @@ export async function drivingRoute(
     return null;
   }
 }
-
-

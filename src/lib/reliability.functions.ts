@@ -35,8 +35,7 @@ function erf(x: number): number {
   const t = 1 / (1 + 0.3275911 * ax);
   const y =
     1 -
-    (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t +
-      0.254829592) *
+    ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) *
       t *
       Math.exp(-ax * ax);
   return sign * y;
@@ -84,7 +83,10 @@ export const getRouteReliability = createServerFn({ method: "GET" })
       }));
     }
 
-    const agg = new Map<string, { sumWeightedOnTime: number; sumWeightedDelay: number; samples: number }>();
+    const agg = new Map<
+      string,
+      { sumWeightedOnTime: number; sumWeightedDelay: number; samples: number }
+    >();
     for (const r of rows) {
       const n = Number(r.sample_count) || 0;
       if (n < 3) continue;
@@ -174,8 +176,7 @@ export const getStopReliability = createServerFn({ method: "GET" })
       const stdSafe = Math.max(std, 30);
       const p = probWithin(mean, stdSafe, ON_TIME_WINDOW_SEC);
 
-      const slot =
-        agg.get(r.route_id) ?? { sumWeightedOnTime: 0, sumWeightedDelay: 0, samples: 0 };
+      const slot = agg.get(r.route_id) ?? { sumWeightedOnTime: 0, sumWeightedDelay: 0, samples: 0 };
       slot.sumWeightedOnTime += p * n;
       slot.sumWeightedDelay += mean * n;
       slot.samples += n;
@@ -246,4 +247,3 @@ export function aggregateStopReliability(
     tier: tierFor(onTimePct, samples),
   };
 }
-

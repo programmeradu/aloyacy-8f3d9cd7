@@ -27,13 +27,48 @@ export type ZoneSpec = {
 };
 
 export const PULSE_ZONES: ZoneSpec[] = [
-  { id: "nicosia",  label: "Nicosia",   labelEl: "Λευκωσία",  lat: 35.1856, lng: 33.3823, coastal: false },
-  { id: "limassol", label: "Limassol",  labelEl: "Λεμεσός",   lat: 34.7071, lng: 33.0226, coastal: true },
-  { id: "larnaca",  label: "Larnaca",   labelEl: "Λάρνακα",   lat: 34.9229, lng: 33.6233, coastal: true },
-  { id: "paphos",   label: "Paphos",    labelEl: "Πάφος",     lat: 34.7768, lng: 32.4245, coastal: true },
-  { id: "famagusta",label: "Famagusta", labelEl: "Αμμόχωστος",lat: 35.1264, lng: 33.9416, coastal: true },
-  { id: "troodos",  label: "Troodos",   labelEl: "Τρόοδος",   lat: 34.9180, lng: 32.8730, coastal: false },
-  { id: "ayianapa", label: "Ayia Napa", labelEl: "Αγία Νάπα", lat: 34.9824, lng: 34.0117, coastal: true },
+  {
+    id: "nicosia",
+    label: "Nicosia",
+    labelEl: "Λευκωσία",
+    lat: 35.1856,
+    lng: 33.3823,
+    coastal: false,
+  },
+  {
+    id: "limassol",
+    label: "Limassol",
+    labelEl: "Λεμεσός",
+    lat: 34.7071,
+    lng: 33.0226,
+    coastal: true,
+  },
+  {
+    id: "larnaca",
+    label: "Larnaca",
+    labelEl: "Λάρνακα",
+    lat: 34.9229,
+    lng: 33.6233,
+    coastal: true,
+  },
+  { id: "paphos", label: "Paphos", labelEl: "Πάφος", lat: 34.7768, lng: 32.4245, coastal: true },
+  {
+    id: "famagusta",
+    label: "Famagusta",
+    labelEl: "Αμμόχωστος",
+    lat: 35.1264,
+    lng: 33.9416,
+    coastal: true,
+  },
+  { id: "troodos", label: "Troodos", labelEl: "Τρόοδος", lat: 34.918, lng: 32.873, coastal: false },
+  {
+    id: "ayianapa",
+    label: "Ayia Napa",
+    labelEl: "Αγία Νάπα",
+    lat: 34.9824,
+    lng: 34.0117,
+    coastal: true,
+  },
 ];
 
 /** Resolve a rider lat/lng to the nearest editorial zone (great-circle approx). */

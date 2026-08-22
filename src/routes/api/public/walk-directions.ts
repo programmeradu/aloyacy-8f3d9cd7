@@ -35,10 +35,10 @@ export const Route = createFileRoute("/api/public/walk-directions")({
         }
         const parsed = Body.safeParse(raw);
         if (!parsed.success) {
-          return new Response(
-            JSON.stringify({ error: parsed.error.message }),
-            { status: 400, headers: CORS },
-          );
+          return new Response(JSON.stringify({ error: parsed.error.message }), {
+            status: 400,
+            headers: CORS,
+          });
         }
         try {
           const directions = await walkingDirections(

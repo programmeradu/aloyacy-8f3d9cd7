@@ -26,9 +26,11 @@ function json(body: unknown, status = 200) {
 async function guard(request: Request): Promise<Response | null> {
   const apikey = request.headers.get("apikey");
   const legacy =
-    request.headers.get("x-cron-secret") ??
-    new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey = apikey && apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+    request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
+  const validApiKey =
+    apikey &&
+    apikey ===
+      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
   const validLegacy = legacy && process.env.CRON_SECRET && legacy === process.env.CRON_SECRET;
   if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
@@ -126,8 +128,16 @@ async function ingest() {
                       kind: {
                         type: "string",
                         enum: [
-                          "thunderstorm", "rain", "wind", "heat", "cold",
-                          "snow", "dust", "fog", "fire", "other",
+                          "thunderstorm",
+                          "rain",
+                          "wind",
+                          "heat",
+                          "cold",
+                          "snow",
+                          "dust",
+                          "fog",
+                          "fire",
+                          "other",
                         ],
                       },
                       headline: { type: "string" },
@@ -193,9 +203,9 @@ async function ingest() {
   }
 
   const highestLevel: Warning["level"] | null = warnings.length
-    ? (["red", "orange", "yellow"] as const).find((lvl) =>
+    ? ((["red", "orange", "yellow"] as const).find((lvl) =>
         warnings.some((w) => w.level === lvl),
-      ) ?? null
+      ) ?? null)
     : null;
 
   const payload = PayloadSchema.parse({
@@ -208,21 +218,19 @@ async function ingest() {
     fetchedAt: new Date().toISOString(),
   });
 
-  const { error } = await supabaseAdmin
-    .from("pulse_signals")
-    .upsert(
-      [
-        {
-          key: "met-warnings",
-          scope: "island",
-          source: "cymet-firecrawl",
-          payload: payload as unknown as Record<string, unknown>,
-          ttl_seconds: 1800,
-          fetched_at: payload.fetchedAt,
-        },
-      ] as never,
-      { onConflict: "key,scope" },
-    );
+  const { error } = await supabaseAdmin.from("pulse_signals").upsert(
+    [
+      {
+        key: "met-warnings",
+        scope: "island",
+        source: "cymet-firecrawl",
+        payload: payload as unknown as Record<string, unknown>,
+        ttl_seconds: 1800,
+        fetched_at: payload.fetchedAt,
+      },
+    ] as never,
+    { onConflict: "key,scope" },
+  );
 
   if (error) return json({ ok: false, error: error.message }, 500);
   return json({ ok: true, active: payload.active, count: warnings.length, confidence });
@@ -245,6 +253,7 @@ function inferKind(headline: string): Warning["kind"] {
 function editorialSummary(warnings: Warning[], top: Warning["level"] | null): string {
   if (warnings.length === 0 || !top) return "No active weather warnings";
   const first = warnings.find((w) => w.level === top)!;
-  const label = top === "red" ? "Red alert" : top === "orange" ? "Orange warning" : "Yellow advisory";
+  const label =
+    top === "red" ? "Red alert" : top === "orange" ? "Orange warning" : "Yellow advisory";
   return `${label} in effect — ${first.headline.replace(/\s+/g, " ").slice(0, 110)}`;
 }

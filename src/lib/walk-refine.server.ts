@@ -117,7 +117,5 @@ export async function refineItineraryWalks(it: Itinerary): Promise<Itinerary | n
 
 export async function refineAllItineraries(its: Itinerary[]): Promise<Itinerary[]> {
   const refined = await Promise.all(its.map((it) => refineItineraryWalks(it)));
-  return refined
-    .filter((it): it is Itinerary => it !== null)
-    .sort((a, b) => a.score - b.score);
+  return refined.filter((it): it is Itinerary => it !== null).sort((a, b) => a.score - b.score);
 }

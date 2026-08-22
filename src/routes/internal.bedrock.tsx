@@ -3,10 +3,7 @@ import { useState } from "react";
 
 export const Route = createFileRoute("/internal/bedrock")({
   head: () => ({
-    meta: [
-      { title: "Bedrock Test — Internal" },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
+    meta: [{ title: "Bedrock Test — Internal" }, { name: "robots", content: "noindex,nofollow" }],
   }),
   component: BedrockTestPage,
 });
@@ -131,10 +128,13 @@ function BedrockTestPage() {
         </div>
         <h1 className="text-3xl font-bold">AWS Bedrock Test</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Credentials are sent to our server proxy per-request and never stored. SigV4 signing
-          runs on the server (Web Crypto). Do not paste production long-lived root keys.
+          Credentials are sent to our server proxy per-request and never stored. SigV4 signing runs
+          on the server (Web Crypto). Do not paste production long-lived root keys.
         </p>
-        <a href="/internal/bedrock-usage" className="mt-3 inline-block text-xs font-mono uppercase tracking-widest text-primary hover:underline">
+        <a
+          href="/internal/bedrock-usage"
+          className="mt-3 inline-block text-xs font-mono uppercase tracking-widest text-primary hover:underline"
+        >
           → View usage &amp; spend tracker
         </a>
       </div>
@@ -186,10 +186,16 @@ function BedrockTestPage() {
             {parsedPreview && (parsedPreview.accessKeyId || parsedPreview.secretAccessKey) && (
               <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
                 <span className="rounded-full border px-2 py-0.5 font-mono">
-                  key: {parsedPreview.accessKeyId ? `${parsedPreview.accessKeyId.slice(0, 6)}…${parsedPreview.accessKeyId.slice(-4)}` : "—"}
+                  key:{" "}
+                  {parsedPreview.accessKeyId
+                    ? `${parsedPreview.accessKeyId.slice(0, 6)}…${parsedPreview.accessKeyId.slice(-4)}`
+                    : "—"}
                 </span>
                 <span className="rounded-full border px-2 py-0.5 font-mono">
-                  secret: {parsedPreview.secretAccessKey ? `${parsedPreview.secretAccessKey.length} chars` : "—"}
+                  secret:{" "}
+                  {parsedPreview.secretAccessKey
+                    ? `${parsedPreview.secretAccessKey.length} chars`
+                    : "—"}
                 </span>
                 <span className="rounded-full border px-2 py-0.5 font-mono">
                   region: {parsedPreview.region || region}
@@ -300,7 +306,7 @@ function BedrockTestPage() {
           <details className="text-xs">
             <summary className="cursor-pointer font-semibold">Raw response</summary>
             <pre className="mt-2 max-h-[400px] overflow-auto rounded-lg bg-muted p-3 font-mono">
-{JSON.stringify(result.response ?? result.error, null, 2)}
+              {JSON.stringify(result.response ?? result.error, null, 2)}
             </pre>
           </details>
         </div>

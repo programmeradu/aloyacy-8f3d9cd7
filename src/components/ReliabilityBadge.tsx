@@ -83,7 +83,6 @@ export function ReliabilityBadge({
     );
   }
 
-
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full bg-card px-2.5 py-1 ring-1 ${tone.ring}`}

@@ -17,8 +17,7 @@ function sha256Hex(input: string): string {
 }
 
 export type DeviceAuthResult =
-  | { ok: true; token: string; created: boolean }
-  | { ok: false; error: string };
+  { ok: true; token: string; created: boolean } | { ok: false; error: string };
 
 /** Mint or return the existing token for a device. Only the first caller
  *  for a brand-new `deviceId` receives a token; later callers must already

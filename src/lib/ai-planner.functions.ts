@@ -16,9 +16,7 @@ const intentSchema = z.object({
   to: z.string().min(1).max(160).nullable(),
   leaveByISO: z.string().datetime().nullable(),
   arriveByISO: z.string().datetime().nullable(),
-  dayHint: z
-    .enum(["now", "today", "tonight", "tomorrow", "weekend", "specific"])
-    .default("now"),
+  dayHint: z.enum(["now", "today", "tonight", "tomorrow", "weekend", "specific"]).default("now"),
   confidence: z.number().min(0).max(1),
   notes: z.string().max(280).optional(),
 });
@@ -168,12 +166,11 @@ function extractExplicitTime(
   }
   if (!best) return null;
 
-
   const now = new Date(nowISO);
   // Walk to the caller's local Y/M/D.
   const local = new Date(now.getTime() + tzMin * 60_000);
-  let y = local.getUTCFullYear();
-  let mo = local.getUTCMonth();
+  const y = local.getUTCFullYear();
+  const mo = local.getUTCMonth();
   let d = local.getUTCDate();
 
   if (/\btomorrow\b/.test(t)) d += 1;

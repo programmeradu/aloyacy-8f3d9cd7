@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  CITIES,
-  cityById,
-  cityForAgency,
-  distanceKm,
-  isInCityCore,
-  nearestCity,
-} from "./cities";
+import { CITIES, cityById, cityForAgency, distanceKm, isInCityCore, nearestCity } from "./cities";
 
 describe("city catalogue", () => {
   it("covers the five urban feeds exactly once", () => {
@@ -93,7 +86,10 @@ describe("isInCityCore", () => {
   it("treats the radius boundary as inside", () => {
     const paphos = cityById("paphos")!;
     // Move north to just inside the core radius (1 deg latitude ≈ 111.2 km).
-    const edge = { lat: paphos.center.lat + (paphos.coreRadiusKm - 0.01) / 111.2, lng: paphos.center.lng };
+    const edge = {
+      lat: paphos.center.lat + (paphos.coreRadiusKm - 0.01) / 111.2,
+      lng: paphos.center.lng,
+    };
     expect(isInCityCore(paphos, edge)).toBe(true);
   });
 });

@@ -22,11 +22,7 @@ function distanceLabel(m: number, isEl: boolean): string {
   return isEl ? `${(m / 1000).toFixed(1)} χλμ. μακριά` : `${(m / 1000).toFixed(1)} km away`;
 }
 
-export function TrafficAlertsCard({
-  report,
-}: {
-  report: ItineraryTrafficReport;
-}) {
+export function TrafficAlertsCard({ report }: { report: ItineraryTrafficReport }) {
   const { t, locale } = useI18n();
   const isEl = locale === "el";
 

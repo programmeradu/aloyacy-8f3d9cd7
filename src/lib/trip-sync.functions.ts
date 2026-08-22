@@ -32,30 +32,28 @@ const upsertSchema = z.object({
 export const upsertActiveTrip = createServerFn({ method: "POST" })
   .inputValidator((input) => upsertSchema.parse(input))
   .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin
-      .from("active_trips")
-      .upsert(
-        {
-          device_id: data.deviceId,
-          trip_id: data.tripId,
-          route_short: data.routeShort ?? null,
-          board_stop_id: data.boardStopId ?? null,
-          board_name: data.boardName ?? null,
-          board_unix: data.boardUnix ?? null,
-          alight_stop_id: data.alightStopId ?? null,
-          alight_name: data.alightName ?? null,
-          alight_unix: data.alightUnix ?? null,
-          walk_in_sec: data.walkInSec,
-          walk_out_sec: data.walkOutSec,
-          alerts_sent: [],
-          legs: (data.legs ?? null) as never,
-          itinerary_id: data.itineraryId ?? null,
-          total_arrival_unix: data.totalArrivalUnix ?? null,
-          started_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "device_id" },
-      );
+    const { error } = await supabaseAdmin.from("active_trips").upsert(
+      {
+        device_id: data.deviceId,
+        trip_id: data.tripId,
+        route_short: data.routeShort ?? null,
+        board_stop_id: data.boardStopId ?? null,
+        board_name: data.boardName ?? null,
+        board_unix: data.boardUnix ?? null,
+        alight_stop_id: data.alightStopId ?? null,
+        alight_name: data.alightName ?? null,
+        alight_unix: data.alightUnix ?? null,
+        walk_in_sec: data.walkInSec,
+        walk_out_sec: data.walkOutSec,
+        alerts_sent: [],
+        legs: (data.legs ?? null) as never,
+        itinerary_id: data.itineraryId ?? null,
+        total_arrival_unix: data.totalArrivalUnix ?? null,
+        started_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "device_id" },
+    );
     if (error) {
       console.error("[trip-sync] upsert failed", error);
       throw new Error("Could not save trip for background alerts");

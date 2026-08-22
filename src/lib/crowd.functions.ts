@@ -30,12 +30,9 @@ export const getRouteLoad = createServerFn({ method: "POST" })
     }
 
     // Prefer trip-specific samples when present.
-    const tripRows = data.tripId
-      ? rows.filter((r) => r.trip_id === data.tripId)
-      : [];
+    const tripRows = data.tripId ? rows.filter((r) => r.trip_id === data.tripId) : [];
     const pick = tripRows.length > 0 ? tripRows : rows;
-    const avgLoad =
-      pick.reduce((sum, r) => sum + (r.load_index ?? 0), 0) / pick.length;
+    const avgLoad = pick.reduce((sum, r) => sum + (r.load_index ?? 0), 0) / pick.length;
     const avgRiders = Math.round(
       pick.reduce((sum, r) => sum + (r.rider_count ?? 0), 0) / pick.length,
     );

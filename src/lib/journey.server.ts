@@ -152,9 +152,7 @@ export async function planJourney(
     const ordered = [...trip.stops].sort((a, b) => a.arrivalUnix - b.arrivalUnix);
     const boardIdx = ordered.findIndex((s) => originIds.has(s.stopId));
     if (boardIdx === -1) continue;
-    const alightIdx = ordered.findIndex(
-      (s, i) => i > boardIdx && destIds.has(s.stopId),
-    );
+    const alightIdx = ordered.findIndex((s, i) => i > boardIdx && destIds.has(s.stopId));
     if (alightIdx === -1) continue;
 
     const board = ordered[boardIdx];
@@ -326,8 +324,7 @@ export async function planJourney(
     }
     // Prefer non-scheduled over scheduled.
     const newScore = (c.scheduled ? 1 : 0) * 1e9 + c.departureUnix;
-    const exScore =
-      (existing.scheduled ? 1 : 0) * 1e9 + existing.departureUnix;
+    const exScore = (existing.scheduled ? 1 : 0) * 1e9 + existing.departureUnix;
     if (newScore < exScore) bestPerKey.set(key, c);
   }
 
@@ -384,10 +381,7 @@ export async function planJourney(
       const last = opt.legs[opt.legs.length - 1];
       const bus = opt.legs.find((l) => l.kind === "bus");
       if (first?.kind === "walk" && last?.kind === "walk" && bus?.kind === "bus") {
-        const waitSec = Math.max(
-          0,
-          bus.board.departureUnix - now - first.durationSec,
-        );
+        const waitSec = Math.max(0, bus.board.departureUnix - now - first.durationSec);
         opt.departureUnix = now + first.durationSec + waitSec;
         opt.arrivalUnix = bus.alight.arrivalUnix + last.durationSec;
         opt.totalDurationSec = opt.arrivalUnix - now;

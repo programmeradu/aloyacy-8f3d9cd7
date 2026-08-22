@@ -7,10 +7,7 @@ import { getRoute } from "@/lib/gtfs";
 
 export const Route = createFileRoute("/debug/eta")({
   head: () => ({
-    meta: [
-      { title: "ETA accuracy — debug" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: [{ title: "ETA accuracy — debug" }, { name: "robots", content: "noindex, nofollow" }],
   }),
   component: DebugEta,
 });
@@ -46,13 +43,11 @@ function DebugEta() {
           <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-ink-soft">
             internal / not indexed
           </p>
-          <h1 className="font-display text-[44px] leading-[1.05] text-ink mt-2">
-            ETA accuracy
-          </h1>
+          <h1 className="font-display text-[44px] leading-[1.05] text-ink mt-2">ETA accuracy</h1>
           <p className="font-sans text-[14px] leading-[1.55] text-ink-soft mt-3 max-w-xl">
-            Operator-predicted arrivals vs. when the bus actually passed the stop, captured
-            from the live feed. Lower numbers mean Motion's ETA was closer to reality.
-            Negative = bus arrived early. Positive = bus arrived late.
+            Operator-predicted arrivals vs. when the bus actually passed the stop, captured from the
+            live feed. Lower numbers mean Motion's ETA was closer to reality. Negative = bus arrived
+            early. Positive = bus arrived late.
           </p>
         </header>
 
@@ -91,11 +86,7 @@ function DebugEta() {
             value={data ? fmtSec(data.totals.p50Sec) : "—"}
             hint="absolute"
           />
-          <Stat
-            label="P90 miss"
-            value={data ? fmtSec(data.totals.p90Sec) : "—"}
-            hint="absolute"
-          />
+          <Stat label="P90 miss" value={data ? fmtSec(data.totals.p90Sec) : "—"} hint="absolute" />
         </section>
 
         {/* By route */}
@@ -165,9 +156,7 @@ function DebugEta() {
                   <span className="font-mono text-[11px] text-ink-soft">
                     {meta?.short ?? r.routeId}
                   </span>
-                  <span className="font-sans text-[12px] text-ink truncate">
-                    stop {r.stopId}
-                  </span>
+                  <span className="font-sans text-[12px] text-ink truncate">stop {r.stopId}</span>
                   <span className="font-mono text-[11px] text-ink-soft text-right tabular-nums">
                     {fmtTime(r.predictedAt)}
                   </span>
@@ -195,12 +184,8 @@ function DebugEta() {
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="rounded-2xl bg-white ring-1 ring-line p-4">
-      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-        {label}
-      </p>
-      <p className="font-display text-[28px] leading-none text-ink mt-2 tabular-nums">
-        {value}
-      </p>
+      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">{label}</p>
+      <p className="font-display text-[28px] leading-none text-ink mt-2 tabular-nums">{value}</p>
       {hint && (
         <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft mt-1.5">
           {hint}

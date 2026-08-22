@@ -24,7 +24,11 @@ async function call(path: string, params: Record<string, string>) {
   });
   const text = await res.text();
   let json: any;
-  try { json = JSON.parse(text); } catch { throw new Error(`Semrush ${res.status}: ${text.slice(0, 200)}`); }
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error(`Semrush ${res.status}: ${text.slice(0, 200)}`);
+  }
   if (!res.ok || json?.error) throw new Error(json?.error || `Semrush ${res.status}`);
   return json;
 }

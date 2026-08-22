@@ -20,11 +20,7 @@ function fmtWalk(m: number): string {
   return `${(m / 1000).toFixed(1)} km`;
 }
 
-export function BoltScooterCard({
-  suggestion,
-}: {
-  suggestion: BoltScooterSuggestion;
-}) {
+export function BoltScooterCard({ suggestion }: { suggestion: BoltScooterSuggestion }) {
   const { t } = useI18n();
   const rideMin = fmtMin(suggestion.rideSec);
   const totalMin = fmtMin(suggestion.totalSec);
@@ -63,9 +59,7 @@ export function BoltScooterCard({
       {/* Headline summary — ride length + optional savings chip */}
       <div className="rounded-2xl bg-aegean-soft/40 px-3.5 py-2.5 flex items-baseline justify-between gap-3 flex-wrap">
         <div className="flex items-baseline gap-2 min-w-0">
-          <span className="font-display text-[18px] text-ink tabular-nums">
-            {rideMin} min
-          </span>
+          <span className="font-display text-[18px] text-ink tabular-nums">{rideMin} min</span>
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
             {rideKm} km
           </span>
@@ -130,9 +124,7 @@ export function BoltScooterCard({
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
             {t("bolt.moreLabel")}
           </span>
-          <span className="chev font-mono text-[10px] text-ink-soft transition-transform">
-            ▾
-          </span>
+          <span className="chev font-mono text-[10px] text-ink-soft transition-transform">▾</span>
         </summary>
         <div className="mt-3 flex flex-col gap-3">
           <ul className="flex flex-col gap-1.5">

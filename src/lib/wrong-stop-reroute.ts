@@ -68,8 +68,7 @@ export function detectWrongStop(args: {
 
   const newIdx = seq.indexOf(nearestId);
   const direction = alightIdx > boardIdx ? 1 : -1;
-  const validSwap =
-    direction > 0 ? newIdx < alightIdx : newIdx > alightIdx;
+  const validSwap = direction > 0 ? newIdx < alightIdx : newIdx > alightIdx;
   const notPassed = !args.passedStopIds?.has(nearestId);
 
   if (validSwap && notPassed) {

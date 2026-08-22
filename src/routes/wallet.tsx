@@ -4,17 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { IconArrowLeft } from "@/components/Icons";
-import {
-  readPass,
-  writePass,
-  clearJccLink,
-  type MotionPass,
-} from "@/lib/motion-pass";
+import { readPass, writePass, clearJccLink, type MotionPass } from "@/lib/motion-pass";
 import { jccLogin, jccRefresh, jccSync } from "@/lib/jcc.functions";
-import {
-  verifyMotionCard,
-  getMotionCardOptions,
-} from "@/lib/publictransport.functions";
+import { verifyMotionCard, getMotionCardOptions } from "@/lib/publictransport.functions";
 import { MotionCard } from "@/components/wallet/MotionCard";
 import { JccLogo } from "@/components/wallet/JccLogo";
 import { ActionTile, Fare } from "@/components/wallet/Tiles";
@@ -48,13 +40,19 @@ export const Route = createFileRoute("/wallet")({
           "Your Cyprus Motion bus card in your pocket. Balance, top-ups, and a scan-ready QR.",
       },
       { property: "og:title", content: "Motion Pass — Aloya" },
-      { property: "og:description", content: "Balance, top-ups, and a scan-ready Motion QR — always with you." },
+      {
+        property: "og:description",
+        content: "Balance, top-ups, and a scan-ready Motion QR — always with you.",
+      },
       { property: "og:url", content: "https://app.aloya.cy/wallet" },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "https://app.aloya.cy/og/og-wallet.jpg" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "A transit card resting on Cypriot limestone with olive-tree shadow." },
+      {
+        property: "og:image:alt",
+        content: "A transit card resting on Cypriot limestone with olive-tree shadow.",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://app.aloya.cy/og/og-wallet.jpg" },
     ],
@@ -108,7 +106,9 @@ function WalletRoute() {
 
       // Proactive refresh if token expires within 60s.
       if (tokens.expiresAt - Date.now() < 60_000) {
-        const r = await refreshFn({ data: { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken } });
+        const r = await refreshFn({
+          data: { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken },
+        });
         if (!r.ok) {
           update({ ...current, jcc: { ...current.jcc, expiresAt: 0 } });
           if (!opts?.silent) toast.error(t("wallet.toast.expired"));
@@ -119,11 +119,15 @@ function WalletRoute() {
       }
 
       const cardUid = current.number.replace(/\D/g, "");
-      let res = await syncFn({ data: { accessToken: tokens.accessToken, cardUid, period: "Last30" } });
+      let res = await syncFn({
+        data: { accessToken: tokens.accessToken, cardUid, period: "Last30" },
+      });
 
       // One reactive refresh on 401.
       if (!res.ok && res.code === "expired") {
-        const r = await refreshFn({ data: { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken } });
+        const r = await refreshFn({
+          data: { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken },
+        });
         if (!r.ok) {
           update({ ...current, jcc: { ...current.jcc, expiresAt: 0 } });
           if (!opts?.silent) toast.error(t("wallet.toast.expired"));
@@ -131,11 +135,14 @@ function WalletRoute() {
         }
         tokens = r.tokens;
         update({ ...current, jcc: { ...current.jcc, ...tokens } });
-        res = await syncFn({ data: { accessToken: tokens.accessToken, cardUid, period: "Last30" } });
+        res = await syncFn({
+          data: { accessToken: tokens.accessToken, cardUid, period: "Last30" },
+        });
       }
 
       if (!res.ok) {
-        if (!opts?.silent) toast.error(("error" in res && res.error) || t("wallet.toast.syncFailed"));
+        if (!opts?.silent)
+          toast.error(("error" in res && res.error) || t("wallet.toast.syncFailed"));
         return;
       }
 
@@ -258,8 +265,6 @@ function WalletRoute() {
         <MotionCard pass={pass} onTap={() => setEditing("card")} onScan={() => setScanning(true)} />
       </section>
 
-
-
       {hasCard ? (
         <>
           {/* Quick actions */}
@@ -284,9 +289,7 @@ function WalletRoute() {
                 foot={pass.jcc?.displayName || pass.jcc?.email || t("wallet.tile.jccConnected")}
                 onClick={() => void runSync()}
                 tone="aegean"
-                adornment={
-                  <JccLogo className="h-7 w-7 rounded-md ring-1 ring-line bg-white" />
-                }
+                adornment={<JccLogo className="h-7 w-7 rounded-md ring-1 ring-line bg-white" />}
               />
             ) : (
               <ActionTile
@@ -332,9 +335,7 @@ function WalletRoute() {
                     <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
                       {t("wallet.linkAutoSync")}
                     </span>
-                    <span className="block text-[14px] mt-0.5 truncate">
-                      {t("wallet.linkCta")}
-                    </span>
+                    <span className="block text-[14px] mt-0.5 truncate">{t("wallet.linkCta")}</span>
                   </span>
                 </span>
                 <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em]">
@@ -359,22 +360,35 @@ function WalletRoute() {
           </section>
 
           {/* Fare reference */}
-          <section
-            className="mt-6 px-6 animate-rise"
-            style={{ animationDelay: "240ms" }}
-          >
+          <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "240ms" }}>
             <div className="grid grid-cols-3 gap-2.5">
-              <Fare label={t("wallet.fare.urban")} value="€1.50" sub={t("wallet.fare.urbanSub")} image={fareUrban} imageAlt={t("wallet.fare.urbanAlt")} />
-              <Fare label={t("wallet.fare.night")} value="€2.50" sub={t("wallet.fare.nightSub")} image={fareNight} imageAlt={t("wallet.fare.nightAlt")} tone="dark" />
-              <Fare label={t("wallet.fare.intercity")} value="€7.00" sub={t("wallet.fare.intercitySub")} image={fareIntercity} imageAlt={t("wallet.fare.intercityAlt")} />
+              <Fare
+                label={t("wallet.fare.urban")}
+                value="€1.50"
+                sub={t("wallet.fare.urbanSub")}
+                image={fareUrban}
+                imageAlt={t("wallet.fare.urbanAlt")}
+              />
+              <Fare
+                label={t("wallet.fare.night")}
+                value="€2.50"
+                sub={t("wallet.fare.nightSub")}
+                image={fareNight}
+                imageAlt={t("wallet.fare.nightAlt")}
+                tone="dark"
+              />
+              <Fare
+                label={t("wallet.fare.intercity")}
+                value="€7.00"
+                sub={t("wallet.fare.intercitySub")}
+                image={fareIntercity}
+                imageAlt={t("wallet.fare.intercityAlt")}
+              />
             </div>
           </section>
 
           {/* History — either JCC transactions or manual topups */}
-          <section
-            className="mt-8 px-6 pb-4 animate-rise"
-            style={{ animationDelay: "320ms" }}
-          >
+          <section className="mt-8 px-6 pb-4 animate-rise" style={{ animationDelay: "320ms" }}>
             {linked ? (
               <TransactionList transactions={pass.transactions} />
             ) : (

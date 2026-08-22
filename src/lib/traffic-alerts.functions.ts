@@ -109,9 +109,7 @@ export const getItineraryTrafficAlerts = createServerFn({ method: "POST" })
     });
 
     const trimmed = hits.slice(0, MAX_ALERTS);
-    const highest: ItineraryTrafficReport["highest"] = trimmed.some(
-      (a) => a.severity === "high",
-    )
+    const highest: ItineraryTrafficReport["highest"] = trimmed.some((a) => a.severity === "high")
       ? "high"
       : trimmed.some((a) => a.severity === "medium")
         ? "medium"

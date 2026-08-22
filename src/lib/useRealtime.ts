@@ -32,10 +32,7 @@ export function useRealtime() {
 
   // Trips with an active arrival but no fresh vehicle position. Any
   // consumer can ask "is this a ghost?" without re-deriving the logic.
-  const ghostTripIds = useMemo(
-    () => new Set(q.data?.ghostTripIds ?? []),
-    [q.data?.ghostTripIds],
-  );
+  const ghostTripIds = useMemo(() => new Set(q.data?.ghostTripIds ?? []), [q.data?.ghostTripIds]);
 
   // tripId → seconds since the most recent rider sighting. Consumers
   // pass the matching age into smartEtaV2 / classifyFreshness so the
@@ -51,7 +48,6 @@ export function useRealtime() {
   return { ...q, isStale, staleSec, ghostTripIds, riderConfirmedAge };
 }
 
-
 /** Hook returning a function that forces a fresh realtime fetch.
  *  Used on visibilitychange "visible" after the rider returned to the app. */
 export function useInvalidateRealtime() {
@@ -61,10 +57,7 @@ export function useInvalidateRealtime() {
 
 /** Auto-invalidate the realtime cache + any custom callback when the tab
  *  returns to the foreground after being hidden for > `minHiddenSec`. */
-export function useResumeRefresh(
-  onResume: () => void,
-  minHiddenSec = 30,
-) {
+export function useResumeRefresh(onResume: () => void, minHiddenSec = 30) {
   useEffect(() => {
     if (typeof document === "undefined") return;
     let hiddenAt: number | null = null;

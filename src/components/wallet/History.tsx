@@ -70,9 +70,7 @@ export function TransactionList({ transactions }: { transactions: MotionTxSnapsh
                       </span>
                     ) : null}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-ink-soft truncate">
-                    {tx.stopName}
-                  </p>
+                  <p className="mt-0.5 text-[11px] text-ink-soft truncate">{tx.stopName}</p>
                   <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
                     {fullDate(+new Date(tx.at))}
                   </p>

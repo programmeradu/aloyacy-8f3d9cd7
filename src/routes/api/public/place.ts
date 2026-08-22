@@ -18,7 +18,10 @@ export const Route = createFileRoute("/api/public/place")({
         try {
           body = await request.json();
         } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: CORS });
+          return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+            status: 400,
+            headers: CORS,
+          });
         }
         try {
           const result = await getPlace({ data: body as never });

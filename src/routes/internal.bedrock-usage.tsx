@@ -8,18 +8,25 @@ import { getBedrockCostExplorer, type BedrockCeStats } from "@/lib/bedrock-cost-
 
 export const Route = createFileRoute("/internal/bedrock-usage")({
   head: () => ({
-    meta: [
-      { title: "Bedrock Usage — Internal" },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
+    meta: [{ title: "Bedrock Usage — Internal" }, { name: "robots", content: "noindex,nofollow" }],
   }),
   component: BedrockUsagePage,
 });
 
 const money = (n: number) =>
-  n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 4, maximumFractionDigits: 4 });
+  n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  });
 const money2 = (n: number) =>
-  n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 const compact = (n: number) => n.toLocaleString("en-US");
 
 function formatWindow(hours: number): string {
@@ -68,18 +75,23 @@ function BedrockUsagePage() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-6xl px-6 py-10 space-y-8">
         <header className="space-y-2">
-          <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Internal · BYOK metering</div>
+          <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+            Internal · BYOK metering
+          </div>
           <h1 className="font-display text-4xl font-bold">Bedrock usage</h1>
           <p className="text-sm text-muted-foreground max-w-2xl">
-            Every call routed through <span className="font-mono">/api/public/bedrock-test</span> is logged with model, token counts, latency, and estimated cost.
-            Prices are approximate on-demand Bedrock rates — treat as a running estimate, not a bill.
+            Every call routed through <span className="font-mono">/api/public/bedrock-test</span> is
+            logged with model, token counts, latency, and estimated cost. Prices are approximate
+            on-demand Bedrock rates — treat as a running estimate, not a bill.
           </p>
         </header>
 
         {/* Controls */}
         <div className="rounded-2xl border border-border bg-card p-5 grid gap-4 sm:grid-cols-4">
           <label className="space-y-1.5">
-            <div className="text-xs font-mono uppercase text-muted-foreground">Access key (last 4)</div>
+            <div className="text-xs font-mono uppercase text-muted-foreground">
+              Access key (last 4)
+            </div>
             <input
               value={keyHint}
               onChange={(e) => setKeyHint(e.target.value.slice(0, 8))}
@@ -94,11 +106,17 @@ function BedrockUsagePage() {
               onChange={(e) => setDays(Number(e.target.value))}
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
             >
-              {[7, 14, 30, 60, 90].map((d) => <option key={d} value={d}>{d} days</option>)}
+              {[7, 14, 30, 60, 90].map((d) => (
+                <option key={d} value={d}>
+                  {d} days
+                </option>
+              ))}
             </select>
           </label>
           <label className="space-y-1.5 sm:col-span-2">
-            <div className="text-xs font-mono uppercase text-muted-foreground">Soft cap (USD, this window)</div>
+            <div className="text-xs font-mono uppercase text-muted-foreground">
+              Soft cap (USD, this window)
+            </div>
             <input
               type="number"
               value={cap}
@@ -111,8 +129,16 @@ function BedrockUsagePage() {
 
         {/* KPI cards */}
         <div className="grid gap-4 sm:grid-cols-4">
-          <Kpi label="Spend (window)" value={money(stats?.windowTotals.estCostUsd ?? 0)} sub={`${compact(stats?.windowTotals.calls ?? 0)} calls`} />
-          <Kpi label="Tokens in / out" value={`${compact(stats?.windowTotals.inputTokens ?? 0)} / ${compact(stats?.windowTotals.outputTokens ?? 0)}`} sub="input / output" />
+          <Kpi
+            label="Spend (window)"
+            value={money(stats?.windowTotals.estCostUsd ?? 0)}
+            sub={`${compact(stats?.windowTotals.calls ?? 0)} calls`}
+          />
+          <Kpi
+            label="Tokens in / out"
+            value={`${compact(stats?.windowTotals.inputTokens ?? 0)} / ${compact(stats?.windowTotals.outputTokens ?? 0)}`}
+            sub="input / output"
+          />
           <Kpi
             label="Success rate"
             value={
@@ -122,7 +148,11 @@ function BedrockUsagePage() {
             }
             sub={`${compact(stats?.windowTotals.okCalls ?? 0)} OK`}
           />
-          <Kpi label="Lifetime spend" value={money(stats?.totals.estCostUsd ?? 0)} sub={`${compact(stats?.totals.calls ?? 0)} calls all-time`} />
+          <Kpi
+            label="Lifetime spend"
+            value={money(stats?.totals.estCostUsd ?? 0)}
+            sub={`${compact(stats?.totals.calls ?? 0)} calls all-time`}
+          />
         </div>
 
         {/* Cap meter */}
@@ -138,12 +168,18 @@ function BedrockUsagePage() {
               className="h-full transition-all"
               style={{
                 width: `${capPct}%`,
-                background: capPct >= 100 ? "hsl(var(--destructive))" : capPct >= 80 ? "var(--ochre)" : "var(--aegean)",
+                background:
+                  capPct >= 100
+                    ? "hsl(var(--destructive))"
+                    : capPct >= 80
+                      ? "var(--ochre)"
+                      : "var(--aegean)",
               }}
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            This is a client-side warning only. For a hard stop, configure AWS Budgets with an action that attaches a Deny policy on the IAM user at 100%.
+            This is a client-side warning only. For a hard stop, configure AWS Budgets with an
+            action that attaches a Deny policy on the IAM user at 100%.
           </p>
         </div>
 
@@ -157,7 +193,11 @@ function BedrockUsagePage() {
             {stats?.perDay.map((d) => {
               const h = Math.max(2, Math.round((d.estCostUsd / maxDayCost) * 100));
               return (
-                <div key={d.day} className="flex-1 flex flex-col items-center gap-1 group" title={`${d.day} · ${money(d.estCostUsd)} · ${compact(d.calls)} calls`}>
+                <div
+                  key={d.day}
+                  className="flex-1 flex flex-col items-center gap-1 group"
+                  title={`${d.day} · ${money(d.estCostUsd)} · ${compact(d.calls)} calls`}
+                >
                   <div
                     className="w-full rounded-t transition-colors"
                     style={{
@@ -198,11 +238,17 @@ function BedrockUsagePage() {
                     <td className="px-4 py-2 text-right font-mono">{compact(m.calls)}</td>
                     <td className="px-4 py-2 text-right font-mono">{compact(m.inputTokens)}</td>
                     <td className="px-4 py-2 text-right font-mono">{compact(m.outputTokens)}</td>
-                    <td className="px-4 py-2 text-right font-mono font-semibold">{money(m.estCostUsd)}</td>
+                    <td className="px-4 py-2 text-right font-mono font-semibold">
+                      {money(m.estCostUsd)}
+                    </td>
                   </tr>
                 ))}
                 {(!stats || stats.perModel.length === 0) && (
-                  <tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground text-sm">No calls in window</td></tr>
+                  <tr>
+                    <td colSpan={5} className="px-4 py-6 text-center text-muted-foreground text-sm">
+                      No calls in window
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -229,19 +275,27 @@ function BedrockUsagePage() {
                 <tr key={String(k.access_key_hint)} className="border-t border-border">
                   <td className="px-4 py-2 font-mono">····{k.access_key_hint ?? "unknown"}</td>
                   <td className="px-4 py-2 text-right font-mono">{compact(k.calls)}</td>
-                  <td className="px-4 py-2 text-right font-mono font-semibold">{money(k.estCostUsd)}</td>
+                  <td className="px-4 py-2 text-right font-mono font-semibold">
+                    {money(k.estCostUsd)}
+                  </td>
                   <td className="px-4 py-2 text-right">
                     {k.access_key_hint && (
                       <button
                         onClick={() => setKeyHint(k.access_key_hint!)}
                         className="text-xs font-mono uppercase text-primary hover:underline"
-                      >Filter</button>
+                      >
+                        Filter
+                      </button>
                     )}
                   </td>
                 </tr>
               ))}
               {(!stats || stats.perKey.length === 0) && (
-                <tr><td colSpan={4} className="px-4 py-6 text-center text-muted-foreground text-sm">No calls in window</td></tr>
+                <tr>
+                  <td colSpan={4} className="px-4 py-6 text-center text-muted-foreground text-sm">
+                    No calls in window
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -269,24 +323,41 @@ function BedrockUsagePage() {
               <tbody>
                 {stats?.recent.map((r) => (
                   <tr key={r.id} className="border-t border-border">
-                    <td className="px-3 py-2 font-mono whitespace-nowrap">{new Date(r.created_at).toLocaleString()}</td>
-                    <td className="px-3 py-2 font-mono max-w-xs truncate" title={r.model_id}>{r.model_id.split(/[/.]/).pop()}</td>
+                    <td className="px-3 py-2 font-mono whitespace-nowrap">
+                      {new Date(r.created_at).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-2 font-mono max-w-xs truncate" title={r.model_id}>
+                      {r.model_id.split(/[/.]/).pop()}
+                    </td>
                     <td className="px-3 py-2 font-mono">····{r.access_key_hint ?? "—"}</td>
                     <td className="px-3 py-2 text-right font-mono">{compact(r.input_tokens)}</td>
                     <td className="px-3 py-2 text-right font-mono">{compact(r.output_tokens)}</td>
                     <td className="px-3 py-2 text-right font-mono">{compact(r.latency_ms)}</td>
-                    <td className="px-3 py-2 text-right font-mono">{money(Number(r.est_cost_usd))}</td>
+                    <td className="px-3 py-2 text-right font-mono">
+                      {money(Number(r.est_cost_usd))}
+                    </td>
                     <td className="px-3 py-2">
                       {r.ok ? (
-                        <span className="inline-flex items-center rounded-full bg-emerald-500/15 text-emerald-700 px-2 py-0.5 font-mono">OK {r.http_status}</span>
+                        <span className="inline-flex items-center rounded-full bg-emerald-500/15 text-emerald-700 px-2 py-0.5 font-mono">
+                          OK {r.http_status}
+                        </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-full bg-destructive/15 text-destructive px-2 py-0.5 font-mono" title={r.error ?? ""}>ERR {r.http_status ?? "?"}</span>
+                        <span
+                          className="inline-flex items-center rounded-full bg-destructive/15 text-destructive px-2 py-0.5 font-mono"
+                          title={r.error ?? ""}
+                        >
+                          ERR {r.http_status ?? "?"}
+                        </span>
                       )}
                     </td>
                   </tr>
                 ))}
                 {(!stats || stats.recent.length === 0) && (
-                  <tr><td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">No calls yet</td></tr>
+                  <tr>
+                    <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
+                      No calls yet
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -300,8 +371,10 @@ function BedrockUsagePage() {
         <CostExplorerPanel />
 
         <p className="text-xs text-muted-foreground">
-          Proxy log auto-refreshes every 15s. Costs are calculated from Bedrock Converse <span className="font-mono">usage</span> field × on-demand list price per model.
-          Unknown models log 0 — add pricing in <span className="font-mono">src/lib/bedrock-pricing.ts</span>.
+          Proxy log auto-refreshes every 15s. Costs are calculated from Bedrock Converse{" "}
+          <span className="font-mono">usage</span> field × on-demand list price per model. Unknown
+          models log 0 — add pricing in{" "}
+          <span className="font-mono">src/lib/bedrock-pricing.ts</span>.
         </p>
       </div>
     </div>
@@ -311,7 +384,9 @@ function BedrockUsagePage() {
 function Kpi({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
-      <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
       <div className="mt-2 text-2xl font-display font-bold tabular-nums">{value}</div>
       {sub && <div className="mt-1 text-xs text-muted-foreground">{sub}</div>}
     </div>
@@ -319,8 +394,14 @@ function Kpi({ label, value, sub }: { label: string; value: string; sub?: string
 }
 
 // Parse "AKIA...:SECRET[:region][:sessionToken]" — matches the test page format.
-function parseCombined(raw: string): { accessKeyId: string; secretAccessKey: string; region?: string; sessionToken?: string } | null {
-  const parts = raw.trim().split(":").map((s) => s.trim()).filter(Boolean);
+function parseCombined(
+  raw: string,
+): { accessKeyId: string; secretAccessKey: string; region?: string; sessionToken?: string } | null {
+  const parts = raw
+    .trim()
+    .split(":")
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (parts.length < 2) return null;
   const [accessKeyId, secretAccessKey, region, sessionToken] = parts;
   if (!accessKeyId || !secretAccessKey) return null;
@@ -345,7 +426,9 @@ function CloudwatchPanel() {
         setCombined(j.combined ?? "");
         setRegion(j.region ?? "us-west-2");
         setEnabled(Boolean(j.enabled));
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }, []);
 
@@ -385,7 +468,10 @@ function CloudwatchPanel() {
     );
   };
 
-  const maxTs = useMemo(() => Math.max(0.0001, ...(cw?.perMinute.map((p) => p.invocations) ?? [0.0001])), [cw]);
+  const maxTs = useMemo(
+    () => Math.max(0.0001, ...(cw?.perMinute.map((p) => p.invocations) ?? [0.0001])),
+    [cw],
+  );
 
   return (
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
@@ -393,8 +479,9 @@ function CloudwatchPanel() {
         <div>
           <h2 className="text-lg font-semibold">AWS-wide · CloudWatch</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Near real-time (~1-2 min lag). Captures every Bedrock call in the account, from any app or key —
-            not just calls through our proxy. Split by <span className="font-mono">ModelId</span>; per-key split needs CloudTrail.
+            Near real-time (~1-2 min lag). Captures every Bedrock call in the account, from any app
+            or key — not just calls through our proxy. Split by{" "}
+            <span className="font-mono">ModelId</span>; per-key split needs CloudTrail.
           </p>
         </div>
         {cw?.latestDatapointAt && (
@@ -412,7 +499,10 @@ function CloudwatchPanel() {
             </div>
             <textarea
               value={combined}
-              onChange={(e) => { setCombined(e.target.value); persist({ combined: e.target.value }); }}
+              onChange={(e) => {
+                setCombined(e.target.value);
+                persist({ combined: e.target.value });
+              }}
               placeholder="AKIA...:SECRET:us-west-2"
               rows={2}
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs font-mono resize-none"
@@ -422,7 +512,10 @@ function CloudwatchPanel() {
             <div className="text-xs font-mono uppercase text-muted-foreground">Region</div>
             <input
               value={region}
-              onChange={(e) => { setRegion(e.target.value); persist({ region: e.target.value }); }}
+              onChange={(e) => {
+                setRegion(e.target.value);
+                persist({ region: e.target.value });
+              }}
               placeholder="us-west-2"
               className="w-32 rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
             />
@@ -441,12 +534,16 @@ function CloudwatchPanel() {
               </optgroup>
               <optgroup label="Hours">
                 {[1, 3, 6, 12, 24].map((h) => (
-                  <option key={h} value={h}>{h}h</option>
+                  <option key={h} value={h}>
+                    {h}h
+                  </option>
                 ))}
               </optgroup>
               <optgroup label="Days">
                 {[72, 168, 336].map((h) => (
-                  <option key={h} value={h}>{h / 24}d</option>
+                  <option key={h} value={h}>
+                    {h / 24}d
+                  </option>
                 ))}
               </optgroup>
             </select>
@@ -455,7 +552,11 @@ function CloudwatchPanel() {
             <button
               type="button"
               disabled={!parsed}
-              onClick={() => { const nx = !enabled; setEnabled(nx); persist({ enabled: nx }); }}
+              onClick={() => {
+                const nx = !enabled;
+                setEnabled(nx);
+                persist({ enabled: nx });
+              }}
               className="w-full rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {enabled ? "Live · pause" : "Start live"}
@@ -465,12 +566,15 @@ function CloudwatchPanel() {
 
         {parsed && (
           <div className="text-[10px] font-mono text-muted-foreground">
-            key ····{parsed.accessKeyId.slice(-4)} · secret {parsed.secretAccessKey.length} chars · region {effectiveRegion}
+            key ····{parsed.accessKeyId.slice(-4)} · secret {parsed.secretAccessKey.length} chars ·
+            region {effectiveRegion}
             {parsed.sessionToken ? " · session token attached" : ""}
           </div>
         )}
         {!parsed && combined.length > 0 && (
-          <div className="text-xs text-destructive font-mono">Could not parse — expected AKIA…:SECRET[:region][:sessionToken]</div>
+          <div className="text-xs text-destructive font-mono">
+            Could not parse — expected AKIA…:SECRET[:region][:sessionToken]
+          </div>
         )}
         {q.error && (
           <div className="rounded-lg border border-destructive/40 bg-destructive/5 text-destructive px-3 py-2 text-xs font-mono">
@@ -481,9 +585,21 @@ function CloudwatchPanel() {
         {cw && (
           <>
             <div className="grid gap-4 sm:grid-cols-4">
-              <Kpi label="Spend (est)" value={money(cw.totals.estCostUsd)} sub={`${compact(cw.totals.invocations)} invocations`} />
-              <Kpi label="Input tokens" value={compact(cw.totals.inputTokens)} sub={`${cw.windowHours}h window`} />
-              <Kpi label="Output tokens" value={compact(cw.totals.outputTokens)} sub={`${cw.windowHours}h window`} />
+              <Kpi
+                label="Spend (est)"
+                value={money(cw.totals.estCostUsd)}
+                sub={`${compact(cw.totals.invocations)} invocations`}
+              />
+              <Kpi
+                label="Input tokens"
+                value={compact(cw.totals.inputTokens)}
+                sub={`${cw.windowHours}h window`}
+              />
+              <Kpi
+                label="Output tokens"
+                value={compact(cw.totals.outputTokens)}
+                sub={`${cw.windowHours}h window`}
+              />
               <Kpi
                 label="Models seen"
                 value={compact(cw.perModel.length)}
@@ -510,14 +626,23 @@ function CloudwatchPanel() {
                   />
                 ))}
                 {cw.perMinute.length === 0 && (
-                  <div className="w-full text-center text-xs text-muted-foreground">No datapoints in window</div>
+                  <div className="w-full text-center text-xs text-muted-foreground">
+                    No datapoints in window
+                  </div>
                 )}
               </div>
               {cw.perMinute.length > 1 && (
                 <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
                   <span>{formatAxisTs(cw.perMinute[0].t, cw.windowHours)}</span>
-                  <span>{formatAxisTs(cw.perMinute[Math.floor(cw.perMinute.length / 2)].t, cw.windowHours)}</span>
-                  <span>{formatAxisTs(cw.perMinute[cw.perMinute.length - 1].t, cw.windowHours)}</span>
+                  <span>
+                    {formatAxisTs(
+                      cw.perMinute[Math.floor(cw.perMinute.length / 2)].t,
+                      cw.windowHours,
+                    )}
+                  </span>
+                  <span>
+                    {formatAxisTs(cw.perMinute[cw.perMinute.length - 1].t, cw.windowHours)}
+                  </span>
                 </div>
               )}
             </div>
@@ -540,7 +665,9 @@ function CloudwatchPanel() {
                       <td className="px-4 py-2 text-right font-mono">{compact(m.invocations)}</td>
                       <td className="px-4 py-2 text-right font-mono">{compact(m.inputTokens)}</td>
                       <td className="px-4 py-2 text-right font-mono">{compact(m.outputTokens)}</td>
-                      <td className="px-4 py-2 text-right font-mono font-semibold">{money(m.estCostUsd)}</td>
+                      <td className="px-4 py-2 text-right font-mono font-semibold">
+                        {money(m.estCostUsd)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -551,8 +678,10 @@ function CloudwatchPanel() {
 
         {!cw && !q.isFetching && !q.error && (
           <div className="text-xs text-muted-foreground">
-            Paste an AWS access key with <span className="font-mono">cloudwatch:GetMetricData</span> permission and hit <em>Start live</em>.
-            Creds live in <span className="font-mono">sessionStorage</span> for this tab only — never sent anywhere except AWS.
+            Paste an AWS access key with <span className="font-mono">cloudwatch:GetMetricData</span>{" "}
+            permission and hit <em>Start live</em>. Creds live in{" "}
+            <span className="font-mono">sessionStorage</span> for this tab only — never sent
+            anywhere except AWS.
           </div>
         )}
       </div>
@@ -579,7 +708,9 @@ function CostExplorerPanel() {
         setDays(j.days ?? 14);
         setGranularity(j.granularity ?? "DAILY");
         setEnabled(Boolean(j.enabled));
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }, []);
 
@@ -610,7 +741,14 @@ function CostExplorerPanel() {
 
   const ce: BedrockCeStats | undefined = q.data;
 
-  const persist = (next: Partial<{ combined: string; days: number; granularity: "HOURLY" | "DAILY"; enabled: boolean }>) => {
+  const persist = (
+    next: Partial<{
+      combined: string;
+      days: number;
+      granularity: "HOURLY" | "DAILY";
+      enabled: boolean;
+    }>,
+  ) => {
     if (typeof window === "undefined") return;
     sessionStorage.setItem(
       CE_STORAGE,
@@ -634,8 +772,9 @@ function CostExplorerPanel() {
         <div>
           <h2 className="text-lg font-semibold">AWS-wide · Cost Explorer</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Real billed spend for <span className="font-mono">Amazon Bedrock</span> — matches your invoice.
-            Delayed ~8-24h vs CloudWatch. Each refresh costs ~$0.01 in CE fees, so cached for 1h.
+            Real billed spend for <span className="font-mono">Amazon Bedrock</span> — matches your
+            invoice. Delayed ~8-24h vs CloudWatch. Each refresh costs ~$0.01 in CE fees, so cached
+            for 1h.
           </p>
         </div>
         {ce?.fetchedAt && (
@@ -653,7 +792,10 @@ function CostExplorerPanel() {
             </div>
             <textarea
               value={combined}
-              onChange={(e) => { setCombined(e.target.value); persist({ combined: e.target.value }); }}
+              onChange={(e) => {
+                setCombined(e.target.value);
+                persist({ combined: e.target.value });
+              }}
               placeholder="AKIA...:SECRET (reuses the CloudWatch key if it has ce:GetCostAndUsage)"
               rows={2}
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs font-mono resize-none"
@@ -663,7 +805,11 @@ function CostExplorerPanel() {
             <div className="text-xs font-mono uppercase text-muted-foreground">Window</div>
             <select
               value={days}
-              onChange={(e) => { const v = Number(e.target.value); setDays(v); persist({ days: v }); }}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                setDays(v);
+                persist({ days: v });
+              }}
               className="rounded-lg border border-input bg-background px-3 py-2 text-sm"
             >
               <option value={1}>1 day</option>
@@ -680,7 +826,11 @@ function CostExplorerPanel() {
             <select
               value={effectiveGranularity}
               disabled={days > 14}
-              onChange={(e) => { const v = e.target.value as "HOURLY" | "DAILY"; setGranularity(v); persist({ granularity: v }); }}
+              onChange={(e) => {
+                const v = e.target.value as "HOURLY" | "DAILY";
+                setGranularity(v);
+                persist({ granularity: v });
+              }}
               className="rounded-lg border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
             >
               <option value="HOURLY">Hourly</option>
@@ -692,7 +842,10 @@ function CostExplorerPanel() {
               type="button"
               disabled={!parsed || q.isFetching}
               onClick={() => {
-                if (!enabled) { setEnabled(true); persist({ enabled: true }); }
+                if (!enabled) {
+                  setEnabled(true);
+                  persist({ enabled: true });
+                }
                 q.refetch();
               }}
               className="w-full rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
@@ -718,8 +871,16 @@ function CostExplorerPanel() {
             <div className="grid gap-4 sm:grid-cols-4">
               <Kpi label="Today" value={money2(ce.totals.todaySpend)} sub="billed today" />
               <Kpi label="Yesterday" value={money2(ce.totals.yesterdaySpend)} sub="final" />
-              <Kpi label="Month to date" value={money2(ce.totals.mtdSpend)} sub="this calendar month" />
-              <Kpi label="Window total" value={money2(ce.totals.windowSpend)} sub={`${days}d · ${ce.granularity.toLowerCase()}`} />
+              <Kpi
+                label="Month to date"
+                value={money2(ce.totals.mtdSpend)}
+                sub="this calendar month"
+              />
+              <Kpi
+                label="Window total"
+                value={money2(ce.totals.windowSpend)}
+                sub={`${days}d · ${ce.granularity.toLowerCase()}`}
+              />
             </div>
 
             <div className="space-y-2">
@@ -727,7 +888,9 @@ function CostExplorerPanel() {
                 <div className="text-xs font-mono uppercase text-muted-foreground">
                   Spend · {days}d · {ce.granularity.toLowerCase()}
                 </div>
-                <div className="text-[10px] font-mono text-muted-foreground">{ce.perBucket.length} buckets</div>
+                <div className="text-[10px] font-mono text-muted-foreground">
+                  {ce.perBucket.length} buckets
+                </div>
               </div>
               <div className="flex items-end gap-[3px] h-32 border-b border-border pb-1">
                 {ce.perBucket.map((p) => (
@@ -739,14 +902,28 @@ function CostExplorerPanel() {
                   />
                 ))}
                 {ce.perBucket.length === 0 && (
-                  <div className="w-full text-center text-xs text-muted-foreground">No spend in window</div>
+                  <div className="w-full text-center text-xs text-muted-foreground">
+                    No spend in window
+                  </div>
                 )}
               </div>
               {ce.perBucket.length > 1 && (
                 <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
-                  <span>{formatAxisTs(ce.perBucket[0].start, ce.granularity === "HOURLY" ? 24 : 999)}</span>
-                  <span>{formatAxisTs(ce.perBucket[Math.floor(ce.perBucket.length / 2)].start, ce.granularity === "HOURLY" ? 24 : 999)}</span>
-                  <span>{formatAxisTs(ce.perBucket[ce.perBucket.length - 1].start, ce.granularity === "HOURLY" ? 24 : 999)}</span>
+                  <span>
+                    {formatAxisTs(ce.perBucket[0].start, ce.granularity === "HOURLY" ? 24 : 999)}
+                  </span>
+                  <span>
+                    {formatAxisTs(
+                      ce.perBucket[Math.floor(ce.perBucket.length / 2)].start,
+                      ce.granularity === "HOURLY" ? 24 : 999,
+                    )}
+                  </span>
+                  <span>
+                    {formatAxisTs(
+                      ce.perBucket[ce.perBucket.length - 1].start,
+                      ce.granularity === "HOURLY" ? 24 : 999,
+                    )}
+                  </span>
                 </div>
               )}
             </div>
@@ -763,12 +940,17 @@ function CostExplorerPanel() {
                   </thead>
                   <tbody>
                     {ce.perModel.map((m) => {
-                      const share = ce.totals.windowSpend > 0 ? (m.amount / ce.totals.windowSpend) * 100 : 0;
+                      const share =
+                        ce.totals.windowSpend > 0 ? (m.amount / ce.totals.windowSpend) * 100 : 0;
                       return (
                         <tr key={m.key} className="border-t border-border">
                           <td className="px-4 py-2 font-mono text-xs">{m.key}</td>
-                          <td className="px-4 py-2 text-right font-mono font-semibold">{money2(m.amount)}</td>
-                          <td className="px-4 py-2 text-right font-mono text-muted-foreground">{share.toFixed(1)}%</td>
+                          <td className="px-4 py-2 text-right font-mono font-semibold">
+                            {money2(m.amount)}
+                          </td>
+                          <td className="px-4 py-2 text-right font-mono text-muted-foreground">
+                            {share.toFixed(1)}%
+                          </td>
                         </tr>
                       );
                     })}
@@ -781,8 +963,9 @@ function CostExplorerPanel() {
 
         {!ce && !q.isFetching && !q.error && (
           <div className="text-xs text-muted-foreground">
-            Paste an AWS access key with <span className="font-mono">ce:GetCostAndUsage</span> and hit <em>Fetch</em>.
-            Cost Explorer must be enabled once in the AWS Billing console (one-click, free).
+            Paste an AWS access key with <span className="font-mono">ce:GetCostAndUsage</span> and
+            hit <em>Fetch</em>. Cost Explorer must be enabled once in the AWS Billing console
+            (one-click, free).
           </div>
         )}
       </div>

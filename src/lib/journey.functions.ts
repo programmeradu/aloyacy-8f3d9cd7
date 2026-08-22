@@ -9,9 +9,7 @@ const PointSchema = z.object({
 });
 
 export const planTrip = createServerFn({ method: "POST" })
-  .inputValidator((input) =>
-    z.object({ from: PointSchema, to: PointSchema }).parse(input),
-  )
+  .inputValidator((input) => z.object({ from: PointSchema, to: PointSchema }).parse(input))
   .handler(async ({ data }) => {
     try {
       const options = await planJourney(data.from, data.to);

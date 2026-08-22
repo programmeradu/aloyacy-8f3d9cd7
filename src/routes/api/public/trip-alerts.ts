@@ -43,25 +43,15 @@ type AlertKind =
   | "arrived"
   | "delayed"
   // Multi-leg additions:
-  | "alight-leg"          // get off at next stop, for ride leg i
-  | "walk-to-transfer"    // walk this way to next stop, after alighting leg i
+  | "alight-leg" // get off at next stop, for ride leg i
+  | "walk-to-transfer" // walk this way to next stop, after alighting leg i
   | "connection-approaching" // next bus is < ~90s out at transfer stop
-  | "connection-delayed";  // next leg is running > 5 min late
-
+  | "connection-delayed"; // next leg is running > 5 min late
 
 type SingleLegKind =
-  | "board-soon"
-  | "hurry-soft"
-  | "at-stop"
-  | "alight-soon"
-  | "arrived"
-  | "delayed";
+  "board-soon" | "hurry-soft" | "at-stop" | "alight-soon" | "arrived" | "delayed";
 
-function buildPayload(
-  kind: SingleLegKind,
-  row: ActiveTripRow,
-  minutes: number,
-): WebPushPayload {
+function buildPayload(kind: SingleLegKind, row: ActiveTripRow, minutes: number): WebPushPayload {
   const bus = row.route_short ? `BUS ${row.route_short}` : "Your bus";
   const board = row.board_name ?? "your stop";
   const alight = row.alight_name ?? "your stop";
@@ -143,10 +133,7 @@ async function dispatch(deviceId: string, payload: WebPushPayload) {
           if (r.ok) sent++;
           else if (r.expired) {
             expired++;
-            await supabaseAdmin
-              .from("push_subscriptions")
-              .delete()
-              .eq("endpoint", s.endpoint);
+            await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
           }
         } catch (e) {
           console.error("[trip-alerts] web push dispatch threw", e);
@@ -176,10 +163,7 @@ async function dispatch(deviceId: string, payload: WebPushPayload) {
       sent += r.ok;
       if (r.expiredTokens.length) {
         expired += r.expiredTokens.length;
-        await supabaseAdmin
-          .from("expo_push_tokens")
-          .delete()
-          .in("expo_token", r.expiredTokens);
+        await supabaseAdmin.from("expo_push_tokens").delete().in("expo_token", r.expiredTokens);
       }
       if (r.errors.length) {
         console.warn("[trip-alerts] expo push errors", r.errors.slice(0, 3));
@@ -211,7 +195,7 @@ async function processTrips() {
   if (!trips || trips.length === 0) return { processed: 0, dispatched: 0 };
 
   // Pull live feed once for the whole batch.
-  let arrivalsByKey = new Map<string, { arrivalUnix: number; delaySec: number }>();
+  const arrivalsByKey = new Map<string, { arrivalUnix: number; delaySec: number }>();
   try {
     const rt = await fetchRealtime();
     for (const a of rt.arrivals) {
@@ -228,14 +212,12 @@ async function processTrips() {
 
   for (const row of trips as ActiveTripRow[]) {
     const sent = new Set(row.alerts_sent ?? []);
-    const liveBoard =
-      row.board_stop_id
-        ? arrivalsByKey.get(`${row.trip_id}::${row.board_stop_id}`)
-        : undefined;
-    const liveAlight =
-      row.alight_stop_id
-        ? arrivalsByKey.get(`${row.trip_id}::${row.alight_stop_id}`)
-        : undefined;
+    const liveBoard = row.board_stop_id
+      ? arrivalsByKey.get(`${row.trip_id}::${row.board_stop_id}`)
+      : undefined;
+    const liveAlight = row.alight_stop_id
+      ? arrivalsByKey.get(`${row.trip_id}::${row.alight_stop_id}`)
+      : undefined;
 
     const boardUnix = liveBoard?.arrivalUnix ?? row.board_unix ?? 0;
     const alightUnix = liveAlight?.arrivalUnix ?? row.alight_unix ?? 0;
@@ -250,32 +232,17 @@ async function processTrips() {
     // Walk-out warning: leave-by trigger ~3 min before they should start walking.
     const leaveByUnix = boardUnix - row.walk_in_sec;
     const secsToLeave = leaveByUnix - now;
-    if (
-      !sent.has("board-soon") &&
-      boardUnix > 0 &&
-      secsToLeave <= 3 * 60 &&
-      secsToLeave >= -60
-    ) {
+    if (!sent.has("board-soon") && boardUnix > 0 && secsToLeave <= 3 * 60 && secsToLeave >= -60) {
       fire.push({ kind: "board-soon", minutes: minToBoard });
     }
 
     // Hurry — bus arrives in ≤ 2 min and they're (likely) still walking.
-    if (
-      !sent.has("hurry-soft") &&
-      boardUnix > 0 &&
-      secsToBoard <= 2 * 60 &&
-      secsToBoard > 30
-    ) {
+    if (!sent.has("hurry-soft") && boardUnix > 0 && secsToBoard <= 2 * 60 && secsToBoard > 30) {
       fire.push({ kind: "hurry-soft", minutes: minToBoard });
     }
 
     // At stop — bus is at the boarding point right now.
-    if (
-      !sent.has("at-stop") &&
-      boardUnix > 0 &&
-      secsToBoard <= 30 &&
-      secsToBoard >= -60
-    ) {
+    if (!sent.has("at-stop") && boardUnix > 0 && secsToBoard <= 30 && secsToBoard >= -60) {
       fire.push({ kind: "at-stop", minutes: 0 });
     }
 
@@ -297,14 +264,9 @@ async function processTrips() {
 
     // Arrived at destination stop — for multi-leg trips, suppress until the
     // final ride leg has been reached (alight_unix only reflects leg 0).
-    const isMultiLegRow = Array.isArray(row.legs)
-      && (row.legs.filter((l) => l.kind === "ride").length >= 2);
-    if (
-      !isMultiLegRow &&
-      !sent.has("arrived") &&
-      alightUnix > 0 &&
-      secsToAlight <= -30
-    ) {
+    const isMultiLegRow =
+      Array.isArray(row.legs) && row.legs.filter((l) => l.kind === "ride").length >= 2;
+    if (!isMultiLegRow && !sent.has("arrived") && alightUnix > 0 && secsToAlight <= -30) {
       fire.push({ kind: "arrived", minutes: 0 });
     }
 
@@ -316,12 +278,8 @@ async function processTrips() {
       const rideLegs = row.legs.filter((l): l is RideLeg => l.kind === "ride");
       for (let i = 0; i < rideLegs.length; i++) {
         const leg = rideLegs[i];
-        const liveLegBoard = arrivalsByKey.get(
-          `${leg.tripId}::${leg.board.stopId}`,
-        );
-        const liveLegAlight = arrivalsByKey.get(
-          `${leg.tripId}::${leg.alight.stopId}`,
-        );
+        const liveLegBoard = arrivalsByKey.get(`${leg.tripId}::${leg.board.stopId}`);
+        const liveLegAlight = arrivalsByKey.get(`${leg.tripId}::${leg.alight.stopId}`);
         const legBoardUnix = liveLegBoard?.arrivalUnix ?? leg.board.departureUnix;
         const legAlightUnix = liveLegAlight?.arrivalUnix ?? leg.alight.arrivalUnix;
         const legDelaySec = liveLegBoard?.delaySec ?? leg.delaySec ?? 0;
@@ -365,11 +323,8 @@ async function processTrips() {
           }
 
           // connection-approaching-i: next bus arrives in < ~90s.
-          const liveNextBoard = arrivalsByKey.get(
-            `${nextLeg.tripId}::${nextLeg.board.stopId}`,
-          );
-          const nextBoardUnix =
-            liveNextBoard?.arrivalUnix ?? nextLeg.board.departureUnix;
+          const liveNextBoard = arrivalsByKey.get(`${nextLeg.tripId}::${nextLeg.board.stopId}`);
+          const nextBoardUnix = liveNextBoard?.arrivalUnix ?? nextLeg.board.departureUnix;
           const sToNext = nextBoardUnix - now;
           const keyApproach = `connection-approaching-${i}`;
           if (!sent.has(keyApproach) && sToNext <= 90 && sToNext > -60) {
@@ -388,11 +343,7 @@ async function processTrips() {
           // connection-delayed-i: next leg running > 5 min late.
           const nextDelaySec = liveNextBoard?.delaySec ?? 0;
           const keyDelay = `connection-delayed-${i}`;
-          if (
-            !sent.has(keyDelay) &&
-            nextDelaySec >= 5 * 60 &&
-            sToNext > 60
-          ) {
+          if (!sent.has(keyDelay) && nextDelaySec >= 5 * 60 && sToNext > 60) {
             legFires.push({
               key: keyDelay,
               payload: {
@@ -409,11 +360,7 @@ async function processTrips() {
         if (i >= 1) {
           const keyLegDelay = `leg-delayed-${i}`;
           const sToLegBoard = legBoardUnix - now;
-          if (
-            !sent.has(keyLegDelay) &&
-            legDelaySec >= 5 * 60 &&
-            sToLegBoard > 60
-          ) {
+          if (!sent.has(keyLegDelay) && legDelaySec >= 5 * 60 && sToLegBoard > 60) {
             legFires.push({
               key: keyLegDelay,
               payload: {
@@ -429,11 +376,7 @@ async function processTrips() {
 
       // Final arrival across the whole itinerary.
       const finalUnix = row.total_arrival_unix ?? 0;
-      if (
-        !sent.has("arrived") &&
-        finalUnix > 0 &&
-        finalUnix - now <= -30
-      ) {
+      if (!sent.has("arrived") && finalUnix > 0 && finalUnix - now <= -30) {
         const lastLeg = rideLegs[rideLegs.length - 1];
         legFires.push({
           key: "arrived",
@@ -491,12 +434,16 @@ export const Route = createFileRoute("/api/public/trip-alerts")({
             .select("decrypted_secret")
             .eq("name", "aloya_cron_secret")
             .maybeSingle();
-          legacySecret = (data as { decrypted_secret?: string } | null)?.decrypted_secret ?? legacySecret;
+          legacySecret =
+            (data as { decrypted_secret?: string } | null)?.decrypted_secret ?? legacySecret;
         } catch {
           // ignore vault lookup failures and fall back to env
         }
         const legacyHeader = request.headers.get("x-cron-secret");
-        const validApiKey = apikey && apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+        const validApiKey =
+          apikey &&
+          apikey ===
+            (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
         const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
         const validLegacy = legacySecret && legacyHeader && legacyHeader === legacySecret;
         if (!validApiKey && !validCron && !validLegacy) {

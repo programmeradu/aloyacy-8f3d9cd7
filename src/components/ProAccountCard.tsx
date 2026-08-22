@@ -17,9 +17,7 @@ export function ProAccountCard() {
 
   if (loading || !isPro) return null;
 
-  const renewsAt = sub?.current_period_end
-    ? new Date(sub.current_period_end)
-    : null;
+  const renewsAt = sub?.current_period_end ? new Date(sub.current_period_end) : null;
   const planLabel =
     sub?.plan_key === "pro_weekly"
       ? t("proacc.plan.weekly")
@@ -75,7 +73,8 @@ export function ProAccountCard() {
       <div className="relative px-4 py-4">
         <div className="flex items-center justify-between gap-3">
           <p className="font-display text-[11px] font-medium leading-none tracking-[0.14em] text-limestone/70">
-            {t("proacc.brand")}<span className="text-ochre">{t("proacc.brand2")}</span>
+            {t("proacc.brand")}
+            <span className="text-ochre">{t("proacc.brand2")}</span>
           </p>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-limestone/[0.08] px-2 py-0.5 text-[10px] font-medium tracking-tight text-limestone/80 ring-1 ring-limestone/15">
             <span className="h-1.5 w-1.5 rounded-full bg-aegean" />
@@ -103,10 +102,7 @@ export function ProAccountCard() {
           {user?.email && (
             <div className="flex items-center justify-between gap-3 py-2">
               <dt className="shrink-0 text-limestone/55">{t("proacc.account")}</dt>
-              <dd
-                className="min-w-0 truncate text-right text-limestone"
-                title={user.email}
-              >
+              <dd className="min-w-0 truncate text-right text-limestone" title={user.email}>
                 {user.email}
               </dd>
             </div>

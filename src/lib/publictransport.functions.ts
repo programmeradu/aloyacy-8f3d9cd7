@@ -98,8 +98,7 @@ export const getMotionCardOptions = createServerFn({ method: "POST" })
     const passes: MotionPassOption[] = (r.cptPassList ?? []).flatMap((entry) => {
       const rec = flattenEntry(entry);
       const top = rec.topUpList as
-        | { code?: string; name?: string; price?: string; validityPeriods?: string }
-        | undefined;
+        { code?: string; name?: string; price?: string; validityPeriods?: string } | undefined;
       if (!top) return [];
       const days = top.validityPeriods ? parseInt(top.validityPeriods, 10) : NaN;
       return [

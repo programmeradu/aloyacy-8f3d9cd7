@@ -92,14 +92,18 @@ export const pingGroupMember = createServerFn({ method: "POST" })
     // Resolve the member + their group's destination in one query.
     const { data: member, error: mErr } = await supabaseAdmin
       .from("trip_group_members")
-      .select("id, group_id, status, trip_groups!inner(destination_lat, destination_lng, expires_at)")
+      .select(
+        "id, group_id, status, trip_groups!inner(destination_lat, destination_lng, expires_at)",
+      )
       .eq("member_token", data.memberToken)
       .maybeSingle();
     if (mErr) throw new Error(`member lookup failed: ${mErr.message}`);
     if (!member) throw new Error("member not found");
-    const group = (member as unknown as {
-      trip_groups: { destination_lat: number; destination_lng: number; expires_at: string };
-    }).trip_groups;
+    const group = (
+      member as unknown as {
+        trip_groups: { destination_lat: number; destination_lng: number; expires_at: string };
+      }
+    ).trip_groups;
     if (!group) throw new Error("group not found");
     if (new Date(group.expires_at).getTime() < Date.now()) {
       // Group ended — reject the ping so the client stops pinging.

@@ -249,9 +249,7 @@ export class GeoFuser {
     const vx = this.lngS.v;
     const vy = this.latS.v;
     const speedMps = Math.max(0, Math.hypot(vx, vy));
-    const uncertaintyM = Math.sqrt(
-      Math.max(this.latS.p00, 0) + Math.max(this.lngS.p00, 0),
-    );
+    const uncertaintyM = Math.sqrt(Math.max(this.latS.p00, 0) + Math.max(this.lngS.p00, 0));
 
     let outLat = lat;
     let outLng = lng;

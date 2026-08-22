@@ -48,16 +48,16 @@ const CONTENT: Record<Locale, GuideContent> = {
     s1: (
       <>
         <p>
-          Cyprus has two layers of public bus. <strong>Intercity coaches</strong> stitch the
-          four major cities together — Nicosia, Limassol, Larnaca and Paphos — with a handful
-          of routes that double as the country's spine. <strong>Urban buses</strong> then fan
-          out inside each city. There is no national rail, so the bus is, in practice, how you
-          cross the island without a car.
+          Cyprus has two layers of public bus. <strong>Intercity coaches</strong> stitch the four
+          major cities together — Nicosia, Limassol, Larnaca and Paphos — with a handful of routes
+          that double as the country's spine. <strong>Urban buses</strong> then fan out inside each
+          city. There is no national rail, so the bus is, in practice, how you cross the island
+          without a car.
         </p>
         <p>
-          All schedules are GTFS-published, which means live tracking, accurate stop sequences,
-          and proper routing are possible. Aloya is built directly on those feeds, plus rider
-          GPS for the segments operators don't report.
+          All schedules are GTFS-published, which means live tracking, accurate stop sequences, and
+          proper routing are possible. Aloya is built directly on those feeds, plus rider GPS for
+          the segments operators don't report.
         </p>
       </>
     ),
@@ -82,16 +82,22 @@ const CONTENT: Record<Locale, GuideContent> = {
       ["Larnaca", "Zenon — orange & white. Hub: Finikoudes seafront."],
       ["Paphos", "OSYPA — green & yellow. Hub: Karavella station."],
       ["Famagusta district", "OSEA — serving Ayia Napa, Paralimni, Protaras."],
-      ["Airports", "Intercity coaches direct from Larnaca (LCA) and Paphos (PFO) to every major city, day and night."],
-      ["Park & Ride", "Pame Express — free shuttle between GSP stadium parking and central Nicosia."],
+      [
+        "Airports",
+        "Intercity coaches direct from Larnaca (LCA) and Paphos (PFO) to every major city, day and night.",
+      ],
+      [
+        "Park & Ride",
+        "Pame Express — free shuttle between GSP stadium parking and central Nicosia.",
+      ],
     ],
     s4Title: "Fares, in one paragraph",
     s4: (
       <p>
-        Urban single: <strong>€1.50</strong>. Urban day pass: <strong>€5</strong>. Intercity
-        short hop: <strong>€4</strong>. Longest intercity leg: <strong>€7</strong>. Pay the
-        driver in cash, tap a Motion Bus Card, or pay in-app. Children under 6 ride free.
-        Students and pensioners get ~30% off with a registered card.
+        Urban single: <strong>€1.50</strong>. Urban day pass: <strong>€5</strong>. Intercity short
+        hop: <strong>€4</strong>. Longest intercity leg: <strong>€7</strong>. Pay the driver in
+        cash, tap a Motion Bus Card, or pay in-app. Children under 6 ride free. Students and
+        pensioners get ~30% off with a registered card.
       </p>
     ),
     s5Title: "Frequently asked",
@@ -131,26 +137,24 @@ const CONTENT: Record<Locale, GuideContent> = {
     h1Bottom: "χωρίς αυτοκίνητο.",
     intro:
       "Πώς να ταξιδέψετε στην Κύπρο χωρίς αυτοκίνητο: υπεραστικά λεωφορεία μεταξύ Λευκωσίας, Λεμεσού, Λάρνακας και Πάφου, αστικά δίκτυα σε κάθε πόλη, εισιτήρια, η κάρτα Motion Bus Card και ζωντανές ώρες αναχώρησης.",
-    figCaption:
-      "Ενδοχώρα της Κύπρου, αργό απόγευμα. Αστικό λεωφορείο ΟΣΕΛ σε αναστροφή χωριού.",
+    figCaption: "Ενδοχώρα της Κύπρου, αργό απόγευμα. Αστικό λεωφορείο ΟΣΕΛ σε αναστροφή χωριού.",
     imgAlt:
       "Δημόσιο λεωφορείο ΟΣΕΛ σταθμευμένο κάτω από πέτρινη καμάρα σε ηλιόλουστο κυπριακό χωριό στο χρυσό απόγευμα.",
     s1Title: "Το σχήμα του δικτύου",
     s1: (
       <>
         <p>
-          Η Κύπρος έχει δύο επίπεδα δημόσιων λεωφορείων.{" "}
-          <strong>Τα υπεραστικά λεωφορεία</strong> συνδέουν τις τέσσερις μεγάλες πόλεις —
-          Λευκωσία, Λεμεσό, Λάρνακα και Πάφο — με λίγες γραμμές που λειτουργούν ως η ραχοκοκαλιά
-          της χώρας. <strong>Τα αστικά λεωφορεία</strong> καλύπτουν το εσωτερικό κάθε πόλης.
-          Δεν υπάρχει σιδηρόδρομος, οπότε στην πράξη το λεωφορείο είναι ο τρόπος να διασχίσετε
-          το νησί χωρίς αυτοκίνητο.
+          Η Κύπρος έχει δύο επίπεδα δημόσιων λεωφορείων. <strong>Τα υπεραστικά λεωφορεία</strong>{" "}
+          συνδέουν τις τέσσερις μεγάλες πόλεις — Λευκωσία, Λεμεσό, Λάρνακα και Πάφο — με λίγες
+          γραμμές που λειτουργούν ως η ραχοκοκαλιά της χώρας. <strong>Τα αστικά λεωφορεία</strong>{" "}
+          καλύπτουν το εσωτερικό κάθε πόλης. Δεν υπάρχει σιδηρόδρομος, οπότε στην πράξη το λεωφορείο
+          είναι ο τρόπος να διασχίσετε το νησί χωρίς αυτοκίνητο.
         </p>
         <p>
           Όλα τα δρομολόγια δημοσιεύονται σε μορφή GTFS, που σημαίνει ότι είναι εφικτή η
-          παρακολούθηση σε πραγματικό χρόνο, οι ακριβείς ακολουθίες στάσεων και η σωστή
-          δρομολόγηση. Το Aloya κτίζεται απευθείας πάνω σε αυτές τις ροές, μαζί με GPS από
-          τους χρήστες για τα τμήματα που δεν αναφέρουν οι μεταφορείς.
+          παρακολούθηση σε πραγματικό χρόνο, οι ακριβείς ακολουθίες στάσεων και η σωστή δρομολόγηση.
+          Το Aloya κτίζεται απευθείας πάνω σε αυτές τις ροές, μαζί με GPS από τους χρήστες για τα
+          τμήματα που δεν αναφέρουν οι μεταφορείς.
         </p>
       </>
     ),
@@ -179,10 +183,9 @@ const CONTENT: Record<Locale, GuideContent> = {
     s4: (
       <p>
         Αστικό απλό: <strong>€1.50</strong>. Αστικό ημερήσιο: <strong>€5</strong>. Υπεραστικό
-        κοντινό: <strong>€4</strong>. Μακρύτερη υπεραστική διαδρομή: <strong>€7</strong>.
-        Πληρώνετε τον οδηγό σε μετρητά, χρεώνετε Motion Bus Card ή πληρώνετε μέσω εφαρμογής.
-        Παιδιά κάτω των 6 ταξιδεύουν δωρεάν. Φοιτητές και συνταξιούχοι έχουν ~30% έκπτωση με
-        εγγεγραμμένη κάρτα.
+        κοντινό: <strong>€4</strong>. Μακρύτερη υπεραστική διαδρομή: <strong>€7</strong>. Πληρώνετε
+        τον οδηγό σε μετρητά, χρεώνετε Motion Bus Card ή πληρώνετε μέσω εφαρμογής. Παιδιά κάτω των 6
+        ταξιδεύουν δωρεάν. Φοιτητές και συνταξιούχοι έχουν ~30% έκπτωση με εγγεγραμμένη κάρτα.
       </p>
     ),
     s5Title: "Συχνές ερωτήσεις",
@@ -277,10 +280,34 @@ export const Route = createFileRoute("/guide/getting-around-cyprus")({
   component: GuidePage,
 });
 
-const POPULAR_ROUTES: { from: { en: string; el: string }; to: { en: string; el: string }; routeId: string; short: string; duration: string }[] = [
-  { from: { en: "Nicosia", el: "Λευκωσία" }, to: { en: "Limassol", el: "Λεμεσός" }, routeId: "50060011", short: "25", duration: "1h 10m" },
-  { from: { en: "Larnaca", el: "Λάρνακα" }, to: { en: "Nicosia", el: "Λευκωσία" }, routeId: "50070011", short: "42", duration: "45m" },
-  { from: { en: "Limassol", el: "Λεμεσός" }, to: { en: "Larnaca", el: "Λάρνακα" }, routeId: "50040012", short: "45", duration: "1h 05m" },
+const POPULAR_ROUTES: {
+  from: { en: string; el: string };
+  to: { en: string; el: string };
+  routeId: string;
+  short: string;
+  duration: string;
+}[] = [
+  {
+    from: { en: "Nicosia", el: "Λευκωσία" },
+    to: { en: "Limassol", el: "Λεμεσός" },
+    routeId: "50060011",
+    short: "25",
+    duration: "1h 10m",
+  },
+  {
+    from: { en: "Larnaca", el: "Λάρνακα" },
+    to: { en: "Nicosia", el: "Λευκωσία" },
+    routeId: "50070011",
+    short: "42",
+    duration: "45m",
+  },
+  {
+    from: { en: "Limassol", el: "Λεμεσός" },
+    to: { en: "Larnaca", el: "Λάρνακα" },
+    routeId: "50040012",
+    short: "45",
+    duration: "1h 05m",
+  },
 ];
 
 function GuidePage() {
@@ -393,7 +420,9 @@ function GuidePage() {
             className="mt-3 inline-flex items-baseline gap-3 font-display text-[28px] tracking-tight text-ink hover:text-aegean-deep"
           >
             {c.ctaLabel}
-            <span aria-hidden className="text-aegean">→</span>
+            <span aria-hidden className="text-aegean">
+              →
+            </span>
           </Link>
         </div>
       </article>
@@ -412,9 +441,7 @@ function Section({
 }) {
   return (
     <section className="mt-14">
-      <p className="font-eyebrow text-[10px] uppercase tracking-[0.26em] text-ink/40">
-        {eyebrow}
-      </p>
+      <p className="font-eyebrow text-[10px] uppercase tracking-[0.26em] text-ink/40">{eyebrow}</p>
       <h2 className="mt-2 font-display text-[26px] leading-tight tracking-tight text-ink">
         {title}
       </h2>

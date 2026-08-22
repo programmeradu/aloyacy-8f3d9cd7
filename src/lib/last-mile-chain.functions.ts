@@ -109,7 +109,10 @@ function chooseTrigger(
   return null;
 }
 
-function fareRange(distanceMeters: number, night: boolean): {
+function fareRange(
+  distanceMeters: number,
+  night: boolean,
+): {
   fareLow: number;
   fareHigh: number;
 } {
@@ -124,10 +127,7 @@ function fareRange(distanceMeters: number, night: boolean): {
   return { fareLow: round50(low), fareHigh: round50(high) };
 }
 
-function boltLink(
-  from: { lat: number; lng: number },
-  to: { lat: number; lng: number },
-): string {
+function boltLink(from: { lat: number; lng: number }, to: { lat: number; lng: number }): string {
   // Bolt's universal "request a ride" link. Falls back to the website
   // when the app isn't installed.
   const params = new URLSearchParams({
@@ -139,10 +139,7 @@ function boltLink(
   return `https://bolt.eu/o/${from.lat},${from.lng}/?${params.toString()}`;
 }
 
-function mapsLink(
-  from: { lat: number; lng: number },
-  to: { lat: number; lng: number },
-): string {
+function mapsLink(from: { lat: number; lng: number }, to: { lat: number; lng: number }): string {
   return `https://www.google.com/maps/dir/?api=1&origin=${from.lat},${from.lng}&destination=${to.lat},${to.lng}&travelmode=driving`;
 }
 

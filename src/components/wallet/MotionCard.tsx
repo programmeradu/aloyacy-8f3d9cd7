@@ -38,97 +38,97 @@ export function MotionCard({
         className="block w-full text-left"
         aria-label={hasCard ? t("wallet.cardEditAria") : t("wallet.cardAddAria")}
       >
-      <article
-        className="relative aspect-[1.586/1] w-full overflow-hidden rounded-[20px] ring-1 ring-ink/10 shadow-[0_24px_60px_-28px_rgba(8,28,40,0.4)] transition-transform duration-500 ease-out group-hover:-translate-y-0.5"
-        style={{ containerType: "inline-size" }}
-      >
-        <img
-          src={motionCardBase}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 size-full object-cover select-none pointer-events-none"
-          draggable={false}
-        />
-
-        {/* QR sits inside the printed photo square (top-right) */}
-        <div
-          className="absolute bg-white"
-          style={{ top: "17%", left: "58%", width: "36%", height: "56%", padding: "2.2%" }}
-          aria-label={t("wallet.qrAria")}
+        <article
+          className="relative aspect-[1.586/1] w-full overflow-hidden rounded-[20px] ring-1 ring-ink/10 shadow-[0_24px_60px_-28px_rgba(8,28,40,0.4)] transition-transform duration-500 ease-out group-hover:-translate-y-0.5"
+          style={{ containerType: "inline-size" }}
         >
-          {qrSvg ? (
-            <div
-              className="size-full [&_svg]:size-full"
-              dangerouslySetInnerHTML={{ __html: qrSvg }}
-            />
-          ) : (
-            <div className="size-full bg-ink/5" />
-          )}
-        </div>
+          <img
+            src={motionCardBase}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 size-full object-cover select-none pointer-events-none"
+            draggable={false}
+          />
 
-        {/* Holder name + tier — clean band just under the "BUS CARD" wordmark */}
-        <div className="absolute" style={{ top: "37%", left: "5%", right: "45%" }}>
-          <p
-            className="font-sans font-semibold truncate uppercase"
-            style={{
-              fontSize: "clamp(9px, 2.9cqw, 15px)",
-              color: hasCard ? "#9b1c1c" : "#9b1c1c80",
-              letterSpacing: "0.03em",
-              lineHeight: 1,
-            }}
+          {/* QR sits inside the printed photo square (top-right) */}
+          <div
+            className="absolute bg-white"
+            style={{ top: "17%", left: "58%", width: "36%", height: "56%", padding: "2.2%" }}
+            aria-label={t("wallet.qrAria")}
           >
-            {holderName}
-          </p>
-          <p
-            className="mt-[1.4cqw] font-sans font-medium uppercase truncate"
-            style={{
-              fontSize: "clamp(7px, 2.1cqw, 11px)",
-              color: "#1a2a6c",
-              letterSpacing: "0.06em",
-              lineHeight: 1,
-            }}
-          >
-            {tierLabel}
-          </p>
-        </div>
+            {qrSvg ? (
+              <div
+                className="size-full [&_svg]:size-full"
+                dangerouslySetInnerHTML={{ __html: qrSvg }}
+              />
+            ) : (
+              <div className="size-full bg-ink/5" />
+            )}
+          </div>
 
-        {/* Valid Until — directly under the printed "Ισχύει Μέχρι / Valid Until:" label */}
-        <div
-          className="absolute text-center"
-          style={{ top: "68%", left: "33%", width: "24%" }}
-        >
-          <p
-            className="font-mono font-semibold"
-            style={{
-              fontSize: "clamp(8px, 2.4cqw, 12px)",
-              color: "#1a2a6c",
-              letterSpacing: "0.04em",
-              lineHeight: 1,
-            }}
-          >
-            {validUntil}
-          </p>
-        </div>
+          {/* Holder name + tier — clean band just under the "BUS CARD" wordmark */}
+          <div className="absolute" style={{ top: "37%", left: "5%", right: "45%" }}>
+            <p
+              className="font-sans font-semibold truncate uppercase"
+              style={{
+                fontSize: "clamp(9px, 2.9cqw, 15px)",
+                color: hasCard ? "#9b1c1c" : "#9b1c1c80",
+                letterSpacing: "0.03em",
+                lineHeight: 1,
+              }}
+            >
+              {holderName}
+            </p>
+            <p
+              className="mt-[1.4cqw] font-sans font-medium uppercase truncate"
+              style={{
+                fontSize: "clamp(7px, 2.1cqw, 11px)",
+                color: "#1a2a6c",
+                letterSpacing: "0.06em",
+                lineHeight: 1,
+              }}
+            >
+              {tierLabel}
+            </p>
+          </div>
 
-        {/* Subtle gloss to sell the plastic */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(115deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 35%, rgba(255,255,255,0) 65%, rgba(255,255,255,0.12) 100%)",
-          }}
-        />
-      </article>
-      {!hasCard && (
-        <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          {t("wallet.tapToSetUp")}
-        </p>
-      )}
+          {/* Valid Until — directly under the printed "Ισχύει Μέχρι / Valid Until:" label */}
+          <div className="absolute text-center" style={{ top: "68%", left: "33%", width: "24%" }}>
+            <p
+              className="font-mono font-semibold"
+              style={{
+                fontSize: "clamp(8px, 2.4cqw, 12px)",
+                color: "#1a2a6c",
+                letterSpacing: "0.04em",
+                lineHeight: 1,
+              }}
+            >
+              {validUntil}
+            </p>
+          </div>
+
+          {/* Subtle gloss to sell the plastic */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(115deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 35%, rgba(255,255,255,0) 65%, rgba(255,255,255,0.12) 100%)",
+            }}
+          />
+        </article>
+        {!hasCard && (
+          <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+            {t("wallet.tapToSetUp")}
+          </p>
+        )}
       </button>
       {onScan && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onScan(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onScan();
+          }}
           aria-label="Scan card with camera"
           className="absolute top-3 right-3 z-10 flex size-10 items-center justify-center rounded-full bg-ink/85 text-limestone ring-1 ring-limestone/20 backdrop-blur-sm shadow-[0_8px_22px_-8px_rgba(8,28,40,0.55)] transition-transform hover:scale-105 active:scale-95"
         >

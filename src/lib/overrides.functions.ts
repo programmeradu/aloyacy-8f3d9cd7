@@ -44,4 +44,3 @@ export const logTripOverride = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
-

@@ -29,25 +29,26 @@ export function DisruptionBanner({
   }, [signal]);
   if (!signal) return null;
 
-  const palette = signal.kind === "vehicle-lost-feed"
-    ? {
-        wrap: "bg-limestone-soft ring-1 ring-line",
-        eyebrow: "text-ink-soft",
-      }
-    : signal.kind === "missed-connection"
+  const palette =
+    signal.kind === "vehicle-lost-feed"
       ? {
-          wrap: "bg-ochre-soft ring-1 ring-ochre/40",
-          eyebrow: "text-ochre",
+          wrap: "bg-limestone-soft ring-1 ring-line",
+          eyebrow: "text-ink-soft",
         }
-      : signal.kind === "connection-at-risk"
+      : signal.kind === "missed-connection"
         ? {
-            wrap: "bg-ochre-soft/60 ring-1 ring-ochre/30",
+            wrap: "bg-ochre-soft ring-1 ring-ochre/40",
             eyebrow: "text-ochre",
           }
-        : {
-            wrap: "bg-aegean-soft/50 ring-1 ring-aegean/30",
-            eyebrow: "text-aegean-deep",
-          };
+        : signal.kind === "connection-at-risk"
+          ? {
+              wrap: "bg-ochre-soft/60 ring-1 ring-ochre/30",
+              eyebrow: "text-ochre",
+            }
+          : {
+              wrap: "bg-aegean-soft/50 ring-1 ring-aegean/30",
+              eyebrow: "text-aegean-deep",
+            };
 
   const handleReplan = () => {
     track("ui:disruption.replan-tap", { kind: signal.kind });
@@ -69,9 +70,7 @@ export function DisruptionBanner({
         <p className="mt-1.5 font-display text-[20px] font-semibold leading-tight tracking-tight text-ink">
           {signal.title}
         </p>
-        <p className="mt-1 font-sans text-[13.5px] leading-relaxed text-ink-soft">
-          {signal.body}
-        </p>
+        <p className="mt-1 font-sans text-[13.5px] leading-relaxed text-ink-soft">{signal.body}</p>
         {signal.suggestReplan && (
           <button
             type="button"

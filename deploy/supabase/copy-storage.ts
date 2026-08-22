@@ -30,9 +30,7 @@ async function listAll(bucket: string, prefix = ""): Promise<string[]> {
   const out: string[] = [];
   let offset = 0;
   for (;;) {
-    const { data, error } = await source.storage
-      .from(bucket)
-      .list(prefix, { limit: 100, offset });
+    const { data, error } = await source.storage.from(bucket).list(prefix, { limit: 100, offset });
     if (error) throw new Error(`list ${bucket}/${prefix}: ${error.message}`);
     if (!data || data.length === 0) break;
 
@@ -72,9 +70,7 @@ for (const bucket of buckets ?? []) {
   console.log(`  ${paths.length} object(s)`);
 
   for (const path of paths) {
-    const { data: blob, error: dlErr } = await source.storage
-      .from(bucket.name)
-      .download(path);
+    const { data: blob, error: dlErr } = await source.storage.from(bucket.name).download(path);
     if (dlErr || !blob) {
       console.error(`  ✗ ${path} — download: ${dlErr?.message}`);
       failed++;

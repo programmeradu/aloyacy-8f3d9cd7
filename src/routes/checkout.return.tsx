@@ -6,10 +6,7 @@ import { track } from "@/lib/analytics";
 
 export const Route = createFileRoute("/checkout/return")({
   head: () => ({
-    meta: [
-      { title: "Welcome to Pro — Aloya" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: [{ title: "Welcome to Pro — Aloya" }, { name: "robots", content: "noindex, nofollow" }],
   }),
   validateSearch: (search: Record<string, unknown>) => ({
     session_id: typeof search.session_id === "string" ? search.session_id : undefined,
@@ -29,7 +26,11 @@ function CheckoutReturn() {
     fired.current = true;
     track("ui:pro.activated", { sessionRef: session_id?.slice(-12) });
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-      try { (navigator as Navigator).vibrate?.([8, 30, 12]); } catch { /* noop */ }
+      try {
+        (navigator as Navigator).vibrate?.([8, 30, 12]);
+      } catch {
+        /* noop */
+      }
     }
   }, [isPro, session_id]);
 

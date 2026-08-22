@@ -60,7 +60,7 @@ const SPEED_FLOOR_MPS = 0;
 const SPEED_CEILING_MPS = 14;
 
 function shortestArcEase(from: number, to: number, t: number): number {
-  let delta = ((to - from + 540) % 360) - 180;
+  const delta = ((to - from + 540) % 360) - 180;
   return (from + delta * t + 360) % 360;
 }
 
@@ -88,10 +88,7 @@ export class VehicleAnimator {
     this.lastTargetAt.set(t.id, t.recordedAt);
 
     const bearingTo = t.bearingDeg ?? 0;
-    const speed = Math.min(
-      SPEED_CEILING_MPS,
-      Math.max(0, t.speedMps ?? 0),
-    );
+    const speed = Math.min(SPEED_CEILING_MPS, Math.max(0, t.speedMps ?? 0));
     const existing = this.tracks.get(t.id);
     const now = performance.now();
     const from = existing
@@ -128,7 +125,10 @@ export class VehicleAnimator {
     };
   }
 
-  private poseAt(tr: Track, now: number): {
+  private poseAt(
+    tr: Track,
+    now: number,
+  ): {
     lat: number;
     lng: number;
     bearing: number;

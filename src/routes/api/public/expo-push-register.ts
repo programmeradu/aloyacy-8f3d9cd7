@@ -9,7 +9,11 @@ const CORS = {
 
 const schema = z.object({
   deviceId: z.string().min(8).max(128),
-  expoToken: z.string().min(10).max(256).regex(/^ExponentPushToken\[.+\]$|^ExpoPushToken\[.+\]$/),
+  expoToken: z
+    .string()
+    .min(10)
+    .max(256)
+    .regex(/^ExponentPushToken\[.+\]$|^ExpoPushToken\[.+\]$/),
   platform: z.enum(["ios", "android"]),
   appVersion: z.string().max(32).optional(),
 });
@@ -33,18 +37,16 @@ export const Route = createFileRoute("/api/public/expo-push-register")({
           });
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { error } = await supabaseAdmin
-          .from("expo_push_tokens")
-          .upsert(
-            {
-              device_id: parsed.data.deviceId,
-              expo_token: parsed.data.expoToken,
-              platform: parsed.data.platform,
-              app_version: parsed.data.appVersion ?? null,
-              last_seen_at: new Date().toISOString(),
-            },
-            { onConflict: "device_id" },
-          );
+        const { error } = await supabaseAdmin.from("expo_push_tokens").upsert(
+          {
+            device_id: parsed.data.deviceId,
+            expo_token: parsed.data.expoToken,
+            platform: parsed.data.platform,
+            app_version: parsed.data.appVersion ?? null,
+            last_seen_at: new Date().toISOString(),
+          },
+          { onConflict: "device_id" },
+        );
         if (error) {
           console.error("[expo-push-register]", error);
           return new Response("Server error", { status: 500, headers: CORS });

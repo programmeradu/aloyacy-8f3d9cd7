@@ -23,8 +23,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { distanceM } from "./geo";
 
-const FEED_URL =
-  "https://kapnos.ecoachmanager.com/coachtrip/api/trip-type-all";
+const FEED_URL = "https://kapnos.ecoachmanager.com/coachtrip/api/trip-type-all";
 
 const MAX_AIRPORT_WALK_M = 3_000; // airports are large; 3 km covers terminal+forecourt
 // Kapnos has only ONE coach stop per city (Nicosia/Larnaca/Paphos/Ayia Napa),
@@ -34,7 +33,7 @@ const MAX_AIRPORT_WALK_M = 3_000; // airports are large; 3 km covers terminal+fo
 // area; the card itself shows the walking distance so the rider can decide
 // whether to bus/taxi to the coach stop.
 const MAX_CITY_WALK_M = 10_000;
-const SUGGEST_COUNT = 3;          // next N departures
+const SUGGEST_COUNT = 3; // next N departures
 
 const CACHE_TTL_MS = 10 * 60_000;
 let cache: { at: number; data: KapnosRoute[] } | null = null;
@@ -61,8 +60,8 @@ export type KapnosDeparture = {
 
 export type KapnosRoute = {
   id: string;
-  code: string;           // "1AT000"
-  name: string;           // "LARNACA > NICOSIA"
+  code: string; // "1AT000"
+  name: string; // "LARNACA > NICOSIA"
   pickups: KapnosStop[];
   dropoffs: KapnosStop[];
   trips: Array<{
@@ -94,9 +93,7 @@ function addLocalSeconds(local: string, addSec: number): string {
   const pad = (n: number) => n.toString().padStart(2, "0");
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
     d.getUTCDate(),
-  )} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(
-    d.getUTCSeconds(),
-  )}`;
+  )} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
 }
 
 function nowCyprusLocal(): string {
@@ -157,18 +154,22 @@ export async function fetchKapnosRoutes(): Promise<KapnosRoute[]> {
         }))
         .filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lng));
       const tripListRaw =
-        ((r.trip_type_trips as Record<string, unknown> | undefined)
-          ?.tripList as Array<Record<string, unknown>> | undefined) ?? [];
+        ((r.trip_type_trips as Record<string, unknown> | undefined)?.tripList as
+          Array<Record<string, unknown>> | undefined) ?? [];
       const trips = tripListRaw.map((t) => ({
         tripId: String(t.trip_id ?? ""),
         departLocal: String(t.trip_datetime ?? ""),
         seatsAvailable: Number(t.seat_available ?? 0),
-        priceFromRaw: String(t.trip_prices && Array.isArray(t.trip_prices) && t.trip_prices[0]
-          ? (t.trip_prices[0] as Record<string, unknown>).price ?? ""
-          : ""),
-        priceFromFormatted: String(t.trip_prices && Array.isArray(t.trip_prices) && t.trip_prices[0]
-          ? (t.trip_prices[0] as Record<string, unknown>).price_formatted ?? ""
-          : String(r.trip_price_default ?? "")),
+        priceFromRaw: String(
+          t.trip_prices && Array.isArray(t.trip_prices) && t.trip_prices[0]
+            ? ((t.trip_prices[0] as Record<string, unknown>).price ?? "")
+            : "",
+        ),
+        priceFromFormatted: String(
+          t.trip_prices && Array.isArray(t.trip_prices) && t.trip_prices[0]
+            ? ((t.trip_prices[0] as Record<string, unknown>).price_formatted ?? "")
+            : String(r.trip_price_default ?? ""),
+        ),
       }));
       parsed.push({ id, code: code ?? id, name, pickups, dropoffs, trips });
     }
@@ -202,28 +203,35 @@ const Point = z.object({ lat: z.number(), lng: z.number() });
 function unixToCyprusLocal(unixSec: number): string {
   const fmt = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Asia/Nicosia",
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
     hour12: false,
   });
   return fmt.format(new Date(unixSec * 1000)).replace("T", " ");
 }
 
 export const suggestKapnos = createServerFn({ method: "POST" })
-  .inputValidator((input: {
-    from: { lat: number; lng: number };
-    to: { lat: number; lng: number };
-    /** Only return departures at/after this instant (unix seconds). */
-    afterUnix?: number;
-    /** Only return departures at/before this instant (unix seconds). */
-    beforeUnix?: number;
-  }) =>
-    z.object({
-      from: Point,
-      to: Point,
-      afterUnix: z.number().optional(),
-      beforeUnix: z.number().optional(),
-    }).parse(input),
+  .inputValidator(
+    (input: {
+      from: { lat: number; lng: number };
+      to: { lat: number; lng: number };
+      /** Only return departures at/after this instant (unix seconds). */
+      afterUnix?: number;
+      /** Only return departures at/before this instant (unix seconds). */
+      beforeUnix?: number;
+    }) =>
+      z
+        .object({
+          from: Point,
+          to: Point,
+          afterUnix: z.number().optional(),
+          beforeUnix: z.number().optional(),
+        })
+        .parse(input),
   )
   .handler(async ({ data }) => {
     const routes = await fetchKapnosRoutes();
@@ -232,13 +240,9 @@ export const suggestKapnos = createServerFn({ method: "POST" })
     // Honor the rider's requested time. If they asked to leave at 7am, never
     // surface the 1am coach. We still floor at "now" so past departures
     // (relative to wall-clock) are filtered out.
-    const afterLocal = data.afterUnix
-      ? unixToCyprusLocal(data.afterUnix)
-      : nowLocal;
+    const afterLocal = data.afterUnix ? unixToCyprusLocal(data.afterUnix) : nowLocal;
     const cutoffLocal = afterLocal > nowLocal ? afterLocal : nowLocal;
-    const beforeLocal = data.beforeUnix
-      ? unixToCyprusLocal(data.beforeUnix)
-      : undefined;
+    const beforeLocal = data.beforeUnix ? unixToCyprusLocal(data.beforeUnix) : undefined;
 
     type Candidate = {
       route: KapnosRoute;
@@ -258,14 +262,9 @@ export const suggestKapnos = createServerFn({ method: "POST" })
           const pkDistFromOrigin = distanceM(data.from, pk);
           const drDistToDest = distanceM(data.to, dr);
           const airportSide = pk.isAirport ? "pickup" : "dropoff";
-          const airportWalk =
-            airportSide === "pickup" ? pkDistFromOrigin : drDistToDest;
-          const cityWalk =
-            airportSide === "pickup" ? drDistToDest : pkDistFromOrigin;
-          if (
-            airportWalk <= MAX_AIRPORT_WALK_M &&
-            cityWalk <= MAX_CITY_WALK_M
-          ) {
+          const airportWalk = airportSide === "pickup" ? pkDistFromOrigin : drDistToDest;
+          const cityWalk = airportSide === "pickup" ? drDistToDest : pkDistFromOrigin;
+          if (airportWalk <= MAX_AIRPORT_WALK_M && cityWalk <= MAX_CITY_WALK_M) {
             candidates.push({
               route,
               pickup: pk,

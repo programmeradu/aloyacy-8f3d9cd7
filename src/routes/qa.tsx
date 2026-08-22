@@ -13,10 +13,7 @@ import { useRealtime } from "@/lib/useRealtime";
 export const Route = createFileRoute("/qa")({
   component: QaPage,
   head: () => ({
-    meta: [
-      { title: "Aloya QA" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: [{ title: "Aloya QA" }, { name: "robots", content: "noindex, nofollow" }],
   }),
 });
 
@@ -54,9 +51,7 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
         <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ink-soft">
           Restricted
         </p>
-        <h1 className="mt-3 font-display text-4xl text-ink leading-none">
-          QA console
-        </h1>
+        <h1 className="mt-3 font-display text-4xl text-ink leading-none">QA console</h1>
         <p className="mt-3 text-[13px] text-ink-soft">
           Phase machine telemetry. Enter the access phrase.
         </p>
@@ -104,9 +99,7 @@ function Dashboard() {
             <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ink-soft">
               Internal · Aloya
             </p>
-            <h1 className="mt-2 font-display text-5xl text-ink leading-none">
-              QA console
-            </h1>
+            <h1 className="mt-2 font-display text-5xl text-ink leading-none">QA console</h1>
             <p className="mt-2 text-[13px] text-ink-soft">
               Phase transitions, prompt coverage, and missed-bus false positives.
             </p>
@@ -172,12 +165,7 @@ function DashboardBody({ data }: { data: QaStats }) {
           sub={`${data.totals.missedBusFalsePositives} / ${data.totals.missedBusEvents} miss events`}
           tone={data.totals.falsePositivePct <= 10 ? "olive" : "terracotta"}
         />
-        <Stat
-          label="Window"
-          value={`${data.windowDays}d`}
-          sub="rolling"
-          tone="aegean"
-        />
+        <Stat label="Window" value={`${data.windowDays}d`} sub="rolling" tone="aegean" />
       </section>
 
       <section className="px-6 pt-12">
@@ -222,8 +210,8 @@ function DashboardBody({ data }: { data: QaStats }) {
                         r.coveragePct >= 80
                           ? "text-olive-soft"
                           : r.coveragePct >= 50
-                          ? "text-ochre"
-                          : "text-ochre"
+                            ? "text-ochre"
+                            : "text-ochre"
                       }
                     >
                       {r.promptsShown ? `${r.coveragePct}%` : "—"}
@@ -250,7 +238,10 @@ function DashboardBody({ data }: { data: QaStats }) {
               <p className="p-5 text-[13px] text-ink-soft">Nothing flagged.</p>
             )}
             {data.phaseErrorBreakdown.map((p) => (
-              <div key={`${p.from}-${p.to}`} className="flex items-center justify-between px-4 py-3">
+              <div
+                key={`${p.from}-${p.to}`}
+                className="flex items-center justify-between px-4 py-3"
+              >
                 <span className="font-mono text-[12px] text-ink">
                   {p.from} → <span className="text-ochre">{p.to}</span>
                 </span>
@@ -263,9 +254,7 @@ function DashboardBody({ data }: { data: QaStats }) {
         <div>
           <Heading kicker="Stream" title="Recent events" />
           <div className="mt-5 rounded-2xl ring-1 ring-line bg-card max-h-[420px] overflow-y-auto divide-y divide-line/60">
-            {data.recent.length === 0 && (
-              <p className="p-5 text-[13px] text-ink-soft">Empty.</p>
-            )}
+            {data.recent.length === 0 && <p className="p-5 text-[13px] text-ink-soft">Empty.</p>}
             {data.recent.map((r, i) => (
               <div key={i} className="px-4 py-3">
                 <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
@@ -307,18 +296,13 @@ function BusGlideStressTest() {
   const liveCount = rt?.vehicles.length ?? 0;
   return (
     <section className="px-6 pt-12">
-      <Heading
-        kicker="Stress test"
-        title="Bus glide telemetry — live feed"
-      />
+      <Heading kicker="Stress test" title="Bus glide telemetry — live feed" />
       <p className="mt-3 text-[13px] text-ink-soft max-w-2xl">
-        Every animated vehicle on the map. The overlay shows ping age (ochre
-        when {">"} 30s), animation mode (path = gliding on the GTFS shape,
-        lerp = straight-line fallback), smoothed speed, distance covered along
-        the path, and any active prediction correction. Watch for: ping ages
-        that never reset, lerp-mode buses that should be on-path, or sustained
-        correction values which indicate the feed and our model are
-        disagreeing.
+        Every animated vehicle on the map. The overlay shows ping age (ochre when {">"} 30s),
+        animation mode (path = gliding on the GTFS shape, lerp = straight-line fallback), smoothed
+        speed, distance covered along the path, and any active prediction correction. Watch for:
+        ping ages that never reset, lerp-mode buses that should be on-path, or sustained correction
+        values which indicate the feed and our model are disagreeing.
       </p>
       <div className="mt-5 grid grid-cols-3 gap-4">
         <Stat
@@ -333,12 +317,7 @@ function BusGlideStressTest() {
           sub="proxied via /api/public/realtime"
           tone="olive"
         />
-        <Stat
-          label="Animation"
-          value="60fps"
-          sub="rAF tween + dead-reckon"
-          tone="olive"
-        />
+        <Stat label="Animation" value="60fps" sub="rAF tween + dead-reckon" tone="olive" />
       </div>
       <div className="mt-5">
         <MapPreview
@@ -372,12 +351,8 @@ function Stat({
   }[tone];
   return (
     <div className="rounded-2xl bg-card ring-1 ring-line p-5">
-      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-        {label}
-      </p>
-      <p className={`mt-3 font-display text-5xl leading-none ${toneText}`}>
-        {value}
-      </p>
+      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">{label}</p>
+      <p className={`mt-3 font-display text-5xl leading-none ${toneText}`}>{value}</p>
       <p className="mt-2 text-[12px] text-ink-soft">{sub}</p>
     </div>
   );
@@ -386,9 +361,7 @@ function Stat({
 function Heading({ kicker, title }: { kicker: string; title: string }) {
   return (
     <div>
-      <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ink-soft">
-        {kicker}
-      </p>
+      <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ink-soft">{kicker}</p>
       <h2 className="mt-2 font-display text-3xl text-ink leading-tight">{title}</h2>
     </div>
   );
@@ -415,9 +388,7 @@ function HourGrid({ rows }: { rows: QaStats["byHour"] }) {
                 <div className="absolute top-1 left-1 size-1.5 rounded-full bg-ochre" />
               )}
             </div>
-            <p className="font-mono text-[9px] text-ink-soft">
-              {String(r.hour).padStart(2, "0")}
-            </p>
+            <p className="font-mono text-[9px] text-ink-soft">{String(r.hour).padStart(2, "0")}</p>
             <p className="font-mono text-[9px] text-ink">
               {r.promptsShown ? `${r.coveragePct}%` : "—"}
             </p>

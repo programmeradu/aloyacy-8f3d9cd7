@@ -9,27 +9,31 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const planLegSchema = z.object({
-  kind: z.string().min(1).max(32),
-  routeId: z.string().max(64).optional(),
-  routeShort: z.string().max(16).optional(),
-  board: z.unknown().optional(),
-  alight: z.unknown().optional(),
-  from: z.unknown().optional(),
-  to: z.unknown().optional(),
-  durationSec: z.number().int().min(0).max(86_400).optional(),
-}).passthrough();
+const planLegSchema = z
+  .object({
+    kind: z.string().min(1).max(32),
+    routeId: z.string().max(64).optional(),
+    routeShort: z.string().max(16).optional(),
+    board: z.unknown().optional(),
+    alight: z.unknown().optional(),
+    from: z.unknown().optional(),
+    to: z.unknown().optional(),
+    durationSec: z.number().int().min(0).max(86_400).optional(),
+  })
+  .passthrough();
 
-const planSchema = z.object({
-  fromLabel: z.string().min(1).max(160),
-  toLabel: z.string().min(1).max(160),
-  fromLat: z.number(),
-  fromLng: z.number(),
-  toLat: z.number(),
-  toLng: z.number(),
-  legs: z.array(planLegSchema).min(1).max(10),
-  leaveByUnix: z.number().int().min(0),
-}).passthrough();
+const planSchema = z
+  .object({
+    fromLabel: z.string().min(1).max(160),
+    toLabel: z.string().min(1).max(160),
+    fromLat: z.number(),
+    fromLng: z.number(),
+    toLat: z.number(),
+    toLng: z.number(),
+    legs: z.array(planLegSchema).min(1).max(10),
+    leaveByUnix: z.number().int().min(0),
+  })
+  .passthrough();
 
 const scheduleSchema = z.object({
   arriveByUnix: z.number().int().min(0),

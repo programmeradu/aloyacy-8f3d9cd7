@@ -77,9 +77,10 @@ function buildTransitObject(
       value: cardNumber,
       alternateText: cardNumber,
     },
-    textModulesData: balance !== undefined
-      ? [{ header: "Balance", body: `€${balance.toFixed(2)}`, id: "balance" }]
-      : [],
+    textModulesData:
+      balance !== undefined
+        ? [{ header: "Balance", body: `€${balance.toFixed(2)}`, id: "balance" }]
+        : [],
   };
 }
 
@@ -143,25 +144,25 @@ export const Route = createFileRoute("/api/public/wallet/pass")({
         const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID;
         const saJson = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_JSON;
         if (!issuerId || !saJson) {
-          return new Response(
-            JSON.stringify({ error: "Google Wallet not configured" }),
-            { status: 503, headers: { ...CORS, "content-type": "application/json" } },
-          );
+          return new Response(JSON.stringify({ error: "Google Wallet not configured" }), {
+            status: 503,
+            headers: { ...CORS, "content-type": "application/json" },
+          });
         }
 
         try {
           const sa = parseServiceAccount(saJson);
           const jwt = await mintGoogleWalletJwt(sa, issuerId, cardNumber, holderName, balance);
-          return new Response(
-            JSON.stringify({ url: `https://pay.google.com/gp/v/save/${jwt}` }),
-            { status: 200, headers: { ...CORS, "content-type": "application/json" } },
-          );
+          return new Response(JSON.stringify({ url: `https://pay.google.com/gp/v/save/${jwt}` }), {
+            status: 200,
+            headers: { ...CORS, "content-type": "application/json" },
+          });
         } catch (err) {
           console.error("[wallet/pass] Google Wallet sign failed", err);
-          return new Response(
-            JSON.stringify({ error: "Failed to mint wallet pass" }),
-            { status: 500, headers: { ...CORS, "content-type": "application/json" } },
-          );
+          return new Response(JSON.stringify({ error: "Failed to mint wallet pass" }), {
+            status: 500,
+            headers: { ...CORS, "content-type": "application/json" },
+          });
         }
       },
     },

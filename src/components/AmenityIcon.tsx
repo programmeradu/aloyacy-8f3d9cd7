@@ -27,10 +27,7 @@ export function AmenityIcon({ kind }: { kind: AmenityKey }) {
       aria-label={label}
       className="inline-flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft leading-none"
     >
-      <span
-        aria-hidden
-        className="h-2.5 w-px bg-aegean-deep/70"
-      />
+      <span aria-hidden className="h-2.5 w-px bg-aegean-deep/70" />
       {label}
     </span>
   );

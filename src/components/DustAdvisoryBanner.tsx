@@ -53,7 +53,8 @@ export function DustAdvisoryBanner({ advisory }: { advisory: DustAdvisory }) {
           <p className="mt-1.5 text-[13px] leading-snug text-ink-soft text-pretty">{advice}</p>
           {advisory.pm10 != null && (
             <p className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
-              PM10 {Math.round(advisory.pm10)} µg/m³ · {isEl ? advisory.zoneLabelEl : advisory.zoneLabel}
+              PM10 {Math.round(advisory.pm10)} µg/m³ ·{" "}
+              {isEl ? advisory.zoneLabelEl : advisory.zoneLabel}
             </p>
           )}
         </div>
@@ -65,13 +66,7 @@ export function DustAdvisoryBanner({ advisory }: { advisory: DustAdvisory }) {
 /** Bespoke 40×40 mark — a sun veiled by horizontal dust strata. */
 function SunThroughHaze({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 40 40"
-      width={40}
-      height={40}
-      className={className}
-      aria-hidden
-    >
+    <svg viewBox="0 0 40 40" width={40} height={40} className={className} aria-hidden>
       <circle cx="20" cy="18" r="9" fill="var(--color-ochre)" opacity="0.85" />
       <g stroke="var(--color-ochre)" strokeWidth="1.6" strokeLinecap="round" opacity="0.55">
         <line x1="4" y1="14" x2="36" y2="14" />

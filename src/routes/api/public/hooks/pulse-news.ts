@@ -22,9 +22,11 @@ function json(body: unknown, status = 200) {
 async function guard(request: Request): Promise<Response | null> {
   const apikey = request.headers.get("apikey");
   const legacy =
-    request.headers.get("x-cron-secret") ??
-    new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey = apikey && apikey === (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+    request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
+  const validApiKey =
+    apikey &&
+    apikey ===
+      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
   const validLegacy = legacy && process.env.CRON_SECRET && legacy === process.env.CRON_SECRET;
   if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
@@ -57,8 +59,8 @@ const PayloadSchema = z.object({
 });
 
 const FEEDS: Array<{ name: string; url: string; category: string | null }> = [
-  { name: "Cyprus Mail",  url: "https://cyprus-mail.com/feed/",          category: null },
-  { name: "in-cyprus",    url: "https://in-cyprus.philenews.com/feed/",  category: null },
+  { name: "Cyprus Mail", url: "https://cyprus-mail.com/feed/", category: null },
+  { name: "in-cyprus", url: "https://in-cyprus.philenews.com/feed/", category: null },
 ];
 
 async function ingest() {
@@ -111,21 +113,19 @@ async function ingest() {
     fetchedAt,
   });
 
-  const { error } = await supabaseAdmin
-    .from("pulse_signals")
-    .upsert(
-      [
-        {
-          key: "news",
-          scope: "island",
-          source: "rss",
-          payload: payload as unknown as Record<string, unknown>,
-          ttl_seconds: 1800,
-          fetched_at: fetchedAt,
-        },
-      ] as never,
-      { onConflict: "key,scope" },
-    );
+  const { error } = await supabaseAdmin.from("pulse_signals").upsert(
+    [
+      {
+        key: "news",
+        scope: "island",
+        source: "rss",
+        payload: payload as unknown as Record<string, unknown>,
+        ttl_seconds: 1800,
+        fetched_at: fetchedAt,
+      },
+    ] as never,
+    { onConflict: "key,scope" },
+  );
 
   if (error) return json({ ok: false, error: error.message }, 500);
   return json({ ok: true, count: items.length, sources: sourcesOk, errors });
@@ -134,12 +134,16 @@ async function ingest() {
 // Minimal RSS 2.0 / Atom parser — no DOM, no XML library (Worker-safe).
 // Pulls <item> blocks and extracts title, link, pubDate, category.
 function parseRss(xml: string, source: string, fallbackCategory: string | null): Item[] {
-  const blocks = xml.match(/<item\b[\s\S]*?<\/item>/gi) ?? xml.match(/<entry\b[\s\S]*?<\/entry>/gi) ?? [];
+  const blocks =
+    xml.match(/<item\b[\s\S]*?<\/item>/gi) ?? xml.match(/<entry\b[\s\S]*?<\/entry>/gi) ?? [];
   const out: Item[] = [];
   for (const block of blocks) {
     const title = unwrap(pick(block, "title"));
     const link = unwrap(pick(block, "link")) || linkHref(block);
-    const pub = unwrap(pick(block, "pubDate")) || unwrap(pick(block, "published")) || unwrap(pick(block, "updated"));
+    const pub =
+      unwrap(pick(block, "pubDate")) ||
+      unwrap(pick(block, "published")) ||
+      unwrap(pick(block, "updated"));
     const category = unwrap(pick(block, "category")) || fallbackCategory;
     if (!title || !link) continue;
     const publishedAt = pub ? new Date(pub).toISOString() : new Date().toISOString();

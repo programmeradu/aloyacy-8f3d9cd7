@@ -17,7 +17,8 @@ export function AccessibilityPrefsCard() {
   const shadeId = useId();
 
   const currentCap = prefs.maxWalkMeters;
-  const capIndex = currentCap == null ? -1 : WALK_CAP_STEPS.indexOf(currentCap as typeof WALK_CAP_STEPS[number]);
+  const capIndex =
+    currentCap == null ? -1 : WALK_CAP_STEPS.indexOf(currentCap as (typeof WALK_CAP_STEPS)[number]);
   const capOn = currentCap != null;
 
   const decCap = () => {
@@ -127,7 +128,6 @@ function StepBtn({
     </button>
   );
 }
-
 
 function Toggle({
   id,

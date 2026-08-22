@@ -104,11 +104,7 @@ export function TurnStep({
         disabled={!canOpenViewer}
         onClick={() => canOpenViewer && setViewerOpen(true)}
         className="group relative block aspect-[16/9] w-full bg-limestone-soft text-left disabled:cursor-default"
-        aria-label={
-          canOpenViewer
-            ? t("walk.openStreetView", { instruction })
-            : instruction
-        }
+        aria-label={canOpenViewer ? t("walk.openStreetView", { instruction }) : instruction}
       >
         {svFailed ? (
           <MapPreview
@@ -151,9 +147,7 @@ export function TurnStep({
         <span className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
           {last ? t("walk.arrive") : t("walk.then")}
         </span>
-        <p className="flex-1 font-display text-lg leading-snug text-ink">
-          {instruction}
-        </p>
+        <p className="flex-1 font-display text-lg leading-snug text-ink">{instruction}</p>
       </div>
       <StreetViewSheet
         open={viewerOpen}

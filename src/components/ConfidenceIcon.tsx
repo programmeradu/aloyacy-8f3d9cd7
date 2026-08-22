@@ -57,7 +57,9 @@ export function ConfidenceIcon({
   const tone = BAR_TONE[confidence];
   const dim = "text-ink-soft/25";
   const dims =
-    size === "md" ? { w: 14, h: 12, gap: 2, bars: [4, 7, 10] } : { w: 11, h: 10, gap: 1.5, bars: [3, 6, 9] };
+    size === "md"
+      ? { w: 14, h: 12, gap: 2, bars: [4, 7, 10] }
+      : { w: 11, h: 10, gap: 1.5, bars: [3, 6, 9] };
 
   return (
     <span

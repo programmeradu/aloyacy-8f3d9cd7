@@ -146,8 +146,12 @@ export const planMultiLeg = createServerFn({ method: "POST" })
 
     const livePromise: Promise<LiveR> =
       mode === "live" || mode === "both"
-        ? planMultiLegJourney(data.from, data.to, { collectDiagnostics: data.debug ?? false })
-            .catch((e: unknown) => { console.warn("[multileg] live failed:", (e as Error).message); return null; })
+        ? planMultiLegJourney(data.from, data.to, {
+            collectDiagnostics: data.debug ?? false,
+          }).catch((e: unknown) => {
+            console.warn("[multileg] live failed:", (e as Error).message);
+            return null;
+          })
         : Promise.resolve(null);
     let noScheduleAvailable = false;
     let requestedDate: string | undefined;
@@ -163,17 +167,16 @@ export const planMultiLeg = createServerFn({ method: "POST" })
                   date: data.arriveByUnix ? localDateForUnix(data.arriveByUnix) : undefined,
                 }
               : undefined,
-          )
-            .catch((e: unknown) => {
-              if (e instanceof NoScheduleAvailableError) {
-                noScheduleAvailable = true;
-                requestedDate = e.date;
-                console.warn("[multileg] no schedule shard for", e.date);
-                return null;
-              }
-              console.warn("[multileg] scheduled failed:", (e as Error).message);
+          ).catch((e: unknown) => {
+            if (e instanceof NoScheduleAvailableError) {
+              noScheduleAvailable = true;
+              requestedDate = e.date;
+              console.warn("[multileg] no schedule shard for", e.date);
               return null;
-            })
+            }
+            console.warn("[multileg] scheduled failed:", (e as Error).message);
+            return null;
+          })
         : Promise.resolve(null);
 
     const [liveResult, schedResult] = await Promise.all([livePromise, schedPromise]);

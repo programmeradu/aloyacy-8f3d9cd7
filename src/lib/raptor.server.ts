@@ -138,13 +138,14 @@ export async function planRaptor(
   diag.destStopCount = dests.length;
   diag.nearestOriginStopKm = origins[0]?.distKm ?? null;
   diag.nearestDestStopKm = dests[0]?.distKm ?? null;
-  if (origins.length === 0) diag.reasons.push(`No schedule stop within ${MAX_ACCESS_WALK_KM}km of origin`);
-  if (dests.length === 0) diag.reasons.push(`No schedule stop within ${MAX_EGRESS_WALK_KM}km of destination`);
+  if (origins.length === 0)
+    diag.reasons.push(`No schedule stop within ${MAX_ACCESS_WALK_KM}km of origin`);
+  if (dests.length === 0)
+    diag.reasons.push(`No schedule stop within ${MAX_EGRESS_WALK_KM}km of destination`);
   if (origins.length === 0 || dests.length === 0) return { itineraries: [], diagnostics: diag };
 
   const destSet = new Map<string, { stop: ScheduleStop; id: string; distKm: number }>();
   for (const d of dests) destSet.set(d.id, { id: d.id, stop: d.stop, distKm: d.distKm });
-
 
   // Spatial bucket index for nearby-stop lookups (cheap walk transfers).
   // Bucket by 0.005° (~500m at Cyprus); a stop and its neighbours fall in
@@ -160,7 +161,11 @@ export async function planRaptor(
   for (const o of origins) {
     const walkSec = walkSecFromMeters(o.distKm * 1000);
     const arr = departureUnix + walkSec;
-    labels[0].set(o.id, { kind: "access", arrivalUnix: arr, meters: Math.round(o.distKm * 1000 * WALK_DETOUR) });
+    labels[0].set(o.id, {
+      kind: "access",
+      arrivalUnix: arr,
+      meters: Math.round(o.distKm * 1000 * WALK_DETOUR),
+    });
     bestArrival.set(o.id, arr);
   }
 
@@ -276,16 +281,7 @@ export async function planRaptor(
       const label = labels[k].get(destStopId);
       if (!label || label.kind !== "ride") continue;
       // Reconstruct
-      const it = reconstruct(
-        labels,
-        k,
-        destStopId,
-        destMeta,
-        schedule,
-        from,
-        to,
-        departureUnix,
-      );
+      const it = reconstruct(labels, k, destStopId, destMeta, schedule, from, to, departureUnix);
       if (it) itineraries.push(it);
     }
   }
