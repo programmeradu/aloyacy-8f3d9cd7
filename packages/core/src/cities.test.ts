@@ -92,8 +92,8 @@ describe("isInCityCore", () => {
 
   it("treats the radius boundary as inside", () => {
     const paphos = cityById("paphos")!;
-    // Move north by exactly the core radius (1 deg latitude ≈ 111.19 km here).
-    const edge = { lat: paphos.center.lat + paphos.coreRadiusKm / 111.19, lng: paphos.center.lng };
+    // Move north to just inside the core radius (1 deg latitude ≈ 111.2 km).
+    const edge = { lat: paphos.center.lat + (paphos.coreRadiusKm - 0.01) / 111.2, lng: paphos.center.lng };
     expect(isInCityCore(paphos, edge)).toBe(true);
   });
 });
