@@ -21,7 +21,10 @@ export const Route = createFileRoute("/qa")({
 });
 
 const STORAGE_KEY = "aloya-qa-unlocked";
-const PASSWORD = "opensesame";
+// Shared passphrase for the internal console. Configured per-environment via
+// VITE_QA_PASSPHRASE — never hardcoded. When it is unset the gate stays shut,
+// so a fork or a misconfigured deploy cannot expose the dashboard by default.
+const PASSPHRASE = import.meta.env["VITE_QA_PASSPHRASE"] as string | undefined;
 
 function QaPage() {
   const [unlocked, setUnlocked] = useState(false);
@@ -38,7 +41,7 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
   const [error, setError] = useState(false);
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (value === PASSWORD) {
+    if (PASSPHRASE && value === PASSPHRASE) {
       window.sessionStorage.setItem(STORAGE_KEY, "1");
       onUnlock();
     } else {

@@ -1,0 +1,42 @@
+# Changelog
+
+All notable changes to Aloya are documented here. Format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Automated test suite (Vitest) covering the pure domain layer: geo maths and
+  polyline snapping, freshness classification, journey phases, the Cyprus city
+  catalogue, ETA copy formatting, Motion card formatting and static GTFS
+  lookups.
+- Continuous integration on every push and pull request: lint, typecheck,
+  tests with coverage, and a production build.
+- `GET /api/public/health` — per-dependency health probe returning `200` when
+  healthy and `503` when degraded.
+- Root `Dockerfile` and `docker-compose.yml` for a self-contained local stack
+  (web app plus PostGIS), wired to the health endpoint.
+- `README.md` covering architecture, repository layout, the full environment
+  variable table, testing and deployment; plus `CONTRIBUTING.md`.
+- `.env.example` and `mobile/.env.example` templates.
+
+### Changed
+- The `/qa` console passphrase now comes from `VITE_QA_PASSPHRASE`; when the
+  variable is unset the console stays locked.
+- The mobile web map reads its Google Maps browser key from
+  `EXPO_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` and fails with an actionable message
+  when it is missing.
+
+### Removed
+- Hardcoded credentials and sample keys from tracked source, and one-off
+  scratch scripts that embedded database connection strings.
+
+### Security
+- All `.env*` files are gitignored; secrets are supplied per environment.
+
+## [1.0.0]
+
+Initial public release: live arrivals for the Nicosia and intercity GTFS
+feeds, multi-leg trip planning, journey guidance, group trips with shared live
+positions, Aloya Pro, Motion card wallet, and the Expo mobile app.
