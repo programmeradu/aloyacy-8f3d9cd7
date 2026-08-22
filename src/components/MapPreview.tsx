@@ -266,9 +266,9 @@ export function MapPreview({
       m.setCenter(center);
       m.setZoom(spanToZoom(spanKm));
     }
-  // center.lat/lng are depended on individually so a new object identity from
-  // the parent does not re-pan the map on every render.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // center.lat/lng are depended on individually so a new object identity from
+    // the parent does not re-pan the map on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center.lat, center.lng, spanKm, polyline, markers, fitToContent]);
 
   // Draw polyline + markers
@@ -655,9 +655,9 @@ export function MapPreview({
     } else {
       userHereRef.current.update(userLocation);
     }
-  // The overlay is imperatively updated from the ref; re-running on every
-  // userLocation identity change would rebuild the marker each GPS tick.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // The overlay is imperatively updated from the ref; re-running on every
+    // userLocation identity change would rebuild the marker each GPS tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     api,
     userLocation?.lat,
@@ -687,7 +687,7 @@ export function MapPreview({
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       busLayerRef.current.forEach((b) => b.destroy());
       // Layer refs are torn down exactly once on unmount; reading .current in the
-  // cleanup is the intended lifetime here.
+      // cleanup is the intended lifetime here.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       busLayerRef.current.clear();
       userHereRef.current?.destroy();

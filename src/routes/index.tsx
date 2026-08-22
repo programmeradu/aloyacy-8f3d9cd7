@@ -223,9 +223,9 @@ function Explore() {
         amenities: getStopAmenities(s.id),
       };
     });
-  // `tt` is the i18n translator and is stable for a given locale, which is
-  // already captured through the other dependencies.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // `tt` is the i18n translator and is stable for a given locale, which is
+    // already captured through the other dependencies.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rt, nearStops, learnedByStop, riderConfirmedAge, headsignsReady]);
 
   // Nearby landmark chips — actual stops within range, clickable to stop page
