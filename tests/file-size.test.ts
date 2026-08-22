@@ -138,9 +138,7 @@ describe("file size ceiling", () => {
 
   it("keeps every new source file under the 400-line ratchet", () => {
     const offenders = files
-      .filter(
-        (file) => !isTest(file) && !(file in ALLOWLIST) && !LEGACY_OVER_RATCHET.has(file),
-      )
+      .filter((file) => !isTest(file) && !(file in ALLOWLIST) && !LEGACY_OVER_RATCHET.has(file))
       .map((file) => ({
         file,
         lines: readFileSync(path.join(repoRoot, file), "utf8").split("\n").length,
