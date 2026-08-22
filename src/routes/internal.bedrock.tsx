@@ -181,7 +181,7 @@ function BedrockTestPage() {
               rows={3}
               spellCheck={false}
               className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs"
-              placeholder="AKIAXXXXXXXXXXXXXXXX:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY:sa-east-1"
+              placeholder="<access-key-id>:<secret-access-key>:<region>"
             />
             {parsedPreview && (parsedPreview.accessKeyId || parsedPreview.secretAccessKey) && (
               <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
