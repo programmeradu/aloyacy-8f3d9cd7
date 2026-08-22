@@ -74,6 +74,11 @@ declare global {
 function loadMaps(): Promise<typeof google> {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
   if (window.google?.maps) return Promise.resolve(window.google);
+  if (!KEY) {
+    return Promise.reject(
+      new Error("Missing EXPO_PUBLIC_GOOGLE_MAPS_BROWSER_KEY — see mobile/.env.example"),
+    );
+  }
   if (window.__aloyaGmapsPromise) return window.__aloyaGmapsPromise;
   window.__aloyaGmapsPromise = new Promise((resolve, reject) => {
     window.__aloyaGmapsInit = async () => {
