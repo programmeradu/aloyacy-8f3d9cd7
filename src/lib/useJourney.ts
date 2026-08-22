@@ -500,6 +500,8 @@ export function useJourney(opts: {
 
       rerouteHint,
     };
+  // `tick` is a deliberate 1s heartbeat that forces countdown recomputation.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     active,
     bus,
