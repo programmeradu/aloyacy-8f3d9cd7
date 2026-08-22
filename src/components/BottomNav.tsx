@@ -1,7 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  IconCompass, IconRoute, IconWaves, IconOlive, IconTicket,
-  IconCompassFilled, IconRouteFilled, IconWavesFilled, IconOliveFilled, IconTicketFilled,
+  IconCompass,
+  IconRoute,
+  IconWaves,
+  IconOlive,
+  IconTicket,
+  IconCompassFilled,
+  IconRouteFilled,
+  IconWavesFilled,
+  IconOliveFilled,
+  IconTicketFilled,
 } from "./Icons";
 import { useI18n, type DictKey } from "@/lib/i18n";
 
@@ -10,7 +18,12 @@ const items = [
   { to: "/trips", labelKey: "nav.trips" as DictKey, Icon: IconRoute, IconActive: IconRouteFilled },
   { to: "/pulse", labelKey: "nav.pulse" as DictKey, Icon: IconWaves, IconActive: IconWavesFilled },
   { to: "/saved", labelKey: "nav.saved" as DictKey, Icon: IconOlive, IconActive: IconOliveFilled },
-  { to: "/wallet", labelKey: "nav.pass" as DictKey, Icon: IconTicket, IconActive: IconTicketFilled },
+  {
+    to: "/wallet",
+    labelKey: "nav.pass" as DictKey,
+    Icon: IconTicket,
+    IconActive: IconTicketFilled,
+  },
 ] as const;
 
 export function BottomNav() {
@@ -22,8 +35,7 @@ export function BottomNav() {
       <div className="pointer-events-auto w-full max-w-[400px]">
         <div className="relative flex items-center justify-between rounded-[30px] bg-white px-2 py-2 ring-1 ring-black/[0.06] shadow-[0_1px_0_0_rgba(255,255,255,0.9)_inset,0_-0.5px_0_0_rgba(0,0,0,0.04)_inset,0_2px_3px_-1px_rgba(28,30,26,0.06),0_8px_16px_-6px_rgba(28,30,26,0.18),0_24px_44px_-12px_rgba(28,30,26,0.28)]">
           {items.map(({ to, labelKey, Icon, IconActive }) => {
-            const active =
-              to === "/" ? pathname === "/" : pathname.startsWith(to);
+            const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
             const Glyph = active ? IconActive : Icon;
             return (
               <Link

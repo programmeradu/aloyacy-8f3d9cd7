@@ -52,9 +52,7 @@ function isInLovablePreview(): boolean {
   }
   const h = window.location.hostname;
   return (
-    h.includes("id-preview--") ||
-    h.includes("lovableproject.com") ||
-    h.includes("lovable.dev")
+    h.includes("id-preview--") || h.includes("lovableproject.com") || h.includes("lovable.dev")
   );
 }
 
@@ -66,7 +64,7 @@ function recentlyDismissed(): boolean {
 }
 
 export function InstallPrompt() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [bipEvent, setBipEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const ios = isIOS();
@@ -194,17 +192,13 @@ export function InstallPrompt() {
               <Step
                 n={2}
                 label={
-                  el
-                    ? "Επίλεξε «Στην οθόνη Αφετηρίας»"
-                    : "Choose \u201CAdd to Home Screen\u201D"
+                  el ? "Επίλεξε «Στην οθόνη Αφετηρίας»" : "Choose \u201CAdd to Home Screen\u201D"
                 }
                 glyph={<HomeGlyph />}
               />
               <Step
                 n={3}
-                label={
-                  el ? "Πάτησε «Προσθήκη» πάνω δεξιά" : "Tap \u201CAdd\u201D in the top right"
-                }
+                label={el ? "Πάτησε «Προσθήκη» πάνω δεξιά" : "Tap \u201CAdd\u201D in the top right"}
                 glyph={<AddGlyph />}
               />
             </ol>
@@ -221,8 +215,8 @@ export function InstallPrompt() {
                     ? "Εγκατάσταση Aloya"
                     : "Install Aloya"
                   : el
-                  ? "Πώς να εγκαταστήσω"
-                  : "Show me how"}
+                    ? "Πώς να εγκαταστήσω"
+                    : "Show me how"}
               </button>
             )}
             <button
@@ -254,7 +248,17 @@ function Step({ n, label, glyph }: { n: number; label: string; glyph: React.Reac
 
 function ShareGlyph() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M12 3v12" />
       <path d="m8 7 4-4 4 4" />
       <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
@@ -263,7 +267,17 @@ function ShareGlyph() {
 }
 function HomeGlyph() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <rect x="4" y="4" width="16" height="16" rx="4" />
       <path d="M12 8v8M8 12h8" />
     </svg>
@@ -271,7 +285,17 @@ function HomeGlyph() {
 }
 function AddGlyph() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M12 5v14M5 12h14" />
     </svg>
   );

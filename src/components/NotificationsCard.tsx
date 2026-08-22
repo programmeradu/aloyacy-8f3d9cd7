@@ -73,7 +73,6 @@ export function NotificationsCard() {
     }
   }
 
-
   async function enable() {
     setPending(true);
     setMessage(null);
@@ -97,7 +96,6 @@ export function NotificationsCard() {
     } catch (e) {
       console.error(e);
       setMessage(t("notif.msg.errEnable"));
-
     } finally {
       setPending(false);
     }
@@ -134,7 +132,6 @@ export function NotificationsCard() {
     } catch (e) {
       console.error(e);
       setMessage(e instanceof Error ? e.message : t("notif.msg.errTest"));
-
     } finally {
       setPending(false);
     }
@@ -158,7 +155,6 @@ export function NotificationsCard() {
     on: { line: t("notif.line.on"), tone: "olive" as const },
   }[status];
 
-
   return (
     <article className="relative overflow-hidden rounded-[28px] bg-paper ring-1 ring-line">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aegean/40 to-transparent" />
@@ -175,7 +171,8 @@ export function NotificationsCard() {
               {t("notif.kicker")}
             </p>
             <h3 className="font-display text-2xl mt-1 text-ink">
-              {t("notif.title1")} <span className="italic text-aegean-deep">{t("notif.title2")}</span>
+              {t("notif.title1")}{" "}
+              <span className="italic text-aegean-deep">{t("notif.title2")}</span>
             </h3>
           </div>
           <span
@@ -184,7 +181,11 @@ export function NotificationsCard() {
               isOn ? "text-olive" : status === "denied" ? "text-ochre" : "text-ink-soft",
             ].join(" ")}
           >
-            {isOn ? t("notif.status.live") : status === "denied" ? t("notif.status.blocked") : t("notif.status.off")}
+            {isOn
+              ? t("notif.status.live")
+              : status === "denied"
+                ? t("notif.status.blocked")
+                : t("notif.status.off")}
           </span>
         </div>
 
@@ -302,11 +303,7 @@ export function NotificationsCard() {
             { k: "02", t: t("notif.feat.stop.t"), d: t("notif.feat.stop.d") },
             { k: "03", t: t("notif.feat.delay.t"), d: t("notif.feat.delay.d") },
           ].map((x) => (
-
-            <li
-              key={x.k}
-              className="rounded-2xl bg-limestone/60 px-4 py-3 ring-1 ring-line/60"
-            >
+            <li key={x.k} className="rounded-2xl bg-limestone/60 px-4 py-3 ring-1 ring-line/60">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
                 {x.k}
               </p>

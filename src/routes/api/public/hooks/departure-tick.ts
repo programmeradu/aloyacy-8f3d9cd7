@@ -32,7 +32,8 @@ function json(body: unknown, status = 200) {
 }
 
 function guard(request: Request) {
-  const expected = (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+  const expected =
+    import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY;
   const provided = request.headers.get("apikey");
   if (expected && provided !== expected) {
     return json({ ok: false, error: "Unauthorized" }, 401);
@@ -169,10 +170,7 @@ async function tick(request: Request) {
     const firstRoute = plan.legs?.find((l) => l.routeShort)?.routeShort;
     const minutesUntil = Math.max(0, Math.round((row.arrive_by_unix - nowUnix) / 60));
     const adj = plan.adjustment;
-    const bodyExtra =
-      adj && adj.extraSec >= 60 && adj.reasonShort
-        ? ` ${adj.reasonShort}.`
-        : "";
+    const bodyExtra = adj && adj.extraSec >= 60 && adj.reasonShort ? ` ${adj.reasonShort}.` : "";
     const payload = {
       title: `Time to head out${firstRoute ? ` — BUS ${firstRoute}` : ""}`,
       body: `Leave now to reach ${plan.toLabel ?? "your destination"} on time (~${minutesUntil} min).${bodyExtra}`,

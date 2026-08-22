@@ -143,8 +143,7 @@ export async function getOrCreatePushSubscription(): Promise<
     };
   }
 
-  const reg =
-    (await navigator.serviceWorker.getRegistration()) || (await registerServiceWorker());
+  const reg = (await navigator.serviceWorker.getRegistration()) || (await registerServiceWorker());
   if (!reg) return { ok: false, reason: "Service worker not available." };
   await navigator.serviceWorker.ready;
 

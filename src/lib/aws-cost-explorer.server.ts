@@ -42,10 +42,7 @@ const CE_URL = `https://${CE_HOST}/`;
  * Calls CostExplorer GetCostAndUsage. Returns totals + groups per time bucket.
  * Note: Cost Explorer is billed at ~$0.01 per request — cache aggressively.
  */
-export async function ceGetCostAndUsage(
-  creds: CeCreds,
-  q: CeQuery,
-): Promise<CeResultByTime[]> {
+export async function ceGetCostAndUsage(creds: CeCreds, q: CeQuery): Promise<CeResultByTime[]> {
   const metric = q.metric ?? "UnblendedCost";
   const body = JSON.stringify({
     TimePeriod: { Start: q.start, End: q.end },
@@ -77,7 +74,9 @@ export async function ceGetCostAndUsage(
     try {
       const j = JSON.parse(text);
       msg = j.Message || j.message || j.__type || msg;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     throw new Error(`Cost Explorer ${res.status}: ${msg}`);
   }
 
@@ -95,9 +94,7 @@ export async function ceGetCostAndUsage(
       const m = g.Metrics[metric];
       return { keys: g.Keys, amount: Number(m?.Amount ?? 0), unit: m?.Unit ?? "USD" };
     });
-    const total = totalObj
-      ? Number(totalObj.Amount)
-      : groups.reduce((a, b) => a + b.amount, 0);
+    const total = totalObj ? Number(totalObj.Amount) : groups.reduce((a, b) => a + b.amount, 0);
     return { start: r.TimePeriod.Start, end: r.TimePeriod.End, total, groups };
   });
 }

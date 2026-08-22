@@ -3,15 +3,14 @@
 // for end-to-end tax compliance. Safe to run multiple times — idempotent.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import {
-  type StripeEnv,
-  createStripeClient,
-  getStripeErrorMessage,
-} from "./stripe.server";
+import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "./stripe.server";
 
 const Input = z.object({
   environment: z.enum(["sandbox", "live"]),
-  taxCode: z.string().regex(/^txcd_[a-zA-Z0-9]+$/).default("txcd_10103001"),
+  taxCode: z
+    .string()
+    .regex(/^txcd_[a-zA-Z0-9]+$/)
+    .default("txcd_10103001"),
 });
 
 type Result =

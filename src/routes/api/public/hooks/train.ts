@@ -27,7 +27,8 @@ function json(body: unknown, status = 200) {
 }
 
 function guard(request: Request) {
-  const expected = (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
+  const expected =
+    import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY;
   const provided = request.headers.get("apikey");
   if (expected && provided !== expected) {
     return json({ ok: false, error: "Unauthorized" }, 401);
@@ -39,8 +40,8 @@ export const Route = createFileRoute("/api/public/hooks/train")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
-      GET: async ({ request }) => (await runFromRequest(request)),
-      POST: async ({ request }) => (await runFromRequest(request)),
+      GET: async ({ request }) => await runFromRequest(request),
+      POST: async ({ request }) => await runFromRequest(request),
     },
   },
 });
@@ -168,7 +169,8 @@ async function rollupSegmentRuntimes(): Promise<number> {
     if (!ride?.board || !ride?.alight) continue;
     const first = arr[0];
     const last = arr[arr.length - 1];
-    const elapsedSec = (new Date(last.reported_at).getTime() - new Date(first.reported_at).getTime()) / 1000;
+    const elapsedSec =
+      (new Date(last.reported_at).getTime() - new Date(first.reported_at).getTime()) / 1000;
     if (elapsedSec < 30 || elapsedSec > 5400) continue;
     const d = new Date(first.reported_at);
     await blendStat(
@@ -203,8 +205,15 @@ async function rollupDwellTimes(): Promise<number> {
   if (!fixes || fixes.length < 2) return 0;
 
   // Group consecutive low-speed fixes per trip into dwell windows.
-  const dwells: Array<{ route: string; trip: string; lat: number; lng: number; sec: number; at: string }> = [];
-  let cur: typeof fixes[number] | null = null;
+  const dwells: Array<{
+    route: string;
+    trip: string;
+    lat: number;
+    lng: number;
+    sec: number;
+    at: string;
+  }> = [];
+  let cur: (typeof fixes)[number] | null = null;
   let curStart: number | null = null;
   let curTrip: string | null = null;
   for (const f of fixes) {
@@ -329,7 +338,10 @@ async function rollupCrowding(): Promise<number> {
     .gte("reported_at", since)
     .limit(20000);
   if (!data) return 0;
-  const buckets = new Map<string, { route: string; trip: string; window: string; devices: Set<string> }>();
+  const buckets = new Map<
+    string,
+    { route: string; trip: string; window: string; devices: Set<string> }
+  >();
   for (const r of data) {
     const d = new Date(r.reported_at);
     d.setUTCMinutes(Math.floor(d.getUTCMinutes() / 5) * 5, 0, 0);

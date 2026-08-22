@@ -36,9 +36,7 @@ function fmtDateChip(s: string, locale: string): string {
   }).format(new Date());
   if (today === date) return "";
   const [tY, tM, tD] = today.split("-").map((n) => parseInt(n, 10));
-  const diffDays = Math.round(
-    (Date.UTC(Y, M - 1, D) - Date.UTC(tY, tM - 1, tD)) / 86_400_000,
-  );
+  const diffDays = Math.round((Date.UTC(Y, M - 1, D) - Date.UTC(tY, tM - 1, tD)) / 86_400_000);
   if (diffDays === 1) return locale === "el" ? "αύριο" : "tomorrow";
   return new Intl.DateTimeFormat(locale === "el" ? "el-CY" : "en-GB", {
     day: "numeric",
@@ -72,9 +70,7 @@ function MiniItinerary({ itin }: { itin: Itinerary }) {
             className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-aegean-deep tabular-nums"
           >
             {r.routeShort}
-            {i < rides.length - 1 ? (
-              <span className="ml-2 text-ink-soft">→</span>
-            ) : null}
+            {i < rides.length - 1 ? <span className="ml-2 text-ink-soft">→</span> : null}
           </span>
         ))}
         <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft tabular-nums">
@@ -83,9 +79,7 @@ function MiniItinerary({ itin }: { itin: Itinerary }) {
       </div>
       <p className="font-sans text-[12px] leading-snug text-ink-soft">
         {rides.length > 0
-          ? `${shortStop(rides[0].board.name)} → ${shortStop(
-              rides[rides.length - 1].alight.name,
-            )}`
+          ? `${shortStop(rides[0].board.name)} → ${shortStop(rides[rides.length - 1].alight.name)}`
           : (() => {
               const w = itin.legs.find((l): l is WalkLeg => l.kind === "walk");
               return w ? `${shortStop(w.from.name)} → ${shortStop(w.to.name)}` : "";
@@ -147,15 +141,9 @@ export function KapnosShuttleCard({
       {/* Headline summary line — next coach, condensed */}
       <div className="rounded-2xl bg-aegean-soft/40 px-3.5 py-2.5 flex items-baseline justify-between gap-3 flex-wrap">
         <div className="flex items-baseline gap-2 min-w-0">
-          <span className="font-display text-[18px] text-ink tabular-nums">
-            {nextDepart}
-          </span>
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            →
-          </span>
-          <span className="font-display text-[18px] text-ink tabular-nums">
-            {nextArrive}
-          </span>
+          <span className="font-display text-[18px] text-ink tabular-nums">{nextDepart}</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">→</span>
+          <span className="font-display text-[18px] text-ink tabular-nums">{nextArrive}</span>
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
             {rideMin} min
           </span>
@@ -213,9 +201,7 @@ export function KapnosShuttleCard({
                 stop: shortStop(suggestion.pickup.name),
               })}
             </span>
-            <span className="chev font-mono text-[10px] text-ink-soft transition-transform">
-              ▾
-            </span>
+            <span className="chev font-mono text-[10px] text-ink-soft transition-transform">▾</span>
           </summary>
           <div className="mt-2.5">
             {firstMileLoading ? (
@@ -258,9 +244,7 @@ export function KapnosShuttleCard({
                 stop: shortStop(suggestion.dropoff.name),
               })}
             </span>
-            <span className="chev font-mono text-[10px] text-ink-soft transition-transform">
-              ▾
-            </span>
+            <span className="chev font-mono text-[10px] text-ink-soft transition-transform">▾</span>
           </summary>
           <div className="mt-2.5">
             {lastMileLoading ? (
@@ -300,9 +284,7 @@ export function KapnosShuttleCard({
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
             {t("kapnos.moreLabel")}
           </span>
-          <span className="chev font-mono text-[10px] text-ink-soft transition-transform">
-            ▾
-          </span>
+          <span className="chev font-mono text-[10px] text-ink-soft transition-transform">▾</span>
         </summary>
         <div className="mt-3 flex flex-col gap-3">
           <ul className="flex flex-col rounded-2xl ring-1 ring-line/60 divide-y divide-line/40">
@@ -330,16 +312,10 @@ export function KapnosShuttleCard({
                   </div>
                   <span
                     className={`font-mono text-[9.5px] uppercase tracking-[0.18em] tabular-nums ${
-                      sold
-                        ? "text-red-700"
-                        : seatsLow
-                          ? "text-ochre-deep"
-                          : "text-ink-soft"
+                      sold ? "text-red-700" : seatsLow ? "text-ochre-deep" : "text-ink-soft"
                     }`}
                   >
-                    {sold
-                      ? t("kapnos.soldOut")
-                      : t("kapnos.seatsLeft", { n: d.seatsAvailable })}
+                    {sold ? t("kapnos.soldOut") : t("kapnos.seatsLeft", { n: d.seatsAvailable })}
                   </span>
                 </li>
               );

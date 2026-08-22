@@ -1,5 +1,5 @@
-import * as React from 'react'
-import { Button, Text } from '@react-email/components'
+import * as React from "react";
+import { Button, Text } from "@react-email/components";
 import {
   Layout,
   bodyText,
@@ -8,18 +8,15 @@ import {
   ctaWrap,
   fineprint,
   inlineLink,
-} from './_layout'
+} from "./_layout";
 
 interface InviteEmailProps {
-  siteName: string
-  siteUrl: string
-  confirmationUrl: string
+  siteName: string;
+  siteUrl: string;
+  confirmationUrl: string;
 }
 
-export const InviteEmail = ({
-  siteUrl,
-  confirmationUrl,
-}: InviteEmailProps) => (
+export const InviteEmail = ({ siteUrl, confirmationUrl }: InviteEmailProps) => (
   <Layout
     preview="You've been invited to Aloya."
     eyebrow="Personal invitation"
@@ -28,8 +25,8 @@ export const InviteEmail = ({
     heroAlt="Cream postcard tied with twine and a bougainvillea bloom"
   >
     <Text style={bodyText}>
-      Someone thought you'd love Aloya — and we agree. Accept the
-      invite to set up your account in under a minute.
+      Someone thought you'd love Aloya — and we agree. Accept the invite to set up your account in
+      under a minute.
     </Text>
 
     <div style={ctaWrap}>
@@ -39,7 +36,7 @@ export const InviteEmail = ({
     </div>
 
     <Text style={bodyTextMuted}>
-      Curious first?{' '}
+      Curious first?{" "}
       <a href={siteUrl} style={inlineLink}>
         Have a look at aloya.cy
       </a>
@@ -50,10 +47,8 @@ export const InviteEmail = ({
       </a>
     </Text>
 
-    <Text style={fineprint}>
-      Not expecting an invitation? You can safely ignore this email.
-    </Text>
+    <Text style={fineprint}>Not expecting an invitation? You can safely ignore this email.</Text>
   </Layout>
-)
+);
 
-export default InviteEmail
+export default InviteEmail;

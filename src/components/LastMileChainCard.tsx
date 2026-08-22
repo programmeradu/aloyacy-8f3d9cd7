@@ -21,11 +21,7 @@ function fmtEur(n: number): string {
   return n >= 10 ? `€${Math.round(n)}` : `€${n.toFixed(1).replace(/\.0$/, "")}`;
 }
 
-export function LastMileChainCard({
-  suggestion,
-}: {
-  suggestion: LastMileChainSuggestion;
-}) {
+export function LastMileChainCard({ suggestion }: { suggestion: LastMileChainSuggestion }) {
   const { t } = useI18n();
 
   const driveMin = fmtMin(suggestion.drivingSec);
@@ -45,9 +41,7 @@ export function LastMileChainCard({
       ? t("chain.titleAfterHours", { name: suggestion.toName || t("chain.toFallback") })
       : t("chain.titleLongWalk", { name: suggestion.toName || t("chain.toFallback") });
 
-  const tariffNote = suggestion.isNightRate
-    ? t("chain.tariffNight")
-    : t("chain.tariffDay");
+  const tariffNote = suggestion.isNightRate ? t("chain.tariffNight") : t("chain.tariffDay");
 
   return (
     <article className="rounded-[28px] bg-card ring-1 ring-line p-5 flex flex-col gap-4 animate-rise">
@@ -60,9 +54,7 @@ export function LastMileChainCard({
         </p>
       </header>
 
-      <h3 className="font-display text-[22px] leading-[1.15] text-ink text-balance">
-        {headline}
-      </h3>
+      <h3 className="font-display text-[22px] leading-[1.15] text-ink text-balance">{headline}</h3>
 
       {suggestion.fromName && (
         <p className="-mt-2 text-[13px] text-ink-soft leading-relaxed">

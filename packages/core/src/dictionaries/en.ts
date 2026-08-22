@@ -25,7 +25,8 @@ export const en = {
   "trip.live": "Live companion",
   "trip.endTrip": "End trip",
   "trip.ended.title": "Trip ended",
-  "trip.ended.body": "You're back to the planner. Pick a starting point and a destination to begin a new journey — we'll guide you door-to-door with live countdowns and a gentle nudge when it's time to step off.",
+  "trip.ended.body":
+    "You're back to the planner. Pick a starting point and a destination to begin a new journey — we'll guide you door-to-door with live countdowns and a gentle nudge when it's time to step off.",
   "trip.planNew": "Plan a new trip",
   "trip.yourJourney": "Your journey",
   "trip.minTotal": "{m} min total",
@@ -65,18 +66,22 @@ export const en = {
   "trip.sub.arrived": "You're {m} min from {name}. Mind the path.",
   "trip.alight.press": "Press the stop button now",
   "trip.alight.getReady": "Get ready — {m} min",
-  "trip.alight.body.now": "Pull the cord, head to the doors. We'll guide you turn-by-turn to {name} once you're off.",
-  "trip.alight.body.soon": "Move toward the doors and find the stop button. {m} min walk waits on the other side.",
+  "trip.alight.body.now":
+    "Pull the cord, head to the doors. We'll guide you turn-by-turn to {name} once you're off.",
+  "trip.alight.body.soon":
+    "Move toward the doors and find the stop button. {m} min walk waits on the other side.",
 
   // JourneyHUD (single-leg)
   "hud.liveGuidance": "Live guidance",
   "hud.startTitle": "Start the journey to {name}.",
-  "hud.startBody": "We'll follow your steps, nudge you to hurry if the bus is close, let you know when you reach the stop, and guide you off at the right moment.",
+  "hud.startBody":
+    "We'll follow your steps, nudge you to hurry if the bus is close, let you know when you reach the stop, and guide you off at the right moment.",
   "hud.startCta": "Start journey",
   "hud.hurry.urgentTitle": "Hurry — bus is arriving",
   "hud.hurry.softTitle": "Pick up the pace",
   "hud.hurry.headline": "{board} to bus — {walk} on foot",
-  "hud.hurry.urgentBody": "You will miss it at your current pace. Quicken up or we'll find the next one.",
+  "hud.hurry.urgentBody":
+    "You will miss it at your current pace. Quicken up or we'll find the next one.",
   "hud.hurry.softBody": "It's going to be tight. Keep moving and you'll just catch it.",
   "hud.walking.toDest": "Walking to destination",
   "hud.walking.toStop": "Walking to stop",
@@ -92,13 +97,15 @@ export const en = {
   "hud.board.missed": "Missed it",
   "hud.missed.label": "The bus has left",
   "hud.missed.title": "Let's find the next one.",
-  "hud.missed.body": "We'll re-plan from where you are now, including nearby stops that might have an earlier ride to {name}.",
+  "hud.missed.body":
+    "We'll re-plan from where you are now, including nearby stops that might have an earlier ride to {name}.",
   "hud.missed.finding": "Finding…",
   "hud.missed.find": "Find next ride",
   "hud.missed.err": "No nearby options. Try again in a moment.",
   "hud.riding.label": "On board — BUS {code}",
   "hud.riding.headline": "Off in {min} at {name}.",
-  "hud.riding.lost": "Feed lost the bus, so we're using your phone as the bus and keeping the stop countdown on your movement.",
+  "hud.riding.lost":
+    "Feed lost the bus, so we're using your phone as the bus and keeping the stop countdown on your movement.",
   "hud.riding.calm": "Sit back. We'll buzz when it's time to press the stop button.",
   "hud.riding.imOff": "I'm off",
   "hud.arrived.label": "You've arrived",
@@ -110,7 +117,8 @@ export const en = {
   "ml.changesN": "{n} changes",
   "ml.rideOfN": "{label} — ride {n} of {total}",
   "ml.boardingAdjusted": "Boarding adjusted",
-  "ml.boardingAdjustedBody": "You're closer to {name}. Same bus stops here — board from this stop instead.",
+  "ml.boardingAdjustedBody":
+    "You're closer to {name}. Same bus stops here — board from this stop instead.",
   "ml.differentStop": "Different stop",
   "ml.replanFromHere": "Re-plan from here",
   "ml.tracking": "Tracking live — we'll buzz when you need to act.",
@@ -159,7 +167,8 @@ export const en = {
   "ml.sub.finalWalk": "{m} min on foot to {name}.",
   "ml.sub.welcome": "Welcome to {name}.",
   "ml.act.startTitle": "Start the journey to {name}.",
-  "ml.act.startBody": "We will walk you to the first stop, alert you when each bus is approaching, prompt you off at the right moment, and guide every transfer.",
+  "ml.act.startBody":
+    "We will walk you to the first stop, alert you when each bus is approaching, prompt you off at the right moment, and guide every transfer.",
   "ml.act.startCta": "Start journey",
   "ml.act.onBoardQ": "On board bus {code}?",
   "ml.act.onBoardBody": "Tap when you're seated — we'll switch to ride mode and watch for {name}.",
@@ -168,7 +177,8 @@ export const en = {
   "ml.act.imOff": "I'm off",
   "ml.act.finalLabel": "Final stretch — {m} min on foot",
   "ml.act.finalTitle": "Walking to {name}.",
-  "ml.act.finalBody": "We'll close the trip automatically when you arrive — or tap below the moment you're at the door.",
+  "ml.act.finalBody":
+    "We'll close the trip automatically when you arrive — or tap below the moment you're at the door.",
   "ml.act.imHere": "I'm here",
   "ml.walk.toFirst": "Walk to the first stop",
   "ml.walk.toBus": "Walk to bus {code}",
@@ -237,8 +247,7 @@ export const en = {
 
   "welcome.card.eyebrow": "Your Motion card",
   "welcome.card.title": "Add your card to see your balance at a glance.",
-  "welcome.card.body":
-    "Optional — and only stored on your device unless you upgrade later.",
+  "welcome.card.body": "Optional — and only stored on your device unless you upgrade later.",
   "welcome.card.placeholder": "16-digit Motion card",
   "welcome.card.cta": "Save card",
   "welcome.card.skip": "Skip",
@@ -265,8 +274,7 @@ export const en = {
   "privacy.rights.body":
     "You can clear your local data at any time from the browser. To delete your cloud account, write to hello@aloya.cy and we will remove all rows associated with your user id within 30 days.",
   "privacy.section.contact": "Contact",
-  "privacy.contact.body":
-    "Aloya, Nicosia, Cyprus. Reach the team at hello@aloya.cy.",
+  "privacy.contact.body": "Aloya, Nicosia, Cyprus. Reach the team at hello@aloya.cy.",
 
   // terms
   "terms.title": "Terms",
@@ -290,8 +298,7 @@ export const en = {
   "terms.changes.body":
     "We may update these terms when the service changes. Material changes are announced in the app at least 14 days before they take effect.",
   "terms.section.law": "Governing law",
-  "terms.law.body":
-    "These terms are governed by the laws of the Republic of Cyprus.",
+  "terms.law.body": "These terms are governed by the laws of the Republic of Cyprus.",
 
   // stop card (shared)
   "stopCard.code": "Stop {code}",
@@ -322,7 +329,8 @@ export const en = {
   "stop.headedTo": "Headed to",
   "stop.nextDepartures": "Next departures",
   "stop.heroEyebrow": "At this stop",
-  "stop.heroNote": "Live ETA fused from operator feeds, fresh vehicle pings, and rider sightings — surfaced as one honest number per departure.",
+  "stop.heroNote":
+    "Live ETA fused from operator feeds, fresh vehicle pings, and rider sightings — surfaced as one honest number per departure.",
 
   // route detail page
   "route.overview": "Route overview",
@@ -368,16 +376,17 @@ export const en = {
   "route.origin": "origin",
   "route.stopN": "stop {n}",
   "route.stopsAppearTitle": "Stops appear when the line is active",
-  "route.stopsAppearBody": "The operator publishes stop sequences alongside live trips. When the first bus of the day reports in, we'll show the full line here.",
+  "route.stopsAppearBody":
+    "The operator publishes stop sequences alongside live trips. When the first bus of the day reports in, we'll show the full line here.",
   "route.due": "due",
   "route.minShort": "{m} min",
   "route.hourMin": "{h}h {m}m",
 
   // trips (planner)
   "trips.kicker": "Door to door",
- "trips.titlePrefix": "Tell us",
- "trips.titleEmph": "where",
- "trips.titleSuffix": "We'll find the way.",
+  "trips.titlePrefix": "Tell us",
+  "trips.titleEmph": "where",
+  "trips.titleSuffix": "We'll find the way.",
   "trips.from": "From",
   "trips.to": "To",
   "trips.detecting": "Detecting your location…",
@@ -396,12 +405,15 @@ export const en = {
   "trips.statusIdle": "Idle",
   "trips.emptyTitleA": "Where would you like to go?",
   "trips.emptyTitleB": "Pick a starting point and a destination, anywhere on the island.",
-  "trips.emptyBody": "We'll walk you to the nearest stop, board a real bus from the live feed, and walk you to the front door. No more guessing which line passes by.",
+  "trips.emptyBody":
+    "We'll walk you to the nearest stop, board a real bus from the live feed, and walk you to the front door. No more guessing which line passes by.",
   "trips.noScheduleTitle": "No timetable for that date",
-  "trips.noScheduleBody": "We don't have published bus schedules for {date} yet. Timetables are loaded for the next 14 days — try a date inside that window.",
+  "trips.noScheduleBody":
+    "We don't have published bus schedules for {date} yet. Timetables are loaded for the next 14 days — try a date inside that window.",
   "trips.noScheduleDay": "that day",
   "trips.noRouteTitle": "No live route found",
-  "trips.noRouteBody": "We couldn't see a bus serving both your start and end stops in the next hour. Try a destination closer to a known route, or check again in a few minutes.",
+  "trips.noRouteBody":
+    "We couldn't see a bus serving both your start and end stops in the next hour. Try a destination closer to a known route, or check again in a few minutes.",
   "trips.learnedFromPast": "Learned from your past trips",
   "trips.startThis": "Start this trip",
   "trips.fasterOne": "1 faster route with transfers",
@@ -426,7 +438,8 @@ export const en = {
   "pnr.openDrive": "Open driving directions",
   "pnr.eyebrowTraffic": "Park & ride — {m} min faster right now",
   "pnr.whyLabel": "Why we're suggesting this",
-  "pnr.whyTrafficLine": "Live traffic is making the direct drive {delay} min slower than usual ({pct}%). Driving in would take about {direct} min right now.",
+  "pnr.whyTrafficLine":
+    "Live traffic is making the direct drive {delay} min slower than usual ({pct}%). Driving in would take about {direct} min right now.",
   "pnr.evLabel": "EV charging on site",
   "pnr.evLine": "{count} {kind} bays up to {kw} kW — {network}",
   "pnr.evKindAc": "AC",
@@ -515,12 +528,14 @@ export const en = {
   "kapnos.coachLeg": "Kapnos coach — {m} min nonstop",
   "kapnos.firstMile.title": "Plan bus to {stop}",
   "kapnos.firstMile.loading": "Planning your bus to the coach stop…",
-  "kapnos.firstMile.none": "No direct city bus found — taxi or rideshare to the coach stop is your best bet.",
+  "kapnos.firstMile.none":
+    "No direct city bus found — taxi or rideshare to the coach stop is your best bet.",
   "kapnos.firstMile.openPlan": "Open full plan to coach stop",
   "kapnos.firstMile.tapHint": "Tap to open full directions",
   "kapnos.lastMile.title": "Plan bus from {stop}",
   "kapnos.lastMile.loading": "Planning your bus onward…",
-  "kapnos.lastMile.none": "No direct city bus from the coach stop — taxi or rideshare is your best bet.",
+  "kapnos.lastMile.none":
+    "No direct city bus from the coach stop — taxi or rideshare is your best bet.",
   "kapnos.lastMile.openPlan": "Open full plan from coach stop",
   "kapnos.lastMile.tapHint": "Tap to open full directions",
   "kapnos.moreLabel": "More departures & booking",
@@ -541,9 +556,6 @@ export const en = {
   "traffic.source": "From the national road-alerts feed",
   "traffic.updated": "Updated {when}",
 
-
-
-
   // saved
   "saved.kicker": "Your atlas",
   "saved.titlePrefix": "The places that",
@@ -553,7 +565,8 @@ export const en = {
   "saved.heroBody": "Pin a place once. Plan a trip to it from any screen, instantly.",
   "saved.pinned": "Pinned",
   "saved.noPinsTitle": "No pins yet",
-  "saved.noPinsBody": "Plan a trip and pin the destination, or pick one from your recent journeys below.",
+  "saved.noPinsBody":
+    "Plan a trip and pin the destination, or pick one from your recent journeys below.",
   "saved.planTrip": "Plan a trip",
   "saved.unpin": "Unpin",
   "saved.recent": "Recent",
@@ -569,10 +582,13 @@ export const en = {
   "wallet.back": "Back",
   "wallet.titlePrefix": "Your card,",
   "wallet.titleEmph": "always with you.",
-  "wallet.bodyHasCard": "Tap your balance to update it after a top-up. Scan the QR at any Motion vending kiosk to pull up your card.",
-  "wallet.bodyEmpty": "Add your Motion bus card number and we'll keep it ready — balance, history, and a scan-ready QR for the kiosk.",
+  "wallet.bodyHasCard":
+    "Tap your balance to update it after a top-up. Scan the QR at any Motion vending kiosk to pull up your card.",
+  "wallet.bodyEmpty":
+    "Add your Motion bus card number and we'll keep it ready — balance, history, and a scan-ready QR for the kiosk.",
   "wallet.addCardCta": "Add my Motion card",
-  "wallet.addCardNote": "Your card details live only on this device. We don't send them anywhere — at least not until you ask us to.",
+  "wallet.addCardNote":
+    "Your card details live only on this device. We don't send them anywhere — at least not until you ask us to.",
   "wallet.tapToSetUp": "Tap the card to set it up",
   "wallet.cardEditAria": "Edit your Motion card",
   "wallet.cardAddAria": "Add your Motion card",
@@ -605,7 +621,8 @@ export const en = {
   "wallet.renewCopied": "Card number copied — paste on the next screen",
   "wallet.renewValidity": "{n} day validity",
   "wallet.renewPass": "Pass {code}",
-  "wallet.renewFoot": "Tapping a price copies your card number, then opens the official Cyprus Public Transport top-up page — paste it into the card field and JCC handles the rest.",
+  "wallet.renewFoot":
+    "Tapping a price copies your card number, then opens the official Cyprus Public Transport top-up page — paste it into the card field and JCC handles the rest.",
   // fares
   "wallet.fare.urban": "Urban",
   "wallet.fare.urbanSub": "90-min",
@@ -620,7 +637,8 @@ export const en = {
   // history
   "wallet.history.topupTitle": "Top-up history",
   "wallet.history.entries": "{n} entries",
-  "wallet.history.empty": "Nothing here yet. Log your first top-up — or link your JCC account above to auto-sync from the source.",
+  "wallet.history.empty":
+    "Nothing here yet. Log your first top-up — or link your JCC account above to auto-sync from the source.",
   "wallet.history.topupRow": "Top-up",
   "wallet.history.recent": "Recent activity",
   "wallet.history.last30": "Last 30 days",
@@ -644,7 +662,8 @@ export const en = {
   "wallet.sheet.lastUpdated": "Last updated {when}.",
   "wallet.sheet.never": "never",
   "wallet.sheet.topupLabel": "Top-up amount",
-  "wallet.sheet.linkIntro": "We log in to JCC Smart on your behalf and pull your bus card balance + recent activity. We keep only the session token on this device — never your password.",
+  "wallet.sheet.linkIntro":
+    "We log in to JCC Smart on your behalf and pull your bus card balance + recent activity. We keep only the session token on this device — never your password.",
   "wallet.sheet.email": "JCC Smart email",
   "wallet.sheet.emailPh": "you@example.com",
   "wallet.sheet.password": "Password",
@@ -654,7 +673,8 @@ export const en = {
   "wallet.sheet.linkAccount": "Link account",
   // nfc
   "wallet.nfc.tapToScan": "Tap to scan",
-  "wallet.nfc.unsupported": "Available on Android with Chrome. Type the 14-digit UID from the back of your card below.",
+  "wallet.nfc.unsupported":
+    "Available on Android with Chrome. Type the 14-digit UID from the back of your card below.",
   "wallet.nfc.tapHeading": "Tap card to scan",
   "wallet.nfc.scanning": "Hold your Motion card against the back of your phone…",
   "wallet.nfc.prompt": "Skip typing. Tap your card to fill in the 14-digit UID.",
@@ -680,13 +700,17 @@ export const en = {
 
   // stale feed banner
   "stale.feedStale.label": "Live feed paused",
-  "stale.feedStale.detail": "We can't reach the bus tracking service right now. Times shown are scheduled — we'll switch back the moment the feed returns.",
+  "stale.feedStale.detail":
+    "We can't reach the bus tracking service right now. Times shown are scheduled — we'll switch back the moment the feed returns.",
   "stale.vehicleLost.label": "Tracking from your phone",
-  "stale.vehicleLost.detail": "We lost sight of the bus on the live feed — using your GPS to keep the map and countdown honest until it comes back.",
+  "stale.vehicleLost.detail":
+    "We lost sight of the bus on the live feed — using your GPS to keep the map and countdown honest until it comes back.",
   "stale.nextNotTracked.label": "Next bus not yet tracked",
-  "stale.nextNotTracked.detail": "Your connecting bus hasn't started sending its location yet. We'll surface it the moment it does.",
+  "stale.nextNotTracked.detail":
+    "Your connecting bus hasn't started sending its location yet. We'll surface it the moment it does.",
   "stale.ghostBus.label": "No GPS for this bus",
-  "stale.ghostBus.detail": "We haven't received a position from this vehicle in over 3 minutes. Showing the scheduled time — treat it as an estimate.",
+  "stale.ghostBus.detail":
+    "We haven't received a position from this vehicle in over 3 minutes. Showing the scheduled time — treat it as an estimate.",
 
   // ETA pill — confidence-banded display, shared across every surface
   "eta.tier.live": "live",
@@ -703,11 +727,12 @@ export const en = {
   // rider-confirmed sighting — "I see this bus" CTA
   "sighting.kicker": "Can you see this bus?",
   "sighting.cta": "Confirm — I see it now",
-  "sighting.help": "Tap if the bus is at the stop. Your tap upgrades it from 'no GPS' for everyone else.",
+  "sighting.help":
+    "Tap if the bus is at the stop. Your tap upgrades it from 'no GPS' for everyone else.",
   "sighting.sending": "Sending…",
   "sighting.thanksLabel": "Thanks — rider-confirmed",
-  "sighting.thanksDetail": "Other riders will see this trip as confirmed for the next minute or so.",
-
+  "sighting.thanksDetail":
+    "Other riders will see this trip as confirmed for the next minute or so.",
 
   // crowd hint
   "crowd.tag": "Comfort",
@@ -728,19 +753,26 @@ export const en = {
   "lfw.headTo": "left to {dest}.",
   "lfw.head": "left.",
   "lfw.openMaps": "Open walk in Google Maps",
-  "lfw.line.hike": "That's a real hike {where} — about {min} min on foot from here. No bus gets closer, so take it slow or save it for another time.",
-  "lfw.line.longNight": "Around {min} min walking {where}, and it's getting late. The route's below if you'd like to follow it.",
-  "lfw.line.long": "You're about {min} min on foot {where} — a proper walk. Stretch out and follow the route below.",
-  "lfw.line.warm": "Roughly {min} min walking {where}. Bit warm out — take water if you have it. Turn-by-turn is just below.",
-  "lfw.line.night": "About {min} min walking {where} from here. Quiet streets at this hour — the route's below.",
-  "lfw.line.default": "About {min} min walking {where} from here — no bus gets closer. The turn-by-turn is just below.",
+  "lfw.line.hike":
+    "That's a real hike {where} — about {min} min on foot from here. No bus gets closer, so take it slow or save it for another time.",
+  "lfw.line.longNight":
+    "Around {min} min walking {where}, and it's getting late. The route's below if you'd like to follow it.",
+  "lfw.line.long":
+    "You're about {min} min on foot {where} — a proper walk. Stretch out and follow the route below.",
+  "lfw.line.warm":
+    "Roughly {min} min walking {where}. Bit warm out — take water if you have it. Turn-by-turn is just below.",
+  "lfw.line.night":
+    "About {min} min walking {where} from here. Quiet streets at this hour — the route's below.",
+  "lfw.line.default":
+    "About {min} min walking {where} from here — no bus gets closer. The turn-by-turn is just below.",
   "lfw.toDest": "to {dest}",
   "lfw.toYourDest": "to your destination",
 
   // shortcut prompt
   "shortcut.kicker": "Skip ahead?",
   "shortcut.title": "You're {m} m from {dest}.",
-  "shortcut.body": "A short walk is faster than waiting for the next bus. Want to skip the rest and walk straight there?",
+  "shortcut.body":
+    "A short walk is faster than waiting for the next bus. Want to skip the rest and walk straight there?",
   "shortcut.walkRest": "Walk the rest",
   "shortcut.stayOnPlan": "Stay on plan",
 
@@ -832,20 +864,24 @@ export const en = {
   "pay.kicker": "Aloya Pro",
   "pay.titleA": "The whole island,",
   "pay.titleB": "in your pocket.",
-  "pay.lede": "Aloya stays free for everyday rides. Pro adds the features that turn it into a proper navigator — for the cost of two coffees a month.",
+  "pay.lede":
+    "Aloya stays free for everyday rides. Pro adds the features that turn it into a proper navigator — for the cost of two coffees a month.",
   "pay.continueCheckout": "Continue to checkout",
   "pay.continue": "Continue",
   "pay.later": "Maybe later",
   "pay.fine": "Cancel anytime. Secure checkout by Stripe. Free features stay free, forever.",
   "pay.back": "← Back",
   "pay.authTitle": "One step before Pro",
-  "pay.authSubtitle": "We need an email so your subscription works across devices. No password — just a magic link.",
+  "pay.authSubtitle":
+    "We need an email so your subscription works across devices. No password — just a magic link.",
   "pay.feat.planner.t": "Multi-leg trip planner",
   "pay.feat.planner.b": "Full transfers across Nicosia and intercity routes — door to door.",
   "pay.feat.boarding.t": "Live boarding cues",
-  "pay.feat.boarding.b": "Voice and haptic the second your bus arrives. Auto-reroute if you miss it.",
+  "pay.feat.boarding.b":
+    "Voice and haptic the second your bus arrives. Auto-reroute if you miss it.",
   "pay.feat.alerts.t": "Saved trips & push alerts",
-  "pay.feat.alerts.b": "Delays, disruptions, and the perfect leave-now moment — straight to your phone.",
+  "pay.feat.alerts.b":
+    "Delays, disruptions, and the perfect leave-now moment — straight to your phone.",
   "pay.feat.offline.t": "Offline schedules",
   "pay.feat.offline.b": "The whole network cached. Works underground, on planes, anywhere.",
   "pay.feat.priority.t": "Priority data refresh",
@@ -893,8 +929,10 @@ export const en = {
   "notif.status.off": "Off",
   "notif.line.unknown": "Checking notification status…",
   "notif.line.unsupported": "This browser does not support push notifications.",
-  "notif.line.preview": "Notifications work on the installed app. Open the published site or add Aloya to your home screen.",
-  "notif.line.denied": "Notifications are blocked. Allow them in your browser settings to receive bus alerts.",
+  "notif.line.preview":
+    "Notifications work on the installed app. Open the published site or add Aloya to your home screen.",
+  "notif.line.denied":
+    "Notifications are blocked. Allow them in your browser settings to receive bus alerts.",
   "notif.line.off": "Turn on quiet alerts for boarding, alighting, and delays.",
   "notif.line.on": "On. We will only ping for boarding, alighting, and disruptions.",
   "notif.aria.on": "Turn notifications on",
@@ -931,7 +969,8 @@ export const en = {
   "offline.title2": "without signal",
   "offline.status.cached": "Cached",
   "offline.status.off": "Off",
-  "offline.body": "Download the next {days} days of bus timetables. Around 12 MB on device. Refresh weekly to keep service changes current.",
+  "offline.body":
+    "Download the next {days} days of bus timetables. Around 12 MB on device. Refresh weekly to keep service changes current.",
   "offline.unsupported": "This browser does not support offline cache.",
   "offline.stat.days": "Days",
   "offline.stat.size": "Size",
@@ -978,16 +1017,18 @@ export const en = {
 
   // Pulse
   "pulse.meta.title": "Cyprus Today — Daily Briefing, Bus Pulse & Greek Word | Aloya",
-  "pulse.meta.desc": "Your daily Cyprus briefing: weather and what to expect today, how the bus network is moving right now (on-time, late, early), live sightings near you, plus a Greek word of the day and a local or visitor fact.",
+  "pulse.meta.desc":
+    "Your daily Cyprus briefing: weather and what to expect today, how the bus network is moving right now (on-time, late, early), live sightings near you, plus a Greek word of the day and a local or visitor fact.",
   "pulse.og.title": "Cyprus Today — daily briefing, live bus pulse, Greek word",
-  "pulse.og.desc": "What today feels like on the island: weather verdict, how the buses are moving in the last hour, live sightings near you, and a Greek word with pronunciation.",
-
+  "pulse.og.desc":
+    "What today feels like on the island: weather verdict, how the buses are moving in the last hour, live sightings near you, and a Greek word with pronunciation.",
 
   "pulse.kicker": "Network, learned in real time",
   "pulse.title1": "The island,",
   "pulse.title2": "in motion.",
   "pulse.reliabilityIndex": "Reliability index",
-  "pulse.reliabilityDesc": "A blended score across the live network. 100 = on the dot, 0 = five minutes off or worse.",
+  "pulse.reliabilityDesc":
+    "A blended score across the live network. 100 = on the dot, 0 = five minutes off or worse.",
   "pulse.routesLearned": "Routes learned",
   "pulse.tripsLogged": "Trips logged",
   "pulse.runningLate": "Running late",
@@ -1008,19 +1049,26 @@ export const en = {
   "pulse.open": "Open",
   "pulse.close": "Close",
   "pulse.item.reliability.label": "Reliability index",
-  "pulse.item.reliability.body": "For each route we average the live delay across every trip we've observed, weighted by how many trips we have. We map that to a 0—100 score where on the dot is 100 and five minutes off (early or late) is 0. It's a smooth proxy, not a strict on-time percentage.",
+  "pulse.item.reliability.body":
+    "For each route we average the live delay across every trip we've observed, weighted by how many trips we have. We map that to a 0—100 score where on the dot is 100 and five minutes off (early or late) is 0. It's a smooth proxy, not a strict on-time percentage.",
   "pulse.item.trips.label": "Trips logged",
-  "pulse.item.trips.body": "One trip logged = one arrival event we pulled from the live feed for that route. More trips means a more trustworthy score.",
+  "pulse.item.trips.body":
+    "One trip logged = one arrival event we pulled from the live feed for that route. More trips means a more trustworthy score.",
   "pulse.item.routes.label": "Routes learned",
-  "pulse.item.routes.body": "Distinct routes with at least three trips observed in any hour-of-day bucket. Quiet routes appear once we've seen enough of them.",
+  "pulse.item.routes.body":
+    "Distinct routes with at least three trips observed in any hour-of-day bucket. Quiet routes appear once we've seen enough of them.",
   "pulse.item.lateEarly.label": "Running late / early",
-  "pulse.item.lateEarly.body": "Routes whose weighted mean delay is more than 30 seconds off the schedule, with at least five trips logged.",
+  "pulse.item.lateEarly.body":
+    "Routes whose weighted mean delay is more than 30 seconds off the schedule, with at least five trips logged.",
   "pulse.item.mostReliable.label": "Most reliable",
-  "pulse.item.mostReliable.body": "Routes with at least eight trips logged, sorted by how close their mean delay sits to zero.",
+  "pulse.item.mostReliable.body":
+    "Routes with at least eight trips logged, sorted by how close their mean delay sits to zero.",
   "pulse.item.limits.label": "Limits to keep in mind",
-  "pulse.item.limits.body": "Delays come from each operator's live feed — if their data is off, ours will be too. Buckets are in UTC, not Cyprus local time, so the \"at this hour\" framing is approximate.",
+  "pulse.item.limits.body":
+    'Delays come from each operator\'s live feed — if their data is off, ours will be too. Buckets are in UTC, not Cyprus local time, so the "at this hour" framing is approximate.',
   "pulse.excluded.one": "{n} route is hidden here because it's not in our bundled timetable yet.",
-  "pulse.excluded.many": "{n} routes are hidden here because they're not in our bundled timetable yet.",
+  "pulse.excluded.many":
+    "{n} routes are hidden here because they're not in our bundled timetable yet.",
   "pulse.flow.title": "How the network is moving",
   "pulse.flow.kicker": "Last 60 minutes",
   "pulse.flow.late": "Late",
@@ -1041,48 +1089,50 @@ export const en = {
   "pulse.flow.activityLate": "Late",
   "pulse.flow.activityNow": "Now",
   "pulse.section.delayProfile": "Delay profile",
- "pulse.section.reliabilityBar": "Reliability",
- "pulse.mood.smooth": "Smooth across the island.",
- "pulse.mood.mostlySmooth": "Mostly smooth today.",
- "pulse.mood.choppy": "Choppy out there.",
- "pulse.mood.rough": "Rough hour on the network.",
- "pulse.mood.storming": "The network's struggling.",
- "pulse.mood.quiet": "Too quiet to read.",
- "pulse.weather.kicker": "Today, from the live feed",
- "pulse.weather.subPos": "{pct}% on time across {routes} routes — {delta} points above this week's typical.",
- "pulse.weather.subNeg": "{pct}% on time across {routes} routes — {delta} points under this week's typical.",
- "pulse.weather.subFlat": "{pct}% on time across {routes} routes — right at this week's typical.",
- "pulse.weather.subQuiet": "We need a few more live arrivals before the network speaks.",
- "pulse.vsTypical": "vs typical",
- "pulse.todayLabel": "Today",
- "pulse.typicalLabel": "Typical",
- "pulse.hour.title": "Today, hour by hour",
- "pulse.hour.kicker": "Drift across the day",
- "pulse.hour.now": "Now",
- "pulse.hour.empty": "We need a few more hours of live data.",
- "pulse.hour.tooltipLate": "{min} min late",
- "pulse.hour.tooltipEarly": "{min} min early",
- "pulse.hour.tooltipOn": "On time",
- "pulse.hour.tooltipQuiet": "No data",
- "pulse.hour.legendEarly": "Earlier",
- "pulse.hour.legendOn": "On time",
- "pulse.hour.legendLate": "Later",
- "pulse.dotstrip.title": "Every learned route",
- "pulse.dotstrip.kicker": "Drift from the printed timetable. Bigger dot, more trips logged.",
- "pulse.dotstrip.empty": "Not enough learned routes yet.",
- "pulse.dotstrip.axisEarly": "Earlier",
- "pulse.dotstrip.axisOnTime": "On the dot",
- "pulse.dotstrip.axisLate": "Later",
- "pulse.filter.all": "All",
- "pulse.filter.late": "Late",
- "pulse.filter.early": "Early",
- "pulse.filter.steady": "Steadiest",
- "pulse.insight.kicker": "What it means right now",
- "pulse.insight.worstRoute": "Route {code} is the rough one — running {min} min late.",
- "pulse.insight.earlyRoute": "Route {code} is leaving {min} min early — show up sooner.",
- "pulse.insight.steadyRoute": "Route {code} is the steadiest — right on the dot.",
- "pulse.insight.calmer": "Network is calmer than usual.",
- "pulse.insight.busier": "Heavier delays than a typical {weekday}.",
+  "pulse.section.reliabilityBar": "Reliability",
+  "pulse.mood.smooth": "Smooth across the island.",
+  "pulse.mood.mostlySmooth": "Mostly smooth today.",
+  "pulse.mood.choppy": "Choppy out there.",
+  "pulse.mood.rough": "Rough hour on the network.",
+  "pulse.mood.storming": "The network's struggling.",
+  "pulse.mood.quiet": "Too quiet to read.",
+  "pulse.weather.kicker": "Today, from the live feed",
+  "pulse.weather.subPos":
+    "{pct}% on time across {routes} routes — {delta} points above this week's typical.",
+  "pulse.weather.subNeg":
+    "{pct}% on time across {routes} routes — {delta} points under this week's typical.",
+  "pulse.weather.subFlat": "{pct}% on time across {routes} routes — right at this week's typical.",
+  "pulse.weather.subQuiet": "We need a few more live arrivals before the network speaks.",
+  "pulse.vsTypical": "vs typical",
+  "pulse.todayLabel": "Today",
+  "pulse.typicalLabel": "Typical",
+  "pulse.hour.title": "Today, hour by hour",
+  "pulse.hour.kicker": "Drift across the day",
+  "pulse.hour.now": "Now",
+  "pulse.hour.empty": "We need a few more hours of live data.",
+  "pulse.hour.tooltipLate": "{min} min late",
+  "pulse.hour.tooltipEarly": "{min} min early",
+  "pulse.hour.tooltipOn": "On time",
+  "pulse.hour.tooltipQuiet": "No data",
+  "pulse.hour.legendEarly": "Earlier",
+  "pulse.hour.legendOn": "On time",
+  "pulse.hour.legendLate": "Later",
+  "pulse.dotstrip.title": "Every learned route",
+  "pulse.dotstrip.kicker": "Drift from the printed timetable. Bigger dot, more trips logged.",
+  "pulse.dotstrip.empty": "Not enough learned routes yet.",
+  "pulse.dotstrip.axisEarly": "Earlier",
+  "pulse.dotstrip.axisOnTime": "On the dot",
+  "pulse.dotstrip.axisLate": "Later",
+  "pulse.filter.all": "All",
+  "pulse.filter.late": "Late",
+  "pulse.filter.early": "Early",
+  "pulse.filter.steady": "Steadiest",
+  "pulse.insight.kicker": "What it means right now",
+  "pulse.insight.worstRoute": "Route {code} is the rough one — running {min} min late.",
+  "pulse.insight.earlyRoute": "Route {code} is leaving {min} min early — show up sooner.",
+  "pulse.insight.steadyRoute": "Route {code} is the steadiest — right on the dot.",
+  "pulse.insight.calmer": "Network is calmer than usual.",
+  "pulse.insight.busier": "Heavier delays than a typical {weekday}.",
   "pulse.insight.tooQuiet": "Too quiet to read the network yet.",
   "today.kicker": "Cyprus today",
   "today.tiles.kicker": "On the island right now",
@@ -1091,15 +1141,14 @@ export const en = {
   "today.fact.tourist": "For visitors",
   "today.greek.kicker": "Greek word of the day",
 
-
-
   // Trip Info
   "tripInfo.meta.title": "Trip {id} — Aloya",
   "tripInfo.meta.desc": "Live trip detail: stops, ETAs and where the bus is right now.",
   "tripInfo.live": "Live trip",
   "tripInfo.loading": "Loading trip…",
   "tripInfo.notLive.title": "Trip not on the live feed",
-  "tripInfo.notLive.body": "This vehicle isn't reporting right now. It may have finished its run, or the operator's feed dropped briefly. Try again in a moment.",
+  "tripInfo.notLive.body":
+    "This vehicle isn't reporting right now. It may have finished its run, or the operator's feed dropped briefly. Try again in a moment.",
   "tripInfo.busLabel": "Bus {label}",
   "tripInfo.unknownRoute": "Route",
   "tripInfo.stopsCount": "{n} stops",
@@ -1121,7 +1170,8 @@ export const en = {
   "tripInfo.approaching": " — approaching",
   "tripInfo.youAreHere": " — you are here",
   "tripInfo.stopFallback": "Stop {id}",
-  "tripInfo.feedFoot": "Stop times are pulled live from the operator's feed and adjusted for the bus's reported delay. Tap any stop to open its live departures.",
+  "tripInfo.feedFoot":
+    "Stop times are pulled live from the operator's feed and adjusted for the bus's reported delay. Tap any stop to open its live departures.",
 
   // Itinerary card
   "itin.leavesIn": "Leaves in {n} min",
@@ -1202,11 +1252,14 @@ export const en = {
   "a11y.title": "How you ride",
   "a11y.lede": "These preferences quietly re-rank your trip options — they never hide a route.",
   "a11y.stepFree.label": "Step-free routing",
-  "a11y.stepFree.help": "Prefer stops we know are level with the curb. Stops without amenity data stay neutral.",
+  "a11y.stepFree.help":
+    "Prefer stops we know are level with the curb. Stops without amenity data stay neutral.",
   "a11y.shade.label": "Prefer shaded waits",
-  "a11y.shade.help": "Pushes options that wait at sheltered stops up the list, useful in Cyprus summer.",
+  "a11y.shade.help":
+    "Pushes options that wait at sheltered stops up the list, useful in Cyprus summer.",
   "a11y.cap.label": "Walking cap per trip",
-  "a11y.cap.help": "Itineraries that exceed this drop in the ranking. We still show them so you can decide.",
+  "a11y.cap.help":
+    "Itineraries that exceed this drop in the ranking. We still show them so you can decide.",
   "a11y.cap.none": "No cap",
   "a11y.cap.noneShort": "None",
   "a11y.cap.value": "{m} m",
@@ -1262,7 +1315,8 @@ export const en = {
   "intercity.earlySec": "{s}s early",
   "share.eyebrow": "SHARE",
   "share.title": "Send this stop",
-  "share.subtitle": "A live, beautiful card — sends as an image so it lands instantly in WhatsApp, iMessage, anywhere.",
+  "share.subtitle":
+    "A live, beautiful card — sends as an image so it lands instantly in WhatsApp, iMessage, anywhere.",
   "share.previewAlt": "Share card preview",
   "share.rendering": "RENDERING…",
   "share.share": "Share",
@@ -1270,14 +1324,14 @@ export const en = {
   "share.save": "Save image",
   "share.copyLink": "Copy link",
   "share.copied": "Copied",
- "share.close": "Close",
- "share.openLabel": "Share this stop",
- "share.waFallback": "Image saved — attach it in WhatsApp",
- "share.saved": "Saved to your device",
- "share.plan.cta": "Share this plan",
- "share.plan.creating": "Making link…",
- "share.plan.copied": "Link ready — share it",
- "share.plan.retry": "Try again",
- "share.plan.title": "A trip plan",
- "share.plan.text": "Here's our plan to get to {where}.",
+  "share.close": "Close",
+  "share.openLabel": "Share this stop",
+  "share.waFallback": "Image saved — attach it in WhatsApp",
+  "share.saved": "Saved to your device",
+  "share.plan.cta": "Share this plan",
+  "share.plan.creating": "Making link…",
+  "share.plan.copied": "Link ready — share it",
+  "share.plan.retry": "Try again",
+  "share.plan.title": "A trip plan",
+  "share.plan.text": "Here's our plan to get to {where}.",
 } as const;

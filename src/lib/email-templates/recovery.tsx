@@ -1,5 +1,5 @@
-import * as React from 'react'
-import { Button, Text } from '@react-email/components'
+import * as React from "react";
+import { Button, Text } from "@react-email/components";
 import {
   Layout,
   bodyText,
@@ -8,11 +8,11 @@ import {
   ctaWrap,
   fineprint,
   inlineLink,
-} from './_layout'
+} from "./_layout";
 
 interface RecoveryEmailProps {
-  siteName: string
-  confirmationUrl: string
+  siteName: string;
+  confirmationUrl: string;
 }
 
 export const RecoveryEmail = ({ confirmationUrl }: RecoveryEmailProps) => (
@@ -24,8 +24,8 @@ export const RecoveryEmail = ({ confirmationUrl }: RecoveryEmailProps) => (
     heroAlt="Brass compass on linen, ceramic bowl of sea salt"
   >
     <Text style={bodyText}>
-      We received a request to reset the password on your Aloya
-      account. Choose a new one using the secure link below.
+      We received a request to reset the password on your Aloya account. Choose a new one using the
+      secure link below.
     </Text>
 
     <div style={ctaWrap}>
@@ -43,10 +43,9 @@ export const RecoveryEmail = ({ confirmationUrl }: RecoveryEmailProps) => (
     </Text>
 
     <Text style={fineprint}>
-      Didn't ask to reset? Ignore this message and your password
-      stays unchanged.
+      Didn't ask to reset? Ignore this message and your password stays unchanged.
     </Text>
   </Layout>
-)
+);
 
-export default RecoveryEmail
+export default RecoveryEmail;

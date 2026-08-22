@@ -15,8 +15,20 @@
 import { getRequest } from "@tanstack/react-start/server";
 
 export type ScheduleStop = { name: string; lat: number; lng: number; feedId: number };
-export type ScheduleRoute = { short: string; long: string; color: string; feedId: number; type: number };
-export type ScheduleTrip = { routeId: string; serviceId: string; direction: 0 | 1; headsign: string; feedId: number };
+export type ScheduleRoute = {
+  short: string;
+  long: string;
+  color: string;
+  feedId: number;
+  type: number;
+};
+export type ScheduleTrip = {
+  routeId: string;
+  serviceId: string;
+  direction: 0 | 1;
+  headsign: string;
+  feedId: number;
+};
 export type StopTimeRow = [string, number, number, number]; // [stopId, depSec, arrSec, seq]
 export type StopTripRow = [string, number, string]; // [tripId, depSec, routeId]
 
@@ -49,7 +61,12 @@ function candidateUrls(path: string): string[] {
   }
   if (process.env.PUBLIC_SITE_URL) urls.push(new URL(path, process.env.PUBLIC_SITE_URL).toString());
   urls.push(new URL(path, "https://app.aloya.cy").toString());
-  urls.push(new URL(path, "https://project--cb91f9c9-a30e-4540-948c-0683f1088d6c-dev.lovable.app").toString());
+  urls.push(
+    new URL(
+      path,
+      "https://project--cb91f9c9-a30e-4540-948c-0683f1088d6c-dev.lovable.app",
+    ).toString(),
+  );
   return [...new Set(urls)];
 }
 
@@ -77,7 +94,8 @@ export async function loadStops(): Promise<Record<string, ScheduleStop>> {
 }
 
 export async function loadRoutes(): Promise<Record<string, ScheduleRoute>> {
-  if (!_routes) _routes = await fetchJson<Record<string, ScheduleRoute>>("/data/schedule/routes.json");
+  if (!_routes)
+    _routes = await fetchJson<Record<string, ScheduleRoute>>("/data/schedule/routes.json");
   return _routes;
 }
 

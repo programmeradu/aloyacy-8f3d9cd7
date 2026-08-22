@@ -29,16 +29,9 @@ import eventFoodImg from "@/assets/event-food.jpg";
 import eventFestivalImg from "@/assets/event-festival.jpg";
 import eventCultureImg from "@/assets/event-culture.jpg";
 
-
 type Locale = "en" | "el";
 
-export function PulseLiveSection({
-  bundle,
-  locale,
-}: {
-  bundle: PulseLiveBundle;
-  locale: Locale;
-}) {
+export function PulseLiveSection({ bundle, locale }: { bundle: PulseLiveBundle; locale: Locale }) {
   const isEl = locale === "el";
   const focusLabel = isEl ? bundle.focus.labelEl : bundle.focus.label;
 
@@ -58,7 +51,6 @@ export function PulseLiveSection({
 
   return (
     <section className="px-6 mt-10 animate-rise" style={{ animationDelay: "200ms" }}>
-
       {bundle.metWarnings && bundle.metWarnings.count > 0 && (
         <MetWarningCard payload={bundle.metWarnings} isEl={isEl} />
       )}
@@ -71,9 +63,7 @@ export function PulseLiveSection({
         {bundle.marine && bundle.focus.coastal && (
           <SeaCard payload={bundle.marine} city={focusLabel} isEl={isEl} />
         )}
-        {bundle.flights.length > 0 && (
-          <SkyCard payloads={bundle.flights} isEl={isEl} />
-        )}
+        {bundle.flights.length > 0 && <SkyCard payloads={bundle.flights} isEl={isEl} />}
         {bundle.cruises && bundle.cruises.count > 0 && (
           <CruiseCard payload={bundle.cruises} isEl={isEl} />
         )}
@@ -85,7 +75,6 @@ export function PulseLiveSection({
       {bundle.traffic && bundle.traffic.count > 0 && (
         <TrafficCard payload={bundle.traffic} city={focusLabel} isEl={isEl} />
       )}
-
 
       {bundle.fixtures && bundle.fixtures.count > 0 && (
         <FixturesStrip payload={bundle.fixtures} isEl={isEl} />
@@ -113,10 +102,14 @@ function MetWarningCard({
     w.level === "red"
       ? "bg-ochre/15 ring-ochre/40 text-ochre"
       : w.level === "orange"
-      ? "bg-ochre/10 ring-ochre/30 text-ochre"
-      : "bg-aegean-deep/8 ring-aegean-deep/25 text-aegean-deep";
+        ? "bg-ochre/10 ring-ochre/30 text-ochre"
+        : "bg-aegean-deep/8 ring-aegean-deep/25 text-aegean-deep";
   const levelLabel = isEl
-    ? w.level === "red" ? "Κόκκινη" : w.level === "orange" ? "Πορτοκαλί" : "Κίτρινη"
+    ? w.level === "red"
+      ? "Κόκκινη"
+      : w.level === "orange"
+        ? "Πορτοκαλί"
+        : "Κίτρινη"
     : w.level;
   return (
     <article className={`relative overflow-hidden rounded-[22px] ring-1 px-5 py-4 mb-4 ${accent}`}>
@@ -192,7 +185,10 @@ function NewsRotatorCard({
       >
         <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ochre">
           {cur.source}
-          <span className="mx-2 inline-block h-1.5 w-px translate-y-[1px] bg-line align-middle" aria-hidden />
+          <span
+            className="mx-2 inline-block h-1.5 w-px translate-y-[1px] bg-line align-middle"
+            aria-hidden
+          />
           {ago}
         </p>
         <h3 className="mt-1.5 font-display text-[20px] leading-[1.15] text-ink text-balance break-soft group-hover:underline underline-offset-4 decoration-ochre/60">
@@ -230,8 +226,21 @@ function SeaCard({
   const verdictLabel = (() => {
     const v = payload.beachVerdict;
     if (!v) return isEl ? "Θάλασσα" : "At sea";
-    if (isEl) return v === "great" ? "Ιδανική" : v === "good" ? "Καλή" : v === "choppy" ? "Ταραγμένη" : "Άγρια";
-    return v === "great" ? "Excellent" : v === "good" ? "Good" : v === "choppy" ? "Choppy" : "Rough";
+    if (isEl)
+      return v === "great"
+        ? "Ιδανική"
+        : v === "good"
+          ? "Καλή"
+          : v === "choppy"
+            ? "Ταραγμένη"
+            : "Άγρια";
+    return v === "great"
+      ? "Excellent"
+      : v === "good"
+        ? "Good"
+        : v === "choppy"
+          ? "Choppy"
+          : "Rough";
   })();
   const verdictTone =
     payload.beachVerdict === "great" || payload.beachVerdict === "good"
@@ -261,10 +270,13 @@ function SeaCard({
       </div>
       <div className="relative px-5 pt-3 pb-5">
         <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep">
-          {isEl ? "Θάλασσα · " : "Sea · "}{city}
+          {isEl ? "Θάλασσα · " : "Sea · "}
+          {city}
         </p>
         <div className="mt-1 flex items-baseline gap-2">
-          <span className={`font-display text-[26px] leading-none tracking-[-0.02em] ${verdictTone}`}>
+          <span
+            className={`font-display text-[26px] leading-none tracking-[-0.02em] ${verdictTone}`}
+          >
             {verdictLabel}
           </span>
           {payload.waveHeightM != null && (
@@ -273,12 +285,11 @@ function SeaCard({
             </span>
           )}
         </div>
-        <p className="mt-2 text-[13px] leading-snug text-ink-soft text-pretty">
-          {payload.summary}
-        </p>
+        <p className="mt-2 text-[13px] leading-snug text-ink-soft text-pretty">{payload.summary}</p>
         {payload.seaTempC != null && (
           <p className="mt-2 font-eyebrow text-[9.5px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
-            {isEl ? "θερμοκρασία νερού " : "water "}{Math.round(payload.seaTempC)}°
+            {isEl ? "θερμοκρασία νερού " : "water "}
+            {Math.round(payload.seaTempC)}°
           </p>
         )}
       </div>
@@ -288,13 +299,7 @@ function SeaCard({
 
 /* ────────────── Sky — combined airport movements ───────────────────── */
 
-function SkyCard({
-  payloads,
-  isEl,
-}: {
-  payloads: PulseLiveBundle["flights"];
-  isEl: boolean;
-}) {
+function SkyCard({ payloads, isEl }: { payloads: PulseLiveBundle["flights"]; isEl: boolean }) {
   const arr = payloads.reduce((s, p) => s + p.arrivalsNext60, 0);
   const dep = payloads.reduce((s, p) => s + p.departuresNext60, 0);
   const cities = payloads.map((p) => p.city).join(" + ");
@@ -322,7 +327,8 @@ function SkyCard({
       </div>
       <div className="relative px-5 pt-3 pb-5">
         <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep">
-          {isEl ? "Ουρανός · " : "Sky · "}{cities}
+          {isEl ? "Ουρανός · " : "Sky · "}
+          {cities}
         </p>
         <div className="mt-1 flex items-end gap-5">
           <div>
@@ -348,8 +354,8 @@ function SkyCard({
               ? "Ήρεμη επόμενη ώρα στους ουρανούς."
               : "Quiet skies in the next hour."
             : isEl
-            ? "Επόμενη ώρα — επιπλέον αιτήματα ταξί και Bus 425 / Express."
-            : "Expect extra demand on airport shuttles and taxi ranks."}
+              ? "Επόμενη ώρα — επιπλέον αιτήματα ταξί και Bus 425 / Express."
+              : "Expect extra demand on airport shuttles and taxi ranks."}
         </p>
       </div>
     </article>
@@ -465,34 +471,44 @@ function AirCard({
   city: string;
   isEl: boolean;
 }) {
-  const tone =
-    payload.band === "very-poor" || payload.band === "poor"
-      ? "text-ochre"
-      : "text-ink";
+  const tone = payload.band === "very-poor" || payload.band === "poor" ? "text-ochre" : "text-ink";
   const bandLabel = (() => {
     if (isEl) {
       switch (payload.band) {
-        case "good": return "Καλή";
-        case "fair": return "Μέτρια";
-        case "moderate": return "Αυξημένη";
-        case "poor": return "Κακή";
-        case "very-poor": return "Πολύ κακή";
-        default: return "—";
+        case "good":
+          return "Καλή";
+        case "fair":
+          return "Μέτρια";
+        case "moderate":
+          return "Αυξημένη";
+        case "poor":
+          return "Κακή";
+        case "very-poor":
+          return "Πολύ κακή";
+        default:
+          return "—";
       }
     }
     switch (payload.band) {
-      case "good": return "Good";
-      case "fair": return "Fair";
-      case "moderate": return "Moderate";
-      case "poor": return "Poor";
-      case "very-poor": return "Very poor";
-      default: return "—";
+      case "good":
+        return "Good";
+      case "fair":
+        return "Fair";
+      case "moderate":
+        return "Moderate";
+      case "poor":
+        return "Poor";
+      case "very-poor":
+        return "Very poor";
+      default:
+        return "—";
     }
   })();
   return (
     <article className="relative overflow-hidden rounded-[24px] bg-card ring-1 ring-line px-5 py-5">
       <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep">
-        {isEl ? "Αέρας · " : "Air · "}{city}
+        {isEl ? "Αέρας · " : "Air · "}
+        {city}
       </p>
       <div className="mt-1 flex items-baseline gap-3">
         <span className={`font-display text-[28px] leading-none tracking-[-0.02em] ${tone}`}>
@@ -504,9 +520,7 @@ function AirCard({
           </span>
         )}
       </div>
-      <p className="mt-2 text-[13px] leading-snug text-ink-soft text-pretty">
-        {payload.summary}
-      </p>
+      <p className="mt-2 text-[13px] leading-snug text-ink-soft text-pretty">{payload.summary}</p>
       {payload.dustAlert && (
         <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-ochre/10 ring-1 ring-ochre/30 px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.2em] text-ochre">
           {isEl ? "Σκόνη από τη Σαχάρα" : "Saharan dust"}
@@ -537,7 +551,9 @@ function FixturesStrip({
           const k = f.kickoff ? new Date(f.kickoff) : null;
           const when = k
             ? `${k.toLocaleDateString(isEl ? "el-GR" : "en-GB", { weekday: "short", day: "numeric", month: "short" })}  ${k.toLocaleTimeString(isEl ? "el-GR" : "en-GB", { hour: "2-digit", minute: "2-digit" })}`
-            : isEl ? "ώρα ΤBA" : "time TBA";
+            : isEl
+              ? "ώρα ΤBA"
+              : "time TBA";
           return (
             <li
               key={i}
@@ -572,15 +588,16 @@ function FixturesStrip({
 // today-shaped surface, not a calendar.
 
 type EventFlavor =
-  | "music" | "running" | "sport" | "marine"
-  | "cinema" | "art" | "food" | "festival" | "culture";
+  "music" | "running" | "sport" | "marine" | "cinema" | "art" | "food" | "festival" | "culture";
 
 function classifyEvent(e: { title: string; category: string | null }): EventFlavor {
   const hay = `${e.title} ${e.category ?? ""}`.toLowerCase();
   if (/(run|marathon|trail|walk\b)/.test(hay)) return "running";
-  if (/(volley|basket|foot|tennis|padel|match|championship|league|cup|race|derby)/.test(hay)) return "sport";
+  if (/(volley|basket|foot|tennis|padel|match|championship|league|cup|race|derby)/.test(hay))
+    return "sport";
   if (/(apnea|dive|sail|sea|marine|regatta|swim|beach)/.test(hay)) return "marine";
-  if (/(concert|music|jazz|dj|orchestra|choir|opera|band|festival of music|συναυλ)/.test(hay)) return "music";
+  if (/(concert|music|jazz|dj|orchestra|choir|opera|band|festival of music|συναυλ)/.test(hay))
+    return "music";
   if (/(film|cinema|screen|movie|ταιν)/.test(hay)) return "cinema";
   if (/(art|exhibit|gallery|museum|painting|έκθεσ)/.test(hay)) return "art";
   if (/(wine|food|gastro|tast|olive|feast|κρασ|φαγητ)/.test(hay)) return "food";
@@ -589,42 +606,41 @@ function classifyEvent(e: { title: string; category: string | null }): EventFlav
 }
 
 const FLAVOR_LABEL: Record<EventFlavor, { en: string; el: string }> = {
-  music:    { en: "Music",    el: "Μουσική" },
-  running:  { en: "Running",  el: "Τρέξιμο" },
-  sport:    { en: "Sport",    el: "Άθληση" },
-  marine:   { en: "Sea",      el: "Θάλασσα" },
-  cinema:   { en: "Cinema",   el: "Σινεμά" },
-  art:      { en: "Art",      el: "Τέχνη" },
-  food:     { en: "Table",    el: "Τραπέζι" },
+  music: { en: "Music", el: "Μουσική" },
+  running: { en: "Running", el: "Τρέξιμο" },
+  sport: { en: "Sport", el: "Άθληση" },
+  marine: { en: "Sea", el: "Θάλασσα" },
+  cinema: { en: "Cinema", el: "Σινεμά" },
+  art: { en: "Art", el: "Τέχνη" },
+  food: { en: "Table", el: "Τραπέζι" },
   festival: { en: "Festival", el: "Φεστιβάλ" },
-  culture:  { en: "Culture",  el: "Πολιτισμός" },
+  culture: { en: "Culture", el: "Πολιτισμός" },
 };
 
 const FLAVOR_ACCENT: Record<EventFlavor, { bg: string; ink: string; ring: string }> = {
-  music:    { bg: "from-ochre/25 to-ochre/10",       ink: "text-ochre-deep",   ring: "ring-ochre/30" },
-  running:  { bg: "from-olive/25 to-olive/10",       ink: "text-olive-deep",   ring: "ring-olive/30" },
-  sport:    { bg: "from-aegean/25 to-aegean/10",     ink: "text-aegean-deep",  ring: "ring-aegean/30" },
-  marine:   { bg: "from-aegean/30 to-aegean/10",     ink: "text-aegean-deep",  ring: "ring-aegean/30" },
-  cinema:   { bg: "from-ink/15 to-ink/5",            ink: "text-ink",          ring: "ring-ink/20" },
-  art:      { bg: "from-ochre/20 to-olive/10",       ink: "text-olive-deep",   ring: "ring-olive/30" },
-  food:     { bg: "from-ochre/25 to-ochre/5",        ink: "text-ochre-deep",   ring: "ring-ochre/30" },
-  festival: { bg: "from-ochre/25 to-aegean/10",      ink: "text-ochre-deep",   ring: "ring-ochre/30" },
-  culture:  { bg: "from-aegean/20 to-olive/10",      ink: "text-aegean-deep",  ring: "ring-aegean/30" },
+  music: { bg: "from-ochre/25 to-ochre/10", ink: "text-ochre-deep", ring: "ring-ochre/30" },
+  running: { bg: "from-olive/25 to-olive/10", ink: "text-olive-deep", ring: "ring-olive/30" },
+  sport: { bg: "from-aegean/25 to-aegean/10", ink: "text-aegean-deep", ring: "ring-aegean/30" },
+  marine: { bg: "from-aegean/30 to-aegean/10", ink: "text-aegean-deep", ring: "ring-aegean/30" },
+  cinema: { bg: "from-ink/15 to-ink/5", ink: "text-ink", ring: "ring-ink/20" },
+  art: { bg: "from-ochre/20 to-olive/10", ink: "text-olive-deep", ring: "ring-olive/30" },
+  food: { bg: "from-ochre/25 to-ochre/5", ink: "text-ochre-deep", ring: "ring-ochre/30" },
+  festival: { bg: "from-ochre/25 to-aegean/10", ink: "text-ochre-deep", ring: "ring-ochre/30" },
+  culture: { bg: "from-aegean/20 to-olive/10", ink: "text-aegean-deep", ring: "ring-aegean/30" },
 };
 
 /** Bespoke painterly asset per flavor — generated editorial illustrations. */
 const FLAVOR_IMAGE: Record<EventFlavor, string> = {
-  music:    eventMusicImg,
-  running:  eventRunningImg,
-  sport:    eventSportImg,
-  marine:   eventMarineImg,
-  cinema:   eventCinemaImg,
-  art:      eventArtImg,
-  food:     eventFoodImg,
+  music: eventMusicImg,
+  running: eventRunningImg,
+  sport: eventSportImg,
+  marine: eventMarineImg,
+  cinema: eventCinemaImg,
+  art: eventArtImg,
+  food: eventFoodImg,
   festival: eventFestivalImg,
-  culture:  eventCultureImg,
+  culture: eventCultureImg,
 };
-
 
 /** Parse an event date in local time — dates from the ingest are YYYY-MM-DD. */
 function parseEventDate(s: string | null): Date | null {
@@ -651,15 +667,17 @@ function EventsStrip({
   const todayEnd = todayStart + 24 * 3600 * 1000 - 1;
 
   const active = useMemo(() => {
-    return payload.events.filter((e) => {
-      const start = parseEventDate(e.startDate);
-      const end = parseEventDate(e.endDate) ?? start;
-      if (!start) return false;
-      // Event covers today if it started on/before today AND ends on/after today.
-      const startMs = start.getTime();
-      const endMs = (end ?? start).getTime() + 24 * 3600 * 1000 - 1;
-      return startMs <= todayEnd && endMs >= todayStart;
-    }).slice(0, 4);
+    return payload.events
+      .filter((e) => {
+        const start = parseEventDate(e.startDate);
+        const end = parseEventDate(e.endDate) ?? start;
+        if (!start) return false;
+        // Event covers today if it started on/before today AND ends on/after today.
+        const startMs = start.getTime();
+        const endMs = (end ?? start).getTime() + 24 * 3600 * 1000 - 1;
+        return startMs <= todayEnd && endMs >= todayStart;
+      })
+      .slice(0, 4);
   }, [payload.events, todayStart, todayEnd]);
 
   if (active.length === 0) return null;
@@ -679,11 +697,14 @@ function EventsStrip({
           const multiDay = end && start && end.getTime() > start.getTime();
           const dayFmt = (d: Date) =>
             d.toLocaleDateString(isEl ? "el-GR" : "en-GB", { day: "numeric", month: "short" });
-          const runLabel = multiDay && start && end
-            ? isEl
-              ? `έως ${dayFmt(end)}`
-              : `through ${dayFmt(end)}`
-            : isEl ? "σήμερα" : "today";
+          const runLabel =
+            multiDay && start && end
+              ? isEl
+                ? `έως ${dayFmt(end)}`
+                : `through ${dayFmt(end)}`
+              : isEl
+                ? "σήμερα"
+                : "today";
 
           return (
             <li
@@ -705,7 +726,9 @@ function EventsStrip({
 
                 <div className="flex-1 min-w-0 px-4 py-3.5 flex flex-col gap-1.5">
                   <div className="flex items-center gap-2">
-                    <span className={`font-eyebrow text-[9px] uppercase tracking-[0.22em] ${accent.ink}`}>
+                    <span
+                      className={`font-eyebrow text-[9px] uppercase tracking-[0.22em] ${accent.ink}`}
+                    >
                       {flavorLabel}
                     </span>
                     <span className="h-px flex-1 bg-line" />
@@ -753,16 +776,16 @@ const GREEK_RE = /[\u0370-\u03FF\u1F00-\u1FFF]/;
 const ROAD_CODE_RE = /\b([ABEF]\d{1,3})\b/;
 
 const PLACE_TRANSLITERATIONS: Record<string, { en: string; el: string }> = {
-  "λεμεσού":   { en: "Limassol", el: "Λεμεσού" },
-  "λεμεσος":   { en: "Limassol", el: "Λεμεσός" },
-  "λευκωσίας": { en: "Nicosia",  el: "Λευκωσίας" },
-  "λευκωσία":  { en: "Nicosia",  el: "Λευκωσία" },
-  "λάρνακας":  { en: "Larnaca",  el: "Λάρνακας" },
-  "λάρνακα":   { en: "Larnaca",  el: "Λάρνακα" },
-  "πάφου":     { en: "Paphos",   el: "Πάφου" },
-  "πάφος":     { en: "Paphos",   el: "Πάφος" },
-  "αμμοχώστου":{ en: "Famagusta",el: "Αμμοχώστου" },
-  "παραλιμνίου":{en: "Paralimni",el: "Παραλιμνίου" },
+  λεμεσού: { en: "Limassol", el: "Λεμεσού" },
+  λεμεσος: { en: "Limassol", el: "Λεμεσός" },
+  λευκωσίας: { en: "Nicosia", el: "Λευκωσίας" },
+  λευκωσία: { en: "Nicosia", el: "Λευκωσία" },
+  λάρνακας: { en: "Larnaca", el: "Λάρνακας" },
+  λάρνακα: { en: "Larnaca", el: "Λάρνακα" },
+  πάφου: { en: "Paphos", el: "Πάφου" },
+  πάφος: { en: "Paphos", el: "Πάφος" },
+  αμμοχώστου: { en: "Famagusta", el: "Αμμοχώστου" },
+  παραλιμνίου: { en: "Paralimni", el: "Παραλιμνίου" },
 };
 
 /** Tidy a raw road string from DATEX — strip prefixes, collapse whitespace. */
@@ -829,26 +852,42 @@ function friendlyTrafficHeadline(
 ): string {
   const p = localizedPlace(road, zoneId, city, isEl);
   const where = isEl
-    ? p.kind === "road" ? `στον ${p.label}` : `κοντά στη ${p.label}`
-    : p.kind === "road" ? `on the ${p.label}` : `near ${p.label}`;
+    ? p.kind === "road"
+      ? `στον ${p.label}`
+      : `κοντά στη ${p.label}`
+    : p.kind === "road"
+      ? `on the ${p.label}`
+      : `near ${p.label}`;
 
   if (isEl) {
     switch (kind) {
-      case "roadworks":   return `Έργα οδοποιίας ${where}`;
-      case "closure":     return `Κλειστός δρόμος ${where}`;
-      case "accident":    return `Ατύχημα ${where}`;
-      case "congestion":  return `Πυκνή κίνηση ${where}`;
-      case "weather":     return `Καιρικό συμβάν ${where}`;
-      default:            return `Συμβάν ${where}`;
+      case "roadworks":
+        return `Έργα οδοποιίας ${where}`;
+      case "closure":
+        return `Κλειστός δρόμος ${where}`;
+      case "accident":
+        return `Ατύχημα ${where}`;
+      case "congestion":
+        return `Πυκνή κίνηση ${where}`;
+      case "weather":
+        return `Καιρικό συμβάν ${where}`;
+      default:
+        return `Συμβάν ${where}`;
     }
   }
   switch (kind) {
-    case "roadworks":   return `Roadworks ${where}`;
-    case "closure":     return `Road closed ${where}`;
-    case "accident":    return `Crash reported ${where}`;
-    case "congestion":  return `Heavy traffic ${where}`;
-    case "weather":     return `Weather-related delay ${where}`;
-    default:            return `Incident ${where}`;
+    case "roadworks":
+      return `Roadworks ${where}`;
+    case "closure":
+      return `Road closed ${where}`;
+    case "accident":
+      return `Crash reported ${where}`;
+    case "congestion":
+      return `Heavy traffic ${where}`;
+    case "weather":
+      return `Weather-related delay ${where}`;
+    default:
+      return `Incident ${where}`;
   }
 }
 
@@ -856,24 +895,25 @@ function friendlyTrafficHeadline(
 const GENERIC_HEADLINE_RE = /^(traffic event reported|incident|συμβάν|γεγονός)\.?$/i;
 
 /** Structured DATEX rows like "City:Strovolos, Street:Agias Marinas, Category:ROAD_CLOSED.NO_SUBTYPE". */
-const STRUCTURED_RE = /city\s*:\s*([^,\n]+).*?street\s*:\s*([^,\n]+).*?category\s*:\s*([A-Za-z0-9_.-]+)/i;
+const STRUCTURED_RE =
+  /city\s*:\s*([^,\n]+).*?street\s*:\s*([^,\n]+).*?category\s*:\s*([A-Za-z0-9_.-]+)/i;
 
 const CITY_TRANSLIT: Record<string, { en: string; el: string }> = {
-  "lefkosia":   { en: "Nicosia",   el: "Λευκωσία" },
-  "nicosia":    { en: "Nicosia",   el: "Λευκωσία" },
-  "strovolos":  { en: "Strovolos", el: "Στρόβολος" },
-  "lemesos":    { en: "Limassol",  el: "Λεμεσός" },
-  "limassol":   { en: "Limassol",  el: "Λεμεσός" },
-  "larnaka":    { en: "Larnaca",   el: "Λάρνακα" },
-  "larnaca":    { en: "Larnaca",   el: "Λάρνακα" },
-  "pafos":      { en: "Paphos",    el: "Πάφος" },
-  "paphos":     { en: "Paphos",    el: "Πάφος" },
-  "ammochostos":{ en: "Famagusta", el: "Αμμόχωστος" },
-  "famagusta":  { en: "Famagusta", el: "Αμμόχωστος" },
-  "paralimni":  { en: "Paralimni", el: "Παραλίμνι" },
-  "aglantzia":  { en: "Aglantzia", el: "Αγλαντζιά" },
-  "lakatamia":  { en: "Lakatamia", el: "Λακατάμια" },
-  "engomi":     { en: "Engomi",    el: "Έγκωμη" },
+  lefkosia: { en: "Nicosia", el: "Λευκωσία" },
+  nicosia: { en: "Nicosia", el: "Λευκωσία" },
+  strovolos: { en: "Strovolos", el: "Στρόβολος" },
+  lemesos: { en: "Limassol", el: "Λεμεσός" },
+  limassol: { en: "Limassol", el: "Λεμεσός" },
+  larnaka: { en: "Larnaca", el: "Λάρνακα" },
+  larnaca: { en: "Larnaca", el: "Λάρνακα" },
+  pafos: { en: "Paphos", el: "Πάφος" },
+  paphos: { en: "Paphos", el: "Πάφος" },
+  ammochostos: { en: "Famagusta", el: "Αμμόχωστος" },
+  famagusta: { en: "Famagusta", el: "Αμμόχωστος" },
+  paralimni: { en: "Paralimni", el: "Παραλίμνι" },
+  aglantzia: { en: "Aglantzia", el: "Αγλαντζιά" },
+  lakatamia: { en: "Lakatamia", el: "Λακατάμια" },
+  engomi: { en: "Engomi", el: "Έγκωμη" },
 };
 
 function localizeCity(raw: string, isEl: boolean): string {
@@ -884,11 +924,19 @@ function localizeCity(raw: string, isEl: boolean): string {
 
 function categoryToKind(cat: string): TrafficKind {
   const c = cat.toUpperCase();
-  if (c.includes("ROADWORK") || c.includes("CONSTRUCTION") || c.includes("MAINTENANCE")) return "roadworks";
+  if (c.includes("ROADWORK") || c.includes("CONSTRUCTION") || c.includes("MAINTENANCE"))
+    return "roadworks";
   if (c.includes("ROAD_CLOSED") || c.includes("CLOSURE") || c.includes("BLOCKED")) return "closure";
   if (c.includes("ACCIDENT") || c.includes("CRASH")) return "accident";
   if (c.includes("CONGESTION") || c.includes("JAM") || c.includes("HEAVY")) return "congestion";
-  if (c.includes("WEATHER") || c.includes("RAIN") || c.includes("FOG") || c.includes("SNOW") || c.includes("WIND")) return "weather";
+  if (
+    c.includes("WEATHER") ||
+    c.includes("RAIN") ||
+    c.includes("FOG") ||
+    c.includes("SNOW") ||
+    c.includes("WIND")
+  )
+    return "weather";
   return "other";
 }
 
@@ -906,21 +954,51 @@ function parseStructured(
   const city = localizeCity(cityRaw, isEl);
   const where = isEl ? `στην ${street}, ${city}` : `on ${street}, ${city}`;
   const head = isEl
-    ? (kind === "roadworks" ? `Έργα οδοποιίας ${where}`
-      : kind === "closure"   ? `Κλειστός δρόμος ${where}`
-      : kind === "accident"  ? `Ατύχημα ${where}`
-      : kind === "congestion"? `Πυκνή κίνηση ${where}`
-      : kind === "weather"   ? `Καιρικό συμβάν ${where}`
-      :                        `Συμβάν ${where}`)
-    : (kind === "roadworks" ? `Roadworks ${where}`
-      : kind === "closure"   ? `Road closed ${where}`
-      : kind === "accident"  ? `Crash ${where}`
-      : kind === "congestion"? `Heavy traffic ${where}`
-      : kind === "weather"   ? `Weather delay ${where}`
-      :                        `Incident ${where}`);
+    ? kind === "roadworks"
+      ? `Έργα οδοποιίας ${where}`
+      : kind === "closure"
+        ? `Κλειστός δρόμος ${where}`
+        : kind === "accident"
+          ? `Ατύχημα ${where}`
+          : kind === "congestion"
+            ? `Πυκνή κίνηση ${where}`
+            : kind === "weather"
+              ? `Καιρικό συμβάν ${where}`
+              : `Συμβάν ${where}`
+    : kind === "roadworks"
+      ? `Roadworks ${where}`
+      : kind === "closure"
+        ? `Road closed ${where}`
+        : kind === "accident"
+          ? `Crash ${where}`
+          : kind === "congestion"
+            ? `Heavy traffic ${where}`
+            : kind === "weather"
+              ? `Weather delay ${where}`
+              : `Incident ${where}`;
   const kShort = isEl
-    ? (kind === "roadworks" ? "Έργα" : kind === "closure" ? "Κλειστός" : kind === "accident" ? "Ατύχημα" : kind === "congestion" ? "Κίνηση" : kind === "weather" ? "Καιρός" : "Συμβάν")
-    : (kind === "roadworks" ? "Roadworks" : kind === "closure" ? "Closed" : kind === "accident" ? "Crash" : kind === "congestion" ? "Heavy traffic" : kind === "weather" ? "Weather" : "Incident");
+    ? kind === "roadworks"
+      ? "Έργα"
+      : kind === "closure"
+        ? "Κλειστός"
+        : kind === "accident"
+          ? "Ατύχημα"
+          : kind === "congestion"
+            ? "Κίνηση"
+            : kind === "weather"
+              ? "Καιρός"
+              : "Συμβάν"
+    : kind === "roadworks"
+      ? "Roadworks"
+      : kind === "closure"
+        ? "Closed"
+        : kind === "accident"
+          ? "Crash"
+          : kind === "congestion"
+            ? "Heavy traffic"
+            : kind === "weather"
+              ? "Weather"
+              : "Incident";
   return { headline: head, line: `${kShort} · ${street}, ${city}`, kind };
 }
 
@@ -954,23 +1032,48 @@ function friendlyTrafficLine(
 ): string {
   const p = localizedPlace(road, zoneId, city, isEl);
   if (isEl) {
-    const k = kind === "roadworks" ? "Έργα" : kind === "closure" ? "Κλειστός" : kind === "accident" ? "Ατύχημα" : kind === "congestion" ? "Κίνηση" : kind === "weather" ? "Καιρός" : "Συμβάν";
+    const k =
+      kind === "roadworks"
+        ? "Έργα"
+        : kind === "closure"
+          ? "Κλειστός"
+          : kind === "accident"
+            ? "Ατύχημα"
+            : kind === "congestion"
+              ? "Κίνηση"
+              : kind === "weather"
+                ? "Καιρός"
+                : "Συμβάν";
     return `${k} · ${p.label}`;
   }
-  const k = kind === "roadworks" ? "Roadworks" : kind === "closure" ? "Closed" : kind === "accident" ? "Crash" : kind === "congestion" ? "Heavy traffic" : kind === "weather" ? "Weather" : "Incident";
+  const k =
+    kind === "roadworks"
+      ? "Roadworks"
+      : kind === "closure"
+        ? "Closed"
+        : kind === "accident"
+          ? "Crash"
+          : kind === "congestion"
+            ? "Heavy traffic"
+            : kind === "weather"
+              ? "Weather"
+              : "Incident";
   return `${k} · ${p.label}`;
 }
-
 
 /** Pick an editorial illustration that matches the dominant kind in view. */
 function pickTrafficImage(kind: TrafficKind): string {
   switch (kind) {
-    case "roadworks":  return pulseTrafficRoadworksImg;
-    case "closure":    return pulseTrafficClosureImg;
-    case "congestion": return pulseTrafficCongestionImg;
+    case "roadworks":
+      return pulseTrafficRoadworksImg;
+    case "closure":
+      return pulseTrafficClosureImg;
+    case "congestion":
+      return pulseTrafficCongestionImg;
     case "accident":
     case "weather":
-    default:           return pulseTrafficImg;
+    default:
+      return pulseTrafficImg;
   }
 }
 
@@ -994,8 +1097,16 @@ function TrafficCard({
         : "text-olive";
 
   const severityLabel = isEl
-    ? payload.highest === "high" ? "Σοβαρό" : payload.highest === "medium" ? "Μέτριο" : "Ήπιο"
-    : payload.highest === "high" ? "Severe" : payload.highest === "medium" ? "Notable" : "Minor";
+    ? payload.highest === "high"
+      ? "Σοβαρό"
+      : payload.highest === "medium"
+        ? "Μέτριο"
+        : "Ήπιο"
+    : payload.highest === "high"
+      ? "Severe"
+      : payload.highest === "medium"
+        ? "Notable"
+        : "Minor";
 
   const topStructured = parseStructured(top.headline, isEl);
   const heroHeadline =
@@ -1036,10 +1147,16 @@ function TrafficCard({
           </span>
           <span className="font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink-soft">
             {payload.count === 1
-              ? (isEl ? "ενεργό συμβάν" : "live incident")
-              : (isEl ? "ενεργά συμβάντα" : "live incidents")}
+              ? isEl
+                ? "ενεργό συμβάν"
+                : "live incident"
+              : isEl
+                ? "ενεργά συμβάντα"
+                : "live incidents"}
           </span>
-          <span className={`ml-auto font-eyebrow text-[9.5px] uppercase tracking-[0.22em] tabular-nums ${severityTone}`}>
+          <span
+            className={`ml-auto font-eyebrow text-[9.5px] uppercase tracking-[0.22em] tabular-nums ${severityTone}`}
+          >
             {severityLabel}
           </span>
         </div>
@@ -1071,5 +1188,3 @@ function TrafficCard({
     </article>
   );
 }
-
-

@@ -26,9 +26,7 @@ export type PulseSnapshot = {
 };
 
 export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
-  const [{ supabaseAdmin }] = await Promise.all([
-    import("@/integrations/supabase/client.server"),
-  ]);
+  const [{ supabaseAdmin }] = await Promise.all([import("@/integrations/supabase/client.server")]);
   const freshThresholdIso = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
   const { data: freshness } = await supabaseAdmin
     .from("delay_stats")
@@ -53,7 +51,11 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
   // Filter out routes that aren't in our static timetable — they'd render as "?".
   const excludedRoutes = new Set<string>();
   const agg = new Map<string, { sumDelayWeighted: number; sampleCount: number }>();
-  for (const row of data as Array<{ route_id: string; sum_delay_weighted: number; sample_count: number }>) {
+  for (const row of data as Array<{
+    route_id: string;
+    sum_delay_weighted: number;
+    sample_count: number;
+  }>) {
     if (!KNOWN_ROUTE_IDS.has(row.route_id)) {
       excludedRoutes.add(row.route_id);
       continue;
@@ -76,12 +78,7 @@ export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
   const totalSamples = stats.reduce((s, r) => s + r.sampleCount, 0);
   const onTimePct =
     totalSamples > 0
-      ? Math.round(
-          stats.reduce(
-            (s, r) => s + r.onTimePct * r.sampleCount,
-            0,
-          ) / totalSamples,
-        )
+      ? Math.round(stats.reduce((s, r) => s + r.onTimePct * r.sampleCount, 0) / totalSamples)
       : 0;
 
   const hottest = [...stats]
@@ -154,7 +151,9 @@ async function buildPulseFromRealtime(): Promise<PulseSnapshot> {
     const totalSamples = stats.reduce((sum, row) => sum + row.sampleCount, 0);
     const onTimePct =
       totalSamples > 0
-        ? Math.round(stats.reduce((sum, row) => sum + row.onTimePct * row.sampleCount, 0) / totalSamples)
+        ? Math.round(
+            stats.reduce((sum, row) => sum + row.onTimePct * row.sampleCount, 0) / totalSamples,
+          )
         : 0;
 
     return {
@@ -207,9 +206,7 @@ export type LivePulse = {
 };
 
 export const getLivePulse = createServerFn({ method: "GET" }).handler(async () => {
-  const [{ supabaseAdmin }] = await Promise.all([
-    import("@/integrations/supabase/client.server"),
-  ]);
+  const [{ supabaseAdmin }] = await Promise.all([import("@/integrations/supabase/client.server")]);
   const WINDOW_MIN = 60;
   const sinceIso = new Date(Date.now() - WINDOW_MIN * 60_000).toISOString();
   const PAGE = 1000;
@@ -354,5 +351,3 @@ export const getPulseHourStrip = createServerFn({ method: "GET" }).handler(async
     buckets,
   } satisfies HourStrip;
 });
-
-

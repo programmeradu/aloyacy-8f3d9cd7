@@ -70,10 +70,9 @@ function DebugMultiLeg() {
             <span className="italic text-aegean-deep">honestly merged.</span>
           </h1>
           <p className="mt-3 max-w-[58ch] text-[13px] text-ink-soft leading-relaxed">
-            Bounded RAPTOR runs over the full Cyprus timetable and the live
-            GTFS-RT feed in parallel. Results are merged, deduped, and the
-            no-mediocrity filter removes transfers that don't meaningfully
-            beat the best direct. Each ride leg is tagged with its source.
+            Bounded RAPTOR runs over the full Cyprus timetable and the live GTFS-RT feed in
+            parallel. Results are merged, deduped, and the no-mediocrity filter removes transfers
+            that don't meaningfully beat the best direct. Each ride leg is tagged with its source.
           </p>
         </header>
 
@@ -109,9 +108,7 @@ function DebugMultiLeg() {
         </div>
 
         {m.error ? (
-          <p className="mt-6 font-mono text-[11px] text-ochre">
-            {(m.error as Error).message}
-          </p>
+          <p className="mt-6 font-mono text-[11px] text-ochre">{(m.error as Error).message}</p>
         ) : null}
 
         {m.data?.diagnostics ? (
@@ -119,35 +116,66 @@ function DebugMultiLeg() {
             <div>
               <p className="text-[10px] uppercase tracking-[0.22em] text-ink mb-2">Merge funnel</p>
               <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 tabular-nums">
-                <dt>raw (live + scheduled)</dt><dd className="text-ink">{m.data.diagnostics.mergedRaw}</dd>
-                <dt>after dedup</dt><dd className="text-ink">{m.data.diagnostics.afterDedup}</dd>
-                <dt>pruned as mediocre</dt><dd className="text-ink">{m.data.diagnostics.prunedMediocre}</dd>
-                <dt>final</dt><dd className="text-ink">{m.data.diagnostics.finalCount}</dd>
+                <dt>raw (live + scheduled)</dt>
+                <dd className="text-ink">{m.data.diagnostics.mergedRaw}</dd>
+                <dt>after dedup</dt>
+                <dd className="text-ink">{m.data.diagnostics.afterDedup}</dd>
+                <dt>pruned as mediocre</dt>
+                <dd className="text-ink">{m.data.diagnostics.prunedMediocre}</dd>
+                <dt>final</dt>
+                <dd className="text-ink">{m.data.diagnostics.finalCount}</dd>
               </dl>
             </div>
 
             {m.data.diagnostics.scheduled ? (
               <div className="pt-3 border-t border-line/60">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-ink mb-2">Scheduled (RAPTOR)</p>
+                <p className="text-[10px] uppercase tracking-[0.22em] text-ink mb-2">
+                  Scheduled (RAPTOR)
+                </p>
                 <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 tabular-nums">
-                  <dt>date</dt><dd className="text-ink">{m.data.diagnostics.scheduled.date}</dd>
-                  <dt>origin stops ≤1.2km</dt><dd className="text-ink">{m.data.diagnostics.scheduled.originStopCount} (nearest {m.data.diagnostics.scheduled.nearestOriginStopKm?.toFixed(2)} km)</dd>
-                  <dt>dest stops ≤1.2km</dt><dd className="text-ink">{m.data.diagnostics.scheduled.destStopCount} (nearest {m.data.diagnostics.scheduled.nearestDestStopKm?.toFixed(2)} km)</dd>
-                  <dt>schedule stops loaded</dt><dd className="text-ink">{m.data.diagnostics.scheduled.scheduleStopsLoaded}</dd>
-                  <dt>trips loaded for date</dt><dd className="text-ink">{m.data.diagnostics.scheduled.scheduleTripsLoaded}</dd>
-                  <dt>RAPTOR rounds run</dt><dd className="text-ink">{m.data.diagnostics.scheduled.roundsRun}</dd>
-                  <dt>trips scanned</dt><dd className="text-ink">{m.data.diagnostics.scheduled.scannedTrips}</dd>
-                  <dt>walk transfers</dt><dd className="text-ink">{m.data.diagnostics.scheduled.walkTransfers}</dd>
-                  <dt>candidate itineraries</dt><dd className="text-ink">{m.data.diagnostics.scheduled.candidateItineraries}</dd>
-                  <dt>live arrivals (overlay)</dt><dd className="text-ink">{m.data.diagnostics.scheduled.liveArrivalCount}</dd>
-                  <dt>legs overlaid live</dt><dd className="text-ink">{m.data.diagnostics.scheduled.legsOverlaid}</dd>
-                  <dt>load / raptor / overlay ms</dt><dd className="text-ink">{m.data.diagnostics.scheduled.loadMs} / {m.data.diagnostics.scheduled.raptorMs} / {m.data.diagnostics.scheduled.overlayMs}</dd>
+                  <dt>date</dt>
+                  <dd className="text-ink">{m.data.diagnostics.scheduled.date}</dd>
+                  <dt>origin stops ≤1.2km</dt>
+                  <dd className="text-ink">
+                    {m.data.diagnostics.scheduled.originStopCount} (nearest{" "}
+                    {m.data.diagnostics.scheduled.nearestOriginStopKm?.toFixed(2)} km)
+                  </dd>
+                  <dt>dest stops ≤1.2km</dt>
+                  <dd className="text-ink">
+                    {m.data.diagnostics.scheduled.destStopCount} (nearest{" "}
+                    {m.data.diagnostics.scheduled.nearestDestStopKm?.toFixed(2)} km)
+                  </dd>
+                  <dt>schedule stops loaded</dt>
+                  <dd className="text-ink">{m.data.diagnostics.scheduled.scheduleStopsLoaded}</dd>
+                  <dt>trips loaded for date</dt>
+                  <dd className="text-ink">{m.data.diagnostics.scheduled.scheduleTripsLoaded}</dd>
+                  <dt>RAPTOR rounds run</dt>
+                  <dd className="text-ink">{m.data.diagnostics.scheduled.roundsRun}</dd>
+                  <dt>trips scanned</dt>
+                  <dd className="text-ink">{m.data.diagnostics.scheduled.scannedTrips}</dd>
+                  <dt>walk transfers</dt>
+                  <dd className="text-ink">{m.data.diagnostics.scheduled.walkTransfers}</dd>
+                  <dt>candidate itineraries</dt>
+                  <dd className="text-ink">{m.data.diagnostics.scheduled.candidateItineraries}</dd>
+                  <dt>live arrivals (overlay)</dt>
+                  <dd className="text-ink">{m.data.diagnostics.scheduled.liveArrivalCount}</dd>
+                  <dt>legs overlaid live</dt>
+                  <dd className="text-ink">{m.data.diagnostics.scheduled.legsOverlaid}</dd>
+                  <dt>load / raptor / overlay ms</dt>
+                  <dd className="text-ink">
+                    {m.data.diagnostics.scheduled.loadMs} / {m.data.diagnostics.scheduled.raptorMs}{" "}
+                    / {m.data.diagnostics.scheduled.overlayMs}
+                  </dd>
                 </dl>
                 {m.data.diagnostics.scheduled.reasons.length > 0 ? (
                   <div className="mt-3">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-ochre mb-1">Why scheduled gave nothing</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-ochre mb-1">
+                      Why scheduled gave nothing
+                    </p>
                     {m.data.diagnostics.scheduled.reasons.map((r: string, i: number) => (
-                      <p key={i} className="text-ink leading-relaxed">— {r}</p>
+                      <p key={i} className="text-ink leading-relaxed">
+                        — {r}
+                      </p>
                     ))}
                   </div>
                 ) : null}
@@ -156,18 +184,31 @@ function DebugMultiLeg() {
 
             {m.data.diagnostics.live ? (
               <div className="pt-3 border-t border-line/60">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-ink mb-2">Live (realtime feed)</p>
+                <p className="text-[10px] uppercase tracking-[0.22em] text-ink mb-2">
+                  Live (realtime feed)
+                </p>
                 <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 tabular-nums">
-                  <dt>live trips in feed</dt><dd className="text-ink">{m.data.diagnostics.live.liveTripCount} ({m.data.diagnostics.live.liveArrivalCount} arrivals)</dd>
-                  <dt>direct candidates</dt><dd className="text-ink">{m.data.diagnostics.live.directRawCount}</dd>
-                  <dt>transfer candidates</dt><dd className="text-ink">{m.data.diagnostics.live.transferRawCount}</dd>
-                  <dt>kept (top-K)</dt><dd className="text-ink">{m.data.diagnostics.live.keptCount}</dd>
+                  <dt>live trips in feed</dt>
+                  <dd className="text-ink">
+                    {m.data.diagnostics.live.liveTripCount} (
+                    {m.data.diagnostics.live.liveArrivalCount} arrivals)
+                  </dd>
+                  <dt>direct candidates</dt>
+                  <dd className="text-ink">{m.data.diagnostics.live.directRawCount}</dd>
+                  <dt>transfer candidates</dt>
+                  <dd className="text-ink">{m.data.diagnostics.live.transferRawCount}</dd>
+                  <dt>kept (top-K)</dt>
+                  <dd className="text-ink">{m.data.diagnostics.live.keptCount}</dd>
                 </dl>
                 {m.data.diagnostics.live.reasons.length > 0 ? (
                   <div className="mt-3">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-ochre mb-1">Why live gave nothing</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-ochre mb-1">
+                      Why live gave nothing
+                    </p>
                     {m.data.diagnostics.live.reasons.map((r: string, i: number) => (
-                      <p key={i} className="text-ink leading-relaxed">— {r}</p>
+                      <p key={i} className="text-ink leading-relaxed">
+                        — {r}
+                      </p>
                     ))}
                   </div>
                 ) : null}
@@ -254,7 +295,9 @@ function ItineraryCard({ it, rank }: { it: Itinerary; rank: number }) {
                 <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mt-0.5">
                   {fmtTime(leg.board.departureUnix)} — {fmtTime(leg.alight.arrivalUnix)} ·{" "}
                   {leg.stopCount} stops
-                  {leg.delaySec ? ` · ${leg.delaySec > 0 ? "+" : ""}${Math.round(leg.delaySec / 60)} min` : ""}
+                  {leg.delaySec
+                    ? ` · ${leg.delaySec > 0 ? "+" : ""}${Math.round(leg.delaySec / 60)} min`
+                    : ""}
                 </p>
               </div>
             ) : leg.kind === "walk" ? (

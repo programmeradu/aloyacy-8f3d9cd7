@@ -157,7 +157,6 @@ export function getGraphStats() {
     stopsWithRoutes: sr.size,
     stopsWithTransferCandidates: tc.size,
     totalTransferCandidatePairs: totalCandidates,
-    avgCandidatesPerStop:
-      tc.size === 0 ? 0 : Math.round((totalCandidates / tc.size) * 10) / 10,
+    avgCandidatesPerStop: tc.size === 0 ? 0 : Math.round((totalCandidates / tc.size) * 10) / 10,
   };
 }

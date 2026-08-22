@@ -5,7 +5,16 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { ItineraryCard } from "@/components/ItineraryCard";
 import { createPortal } from "react-dom";
-import { IconArrowUpRight, IconBriefcase, IconClock, IconClose, IconHome, IconPin, IconSearch, IconStar } from "@/components/Icons";
+import {
+  IconArrowUpRight,
+  IconBriefcase,
+  IconClock,
+  IconClose,
+  IconHome,
+  IconPin,
+  IconSearch,
+  IconStar,
+} from "@/components/Icons";
 import { autocompletePlaces, getPlace, reverseLookup } from "@/lib/maps.functions";
 import { planMultiLeg } from "@/lib/multileg.functions";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
@@ -13,12 +22,7 @@ import type { JourneyOption } from "@/lib/journey.server";
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
 import { nearestCity } from "@/lib/cities";
-import {
-  pushRecent,
-  setActiveTrip,
-  useRecents,
-  useSavedPlaces,
-} from "@/lib/trip-store";
+import { pushRecent, setActiveTrip, useRecents, useSavedPlaces } from "@/lib/trip-store";
 import { getTripSuggestions, type TripSuggestion } from "@/lib/suggestions.functions";
 import { getDeviceId } from "@/lib/pwa";
 import planHero from "@/assets/plan-hero.jpg";
@@ -55,13 +59,19 @@ export const Route = createFileRoute("/trips")({
           "Door-to-door bus journeys across Cyprus, blending live vehicle data with walking directions.",
       },
       { property: "og:title", content: "Plan a trip — Aloya" },
-      { property: "og:description", content: "Door-to-door across Cyprus. Live buses, walking, transfers — one calm view." },
+      {
+        property: "og:description",
+        content: "Door-to-door across Cyprus. Live buses, walking, transfers — one calm view.",
+      },
       { property: "og:url", content: "https://app.aloya.cy/trips" },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "https://app.aloya.cy/og/og-trips.jpg" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "Cypriot aegean-blue shutters slightly ajar on a sun-warmed limestone wall." },
+      {
+        property: "og:image:alt",
+        content: "Cypriot aegean-blue shutters slightly ajar on a sun-warmed limestone wall.",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://app.aloya.cy/og/og-trips.jpg" },
     ],
@@ -103,10 +113,8 @@ function Plan() {
     const toLng = parseFloat(sp.get("toLng") ?? "");
     const fromLabel = sp.get("fromLabel") ?? "";
     const toLabel = sp.get("toLabel") ?? "";
-    const hasFrom =
-      Number.isFinite(fromLat) && Number.isFinite(fromLng) && !!fromLabel;
-    const hasTo =
-      Number.isFinite(toLat) && Number.isFinite(toLng) && !!toLabel;
+    const hasFrom = Number.isFinite(fromLat) && Number.isFinite(fromLng) && !!fromLabel;
+    const hasTo = Number.isFinite(toLat) && Number.isFinite(toLng) && !!toLabel;
     if (hasFrom && hasTo) {
       hydratedFromUrlRef.current = true;
       setOrigin({ lat: fromLat, lng: fromLng, label: fromLabel });
@@ -130,23 +138,18 @@ function Plan() {
       setActive("from");
       window.history.replaceState({}, "", "/trips");
     }
-
   }, []);
 
   const planFn = useServerFn(planMultiLeg);
   const reverseFn = useServerFn(reverseLookup);
   const fetchSuggestions = useServerFn(getTripSuggestions);
-  
 
   const { session } = useAuth();
   const { data: suggData } = useQuery({
     queryKey: ["trip-suggestions", session?.user?.id ?? null],
     queryFn: async () => {
       const { getDeviceToken, getAccessToken } = await import("@/lib/pwa");
-      const [token, accessToken] = await Promise.all([
-        getDeviceToken(),
-        getAccessToken(),
-      ]);
+      const [token, accessToken] = await Promise.all([getDeviceToken(), getAccessToken()]);
       if (!token) return { suggestions: [] };
       return fetchSuggestions({
         data: { deviceId: getDeviceId(), deviceToken: token, accessToken },
@@ -188,7 +191,11 @@ function Plan() {
     ],
     queryFn: async () => {
       if (!origin || !destination)
-        return { itineraries: [] as Itinerary[], noScheduleAvailable: undefined, requestedDate: undefined };
+        return {
+          itineraries: [] as Itinerary[],
+          noScheduleAvailable: undefined,
+          requestedDate: undefined,
+        };
       const departAtUnix = timeIntent?.leaveByISO
         ? Math.floor(new Date(timeIntent.leaveByISO).getTime() / 1000)
         : undefined;
@@ -240,9 +247,7 @@ function Plan() {
   const busOnlyAccessWalkM = (() => {
     if (!busOnlyTop) return null;
     const firstWalk = busOnlyTop.legs.find((l) => l.kind === "walk");
-    return firstWalk && firstWalk.kind === "walk"
-      ? Math.round(firstWalk.distanceMeters)
-      : 0;
+    return firstWalk && firstWalk.kind === "walk" ? Math.round(firstWalk.distanceMeters) : 0;
   })();
   const pnrQuery = useQuery({
     queryKey: [
@@ -373,7 +378,6 @@ function Plan() {
   });
   const trafficReport = trafficQuery.data ?? null;
 
-
   // Wave 3 — Bike-share alternative (Nextbike). Short to mid-distance
   // intra-city trips where docked bikes + free racks are within a short
   // walk on both ends, and the cycle beats the bus by ≥ 3 min.
@@ -471,8 +475,10 @@ function Plan() {
   const kapnosQuery = useQuery({
     queryKey: [
       "kapnos",
-      origin?.lat, origin?.lng,
-      destination?.lat, destination?.lng,
+      origin?.lat,
+      origin?.lng,
+      destination?.lat,
+      destination?.lng,
       kapnosAfterUnix ?? null,
       kapnosBeforeUnix ?? null,
     ],
@@ -501,10 +507,8 @@ function Plan() {
   // rider is too far to walk. We don't tell people "take a bus or taxi" —
   // we plan the bus for them, same as any other journey.
   const KAPNOS_WALKABLE_M = 1_200;
-  const kapnosPickupFar =
-    !!kapnos && kapnos.pickup.distanceM > KAPNOS_WALKABLE_M;
-  const kapnosDropoffFar =
-    !!kapnos && kapnos.dropoff.distanceM > KAPNOS_WALKABLE_M;
+  const kapnosPickupFar = !!kapnos && kapnos.pickup.distanceM > KAPNOS_WALKABLE_M;
+  const kapnosDropoffFar = !!kapnos && kapnos.dropoff.distanceM > KAPNOS_WALKABLE_M;
 
   // Convert Kapnos "YYYY-MM-DD HH:mm:ss" (Cyprus local wall-clock) → unix seconds.
   // Uses Intl to resolve the Asia/Nicosia offset for that specific date so DST is
@@ -512,17 +516,33 @@ function Plan() {
   const cyprusLocalToUnix = (local: string): number | undefined => {
     const m = local.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
     if (!m) return undefined;
-    const Y = +m[1], Mo = +m[2], D = +m[3], H = +m[4], Mi = +m[5], S = +(m[6] ?? 0);
+    const Y = +m[1],
+      Mo = +m[2],
+      D = +m[3],
+      H = +m[4],
+      Mi = +m[5],
+      S = +(m[6] ?? 0);
     const guess = Date.UTC(Y, Mo - 1, D, H, Mi, S);
     const dtf = new Intl.DateTimeFormat("en-US", {
       timeZone: "Asia/Nicosia",
       hourCycle: "h23",
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit", second: "2-digit",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     });
     const parts = dtf.formatToParts(new Date(guess));
     const get = (t: string) => +parts.find((p) => p.type === t)!.value;
-    const asCy = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+    const asCy = Date.UTC(
+      get("year"),
+      get("month") - 1,
+      get("day"),
+      get("hour"),
+      get("minute"),
+      get("second"),
+    );
     const offset = asCy - guess; // ms Cyprus is ahead of UTC
     return Math.floor((guess - offset) / 1000);
   };
@@ -625,9 +645,6 @@ function Plan() {
   });
   const lastMileItin = lastMileQuery.data ?? null;
 
-
-
-
   // Force a re-plan the moment the top result's bus has just departed —
   // the static refetchInterval would otherwise leave a stale "next bus" on
   // screen for up to 30 seconds after it pulled away.
@@ -722,7 +739,9 @@ function Plan() {
           void applyFix(parsed.lat, parsed.lng);
         }
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     // 2) Always try a fresh fix. High accuracy, generous timeout, accept a
     //    recent cached browser fix so we don't re-prompt on every navigation.
@@ -730,11 +749,14 @@ function Plan() {
     const fallbackTimer = window.setTimeout(() => {
       if (cancelled || origin) return;
       // Only show Nicosia fallback if nothing seeded after 12s.
-      setOrigin((cur) => cur ?? {
-        lat: NICOSIA_CENTER.lat,
-        lng: NICOSIA_CENTER.lng,
-        label: "Nicosia centre",
-      });
+      setOrigin(
+        (cur) =>
+          cur ?? {
+            lat: NICOSIA_CENTER.lat,
+            lng: NICOSIA_CENTER.lng,
+            label: "Nicosia centre",
+          },
+      );
     }, 12_000);
 
     navigator.geolocation.getCurrentPosition(
@@ -746,18 +768,23 @@ function Plan() {
             "aloya:geo",
             JSON.stringify({ lat: latitude, lng: longitude, ts: Date.now() }),
           );
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
         void applyFix(latitude, longitude);
       },
       () => {
         window.clearTimeout(fallbackTimer);
         if (cancelled) return;
         // If cache already seeded an origin, keep it; otherwise fall back.
-        setOrigin((cur) => cur ?? {
-          lat: NICOSIA_CENTER.lat,
-          lng: NICOSIA_CENTER.lng,
-          label: "Nicosia centre",
-        });
+        setOrigin(
+          (cur) =>
+            cur ?? {
+              lat: NICOSIA_CENTER.lat,
+              lng: NICOSIA_CENTER.lng,
+              label: "Nicosia centre",
+            },
+        );
       },
       { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
     );
@@ -798,7 +825,6 @@ function Plan() {
     void navigate({ to: "/trip/$id", params: { id: option.id } });
   }
 
-
   return (
     <AppShell>
       <header className="relative px-6 pt-2 pb-5 animate-rise">
@@ -815,7 +841,8 @@ function Plan() {
           {t("trips.kicker")}
         </p>
         <h1 className="font-display text-[40px] leading-[1.04] mt-1.5 text-ink text-balance">
-          {t("trips.titlePrefix")} <span className="italic text-aegean-deep">{t("trips.titleEmph")}</span>.
+          {t("trips.titlePrefix")}{" "}
+          <span className="italic text-aegean-deep">{t("trips.titleEmph")}</span>.
           <br />
           {t("trips.titleSuffix")}
         </h1>
@@ -852,25 +879,17 @@ function Plan() {
           onClear={() => setTimeIntent(null)}
         />
 
-
         <PlacesPickerSheet
           open={active !== null}
           role={active ?? "to"}
           // Wave 2.5 — bias autocomplete to the rider's actual city.
-          bias={
-            origin
-              ? nearestCity(origin.lat, origin.lng).center
-              : NICOSIA_CENTER
-          }
+          bias={origin ? nearestCity(origin.lat, origin.lng).center : NICOSIA_CENTER}
           onClose={() => setActive(null)}
           onPick={onPick}
         />
       </section>
 
-      <section
-        className="mt-7 px-6 animate-rise"
-        style={{ animationDelay: "140ms" }}
-      >
+      <section className="mt-7 px-6 animate-rise" style={{ animationDelay: "140ms" }}>
         <div className="mb-3 flex items-end justify-between">
           <h2 className="font-display text-2xl text-ink">
             {results === null && !planning
@@ -902,9 +921,7 @@ function Plan() {
               setDestination(to);
               pushRecent({ name: s.toLabel, lat: s.toLat, lng: s.toLng });
               setActive(null);
-              const o =
-                origin ??
-                ({ lat: s.fromLat, lng: s.fromLng, label: s.fromLabel } as Point);
+              const o = origin ?? ({ lat: s.fromLat, lng: s.fromLng, label: s.fromLabel } as Point);
               if (!origin) setOrigin(o);
             }}
           />
@@ -929,21 +946,43 @@ function Plan() {
                 lastMileLoading={kapnosDropoffFar && lastMileQuery.isFetching && !lastMileItin}
                 onPlanFirstMile={() => {
                   if (firstMileItin && origin) {
-                    startPlannedItinerary(firstMileItin, origin, { lat: kapnos.pickup.lat, lng: kapnos.pickup.lng, label: kapnos.pickup.name });
+                    startPlannedItinerary(firstMileItin, origin, {
+                      lat: kapnos.pickup.lat,
+                      lng: kapnos.pickup.lng,
+                      label: kapnos.pickup.name,
+                    });
                     return;
                   }
-                  setDestination({ lat: kapnos.pickup.lat, lng: kapnos.pickup.lng, label: kapnos.pickup.name });
+                  setDestination({
+                    lat: kapnos.pickup.lat,
+                    lng: kapnos.pickup.lng,
+                    label: kapnos.pickup.name,
+                  });
                   setActive(null);
-                  if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+                  if (typeof window !== "undefined")
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 onPlanLastMile={() => {
                   if (lastMileItin && destination) {
-                    startPlannedItinerary(lastMileItin, { lat: kapnos.dropoff.lat, lng: kapnos.dropoff.lng, label: kapnos.dropoff.name }, destination);
+                    startPlannedItinerary(
+                      lastMileItin,
+                      {
+                        lat: kapnos.dropoff.lat,
+                        lng: kapnos.dropoff.lng,
+                        label: kapnos.dropoff.name,
+                      },
+                      destination,
+                    );
                     return;
                   }
-                  setOrigin({ lat: kapnos.dropoff.lat, lng: kapnos.dropoff.lng, label: kapnos.dropoff.name });
+                  setOrigin({
+                    lat: kapnos.dropoff.lat,
+                    lng: kapnos.dropoff.lng,
+                    label: kapnos.dropoff.name,
+                  });
                   setActive(null);
-                  if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+                  if (typeof window !== "undefined")
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               />
             )}
@@ -962,9 +1001,7 @@ function Plan() {
               ) : (
                 <>
                   <p className="font-display text-xl text-ink">{t("trips.noRouteTitle")}</p>
-                  <p className="mt-1.5 text-[13px] text-ink-soft">
-                    {t("trips.noRouteBody")}
-                  </p>
+                  <p className="mt-1.5 text-[13px] text-ink-soft">{t("trips.noRouteBody")}</p>
                 </>
               )}
             </div>
@@ -983,21 +1020,43 @@ function Plan() {
                 lastMileLoading={kapnosDropoffFar && lastMileQuery.isFetching && !lastMileItin}
                 onPlanFirstMile={() => {
                   if (firstMileItin && origin) {
-                    startPlannedItinerary(firstMileItin, origin, { lat: kapnos.pickup.lat, lng: kapnos.pickup.lng, label: kapnos.pickup.name });
+                    startPlannedItinerary(firstMileItin, origin, {
+                      lat: kapnos.pickup.lat,
+                      lng: kapnos.pickup.lng,
+                      label: kapnos.pickup.name,
+                    });
                     return;
                   }
-                  setDestination({ lat: kapnos.pickup.lat, lng: kapnos.pickup.lng, label: kapnos.pickup.name });
+                  setDestination({
+                    lat: kapnos.pickup.lat,
+                    lng: kapnos.pickup.lng,
+                    label: kapnos.pickup.name,
+                  });
                   setActive(null);
-                  if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+                  if (typeof window !== "undefined")
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 onPlanLastMile={() => {
                   if (lastMileItin && destination) {
-                    startPlannedItinerary(lastMileItin, { lat: kapnos.dropoff.lat, lng: kapnos.dropoff.lng, label: kapnos.dropoff.name }, destination);
+                    startPlannedItinerary(
+                      lastMileItin,
+                      {
+                        lat: kapnos.dropoff.lat,
+                        lng: kapnos.dropoff.lng,
+                        label: kapnos.dropoff.name,
+                      },
+                      destination,
+                    );
                     return;
                   }
-                  setOrigin({ lat: kapnos.dropoff.lat, lng: kapnos.dropoff.lng, label: kapnos.dropoff.name });
+                  setOrigin({
+                    lat: kapnos.dropoff.lat,
+                    lng: kapnos.dropoff.lng,
+                    label: kapnos.dropoff.name,
+                  });
                   setActive(null);
-                  if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+                  if (typeof window !== "undefined")
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               />
             )}
@@ -1016,22 +1075,14 @@ function Plan() {
   );
 }
 
-function EmptyState({
-  origin,
-  destination,
-}: {
-  origin: Point | null;
-  destination: Point | null;
-}) {
+function EmptyState({ origin, destination }: { origin: Point | null; destination: Point | null }) {
   const { t } = useI18n();
   return (
     <div className="rounded-[28px] bg-card p-6 ring-1 ring-line">
       <p className="font-display text-lg text-ink leading-tight text-balance">
         {origin && !destination ? t("trips.emptyTitleA") : t("trips.emptyTitleB")}
       </p>
-      <p className="mt-2 text-[13px] text-ink-soft leading-relaxed">
-        {t("trips.emptyBody")}
-      </p>
+      <p className="mt-2 text-[13px] text-ink-soft leading-relaxed">{t("trips.emptyBody")}</p>
     </div>
   );
 }
@@ -1139,14 +1190,8 @@ function FieldRow({
         )}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="font-sans text-[11px] font-semibold tracking-tight text-ink-soft">
-          {label}
-        </p>
-        <p
-          className={`truncate text-[15px] ${
-            point ? "text-ink font-medium" : "text-ink-soft"
-          }`}
-        >
+        <p className="font-sans text-[11px] font-semibold tracking-tight text-ink-soft">{label}</p>
+        <p className={`truncate text-[15px] ${point ? "text-ink font-medium" : "text-ink-soft"}`}>
           {point?.label ?? (role === "from" ? t("trips.detecting") : t("trips.searchPlaceholder"))}
         </p>
       </div>
@@ -1315,13 +1360,9 @@ function PlacesPickerContent({
                 >
                   <IconPin className="size-4 text-aegean-deep shrink-0" />
                   <div className="min-w-0">
-                    <p className="truncate text-[14px] font-medium text-ink">
-                      {s.primary}
-                    </p>
+                    <p className="truncate text-[14px] font-medium text-ink">{s.primary}</p>
                     {s.secondary && (
-                      <p className="truncate text-[11px] text-ink-soft">
-                        {s.secondary}
-                      </p>
+                      <p className="truncate text-[11px] text-ink-soft">{s.secondary}</p>
                     )}
                   </div>
                 </button>
@@ -1343,13 +1384,7 @@ function labelGlyph(label: string) {
   return IconPin;
 }
 
-function QuickPicks({
-  role,
-  onChoose,
-}: {
-  role: "from" | "to";
-  onChoose: (p: Point) => void;
-}) {
+function QuickPicks({ role, onChoose }: { role: "from" | "to"; onChoose: (p: Point) => void }) {
   const { t } = useI18n();
   const saved = useSavedPlaces();
   const recents = useRecents();
@@ -1368,16 +1403,12 @@ function QuickPicks({
               return (
                 <button
                   key={p.id}
-                  onClick={() =>
-                    onChoose({ lat: p.lat, lng: p.lng, label: p.name })
-                  }
+                  onClick={() => onChoose({ lat: p.lat, lng: p.lng, label: p.name })}
                   className="group inline-flex items-center gap-2 rounded-full bg-limestone-soft px-3.5 py-2 text-[12px] text-ink transition-colors hover:bg-aegean-soft/60"
                   aria-label={`${p.label}: ${p.name}`}
                 >
                   <Glyph className="size-3.5 text-aegean-deep" strokeWidth={1.4} />
-                  <span>
-                    {p.name.length > 24 ? `${p.name.slice(0, 24)}…` : p.name}
-                  </span>
+                  <span>{p.name.length > 24 ? `${p.name.slice(0, 24)}…` : p.name}</span>
                 </button>
               );
             })}
@@ -1393,9 +1424,7 @@ function QuickPicks({
             {recents.slice(0, 5).map((r) => (
               <li key={r.id}>
                 <button
-                  onClick={() =>
-                    onChoose({ lat: r.lat, lng: r.lng, label: r.name })
-                  }
+                  onClick={() => onChoose({ lat: r.lat, lng: r.lng, label: r.name })}
                   className="flex w-full items-center gap-3 py-2.5 text-left"
                 >
                   <IconClock className="size-4 text-ink-soft shrink-0" />
@@ -1409,7 +1438,6 @@ function QuickPicks({
     </div>
   );
 }
-
 
 // Bridge component: renders an Itinerary card and wires "Start this trip" to
 // the existing single-ride trip companion. Multi-ride itineraries surface a
@@ -1460,16 +1488,8 @@ function ItineraryRow({
         startLabel={t("trips.startThis")}
       />
       <div className="px-1 flex flex-wrap items-center gap-2">
-        <RemindMeButton
-          itinerary={itinerary}
-          origin={origin}
-          destination={destination}
-        />
-        <SharePlanButton
-          itinerary={itinerary}
-          origin={origin}
-          destination={destination}
-        />
+        <RemindMeButton itinerary={itinerary} origin={origin} destination={destination} />
+        <SharePlanButton itinerary={itinerary} origin={origin} destination={destination} />
       </div>
     </div>
   );
@@ -1504,7 +1524,11 @@ function ItineraryResults({
       ))}
       {transfers.length > 0 && (
         <ProGate
-          feature={transfers.length === 1 ? t("trips.fasterOne") : t("trips.fasterN", { n: transfers.length })}
+          feature={
+            transfers.length === 1
+              ? t("trips.fasterOne")
+              : t("trips.fasterN", { n: transfers.length })
+          }
           preview={
             <div className="flex flex-col gap-3 p-3">
               {transfers.slice(0, 2).map((it, i) => (
@@ -1535,8 +1559,6 @@ function ItineraryResults({
     </div>
   );
 }
-
-
 
 // Map a single-ride Itinerary into the legacy JourneyOption shape that
 // trip.$id and trip-store still expect. Drops Wait legs (they're implicit
@@ -1635,7 +1657,9 @@ function TimeIntentChip({
   );
 }
 
-function formatIntentLabel(iso: string, t: (k: any, v?: any) => string): string {
+type Translate = ReturnType<typeof useI18n>["t"];
+
+function formatIntentLabel(iso: string, t: Translate): string {
   try {
     const d = new Date(iso);
     const today = new Date();

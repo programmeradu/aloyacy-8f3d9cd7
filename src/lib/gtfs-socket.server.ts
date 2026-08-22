@@ -66,10 +66,7 @@ function dechunk(body: Uint8Array): Uint8Array {
   while (pos < body.length) {
     const crlf = indexOfSeq(body, [0x0d, 0x0a], pos);
     if (crlf < 0) break;
-    const sizeHex = new TextDecoder()
-      .decode(body.subarray(pos, crlf))
-      .split(";")[0]!
-      .trim();
+    const sizeHex = new TextDecoder().decode(body.subarray(pos, crlf)).split(";")[0]!.trim();
     const size = parseInt(sizeHex, 16);
     if (!Number.isFinite(size) || size <= 0) break;
     const start = crlf + 2;
@@ -84,9 +81,7 @@ function dechunk(body: Uint8Array): Uint8Array {
  * Throws on any transport or HTTP-level failure so the caller can fall through
  * to the next source.
  */
-export async function fetchFeedOverSocket(
-  timeoutMs = 12_000,
-): Promise<Uint8Array> {
+export async function fetchFeedOverSocket(timeoutMs = 12_000): Promise<Uint8Array> {
   const connect = await getConnect();
   if (!connect) {
     const res = await fetch(`http://${HOST}:${PORT}${PATH}`, {
@@ -112,7 +107,7 @@ export async function fetchFeedOverSocket(
 
     const reader = socket.readable.getReader();
     const chunks: Uint8Array[] = [];
-    // eslint-disable-next-line no-constant-condition
+
     while (true) {
       if (Date.now() > deadline) throw new Error("socket timeout");
       const { done, value } = await reader.read();

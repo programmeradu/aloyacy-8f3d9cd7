@@ -26,7 +26,6 @@ export function AuthSheet({
   const linkOtp = useServerFn(linkEmailAndRequestOtp);
   const { isAnonymous } = useAuth();
 
-
   if (!open) return null;
 
   const titleText = title ?? t("auth.title");
@@ -54,7 +53,6 @@ export function AuthSheet({
         if (!r2.ok) throw new Error(r2.error);
         setStage("code");
         return;
-
       }
       // Already permanent (rare here) — plain sign-in.
       const r = await sendOtp({ data: { email: trimmed } });
@@ -66,7 +64,6 @@ export function AuthSheet({
       setBusy(false);
     }
   }
-
 
   async function verifyCode(e: React.FormEvent) {
     e.preventDefault();
@@ -99,9 +96,7 @@ export function AuthSheet({
         <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-line" />
         <h2 className="font-display text-2xl text-ink">{titleText}</h2>
         <p className="mt-1 text-sm text-ink-soft">
-          {stage === "email"
-            ? subtitleText
-            : t("auth.codeSentTo", { email })}
+          {stage === "email" ? subtitleText : t("auth.codeSentTo", { email })}
         </p>
 
         {stage === "email" ? (

@@ -40,14 +40,20 @@ for (const id of FEED_IDS) {
     console.log(`[ingest] downloading feed ${id}`);
     const url = `${BASE}${id}_google_transit.zip&rel=True`;
     if (isWin) {
-      execSync(`powershell -Command "Invoke-WebRequest -Uri '${url}' -OutFile '${zip}' -UserAgent 'Mozilla/5.0'"`, { stdio: "inherit" });
+      execSync(
+        `powershell -Command "Invoke-WebRequest -Uri '${url}' -OutFile '${zip}' -UserAgent 'Mozilla/5.0'"`,
+        { stdio: "inherit" },
+      );
     } else {
       execSync(`curl -sfL -A "Mozilla/5.0" -o "${zip}" "${url}"`, { stdio: "inherit" });
     }
   }
   if (!existsSync(`${dir}/stop_times.txt`)) {
     if (isWin) {
-      execSync(`powershell -Command "Expand-Archive -Force -Path '${zip}' -DestinationPath '${dir}'"`, { stdio: "inherit" });
+      execSync(
+        `powershell -Command "Expand-Archive -Force -Path '${zip}' -DestinationPath '${dir}'"`,
+        { stdio: "inherit" },
+      );
     } else {
       execSync(`unzip -oq "${zip}" -d "${dir}"`, { stdio: "inherit" });
     }
@@ -89,7 +95,13 @@ function hmsToSec(s: string): number {
 
 type RouteOut = { short: string; long: string; color: string; feedId: number; type: number };
 type ServiceOut = { feedId: number; dates: string[] };
-type TripOut = { routeId: string; serviceId: string; direction: 0 | 1; headsign: string; feedId: number };
+type TripOut = {
+  routeId: string;
+  serviceId: string;
+  direction: 0 | 1;
+  headsign: string;
+  feedId: number;
+};
 type StopOut = { name: string; lat: number; lng: number; feedId: number };
 // stop_times row: [stopId, depSec, arrSec, seq] — array form keeps JSON small
 type StopTimeRow = [string, number, number, number];
@@ -134,7 +146,7 @@ for (const feedId of FEED_IDS) {
       routes[ns(r[iId])] = {
         short: r[iShort] ?? "",
         long: r[iLong] ?? "",
-        color: iColor >= 0 ? r[iColor] ?? "" : "",
+        color: iColor >= 0 ? (r[iColor] ?? "") : "",
         feedId,
         type: Number(r[iType]),
       };
@@ -219,7 +231,10 @@ for (const sid of Object.keys(stopTrips)) {
 
 // --- 5. Write outputs + report sizes --------------------------------------
 
-const feedsMeta = FEED_IDS.map((id) => ({ id, source: `${BASE}${id}_google_transit.zip&rel=True` }));
+const feedsMeta = FEED_IDS.map((id) => ({
+  id,
+  source: `${BASE}${id}_google_transit.zip&rel=True`,
+}));
 
 function write(name: string, data: unknown) {
   const json = JSON.stringify(data);
@@ -274,7 +289,10 @@ for (const [sid, svc] of Object.entries(services)) {
   }
 }
 
-const shardIndex: Record<string, { trips: number; rows: number; stopTimesKb: number; stopTripsKb: number }> = {};
+const shardIndex: Record<
+  string,
+  { trips: number; rows: number; stopTimesKb: number; stopTripsKb: number }
+> = {};
 
 for (const date of dates) {
   const activeSvc = servicesByDate.get(date) ?? new Set();

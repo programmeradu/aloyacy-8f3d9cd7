@@ -67,7 +67,9 @@ export const getAccuracySnapshot = createServerFn({ method: "POST" })
     const sinceIso = new Date(Date.now() - data.hours * 3_600_000).toISOString();
     const { data: rows, error } = await supabase
       .from("observed_arrivals")
-      .select("route_id, stop_id, trip_id, last_delay_sec, last_predicted_arrival, passed_at, last_seen_at")
+      .select(
+        "route_id, stop_id, trip_id, last_delay_sec, last_predicted_arrival, passed_at, last_seen_at",
+      )
       .gte("last_seen_at", sinceIso)
       .order("last_seen_at", { ascending: false })
       .limit(data.limit);
@@ -103,7 +105,9 @@ export const getAccuracySnapshot = createServerFn({ method: "POST" })
 
     // Totals
     const allAbs = list.map((r) => Math.abs(r.last_delay_sec ?? 0)).sort((a, b) => a - b);
-    const meanSec = Math.round(list.reduce((s, r) => s + (r.last_delay_sec ?? 0), 0) / Math.max(1, list.length));
+    const meanSec = Math.round(
+      list.reduce((s, r) => s + (r.last_delay_sec ?? 0), 0) / Math.max(1, list.length),
+    );
     const p50Sec = allAbs[Math.floor(allAbs.length * 0.5)] ?? 0;
     const p90Sec = allAbs[Math.floor(allAbs.length * 0.9)] ?? 0;
 

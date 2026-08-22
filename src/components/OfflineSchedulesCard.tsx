@@ -20,7 +20,6 @@ export function OfflineSchedulesCard() {
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-
   useEffect(() => {
     setSupported(isOfflineCacheSupported());
     setStatus(getOfflineStatus());
@@ -61,10 +60,8 @@ export function OfflineSchedulesCard() {
     }
   }
 
-
-  const pct = progress && progress.total > 0
-    ? Math.round((progress.done / progress.total) * 100)
-    : 0;
+  const pct =
+    progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
 
   const lastWhen = status
     ? new Date(status.lastUpdatedAt).toLocaleString([], {
@@ -115,17 +112,13 @@ export function OfflineSchedulesCard() {
               <dt className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
                 {t("offline.stat.size")}
               </dt>
-              <dd className="mt-1 font-display text-2xl text-ink">
-                {formatBytes(status.bytes)}
-              </dd>
+              <dd className="mt-1 font-display text-2xl text-ink">{formatBytes(status.bytes)}</dd>
             </div>
             <div className="rounded-2xl bg-limestone/60 px-4 py-3 ring-1 ring-line/60">
               <dt className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
                 {t("offline.stat.updated")}
               </dt>
-              <dd className="mt-1 font-display text-sm text-ink leading-tight">
-                {lastWhen}
-              </dd>
+              <dd className="mt-1 font-display text-sm text-ink leading-tight">{lastWhen}</dd>
             </div>
           </dl>
         )}
@@ -151,7 +144,11 @@ export function OfflineSchedulesCard() {
             disabled={pending || !supported}
             className="rounded-full bg-ink px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-limestone transition hover:bg-ink/90 disabled:opacity-50"
           >
-            {pending ? t("offline.cta.working") : status ? t("offline.cta.refresh") : t("offline.cta.download")}
+            {pending
+              ? t("offline.cta.working")
+              : status
+                ? t("offline.cta.refresh")
+                : t("offline.cta.download")}
           </button>
           {status && (
             <button
@@ -166,11 +163,8 @@ export function OfflineSchedulesCard() {
         </div>
 
         {message && (
-          <p className="mt-4 font-mono text-[11px] tracking-wide text-ink-soft">
-            {message}
-          </p>
+          <p className="mt-4 font-mono text-[11px] tracking-wide text-ink-soft">{message}</p>
         )}
-
       </div>
     </article>
   );

@@ -68,10 +68,7 @@ export function isOfflineCacheSupported(): boolean {
   return typeof window !== "undefined" && "caches" in window;
 }
 
-async function cacheUrl(
-  cache: Cache,
-  url: string,
-): Promise<{ ok: boolean; bytes: number }> {
+async function cacheUrl(cache: Cache, url: string): Promise<{ ok: boolean; bytes: number }> {
   try {
     const res = await fetch(url, { cache: "no-cache" });
     if (!res.ok) return { ok: false, bytes: 0 };

@@ -7,14 +7,7 @@
 // are coming up within the next hour.
 
 export type WeatherCondition =
-  | "clear"
-  | "cloudy"
-  | "rain-light"
-  | "rain-heavy"
-  | "snow"
-  | "fog"
-  | "thunder"
-  | "unknown";
+  "clear" | "cloudy" | "rain-light" | "rain-heavy" | "snow" | "fog" | "thunder" | "unknown";
 
 export type DelaySample = {
   route_id: string;
@@ -88,8 +81,7 @@ export function computeLeaveAdjustment(input: AdjusterInput): AdjusterResult {
       (w) => routeIds.includes(w.route_id) && w.sample_count >= 3,
     );
     if (matching.length > 0) {
-      const avg =
-        matching.reduce((sum, w) => sum + w.mean_extra_delay_sec, 0) / matching.length;
+      const avg = matching.reduce((sum, w) => sum + w.mean_extra_delay_sec, 0) / matching.length;
       weatherSec = Math.max(0, Math.round(avg));
     } else {
       weatherSec = STATIC_WEATHER_BUFFER_SEC[weather];
@@ -100,14 +92,9 @@ export function computeLeaveAdjustment(input: AdjusterInput): AdjusterResult {
   // discounted (we don't want to double count weather).
   let trafficSec = 0;
   if (delays.length > 0 && routeIds.length > 0) {
-    const relevant = delays.filter(
-      (d) => routeIds.includes(d.route_id) && d.sample_count >= 3,
-    );
+    const relevant = delays.filter((d) => routeIds.includes(d.route_id) && d.sample_count >= 3);
     if (relevant.length > 0) {
-      const worst = relevant.reduce(
-        (m, d) => (d.mean_delay_sec > m ? d.mean_delay_sec : m),
-        0,
-      );
+      const worst = relevant.reduce((m, d) => (d.mean_delay_sec > m ? d.mean_delay_sec : m), 0);
       // Only react when route is meaningfully late (> 90s avg).
       if (worst > 90) {
         trafficSec = Math.min(worst, 8 * 60);
@@ -120,7 +107,8 @@ export function computeLeaveAdjustment(input: AdjusterInput): AdjusterResult {
 
   let reasonShort: string | null = null;
   const parts: string[] = [];
-  if (weatherSec >= 60) parts.push(`${weatherLabel(weather)} · +${Math.round(weatherSec / 60)} min`);
+  if (weatherSec >= 60)
+    parts.push(`${weatherLabel(weather)} · +${Math.round(weatherSec / 60)} min`);
   if (trafficSec >= 60) parts.push(`traffic · +${Math.round(trafficSec / 60)} min`);
   if (parts.length > 0) reasonShort = parts.join(" / ");
 

@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  isRiding,
-  isTerminal,
-  isWaiting,
-  isWalking,
-  type JourneyPhase,
-} from "./journey-phase";
+import { isRiding, isTerminal, isWaiting, isWalking, type JourneyPhase } from "./journey-phase";
 
 const ALL: JourneyPhase[] = [
   "idle",

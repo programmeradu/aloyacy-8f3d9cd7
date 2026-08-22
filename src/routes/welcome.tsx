@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/useAuth";
@@ -7,11 +7,7 @@ import { markOnboarded } from "@/lib/onboarding";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { Logo } from "@/components/Logo";
 import { writePass, readPass } from "@/lib/motion-pass";
-import {
-  getOrCreatePushSubscription,
-  getDeviceId,
-  shouldRegisterSW,
-} from "@/lib/pwa";
+import { getOrCreatePushSubscription, getDeviceId, shouldRegisterSW } from "@/lib/pwa";
 import { saveSubscription } from "@/lib/push.functions";
 import imgLocation from "@/assets/welcome-location.jpg";
 import imgNotifications from "@/assets/welcome-notifications.jpg";
@@ -23,8 +19,7 @@ export const Route = createFileRoute("/welcome")({
       { title: "Welcome to Aloya" },
       {
         name: "description",
-        content:
-          "A short, calm welcome to Aloya — the smarter way to ride Cyprus buses.",
+        content: "A short, calm welcome to Aloya — the smarter way to ride Cyprus buses.",
       },
     ],
     links: [{ rel: "canonical", href: "https://app.aloya.cy/" }],
@@ -39,7 +34,7 @@ function WelcomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [direction, setDirection] = useState<1 | -1>(1);
+  const [, setDirection] = useState<1 | -1>(1);
 
   const finish = async () => {
     if (user) await markOnboarded(user.id);
@@ -69,7 +64,15 @@ function WelcomePage() {
             aria-label={t("welcome.dismiss")}
             className="grid h-8 w-8 place-items-center rounded-full border border-ink/10 bg-white/60 text-ink/70 transition hover:text-ink"
           >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            >
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
           </button>
@@ -99,9 +102,13 @@ function WelcomePage() {
 
         {/* Footer legal */}
         <footer className="mt-6 flex items-center justify-center gap-4 font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink/40">
-          <a href="/privacy" className="hover:text-ink/70">{t("privacy.title")}</a>
+          <a href="/privacy" className="hover:text-ink/70">
+            {t("privacy.title")}
+          </a>
           <span aria-hidden className="block h-px w-3 bg-ink/15" />
-          <a href="/terms" className="hover:text-ink/70">{t("terms.title")}</a>
+          <a href="/terms" className="hover:text-ink/70">
+            {t("terms.title")}
+          </a>
         </footer>
       </main>
 
@@ -302,9 +309,7 @@ function StepShell({
     <>
       <div className="mt-5 overflow-hidden rounded-[28px] border border-ink/8 bg-white/40 shadow-[0_30px_60px_-40px_rgba(20,20,20,0.25)]">
         {visual ? (
-          <div className="flex aspect-[4/5] w-full items-center justify-center">
-            {visual}
-          </div>
+          <div className="flex aspect-[4/5] w-full items-center justify-center">{visual}</div>
         ) : (
           <img
             src={image}

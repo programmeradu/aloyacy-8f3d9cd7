@@ -50,18 +50,29 @@ type MemberRow = {
   joined_at: string;
 };
 
-
 const MEMBER_TONES = ["aegean", "ochre", "olive", "ink"] as const;
 type Tone = (typeof MEMBER_TONES)[number];
 
 function toneClasses(tone: Tone) {
   switch (tone) {
     case "aegean":
-      return { dot: "bg-aegean-deep", ring: "ring-aegean-deep/30", chip: "bg-aegean-soft/60 text-aegean-deep" };
+      return {
+        dot: "bg-aegean-deep",
+        ring: "ring-aegean-deep/30",
+        chip: "bg-aegean-soft/60 text-aegean-deep",
+      };
     case "ochre":
-      return { dot: "bg-ochre", ring: "ring-ochre/40", chip: "bg-ochre/15 text-[oklch(0.42_0.11_60)]" };
+      return {
+        dot: "bg-ochre",
+        ring: "ring-ochre/40",
+        chip: "bg-ochre/15 text-[oklch(0.42_0.11_60)]",
+      };
     case "olive":
-      return { dot: "bg-olive", ring: "ring-olive/40", chip: "bg-olive/15 text-[oklch(0.38_0.06_120)]" };
+      return {
+        dot: "bg-olive",
+        ring: "ring-olive/40",
+        chip: "bg-olive/15 text-[oklch(0.38_0.06_120)]",
+      };
     case "ink":
     default:
       return { dot: "bg-ink", ring: "ring-ink/30", chip: "bg-ink/10 text-ink" };
@@ -77,7 +88,8 @@ export const Route = createFileRoute("/group/$code")({
   head: ({ params }) => {
     const code = String(params.code || "").toUpperCase();
     const title = `Group trip · ${code} — Aloya`;
-    const desc = "Everyone in your group, converging on one place. Live positions and arrival ETAs update as friends move.";
+    const desc =
+      "Everyone in your group, converging on one place. Live positions and arrival ETAs update as friends move.";
     // Dynamic per-group PNG (rasterized from our brand SVG on the Worker).
     // Minute-bucket cache-buster nudges platforms that key by URL to re-scrape
     // as members join and ETAs slide.
@@ -98,20 +110,20 @@ export const Route = createFileRoute("/group/$code")({
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { property: "og:image:type", content: "image/png" },
-        { property: "og:image:alt", content: "Live group trip preview — destination, host, and joined members" },
+        {
+          property: "og:image:alt",
+          content: "Live group trip preview — destination, host, and joined members",
+        },
         { property: "og:updated_time", content: String(bucket * 60) },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: desc },
         { name: "twitter:image", content: ogImage },
-
-
       ],
     };
   },
   component: GroupWatchPage,
 });
-
 
 function GroupWatchPage() {
   const { code } = Route.useParams();
@@ -153,7 +165,12 @@ function GroupWatchPage() {
   void queryClient;
   void membersQuery;
 
-  if (groupQuery.isLoading) return <Shell><LoadingState /></Shell>;
+  if (groupQuery.isLoading)
+    return (
+      <Shell>
+        <LoadingState />
+      </Shell>
+    );
   if (groupQuery.isError || !group) {
     return (
       <Shell>
@@ -165,7 +182,6 @@ function GroupWatchPage() {
   const expired = new Date(group.expires_at).getTime() < Date.now();
   const meIndex = meId ? orderedMembers.findIndex((m) => m.id === meId) : -1;
   const me = meIndex >= 0 ? orderedMembers[meIndex] : null;
-
 
   return (
     <Shell>
@@ -184,12 +200,18 @@ function GroupWatchPage() {
           <GroupMap group={group} members={orderedMembers} meId={meId} />
           {!expired && <PlanRouteCard group={group} joined={me != null} />}
           <MembersList members={orderedMembers} meId={meId} />
-          {!expired && (me == null) && <JoinCard group={group} onJoined={setMyToken} />}
-          {!expired && me != null && myToken && <LiveShareCard group={group} me={me} memberToken={myToken} onLeft={() => setMyToken(null)} />}
+          {!expired && me == null && <JoinCard group={group} onJoined={setMyToken} />}
+          {!expired && me != null && myToken && (
+            <LiveShareCard
+              group={group}
+              me={me}
+              memberToken={myToken}
+              onLeft={() => setMyToken(null)}
+            />
+          )}
           <HowThisWorks />
           <Footer code={group.code} />
         </div>
-
       </div>
     </Shell>
   );
@@ -226,7 +248,14 @@ function Hero({
             Aloya · Live group
           </span>
           <span className="inline-flex items-center gap-2 rounded-full bg-limestone/90 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-ink ring-1 ring-line backdrop-blur">
-            {expired ? "Ended" : <><PulseDot />&nbsp;Live · {group.code}</>}
+            {expired ? (
+              "Ended"
+            ) : (
+              <>
+                <PulseDot />
+                &nbsp;Live · {group.code}
+              </>
+            )}
           </span>
         </div>
 
@@ -244,7 +273,10 @@ function Hero({
           <p className="font-sans text-[13px] font-semibold text-ink">
             {active} {active === 1 ? "person" : "people"} on the way
             {group.created_by_name ? (
-              <span className="font-medium text-ink-soft"> · hosted by {group.created_by_name}</span>
+              <span className="font-medium text-ink-soft">
+                {" "}
+                · hosted by {group.created_by_name}
+              </span>
             ) : null}
             {me ? <span className="font-medium text-ink-soft"> · including you</span> : null}
           </p>
@@ -302,7 +334,9 @@ function IdentityRibbon({
     const t = toneClasses(tone);
     return (
       <div className={`flex items-center gap-3 rounded-2xl bg-card p-4 ring-1 ${t.ring}`}>
-        <span className={`inline-flex size-9 items-center justify-center rounded-full font-mono text-[12px] font-semibold uppercase ${t.chip}`}>
+        <span
+          className={`inline-flex size-9 items-center justify-center rounded-full font-mono text-[12px] font-semibold uppercase ${t.chip}`}
+        >
           {initials(me.display_name)}
         </span>
         <div className="min-w-0 flex-1">
@@ -310,11 +344,13 @@ function IdentityRibbon({
             You appear as
           </p>
           <p className="truncate font-display text-[16px] font-semibold text-ink">
-            {me.display_name}{me.is_creator ? " · host" : ""}
+            {me.display_name}
+            {me.is_creator ? " · host" : ""}
           </p>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-limestone-soft px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
-          <PulseDot />&nbsp;sharing
+          <PulseDot />
+          &nbsp;sharing
         </span>
       </div>
     );
@@ -325,7 +361,8 @@ function IdentityRibbon({
         You're watching as a guest
       </p>
       <p className="mt-1 font-sans text-[13px] font-medium text-ink">
-        {hostName ? `${hostName} shared this trip with you.` : "Someone shared this trip with you."} Join below and everyone will see your ETA too — otherwise you'll just watch.
+        {hostName ? `${hostName} shared this trip with you.` : "Someone shared this trip with you."}{" "}
+        Join below and everyone will see your ETA too — otherwise you'll just watch.
       </p>
       {hasToken && (
         <p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
@@ -377,14 +414,14 @@ function GroupMap({
   }, [group, members, meId]);
 
   const fixCount = markers.filter((m) => m.kind === "pin").length;
-  const center = fixCount === 0
-    ? { lat: group.destination_lat, lng: group.destination_lng }
-    : undefined;
+  const center =
+    fixCount === 0 ? { lat: group.destination_lat, lng: group.destination_lng } : undefined;
 
   return (
     <section className="relative overflow-hidden rounded-3xl ring-1 ring-line">
       <div className="pointer-events-none absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full bg-limestone/90 px-3 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-ink ring-1 ring-line backdrop-blur">
-        <PulseDot />&nbsp;Live map · {fixCount} sharing
+        <PulseDot />
+        &nbsp;Live map · {fixCount} sharing
       </div>
       <MapPreview
         height="h-[380px]"
@@ -395,7 +432,8 @@ function GroupMap({
       />
       {fixCount === 0 && (
         <p className="border-t border-line bg-card px-4 py-3 font-sans text-[12px] font-medium text-ink-soft">
-          Waiting for the first person to start moving. Positions appear the moment someone joins and shares location.
+          Waiting for the first person to start moving. Positions appear the moment someone joins
+          and shares location.
         </p>
       )}
     </section>
@@ -440,7 +478,9 @@ function MembersList({ members, meId }: { members: MemberRow[]; meId: string | n
                 isMe ? t.ring : "ring-line"
               } ${left ? "opacity-60" : ""}`}
             >
-              <span className={`inline-flex size-10 items-center justify-center rounded-full font-mono text-[12px] font-semibold uppercase ${t.chip}`}>
+              <span
+                className={`inline-flex size-10 items-center justify-center rounded-full font-mono text-[12px] font-semibold uppercase ${t.chip}`}
+              >
                 {initials(m.display_name)}
               </span>
               <div className="min-w-0 flex-1">
@@ -570,7 +610,9 @@ function JoinCard({ group, onJoined }: { group: GroupRow; onJoined: (token: stri
       });
       try {
         localStorage.setItem(MEMBER_TOKEN_KEY(group.code), res.memberToken);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       onJoined(res.memberToken);
     } catch {
       setErr("Couldn't join. Try again in a moment.");
@@ -588,7 +630,8 @@ function JoinCard({ group, onJoined }: { group: GroupRow; onJoined: (token: stri
         Share your live ETA with the group
       </h2>
       <p className="mt-2 font-sans text-[13px] font-medium text-limestone/80">
-        Enter your name and allow location. Everyone converging on {group.destination_label} will see you appear on the map with a live ETA.
+        Enter your name and allow location. Everyone converging on {group.destination_label} will
+        see you appear on the map with a live ETA.
       </p>
       <div className="mt-4 flex gap-2">
         <input
@@ -607,9 +650,7 @@ function JoinCard({ group, onJoined }: { group: GroupRow; onJoined: (token: stri
           {busy ? "Joining…" : "Join"}
         </button>
       </div>
-      {err && (
-        <p className="mt-2 font-sans text-[12px] font-semibold text-ochre">{err}</p>
-      )}
+      {err && <p className="mt-2 font-sans text-[12px] font-semibold text-ochre">{err}</p>}
       <p className="mt-3 font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-limestone/60">
         Location shared only while this tab is open · leave any time
       </p>
@@ -666,7 +707,11 @@ function LiveShareCard({
     setBusy(true);
     try {
       await leave({ data: { memberToken } }).catch(() => {});
-      try { localStorage.removeItem(MEMBER_TOKEN_KEY(group.code)); } catch { /* ignore */ }
+      try {
+        localStorage.removeItem(MEMBER_TOKEN_KEY(group.code));
+      } catch {
+        /* ignore */
+      }
       if (watchRef.current != null && "geolocation" in navigator) {
         navigator.geolocation.clearWatch(watchRef.current);
         watchRef.current = null;
@@ -676,7 +721,6 @@ function LiveShareCard({
       setBusy(false);
     }
   }, [leave, memberToken, group.code, onLeft]);
-
 
   const onShare = useCallback(async () => {
     const url = `${window.location.origin}/group/${group.code}`;
@@ -690,10 +734,14 @@ function LiveShareCard({
         await navigator.share(payload);
         return;
       }
-    } catch { /* fallthrough */ }
+    } catch {
+      /* fallthrough */
+    }
     try {
       await navigator.clipboard.writeText(url);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, [group.code, group.destination_label]);
 
   return (
@@ -705,7 +753,8 @@ function LiveShareCard({
         </p>
       </div>
       <p className="mt-2 font-sans text-[13px] font-medium text-ink">
-        Everyone in the group can see your position and ETA update every ~25 seconds. Keep this tab open — close it or tap Leave to stop sharing.
+        Everyone in the group can see your position and ETA update every ~25 seconds. Keep this tab
+        open — close it or tap Leave to stop sharing.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         <button
@@ -782,7 +831,8 @@ function PlanRouteCard({ group, joined }: { group: GroupRow; joined: boolean }) 
     const routeShort = busLeg && busLeg.kind === "bus" ? busLeg.routeShort : null;
     const arrivalUnix =
       active.itinerary?.arrivalUnix ??
-      (active.option.legs[active.option.legs.length - 1] as { arrivalUnix?: number } | undefined)?.arrivalUnix;
+      (active.option.legs[active.option.legs.length - 1] as { arrivalUnix?: number } | undefined)
+        ?.arrivalUnix;
     const minsAway = arrivalUnix
       ? Math.max(0, Math.round((arrivalUnix * 1000 - Date.now()) / 60_000))
       : null;
@@ -864,7 +914,6 @@ function PlanRouteCard({ group, joined }: { group: GroupRow; joined: boolean }) 
 }
 
 /* ————————————————————————— Explainer ————————————————————————— */
-
 
 function HowThisWorks() {
   const items: [string, string][] = [

@@ -32,13 +32,21 @@ export type BedrockUsageStats = {
     estCostUsd: number;
   };
   perDay: Array<{ day: string; calls: number; estCostUsd: number; tokens: number }>;
-  perModel: Array<{ model_id: string; calls: number; estCostUsd: number; inputTokens: number; outputTokens: number }>;
+  perModel: Array<{
+    model_id: string;
+    calls: number;
+    estCostUsd: number;
+    inputTokens: number;
+    outputTokens: number;
+  }>;
   perKey: Array<{ access_key_hint: string | null; calls: number; estCostUsd: number }>;
   recent: BedrockUsageRow[];
 };
 
 export const getBedrockUsageStats = createServerFn({ method: "GET" })
-  .inputValidator((input: { keyHint?: string; days?: number; cap?: number } | undefined) => input ?? {})
+  .inputValidator(
+    (input: { keyHint?: string; days?: number; cap?: number } | undefined) => input ?? {},
+  )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const days = Math.min(Math.max(data?.days ?? 30, 1), 365);
@@ -49,7 +57,11 @@ export const getBedrockUsageStats = createServerFn({ method: "GET" })
     const PAGE = 1000;
 
     // Lifetime totals — paged, narrow projection, ordered so paging is stable.
-    let lifeCalls = 0, lifeOk = 0, lifeIn = 0, lifeOut = 0, lifeCost = 0;
+    let lifeCalls = 0,
+      lifeOk = 0,
+      lifeIn = 0,
+      lifeOut = 0,
+      lifeCost = 0;
     for (let from = 0; ; from += PAGE) {
       const q = supabaseAdmin
         .from("bedrock_usage")
@@ -87,9 +99,16 @@ export const getBedrockUsageStats = createServerFn({ method: "GET" })
       if (!page || page.length < PAGE) break;
     }
 
-    let wCalls = 0, wOk = 0, wIn = 0, wOut = 0, wCost = 0;
+    let wCalls = 0,
+      wOk = 0,
+      wIn = 0,
+      wOut = 0,
+      wCost = 0;
     const dayMap = new Map<string, { calls: number; estCostUsd: number; tokens: number }>();
-    const modelMap = new Map<string, { calls: number; estCostUsd: number; inputTokens: number; outputTokens: number }>();
+    const modelMap = new Map<
+      string,
+      { calls: number; estCostUsd: number; inputTokens: number; outputTokens: number }
+    >();
     const keyMap = new Map<string | null, { calls: number; estCostUsd: number }>();
 
     for (const r of rows) {
@@ -107,7 +126,12 @@ export const getBedrockUsageStats = createServerFn({ method: "GET" })
       d.tokens += r.input_tokens + r.output_tokens;
       dayMap.set(day, d);
 
-      const m = modelMap.get(r.model_id) ?? { calls: 0, estCostUsd: 0, inputTokens: 0, outputTokens: 0 };
+      const m = modelMap.get(r.model_id) ?? {
+        calls: 0,
+        estCostUsd: 0,
+        inputTokens: 0,
+        outputTokens: 0,
+      };
       m.calls++;
       m.estCostUsd += cost;
       m.inputTokens += r.input_tokens;

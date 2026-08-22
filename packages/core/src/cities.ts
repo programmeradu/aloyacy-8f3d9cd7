@@ -32,7 +32,7 @@ export const CITIES: CitySpec[] = [
     id: "nicosia",
     label: "Nicosia",
     agency: "NPT",
-    center: { lat: 35.1740, lng: 33.3650 }, // Solomos Square area
+    center: { lat: 35.174, lng: 33.365 }, // Solomos Square area
     coreRadiusKm: 5,
   },
   {
@@ -53,14 +53,14 @@ export const CITIES: CitySpec[] = [
     id: "paphos",
     label: "Paphos",
     agency: "PFO",
-    center: { lat: 34.7720, lng: 32.4297 }, // Kennedy Square
+    center: { lat: 34.772, lng: 32.4297 }, // Kennedy Square
     coreRadiusKm: 4,
   },
   {
     id: "famagusta",
     label: "Famagusta",
     agency: "FAM",
-    center: { lat: 35.0150, lng: 33.9000 }, // Paralimni / Deryneia catchment
+    center: { lat: 35.015, lng: 33.9 }, // Paralimni / Deryneia catchment
     coreRadiusKm: 4,
   },
 ];
@@ -105,16 +105,11 @@ export function distanceKm(
   const dLng = ((b.lng - a.lng) * Math.PI) / 180;
   const la1 = (a.lat * Math.PI) / 180;
   const la2 = (b.lat * Math.PI) / 180;
-  const x =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
 /** True when the point is inside the city's core radius. */
-export function isInCityCore(
-  city: CitySpec,
-  point: { lat: number; lng: number },
-): boolean {
+export function isInCityCore(city: CitySpec, point: { lat: number; lng: number }): boolean {
   return distanceKm(city.center, point) <= city.coreRadiusKm;
 }

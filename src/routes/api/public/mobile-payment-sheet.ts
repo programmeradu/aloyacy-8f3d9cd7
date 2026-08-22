@@ -17,11 +17,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import {
-  createStripeClient,
-  getStripeErrorMessage,
-  type StripeEnv,
-} from "@/lib/stripe.server";
+import { createStripeClient, getStripeErrorMessage, type StripeEnv } from "@/lib/stripe.server";
 
 const STRIPE_API_VERSION = "2026-03-25.dahlia" as const;
 
@@ -41,7 +37,6 @@ const schema = z.object({
 
 const TRIAL_DAYS = 7;
 
-
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -49,9 +44,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-async function resolveUser(request: Request): Promise<
-  { id: string; email: string | null } | null
-> {
+async function resolveUser(request: Request): Promise<{ id: string; email: string | null } | null> {
   const auth = request.headers.get("authorization");
   if (!auth?.toLowerCase().startsWith("bearer ")) return null;
   const token = auth.slice(7).trim();
@@ -88,15 +81,9 @@ export const Route = createFileRoute("/api/public/mobile-payment-sheet")({
         const publishableKey = process.env.VITE_PAYMENTS_CLIENT_TOKEN ?? null;
 
         const sessionUser = await resolveUser(request);
-        const email =
-          sessionUser?.email?.toLowerCase() ??
-          parsed.data.email?.toLowerCase() ??
-          null;
+        const email = sessionUser?.email?.toLowerCase() ?? parsed.data.email?.toLowerCase() ?? null;
         if (!email) {
-          return json(
-            { error: "Sign in or provide an email to continue." },
-            400,
-          );
+          return json({ error: "Sign in or provide an email to continue." }, 400);
         }
 
         try {
@@ -146,19 +133,13 @@ export const Route = createFileRoute("/api/public/mobile-payment-sheet")({
           // two trials. Only signed-in users on a known device are eligible.
           let trialDays: number | undefined;
           if (sessionUser && parsed.data.deviceId) {
-            const { supabaseAdmin } = await import(
-              "@/integrations/supabase/client.server"
-            );
-            const { error: grantErr } = await supabaseAdmin
-              .from("trial_grants")
-              .insert({
-                user_id: sessionUser.id,
-                device_id: parsed.data.deviceId,
-                environment: env,
-                expires_at: new Date(
-                  Date.now() + TRIAL_DAYS * 86_400_000,
-                ).toISOString(),
-              });
+            const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+            const { error: grantErr } = await supabaseAdmin.from("trial_grants").insert({
+              user_id: sessionUser.id,
+              device_id: parsed.data.deviceId,
+              environment: env,
+              expires_at: new Date(Date.now() + TRIAL_DAYS * 86_400_000).toISOString(),
+            });
             if (!grantErr) trialDays = TRIAL_DAYS;
           }
 
@@ -176,9 +157,7 @@ export const Route = createFileRoute("/api/public/mobile-payment-sheet")({
             } else {
               // Roll back trial reservation before failing.
               if (trialDays && sessionUser && parsed.data.deviceId) {
-                const { supabaseAdmin } = await import(
-                  "@/integrations/supabase/client.server"
-                );
+                const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
                 await supabaseAdmin
                   .from("trial_grants")
                   .delete()
@@ -194,10 +173,7 @@ export const Route = createFileRoute("/api/public/mobile-payment-sheet")({
             items: [{ price: price.id }],
             payment_behavior: "default_incomplete",
             payment_settings: { save_default_payment_method: "on_subscription" },
-            expand: [
-              "latest_invoice.payment_intent",
-              "pending_setup_intent",
-            ],
+            expand: ["latest_invoice.payment_intent", "pending_setup_intent"],
             ...(trialDays ? { trial_period_days: trialDays } : {}),
             ...(discounts ? { discounts } : {}),
             metadata: {
@@ -211,21 +187,17 @@ export const Route = createFileRoute("/api/public/mobile-payment-sheet")({
           // SetupIntent to collect + save the card for later auto-charge.
           // Without a trial we get the usual PaymentIntent path.
           const setupIntent = subscription.pending_setup_intent as
-            | { client_secret?: string | null }
-            | string
-            | null;
+            { client_secret?: string | null } | string | null;
           const setupSecret =
             setupIntent && typeof setupIntent === "object"
-              ? setupIntent.client_secret ?? null
+              ? (setupIntent.client_secret ?? null)
               : null;
 
           const invoice = subscription.latest_invoice as {
             payment_intent?: { client_secret?: string | null } | string | null;
           } | null;
           const pi =
-            invoice && typeof invoice.payment_intent === "object"
-              ? invoice.payment_intent
-              : null;
+            invoice && typeof invoice.payment_intent === "object" ? invoice.payment_intent : null;
           const paymentSecret = pi?.client_secret ?? null;
 
           if (!setupSecret && !paymentSecret) {
@@ -247,7 +219,6 @@ export const Route = createFileRoute("/api/public/mobile-payment-sheet")({
             subscriptionId: subscription.id,
             linkedUserId: sessionUser?.id ?? null,
           });
-
         } catch (error) {
           return json({ error: getStripeErrorMessage(error) }, 500);
         }

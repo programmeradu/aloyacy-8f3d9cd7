@@ -12,7 +12,10 @@ export type CurrentWeather = {
   isDaytime: boolean;
 };
 
-function mapCondition(code: string | undefined, isDay: boolean): {
+function mapCondition(
+  code: string | undefined,
+  isDay: boolean,
+): {
   iconKey: CurrentWeather["iconKey"];
   label: string;
 } {
@@ -21,15 +24,10 @@ function mapCondition(code: string | undefined, isDay: boolean): {
   if (c.includes("RAIN") || c.includes("SHOWER") || c.includes("DRIZZLE"))
     return { iconKey: "rain", label: "Rain" };
   if (c.includes("WIND")) return { iconKey: "wind", label: "Windy" };
-  if (c.includes("CLOUD") || c.includes("OVERCAST"))
-    return { iconKey: "cloud", label: "Cloudy" };
+  if (c.includes("CLOUD") || c.includes("OVERCAST")) return { iconKey: "cloud", label: "Cloudy" };
   if (c.includes("CLEAR") || c.includes("SUNNY") || c === "MOSTLY_CLEAR")
-    return isDay
-      ? { iconKey: "sun", label: "Clear" }
-      : { iconKey: "moon", label: "Clear" };
-  return isDay
-    ? { iconKey: "sun", label: "Clear" }
-    : { iconKey: "moon", label: "Clear" };
+    return isDay ? { iconKey: "sun", label: "Clear" } : { iconKey: "moon", label: "Clear" };
+  return isDay ? { iconKey: "sun", label: "Clear" } : { iconKey: "moon", label: "Clear" };
 }
 
 export const getCurrentWeather = createServerFn({ method: "GET" })

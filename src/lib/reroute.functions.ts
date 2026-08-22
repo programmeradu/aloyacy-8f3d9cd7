@@ -23,17 +23,12 @@ export const rerouteFromHere = createServerFn({ method: "POST" })
       planMultiLegJourney(data.from, data.to).catch(() => null),
       planMultiLegScheduled(data.from, data.to).catch(() => null),
     ]);
-    const merged: Itinerary[] = [
-      ...(live?.itineraries ?? []),
-      ...(sched?.itineraries ?? []),
-    ];
+    const merged: Itinerary[] = [...(live?.itineraries ?? []), ...(sched?.itineraries ?? [])];
     const rank = { live: 0, mixed: 1, estimated: 2 } as const;
     const dedup = new Map<string, Itinerary>();
     for (const it of merged) {
       const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
-      const key = rides
-        .map((r) => `${r.routeId}|${r.board.stopId}|${r.alight.stopId}`)
-        .join("→");
+      const key = rides.map((r) => `${r.routeId}|${r.board.stopId}|${r.alight.stopId}`).join("→");
       const existing = dedup.get(key);
       if (!existing || rank[it.source] < rank[existing.source] || it.score < existing.score) {
         dedup.set(key, it);

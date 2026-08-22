@@ -18,7 +18,10 @@ export const Route = createFileRoute("/api/public/dust-advisory")({
         const lat = Number(url.searchParams.get("lat"));
         const lng = Number(url.searchParams.get("lng"));
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-          return new Response(JSON.stringify({ error: "lat/lng required" }), { status: 400, headers: CORS });
+          return new Response(JSON.stringify({ error: "lat/lng required" }), {
+            status: 400,
+            headers: CORS,
+          });
         }
         try {
           const result = await getDustAdvisory({ data: { lat, lng } });

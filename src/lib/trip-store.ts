@@ -43,14 +43,13 @@ export type LiveTripState = {
 /** Per-leg live state for multi-leg trips. Indexed by leg position in
  *  `itinerary.legs` (NOT just ride legs — walk + wait count toward index). */
 export type LegLiveState = {
-  enteredAt?: number;          // when phase machine moved into this leg
+  enteredAt?: number; // when phase machine moved into this leg
   onBoardConfirmedAt?: number; // ride legs only
-  alightedAt?: number;         // ride legs only
-  missedAt?: number;           // ride legs only
-  arrivedAt?: number;          // final egress walk — rider tapped "I'm here"
-  completedAt?: number;        // any leg, when machine advanced past it
+  alightedAt?: number; // ride legs only
+  missedAt?: number; // ride legs only
+  arrivedAt?: number; // final egress walk — rider tapped "I'm here"
+  completedAt?: number; // any leg, when machine advanced past it
 };
-
 
 export type MultiLegState = {
   /** Index into itinerary.legs (0..N-1). */
@@ -96,8 +95,8 @@ function write<T>(key: string, value: T | null) {
 // ---------- active trip ----------
 // Auto-expire windows: if the rider stops interacting after the trip
 // "should" be done, we don't want the next session reopening a ghost trip.
-const MAX_TRIP_AGE_MS = 6 * 60 * 60 * 1000;          // 6h hard cap from start
-const ARRIVAL_GRACE_MS = 2 * 60 * 60 * 1000;          // 2h after expected arrival
+const MAX_TRIP_AGE_MS = 6 * 60 * 60 * 1000; // 6h hard cap from start
+const ARRIVAL_GRACE_MS = 2 * 60 * 60 * 1000; // 2h after expected arrival
 
 export function setActiveTrip(trip: ActiveTrip) {
   write(ACTIVE_KEY, trip);
@@ -123,11 +122,8 @@ export function getActiveTrip(): ActiveTrip | null {
   const legacyArrivalUnix =
     (t.option?.legs?.[t.option.legs.length - 1] as { arrivalUnix?: number } | undefined)
       ?.arrivalUnix ?? 0;
-  const expectedArrivalMs =
-    ((t.itinerary?.arrivalUnix ?? 0) * 1000) ||
-    legacyArrivalUnix * 1000;
-  const pastArrival =
-    expectedArrivalMs > 0 && now - expectedArrivalMs > ARRIVAL_GRACE_MS;
+  const expectedArrivalMs = (t.itinerary?.arrivalUnix ?? 0) * 1000 || legacyArrivalUnix * 1000;
+  const pastArrival = expectedArrivalMs > 0 && now - expectedArrivalMs > ARRIVAL_GRACE_MS;
   if (ageMs > MAX_TRIP_AGE_MS || pastArrival) {
     write<null>(ACTIVE_KEY, null);
     void clearActiveTripOnServer().catch(() => {});
@@ -290,14 +286,15 @@ export function upsertSavedPlace(p: SavedPlace) {
   write(SAVED_KEY, all);
 }
 export function removeSavedPlace(id: string) {
-  write(SAVED_KEY, listSavedPlaces().filter((p) => p.id !== id));
+  write(
+    SAVED_KEY,
+    listSavedPlaces().filter((p) => p.id !== id),
+  );
 }
 
 // ---------- recents ----------
 export function listRecents(): RecentDestination[] {
-  return (read<RecentDestination[]>(RECENT_KEY) ?? []).sort(
-    (a, b) => b.lastUsed - a.lastUsed,
-  );
+  return (read<RecentDestination[]>(RECENT_KEY) ?? []).sort((a, b) => b.lastUsed - a.lastUsed);
 }
 export function pushRecent(r: Omit<RecentDestination, "id" | "lastUsed"> & { id?: string }) {
   const id = r.id ?? `${r.lat.toFixed(4)},${r.lng.toFixed(4)}`;

@@ -6,8 +6,16 @@ import { VAPID_PUBLIC_KEY } from "./vapid";
 
 const subscriptionSchema = z.object({
   endpoint: z.string().url().max(2048),
-  p256dh: z.string().min(1).max(255).regex(/^[A-Za-z0-9_-]+$/),
-  auth: z.string().min(1).max(255).regex(/^[A-Za-z0-9_-]+$/),
+  p256dh: z
+    .string()
+    .min(1)
+    .max(255)
+    .regex(/^[A-Za-z0-9_-]+$/),
+  auth: z
+    .string()
+    .min(1)
+    .max(255)
+    .regex(/^[A-Za-z0-9_-]+$/),
 });
 
 const saveSchema = z.object({
@@ -19,19 +27,17 @@ const saveSchema = z.object({
 export const saveSubscription = createServerFn({ method: "POST" })
   .inputValidator((input) => saveSchema.parse(input))
   .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin
-      .from("push_subscriptions")
-      .upsert(
-        {
-          device_id: data.deviceId,
-          endpoint: data.subscription.endpoint,
-          p256dh: data.subscription.p256dh,
-          auth: data.subscription.auth,
-          user_agent: data.userAgent ?? null,
-          last_seen_at: new Date().toISOString(),
-        },
-        { onConflict: "endpoint" },
-      );
+    const { error } = await supabaseAdmin.from("push_subscriptions").upsert(
+      {
+        device_id: data.deviceId,
+        endpoint: data.subscription.endpoint,
+        p256dh: data.subscription.p256dh,
+        auth: data.subscription.auth,
+        user_agent: data.userAgent ?? null,
+        last_seen_at: new Date().toISOString(),
+      },
+      { onConflict: "endpoint" },
+    );
     if (error) {
       console.error("[push] save failed", error);
       throw new Error("Could not save subscription");

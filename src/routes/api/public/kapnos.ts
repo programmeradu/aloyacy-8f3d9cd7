@@ -18,7 +18,10 @@ export const Route = createFileRoute("/api/public/kapnos")({
         try {
           body = await request.json();
         } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: CORS });
+          return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+            status: 400,
+            headers: CORS,
+          });
         }
         try {
           const result = await suggestKapnos({ data: body as never });

@@ -59,7 +59,11 @@ function pickBg(stop: { id: string; name: string; agency: string }): Bg {
     return BG.coastDusk;
   if (/(pafos|paphos|harbor|harbour|kato pafos|kato paphos|coral bay)/.test(n))
     return BG.harborNight;
-  if (/(limassol|lemesos|protaras|ayia napa|agia napa|paralimni|coral|coast|beach|akamas|polis)/.test(n))
+  if (
+    /(limassol|lemesos|protaras|ayia napa|agia napa|paralimni|coral|coast|beach|akamas|polis)/.test(
+      n,
+    )
+  )
     return BG.coastRoad;
   if (/(faneromen|ledra|laiki geitonia|old town|chrysaliniotissa|tahtakala)/.test(n))
     return BG.oldtown;
@@ -190,8 +194,7 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
 
   // Ensure brand fonts are ready before drawing.
   try {
-    await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts
-      ?.ready;
+    await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready;
   } catch {
     /* noop */
   }
@@ -232,11 +235,9 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
     const y = 56;
     const padX = 22;
     const padY = 14;
-    ctx.font =
-      "700 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
+    ctx.font = "700 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
     const labelW = ctx.measureText("Aloya").width;
-    ctx.font =
-      "500 14px 'JetBrains Mono', ui-monospace, monospace";
+    ctx.font = "500 14px 'JetBrains Mono', ui-monospace, monospace";
     const subW = measureTracked(ctx, "CYPRUS TRANSIT", 2.4);
     const chipW = padX * 2 + labelW + 22 + subW + 14;
     const chipH = 56;
@@ -245,8 +246,7 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
     ctx.fill();
     // Wordmark
     ctx.fillStyle = C.ink;
-    ctx.font =
-      "700 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
+    ctx.font = "700 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
     ctx.fillText("Aloya", x + padX, y + padY + 24);
     // Divider dash (no bullets per brand)
     ctx.strokeStyle = C.inkSoft;
@@ -259,13 +259,7 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
     ctx.fillStyle = C.inkSoft;
     ctx.font = "500 14px 'JetBrains Mono', ui-monospace, monospace";
     // Letter-spacing: emulate tracking by drawing per-char
-    drawTracked(
-      ctx,
-      "CYPRUS TRANSIT",
-      x + padX + labelW + 20,
-      y + padY + 22,
-      2.4,
-    );
+    drawTracked(ctx, "CYPRUS TRANSIT", x + padX + labelW + 20, y + padY + 22, 2.4);
   }
 
   // ─── Top-right context tag ─────────────────────────────────────────────────
@@ -393,8 +387,7 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
     ctx.font = "600 110px 'JetBrains Mono', ui-monospace, monospace";
     const bigW = ctx.measureText(big).width;
     const unit = c.locale === "el" ? "λεπτά" : "min";
-    ctx.font =
-      "600 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
+    ctx.font = "600 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
     const unitW = etaMin != null ? ctx.measureText(unit).width : 0;
     const etaTotalW = bigW + (etaMin != null ? 12 + unitW : 0);
     const etaXRight = W - PAD - etaTotalW;
@@ -403,22 +396,13 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
     // Left: NEXT BUS label
     ctx.fillStyle = C.inkSoft;
     ctx.font = "600 14px 'JetBrains Mono', ui-monospace, monospace";
-    drawTracked(
-      ctx,
-      c.locale === "el" ? "ΕΠΟΜΕΝΟ ΛΕΩΦΟΡΕΙΟ" : "NEXT BUS",
-      PAD,
-      dividerY + 32,
-      2.4,
-    );
+    drawTracked(ctx, c.locale === "el" ? "ΕΠΟΜΕΝΟ ΛΕΩΦΟΡΕΙΟ" : "NEXT BUS", PAD, dividerY + 32, 2.4);
 
     // Headsign (strip leading arrow if present from upstream)
-    const cleanHs = c.nextHeadsign
-      ? c.nextHeadsign.replace(/^[→➜➡⇒\s]+/, "").trim()
-      : null;
+    const cleanHs = c.nextHeadsign ? c.nextHeadsign.replace(/^[→➜➡⇒\s]+/, "").trim() : null;
     if (cleanHs) {
       ctx.fillStyle = C.ink;
-      ctx.font =
-        "600 24px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
+      ctx.font = "600 24px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
       const hs = wrap(ctx, cleanHs, Math.max(220, leftMaxW), 2);
       hs.forEach((line, i) => {
         ctx.fillText(line, PAD, dividerY + 72 + i * 30);
@@ -432,13 +416,10 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
     ctx.fillText(big, etaXRight, etaBaseline);
     if (etaMin != null) {
       ctx.fillStyle = C.inkSoft;
-      ctx.font =
-        "600 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
+      ctx.font = "600 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
       ctx.fillText(unit, etaXRight + bigW + 12, etaBaseline);
     }
   }
-
-
 
   // Footer — URL + open mark
   {
@@ -483,11 +464,7 @@ function drawTracked(
     cx += ctx.measureText(ch).width + spacing;
   }
 }
-function measureTracked(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  spacing: number,
-): number {
+function measureTracked(ctx: CanvasRenderingContext2D, text: string, spacing: number): number {
   let w = 0;
   for (const ch of text) w += ctx.measureText(ch).width + spacing;
   return Math.max(0, w - spacing);
@@ -514,8 +491,7 @@ function pickPlanBg(destination: string): Bg {
   const n = destination.toLowerCase();
   if (/(troodos|kakopetria|platres|kalopanay|pedoulas|prodromos|omodos)/.test(n))
     return BG.mountain;
-  if (/(phinikoud|finikoud|seafront|promenade|marina|larnaca)/.test(n))
-    return BG.coastDusk;
+  if (/(phinikoud|finikoud|seafront|promenade|marina|larnaca)/.test(n)) return BG.coastDusk;
   if (/(pafos|paphos|harbor|harbour|coral bay)/.test(n)) return BG.harborNight;
   if (/(limassol|lemesos|protaras|ayia napa|agia napa|paralimni|coast|beach|akamas|polis)/.test(n))
     return BG.coastRoad;
@@ -570,7 +546,9 @@ export async function renderPlanShareCard(c: PlanCardCtx): Promise<{
 
   try {
     await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready;
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
 
   ctx.fillStyle = C.limestone;
   ctx.fillRect(0, 0, W, H);
@@ -600,7 +578,10 @@ export async function renderPlanShareCard(c: PlanCardCtx): Promise<{
 
   // Wordmark chip (top-left)
   {
-    const x = 56, y = 56, padX = 22, padY = 14;
+    const x = 56,
+      y = 56,
+      padX = 22,
+      padY = 14;
     ctx.font = "700 26px 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif";
     const labelW = ctx.measureText("Aloya").width;
     ctx.font = "500 14px 'JetBrains Mono', ui-monospace, monospace";
@@ -708,7 +689,9 @@ export async function renderPlanShareCard(c: PlanCardCtx): Promise<{
     drawTracked(
       ctx,
       c.locale === "el" ? "ΑΝΑΧΩΡΗΣΗ → ΑΦΙΞΗ" : "DEPART → ARRIVE",
-      PAD, dividerY + 32, 2.4,
+      PAD,
+      dividerY + 32,
+      2.4,
     );
     ctx.fillStyle = C.ink;
     ctx.font = "600 56px 'JetBrains Mono', ui-monospace, monospace";

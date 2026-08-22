@@ -46,8 +46,7 @@ export const getBedrockCostExplorer = createServerFn({ method: "POST" })
     const { ceGetCostAndUsage } = await import("@/lib/aws-cost-explorer.server");
     const now = new Date();
     const days = Math.max(1, Math.min(data.days ?? 14, 90));
-    const granularity: "HOURLY" | "DAILY" =
-      data.granularity ?? (days <= 3 ? "HOURLY" : "DAILY");
+    const granularity: "HOURLY" | "DAILY" = data.granularity ?? (days <= 3 ? "HOURLY" : "DAILY");
 
     // HOURLY needs ISO timestamps; DAILY needs YYYY-MM-DD.
     // CE end is EXCLUSIVE.
@@ -56,12 +55,15 @@ export const getBedrockCostExplorer = createServerFn({ method: "POST" })
     startDate.setUTCHours(0, 0, 0, 0);
     endDate.setUTCHours(0, 0, 0, 0);
 
-    const timePeriod = granularity === "HOURLY"
-      ? {
-          start: new Date(now.getTime() - days * 24 * 3600_000).toISOString().replace(/\.\d+Z$/, "Z"),
-          end: now.toISOString().replace(/\.\d+Z$/, "Z"),
-        }
-      : { start: isoDay(startDate), end: isoDay(endDate) };
+    const timePeriod =
+      granularity === "HOURLY"
+        ? {
+            start: new Date(now.getTime() - days * 24 * 3600_000)
+              .toISOString()
+              .replace(/\.\d+Z$/, "Z"),
+            end: now.toISOString().replace(/\.\d+Z$/, "Z"),
+          }
+        : { start: isoDay(startDate), end: isoDay(endDate) };
 
     // Bedrock's service key in CE is "Amazon Bedrock".
     const filter = {
@@ -90,7 +92,9 @@ export const getBedrockCostExplorer = createServerFn({ method: "POST" })
     // when the user picks a short/hourly window.
     const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
     const yesterday = new Date(now.getTime() - 24 * 3600_000);
-    const startOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const startOfToday = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
 
     const mtdReq = ceGetCostAndUsage(creds, {
       start: isoDay(startOfMonth),
@@ -110,15 +114,16 @@ export const getBedrockCostExplorer = createServerFn({ method: "POST" })
     const [mtdResults, dayResults] = await Promise.all([mtdReq, dayReq]);
 
     const mtdSpend = mtdResults.reduce((a, r) => a + r.total, 0);
-    const yesterdaySpend =
-      dayResults.find((r) => r.start === isoDay(yesterday))?.total ?? 0;
-    const todaySpend =
-      dayResults.find((r) => r.start === isoDay(startOfToday))?.total ?? 0;
+    const yesterdaySpend = dayResults.find((r) => r.start === isoDay(yesterday))?.total ?? 0;
+    const todaySpend = dayResults.find((r) => r.start === isoDay(startOfToday))?.total ?? 0;
 
     // Aggregate USAGE_TYPE across buckets → per-model summary
     const modelMap = new Map<string, number>();
     const perBucket: BedrockCePoint[] = perBucketRaw.map((r) => {
-      const byModel = r.groups.map((g) => ({ key: prettyUsageType(g.keys[0] ?? ""), amount: g.amount }));
+      const byModel = r.groups.map((g) => ({
+        key: prettyUsageType(g.keys[0] ?? ""),
+        amount: g.amount,
+      }));
       for (const g of byModel) modelMap.set(g.key, (modelMap.get(g.key) ?? 0) + g.amount);
       return { start: r.start, end: r.end, total: r.total, byModel };
     });

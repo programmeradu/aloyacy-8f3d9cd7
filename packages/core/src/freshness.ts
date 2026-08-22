@@ -17,12 +17,7 @@
 // Thresholds are agency-aware: Intercity feed pings sparser, so what
 // looks "ghost" for an urban bus is "predicted" for IC.
 
-export type FreshnessTier =
-  | "live"
-  | "rider-confirmed"
-  | "predicted"
-  | "ghost"
-  | "scheduled";
+export type FreshnessTier = "live" | "rider-confirmed" | "predicted" | "ghost" | "scheduled";
 
 export type FreshnessConfidence = "high" | "medium" | "low";
 
@@ -48,13 +43,7 @@ export type FreshnessResult = {
   confidence: FreshnessConfidence;
   /** Short uppercase chip text. Already localised? No — it is a
    *  stable English token; surfaces map it through i18n. */
-  token:
-    | "live"
-    | "rider"
-    | "predicted"
-    | "stale ping"
-    | "no gps"
-    | "scheduled";
+  token: "live" | "rider" | "predicted" | "stale ping" | "no gps" | "scheduled";
 };
 
 const URBAN = { fresh: 60, ghost: 180, near: 5 } as const;
@@ -100,8 +89,7 @@ export function classifyFreshness(input: FreshnessInput): FreshnessResult {
 
   // Fresh but far, or aging ping → predicted.
   const token = age >= T.fresh ? "stale ping" : "predicted";
-  const confidence: FreshnessConfidence =
-    samples >= 10 && age < T.fresh ? "medium" : "low";
+  const confidence: FreshnessConfidence = samples >= 10 && age < T.fresh ? "medium" : "low";
   return { tier: "predicted", confidence, token };
 }
 

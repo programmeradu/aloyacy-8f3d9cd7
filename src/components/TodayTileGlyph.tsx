@@ -51,16 +51,8 @@ export function TodayTileGlyph({
           <path d="M14 18 H24 V26 H14 Z" fill={color} opacity="0.85" />
           <path d="M72 18 H82 V26 H72 Z" fill={color} opacity="0.85" />
           {/* Stadium bowl */}
-          <path
-            d="M10 70 Q48 56 86 70 L86 78 Q48 64 10 78 Z"
-            fill={color}
-            opacity="0.18"
-          />
-          <path
-            d="M14 72 Q48 60 82 72 L82 76 Q48 64 14 76 Z"
-            fill={color}
-            opacity="0.55"
-          />
+          <path d="M10 70 Q48 56 86 70 L86 78 Q48 64 10 78 Z" fill={color} opacity="0.18" />
+          <path d="M14 72 Q48 60 82 72 L82 76 Q48 64 14 76 Z" fill={color} opacity="0.55" />
           {/* Pitch line */}
           <path d="M30 78 Q48 73 66 78" stroke={color} strokeWidth="1.2" opacity="0.65" />
         </svg>
@@ -96,11 +88,7 @@ export function TodayTileGlyph({
           {/* Sun disk */}
           <circle cx="74" cy="22" r="8" fill={color} opacity="0.25" />
           {/* Ship hull + superstructure */}
-          <path
-            d="M10 50 L74 50 L66 62 L18 62 Z"
-            fill={color}
-            opacity="0.85"
-          />
+          <path d="M10 50 L74 50 L66 62 L18 62 Z" fill={color} opacity="0.85" />
           <rect x="22" y="38" width="38" height="12" fill={color} opacity="0.45" />
           <rect x="26" y="42" width="3" height="3" fill="var(--color-card)" />
           <rect x="34" y="42" width="3" height="3" fill="var(--color-card)" />
@@ -214,7 +202,15 @@ export function TodayTileGlyph({
       return (
         <svg {...common}>
           <circle cx="48" cy="50" r="14" fill={color} opacity="0.85" />
-          <circle cx="48" cy="50" r="22" stroke={color} strokeWidth="1" fill="none" opacity="0.25" />
+          <circle
+            cx="48"
+            cy="50"
+            r="22"
+            stroke={color}
+            strokeWidth="1"
+            fill="none"
+            opacity="0.25"
+          />
           {Array.from({ length: 12 }).map((_, i) => {
             const a = (i * Math.PI) / 6;
             const r1 = 26;
@@ -283,7 +279,15 @@ export function TodayTileGlyph({
       // Stylised clock — soft dial with two hands and tick marks.
       return (
         <svg {...common}>
-          <circle cx="48" cy="50" r="26" stroke={color} strokeWidth="1.4" fill="none" opacity="0.5" />
+          <circle
+            cx="48"
+            cy="50"
+            r="26"
+            stroke={color}
+            strokeWidth="1.4"
+            fill="none"
+            opacity="0.5"
+          />
           <circle cx="48" cy="50" r="20" fill={color} opacity="0.10" />
           {Array.from({ length: 12 }).map((_, i) => {
             const a = (i * Math.PI) / 6;
@@ -303,8 +307,26 @@ export function TodayTileGlyph({
               />
             );
           })}
-          <line x1="48" y1="50" x2="48" y2="34" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.85" />
-          <line x1="48" y1="50" x2="60" y2="54" stroke={color} strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+          <line
+            x1="48"
+            y1="50"
+            x2="48"
+            y2="34"
+            stroke={color}
+            strokeWidth="2"
+            strokeLinecap="round"
+            opacity="0.85"
+          />
+          <line
+            x1="48"
+            y1="50"
+            x2="60"
+            y2="54"
+            stroke={color}
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            opacity="0.85"
+          />
           <circle cx="48" cy="50" r="2.2" fill={color} />
         </svg>
       );

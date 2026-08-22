@@ -20,7 +20,10 @@ export default defineTool({
     });
     const body = await res.text();
     if (!res.ok) {
-      return { content: [{ type: "text", text: `Planner failed (${res.status}): ${body}` }], isError: true };
+      return {
+        content: [{ type: "text", text: `Planner failed (${res.status}): ${body}` }],
+        isError: true,
+      };
     }
     let parsed: unknown;
     try {
@@ -29,8 +32,16 @@ export default defineTool({
       parsed = body;
     }
     return {
-      content: [{ type: "text", text: typeof parsed === "string" ? parsed : JSON.stringify(parsed, null, 2) }],
-      structuredContent: typeof parsed === "object" && parsed !== null ? (parsed as Record<string, unknown>) : { raw: body },
+      content: [
+        {
+          type: "text",
+          text: typeof parsed === "string" ? parsed : JSON.stringify(parsed, null, 2),
+        },
+      ],
+      structuredContent:
+        typeof parsed === "object" && parsed !== null
+          ? (parsed as Record<string, unknown>)
+          : { raw: body },
     };
   },
 });

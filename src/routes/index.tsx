@@ -33,22 +33,13 @@ import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { useTick } from "@/hooks/use-tick";
 import { getCurrentWeather } from "@/lib/weather.functions";
-import {
-  STOPS,
-  ROUTES,
-  nearestStops,
-  getRoute,
-  routeTone,
-  distanceKm,
-  stopKind,
-} from "@/lib/gtfs";
+import { STOPS, ROUTES, nearestStops, getRoute, routeTone, distanceKm, stopKind } from "@/lib/gtfs";
 import { getGreeting } from "@/lib/greeting";
 import statBus from "@/assets/stat-bus.png";
 import statDial from "@/assets/stat-dial.png";
 import statRoad from "@/assets/stat-road.png";
 import { useI18n } from "@/lib/i18n";
 import { getStopAmenities } from "@/data/stop-amenities";
-
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -67,7 +58,10 @@ export const Route = createFileRoute("/")({
         { property: "og:image", content: "https://app.aloya.cy/og/og-home.jpg" },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
-        { property: "og:image:alt", content: "A rider's hand on a Cyprus bus window at golden hour, olive trees beyond." },
+        {
+          property: "og:image:alt",
+          content: "A rider's hand on a Cyprus bus window at golden hour, olive trees beyond.",
+        },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:image", content: "https://app.aloya.cy/og/og-home.jpg" },
       ],
@@ -86,7 +80,6 @@ function IndexRoute() {
   return <Explore />;
 }
 
-
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WEATHER_ICONS = {
   sun: IconSun,
@@ -104,7 +97,6 @@ function Explore() {
   const getWeather = useServerFn(getCurrentWeather);
   const { t: tt } = useI18n();
 
-
   // Live local clock (Cyprus is Europe/Nicosia). Gated on mount to avoid SSR hydration mismatch.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -116,19 +108,19 @@ function Explore() {
   const wxKey = `${geo.coords.lat.toFixed(2)}:${geo.coords.lng.toFixed(2)}`;
   const { data: weather } = useQuery({
     queryKey: ["weather", wxKey],
-    queryFn: () =>
-      getWeather({ data: { lat: geo.coords.lat, lng: geo.coords.lng } }),
+    queryFn: () => getWeather({ data: { lat: geo.coords.lat, lng: geo.coords.lng } }),
     staleTime: 10 * 60 * 1000,
     refetchInterval: 15 * 60 * 1000,
   });
   const WxIcon = weather ? WEATHER_ICONS[weather.iconKey] : IconSun;
-  const wxTone = weather?.iconKey === "rain" || weather?.iconKey === "storm"
-    ? "text-aegean-deep"
-    : weather?.iconKey === "cloud"
-      ? "text-ink-soft"
-      : weather?.iconKey === "moon"
-        ? "text-aegean-deep"
-        : "text-ochre";
+  const wxTone =
+    weather?.iconKey === "rain" || weather?.iconKey === "storm"
+      ? "text-aegean-deep"
+      : weather?.iconKey === "cloud"
+        ? "text-ink-soft"
+        : weather?.iconKey === "moon"
+          ? "text-aegean-deep"
+          : "text-ochre";
 
   // Search state
   const [query, setQuery] = useState("");
@@ -167,9 +159,7 @@ function Explore() {
     }
 
     return near.map((s, idx) => {
-      const arrivals = (arrByStop.get(s.id) ?? []).sort(
-        (a, b) => a.eta - b.eta,
-      );
+      const arrivals = (arrByStop.get(s.id) ?? []).sort((a, b) => a.eta - b.eta);
 
       // Smart ETA v2: snap the running vehicle onto its trip's GTFS shape,
       // factor in per-segment speeds, dwell, ping freshness, and learned bias.
@@ -190,8 +180,7 @@ function Explore() {
           riderConfirmedAgeSec: nextHere ? riderConfirmedAge.get(nextHere.tripId) : undefined,
         });
       }
-      const nextEta = smart ? smart.etaMin : arrivals[0]?.eta ?? null;
-
+      const nextEta = smart ? smart.etaMin : (arrivals[0]?.eta ?? null);
 
       // Dedupe by (routeId + headsign) so opposite-direction buses on the same
       // line appear as two distinct entries ("19 → Lakatamia" + "19 → City
@@ -210,8 +199,7 @@ function Explore() {
           const r = getRoute(a.routeId);
           return { code: r?.short ?? "—", tone: routeTone(a.routeId), headsign: a.headsign };
         });
-      if (routes.length === 0)
-        routes.push({ code: "—", tone: "olive" as const, headsign: null });
+      if (routes.length === 0) routes.push({ code: "—", tone: "olive" as const, headsign: null });
       return {
         id: s.id,
         code: s.code || s.id,
@@ -222,7 +210,6 @@ function Explore() {
             : s.distanceKm >= 1
               ? tt("common.kmAway", { km: s.distanceKm.toFixed(s.distanceKm >= 10 ? 0 : 1) })
               : tt("common.mAway", { m: Math.round(s.distanceKm * 1000) }),
-
 
         etaMin: nextEta,
         etaConfidence: smart?.freshness,
@@ -236,6 +223,9 @@ function Explore() {
         amenities: getStopAmenities(s.id),
       };
     });
+    // `tt` is the i18n translator and is stable for a given locale, which is
+    // already captured through the other dependencies.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rt, nearStops, learnedByStop, riderConfirmedAge, headsignsReady]);
 
   // Nearby landmark chips — actual stops within range, clickable to stop page
@@ -285,15 +275,12 @@ function Explore() {
           />
         </div>
 
-
-
         <h1 className="font-display text-[40px] leading-[1.05] text-balance text-ink">
           {mounted ? getGreeting().word : "Kalimera."}
           <br />
           <span className="italic text-olive-soft">
             {tt("home.whereToday", { area: mounted ? headerArea : "Cyprus" })}
           </span>
-
         </h1>
       </header>
 
@@ -302,9 +289,7 @@ function Explore() {
           query={query}
           setQuery={setQuery}
           results={results}
-          onPickStop={(stopId) =>
-            navigate({ to: "/stop/$stopId", params: { stopId } })
-          }
+          onPickStop={(stopId) => navigate({ to: "/stop/$stopId", params: { stopId } })}
           onPickRoute={(routeId) => {
             navigate({ to: "/route/$routeId", params: { routeId } });
           }}
@@ -330,7 +315,6 @@ function Explore() {
           <span className="font-eyebrow text-[10px] uppercase tracking-[0.18em] text-ink-soft py-2">
             {tt("home.locating")}
           </span>
-
         ) : (
           landmarkChips.map((s, i) => {
             const tones = [
@@ -352,10 +336,7 @@ function Explore() {
         )}
       </div>
 
-      <section
-        className="px-6 mt-6 animate-rise"
-        style={{ animationDelay: "200ms" }}
-      >
+      <section className="px-6 mt-6 animate-rise" style={{ animationDelay: "200ms" }}>
         <MapPreview hideLiveBadge placeName={headerArea} />
       </section>
 
@@ -384,29 +365,17 @@ function Explore() {
           vignette={statRoad}
           vignetteClass="right-1 bottom-1 w-[56%] opacity-[0.75]"
         />
-
       </section>
 
-
-      <section
-        className="mt-8 px-6 animate-rise"
-        style={{ animationDelay: "300ms" }}
-      >
+      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "300ms" }}>
         <NLPlannerCard />
       </section>
 
-      <section
-        className="mt-5 px-6 animate-rise"
-        style={{ animationDelay: "310ms" }}
-      >
+      <section className="mt-5 px-6 animate-rise" style={{ animationDelay: "310ms" }}>
         <CommuteSuggestionCard />
       </section>
 
-
-      <section
-        className="mt-8 px-6 animate-rise"
-        style={{ animationDelay: "320ms" }}
-      >
+      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "320ms" }}>
         <div className="flex items-end justify-between mb-4">
           <div>
             <p className="flex items-center gap-1.5 font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
@@ -432,7 +401,6 @@ function Explore() {
             {tt("home.planTrip")}
             <IconArrowUpRight className="size-3.5" />
           </Link>
-
         </div>
 
         <div className="flex flex-col gap-3">
@@ -473,23 +441,18 @@ function QuickStat({
           loading="lazy"
           className={`pointer-events-none select-none absolute ${vignetteClass ?? ""}`}
           style={{
-            maskImage:
-              "radial-gradient(110% 110% at 100% 100%, #000 30%, transparent 75%)",
-            WebkitMaskImage:
-              "radial-gradient(110% 110% at 100% 100%, #000 30%, transparent 75%)",
+            maskImage: "radial-gradient(110% 110% at 100% 100%, #000 30%, transparent 75%)",
+            WebkitMaskImage: "radial-gradient(110% 110% at 100% 100%, #000 30%, transparent 75%)",
           }}
         />
       )}
       <div className="relative p-3">
-        <p className="font-eyebrow text-[9px] uppercase tracking-[0.18em] text-ink-soft">
-          {label}
-        </p>
+        <p className="font-eyebrow text-[9px] uppercase tracking-[0.18em] text-ink-soft">{label}</p>
         <p className={`mt-1 font-display text-2xl leading-none ${c}`}>{value}</p>
       </div>
     </div>
   );
 }
-
 
 /* ───────────────────────── Smart search ───────────────────────── */
 
@@ -526,7 +489,6 @@ type SearchResult =
       city: string;
     };
 
-
 const AGENCY_CITY: Record<string, string> = {
   NPT: "Nicosia",
   LMS: "Limassol",
@@ -537,12 +499,25 @@ const AGENCY_CITY: Record<string, string> = {
   SPC: "Pame Express",
 };
 const AGENCY_RANK: Record<string, number> = {
-  NPT: 0, LMS: 1, LCA: 2, PFO: 3, FAM: 4, IC: 5, SPC: 6,
+  NPT: 0,
+  LMS: 1,
+  LCA: 2,
+  PFO: 3,
+  FAM: 4,
+  IC: 5,
+  SPC: 6,
 };
 
 function searchAll(
   raw: string,
-  vehicles: { id: string; tripId: string; routeId: string; label: string; lat: number; lng: number }[],
+  vehicles: {
+    id: string;
+    tripId: string;
+    routeId: string;
+    label: string;
+    lat: number;
+    lng: number;
+  }[],
   origin: { lat: number; lng: number },
 ): SearchResult[] {
   const q = raw.trim().toLowerCase();
@@ -551,12 +526,9 @@ function searchAll(
 
   // Airports — match IATA code, city, "airport", or full name.
   for (const a of Object.values(AIRPORTS)) {
-    const hay = `${a.iata} ${a.name} ${a.nameEl} ${a.city} ${a.cityEl} airport αεροδρόμιο`.toLowerCase();
-    if (
-      a.iata.toLowerCase() === q ||
-      a.city.toLowerCase().startsWith(q) ||
-      hay.includes(q)
-    ) {
+    const hay =
+      `${a.iata} ${a.name} ${a.nameEl} ${a.city} ${a.cityEl} airport αεροδρόμιο`.toLowerCase();
+    if (a.iata.toLowerCase() === q || a.city.toLowerCase().startsWith(q) || hay.includes(q)) {
       out.push({
         kind: "airport",
         id: a.code,
@@ -566,7 +538,6 @@ function searchAll(
       });
     }
   }
-
 
   // Routes — keep all matches across cities; rank exact short matches first, then by agency.
   const allMatched = ROUTES.filter(
@@ -623,9 +594,7 @@ function searchAll(
   }
 
   // Stops
-  const stopMatches = STOPS.filter((s) =>
-    s.name.toLowerCase().includes(q),
-  ).slice(0, 6);
+  const stopMatches = STOPS.filter((s) => s.name.toLowerCase().includes(q)).slice(0, 6);
   for (const s of stopMatches) {
     out.push({
       kind: "stop",
@@ -699,7 +668,6 @@ function SmartSearch({
               </p>
             </div>
           ) : (
-
             <ul className="max-h-[60vh] overflow-y-auto divide-y divide-line">
               {results.map((r) => {
                 if (r.kind === "route") {

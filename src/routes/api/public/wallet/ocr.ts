@@ -84,10 +84,8 @@ function sanitise(side: "front" | "back", raw: Extracted): Extracted {
     // Strip anything pretending to be a number on the front.
     const date = raw.validUntil?.trim() ?? null;
     const holder = raw.holder?.trim().replace(/\s+/g, " ") ?? null;
-    const validDate =
-      date && /^\d{2}\/\d{2}\/\d{4}$/.test(date) ? date : null;
-    const validHolder =
-      holder && /^[A-Z][A-Z\s'-]{2,40}$/.test(holder) ? holder : null;
+    const validDate = date && /^\d{2}\/\d{2}\/\d{4}$/.test(date) ? date : null;
+    const validHolder = holder && /^[A-Z][A-Z\s'-]{2,40}$/.test(holder) ? holder : null;
     return {
       number: null,
       holder: validHolder,
@@ -124,8 +122,7 @@ export const Route = createFileRoute("/api/public/wallet/ocr")({
         if (!key) return json({ error: "OCR not configured" }, 503);
 
         const dataUrl = normaliseDataUrl(parsed.data.imageBase64, parsed.data.mimeType);
-        const system =
-          parsed.data.side === "front" ? FRONT_PROMPT : BACK_PROMPT;
+        const system = parsed.data.side === "front" ? FRONT_PROMPT : BACK_PROMPT;
 
         try {
           const res = await fetch(GATEWAY, {
@@ -159,10 +156,8 @@ export const Route = createFileRoute("/api/public/wallet/ocr")({
           });
           if (res.status === 429)
             return json({ error: "Scanner busy. Try again in a moment." }, 429);
-          if (res.status === 402)
-            return json({ error: "Scanner quota exceeded." }, 402);
-          if (!res.ok)
-            return json({ error: `OCR upstream ${res.status}` }, 502);
+          if (res.status === 402) return json({ error: "Scanner quota exceeded." }, 402);
+          if (!res.ok) return json({ error: `OCR upstream ${res.status}` }, 502);
 
           const body = (await res.json()) as {
             choices?: Array<{ message?: { content?: string } }>;

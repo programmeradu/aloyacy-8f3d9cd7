@@ -18,7 +18,10 @@ export const Route = createFileRoute("/api/public/park-and-ride")({
         try {
           body = await request.json();
         } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: CORS });
+          return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+            status: 400,
+            headers: CORS,
+          });
         }
         try {
           const result = await suggestParkAndRide({ data: body as never });

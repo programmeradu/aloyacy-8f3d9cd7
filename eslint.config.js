@@ -6,7 +6,28 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi", "mobile"] },
+  {
+    ignores: [
+      "dist",
+      ".output",
+      ".vinxi",
+      "mobile",
+      "coverage",
+      // Generated or vendor-owned sources — not hand-maintained.
+      "src/routeTree.gen.ts",
+      "src/integrations/supabase/types.ts",
+      "src/routes/lovable/**",
+      // Generated font payloads and MCP transport shims (vendor-formatted).
+      "src/lib/og-fonts.server.ts",
+      "src/routes/mcp.ts",
+      "src/routes/[.mcp]/**",
+      "src/routes/[.well-known]/**",
+      "agent/**",
+      ".agents/**",
+      ".workspace/**",
+      "19cfc1d7/**",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -33,8 +54,31 @@ export default tseslint.config(
         },
       ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "@typescript-eslint/no-unused-vars": "off",
+      // Deliberate best-effort blocks (feature detection, storage access) are
+      // allowed to swallow their error; every other empty block is a defect.
+      "no-empty": ["error", { allowEmptyCatch: true }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
     },
+  },
+  {
+    // Providers, shadcn primitives and email builders intentionally export
+    // hooks/variants alongside components; Fast Refresh granularity is not a
+    // quality signal for these vendor-shaped modules.
+    files: [
+      "src/components/ui/**/*.tsx",
+      "src/lib/email-templates/**/*.tsx",
+      "src/lib/useAuth.tsx",
+      "src/lib/usePro.tsx",
+    ],
+    rules: { "react-refresh/only-export-components": "off" },
   },
   eslintPluginPrettier,
 );

@@ -20,13 +20,8 @@
 //   - long band labels wrap, they don't truncate (band carries critical info)
 
 import { useI18n, type DictKey } from "@/lib/i18n";
-import {
-  tierAccent,
-  type FreshnessTier,
-  type FreshnessConfidence,
-} from "@/lib/freshness";
+import { tierAccent, type FreshnessTier, type FreshnessConfidence } from "@/lib/freshness";
 import { ConfidenceIcon } from "@/components/ConfidenceIcon";
-
 
 export type EtaPillData = {
   /** Median ETA, in minutes. null when ghost / scheduled with no number. */
@@ -67,11 +62,8 @@ export function EtaPill({
   const accent = tierAccent(data.tier);
   const tierLabel = t(TIER_KEYS[data.tier]);
   const shifted =
-    data.etaMin != null &&
-    data.operatorEtaMin != null &&
-    data.operatorEtaMin !== data.etaMin;
-  const showBand =
-    !isGhost && data.band && bandIsInformative(data.band, data.etaMin);
+    data.etaMin != null && data.operatorEtaMin != null && data.operatorEtaMin !== data.etaMin;
+  const showBand = !isGhost && data.band && bandIsInformative(data.band, data.etaMin);
 
   // Headline variant — used at the top of stop detail or hero cards.
   if (variant === "headline") {
@@ -89,11 +81,14 @@ export function EtaPill({
             </span>
           )}
         </div>
-        <ChipRow tierLabel={tierLabel} tier={data.tier} confidence={data.confidence} accent={accent} />
+        <ChipRow
+          tierLabel={tierLabel}
+          tier={data.tier}
+          confidence={data.confidence}
+          accent={accent}
+        />
         {showBand && (
-          <p className="mt-1 font-mono text-[11px] tracking-[0.04em] text-ink-soft">
-            {data.band}
-          </p>
+          <p className="mt-1 font-mono text-[11px] tracking-[0.04em] text-ink-soft">{data.band}</p>
         )}
         {shifted && (
           <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/70 line-through decoration-1">
@@ -101,9 +96,7 @@ export function EtaPill({
           </p>
         )}
         {data.blurb && (
-          <p className="mt-1 text-[11.5px] text-ink-soft max-w-[14rem]">
-            {data.blurb}
-          </p>
+          <p className="mt-1 text-[11.5px] text-ink-soft max-w-[14rem]">{data.blurb}</p>
         )}
       </div>
     );
@@ -136,17 +129,19 @@ export function EtaPill({
     <div
       className={`flex flex-col ${align === "right" ? "items-end text-right" : "items-start text-left"}`}
     >
-      <span className={`font-display text-5xl leading-none ${accent}`}>
-        {data.etaMin ?? "—"}
-      </span>
+      <span className={`font-display text-5xl leading-none ${accent}`}>{data.etaMin ?? "—"}</span>
       <span className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/80">
         {data.etaMin != null ? t("eta.minLabel") : t("eta.tier.ghost")}
       </span>
-      <ChipRow tierLabel={tierLabel} tier={data.tier} confidence={data.confidence} accent={accent} compact />
+      <ChipRow
+        tierLabel={tierLabel}
+        tier={data.tier}
+        confidence={data.confidence}
+        accent={accent}
+        compact
+      />
       {showBand && (
-        <p className="mt-1 font-mono text-[10px] tracking-[0.04em] text-ink-soft/80">
-          {data.band}
-        </p>
+        <p className="mt-1 font-mono text-[10px] tracking-[0.04em] text-ink-soft/80">{data.band}</p>
       )}
       {shifted && (
         <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft/60 line-through decoration-1">
@@ -180,7 +175,6 @@ function ChipRow({
   );
 }
 
-
 /** Only show the band when it materially differs from the headline minute. */
 function bandIsInformative(band: string, headlineMin: number | null): boolean {
   if (!band.includes("–")) return false;
@@ -189,6 +183,7 @@ function bandIsInformative(band: string, headlineMin: number | null): boolean {
   const lo = Number(m[1]);
   const hi = Number(m[2]);
   if (hi - lo <= 1) return false;
-  if (headlineMin != null && Math.abs(lo - headlineMin) <= 1 && Math.abs(hi - headlineMin) <= 1) return false;
+  if (headlineMin != null && Math.abs(lo - headlineMin) <= 1 && Math.abs(hi - headlineMin) <= 1)
+    return false;
   return true;
 }
