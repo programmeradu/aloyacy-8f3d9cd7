@@ -136,6 +136,35 @@ describe("file size ceiling", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("keeps every new source file under the 400-line ratchet", () => {
+    const offenders = files
+      .filter(
+        (file) => !isTest(file) && !(file in ALLOWLIST) && !LEGACY_OVER_RATCHET.has(file),
+      )
+      .map((file) => ({
+        file,
+        lines: readFileSync(path.join(repoRoot, file), "utf8").split("\n").length,
+      }))
+      .filter(({ lines }) => lines > RATCHET_CEILING)
+      .map(({ file, lines }) => `${file} (${lines} lines)`);
+
+    expect(
+      offenders,
+      `Split these into focused modules — the ratchet is ${RATCHET_CEILING} lines:\n${offenders.join("\n")}`,
+    ).toEqual([]);
+  });
+
+  it("has no stale ratchet exemptions", () => {
+    const stale = [...LEGACY_OVER_RATCHET].filter((file) => {
+      if (!files.includes(file)) return true;
+      return readFileSync(path.join(repoRoot, file), "utf8").split("\n").length <= RATCHET_CEILING;
+    });
+    expect(
+      stale,
+      `These are now under ${RATCHET_CEILING} lines (or gone) — drop them from LEGACY_OVER_RATCHET so the ratchet holds: ${stale.join(", ")}`,
+    ).toEqual([]);
+  });
+
   it("has no stale allowlist entries", () => {
     const stale = Object.keys(ALLOWLIST).filter((file) => !files.includes(file));
     expect(
