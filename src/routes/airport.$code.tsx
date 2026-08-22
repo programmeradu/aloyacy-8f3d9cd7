@@ -176,62 +176,66 @@ export const Route = createFileRoute("/airport/$code")({
     };
   },
   component: AirportPage,
-  errorComponent: ({ error, reset }) => {
-    const router = useRouter();
-    return (
-      <AppShell>
-        <div className="px-6 pt-10">
-          <p className="font-display text-[22px] text-ink">Couldn't load airport data.</p>
-          <p className="mt-2 text-[14px] text-ink-soft">{error.message}</p>
-          <button
-            type="button"
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="mt-6 rounded-full bg-ink px-4 py-2 font-sans text-[13px] font-semibold text-limestone"
-          >
-            Try again
-          </button>
-        </div>
-      </AppShell>
-    );
-  },
-  notFoundComponent: () => {
-    const { code } = Route.useParams();
-    return (
-      <AppShell>
-        <div className="px-6 pt-10">
-          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-aegean-deep">
-            Not in Cyprus
-          </p>
-          <h1 className="mt-3 font-display text-[34px] leading-tight text-ink">
-            No airport page for "{code}".
-          </h1>
-          <p className="mt-4 text-[15px] text-ink-soft">
-            Try{" "}
-            <Link
-              to="/airport/$code"
-              params={{ code: "lca" }}
-              className="underline-offset-4 hover:underline"
-            >
-              Larnaca (LCA)
-            </Link>{" "}
-            or{" "}
-            <Link
-              to="/airport/$code"
-              params={{ code: "pfo" }}
-              className="underline-offset-4 hover:underline"
-            >
-              Paphos (PFO)
-            </Link>
-            .
-          </p>
-        </div>
-      </AppShell>
-    );
-  },
+  errorComponent: AirportErrorState,
+  notFoundComponent: AirportNotFoundState,
 });
+
+function AirportErrorState({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <AppShell>
+      <div className="px-6 pt-10">
+        <p className="font-display text-[22px] text-ink">Couldn't load airport data.</p>
+        <p className="mt-2 text-[14px] text-ink-soft">{error.message}</p>
+        <button
+          type="button"
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
+          className="mt-6 rounded-full bg-ink px-4 py-2 font-sans text-[13px] font-semibold text-limestone"
+        >
+          Try again
+        </button>
+      </div>
+    </AppShell>
+  );
+}
+
+function AirportNotFoundState() {
+  const { code } = Route.useParams();
+  return (
+    <AppShell>
+      <div className="px-6 pt-10">
+        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-aegean-deep">
+          Not in Cyprus
+        </p>
+        <h1 className="mt-3 font-display text-[34px] leading-tight text-ink">
+          No airport page for "{code}".
+        </h1>
+        <p className="mt-4 text-[15px] text-ink-soft">
+          Try{" "}
+          <Link
+            to="/airport/$code"
+            params={{ code: "lca" }}
+            className="underline-offset-4 hover:underline"
+          >
+            Larnaca (LCA)
+          </Link>{" "}
+          or{" "}
+          <Link
+            to="/airport/$code"
+            params={{ code: "pfo" }}
+            className="underline-offset-4 hover:underline"
+          >
+            Paphos (PFO)
+          </Link>
+          .
+        </p>
+      </div>
+    </AppShell>
+  );
+}
 
 function AirportPage() {
   const { code } = Route.useParams();
