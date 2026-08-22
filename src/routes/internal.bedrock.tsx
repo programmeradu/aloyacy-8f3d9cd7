@@ -105,10 +105,18 @@ function BedrockTestPage() {
   }
 
   const extractedText = (() => {
-    const r = result?.response as any;
+    // Bedrock returns either the Anthropic-native `content[]` shape or the
+    // Converse `output.message.content[]` shape depending on the model family.
+    type TextBlock = { text?: string };
+    type BedrockBody = {
+      content?: TextBlock[];
+      output?: { message?: { content?: TextBlock[] } };
+    };
+    const r = result?.response as BedrockBody | undefined;
     if (!r || typeof r !== "object") return null;
-    if (Array.isArray(r.content) && r.content[0]?.text) return r.content[0].text as string;
-    if (r.output?.message?.content?.[0]?.text) return r.output.message.content[0].text as string;
+    if (Array.isArray(r.content) && r.content[0]?.text) return r.content[0].text;
+    const converse = r.output?.message?.content?.[0]?.text;
+    if (converse) return converse;
     return null;
   })();
 

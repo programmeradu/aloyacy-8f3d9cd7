@@ -1657,7 +1657,9 @@ function TimeIntentChip({
   );
 }
 
-function formatIntentLabel(iso: string, t: (k: any, v?: any) => string): string {
+type Translate = ReturnType<typeof useI18n>["t"];
+
+function formatIntentLabel(iso: string, t: Translate): string {
   try {
     const d = new Date(iso);
     const today = new Date();
