@@ -36,7 +36,9 @@ export function QaPasswordGate({ onUnlock }: { onUnlock: () => void }) {
   return (
     <main className="min-h-dvh bg-limestone grid place-items-center px-6">
       <form onSubmit={submit} className="w-full max-w-sm">
-        <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ink-soft">Restricted</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ink-soft">
+          Restricted
+        </p>
         <h1 className="mt-3 font-display text-4xl text-ink leading-none">QA console</h1>
         <p className="mt-3 text-[13px] text-ink-soft">
           Phase machine telemetry. Enter the access phrase.
