@@ -112,9 +112,16 @@ async function ingest() {
     }));
 
     // Incrementally update delay_stats per (route, stop, hour, dow).
+    //
+    // We send DELTAS (sum + count) and let Postgres merge the running mean
+    // in the upsert. The previous version read the matching delay_stats rows
+    // back first with a 50-way `or(and(...))` filter per chunk — on the
+    // migrated database each of those reads took ~40s, so a single snapshot
+    // needed well over ten minutes and the cron call always timed out before
+    // writing anything. That is what silently killed every downstream feed.
     const buckets = new Map<
       string,
-      { route_id: string; stop_id: string; hour_of_day: number; day_of_week: number; sum: number; count: number }
+      { route_id: string; stop_id: string; hour_of_day: number; day_of_week: number; sum_delay_sec: number; count: number }
     >();
     for (const a of fresh) {
       const d = new Date(a.arrivalUnix * 1000);
@@ -126,95 +133,93 @@ async function ingest() {
         stop_id: a.stopId,
         hour_of_day: hour,
         day_of_week: dow,
-        sum: 0,
+        sum_delay_sec: 0,
         count: 0,
       };
-      b.sum += a.delaySec;
+      b.sum_delay_sec += a.delaySec;
       b.count += 1;
       buckets.set(key, b);
     }
+    const statDeltas = Array.from(buckets.values());
 
-    const bucketArray = Array.from(buckets.values());
-    const CHUNK_SIZE = 50;
-    const upserts = [];
-
-    for (let i = 0; i < bucketArray.length; i += CHUNK_SIZE) {
-      const chunk = bucketArray.slice(i, i + CHUNK_SIZE);
-      const orFilter = chunk
-        .map((b) => `and(route_id.eq.${b.route_id},stop_id.eq.${b.stop_id},hour_of_day.eq.${b.hour_of_day},day_of_week.eq.${b.day_of_week})`)
-        .join(',');
-
-      const { data: existingRecords } = await supabase
-        .from("delay_stats")
-        .select("route_id, stop_id, hour_of_day, day_of_week, mean_delay_sec, sample_count")
-        .or(orFilter);
-
-      const existingMap = new Map();
-      for (const ex of (existingRecords || [])) {
-        existingMap.set(`${ex.route_id}|${ex.stop_id}|${ex.hour_of_day}|${ex.day_of_week}`, ex);
-      }
-
-      for (const b of chunk) {
-        const key = `${b.route_id}|${b.stop_id}|${b.hour_of_day}|${b.day_of_week}`;
-        const existing = existingMap.get(key);
-        const prevMean = existing?.mean_delay_sec ?? 0;
-        const prevN = existing?.sample_count ?? 0;
-        const newN = prevN + b.count;
-        const newMean = (prevMean * prevN + b.sum) / newN;
-
-        upserts.push({
-          route_id: b.route_id,
-          stop_id: b.stop_id,
-          hour_of_day: b.hour_of_day,
-          day_of_week: b.day_of_week,
-          mean_delay_sec: newMean,
-          sample_count: newN,
-          updated_at: new Date().toISOString(),
-        });
-      }
-    }
-
-    // Call the RPC in small chunks. 500-row batches were tripping the
-    // Postgres statement timeout; the three payloads are also independent
-    // lists, so each one is paged on its own instead of sharing an index.
-    const RPC_CHUNK_SIZE = 100;
+    // Chunked so no single statement runs long, but large enough that a full
+    // snapshot finishes in a handful of round trips.
+    const RPC_CHUNK_SIZE = 400;
+    // Hard wall-clock budget — the caller is a cron worker on a 60s-ish
+    // leash, so stop cleanly and report partial progress instead of hanging.
+    const DEADLINE = Date.now() + 45_000;
     let inserted = 0;
     let statsUpdated = 0;
+    let truncated = false;
+    let lastError: string | null = null;
+    let useV2 = true;
 
     const batches = Math.max(
       Math.ceil(rows.length / RPC_CHUNK_SIZE),
       Math.ceil(observed.length / RPC_CHUNK_SIZE),
-      Math.ceil(upserts.length / RPC_CHUNK_SIZE),
+      Math.ceil(statDeltas.length / RPC_CHUNK_SIZE),
     );
 
+    const rpc = supabase.rpc as unknown as (
+      fn: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ error: { message: string } | null }>;
+
     for (let b = 0; b < batches; b++) {
+      if (Date.now() > DEADLINE) {
+        truncated = true;
+        break;
+      }
       const i = b * RPC_CHUNK_SIZE;
       const chunkRows = rows.slice(i, i + RPC_CHUNK_SIZE);
       const chunkObserved = observed.slice(i, i + RPC_CHUNK_SIZE);
-      const chunkStats = upserts.slice(i, i + RPC_CHUNK_SIZE);
+      const chunkStats = statDeltas.slice(i, i + RPC_CHUNK_SIZE);
       if (!chunkRows.length && !chunkObserved.length && !chunkStats.length) continue;
 
+      let error: { message: string } | null = null;
 
-      // `ingest_gtfs_snapshots` is not present in the generated types for the
-      // migrated project yet (see supabase/migrations/20260811000000_ingest_gtfs_rpc.sql).
-      const { error } = await (supabase.rpc as unknown as (
-        fn: string,
-        args: Record<string, unknown>,
-      ) => Promise<{ error: { message: string } | null }>)("ingest_gtfs_snapshots", {
-        snapshots: chunkRows,
-        observed: chunkObserved,
-        stats: chunkStats,
-      });
-      
+      if (useV2) {
+        ({ error } = await rpc("ingest_gtfs_snapshots_v2", {
+          snapshots: chunkRows,
+          observed: chunkObserved,
+          stats: chunkStats,
+        }));
+        // v2 lives in deploy/supabase/sql/20260821_ingest_v2_and_retention.sql.
+        // Until that has been applied, fall back to the original RPC with the
+        // stats payload omitted — arrivals and observed rows still land, which
+        // keeps the live surfaces fed instead of writing nothing at all.
+        if (error && /could not find the function|does not exist|PGRST202/i.test(error.message)) {
+          useV2 = false;
+          error = null;
+        }
+      }
+
+      if (!useV2) {
+        ({ error } = await rpc("ingest_gtfs_snapshots", {
+          snapshots: chunkRows,
+          observed: chunkObserved,
+          stats: [],
+        }));
+      }
+
       if (error) {
-        console.error("RPC ingest_gtfs_snapshots error", error);
+        lastError = error.message;
+        console.error("snapshot ingest RPC error", error);
       } else {
         inserted += chunkRows.length;
-        statsUpdated += chunkStats.length;
+        if (useV2) statsUpdated += chunkStats.length;
       }
     }
 
-    return json({ ok: true, inserted, stats_updated: statsUpdated });
+    return json({
+      ok: true,
+      inserted,
+      stats_updated: statsUpdated,
+      stats_mode: useV2 ? "v2" : "skipped (apply 20260821_ingest_v2_and_retention.sql)",
+      ...(truncated ? { truncated: true } : {}),
+      ...(lastError ? { last_error: lastError } : {}),
+    });
+
   } catch (e) {
     console.error("snapshot ingest failed", e);
     return json(
