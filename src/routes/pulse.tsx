@@ -576,7 +576,6 @@ function ActivityComb({
   );
 }
 
-
 // Word→category map. Each Greek word in src/data/cyprus-greek-words.json gets a
 // motif that fits its meaning, so the illustration changes day-to-day.
 type GreekCategory = "greeting" | "courtesy" | "transit" | "food" | "place" | "vibe";
