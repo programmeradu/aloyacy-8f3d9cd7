@@ -41,25 +41,26 @@ export const Route = createFileRoute("/api/public/stt")({
             headers: { ...CORS, "Content-Type": "application/json" },
           });
         }
-        if (file.size < 512) {
-          return new Response(JSON.stringify({ error: "Recording too short" }), {
-            status: 400,
-            headers: { ...CORS, "Content-Type": "application/json" },
-          });
-        }
-        if (file.size > 20 * 1024 * 1024) {
-          return new Response(JSON.stringify({ error: "Recording too large" }), {
-            status: 413,
+        // The upload's own metadata is caller-controlled, so it goes through
+        // the same Zod boundary as any JSON body. An oversized recording is a
+        // 413 (the caller may retry shorter); anything else is a plain 400.
+        const upload = SttUploadSchema.safeParse({
+          size: file.size,
+          name: typeof (file as File).name === "string" ? (file as File).name : undefined,
+          type: file.type || undefined,
+        });
+        if (!upload.success) {
+          const issue = upload.error.issues[0];
+          const tooLarge = issue?.code === "too_big";
+          return new Response(JSON.stringify({ error: issue?.message ?? "Invalid upload" }), {
+            status: tooLarge ? 413 : 400,
             headers: { ...CORS, "Content-Type": "application/json" },
           });
         }
         const upstream = new FormData();
         upstream.append("model", "openai/gpt-4o-mini-transcribe");
-        const nameHint =
-          typeof (file as File).name === "string" && (file as File).name
-            ? (file as File).name
-            : "recording.m4a";
-        upstream.append("file", file, nameHint);
+        upstream.append("file", file, upload.data.name);
+
 
         const resp = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
           method: "POST",
