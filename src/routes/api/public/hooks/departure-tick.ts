@@ -75,7 +75,6 @@ async function tick(request: Request) {
   if (denied) return denied;
 
   const priv = process.env.VAPID_PRIVATE_KEY;
-  const sub = process.env.VAPID_SUBJECT || "mailto:notifications@aloya.app";
   if (!priv) return json({ ok: false, error: "VAPID_PRIVATE_KEY missing" }, 500);
 
   const nowUnix = Math.floor(Date.now() / 1000);
@@ -158,7 +157,7 @@ async function tick(request: Request) {
   // ============ Phase 2: send ============
   const { data: due, error } = await supabaseAdmin
     .from("scheduled_departures")
-    .select("id, user_id, device_id, arrive_by_unix, remind_at_unix, plan_json, push_subscription_id")
+    .select("id, user_id, arrive_by_unix, remind_at_unix, plan_json, push_subscription_id")
     .eq("status", "scheduled")
     .lte("remind_at_unix", nowUnix)
     .limit(100);
@@ -182,7 +181,7 @@ async function tick(request: Request) {
     } as const;
 
     const receipt = await deliver(
-      { subscriptionId: row.push_subscription_id, deviceId: row.device_id ?? null },
+      { subscriptionId: row.push_subscription_id },
       {
         category: "departure",
         title: payload.title,
