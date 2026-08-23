@@ -40,14 +40,10 @@ This skill guarantees that any project developed, refactored, or audited hits **
 | **1-Command Run** | Provide a working `docker-compose.yml` and 8-section `README.md` for seamless clone-to-run onboarding. | [Pillar 5](./references/pillar_5_docs_and_containerization.md) |
 | **Commit Messages** | Follow Conventional Commits (`feat:`, `fix:`, `test:`, `refactor:`, `docs:`, `chore:`). Maintain human identity. | [Pillar 6](./references/pillar_6_git_history_and_task_capacity.md) |
 | **Releases** | Tag semantic milestone versions (`v1.0.0`, `v1.1.0`) in Git. | [Pillar 6](./references/pillar_6_git_history_and_task_capacity.md) |
-| **License Compliance** | CI must run a license-checker and fail on any `GPL` or `AGPL` dependencies in proprietary repos. | [Pillar 8](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md) |
-| **Database Migrations** | Zero manual DB changes. 100% of schema/RLS changes must be in versioned, sequential migration scripts. | [Pillar 8](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md) |
-| **API Documentation** | All external HTTP endpoints must generate an OpenAPI 3.0+ spec derived from input schemas. | [Pillar 8](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md) |
-| **Code Security (SAST)** | CI must run Semgrep or CodeQL to statically catch SQLi, XSS, and CSRF vulnerabilities in custom code. | [Pillar 8](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md) |
 
 ---
 
-## 🏛️ The 8 Core Pillars (Deep References)
+## 🏛️ The 7 Core Pillars (Deep References)
 
 1. **[Pillar 1: Testing, Test:Source Ratios & Zero-External Isolation](./references/pillar_1_testing_and_isolation.md)**
    - Vitest & Pytest setup, MSW/in-memory mocks, coverage thresholds, 3-layer test architecture.
@@ -63,9 +59,7 @@ This skill guarantees that any project developed, refactored, or audited hits **
    - Mineable task engineering, atomic feature+test pairing, conventional commits, human identity hygiene, semver tags.
 7. **[Pillar 7: Monetization Architecture, Buyer-Fit Signals & Enterprise Licensing](./references/pillar_7_monetization_and_buyer_fit.md)**
    - Valuation mathematics, 5 buyer-fit signals, commercial licensing checklist, step-by-step remediation roadmap.
-8. **[Pillar 8: M&A Tech Due Diligence & Legal Hygiene](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md)**
-   - Legal license auditing, versioned SQL schemas, OpenAPI generation, SAST scanning, and a11y compliance.
-9. **[24-Repo Forensic Audit Database](./references/audit_database_24_repos.md)**
+8. **[24-Repo Forensic Audit Database](./references/audit_database_24_repos.md)**
    - Full diagnostic breakdown of all 24 evaluated repositories, defect catalogs, and score analysis.
 
 ---
