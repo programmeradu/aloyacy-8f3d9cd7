@@ -31,6 +31,36 @@ type Headers_ = Record<string, string>;
 
 const JSON_HEADER = { "Content-Type": "application/json" };
 
+/**
+ * Decode a JSON request body without validating it. Malformed JSON resolves
+ * to `{ ok: false }` so the handler can answer 400 in its own envelope rather
+ * than throwing a 500 at the caller.
+ */
+export async function readJsonBody(request: Request): Promise<RawBody> {
+  try {
+    return { ok: true, value: await request.json() };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/**
+ * Flatten query parameters into a plain record for a schema to run over.
+ * Repeated keys collapse to the last value, matching `searchParams.get`.
+ * Use `z.coerce.*` in the schema for numbers and booleans.
+ */
+export function queryRecord(input: URL | URLSearchParams | string): Record<string, string> {
+  const params =
+    input instanceof URLSearchParams
+      ? input
+      : input instanceof URL
+        ? input.searchParams
+        : new URL(input).searchParams;
+  const record: Record<string, string> = {};
+  for (const [key, value] of params.entries()) record[key] = value;
+  return record;
+}
+
 
 /** JSON response helper that always carries the caller's CORS headers. */
 export function jsonResponse(status: number, body: unknown, headers: Headers_ = {}): Response {
