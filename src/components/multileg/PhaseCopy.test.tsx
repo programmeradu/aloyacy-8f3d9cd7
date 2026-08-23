@@ -82,7 +82,7 @@ describe("PhaseCopy components", () => {
 
   it("renders PhaseSub with walk guidance subtitle", () => {
     const live = mockLive({ phase: "walking-to-board", metersToTarget: 350 });
-    render(<PhaseSub live={live} itin={mockItin()} />);
+    render(<PhaseSub live={live} itin={mockItin()} destLabel="Park" />);
     expect(screen.getByText(/We'll watch the bus/i)).toBeInTheDocument();
   });
 });
