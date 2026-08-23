@@ -15,6 +15,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { XMLParser } from "fast-xml-parser";
 import { nearestZone, PULSE_ZONES, type PulseZone } from "@/lib/pulse-zones";
+import { queryRecord } from "@/lib/http/validate";
+import { CronSecretQuerySchema } from "@/lib/schemas/public-api";
+
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
