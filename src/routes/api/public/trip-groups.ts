@@ -43,9 +43,10 @@ export const Route = createFileRoute("/api/public/trip-groups")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const payload = await readJsonBody(request);
-        if (!payload.ok) return malformedJsonBody(CORS);
-        const parsed = TripGroupsEnvelopeSchema.safeParse(payload.value);
+        const rawBody = await readJsonBody(request);
+        if (!rawBody.ok) return malformedJsonBody(CORS);
+        const parsed = TripGroupsEnvelopeSchema.safeParse(rawBody.value);
+
         if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
         const { action, payload } = parsed.data;
         try {
