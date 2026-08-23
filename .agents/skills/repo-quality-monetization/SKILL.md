@@ -55,7 +55,6 @@ Before taking any development action, consult this matrix:
 For complete technical specifications, code templates, and blueprints, consult the pillar files:
 
 1. **[Pillar 1: Testing, Test:Source Ratios & Zero-External Isolation](./references/pillar_1_testing_and_isolation.md)**
-
    - Vitest & Pytest setup, MSW/in-memory mocks, coverage thresholds, 3-layer test architecture.
 2. **[Pillar 2: Security Hygiene, Secret Eradication & Input Validation](./references/pillar_2_security_and_secret_hygiene.md)**
    - Zero-leak mandate, `.env.example` parity scripts, Git history purging with `git-filter-repo`, Zod & Pydantic schemas.
