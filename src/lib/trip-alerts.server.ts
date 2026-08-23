@@ -5,9 +5,8 @@
 // channels (Web Push for browsers/PWAs, Expo Push for the native apps).
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { sendWebPush, type WebPushPayload } from "@/lib/webpush.server";
-import { sendExpoPush } from "@/lib/expopush.server";
-import { VAPID_PUBLIC_KEY } from "@/lib/vapid";
+import type { WebPushPayload } from "@/lib/webpush.server";
+import { deliver } from "@/lib/notify.server";
 import { createLogger } from "@/lib/logger";
 import type { Leg } from "@/lib/itinerary-types";
 
@@ -94,70 +93,16 @@ export function buildPayload(
 }
 
 export async function dispatch(deviceId: string, payload: WebPushPayload) {
-  const priv = process.env.VAPID_PRIVATE_KEY;
-  const sub = process.env.VAPID_SUBJECT || "mailto:notifications@aloya.app";
-
-  let sent = 0;
-  let expired = 0;
-
-  // ---- Web push (browsers / installed PWAs) ----
-  if (priv) {
-    const { data: subs } = await supabaseAdmin
-      .from("push_subscriptions")
-      .select("endpoint, p256dh, auth")
-      .eq("device_id", deviceId);
-    if (subs && subs.length > 0) {
-      for (const s of subs) {
-        try {
-          const r = await sendWebPush({
-            subscription: { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
-            payload,
-            vapidPublicKey: VAPID_PUBLIC_KEY,
-            vapidPrivateKey: priv,
-            vapidSubject: sub,
-          });
-          if (r.ok) sent++;
-          else if (r.expired) {
-            expired++;
-            await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
-          }
-        } catch (e) {
-          log.error("web push dispatch threw", e);
-        }
-      }
-    }
-  }
-
-  // ---- Native push via Expo (iOS/Android) ----
-  try {
-    const { data: tokens } = await supabaseAdmin
-      .from("expo_push_tokens")
-      .select("expo_token")
-      .eq("device_id", deviceId);
-    if (tokens && tokens.length > 0) {
-      const r = await sendExpoPush(
-        tokens.map((t) => ({
-          to: t.expo_token,
-          title: payload.title,
-          body: payload.body,
-          channelId: "trip-alerts",
-          sound: "default",
-          priority: payload.requireInteraction ? "high" : "default",
-          data: { url: payload.url, tag: payload.tag },
-        })),
-      );
-      sent += r.ok;
-      if (r.expiredTokens.length) {
-        expired += r.expiredTokens.length;
-        await supabaseAdmin.from("expo_push_tokens").delete().in("expo_token", r.expiredTokens);
-      }
-      if (r.errors.length) {
-        log.warn("expo push errors", { errors: r.errors.slice(0, 3) });
-      }
-    }
-  } catch (e) {
-    log.error("expo dispatch threw", e);
-  }
-
-  return { sent, expired };
+  const receipt = await deliver(
+    { deviceId },
+    {
+      category: "trip-alert",
+      title: String(payload.title ?? "Aloya"),
+      body: String(payload.body ?? ""),
+      tag: String(payload.tag ?? `aloya-trip-${deviceId}`),
+      url: payload.url,
+      requireInteraction: payload.requireInteraction === true,
+    },
+  );
+  return { sent: receipt.sent, expired: receipt.pruned };
 }
