@@ -4,7 +4,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { OG_HEIGHT, OG_PALETTE, OG_WIDTH, clip, esc, ogPngResponse } from "@/lib/og-render.server";
-import { safePlanToken } from "@/lib/http/og-params";
+import { PlanTokenParam } from "@/lib/http/og-params";
 
 type PlanRow = {
   creator_name: string | null;
@@ -47,7 +47,8 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
       GET: async ({ params }) => {
         // A malformed token resolves to null: we skip the lookup and still
         // return a valid branded card, so the crawler renders *something*.
-        const token = safePlanToken(params.token);
+        const tokenParam = PlanTokenParam.safeParse(params.token);
+        const token = tokenParam.success ? tokenParam.data : null;
 
         let plan: PlanRow | null = null;
         if (token) {

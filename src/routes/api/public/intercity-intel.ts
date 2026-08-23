@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getIntercityInsights } from "@/lib/intercity-intel.functions";
-import { parseQueryInput } from "@/lib/http/validate";
+import { invalidRequest, queryRecord } from "@/lib/http/validate";
 import { IntercityIntelQuerySchema } from "@/lib/schemas/public-api";
 
 // CORS-open HTTP wrapper around the shared intercity-insights server fn so
@@ -21,8 +21,8 @@ export const Route = createFileRoute("/api/public/intercity-intel")({
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
         const url = new URL(request.url);
-        const parsed = parseQueryInput(url, IntercityIntelQuerySchema, CORS);
-        if (!parsed.ok) return parsed.response;
+        const parsed = IntercityIntelQuerySchema.safeParse(queryRecord(url));
+        if (!parsed.success) return invalidRequest(parsed.error, CORS);
         try {
           const result = await getIntercityInsights({ data: parsed.data });
           return new Response(JSON.stringify(result), { status: 200, headers: CORS });

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { signRequest } from "@/lib/aws-sigv4.server";
 import { estimateCost } from "@/lib/bedrock-pricing";
-import { parseJsonBody } from "@/lib/http/validate";
+import { badRequest, malformedJsonBody, readJsonBody, zodDetails } from "@/lib/http/validate";
 import { BedrockTestSchema } from "@/lib/schemas/public-api";
 
 // Internal test proxy for AWS Bedrock. Credentials are provided per-request
@@ -26,8 +26,10 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
           "Access-Control-Allow-Origin": "*",
           "Content-Type": "application/json",
         };
-        const parsed = await parseJsonBody(request, BedrockTestSchema, cors);
-        if (!parsed.ok) return parsed.response;
+        const payload = await readJsonBody(request);
+        if (!payload.ok) return malformedJsonBody(cors);
+        const parsed = BedrockTestSchema.safeParse(payload.value);
+        if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), cors);
         try {
           const body = parsed.data;
           const authMode = body.authMode;

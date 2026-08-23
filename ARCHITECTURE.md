@@ -41,34 +41,50 @@ These are the four pieces an operator interacts with. They are dependency-free
 by design: the Worker runtime has no Node process to host pino, agents or
 sidecars.
 
-| Concern | Module | Surface |
-| --- | --- | --- |
-| Structured logging | `src/lib/logger.ts` | One JSON object per line: `ts`, `level`, `scope`, `msg`, plus typed fields. `createLogger(scope)`; `tests/server-logging.test.ts` fails the build on a raw `console.*` in server code. |
-| Input schemas | `src/lib/schemas/public-api.ts` | Zod schemas for every public endpoint that reads caller data, plus `parseOptionalJsonBody`. `tests/input-validation.test.ts` fails the build on an unvalidated handler. |
-| Error tracking | `src/lib/error-tracking.ts` | `captureException()` posts a Sentry envelope over `fetch`. No SDK. Inert unless `SENTRY_DSN` is set. |
-| Metrics | `src/lib/metrics.ts` | In-process Prometheus registry (counters, gauges, summaries), scraped at `GET /api/public/metrics` and `/metrics`, gated by `METRICS_TOKEN` when set. |
-| Health | `src/routes/api/public/health.ts` | `GET /api/public/health` and `/healthz` probe each dependency concurrently. 200 = healthy, 200 `degraded` = live feed down but scheduled data still served, 503 = a hard dependency failed. Used by the Docker `HEALTHCHECK`. |
+| Concern            | Module                            | Surface                                                                                                                                                                                                                               |
+| ------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Structured logging | `src/lib/logger.ts`               | One JSON object per line: `ts`, `level`, `scope`, `msg`, plus typed fields. `createLogger(scope)`; `tests/server-logging.test.ts` fails the build on a raw `console.*` in server code.                                                |
+| Input schemas      | `src/lib/schemas/public-api.ts`   | Zod schemas for every public endpoint that reads caller data. Handlers call `safeParse` themselves; `tests/input-validation.test.ts` and `scripts/input-validation-report.mjs --check` both fail the build on an unvalidated handler. |
+| Error tracking     | `src/lib/error-tracking.ts`       | `captureException()` posts a Sentry envelope over `fetch`. No SDK. Inert unless `SENTRY_DSN` is set.                                                                                                                                  |
+| Metrics            | `src/lib/metrics.ts`              | In-process Prometheus registry (counters, gauges, summaries), scraped at `GET /api/public/metrics` and `/metrics`, gated by `METRICS_TOKEN` when set.                                                                                 |
+| Health             | `src/routes/api/public/health.ts` | `GET /api/public/health` and `/healthz` probe each dependency concurrently. 200 = healthy, 200 `degraded` = live feed down but scheduled data still served, 503 = a hard dependency failed. Used by the Docker `HEALTHCHECK`.         |
 
 Health and metrics share state on purpose: each probe writes
 `aloya_dependency_up` and a probe-duration observation, so an uptime monitor and
 a Prometheus scrape can never disagree about the same dependency.
 
-### Input Validation Idiom
+### Input validation idiom
 
-Every route handler under `src/routes/api/public/*` that consumes caller data enforces validation at the HTTP boundary before executing business logic:
+Every handler under `src/routes/api/public/*` that consumes caller data parses
+it with Zod before any work happens — and the `safeParse` call is written **in
+the route file**, not inside a helper. Validation buried in a shared wrapper is
+still real, but it is invisible to a reviewer reading one endpoint and to
+static analysis. Keeping it at the boundary makes the guarantee provable per
+route.
+
+`src/lib/http/validate.ts` therefore supplies only the two halves around that
+call: readers that decode untrusted bytes, and responders that turn a rejection
+into one stable 400 envelope.
 
 ```typescript
-// 1. Define or import schema from src/lib/schemas/public-api.ts
 import { PlacesAutocompleteSchema } from "@/lib/schemas/public-api";
-import { parseJsonInput } from "@/lib/http/validate";
+import { badRequest, malformedJsonBody, readJsonBody, zodDetails } from "@/lib/http/validate";
 
-// 2. Validate request input in handler
-const parsed = await parseJsonInput(request, PlacesAutocompleteSchema);
-if (!parsed.success) {
-  return new Response(JSON.stringify({ error: parsed.error }), { status: 400 });
-}
+const payload = await readJsonBody(request);
+if (!payload.ok) return malformedJsonBody(CORS);
+const parsed = PlacesAutocompleteSchema.safeParse(payload.value);
+if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
+// parsed.data is fully typed and safe to act on
 ```
-All public routes are guarded per-endpoint by `tests/input-validation.test.ts`.
+
+Two guards keep it honest, with no allowlist between them:
+
+- `tests/input-validation.test.ts` — one case per public route file: if the
+  handler reads caller input, a literal schema parse must appear in that file,
+  and a `safeParse` result must be branched on.
+- `scripts/input-validation-report.mjs` — prints the endpoint → schema matrix
+  and exits non-zero on any gap. CI runs it as its own step
+  (`bun run check:validation`), so the evidence lands in the job log.
 
 ## Data
 
@@ -82,14 +98,14 @@ All public routes are guarded per-endpoint by `tests/input-validation.test.ts`.
 
 ## Code health rules (enforced by tests, not convention)
 
-| Rule | Guard |
-| --- | --- |
-| No source file over 500 lines; new files under 400 | `tests/file-size.test.ts` |
-| No raw `console.*` in server code | `tests/server-logging.test.ts` |
-| Every public endpoint validates input with Zod | `tests/input-validation.test.ts` |
-| Tests run fully offline — no network in CI | `src/test/no-network.ts` |
-| `.env.example` covers every env var used in source | `scripts/check-env-parity.mjs` |
-| No committed secrets | `scripts/check-secrets.mjs` |
+| Rule                                                                  | Guard                                                                   |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| No source file over 500 lines; new files under 400                    | `tests/file-size.test.ts`                                               |
+| No raw `console.*` in server code                                     | `tests/server-logging.test.ts`                                          |
+| Every public endpoint validates input with a Zod call in its own file | `tests/input-validation.test.ts`, `scripts/input-validation-report.mjs` |
+| Tests run fully offline — no network in CI                            | `src/test/no-network.ts`                                                |
+| `.env.example` covers every env var used in source                    | `scripts/check-env-parity.mjs`                                          |
+| No committed secrets                                                  | `scripts/check-secrets.mjs`                                             |
 
 See `CONTRIBUTING.md` for the local workflow and `docs/COMMIT_POLICY.md` for
 history conventions.
