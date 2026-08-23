@@ -19,7 +19,9 @@ import { Route as SavedRouteImport } from './routes/saved'
 import { Route as QaRouteImport } from './routes/qa'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as MetricsRouteImport } from './routes/metrics'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as HealthzRouteImport } from './routes/healthz'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
@@ -160,9 +162,19 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MetricsRoute = MetricsRouteImport.update({
+  id: '/metrics',
+  path: '/metrics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HealthzRoute = HealthzRouteImport.update({
+  id: '/healthz',
+  path: '/healthz',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -641,7 +653,9 @@ const ApiPublicOgGroupCodeRoute = ApiPublicOgGroupCodeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/healthz': typeof HealthzRoute
   '/mcp': typeof McpRoute
+  '/metrics': typeof MetricsRoute
   '/privacy': typeof PrivacyRoute
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
@@ -743,7 +757,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/healthz': typeof HealthzRoute
   '/mcp': typeof McpRoute
+  '/metrics': typeof MetricsRoute
   '/privacy': typeof PrivacyRoute
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
@@ -846,7 +862,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/healthz': typeof HealthzRoute
   '/mcp': typeof McpRoute
+  '/metrics': typeof MetricsRoute
   '/privacy': typeof PrivacyRoute
   '/pulse': typeof PulseRoute
   '/qa': typeof QaRoute
@@ -950,7 +968,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/healthz'
     | '/mcp'
+    | '/metrics'
     | '/privacy'
     | '/pulse'
     | '/qa'
@@ -1052,7 +1072,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/healthz'
     | '/mcp'
+    | '/metrics'
     | '/privacy'
     | '/pulse'
     | '/qa'
@@ -1154,7 +1176,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/healthz'
     | '/mcp'
+    | '/metrics'
     | '/privacy'
     | '/pulse'
     | '/qa'
@@ -1257,7 +1281,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HealthzRoute: typeof HealthzRoute
   McpRoute: typeof McpRoute
+  MetricsRoute: typeof MetricsRoute
   PrivacyRoute: typeof PrivacyRoute
   PulseRoute: typeof PulseRoute
   QaRoute: typeof QaRoute
@@ -1428,11 +1454,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/metrics': {
+      id: '/metrics'
+      path: '/metrics'
+      fullPath: '/metrics'
+      preLoaderRoute: typeof MetricsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/healthz': {
+      id: '/healthz'
+      path: '/healthz'
+      fullPath: '/healthz'
+      preLoaderRoute: typeof HealthzRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -2077,7 +2117,9 @@ const ApiPublicWalletRouteWithChildren = ApiPublicWalletRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HealthzRoute: HealthzRoute,
   McpRoute: McpRoute,
+  MetricsRoute: MetricsRoute,
   PrivacyRoute: PrivacyRoute,
   PulseRoute: PulseRoute,
   QaRoute: QaRoute,
