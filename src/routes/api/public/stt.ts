@@ -3,6 +3,8 @@
 // multipart, and we forward to the Gateway with the workspace key.
 
 import { createFileRoute } from "@tanstack/react-router";
+import { SttUploadSchema } from "@/lib/schemas/public-api";
+
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
