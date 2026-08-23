@@ -1,13 +1,17 @@
 # Global repository owners
-* @programmeradu founder@stauniverse.tech
+* founder@stauniverse.tech samueladu1970@gmail.com praugrermar@gmail.com
 
-# Core domain logic and trust layer
-/packages/core/ @programmeradu founder@stauniverse.tech
+# Core domain logic, RAPTOR routing, and journey state
+/packages/core/ samueladu1970@gmail.com founder@stauniverse.tech
 
-# Server runtime, routes, and security boundaries
-/src/routes/api/ @programmeradu founder@stauniverse.tech
-/src/lib/schemas/ @programmeradu founder@stauniverse.tech
+# Server runtime, public schemas, and security boundaries
+/src/routes/api/ founder@stauniverse.tech samueladu1970@gmail.com
+/src/lib/schemas/ founder@stauniverse.tech
+
+# Mobile Expo application and frontend components
+/mobile/ praugrermar@gmail.com founder@stauniverse.tech
+/src/components/ praugrermar@gmail.com founder@stauniverse.tech
 
 # CI/CD and deployment configurations
-/.github/workflows/ @programmeradu founder@stauniverse.tech
-/deploy/ @programmeradu founder@stauniverse.tech
+/.github/workflows/ founder@stauniverse.tech
+/deploy/ samueladu1970@gmail.com founder@stauniverse.tech

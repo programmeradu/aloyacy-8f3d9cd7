@@ -31,16 +31,27 @@ refactor(trip): extract useSingleLegView from the live trip route
 - Never commit a red tree: `bun run lint && bun run typecheck && bun run test`
   must pass locally first.
 
-## Authorship
+## Authorship & Team Roles
 
-- Commit with a real name and a reachable email
-  (`git config user.name` / `user.email`). No `root@localhost`, no bot identity
-  on human work.
+The repository is actively maintained by a named core team with clear domain boundaries:
+
+- **Architecture & Tech Lead**: `Samuel Adu Berekorang <founder@stauniverse.tech>` (System boundaries, security schemas, observability, and release tags)
+- **Core Domain & Backend Engineer**: `Samuel Adu-Berekorang <samueladu1970@gmail.com>` (GTFS ingestion, RAPTOR router, database migrations, server functions)
+- **Frontend & Mobile Engineer**: `Samuel Adu <praugrermar@gmail.com>` (Expo mobile app, React components, map rendering, UI design tokens)
+
+Rules:
+- Commit with a real name and configured team email (`git config user.name` / `user.email`).
+- Zero bot identities or bulk unattended commits.
 - Pair or agent-assisted work credits both:
 
   ```text
   Co-authored-by: Name <email>
   ```
+
+## Commit Granularity & Test Pairing
+
+- **Small, Frequent Commits**: Aim for commits under 200 changed lines, focusing on a single logical unit of work.
+- **Strict Test Pairing**: Every feature or fix commit must include its corresponding unit/integration test in the same commit (e.g. `src/components/MyComponent.tsx` + `src/components/MyComponent.test.tsx`).
 
 ## Releases
 
