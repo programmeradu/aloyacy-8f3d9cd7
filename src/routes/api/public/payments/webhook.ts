@@ -13,7 +13,9 @@ const log = createLogger("stripe-webhook");
 function parseEnv(url: URL): { ok: true; env: StripeEnv } | { ok: false; response: Response } {
   const __query = readQuery(url);
     const parsed = StripeEnvQuerySchema.safeParse(__query);
-    if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error));
+    if (!parsed.success) {
+      return { ok: false, response: badRequest("Invalid request", zodDetails(parsed.error)) };
+    }
 
   return { ok: true, env: parsed.data.env as StripeEnv };
 }
