@@ -16,7 +16,6 @@
 //     → arrived
 
 import { useEffect, useMemo, useRef } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { useRealtime } from "./useRealtime";
 import type { LiveFix } from "./useGeoWatch";
 import { useFusedFix } from "./useFusedFix";
@@ -31,7 +30,6 @@ import {
   fuseRideVehicle,
   isConnectionLate,
   legTarget,
-  multiLegAlerts,
   resolveLegs,
   resolveMultiLegPhase,
   shouldAdvanceLeg,

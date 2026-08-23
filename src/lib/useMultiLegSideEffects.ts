@@ -9,15 +9,14 @@ import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
 import { useRiderFixReporter } from "./useRiderFixReporter";
 import { recordCommutePattern } from "./commute-learner.functions";
-import { multiLegAlerts } from "@aloya/core/multileg-journey";
+import { multiLegAlerts, type MultiLegPhase } from "@aloya/core/multileg-journey";
 import type { ActiveTrip } from "./trip-store";
 import type { RideLeg } from "./itinerary-types";
-import type { JourneyPhase } from "./journey-phase";
 import type { LiveFix } from "./useGeoWatch";
 
 export interface UseMultiLegSideEffectsOptions {
   active: ActiveTrip | null;
-  phase: JourneyPhase;
+  phase: MultiLegPhase;
   currentLegIndex: number;
   currentRideLeg: RideLeg | null;
   nextRideLeg: RideLeg | null;
