@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { suggestBikeShare } from "@/lib/bikeshare.functions";
-import { parseJsonInput } from "@/lib/http/validate";
+import { invalidJsonBody, invalidRequest, readJsonBody } from "@/lib/http/validate";
 import { BikeShareBodySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -17,8 +17,10 @@ export const Route = createFileRoute("/api/public/bike-share")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const parsed = await parseJsonInput(request, BikeShareBodySchema, CORS);
-        if (!parsed.ok) return parsed.response;
+        const payload = await readJsonBody(request);
+        if (!payload.ok) return invalidJsonBody(CORS);
+        const parsed = BikeShareBodySchema.safeParse(payload.value);
+        if (!parsed.success) return invalidRequest(parsed.error, CORS);
         try {
           const result = await suggestBikeShare({ data: parsed.data });
           return new Response(JSON.stringify(result), { status: 200, headers: CORS });

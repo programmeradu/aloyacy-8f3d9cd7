@@ -5,7 +5,7 @@
 // is not configured or returns an error.
 
 import { createFileRoute } from "@tanstack/react-router";
-import { parseJsonBody } from "@/lib/http/validate";
+import { badRequest, malformedJsonBody, readJsonBody, zodDetails } from "@/lib/http/validate";
 import { TtsSchema } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -72,11 +72,16 @@ export const Route = createFileRoute("/api/public/tts")({
             headers: { ...CORS, "Content-Type": "application/json" },
           });
         }
-        const parsed = await parseJsonBody(request, TtsSchema, {
+        const payload = await readJsonBody(request);
+        if (!payload.ok) return malformedJsonBody({
           ...CORS,
           "Content-Type": "application/json",
         });
-        if (!parsed.ok) return parsed.response;
+        const parsed = TtsSchema.safeParse(payload.value);
+        if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), {
+          ...CORS,
+          "Content-Type": "application/json",
+        });
         const input = parsed.data.input;
         const instructions =
           parsed.data.instructions ??
