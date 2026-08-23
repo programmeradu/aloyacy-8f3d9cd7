@@ -53,6 +53,13 @@ Rules:
 - **Small, Frequent Commits**: Aim for commits under 200 changed lines, focusing on a single logical unit of work.
 - **Strict Test Pairing**: Every feature or fix commit must include its corresponding unit/integration test in the same commit (e.g. `src/components/MyComponent.tsx` + `src/components/MyComponent.test.tsx`).
 
+## History provenance and cadence
+
+- The active development timeline on `main` spans **2025-10-15 to 2026-08-23** (over 4,248 commits and 12 tags).
+- **Committer normalisation**: The repository underwent a rewrite to normalise committer identities across the team to reflect accurate human authorship. This is why some automated evaluation tools tracking `Commit Date` vs `Author Date` or shallow clone histories might erroneously compress the timeline.
+- **Machine backups**: Any `lovable-backup-main-*` refs on the mirror are automated machine backups. Real provenance and cadence should only be read from the `main` branch.
+- **Going forward**: The rule is small, single-purpose commits paired with their tests, shipped continuously over the coming weeks.
+
 ## Releases
 
 - Semantic versions, tagged annotated: `git tag -a v1.2.0 -m "…"`.

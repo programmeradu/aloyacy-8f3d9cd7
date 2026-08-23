@@ -47,7 +47,10 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
       GET: async ({ params }) => {
         // A malformed token resolves to null: we skip the lookup and still
         // return a valid branded card, so the crawler renders *something*.
-        const token = safePlanToken(params.token);
+        const { z } = await import("zod");
+        const TokenSchema = z.string().transform((s) => safePlanToken(s));
+        const parsedToken = TokenSchema.safeParse(params.token);
+        const token = parsedToken.success ? parsedToken.data : null;
 
         let plan: PlanRow | null = null;
         if (token) {

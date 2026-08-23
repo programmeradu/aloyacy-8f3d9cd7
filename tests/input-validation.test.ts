@@ -41,15 +41,7 @@ const INPUT_READS = [
 
 /** Runs that data through a schema before it is used. */
 const VALIDATORS = [
-  /parseJsonInput\s*\(/,
-  /parseOptionalJsonBody\s*\(/,
-  /parseQueryInput\s*\(/,
-  /parseJsonBody\s*\(/,
-  /parseQuery\s*\(/,
-  /parseInput\s*\(/,
-  /parseWith\s*\(/,
-  /safeGroupCode\s*\(/,
-  /safePlanToken\s*\(/,
+  // Only literal explicit safeParse or parse calls are accepted
   /\.safeParse\s*\(/,
   /\b[A-Z]\w*\s*\.\s*parse\s*\(/,
 ];

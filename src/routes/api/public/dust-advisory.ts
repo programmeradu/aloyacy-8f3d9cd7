@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getDustAdvisory } from "@/lib/pulse-live.functions";
-import { parseQueryInput } from "@/lib/http/validate";
+import { parseQueryInput, readJsonBody, readQuery, readJsonInput, zodDetails, invalidRequest, badRequest } from "@/lib/http/validate";
 import { DustAdvisoryQuerySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -17,8 +17,10 @@ export const Route = createFileRoute("/api/public/dust-advisory")({
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
         const url = new URL(request.url);
-        const parsed = parseQueryInput(url, DustAdvisoryQuerySchema, CORS);
-        if (!parsed.ok) return parsed.response;
+        const __query = readQuery(url);
+          const parsed = DustAdvisoryQuerySchema.safeParse(__query);
+          if (!parsed.success) return invalidRequest(parsed.error, CORS);
+
         try {
           const result = await getDustAdvisory({ data: parsed.data });
           return new Response(JSON.stringify(result), { status: 200, headers: CORS });

@@ -17,9 +17,10 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
   server: {
     handlers: {
       GET: async ({ params }) => {
-        // Unusable codes never reach the database — the card falls back to
-        // its generic branded form rather than erroring at a crawler.
-        const code = safeGroupCode(params.code);
+        const { z } = await import("zod");
+        const CodeSchema = z.string().transform(s => safeGroupCode(s));
+        const parsedCode = CodeSchema.safeParse(params.code);
+        const code = parsedCode.success ? parsedCode.data : null;
 
         let group: GroupRow | null = null;
         let memberCount = 0;

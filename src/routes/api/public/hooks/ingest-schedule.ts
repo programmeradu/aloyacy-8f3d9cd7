@@ -14,7 +14,7 @@ import { unzipSync, gzipSync, strFromU8 } from "fflate";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { resolveServiceDates } from "@aloya/core/schedule-calendar";
 import { createLogger } from "@/lib/logger";
-import { parseJsonBody } from "@/lib/http/validate";
+import { parseJsonBody, readJsonBody, readQuery, readJsonInput, zodDetails, invalidRequest, badRequest } from "@/lib/http/validate";
 import { IngestScheduleBodySchema } from "@/lib/schemas/public-api";
 
 const log = createLogger("ingest-schedule");
@@ -325,11 +325,11 @@ export const Route = createFileRoute("/api/public/hooks/ingest-schedule")({
         const rawBody = (await request.text()).trim();
         let days = 14;
         if (rawBody.length > 0) {
-          const parsed = await parseJsonBody(
-            new Request(request.url, { method: "POST", body: rawBody }),
-            IngestScheduleBodySchema,
-          );
-          if (!parsed.ok) return parsed.response;
+          const __body = await readJsonBody(new Request(request.url, { method: "POST", body: rawBody }));
+            if (!__body.ok) return __body.response;
+            const parsed = IngestScheduleBodySchema.safeParse(__body.value);
+            if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error));
+
           days = parsed.data.days ?? 14;
         }
 

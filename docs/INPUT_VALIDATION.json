@@ -1,0 +1,412 @@
+[
+  {
+    "file": "weather.ts",
+    "schemas": [
+      "WeatherQuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "wallet.ts",
+    "schemas": [
+      "bodySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "walk-directions.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "tts.ts",
+    "schemas": [
+      "TtsSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "trip-groups.ts",
+    "schemas": [
+      "TripGroupsEnvelopeSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "trip-alerts.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "traffic-alerts.ts",
+    "schemas": [
+      "TrafficAlertsSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "stt.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "streetview.ts",
+    "schemas": [
+      "QuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "stops.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "stop-reliability.ts",
+    "schemas": [
+      "StopReliabilitySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "snapshot.ts",
+    "schemas": [
+      "QuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "sighting.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "route-reliability.ts",
+    "schemas": [
+      "RouteReliabilitySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "rider-fix.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "realtime.ts",
+    "schemas": [
+      "QuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "pulse.ts",
+    "schemas": [
+      "PulseQuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "plan.ts",
+    "schemas": [
+      "PlanBodySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "plan-share.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "places-autocomplete.ts",
+    "schemas": [
+      "PlacesAutocompleteSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "place.ts",
+    "schemas": [
+      "PlaceSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "parse-trip-intent.ts",
+    "schemas": [
+      "TripIntentSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "park-and-ride.ts",
+    "schemas": [
+      "ParkAndRideBodySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "mobile-payment-sheet.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "metrics.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "last-mile-chain.ts",
+    "schemas": [
+      "LastMileChainBodySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "kapnos.ts",
+    "schemas": [
+      "KapnosBodySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "intercity-intel.ts",
+    "schemas": [
+      "IntercityIntelQuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "indexnow.ts",
+    "schemas": [
+      "IndexNowQuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "health.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "gtfs-headsigns.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "gbfs[.]json.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "expo-push-register.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "dust-advisory.ts",
+    "schemas": [
+      "DustAdvisoryQuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "bolt-scooter.ts",
+    "schemas": [
+      "BoltScooterBodySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "bike-share.ts",
+    "schemas": [
+      "BikeShareBodySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "bedrock-test.ts",
+    "schemas": [
+      "BedrockTestSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "arrival-promise.ts",
+    "schemas": [
+      "bodySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "airport.ts",
+    "schemas": [
+      "AirportQuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "wallet\\pass.ts",
+    "schemas": [
+      "bodySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "wallet\\ocr.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "payments\\webhook.ts",
+    "schemas": [
+      "StripeEnvQuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "og\\plan.$token.ts",
+    "schemas": [
+      "TokenSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "og\\group.$code.ts",
+    "schemas": [
+      "CodeSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\train.ts",
+    "schemas": [
+      "QuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\pulse-weather.ts",
+    "schemas": [
+      "QuerySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\pulse-traffic.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "hooks\\pulse-news.ts",
+    "schemas": [
+      "PayloadSchema",
+      "ItemSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\pulse-met-warnings.ts",
+    "schemas": [
+      "WarningSchema",
+      "PayloadSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\pulse-marine.ts",
+    "schemas": [
+      "MarineSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\pulse-football.ts",
+    "schemas": [
+      "FixtureSchema",
+      "PayloadSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\pulse-flights.ts",
+    "schemas": [
+      "FlightSchema",
+      "AirportPayloadSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\pulse-events.ts",
+    "schemas": [
+      "EventSchema",
+      "PayloadSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\pulse-cruises.ts",
+    "schemas": [
+      "CruiseSchema",
+      "PayloadSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\pulse-air.ts",
+    "schemas": [
+      "AirSchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\ingest-schedule.ts",
+    "schemas": [
+      "IngestScheduleBodySchema"
+    ],
+    "hasValidation": true
+  },
+  {
+    "file": "hooks\\departure-tick.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "hooks\\arrival-watch-tick.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "gbfs\\vehicle_types[.]json.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "gbfs\\system_information[.]json.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "gbfs\\station_status[.]json.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "gbfs\\station_information[.]json.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "gbfs\\free_bike_status[.]json.ts",
+    "schemas": [],
+    "hasValidation": false
+  },
+  {
+    "file": "auth\\otp.ts",
+    "schemas": [
+      "BodySchema"
+    ],
+    "hasValidation": true
+  }
+]

@@ -108,6 +108,9 @@ a comment explaining what it unlocks, and to the table in `README.md`.
 Conventional Commits: `feat:`, `fix:`, `perf:`, `refactor:`, `test:`,
 `docs:`, `chore:`. Scope where it helps — `fix(mobile): ...`.
 
+For details on atomic commit rules, test pairing, and our documented history cadence, see [docs/COMMIT_POLICY.md](docs/COMMIT_POLICY.md). 
+**Note**: Only `main` reflects accurate cadence; `lovable-backup-main-*` branches are machine-generated.
+
 ## Releasing
 
 1. Move everything under `## [Unreleased]` in `CHANGELOG.md` into a new

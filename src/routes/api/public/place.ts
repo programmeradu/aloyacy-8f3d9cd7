@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getPlace } from "@/lib/maps.functions";
-import { parseJsonInput } from "@/lib/http/validate";
+import { parseJsonInput, readJsonBody, readQuery, readJsonInput, zodDetails, invalidRequest, badRequest } from "@/lib/http/validate";
 import { PlaceSchema } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -16,8 +16,11 @@ export const Route = createFileRoute("/api/public/place")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const parsed = await parseJsonInput(request, PlaceSchema, CORS);
-        if (!parsed.ok) return parsed.response;
+        const __body = await readJsonInput(request, CORS);
+          if (!__body.ok) return __body.response;
+          const parsed = PlaceSchema.safeParse(__body.value);
+          if (!parsed.success) return invalidRequest(parsed.error, CORS);
+
         try {
           const result = await getPlace({ data: parsed.data });
           return Response.json(result, { status: 200, headers: CORS });

@@ -3,7 +3,7 @@
 // pipeline the web uses. One parser, one product.
 import { createFileRoute } from "@tanstack/react-router";
 import { parseTripIntent } from "@/lib/ai-planner.functions";
-import { jsonResponse, parseJsonBody } from "@/lib/http/validate";
+import { jsonResponse, parseJsonBody, readJsonBody, readQuery, readJsonInput, zodDetails, invalidRequest, badRequest } from "@/lib/http/validate";
 import { TripIntentSchema } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -19,8 +19,11 @@ export const Route = createFileRoute("/api/public/parse-trip-intent")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const parsed = await parseJsonBody(request, TripIntentSchema, CORS);
-        if (!parsed.ok) return parsed.response;
+        const __body = await readJsonBody(request, CORS);
+          if (!__body.ok) return __body.response;
+          const parsed = TripIntentSchema.safeParse(__body.value);
+          if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
+
         try {
           const result = await parseTripIntent({ data: parsed.data });
           return jsonResponse(200, result, CORS);

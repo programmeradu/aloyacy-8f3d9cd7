@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getItineraryTrafficAlerts } from "@/lib/traffic-alerts.functions";
-import { jsonResponse, parseJsonBody } from "@/lib/http/validate";
+import { jsonResponse, parseJsonBody, readJsonBody, readQuery, readJsonInput, zodDetails, invalidRequest, badRequest } from "@/lib/http/validate";
 import { TrafficAlertsSchema } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -16,8 +16,11 @@ export const Route = createFileRoute("/api/public/traffic-alerts")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const parsed = await parseJsonBody(request, TrafficAlertsSchema, CORS);
-        if (!parsed.ok) return parsed.response;
+        const __body = await readJsonBody(request, CORS);
+          if (!__body.ok) return __body.response;
+          const parsed = TrafficAlertsSchema.safeParse(__body.value);
+          if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
+
         try {
           const result = await getItineraryTrafficAlerts({ data: parsed.data });
           return jsonResponse(200, result, CORS);

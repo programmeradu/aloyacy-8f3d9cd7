@@ -67,6 +67,11 @@ jobs:
       - name: Typecheck (tsc)
         run: bunx tsc --noEmit
 
+      - name: Generate input validation report
+        run: |
+          node scripts/input-validation-report.mjs
+          cat docs/INPUT_VALIDATION.md >> $GITHUB_STEP_SUMMARY
+
       - name: Test (vitest, with coverage)
         run: bunx vitest run --coverage
 
