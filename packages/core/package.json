@@ -209,6 +209,10 @@
     "./multileg-banners": {
       "types": "./src/multileg-banners.ts",
       "default": "./src/multileg-banners.ts"
+    },
+    "./distance-format": {
+      "types": "./src/distance-format.ts",
+      "default": "./src/distance-format.ts"
     }
   },
   "dependencies": {
