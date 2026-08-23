@@ -133,4 +133,8 @@ When tasked with upgrading an existing repository:
 5. **Observability & Health**: Replace `console.log`/`console.error` with `pino` structured logger; add `GET /healthz` endpoint.
 6. **Strict CI Gate**: Commit `.github/workflows/ci.yml` running lint (`--max-warnings=0`), typecheck, tests with coverage, and dependency audit.
 7. **Production Documentation**: Write complete 8-section `README.md` and add `docker-compose.yml`.
-8. **Tag Release**: `git tag -a v1.0.0 -m "Production release v1.0.0"`.
+8. **Evidence Layer** (Pillar 9): For each property above, commit an artifact, a CI gate, and a guard test — move every hidden validation call out to the handler boundary, and convert LOC/coverage limits into committed ratchets.
+9. **Provenance Cleanup** (Pillar 9): `git log --format='%an|%cn' | sort -u` must show humans only; rewrite with `git-filter-repo --mailmap`, force-push, delete every stale remote branch, and document the rewrite plus the true history span in `docs/COMMIT_POLICY.md`.
+10. **Parity Sweep** (Pillar 9): Assert every path, script, command and env var named in docs actually resolves; run the full gate locally in order and read the output before declaring done.
+11. **Commercial Packaging**: `LICENSE` + `COMMERCIAL.md` (what's included, what's excluded, deployment-rights tiers, third-party licence manifest, security posture at handover).
+12. **Tag Release**: `git tag -a v1.0.0 -m "Production release v1.0.0"`.
