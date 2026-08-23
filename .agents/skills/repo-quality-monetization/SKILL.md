@@ -41,10 +41,16 @@ Before taking any development action, consult this matrix:
 | **Database Migrations** | Zero manual DB changes. 100% of schema/RLS changes must be in versioned, sequential migration scripts. | [Pillar 8: M&A Due Diligence](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md) |
 | **API Documentation** | All external HTTP endpoints must generate an OpenAPI 3.0+ spec derived from input schemas. | [Pillar 8: M&A Due Diligence](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md) |
 | **Code Security (SAST)** | CI must run Semgrep or CodeQL to statically catch SQLi, XSS, and CSRF vulnerabilities in custom code. | [Pillar 8: M&A Due Diligence](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md) |
+| **Evidence Rule** | Every quality claim needs an **artifact + CI gate + guard test**. Unprovable quality scores zero. | [Pillar 9: Scanner-Legible Evidence](./references/pillar_9_scanner_legible_evidence.md) |
+| **Validation Visibility** | The literal `Schema.safeParse(...)` must sit **in the handler file**, and its result must be branched on. Never hide it in a helper wrapper. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
+| **Ratchets Over Ceilings** | Commit a LOC/coverage manifest that can only move down/up. Never lower a floor to make CI pass. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
+| **Git Provenance** | Zero bot commits as author OR committer, and **delete stale remote branches** — graders read `git ls-remote`. Document any rewrite. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
+| **Docs/Code Parity** | Every path, script, env var and command named in docs must resolve in code. A documented-but-missing `/health` costs two hits: missing endpoint + doc defect. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
+| **Audit Convergence** | Re-run the audit on a **fresh checkout** before trusting a regression; fix the category, not the instance. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
 
 ---
 
-## 🏛️ The 8 Core Pillars (Deep Reference Guides)
+## 🏛️ The 9 Core Pillars (Deep Reference Guides)
 
 For complete technical specifications, code templates, and blueprints, consult the pillar files:
 
@@ -64,8 +70,10 @@ For complete technical specifications, code templates, and blueprints, consult t
    - Valuation mathematics, 5 buyer-fit signals, commercial licensing checklist, step-by-step remediation roadmap.
 8. **[Pillar 8: M&A Tech Due Diligence & Legal Hygiene](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md)**
    - Legal license auditing, versioned SQL schemas, OpenAPI generation, SAST scanning, and a11y compliance.
-9. **[24-Repo Forensic Audit Database](./references/audit_database_24_repos.md)**
-   - Full diagnostic breakdown of all 24 evaluated repositories, defect catalogs, and score analysis.
+9. **[Pillar 9: Scanner-Legible Evidence, Provenance & Anti-Regression Ratchets](./references/pillar_9_scanner_legible_evidence.md)**
+   - The artifact+gate+test Evidence Rule, boundary-visible Zod calls, LOC/coverage ratchets, git provenance and remote-branch hygiene, docs/code parity, the audit convergence loop, and the buyer's 15-minute test.
+10. **[24-Repo Forensic Audit Database](./references/audit_database_24_repos.md)**
+    - Full diagnostic breakdown of all 24 evaluated repositories, defect catalogs, and score analysis.
 
 ---
 
@@ -125,4 +133,8 @@ When tasked with upgrading an existing repository:
 5. **Observability & Health**: Replace `console.log`/`console.error` with `pino` structured logger; add `GET /healthz` endpoint.
 6. **Strict CI Gate**: Commit `.github/workflows/ci.yml` running lint (`--max-warnings=0`), typecheck, tests with coverage, and dependency audit.
 7. **Production Documentation**: Write complete 8-section `README.md` and add `docker-compose.yml`.
-8. **Tag Release**: `git tag -a v1.0.0 -m "Production release v1.0.0"`.
+8. **Evidence Layer** (Pillar 9): For each property above, commit an artifact, a CI gate, and a guard test — move every hidden validation call out to the handler boundary, and convert LOC/coverage limits into committed ratchets.
+9. **Provenance Cleanup** (Pillar 9): `git log --format='%an|%cn' | sort -u` must show humans only; rewrite with `git-filter-repo --mailmap`, force-push, delete every stale remote branch, and document the rewrite plus the true history span in `docs/COMMIT_POLICY.md`.
+10. **Parity Sweep** (Pillar 9): Assert every path, script, command and env var named in docs actually resolves; run the full gate locally in order and read the output before declaring done.
+11. **Commercial Packaging**: `LICENSE` + `COMMERCIAL.md` (what's included, what's excluded, deployment-rights tiers, third-party licence manifest, security posture at handover).
+12. **Tag Release**: `git tag -a v1.0.0 -m "Production release v1.0.0"`.
