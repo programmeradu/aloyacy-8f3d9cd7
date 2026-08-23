@@ -8,8 +8,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { sendWebPush } from "@/lib/webpush.server";
-import { VAPID_PUBLIC_KEY } from "@/lib/vapid";
+import { deliver } from "@/lib/notify.server";
 import {
   computeLeaveAdjustment,
   fetchCurrentWeather,
@@ -159,7 +158,7 @@ async function tick(request: Request) {
   // ============ Phase 2: send ============
   const { data: due, error } = await supabaseAdmin
     .from("scheduled_departures")
-    .select("id, user_id, arrive_by_unix, remind_at_unix, plan_json, push_subscription_id")
+    .select("id, user_id, device_id, arrive_by_unix, remind_at_unix, plan_json, push_subscription_id")
     .eq("status", "scheduled")
     .lte("remind_at_unix", nowUnix)
     .limit(100);
@@ -182,58 +181,30 @@ async function tick(request: Request) {
       requireInteraction: true,
     } as const;
 
-    let subsRows: Array<{ endpoint: string; p256dh: string; auth: string }> = [];
-    if (row.push_subscription_id) {
-      const { data } = await supabaseAdmin
-        .from("push_subscriptions")
-        .select("endpoint, p256dh, auth")
-        .eq("id", row.push_subscription_id);
-      subsRows = data ?? [];
-    }
+    const receipt = await deliver(
+      { subscriptionId: row.push_subscription_id, deviceId: row.device_id ?? null },
+      {
+        category: "departure",
+        title: payload.title,
+        body: payload.body,
+        tag: payload.tag,
+        url: payload.url,
+        requireInteraction: true,
+        data: { departureId: row.id },
+      },
+    );
+    sent += receipt.sent;
+    failed += receipt.failed;
 
-    if (subsRows.length === 0) {
-      await supabaseAdmin
-        .from("scheduled_departures")
-        .update({
-          status: "notified",
-          notified_at: new Date().toISOString(),
-          last_check_at: new Date().toISOString(),
-        })
-        .eq("id", row.id);
-      continue;
-    }
-
-    let anyOk = false;
-    for (const s of subsRows) {
-      try {
-        const r = await sendWebPush({
-          subscription: { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
-          payload,
-          vapidPublicKey: VAPID_PUBLIC_KEY,
-          vapidPrivateKey: priv,
-          vapidSubject: sub,
-          urgency: "high",
-        });
-        if (r.ok) {
-          anyOk = true;
-          sent++;
-        } else if (r.expired) {
-          await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
-          failed++;
-        } else {
-          failed++;
-        }
-      } catch (e) {
-        log.warn("send failed", { ...serializeError(e) });
-        failed++;
-      }
-    }
+    // No registered surface is not a failure — the reminder simply has
+    // nowhere to go, so close it out rather than retrying every tick.
+    const settled = receipt.ok || receipt.sent + receipt.failed === 0;
 
     await supabaseAdmin
       .from("scheduled_departures")
       .update({
-        status: anyOk ? "notified" : "scheduled",
-        notified_at: anyOk ? new Date().toISOString() : null,
+        status: settled ? "notified" : "scheduled",
+        notified_at: settled ? new Date().toISOString() : null,
         last_check_at: new Date().toISOString(),
       })
       .eq("id", row.id);
