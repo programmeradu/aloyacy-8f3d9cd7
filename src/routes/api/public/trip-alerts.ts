@@ -303,14 +303,26 @@ export const Route = createFileRoute("/api/public/trip-alerts")({
           return new Response("Unauthorized", { status: 401 });
         }
         // Caller input (an optional JSON body) is schema-parsed before any
-        // row is read, so a malformed tick fails at the boundary.
-        const body = await parseOptionalJsonBody(request, TripAlertsTickSchema);
-        if (!body.ok) {
-          return Response.json({ error: body.error }, { status: 400 });
+        // row is read, so a malformed tick fails at the boundary. An empty
+        // body is the normal cron shape and parses to the schema defaults.
+        const text = (await request.text().catch(() => "")).trim();
+        let raw: unknown = {};
+        if (text.length > 0) {
+          try {
+            raw = JSON.parse(text);
+          } catch {
+            return Response.json({ error: "body is not valid JSON" }, { status: 400 });
+          }
+        }
+        const body = TripAlertsTickSchema.safeParse(raw);
+        if (!body.success) {
+          const error = body.error.issues.map((i) => i.message).join("; ");
+          return Response.json({ error }, { status: 400 });
         }
 
         try {
           const result = await processTrips(body.data.limit);
+
           return Response.json(result);
         } catch (e) {
           log.error("failed", e);
