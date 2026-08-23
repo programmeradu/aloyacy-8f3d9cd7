@@ -34,8 +34,13 @@ const INPUT_READS = [
   ["path param", /\bparams\s*\./],
 ];
 
-/** A literal schema call written in the route file. */
-const SAFE_PARSE = /\b([A-Z][A-Za-z0-9_]*)\s*\.\s*(safeParse|parse)\s*\(/g;
+/**
+ * A literal schema call written in the route file. `safeParse` is accepted on
+ * any identifier (route-local schemas are often lower-cased); bare `.parse(`
+ * only on a capitalised one, so a decoder like `parser.parse(xml)` is not
+ * mistaken for a validator.
+ */
+const SAFE_PARSE = /\b([A-Za-z_$][\w$]*)\s*\.\s*safeParse\s*\(|\b([A-Z][\w$]*)\s*\.\s*parse\s*\(/g;
 
 function walk(dir) {
   const out = [];
@@ -58,7 +63,7 @@ function analyse(file) {
   const source = stripComments(readFileSync(path.join(ROOT, file), "utf8"));
   const inputs = INPUT_READS.filter(([, re]) => re.test(source)).map(([label]) => label);
   // `JSON.parse` is a decoder, not a schema — it proves nothing about shape.
-  const schemas = [...new Set([...source.matchAll(SAFE_PARSE)].map((m) => m[1]))]
+  const schemas = [...new Set([...source.matchAll(SAFE_PARSE)].map((m) => m[1] ?? m[2]))]
     .filter((name) => name !== "JSON")
     .sort();
   const endpoint =
