@@ -325,7 +325,9 @@ export const Route = createFileRoute("/api/public/hooks/ingest-schedule")({
         const rawBody = (await request.text()).trim();
         let days = 14;
         if (rawBody.length > 0) {
-          const payload = await readJsonBody(new Request(request.url, { method: "POST", body: rawBody }));
+          const payload = await readJsonBody(
+            new Request(request.url, { method: "POST", body: rawBody }),
+          );
           if (!payload.ok) return malformedJsonBody();
           const parsed = IngestScheduleBodySchema.safeParse(payload.value);
           if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error));

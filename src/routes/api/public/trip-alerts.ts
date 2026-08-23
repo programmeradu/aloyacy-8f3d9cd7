@@ -20,7 +20,7 @@ import {
   type ActiveTripRow,
   type SingleLegKind,
 } from "@/lib/trip-alerts.server";
-import { parseOptionalJsonBody, TripAlertsTickSchema } from "@/lib/schemas/public-api";
+import { TripAlertsTickSchema } from "@/lib/schemas/public-api";
 
 import type { RideLeg } from "@/lib/itinerary-types";
 

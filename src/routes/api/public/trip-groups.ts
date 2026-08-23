@@ -13,7 +13,13 @@ import {
   leaveTripGroup,
   pingGroupMember,
 } from "@/lib/trip-groups.functions";
-import { badRequest, jsonResponse, malformedJsonBody, readJsonBody, zodDetails } from "@/lib/http/validate";
+import {
+  badRequest,
+  jsonResponse,
+  malformedJsonBody,
+  readJsonBody,
+  zodDetails,
+} from "@/lib/http/validate";
 import { TripGroupsEnvelopeSchema, type TripGroupAction } from "@/lib/schemas/public-api";
 
 const CORS = {

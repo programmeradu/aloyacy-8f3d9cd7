@@ -18,7 +18,6 @@ function parseEnv(url: URL): { ok: true; env: StripeEnv } | { ok: false; respons
   return { ok: true, env: parsed.data.env as StripeEnv };
 }
 
-
 async function fetchCustomerEmail(customerId: string, env: StripeEnv) {
   try {
     const stripe = createStripeClient(env);

@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getItineraryTrafficAlerts } from "@/lib/traffic-alerts.functions";
-import { badRequest, jsonResponse, malformedJsonBody, readJsonBody, zodDetails } from "@/lib/http/validate";
+import {
+  badRequest,
+  jsonResponse,
+  malformedJsonBody,
+  readJsonBody,
+  zodDetails,
+} from "@/lib/http/validate";
 import { TrafficAlertsSchema } from "@/lib/schemas/public-api";
 
 const CORS = {

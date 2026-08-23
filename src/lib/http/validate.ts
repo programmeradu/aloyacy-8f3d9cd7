@@ -61,7 +61,6 @@ export function queryRecord(input: URL | URLSearchParams | string): Record<strin
   return record;
 }
 
-
 /** JSON response helper that always carries the caller's CORS headers. */
 export function jsonResponse(status: number, body: unknown, headers: Headers_ = {}): Response {
   return new Response(JSON.stringify(body), {
@@ -104,7 +103,6 @@ export function parseWith<S extends z.ZodTypeAny>(
 export function malformedJsonBody(headers: Headers_ = {}): Response {
   return badRequest("Invalid JSON body", ["body: expected valid JSON"], headers);
 }
-
 
 /** Read + validate a JSON request body. Malformed JSON is a 400, not a 500. */
 export async function parseJsonBody<S extends z.ZodTypeAny>(
@@ -175,7 +173,6 @@ export function invalidJsonBody(headers: Headers_ = {}): Response {
     { status: 400, headers },
   );
 }
-
 
 /** Run a schema over an already-decoded value, using the `invalid_request` envelope. */
 export function parseInput<S extends z.ZodTypeAny>(

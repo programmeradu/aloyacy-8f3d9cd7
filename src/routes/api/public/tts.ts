@@ -73,15 +73,17 @@ export const Route = createFileRoute("/api/public/tts")({
           });
         }
         const payload = await readJsonBody(request);
-        if (!payload.ok) return malformedJsonBody({
-          ...CORS,
-          "Content-Type": "application/json",
-        });
+        if (!payload.ok)
+          return malformedJsonBody({
+            ...CORS,
+            "Content-Type": "application/json",
+          });
         const parsed = TtsSchema.safeParse(payload.value);
-        if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), {
-          ...CORS,
-          "Content-Type": "application/json",
-        });
+        if (!parsed.success)
+          return badRequest("Invalid request", zodDetails(parsed.error), {
+            ...CORS,
+            "Content-Type": "application/json",
+          });
         const input = parsed.data.input;
         const instructions =
           parsed.data.instructions ??

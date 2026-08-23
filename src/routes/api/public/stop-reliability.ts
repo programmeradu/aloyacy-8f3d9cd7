@@ -4,7 +4,13 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { getStopReliability, aggregateStopReliability } from "@/lib/reliability.functions";
-import { badRequest, jsonResponse, malformedJsonBody, readJsonBody, zodDetails } from "@/lib/http/validate";
+import {
+  badRequest,
+  jsonResponse,
+  malformedJsonBody,
+  readJsonBody,
+  zodDetails,
+} from "@/lib/http/validate";
 import { StopReliabilitySchema } from "@/lib/schemas/public-api";
 
 const CORS = {

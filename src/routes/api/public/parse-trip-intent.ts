@@ -3,7 +3,13 @@
 // pipeline the web uses. One parser, one product.
 import { createFileRoute } from "@tanstack/react-router";
 import { parseTripIntent } from "@/lib/ai-planner.functions";
-import { badRequest, jsonResponse, malformedJsonBody, readJsonBody, zodDetails } from "@/lib/http/validate";
+import {
+  badRequest,
+  jsonResponse,
+  malformedJsonBody,
+  readJsonBody,
+  zodDetails,
+} from "@/lib/http/validate";
 import { TripIntentSchema } from "@/lib/schemas/public-api";
 
 const CORS = {
