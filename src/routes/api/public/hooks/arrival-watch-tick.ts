@@ -111,6 +111,17 @@ async function tick(request: Request) {
   let closed = 0;
 
   try {
+    // Sweep promises whose arrival time is long gone. The batch below skips
+    // them, so without this they sit in "watching" forever and keep showing
+    // on the rider's card as if still live.
+    const { data: expired } = await db
+      .from("arrival_promises")
+      .update({ status: "done" })
+      .in("status", ["watching", "leave-now"])
+      .lt("target_arrival_unix", nowUnix - 30 * 60)
+      .select("id");
+    closed += expired?.length ?? 0;
+
     const { data, error } = await db
       .from("arrival_promises")
       .select("*")
