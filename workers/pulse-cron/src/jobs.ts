@@ -24,6 +24,9 @@ export const MINUTE_JOBS: Job[] = [
 
 export const EVEN_MINUTE_JOBS: Job[] = [
   { path: "/api/public/hooks/departure-tick", label: "departure-tick" },
+  // Arrival promises re-plan and nudge on a 2-minute cadence; the hook holds
+  // its own single-flight lease, so an overlapping tick is a no-op.
+  { path: "/api/public/hooks/arrival-watch-tick", label: "arrival-watch" },
 ];
 
 export const QUARTER_HOUR_JOBS: Job[] = [
