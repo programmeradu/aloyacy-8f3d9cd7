@@ -44,6 +44,7 @@ sidecars.
 | Concern | Module | Surface |
 | --- | --- | --- |
 | Structured logging | `src/lib/logger.ts` | One JSON object per line: `ts`, `level`, `scope`, `msg`, plus typed fields. `createLogger(scope)`; `tests/server-logging.test.ts` fails the build on a raw `console.*` in server code. |
+| Input schemas | `src/lib/schemas/public-api.ts` | Zod schemas for every public endpoint that reads caller data, plus `parseOptionalJsonBody`. `tests/input-validation.test.ts` fails the build on an unvalidated handler. |
 | Error tracking | `src/lib/error-tracking.ts` | `captureException()` posts a Sentry envelope over `fetch`. No SDK. Inert unless `SENTRY_DSN` is set. |
 | Metrics | `src/lib/metrics.ts` | In-process Prometheus registry (counters, gauges, summaries), scraped at `GET /api/public/metrics`, gated by `METRICS_TOKEN` when set. |
 | Health | `src/routes/api/public/health.ts` | `GET /api/public/health` probes each dependency concurrently. 200 = healthy, 200 `degraded` = live feed down but scheduled data still served, 503 = a hard dependency failed. Used by the Docker `HEALTHCHECK`. |

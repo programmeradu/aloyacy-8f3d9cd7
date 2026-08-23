@@ -235,3 +235,45 @@ export const IngestScheduleBodySchema = z
 export const StripeEnvQuerySchema = z.object({
   env: z.enum(["live", "sandbox"]).default("sandbox"),
 });
+
+/**
+ * Body of a `/api/public/trip-alerts` cron tick.
+ *
+ * The scheduler normally posts no body at all; an operator running the tick by
+ * hand may cap the batch (`limit`) while debugging. Both forms parse, anything
+ * else is rejected with 400 before a single row is read.
+ */
+export const TripAlertsTickSchema = z
+  .object({
+    limit: z.number().int().positive().max(5_000).optional(),
+  })
+  .strict();
+
+export type TripAlertsTick = z.infer<typeof TripAlertsTickSchema>;
+
+/**
+ * Parses a request body that is allowed to be absent or empty.
+ *
+ * Returns the schema's parse of `{}` for "no body", so a scheduled caller that
+ * posts nothing behaves identically to one posting an empty object, while a
+ * malformed or unexpected payload still fails at the boundary.
+ */
+export async function parseOptionalJsonBody<T>(
+  request: Request,
+  schema: z.ZodType<T>,
+): Promise<{ ok: true; data: T } | { ok: false; error: string }> {
+  let raw: unknown = {};
+  const text = await request.text().catch(() => "");
+  if (text.trim().length > 0) {
+    try {
+      raw = JSON.parse(text);
+    } catch {
+      return { ok: false, error: "body is not valid JSON" };
+    }
+  }
+  const parsed = schema.safeParse(raw);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues.map((i) => i.message).join("; ") };
+  }
+  return { ok: true, data: parsed.data };
+}

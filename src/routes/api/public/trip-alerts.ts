@@ -12,161 +12,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fetchRealtime } from "@/lib/gtfs-rt.server";
-import { sendWebPush, type WebPushPayload } from "@/lib/webpush.server";
-import { sendExpoPush } from "@/lib/expopush.server";
-import { VAPID_PUBLIC_KEY } from "@/lib/vapid";
+import type { WebPushPayload } from "@/lib/webpush.server";
 import { createLogger } from "@/lib/logger";
+import {
+  buildPayload,
+  dispatch,
+  type ActiveTripRow,
+  type SingleLegKind,
+} from "@/lib/trip-alerts.server";
+import { parseOptionalJsonBody, TripAlertsTickSchema } from "@/lib/schemas/public-api";
 
-import type { Leg, RideLeg } from "@/lib/itinerary-types";
+import type { RideLeg } from "@/lib/itinerary-types";
 
 const log = createLogger("trip-alerts");
 
-type ActiveTripRow = {
-  device_id: string;
-  trip_id: string;
-  route_short: string | null;
-  board_stop_id: string | null;
-  board_name: string | null;
-  board_unix: number | null;
-  alight_stop_id: string | null;
-  alight_name: string | null;
-  alight_unix: number | null;
-  walk_in_sec: number;
-  walk_out_sec: number;
-  alerts_sent: string[];
-  legs: Leg[] | null;
-  total_arrival_unix: number | null;
-};
-
-type SingleLegKind =
-  "board-soon" | "hurry-soft" | "at-stop" | "alight-soon" | "arrived" | "delayed";
-
-function buildPayload(kind: SingleLegKind, row: ActiveTripRow, minutes: number): WebPushPayload {
-  const bus = row.route_short ? `BUS ${row.route_short}` : "Your bus";
-  const board = row.board_name ?? "your stop";
-  const alight = row.alight_name ?? "your stop";
-  const url = `/trip/${row.trip_id}`;
-
-  switch (kind) {
-    case "board-soon":
-      return {
-        title: `${bus} arrives in ${minutes} min`,
-        body: `Head to ${board}.`,
-        tag: `aloya-board-soon-${row.trip_id}`,
-        url,
-        requireInteraction: true,
-      };
-    case "hurry-soft":
-      return {
-        title: `Pick up the pace`,
-        body: `${bus} reaches ${board} in ${minutes} min.`,
-        tag: `aloya-hurry-${row.trip_id}`,
-        url,
-        requireInteraction: true,
-      };
-    case "at-stop":
-      return {
-        title: `${bus} is at ${board}`,
-        body: `Board now.`,
-        tag: `aloya-at-stop-${row.trip_id}`,
-        url,
-        requireInteraction: true,
-      };
-    case "alight-soon":
-      return {
-        title: `${alight} in ${minutes} min`,
-        body: `Get ready to press the stop button.`,
-        tag: `aloya-alight-soon-${row.trip_id}`,
-        url,
-        requireInteraction: true,
-      };
-    case "arrived":
-      return {
-        title: `You should be at ${alight}`,
-        body: `Tap to wrap up your trip.`,
-        tag: `aloya-arrived-${row.trip_id}`,
-        url,
-      };
-    case "delayed":
-      return {
-        title: `${bus} is running late`,
-        body: `New arrival in ~${minutes} min at ${board}.`,
-        tag: `aloya-delayed-${row.trip_id}`,
-        url,
-      };
-  }
-}
-
-async function dispatch(deviceId: string, payload: WebPushPayload) {
-  const priv = process.env.VAPID_PRIVATE_KEY;
-  const sub = process.env.VAPID_SUBJECT || "mailto:notifications@aloya.app";
-
-  let sent = 0;
-  let expired = 0;
-
-  // ---- Web push (browsers / installed PWAs) ----
-  if (priv) {
-    const { data: subs } = await supabaseAdmin
-      .from("push_subscriptions")
-      .select("endpoint, p256dh, auth")
-      .eq("device_id", deviceId);
-    if (subs && subs.length > 0) {
-      for (const s of subs) {
-        try {
-          const r = await sendWebPush({
-            subscription: { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
-            payload,
-            vapidPublicKey: VAPID_PUBLIC_KEY,
-            vapidPrivateKey: priv,
-            vapidSubject: sub,
-          });
-          if (r.ok) sent++;
-          else if (r.expired) {
-            expired++;
-            await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
-          }
-        } catch (e) {
-          log.error("web push dispatch threw", e);
-        }
-      }
-    }
-  }
-
-  // ---- Native push via Expo (iOS/Android) ----
-  try {
-    const { data: tokens } = await supabaseAdmin
-      .from("expo_push_tokens")
-      .select("expo_token")
-      .eq("device_id", deviceId);
-    if (tokens && tokens.length > 0) {
-      const r = await sendExpoPush(
-        tokens.map((t) => ({
-          to: t.expo_token,
-          title: payload.title,
-          body: payload.body,
-          channelId: "trip-alerts",
-          sound: "default",
-          priority: payload.requireInteraction ? "high" : "default",
-          data: { url: payload.url, tag: payload.tag },
-        })),
-      );
-      sent += r.ok;
-      if (r.expiredTokens.length) {
-        expired += r.expiredTokens.length;
-        await supabaseAdmin.from("expo_push_tokens").delete().in("expo_token", r.expiredTokens);
-      }
-      if (r.errors.length) {
-        log.warn("expo push errors", { errors: r.errors.slice(0, 3) });
-      }
-    }
-  } catch (e) {
-    log.error("expo dispatch threw", e);
-  }
-
-  return { sent, expired };
-}
-
-async function processTrips() {
+async function processTrips(limit?: number) {
   const now = Math.floor(Date.now() / 1000);
 
   // Pull any trip that hasn't completed yet (alight time + 10 min grace).
@@ -183,6 +43,7 @@ async function processTrips() {
     return { processed: 0, dispatched: 0, error: error.message };
   }
   if (!trips || trips.length === 0) return { processed: 0, dispatched: 0 };
+  if (limit !== undefined && trips.length > limit) trips.length = limit;
 
   // Pull live feed once for the whole batch.
   const arrivalsByKey = new Map<string, { arrivalUnix: number; delaySec: number }>();
@@ -441,8 +302,15 @@ export const Route = createFileRoute("/api/public/trip-alerts")({
         if (!validApiKey && !validCron && !validLegacy) {
           return new Response("Unauthorized", { status: 401 });
         }
+        // Caller input (an optional JSON body) is schema-parsed before any
+        // row is read, so a malformed tick fails at the boundary.
+        const body = await parseOptionalJsonBody(request, TripAlertsTickSchema);
+        if (!body.ok) {
+          return Response.json({ error: body.error }, { status: 400 });
+        }
+
         try {
-          const result = await processTrips();
+          const result = await processTrips(body.data.limit);
           return Response.json(result);
         } catch (e) {
           log.error("failed", e);

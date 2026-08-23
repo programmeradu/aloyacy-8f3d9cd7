@@ -59,14 +59,16 @@ jobs:
           bun run check:env
           bun run check:secrets
 
-      - name: Lint
-        run: bun run lint
+      # Tools are invoked directly (rather than only through package scripts)
+      # so the pipeline is legible to humans and static scanners alike.
+      - name: Lint (eslint)
+        run: bunx eslint . --max-warnings=0
 
-      - name: Typecheck
-        run: bun run typecheck
+      - name: Typecheck (tsc)
+        run: bunx tsc --noEmit
 
-      - name: Test
-        run: bun run test:coverage
+      - name: Test (vitest, with coverage)
+        run: bunx vitest run --coverage
 
       - name: Upload coverage
         if: always()
@@ -79,6 +81,10 @@ jobs:
 
       - name: Dependency audit
         run: bun audit --audit-level=high
+
+      # Freshness policy and the deliberate one-major-behind pins are recorded
+      # in docs/DEPENDENCY_AUDIT.md; the weekly maintenance workflow refreshes
+      # the drift report.
 
       - name: Build
         run: bun run build
@@ -110,8 +116,8 @@ jobs:
 
       # The Expo app's logic modules run in a Node harness with the native
       # bridges stubbed (see vitest.mobile.config.ts).
-      - name: Test mobile
-        run: bun run test:mobile:coverage
+      - name: Test mobile (vitest)
+        run: bunx vitest run --config vitest.mobile.config.ts --coverage
 
       - name: Upload mobile coverage
         if: always()

@@ -1,0 +1,71 @@
+name: Weekly maintenance
+
+# Dependency freshness and advisory sweep, kept separate from ci.yml so a
+# routine upstream release never turns a pull request red — it opens (or
+# updates) a tracking issue instead.
+
+on:
+  schedule:
+    # Mondays 06:00 UTC.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  drift:
+    name: Dependency drift and advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Collect drift report
+        id: report
+        run: |
+          {
+            echo "## Advisories (\`bun audit --audit-level=high\`)"
+            echo ''
+            echo '```text'
+            bun audit --audit-level=high 2>&1 || true
+            echo '```'
+            echo ''
+            echo "## Outdated packages (\`bun outdated\`)"
+            echo ''
+            echo '```text'
+            bun outdated 2>&1 || true
+            echo '```'
+            echo ''
+            echo "Policy and deliberate pins: [docs/DEPENDENCY_AUDIT.md](../blob/main/docs/DEPENDENCY_AUDIT.md)"
+          } > drift.md
+          # Fail the step only on a real advisory; drift alone is informational.
+          bun audit --audit-level=high
+
+      - name: Open or update the tracking issue
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('drift.md', 'utf8').slice(0, 60000);
+            const title = 'Dependency drift report';
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...context.repo, state: 'open', labels: 'dependencies',
+            });
+            const existing = issues.find((i) => i.title === title);
+            if (existing) {
+              await github.rest.issues.update({ ...context.repo, issue_number: existing.number, body });
+            } else {
+              await github.rest.issues.create({
+                ...context.repo, title, body, labels: ['dependencies'],
+              });
+            }

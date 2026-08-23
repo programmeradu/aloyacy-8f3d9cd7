@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
+  TripAlertsTickSchema,
+  parseOptionalJsonBody,
   LatLngSchema,
   WeatherQuerySchema,
   PlacesAutocompleteSchema,
@@ -167,5 +169,75 @@ describe("StripeEnvQuerySchema", () => {
 
   it("rejects an unknown environment instead of silently downgrading it", () => {
     expect(StripeEnvQuerySchema.safeParse({ env: "prod" }).success).toBe(false);
+  });
+});
+
+describe("TripAlertsTickSchema", () => {
+  it("accepts an empty tick — the scheduler posts no body", () => {
+    expect(TripAlertsTickSchema.safeParse({}).success).toBe(true);
+  });
+
+  it("accepts an operator batch limit", () => {
+    expect(TripAlertsTickSchema.safeParse({ limit: 100 }).success).toBe(true);
+  });
+
+  it("rejects a fractional, zero, negative or absurd limit", () => {
+    for (const limit of [1.5, 0, -1, 5_001]) {
+      expect(TripAlertsTickSchema.safeParse({ limit }).success, String(limit)).toBe(false);
+    }
+  });
+
+  it("rejects a numeric string rather than coercing it", () => {
+    expect(TripAlertsTickSchema.safeParse({ limit: "100" }).success).toBe(false);
+  });
+
+  it("rejects unknown keys so a typo fails loudly", () => {
+    expect(TripAlertsTickSchema.safeParse({ limitt: 10 }).success).toBe(false);
+  });
+});
+
+describe("parseOptionalJsonBody", () => {
+  const post = (body?: string) =>
+    new Request("http://x/api/public/trip-alerts", { method: "POST", body });
+
+  it("treats an absent body as an empty object", async () => {
+    expect(await parseOptionalJsonBody(post(), TripAlertsTickSchema)).toEqual({
+      ok: true,
+      data: {},
+    });
+  });
+
+  it("treats a whitespace-only body as an empty object", async () => {
+    expect(await parseOptionalJsonBody(post("   \n"), TripAlertsTickSchema)).toEqual({
+      ok: true,
+      data: {},
+    });
+  });
+
+  it("parses a well-formed body", async () => {
+    expect(
+      await parseOptionalJsonBody(post(JSON.stringify({ limit: 7 })), TripAlertsTickSchema),
+    ).toEqual({ ok: true, data: { limit: 7 } });
+  });
+
+  it("reports malformed JSON without throwing", async () => {
+    expect(await parseOptionalJsonBody(post("{oops"), TripAlertsTickSchema)).toEqual({
+      ok: false,
+      error: "body is not valid JSON",
+    });
+  });
+
+  it("reports schema failures with a readable message", async () => {
+    const result = await parseOptionalJsonBody(
+      post(JSON.stringify({ limit: "lots" })),
+      TripAlertsTickSchema,
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.length).toBeGreaterThan(0);
+  });
+
+  it("rejects a JSON array where an object is required", async () => {
+    const result = await parseOptionalJsonBody(post("[1,2,3]"), TripAlertsTickSchema);
+    expect(result.ok).toBe(false);
   });
 });

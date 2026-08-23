@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "private": true,
   "license": "UNLICENSED",
-  "description": "Aloya — transit companion for Cyprus: live arrivals, trip planning and journey guidance across web and mobile.",
+  "description": "Aloya \u2014 transit companion for Cyprus: live arrivals, trip planning and journey guidance across web and mobile.",
   "sideEffects": false,
   "keywords": [
     "cyprus",
@@ -19,13 +19,17 @@
     "contributing": "CONTRIBUTING.md",
     "commitPolicy": "docs/COMMIT_POLICY.md",
     "commercial": "COMMERCIAL.md",
-    "changelog": "CHANGELOG.md"
+    "changelog": "CHANGELOG.md",
+    "dependencyAudit": "docs/DEPENDENCY_AUDIT.md"
   },
   "operations": {
     "health": "/api/public/health",
     "metrics": "/api/public/metrics",
     "logger": "src/lib/logger.ts",
-    "errorTracking": "src/lib/error-tracking.ts"
+    "errorTracking": "src/lib/error-tracking.ts",
+    "logFormat": "json-lines (pino-compatible shape, custom Worker-safe implementation)",
+    "errorTrackingProtocol": "sentry-envelope",
+    "schemas": "src/lib/schemas/public-api.ts"
   },
   "type": "module",
   "packageManager": "bun@1.3.3",
