@@ -2,8 +2,8 @@
 
 Aloya is a transit companion for Cyprus. It fuses the island's GTFS static
 schedules with the live GTFS-Realtime vehicle feeds, rider-contributed
-sightings and Google Maps Platform routing to answer one question well: *when
-does my bus actually get here, and can I trust that number?*
+sightings and Google Maps Platform routing to answer one question well: _when
+does my bus actually get here, and can I trust that number?_
 
 The product is a rider app on two surfaces that mirror each other feature for
 feature:
@@ -25,8 +25,8 @@ that single lockfile.
 
 Two lockfiles are tracked, both generated from the same `package.json` set:
 
-| File                | Manager | Command                        |
-| ------------------- | ------- | ------------------------------ |
+| File                | Manager | Command                         |
+| ------------------- | ------- | ------------------------------- |
 | `bun.lock`          | Bun     | `bun install --frozen-lockfile` |
 | `package-lock.json` | npm     | `npm ci`                        |
 
@@ -63,7 +63,6 @@ bun run check:env     # every process.env / import.meta.env name is in .env.exam
 bun run check:secrets # scan for hardcoded credentials
 bun run test:coverage # vitest with the enforced coverage thresholds
 ```
-
 
 The app boots without any secrets: the bundled static GTFS data in `src/data/`
 renders stops, routes and timetables offline. Live arrivals, trip planning,
@@ -120,7 +119,8 @@ scripts/                Data build scripts (headsign index, schedule ingest)
 
 Full map of deployables, boundaries and the operational modules:
 [`ARCHITECTURE.md`](ARCHITECTURE.md). History conventions:
-[`docs/COMMIT_POLICY.md`](docs/COMMIT_POLICY.md).
+[`docs/COMMIT_POLICY.md`](docs/COMMIT_POLICY.md), including how to reproduce
+the repository's authorship and cadence from a full clone.
 
 **Data flow.** Upstream GTFS-Realtime protobuf → `workers/gtfs-relay` (a raw
 TCP relay that works around regional IP blocks) → `src/lib/gtfs-rt.server.ts`
@@ -130,7 +130,7 @@ ETA confidence badge.
 
 **Server boundary.** App-internal server logic uses `createServerFn` from
 `@tanstack/react-start` (`src/lib/*.functions.ts`) — typed RPC, called from
-components and route loaders. Anything an *external* caller hits (webhooks,
+components and route loaders. Anything an _external_ caller hits (webhooks,
 cron, the mobile app, OG image rendering) is a file route under
 `src/routes/api/public/`, which is unauthenticated by design and verifies its
 own callers.
@@ -151,27 +151,27 @@ Copy `.env.example` to `.env`. Nothing in `.env*` is committed. Mobile has its
 own `mobile/.env` (template at `mobile/.env.example`) because Expo only inlines
 `EXPO_PUBLIC_*`.
 
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `CUSTOM_SUPABASE_URL` / `VITE_CUSTOM_SUPABASE_URL` | for data | Postgres/PostgREST base URL |
-| `CUSTOM_SUPABASE_ANON_KEY` / `VITE_CUSTOM_SUPABASE_ANON_KEY` | for data | Public API key; RLS applies |
-| `CUSTOM_SUPABASE_SERVICE_ROLE_KEY` | server only | Privileged writes (ingest, cron) |
-| `GOOGLE_MAPS_API_KEY` | for routing | Routes, Directions, Places, Street View |
-| `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY` | for maps UI | Browser-restricted Maps JS key |
-| `GTFS_RELAY_URL` / `GTFS_RELAY_TOKEN` | for live buses | Cloudflare relay for the GTFS-RT feed |
-| `CRON_SECRET` | for cron | Shared secret guarding scheduled endpoints |
-| `RESEND_API_KEY`, `AUTH_EMAIL_FROM` | for auth email | Sign-in codes and transactional mail |
-| `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | for web push | Departure and disruption alerts |
-| `VITE_PAYMENTS_CLIENT_TOKEN` | for Pro | Stripe publishable key |
-| `SENTRY_DSN` | optional | Sentry-compatible DSN; unset = SSR error reporting is a no-op |
-| `METRICS_TOKEN` | optional | Bearer token required by `GET /api/public/metrics`; unset = open scrape |
-| `GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_SERVICE_ACCOUNT_JSON` | for wallet | Signed Google Wallet passes |
-| `MAPILLARY_ACCESS_TOKEN` | optional | Street-level imagery fallback |
-| `ELEVENLABS_API_KEY`, `LOVABLE_API_KEY` | optional | Voice guidance, AI trip parsing |
-| `SEMRUSH_API_KEY`, `FIRECRAWL_API_KEY` | optional | SEO dashboard at `/admin/seo` |
-| `DATEX_CY_URL`, `DATEX_CY_AUTH` | optional | Cyprus road-traffic incident feed |
-| `VITE_QA_PASSPHRASE` | optional | Unlocks the internal `/qa` console; gate stays shut when unset |
-| `PUBLIC_SITE_URL` | optional | Canonical origin for OG images and emails |
+| Variable                                                        | Required       | Purpose                                                                 |
+| --------------------------------------------------------------- | -------------- | ----------------------------------------------------------------------- |
+| `CUSTOM_SUPABASE_URL` / `VITE_CUSTOM_SUPABASE_URL`              | for data       | Postgres/PostgREST base URL                                             |
+| `CUSTOM_SUPABASE_ANON_KEY` / `VITE_CUSTOM_SUPABASE_ANON_KEY`    | for data       | Public API key; RLS applies                                             |
+| `CUSTOM_SUPABASE_SERVICE_ROLE_KEY`                              | server only    | Privileged writes (ingest, cron)                                        |
+| `GOOGLE_MAPS_API_KEY`                                           | for routing    | Routes, Directions, Places, Street View                                 |
+| `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY`                | for maps UI    | Browser-restricted Maps JS key                                          |
+| `GTFS_RELAY_URL` / `GTFS_RELAY_TOKEN`                           | for live buses | Cloudflare relay for the GTFS-RT feed                                   |
+| `CRON_SECRET`                                                   | for cron       | Shared secret guarding scheduled endpoints                              |
+| `RESEND_API_KEY`, `AUTH_EMAIL_FROM`                             | for auth email | Sign-in codes and transactional mail                                    |
+| `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`                            | for web push   | Departure and disruption alerts                                         |
+| `VITE_PAYMENTS_CLIENT_TOKEN`                                    | for Pro        | Stripe publishable key                                                  |
+| `SENTRY_DSN`                                                    | optional       | Sentry-compatible DSN; unset = SSR error reporting is a no-op           |
+| `METRICS_TOKEN`                                                 | optional       | Bearer token required by `GET /api/public/metrics`; unset = open scrape |
+| `GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_SERVICE_ACCOUNT_JSON` | for wallet     | Signed Google Wallet passes                                             |
+| `MAPILLARY_ACCESS_TOKEN`                                        | optional       | Street-level imagery fallback                                           |
+| `ELEVENLABS_API_KEY`, `LOVABLE_API_KEY`                         | optional       | Voice guidance, AI trip parsing                                         |
+| `SEMRUSH_API_KEY`, `FIRECRAWL_API_KEY`                          | optional       | SEO dashboard at `/admin/seo`                                           |
+| `DATEX_CY_URL`, `DATEX_CY_AUTH`                                 | optional       | Cyprus road-traffic incident feed                                       |
+| `VITE_QA_PASSPHRASE`                                            | optional       | Unlocks the internal `/qa` console; gate stays shut when unset          |
+| `PUBLIC_SITE_URL`                                               | optional       | Canonical origin for OG images and emails                               |
 
 Server-only variables must be read **inside** a handler (`process.env['X']`),
 never at module scope — the Worker injects them at call time. Browser config
@@ -193,13 +193,12 @@ depending on credentials or connectivity. Both harnesses load it.
 Four guard suites keep the codebase's own rules enforceable rather than
 aspirational:
 
-| Suite | Rule |
-| --- | --- |
-| `tests/file-size.test.ts` | no hand-written file over 500 LOC (800 for specs) |
-| `tests/server-logging.test.ts` | server code logs through the structured logger, never bare `console` |
-| `tests/input-validation.test.ts` | every public endpoint that reads caller input parses it with a schema |
-| `tests/error-tracking.test.ts` | SSR failures reach the error reporter without throwing on the failure path |
-
+| Suite                            | Rule                                                                       |
+| -------------------------------- | -------------------------------------------------------------------------- |
+| `tests/file-size.test.ts`        | no hand-written file over 500 LOC (800 for specs)                          |
+| `tests/server-logging.test.ts`   | server code logs through the structured logger, never bare `console`       |
+| `tests/input-validation.test.ts` | every public endpoint that reads caller input parses it with a schema      |
+| `tests/error-tracking.test.ts`   | SSR failures reach the error reporter without throwing on the failure path |
 
 The Expo app has its own harness: `bun run test:mobile`
 (`vitest.mobile.config.ts`). Native bridges — AsyncStorage, `react-native`,

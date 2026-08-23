@@ -59,10 +59,17 @@ jobs:
           bun run check:env
           bun run check:secrets
 
+      # Static input-validation evidence: walks every `/api/public/**` route,
+      # prints the endpoint -> schema matrix to the job log, and fails when a
+      # public handler reads caller input without a literal Zod parse.
+      - name: Input validation matrix (zod, public API)
+        run: node scripts/input-validation-report.mjs --check
+
       # Tools are invoked directly (rather than only through package scripts)
       # so the pipeline is legible to humans and static scanners alike.
       - name: Lint (eslint)
         run: bunx eslint . --max-warnings=0
+
 
       - name: Typecheck (tsc)
         run: bunx tsc --noEmit

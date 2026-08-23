@@ -4,7 +4,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { OG_HEIGHT, OG_PALETTE, OG_WIDTH, clip, esc, ogPngResponse } from "@/lib/og-render.server";
-import { safeGroupCode } from "@/lib/http/og-params";
+import { GroupCodeParam } from "@/lib/http/og-params";
 
 type GroupRow = {
   id: string;
@@ -17,10 +17,10 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
   server: {
     handlers: {
       GET: async ({ params }) => {
-        const { z } = await import("zod");
-        const CodeSchema = z.string().transform(s => safeGroupCode(s));
-        const parsedCode = CodeSchema.safeParse(params.code);
-        const code = parsedCode.success ? parsedCode.data : null;
+        // Unusable codes never reach the database — the card falls back to
+        // its generic branded form rather than erroring at a crawler.
+        const codeParam = GroupCodeParam.safeParse(params.code);
+        const code = codeParam.success ? codeParam.data : null;
 
         let group: GroupRow | null = null;
         let memberCount = 0;

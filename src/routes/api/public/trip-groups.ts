@@ -13,7 +13,13 @@ import {
   leaveTripGroup,
   pingGroupMember,
 } from "@/lib/trip-groups.functions";
-import { jsonResponse, parseJsonBody, readJsonBody, readQuery, readJsonInput, zodDetails, invalidRequest, badRequest } from "@/lib/http/validate";
+import {
+  badRequest,
+  jsonResponse,
+  malformedJsonBody,
+  readJsonBody,
+  zodDetails,
+} from "@/lib/http/validate";
 import { TripGroupsEnvelopeSchema, type TripGroupAction } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -37,11 +43,11 @@ export const Route = createFileRoute("/api/public/trip-groups")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const __body = await readJsonBody(request, CORS);
-          if (!__body.ok) return __body.response;
-          const parsed = TripGroupsEnvelopeSchema.safeParse(__body.value);
-          if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
+        const rawBody = await readJsonBody(request);
+        if (!rawBody.ok) return malformedJsonBody(CORS);
+        const parsed = TripGroupsEnvelopeSchema.safeParse(rawBody.value);
 
+        if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
         const { action, payload } = parsed.data;
         try {
           const result = await HANDLERS[action](payload ?? {});

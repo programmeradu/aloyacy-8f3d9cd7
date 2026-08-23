@@ -2,15 +2,22 @@
 //
 // Every `/api/public/*` handler is unauthenticated and reachable from the
 // open internet, so each one parses its input with a Zod schema before any
-// work happens. This module keeps that uniform: one JSON reader, one query
-// reader, one error shape (`{ error, details }` with HTTP 400), so a bad
-// payload can never reach a server function, a database call, or a paid
-// upstream API.
+// work happens. This module supplies the two halves that surround that call:
+// the *readers* (`readJsonBody`, `queryRecord`) that decode untrusted bytes
+// into a plain value, and the *responders* (`invalidJsonBody`,
+// `malformedJsonBody`, `invalidRequest`, `badRequest`) that turn a rejection
+// into one stable HTTP 400 shape.
 //
-// Handlers stay readable because the failure branch is a plain early return:
+// The `schema.safeParse(...)` call itself deliberately lives in the handler,
+// not in here. Keeping it at the call site means the trust boundary for a
+// route is visible by reading that one file — and it means static analysis
+// (`scripts/input-validation-report.mjs`, `tests/input-validation.test.ts`)
+// can prove, per route, which schema guards which endpoint:
 //
-//   const parsed = await parseJsonBody(request, Body, CORS);
-//   if (!parsed.ok) return parsed.response;
+//   const payload = await readJsonBody(request);
+//   if (!payload.ok) return malformedJsonBody(CORS);
+//   const parsed = Body.safeParse(payload.value);
+//   if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
 //   ... use parsed.data (fully typed)
 
 import type { z } from "zod";
@@ -18,9 +25,42 @@ import type { z } from "zod";
 export type Parsed<T> = { ok: true; data: T } | { ok: false; response: Response };
 export type DecodedBody = { ok: true; value: unknown } | { ok: false; response: Response };
 
+/** Outcome of decoding a request body, before any schema runs over it. */
+export type RawBody = { ok: true; value: unknown } | { ok: false };
+
 type Headers_ = Record<string, string>;
 
 const JSON_HEADER = { "Content-Type": "application/json" };
+
+/**
+ * Decode a JSON request body without validating it. Malformed JSON resolves
+ * to `{ ok: false }` so the handler can answer 400 in its own envelope rather
+ * than throwing a 500 at the caller.
+ */
+export async function readJsonBody(request: Request): Promise<RawBody> {
+  try {
+    return { ok: true, value: await request.json() };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/**
+ * Flatten query parameters into a plain record for a schema to run over.
+ * Repeated keys collapse to the last value, matching `searchParams.get`.
+ * Use `z.coerce.*` in the schema for numbers and booleans.
+ */
+export function queryRecord(input: URL | URLSearchParams | string): Record<string, string> {
+  const params =
+    input instanceof URLSearchParams
+      ? input
+      : input instanceof URL
+        ? input.searchParams
+        : new URL(input).searchParams;
+  const record: Record<string, string> = {};
+  for (const [key, value] of params.entries()) record[key] = value;
+  return record;
+}
 
 /** JSON response helper that always carries the caller's CORS headers. */
 export function jsonResponse(status: number, body: unknown, headers: Headers_ = {}): Response {
@@ -58,6 +98,11 @@ export function parseWith<S extends z.ZodTypeAny>(
     ok: false,
     response: badRequest("Invalid request", zodDetails(result.error), headers),
   };
+}
+
+/** 400 for a body that isn't JSON at all, in the `{ error, details }` envelope. */
+export function malformedJsonBody(headers: Headers_ = {}): Response {
+  return badRequest("Invalid JSON body", ["body: expected valid JSON"], headers);
 }
 
 /** Read + validate a JSON request body. Malformed JSON is a 400, not a 500. */
@@ -118,6 +163,14 @@ export function invalidRequestIssues(error: z.ZodError): Array<{ path: string; m
 export function invalidRequest(error: z.ZodError, headers: Headers_ = {}): Response {
   return Response.json(
     { error: "invalid_request", issues: invalidRequestIssues(error) },
+    { status: 400, headers },
+  );
+}
+
+/** 400 for a body that isn't JSON at all, in the `invalid_request` envelope. */
+export function invalidJsonBody(headers: Headers_ = {}): Response {
+  return Response.json(
+    { error: "invalid_request", issues: [{ path: "", message: "expected valid JSON" }] },
     { status: 400, headers },
   );
 }

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { suggestLastMileChain } from "@/lib/last-mile-chain.functions";
-import { parseJsonInput, readJsonBody, readQuery, readJsonInput, zodDetails, invalidRequest, badRequest } from "@/lib/http/validate";
+import { invalidJsonBody, invalidRequest, readJsonBody } from "@/lib/http/validate";
 import { LastMileChainBodySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -17,11 +17,10 @@ export const Route = createFileRoute("/api/public/last-mile-chain")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const __body = await readJsonInput(request, CORS);
-          if (!__body.ok) return __body.response;
-          const parsed = LastMileChainBodySchema.safeParse(__body.value);
-          if (!parsed.success) return invalidRequest(parsed.error, CORS);
-
+        const payload = await readJsonBody(request);
+        if (!payload.ok) return invalidJsonBody(CORS);
+        const parsed = LastMileChainBodySchema.safeParse(payload.value);
+        if (!parsed.success) return invalidRequest(parsed.error, CORS);
         try {
           const result = await suggestLastMileChain({ data: parsed.data });
           return new Response(JSON.stringify(result), { status: 200, headers: CORS });

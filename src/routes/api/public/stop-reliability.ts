@@ -4,7 +4,13 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { getStopReliability, aggregateStopReliability } from "@/lib/reliability.functions";
-import { jsonResponse, parseJsonBody, readJsonBody, readQuery, readJsonInput, zodDetails, invalidRequest, badRequest } from "@/lib/http/validate";
+import {
+  badRequest,
+  jsonResponse,
+  malformedJsonBody,
+  readJsonBody,
+  zodDetails,
+} from "@/lib/http/validate";
 import { StopReliabilitySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -20,11 +26,10 @@ export const Route = createFileRoute("/api/public/stop-reliability")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const __body = await readJsonBody(request, CORS);
-          if (!__body.ok) return __body.response;
-          const parsed = StopReliabilitySchema.safeParse(__body.value);
-          if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
-
+        const payload = await readJsonBody(request);
+        if (!payload.ok) return malformedJsonBody(CORS);
+        const parsed = StopReliabilitySchema.safeParse(payload.value);
+        if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
         try {
           const rows = await getStopReliability({ data: parsed.data });
           const agg = aggregateStopReliability(rows);

@@ -5,7 +5,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { getAirportPage } from "@/lib/airport.functions";
-import { parseQueryInput, readJsonBody, readQuery, readJsonInput, zodDetails, invalidRequest, badRequest } from "@/lib/http/validate";
+import { invalidRequest, queryRecord } from "@/lib/http/validate";
 import { AirportQuerySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -22,10 +22,8 @@ export const Route = createFileRoute("/api/public/airport")({
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
         const url = new URL(request.url);
-        const __query = readQuery(url);
-          const parsed = AirportQuerySchema.safeParse(__query);
-          if (!parsed.success) return invalidRequest(parsed.error, CORS);
-
+        const parsed = AirportQuerySchema.safeParse(queryRecord(url));
+        if (!parsed.success) return invalidRequest(parsed.error, CORS);
         try {
           const data = await getAirportPage({ data: { code: parsed.data.code } });
           return new Response(JSON.stringify(data), { status: 200, headers: CORS });

@@ -277,3 +277,27 @@ export async function parseOptionalJsonBody<T>(
   }
   return { ok: true, data: parsed.data };
 }
+
+// ---------------------------------------------------------------------------
+// Non-JSON caller input.
+//
+// Two public endpoints take input that isn't a JSON body: `stt` receives a
+// multipart upload, and the cron hooks read a shared secret off the query
+// string. They get schemas too, so the trust boundary for every public route
+// is expressed the same way and is statically discoverable.
+
+/** Metadata of the multipart audio upload accepted by `/api/public/stt`. */
+export const SttUploadSchema = z.object({
+  size: z
+    .number()
+    .int()
+    .min(512, "Recording too short")
+    .max(20 * 1024 * 1024, "Recording too large"),
+  name: z.string().trim().min(1).max(200).default("recording.m4a"),
+  type: z.string().trim().max(100).optional(),
+});
+
+/** `?cron_secret=` on the scheduled ingest hooks. Compared, never echoed. */
+export const CronSecretQuerySchema = z.object({
+  cron_secret: z.string().trim().min(1).max(200).optional(),
+});

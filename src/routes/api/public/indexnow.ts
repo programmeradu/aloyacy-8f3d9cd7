@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { indexNowPayload, pingIndexNow, INDEXNOW_HOST } from "@/lib/indexnow";
-import { parseQuery, readJsonBody, readQuery, readJsonInput, zodDetails, invalidRequest, badRequest } from "@/lib/http/validate";
+import { badRequest, queryRecord, zodDetails } from "@/lib/http/validate";
 import { IndexNowQuerySchema } from "@/lib/schemas/public-api";
 
 // GET  /api/public/indexnow  → preview payload (debug)
@@ -17,10 +17,8 @@ export const Route = createFileRoute("/api/public/indexnow")({
     handlers: {
       GET: async () => Response.json(indexNowPayload(INDEXNOW_HOST)),
       POST: async ({ request }) => {
-        const __query = readQuery(new URL(request.url));
-          const parsed = IndexNowQuerySchema.safeParse(__query);
-          if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error));
-
+        const parsed = IndexNowQuerySchema.safeParse(queryRecord(new URL(request.url)));
+        if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error));
         const result = await pingIndexNow(parsed.data.host || INDEXNOW_HOST);
         return Response.json(result, { status: result.ok ? 200 : 502 });
       },

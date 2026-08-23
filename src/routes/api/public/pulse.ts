@@ -8,7 +8,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getTodayBriefing } from "@/lib/today.functions";
 import { getLivePulse, getPulseHourStrip } from "@/lib/pulse.functions";
 import { getPulseLive } from "@/lib/pulse-live.functions";
-import { jsonResponse, parseQuery, readJsonBody, readQuery, readJsonInput, zodDetails, invalidRequest, badRequest } from "@/lib/http/validate";
+import { badRequest, jsonResponse, queryRecord, zodDetails } from "@/lib/http/validate";
 import { PulseQuerySchema } from "@/lib/schemas/public-api";
 
 const CORS = {
@@ -24,10 +24,8 @@ export const Route = createFileRoute("/api/public/pulse")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
-        const __query = readQuery(new URL(request.url));
-          const parsed = PulseQuerySchema.safeParse(__query);
-          if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
-
+        const parsed = PulseQuerySchema.safeParse(queryRecord(new URL(request.url)));
+        if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
         const { lat, lng, destLat, destLng } = parsed.data;
 
         try {
