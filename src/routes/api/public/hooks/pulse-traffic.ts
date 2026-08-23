@@ -31,8 +31,12 @@ function json(body: unknown, status = 200) {
 
 async function guard(request: Request): Promise<Response | null> {
   const apikey = request.headers.get("apikey");
-  const legacy =
-    request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
+  // The only caller-supplied field on this endpoint is the shared secret, and
+  // it is schema-checked before the comparison so an absurd value never even
+  // reaches a string compare (and is never echoed back).
+  const query = CronSecretQuerySchema.safeParse(queryRecord(new URL(request.url)));
+  if (!query.success) return json({ ok: false, error: "Unauthorized" }, 401);
+  const legacy = request.headers.get("x-cron-secret") ?? query.data.cron_secret ?? null;
   const validApiKey =
     apikey &&
     apikey ===
@@ -41,6 +45,7 @@ async function guard(request: Request): Promise<Response | null> {
   if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
 }
+
 
 export const Route = createFileRoute("/api/public/hooks/pulse-traffic")({
   server: {
