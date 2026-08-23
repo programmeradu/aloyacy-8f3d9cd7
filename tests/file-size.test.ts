@@ -25,8 +25,6 @@ const TEST_CEILING = 800;
 const RATCHET_CEILING = 400;
 
 const LEGACY_OVER_RATCHET = new Set<string>([
-  "src/components/map/AnimatedBus.ts",
-  "src/lib/useMultiLegJourney.ts",
   "packages/core/src/multileg-journey.ts",
   "mobile/app/eta/[token].tsx",
   "src/lib/pulse-live.functions.ts",

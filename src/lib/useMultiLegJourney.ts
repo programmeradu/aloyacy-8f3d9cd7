@@ -24,11 +24,8 @@ import { distanceM } from "./geo";
 import { useDriveEta } from "./useDriveEta";
 import { advanceToNextLeg, patchCurrentLeg, type ActiveTrip } from "./trip-store";
 import type { Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
-import { getDeviceId } from "./pwa";
-import { sendTripAlert } from "./push.functions";
-import { useRiderFixReporter } from "./useRiderFixReporter";
 import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
-import { recordCommutePattern } from "./commute-learner.functions";
+import { useMultiLegSideEffects } from "./useMultiLegSideEffects";
 import {
   fuseAlightEta,
   fuseRideVehicle,
@@ -358,88 +355,18 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     legState,
   ]);
 
-  // ---- Push alerts on phase transition ------------------------------------
-  // Idempotent via a per-(legIdx,kind) key set. The server-side cron also
-  // fires the same alerts in the background; this client-side path covers
-  // the foreground (tab open, GPS hot) case so the rider gets near-instant
-  // nudges and not just the 60 s cron tick.
-  const sentRef = useRef<Set<string>>(new Set());
-  const sendAlert = useServerFn(sendTripAlert);
-
-  useEffect(() => {
-    if (!result.active || !active || !itin) return;
-    const deviceId = getDeviceId();
-    const url = `/trip/${active.option.id}`;
-
-    for (const alert of multiLegAlerts({
-      phase: result.phase,
-      legIndex: result.currentLegIndex,
-      currentRideLeg: result.currentRideLeg,
-      nextRideLeg: result.nextRideLeg,
-      secsToNextBoard: result.secsToNextBoard,
-      nextBoardLate: result.nextBoardLate,
-    })) {
-      if (sentRef.current.has(alert.key)) continue;
-      sentRef.current.add(alert.key);
-      sendAlert({
-        data: {
-          deviceId,
-          kind: alert.kind,
-          url,
-          ...(alert.routeShort ? { routeShort: alert.routeShort } : {}),
-          ...(alert.stopName ? { stopName: alert.stopName } : {}),
-          ...(alert.minutes != null ? { minutes: alert.minutes } : {}),
-        },
-      }).catch(() => {});
-    }
-  }, [
-    result.active,
-    result.phase,
-    result.currentLegIndex,
-    result.secsToNextBoard,
-    result.nextBoardLate,
+  // ---- Side effects (push alerts, crowdsourced GPS fix, commute learning) -
+  useMultiLegSideEffects({
     active,
-    itin,
-    sendAlert,
-    result.currentRideLeg,
-    result.nextRideLeg,
-  ]);
-
-  // ---- Crowdsourced bus position: report rider GPS while on board --------
-  useRiderFixReporter({
-    enabled: result.active && !!result.currentRideLeg && driveInputs.onBoard,
+    phase: result.phase,
+    currentLegIndex: result.currentLegIndex,
+    currentRideLeg: result.currentRideLeg,
+    nextRideLeg: result.nextRideLeg,
+    secsToNextBoard: result.secsToNextBoard,
+    nextBoardLate: result.nextBoardLate,
     fix: result.fix,
-    tripId: result.currentRideLeg?.tripId ?? null,
-    routeId: result.currentRideLeg?.routeId,
+    onBoard: driveInputs.onBoard,
   });
-
-  // ---- Commute pattern learner: record once on arrival ------------------
-  const recordCommute = useServerFn(recordCommutePattern);
-  const recordedRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (result.phase !== "arrived" || !itin || !active) return;
-    const key = active.option.id;
-    if (recordedRef.current === key) return;
-    const rideLegs = itin.legs.filter((l): l is RideLeg => l.kind === "ride");
-    if (rideLegs.length === 0) return;
-    const first = rideLegs[0];
-    const last = rideLegs[rideLegs.length - 1];
-    recordedRef.current = key;
-    recordCommute({
-      data: {
-        fromLat: first.board.lat,
-        fromLng: first.board.lng,
-        toLat: last.alight.lat,
-        toLng: last.alight.lng,
-        fromLabel: first.board.name,
-        toLabel: last.alight.name,
-        startedAtUnix: Math.floor((active.live?.startedAt ?? Date.now()) / 1000),
-      },
-    }).catch(() => {
-      // Best-effort; not signed in → silently skip.
-      recordedRef.current = null;
-    });
-  }, [result.phase, itin, active, recordCommute]);
 
   return result;
 }
