@@ -2,24 +2,35 @@
 //
 // Every `/api/public/*` handler is unauthenticated and reachable from the
 // open internet, so each one parses its input with a Zod schema before any
-// work happens. This module keeps that uniform: one JSON reader, one query
-// reader, one error shape (`{ error, details }` with HTTP 400), so a bad
-// payload can never reach a server function, a database call, or a paid
-// upstream API.
+// work happens. This module supplies the two halves that surround that call:
+// the *readers* (`readJsonBody`, `queryRecord`) that decode untrusted bytes
+// into a plain value, and the *responders* (`invalidJsonBody`,
+// `malformedJsonBody`, `invalidRequest`, `badRequest`) that turn a rejection
+// into one stable HTTP 400 shape.
 //
-// Handlers stay readable because the failure branch is a plain early return:
+// The `schema.safeParse(...)` call itself deliberately lives in the handler,
+// not in here. Keeping it at the call site means the trust boundary for a
+// route is visible by reading that one file — and it means static analysis
+// (`scripts/input-validation-report.mjs`, `tests/input-validation.test.ts`)
+// can prove, per route, which schema guards which endpoint:
 //
-//   const parsed = await parseJsonBody(request, Body, CORS);
-//   if (!parsed.ok) return parsed.response;
+//   const payload = await readJsonBody(request);
+//   if (!payload.ok) return malformedJsonBody(CORS);
+//   const parsed = Body.safeParse(payload.value);
+//   if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
 //   ... use parsed.data (fully typed)
 
 import type { z } from "zod";
 
 export type Parsed<T> = { ok: true; data: T } | { ok: false; response: Response };
 
+/** Outcome of decoding a request body, before any schema runs over it. */
+export type RawBody = { ok: true; value: unknown } | { ok: false };
+
 type Headers_ = Record<string, string>;
 
 const JSON_HEADER = { "Content-Type": "application/json" };
+
 
 /** JSON response helper that always carries the caller's CORS headers. */
 export function jsonResponse(status: number, body: unknown, headers: Headers_ = {}): Response {
