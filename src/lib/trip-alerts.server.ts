@@ -4,13 +4,10 @@
 // thin scheduler: this module owns the notification copy and the two delivery
 // channels (Web Push for browsers/PWAs, Expo Push for the native apps).
 
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { WebPushPayload } from "@/lib/webpush.server";
 import { deliver } from "@/lib/notify.server";
-import { createLogger } from "@/lib/logger";
 import type { Leg } from "@/lib/itinerary-types";
 
-const log = createLogger("trip-alerts:dispatch");
 
 export type ActiveTripRow = {
   device_id: string;
