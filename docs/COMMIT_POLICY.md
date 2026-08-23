@@ -40,6 +40,7 @@ The repository is actively maintained by a named core team with clear domain bou
 - **Frontend & Mobile Engineer**: `Samuel Adu <praugrermar@gmail.com>` (Expo mobile app, React components, map rendering, UI design tokens)
 
 Rules:
+
 - Commit with a real name and configured team email (`git config user.name` / `user.email`).
 - Zero bot identities or bulk unattended commits.
 - Pair or agent-assisted work credits both:
@@ -77,7 +78,7 @@ At the time of writing that yields:
 
 - **4,277 commits** spanning **2025-10-15 → 2026-08-23** (~10 months, every
   month between them non-empty — roughly 340–425 commits per month).
-- Three human authors, matching the domain split in *Authorship & Team Roles*
+- Three human authors, matching the domain split in _Authorship & Team Roles_
   above: 1,575 / 1,403 / 1,273 commits.
 - 26 commits from the original scaffolding bot at the very start of the
   project, before the team took over. They are kept rather than rewritten:
@@ -85,7 +86,7 @@ At the time of writing that yields:
 
 ### Committer normalisation
 
-Commits made through the hosted editor were originally *committed* by a
+Commits made through the hosted editor were originally _committed_ by a
 platform bot even when a team member was the author. Those commits were
 rewritten once (`git-filter-repo`) so `committer` matches `author` on every
 commit — the work and its attribution were always human; only the mechanical

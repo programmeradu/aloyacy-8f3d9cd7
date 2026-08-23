@@ -5,7 +5,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SttUploadSchema } from "@/lib/schemas/public-api";
 
-
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -46,7 +45,10 @@ export const Route = createFileRoute("/api/public/stt")({
         // 413 (the caller may retry shorter); anything else is a plain 400.
         const upload = SttUploadSchema.safeParse({
           size: file.size,
-          name: typeof (file as File).name === "string" && (file as File).name ? (file as File).name : undefined,
+          name:
+            typeof (file as File).name === "string" && (file as File).name
+              ? (file as File).name
+              : undefined,
           type: file.type || undefined,
         });
         if (!upload.success) {
@@ -60,7 +62,6 @@ export const Route = createFileRoute("/api/public/stt")({
         const upstream = new FormData();
         upstream.append("model", "openai/gpt-4o-mini-transcribe");
         upstream.append("file", file, upload.data.name);
-
 
         const resp = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
           method: "POST",

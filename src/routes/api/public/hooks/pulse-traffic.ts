@@ -18,7 +18,6 @@ import { nearestZone, PULSE_ZONES, type PulseZone } from "@/lib/pulse-zones";
 import { queryRecord } from "@/lib/http/validate";
 import { CronSecretQuerySchema } from "@/lib/schemas/public-api";
 
-
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
@@ -48,7 +47,6 @@ async function guard(request: Request): Promise<Response | null> {
   if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
 }
-
 
 export const Route = createFileRoute("/api/public/hooks/pulse-traffic")({
   server: {

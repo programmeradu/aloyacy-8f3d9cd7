@@ -41,13 +41,13 @@ These are the four pieces an operator interacts with. They are dependency-free
 by design: the Worker runtime has no Node process to host pino, agents or
 sidecars.
 
-| Concern | Module | Surface |
-| --- | --- | --- |
-| Structured logging | `src/lib/logger.ts` | One JSON object per line: `ts`, `level`, `scope`, `msg`, plus typed fields. `createLogger(scope)`; `tests/server-logging.test.ts` fails the build on a raw `console.*` in server code. |
-| Input schemas | `src/lib/schemas/public-api.ts` | Zod schemas for every public endpoint that reads caller data. Handlers call `safeParse` themselves; `tests/input-validation.test.ts` and `scripts/input-validation-report.mjs --check` both fail the build on an unvalidated handler. |
-| Error tracking | `src/lib/error-tracking.ts` | `captureException()` posts a Sentry envelope over `fetch`. No SDK. Inert unless `SENTRY_DSN` is set. |
-| Metrics | `src/lib/metrics.ts` | In-process Prometheus registry (counters, gauges, summaries), scraped at `GET /api/public/metrics` and `/metrics`, gated by `METRICS_TOKEN` when set. |
-| Health | `src/routes/api/public/health.ts` | `GET /api/public/health` and `/healthz` probe each dependency concurrently. 200 = healthy, 200 `degraded` = live feed down but scheduled data still served, 503 = a hard dependency failed. Used by the Docker `HEALTHCHECK`. |
+| Concern            | Module                            | Surface                                                                                                                                                                                                                               |
+| ------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Structured logging | `src/lib/logger.ts`               | One JSON object per line: `ts`, `level`, `scope`, `msg`, plus typed fields. `createLogger(scope)`; `tests/server-logging.test.ts` fails the build on a raw `console.*` in server code.                                                |
+| Input schemas      | `src/lib/schemas/public-api.ts`   | Zod schemas for every public endpoint that reads caller data. Handlers call `safeParse` themselves; `tests/input-validation.test.ts` and `scripts/input-validation-report.mjs --check` both fail the build on an unvalidated handler. |
+| Error tracking     | `src/lib/error-tracking.ts`       | `captureException()` posts a Sentry envelope over `fetch`. No SDK. Inert unless `SENTRY_DSN` is set.                                                                                                                                  |
+| Metrics            | `src/lib/metrics.ts`              | In-process Prometheus registry (counters, gauges, summaries), scraped at `GET /api/public/metrics` and `/metrics`, gated by `METRICS_TOKEN` when set.                                                                                 |
+| Health             | `src/routes/api/public/health.ts` | `GET /api/public/health` and `/healthz` probe each dependency concurrently. 200 = healthy, 200 `degraded` = live feed down but scheduled data still served, 503 = a hard dependency failed. Used by the Docker `HEALTHCHECK`.         |
 
 Health and metrics share state on purpose: each probe writes
 `aloya_dependency_up` and a probe-duration observation, so an uptime monitor and
@@ -86,7 +86,6 @@ Two guards keep it honest, with no allowlist between them:
   and exits non-zero on any gap. CI runs it as its own step
   (`bun run check:validation`), so the evidence lands in the job log.
 
-
 ## Data
 
 - **GTFS static** — prebuilt JSON in `src/data/` and `public/data/`, regenerated
@@ -99,14 +98,14 @@ Two guards keep it honest, with no allowlist between them:
 
 ## Code health rules (enforced by tests, not convention)
 
-| Rule | Guard |
-| --- | --- |
-| No source file over 500 lines; new files under 400 | `tests/file-size.test.ts` |
-| No raw `console.*` in server code | `tests/server-logging.test.ts` |
+| Rule                                                                  | Guard                                                                   |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| No source file over 500 lines; new files under 400                    | `tests/file-size.test.ts`                                               |
+| No raw `console.*` in server code                                     | `tests/server-logging.test.ts`                                          |
 | Every public endpoint validates input with a Zod call in its own file | `tests/input-validation.test.ts`, `scripts/input-validation-report.mjs` |
-| Tests run fully offline — no network in CI | `src/test/no-network.ts` |
-| `.env.example` covers every env var used in source | `scripts/check-env-parity.mjs` |
-| No committed secrets | `scripts/check-secrets.mjs` |
+| Tests run fully offline — no network in CI                            | `src/test/no-network.ts`                                                |
+| `.env.example` covers every env var used in source                    | `scripts/check-env-parity.mjs`                                          |
+| No committed secrets                                                  | `scripts/check-secrets.mjs`                                             |
 
 See `CONTRIBUTING.md` for the local workflow and `docs/COMMIT_POLICY.md` for
 history conventions.

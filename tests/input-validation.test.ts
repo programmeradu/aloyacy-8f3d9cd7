@@ -99,6 +99,5 @@ describe("public API endpoints validate caller input", () => {
         /\.success|\.ok\b|zodDetails|badRequest|invalidJsonBody|malformedJsonBody/,
       );
     });
-
   });
 });
