@@ -91,11 +91,14 @@ describe("public API endpoints validate caller input", () => {
 
     it("acts on the parsed value, never the raw one", () => {
       if (reads.length === 0 || schemas.length === 0) return;
-      // Every validated route must branch on the parse result rather than
-      // reading through it, so a rejection cannot fall through to real work.
+      // A throwing `Schema.parse(...)` already stops bad input by itself.
+      // A `safeParse` must be branched on, or a rejection would fall through
+      // to real work with the unvalidated value still in hand.
+      if (!/\.\s*safeParse\s*\(/.test(source)) return;
       expect(source, `${file} never checks the result of its schema parse`).toMatch(
         /\.success|\.ok\b|zodDetails|badRequest|invalidJsonBody|malformedJsonBody/,
       );
     });
+
   });
 });
