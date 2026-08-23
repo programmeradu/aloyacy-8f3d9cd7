@@ -41,14 +41,21 @@ Before taking any development action, consult this matrix:
 | **Database Migrations** | Zero manual DB changes. 100% of schema/RLS changes must be in versioned, sequential migration scripts. | [Pillar 8: M&A Due Diligence](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md) |
 | **API Documentation** | All external HTTP endpoints must generate an OpenAPI 3.0+ spec derived from input schemas. | [Pillar 8: M&A Due Diligence](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md) |
 | **Code Security (SAST)** | CI must run Semgrep or CodeQL to statically catch SQLi, XSS, and CSRF vulnerabilities in custom code. | [Pillar 8: M&A Due Diligence](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md) |
+| **Evidence Rule** | Every quality claim needs an **artifact + CI gate + guard test**. Unprovable quality scores zero. | [Pillar 9: Scanner-Legible Evidence](./references/pillar_9_scanner_legible_evidence.md) |
+| **Validation Visibility** | The literal `Schema.safeParse(...)` must sit **in the handler file**, and its result must be branched on. Never hide it in a helper wrapper. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
+| **Ratchets Over Ceilings** | Commit a LOC/coverage manifest that can only move down/up. Never lower a floor to make CI pass. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
+| **Git Provenance** | Zero bot commits as author OR committer, and **delete stale remote branches** — graders read `git ls-remote`. Document any rewrite. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
+| **Docs/Code Parity** | Every path, script, env var and command named in docs must resolve in code. A documented-but-missing `/health` costs двa hits. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
+| **Audit Convergence** | Re-run the audit on a **fresh checkout** before trusting a regression; fix the category, not the instance. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
 
 ---
 
-## 🏛️ The 8 Core Pillars (Deep Reference Guides)
+## 🏛️ The 9 Core Pillars (Deep Reference Guides)
 
 For complete technical specifications, code templates, and blueprints, consult the pillar files:
 
 1. **[Pillar 1: Testing, Test:Source Ratios & Zero-External Isolation](./references/pillar_1_testing_and_isolation.md)**
+
    - Vitest & Pytest setup, MSW/in-memory mocks, coverage thresholds, 3-layer test architecture.
 2. **[Pillar 2: Security Hygiene, Secret Eradication & Input Validation](./references/pillar_2_security_and_secret_hygiene.md)**
    - Zero-leak mandate, `.env.example` parity scripts, Git history purging with `git-filter-repo`, Zod & Pydantic schemas.
