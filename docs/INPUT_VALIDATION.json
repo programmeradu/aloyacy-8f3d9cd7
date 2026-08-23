@@ -247,59 +247,59 @@
     "hasValidation": true
   },
   {
-    "file": "wallet\\pass.ts",
+    "file": "wallet/pass.ts",
     "schemas": [
       "bodySchema"
     ],
     "hasValidation": true
   },
   {
-    "file": "wallet\\ocr.ts",
+    "file": "wallet/ocr.ts",
     "schemas": [],
     "hasValidation": false
   },
   {
-    "file": "payments\\webhook.ts",
+    "file": "payments/webhook.ts",
     "schemas": [
       "StripeEnvQuerySchema"
     ],
     "hasValidation": true
   },
   {
-    "file": "og\\plan.$token.ts",
+    "file": "og/plan.$token.ts",
     "schemas": [
       "TokenSchema"
     ],
     "hasValidation": true
   },
   {
-    "file": "og\\group.$code.ts",
+    "file": "og/group.$code.ts",
     "schemas": [
       "CodeSchema"
     ],
     "hasValidation": true
   },
   {
-    "file": "hooks\\train.ts",
+    "file": "hooks/train.ts",
     "schemas": [
       "QuerySchema"
     ],
     "hasValidation": true
   },
   {
-    "file": "hooks\\pulse-weather.ts",
+    "file": "hooks/pulse-weather.ts",
     "schemas": [
       "QuerySchema"
     ],
     "hasValidation": true
   },
   {
-    "file": "hooks\\pulse-traffic.ts",
+    "file": "hooks/pulse-traffic.ts",
     "schemas": [],
     "hasValidation": false
   },
   {
-    "file": "hooks\\pulse-news.ts",
+    "file": "hooks/pulse-news.ts",
     "schemas": [
       "PayloadSchema",
       "ItemSchema"
@@ -307,7 +307,7 @@
     "hasValidation": true
   },
   {
-    "file": "hooks\\pulse-met-warnings.ts",
+    "file": "hooks/pulse-met-warnings.ts",
     "schemas": [
       "WarningSchema",
       "PayloadSchema"
@@ -315,14 +315,14 @@
     "hasValidation": true
   },
   {
-    "file": "hooks\\pulse-marine.ts",
+    "file": "hooks/pulse-marine.ts",
     "schemas": [
       "MarineSchema"
     ],
     "hasValidation": true
   },
   {
-    "file": "hooks\\pulse-football.ts",
+    "file": "hooks/pulse-football.ts",
     "schemas": [
       "FixtureSchema",
       "PayloadSchema"
@@ -330,7 +330,7 @@
     "hasValidation": true
   },
   {
-    "file": "hooks\\pulse-flights.ts",
+    "file": "hooks/pulse-flights.ts",
     "schemas": [
       "FlightSchema",
       "AirportPayloadSchema"
@@ -338,7 +338,7 @@
     "hasValidation": true
   },
   {
-    "file": "hooks\\pulse-events.ts",
+    "file": "hooks/pulse-events.ts",
     "schemas": [
       "EventSchema",
       "PayloadSchema"
@@ -346,7 +346,7 @@
     "hasValidation": true
   },
   {
-    "file": "hooks\\pulse-cruises.ts",
+    "file": "hooks/pulse-cruises.ts",
     "schemas": [
       "CruiseSchema",
       "PayloadSchema"
@@ -354,56 +354,56 @@
     "hasValidation": true
   },
   {
-    "file": "hooks\\pulse-air.ts",
+    "file": "hooks/pulse-air.ts",
     "schemas": [
       "AirSchema"
     ],
     "hasValidation": true
   },
   {
-    "file": "hooks\\ingest-schedule.ts",
+    "file": "hooks/ingest-schedule.ts",
     "schemas": [
       "IngestScheduleBodySchema"
     ],
     "hasValidation": true
   },
   {
-    "file": "hooks\\departure-tick.ts",
+    "file": "hooks/departure-tick.ts",
     "schemas": [],
     "hasValidation": false
   },
   {
-    "file": "hooks\\arrival-watch-tick.ts",
+    "file": "hooks/arrival-watch-tick.ts",
     "schemas": [],
     "hasValidation": false
   },
   {
-    "file": "gbfs\\vehicle_types[.]json.ts",
+    "file": "gbfs/vehicle_types[.]json.ts",
     "schemas": [],
     "hasValidation": false
   },
   {
-    "file": "gbfs\\system_information[.]json.ts",
+    "file": "gbfs/system_information[.]json.ts",
     "schemas": [],
     "hasValidation": false
   },
   {
-    "file": "gbfs\\station_status[.]json.ts",
+    "file": "gbfs/station_status[.]json.ts",
     "schemas": [],
     "hasValidation": false
   },
   {
-    "file": "gbfs\\station_information[.]json.ts",
+    "file": "gbfs/station_information[.]json.ts",
     "schemas": [],
     "hasValidation": false
   },
   {
-    "file": "gbfs\\free_bike_status[.]json.ts",
+    "file": "gbfs/free_bike_status[.]json.ts",
     "schemas": [],
     "hasValidation": false
   },
   {
-    "file": "auth\\otp.ts",
+    "file": "auth/otp.ts",
     "schemas": [
       "BodySchema"
     ],
