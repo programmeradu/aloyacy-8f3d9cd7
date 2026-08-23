@@ -100,6 +100,12 @@ export function parseWith<S extends z.ZodTypeAny>(
   };
 }
 
+/** 400 for a body that isn't JSON at all, in the `{ error, details }` envelope. */
+export function malformedJsonBody(headers: Headers_ = {}): Response {
+  return badRequest("Invalid JSON body", ["body: expected valid JSON"], headers);
+}
+
+
 /** Read + validate a JSON request body. Malformed JSON is a 400, not a 500. */
 export async function parseJsonBody<S extends z.ZodTypeAny>(
   request: Request,
