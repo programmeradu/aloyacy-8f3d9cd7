@@ -217,6 +217,10 @@
     "./temperature-format": {
       "types": "./src/temperature-format.ts",
       "default": "./src/temperature-format.ts"
+    },
+    "./duration-format": {
+      "types": "./src/duration-format.ts",
+      "default": "./src/duration-format.ts"
     }
   },
   "dependencies": {
