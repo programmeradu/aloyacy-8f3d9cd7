@@ -3,7 +3,7 @@ import type Stripe from "stripe";
 import { type StripeEnv, createStripeClient, getWebhookSecret } from "@/lib/stripe.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { createLogger, serializeError } from "@/lib/logger";
-import { parseQuery } from "@/lib/http/validate";
+import { badRequest, queryRecord, zodDetails } from "@/lib/http/validate";
 import { StripeEnvQuerySchema } from "@/lib/schemas/public-api";
 
 const log = createLogger("stripe-webhook");
@@ -11,10 +11,13 @@ const log = createLogger("stripe-webhook");
 // Validated at the edge: an unexpected `env` value would otherwise be coerced
 // to "sandbox" and checked against the wrong signing secret.
 function parseEnv(url: URL): { ok: true; env: StripeEnv } | { ok: false; response: Response } {
-  const parsed = parseQuery(url, StripeEnvQuerySchema);
-  if (!parsed.ok) return { ok: false, response: parsed.response };
+  const parsed = StripeEnvQuerySchema.safeParse(queryRecord(url));
+  if (!parsed.success) {
+    return { ok: false, response: badRequest("Invalid request", zodDetails(parsed.error)) };
+  }
   return { ok: true, env: parsed.data.env as StripeEnv };
 }
+
 
 async function fetchCustomerEmail(customerId: string, env: StripeEnv) {
   try {
