@@ -53,22 +53,39 @@ Health and metrics share state on purpose: each probe writes
 `aloya_dependency_up` and a probe-duration observation, so an uptime monitor and
 a Prometheus scrape can never disagree about the same dependency.
 
-### Input Validation Idiom
+### Input validation idiom
 
-Every route handler under `src/routes/api/public/*` that consumes caller data enforces validation at the HTTP boundary before executing business logic:
+Every handler under `src/routes/api/public/*` that consumes caller data parses
+it with Zod before any work happens — and the `safeParse` call is written **in
+the route file**, not inside a helper. Validation buried in a shared wrapper is
+still real, but it is invisible to a reviewer reading one endpoint and to
+static analysis. Keeping it at the boundary makes the guarantee provable per
+route.
+
+`src/lib/http/validate.ts` therefore supplies only the two halves around that
+call: readers that decode untrusted bytes, and responders that turn a rejection
+into one stable 400 envelope.
 
 ```typescript
-// 1. Define or import schema from src/lib/schemas/public-api.ts
 import { PlacesAutocompleteSchema } from "@/lib/schemas/public-api";
-import { parseJsonInput } from "@/lib/http/validate";
+import { badRequest, malformedJsonBody, readJsonBody, zodDetails } from "@/lib/http/validate";
 
-// 2. Validate request input in handler
-const parsed = await parseJsonInput(request, PlacesAutocompleteSchema);
-if (!parsed.success) {
-  return new Response(JSON.stringify({ error: parsed.error }), { status: 400 });
-}
+const payload = await readJsonBody(request);
+if (!payload.ok) return malformedJsonBody(CORS);
+const parsed = PlacesAutocompleteSchema.safeParse(payload.value);
+if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
+// parsed.data is fully typed and safe to act on
 ```
-All public routes are guarded per-endpoint by `tests/input-validation.test.ts`.
+
+Two guards keep it honest, with no allowlist between them:
+
+- `tests/input-validation.test.ts` — one case per public route file: if the
+  handler reads caller input, a literal schema parse must appear in that file,
+  and a `safeParse` result must be branched on.
+- `scripts/input-validation-report.mjs` — prints the endpoint → schema matrix
+  and exits non-zero on any gap. CI runs it as its own step
+  (`bun run check:validation`), so the evidence lands in the job log.
+
 
 ## Data
 
