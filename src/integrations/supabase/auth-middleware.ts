@@ -6,8 +6,8 @@ import type { Database } from "./types";
 
 export const requireSupabaseAuth = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
-    const CUSTOM_SUPABASE_URL = process.env.CUSTOM_SUPABASE_URL;
-    const CUSTOM_SUPABASE_ANON_KEY = process.env.CUSTOM_SUPABASE_ANON_KEY;
+    const CUSTOM_SUPABASE_URL = process.env.CUSTOM_SUPABASE_URL || process.env.SUPABASE_URL;
+    const CUSTOM_SUPABASE_ANON_KEY = process.env.CUSTOM_SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
 
     if (!CUSTOM_SUPABASE_URL || !CUSTOM_SUPABASE_ANON_KEY) {
       const missing = [

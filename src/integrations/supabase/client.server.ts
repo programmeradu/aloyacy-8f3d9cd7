@@ -6,8 +6,8 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
 function createSupabaseAdminClient() {
-  const CUSTOM_SUPABASE_URL = process.env.CUSTOM_SUPABASE_URL;
-  const CUSTOM_SUPABASE_SERVICE_ROLE_KEY = process.env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY;
+  const CUSTOM_SUPABASE_URL = process.env.CUSTOM_SUPABASE_URL || process.env.SUPABASE_URL;
+  const CUSTOM_SUPABASE_SERVICE_ROLE_KEY = process.env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!CUSTOM_SUPABASE_URL || !CUSTOM_SUPABASE_SERVICE_ROLE_KEY) {
     const missing = [

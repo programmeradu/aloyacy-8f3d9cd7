@@ -6,9 +6,9 @@ function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
   const CUSTOM_SUPABASE_URL =
-    import.meta.env.VITE_CUSTOM_SUPABASE_URL || process.env.CUSTOM_SUPABASE_URL;
+    import.meta.env.VITE_CUSTOM_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL || process.env.CUSTOM_SUPABASE_URL || process.env.SUPABASE_URL;
   const CUSTOM_SUPABASE_ANON_KEY =
-    import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY;
+    import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
 
   if (!CUSTOM_SUPABASE_URL || !CUSTOM_SUPABASE_ANON_KEY) {
     const missing = [
