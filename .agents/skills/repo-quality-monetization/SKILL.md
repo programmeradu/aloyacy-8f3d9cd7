@@ -70,8 +70,10 @@ For complete technical specifications, code templates, and blueprints, consult t
    - Valuation mathematics, 5 buyer-fit signals, commercial licensing checklist, step-by-step remediation roadmap.
 8. **[Pillar 8: M&A Tech Due Diligence & Legal Hygiene](./references/pillar_8_ma_due_diligence_and_legal_hygiene.md)**
    - Legal license auditing, versioned SQL schemas, OpenAPI generation, SAST scanning, and a11y compliance.
-9. **[24-Repo Forensic Audit Database](./references/audit_database_24_repos.md)**
-   - Full diagnostic breakdown of all 24 evaluated repositories, defect catalogs, and score analysis.
+9. **[Pillar 9: Scanner-Legible Evidence, Provenance & Anti-Regression Ratchets](./references/pillar_9_scanner_legible_evidence.md)**
+   - The artifact+gate+test Evidence Rule, boundary-visible Zod calls, LOC/coverage ratchets, git provenance and remote-branch hygiene, docs/code parity, the audit convergence loop, and the buyer's 15-minute test.
+10. **[24-Repo Forensic Audit Database](./references/audit_database_24_repos.md)**
+    - Full diagnostic breakdown of all 24 evaluated repositories, defect catalogs, and score analysis.
 
 ---
 
