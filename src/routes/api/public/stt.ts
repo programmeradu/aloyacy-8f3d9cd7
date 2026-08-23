@@ -46,7 +46,7 @@ export const Route = createFileRoute("/api/public/stt")({
         // 413 (the caller may retry shorter); anything else is a plain 400.
         const upload = SttUploadSchema.safeParse({
           size: file.size,
-          name: typeof (file as File).name === "string" ? (file as File).name : undefined,
+          name: typeof (file as File).name === "string" && (file as File).name ? (file as File).name : undefined,
           type: file.type || undefined,
         });
         if (!upload.success) {
