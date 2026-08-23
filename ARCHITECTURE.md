@@ -46,12 +46,29 @@ sidecars.
 | Structured logging | `src/lib/logger.ts` | One JSON object per line: `ts`, `level`, `scope`, `msg`, plus typed fields. `createLogger(scope)`; `tests/server-logging.test.ts` fails the build on a raw `console.*` in server code. |
 | Input schemas | `src/lib/schemas/public-api.ts` | Zod schemas for every public endpoint that reads caller data, plus `parseOptionalJsonBody`. `tests/input-validation.test.ts` fails the build on an unvalidated handler. |
 | Error tracking | `src/lib/error-tracking.ts` | `captureException()` posts a Sentry envelope over `fetch`. No SDK. Inert unless `SENTRY_DSN` is set. |
-| Metrics | `src/lib/metrics.ts` | In-process Prometheus registry (counters, gauges, summaries), scraped at `GET /api/public/metrics`, gated by `METRICS_TOKEN` when set. |
-| Health | `src/routes/api/public/health.ts` | `GET /api/public/health` probes each dependency concurrently. 200 = healthy, 200 `degraded` = live feed down but scheduled data still served, 503 = a hard dependency failed. Used by the Docker `HEALTHCHECK`. |
+| Metrics | `src/lib/metrics.ts` | In-process Prometheus registry (counters, gauges, summaries), scraped at `GET /api/public/metrics` and `/metrics`, gated by `METRICS_TOKEN` when set. |
+| Health | `src/routes/api/public/health.ts` | `GET /api/public/health` and `/healthz` probe each dependency concurrently. 200 = healthy, 200 `degraded` = live feed down but scheduled data still served, 503 = a hard dependency failed. Used by the Docker `HEALTHCHECK`. |
 
 Health and metrics share state on purpose: each probe writes
 `aloya_dependency_up` and a probe-duration observation, so an uptime monitor and
 a Prometheus scrape can never disagree about the same dependency.
+
+### Input Validation Idiom
+
+Every route handler under `src/routes/api/public/*` that consumes caller data enforces validation at the HTTP boundary before executing business logic:
+
+```typescript
+// 1. Define or import schema from src/lib/schemas/public-api.ts
+import { PlacesAutocompleteSchema } from "@/lib/schemas/public-api";
+import { parseJsonInput } from "@/lib/http/validate";
+
+// 2. Validate request input in handler
+const parsed = await parseJsonInput(request, PlacesAutocompleteSchema);
+if (!parsed.success) {
+  return new Response(JSON.stringify({ error: parsed.error }), { status: 400 });
+}
+```
+All public routes are guarded per-endpoint by `tests/input-validation.test.ts`.
 
 ## Data
 

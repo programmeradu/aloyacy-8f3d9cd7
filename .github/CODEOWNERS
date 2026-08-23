@@ -1,0 +1,13 @@
+# Global repository owners
+* @programmeradu founder@stauniverse.tech
+
+# Core domain logic and trust layer
+/packages/core/ @programmeradu founder@stauniverse.tech
+
+# Server runtime, routes, and security boundaries
+/src/routes/api/ @programmeradu founder@stauniverse.tech
+/src/lib/schemas/ @programmeradu founder@stauniverse.tech
+
+# CI/CD and deployment configurations
+/.github/workflows/ @programmeradu founder@stauniverse.tech
+/deploy/ @programmeradu founder@stauniverse.tech
