@@ -1,4 +1,13 @@
-// Structured logging for the server boundary.
+// Structured logging for the server boundary — a deliberate, dependency-free
+// implementation of the pino/bunyan line format (one JSON object per line,
+// `level`/`ts`/`msg` reserved keys, child loggers via scope suffixes).
+//
+// Why not pino itself: pino's transports, worker threads and process/stream
+// plumbing assume a Node host. This app's server code runs on Cloudflare
+// workerd, where those paths are stubbed or absent. What matters operationally
+// is the *shape* of the line, and `tests/server-logging.test.ts` is the
+// enforcement mechanism: it asserts the wire shape and that no server module
+// falls back to bare console logging.
 //
 // The app runs on a Worker runtime, so a heavyweight Node logger (pino with
 // transports, file streams, worker threads) is not an option — but the thing

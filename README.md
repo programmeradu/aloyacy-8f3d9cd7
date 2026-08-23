@@ -209,6 +209,11 @@ state, API shaping, wallet formatting) runs unmodified under Node. Only
 bridges are stubbed; no module under test is mocked. `bun run test:all` runs
 both suites, and CI runs them in separate jobs.
 
+Dependency currency is tracked, not assumed: `docs/DEPENDENCY_AUDIT.md` records
+the freshness policy and every deliberate pin, `bun audit --audit-level=high`
+gates CI, and a weekly `maintenance.yml` job re-runs `bun outdated` and files
+the drift as an issue.
+
 Every public endpoint validates its input at the boundary: `src/lib/schemas/`
 holds the Zod schemas and `src/lib/http/validate.ts` turns a bad payload into a
 uniform `400 { error, details }`. Server-side diagnostics go through the

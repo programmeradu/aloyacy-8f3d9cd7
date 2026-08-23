@@ -1,4 +1,10 @@
-// Error tracking for the deployed Worker.
+// Error tracking for the deployed Worker — a Sentry-compatible reporter.
+//
+// This is a hand-rolled client for Sentry's documented envelope wire protocol
+// (`POST /api/<project>/envelope/` with an `x-sentry-auth` header), not a
+// custom protocol: any Sentry or GlitchTip DSN accepts these events and groups
+// them as normal issues. `tests/error-tracking.test.ts` pins the envelope
+// format.
 //
 // The structured logger (src/lib/logger.ts) makes failures searchable in the
 // platform log viewer, but a log line has no ownership, no grouping and no
