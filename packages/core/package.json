@@ -213,6 +213,10 @@
     "./distance-format": {
       "types": "./src/distance-format.ts",
       "default": "./src/distance-format.ts"
+    },
+    "./temperature-format": {
+      "types": "./src/temperature-format.ts",
+      "default": "./src/temperature-format.ts"
     }
   },
   "dependencies": {
