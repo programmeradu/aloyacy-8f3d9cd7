@@ -44,7 +44,7 @@ sidecars.
 | Concern | Module | Surface |
 | --- | --- | --- |
 | Structured logging | `src/lib/logger.ts` | One JSON object per line: `ts`, `level`, `scope`, `msg`, plus typed fields. `createLogger(scope)`; `tests/server-logging.test.ts` fails the build on a raw `console.*` in server code. |
-| Input schemas | `src/lib/schemas/public-api.ts` | Zod schemas for every public endpoint that reads caller data, plus `parseOptionalJsonBody`. `tests/input-validation.test.ts` fails the build on an unvalidated handler. |
+| Input schemas | `src/lib/schemas/public-api.ts` | Zod schemas for every public endpoint that reads caller data. Handlers call `safeParse` themselves; `tests/input-validation.test.ts` and `scripts/input-validation-report.mjs --check` both fail the build on an unvalidated handler. |
 | Error tracking | `src/lib/error-tracking.ts` | `captureException()` posts a Sentry envelope over `fetch`. No SDK. Inert unless `SENTRY_DSN` is set. |
 | Metrics | `src/lib/metrics.ts` | In-process Prometheus registry (counters, gauges, summaries), scraped at `GET /api/public/metrics` and `/metrics`, gated by `METRICS_TOKEN` when set. |
 | Health | `src/routes/api/public/health.ts` | `GET /api/public/health` and `/healthz` probe each dependency concurrently. 200 = healthy, 200 `degraded` = live feed down but scheduled data still served, 503 = a hard dependency failed. Used by the Docker `HEALTHCHECK`. |
@@ -103,7 +103,7 @@ Two guards keep it honest, with no allowlist between them:
 | --- | --- |
 | No source file over 500 lines; new files under 400 | `tests/file-size.test.ts` |
 | No raw `console.*` in server code | `tests/server-logging.test.ts` |
-| Every public endpoint validates input with Zod | `tests/input-validation.test.ts` |
+| Every public endpoint validates input with a Zod call in its own file | `tests/input-validation.test.ts`, `scripts/input-validation-report.mjs` |
 | Tests run fully offline — no network in CI | `src/test/no-network.ts` |
 | `.env.example` covers every env var used in source | `scripts/check-env-parity.mjs` |
 | No committed secrets | `scripts/check-secrets.mjs` |
