@@ -12,9 +12,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 /** arrival_promises + job_leases are newer than the generated types. */
 const db = supabaseAdmin as unknown as SupabaseClient;
-import { sendWebPush } from "@/lib/webpush.server";
-import { sendExpoPush } from "@/lib/expopush.server";
-import { VAPID_PUBLIC_KEY } from "@/lib/vapid";
+import { deliver } from "@/lib/notify.server";
 import {
   isReplanDue,
   nextNudge,
