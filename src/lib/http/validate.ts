@@ -168,6 +168,15 @@ export function invalidRequest(error: z.ZodError, headers: Headers_ = {}): Respo
   );
 }
 
+/** 400 for a body that isn't JSON at all, in the `invalid_request` envelope. */
+export function invalidJsonBody(headers: Headers_ = {}): Response {
+  return Response.json(
+    { error: "invalid_request", issues: [{ path: "", message: "expected valid JSON" }] },
+    { status: 400, headers },
+  );
+}
+
+
 /** Run a schema over an already-decoded value, using the `invalid_request` envelope. */
 export function parseInput<S extends z.ZodTypeAny>(
   schema: S,
