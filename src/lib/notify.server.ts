@@ -22,7 +22,11 @@
 // Callers stay declarative: describe the audience and the message, read the
 // receipt.
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+/** The delivery ledger is newer than the generated types. */
+const ledgerDb = supabaseAdmin as unknown as SupabaseClient;
 import { sendWebPush } from "@/lib/webpush.server";
 import { sendExpoPush, type ExpoPushMessage } from "@/lib/expopush.server";
 import { VAPID_PUBLIC_KEY } from "@/lib/vapid";
@@ -268,7 +272,7 @@ async function record(
   receipt: NotifyReceipt,
 ): Promise<void> {
   try {
-    await supabaseAdmin.from("notification_deliveries").insert({
+    await ledgerDb.from("notification_deliveries").insert({
       category: message.category,
       tag: message.tag,
       title: message.title,
@@ -278,7 +282,7 @@ async function record(
       sent: receipt.sent,
       failed: receipt.failed,
       pruned: receipt.pruned,
-    } as never);
+    });
   } catch {
     // Ledger is advisory; never let it fail a send.
   }
