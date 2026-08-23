@@ -57,7 +57,10 @@ function stripComments(source) {
 function analyse(file) {
   const source = stripComments(readFileSync(path.join(ROOT, file), "utf8"));
   const inputs = INPUT_READS.filter(([, re]) => re.test(source)).map(([label]) => label);
-  const schemas = [...new Set([...source.matchAll(SAFE_PARSE)].map((m) => m[1]))].sort();
+  // `JSON.parse` is a decoder, not a schema — it proves nothing about shape.
+  const schemas = [...new Set([...source.matchAll(SAFE_PARSE)].map((m) => m[1]))]
+    .filter((name) => name !== "JSON")
+    .sort();
   const endpoint =
     "/" +
     file
