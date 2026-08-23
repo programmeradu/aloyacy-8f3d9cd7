@@ -45,7 +45,7 @@ Before taking any development action, consult this matrix:
 | **Validation Visibility** | The literal `Schema.safeParse(...)` must sit **in the handler file**, and its result must be branched on. Never hide it in a helper wrapper. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
 | **Ratchets Over Ceilings** | Commit a LOC/coverage manifest that can only move down/up. Never lower a floor to make CI pass. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
 | **Git Provenance** | Zero bot commits as author OR committer, and **delete stale remote branches** — graders read `git ls-remote`. Document any rewrite. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
-| **Docs/Code Parity** | Every path, script, env var and command named in docs must resolve in code. A documented-but-missing `/health` costs двa hits. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
+| **Docs/Code Parity** | Every path, script, env var and command named in docs must resolve in code. A documented-but-missing `/health` costs two hits: missing endpoint + doc defect. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
 | **Audit Convergence** | Re-run the audit on a **fresh checkout** before trusting a regression; fix the category, not the instance. | [Pillar 9](./references/pillar_9_scanner_legible_evidence.md) |
 
 ---
