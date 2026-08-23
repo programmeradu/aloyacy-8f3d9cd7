@@ -64,10 +64,11 @@ describe("planFor", () => {
     expect(planFor("0 3 * * *", 0).jobs).toEqual(NIGHTLY_JOBS);
   });
 
-  it("adds departure-tick only on even minutes", () => {
+  it("adds departure-tick and arrival-watch only on even minutes", () => {
     const even = planFor("* * * * *", at("2026-01-01T10:04:00Z"));
     const odd = planFor("* * * * *", at("2026-01-01T10:05:00Z"));
     expect(even.jobs.map((j) => j.label)).toContain("departure-tick");
+    expect(even.jobs.map((j) => j.label)).toContain("arrival-watch");
     expect(odd.jobs).toEqual(MINUTE_JOBS);
   });
 
