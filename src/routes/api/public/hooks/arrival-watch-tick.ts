@@ -273,72 +273,17 @@ async function dispatch(
   kind: NudgeKind,
   copy: { title: string; body: string },
 ): Promise<boolean> {
-  const tag = `aloya-promise-${row.id}-${kind}`;
-  let anyOk = false;
-
-  // Web push
-  const priv = process.env.VAPID_PRIVATE_KEY;
-  if (priv && row.push_subscription_id) {
-    const { data: subs } = await supabaseAdmin
-      .from("push_subscriptions")
-      .select("endpoint, p256dh, auth")
-      .eq("id", row.push_subscription_id);
-    for (const s of subs ?? []) {
-      try {
-        const r = await sendWebPush({
-          subscription: { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
-          payload: {
-            title: copy.title,
-            body: copy.body,
-            tag,
-            url: "/trips?promise=" + row.id,
-            requireInteraction: kind === "now" || kind === "unmakeable",
-          },
-          vapidPublicKey: VAPID_PUBLIC_KEY,
-          vapidPrivateKey: priv,
-          vapidSubject: process.env.VAPID_SUBJECT || "mailto:notifications@aloya.app",
-          urgency: "high",
-        });
-        if (r.ok) anyOk = true;
-        else if (r.expired)
-          await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
-      } catch (e) {
-        logger.warn("arrival-watch web push failed", {
-          promiseId: row.id,
-          error: e instanceof Error ? e.message : String(e),
-        });
-      }
-    }
-  }
-
-  // Native push
-  if (row.expo_device_id) {
-    const { data: tokens } = await supabaseAdmin
-      .from("expo_push_tokens")
-      .select("expo_token")
-      .eq("device_id", row.expo_device_id);
-    const messages = (tokens ?? []).map((t) => ({
-      to: t.expo_token,
+  const receipt = await deliver(
+    { subscriptionId: row.push_subscription_id, expoDeviceId: row.expo_device_id },
+    {
+      category: "arrival-promise",
       title: copy.title,
       body: copy.body,
-      priority: "high" as const,
-      data: { kind: "arrival-promise", promiseId: row.id, nudge: kind },
-    }));
-    if (messages.length > 0) {
-      try {
-        const res = await sendExpoPush(messages);
-        if (res.ok > 0) anyOk = true;
-        for (const stale of res.expiredTokens) {
-          await supabaseAdmin.from("expo_push_tokens").delete().eq("expo_token", stale);
-        }
-      } catch (e) {
-        logger.warn("arrival-watch expo push failed", {
-          promiseId: row.id,
-          error: e instanceof Error ? e.message : String(e),
-        });
-      }
-    }
-  }
-
-  return anyOk;
+      tag: `aloya-promise-${row.id}-${kind}`,
+      url: `/trips?promise=${row.id}`,
+      requireInteraction: kind === "now" || kind === "unmakeable",
+      data: { promiseId: row.id, nudge: kind },
+    },
+  );
+  return receipt.ok;
 }
