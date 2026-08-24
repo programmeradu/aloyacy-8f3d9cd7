@@ -28,7 +28,13 @@ function guard(request: Request) {
   return null;
 }
 
-export async function archiveTable(tableName: string, daysOld: number, bucket: any, s3?: S3Client) {
+export async function archiveTable(
+  tableName: string,
+  timeColumn = "created_at",
+  daysOld = 7,
+  bucket: any = null,
+  s3?: S3Client,
+) {
   if (!bucket && !s3) {
     log.warn(`Skipping ${tableName} - DATA_LAKE bucket not found in environment.`);
     return 0;
@@ -49,7 +55,7 @@ export async function archiveTable(tableName: string, daysOld: number, bucket: a
     const { data, error } = await db
       .from(tableName)
       .select("*")
-      .lt("created_at", cutoff)
+      .lt(timeColumn, cutoff)
       .limit(5000);
 
     if (error) {
@@ -80,7 +86,7 @@ export async function archiveTable(tableName: string, daysOld: number, bucket: a
     if (ids.length > 0) {
       await db.from(tableName).delete().in("id", ids);
     } else {
-      await db.from(tableName).delete().lt("created_at", cutoff);
+      await db.from(tableName).delete().lt(timeColumn, cutoff);
       break;
     }
 
@@ -124,9 +130,9 @@ async function runFromRequest(request: Request) {
   }
 
   try {
-    const snapshots = await archiveTable("rt_snapshots", 7, R2, s3);
-    const pulses = await archiveTable("pulse_signals", 7, R2, s3);
-    const arrivals = await archiveTable("observed_arrivals", 7, R2, s3);
+    const snapshots = await archiveTable("rt_snapshots", "captured_at", 7, R2, s3);
+    const pulses = await archiveTable("pulse_signals", "fetched_at", 7, R2, s3);
+    const arrivals = await archiveTable("observed_arrivals", "last_seen_at", 7, R2, s3);
 
     return json({
       ok: true,

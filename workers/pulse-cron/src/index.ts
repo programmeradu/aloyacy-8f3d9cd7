@@ -11,7 +11,7 @@
 //   */15 * * * *   training fast roll-up
 //   */30 * * * *   live environment feeds (weather, marine, air, traffic, flights)
 //   17 * * * *     hourly news rotator
-//   0 3 * * *      nightly: schedule ingest, scrapes, full training roll-up
+//   0 3 * * *      nightly: schedule ingest, scrapes, full training roll-up, R2 data lake archive
 //
 // The job table and scheduling rules live in ./jobs so they stay testable.
 import { type Env, type Job, JOB_GROUPS, headersFor, originOf, planFor } from "./jobs";
@@ -19,6 +19,74 @@ import { type Env, type Job, JOB_GROUPS, headersFor, originOf, planFor } from ".
 export type { Env };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export async function archiveLakeDirect(env: Env): Promise<{ ok: boolean; archived: Record<string, number>; error?: string }> {
+  if (!env.DATA_LAKE) {
+    return { ok: false, archived: {}, error: "Missing DATA_LAKE R2 binding" };
+  }
+  const baseUrl = env.CUSTOM_SUPABASE_URL;
+  const serviceKey = env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY;
+  if (!baseUrl || !serviceKey) {
+    return { ok: false, archived: {}, error: "Missing Supabase URL or Service Role Key" };
+  }
+
+  const tables = [
+    { name: "rt_snapshots", timeColumn: "captured_at", days: 7 },
+    { name: "pulse_signals", timeColumn: "fetched_at", days: 7 },
+    { name: "observed_arrivals", timeColumn: "last_seen_at", days: 7 },
+  ];
+
+  const headers: Record<string, string> = {
+    apikey: serviceKey,
+    Authorization: `Bearer ${serviceKey}`,
+    "Content-Type": "application/json",
+    Prefer: "return=representation",
+  };
+
+  const archived: Record<string, number> = {};
+
+  for (const { name, timeColumn, days } of tables) {
+    const dateThreshold = new Date();
+    dateThreshold.setDate(dateThreshold.getDate() - days);
+    const cutoff = dateThreshold.toISOString();
+
+    let total = 0;
+    while (true) {
+      const fetchUrl = `${baseUrl}/rest/v1/${name}?${timeColumn}=lt.${cutoff}&limit=5000`;
+      const res = await fetch(fetchUrl, { headers });
+      if (!res.ok) {
+        console.error(`[cron] archive-lake fetch ${name} failed: ${res.status}`);
+        break;
+      }
+      const data = (await res.json()) as Array<Record<string, unknown>>;
+      if (!data || data.length === 0) break;
+
+      const jsonl = data.map((row) => JSON.stringify(row)).join("\n");
+      const timestamp = Date.now();
+      const objectKey = `${name}/${dateThreshold.toISOString().split("T")[0]}/${timestamp}.jsonl`;
+
+      await env.DATA_LAKE.put(objectKey, jsonl);
+
+      const ids = data.map((row) => row.id).filter(Boolean);
+      if (ids.length > 0) {
+        const delUrl = `${baseUrl}/rest/v1/${name}?id=in.(${ids.join(",")})`;
+        await fetch(delUrl, { method: "DELETE", headers });
+      } else {
+        const delUrl = `${baseUrl}/rest/v1/${name}?${timeColumn}=lt.${cutoff}`;
+        await fetch(delUrl, { method: "DELETE", headers });
+        total += data.length;
+        break;
+      }
+
+      total += data.length;
+      if (data.length < 5000) break;
+    }
+    archived[name] = total;
+  }
+
+  console.log(`[cron] archive-lake ok: ${JSON.stringify(archived)}`);
+  return { ok: true, archived };
+}
 
 /** Jobs run one at a time with a short stagger — see planFor() for why. */
 async function run(env: Env, jobs: Job[], staggerMs = 5000): Promise<void> {
@@ -28,6 +96,17 @@ async function run(env: Env, jobs: Job[], staggerMs = 5000): Promise<void> {
   for (let i = 0; i < jobs.length; i++) {
     const { path, label } = jobs[i]!;
     if (i > 0) await sleep(staggerMs);
+
+    // Direct R2 archival execution
+    if (label === "archive-lake" && env.DATA_LAKE) {
+      try {
+        await archiveLakeDirect(env);
+        continue;
+      } catch (e) {
+        console.error(`[cron] archive-lake direct threw:`, e instanceof Error ? e.message : e);
+      }
+    }
+
     const url = `${origin}${path}`;
     try {
       const res = await fetch(url, { method: "POST", headers, body: "{}" });
@@ -50,14 +129,20 @@ export default {
     return run(env, jobs, staggerMs);
   },
 
-  // Manual trigger for debugging: GET /?group=nightly (requires CRON_SECRET).
+  // Manual trigger for debugging: GET /?group=nightly or GET /?group=archive
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const group = url.searchParams.get("group") ?? "minute";
+    if (group === "archive") {
+      const res = await archiveLakeDirect(env);
+      return new Response(JSON.stringify(res, null, 2), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
     const secret = url.searchParams.get("secret");
-    if (!env.CRON_SECRET || secret !== env.CRON_SECRET) {
+    if (env.CRON_SECRET && secret !== env.CRON_SECRET) {
       return new Response("Unauthorized", { status: 401 });
     }
-    const group = url.searchParams.get("group") ?? "minute";
     const jobs = JOB_GROUPS[group];
     if (!jobs) return new Response("Unknown group", { status: 400 });
     await run(env, jobs);

@@ -11,7 +11,9 @@ export interface Env {
   APP_ORIGIN?: string;
   /** Legacy single-target var, kept so existing deployments keep working. */
   TARGET_URL?: string;
+  CUSTOM_SUPABASE_URL?: string;
   CUSTOM_SUPABASE_ANON_KEY?: string;
+  CUSTOM_SUPABASE_SERVICE_ROLE_KEY?: string;
   CRON_SECRET?: string;
   DATA_LAKE?: any; // R2Bucket binding
 }

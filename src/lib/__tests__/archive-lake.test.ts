@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { archiveTable } from "../../routes/api/public/hooks/archive-lake";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
@@ -17,7 +17,7 @@ describe("archive-lake pipeline", () => {
   });
 
   it("skips gracefully if the bucket binding is missing", async () => {
-    const total = await archiveTable("rt_snapshots", 7, null);
+    const total = await archiveTable("rt_snapshots", "captured_at", 7, null);
     expect(total).toBe(0);
     expect(supabaseAdmin.from).not.toHaveBeenCalled();
   });
@@ -49,7 +49,7 @@ describe("archive-lake pipeline", () => {
       } as any;
     });
 
-    const total = await archiveTable("rt_snapshots", 7, mockBucket);
+    const total = await archiveTable("rt_snapshots", "captured_at", 7, mockBucket);
     
     expect(total).toBe(2);
     expect(mockBucket.put).toHaveBeenCalledTimes(1);
