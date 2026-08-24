@@ -103,6 +103,7 @@ import { Route as ApiPublicHooksPulseAirRouteImport } from './routes/api/public/
 import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
 import { Route as ApiPublicHooksDepartureTickRouteImport } from './routes/api/public/hooks/departure-tick'
 import { Route as ApiPublicHooksArrivalWatchTickRouteImport } from './routes/api/public/hooks/arrival-watch-tick'
+import { Route as ApiPublicHooksArchiveLakeRouteImport } from './routes/api/public/hooks/archive-lake'
 import { Route as ApiPublicGbfsVehicle_typesDotjsonRouteImport } from './routes/api/public/gbfs/vehicle_types[.]json'
 import { Route as ApiPublicGbfsSystem_informationDotjsonRouteImport } from './routes/api/public/gbfs/system_information[.]json'
 import { Route as ApiPublicGbfsStation_statusDotjsonRouteImport } from './routes/api/public/gbfs/station_status[.]json'
@@ -605,6 +606,12 @@ const ApiPublicHooksArrivalWatchTickRoute =
     path: '/api/public/hooks/arrival-watch-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksArchiveLakeRoute =
+  ApiPublicHooksArchiveLakeRouteImport.update({
+    id: '/api/public/hooks/archive-lake',
+    path: '/api/public/hooks/archive-lake',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicGbfsVehicle_typesDotjsonRoute =
   ApiPublicGbfsVehicle_typesDotjsonRouteImport.update({
     id: '/api/public/gbfs/vehicle_types.json',
@@ -732,6 +739,7 @@ export interface FileRoutesByFullPath {
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
   '/api/public/gbfs/system_information.json': typeof ApiPublicGbfsSystem_informationDotjsonRoute
   '/api/public/gbfs/vehicle_types.json': typeof ApiPublicGbfsVehicle_typesDotjsonRoute
+  '/api/public/hooks/archive-lake': typeof ApiPublicHooksArchiveLakeRoute
   '/api/public/hooks/arrival-watch-tick': typeof ApiPublicHooksArrivalWatchTickRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
@@ -836,6 +844,7 @@ export interface FileRoutesByTo {
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
   '/api/public/gbfs/system_information.json': typeof ApiPublicGbfsSystem_informationDotjsonRoute
   '/api/public/gbfs/vehicle_types.json': typeof ApiPublicGbfsVehicle_typesDotjsonRoute
+  '/api/public/hooks/archive-lake': typeof ApiPublicHooksArchiveLakeRoute
   '/api/public/hooks/arrival-watch-tick': typeof ApiPublicHooksArrivalWatchTickRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
@@ -941,6 +950,7 @@ export interface FileRoutesById {
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
   '/api/public/gbfs/system_information.json': typeof ApiPublicGbfsSystem_informationDotjsonRoute
   '/api/public/gbfs/vehicle_types.json': typeof ApiPublicGbfsVehicle_typesDotjsonRoute
+  '/api/public/hooks/archive-lake': typeof ApiPublicHooksArchiveLakeRoute
   '/api/public/hooks/arrival-watch-tick': typeof ApiPublicHooksArrivalWatchTickRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
@@ -1047,6 +1057,7 @@ export interface FileRouteTypes {
     | '/api/public/gbfs/station_status.json'
     | '/api/public/gbfs/system_information.json'
     | '/api/public/gbfs/vehicle_types.json'
+    | '/api/public/hooks/archive-lake'
     | '/api/public/hooks/arrival-watch-tick'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
@@ -1151,6 +1162,7 @@ export interface FileRouteTypes {
     | '/api/public/gbfs/station_status.json'
     | '/api/public/gbfs/system_information.json'
     | '/api/public/gbfs/vehicle_types.json'
+    | '/api/public/hooks/archive-lake'
     | '/api/public/hooks/arrival-watch-tick'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
@@ -1255,6 +1267,7 @@ export interface FileRouteTypes {
     | '/api/public/gbfs/station_status.json'
     | '/api/public/gbfs/system_information.json'
     | '/api/public/gbfs/vehicle_types.json'
+    | '/api/public/hooks/archive-lake'
     | '/api/public/hooks/arrival-watch-tick'
     | '/api/public/hooks/departure-tick'
     | '/api/public/hooks/ingest-schedule'
@@ -1360,6 +1373,7 @@ export interface RootRouteChildren {
   ApiPublicGbfsStation_statusDotjsonRoute: typeof ApiPublicGbfsStation_statusDotjsonRoute
   ApiPublicGbfsSystem_informationDotjsonRoute: typeof ApiPublicGbfsSystem_informationDotjsonRoute
   ApiPublicGbfsVehicle_typesDotjsonRoute: typeof ApiPublicGbfsVehicle_typesDotjsonRoute
+  ApiPublicHooksArchiveLakeRoute: typeof ApiPublicHooksArchiveLakeRoute
   ApiPublicHooksArrivalWatchTickRoute: typeof ApiPublicHooksArrivalWatchTickRoute
   ApiPublicHooksDepartureTickRoute: typeof ApiPublicHooksDepartureTickRoute
   ApiPublicHooksIngestScheduleRoute: typeof ApiPublicHooksIngestScheduleRoute
@@ -2042,6 +2056,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksArrivalWatchTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/archive-lake': {
+      id: '/api/public/hooks/archive-lake'
+      path: '/api/public/hooks/archive-lake'
+      fullPath: '/api/public/hooks/archive-lake'
+      preLoaderRoute: typeof ApiPublicHooksArchiveLakeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/gbfs/vehicle_types.json': {
       id: '/api/public/gbfs/vehicle_types.json'
       path: '/api/public/gbfs/vehicle_types.json'
@@ -2202,6 +2223,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicGbfsSystem_informationDotjsonRoute,
   ApiPublicGbfsVehicle_typesDotjsonRoute:
     ApiPublicGbfsVehicle_typesDotjsonRoute,
+  ApiPublicHooksArchiveLakeRoute: ApiPublicHooksArchiveLakeRoute,
   ApiPublicHooksArrivalWatchTickRoute: ApiPublicHooksArrivalWatchTickRoute,
   ApiPublicHooksDepartureTickRoute: ApiPublicHooksDepartureTickRoute,
   ApiPublicHooksIngestScheduleRoute: ApiPublicHooksIngestScheduleRoute,
