@@ -131,15 +131,13 @@ async function runFromRequest(request: Request) {
 
   try {
     const snapshots = await archiveTable("rt_snapshots", "captured_at", 1, R2, s3);
-    const pulses = await archiveTable("pulse_signals", "fetched_at", 1, R2, s3);
-    const arrivals = await archiveTable("observed_arrivals", "last_seen_at", 1, R2, s3);
+    const arrivals = await archiveTable("observed_arrivals", "last_seen_at", 7, R2, s3);
 
     return json({
       ok: true,
       message: "Data Lake archival completed",
       archived: {
         rt_snapshots: snapshots,
-        pulse_signals: pulses,
         observed_arrivals: arrivals
       }
     });

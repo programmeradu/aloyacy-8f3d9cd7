@@ -32,8 +32,7 @@ export async function archiveLakeDirect(env: Env): Promise<{ ok: boolean; archiv
 
   const tables = [
     { name: "rt_snapshots", timeColumn: "captured_at", days: 1 },
-    { name: "pulse_signals", timeColumn: "fetched_at", days: 1 },
-    { name: "observed_arrivals", timeColumn: "last_seen_at", days: 1 },
+    { name: "observed_arrivals", timeColumn: "last_seen_at", days: 7 },
   ];
 
   const headers: Record<string, string> = {
