@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
+import { isPasskeySupported, authenticateWithPasskey } from "@/lib/passkeys.browser";
 import { useServerFn } from "@tanstack/react-start";
 import { Fingerprint } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { requestEmailOtp, linkEmailAndRequestOtp } from "@/lib/otp.functions";
 import { useAuth } from "@/lib/useAuth";
 import { useI18n } from "@/lib/i18n";
-import { isPasskeySupported, authenticateWithPasskey } from "@/lib/passkeys.client";
 import { getPasskeyAuthOptions, verifyPasskeyAuthentication } from "@/lib/passkeys.functions";
 
 export function AuthSheet({
