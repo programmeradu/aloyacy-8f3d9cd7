@@ -68,6 +68,7 @@
   },
   "dependencies": {
     "@aloya/core": "workspace:*",
+    "@aws-sdk/client-s3": "^3.1116.0",
     "@googlemaps/markerclusterer": "^2.6.2",
     "@lovable.dev/email-js": "^0.0.4",
     "@lovable.dev/mcp-js": "^0.20.0",

@@ -91,7 +91,7 @@ export function planFor(cron: string, scheduledTime: number): { jobs: Job[]; sta
   if (cron === "*/15 * * * *") return { jobs: QUARTER_HOUR_JOBS, staggerMs: 10_000 };
   if (cron === "*/30 * * * *") return { jobs: HALF_HOUR_JOBS, staggerMs: 15_000 };
   if (cron === "17 * * * *") return { jobs: HOURLY_JOBS, staggerMs: 15_000 };
-  if (cron === "0 3 * * *") return { jobs: NIGHTLY_JOBS, staggerMs: 60_000 };
+  if (cron === "0 3 * * *" || cron === "17 9 * * *") return { jobs: NIGHTLY_JOBS, staggerMs: 60_000 };
 
   // Default: the every-minute loop — must finish well inside 60s.
   const minute = new Date(scheduledTime).getUTCMinutes();

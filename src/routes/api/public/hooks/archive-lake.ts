@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createLogger } from "@/lib/logger";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+const log = createLogger("archive-lake");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -24,9 +28,9 @@ function guard(request: Request) {
   return null;
 }
 
-export async function archiveTable(tableName: string, daysOld: number, bucket: any) {
-  if (!bucket) {
-    console.warn(`[archive] Skipping ${tableName} - DATA_LAKE bucket not found in environment.`);
+export async function archiveTable(tableName: string, daysOld: number, bucket: any, s3?: S3Client) {
+  if (!bucket && !s3) {
+    log.warn(`Skipping ${tableName} - DATA_LAKE bucket not found in environment.`);
     return 0;
   }
   
@@ -43,7 +47,7 @@ export async function archiveTable(tableName: string, daysOld: number, bucket: a
       .limit(5000);
 
     if (error) {
-      console.error(`[archive] Error fetching ${tableName}:`, error);
+      log.error({ err: error }, `Error fetching ${tableName}`);
       break;
     }
     
@@ -55,7 +59,16 @@ export async function archiveTable(tableName: string, daysOld: number, bucket: a
     const timestamp = new Date().getTime();
     const objectKey = `${tableName}/${dateThreshold.toISOString().split("T")[0]}/${timestamp}.jsonl`;
 
-    await bucket.put(objectKey, jsonl);
+    if (s3) {
+      await s3.send(new PutObjectCommand({
+        Bucket: "aloya-data-lake",
+        Key: objectKey,
+        Body: jsonl,
+        ContentType: "application/jsonl"
+      }));
+    } else {
+      await bucket.put(objectKey, jsonl);
+    }
     
     const ids = data.map((row: any) => row.id).filter(Boolean);
     if (ids.length > 0) {
@@ -79,15 +92,35 @@ async function runFromRequest(request: Request) {
   const denied = guard(request);
   if (denied) return denied;
 
-  const R2 = (process.env as any).DATA_LAKE;
+  let R2 = (process.env as any).DATA_LAKE;
+  let s3: S3Client | undefined;
+
+  // If R2 binding is missing (e.g. Lovable deployment), fallback to standard S3 API using AWS credentials
   if (!R2) {
-    return json({ ok: false, error: "DATA_LAKE R2 binding not found" }, 500);
+    const accountId = process.env.R2_ACCOUNT_ID;
+    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+    
+    if (accountId && accessKeyId && secretAccessKey) {
+      s3 = new S3Client({
+        region: "auto",
+        endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+        credentials: {
+          accessKeyId,
+          secretAccessKey,
+        },
+      });
+    }
+  }
+
+  if (!R2 && !s3) {
+    return json({ ok: false, error: "Neither DATA_LAKE R2 binding nor S3 credentials found" }, 500);
   }
 
   try {
-    const snapshots = await archiveTable("rt_snapshots", 7, R2);
-    const pulses = await archiveTable("pulse_signals", 7, R2);
-    const arrivals = await archiveTable("observed_arrivals", 7, R2);
+    const snapshots = await archiveTable("rt_snapshots", 7, R2, s3);
+    const pulses = await archiveTable("pulse_signals", 7, R2, s3);
+    const arrivals = await archiveTable("observed_arrivals", 7, R2, s3);
 
     return json({
       ok: true,
