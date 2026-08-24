@@ -3,13 +3,25 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 import { brokeredPreviewStorage } from "./previewAuthStorage";
 
+const DEFAULT_SUPABASE_URL = "https://fofxzpjmpozdnkoqkojc.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvZnh6cGptcG96ZG5rb3Frb2pjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NjM4MTUsImV4cCI6MjEwMzEzOTgxNX0.7r-9CPkkb9BuOEA14c89zTRqCmA7wYqtJzv39ehC-hg";
+
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
   const CUSTOM_SUPABASE_URL =
-    import.meta.env.VITE_CUSTOM_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL || process.env.CUSTOM_SUPABASE_URL || process.env.SUPABASE_URL;
+    import.meta.env.VITE_CUSTOM_SUPABASE_URL ||
+    import.meta.env.VITE_SUPABASE_URL ||
+    process.env.CUSTOM_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    DEFAULT_SUPABASE_URL;
   const CUSTOM_SUPABASE_ANON_KEY =
-    import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+    import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY ||
+    import.meta.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.CUSTOM_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
+    DEFAULT_SUPABASE_ANON_KEY;
 
   if (!CUSTOM_SUPABASE_URL || !CUSTOM_SUPABASE_ANON_KEY) {
     const missing = [
