@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("archive-lake");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -26,7 +29,7 @@ function guard(request: Request) {
 
 export async function archiveTable(tableName: string, daysOld: number, bucket: any) {
   if (!bucket) {
-    console.warn(`[archive] Skipping ${tableName} - DATA_LAKE bucket not found in environment.`);
+    log.warn(`Skipping ${tableName} - DATA_LAKE bucket not found in environment.`);
     return 0;
   }
   
@@ -43,7 +46,7 @@ export async function archiveTable(tableName: string, daysOld: number, bucket: a
       .limit(5000);
 
     if (error) {
-      console.error(`[archive] Error fetching ${tableName}:`, error);
+      log.error({ err: error }, `Error fetching ${tableName}`);
       break;
     }
     

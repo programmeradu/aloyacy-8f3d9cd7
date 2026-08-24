@@ -21,6 +21,7 @@ export type Job = { path: string; label: string };
 export const MINUTE_JOBS: Job[] = [
   { path: "/api/public/snapshot", label: "snapshot" },
   { path: "/api/public/trip-alerts", label: "trip-alerts" },
+  { path: "/api/public/hooks/archive-lake", label: "archive-lake" },
 ];
 
 export const EVEN_MINUTE_JOBS: Job[] = [
