@@ -5,7 +5,7 @@ import {
   isPasskeySupported,
   hasDismissedPasskeyPrompt,
   dismissPasskeyPrompt,
-} from "../passkeys.client";
+} from "../passkeys.browser";
 
 describe("Passkeys utilities", () => {
   beforeEach(() => {

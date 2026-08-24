@@ -7,7 +7,7 @@ import {
   hasDismissedPasskeyPrompt,
   dismissPasskeyPrompt,
   registerPasskey,
-} from "@/lib/passkeys.client";
+} from "@/lib/passkeys.browser";
 import {
   getPasskeyRegistrationOptions,
   verifyPasskeyRegistration,

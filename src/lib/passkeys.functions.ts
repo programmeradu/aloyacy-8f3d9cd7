@@ -5,7 +5,12 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+// `user_passkeys` is not in the generated Database types yet; use an untyped
+// handle for that table only so the rest of the file keeps full typing.
+const passkeyDb = supabaseAdmin as unknown as SupabaseClient;
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("passkeys");
@@ -70,7 +75,7 @@ export const getPasskeyRegistrationOptions = createServerFn({ method: "POST" })
       const { rpName, rpID } = getRpConfig(data.origin);
 
       // Fetch user's existing passkeys to prevent re-registering the same credential
-      const { data: existingPasskeys } = await supabaseAdmin
+      const { data: existingPasskeys } = await passkeyDb
         .from("user_passkeys")
         .select("credential_id")
         .eq("user_id", data.userId);
@@ -140,7 +145,7 @@ export const verifyPasskeyRegistration = createServerFn({ method: "POST" })
 
       const deviceName = data.deviceName || (credentialDeviceType === "singleDevice" ? "Platform Passkey" : "Synced Passkey");
 
-      const { error: dbError } = await supabaseAdmin.from("user_passkeys").insert({
+      const { error: dbError } = await passkeyDb.from("user_passkeys").insert({
         user_id: data.userId,
         credential_id: credentialID,
         public_key: publicKey,
@@ -175,20 +180,21 @@ export const getPasskeyAuthOptions = createServerFn({ method: "POST" })
 
       if (data.email) {
         // Optional: filter by user's registered credentials if email is provided
-        const { data: userProfile } = await supabaseAdmin
+        const { data: userProfile } = await passkeyDb
           .from("user_profiles")
           .select("id")
           .eq("email", data.email.trim().toLowerCase())
           .single();
 
-        if (userProfile?.id) {
-          const { data: passkeys } = await supabaseAdmin
+        const profileId = (userProfile as { id?: string } | null)?.id;
+        if (profileId) {
+          const { data: passkeys } = await passkeyDb
             .from("user_passkeys")
             .select("credential_id, transports")
-            .eq("user_id", userProfile.id);
+            .eq("user_id", profileId);
 
           if (passkeys && passkeys.length > 0) {
-            allowCredentials = passkeys.map((p) => ({
+            allowCredentials = passkeys.map((p: { credential_id: string; transports?: unknown }) => ({
               id: p.credential_id,
               transports: p.transports as any,
             }));
@@ -231,9 +237,9 @@ export const verifyPasskeyAuthentication = createServerFn({ method: "POST" })
       const credentialID = data.response.id;
 
       // Lookup stored credential
-      const { data: passkey, error: pkError } = await supabaseAdmin
+      const { data: passkey, error: pkError } = await passkeyDb
         .from("user_passkeys")
-        .select("id, user_id, public_key, counter")
+        .select("id, user_id, public_key, counter, credential_id")
         .eq("credential_id", credentialID)
         .single();
 
@@ -267,7 +273,7 @@ export const verifyPasskeyAuthentication = createServerFn({ method: "POST" })
       }
 
       // Update counter and last_used_at
-      await supabaseAdmin
+      await passkeyDb
         .from("user_passkeys")
         .update({
           counter: verification.authenticationInfo.newCounter,
