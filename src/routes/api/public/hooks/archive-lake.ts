@@ -31,7 +31,7 @@ function guard(request: Request) {
 export async function archiveTable(
   tableName: string,
   timeColumn = "created_at",
-  daysOld = 7,
+  daysOld = 1,
   bucket: any = null,
   s3?: S3Client,
 ) {
@@ -130,9 +130,9 @@ async function runFromRequest(request: Request) {
   }
 
   try {
-    const snapshots = await archiveTable("rt_snapshots", "captured_at", 7, R2, s3);
-    const pulses = await archiveTable("pulse_signals", "fetched_at", 7, R2, s3);
-    const arrivals = await archiveTable("observed_arrivals", "last_seen_at", 7, R2, s3);
+    const snapshots = await archiveTable("rt_snapshots", "captured_at", 1, R2, s3);
+    const pulses = await archiveTable("pulse_signals", "fetched_at", 1, R2, s3);
+    const arrivals = await archiveTable("observed_arrivals", "last_seen_at", 1, R2, s3);
 
     return json({
       ok: true,

@@ -47,6 +47,7 @@ export const HALF_HOUR_JOBS: Job[] = [
 export const HOURLY_JOBS: Job[] = [
   { path: "/api/public/hooks/pulse-news", label: "pulse-news" },
   { path: "/lovable/email/queue/process", label: "email-queue" },
+  { path: "/api/public/hooks/archive-lake", label: "archive-lake" },
 ];
 
 export const NIGHTLY_JOBS: Job[] = [
