@@ -13,6 +13,7 @@ export interface Env {
   TARGET_URL?: string;
   CUSTOM_SUPABASE_ANON_KEY?: string;
   CRON_SECRET?: string;
+  DATA_LAKE?: any; // R2Bucket binding
 }
 
 export type Job = { path: string; label: string };
@@ -53,6 +54,7 @@ export const NIGHTLY_JOBS: Job[] = [
   { path: "/api/public/hooks/pulse-football", label: "pulse-football" },
   { path: "/api/public/hooks/pulse-met-warnings", label: "pulse-met-warnings" },
   { path: "/api/public/hooks/train?mode=full", label: "train-full" },
+  { path: "/api/public/hooks/archive-lake", label: "archive-lake" },
 ];
 
 /** Manual-trigger groups exposed by `GET /?group=...`. */
