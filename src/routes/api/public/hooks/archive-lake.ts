@@ -38,16 +38,22 @@ export async function archiveTable(tableName: string, daysOld: number, bucket: a
   dateThreshold.setDate(dateThreshold.getDate() - daysOld);
   const cutoff = dateThreshold.toISOString();
 
+  // Table names are chosen at call time, so the generated Database union
+  // cannot narrow them — talk to PostgREST through an untyped handle.
+  const db = supabaseAdmin as unknown as {
+    from: (table: string) => any;
+  };
+
   let totalArchived = 0;
   while (true) {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await db
       .from(tableName)
       .select("*")
       .lt("created_at", cutoff)
       .limit(5000);
 
     if (error) {
-      log.error({ err: error }, `Error fetching ${tableName}`);
+      log.error(`Error fetching ${tableName}: ${error.message}`);
       break;
     }
     
@@ -72,9 +78,9 @@ export async function archiveTable(tableName: string, daysOld: number, bucket: a
     
     const ids = data.map((row: any) => row.id).filter(Boolean);
     if (ids.length > 0) {
-      await supabaseAdmin.from(tableName).delete().in("id", ids);
+      await db.from(tableName).delete().in("id", ids);
     } else {
-      await supabaseAdmin.from(tableName).delete().lt("created_at", cutoff);
+      await db.from(tableName).delete().lt("created_at", cutoff);
       break;
     }
 
