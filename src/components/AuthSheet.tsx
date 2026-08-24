@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { Fingerprint } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { requestEmailOtp, linkEmailAndRequestOtp } from "@/lib/otp.functions";
 import { useAuth } from "@/lib/useAuth";
 import { useI18n } from "@/lib/i18n";
+import { isPasskeySupported, authenticateWithPasskey } from "@/lib/passkeys.client";
+import { getPasskeyAuthOptions, verifyPasskeyAuthentication } from "@/lib/passkeys.functions";
 
 export function AuthSheet({
   open,
@@ -21,15 +24,52 @@ export function AuthSheet({
   const [code, setCode] = useState("");
   const [stage, setStage] = useState<"email" | "code">("email");
   const [busy, setBusy] = useState(false);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+  const [passkeySupported, setPasskeySupported] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const sendOtp = useServerFn(requestEmailOtp);
   const linkOtp = useServerFn(linkEmailAndRequestOtp);
+  const getAuthOptionsFn = useServerFn(getPasskeyAuthOptions);
+  const verifyAuthFn = useServerFn(verifyPasskeyAuthentication);
   const { isAnonymous } = useAuth();
+
+  useEffect(() => {
+    if (!open) return;
+    let isMounted = true;
+    isPasskeySupported().then((avail) => {
+      if (isMounted) setPasskeySupported(avail);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [open]);
 
   if (!open) return null;
 
   const titleText = title ?? t("auth.title");
   const subtitleText = subtitle ?? t("auth.subtitle");
+
+  async function handlePasskeySignIn() {
+    setPasskeyBusy(true);
+    setError(null);
+    try {
+      const res = await authenticateWithPasskey(
+        getAuthOptionsFn,
+        verifyAuthFn,
+        email.trim() || undefined,
+      );
+      if (res.ok) {
+        onClose();
+      } else {
+        setError(res.error);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Passkey sign-in failed");
+    } finally {
+      setPasskeyBusy(false);
+    }
+  }
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -45,16 +85,13 @@ export function AuthSheet({
           setStage("code");
           return;
         }
-        // Linking failed — the email may already belong to another account,
-        // this session may no longer be anonymous, or the admin update itself
-        // errored. In every case plain sign-in still gets the rider in, so
-        // fall back rather than dead-ending them on a raw backend message.
+        // Linking failed — fall back to plain sign-in
         const r2 = await sendOtp({ data: { email: trimmed } });
         if (!r2.ok) throw new Error(r2.error);
         setStage("code");
         return;
       }
-      // Already permanent (rare here) — plain sign-in.
+      // Already permanent — plain sign-in.
       const r = await sendOtp({ data: { email: trimmed } });
       if (!r.ok) throw new Error(r.error);
       setStage("code");
@@ -100,32 +137,55 @@ export function AuthSheet({
         </p>
 
         {stage === "email" ? (
-          <form onSubmit={sendCode} className="mt-6 space-y-3">
-            <input
-              type="email"
-              required
-              autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={t("auth.emailPlaceholder")}
-              className="w-full rounded-2xl border border-line bg-white px-4 py-3 text-base text-ink placeholder:text-ink-soft/60 focus:border-aegean-deep focus:outline-none"
-            />
-            {error && <p className="text-xs text-ochre-deep">{error}</p>}
-            <button
-              type="submit"
-              disabled={busy || !email}
-              className="w-full rounded-2xl bg-ink py-3 text-sm font-medium text-limestone disabled:opacity-50"
-            >
-              {busy ? t("auth.sending") : t("auth.send")}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full py-2 text-xs font-mono uppercase tracking-[0.16em] text-ink-soft"
-            >
-              {t("auth.notNow")}
-            </button>
-          </form>
+          <div className="mt-6 space-y-4">
+            {passkeySupported && (
+              <div>
+                <button
+                  type="button"
+                  disabled={passkeyBusy}
+                  onClick={handlePasskeySignIn}
+                  className="flex w-full items-center justify-center gap-2.5 rounded-2xl border border-line bg-white py-3 text-sm font-semibold text-ink shadow-sm transition hover:bg-line/20 disabled:opacity-50"
+                >
+                  <Fingerprint className="h-4 w-4 text-aegean-deep" />
+                  {passkeyBusy ? "Authenticating..." : "Sign in with Passkey / Face ID"}
+                </button>
+
+                <div className="relative my-4 flex items-center justify-center">
+                  <div className="w-full border-t border-line" />
+                  <span className="absolute bg-limestone px-3 text-[11px] font-medium uppercase tracking-wider text-ink-soft">
+                    or with email
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={sendCode} className="space-y-3">
+              <input
+                type="email"
+                required
+                autoFocus={!passkeySupported}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("auth.emailPlaceholder")}
+                className="w-full rounded-2xl border border-line bg-white px-4 py-3 text-base text-ink placeholder:text-ink-soft/60 focus:border-aegean-deep focus:outline-none"
+              />
+              {error && <p className="text-xs text-ochre-deep">{error}</p>}
+              <button
+                type="submit"
+                disabled={busy || !email}
+                className="w-full rounded-2xl bg-ink py-3 text-sm font-medium text-limestone disabled:opacity-50"
+              >
+                {busy ? t("auth.sending") : t("auth.send")}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-2 text-xs font-mono uppercase tracking-[0.16em] text-ink-soft"
+              >
+                {t("auth.notNow")}
+              </button>
+            </form>
+          </div>
         ) : (
           <form onSubmit={verifyCode} className="mt-6 space-y-3">
             <input
