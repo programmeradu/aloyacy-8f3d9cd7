@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const CORS = {
@@ -24,7 +24,7 @@ function guard(request: Request) {
   return null;
 }
 
-async function archiveTable(tableName: string, daysOld: number, bucket: any) {
+export async function archiveTable(tableName: string, daysOld: number, bucket: any) {
   if (!bucket) {
     console.warn(`[archive] Skipping ${tableName} - DATA_LAKE bucket not found in environment.`);
     return 0;
