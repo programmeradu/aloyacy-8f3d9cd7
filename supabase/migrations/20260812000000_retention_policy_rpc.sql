@@ -56,9 +56,9 @@ begin
   end if;
 
   -- Retention Policy: Cleanup old data
-  delete from rt_snapshots where captured_at < now() - interval '2 hours';
-  delete from observed_arrivals where last_seen_at < now() - interval '7 days';
-  delete from rider_vehicle_fixes where reported_at < now() - interval '7 days';
-  delete from bus_sightings where reported_at < now() - interval '7 days';
+  delete from rt_snapshots where captured_at < now() - interval '30 minutes';
+  delete from observed_arrivals where last_seen_at < now() - interval '2 days';
+  delete from rider_vehicle_fixes where reported_at < now() - interval '2 days';
+  delete from bus_sightings where reported_at < now() - interval '2 days';
 end;
 $$;

@@ -94,6 +94,9 @@ begin
       sample_count = least(d.sample_count + excluded.sample_count, 100000),
       updated_at   = now();
   end if;
+
+  -- Inline Automatic Retention: purge raw snapshots older than 30 minutes on every minute tick
+  delete from rt_snapshots where captured_at < now() - interval '30 minutes';
 end;
 $$;
 

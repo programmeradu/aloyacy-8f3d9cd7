@@ -3,9 +3,9 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 import { brokeredPreviewStorage } from "./previewAuthStorage";
 
-const DEFAULT_SUPABASE_URL = "https://fofxzpjmpozdnkoqkojc.supabase.co";
+const DEFAULT_SUPABASE_URL = "https://mjyvihhgwtqpltbddits.supabase.co";
 const DEFAULT_SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvZnh6cGptcG96ZG5rb3Frb2pjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NjM4MTUsImV4cCI6MjEwMzEzOTgxNX0.7r-9CPkkb9BuOEA14c89zTRqCmA7wYqtJzv39ehC-hg";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qeXZpaGhnd3RxcGx0YmRkaXRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1ODIyMTYsImV4cCI6MjEwMzE1ODIxNn0.a-yBLBpeczw2BGEvxzk6Z2eWK3hYoAGtPNgGZzqMl2w";
 
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
