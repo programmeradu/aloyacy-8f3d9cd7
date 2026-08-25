@@ -21,7 +21,21 @@ function load(): Promise<typeof google> {
   if (!KEY) return Promise.reject(new Error("missing maps key"));
 
   window.__aloyaGmapsPromise = new Promise((resolve, reject) => {
-    window.__aloyaGmapsInit = () => resolve(window.google!);
+    // With `loading=async` the bootstrap callback fires before the core
+    // `maps` library is attached, so `new google.maps.Map(...)` throws
+    // "Map is not a constructor" on first mount. Import the libraries we
+    // use before resolving so every consumer sees a fully-ready SDK.
+    window.__aloyaGmapsInit = async () => {
+      try {
+        await Promise.all([
+          window.google!.maps.importLibrary("maps"),
+          window.google!.maps.importLibrary("geometry"),
+        ]);
+        resolve(window.google!);
+      } catch (e) {
+        reject(e instanceof Error ? e : new Error(String(e)));
+      }
+    };
     const s = document.createElement("script");
     s.src = `https://maps.googleapis.com/maps/api/js?key=${KEY}&loading=async&callback=__aloyaGmapsInit&libraries=geometry&channel=${CHANNEL ?? ""}`;
     s.async = true;
@@ -29,6 +43,7 @@ function load(): Promise<typeof google> {
     s.onerror = () => reject(new Error("maps script failed"));
     document.head.appendChild(s);
   });
+
   return window.__aloyaGmapsPromise;
 }
 
