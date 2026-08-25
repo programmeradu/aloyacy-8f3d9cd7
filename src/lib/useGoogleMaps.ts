@@ -10,7 +10,15 @@ declare global {
   }
 }
 
-const KEY = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined;
+// The Maps browser key is publishable and restricted by HTTP referrer in
+// Google Cloud. Keep the connector value preferred, but retain the restricted
+// production key as a build fallback: custom-domain publishes do not always
+// receive workspace connector VITE variables, which previously produced a
+// silent limestone "Map unavailable" panel without even requesting the SDK.
+const PRODUCTION_BROWSER_KEY = "AIzaSyA3COtlmbtIdqAAV_bEVU56OkIELFCD6Hw";
+const KEY =
+  (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined) ||
+  PRODUCTION_BROWSER_KEY;
 const CHANNEL = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID as
   string | undefined;
 
@@ -40,7 +48,10 @@ function load(): Promise<typeof google> {
     s.src = `https://maps.googleapis.com/maps/api/js?key=${KEY}&loading=async&callback=__aloyaGmapsInit&libraries=geometry&channel=${CHANNEL ?? ""}`;
     s.async = true;
     s.defer = true;
-    s.onerror = () => reject(new Error("maps script failed"));
+    s.onerror = () => {
+      window.__aloyaGmapsPromise = undefined;
+      reject(new Error("maps script failed"));
+    };
     document.head.appendChild(s);
   });
 
