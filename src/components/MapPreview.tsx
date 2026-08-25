@@ -99,19 +99,30 @@ export function MapPreview({
   const focused = !!(focusTripId || focusRouteId);
   const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
 
-  // Initialize map once API is ready
+  // Initialize map once API is ready. If the SDK core is still settling the
+  // constructor can throw on the first attempt — retry on the next frame
+  // instead of leaving an empty limestone box for the rest of the session.
+  const [initAttempt, setInitAttempt] = useState(0);
   useEffect(() => {
     if (!api || !hostRef.current || mapRef.current) return;
-    mapRef.current = new api.maps.Map(hostRef.current, {
-      center,
-      zoom: spanToZoom(spanKm),
-      disableDefaultUI: true,
-      gestureHandling: "greedy",
-      backgroundColor: "#f3ede1",
-      styles: ALOYA_MAP_STYLE,
-      clickableIcons: false,
-    });
-  }, [api]); // eslint-disable-line react-hooks/exhaustive-deps
+    try {
+      mapRef.current = new api.maps.Map(hostRef.current, {
+        center,
+        zoom: spanToZoom(spanKm),
+        disableDefaultUI: true,
+        gestureHandling: "greedy",
+        backgroundColor: "#f3ede1",
+        styles: ALOYA_MAP_STYLE,
+        clickableIcons: false,
+      });
+    } catch {
+      if (initAttempt < 20) {
+        const id = window.setTimeout(() => setInitAttempt((n) => n + 1), 150);
+        return () => window.clearTimeout(id);
+      }
+    }
+  }, [api, initAttempt]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   const { expanded, fallbackOverlay, wrapperRef, toggleFullscreen } = useMapFullscreen(api, mapRef);
 
