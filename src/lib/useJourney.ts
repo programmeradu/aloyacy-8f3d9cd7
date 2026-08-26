@@ -41,6 +41,19 @@ import {
 
 const SEQUENCES = ROUTE_SEQUENCES as Record<string, string[]>;
 
+/** Calm placeholder used before tracking starts. */
+const IDLE_COUNTDOWN: AlightCountdown = {
+  stage: "cruising",
+  stopsRemaining: null,
+  metersToAlight: null,
+  atStop: false,
+  currentStop: null,
+  nextStop: null,
+  upcoming: [],
+  alightStop: null,
+  hasSequence: false,
+};
+
 import type { JourneyPhase } from "./journey-phase";
 export type { JourneyPhase } from "./journey-phase";
 
@@ -256,6 +269,36 @@ export function useJourney(opts: {
     const fusionAlightLoc =
       walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
 
+    // ---- Stop-aware alighting countdown ---------------------------------
+    // Counting stops, not seconds. While riding, the best available bus
+    // position is the feed vehicle; when the feed drops it, the rider's own
+    // phone IS the bus, so it stands in.
+    const ridingNow = !!live?.onBoardConfirmedAt && !live?.alightedAt;
+    const busPosition = vehicle
+      ? { lat: vehicle.lat, lng: vehicle.lng }
+      : ridingNow && fix
+        ? { lat: fix.lat, lng: fix.lng }
+        : null;
+    const alight = ridingNow
+      ? computeAlightCountdown({
+          sequence: sequenceForTrip(
+            SEQUENCES,
+            bus.routeId,
+            bus.board.stopId,
+            bus.alight.stopId,
+          ),
+          alightStopId: bus.alight.stopId,
+          boardStopId: bus.board.stopId,
+          getStop: (id) => {
+            const st = getStop(id);
+            return st ? { name: st.name, lat: st.lat, lng: st.lng } : null;
+          },
+          position: busPosition,
+          speedMps: vehicle ? null : (fix?.speedMps ?? null),
+          alightLoc: fusionAlightLoc,
+        })
+      : IDLE_COUNTDOWN;
+
     const { phase, onBoardSuggested, missedSuggested } = resolveLivePhase({
       nowUnix: now,
       fix,
@@ -269,6 +312,7 @@ export function useJourney(opts: {
       onBoardConfirmedAt: live?.onBoardConfirmedAt ?? null,
       missedAt: live?.missedAt ?? null,
       alightedAt: live?.alightedAt ?? null,
+      stopsRemaining: alight.hasSequence ? alight.stopsRemaining : null,
     });
 
     // GPS × feed fusion, on-board only: once the rider confirms, the phone IS
