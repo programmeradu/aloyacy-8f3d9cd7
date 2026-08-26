@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { scoreItinerary } from "./plan-score";
 import {
   pruneDominated,
   buildTripIndex,
@@ -8,7 +9,6 @@ import {
   lastEndUnix,
   makeId,
   rankItineraries,
-  scoreItinerary,
   searchMultiLeg,
   walkSecFromMeters,
   type MlArrival,
