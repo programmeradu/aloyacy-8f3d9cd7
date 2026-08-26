@@ -468,8 +468,9 @@ export function rankItineraries(candidates: Itinerary[], diag: MultiLegDiagnosti
 
   let kept = [...dedup.values()];
   const beforePrune = kept.length;
-  kept = applyDirectPreference(kept);
+  kept = pruneDominated(kept);
   diag.prunedMediocre = beforePrune - kept.length;
+
 
   kept.sort((a, b) => a.score - b.score);
   const top = kept.slice(0, TOP_K_RESULTS);
