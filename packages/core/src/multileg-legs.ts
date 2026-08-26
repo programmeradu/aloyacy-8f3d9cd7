@@ -76,7 +76,14 @@ export type MultiLegInput = {
   transferIndex: Map<string, Array<{ toStopId: string }>>;
   /** Seconds since epoch; injected so tests are deterministic. */
   now: number;
+  /** True when two stop records are bays of the same physical station. */
+  sameStation?: (aStopId: string, bStopId: string) => boolean;
+  /** Station id for a stop record, used to spread candidates across bays. */
+  stationIdOf?: (stopId: string) => string | undefined;
+  /** Typical seconds between departures on a route, when known. */
+  headwayOf?: (routeId: string) => number | null;
 };
+
 
 export type MultiLegDiagnostics = {
   originStopCount: number;
