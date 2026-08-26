@@ -17,6 +17,14 @@ export const TOP_ALIGHT_CANDIDATES_PER_TRIP = 12;
 export const MIN_TRANSFER_BUFFER_SEC = 90;
 export const MAX_TOTAL_JOURNEY_SEC = 90 * 60; // 90 min hard cap
 export const TOP_K_RESULTS = 5;
+/**
+ * A transfer must deliver a material door-to-door improvement before it may
+ * displace a no-change journey. Changes are fragile in live traffic and cost
+ * more than two nominal minutes of inconvenience; five minutes is the minimum
+ * advantage riders can actually feel and trust.
+ */
+export const MIN_TRANSFER_SAVINGS_SEC = 5 * 60;
+export const MIN_TRANSFER_SAVINGS_RATIO = 0.2;
 
 export const WALK_M_PER_S = 1.35;
 export const WALK_DETOUR = 1.35;
@@ -382,7 +390,7 @@ export function rankItineraries(candidates: Itinerary[], diag: MultiLegDiagnosti
     if (!existing || it.score < existing.score) dedup.set(key, it);
   }
 
-  // A transfer must beat the best direct by >= 3 min or >= 15%.
+  // Preserve a direct journey unless changing buses is materially quicker.
   const bestDirect = [...dedup.values()]
     .filter((it) => it.transfers === 0)
     .reduce<Itinerary | null>((best, it) => (!best || it.score < best.score ? it : best), null);
@@ -394,7 +402,7 @@ export function rankItineraries(candidates: Itinerary[], diag: MultiLegDiagnosti
       if (it.transfers === 0) return true;
       const margin = bestDirect.totalDurationSec - it.totalDurationSec;
       const pct = margin / bestDirect.totalDurationSec;
-      return margin >= 180 || pct >= 0.15;
+      return margin >= MIN_TRANSFER_SAVINGS_SEC && pct >= MIN_TRANSFER_SAVINGS_RATIO;
     });
   }
   diag.prunedMediocre = beforePrune - kept.length;

@@ -9,7 +9,7 @@
 // Invariants enforced here (not in the UI):
 //   T2.departure(X) >= T1.arrival(S) + walk(S→X) + MIN_TRANSFER_BUFFER_SEC
 //   totalDuration <= MAX_TOTAL_JOURNEY_SEC
-//   a transfer must beat the best direct by >= 3 min or >= 15%
+//   a transfer must beat the best direct by >= 5 min and >= 20%
 
 import type { Itinerary, Leg } from "./itinerary-types";
 import {

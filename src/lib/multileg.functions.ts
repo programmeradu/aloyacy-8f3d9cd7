@@ -19,6 +19,10 @@ import type { Itinerary, RideLeg } from "./itinerary-types";
 import { annotateRationales } from "./itinerary-rationale";
 import { applyAccessibilityWeights } from "./accessibility-weights";
 import { createLogger } from "./logger";
+import {
+  MIN_TRANSFER_SAVINGS_RATIO,
+  MIN_TRANSFER_SAVINGS_SEC,
+} from "@aloya/core/multileg-search";
 
 const log = createLogger("multileg");
 
@@ -244,7 +248,9 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     }
     const afterDedup = dedup.size;
 
-    // No-mediocrity: a transfer itinerary must beat best direct by ≥ 3min or ≥ 15%.
+    // Keep the no-change option unless a transfer delivers a clear, meaningful
+    // door-to-door saving. Reapply this after merging live + scheduled results
+    // because each planner only sees its own candidate pool.
     const all = [...dedup.values()];
     const bestDirect = all
       .filter((it) => it.transfers === 0)
@@ -255,7 +261,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
         if (it.transfers === 0) return true;
         const margin = bestDirect.totalDurationSec - it.totalDurationSec;
         const pct = margin / bestDirect.totalDurationSec;
-        return margin >= 180 || pct >= 0.15;
+        return margin >= MIN_TRANSFER_SAVINGS_SEC && pct >= MIN_TRANSFER_SAVINGS_RATIO;
       });
     }
     const prunedMediocre = afterDedup - kept.length;
