@@ -415,12 +415,66 @@ export function useJourney(opts: {
     if (next.confirm) patchActiveTripLive({ onBoardConfirmedAt: Date.now() });
   }, [result.active, bus, fix, live, walkIn]);
 
+  // ---- GPS-based auto-detection of alighting -------------------------------
+  // Riders forget to press "I'm off". Once they have visibly separated from
+  // the bus at walking pace we close the ride ourselves, which is what flips
+  // the guidance over to walking from wherever they actually stand.
+  const offSinceRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!result.active || !bus) return;
+    if (!live?.onBoardConfirmedAt || live?.alightedAt) {
+      offSinceRef.current = null;
+      return;
+    }
+    const vehicle = rt?.vehicles.find((v) => v.tripId === bus.tripId) ?? null;
+    const alightLoc =
+      walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
+    const next = shouldAutoConfirmAlighting({
+      fix,
+      vehicle: vehicle ? { lat: vehicle.lat, lng: vehicle.lng } : null,
+      alightLoc,
+      nearAlight:
+        result.alight.stage === "press-now" ||
+        result.alight.stage === "alighting" ||
+        result.alight.stage === "passed",
+      offSinceMs: offSinceRef.current,
+      nowMs: Date.now(),
+    });
+    offSinceRef.current = next.offSinceMs;
+    if (next.confirm) patchActiveTripLive({ alightedAt: Date.now() });
+  }, [result.active, result.alight.stage, bus, fix, live, rt, walkOut]);
+
   // ---- Push alerting on phase transition -----------------------------------
   const sentRef = useRef<Set<string>>(new Set());
   const sendAlert = useServerFn(sendTripAlert);
 
+  // Stop-aware alight cues. These replace the phase-driven "press-stop"
+  // buzz whenever we can count stops, because the phase flips a full stop
+  // earlier than the moment a rider should reach for the bell.
   useEffect(() => {
     if (!result.active || !bus || !active) return;
+    if (!result.alight.hasSequence) return;
+    const cue = alightAlertFor(result.alight.stage, bus.alight.name);
+    if (!cue || sentRef.current.has(cue.key)) return;
+    sentRef.current.add(cue.key);
+    void sendAlert({
+      data: {
+        deviceId: getDeviceId(),
+        kind: cue.kind,
+        routeShort: bus.routeShort,
+        stopName: cue.stopName,
+        ...(result.alight.stopsRemaining != null
+          ? { stops: result.alight.stopsRemaining }
+          : {}),
+        url: `/trip/${active.option.id}`,
+      },
+    }).catch(() => {});
+  }, [result.active, result.alight, active, bus, sendAlert]);
+
+  useEffect(() => {
+    if (!result.active || !bus || !active) return;
+    // When stop counting is live it owns the press-stop buzz.
+    if (result.phase === "alight-soon" && result.alight.hasSequence) return;
     const alert = alertForPhase({
       phase: result.phase,
       onBoardSuggested: result.onBoardSuggested,
