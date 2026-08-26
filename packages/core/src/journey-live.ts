@@ -305,7 +305,7 @@ export function shouldAutoConfirmAlighting(input: {
   if (speed > D.WALKING_SPEED_MPS) return { confirm: false, offSinceMs: null };
 
   let qualifies = false;
-  let holdMs = D.SUSTAINED_SEPARATED_MS;
+  let holdMs: number = D.SUSTAINED_SEPARATED_MS;
 
   if (vehicle) {
     qualifies = distanceM(fix, vehicle) > D.SEPARATION_M;

@@ -21,7 +21,7 @@ import { alightAlertFor } from "@aloya/core/alight-countdown";
 import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
 import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
-import type { FusedFix } from "./geo-fusion";
+import type { LatLng } from "@aloya/core/shapes";
 import type { LiveJourney } from "./useJourney";
 
 type Leg = ActiveTrip["option"]["legs"][number];
@@ -35,7 +35,7 @@ export type JourneySideEffectInput = {
   bus: BusLeg | null | undefined;
   walkIn: Leg | null | undefined;
   walkOut: Leg | null | undefined;
-  fix: FusedFix | null;
+  fix: (LatLng & { speedMps?: number | null }) | null;
   live: ActiveTrip["live"] | null | undefined;
   vehicles: VehicleLite[] | null | undefined;
 };
