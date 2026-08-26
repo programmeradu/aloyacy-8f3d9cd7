@@ -1,7 +1,7 @@
 import type { Itinerary, Leg, RideLeg } from "./itinerary-types";
 import type { LoadedSchedule, ScheduleStop, StopTimeRow, StopTripRow } from "./schedule-loader.server";
 import { serviceDateToUnix } from "./schedule-loader.server";
-import { applyDirectPreference } from "@aloya/core/multileg-search";
+import { pruneDominated } from "@aloya/core/multileg-search";
 import { finalise, walkMetersOnStreet, walkSecFromMeters } from "@aloya/core/raptor-core";
 
 type CandidateStop = { id: string; stop: ScheduleStop; distKm: number };
@@ -131,7 +131,7 @@ export function selectRaptorItineraries(itineraries: Itinerary[], limit: number)
     const existing = bySignature.get(key);
     if (!existing || it.score < existing.score) bySignature.set(key, it);
   }
-  const kept = applyDirectPreference([...bySignature.values()]);
-  kept.sort((a, b) => a.score - b.score);
+  const kept = pruneDominated([...bySignature.values()]);
+  kept.sort((a: Itinerary, b: Itinerary) => a.score - b.score);
   return kept.slice(0, limit);
 }
