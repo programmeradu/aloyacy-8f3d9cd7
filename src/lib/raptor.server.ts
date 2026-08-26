@@ -37,6 +37,23 @@ import { selectCandidateStops } from "@aloya/core/plan-candidates";
 import { distanceKm } from "@aloya/core/multileg-legs";
 import { buildHeadwayIndex } from "@aloya/core/headway";
 import { sameStation, stationIdOf } from "./stations.server";
+import type { PlanContext } from "@aloya/core/raptor-core";
+
+// Headways are a property of the schedule shard, not of one request, so they
+// are measured once per loaded shard and reused for every plan that day.
+const headwayCache = new WeakMap<LoadedSchedule, Map<string, number>>();
+
+function headwayIndexFor(schedule: LoadedSchedule): Map<string, number> {
+  const cached = headwayCache.get(schedule);
+  if (cached) return cached;
+  const samples: Array<{ routeId: string; stopId: string; timeUnix: number }> = [];
+  for (const [stopId, rows] of Object.entries(schedule.stopTrips)) {
+    for (const row of rows) samples.push({ routeId: row[2], stopId, timeUnix: row[1] });
+  }
+  const index = buildHeadwayIndex(samples);
+  headwayCache.set(schedule, index);
+  return index;
+}
 
 // Cross-island journeys can legitimately require a local feeder, an
 // intercity service, and one or two airport-side connections. Three rounds
@@ -130,6 +147,14 @@ export async function planRaptor(
     walkTransfers: 0,
     candidateItineraries: 0,
     reasons: [],
+  };
+
+  // Measured service frequency for this service date, cached per shard: what
+  // a change costs depends on how long the next bus on that route really is.
+  const headways = headwayIndexFor(schedule);
+  const planContext: PlanContext = {
+    sameStation,
+    headwayOf: (routeId) => headways.get(routeId) ?? null,
   };
 
   // 1) Pick origin / destination candidate stops from the schedule's stop set.
@@ -328,13 +353,24 @@ export async function planRaptor(
     departureUnix,
     searchHorizonSec: SEARCH_HORIZON_SEC,
     maxJourneySec: MAX_JOURNEY_SEC,
+    planContext,
   });
   for (let k = 1; k < labels.length; k++) {
     for (const [destStopId, destMeta] of destSet) {
       const label = labels[k].get(destStopId);
       if (!label || label.kind !== "ride") continue;
       // Reconstruct
-      const it = reconstruct(labels, k, destStopId, destMeta, schedule, from, to, departureUnix);
+      const it = reconstruct(
+        labels,
+        k,
+        destStopId,
+        destMeta,
+        schedule,
+        from,
+        to,
+        departureUnix,
+        planContext,
+      );
       if (it) itineraries.push(it);
     }
   }
@@ -483,5 +519,5 @@ function reconstruct(
     verified: false,
   });
 
-  return finalise(legs, departureUnix);
+  return finalise(legs, departureUnix, planContext);
 }

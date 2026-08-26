@@ -2,7 +2,7 @@ import type { Itinerary, Leg, RideLeg } from "./itinerary-types";
 import type { LoadedSchedule, ScheduleStop, StopTimeRow, StopTripRow } from "./schedule-loader.server";
 import { serviceDateToUnix } from "./schedule-loader.server";
 import { pruneDominated } from "@aloya/core/multileg-search";
-import { finalise, walkMetersOnStreet, walkSecFromMeters } from "@aloya/core/raptor-core";
+import { finalise, walkMetersOnStreet, walkSecFromMeters, type PlanContext } from "@aloya/core/raptor-core";
 
 type CandidateStop = { id: string; stop: ScheduleStop; distKm: number };
 
@@ -40,13 +40,15 @@ export function buildDirectRaptorItineraries(input: {
   schedule: LoadedSchedule;
   origins: CandidateStop[];
   directDests: CandidateStop[];
+  planContext?: PlanContext;
   from: { lat: number; lng: number; label?: string };
   to: { lat: number; lng: number; label?: string };
   departureUnix: number;
   searchHorizonSec: number;
   maxJourneySec: number;
 }): Itinerary[] {
-  const { schedule, origins, directDests, from, to, departureUnix, searchHorizonSec, maxJourneySec } = input;
+  const { schedule, origins, directDests, from, to, departureUnix, searchHorizonSec, maxJourneySec, planContext } =
+    input;
   const { date, stops, routes, stopTrips, stopTimes } = schedule;
   const directDestMap = new Map(directDests.map((d) => [d.id, d]));
   const out: Itinerary[] = [];
@@ -116,7 +118,7 @@ export function buildDirectRaptorItineraries(input: {
         distanceMeters: walkMetersOnStreet(alight.dest.distKm * 1000),
         verified: false,
       });
-      out.push(finalise(legs, departureUnix));
+      out.push(finalise(legs, departureUnix, planContext));
     }
   }
 
