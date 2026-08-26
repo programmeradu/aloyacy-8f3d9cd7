@@ -67,13 +67,13 @@ function bestAlightVisits<V extends { stopId: string; arrivalUnix: number }>(
   for (let i = fromIdx + 1; i < visits.length; i++) {
     const d = destMap.get(visits[i].stopId);
     if (!d) continue;
-    const door = visits[i].arrivalUnix + walkSecFromMeters(d.distKm * 1000);
+    const door = visits[i].arrivalUnix + walkSecFromMeters(d.distanceKm * 1000);
     if (door < earliestDoor) {
       earliestDoor = door;
       earliest = { idx: i, stop: d };
     }
-    if (d.distKm < gentlestKm) {
-      gentlestKm = d.distKm;
+    if (d.distanceKm < gentlestKm) {
+      gentlestKm = d.distanceKm;
       gentlest = { idx: i, stop: d };
     }
   }
