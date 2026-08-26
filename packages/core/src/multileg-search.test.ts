@@ -220,8 +220,9 @@ describe("searchMultiLeg", () => {
   });
 
   it("boards a later visit on a circular route when the first visit has passed", () => {
+    const loopFrom = { lat: 35.1555, lng: 33.36, label: "Loop entrance" };
     const { itineraries, diagnostics } = searchMultiLeg({
-      from,
+      from: loopFrom,
       to,
       stops,
       routeById,
