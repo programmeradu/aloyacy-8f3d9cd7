@@ -7,6 +7,8 @@
 // unit-tested without loading a GTFS shard.
 
 import type { Itinerary, Leg, RideLeg, WalkLeg } from "./itinerary-types";
+import { scoreLegs, type PlanContext } from "./multileg-legs";
+export type { PlanContext };
 
 /** Search-shape constants. Shared so web and any future native planner agree. */
 export const RAPTOR_TUNING = {
@@ -14,12 +16,19 @@ export const RAPTOR_TUNING = {
   maxRounds: 5,
   maxAccessWalkKm: 2.0,
   maxEgressWalkKm: 2.0,
-  /** Wider final-stop net used only for one-seat rides. */
+  /**
+   * Widest final-stop net. One radius for every option: a one-seat ride is
+   * kept because nothing beats it, not because it was allowed a longer walk
+   * than its rivals.
+   */
   maxDirectEgressWalkKm: 3.0,
   maxTransferWalkM: 600,
   /** Large terminals expose many bays; keep enough candidates to cover each bay. */
-  topOriginStops: 16,
-  topDestStops: 16,
+  topOriginStops: 8,
+  topDestStops: 8,
+  /** Ceiling once station bays and otherwise-missing routes are admitted. */
+  maxOriginCandidates: 28,
+  maxDestCandidates: 28,
   minTransferBufferSec: 90,
   /** Cross-island + airport connections. */
   maxTotalJourneySec: 300 * 60,
