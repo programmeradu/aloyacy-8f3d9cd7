@@ -171,6 +171,7 @@ export function resolveLivePhase(input: PhaseInput): PhaseResult {
     onBoardConfirmedAt = null,
     missedAt = null,
     alightedAt = null,
+    stopsRemaining = null,
   } = input;
 
   const gpsSpeed = fix?.speedMps ?? 0;
@@ -182,8 +183,18 @@ export function resolveLivePhase(input: PhaseInput): PhaseResult {
     const distToDest = fix && destLoc ? distanceM(fix, destLoc) : Infinity;
     phase = distToDest < T.ARRIVAL_RADIUS_M ? "arrived" : "walking-to-dest";
   } else if (onBoardConfirmedAt) {
-    phase = secsToAlight <= 60 ? "alight-soon" : "on-bus";
+    // Stop count wins whenever we have it; the ETA is only a stand-in for
+    // trips whose stop sequence we can't resolve.
+    phase =
+      stopsRemaining != null
+        ? stopsRemaining <= 1
+          ? "alight-soon"
+          : "on-bus"
+        : secsToAlight <= 60
+          ? "alight-soon"
+          : "on-bus";
   } else if (missedAt) {
+
     phase = "missed-bus";
   } else {
     const distToBoardStop = fix && boardLoc ? distanceM(fix, boardLoc) : Infinity;
