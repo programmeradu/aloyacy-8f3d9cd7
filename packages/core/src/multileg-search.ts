@@ -44,6 +44,45 @@ import {
 export * from "./multileg-legs";
 
 // ---- The search -----------------------------------------------------------
+/**
+ * Pick where to get off by when the rider reaches the door, not by which
+ * candidate stop the trip happens to touch first. A route can graze the far
+ * edge of the destination area early and pass the doorstep minutes later;
+ * taking the first match invented long walks that made one-seat rides look
+ * worse than they are. `alsoLeastWalk` adds the gentlest option when it
+ * differs, so ranking — not this scan — decides the trade-off.
+ */
+function bestAlightVisits<V extends { stopId: string; arrivalUnix: number }>(
+  visits: V[],
+  fromIdx: number,
+  destMap: Map<string, NearStop>,
+  alsoLeastWalk = false,
+): Array<{ idx: number; stop: NearStop }> {
+  let earliest: { idx: number; stop: NearStop } | null = null;
+  let earliestDoor = Infinity;
+  let gentlest: { idx: number; stop: NearStop } | null = null;
+  let gentlestKm = Infinity;
+
+  for (let i = fromIdx + 1; i < visits.length; i++) {
+    const d = destMap.get(visits[i].stopId);
+    if (!d) continue;
+    const door = visits[i].arrivalUnix + walkSecFromMeters(d.distKm * 1000);
+    if (door < earliestDoor) {
+      earliestDoor = door;
+      earliest = { idx: i, stop: d };
+    }
+    if (d.distKm < gentlestKm) {
+      gentlestKm = d.distKm;
+      gentlest = { idx: i, stop: d };
+    }
+  }
+
+  const out: Array<{ idx: number; stop: NearStop }> = [];
+  if (earliest) out.push(earliest);
+  if (alsoLeastWalk && gentlest && gentlest.idx !== earliest?.idx) out.push(gentlest);
+  return out;
+}
+
 export function searchMultiLeg(input: MultiLegInput): {
   itineraries: Itinerary[];
   diagnostics: MultiLegDiagnostics;
@@ -71,9 +110,7 @@ export function searchMultiLeg(input: MultiLegInput): {
   // 2) Origin / destination candidates: nearest-N, plus any stop that adds a
   //    bay of a station we already picked or a route we do not yet have.
   const entries: Array<[string, (typeof stops)[number]]> = stops.map((s) => [s.id, s]);
-  const stationOf = input.stationIdOf
-    ? (id: string) => input.stationIdOf!(id) ?? id
-    : undefined;
+  const stationOf = input.stationIdOf ? (id: string) => input.stationIdOf!(id) ?? id : undefined;
 
   const originPick = selectCandidateStops({
     stops: entries,
@@ -143,29 +180,22 @@ export function searchMultiLeg(input: MultiLegInput): {
       if (boardIdx === undefined) continue;
       const board = trip.stops[boardIdx];
 
-      let alightIdx = -1;
-      let alightStop: NearStop | null = null;
-      for (let i = boardIdx + 1; i < trip.stops.length; i++) {
-        const d = destStopMap.get(trip.stops[i].stopId);
-        if (d) {
-          alightIdx = i;
-          alightStop = d;
-          break;
-        }
-      }
-      if (alightIdx === -1 || !alightStop) continue;
+      const alights = bestAlightVisits(trip.stops, boardIdx, destStopMap, true);
+      if (alights.length === 0) continue;
 
       // Feasibility: the bus must not leave before we can reach it (60s slack).
       if (board.arrivalUnix < now + access.durationSec - 60) continue;
 
-      const ride = buildRideLeg(stopById, routeById, trip, boardIdx, alightIdx);
-      const egress = buildEgressWalkLeg(alightStop, to);
-      const wait = Math.max(0, board.arrivalUnix - now - access.durationSec);
-      const legs: Leg[] =
-        wait >= 30 ? [access, waitLegAt(o, wait), ride, egress] : [access, ride, egress];
+      for (const alight of alights) {
+        const ride = buildRideLeg(stopById, routeById, trip, boardIdx, alight.idx);
+        const egress = buildEgressWalkLeg(alight.stop, to);
+        const wait = Math.max(0, board.arrivalUnix - now - access.durationSec);
+        const legs: Leg[] =
+          wait >= 30 ? [access, waitLegAt(o, wait), ride, egress] : [access, ride, egress];
 
-      candidates.push(finalise(legs, now, "live", ctx));
-      diag.directRawCount++;
+        candidates.push(finalise(legs, now, "live", ctx));
+        diag.directRawCount++;
+      }
     }
   }
 
@@ -219,17 +249,10 @@ export function searchMultiLeg(input: MultiLegInput): {
             const xVisit = t2.stops[xIdx];
             if (xVisit.arrivalUnix < earliestT2Departure) continue;
 
-            let alightIdx = -1;
-            let alightStop: NearStop | null = null;
-            for (let i = xIdx + 1; i < t2.stops.length; i++) {
-              const d = destStopMap.get(t2.stops[i].stopId);
-              if (d) {
-                alightIdx = i;
-                alightStop = d;
-                break;
-              }
-            }
-            if (alightIdx === -1 || !alightStop) continue;
+            const best = bestAlightVisits(t2.stops, xIdx, destStopMap)[0];
+            if (!best) continue;
+            const alightIdx = best.idx;
+            const alightStop = best.stop;
 
             const ride1 = buildRideLeg(stopById, routeById, t1, boardIdx, cand.idx);
             const ride2 = buildRideLeg(stopById, routeById, t2, xIdx, alightIdx);
