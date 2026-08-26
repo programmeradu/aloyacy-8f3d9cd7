@@ -189,7 +189,7 @@ function SingleLegCompanion({
         lat: origin.lat,
         lng: origin.lng,
         kind: "stop",
-        label: anchor?.source === "live" ? "You" : bus.alight.name,
+        label: anchor?.live ? "You" : bus.alight.name,
       });
       out.push({
         lat: walkOut.to.lat,
