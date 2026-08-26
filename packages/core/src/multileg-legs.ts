@@ -13,7 +13,13 @@ import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-type
 
 // ---- Tunables (all explicit so we can audit any change) -------------------
 export const MAX_ACCESS_WALK_KM = 2.0; // origin → first board stop
-export const MAX_EGRESS_WALK_KM = 2.0; // last alight → destination
+/**
+ * Last alight → destination. One radius for every option: a no-change ride is
+ * not allowed a longer walk than a ride with a change, and vice versa. Long
+ * walks are priced by the scorer and beaten by dominance, not forbidden by
+ * shape.
+ */
+export const MAX_EGRESS_WALK_KM = 3.0;
 export const MAX_TRANSFER_WALK_M = 600; // walking between transfer stops
 /**
  * Nearest-N stops always considered. Extra candidates are admitted only when

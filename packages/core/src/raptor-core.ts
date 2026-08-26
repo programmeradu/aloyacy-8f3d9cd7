@@ -7,7 +7,7 @@
 // unit-tested without loading a GTFS shard.
 
 import type { Itinerary, Leg, RideLeg, WalkLeg } from "./itinerary-types";
-import { scoreLegs, type PlanContext } from "./multileg-legs";
+import { scoreLegs, type PlanContext } from "./multileg-rank";
 export type { PlanContext };
 
 /** Search-shape constants. Shared so web and any future native planner agree. */
@@ -15,7 +15,7 @@ export const RAPTOR_TUNING = {
   /** 1 ride + up to 4 transfer rides — enough to cross the island. */
   maxRounds: 5,
   maxAccessWalkKm: 2.0,
-  maxEgressWalkKm: 2.0,
+  maxEgressWalkKm: 3.0,
   /**
    * Widest final-stop net. One radius for every option: a one-seat ride is
    * kept because nothing beats it, not because it was allowed a longer walk

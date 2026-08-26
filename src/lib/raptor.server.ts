@@ -197,7 +197,7 @@ export async function planRaptor(
   const origins = originPick.candidates;
   // One destination set for every option. Nothing gets a wider walking radius
   // because of how many changes it has.
-  const dests = destPick.candidates.filter((d) => d.distKm <= MAX_EGRESS_WALK_KM);
+  const dests = destPick.candidates;
   const directDests = destPick.candidates;
   diag.originStopCount = origins.length;
   diag.destStopCount = Math.max(dests.length, directDests.length);
