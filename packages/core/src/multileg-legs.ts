@@ -154,7 +154,12 @@ export function buildTripIndex(arrivals: MlArrival[], now: number): TripIndex {
         bucket = [];
         tripsByStop.set(v.stopId, bucket);
       }
-      bucket.push(tripId);
+      // A circular service may visit the same stop more than once. Keep all
+      // visit indices on the trip, but expose the trip only once per stop so
+      // the search does not emit duplicate itineraries.
+      if (bucket[bucket.length - 1] !== tripId && !bucket.includes(tripId)) {
+        bucket.push(tripId);
+      }
     }
   }
 
