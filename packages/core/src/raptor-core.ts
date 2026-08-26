@@ -14,9 +14,12 @@ export const RAPTOR_TUNING = {
   maxRounds: 5,
   maxAccessWalkKm: 2.0,
   maxEgressWalkKm: 2.0,
+  /** Wider final-stop net used only for one-seat rides. */
+  maxDirectEgressWalkKm: 3.0,
   maxTransferWalkM: 600,
-  topOriginStops: 8,
-  topDestStops: 8,
+  /** Large terminals expose many bays; keep enough candidates to cover each bay. */
+  topOriginStops: 16,
+  topDestStops: 16,
   minTransferBufferSec: 90,
   /** Cross-island + airport connections. */
   maxTotalJourneySec: 300 * 60,
