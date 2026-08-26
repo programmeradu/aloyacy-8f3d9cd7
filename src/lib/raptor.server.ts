@@ -395,6 +395,7 @@ function reconstruct(
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
   departureUnix: number,
+  planContext?: PlanContext,
 ): Itinerary | null {
   const { stops, routes, stopTimes } = schedule;
   type Chain = { stopId: string; round: number; label: Label };
