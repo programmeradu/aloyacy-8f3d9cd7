@@ -24,16 +24,50 @@ function firstBoardIndex(rows: StopTimeRow[], stopId: string, deadlineSec: numbe
   return -1;
 }
 
-function firstDirectAlight(
+type AlightChoice = { idx: number; dest: CandidateStop };
+
+/**
+ * Where to get off, judged door to door.
+ *
+ * Taking the *first* candidate stop the trip happens to touch is what made a
+ * one-seat ride look absurd: a bus can clip the edge of the destination area
+ * early — two kilometres of walking away — and then run to a stop a hundred
+ * metres from the door ten minutes later. So every downstream candidate is
+ * evaluated on when the rider actually arrives at the destination, not when
+ * the bus reaches some stop with a matching id.
+ *
+ * Two choices are returned when they differ: the earliest door-to-door
+ * arrival, and the one with the least walking. Neither is preferred here —
+ * ranking decides, and dominance drops whichever nobody would pick.
+ */
+function bestDirectAlights(
   rows: StopTimeRow[],
   boardIdx: number,
   directDests: Map<string, CandidateStop>,
-): { idx: number; dest: CandidateStop } | null {
+): AlightChoice[] {
+  let earliest: AlightChoice | null = null;
+  let earliestDoorSec = Infinity;
+  let shortestWalk: AlightChoice | null = null;
+  let shortestWalkKm = Infinity;
+
   for (let i = boardIdx + 1; i < rows.length; i++) {
     const dest = directDests.get(rows[i][0]);
-    if (dest) return { idx: i, dest };
+    if (!dest) continue;
+    const doorSec = rows[i][2] + walkSecFromMeters(dest.distKm * 1000);
+    if (doorSec < earliestDoorSec) {
+      earliestDoorSec = doorSec;
+      earliest = { idx: i, dest };
+    }
+    if (dest.distKm < shortestWalkKm) {
+      shortestWalkKm = dest.distKm;
+      shortestWalk = { idx: i, dest };
+    }
   }
-  return null;
+
+  const out: AlightChoice[] = [];
+  if (earliest) out.push(earliest);
+  if (shortestWalk && shortestWalk.idx !== earliest?.idx) out.push(shortestWalk);
+  return out;
 }
 
 export function buildDirectRaptorItineraries(input: {
@@ -71,10 +105,11 @@ export function buildDirectRaptorItineraries(input: {
 
       const boardIdx = firstBoardIndex(tripRows, origin.id, deadlineSec);
       if (boardIdx < 0) continue;
-      const alight = firstDirectAlight(tripRows, boardIdx, directDestMap);
-      if (!alight) continue;
+      const alights = bestDirectAlights(tripRows, boardIdx, directDestMap);
+      if (alights.length === 0) continue;
 
-      const boardRow = tripRows[boardIdx];
+      for (const alight of alights) {
+        const boardRow = tripRows[boardIdx];
       const alightRow = tripRows[alight.idx];
       const alightStop = stops[alight.dest.id];
       if (!boardRow || !alightRow || !alightStop) continue;
