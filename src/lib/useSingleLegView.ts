@@ -140,7 +140,7 @@ export function useSingleLegView(active: ActiveTrip) {
           ? {
               from:
                 walkingPhase === "to-dest" && anchor?.live
-                  ? { lat: anchor.lat, lng: anchor.lng, name: active.from.label }
+                  ? { lat: anchor.lat, lng: anchor.lng }
                   : walkOut.from,
               to: walkOut.to,
             }
