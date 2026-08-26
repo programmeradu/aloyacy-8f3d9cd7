@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyDirectPreference,
   buildTripIndex,
   cheapTransferWalk,
   emptyDiagnostics,
@@ -181,6 +182,16 @@ describe("rankItineraries", () => {
     const kept = rankItineraries([mk(3000, 0, "r1"), mk(2100, 1, "r2")], diag);
     expect(kept).toHaveLength(2);
     expect(kept[0].transfers).toBe(1); // faster one ranks first
+  });
+
+  it("reapplies direct preference after verified walks change journey totals", () => {
+    const direct = mk(3000, 0, "19");
+    const transfer = mk(2100, 1, "3");
+    expect(applyDirectPreference([direct, transfer])).toHaveLength(2);
+
+    transfer.totalDurationSec = 2460;
+    transfer.score = 2580;
+    expect(applyDirectPreference([direct, transfer])).toEqual([direct]);
   });
 
   it("explains an empty candidate set", () => {
