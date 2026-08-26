@@ -54,4 +54,20 @@ describe("buildTripAlertCopy", () => {
     expect(c.title).toBe("Press stop now");
     expect(c.body).toBe("Ledra is next on bus 30.");
   });
+
+  it("counts the remaining stops in the get-ready alert", () => {
+    const c = buildTripAlertCopy({
+      kind: "alight-ready",
+      routeShort: "19",
+      stopName: "Isaakiou Komninou",
+      stops: 3,
+    });
+    expect(c.title).toBe("3 stops until Isaakiou Komninou");
+    expect(c.body).toContain("press the button");
+  });
+
+  it("falls back to a countless get-ready line when stops are unknown", () => {
+    const c = buildTripAlertCopy({ kind: "alight-ready", stopName: "Ledra" });
+    expect(c.title).toBe("Ledra is coming up");
+  });
 });
