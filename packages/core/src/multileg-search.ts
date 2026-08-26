@@ -34,6 +34,7 @@ import {
   finalise,
   rankItineraries,
   waitLegAt,
+  walkSecFromMeters,
   type MultiLegDiagnostics,
   type MultiLegInput,
   type NearStop,
