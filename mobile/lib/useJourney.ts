@@ -165,6 +165,7 @@ export function useJourney(opts: {
       feedStale,
       tripGhost: false,
       vehicleNotTracked: false,
+      alight: IDLE_COUNTDOWN,
     };
     if (!active || !bus || !started) return inactive;
 
