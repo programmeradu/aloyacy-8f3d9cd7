@@ -80,17 +80,21 @@ function makeItinerary(over: Partial<Itinerary> = {}): Itinerary {
     stopCount: 3,
     delaySec: 0,
   };
+  const totalDurationSec = over.totalDurationSec ?? 1800;
   return {
     id: `it-${idCounter}`,
     legs: [ride],
-    totalDurationSec: 1800,
     departureUnix: board.departureUnix,
-    arrivalUnix: alight.arrivalUnix,
+    // Arrival follows from the duration: dominance compares when the rider
+    // actually gets there, so a fixture that pins every option to the same
+    // arrival would silently test nothing.
+    arrivalUnix: board.departureUnix + totalDurationSec,
     transfers: 0,
     totalWalkMeters: 0,
     score: 1800,
     source: "live",
     ...over,
+    totalDurationSec,
   };
 }
 
