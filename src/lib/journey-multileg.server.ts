@@ -15,6 +15,7 @@ import { getTransferCandidates } from "./transfer-graph.server";
 import { getWalkLink } from "./walk-links.server";
 import type { Itinerary } from "./itinerary-types";
 import {
+  applyDirectPreference,
   recomputeTotals,
   searchMultiLeg,
   type MlArrival,
@@ -78,12 +79,14 @@ export async function planMultiLegJourney(
   });
 
   await verifyWalks(itineraries, now);
-  // Verified walks may have shifted scores.
-  itineraries.sort((a, b) => a.score - b.score);
+  // Verified transfer walks may shift scores. Reassert the direct-journey
+  // invariant on those refreshed totals before exposing the final order.
+  const preferred = applyDirectPreference(itineraries);
+  preferred.sort((a, b) => a.score - b.score);
 
   const elapsed = Date.now() - t0;
   if (elapsed > 1500) {
     log.warn("search over budget", { elapsedMs: elapsed });
   }
-  return { itineraries, diagnostics: opts?.collectDiagnostics ? diagnostics : undefined };
+  return { itineraries: preferred, diagnostics: opts?.collectDiagnostics ? diagnostics : undefined };
 }

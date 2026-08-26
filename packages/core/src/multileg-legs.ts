@@ -360,6 +360,21 @@ export function recomputeTotals(it: Itinerary, now: number): void {
 }
 
 // ---- Filter, dedupe, rank -------------------------------------------------
+export function applyDirectPreference(itineraries: Itinerary[]): Itinerary[] {
+  const bestDirect = itineraries
+    .filter((it) => it.transfers === 0)
+    .reduce<Itinerary | null>((best, it) => (!best || it.score < best.score ? it : best), null);
+
+  if (!bestDirect) return itineraries;
+
+  return itineraries.filter((it) => {
+    if (it.transfers === 0) return true;
+    const margin = bestDirect.totalDurationSec - it.totalDurationSec;
+    const pct = margin / bestDirect.totalDurationSec;
+    return margin >= MIN_TRANSFER_SAVINGS_SEC && pct >= MIN_TRANSFER_SAVINGS_RATIO;
+  });
+}
+
 export function rankItineraries(candidates: Itinerary[], diag: MultiLegDiagnostics): Itinerary[] {
   const valid = candidates.filter((it) => it.totalDurationSec <= MAX_TOTAL_JOURNEY_SEC);
   diag.validCount = valid.length;
@@ -390,21 +405,9 @@ export function rankItineraries(candidates: Itinerary[], diag: MultiLegDiagnosti
     if (!existing || it.score < existing.score) dedup.set(key, it);
   }
 
-  // Preserve a direct journey unless changing buses is materially quicker.
-  const bestDirect = [...dedup.values()]
-    .filter((it) => it.transfers === 0)
-    .reduce<Itinerary | null>((best, it) => (!best || it.score < best.score ? it : best), null);
-
   let kept = [...dedup.values()];
   const beforePrune = kept.length;
-  if (bestDirect) {
-    kept = kept.filter((it) => {
-      if (it.transfers === 0) return true;
-      const margin = bestDirect.totalDurationSec - it.totalDurationSec;
-      const pct = margin / bestDirect.totalDurationSec;
-      return margin >= MIN_TRANSFER_SAVINGS_SEC && pct >= MIN_TRANSFER_SAVINGS_RATIO;
-    });
-  }
+  kept = applyDirectPreference(kept);
   diag.prunedMediocre = beforePrune - kept.length;
 
   kept.sort((a, b) => a.score - b.score);
