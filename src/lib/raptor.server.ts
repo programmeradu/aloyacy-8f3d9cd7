@@ -34,6 +34,7 @@ import {
 } from "@aloya/core/raptor-core";
 import { buildDirectRaptorItineraries, selectRaptorItineraries } from "./raptor-direct.server";
 import { selectCandidateStops } from "@aloya/core/plan-candidates";
+import { distanceKm } from "@aloya/core/multileg-legs";
 import { buildHeadwayIndex } from "@aloya/core/headway";
 import { sameStation, stationIdOf } from "./stations.server";
 
@@ -145,8 +146,7 @@ export async function planRaptor(
     return [...out];
   };
   const stationOf = (id: string) => stationIdOf(id) ?? id;
-  const pickKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) =>
-    haversineKm(a, b);
+  const pickKm = distanceKm;
 
   const originPick = selectCandidateStops({
     stops: stopList,
