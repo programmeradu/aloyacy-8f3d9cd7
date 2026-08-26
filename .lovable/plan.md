@@ -101,6 +101,10 @@ must be first".
 - New route-aware candidate selection in `packages/core/src/plan-candidates.ts`, used by
   both the live search (`multileg-search.ts`) and RAPTOR (`raptor.server.ts`).
 - `src/lib/raptor-direct.server.ts` folds into the candidate pass and goes away.
+- New `packages/core/src/stations.ts` + a build step emitting `src/data/stations.json`
+  (stop id → station id, canonical name, bay-to-bay walk matrix). Generated from
+  `stops.json` by clustering, reviewed via a printed merge report, and consumed by
+  `gtfs.ts`, the candidate pass, and both searches.
 - Headway per route/hour computed from the schedule bundle at load time and cached.
 - Walk refinement moves ahead of final ranking in `journey-multileg.server.ts` and
   `multileg.functions.ts`; concurrency capped so Google usage stays bounded and cached.
