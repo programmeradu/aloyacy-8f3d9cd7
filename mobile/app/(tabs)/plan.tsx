@@ -7,7 +7,6 @@ import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   intentToUnix,
-  msUntilReplan,
   originFieldValue,
   parseResolvedHandoff,
   parseSeedHandoff,
@@ -15,6 +14,7 @@ import {
   type PlanPlace,
   type PlanTimeIntent,
 } from "@aloya/core/plan-intent";
+import { msUntilReplan } from "@aloya/core/plan-signals";
 import { ArrivalPromiseCommit } from "@/components/ArrivalPromiseCard";
 
 import { palette } from "@/constants/theme";
