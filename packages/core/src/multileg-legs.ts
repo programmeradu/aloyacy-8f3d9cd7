@@ -17,6 +17,14 @@ export const TOP_ALIGHT_CANDIDATES_PER_TRIP = 12;
 export const MIN_TRANSFER_BUFFER_SEC = 90;
 export const MAX_TOTAL_JOURNEY_SEC = 90 * 60; // 90 min hard cap
 export const TOP_K_RESULTS = 5;
+/**
+ * A transfer must deliver a material door-to-door improvement before it may
+ * displace a no-change journey. Changes are fragile in live traffic and cost
+ * more than two nominal minutes of inconvenience; five minutes is the minimum
+ * advantage riders can actually feel and trust.
+ */
+export const MIN_TRANSFER_SAVINGS_SEC = 5 * 60;
+export const MIN_TRANSFER_SAVINGS_RATIO = 0.2;
 
 export const WALK_M_PER_S = 1.35;
 export const WALK_DETOUR = 1.35;
@@ -352,6 +360,21 @@ export function recomputeTotals(it: Itinerary, now: number): void {
 }
 
 // ---- Filter, dedupe, rank -------------------------------------------------
+export function applyDirectPreference(itineraries: Itinerary[]): Itinerary[] {
+  const bestDirect = itineraries
+    .filter((it) => it.transfers === 0)
+    .reduce<Itinerary | null>((best, it) => (!best || it.score < best.score ? it : best), null);
+
+  if (!bestDirect) return itineraries;
+
+  return itineraries.filter((it) => {
+    if (it.transfers === 0) return true;
+    const margin = bestDirect.totalDurationSec - it.totalDurationSec;
+    const pct = margin / bestDirect.totalDurationSec;
+    return margin >= MIN_TRANSFER_SAVINGS_SEC && pct >= MIN_TRANSFER_SAVINGS_RATIO;
+  });
+}
+
 export function rankItineraries(candidates: Itinerary[], diag: MultiLegDiagnostics): Itinerary[] {
   const valid = candidates.filter((it) => it.totalDurationSec <= MAX_TOTAL_JOURNEY_SEC);
   diag.validCount = valid.length;
@@ -382,21 +405,9 @@ export function rankItineraries(candidates: Itinerary[], diag: MultiLegDiagnosti
     if (!existing || it.score < existing.score) dedup.set(key, it);
   }
 
-  // A transfer must beat the best direct by >= 3 min or >= 15%.
-  const bestDirect = [...dedup.values()]
-    .filter((it) => it.transfers === 0)
-    .reduce<Itinerary | null>((best, it) => (!best || it.score < best.score ? it : best), null);
-
   let kept = [...dedup.values()];
   const beforePrune = kept.length;
-  if (bestDirect) {
-    kept = kept.filter((it) => {
-      if (it.transfers === 0) return true;
-      const margin = bestDirect.totalDurationSec - it.totalDurationSec;
-      const pct = margin / bestDirect.totalDurationSec;
-      return margin >= 180 || pct >= 0.15;
-    });
-  }
+  kept = applyDirectPreference(kept);
   diag.prunedMediocre = beforePrune - kept.length;
 
   kept.sort((a, b) => a.score - b.score);
