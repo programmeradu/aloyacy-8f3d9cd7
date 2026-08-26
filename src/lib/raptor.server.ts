@@ -162,6 +162,9 @@ export async function planRaptor(
     });
     bestArrival.set(o.id, arr);
   }
+  if (origins.every((origin) => !stopTrips[origin.id]?.length)) {
+    diag.reasons.push("Nearby origin stops have no scheduled departures in this service shard");
+  }
 
   // 3) Rounds 1..MAX_ROUNDS — ride + walking transfer.
   for (let k = 1; k <= MAX_ROUNDS; k++) {

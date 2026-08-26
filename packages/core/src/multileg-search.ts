@@ -100,7 +100,14 @@ export function searchMultiLeg(input: MultiLegInput): {
   for (const o of originStops) {
     for (const tripId of tripsByStop.get(o.id) ?? []) {
       const trip = trips.get(tripId)!;
-      const boardIdx = trip.indexOf.get(o.id)!;
+      // Circular routes can visit a stop more than once. The first visit may
+      // already have passed while a later lap is still boardable, so choose
+      // the first occurrence the rider can physically reach.
+      const access = buildAccessWalkLeg(from, o);
+      const boardIdx = (trip.indicesOf.get(o.id) ?? []).find(
+        (idx) => trip.stops[idx].arrivalUnix >= now + access.durationSec - 60,
+      );
+      if (boardIdx === undefined) continue;
       const board = trip.stops[boardIdx];
 
       let alightIdx = -1;
@@ -115,7 +122,6 @@ export function searchMultiLeg(input: MultiLegInput): {
       }
       if (alightIdx === -1 || !alightStop) continue;
 
-      const access = buildAccessWalkLeg(from, o);
       // Feasibility: the bus must not leave before we can reach it (60s slack).
       if (board.arrivalUnix < now + access.durationSec - 60) continue;
 
@@ -134,10 +140,13 @@ export function searchMultiLeg(input: MultiLegInput): {
   for (const o of originStops) {
     for (const t1Id of tripsByStop.get(o.id) ?? []) {
       const t1 = trips.get(t1Id)!;
-      const boardIdx = t1.indexOf.get(o.id)!;
+      const access = buildAccessWalkLeg(from, o);
+      const boardIdx = (t1.indicesOf.get(o.id) ?? []).find(
+        (idx) => t1.stops[idx].arrivalUnix >= now + access.durationSec - 60,
+      );
+      if (boardIdx === undefined) continue;
       const board = t1.stops[boardIdx];
 
-      const access = buildAccessWalkLeg(from, o);
       if (board.arrivalUnix < now + access.durationSec - 60) continue;
 
       // Downstream alight candidates that move us meaningfully closer.

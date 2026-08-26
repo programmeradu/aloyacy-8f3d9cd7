@@ -95,6 +95,7 @@ describe("buildTripIndex", () => {
   it("keeps the first index when a trip revisits a stop", () => {
     const idx = buildTripIndex([arr("t1", "r1", "A", 5), arr("t1", "r1", "A", 40)], NOW);
     expect(idx.trips.get("t1")!.indexOf.get("A")).toBe(0);
+    expect(idx.trips.get("t1")!.indicesOf.get("A")).toEqual([0, 1]);
   });
 });
 
@@ -216,6 +217,29 @@ describe("searchMultiLeg", () => {
     const rides = itineraries[0].legs.filter((l): l is RideLeg => l.kind === "ride");
     expect(rides[0].routeShort).toBe("1");
     expect(itineraries[0].legs[0].kind).toBe("walk");
+  });
+
+  it("boards a later visit on a circular route when the first visit has passed", () => {
+    const loopFrom = { lat: 35.1555, lng: 33.36, label: "Loop entrance" };
+    const { itineraries, diagnostics } = searchMultiLeg({
+      from: loopFrom,
+      to,
+      stops,
+      routeById,
+      arrivals: [
+        arr("loop", "r1", "A", 0),
+        arr("loop", "r1", "B", 4),
+        arr("loop", "r1", "A", 8),
+        arr("loop", "r1", "C", 20),
+      ],
+      transferIndex: new Map(),
+      now: NOW,
+    });
+    expect(diagnostics.directRawCount).toBe(1);
+    expect(itineraries).toHaveLength(1);
+    const rideLeg = itineraries[0].legs.find((leg): leg is RideLeg => leg.kind === "ride");
+    expect(rideLeg?.board.departureUnix).toBe(NOW + 8 * 60);
+    expect(rideLeg?.alight.stopId).toBe("C");
   });
 
   it("skips a bus that leaves before the rider could reach the stop", () => {

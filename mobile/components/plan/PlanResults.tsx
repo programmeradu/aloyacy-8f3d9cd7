@@ -65,17 +65,44 @@ export function PlanErrorNotice() {
   );
 }
 
+function NoRouteNotice({ onRetry }: { onRetry: () => void }) {
+  return (
+    <View style={{ gap: 12 }}>
+      <Text style={planStyles.body}>
+        No bus connection is showing for these exact points right now. Live data can change as a
+        vehicle reaches the next stop.
+      </Text>
+      <Text
+        onPress={onRetry}
+        accessibilityRole="button"
+        accessibilityLabel="Check for buses again"
+        style={{
+          alignSelf: "flex-start",
+          fontFamily: "Geist_700Bold",
+          color: palette.aegeanDeep,
+          fontSize: 14,
+          lineHeight: 20,
+        }}
+      >
+        Check again
+      </Text>
+    </View>
+  );
+}
+
 /** The ranked itinerary list, with remind / share affordances on each option. */
 export function PlanResults({
   result,
   origin,
   destination,
   onStart,
+  onRetry,
 }: {
   result: PlanResult;
   origin: PickedPlace;
   destination: PickedPlace | null;
   onStart: (itinerary: Itinerary) => void;
+  onRetry: () => void;
 }) {
   return (
     <View style={{ paddingHorizontal: 20, marginTop: 22, gap: 12 }}>
@@ -83,10 +110,7 @@ export function PlanResults({
         {optionsHeadline(result.itineraries.length, result.mode)}
       </Text>
       {result.itineraries.length === 0 ? (
-        <Text style={planStyles.body}>
-          No honest options between these two points right now. Try a nearer place, a different
-          time, or change the destination.
-        </Text>
+        <NoRouteNotice onRetry={onRetry} />
       ) : (
         result.itineraries.map((it, idx) => (
           <View key={it.id} style={{ gap: 10 }}>

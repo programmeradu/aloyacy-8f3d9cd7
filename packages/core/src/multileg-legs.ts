@@ -101,8 +101,10 @@ export type TripSlice = {
   routeId: string;
   /** Ordered ascending by arrivalUnix. */
   stops: StopVisit[];
-  /** stopId → index in `stops` (first occurrence wins if a trip revisits). */
+  /** stopId → first index in `stops` (legacy fast lookup). */
   indexOf: Map<string, number>;
+  /** stopId → every visit index, needed by circular routes and loop services. */
+  indicesOf: Map<string, number[]>;
 };
 
 export type TripIndex = {
@@ -132,17 +134,32 @@ export function buildTripIndex(arrivals: MlArrival[], now: number): TripIndex {
   for (const [tripId, visits] of raw) {
     visits.sort((a, b) => a.arrivalUnix - b.arrivalUnix);
     const indexOf = new Map<string, number>();
+    const indicesOf = new Map<string, number[]>();
     for (let i = 0; i < visits.length; i++) {
       if (!indexOf.has(visits[i].stopId)) indexOf.set(visits[i].stopId, i);
+      const indices = indicesOf.get(visits[i].stopId);
+      if (indices) indices.push(i);
+      else indicesOf.set(visits[i].stopId, [i]);
     }
-    trips.set(tripId, { tripId, routeId: routeOfTrip.get(tripId)!, stops: visits, indexOf });
+    trips.set(tripId, {
+      tripId,
+      routeId: routeOfTrip.get(tripId)!,
+      stops: visits,
+      indexOf,
+      indicesOf,
+    });
     for (const v of visits) {
       let bucket = tripsByStop.get(v.stopId);
       if (!bucket) {
         bucket = [];
         tripsByStop.set(v.stopId, bucket);
       }
-      bucket.push(tripId);
+      // A circular service may visit the same stop more than once. Keep all
+      // visit indices on the trip, but expose the trip only once per stop so
+      // the search does not emit duplicate itineraries.
+      if (bucket[bucket.length - 1] !== tripId && !bucket.includes(tripId)) {
+        bucket.push(tripId);
+      }
     }
   }
 
