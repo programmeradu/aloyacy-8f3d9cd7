@@ -23,6 +23,7 @@ import { fmtEta as fmtMinutes } from "@/lib/journey-copy";
 import { useI18n } from "@/lib/i18n";
 import { SightingButton } from "@/components/SightingButton";
 import { getStop } from "@/lib/gtfs";
+import { AlightCountdownCard } from "@/components/journey/AlightCountdownCard";
 
 function fmtMeters(m: number): string {
   if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
