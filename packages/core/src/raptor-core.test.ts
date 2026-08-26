@@ -172,7 +172,8 @@ describe("finalise", () => {
     expect(it.totalWalkMeters).toBe(400);
     expect(it.arrivalUnix).toBe(T0 + 1500 + 120);
     expect(it.totalDurationSec).toBe(it.arrivalUnix - T0);
-    expect(it.score).toBe(it.totalDurationSec);
+    // Walking is priced, not free: 400 m of it costs more than sitting on a bus.
+    expect(it.score).toBe(it.totalDurationSec + Math.round(400 * 0.2));
     expect(it.source).toBe("estimated");
   });
 

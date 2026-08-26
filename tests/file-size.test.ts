@@ -35,7 +35,6 @@ const LEGACY_OVER_RATCHET = new Set<string>([
   "mobile/components/AltModeCards.tsx",
   "src/routes/wallet.tsx",
   "src/routes/plan.$token.tsx",
-  "src/lib/raptor.server.ts",
   "packages/core/src/journey-live.ts",
   "mobile/components/pulse/LiveSignals.tsx",
   "mobile/app/trip/[id].tsx",
