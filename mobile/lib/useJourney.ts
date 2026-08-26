@@ -19,16 +19,12 @@ import { distanceM, projectOnSteps, WALK_M_PER_S, type WalkStep } from "@aloya/c
 import { getShapeForTripSync, prefetchShapes, type LatLng } from "@aloya/core/shapes";
 import type { JourneyPhase } from "@aloya/core/journey-phase";
 import {
-  alertForPhase,
   fuseVehicleAndEta,
   resolveLivePhase,
-  shouldAutoConfirmAlighting,
-  shouldAutoConfirmBoarding,
   type FusedVehicle,
   type LivePhase as CoreLivePhase,
 } from "@aloya/core/journey-live";
 import {
-  alightAlertFor,
   computeAlightCountdown,
   sequenceForTrip,
   type AlightCountdown,
@@ -37,7 +33,7 @@ import { useRealtime, useRouteSequences } from "./hooks";
 import { getStop } from "./gtfs";
 import { useFusedFix, type FusedFix } from "./useFusedFix";
 import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
-import { sendLocalTripAlert } from "./tripAlerts";
+import { useJourneySideEffects } from "./useJourneySideEffects";
 
 export type { JourneyPhase } from "@aloya/core/journey-phase";
 
@@ -312,98 +308,16 @@ export function useJourney(opts: {
     tick,
   ]);
 
-  // ---- GPS-based auto-confirm boarding -------------------------------------
-  const ridingStartedAtRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (!result.active || !bus) return;
-    if (live?.onBoardConfirmedAt || live?.missedAt || live?.alightedAt) {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    const boardLoc = walkIn?.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null;
-    const next = shouldAutoConfirmBoarding({
-      fix,
-      boardLoc,
-      ridingSinceMs: ridingStartedAtRef.current,
-      nowMs: Date.now(),
-    });
-    ridingStartedAtRef.current = next.ridingSinceMs;
-    if (next.confirm) patchActiveTripLive({ onBoardConfirmedAt: Date.now() });
-  }, [result.active, bus, fix, live, walkIn]);
-
-  // ---- GPS-based auto-detection of alighting -------------------------------
-  // Riders forget to press "I'm off". Once they have visibly separated from
-  // the bus at walking pace we close the ride ourselves, which is what flips
-  // guidance over to walking from wherever they actually stand.
-  const offSinceRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (!result.active || !bus) return;
-    if (!live?.onBoardConfirmedAt || live?.alightedAt) {
-      offSinceRef.current = null;
-      return;
-    }
-    const vehicle = rt?.vehicles.find((v) => v.tripId === bus.tripId) ?? null;
-    const alightLoc =
-      walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
-    const next = shouldAutoConfirmAlighting({
-      fix,
-      vehicle: vehicle ? { lat: vehicle.lat, lng: vehicle.lng } : null,
-      alightLoc,
-      nearAlight:
-        result.alight.stage === "press-now" ||
-        result.alight.stage === "alighting" ||
-        result.alight.stage === "passed",
-      offSinceMs: offSinceRef.current,
-      nowMs: Date.now(),
-    });
-    offSinceRef.current = next.offSinceMs;
-    if (next.confirm) patchActiveTripLive({ alightedAt: Date.now() });
-  }, [result.active, result.alight.stage, bus, fix, live, rt, walkOut]);
-
-  // ---- One-shot alerts on phase transition ---------------------------------
-  const sentRef = useRef<Set<string>>(new Set());
-
-  // Stop-aware alight cues own the "press the button" buzz whenever the stop
-  // sequence is known — the coarse phase flips a full stop too early.
-  useEffect(() => {
-    if (!result.active || !bus || !active) return;
-    if (!result.alight.hasSequence) return;
-    const cue = alightAlertFor(result.alight.stage, bus.alight.name);
-    if (!cue || sentRef.current.has(cue.key)) return;
-    sentRef.current.add(cue.key);
-    void sendLocalTripAlert({
-      kind: cue.kind,
-      routeShort: bus.routeShort,
-      stopName: cue.stopName,
-      ...(result.alight.stopsRemaining != null && result.alight.stopsRemaining >= 0
-        ? { stops: result.alight.stopsRemaining }
-        : {}),
-      url: `/trip/${active.option.id}`,
-    });
-  }, [result.active, result.alight, active, bus]);
-
-  useEffect(() => {
-    if (!result.active || !bus || !active) return;
-    // When stop counting is live it owns the press-stop buzz.
-    if (result.phase === "alight-soon" && result.alight.hasSequence) return;
-    const alert = alertForPhase({
-      phase: result.phase,
-      onBoardSuggested: result.onBoardSuggested,
-      secsToBoard: result.secsToBoard,
-      boardName: bus.board.name,
-      alightName: bus.alight.name,
-    });
-    if (!alert || sentRef.current.has(alert.key)) return;
-    sentRef.current.add(alert.key);
-
-    void sendLocalTripAlert({
-      kind: alert.kind,
-      routeShort: bus.routeShort,
-      ...(alert.stopName ? { stopName: alert.stopName } : {}),
-      ...(alert.minutes != null ? { minutes: alert.minutes } : {}),
-      url: `/trip/${active.option.id}`,
-    });
-  }, [result.phase, result.onBoardSuggested, result.secsToBoard, result.active, active, bus]);
+  useJourneySideEffects({
+    active,
+    bus,
+    fix,
+    live,
+    rt,
+    result,
+    walkIn,
+    walkOut,
+  });
 
   return result;
 }
