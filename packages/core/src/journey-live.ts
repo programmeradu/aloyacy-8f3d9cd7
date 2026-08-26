@@ -135,6 +135,14 @@ export type PhaseInput = {
   onBoardConfirmedAt?: number | null;
   missedAt?: number | null;
   alightedAt?: number | null;
+  /**
+   * Stops still to be served before the rider's own, from the stop-aware
+   * countdown. When present it OVERRIDES the feed ETA for the
+   * `on-bus → alight-soon` flip: a feed ETA of 60 s routinely fires five
+   * stops out, whereas the stop count is ground truth.
+   */
+  stopsRemaining?: number | null;
+
 };
 
 export type PhaseResult = {
