@@ -2,32 +2,44 @@
 // indexing, leg construction, scoring and ranking. Kept separate from the
 // search loop in `multileg-search.ts` so each file stays small and each piece
 // is testable on its own.
+//
+// Scoring itself lives in `plan-score.ts` — one model shared by the live
+// search, the schedule search and the post-verification re-rank, so they can
+// never drift apart or disagree about what a change is worth.
 
 import { distanceM } from "./geo";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
+import { filterDominated, scoreItinerary, type ChangeCost } from "./plan-score";
 
 // ---- Tunables (all explicit so we can audit any change) -------------------
 export const MAX_ACCESS_WALK_KM = 2.0; // origin → first board stop
-export const MAX_EGRESS_WALK_KM = 2.0; // last alight → destination (transfers)
-export const MAX_DIRECT_EGRESS_WALK_KM = 3.0; // wider net for no-transfer rides
+export const MAX_EGRESS_WALK_KM = 2.0; // last alight → destination
 export const MAX_TRANSFER_WALK_M = 600; // walking between transfer stops
+/**
+ * Nearest-N stops always considered. Extra candidates are admitted only when
+ * they add a station bay or a route the set does not already cover, so a
+ * terminal never crowds out the routes that leave from its far bays.
+ */
 export const TOP_ORIGIN_STOPS = 6;
 export const TOP_DEST_STOPS = 6;
+export const MAX_ORIGIN_CANDIDATES = 24;
+export const MAX_DEST_CANDIDATES = 24;
 export const TOP_ALIGHT_CANDIDATES_PER_TRIP = 12;
 export const MIN_TRANSFER_BUFFER_SEC = 90;
 export const MAX_TOTAL_JOURNEY_SEC = 90 * 60; // 90 min hard cap
 export const TOP_K_RESULTS = 5;
-/**
- * A transfer must deliver a material door-to-door improvement before it may
- * displace a no-change journey. Changes are fragile in live traffic and cost
- * more than two nominal minutes of inconvenience; five minutes is the minimum
- * advantage riders can actually feel and trust.
- */
-export const MIN_TRANSFER_SAVINGS_SEC = 5 * 60;
-export const MIN_TRANSFER_SAVINGS_RATIO = 0.2;
 
 export const WALK_M_PER_S = 1.35;
 export const WALK_DETOUR = 1.35;
+
+/**
+ * Facts the scorer needs that only the caller can supply: which stops belong
+ * to the same station, and how often each route actually runs.
+ */
+export type PlanContext = {
+  sameStation?: (aStopId: string, bStopId: string) => boolean;
+  headwayOf?: (routeId: string) => number | null;
+};
 
 export function walkSecFromMeters(m: number): number {
   return Math.round((m * WALK_DETOUR) / WALK_M_PER_S);
@@ -35,6 +47,7 @@ export function walkSecFromMeters(m: number): number {
 export function walkSecFromKm(km: number): number {
   return walkSecFromMeters(km * 1000);
 }
+
 
 export type LatLng = { lat: number; lng: number };
 
