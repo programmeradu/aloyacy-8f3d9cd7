@@ -251,7 +251,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     // more walking. Nothing is filtered for having a change, or for lacking
     // one — a direct ride survives because nothing beats it.
     const all = [...dedup.values()];
-    const kept = filterDominated(all);
+    let kept = filterDominated(all);
     const prunedMediocre = afterDedup - kept.length;
 
     // Learning loop: penalise transfer itineraries when riders have

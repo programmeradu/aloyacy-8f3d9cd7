@@ -233,6 +233,10 @@
     "./plan-candidates": {
       "types": "./src/plan-candidates.ts",
       "default": "./src/plan-candidates.ts"
+    },
+    "./headway": {
+      "types": "./src/headway.ts",
+      "default": "./src/headway.ts"
     }
   },
   "dependencies": {
