@@ -133,6 +133,12 @@ export function selectRaptorItineraries(itineraries: Itinerary[], limit: number)
     const existing = bySignature.get(key);
     if (!existing || it.score < existing.score) bySignature.set(key, it);
   }
+  if (process.env['PLAN_DEBUG']) {
+    for (const it of [...bySignature.values()]) {
+      const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
+      console.log("cand", it.transfers, Math.round(it.totalDurationSec/60), Math.round(it.totalWalkMeters), rides.map((r) => r.routeShort).join(">"));
+    }
+  }
   const kept = pruneDominated([...bySignature.values()]);
   kept.sort((a: Itinerary, b: Itinerary) => a.score - b.score);
   return kept.slice(0, limit);
