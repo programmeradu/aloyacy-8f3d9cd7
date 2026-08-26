@@ -17,6 +17,8 @@ import type { LiveJourney } from "@/lib/useJourney";
 import type { ActiveTrip } from "@/lib/trip-store";
 import { markAlighted } from "@/lib/useJourney";
 import { useI18n } from "@/lib/i18n";
+
+type T = ReturnType<typeof useI18n>["t"];
 import { fmtEta as fmtMinutes } from "@/lib/journey-copy";
 import { IconClock, IconPin } from "@/components/Icons";
 
@@ -32,7 +34,7 @@ const ACCENT: Record<AlightStage, string> = {
 
 const URGENT: AlightStage[] = ["press-now", "alighting"];
 
-function kickerFor(cd: AlightCountdown, t: (k: string, v?: Record<string, unknown>) => string) {
+function kickerFor(cd: AlightCountdown, t: T) {
   const n = cd.stopsRemaining;
   switch (cd.stage) {
     case "stand-by":
@@ -52,7 +54,7 @@ function kickerFor(cd: AlightCountdown, t: (k: string, v?: Record<string, unknow
 function bodyFor(
   cd: AlightCountdown,
   alightName: string,
-  t: (k: string, v?: Record<string, unknown>) => string,
+  t: T,
 ) {
   switch (cd.stage) {
     case "stand-by":
