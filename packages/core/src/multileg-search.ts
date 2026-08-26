@@ -71,8 +71,8 @@ export function searchMultiLeg(input: MultiLegInput): {
   // 2) Origin / destination candidates: nearest-N, plus any stop that adds a
   //    bay of a station we already picked or a route we do not yet have.
   const entries: Array<[string, (typeof stops)[number]]> = stops.map((s) => [s.id, s]);
-  const stationOf = input.sameStation
-    ? (id: string) => input.stationIdOf?.(id) ?? id
+  const stationOf = input.stationIdOf
+    ? (id: string) => input.stationIdOf!(id) ?? id
     : undefined;
 
   const originPick = selectCandidateStops({

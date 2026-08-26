@@ -99,42 +99,5 @@ export function selectCandidateStops<S extends { lat: number; lng: number }>(
   };
 }
 
-// ---- headways ---------------------------------------------------------------
-
-/**
- * Median gap between consecutive departures of a route at a stop, from the
- * departure times we actually hold. Two departures give one gap, which is
- * still a measurement; fewer gives null and the scorer says so rather than
- * pretending.
- */
-export function medianHeadwaySec(departureTimesSec: number[]): number | null {
-  if (departureTimesSec.length < 2) return null;
-  const sorted = [...departureTimesSec].sort((a, b) => a - b);
-  const gaps: number[] = [];
-  for (let i = 1; i < sorted.length; i++) {
-    const gap = sorted[i] - sorted[i - 1];
-    if (gap > 0) gaps.push(gap);
-  }
-  if (gaps.length === 0) return null;
-  gaps.sort((a, b) => a - b);
-  const mid = gaps.length >> 1;
-  return gaps.length % 2 === 1 ? gaps[mid] : Math.round((gaps[mid - 1] + gaps[mid]) / 2);
-}
-
-/** route id → measured headway, from a flat list of (routeId, departure). */
-export function buildHeadwayIndex(
-  departures: Array<{ routeId: string; departureSec: number }>,
-): Map<string, number> {
-  const byRoute = new Map<string, number[]>();
-  for (const d of departures) {
-    const list = byRoute.get(d.routeId);
-    if (list) list.push(d.departureSec);
-    else byRoute.set(d.routeId, [d.departureSec]);
-  }
-  const out = new Map<string, number>();
-  for (const [routeId, times] of byRoute) {
-    const headway = medianHeadwaySec(times);
-    if (headway !== null) out.set(routeId, headway);
-  }
-  return out;
-}
+// Headway measurement lives in `headway.ts`, which also knows that gaps are
+// only comparable within one route at one stop.
