@@ -423,22 +423,18 @@ export function recomputeTotals(it: Itinerary, now: number, ctx?: PlanContext): 
   it.score = scoreLegs(it.legs, it.totalDurationSec, ctx);
 }
 
-
 // ---- Filter, dedupe, rank -------------------------------------------------
-export function applyDirectPreference(itineraries: Itinerary[]): Itinerary[] {
-  const bestDirect = itineraries
-    .filter((it) => it.transfers === 0)
-    .reduce<Itinerary | null>((best, it) => (!best || it.score < best.score ? it : best), null);
-
-  if (!bestDirect) return itineraries;
-
-  return itineraries.filter((it) => {
-    if (it.transfers === 0) return true;
-    const margin = bestDirect.totalDurationSec - it.totalDurationSec;
-    const pct = margin / bestDirect.totalDurationSec;
-    return margin >= MIN_TRANSFER_SAVINGS_SEC && pct >= MIN_TRANSFER_SAVINGS_RATIO;
-  });
+/**
+ * Drop only options another option beats outright — earlier (or equally
+ * early), with no more changes and no more walking. A direct ride survives
+ * because nothing beats it, not because transfers were forbidden; a change
+ * that genuinely gets you there sooner survives too, and is priced honestly
+ * by the scorer.
+ */
+export function pruneDominated(itineraries: Itinerary[]): Itinerary[] {
+  return filterDominated(itineraries);
 }
+
 
 export function rankItineraries(candidates: Itinerary[], diag: MultiLegDiagnostics): Itinerary[] {
   const valid = candidates.filter((it) => it.totalDurationSec <= MAX_TOTAL_JOURNEY_SEC);
