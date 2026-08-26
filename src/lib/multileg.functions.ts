@@ -19,10 +19,7 @@ import type { Itinerary, RideLeg } from "./itinerary-types";
 import { annotateRationales } from "./itinerary-rationale";
 import { applyAccessibilityWeights } from "./accessibility-weights";
 import { createLogger } from "./logger";
-import {
-  MIN_TRANSFER_SAVINGS_RATIO,
-  MIN_TRANSFER_SAVINGS_SEC,
-} from "@aloya/core/multileg-search";
+import { filterDominated } from "@aloya/core/plan-score";
 
 const log = createLogger("multileg");
 
@@ -248,22 +245,13 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     }
     const afterDedup = dedup.size;
 
-    // Keep the no-change option unless a transfer delivers a clear, meaningful
-    // door-to-door saving. Reapply this after merging live + scheduled results
-    // because each planner only sees its own candidate pool.
+    // The live and scheduled planners each only see their own candidate pool,
+    // so dominance is applied once more over the merged set: an option is
+    // dropped only when another arrives no later, with no more changes and no
+    // more walking. Nothing is filtered for having a change, or for lacking
+    // one — a direct ride survives because nothing beats it.
     const all = [...dedup.values()];
-    const bestDirect = all
-      .filter((it) => it.transfers === 0)
-      .reduce<Itinerary | null>((best, it) => (!best || it.score < best.score ? it : best), null);
-    let kept = all;
-    if (bestDirect) {
-      kept = all.filter((it) => {
-        if (it.transfers === 0) return true;
-        const margin = bestDirect.totalDurationSec - it.totalDurationSec;
-        const pct = margin / bestDirect.totalDurationSec;
-        return margin >= MIN_TRANSFER_SAVINGS_SEC && pct >= MIN_TRANSFER_SAVINGS_RATIO;
-      });
-    }
+    let kept = filterDominated(all);
     const prunedMediocre = afterDedup - kept.length;
 
     // Learning loop: penalise transfer itineraries when riders have

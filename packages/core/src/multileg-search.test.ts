@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { scoreItinerary } from "./plan-score";
 import {
-  applyDirectPreference,
+  pruneDominated,
   buildTripIndex,
   cheapTransferWalk,
   emptyDiagnostics,
@@ -8,7 +9,6 @@ import {
   lastEndUnix,
   makeId,
   rankItineraries,
-  scoreItinerary,
   searchMultiLeg,
   walkSecFromMeters,
   type MlArrival,
@@ -101,12 +101,45 @@ describe("buildTripIndex", () => {
 });
 
 describe("scoring", () => {
-  it("penalises transfers, delay and long walks", () => {
-    const base = { totalDurationSec: 1200, transfers: 0, totalWalkMeters: 300, reliabilitySec: 0 };
-    expect(scoreItinerary(base)).toBe(1200);
-    expect(scoreItinerary({ ...base, transfers: 1 })).toBe(1320);
-    expect(scoreItinerary({ ...base, reliabilitySec: 60 })).toBe(1230);
-    expect(scoreItinerary({ ...base, totalWalkMeters: 1000 })).toBe(1400);
+  it("prices walking, unreliability and each change from measured facts", () => {
+    const base = { totalDurationSec: 1200, walkMeters: 300, changes: [], reliabilitySec: 0 };
+    expect(scoreItinerary(base)).toBe(1200 + 300 * 0.2);
+    expect(scoreItinerary({ ...base, reliabilitySec: 60 })).toBe(1200 + 60 + 30);
+    // Walking is priced continuously — no cliff, more metres always costs more.
+    expect(scoreItinerary({ ...base, walkMeters: 1000 })).toBeGreaterThan(
+      scoreItinerary({ ...base, walkMeters: 900 }),
+    );
+  });
+
+  it("charges more for changing onto a rare route than a frequent one", () => {
+    const base = { totalDurationSec: 1200, walkMeters: 0, reliabilitySec: 0 };
+    const frequent = scoreItinerary({
+      ...base,
+      changes: [{ interchangeSec: 120, headwaySec: 10 * 60, sameStation: false }],
+    });
+    const rare = scoreItinerary({
+      ...base,
+      changes: [{ interchangeSec: 120, headwaySec: 45 * 60, sameStation: false }],
+    });
+    expect(rare).toBeGreaterThan(frequent);
+  });
+
+  it("treats a bay-to-bay change inside one station as the small hop it is", () => {
+    const base = {
+      totalDurationSec: 1200,
+      walkMeters: 0,
+      reliabilitySec: 0,
+      headwaySec: 20 * 60,
+    };
+    const acrossTown = scoreItinerary({
+      ...base,
+      changes: [{ interchangeSec: 120, headwaySec: 20 * 60, sameStation: false }],
+    });
+    const sameStation = scoreItinerary({
+      ...base,
+      changes: [{ interchangeSec: 120, headwaySec: 20 * 60, sameStation: true }],
+    });
+    expect(sameStation).toBeLessThan(acrossTown);
   });
 
   it("walks the leg chain to find the arrival time", () => {
@@ -161,37 +194,39 @@ describe("rankItineraries", () => {
     expect(diag.reasons[0]).toContain("exceed 90min cap");
   });
 
-  it("prunes transfers that barely beat the best direct", () => {
+  it("drops a change that arrives no earlier than the no-change ride", () => {
     const diag = emptyDiagnostics();
     const direct = mk(1800, 0, "r1");
-    const marginal = mk(1750, 1, "r2"); // only 50s better
+    const marginal = mk(1750, 1, "r2"); // 50s earlier — inside arrival tolerance
     const kept = rankItineraries([direct, marginal], diag);
     expect(kept.map((k) => k.transfers)).toEqual([0]);
     expect(diag.prunedMediocre).toBe(1);
   });
 
-  it("prunes a transfer that is faster but not enough to justify changing buses", () => {
+  it("keeps a change that genuinely gets the rider there earlier", () => {
     const diag = emptyDiagnostics();
     const kept = rankItineraries([mk(3000, 0, "r1"), mk(2460, 1, "r2")], diag);
-    expect(kept).toHaveLength(1);
+    // Nine minutes earlier is a real difference, so the rider gets to choose.
+    expect(kept).toHaveLength(2);
+    expect(kept.map((k) => k.transfers).sort()).toEqual([0, 1]);
+  });
+
+  it("ranks the no-change ride first when the change saves only a little", () => {
+    const diag = emptyDiagnostics();
+    const kept = rankItineraries([mk(3000, 0, "r1"), mk(2880, 1, "r2")], diag);
     expect(kept[0].transfers).toBe(0);
   });
 
-  it("keeps a transfer only when it saves at least five minutes and twenty percent", () => {
-    const diag = emptyDiagnostics();
-    const kept = rankItineraries([mk(3000, 0, "r1"), mk(2100, 1, "r2")], diag);
-    expect(kept).toHaveLength(2);
-    expect(kept[0].transfers).toBe(1); // faster one ranks first
-  });
-
-  it("reapplies direct preference after verified walks change journey totals", () => {
+  it("re-checks dominance after verified walks change journey totals", () => {
     const direct = mk(3000, 0, "19");
     const transfer = mk(2100, 1, "3");
-    expect(applyDirectPreference([direct, transfer])).toHaveLength(2);
+    // Fifteen minutes earlier: both stay, the rider decides.
+    expect(pruneDominated([direct, transfer])).toHaveLength(2);
 
-    transfer.totalDurationSec = 2460;
-    transfer.score = 2580;
-    expect(applyDirectPreference([direct, transfer])).toEqual([direct]);
+    // Real walking geometry turns out to erase the advantage.
+    transfer.totalDurationSec = 3000;
+    transfer.arrivalUnix = direct.arrivalUnix;
+    expect(pruneDominated([direct, transfer])).toEqual([direct]);
   });
 
   it("explains an empty candidate set", () => {

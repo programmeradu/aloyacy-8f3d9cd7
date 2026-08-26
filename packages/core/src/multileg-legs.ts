@@ -2,29 +2,38 @@
 // indexing, leg construction, scoring and ranking. Kept separate from the
 // search loop in `multileg-search.ts` so each file stays small and each piece
 // is testable on its own.
+//
+// Scoring itself lives in `plan-score.ts` — one model shared by the live
+// search, the schedule search and the post-verification re-rank, so they can
+// never drift apart or disagree about what a change is worth.
 
 import { distanceM } from "./geo";
 import type { Itinerary, Leg, RideLeg, WalkLeg, WaitLeg } from "./itinerary-types";
 
+
 // ---- Tunables (all explicit so we can audit any change) -------------------
 export const MAX_ACCESS_WALK_KM = 2.0; // origin → first board stop
-export const MAX_EGRESS_WALK_KM = 2.0; // last alight → destination (transfers)
-export const MAX_DIRECT_EGRESS_WALK_KM = 3.0; // wider net for no-transfer rides
+/**
+ * Last alight → destination. One radius for every option: a no-change ride is
+ * not allowed a longer walk than a ride with a change, and vice versa. Long
+ * walks are priced by the scorer and beaten by dominance, not forbidden by
+ * shape.
+ */
+export const MAX_EGRESS_WALK_KM = 3.0;
 export const MAX_TRANSFER_WALK_M = 600; // walking between transfer stops
+/**
+ * Nearest-N stops always considered. Extra candidates are admitted only when
+ * they add a station bay or a route the set does not already cover, so a
+ * terminal never crowds out the routes that leave from its far bays.
+ */
 export const TOP_ORIGIN_STOPS = 6;
 export const TOP_DEST_STOPS = 6;
+export const MAX_ORIGIN_CANDIDATES = 24;
+export const MAX_DEST_CANDIDATES = 24;
 export const TOP_ALIGHT_CANDIDATES_PER_TRIP = 12;
 export const MIN_TRANSFER_BUFFER_SEC = 90;
 export const MAX_TOTAL_JOURNEY_SEC = 90 * 60; // 90 min hard cap
 export const TOP_K_RESULTS = 5;
-/**
- * A transfer must deliver a material door-to-door improvement before it may
- * displace a no-change journey. Changes are fragile in live traffic and cost
- * more than two nominal minutes of inconvenience; five minutes is the minimum
- * advantage riders can actually feel and trust.
- */
-export const MIN_TRANSFER_SAVINGS_SEC = 5 * 60;
-export const MIN_TRANSFER_SAVINGS_RATIO = 0.2;
 
 export const WALK_M_PER_S = 1.35;
 export const WALK_DETOUR = 1.35;
@@ -35,6 +44,7 @@ export function walkSecFromMeters(m: number): number {
 export function walkSecFromKm(km: number): number {
   return walkSecFromMeters(km * 1000);
 }
+
 
 export type LatLng = { lat: number; lng: number };
 
@@ -63,7 +73,14 @@ export type MultiLegInput = {
   transferIndex: Map<string, Array<{ toStopId: string }>>;
   /** Seconds since epoch; injected so tests are deterministic. */
   now: number;
+  /** True when two stop records are bays of the same physical station. */
+  sameStation?: (aStopId: string, bStopId: string) => boolean;
+  /** Station id for a stop record, used to spread candidates across bays. */
+  stationIdOf?: (stopId: string) => string | undefined;
+  /** Typical seconds between departures on a route, when known. */
+  headwayOf?: (routeId: string) => number | null;
 };
+
 
 export type MultiLegDiagnostics = {
   originStopCount: number;
@@ -282,136 +299,6 @@ export function waitLegAt(stop: MlStop, durationSec: number): WaitLeg {
   };
 }
 
-// ---- Itinerary assembly ---------------------------------------------------
-export function lastEndUnix(legs: Leg[], now: number): number {
-  let t = now;
-  let cursor = now;
-  for (const l of legs) {
-    if (l.kind === "walk" || l.kind === "wait") {
-      cursor += l.durationSec;
-      t = cursor;
-    } else if (l.kind === "ride") {
-      cursor = Math.max(cursor, l.board.departureUnix);
-      cursor = l.alight.arrivalUnix;
-      t = cursor;
-    }
-  }
-  return t;
-}
-
-export function scoreItinerary(input: {
-  totalDurationSec: number;
-  transfers: number;
-  totalWalkMeters: number;
-  reliabilitySec: number;
-}): number {
-  const transferPenaltySec = input.transfers * 120; // 2 min per change
-  const walkPenaltySec = Math.max(0, input.totalWalkMeters - 500) * 0.4;
-  return input.totalDurationSec + transferPenaltySec + input.reliabilitySec * 0.5 + walkPenaltySec;
-}
-
-export function makeId(legs: Leg[], departureUnix: number): string {
-  const rides = legs.filter((l): l is RideLeg => l.kind === "ride");
-  const sig = rides.map((r) => `${r.routeId}-${r.board.stopId}-${r.alight.stopId}`).join("+");
-  return `ml-${sig}-${departureUnix}`;
-}
-
-export function finalise(legs: Leg[], now: number, source: Itinerary["source"]): Itinerary {
-  const rides = legs.filter((l): l is RideLeg => l.kind === "ride");
-  const walks = legs.filter((l): l is WalkLeg => l.kind === "walk");
-
-  // From the rider's point of view every itinerary starts now.
-  const departureUnix = now;
-  const arrivalUnix = lastEndUnix(legs, now);
-  const totalDurationSec = arrivalUnix - now;
-  const totalWalkMeters = walks.reduce((acc, w) => acc + w.distanceMeters, 0);
-  const transfers = Math.max(0, rides.length - 1);
-  const reliabilitySec = rides.reduce((acc, r) => acc + Math.max(0, r.delaySec), 0);
-
-  return {
-    id: makeId(legs, departureUnix),
-    legs,
-    totalDurationSec,
-    departureUnix,
-    arrivalUnix,
-    transfers,
-    totalWalkMeters,
-    score: scoreItinerary({ totalDurationSec, transfers, totalWalkMeters, reliabilitySec }),
-    source,
-  };
-}
-
-/** Mutating refresh used after walking geometry is upgraded with real data. */
-export function recomputeTotals(it: Itinerary, now: number): void {
-  const arrivalUnix = lastEndUnix(it.legs, now);
-  it.arrivalUnix = arrivalUnix;
-  it.totalDurationSec = arrivalUnix - now;
-  it.totalWalkMeters = it.legs
-    .filter((l): l is WalkLeg => l.kind === "walk")
-    .reduce((acc, w) => acc + w.distanceMeters, 0);
-  const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
-  const reliabilitySec = rides.reduce((acc, r) => acc + Math.max(0, r.delaySec), 0);
-  it.score = scoreItinerary({
-    totalDurationSec: it.totalDurationSec,
-    transfers: it.transfers,
-    totalWalkMeters: it.totalWalkMeters,
-    reliabilitySec,
-  });
-}
-
-// ---- Filter, dedupe, rank -------------------------------------------------
-export function applyDirectPreference(itineraries: Itinerary[]): Itinerary[] {
-  const bestDirect = itineraries
-    .filter((it) => it.transfers === 0)
-    .reduce<Itinerary | null>((best, it) => (!best || it.score < best.score ? it : best), null);
-
-  if (!bestDirect) return itineraries;
-
-  return itineraries.filter((it) => {
-    if (it.transfers === 0) return true;
-    const margin = bestDirect.totalDurationSec - it.totalDurationSec;
-    const pct = margin / bestDirect.totalDurationSec;
-    return margin >= MIN_TRANSFER_SAVINGS_SEC && pct >= MIN_TRANSFER_SAVINGS_RATIO;
-  });
-}
-
-export function rankItineraries(candidates: Itinerary[], diag: MultiLegDiagnostics): Itinerary[] {
-  const valid = candidates.filter((it) => it.totalDurationSec <= MAX_TOTAL_JOURNEY_SEC);
-  diag.validCount = valid.length;
-
-  if (candidates.length > 0 && valid.length === 0) {
-    const min = Math.min(...candidates.map((it) => it.totalDurationSec));
-    diag.reasons.push(
-      `All ${candidates.length} candidates exceed ${Math.round(MAX_TOTAL_JOURNEY_SEC / 60)}min cap (shortest: ${Math.round(min / 60)}min)`,
-    );
-  }
-  if (candidates.length === 0) {
-    if (diag.originTripCount === 0)
-      diag.reasons.push(`No live trips visible at any origin stop (feed window is ~60min)`);
-    else if (diag.destTripCount === 0)
-      diag.reasons.push(`No live trips visible reaching any destination stop`);
-    else
-      diag.reasons.push(
-        `Origin and dest both have live trips, but no single-trip or 1-transfer path connects them in the feed window`,
-      );
-  }
-
-  // Dedupe by ride signature — keep the cheapest.
-  const dedup = new Map<string, Itinerary>();
-  for (const it of valid) {
-    const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
-    const key = rides.map((r) => `${r.routeId}|${r.board.stopId}|${r.alight.stopId}`).join("→");
-    const existing = dedup.get(key);
-    if (!existing || it.score < existing.score) dedup.set(key, it);
-  }
-
-  let kept = [...dedup.values()];
-  const beforePrune = kept.length;
-  kept = applyDirectPreference(kept);
-  diag.prunedMediocre = beforePrune - kept.length;
-
-  kept.sort((a, b) => a.score - b.score);
-  const top = kept.slice(0, TOP_K_RESULTS);
-  diag.keptCount = top.length;
-  return top;
-}
+// Itinerary assembly, scoring and ranking live next door; re-exported so
+// callers keep a single import path into the planner primitives.
+export * from "./multileg-rank";

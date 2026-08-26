@@ -7,19 +7,28 @@
 // unit-tested without loading a GTFS shard.
 
 import type { Itinerary, Leg, RideLeg, WalkLeg } from "./itinerary-types";
+import { scoreLegs, type PlanContext } from "./multileg-rank";
+export type { PlanContext };
 
 /** Search-shape constants. Shared so web and any future native planner agree. */
 export const RAPTOR_TUNING = {
   /** 1 ride + up to 4 transfer rides — enough to cross the island. */
   maxRounds: 5,
   maxAccessWalkKm: 2.0,
-  maxEgressWalkKm: 2.0,
-  /** Wider final-stop net used only for one-seat rides. */
+  maxEgressWalkKm: 3.0,
+  /**
+   * Widest final-stop net. One radius for every option: a one-seat ride is
+   * kept because nothing beats it, not because it was allowed a longer walk
+   * than its rivals.
+   */
   maxDirectEgressWalkKm: 3.0,
   maxTransferWalkM: 600,
   /** Large terminals expose many bays; keep enough candidates to cover each bay. */
-  topOriginStops: 16,
-  topDestStops: 16,
+  topOriginStops: 8,
+  topDestStops: 8,
+  /** Ceiling once station bays and otherwise-missing routes are admitted. */
+  maxOriginCandidates: 48,
+  maxDestCandidates: 48,
   minTransferBufferSec: 90,
   /** Cross-island + airport connections. */
   maxTotalJourneySec: 300 * 60,
@@ -155,20 +164,24 @@ export function lastEnd(legs: Leg[], departureUnix: number): number {
 }
 
 /**
- * Turn a leg sequence into a scored Itinerary DTO. Score is journey seconds
- * plus a transfer penalty and a penalty for walking beyond the first 500 m,
- * so a marginally faster three-transfer slog never outranks a simple ride.
+ * Turn a leg sequence into a scored Itinerary DTO, using the one shared cost
+ * model in `plan-score.ts` so the schedule planner and the live planner never
+ * disagree about what an option is worth. The caller passes the station index
+ * and measured headways when it has them; without them the model falls back
+ * to a stated assumption rather than an invented constant.
  */
-export function finalise(legs: Leg[], departureUnix: number): Itinerary {
+export function finalise(
+  legs: Leg[],
+  departureUnix: number,
+  ctx?: PlanContext,
+): Itinerary {
   const rides = legs.filter((l): l is RideLeg => l.kind === "ride");
   const walks = legs.filter((l): l is WalkLeg => l.kind === "walk");
   const arrivalUnix = lastEnd(legs, departureUnix);
   const totalDurationSec = arrivalUnix - departureUnix;
   const totalWalkMeters = walks.reduce((acc, w) => acc + w.distanceMeters, 0);
   const transfers = Math.max(0, rides.length - 1);
-  const transferPenaltySec = transfers * 120;
-  const walkPenaltySec = Math.max(0, totalWalkMeters - 500) * 0.4;
-  const score = totalDurationSec + transferPenaltySec + walkPenaltySec;
+  const score = scoreLegs(legs, totalDurationSec, ctx);
   const sig = rides.map((r) => `${r.routeId}-${r.board.stopId}-${r.alight.stopId}`).join("+");
   return {
     id: `rap-${sig}-${departureUnix}`,
@@ -182,3 +195,4 @@ export function finalise(legs: Leg[], departureUnix: number): Itinerary {
     source: "estimated",
   };
 }
+

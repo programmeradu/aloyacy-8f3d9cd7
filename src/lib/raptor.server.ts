@@ -33,6 +33,27 @@ import {
   walkSecFromMeters,
 } from "@aloya/core/raptor-core";
 import { buildDirectRaptorItineraries, selectRaptorItineraries } from "./raptor-direct.server";
+import { selectCandidateStops } from "@aloya/core/plan-candidates";
+import { distanceKm } from "@aloya/core/multileg-legs";
+import { buildHeadwayIndex } from "@aloya/core/headway";
+import { sameStation, stationIdOf } from "./stations.server";
+import type { PlanContext } from "@aloya/core/raptor-core";
+
+// Headways are a property of the schedule shard, not of one request, so they
+// are measured once per loaded shard and reused for every plan that day.
+const headwayCache = new WeakMap<LoadedSchedule, Map<string, number>>();
+
+function headwayIndexFor(schedule: LoadedSchedule): Map<string, number> {
+  const cached = headwayCache.get(schedule);
+  if (cached) return cached;
+  const samples: Array<{ routeId: string; stopId: string; timeUnix: number }> = [];
+  for (const [stopId, rows] of Object.entries(schedule.stopTrips)) {
+    for (const row of rows) samples.push({ routeId: row[2], stopId, timeUnix: row[1] });
+  }
+  const index = buildHeadwayIndex(samples);
+  headwayCache.set(schedule, index);
+  return index;
+}
 
 // Cross-island journeys can legitimately require a local feeder, an
 // intercity service, and one or two airport-side connections. Three rounds
@@ -47,6 +68,8 @@ const {
   maxTransferWalkM: MAX_TRANSFER_WALK_M,
   topOriginStops: TOP_ORIGIN_STOPS,
   topDestStops: TOP_DEST_STOPS,
+  maxOriginCandidates: MAX_ORIGIN_CANDIDATES,
+  maxDestCandidates: MAX_DEST_CANDIDATES,
   minTransferBufferSec: MIN_TRANSFER_BUFFER_SEC,
   maxTotalJourneySec: MAX_TOTAL_JOURNEY_SEC,
   topKResults: TOP_K_RESULTS,
@@ -126,16 +149,56 @@ export async function planRaptor(
     reasons: [],
   };
 
+  // Measured service frequency for this service date, cached per shard: what
+  // a change costs depends on how long the next bus on that route really is.
+  const headways = headwayIndexFor(schedule);
+  const planContext: PlanContext = {
+    sameStation,
+    headwayOf: (routeId) => headways.get(routeId) ?? null,
+  };
+
   // 1) Pick origin / destination candidate stops from the schedule's stop set.
   const stopList = Object.entries(stops); // [id, stop][]
-  const origins = nearestStops(stopList, from, MAX_ACCESS_WALK_KM, TOP_ORIGIN_STOPS);
-  const dests = nearestStops(stopList, to, MAX_EGRESS_WALK_KM, TOP_DEST_STOPS);
-  const directDests = nearestStops(
-    stopList,
-    to,
-    MAX_DIRECT_EGRESS_WALK_KM,
-    TOP_DEST_STOPS + 8,
-  );
+
+  // Which routes each stop actually offers, straight from the schedule shard.
+  // A stop earns a place in the candidate set by adding a route the set does
+  // not have yet — that is how the far bay of a terminal stops being invisible.
+  const routesAtStop = (id: string): string[] => {
+    const rows = stopTrips[id];
+    if (!rows) return [];
+    const out = new Set<string>();
+    for (const row of rows) out.add(row[2]);
+    return [...out];
+  };
+  const stationOf = (id: string) => stationIdOf(id) ?? id;
+  const pickKm = distanceKm;
+
+  const originPick = selectCandidateStops({
+    stops: stopList,
+    point: from,
+    maxKm: MAX_ACCESS_WALK_KM,
+    minCount: TOP_ORIGIN_STOPS,
+    hardCap: MAX_ORIGIN_CANDIDATES,
+    distanceKm: pickKm,
+    stationOf,
+    routesAt: (id) => routesAtStop(id),
+  });
+  const destPick = selectCandidateStops({
+    stops: stopList,
+    point: to,
+    maxKm: MAX_DIRECT_EGRESS_WALK_KM,
+    minCount: TOP_DEST_STOPS,
+    hardCap: MAX_DEST_CANDIDATES,
+    distanceKm: pickKm,
+    stationOf,
+    routesAt: (id) => routesAtStop(id),
+  });
+
+  const origins = originPick.candidates;
+  // One destination set for every option. Nothing gets a wider walking radius
+  // because of how many changes it has.
+  const dests = destPick.candidates;
+  const directDests = destPick.candidates;
   diag.originStopCount = origins.length;
   diag.destStopCount = Math.max(dests.length, directDests.length);
   diag.nearestOriginStopKm = origins[0]?.distKm ?? null;
@@ -290,13 +353,24 @@ export async function planRaptor(
     departureUnix,
     searchHorizonSec: SEARCH_HORIZON_SEC,
     maxJourneySec: MAX_JOURNEY_SEC,
+    planContext,
   });
   for (let k = 1; k < labels.length; k++) {
     for (const [destStopId, destMeta] of destSet) {
       const label = labels[k].get(destStopId);
       if (!label || label.kind !== "ride") continue;
       // Reconstruct
-      const it = reconstruct(labels, k, destStopId, destMeta, schedule, from, to, departureUnix);
+      const it = reconstruct(
+        labels,
+        k,
+        destStopId,
+        destMeta,
+        schedule,
+        from,
+        to,
+        departureUnix,
+        planContext,
+      );
       if (it) itineraries.push(it);
     }
   }
@@ -321,6 +395,7 @@ function reconstruct(
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
   departureUnix: number,
+  planContext?: PlanContext,
 ): Itinerary | null {
   const { stops, routes, stopTimes } = schedule;
   type Chain = { stopId: string; round: number; label: Label };
@@ -445,5 +520,5 @@ function reconstruct(
     verified: false,
   });
 
-  return finalise(legs, departureUnix);
+  return finalise(legs, departureUnix, planContext);
 }

@@ -1,8 +1,18 @@
 import type { Itinerary, Leg, RideLeg } from "./itinerary-types";
-import type { LoadedSchedule, ScheduleStop, StopTimeRow, StopTripRow } from "./schedule-loader.server";
+import type {
+  LoadedSchedule,
+  ScheduleStop,
+  StopTimeRow,
+  StopTripRow,
+} from "./schedule-loader.server";
 import { serviceDateToUnix } from "./schedule-loader.server";
-import { applyDirectPreference } from "@aloya/core/multileg-search";
-import { finalise, walkMetersOnStreet, walkSecFromMeters } from "@aloya/core/raptor-core";
+import { pruneDominated } from "@aloya/core/multileg-search";
+import {
+  finalise,
+  walkMetersOnStreet,
+  walkSecFromMeters,
+  type PlanContext,
+} from "@aloya/core/raptor-core";
 
 type CandidateStop = { id: string; stop: ScheduleStop; distKm: number };
 
@@ -24,29 +34,74 @@ function firstBoardIndex(rows: StopTimeRow[], stopId: string, deadlineSec: numbe
   return -1;
 }
 
-function firstDirectAlight(
+type AlightChoice = { idx: number; dest: CandidateStop };
+
+/**
+ * Where to get off, judged door to door.
+ *
+ * Taking the *first* candidate stop the trip happens to touch is what made a
+ * one-seat ride look absurd: a bus can clip the edge of the destination area
+ * early — two kilometres of walking away — and then run to a stop a hundred
+ * metres from the door ten minutes later. So every downstream candidate is
+ * evaluated on when the rider actually arrives at the destination, not when
+ * the bus reaches some stop with a matching id.
+ *
+ * Two choices are returned when they differ: the earliest door-to-door
+ * arrival, and the one with the least walking. Neither is preferred here —
+ * ranking decides, and dominance drops whichever nobody would pick.
+ */
+function bestDirectAlights(
   rows: StopTimeRow[],
   boardIdx: number,
   directDests: Map<string, CandidateStop>,
-): { idx: number; dest: CandidateStop } | null {
+): AlightChoice[] {
+  let earliest: AlightChoice | null = null;
+  let earliestDoorSec = Infinity;
+  let shortestWalk: AlightChoice | null = null;
+  let shortestWalkKm = Infinity;
+
   for (let i = boardIdx + 1; i < rows.length; i++) {
     const dest = directDests.get(rows[i][0]);
-    if (dest) return { idx: i, dest };
+    if (!dest) continue;
+    const doorSec = rows[i][2] + walkSecFromMeters(dest.distKm * 1000);
+    if (doorSec < earliestDoorSec) {
+      earliestDoorSec = doorSec;
+      earliest = { idx: i, dest };
+    }
+    if (dest.distKm < shortestWalkKm) {
+      shortestWalkKm = dest.distKm;
+      shortestWalk = { idx: i, dest };
+    }
   }
-  return null;
+
+  const out: AlightChoice[] = [];
+  if (earliest) out.push(earliest);
+  if (shortestWalk && shortestWalk.idx !== earliest?.idx) out.push(shortestWalk);
+  return out;
 }
 
 export function buildDirectRaptorItineraries(input: {
   schedule: LoadedSchedule;
   origins: CandidateStop[];
   directDests: CandidateStop[];
+  planContext?: PlanContext;
   from: { lat: number; lng: number; label?: string };
   to: { lat: number; lng: number; label?: string };
   departureUnix: number;
   searchHorizonSec: number;
   maxJourneySec: number;
 }): Itinerary[] {
-  const { schedule, origins, directDests, from, to, departureUnix, searchHorizonSec, maxJourneySec } = input;
+  const {
+    schedule,
+    origins,
+    directDests,
+    from,
+    to,
+    departureUnix,
+    searchHorizonSec,
+    maxJourneySec,
+    planContext,
+  } = input;
   const { date, stops, routes, stopTrips, stopTimes } = schedule;
   const directDestMap = new Map(directDests.map((d) => [d.id, d]));
   const out: Itinerary[] = [];
@@ -69,54 +124,80 @@ export function buildDirectRaptorItineraries(input: {
 
       const boardIdx = firstBoardIndex(tripRows, origin.id, deadlineSec);
       if (boardIdx < 0) continue;
-      const alight = firstDirectAlight(tripRows, boardIdx, directDestMap);
-      if (!alight) continue;
+      const alights = bestDirectAlights(tripRows, boardIdx, directDestMap);
+      if (alights.length === 0) continue;
 
-      const boardRow = tripRows[boardIdx];
-      const alightRow = tripRows[alight.idx];
-      const alightStop = stops[alight.dest.id];
-      if (!boardRow || !alightRow || !alightStop) continue;
+      for (const alight of alights) {
+        const boardRow = tripRows[boardIdx];
+        const alightRow = tripRows[alight.idx];
+        const alightStop = stops[alight.dest.id];
+        if (!boardRow || !alightRow || !alightStop) continue;
 
-      const boardUnix = serviceDateToUnix(date, boardRow[1]);
-      const arrivalUnix = serviceDateToUnix(date, alightRow[2]);
-      if (arrivalUnix - departureUnix > maxJourneySec) continue;
+        const boardUnix = serviceDateToUnix(date, boardRow[1]);
+        const arrivalUnix = serviceDateToUnix(date, alightRow[2]);
+        if (arrivalUnix - departureUnix > maxJourneySec) continue;
 
-      const routeMeta = routes[routeId];
-      const waitSec = boardUnix - accessArrivalUnix;
-      const legs: Leg[] = [
-        {
+        const routeMeta = routes[routeId];
+        const waitSec = boardUnix - accessArrivalUnix;
+        const legs: Leg[] = [
+          {
+            kind: "walk",
+            from: { name: from.label ?? "Start", lat: from.lat, lng: from.lng },
+            to: { stopId: origin.id, name: boardStop.name, lat: boardStop.lat, lng: boardStop.lng },
+            durationSec: accessSec,
+            distanceMeters: walkMetersOnStreet(origin.distKm * 1000),
+            verified: false,
+          },
+        ];
+        if (waitSec >= 30) {
+          legs.push({
+            kind: "wait",
+            stopId: origin.id,
+            name: boardStop.name,
+            lat: boardStop.lat,
+            lng: boardStop.lng,
+            durationSec: waitSec,
+          });
+        }
+        legs.push({
+          kind: "ride",
+          routeId,
+          routeShort: routeMeta?.short ?? "?",
+          routeLong: routeMeta?.long ?? "",
+          tripId,
+          live: false,
+          board: {
+            stopId: origin.id,
+            name: boardStop.name,
+            lat: boardStop.lat,
+            lng: boardStop.lng,
+            departureUnix: boardUnix,
+          },
+          alight: {
+            stopId: alight.dest.id,
+            name: alightStop.name,
+            lat: alightStop.lat,
+            lng: alightStop.lng,
+            arrivalUnix,
+          },
+          stopCount: alightRow[3] - boardRow[3],
+          delaySec: 0,
+        });
+        legs.push({
           kind: "walk",
-          from: { name: from.label ?? "Start", lat: from.lat, lng: from.lng },
-          to: { stopId: origin.id, name: boardStop.name, lat: boardStop.lat, lng: boardStop.lng },
-          durationSec: accessSec,
-          distanceMeters: walkMetersOnStreet(origin.distKm * 1000),
+          from: {
+            stopId: alight.dest.id,
+            name: alightStop.name,
+            lat: alightStop.lat,
+            lng: alightStop.lng,
+          },
+          to: { name: to.label ?? "Destination", lat: to.lat, lng: to.lng },
+          durationSec: walkSecFromMeters(alight.dest.distKm * 1000),
+          distanceMeters: walkMetersOnStreet(alight.dest.distKm * 1000),
           verified: false,
-        },
-      ];
-      if (waitSec >= 30) {
-        legs.push({ kind: "wait", stopId: origin.id, name: boardStop.name, lat: boardStop.lat, lng: boardStop.lng, durationSec: waitSec });
+        });
+        out.push(finalise(legs, departureUnix, planContext));
       }
-      legs.push({
-        kind: "ride",
-        routeId,
-        routeShort: routeMeta?.short ?? "?",
-        routeLong: routeMeta?.long ?? "",
-        tripId,
-        live: false,
-        board: { stopId: origin.id, name: boardStop.name, lat: boardStop.lat, lng: boardStop.lng, departureUnix: boardUnix },
-        alight: { stopId: alight.dest.id, name: alightStop.name, lat: alightStop.lat, lng: alightStop.lng, arrivalUnix },
-        stopCount: alightRow[3] - boardRow[3],
-        delaySec: 0,
-      });
-      legs.push({
-        kind: "walk",
-        from: { stopId: alight.dest.id, name: alightStop.name, lat: alightStop.lat, lng: alightStop.lng },
-        to: { name: to.label ?? "Destination", lat: to.lat, lng: to.lng },
-        durationSec: walkSecFromMeters(alight.dest.distKm * 1000),
-        distanceMeters: walkMetersOnStreet(alight.dest.distKm * 1000),
-        verified: false,
-      });
-      out.push(finalise(legs, departureUnix));
     }
   }
 
@@ -131,7 +212,7 @@ export function selectRaptorItineraries(itineraries: Itinerary[], limit: number)
     const existing = bySignature.get(key);
     if (!existing || it.score < existing.score) bySignature.set(key, it);
   }
-  const kept = applyDirectPreference([...bySignature.values()]);
-  kept.sort((a, b) => a.score - b.score);
+  const kept = pruneDominated([...bySignature.values()]);
+  kept.sort((a: Itinerary, b: Itinerary) => a.score - b.score);
   return kept.slice(0, limit);
 }

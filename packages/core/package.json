@@ -221,6 +221,22 @@
     "./duration-format": {
       "types": "./src/duration-format.ts",
       "default": "./src/duration-format.ts"
+    },
+    "./stations": {
+      "types": "./src/stations.ts",
+      "default": "./src/stations.ts"
+    },
+    "./plan-score": {
+      "types": "./src/plan-score.ts",
+      "default": "./src/plan-score.ts"
+    },
+    "./plan-candidates": {
+      "types": "./src/plan-candidates.ts",
+      "default": "./src/plan-candidates.ts"
+    },
+    "./headway": {
+      "types": "./src/headway.ts",
+      "default": "./src/headway.ts"
     }
   },
   "dependencies": {

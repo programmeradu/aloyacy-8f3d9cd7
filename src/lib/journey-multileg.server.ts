@@ -15,13 +15,15 @@ import { getTransferCandidates } from "./transfer-graph.server";
 import { getWalkLink } from "./walk-links.server";
 import type { Itinerary } from "./itinerary-types";
 import {
-  applyDirectPreference,
+  pruneDominated,
   recomputeTotals,
   searchMultiLeg,
   type MlArrival,
   type MultiLegDiagnostics,
 } from "@aloya/core/multileg-search";
 import { createLogger } from "@/lib/logger";
+import { sameStation, stationIdOf } from "./stations.server";
+import { buildHeadwayIndex } from "@aloya/core/headway";
 
 const log = createLogger("multileg");
 
@@ -68,6 +70,13 @@ export async function planMultiLegJourney(
     delaySec: a.delaySec,
   }));
 
+  // How often each route really runs, measured from the departures the feed
+  // is showing right now. This is what makes a change onto a frequent route
+  // cheap and a change onto a rare one expensive.
+  const headways = buildHeadwayIndex(
+    arrivals.map((a) => ({ routeId: a.routeId, stopId: a.stopId, timeUnix: a.arrivalUnix })),
+  );
+
   const { itineraries, diagnostics } = searchMultiLeg({
     from,
     to,
@@ -76,13 +85,17 @@ export async function planMultiLegJourney(
     arrivals,
     transferIndex: getTransferCandidates(),
     now,
+    sameStation,
+    stationIdOf,
+    headwayOf: (routeId) => headways.get(routeId) ?? null,
   });
 
   await verifyWalks(itineraries, now);
-  // Verified transfer walks may shift scores. Reassert the direct-journey
-  // invariant on those refreshed totals before exposing the final order.
-  const preferred = applyDirectPreference(itineraries);
-  preferred.sort((a, b) => a.score - b.score);
+  // Real walking geometry can change which options are genuinely better, so
+  // dominance is re-checked against the verified totals rather than the
+  // straight-line estimates the search ran on.
+  const preferred = pruneDominated(itineraries);
+  preferred.sort((a: Itinerary, b: Itinerary) => a.score - b.score);
 
   const elapsed = Date.now() - t0;
   if (elapsed > 1500) {
