@@ -10,6 +10,7 @@ export type TripAlertKind =
   | "hurry-soft"
   | "hurry-urgent"
   | "board-now"
+  | "alight-ready"
   | "press-stop"
   | "confirm-onboard"
   | "missed-bus"
@@ -22,6 +23,8 @@ export type TripAlertContext = {
   stopName?: string | null;
   /** Minutes until the relevant moment, when the caller knows it. */
   minutes?: number | null;
+  /** Stops still to be served before the rider's own, when counted. */
+  stops?: number | null;
   /** Deep link opened when the rider taps the notification. */
   url?: string | null;
 };
@@ -70,6 +73,15 @@ export function buildTripAlertCopy(ctx: TripAlertContext): TripAlertCopy {
         id,
         title: `${capitalize(bus(ctx.routeShort))} is here`,
         body: `Board now at ${stop(ctx.stopName)}.`,
+      };
+    case "alight-ready":
+      return {
+        id,
+        title:
+          ctx.stops != null && ctx.stops > 0
+            ? `${ctx.stops} stops until ${stop(ctx.stopName)}`
+            : `${capitalize(stop(ctx.stopName))} is coming up`,
+        body: "Gather your things — we'll tell you the moment to press the button.",
       };
     case "press-stop":
       return {

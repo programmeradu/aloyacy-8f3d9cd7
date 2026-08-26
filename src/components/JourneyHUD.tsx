@@ -23,6 +23,7 @@ import { fmtEta as fmtMinutes } from "@/lib/journey-copy";
 import { useI18n } from "@/lib/i18n";
 import { SightingButton } from "@/components/SightingButton";
 import { getStop } from "@/lib/gtfs";
+import { AlightCountdownCard } from "@/components/journey/AlightCountdownCard";
 
 function fmtMeters(m: number): string {
   if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
@@ -66,10 +67,15 @@ export function JourneyHUD({
       {/* Bus left without us */}
       {live.phase === "missed-bus" && <MissedBusCard trip={trip} />}
 
-      {/* On bus — manual "I'm off" button surfaces after alight-soon */}
-      {(live.phase === "on-bus" || live.phase === "alight-soon") && (
-        <RidingCard trip={trip} live={live} />
-      )}
+      {/* On bus. With a known stop sequence the rider gets the live stop
+          countdown; otherwise we fall back to the plain ETA card. */}
+      {(live.phase === "on-bus" || live.phase === "alight-soon") &&
+        (live.alight.hasSequence || live.alight.stage !== "cruising" ? (
+          <AlightCountdownCard trip={trip} live={live} />
+        ) : (
+          <RidingCard trip={trip} live={live} />
+        ))}
+
 
       {/* Final arrival */}
       {live.phase === "arrived" && <ArrivedCard trip={trip} />}

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import * as Location from "expo-location";
-import { fetchRealtime, fetchStopsBundle } from "./api";
+import { fetchRealtime, fetchRouteSequences, fetchStopsBundle } from "./api";
 import { setStops } from "./gtfs";
 
 export function useRealtime() {
@@ -23,6 +23,21 @@ export function useRealtime() {
     [q.data?.ghostTripIds],
   );
   return { ...q, riderConfirmedAge, ghostTripIds };
+}
+
+/**
+ * Stop sequences for the on-board countdown. Static for the day, so it is
+ * fetched once and held; a failure just means the countdown falls back to
+ * distance, never a broken screen.
+ */
+export function useRouteSequences() {
+  return useQuery({
+    queryKey: ["route-sequences"],
+    queryFn: fetchRouteSequences,
+    staleTime: 24 * 60 * 60_000,
+    gcTime: 24 * 60 * 60_000,
+    retry: 1,
+  });
 }
 
 export function useStopsBundle() {

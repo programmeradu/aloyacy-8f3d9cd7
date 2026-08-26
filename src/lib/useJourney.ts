@@ -8,31 +8,45 @@
 // subscriptions, memoisation, persistence and the push side effects.
 
 import { useEffect, useMemo, useRef } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { useRealtime } from "./useRealtime";
 import { useFusedFix } from "./useFusedFix";
 import type { LiveFix } from "./useGeoWatch";
 import { useDriveEta } from "./useDriveEta";
 import { distanceM, projectOnSteps, WALK_M_PER_S, type WalkStep } from "./geo";
 import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
-import { getDeviceId } from "./pwa";
-import { sendTripAlert } from "./push.functions";
 import { detectWrongStop, type RerouteHint } from "./wrong-stop-reroute";
 import { getStop } from "./gtfs";
+import { useJourneySideEffects } from "./useJourneySideEffects";
 import { getShapeForTripSync, prefetchShapes, type LatLng } from "./shapes";
 import ROUTE_SEQUENCES from "@/data/route_sequences.json";
 import { useTick } from "@/hooks/use-tick";
 import {
-  alertForPhase,
   fuseVehicleAndEta,
   resolveLivePhase,
-  shouldAutoConfirmBoarding,
   vehicleBasedSecsToBoard,
   type FusedVehicle,
   type LivePhase as CoreLivePhase,
 } from "@aloya/core/journey-live";
+import {
+  computeAlightCountdown,
+  sequenceForTrip,
+  type AlightCountdown,
+} from "@aloya/core/alight-countdown";
 
 const SEQUENCES = ROUTE_SEQUENCES as Record<string, string[]>;
+
+/** Calm placeholder used before tracking starts. */
+const IDLE_COUNTDOWN: AlightCountdown = {
+  stage: "cruising",
+  stopsRemaining: null,
+  metersToAlight: null,
+  atStop: false,
+  currentStop: null,
+  nextStop: null,
+  upcoming: [],
+  alightStop: null,
+  hasSequence: false,
+};
 
 import type { JourneyPhase } from "./journey-phase";
 export type { JourneyPhase } from "./journey-phase";
@@ -76,6 +90,10 @@ export type LiveJourney = {
   /** Google-Maps-style wrong-stop hint: rider drifted to a different stop the
    *  same route serves, or to one it doesn't serve. */
   rerouteHint: RerouteHint;
+
+  /** Stop-aware alighting countdown: which stop the bus is at, how many
+   *  are left, and whether it is genuinely time to press the button. */
+  alight: AlightCountdown;
 };
 
 export function useJourney(opts: {
@@ -178,6 +196,7 @@ export function useJourney(opts: {
       vehicleNotTracked: false,
 
       rerouteHint: null,
+      alight: IDLE_COUNTDOWN,
     };
 
     if (!active || !bus || !started) return baseInactive;
@@ -244,6 +263,36 @@ export function useJourney(opts: {
     const fusionAlightLoc =
       walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
 
+    // ---- Stop-aware alighting countdown ---------------------------------
+    // Counting stops, not seconds. While riding, the best available bus
+    // position is the feed vehicle; when the feed drops it, the rider's own
+    // phone IS the bus, so it stands in.
+    const ridingNow = !!live?.onBoardConfirmedAt && !live?.alightedAt;
+    const busPosition = vehicle
+      ? { lat: vehicle.lat, lng: vehicle.lng }
+      : ridingNow && fix
+        ? { lat: fix.lat, lng: fix.lng }
+        : null;
+    const alight = ridingNow
+      ? computeAlightCountdown({
+          sequence: sequenceForTrip(
+            SEQUENCES,
+            bus.routeId,
+            bus.board.stopId,
+            bus.alight.stopId,
+          ),
+          alightStopId: bus.alight.stopId,
+          boardStopId: bus.board.stopId,
+          getStop: (id) => {
+            const st = getStop(id);
+            return st ? { name: st.name, lat: st.lat, lng: st.lng } : null;
+          },
+          position: busPosition,
+          speedMps: vehicle ? null : (fix?.speedMps ?? null),
+          alightLoc: fusionAlightLoc,
+        })
+      : IDLE_COUNTDOWN;
+
     const { phase, onBoardSuggested, missedSuggested } = resolveLivePhase({
       nowUnix: now,
       fix,
@@ -257,6 +306,7 @@ export function useJourney(opts: {
       onBoardConfirmedAt: live?.onBoardConfirmedAt ?? null,
       missedAt: live?.missedAt ?? null,
       alightedAt: live?.alightedAt ?? null,
+      stopsRemaining: alight.hasSequence ? alight.stopsRemaining : null,
     });
 
     // GPS × feed fusion, on-board only: once the rider confirms, the phone IS
@@ -315,6 +365,7 @@ export function useJourney(opts: {
       vehicleNotTracked,
 
       rerouteHint,
+      alight,
     };
     // `tick` is a deliberate heartbeat that forces countdown recomputation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -335,90 +386,16 @@ export function useJourney(opts: {
     tick,
   ]);
 
-  // ---- GPS-based auto-confirm boarding -------------------------------------
-  // If the rider's GPS shows sustained bus-speed motion AND they've left the
-  // board stop, mark them on-board automatically. This is the safety net for
-  // when the GTFS-RT feed has no vehicle for the tripId and the prompt
-  // would otherwise never appear (the exact failure mode reported at night).
-  const ridingStartedAtRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (!result.active || !bus) return;
-    if (live?.onBoardConfirmedAt || live?.missedAt || live?.alightedAt) {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    const boardLoc = walkIn?.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null;
-    const next = shouldAutoConfirmBoarding({
-      fix,
-      boardLoc,
-      ridingSinceMs: ridingStartedAtRef.current,
-      nowMs: Date.now(),
-    });
-    ridingStartedAtRef.current = next.ridingSinceMs;
-    if (next.confirm) patchActiveTripLive({ onBoardConfirmedAt: Date.now() });
-  }, [result.active, bus, fix, live, walkIn]);
-
-  // ---- Push alerting on phase transition -----------------------------------
-  const sentRef = useRef<Set<string>>(new Set());
-  const sendAlert = useServerFn(sendTripAlert);
-
-  useEffect(() => {
-    if (!result.active || !bus || !active) return;
-    const alert = alertForPhase({
-      phase: result.phase,
-      onBoardSuggested: result.onBoardSuggested,
-      secsToBoard: result.secsToBoard,
-      boardName: bus.board.name,
-      alightName: bus.alight.name,
-    });
-    if (!alert || sentRef.current.has(alert.key)) return;
-    sentRef.current.add(alert.key);
-
-    const deviceId = getDeviceId();
-    const url = `/trip/${active.option.id}`;
-
-    void sendAlert({
-      data: {
-        deviceId,
-        kind: alert.kind,
-        routeShort: bus.routeShort,
-        ...(alert.stopName ? { stopName: alert.stopName } : {}),
-        ...(alert.minutes != null ? { minutes: alert.minutes } : {}),
-        url,
-      },
-    }).catch(() => {});
-
-    // Persist the completed trip so it can power personalized suggestions.
-    if (alert.recordsHistory) {
-      void (async () => {
-        const [{ recordTripHistory }, { getDeviceToken, getAccessToken }] = await Promise.all([
-          import("./suggestions.functions"),
-          import("./pwa"),
-        ]);
-        const [token, accessToken] = await Promise.all([getDeviceToken(), getAccessToken()]);
-        if (!token) return;
-        await recordTripHistory({
-          data: {
-            deviceId,
-            deviceToken: token,
-            accessToken,
-            from: { lat: active.from.lat, lng: active.from.lng, label: active.from.label },
-            to: { lat: active.to.lat, lng: active.to.lng, label: active.to.label },
-            routeShort: bus.routeShort,
-            source: "completed",
-          },
-        }).catch(() => {});
-      })();
-    }
-  }, [
-    result.phase,
-    result.onBoardSuggested,
-    result.secsToBoard,
-    result.active,
+  useJourneySideEffects({
+    result,
     active,
     bus,
-    sendAlert,
-  ]);
+    walkIn,
+    walkOut,
+    fix,
+    live,
+    vehicles: rt?.vehicles,
+  });
 
   return result;
 }

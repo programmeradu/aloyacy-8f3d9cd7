@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { deriveSchedulePhase, walkingPhaseFor } from "@aloya/core/single-leg-phase";
 import { buildCompanionMarkers } from "@aloya/core/companion-view";
+import { resolveWalkAnchor, type WalkAnchor } from "@aloya/core/walk-anchor";
 import type { MapMarker } from "@/components/MapPreview";
 import { useRealtime } from "@/lib/useRealtime";
 import type { useActiveTrip } from "@/lib/trip-store";
@@ -76,8 +77,25 @@ export function useSingleLegView(active: ActiveTrip) {
         ? view.walkOut
         : null
     : null;
-  const walkFrom = walkLeg && walkLeg.kind === "walk" ? walkLeg.from : null;
+  const plannedFrom = walkLeg && walkLeg.kind === "walk" ? walkLeg.from : null;
   const walkTo = walkLeg && walkLeg.kind === "walk" ? walkLeg.to : null;
+
+  // The last walk starts wherever the rider actually stepped off, not at the
+  // stop the plan nominated. `useJourney` runs after this (it needs the walk
+  // steps), so the anchor uses the fix from the previous frame — one tick of
+  // lag on a value that only moves every 60 m.
+  const anchorRef = useRef<WalkAnchor | null>(null);
+  const lastFixRef = useRef<{ lat: number; lng: number; accuracyM?: number | null } | null>(
+    null,
+  );
+  const anchor = resolveWalkAnchor({
+    planned: plannedFrom,
+    fix: lastFixRef.current,
+    previous: anchorRef.current,
+    useLive: walkingPhase === "to-dest" && !!active?.live?.alightedAt,
+  });
+  anchorRef.current = anchor;
+  const walkFrom = anchor ? { lat: anchor.lat, lng: anchor.lng } : null;
 
   const { data: dir } = useQuery({
     queryKey: ["walk", walkFrom?.lat, walkFrom?.lng, walkTo?.lat, walkTo?.lng],
@@ -88,6 +106,9 @@ export function useSingleLegView(active: ActiveTrip) {
   const directions = walkingPhase ? (dir?.directions ?? null) : null;
 
   const live = useJourney({ active, walkingSteps: directions?.steps ?? null, walkingPhase });
+  lastFixRef.current = live.fix
+    ? { lat: live.fix.lat, lng: live.fix.lng, accuracyM: live.fix.accuracyM }
+    : null;
 
   // Compass heading (works while stationary). GPS heading is only valid
   // while moving > ~2 m/s. As a third fallback we derive a bearing from
@@ -114,13 +135,23 @@ export function useSingleLegView(active: ActiveTrip) {
     return buildCompanionMarkers({
       walkingPhase,
       walkIn: walkIn.kind === "walk" ? { from: walkIn.from, to: walkIn.to } : null,
-      walkOut: walkOut.kind === "walk" ? { from: walkOut.from, to: walkOut.to } : null,
+      walkOut:
+        walkOut.kind === "walk"
+          ? {
+              from:
+                walkingPhase === "to-dest" && anchor?.live
+                  ? { lat: anchor.lat, lng: anchor.lng }
+                  : walkOut.from,
+              to: walkOut.to,
+            }
+          : null,
       originLabel: active.from.label,
       destLabel: active.to.label,
       boardName: bus.board.name,
-      alightName: bus.alight.name,
+      alightName:
+        walkingPhase === "to-dest" && anchor?.live ? "Where you got off" : bus.alight.name,
     });
-  }, [walkingPhase, active, view]);
+  }, [walkingPhase, active, view, anchor]);
 
   const userLocation = live.fix
     ? {
@@ -136,5 +167,5 @@ export function useSingleLegView(active: ActiveTrip) {
       }
     : null;
 
-  return { view, walkingPhase, directions, live, mapMarkers, userLocation };
+  return { view, walkingPhase, directions, live, mapMarkers, userLocation, walkAnchor: anchor };
 }

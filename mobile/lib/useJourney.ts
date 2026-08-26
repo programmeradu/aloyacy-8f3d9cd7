@@ -22,11 +22,19 @@ import {
   alertForPhase,
   fuseVehicleAndEta,
   resolveLivePhase,
+  shouldAutoConfirmAlighting,
   shouldAutoConfirmBoarding,
   type FusedVehicle,
   type LivePhase as CoreLivePhase,
 } from "@aloya/core/journey-live";
-import { useRealtime } from "./hooks";
+import {
+  alightAlertFor,
+  computeAlightCountdown,
+  sequenceForTrip,
+  type AlightCountdown,
+} from "@aloya/core/alight-countdown";
+import { useRealtime, useRouteSequences } from "./hooks";
+import { getStop } from "./gtfs";
 import { useFusedFix, type FusedFix } from "./useFusedFix";
 import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
 import { sendLocalTripAlert } from "./tripAlerts";
@@ -62,6 +70,21 @@ export type LiveJourney = {
   feedStale: boolean;
   tripGhost: boolean;
   vehicleNotTracked: boolean;
+  /** Stop-aware alighting countdown (see @aloya/core/alight-countdown). */
+  alight: AlightCountdown;
+};
+
+/** Calm placeholder used before tracking starts. */
+const IDLE_COUNTDOWN: AlightCountdown = {
+  stage: "cruising",
+  stopsRemaining: null,
+  metersToAlight: null,
+  atStop: false,
+  currentStop: null,
+  nextStop: null,
+  upcoming: [],
+  alightStop: null,
+  hasSequence: false,
 };
 
 // ---- Re-derive ETAs every 5s so countdowns don't freeze between GPS fixes.
@@ -109,6 +132,7 @@ export function useJourney(opts: {
 
   const rtQuery = useRealtime();
   const rt = rtQuery.data;
+  const sequences = useRouteSequences().data;
   const feedStale = !!rtQuery.isStale;
 
   const tick = useTick(5_000); // keeps countdowns moving between fixes
@@ -141,6 +165,7 @@ export function useJourney(opts: {
       feedStale,
       tripGhost: false,
       vehicleNotTracked: false,
+      alight: IDLE_COUNTDOWN,
     };
     if (!active || !bus || !started) return inactive;
 
@@ -187,6 +212,34 @@ export function useJourney(opts: {
     const fusionAlightLoc =
       walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
 
+    // Stop-aware alighting countdown. While riding, the feed vehicle is the
+    // bus; when the feed drops it, the rider's phone stands in for it.
+    const ridingNow = !!live?.onBoardConfirmedAt && !live?.alightedAt;
+    const busPosition = vehicle
+      ? { lat: vehicle.lat, lng: vehicle.lng }
+      : ridingNow && fix
+        ? { lat: fix.lat, lng: fix.lng }
+        : null;
+    const alight = ridingNow
+      ? computeAlightCountdown({
+          sequence: sequenceForTrip(
+            sequences ?? {},
+            bus.routeId,
+            bus.board.stopId,
+            bus.alight.stopId,
+          ),
+          alightStopId: bus.alight.stopId,
+          boardStopId: bus.board.stopId,
+          getStop: (id) => {
+            const st = getStop(id);
+            return st ? { name: st.name, lat: st.lat, lng: st.lng } : null;
+          },
+          position: busPosition,
+          speedMps: vehicle ? null : (fix?.speedMps ?? null),
+          alightLoc: fusionAlightLoc,
+        })
+      : IDLE_COUNTDOWN;
+
     const { phase, onBoardSuggested, missedSuggested } = resolveLivePhase({
       nowUnix: now,
       fix,
@@ -200,6 +253,7 @@ export function useJourney(opts: {
       onBoardConfirmedAt: live?.onBoardConfirmedAt ?? null,
       missedAt: live?.missedAt ?? null,
       alightedAt: live?.alightedAt ?? null,
+      stopsRemaining: alight.hasSequence ? alight.stopsRemaining : null,
     });
 
     const onBoard = !!live?.onBoardConfirmedAt && !live?.alightedAt;
@@ -237,6 +291,7 @@ export function useJourney(opts: {
       feedStale,
       tripGhost: !!(bus?.tripId && rtQuery.ghostTripIds?.has(bus.tripId)),
       vehicleNotTracked,
+      alight,
     };
     // `tick` is a deliberate heartbeat that forces countdown recomputation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -253,6 +308,7 @@ export function useJourney(opts: {
     walkingPhase,
     walkingSteps,
     feedStale,
+    sequences,
     tick,
   ]);
 
@@ -275,10 +331,61 @@ export function useJourney(opts: {
     if (next.confirm) patchActiveTripLive({ onBoardConfirmedAt: Date.now() });
   }, [result.active, bus, fix, live, walkIn]);
 
+  // ---- GPS-based auto-detection of alighting -------------------------------
+  // Riders forget to press "I'm off". Once they have visibly separated from
+  // the bus at walking pace we close the ride ourselves, which is what flips
+  // guidance over to walking from wherever they actually stand.
+  const offSinceRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!result.active || !bus) return;
+    if (!live?.onBoardConfirmedAt || live?.alightedAt) {
+      offSinceRef.current = null;
+      return;
+    }
+    const vehicle = rt?.vehicles.find((v) => v.tripId === bus.tripId) ?? null;
+    const alightLoc =
+      walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
+    const next = shouldAutoConfirmAlighting({
+      fix,
+      vehicle: vehicle ? { lat: vehicle.lat, lng: vehicle.lng } : null,
+      alightLoc,
+      nearAlight:
+        result.alight.stage === "press-now" ||
+        result.alight.stage === "alighting" ||
+        result.alight.stage === "passed",
+      offSinceMs: offSinceRef.current,
+      nowMs: Date.now(),
+    });
+    offSinceRef.current = next.offSinceMs;
+    if (next.confirm) patchActiveTripLive({ alightedAt: Date.now() });
+  }, [result.active, result.alight.stage, bus, fix, live, rt, walkOut]);
+
   // ---- One-shot alerts on phase transition ---------------------------------
   const sentRef = useRef<Set<string>>(new Set());
+
+  // Stop-aware alight cues own the "press the button" buzz whenever the stop
+  // sequence is known — the coarse phase flips a full stop too early.
   useEffect(() => {
     if (!result.active || !bus || !active) return;
+    if (!result.alight.hasSequence) return;
+    const cue = alightAlertFor(result.alight.stage, bus.alight.name);
+    if (!cue || sentRef.current.has(cue.key)) return;
+    sentRef.current.add(cue.key);
+    void sendLocalTripAlert({
+      kind: cue.kind,
+      routeShort: bus.routeShort,
+      stopName: cue.stopName,
+      ...(result.alight.stopsRemaining != null && result.alight.stopsRemaining >= 0
+        ? { stops: result.alight.stopsRemaining }
+        : {}),
+      url: `/trip/${active.option.id}`,
+    });
+  }, [result.active, result.alight, active, bus]);
+
+  useEffect(() => {
+    if (!result.active || !bus || !active) return;
+    // When stop counting is live it owns the press-stop buzz.
+    if (result.phase === "alight-soon" && result.alight.hasSequence) return;
     const alert = alertForPhase({
       phase: result.phase,
       onBoardSuggested: result.onBoardSuggested,

@@ -130,6 +130,8 @@ const tripAlertSchema = z.object({
     "confirm-onboard",
     "missed-bus",
     "alight-soon",
+    "alight-ready",
+    "stand-by",
     "press-stop",
     "arrived",
     "delayed",
@@ -137,6 +139,8 @@ const tripAlertSchema = z.object({
   routeShort: z.string().max(16).optional(),
   stopName: z.string().max(160).optional(),
   minutes: z.number().min(0).max(120).optional(),
+  /** Stops still to be served before the rider's own. */
+  stops: z.number().int().min(0).max(120).optional(),
   url: z.string().max(512).optional(),
 });
 
@@ -172,6 +176,18 @@ export const sendTripAlert = createServerFn({ method: "POST" })
       "missed-bus": {
         title: `${bus} has left ${stop}`,
         body: `Tap to find the next ride.`,
+        requireInteraction: true,
+      },
+      "alight-ready": {
+        title:
+          data.stops != null && data.stops > 0
+            ? `${data.stops} stops until ${stop}`
+            : `${stop} is coming up`,
+        body: "Start gathering your things. We'll tell you when to press the button.",
+      },
+      "stand-by": {
+        title: `${stop} is next`,
+        body: "Stay seated — press the button once the bus pulls away from this stop.",
         requireInteraction: true,
       },
       "alight-soon": {
