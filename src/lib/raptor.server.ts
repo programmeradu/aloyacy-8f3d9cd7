@@ -32,6 +32,7 @@ import {
   walkMetersOnStreet,
   walkSecFromMeters,
 } from "@aloya/core/raptor-core";
+import { buildDirectRaptorItineraries, selectRaptorItineraries } from "./raptor-direct.server";
 
 // Cross-island journeys can legitimately require a local feeder, an
 // intercity service, and one or two airport-side connections. Three rounds
@@ -42,6 +43,7 @@ const {
   maxRounds: MAX_ROUNDS,
   maxAccessWalkKm: MAX_ACCESS_WALK_KM,
   maxEgressWalkKm: MAX_EGRESS_WALK_KM,
+  maxDirectEgressWalkKm: MAX_DIRECT_EGRESS_WALK_KM,
   maxTransferWalkM: MAX_TRANSFER_WALK_M,
   topOriginStops: TOP_ORIGIN_STOPS,
   topDestStops: TOP_DEST_STOPS,
@@ -128,15 +130,22 @@ export async function planRaptor(
   const stopList = Object.entries(stops); // [id, stop][]
   const origins = nearestStops(stopList, from, MAX_ACCESS_WALK_KM, TOP_ORIGIN_STOPS);
   const dests = nearestStops(stopList, to, MAX_EGRESS_WALK_KM, TOP_DEST_STOPS);
+  const directDests = nearestStops(
+    stopList,
+    to,
+    MAX_DIRECT_EGRESS_WALK_KM,
+    TOP_DEST_STOPS + 8,
+  );
   diag.originStopCount = origins.length;
-  diag.destStopCount = dests.length;
+  diag.destStopCount = Math.max(dests.length, directDests.length);
   diag.nearestOriginStopKm = origins[0]?.distKm ?? null;
   diag.nearestDestStopKm = dests[0]?.distKm ?? null;
   if (origins.length === 0)
     diag.reasons.push(`No schedule stop within ${MAX_ACCESS_WALK_KM}km of origin`);
-  if (dests.length === 0)
-    diag.reasons.push(`No schedule stop within ${MAX_EGRESS_WALK_KM}km of destination`);
-  if (origins.length === 0 || dests.length === 0) return { itineraries: [], diagnostics: diag };
+  if (dests.length === 0 && directDests.length === 0)
+    diag.reasons.push(`No schedule stop within ${MAX_DIRECT_EGRESS_WALK_KM}km of destination`);
+  if (origins.length === 0 || (dests.length === 0 && directDests.length === 0))
+    return { itineraries: [], diagnostics: diag };
 
   const destSet = new Map<string, { stop: ScheduleStop; id: string; distKm: number }>();
   for (const d of dests) destSet.set(d.id, { id: d.id, stop: d.stop, distKm: d.distKm });
@@ -272,7 +281,16 @@ export async function planRaptor(
   // 4) Reconstruct itineraries that reach a destination stop.
   // For each round and each destination stop reached, walk back through
   // labels to build the leg sequence.
-  const itineraries: Itinerary[] = [];
+  const itineraries: Itinerary[] = buildDirectRaptorItineraries({
+    schedule,
+    origins,
+    directDests,
+    from,
+    to,
+    departureUnix,
+    searchHorizonSec: SEARCH_HORIZON_SEC,
+    maxJourneySec: MAX_JOURNEY_SEC,
+  });
   for (let k = 1; k < labels.length; k++) {
     for (const [destStopId, destMeta] of destSet) {
       const label = labels[k].get(destStopId);
@@ -284,9 +302,7 @@ export async function planRaptor(
   }
   diag.candidateItineraries = itineraries.length;
 
-  // Cap to top-K by score, return.
-  itineraries.sort((a, b) => a.score - b.score);
-  return { itineraries: itineraries.slice(0, TOP_K_RESULTS), diagnostics: diag };
+  return { itineraries: selectRaptorItineraries(itineraries, TOP_K_RESULTS), diagnostics: diag };
 }
 
 // ---- helpers --------------------------------------------------------------
