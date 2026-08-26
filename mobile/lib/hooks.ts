@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import * as Location from "expo-location";
-import { fetchRealtime, fetchStopsBundle } from "./api";
+import { fetchRealtime, fetchRouteSequences, fetchStopsBundle } from "./api";
 import { setStops } from "./gtfs";
 
 export function useRealtime() {
@@ -43,8 +43,7 @@ export function useRouteSequences() {
 export function useStopsBundle() {
   const query = useQuery({
     queryKey: ["stops-bundle"],
-    queryFn: fetchRouteSequences,
-  fetchStopsBundle,
+    queryFn: fetchStopsBundle,
     staleTime: 24 * 60 * 60_000,
     gcTime: 24 * 60 * 60_000,
   });
