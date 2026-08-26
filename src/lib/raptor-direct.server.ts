@@ -1,8 +1,18 @@
 import type { Itinerary, Leg, RideLeg } from "./itinerary-types";
-import type { LoadedSchedule, ScheduleStop, StopTimeRow, StopTripRow } from "./schedule-loader.server";
+import type {
+  LoadedSchedule,
+  ScheduleStop,
+  StopTimeRow,
+  StopTripRow,
+} from "./schedule-loader.server";
 import { serviceDateToUnix } from "./schedule-loader.server";
 import { pruneDominated } from "@aloya/core/multileg-search";
-import { finalise, walkMetersOnStreet, walkSecFromMeters, type PlanContext } from "@aloya/core/raptor-core";
+import {
+  finalise,
+  walkMetersOnStreet,
+  walkSecFromMeters,
+  type PlanContext,
+} from "@aloya/core/raptor-core";
 
 type CandidateStop = { id: string; stop: ScheduleStop; distKm: number };
 
@@ -81,8 +91,17 @@ export function buildDirectRaptorItineraries(input: {
   searchHorizonSec: number;
   maxJourneySec: number;
 }): Itinerary[] {
-  const { schedule, origins, directDests, from, to, departureUnix, searchHorizonSec, maxJourneySec, planContext } =
-    input;
+  const {
+    schedule,
+    origins,
+    directDests,
+    from,
+    to,
+    departureUnix,
+    searchHorizonSec,
+    maxJourneySec,
+    planContext,
+  } = input;
   const { date, stops, routes, stopTrips, stopTimes } = schedule;
   const directDestMap = new Map(directDests.map((d) => [d.id, d]));
   const out: Itinerary[] = [];
@@ -110,50 +129,75 @@ export function buildDirectRaptorItineraries(input: {
 
       for (const alight of alights) {
         const boardRow = tripRows[boardIdx];
-      const alightRow = tripRows[alight.idx];
-      const alightStop = stops[alight.dest.id];
-      if (!boardRow || !alightRow || !alightStop) continue;
+        const alightRow = tripRows[alight.idx];
+        const alightStop = stops[alight.dest.id];
+        if (!boardRow || !alightRow || !alightStop) continue;
 
-      const boardUnix = serviceDateToUnix(date, boardRow[1]);
-      const arrivalUnix = serviceDateToUnix(date, alightRow[2]);
-      if (arrivalUnix - departureUnix > maxJourneySec) continue;
+        const boardUnix = serviceDateToUnix(date, boardRow[1]);
+        const arrivalUnix = serviceDateToUnix(date, alightRow[2]);
+        if (arrivalUnix - departureUnix > maxJourneySec) continue;
 
-      const routeMeta = routes[routeId];
-      const waitSec = boardUnix - accessArrivalUnix;
-      const legs: Leg[] = [
-        {
+        const routeMeta = routes[routeId];
+        const waitSec = boardUnix - accessArrivalUnix;
+        const legs: Leg[] = [
+          {
+            kind: "walk",
+            from: { name: from.label ?? "Start", lat: from.lat, lng: from.lng },
+            to: { stopId: origin.id, name: boardStop.name, lat: boardStop.lat, lng: boardStop.lng },
+            durationSec: accessSec,
+            distanceMeters: walkMetersOnStreet(origin.distKm * 1000),
+            verified: false,
+          },
+        ];
+        if (waitSec >= 30) {
+          legs.push({
+            kind: "wait",
+            stopId: origin.id,
+            name: boardStop.name,
+            lat: boardStop.lat,
+            lng: boardStop.lng,
+            durationSec: waitSec,
+          });
+        }
+        legs.push({
+          kind: "ride",
+          routeId,
+          routeShort: routeMeta?.short ?? "?",
+          routeLong: routeMeta?.long ?? "",
+          tripId,
+          live: false,
+          board: {
+            stopId: origin.id,
+            name: boardStop.name,
+            lat: boardStop.lat,
+            lng: boardStop.lng,
+            departureUnix: boardUnix,
+          },
+          alight: {
+            stopId: alight.dest.id,
+            name: alightStop.name,
+            lat: alightStop.lat,
+            lng: alightStop.lng,
+            arrivalUnix,
+          },
+          stopCount: alightRow[3] - boardRow[3],
+          delaySec: 0,
+        });
+        legs.push({
           kind: "walk",
-          from: { name: from.label ?? "Start", lat: from.lat, lng: from.lng },
-          to: { stopId: origin.id, name: boardStop.name, lat: boardStop.lat, lng: boardStop.lng },
-          durationSec: accessSec,
-          distanceMeters: walkMetersOnStreet(origin.distKm * 1000),
+          from: {
+            stopId: alight.dest.id,
+            name: alightStop.name,
+            lat: alightStop.lat,
+            lng: alightStop.lng,
+          },
+          to: { name: to.label ?? "Destination", lat: to.lat, lng: to.lng },
+          durationSec: walkSecFromMeters(alight.dest.distKm * 1000),
+          distanceMeters: walkMetersOnStreet(alight.dest.distKm * 1000),
           verified: false,
-        },
-      ];
-      if (waitSec >= 30) {
-        legs.push({ kind: "wait", stopId: origin.id, name: boardStop.name, lat: boardStop.lat, lng: boardStop.lng, durationSec: waitSec });
+        });
+        out.push(finalise(legs, departureUnix, planContext));
       }
-      legs.push({
-        kind: "ride",
-        routeId,
-        routeShort: routeMeta?.short ?? "?",
-        routeLong: routeMeta?.long ?? "",
-        tripId,
-        live: false,
-        board: { stopId: origin.id, name: boardStop.name, lat: boardStop.lat, lng: boardStop.lng, departureUnix: boardUnix },
-        alight: { stopId: alight.dest.id, name: alightStop.name, lat: alightStop.lat, lng: alightStop.lng, arrivalUnix },
-        stopCount: alightRow[3] - boardRow[3],
-        delaySec: 0,
-      });
-      legs.push({
-        kind: "walk",
-        from: { stopId: alight.dest.id, name: alightStop.name, lat: alightStop.lat, lng: alightStop.lng },
-        to: { name: to.label ?? "Destination", lat: to.lat, lng: to.lng },
-        durationSec: walkSecFromMeters(alight.dest.distKm * 1000),
-        distanceMeters: walkMetersOnStreet(alight.dest.distKm * 1000),
-        verified: false,
-      });
-      out.push(finalise(legs, departureUnix, planContext));
     }
   }
 
@@ -167,12 +211,6 @@ export function selectRaptorItineraries(itineraries: Itinerary[], limit: number)
     const key = rides.map((r) => `${r.routeId}|${r.board.stopId}|${r.alight.stopId}`).join("→");
     const existing = bySignature.get(key);
     if (!existing || it.score < existing.score) bySignature.set(key, it);
-  }
-  if (process.env['PLAN_DEBUG']) {
-    for (const it of [...bySignature.values()]) {
-      const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
-      console.log("cand", it.transfers, Math.round(it.totalDurationSec/60), Math.round(it.totalWalkMeters), rides.map((r) => r.routeShort).join(">"));
-    }
   }
   const kept = pruneDominated([...bySignature.values()]);
   kept.sort((a: Itinerary, b: Itinerary) => a.score - b.score);
