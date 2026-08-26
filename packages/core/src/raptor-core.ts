@@ -155,20 +155,24 @@ export function lastEnd(legs: Leg[], departureUnix: number): number {
 }
 
 /**
- * Turn a leg sequence into a scored Itinerary DTO. Score is journey seconds
- * plus a transfer penalty and a penalty for walking beyond the first 500 m,
- * so a marginally faster three-transfer slog never outranks a simple ride.
+ * Turn a leg sequence into a scored Itinerary DTO, using the one shared cost
+ * model in `plan-score.ts` so the schedule planner and the live planner never
+ * disagree about what an option is worth. The caller passes the station index
+ * and measured headways when it has them; without them the model falls back
+ * to a stated assumption rather than an invented constant.
  */
-export function finalise(legs: Leg[], departureUnix: number): Itinerary {
+export function finalise(
+  legs: Leg[],
+  departureUnix: number,
+  ctx?: PlanContext,
+): Itinerary {
   const rides = legs.filter((l): l is RideLeg => l.kind === "ride");
   const walks = legs.filter((l): l is WalkLeg => l.kind === "walk");
   const arrivalUnix = lastEnd(legs, departureUnix);
   const totalDurationSec = arrivalUnix - departureUnix;
   const totalWalkMeters = walks.reduce((acc, w) => acc + w.distanceMeters, 0);
   const transfers = Math.max(0, rides.length - 1);
-  const transferPenaltySec = transfers * 120;
-  const walkPenaltySec = Math.max(0, totalWalkMeters - 500) * 0.4;
-  const score = totalDurationSec + transferPenaltySec + walkPenaltySec;
+  const score = scoreLegs(legs, totalDurationSec, ctx);
   const sig = rides.map((r) => `${r.routeId}-${r.board.stopId}-${r.alight.stopId}`).join("+");
   return {
     id: `rap-${sig}-${departureUnix}`,
@@ -182,3 +186,4 @@ export function finalise(legs: Leg[], departureUnix: number): Itinerary {
     source: "estimated",
   };
 }
+
