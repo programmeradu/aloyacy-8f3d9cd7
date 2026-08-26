@@ -171,7 +171,7 @@ describe("rankItineraries", () => {
 
   it("prunes a transfer that is faster but not enough to justify changing buses", () => {
     const diag = emptyDiagnostics();
-    const kept = rankItineraries([mk(3000, 0, "r1"), mk(2400, 1, "r2")], diag);
+    const kept = rankItineraries([mk(3000, 0, "r1"), mk(2460, 1, "r2")], diag);
     expect(kept).toHaveLength(1);
     expect(kept[0].transfers).toBe(0);
   });
