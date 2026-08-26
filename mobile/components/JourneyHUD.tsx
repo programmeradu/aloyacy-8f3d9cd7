@@ -22,6 +22,7 @@ import { hudVisibility } from "@aloya/core/hud-copy";
 import { StartCard, HurryBanner, LiveStepCard } from "./journey/WalkCards";
 import { AtStopCard, BoardingPrompt, MissedBusCard } from "./journey/BoardCards";
 import { RidingCard, ArrivedCard } from "./journey/RideCards";
+import { AlightCountdownCard } from "./journey/AlightCountdownCard";
 
 export function JourneyHUD({
   trip,
@@ -49,7 +50,14 @@ export function JourneyHUD({
       {show.atStop && <AtStopCard trip={trip} live={live} />}
       {show.boarding && <BoardingPrompt trip={trip} live={live} />}
       {show.missed && <MissedBusCard trip={trip} />}
-      {show.riding && <RidingCard trip={trip} live={live} />}
+      {/* On bus. With a known stop sequence the rider gets the live stop
+          countdown; otherwise we fall back to the plain ETA card. */}
+      {show.riding &&
+        (live.alight.hasSequence || live.alight.stage !== "cruising" ? (
+          <AlightCountdownCard trip={trip} live={live} />
+        ) : (
+          <RidingCard trip={trip} live={live} />
+        ))}
       {show.arrived && <ArrivedCard trip={trip} />}
     </View>
   );
