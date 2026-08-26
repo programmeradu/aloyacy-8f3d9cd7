@@ -237,6 +237,10 @@
     "./headway": {
       "types": "./src/headway.ts",
       "default": "./src/headway.ts"
+    },
+    "./alight-countdown": {
+      "types": "./src/alight-countdown.ts",
+      "default": "./src/alight-countdown.ts"
     }
   },
   "dependencies": {
