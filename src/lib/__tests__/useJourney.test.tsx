@@ -72,12 +72,16 @@ const fuseVehicleAndEtaMock = vi.fn();
 const alertForPhaseMock = vi.fn();
 const vehicleBasedSecsToBoardMock = vi.fn(() => null);
 const shouldAutoConfirmBoardingMock = vi.fn(() => ({ confirm: false, ridingSinceMs: null }));
+const shouldAutoConfirmAlightingMock = vi.fn(() => ({ confirm: false, offSinceMs: null }));
+
 vi.mock("@aloya/core/journey-live", () => ({
   resolveLivePhase: (...args: unknown[]) => resolveLivePhaseMock(...(args as [])),
   fuseVehicleAndEta: (...args: unknown[]) => fuseVehicleAndEtaMock(...(args as [])),
   alertForPhase: (...args: unknown[]) => alertForPhaseMock(...(args as [])),
   vehicleBasedSecsToBoard: (...args: unknown[]) => vehicleBasedSecsToBoardMock(...(args as [])),
   shouldAutoConfirmBoarding: (...args: unknown[]) => shouldAutoConfirmBoardingMock(...(args as [])),
+  shouldAutoConfirmAlighting: (...args: unknown[]) =>
+    shouldAutoConfirmAlightingMock(...(args as [])),
 }));
 
 import {
