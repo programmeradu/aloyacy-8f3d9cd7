@@ -261,6 +261,67 @@ export function shouldAutoConfirmBoarding(input: {
   return { confirm: false, ridingSinceMs };
 }
 
+/** Tuning for GPS-only alighting detection (rider never pressed "I'm off"). */
+export const ALIGHT_DETECT = {
+  /** Rider must be at least this far from the vehicle to count as off it. */
+  SEPARATION_M: 130,
+  /** Rider must be slower than this to count as on foot. */
+  WALKING_SPEED_MPS: 3,
+  /** Sustained separation before we accept it, millis. */
+  SUSTAINED_SEPARATED_MS: 20_000,
+  /** Without a live vehicle: how close to the alight stop we require. */
+  NEAR_STOP_M: 90,
+  /** Without a live vehicle: how long the rider must dawdle there, millis. */
+  SUSTAINED_NEAR_STOP_MS: 60_000,
+} as const;
+
+/**
+ * Detects that the rider stepped off without pressing "I'm off".
+ *
+ * Two independent signals, because the operator feed is unreliable:
+ *   - the feed has the bus and the rider has clearly separated from it while
+ *     moving at walking pace (the strong signal), or
+ *   - no vehicle in the feed, but the rider is loitering at walking pace
+ *     within a stone's throw of the alight stop for a full minute.
+ *
+ * A bus dwelling at a kerb is slow too, which is why separation — not speed
+ * alone — is what carries the decision.
+ */
+export function shouldAutoConfirmAlighting(input: {
+  fix: (LatLng & { speedMps?: number | null }) | null;
+  /** Raw feed vehicle. Pass null when the feed has lost it. */
+  vehicle: LatLng | null;
+  alightLoc: LatLng | null;
+  /** Whether the countdown says the rider's stop is at hand or behind. */
+  nearAlight: boolean;
+  /** When the current separation streak began, epoch millis. */
+  offSinceMs: number | null;
+  nowMs: number;
+}): { confirm: boolean; offSinceMs: number | null } {
+  const { fix, vehicle, alightLoc, nearAlight, offSinceMs, nowMs } = input;
+  const D = ALIGHT_DETECT;
+  if (!fix) return { confirm: false, offSinceMs: null };
+  const speed = fix.speedMps ?? 0;
+  if (speed > D.WALKING_SPEED_MPS) return { confirm: false, offSinceMs: null };
+
+  let qualifies = false;
+  let holdMs = D.SUSTAINED_SEPARATED_MS;
+
+  if (vehicle) {
+    qualifies = distanceM(fix, vehicle) > D.SEPARATION_M;
+  } else if (nearAlight && alightLoc) {
+    qualifies = distanceM(fix, alightLoc) < D.NEAR_STOP_M;
+    holdMs = D.SUSTAINED_NEAR_STOP_MS;
+  }
+
+  if (!qualifies) return { confirm: false, offSinceMs: null };
+  if (offSinceMs == null) return { confirm: false, offSinceMs: nowMs };
+  if (nowMs - offSinceMs >= holdMs) return { confirm: true, offSinceMs: null };
+  return { confirm: false, offSinceMs };
+}
+
+
+
 // ---------------------------------------------------------------------------
 // GPS × feed fusion
 // ---------------------------------------------------------------------------
