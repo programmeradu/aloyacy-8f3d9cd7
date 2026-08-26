@@ -148,7 +148,8 @@ export function useSingleLegView(active: ActiveTrip) {
       originLabel: active.from.label,
       destLabel: active.to.label,
       boardName: bus.board.name,
-      alightName: bus.alight.name,
+      alightName:
+        walkingPhase === "to-dest" && anchor?.live ? "Where you got off" : bus.alight.name,
     });
   }, [walkingPhase, active, view, anchor]);
 
