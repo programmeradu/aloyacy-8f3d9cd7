@@ -25,10 +25,26 @@ export function useRealtime() {
   return { ...q, riderConfirmedAge, ghostTripIds };
 }
 
+/**
+ * Stop sequences for the on-board countdown. Static for the day, so it is
+ * fetched once and held; a failure just means the countdown falls back to
+ * distance, never a broken screen.
+ */
+export function useRouteSequences() {
+  return useQuery({
+    queryKey: ["route-sequences"],
+    queryFn: fetchRouteSequences,
+    staleTime: 24 * 60 * 60_000,
+    gcTime: 24 * 60 * 60_000,
+    retry: 1,
+  });
+}
+
 export function useStopsBundle() {
   const query = useQuery({
     queryKey: ["stops-bundle"],
-    queryFn: fetchStopsBundle,
+    queryFn: fetchRouteSequences,
+  fetchStopsBundle,
     staleTime: 24 * 60 * 60_000,
     gcTime: 24 * 60 * 60_000,
   });

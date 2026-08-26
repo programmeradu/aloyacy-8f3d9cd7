@@ -90,6 +90,18 @@ export type StopsBundle = {
   routes: Record<string, RouteMeta>;
 };
 
+/**
+ * Stop sequences keyed `"<routeId>|<directionId>"`. Powers the on-board
+ * countdown; fetched once and cached for the day.
+ */
+export async function fetchRouteSequences(): Promise<Record<string, string[]>> {
+  const res = await fetchPublicApi("/api/public/route-sequences", {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error(`Route sequences ${res.status}`);
+  return (await res.json()) as Record<string, string[]>;
+}
+
 export async function fetchStopsBundle(): Promise<StopsBundle> {
   const res = await fetchPublicApi("/api/public/stops", {
     headers: { Accept: "application/json" },
