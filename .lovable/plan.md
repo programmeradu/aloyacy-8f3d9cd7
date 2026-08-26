@@ -48,12 +48,51 @@ Flip it: keep a wider candidate set, refine walks for all of them (they are cach
 `walk_links`, so this is mostly free after warm-up), then score and rank once on verified
 numbers.
 
-**4. Prove it on real journeys, not synthetic fixtures.**
+**4. Unify terminals into real stations (the Solomos Square confusion).**
+I checked the feed and this is exactly what you suspected. Solomos Square is not one
+stop in the data — it is five separate records, spread across two operator feeds, all
+within about 100 metres of each other:
+
+```text
+id 1      IC + NPT   Dionysios Solomos Square      35.17067, 33.35894
+id 7420   NPT        Dionysios Solomos Square A    35.17079, 33.35901   (~13 m from id 1)
+id 7421   NPT        Dionysios Solomos Square C    35.17144, 33.35837   (~99 m)
+id 7189   LMS + NPT  Dionysios Solomos Square D    35.17138, 33.35824   (~103 m)
+id 7400   NPT        Solomos Square Alighting      35.17039, 33.35839   (~55 m)
+```
+
+To the planner these are five unrelated places. So when 13 departs from bay A and 19
+departs from bay C, the system does not see "both leave from Solomos Square" — it sees
+two different locations, and boarding 19 looks like it needs a walk it would rather
+avoid, while 13 is right there. That is the whole reason it sends you off on 13 to meet
+19 later.
+
+The fix is a station layer, built from the data rather than declared by hand:
+
+- Cluster stops into stations by measured proximity plus name/agency evidence — stops
+  within a short walk whose names share a common prefix ("Dionysios Solomos Square A/C/D"),
+  or that sit on the same square across feeds, become one station with a canonical name.
+  The same rule resolves the ~344 IDs that collide across operator feeds, and it applies
+  island-wide: Larnaca and Limassol terminals have the same bay-splitting.
+- The planner searches at station level: standing at Solomos Square means every route
+  departing from *any* bay of that station is directly boardable, with an in-station
+  transfer cost measured once (bay-to-bay walk, from real geometry) instead of treated
+  as a street walk.
+- A change *within* one station is not a "change" in the interchange sense — it stays a
+  short platform hop, so a genuine cross-platform connection is still allowed and priced
+  honestly, while a bogus "ride 13 halfway to catch 19" can no longer beat simply
+  boarding 19 at the next bay.
+- Station membership is derived and cached alongside the GTFS bundle, with a printed
+  report so we can eyeball which stops merged before it ships — no hidden magic.
+
+**5. Prove it on real journeys, not synthetic fixtures.**
 A regression suite of named Cyprus journeys (Solomos→Kominino, Kostaki Pantelidi→Isaakiou
 Komninou, Nicosia→Larnaca airport, plus cross-city and late-evening cases) asserting
 properties — "no option is dominated by a strictly faster and simpler one", "every
-returned option is physically boardable at the stated time" — rather than hardcoding
-"route 19 must be first".
+returned option is physically boardable at the stated time", "no itinerary contains a
+street walk between two bays of the same station" — rather than hardcoding "route 19
+must be first".
+
 
 ## Technical notes
 
@@ -62,6 +101,10 @@ returned option is physically boardable at the stated time" — rather than hard
 - New route-aware candidate selection in `packages/core/src/plan-candidates.ts`, used by
   both the live search (`multileg-search.ts`) and RAPTOR (`raptor.server.ts`).
 - `src/lib/raptor-direct.server.ts` folds into the candidate pass and goes away.
+- New `packages/core/src/stations.ts` + a build step emitting `src/data/stations.json`
+  (stop id → station id, canonical name, bay-to-bay walk matrix). Generated from
+  `stops.json` by clustering, reviewed via a printed merge report, and consumed by
+  `gtfs.ts`, the candidate pass, and both searches.
 - Headway per route/hour computed from the schedule bundle at load time and cached.
 - Walk refinement moves ahead of final ranking in `journey-multileg.server.ts` and
   `multileg.functions.ts`; concurrency capped so Google usage stays bounded and cached.
