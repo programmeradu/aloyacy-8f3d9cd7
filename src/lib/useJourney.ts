@@ -392,144 +392,16 @@ export function useJourney(opts: {
     tick,
   ]);
 
-  // ---- GPS-based auto-confirm boarding -------------------------------------
-  // If the rider's GPS shows sustained bus-speed motion AND they've left the
-  // board stop, mark them on-board automatically. This is the safety net for
-  // when the GTFS-RT feed has no vehicle for the tripId and the prompt
-  // would otherwise never appear (the exact failure mode reported at night).
-  const ridingStartedAtRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (!result.active || !bus) return;
-    if (live?.onBoardConfirmedAt || live?.missedAt || live?.alightedAt) {
-      ridingStartedAtRef.current = null;
-      return;
-    }
-    const boardLoc = walkIn?.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null;
-    const next = shouldAutoConfirmBoarding({
-      fix,
-      boardLoc,
-      ridingSinceMs: ridingStartedAtRef.current,
-      nowMs: Date.now(),
-    });
-    ridingStartedAtRef.current = next.ridingSinceMs;
-    if (next.confirm) patchActiveTripLive({ onBoardConfirmedAt: Date.now() });
-  }, [result.active, bus, fix, live, walkIn]);
-
-  // ---- GPS-based auto-detection of alighting -------------------------------
-  // Riders forget to press "I'm off". Once they have visibly separated from
-  // the bus at walking pace we close the ride ourselves, which is what flips
-  // the guidance over to walking from wherever they actually stand.
-  const offSinceRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (!result.active || !bus) return;
-    if (!live?.onBoardConfirmedAt || live?.alightedAt) {
-      offSinceRef.current = null;
-      return;
-    }
-    const vehicle = rt?.vehicles.find((v) => v.tripId === bus.tripId) ?? null;
-    const alightLoc =
-      walkOut?.kind === "walk" ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
-    const next = shouldAutoConfirmAlighting({
-      fix,
-      vehicle: vehicle ? { lat: vehicle.lat, lng: vehicle.lng } : null,
-      alightLoc,
-      nearAlight:
-        result.alight.stage === "press-now" ||
-        result.alight.stage === "alighting" ||
-        result.alight.stage === "passed",
-      offSinceMs: offSinceRef.current,
-      nowMs: Date.now(),
-    });
-    offSinceRef.current = next.offSinceMs;
-    if (next.confirm) patchActiveTripLive({ alightedAt: Date.now() });
-  }, [result.active, result.alight.stage, bus, fix, live, rt, walkOut]);
-
-  // ---- Push alerting on phase transition -----------------------------------
-  const sentRef = useRef<Set<string>>(new Set());
-  const sendAlert = useServerFn(sendTripAlert);
-
-  // Stop-aware alight cues. These replace the phase-driven "press-stop"
-  // buzz whenever we can count stops, because the phase flips a full stop
-  // earlier than the moment a rider should reach for the bell.
-  useEffect(() => {
-    if (!result.active || !bus || !active) return;
-    if (!result.alight.hasSequence) return;
-    const cue = alightAlertFor(result.alight.stage, bus.alight.name);
-    if (!cue || sentRef.current.has(cue.key)) return;
-    sentRef.current.add(cue.key);
-    void sendAlert({
-      data: {
-        deviceId: getDeviceId(),
-        kind: cue.kind,
-        routeShort: bus.routeShort,
-        stopName: cue.stopName,
-        ...(result.alight.stopsRemaining != null
-          ? { stops: result.alight.stopsRemaining }
-          : {}),
-        url: `/trip/${active.option.id}`,
-      },
-    }).catch(() => {});
-  }, [result.active, result.alight, active, bus, sendAlert]);
-
-  useEffect(() => {
-    if (!result.active || !bus || !active) return;
-    // When stop counting is live it owns the press-stop buzz.
-    if (result.phase === "alight-soon" && result.alight.hasSequence) return;
-    const alert = alertForPhase({
-      phase: result.phase,
-      onBoardSuggested: result.onBoardSuggested,
-      secsToBoard: result.secsToBoard,
-      boardName: bus.board.name,
-      alightName: bus.alight.name,
-    });
-    if (!alert || sentRef.current.has(alert.key)) return;
-    sentRef.current.add(alert.key);
-
-    const deviceId = getDeviceId();
-    const url = `/trip/${active.option.id}`;
-
-    void sendAlert({
-      data: {
-        deviceId,
-        kind: alert.kind,
-        routeShort: bus.routeShort,
-        ...(alert.stopName ? { stopName: alert.stopName } : {}),
-        ...(alert.minutes != null ? { minutes: alert.minutes } : {}),
-        url,
-      },
-    }).catch(() => {});
-
-    // Persist the completed trip so it can power personalized suggestions.
-    if (alert.recordsHistory) {
-      void (async () => {
-        const [{ recordTripHistory }, { getDeviceToken, getAccessToken }] = await Promise.all([
-          import("./suggestions.functions"),
-          import("./pwa"),
-        ]);
-        const [token, accessToken] = await Promise.all([getDeviceToken(), getAccessToken()]);
-        if (!token) return;
-        await recordTripHistory({
-          data: {
-            deviceId,
-            deviceToken: token,
-            accessToken,
-            from: { lat: active.from.lat, lng: active.from.lng, label: active.from.label },
-            to: { lat: active.to.lat, lng: active.to.lng, label: active.to.label },
-            routeShort: bus.routeShort,
-            source: "completed",
-          },
-        }).catch(() => {});
-      })();
-    }
-  }, [
-    result.phase,
-    result.onBoardSuggested,
-    result.secsToBoard,
-    result.active,
+  useJourneySideEffects({
+    result,
     active,
     bus,
-    sendAlert,
-  ]);
+    walkIn,
+    walkOut,
+    fix,
+    live,
+    vehicles: rt?.vehicles,
+  });
 
   return result;
 }
