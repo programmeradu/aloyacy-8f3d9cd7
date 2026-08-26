@@ -27,8 +27,8 @@ export const RAPTOR_TUNING = {
   topOriginStops: 8,
   topDestStops: 8,
   /** Ceiling once station bays and otherwise-missing routes are admitted. */
-  maxOriginCandidates: 28,
-  maxDestCandidates: 28,
+  maxOriginCandidates: 48,
+  maxDestCandidates: 48,
   minTransferBufferSec: 90,
   /** Cross-island + airport connections. */
   maxTotalJourneySec: 300 * 60,
