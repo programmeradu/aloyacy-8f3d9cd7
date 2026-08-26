@@ -9,7 +9,7 @@
 // - Renders: header · phase hero · live map · honest feed banners ·
 //   JourneyHUD · WalkGuidance · timeline · alight alert.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { View, ScrollView, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -40,6 +40,7 @@ import {
   walkingPhaseFor,
   type LiveJourneyPhase,
 } from "@aloya/core/single-leg-phase";
+import { resolveWalkAnchor, type WalkAnchor } from "@aloya/core/walk-anchor";
 
 export default function TripCompanionScreen() {
   const insets = useSafeAreaInsets();
@@ -121,8 +122,26 @@ function SingleLegCompanion({
         ? view.walkOut
         : null
     : null;
-  const walkFrom = walkLeg && walkLeg.kind === "walk" ? walkLeg.from : null;
+  const plannedFrom = walkLeg && walkLeg.kind === "walk" ? walkLeg.from : null;
   const walkTo = walkLeg && walkLeg.kind === "walk" ? walkLeg.to : null;
+
+  // The last walk starts wherever the rider actually stepped off, not at the
+  // stop the plan nominated — riders overshoot, alight early, or leave by the
+  // rear door onto the other side of the road. `useJourney` runs after this
+  // (it needs the walk steps), so the anchor uses the fix from the previous
+  // frame: one tick of lag on a value that only moves every 60 m.
+  const anchorRef = useRef<WalkAnchor | null>(null);
+  const lastFixRef = useRef<
+    { lat: number; lng: number; accuracyM?: number | null } | null
+  >(null);
+  const anchor = resolveWalkAnchor({
+    planned: plannedFrom,
+    fix: lastFixRef.current,
+    previous: anchorRef.current,
+    useLive: walkingPhase === "to-dest" && !!alightedAt,
+  });
+  anchorRef.current = anchor;
+  const walkFrom = anchor ? { lat: anchor.lat, lng: anchor.lng } : null;
 
   const dirQuery = useQuery({
     queryKey: ["walk", walkFrom?.lat, walkFrom?.lng, walkTo?.lat, walkTo?.lng],
@@ -141,6 +160,9 @@ function SingleLegCompanion({
     walkingSteps: directions?.steps ?? null,
     walkingPhase,
   });
+  lastFixRef.current = live.fix
+    ? { lat: live.fix.lat, lng: live.fix.lng, accuracyM: live.fix.accuracyM }
+    : null;
 
   const mapMarkers: MapMarker[] = useMemo(() => {
     const out: MapMarker[] = [];
@@ -160,11 +182,14 @@ function SingleLegCompanion({
         label: bus.board.name,
       });
     } else if (walkingPhase === "to-dest" && walkOut.kind === "walk") {
+      // Anchored to the rider's real position once they've stepped off, so the
+      // line on the map starts at their feet rather than at the planned stop.
+      const origin = anchor ?? walkOut.from;
       out.push({
-        lat: walkOut.from.lat,
-        lng: walkOut.from.lng,
+        lat: origin.lat,
+        lng: origin.lng,
         kind: "stop",
-        label: bus.alight.name,
+        label: anchor?.source === "live" ? "You" : bus.alight.name,
       });
       out.push({
         lat: walkOut.to.lat,
@@ -189,7 +214,7 @@ function SingleLegCompanion({
         });
     }
     return out;
-  }, [walkingPhase, active, view]);
+  }, [walkingPhase, active, view, anchor]);
 
   // Wave 3 · CyNAP incident overlay for the trip map — only the hits that
   // fall on this trip's corridor, mirroring the banner.
