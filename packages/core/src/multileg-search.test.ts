@@ -226,7 +226,7 @@ describe("searchMultiLeg", () => {
       stops,
       routeById,
       arrivals: [
-        arr("loop", "r1", "A", -0.5),
+        arr("loop", "r1", "A", 0),
         arr("loop", "r1", "B", 4),
         arr("loop", "r1", "A", 8),
         arr("loop", "r1", "C", 20),
