@@ -132,6 +132,7 @@ export function useJourney(opts: {
 
   const rtQuery = useRealtime();
   const rt = rtQuery.data;
+  const sequences = useRouteSequences().data;
   const feedStale = !!rtQuery.isStale;
 
   const tick = useTick(5_000); // keeps countdowns moving between fixes
