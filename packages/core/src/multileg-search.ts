@@ -3,19 +3,22 @@
 // Extracted from the server planner so the interesting parts — feasibility,
 // scoring, dedupe, pruning — are testable without a network, GTFS bundle or
 // Google walking API. The caller supplies the static topology (stops, route
-// metadata, transfer candidates) and the live arrivals; this module does the
-// rest and hands back itineraries plus diagnostics.
+// metadata, transfer candidates, the station index) and the live arrivals;
+// this module does the rest and hands back itineraries plus diagnostics.
 //
 // Invariants enforced here (not in the UI):
 //   T2.departure(X) >= T1.arrival(S) + walk(S→X) + MIN_TRANSFER_BUFFER_SEC
 //   totalDuration <= MAX_TOTAL_JOURNEY_SEC
-//   a transfer must beat the best direct by >= 5 min and >= 20%
+//   an option is dropped only when another option beats it on arrival,
+//   changes and walking at once — never because it has (or lacks) a change.
 
 import type { Itinerary, Leg } from "./itinerary-types";
+import { selectCandidateStops } from "./plan-candidates";
 import {
   MAX_ACCESS_WALK_KM,
-  MAX_DIRECT_EGRESS_WALK_KM,
+  MAX_DEST_CANDIDATES,
   MAX_EGRESS_WALK_KM,
+  MAX_ORIGIN_CANDIDATES,
   MIN_TRANSFER_BUFFER_SEC,
   TOP_ALIGHT_CANDIDATES_PER_TRIP,
   TOP_DEST_STOPS,
@@ -34,6 +37,7 @@ import {
   type MultiLegDiagnostics,
   type MultiLegInput,
   type NearStop,
+  type PlanContext,
 } from "./multileg-legs";
 
 // Re-exported so callers only need one import path.
@@ -47,28 +51,62 @@ export function searchMultiLeg(input: MultiLegInput): {
   const { from, to, stops, routeById, arrivals, transferIndex, now } = input;
   const diag = emptyDiagnostics();
   const stopById = new Map(stops.map((s) => [s.id, s]));
+  const ctx: PlanContext = { sameStation: input.sameStation, headwayOf: input.headwayOf };
 
-  // 1) Origin / destination candidate stops.
-  const byOrigin: NearStop[] = stops
-    .map((s) => ({ ...s, distanceKm: distanceKm(from, s) }))
-    .sort((a, b) => a.distanceKm - b.distanceKm);
-  const byDest: NearStop[] = stops
-    .map((s) => ({ ...s, distanceKm: distanceKm(to, s) }))
-    .sort((a, b) => a.distanceKm - b.distanceKm);
-  diag.nearestOriginStopKm = byOrigin[0]?.distanceKm ?? null;
-  diag.nearestDestStopKm = byDest[0]?.distanceKm ?? null;
+  // 1) Index the live feed first — candidate selection needs to know which
+  //    routes each stop actually offers.
+  const { trips, tripsByStop } = buildTripIndex(arrivals, now);
+  diag.liveTripCount = trips.size;
+  for (const t of trips.values()) diag.liveArrivalCount += t.stops.length;
 
-  const originStops = byOrigin
-    .filter((s) => s.distanceKm <= MAX_ACCESS_WALK_KM)
-    .slice(0, TOP_ORIGIN_STOPS);
-  const destStops = byDest
-    .filter((s) => s.distanceKm <= MAX_EGRESS_WALK_KM)
-    .slice(0, TOP_DEST_STOPS);
-  // Wider set used ONLY by the direct pass, so a no-transfer ride that drops
-  // you a longer walk away still surfaces as a choice.
-  const directDestStops = byDest
-    .filter((s) => s.distanceKm <= MAX_DIRECT_EGRESS_WALK_KM)
-    .slice(0, TOP_DEST_STOPS + 4);
+  const routesAt = (stopId: string): Set<string> => {
+    const out = new Set<string>();
+    for (const tripId of tripsByStop.get(stopId) ?? []) {
+      const t = trips.get(tripId);
+      if (t) out.add(t.routeId);
+    }
+    return out;
+  };
+
+  // 2) Origin / destination candidates: nearest-N, plus any stop that adds a
+  //    bay of a station we already picked or a route we do not yet have.
+  const entries: Array<[string, (typeof stops)[number]]> = stops.map((s) => [s.id, s]);
+  const stationOf = input.sameStation
+    ? (id: string) => input.stationIdOf?.(id) ?? id
+    : undefined;
+
+  const originPick = selectCandidateStops({
+    stops: entries,
+    point: from,
+    maxKm: MAX_ACCESS_WALK_KM,
+    minCount: TOP_ORIGIN_STOPS,
+    hardCap: MAX_ORIGIN_CANDIDATES,
+    distanceKm,
+    stationOf,
+    routesAt: (id) => routesAt(id),
+  });
+  const destPick = selectCandidateStops({
+    stops: entries,
+    point: to,
+    maxKm: MAX_EGRESS_WALK_KM,
+    minCount: TOP_DEST_STOPS,
+    hardCap: MAX_DEST_CANDIDATES,
+    distanceKm,
+    stationOf,
+    routesAt: (id) => routesAt(id),
+  });
+
+  const originStops: NearStop[] = originPick.candidates.map((c) => ({
+    ...c.stop,
+    distanceKm: c.distKm,
+  }));
+  const destStops: NearStop[] = destPick.candidates.map((c) => ({
+    ...c.stop,
+    distanceKm: c.distKm,
+  }));
+
+  diag.nearestOriginStopKm = originPick.nearestKm;
+  diag.nearestDestStopKm = destPick.nearestKm;
   diag.originStopCount = originStops.length;
   diag.destStopCount = destStops.length;
 
@@ -76,21 +114,16 @@ export function searchMultiLeg(input: MultiLegInput): {
     diag.reasons.push(
       `No stop within ${MAX_ACCESS_WALK_KM}km of origin (nearest ${diag.nearestOriginStopKm?.toFixed(2)}km)`,
     );
-  if (destStops.length === 0 && directDestStops.length === 0)
+  if (destStops.length === 0)
     diag.reasons.push(
-      `No stop within ${MAX_DIRECT_EGRESS_WALK_KM}km of destination (nearest ${diag.nearestDestStopKm?.toFixed(2)}km)`,
+      `No stop within ${MAX_EGRESS_WALK_KM}km of destination (nearest ${diag.nearestDestStopKm?.toFixed(2)}km)`,
     );
-  if (originStops.length === 0 || (destStops.length === 0 && directDestStops.length === 0)) {
+  if (originStops.length === 0 || destStops.length === 0) {
     return { itineraries: [], diagnostics: diag };
   }
 
   const destStopMap = new Map(destStops.map((s) => [s.id, s]));
-  const directDestStopMap = new Map(directDestStops.map((s) => [s.id, s]));
 
-  // 2) Index the live feed.
-  const { trips, tripsByStop } = buildTripIndex(arrivals, now);
-  diag.liveTripCount = trips.size;
-  for (const t of trips.values()) diag.liveArrivalCount += t.stops.length;
   for (const o of originStops) diag.originTripCount += (tripsByStop.get(o.id) ?? []).length;
   for (const d of destStops) diag.destTripCount += (tripsByStop.get(d.id) ?? []).length;
 
@@ -113,7 +146,7 @@ export function searchMultiLeg(input: MultiLegInput): {
       let alightIdx = -1;
       let alightStop: NearStop | null = null;
       for (let i = boardIdx + 1; i < trip.stops.length; i++) {
-        const d = directDestStopMap.get(trip.stops[i].stopId);
+        const d = destStopMap.get(trip.stops[i].stopId);
         if (d) {
           alightIdx = i;
           alightStop = d;
@@ -131,7 +164,7 @@ export function searchMultiLeg(input: MultiLegInput): {
       const legs: Leg[] =
         wait >= 30 ? [access, waitLegAt(o, wait), ride, egress] : [access, ride, egress];
 
-      candidates.push(finalise(legs, now, "live"));
+      candidates.push(finalise(legs, now, "live", ctx));
       diag.directRawCount++;
     }
   }
@@ -223,7 +256,7 @@ export function searchMultiLeg(input: MultiLegInput): {
               ride2,
               egress,
             ];
-            candidates.push(finalise(legs, now, "live"));
+            candidates.push(finalise(legs, now, "live", ctx));
             diag.transferRawCount++;
           }
         }
