@@ -7,6 +7,7 @@ import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   intentToUnix,
+  msUntilReplan,
   originFieldValue,
   parseResolvedHandoff,
   parseSeedHandoff,
@@ -156,6 +157,20 @@ export default function PlanScreen() {
     clock,
   });
 
+  // The 30-second poll is a safety net. Re-plan at the exact moment the
+  // recommended bus departs as well, so a missed/just-departed option cannot
+  // linger as an empty or stale result until the next polling interval.
+  useEffect(() => {
+    const delay = msUntilReplan(topItin, Date.now());
+    if (delay == null) return;
+    if (delay === 0) {
+      void planQuery.refetch();
+      return;
+    }
+    const timer = setTimeout(() => void planQuery.refetch(), delay);
+    return () => clearTimeout(timer);
+  }, [topItin, planQuery.refetch]);
+
   function handlePicked(slot: "origin" | "dest", place: PickedPlace) {
     if (slot === "origin") {
       setOrigin(place);
@@ -269,6 +284,7 @@ export default function PlanScreen() {
             result={result}
             origin={effectiveOrigin}
             destination={destination}
+            onRetry={() => void planQuery.refetch()}
             onStart={(chosen) =>
               destination && startTrip(chosen, effectiveOrigin, destination)
             }
