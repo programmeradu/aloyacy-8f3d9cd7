@@ -26,11 +26,18 @@ import {
   alertForPhase,
   fuseVehicleAndEta,
   resolveLivePhase,
+  shouldAutoConfirmAlighting,
   shouldAutoConfirmBoarding,
   vehicleBasedSecsToBoard,
   type FusedVehicle,
   type LivePhase as CoreLivePhase,
 } from "@aloya/core/journey-live";
+import {
+  alightAlertFor,
+  computeAlightCountdown,
+  sequenceForTrip,
+  type AlightCountdown,
+} from "@aloya/core/alight-countdown";
 
 const SEQUENCES = ROUTE_SEQUENCES as Record<string, string[]>;
 
@@ -76,6 +83,10 @@ export type LiveJourney = {
   /** Google-Maps-style wrong-stop hint: rider drifted to a different stop the
    *  same route serves, or to one it doesn't serve. */
   rerouteHint: RerouteHint;
+
+  /** Stop-aware alighting countdown: which stop the bus is at, how many
+   *  are left, and whether it is genuinely time to press the button. */
+  alight: AlightCountdown;
 };
 
 export function useJourney(opts: {
@@ -178,6 +189,7 @@ export function useJourney(opts: {
       vehicleNotTracked: false,
 
       rerouteHint: null,
+      alight: IDLE_COUNTDOWN,
     };
 
     if (!active || !bus || !started) return baseInactive;
@@ -315,6 +327,7 @@ export function useJourney(opts: {
       vehicleNotTracked,
 
       rerouteHint,
+      alight,
     };
     // `tick` is a deliberate heartbeat that forces countdown recomputation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
