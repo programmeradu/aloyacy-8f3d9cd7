@@ -312,15 +312,69 @@ export function lastEndUnix(legs: Leg[], now: number): number {
   return t;
 }
 
-export function scoreItinerary(input: {
-  totalDurationSec: number;
-  transfers: number;
-  totalWalkMeters: number;
-  reliabilitySec: number;
-}): number {
-  const transferPenaltySec = input.transfers * 120; // 2 min per change
-  const walkPenaltySec = Math.max(0, input.totalWalkMeters - 500) * 0.4;
-  return input.totalDurationSec + transferPenaltySec + input.reliabilitySec * 0.5 + walkPenaltySec;
+/**
+ * Describe every change in a leg sequence using measured facts: how far the
+ * rider physically moves between the two buses, whether that move stays inside
+ * one station, and how often the route being joined actually runs.
+ */
+export function describeChanges(legs: Leg[], ctx?: PlanContext): ChangeCost[] {
+  const out: ChangeCost[] = [];
+  let pendingAlight: RideLeg | null = null;
+  let interchangeSec = 0;
+
+  for (const leg of legs) {
+    if (leg.kind === "ride") {
+      if (pendingAlight) {
+        const a = pendingAlight.alight.stopId;
+        const b = leg.board.stopId;
+        out.push({
+          interchangeSec,
+          headwaySec: ctx?.headwayOf?.(leg.routeId) ?? null,
+          sameStation: a === b || (ctx?.sameStation?.(a, b) ?? false),
+        });
+      }
+      pendingAlight = leg;
+      interchangeSec = 0;
+    } else if (leg.kind === "walk" && pendingAlight) {
+      interchangeSec += leg.durationSec;
+    }
+  }
+  return out;
+}
+
+/**
+ * Split walking into street walking and bay-to-bay hops inside one station.
+ * A hop across a terminal forecourt is not the same burden as 300 m of
+ * pavement, and the scorer prices them differently.
+ */
+export function walkBreakdown(
+  legs: Leg[],
+  ctx?: PlanContext,
+): { streetMeters: number; inStationMeters: number } {
+  let streetMeters = 0;
+  let inStationMeters = 0;
+  for (const leg of legs) {
+    if (leg.kind !== "walk") continue;
+    const a = leg.from.stopId;
+    const b = leg.to.stopId;
+    const hop = a !== undefined && b !== undefined && (a === b || (ctx?.sameStation?.(a, b) ?? false));
+    if (hop) inStationMeters += leg.distanceMeters;
+    else streetMeters += leg.distanceMeters;
+  }
+  return { streetMeters, inStationMeters };
+}
+
+/** Score a leg sequence with the one shared cost model. */
+export function scoreLegs(legs: Leg[], totalDurationSec: number, ctx?: PlanContext): number {
+  const rides = legs.filter((l): l is RideLeg => l.kind === "ride");
+  const { streetMeters, inStationMeters } = walkBreakdown(legs, ctx);
+  return scoreItinerary({
+    totalDurationSec,
+    walkMeters: streetMeters,
+    inStationHopMeters: inStationMeters,
+    changes: describeChanges(legs, ctx),
+    reliabilitySec: rides.reduce((acc, r) => acc + Math.max(0, r.delaySec), 0),
+  });
 }
 
 export function makeId(legs: Leg[], departureUnix: number): string {
@@ -329,7 +383,12 @@ export function makeId(legs: Leg[], departureUnix: number): string {
   return `ml-${sig}-${departureUnix}`;
 }
 
-export function finalise(legs: Leg[], now: number, source: Itinerary["source"]): Itinerary {
+export function finalise(
+  legs: Leg[],
+  now: number,
+  source: Itinerary["source"],
+  ctx?: PlanContext,
+): Itinerary {
   const rides = legs.filter((l): l is RideLeg => l.kind === "ride");
   const walks = legs.filter((l): l is WalkLeg => l.kind === "walk");
 
@@ -339,7 +398,6 @@ export function finalise(legs: Leg[], now: number, source: Itinerary["source"]):
   const totalDurationSec = arrivalUnix - now;
   const totalWalkMeters = walks.reduce((acc, w) => acc + w.distanceMeters, 0);
   const transfers = Math.max(0, rides.length - 1);
-  const reliabilitySec = rides.reduce((acc, r) => acc + Math.max(0, r.delaySec), 0);
 
   return {
     id: makeId(legs, departureUnix),
@@ -349,28 +407,22 @@ export function finalise(legs: Leg[], now: number, source: Itinerary["source"]):
     arrivalUnix,
     transfers,
     totalWalkMeters,
-    score: scoreItinerary({ totalDurationSec, transfers, totalWalkMeters, reliabilitySec }),
+    score: scoreLegs(legs, totalDurationSec, ctx),
     source,
   };
 }
 
 /** Mutating refresh used after walking geometry is upgraded with real data. */
-export function recomputeTotals(it: Itinerary, now: number): void {
+export function recomputeTotals(it: Itinerary, now: number, ctx?: PlanContext): void {
   const arrivalUnix = lastEndUnix(it.legs, now);
   it.arrivalUnix = arrivalUnix;
   it.totalDurationSec = arrivalUnix - now;
   it.totalWalkMeters = it.legs
     .filter((l): l is WalkLeg => l.kind === "walk")
     .reduce((acc, w) => acc + w.distanceMeters, 0);
-  const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
-  const reliabilitySec = rides.reduce((acc, r) => acc + Math.max(0, r.delaySec), 0);
-  it.score = scoreItinerary({
-    totalDurationSec: it.totalDurationSec,
-    transfers: it.transfers,
-    totalWalkMeters: it.totalWalkMeters,
-    reliabilitySec,
-  });
+  it.score = scoreLegs(it.legs, it.totalDurationSec, ctx);
 }
+
 
 // ---- Filter, dedupe, rank -------------------------------------------------
 export function applyDirectPreference(itineraries: Itinerary[]): Itinerary[] {
