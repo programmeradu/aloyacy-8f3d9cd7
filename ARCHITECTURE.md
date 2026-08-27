@@ -108,4 +108,6 @@ Two guards keep it honest, with no allowlist between them:
 | No committed secrets                                                  | `scripts/check-secrets.mjs`                                             |
 
 See `CONTRIBUTING.md` for the local workflow and `docs/COMMIT_POLICY.md` for
-history conventions.
+history conventions. The working product plan — truth ledger, wait-or-bail,
+and the path from citizen app to island switch — is
+[`docs/TRUTH_PLAN.md`](docs/TRUTH_PLAN.md).

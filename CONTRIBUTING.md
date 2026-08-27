@@ -38,6 +38,12 @@ data and the same states. No placeholder or stripped-down mobile surfaces.
 freshness classification, copy formatting — goes there so web and mobile can
 never drift. Anything importing React, Expo or Node stays in its own app.
 
+**Rider-facing claims are a contract.** Tier names, confidence wording and
+accuracy numbers come from `packages/core`. If a change alters what we claim
+to a rider (or to `aloya.cy`), it is not done until the marketing repo
+(`aloyaexplorer`) imports or fetches the same source. See
+[`docs/TRUTH_PLAN.md`](docs/TRUTH_PLAN.md).
+
 **Server boundaries.**
 - `src/lib/*.functions.ts` — `createServerFn` RPC. Keep these files thin:
   imports, types and the exported server-function declarations only. Runtime
@@ -102,6 +108,9 @@ policies is locked. Never write to the `auth`, `storage`, `realtime` or
 Never commit a credential. All `.env*` files are gitignored; add every new
 variable to `.env.example` (or `mobile/.env.example`) with an empty value and
 a comment explaining what it unlocks, and to the table in `README.md`.
+`scripts/check-secrets.mjs` must also fail on secrets in worker config
+(`*.jsonc`, `wrangler.toml`). Worker secrets go in `wrangler secret put`,
+never `vars`.
 
 ## Commits
 
