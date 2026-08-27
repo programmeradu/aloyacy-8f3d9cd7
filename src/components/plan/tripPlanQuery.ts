@@ -99,9 +99,14 @@ export function useTripPlanQuery({
       });
     },
     enabled: !!origin && !!destination,
+    // A cold engine or a dropped upstream call is transient; back off briefly
+    // and try again instead of letting one hiccup read as "no route".
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1_500 * 2 ** attempt, 6_000),
     refetchInterval: 30_000,
     refetchOnWindowFocus: false,
     staleTime: 15_000,
+
     // Keep the rendered itineraries on screen through a background refresh so
     // the list never blanks mid-read and per-card state stays mounted.
     placeholderData: keepPreviousData,
