@@ -379,13 +379,17 @@ function WalletRoute() {
               />
               <Fare
                 label={t("wallet.fare.intercity")}
-                value="€7.00"
+                value="€4.00"
                 sub={t("wallet.fare.intercitySub")}
                 image={fareIntercity}
                 imageAlt={t("wallet.fare.intercityAlt")}
               />
             </div>
+            <p className="mt-2.5 text-[11px] leading-[1.45] text-ink-soft">
+              {t("wallet.fare.extra")}
+            </p>
           </section>
+
 
           {/* History — either JCC transactions or manual topups */}
           <section className="mt-8 px-6 pb-4 animate-rise" style={{ animationDelay: "320ms" }}>

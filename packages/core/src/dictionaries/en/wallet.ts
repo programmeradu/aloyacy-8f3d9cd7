@@ -52,6 +52,7 @@ export const wallet = {
   "wallet.fare.nightAlt": "A village arch lit by a single lamp under a crescent moon",
   "wallet.fare.intercity": "Intercity",
   "wallet.fare.intercitySub": "single",
+  "wallet.fare.extra": "Intercity return €7.00 — valid same day. Day card €5.00 covers unlimited urban and district rides.",
   "wallet.fare.intercityAlt": "A coastal road winding along Cypriot cliffs",
   "wallet.fareAria": "{label} fare {value}",
   "wallet.history.topupTitle": "Top-up history",
