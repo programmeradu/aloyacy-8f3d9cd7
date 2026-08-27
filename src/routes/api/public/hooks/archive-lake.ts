@@ -28,10 +28,16 @@ function guard(request: Request) {
   return null;
 }
 
+/**
+ * Archive window, in minutes. This MUST be shorter than the table's Postgres
+ * retention TTL, otherwise the rows are purged before the archiver ever sees
+ * them and the data lake stays empty. Current TTLs (20260821 migration):
+ * rt_snapshots = 30 minutes, observed_arrivals = 2 days.
+ */
 export async function archiveTable(
   tableName: string,
   timeColumn = "created_at",
-  daysOld = 1,
+  minutesOld = 10,
   bucket: any = null,
   s3?: S3Client,
 ) {
@@ -39,9 +45,8 @@ export async function archiveTable(
     log.warn(`Skipping ${tableName} - DATA_LAKE bucket not found in environment.`);
     return 0;
   }
-  
-  const dateThreshold = new Date();
-  dateThreshold.setDate(dateThreshold.getDate() - daysOld);
+
+  const dateThreshold = new Date(Date.now() - minutesOld * 60_000);
   const cutoff = dateThreshold.toISOString();
 
   // Table names are chosen at call time, so the generated Database union
@@ -130,8 +135,11 @@ async function runFromRequest(request: Request) {
   }
 
   try {
-    const snapshots = await archiveTable("rt_snapshots", "captured_at", 1, R2, s3);
-    const arrivals = await archiveTable("observed_arrivals", "last_seen_at", 7, R2, s3);
+    // 10 min < the 30-minute rt_snapshots purge; 1 day < the 2-day
+    // observed_arrivals purge. Both windows leave the live read paths their
+    // recent rows while still catching everything before deletion.
+    const snapshots = await archiveTable("rt_snapshots", "captured_at", 10, R2, s3);
+    const arrivals = await archiveTable("observed_arrivals", "last_seen_at", 24 * 60, R2, s3);
 
     return json({
       ok: true,

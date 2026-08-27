@@ -82,8 +82,11 @@ export function classifyFreshness(input: FreshnessInput): FreshnessResult {
 
   // Fresh ping + close to the rider → live.
   if (age < T.fresh && stops <= T.near) {
+    // Sample coverage has to matter here: a fresh, nearby ping backed by a
+    // thin speed/dwell model is not the same claim as one backed by 10+
+    // observed segments, and "low" is what lets surfaces soften the band.
     const confidence: FreshnessConfidence =
-      samples >= 10 ? "high" : samples >= 4 ? "medium" : "medium";
+      samples >= 10 ? "high" : samples >= 4 ? "medium" : "low";
     return { tier: "live", confidence, token: "live" };
   }
 
