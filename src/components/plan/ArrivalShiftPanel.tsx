@@ -146,7 +146,7 @@ export function ArrivalShiftPanel({
         type="button"
         disabled={mutation.isPending || !commitUnix}
         onClick={() => commitUnix && mutation.mutate(commitUnix)}
-        className="mt-3.5 inline-flex h-10 items-center rounded-full bg-aegean px-5 font-sans text-[13px] font-bold text-limestone transition-opacity hover:opacity-90 disabled:opacity-60"
+        className="mt-3.5 inline-flex min-h-10 max-w-full items-center rounded-2xl bg-aegean px-5 py-2.5 text-left font-sans text-[13px] leading-snug font-bold text-balance break-words text-limestone transition-opacity hover:opacity-90 disabled:opacity-60"
       >
         {mutation.isPending
           ? "Moving the promise…"
