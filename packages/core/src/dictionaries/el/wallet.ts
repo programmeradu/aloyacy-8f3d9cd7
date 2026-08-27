@@ -54,6 +54,7 @@ export const wallet: Record<keyof typeof walletEn, string> = {
   "wallet.fare.nightAlt": "Καμάρα χωριού φωτισμένη από ένα φανάρι κάτω από μισοφέγγαρο",
   "wallet.fare.intercity": "Υπεραστικά",
   "wallet.fare.intercitySub": "μονό",
+  "wallet.fare.intercityReturn": "€7.00 με επιστροφή",
   "wallet.fare.intercityAlt": "Παράκτιος δρόμος στους κυπριακούς γκρεμούς",
   "wallet.fareAria": "Κόμιστρο {label} {value}",
   "wallet.history.topupTitle": "Ιστορικό ανανεώσεων",
