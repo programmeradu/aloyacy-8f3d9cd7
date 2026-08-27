@@ -124,7 +124,16 @@ export const Route = createFileRoute("/api/public/arrival-promise")({
           return json({ ok: true });
         }
 
-        if (input.action === "refresh") {
+        if (input.action === "refresh" || input.action === "adjust") {
+          const tsNow = Math.floor(Date.now() / 1000);
+          if (input.action === "adjust") {
+            if (input.targetArrivalUnix <= tsNow + 300) {
+              return json({ error: "Pick an arrival time at least 5 minutes from now." }, 400);
+            }
+            if (input.targetArrivalUnix > tsNow + MAX_HORIZON_SEC) {
+              return json({ error: "Aloya can watch a trip up to a week ahead." }, 400);
+            }
+          }
           const { data: row, error } = await db
             .from("arrival_promises")
             .select(SELECT_COLS)
@@ -133,6 +142,8 @@ export const Route = createFileRoute("/api/public/arrival-promise")({
             .maybeSingle();
           if (error || !row) return json({ error: "Promise not found" }, 404);
           const p = row as unknown as Record<string, string | number>;
+          const targetArrivalUnix =
+            input.action === "adjust" ? input.targetArrivalUnix : Number(p.target_arrival_unix);
           const plan = await computePromisePlan({
             origin: {
               lat: Number(p.origin_lat),
@@ -144,15 +155,23 @@ export const Route = createFileRoute("/api/public/arrival-promise")({
               lng: Number(p.destination_lng),
               label: String(p.destination_label),
             },
-            targetArrivalUnix: Number(p.target_arrival_unix),
+            targetArrivalUnix,
             margin: String(p.margin_pref) as "relaxed" | "normal" | "tight",
           });
+          const leaveBy = plan.leaveByUnix ?? Number(p.leave_by_unix);
           const { data: updated, error: upErr } = await db
             .from("arrival_promises")
             .update({
+              ...(input.action === "adjust"
+                ? {
+                    target_arrival_unix: targetArrivalUnix,
+                    baseline_leave_by_unix: leaveBy,
+                    nudges_sent: [],
+                  }
+                : {}),
               plan_json: JSON.parse(JSON.stringify(planSnapshot(plan.itinerary))),
               ladder_json: JSON.parse(JSON.stringify(plan.ladder)),
-              leave_by_unix: plan.leaveByUnix ?? Number(p.leave_by_unix),
+              leave_by_unix: leaveBy,
               buffer_sec: plan.bufferSec,
               reason_short: plan.reasonShort,
               status: plan.unmakeable ? "missed" : "watching",
