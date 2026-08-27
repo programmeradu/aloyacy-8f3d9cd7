@@ -260,8 +260,8 @@ export function TimeIntentChip({
       <div className="relative grid grid-cols-3 rounded-full bg-limestone-soft p-0.5 ring-1 ring-line/70">
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-y-0.5 left-0.5 w-[calc(33.333%-0.167rem)] rounded-full bg-ink transition-transform duration-200 ease-out"
-          style={{ transform: `translateX(calc(${Math.max(activeIndex, 0)} * (100% + 0.25rem)))` }}
+          className="pointer-events-none absolute inset-y-0.5 left-0.5 w-[calc((100%-0.25rem)/3)] rounded-full bg-ink transition-transform duration-200 ease-out"
+          style={{ transform: `translateX(${Math.max(activeIndex, 0) * 100}%)` }}
         />
         {options.map((o) => (
           <button
