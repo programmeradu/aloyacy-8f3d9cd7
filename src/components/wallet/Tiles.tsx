@@ -40,7 +40,6 @@ export function Fare({
   label,
   value,
   sub,
-  note,
   image,
   imageAlt,
   tone = "light",
@@ -48,8 +47,6 @@ export function Fare({
   label: string;
   value: string;
   sub: string;
-  /** Optional secondary price line (e.g. the return fare), stacked under `sub`. */
-  note?: string;
   image?: string;
   imageAlt?: string;
   /** "light" = limestone wash with ink text; "dark" = dim wash with cream text (for already-dark images). */
@@ -88,28 +85,14 @@ export function Fare({
         >
           {label}
         </p>
-        <div className="flex items-end justify-between gap-1.5">
+        <div className="flex items-baseline justify-between gap-2">
           <p
             className={`font-display text-[20px] leading-none tabular-nums tracking-[-0.01em] ${isDark ? "text-limestone" : "text-ink"}`}
           >
             {value}
           </p>
-          <div className="min-w-0 text-right">
-            <p
-              className={`text-[10px] leading-[1.15] ${isDark ? "text-limestone/75" : "text-ink-soft"}`}
-            >
-              {sub}
-            </p>
-            {note && (
-              <p
-                className={`text-[9px] leading-[1.2] tabular-nums ${isDark ? "text-limestone/60" : "text-ink-soft/75"}`}
-              >
-                {note}
-              </p>
-            )}
-          </div>
+          <p className={`text-[10px] ${isDark ? "text-limestone/75" : "text-ink-soft"}`}>{sub}</p>
         </div>
-
       </div>
     </article>
   );
