@@ -12,9 +12,19 @@ function readJson<T>(repoRoot: string, rel: string): T {
 }
 
 describe("planRaptor", () => {
-  it("keeps the direct 19 from Solomos to Komninou ahead of feeder changes", async () => {
+  // Loading the full bundled GTFS day and running RAPTOR over it takes well
+  // past vitest's 5s default on a cold cache, and the by-date folders roll
+  // forward, so pick the earliest date still shipped rather than pinning one.
+  it("keeps the direct 19 from Solomos to Komninou ahead of feeder changes", { timeout: 60_000 }, async () => {
     const repoRoot = path.resolve(import.meta.dirname, "../..");
-    const date = "20260826";
+    const index = readJson<Record<string, unknown>>(
+      repoRoot,
+      "public/data/schedule/by-date/index.json",
+    );
+    const available = Object.keys(index)
+      .filter((k) => /^\d{8}$/.test(k))
+      .sort();
+    const date = available[0]!;
     const schedule: LoadedSchedule = {
       date,
       stops: readJson(repoRoot, "public/data/schedule/stops.json"),
