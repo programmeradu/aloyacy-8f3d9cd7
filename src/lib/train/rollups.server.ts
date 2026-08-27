@@ -3,6 +3,8 @@
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { blendStat, haversineM } from "./shared.server";
+import { cyHourDow } from "@aloya/core/cy-time";
+
 
 // ---------- segment runtimes (rider GPS → stop-to-stop times) -------------
 // Heuristic v1: per (trip_id) sort fixes, take total duration, distribute
@@ -51,14 +53,15 @@ export async function rollupSegmentRuntimes(): Promise<number> {
       (new Date(last.reported_at).getTime() - new Date(first.reported_at).getTime()) / 1000;
     if (elapsedSec < 30 || elapsedSec > 5400) continue;
     const d = new Date(first.reported_at);
+    const { hour, dow } = cyHourDow(d.getTime());
     await blendStat(
       "segment_runtimes",
       {
         route_id: ride.routeId ?? first.route_id ?? "unknown",
         from_stop_id: ride.board.stopId,
         to_stop_id: ride.alight.stopId,
-        hour_of_day: d.getUTCHours(),
-        day_of_week: d.getUTCDay(),
+        hour_of_day: hour,
+        day_of_week: dow,
       },
       "mean_runtime_sec",
       { mean: elapsedSec, count: 1 },
@@ -151,13 +154,14 @@ export async function rollupDwellTimes(): Promise<number> {
     }
     if (!best || best.distM > 60) continue; // not at a stop
     const dt = new Date(d.at);
+    const { hour, dow } = cyHourDow(dt.getTime());
     await blendStat(
       "dwell_stats",
       {
         route_id: d.route,
         stop_id: best.id,
-        hour_of_day: dt.getUTCHours(),
-        day_of_week: dt.getUTCDay(),
+        hour_of_day: hour,
+        day_of_week: dow,
       },
       "mean_dwell_sec",
       { mean: d.sec, count: 1 },
@@ -188,7 +192,8 @@ export async function rollupFeedVsTruth(): Promise<number> {
   for (const r of data) {
     if (!r.route_id) continue;
     const d = new Date(r.reported_at);
-    const key = `${r.route_id}|${d.getUTCHours()}|${d.getUTCDay()}`;
+    const { hour, dow } = cyHourDow(d.getTime());
+    const key = `${r.route_id}|${hour}|${dow}`;
     buckets.set(key, (buckets.get(key) ?? 0) + 1);
   }
   for (const [k, n] of buckets) {

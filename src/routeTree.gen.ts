@@ -66,6 +66,7 @@ import { Route as ApiPublicPlanRouteImport } from './routes/api/public/plan'
 import { Route as ApiPublicPlacesAutocompleteRouteImport } from './routes/api/public/places-autocomplete'
 import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
 import { Route as ApiPublicParseTripIntentRouteImport } from './routes/api/public/parse-trip-intent'
+import { Route as ApiPublicPartnersApplyRouteImport } from './routes/api/public/partners/apply'
 import { Route as ApiPublicParkAndRideRouteImport } from './routes/api/public/park-and-ride'
 import { Route as ApiPublicMobilePaymentSheetRouteImport } from './routes/api/public/mobile-payment-sheet'
 import { Route as ApiPublicMetricsRouteImport } from './routes/api/public/metrics'
@@ -77,6 +78,7 @@ import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicGtfsHeadsignsRouteImport } from './routes/api/public/gtfs-headsigns'
 import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
 import { Route as ApiPublicExpoPushRegisterRouteImport } from './routes/api/public/expo-push-register'
+import { Route as ApiPublicEtaLogRouteImport } from './routes/api/public/eta-log'
 import { Route as ApiPublicDustAdvisoryRouteImport } from './routes/api/public/dust-advisory'
 import { Route as ApiPublicBoltScooterRouteImport } from './routes/api/public/bolt-scooter'
 import { Route as ApiPublicBikeShareRouteImport } from './routes/api/public/bike-share'
@@ -91,6 +93,7 @@ import { Route as ApiPublicWalletPassRouteImport } from './routes/api/public/wal
 import { Route as ApiPublicWalletOcrRouteImport } from './routes/api/public/wallet/ocr'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
+import { Route as ApiPublicHooksResolveArrivalsRouteImport } from './routes/api/public/hooks/resolve-arrivals'
 import { Route as ApiPublicHooksPulseWeatherRouteImport } from './routes/api/public/hooks/pulse-weather'
 import { Route as ApiPublicHooksPulseTrafficRouteImport } from './routes/api/public/hooks/pulse-traffic'
 import { Route as ApiPublicHooksPulseNewsRouteImport } from './routes/api/public/hooks/pulse-news'
@@ -406,6 +409,11 @@ const ApiPublicParseTripIntentRoute =
     path: '/api/public/parse-trip-intent',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPartnersApplyRoute = ApiPublicPartnersApplyRouteImport.update({
+  id: '/api/public/partners/apply',
+  path: '/api/public/partners/apply',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicParkAndRideRoute = ApiPublicParkAndRideRouteImport.update({
   id: '/api/public/park-and-ride',
   path: '/api/public/park-and-ride',
@@ -463,6 +471,11 @@ const ApiPublicExpoPushRegisterRoute =
     path: '/api/public/expo-push-register',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicEtaLogRoute = ApiPublicEtaLogRouteImport.update({
+  id: '/api/public/eta-log',
+  path: '/api/public/eta-log',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicDustAdvisoryRoute = ApiPublicDustAdvisoryRouteImport.update({
   id: '/api/public/dust-advisory',
   path: '/api/public/dust-advisory',
@@ -536,6 +549,12 @@ const ApiPublicHooksTrainRoute = ApiPublicHooksTrainRouteImport.update({
   path: '/api/public/hooks/train',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksResolveArrivalsRoute =
+  ApiPublicHooksResolveArrivalsRouteImport.update({
+    id: '/api/public/hooks/resolve-arrivals',
+    path: '/api/public/hooks/resolve-arrivals',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksPulseWeatherRoute =
   ApiPublicHooksPulseWeatherRouteImport.update({
     id: '/api/public/hooks/pulse-weather',
@@ -703,6 +722,7 @@ export interface FileRoutesByFullPath {
   '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/eta-log': typeof ApiPublicEtaLogRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
@@ -714,6 +734,7 @@ export interface FileRoutesByFullPath {
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
+  '/api/public/partners/apply': typeof ApiPublicPartnersApplyRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
   '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
   '/api/public/place': typeof ApiPublicPlaceRoute
@@ -759,6 +780,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/pulse-met-warnings': typeof ApiPublicHooksPulseMetWarningsRoute
   '/api/public/hooks/pulse-news': typeof ApiPublicHooksPulseNewsRoute
   '/api/public/hooks/pulse-traffic': typeof ApiPublicHooksPulseTrafficRoute
+  '/api/public/hooks/resolve-arrivals': typeof ApiPublicHooksResolveArrivalsRoute
   '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -809,6 +831,7 @@ export interface FileRoutesByTo {
   '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/eta-log': typeof ApiPublicEtaLogRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
@@ -820,6 +843,7 @@ export interface FileRoutesByTo {
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
+  '/api/public/partners/apply': typeof ApiPublicPartnersApplyRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
   '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
   '/api/public/place': typeof ApiPublicPlaceRoute
@@ -865,6 +889,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/pulse-met-warnings': typeof ApiPublicHooksPulseMetWarningsRoute
   '/api/public/hooks/pulse-news': typeof ApiPublicHooksPulseNewsRoute
   '/api/public/hooks/pulse-traffic': typeof ApiPublicHooksPulseTrafficRoute
+  '/api/public/hooks/resolve-arrivals': typeof ApiPublicHooksResolveArrivalsRoute
   '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -916,6 +941,7 @@ export interface FileRoutesById {
   '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/eta-log': typeof ApiPublicEtaLogRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
@@ -927,6 +953,7 @@ export interface FileRoutesById {
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
+  '/api/public/partners/apply': typeof ApiPublicPartnersApplyRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
   '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
   '/api/public/place': typeof ApiPublicPlaceRoute
@@ -972,6 +999,7 @@ export interface FileRoutesById {
   '/api/public/hooks/pulse-met-warnings': typeof ApiPublicHooksPulseMetWarningsRoute
   '/api/public/hooks/pulse-news': typeof ApiPublicHooksPulseNewsRoute
   '/api/public/hooks/pulse-traffic': typeof ApiPublicHooksPulseTrafficRoute
+  '/api/public/hooks/resolve-arrivals': typeof ApiPublicHooksResolveArrivalsRoute
   '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -1024,6 +1052,7 @@ export interface FileRouteTypes {
     | '/api/public/bedrock-test'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
+    | '/api/public/eta-log'
     | '/api/public/dust-advisory'
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
@@ -1035,6 +1064,7 @@ export interface FileRouteTypes {
     | '/api/public/last-mile-chain'
     | '/api/public/metrics'
     | '/api/public/mobile-payment-sheet'
+    | '/api/public/partners/apply'
     | '/api/public/park-and-ride'
     | '/api/public/parse-trip-intent'
     | '/api/public/place'
@@ -1080,6 +1110,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/pulse-met-warnings'
     | '/api/public/hooks/pulse-news'
     | '/api/public/hooks/pulse-traffic'
+    | '/api/public/hooks/resolve-arrivals'
     | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
@@ -1130,6 +1161,7 @@ export interface FileRouteTypes {
     | '/api/public/bedrock-test'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
+    | '/api/public/eta-log'
     | '/api/public/dust-advisory'
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
@@ -1141,6 +1173,7 @@ export interface FileRouteTypes {
     | '/api/public/last-mile-chain'
     | '/api/public/metrics'
     | '/api/public/mobile-payment-sheet'
+    | '/api/public/partners/apply'
     | '/api/public/park-and-ride'
     | '/api/public/parse-trip-intent'
     | '/api/public/place'
@@ -1186,6 +1219,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/pulse-met-warnings'
     | '/api/public/hooks/pulse-news'
     | '/api/public/hooks/pulse-traffic'
+    | '/api/public/hooks/resolve-arrivals'
     | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
@@ -1236,6 +1270,7 @@ export interface FileRouteTypes {
     | '/api/public/bedrock-test'
     | '/api/public/bike-share'
     | '/api/public/bolt-scooter'
+    | '/api/public/eta-log'
     | '/api/public/dust-advisory'
     | '/api/public/expo-push-register'
     | '/api/public/gbfs.json'
@@ -1247,6 +1282,7 @@ export interface FileRouteTypes {
     | '/api/public/last-mile-chain'
     | '/api/public/metrics'
     | '/api/public/mobile-payment-sheet'
+    | '/api/public/partners/apply'
     | '/api/public/park-and-ride'
     | '/api/public/parse-trip-intent'
     | '/api/public/place'
@@ -1292,6 +1328,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/pulse-met-warnings'
     | '/api/public/hooks/pulse-news'
     | '/api/public/hooks/pulse-traffic'
+    | '/api/public/hooks/resolve-arrivals'
     | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/train'
     | '/api/public/payments/webhook'
@@ -1343,6 +1380,7 @@ export interface RootRouteChildren {
   ApiPublicBedrockTestRoute: typeof ApiPublicBedrockTestRoute
   ApiPublicBikeShareRoute: typeof ApiPublicBikeShareRoute
   ApiPublicBoltScooterRoute: typeof ApiPublicBoltScooterRoute
+  ApiPublicEtaLogRoute: typeof ApiPublicEtaLogRoute
   ApiPublicDustAdvisoryRoute: typeof ApiPublicDustAdvisoryRoute
   ApiPublicExpoPushRegisterRoute: typeof ApiPublicExpoPushRegisterRoute
   ApiPublicGbfsDotjsonRoute: typeof ApiPublicGbfsDotjsonRoute
@@ -1354,6 +1392,7 @@ export interface RootRouteChildren {
   ApiPublicLastMileChainRoute: typeof ApiPublicLastMileChainRoute
   ApiPublicMetricsRoute: typeof ApiPublicMetricsRoute
   ApiPublicMobilePaymentSheetRoute: typeof ApiPublicMobilePaymentSheetRoute
+  ApiPublicPartnersApplyRoute: typeof ApiPublicPartnersApplyRoute
   ApiPublicParkAndRideRoute: typeof ApiPublicParkAndRideRoute
   ApiPublicParseTripIntentRoute: typeof ApiPublicParseTripIntentRoute
   ApiPublicPlaceRoute: typeof ApiPublicPlaceRoute
@@ -1399,6 +1438,7 @@ export interface RootRouteChildren {
   ApiPublicHooksPulseMetWarningsRoute: typeof ApiPublicHooksPulseMetWarningsRoute
   ApiPublicHooksPulseNewsRoute: typeof ApiPublicHooksPulseNewsRoute
   ApiPublicHooksPulseTrafficRoute: typeof ApiPublicHooksPulseTrafficRoute
+  ApiPublicHooksResolveArrivalsRoute: typeof ApiPublicHooksResolveArrivalsRoute
   ApiPublicHooksPulseWeatherRoute: typeof ApiPublicHooksPulseWeatherRoute
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -1810,6 +1850,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicParseTripIntentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/partners/apply': {
+      id: '/api/public/partners/apply'
+      path: '/api/public/partners/apply'
+      fullPath: '/api/public/partners/apply'
+      preLoaderRoute: typeof ApiPublicPartnersApplyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/park-and-ride': {
       id: '/api/public/park-and-ride'
       path: '/api/public/park-and-ride'
@@ -1885,6 +1932,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/expo-push-register'
       fullPath: '/api/public/expo-push-register'
       preLoaderRoute: typeof ApiPublicExpoPushRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/eta-log': {
+      id: '/api/public/eta-log'
+      path: '/api/public/eta-log'
+      fullPath: '/api/public/eta-log'
+      preLoaderRoute: typeof ApiPublicEtaLogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/dust-advisory': {
@@ -1983,6 +2037,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/hooks/train'
       fullPath: '/api/public/hooks/train'
       preLoaderRoute: typeof ApiPublicHooksTrainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/resolve-arrivals': {
+      id: '/api/public/hooks/resolve-arrivals'
+      path: '/api/public/hooks/resolve-arrivals'
+      fullPath: '/api/public/hooks/resolve-arrivals'
+      preLoaderRoute: typeof ApiPublicHooksResolveArrivalsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/pulse-weather': {
@@ -2196,6 +2257,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicBedrockTestRoute: ApiPublicBedrockTestRoute,
   ApiPublicBikeShareRoute: ApiPublicBikeShareRoute,
   ApiPublicBoltScooterRoute: ApiPublicBoltScooterRoute,
+  ApiPublicEtaLogRoute: ApiPublicEtaLogRoute,
   ApiPublicDustAdvisoryRoute: ApiPublicDustAdvisoryRoute,
   ApiPublicExpoPushRegisterRoute: ApiPublicExpoPushRegisterRoute,
   ApiPublicGbfsDotjsonRoute: ApiPublicGbfsDotjsonRoute,
@@ -2207,6 +2269,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicLastMileChainRoute: ApiPublicLastMileChainRoute,
   ApiPublicMetricsRoute: ApiPublicMetricsRoute,
   ApiPublicMobilePaymentSheetRoute: ApiPublicMobilePaymentSheetRoute,
+  ApiPublicPartnersApplyRoute: ApiPublicPartnersApplyRoute,
   ApiPublicParkAndRideRoute: ApiPublicParkAndRideRoute,
   ApiPublicParseTripIntentRoute: ApiPublicParseTripIntentRoute,
   ApiPublicPlaceRoute: ApiPublicPlaceRoute,
@@ -2257,6 +2320,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPulseMetWarningsRoute: ApiPublicHooksPulseMetWarningsRoute,
   ApiPublicHooksPulseNewsRoute: ApiPublicHooksPulseNewsRoute,
   ApiPublicHooksPulseTrafficRoute: ApiPublicHooksPulseTrafficRoute,
+  ApiPublicHooksResolveArrivalsRoute: ApiPublicHooksResolveArrivalsRoute,
   ApiPublicHooksPulseWeatherRoute: ApiPublicHooksPulseWeatherRoute,
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,

@@ -85,7 +85,9 @@ What we do build, and when:
 | Operator report card | Ministry, operators, press | After A3 has a quarter of data | Promised vs actual, per agency, n and source mix. A page and a PDF. No levers. |
 | Truth API (`/api/v1/truth`) | Hotels, kiosks, other apps, CyNAP | When A1/A2 are writing and one design partner is waiting | The switch. Auth keys, rate limits, SLA. Same classifier as the rider. |
 | Embed / widget | Hotel concierge, airport screen, municipality pole | With the first API customer | A surface that shows the *same* number. Not a login. |
-| Partner portal | Paying API customers | When a customer asks for keys and invoices | Read-only: keys, usage, the report card. **Analytics, never levers.** |
+| Partner waitlist | Organisations | Now | Landing on `aloya.cy/partners`. Form posts to `app.aloya.cy/api/public/partners/apply`. Not keys, not usage, not a console. |
+| Partner portal | Paying API customers | When a customer asks for keys and invoices | Read-only: keys, usage, the report card. **On `app.aloya.cy`. Analytics, never levers.** |
+
 | Internal SRE | Us | Now, keep it thin | `/api/public/health`, `/api/public/metrics`, structured logs, Sentry, nightly accuracy regression. A panel inside `/qa` if an alert needs a chart. Not a product. |
 
 Frozen, still: Bedrock cost dashboards, the SEO admin console, funding-doc
@@ -105,28 +107,22 @@ This table is the current one.
 
 | # | Item | Status at plan rewrite | Why |
 | - | ---- | ---------------------- | --- |
-| 0.1 | **Rotate the leaked keys.** `workers/pulse-cron/wrangler.jsonc` still commits `CUSTOM_SUPABASE_ANON_KEY` and `CUSTOM_SUPABASE_SERVICE_ROLE_KEY` in plain `vars`. Service role bypasses RLS. Rotate in Supabase, `wrangler secret put` both, extend `scripts/check-secrets.mjs` to scan `*.jsonc` / `wrangler.toml`. History still contains the old JWT — rotation is the only fix. | **Open. Do today.** | Everything below writes new data through that key. |
+| 0.1 | **Rotate the leaked keys.** Service-role JWT is **off `vars` in HEAD**. `scripts/check-secrets.mjs` now scans `*.jsonc` and root `wrangler.jsonc`. Human still must `wrangler secret put CUSTOM_SUPABASE_SERVICE_ROLE_KEY` (and ANON_KEY) on the pulse-cron worker with the *rotated* values — git history still has the old JWT. | **Code done. Confirm secret put.** | Everything below writes new data through that key. |
 | 0.2 | Dead confidence branch in `packages/core/src/freshness.ts`. | **Done.** Live tier is `samples >= 10 ? high : >= 4 ? medium : low`. Do not re-open. | — |
 | 0.3 | Retention: `rt_snapshots` deleted after 30 min, `observed_arrivals` after 2 days. | **Open, but see 0.4.** | Workstream A needs durable history. Raw rows should not be the durable copy. |
-| 0.4 | Archive / data lake. | **Half-stale.** Archive window was already tightened to 10 min (`rt_snapshots`) and 1 day (`observed_arrivals`), so the “older than 1 day vs 30-minute TTL” race is no longer structural. Remaining bugs below. | |
-| 0.5 | **Stamp `hour_of_day` in `Asia/Nicosia`, not UTC.** `src/lib/train/rollups.server.ts`, `signals.server.ts`, snapshot delay deltas all use `getUTCHours()`. Cyprus is UTC+2/+3. Afternoon delays land in the wrong bucket. A ledger scored against UTC-hour aggregates will publish a confident, wrong `/accuracy` page. | **Open. Blocks A.** | |
-| 0.6 | **Ghost cutoff must be agency-aware in one place.** Classifier: urban 180 s / IC 300 s. Snapshot ghost tag in `gtfs-rt.server.ts` is a flat 180 s. The two layers can disagree about the same bus. | **Open.** | Same-number rule. |
+| 0.4 | Archive / data lake. | **Auth + order + checked DELETE done.** Archive-on-ingest, partitions, longer live window still open (target architecture below). | |
+| 0.5 | **Stamp `hour_of_day` in `Asia/Nicosia`, not UTC.** `cyHourDow()` in `@aloya/core/cy-time`. Snapshot, learning, eta-stats, rollups, signals, planner-learning, suggestions, nl-suggestions. Kapnos/airport UTC API strings and today-brief hash left alone. | **Done.** | Blocks a confident, wrong `/accuracy` page. |
+| 0.6 | **Ghost cutoff must be agency-aware in one place.** `tagGhostTripIds()` reads `thresholdsFor(agency).ghost`. Urban 180 s / IC 300 s. | **Done.** | Same-number rule. |
 
-### 0.4 remaining bugs (still real)
+### 0.4 remaining bugs (auth / paging / delete — done in this slice)
 
-`archiveLakeDirect()` in `workers/pulse-cron/src/index.ts` and
-`src/routes/api/public/hooks/archive-lake.ts`:
+`archiveLakeDirect()` and `archive-lake.ts` now:
 
-- **Unauthenticated destructive endpoint.** In the worker `fetch()`,
-  `?group=archive` runs `archiveLakeDirect` (service-key reads and
-  DELETEs) *before* the `CRON_SECRET` check. Anyone who knows the
-  worker URL can trigger it. Auth first, always.
-- **Unchecked DELETE.** The `DELETE ?id=in.(...)` URL is built from up
-  to 5000 ids; the response is never checked. If it fails (URL length
-  makes that likely), the next iteration re-fetches the same 5000 rows
-  and loops — re-uploading duplicates to R2.
-- **Unordered pagination.** The fetch has no `order=`, so PostgREST
-  paging is nondeterministic.
+- Auth `fetch()` **before** `?group=archive`. Unset `CRON_SECRET` is a deny.
+- Ordered pagination (`time, trip_id, stop_id`).
+- DELETE of exactly the archived rows; response checked; id-less `observed_arrivals` uses composite keys. No catch-all time wipe.
+
+Still open: archive-on-ingest, partitions, longer live window — see target architecture.
 
 ### 0.4 target architecture
 
@@ -517,9 +513,12 @@ truth.
 
 | | `aloya.cy` (marketing) | `app.aloya.cy` (app) |
 | - | ---------------------- | -------------------- |
-| Owns | brand, comparisons, operators, fares, guides, journey pages, the `/accuracy` *story*, blog | live data, per-stop and per-route data pages, planner, `/accuracy` *data* |
+| Owns | brand, comparisons, operators, fares, guides, journey pages, the `/accuracy` *story*, blog, **`/partners` waitlist** | live data, per-stop and per-route data pages, planner, `/accuracy` *data*, **`/api/public/partners/apply`**, later keys/usage for paying API customers |
 | Indexed | yes, aggressively | selectively — only pages with real content |
 | Rule | never contradicts the app; live data is fetched, not re-modelled | canonical for anything that changes minute to minute |
+
+**B2B page placement.** The waitlist landing is marketing. The apply endpoint is the app (it writes to the ledger DB). An authenticated partner console is **not** built until there is a Truth API and a paying customer. Do not put live data pages on `aloya.cy`. Do not put SEO journey pages on `app.aloya.cy`.
+
 
 Journey pages (`/routes/larnaca-airport-to-nicosia`) stay on marketing.
 The app does **not** grow a competing set; it exposes the API those
@@ -669,16 +668,13 @@ even if nothing else ships.
 E2 programmatic pages ride on 7 and 9 — they are not their own track.
 E4 extra languages stay off this list.
 
-### First slice (one working session)
+### First slice (this working session)
 
-1. Humans: rotate the leaked service-role key; `wrangler secret put`;
-   confirm the old JWT is dead.
-2. Code: auth the archive endpoint; stamp hours in `Asia/Nicosia`;
-   align ghost cutoffs on the classifier constants; land
-   `eta_predictions` + `arrival_truth` schema so the clock starts.
+1. Humans: rotated the leaked service-role key. Still need `wrangler secret put` on pulse-cron so the worker can archive.
+2. Code: auth the archive endpoint; stamp hours in `Asia/Nicosia`; align ghost cutoffs on the classifier constants; land `eta_predictions` + `arrival_truth` schema and the write path so the clock starts; thin `/partners` waitlist on `aloya.cy`.
 
-That is the first day of being a clearing house rather than a nicer
-timetable.
+That is the first day of being a clearing house rather than a nicer timetable.
+
 
 ---
 
@@ -709,7 +705,7 @@ module, not because someone remembered to open a second PR.
 
 ---
 
-## Status against HEAD (plan rewrite, 2026-08-28)
+## Status against HEAD (first slice, 2026-08-28)
 
 Already true in this repo, and why the OS is a credible bet:
 
@@ -720,16 +716,23 @@ Already true in this repo, and why the OS is a credible bet:
 - Reliability that stays `unknown` below 30 samples.
 - Last-mile taxi that refuses to show a haversine guess.
 - 1700+ offline tests, Zod at the public boundary, health + metrics.
+- Agency-aware ghost cutoff shared by snapshot tag and classifier.
+- Delay / speed / dwell / ledger buckets in `Asia/Nicosia`.
+- `eta_predictions` + `arrival_truth` schema; stop and home cards sample.
+- Inferred A2 resolver (later-stop evidence). Vehicle-cross is next.
+- Archive `fetch()` is authenticated; deletes are checked and keyed.
+- Service-role key is no longer in worker `vars`.
 
 Not yet true, and why we are still a portal:
 
-- No prediction ledger, no `arrival_truth`, no public accuracy.
-- Marketing boards are `gen()` frequency tables.
+- Ledger is writing but empty until the SQL is applied and riders hit stops.
+- Marketing boards are still `gen()` frequency tables.
 - No versioned Truth API, no embed, no operator report card.
 - Motion is a balance viewer via a JCC CORS proxy.
 - Modes around the planner are cards and deep-links.
-- Delay stats are UTC-hour; ghost tagging disagrees with the classifier.
-- A service-role key is in git.
+- Archive-on-ingest and daily partitions are not built.
+- Pulse-cron still needs `wrangler secret put` of the rotated service role.
 
 The doctrine is written. The switch does not exist yet. This plan is
 how it gets built, in order, without another brochure.
+

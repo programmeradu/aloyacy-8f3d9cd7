@@ -7,12 +7,14 @@ import {
   MINUTE_JOBS,
   NIGHTLY_JOBS,
   QUARTER_HOUR_JOBS,
+  authorizeCronFetch,
   headersFor,
   originOf,
   planFor,
 } from "./jobs";
 
 const at = (iso: string) => new Date(iso).getTime();
+
 
 describe("originOf", () => {
   it("prefers APP_ORIGIN", () => {
@@ -64,13 +66,15 @@ describe("planFor", () => {
     expect(planFor("0 3 * * *", 0).jobs).toEqual(NIGHTLY_JOBS);
   });
 
-  it("adds departure-tick and arrival-watch only on even minutes", () => {
+  it("adds departure-tick, arrival-watch and resolve-arrivals only on even minutes", () => {
     const even = planFor("* * * * *", at("2026-01-01T10:04:00Z"));
     const odd = planFor("* * * * *", at("2026-01-01T10:05:00Z"));
     expect(even.jobs.map((j) => j.label)).toContain("departure-tick");
     expect(even.jobs.map((j) => j.label)).toContain("arrival-watch");
+    expect(even.jobs.map((j) => j.label)).toContain("resolve-arrivals");
     expect(odd.jobs).toEqual(MINUTE_JOBS);
   });
+
 
   it("keeps the minute loop's total stagger well inside 60s", () => {
     const { jobs, staggerMs } = planFor("* * * * *", at("2026-01-01T10:00:00Z"));
@@ -121,5 +125,43 @@ describe("archive cadence vs. Postgres retention", () => {
 
   it("still sweeps on the nightly group as a backstop", () => {
     expect(has(planFor("0 3 * * *", Date.parse("2026-08-27T03:00:00Z")).jobs)).toBe(true);
+  });
+});
+
+describe("authorizeCronFetch", () => {
+  const env = { CRON_SECRET: "s3cret" };
+
+  it("denies when CRON_SECRET is unset — fail closed, including archive", () => {
+    const req = new Request("https://cron.example/?group=archive&secret=s3cret");
+    expect(authorizeCronFetch({}, req)).toBe(false);
+  });
+
+  it("denies a missing or wrong secret", () => {
+    expect(authorizeCronFetch(env, new Request("https://cron.example/?group=archive"))).toBe(false);
+    expect(
+      authorizeCronFetch(env, new Request("https://cron.example/?group=archive&secret=nope")),
+    ).toBe(false);
+  });
+
+  it("accepts query, bearer, or x-cron-secret", () => {
+    expect(
+      authorizeCronFetch(env, new Request("https://cron.example/?group=archive&secret=s3cret")),
+    ).toBe(true);
+    expect(
+      authorizeCronFetch(
+        env,
+        new Request("https://cron.example/?group=archive", {
+          headers: { Authorization: "Bearer s3cret" },
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      authorizeCronFetch(
+        env,
+        new Request("https://cron.example/?group=archive", {
+          headers: { "x-cron-secret": "s3cret" },
+        }),
+      ),
+    ).toBe(true);
   });
 });

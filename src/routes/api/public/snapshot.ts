@@ -7,6 +7,8 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchRealtime } from "@/lib/gtfs-rt.server";
 import { createLogger } from "@/lib/logger";
+import { cyHourDow } from "@aloya/core/cy-time";
+
 
 const log = createLogger("snapshot");
 
@@ -140,10 +142,9 @@ async function ingest() {
       }
     >();
     for (const a of fresh) {
-      const d = new Date(a.arrivalUnix * 1000);
-      const hour = d.getUTCHours();
-      const dow = d.getUTCDay();
+      const { hour, dow } = cyHourDow(a.arrivalUnix * 1000);
       const key = `${a.routeId}|${a.stopId}|${hour}|${dow}`;
+
       const b = buckets.get(key) ?? {
         route_id: a.routeId,
         stop_id: a.stopId,

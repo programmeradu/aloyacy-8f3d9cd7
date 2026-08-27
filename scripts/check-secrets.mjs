@@ -9,6 +9,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, extname, basename } from "node:path";
 
 const ROOTS = ["src", "packages", "workers", "deploy", "mobile", "scripts", "supabase"];
+const EXTRA_FILES = ["wrangler.jsonc", "wrangler.toml"];
 const EXTS = new Set([
   ".ts",
   ".tsx",
@@ -17,6 +18,7 @@ const EXTS = new Set([
   ".mjs",
   ".cjs",
   ".json",
+  ".jsonc",
   ".sql",
   ".yml",
   ".yaml",
@@ -70,6 +72,13 @@ function walk(dir, out = []) {
 
 const findings = [];
 const files = ROOTS.flatMap((r) => walk(r));
+for (const extra of EXTRA_FILES) {
+  try {
+    if (statSync(extra).isFile() && !files.includes(extra)) files.push(extra);
+  } catch {
+    // not present at repo root
+  }
+}
 for (const file of files) {
   const lines = readFileSync(file, "utf8").split("\n");
   lines.forEach((line, i) => {

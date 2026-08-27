@@ -1,5 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Itinerary, RideLeg } from "./itinerary-types";
+import { cyHourDow } from "@aloya/core/cy-time";
+
 
 type DelayRow = {
   route_id: string;
@@ -85,9 +87,9 @@ function uniqNumbers(values: Array<number | undefined | null>) {
 }
 
 function timeParts(unix: number) {
-  const d = new Date(unix * 1000);
-  return { hour: d.getUTCHours(), dow: d.getUTCDay() };
+  return cyHourDow(unix * 1000);
 }
+
 
 function delayKey(routeId: string, stopId: string, hour: number, dow: number) {
   return `${routeId}|${stopId}|${hour}|${dow}`;

@@ -123,6 +123,52 @@ export const BedrockTestSchema = z.object({
   maxTokens: z.coerce.number().int().min(1).max(32000).default(1024),
 });
 
+export const ETA_LOG_SURFACES = [
+  "stop-card",
+  "home",
+  "hud",
+  "multileg",
+  "push",
+  "promise",
+  "api",
+] as const;
+
+export const EtaLogSchema = z.object({
+  tripId: z.string().min(1).max(128),
+  routeId: z.string().min(1).max(128),
+  stopId: z.string().min(1).max(128),
+  horizonSec: z.number().int().min(0).max(24 * 3600),
+  p50Sec: z.number().int().min(0).max(24 * 3600),
+  p25Sec: z.number().int().min(0).max(24 * 3600).optional(),
+  p90Sec: z.number().int().min(0).max(24 * 3600).optional(),
+  tier: z.enum(["live", "rider-confirmed", "predicted", "ghost", "scheduled"]),
+  confidence: z.enum(["high", "medium", "low"]),
+  operatorEtaSec: z.number().int().min(0).max(24 * 3600).optional(),
+  learnedBiasSec: z.number().int().min(-3600).max(3600).optional(),
+  surface: z.enum(ETA_LOG_SURFACES),
+});
+
+export const PARTNER_ROLES = [
+  "hotel",
+  "municipality",
+  "operator",
+  "kiosk",
+  "airport",
+  "other",
+] as const;
+
+export const PartnerApplySchema = z.object({
+  orgName: z.string().trim().min(2).max(120),
+  contactName: z.string().trim().min(2).max(80),
+  email: z.string().trim().email().max(255),
+  role: z.enum(PARTNER_ROLES),
+  useCase: z.string().trim().min(8).max(1500),
+  website: z.string().trim().max(200).optional(),
+  // Honeypot — bots fill this; humans leave it empty.
+  company: z.string().max(120).optional(),
+});
+
+
 // ---------------------------------------------------------------------------
 // Phase 3 batch 1 — mirrors each server function's own `.inputValidator` so a
 // bad request is rejected here, before it reaches the server fn, feed cache,

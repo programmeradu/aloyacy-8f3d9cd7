@@ -64,6 +64,16 @@ export function cyParts(atMs: number): CyParts {
   };
 }
 
+/**
+ * Hour-of-day and day-of-week in Asia/Nicosia. Every delay_stats /
+ * segment_speeds / ledger bucket must go through this — UTC hours put a
+ * 14:00 Nicosia delay into the 11:00 (winter) or 12:00 (summer) cell.
+ */
+export function cyHourDow(atMs: number): { hour: number; dow: number } {
+  const p = cyParts(atMs);
+  return { hour: p.hour, dow: p.weekday };
+}
+
 /** Cyprus UTC offset in ms at a given instant (DST-aware). */
 export function cyOffsetMs(atMs: number): number {
   const p = cyParts(atMs);

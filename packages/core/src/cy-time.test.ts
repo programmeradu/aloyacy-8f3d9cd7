@@ -3,6 +3,7 @@ import {
   cyAddDays,
   cyClock,
   cyDayDiff,
+  cyHourDow,
   cyInputToMs,
   cyInputValue,
   cyIsWeekend,
@@ -55,5 +56,16 @@ describe("cy-time", () => {
     // Cyprus falls back on the last Sunday of October 2026 (25th).
     const before = cyWallToMs(2026, 10, 24, 9, 0);
     expect(cyClock(cyAddDays(before, 2))).toBe("09:00");
+  });
+
+  it("buckets hour/dow in Asia/Nicosia, never UTC", () => {
+    // 22:45Z on 23 Aug 2026 is 01:45 Monday in Cyprus.
+    const { hour, dow } = cyHourDow(Date.UTC(2026, 7, 23, 22, 45));
+    expect(hour).toBe(1);
+    expect(dow).toBe(1);
+    // Afternoon Cyprus must not land in a UTC morning cell.
+    const afternoon = cyHourDow(cyWallToMs(2026, 8, 23, 16, 0));
+    expect(afternoon.hour).toBe(16);
+    expect(afternoon.dow).toBe(0); // Sunday
   });
 });

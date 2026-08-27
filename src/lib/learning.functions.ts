@@ -3,15 +3,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { createLogger } from "./logger";
+import { cyHourDow } from "@aloya/core/cy-time";
+
 
 const log = createLogger("learning");
 
 export const getLearnedStatsForStop = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ stopId: z.string().min(1) }).parse(input))
   .handler(async ({ data }) => {
-    const now = new Date();
-    const hour = now.getUTCHours();
-    const dow = now.getUTCDay();
+    const { hour, dow } = cyHourDow(Date.now());
     const { data: rows, error } = await supabase
       .from("delay_stats")
       .select("route_id, stop_id, hour_of_day, day_of_week, mean_delay_sec, sample_count")
@@ -35,9 +35,7 @@ export const getLearnedStatsBulk = createServerFn({ method: "POST" })
     z.object({ stopIds: z.array(z.string().min(1)).min(1).max(50) }).parse(input),
   )
   .handler(async ({ data }) => {
-    const now = new Date();
-    const hour = now.getUTCHours();
-    const dow = now.getUTCDay();
+    const { hour, dow } = cyHourDow(Date.now());
     const { data: rows, error } = await supabase
       .from("delay_stats")
       .select("route_id, stop_id, mean_delay_sec, sample_count")

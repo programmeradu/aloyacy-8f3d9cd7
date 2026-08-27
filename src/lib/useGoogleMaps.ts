@@ -15,7 +15,7 @@ declare global {
 // production key as a build fallback: custom-domain publishes do not always
 // receive workspace connector VITE variables, which previously produced a
 // silent limestone "Map unavailable" panel without even requesting the SDK.
-const PRODUCTION_BROWSER_KEY = "AIzaSyA3COtlmbtIdqAAV_bEVU56OkIELFCD6Hw";
+const PRODUCTION_BROWSER_KEY = "AIzaSyA3COtlmbtIdqAAV_bEVU56OkIELFCD6Hw"; // secret-scan:allow — Maps JS browser key, HTTP-referrer restricted
 const KEY =
   (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined) ||
   PRODUCTION_BROWSER_KEY;

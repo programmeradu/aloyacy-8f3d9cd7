@@ -10,6 +10,9 @@
 import gr from "gtfs-realtime-bindings";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchFeedOverSocket } from "@/lib/gtfs-socket.server";
+import { getRoute } from "@/lib/gtfs";
+import { tagGhostTripIds } from "@/lib/ghost-trips";
+
 
 // Feed sources, tried in order until one returns a decodable protobuf.
 //
@@ -87,10 +90,13 @@ export type RealtimeSnapshot = {
   vehicles: LiveVehicle[];
   arrivals: LiveArrival[];
   /** Trip IDs with an active arrival in the next 30 min but no fresh vehicle
-   *  position (≥ 180 s old, or none at all). Consumers downgrade these trips
-   *  from "live" to scheduled/ghost across every surface. Trips confirmed by
-   *  a recent rider sighting are excluded — they live in `riderConfirmedTrips`
-   *  instead. */
+   *  position (age ≥ the agency ghost cutoff, or none at all). Consumers
+   *  downgrade these trips from "live" to scheduled/ghost across every
+   *  surface. Cutoff is `thresholdsFor(agency).ghost` — urban 180 s,
+   *  Intercity 300 s — so this list never disagrees with the classifier.
+   *  Trips confirmed by a recent rider sighting are excluded — they live
+   *  in `riderConfirmedTrips` instead. */
+
   ghostTripIds?: string[];
   /** Trips a rider physically confirmed they can see within the last ~90 s.
    *  Used by the freshness classifier to upgrade trips from ghost/predicted
@@ -337,31 +343,16 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
   const mergedVehicles = [...byTrip.values()];
 
   // Ghost detection: any trip with an upcoming arrival in the next 30 min
-  // that has no fresh vehicle position (≥180 s old, or none). Tagged here
-  // so every consumer reads one truth — see src/lib/freshness.ts.
-  const GHOST_AGE_SEC = 180;
-  const SOON_WINDOW_SEC = 30 * 60;
+  // that has no fresh vehicle position. Agency-aware cutoff — see ghost-trips.ts.
   const confirmedSet = new Set(sightings.map((s) => s.tripId));
-  const ghostTripIds: string[] = [];
-  const tripsWithUpcoming = new Set<string>();
-  for (const a of arrivals) {
-    if (a.arrivalUnix >= now - 30 && a.arrivalUnix <= now + SOON_WINDOW_SEC) {
-      tripsWithUpcoming.add(a.tripId);
-    }
-  }
-  for (const tripId of tripsWithUpcoming) {
-    // Rider-confirmed trips are NOT ghosts — at least one rider physically
-    // sees this bus right now, so we trust it even without a fresh feed row.
-    if (confirmedSet.has(tripId)) continue;
-    const v = byTrip.get(tripId);
-    if (!v) {
-      ghostTripIds.push(tripId);
-      continue;
-    }
-    if (v.timestamp && now - v.timestamp >= GHOST_AGE_SEC) {
-      ghostTripIds.push(tripId);
-    }
-  }
+  const ghostTripIds = tagGhostTripIds({
+    now,
+    arrivals,
+    vehicles: mergedVehicles,
+    confirmedTripIds: confirmedSet,
+    agencyForRoute: (routeId) => getRoute(routeId)?.agency,
+  });
+
 
   return {
     fetchedAt: now,

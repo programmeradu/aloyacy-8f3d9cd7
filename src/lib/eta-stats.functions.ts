@@ -6,6 +6,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import type { SegmentStatMap, DwellStatMap } from "./eta-v2";
+import { cyHourDow } from "@aloya/core/cy-time";
+
 
 export const getEtaStatsForRoutes = createServerFn({ method: "POST" })
   .inputValidator((input) =>
@@ -16,9 +18,7 @@ export const getEtaStatsForRoutes = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
-    const now = new Date();
-    const hour = now.getUTCHours();
-    const dow = now.getUTCDay();
+    const { hour, dow } = cyHourDow(Date.now());
 
     const [segRes, dwellRes] = await Promise.all([
       supabase

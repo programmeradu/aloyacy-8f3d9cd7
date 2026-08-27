@@ -11,6 +11,10 @@ const CORS = {
   "Access-Control-Allow-Headers": "Content-Type, apikey",
 };
 
+const PAGE = 5000;
+const DELETE_ID_CHUNK = 200;
+const DELETE_COMPOSITE_CHUNK = 40;
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -26,6 +30,39 @@ function guard(request: Request) {
     return json({ ok: false, error: "Unauthorized" }, 401);
   }
   return null;
+}
+
+type Db = { from: (table: string) => any };
+
+async function deleteArchived(db: Db, tableName: string, data: Array<Record<string, unknown>>) {
+  if (data.length === 0) return true;
+  const ids = data.map((row) => row.id).filter((id) => id != null && id !== "");
+  if (ids.length === data.length) {
+    for (let i = 0; i < ids.length; i += DELETE_ID_CHUNK) {
+      const chunk = ids.slice(i, i + DELETE_ID_CHUNK);
+      const { error } = await db.from(tableName).delete().in("id", chunk);
+      if (error) {
+        log.error(`Error deleting ${tableName} by id: ${error.message}`);
+        return false;
+      }
+    }
+    return true;
+  }
+  for (let i = 0; i < data.length; i += DELETE_COMPOSITE_CHUNK) {
+    const chunk = data.slice(i, i + DELETE_COMPOSITE_CHUNK);
+    for (const row of chunk) {
+      const { error } = await db
+        .from(tableName)
+        .delete()
+        .eq("trip_id", row.trip_id)
+        .eq("stop_id", row.stop_id);
+      if (error) {
+        log.error(`Error deleting ${tableName} ${row.trip_id}/${row.stop_id}: ${error.message}`);
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 /**
@@ -51,9 +88,7 @@ export async function archiveTable(
 
   // Table names are chosen at call time, so the generated Database union
   // cannot narrow them — talk to PostgREST through an untyped handle.
-  const db = supabaseAdmin as unknown as {
-    from: (table: string) => any;
-  };
+  const db = supabaseAdmin as unknown as Db;
 
   let totalArchived = 0;
   while (true) {
@@ -61,13 +96,16 @@ export async function archiveTable(
       .from(tableName)
       .select("*")
       .lt(timeColumn, cutoff)
-      .limit(5000);
+      .order(timeColumn, { ascending: true })
+      .order("trip_id", { ascending: true })
+      .order("stop_id", { ascending: true })
+      .limit(PAGE);
 
     if (error) {
       log.error(`Error fetching ${tableName}: ${error.message}`);
       break;
     }
-    
+
     if (!data || data.length === 0) {
       break;
     }
@@ -77,27 +115,24 @@ export async function archiveTable(
     const objectKey = `${tableName}/${dateThreshold.toISOString().split("T")[0]}/${timestamp}.jsonl`;
 
     if (s3) {
-      await s3.send(new PutObjectCommand({
-        Bucket: "aloya-data-lake",
-        Key: objectKey,
-        Body: jsonl,
-        ContentType: "application/jsonl"
-      }));
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: "aloya-data-lake",
+          Key: objectKey,
+          Body: jsonl,
+          ContentType: "application/jsonl",
+        }),
+      );
     } else {
       await bucket.put(objectKey, jsonl);
     }
-    
-    const ids = data.map((row: any) => row.id).filter(Boolean);
-    if (ids.length > 0) {
-      await db.from(tableName).delete().in("id", ids);
-    } else {
-      await db.from(tableName).delete().lt(timeColumn, cutoff);
-      break;
-    }
+
+    const deleted = await deleteArchived(db, tableName, data);
+    if (!deleted) break;
 
     totalArchived += data.length;
-    
-    if (data.length < 5000) {
+
+    if (data.length < PAGE) {
       break;
     }
   }
@@ -117,7 +152,7 @@ async function runFromRequest(request: Request) {
     const accountId = process.env.R2_ACCOUNT_ID;
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
     const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-    
+
     if (accountId && accessKeyId && secretAccessKey) {
       s3 = new S3Client({
         region: "auto",
@@ -146,8 +181,8 @@ async function runFromRequest(request: Request) {
       message: "Data Lake archival completed",
       archived: {
         rt_snapshots: snapshots,
-        observed_arrivals: arrivals
-      }
+        observed_arrivals: arrivals,
+      },
     });
   } catch (e) {
     return json({ ok: false, error: e instanceof Error ? e.message : "Archival failed" }, 500);
@@ -163,4 +198,3 @@ export const Route = createFileRoute("/api/public/hooks/archive-lake")({
     },
   },
 });
-

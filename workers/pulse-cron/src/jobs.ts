@@ -30,6 +30,7 @@ export const EVEN_MINUTE_JOBS: Job[] = [
   // Arrival promises re-plan and nudge on a 2-minute cadence; the hook holds
   // its own single-flight lease, so an overlapping tick is a no-op.
   { path: "/api/public/hooks/arrival-watch-tick", label: "arrival-watch" },
+  { path: "/api/public/hooks/resolve-arrivals", label: "resolve-arrivals" },
 ];
 
 export const QUARTER_HOUR_JOBS: Job[] = [
@@ -87,6 +88,22 @@ export function headersFor(env: Env): Headers {
   }
   if (env.CUSTOM_SUPABASE_ANON_KEY) h.set("apikey", env.CUSTOM_SUPABASE_ANON_KEY);
   return h;
+}
+
+/**
+ * Manual `fetch()` on this worker is a privileged surface (it can fire
+ * archive DELETEs). Fail closed: no CRON_SECRET configured, or the
+ * request does not present it, is 401. Scheduled events do not go through
+ * this — Cloudflare invokes `scheduled()` directly.
+ */
+export function authorizeCronFetch(env: Env, request: Request): boolean {
+  if (!env.CRON_SECRET) return false;
+  const url = new URL(request.url);
+  const provided =
+    url.searchParams.get("secret") ??
+    request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
+    request.headers.get("x-cron-secret");
+  return provided === env.CRON_SECRET;
 }
 
 /**

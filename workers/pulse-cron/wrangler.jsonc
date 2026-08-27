@@ -23,8 +23,6 @@
   ],
   "vars": {
     "APP_ORIGIN": "https://app.aloya.cy",
-    "CUSTOM_SUPABASE_URL": "https://mjyvihhgwtqpltbddits.supabase.co",
-    "CUSTOM_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qeXZpaGhnd3RxcGx0YmRkaXRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1ODIyMTYsImV4cCI6MjEwMzE1ODIxNn0.a-yBLBpeczw2BGEvxzk6Z2eWK3hYoAGtPNgGZzqMl2w",
-    "CUSTOM_SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qeXZpaGhnd3RxcGx0YmRkaXRzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU4MjIxNiwiZXhwIjoyMTAzMTU4MjE2fQ.lA3dDhu8u25Vj1leoMD1LTisa2JRiwHGYlhVFuHp02A"
+    "CUSTOM_SUPABASE_URL": "https://mjyvihhgwtqpltbddits.supabase.co"
   }
 }

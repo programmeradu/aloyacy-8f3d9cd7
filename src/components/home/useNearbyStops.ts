@@ -8,6 +8,7 @@ import { getRoute, nearestStops, routeTone, stopKind } from "@/lib/gtfs";
 import { getStopAmenities } from "@/data/stop-amenities";
 import { useI18n } from "@/lib/i18n";
 import type { Stop } from "@/components/StopCard";
+import { sampleEtaPrediction } from "@/lib/eta-log";
 
 const MAX_ETA_MIN = 120;
 
@@ -32,7 +33,7 @@ export function useNearbyStops(coords: { lat: number; lng: number }, count = 5) 
     return onHeadsignsLoaded(() => setHeadsignsReady((n) => n + 1));
   }, []);
 
-  return useMemo<Stop[]>(() => {
+  const cards = useMemo<Stop[]>(() => {
     const t = Math.floor(Date.now() / 1000);
 
     const arrByStop = new Map<string, { routeId: string; tripId: string; eta: number }[]>();
@@ -104,9 +105,46 @@ export function useNearbyStops(coords: { lat: number; lng: number }, count = 5) 
         amenities: getStopAmenities(s.id),
       };
     });
-    // `tt` is stable for a locale, which the surrounding render already tracks.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rt, nearStops, learnedByStop, riderConfirmedAge, headsignsReady]);
+
+  useEffect(() => {
+    if (!rt) return;
+    const t = Math.floor(Date.now() / 1000);
+    for (const s of nearStops) {
+      const nextHere = rt.arrivals
+        .filter((a) => a.stopId === s.id && a.arrivalUnix >= t - 30)
+        .sort((a, b) => a.arrivalUnix - b.arrivalUnix)[0];
+      if (!nextHere) continue;
+      const smart = smartEtaV2({
+        stopId: s.id,
+        arrivals: rt.arrivals,
+        vehicles: rt.vehicles,
+        nowSec: t,
+        agency: s.agency,
+        learnedByRoute: learnedByStop?.get(s.id),
+        shape: getShapeForTripSync(nextHere.tripId, nextHere.routeId),
+        riderConfirmedAgeSec: riderConfirmedAge.get(nextHere.tripId),
+      });
+      if (!smart) continue;
+      sampleEtaPrediction({
+        tripId: nextHere.tripId,
+        routeId: nextHere.routeId,
+        stopId: s.id,
+        horizonSec: Math.round(smart.etaSec),
+        p50Sec: Math.round(smart.etaSec),
+        p25Sec: Math.round(smart.lowerSec),
+        p90Sec: Math.round(smart.upperSec),
+        tier: smart.tier,
+        confidence: smart.confidence,
+        operatorEtaSec: smart.operatorEtaMin * 60,
+        learnedBiasSec: Math.round(smart.learnedBiasSec),
+        surface: "home",
+      });
+    }
+  }, [rt, nearStops, learnedByStop, riderConfirmedAge]);
+
+  return cards;
 }
 
 /** Nearby place chips, deduped by the leading token of each stop name. */

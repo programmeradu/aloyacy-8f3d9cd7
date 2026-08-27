@@ -3,6 +3,8 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { ensureDeviceToken, verifyDeviceToken } from "./device-auth.server";
 import { createLogger } from "./logger";
+import { cyHourDow } from "@aloya/core/cy-time";
+
 
 const log = createLogger("suggestions");
 
@@ -82,6 +84,7 @@ export const recordTripHistory = createServerFn({ method: "POST" })
     }
     const userId = await resolveUserId(data.accessToken);
     const now = new Date();
+    const { hour, dow } = cyHourDow(now.getTime());
     const { error } = await supabaseAdmin.from("trip_history").insert({
       device_id: data.deviceId,
       user_id: userId,
@@ -93,8 +96,8 @@ export const recordTripHistory = createServerFn({ method: "POST" })
       to_label: data.to.label,
       route_short: data.routeShort ?? null,
       source: data.source,
-      dow: now.getUTCDay(),
-      hour: now.getUTCHours(),
+      dow,
+      hour,
     });
     if (error) {
       log.error("recordTripHistory failed", error);
@@ -155,8 +158,7 @@ export const getTripSuggestions = createServerFn({ method: "POST" })
     // Group by destination bucket. Score: count, recency decay (14d half-life),
     // and a bonus when the trip's hour is within ±2 of the current hour.
     const now = new Date();
-    const nowHour = now.getUTCHours();
-    const nowDow = now.getUTCDay();
+    const { hour: nowHour, dow: nowDow } = cyHourDow(now.getTime());
     type Group = {
       key: string;
       toLat: number;

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { callServerFn } from "./server-fn";
 import { makeSupabaseMock, type TableResult } from "./supabase-mock";
+import { cyHourDow } from "@aloya/core/cy-time";
 
 const state: {
   verified: boolean;
@@ -147,6 +148,7 @@ describe("getTripSuggestions", () => {
 
   it("groups by destination and ranks by score, current-hour bonus included", async () => {
     const now = new Date();
+    const clock = cyHourDow(now.getTime());
     const rows = [
       {
         from_lat: 35.0,
@@ -156,8 +158,8 @@ describe("getTripSuggestions", () => {
         to_lng: 33.64,
         to_label: "Beach",
         recorded_at: now.toISOString(),
-        dow: now.getUTCDay(),
-        hour: now.getUTCHours(),
+        dow: clock.dow,
+        hour: clock.hour,
       },
       {
         from_lat: 35.0,
@@ -167,8 +169,8 @@ describe("getTripSuggestions", () => {
         to_lng: 33.64,
         to_label: "Beach",
         recorded_at: now.toISOString(),
-        dow: now.getUTCDay(),
-        hour: now.getUTCHours(),
+        dow: clock.dow,
+        hour: clock.hour,
       },
       {
         from_lat: 35.0,
@@ -178,8 +180,8 @@ describe("getTripSuggestions", () => {
         to_lng: 33.301,
         to_label: "Mall",
         recorded_at: new Date(now.getTime() - 80 * 86_400_000).toISOString(),
-        dow: (now.getUTCDay() + 3) % 7,
-        hour: (now.getUTCHours() + 12) % 24,
+        dow: (clock.dow + 3) % 7,
+        hour: (clock.hour + 12) % 24,
       },
     ];
     state.history = { data: rows, error: null };

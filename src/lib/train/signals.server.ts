@@ -2,6 +2,8 @@
 // and no-show detection.
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { cyHourDow } from "@aloya/core/cy-time";
+
 
 export async function rollupCrowding(): Promise<number> {
   const since = new Date(Date.now() - 3 * 3600 * 1000).toISOString();
@@ -73,15 +75,15 @@ export async function rollupHeadways(): Promise<number> {
     for (let i = 1; i < unique.length; i++) {
       const gap = (unique[i].at - unique[i - 1].at) / 1000;
       if (gap < 60 || gap > 7200) continue;
-      const d = new Date(unique[i].at);
+      const { hour, dow } = cyHourDow(unique[i].at);
       const isBunched = gap < 240; // < 4 min between buses = bunching
       const { data: existing } = await supabaseAdmin
         .from("headway_observations")
         .select("observed_headway_sec, sample_count, bunching_count")
         .eq("route_id", route_id)
         .eq("stop_id", stop_id)
-        .eq("hour_of_day", d.getUTCHours())
-        .eq("day_of_week", d.getUTCDay())
+        .eq("hour_of_day", hour)
+        .eq("day_of_week", dow)
         .maybeSingle();
       const prevMean = existing?.observed_headway_sec ?? 0;
       const prevN = existing?.sample_count ?? 0;
@@ -91,8 +93,8 @@ export async function rollupHeadways(): Promise<number> {
         {
           route_id,
           stop_id,
-          hour_of_day: d.getUTCHours(),
-          day_of_week: d.getUTCDay(),
+          hour_of_day: hour,
+          day_of_week: dow,
           observed_headway_sec: newMean,
           sample_count: newN,
           bunching_count: (existing?.bunching_count ?? 0) + (isBunched ? 1 : 0),
@@ -146,12 +148,13 @@ export async function processTrainingEvents(): Promise<number> {
       const atStop = String(payload.atStopId ?? "");
       if (!fromRoute || !toRoute || !atStop) continue;
       const d = new Date(ev.recorded_at);
+      const { hour, dow } = cyHourDow(d.getTime());
       const key = {
         from_route: fromRoute,
         to_route: toRoute,
         at_stop_id: atStop,
-        hour_of_day: d.getUTCHours(),
-        day_of_week: d.getUTCDay(),
+        hour_of_day: hour,
+        day_of_week: dow,
       };
       const { data: cur } = await supabaseAdmin
         .from("transfer_outcomes")

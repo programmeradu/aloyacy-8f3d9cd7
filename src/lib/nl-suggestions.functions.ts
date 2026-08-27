@@ -16,6 +16,8 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { verifyDeviceToken } from "./device-auth.server";
 import { createLogger } from "./logger";
+import { cyHourDow } from "@aloya/core/cy-time";
+
 
 const log = createLogger("nl-suggestions");
 
@@ -139,8 +141,9 @@ export const getNlSuggestions = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<{ suggestions: NlSuggestion[] }> => {
     const ok = await verifyDeviceToken(data.deviceId, data.deviceToken).catch(() => false);
     // We still serve fallbacks even without a valid token, but skip personal data.
-    const hour = data.hour ?? new Date().getUTCHours();
-    const dow = data.dow ?? new Date().getUTCDay();
+    const clock = cyHourDow(Date.now());
+    const hour = data.hour ?? clock.hour;
+    const dow = data.dow ?? clock.dow;
 
     const out: NlSuggestion[] = [];
     const usedLabels = new Set<string>();

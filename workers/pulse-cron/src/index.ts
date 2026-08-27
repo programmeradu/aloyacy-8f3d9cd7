@@ -14,7 +14,8 @@
 //   0 3 * * *      nightly: schedule ingest, scrapes, full training roll-up, R2 data lake archive
 //
 // The job table and scheduling rules live in ./jobs so they stay testable.
-import { type Env, type Job, JOB_GROUPS, headersFor, originOf, planFor } from "./jobs";
+import { type Env, type Job, JOB_GROUPS, authorizeCronFetch, headersFor, originOf, planFor } from "./jobs";
+import { archiveSelectUrl, deleteUrls } from "./archive";
 
 export type { Env };
 
@@ -53,7 +54,7 @@ export async function archiveLakeDirect(env: Env): Promise<{ ok: boolean; archiv
 
     let total = 0;
     while (true) {
-      const fetchUrl = `${baseUrl}/rest/v1/${name}?${timeColumn}=lt.${cutoff}&limit=5000`;
+      const fetchUrl = archiveSelectUrl(baseUrl, name, timeColumn, cutoff);
       const res = await fetch(fetchUrl, { headers });
       if (!res.ok) {
         console.error(`[cron] archive-lake fetch ${name} failed: ${res.status}`);
@@ -68,16 +69,21 @@ export async function archiveLakeDirect(env: Env): Promise<{ ok: boolean; archiv
 
       await env.DATA_LAKE.put(objectKey, jsonl);
 
-      const ids = data.map((row) => row.id).filter(Boolean);
-      if (ids.length > 0) {
-        const delUrl = `${baseUrl}/rest/v1/${name}?id=in.(${ids.join(",")})`;
-        await fetch(delUrl, { method: "DELETE", headers });
-      } else {
-        const delUrl = `${baseUrl}/rest/v1/${name}?${timeColumn}=lt.${cutoff}`;
-        await fetch(delUrl, { method: "DELETE", headers });
-        total += data.length;
+      const delUrls = deleteUrls(baseUrl, name, data);
+      if (delUrls.length === 0) {
+        console.error(`[cron] archive-lake ${name} has no deletable keys; aborting to avoid a catch-all wipe`);
         break;
       }
+      let deletedOk = true;
+      for (const delUrl of delUrls) {
+        const delRes = await fetch(delUrl, { method: "DELETE", headers });
+        if (!delRes.ok) {
+          console.error(`[cron] archive-lake delete ${name} failed: ${delRes.status}`);
+          deletedOk = false;
+          break;
+        }
+      }
+      if (!deletedOk) break;
 
       total += data.length;
       if (data.length < 5000) break;
@@ -131,7 +137,11 @@ export default {
   },
 
   // Manual trigger for debugging: GET /?group=nightly or GET /?group=archive
+  // Auth first, always — including archive. Unset CRON_SECRET is a deny.
   async fetch(request: Request, env: Env): Promise<Response> {
+    if (!authorizeCronFetch(env, request)) {
+      return new Response("Unauthorized", { status: 401 });
+    }
     const url = new URL(request.url);
     const group = url.searchParams.get("group") ?? "minute";
     if (group === "archive") {
@@ -139,10 +149,6 @@ export default {
       return new Response(JSON.stringify(res, null, 2), {
         headers: { "Content-Type": "application/json" },
       });
-    }
-    const secret = url.searchParams.get("secret");
-    if (env.CRON_SECRET && secret !== env.CRON_SECRET) {
-      return new Response("Unauthorized", { status: 401 });
     }
     const jobs = JOB_GROUPS[group];
     if (!jobs) return new Response("Unknown group", { status: 400 });

@@ -14,6 +14,8 @@ import {
   TripGroupsEnvelopeSchema,
   IngestScheduleBodySchema,
   StripeEnvQuerySchema,
+  EtaLogSchema,
+  PartnerApplySchema,
 } from "./public-api";
 
 describe("LatLngSchema", () => {
@@ -239,5 +241,46 @@ describe("parseOptionalJsonBody", () => {
   it("rejects a JSON array where an object is required", async () => {
     const result = await parseOptionalJsonBody(post("[1,2,3]"), TripAlertsTickSchema);
     expect(result.ok).toBe(false);
+  });
+});
+
+describe("EtaLogSchema", () => {
+  const row = {
+    tripId: "t1",
+    routeId: "r1",
+    stopId: "s1",
+    horizonSec: 240,
+    p50Sec: 240,
+    tier: "live",
+    confidence: "high",
+    surface: "stop-card",
+  };
+
+  it("accepts a sampled prediction", () => {
+    expect(EtaLogSchema.safeParse(row).success).toBe(true);
+  });
+
+  it("rejects an unknown tier or surface", () => {
+    expect(EtaLogSchema.safeParse({ ...row, tier: "maybe" }).success).toBe(false);
+    expect(EtaLogSchema.safeParse({ ...row, surface: "console" }).success).toBe(false);
+  });
+});
+
+describe("PartnerApplySchema", () => {
+  const body = {
+    orgName: "Hotel Fig Tree",
+    contactName: "Maria",
+    email: "ops@example.com",
+    role: "hotel",
+    useCase: "Concierge screens at the desk.",
+  };
+
+  it("accepts a waitlist application", () => {
+    expect(PartnerApplySchema.safeParse(body).success).toBe(true);
+  });
+
+  it("rejects a short use case and a bad email", () => {
+    expect(PartnerApplySchema.safeParse({ ...body, useCase: "hi" }).success).toBe(false);
+    expect(PartnerApplySchema.safeParse({ ...body, email: "not-an-email" }).success).toBe(false);
   });
 });
