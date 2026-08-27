@@ -39,6 +39,17 @@ describe("classifyFreshness", () => {
     expect(r.confidence).toBe("high");
   });
 
+  // Sample coverage must actually move the confidence needle — a live tier
+  // backed by a thin speed/dwell model is a weaker claim than one backed by
+  // a dozen observed segments, and surfaces widen the band accordingly.
+  it("grades live-tier confidence by how many samples back the model", () => {
+    const base = { hasVehicle: true, pingAgeSec: 20, stopsAway: 2 } as const;
+    expect(classifyFreshness({ ...base, modelSamples: 12 }).confidence).toBe("high");
+    expect(classifyFreshness({ ...base, modelSamples: 5 }).confidence).toBe("medium");
+    expect(classifyFreshness({ ...base, modelSamples: 1 }).confidence).toBe("low");
+    expect(classifyFreshness(base).confidence).toBe("low");
+  });
+
   it("never claims live for a distant bus, even on a fresh ping", () => {
     const r = classifyFreshness({ hasVehicle: true, pingAgeSec: 10, stopsAway: 40 });
     expect(r.tier).toBe("predicted");

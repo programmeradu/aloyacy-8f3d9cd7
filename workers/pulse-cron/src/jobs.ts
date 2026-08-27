@@ -34,6 +34,10 @@ export const EVEN_MINUTE_JOBS: Job[] = [
 
 export const QUARTER_HOUR_JOBS: Job[] = [
   { path: "/api/public/hooks/train?mode=fast", label: "train-fast" },
+  // rt_snapshots is purged 30 minutes after capture, so the archiver has to
+  // run well inside that window — hourly meant most rows were deleted before
+  // they ever reached the data lake.
+  { path: "/api/public/hooks/archive-lake", label: "archive-lake" },
 ];
 
 export const HALF_HOUR_JOBS: Job[] = [
@@ -47,7 +51,7 @@ export const HALF_HOUR_JOBS: Job[] = [
 export const HOURLY_JOBS: Job[] = [
   { path: "/api/public/hooks/pulse-news", label: "pulse-news" },
   { path: "/lovable/email/queue/process", label: "email-queue" },
-  { path: "/api/public/hooks/archive-lake", label: "archive-lake" },
+  // archive-lake moved to the 15-minute group; see QUARTER_HOUR_JOBS.
 ];
 
 export const NIGHTLY_JOBS: Job[] = [

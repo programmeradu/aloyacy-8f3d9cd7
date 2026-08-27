@@ -30,9 +30,12 @@ export async function archiveLakeDirect(env: Env): Promise<{ ok: boolean; archiv
     return { ok: false, archived: {}, error: "Missing Supabase URL or Service Role Key" };
   }
 
+  // Windows are in MINUTES and must stay shorter than each table's Postgres
+  // TTL (rt_snapshots: 30 min, observed_arrivals: 2 days), otherwise rows are
+  // purged before they are ever archived and the lake stays empty.
   const tables = [
-    { name: "rt_snapshots", timeColumn: "captured_at", days: 1 },
-    { name: "observed_arrivals", timeColumn: "last_seen_at", days: 7 },
+    { name: "rt_snapshots", timeColumn: "captured_at", minutes: 10 },
+    { name: "observed_arrivals", timeColumn: "last_seen_at", minutes: 24 * 60 },
   ];
 
   const headers: Record<string, string> = {
@@ -44,9 +47,8 @@ export async function archiveLakeDirect(env: Env): Promise<{ ok: boolean; archiv
 
   const archived: Record<string, number> = {};
 
-  for (const { name, timeColumn, days } of tables) {
-    const dateThreshold = new Date();
-    dateThreshold.setDate(dateThreshold.getDate() - days);
+  for (const { name, timeColumn, minutes } of tables) {
+    const dateThreshold = new Date(Date.now() - minutes * 60_000);
     const cutoff = dateThreshold.toISOString();
 
     let total = 0;
