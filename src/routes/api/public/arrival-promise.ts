@@ -70,6 +70,11 @@ const bodySchema = z.discriminatedUnion("action", [
   }),
   z.object({ action: z.literal("cancel"), id: z.string().uuid() }),
   z.object({ action: z.literal("refresh"), id: z.string().uuid() }),
+  z.object({
+    action: z.literal("adjust"),
+    id: z.string().uuid(),
+    targetArrivalUnix: z.number().int().positive(),
+  }),
 ]);
 
 const MAX_HORIZON_SEC = 8 * 24 * 3600;
