@@ -723,10 +723,15 @@ Already true in this repo, and why the OS is a credible bet:
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.
 - Ledger tables live on `aloya-prod-5`. Pulse-cron holds the rotated secrets.
+- Ledger write path is live (`POST /api/public/eta-log` 200 on `app.aloya.cy`,
+  Worker version `b22f738c…`). Waitlist is live at `aloya.cy/partners`.
+  Resolve-arrivals is mounted and fail-closed (401 without cron secret).
 
 Not yet true, and why we are still a portal:
 
-- **The citizen app and marketing site have not published this slice.** `POST /api/public/eta-log` and `aloya.cy/partners` 404 until Lovable deploys `9dbdc1a2` / `967a7dd`. Until then the ledger stays empty even though the tables exist.
+- Pulse-cron Observability is on in config, but the cron stream is not
+  public (`workers.dev` disabled). Secret-rotation 401s on the minute
+  loop still need a `wrangler tail` to confirm.
 - Marketing boards are still `gen()` frequency tables.
 - No versioned Truth API, no embed, no operator report card.
 - Motion is a balance viewer via a JCC CORS proxy.
