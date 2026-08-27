@@ -17,12 +17,14 @@ describe("planRaptor", () => {
   // forward, so pick the earliest date still shipped rather than pinning one.
   it("keeps the direct 19 from Solomos to Komninou ahead of feeder changes", { timeout: 60_000 }, async () => {
     const repoRoot = path.resolve(import.meta.dirname, "../..");
-    const dates = readJson<string[] | { dates?: string[] }>(
+    const index = readJson<Record<string, unknown>>(
       repoRoot,
       "public/data/schedule/by-date/index.json",
     );
-    const available = (Array.isArray(dates) ? dates : (dates.dates ?? [])).slice().sort();
-    const date = available[0] ?? "20260826";
+    const available = Object.keys(index)
+      .filter((k) => /^\d{8}$/.test(k))
+      .sort();
+    const date = available[0]!;
     const schedule: LoadedSchedule = {
       date,
       stops: readJson(repoRoot, "public/data/schedule/stops.json"),
