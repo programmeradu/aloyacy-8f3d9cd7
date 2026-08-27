@@ -31,6 +31,7 @@ import {
 import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "@/components/AuthSheet";
 import arrivalHero from "@/assets/arrival-promise-hero.jpg";
+import { ArrivalShiftPanel } from "./ArrivalShiftPanel";
 import {
   ARRIVAL_PROMISE_QUERY_KEY as QUERY_KEY,
   ensurePushDevice,
