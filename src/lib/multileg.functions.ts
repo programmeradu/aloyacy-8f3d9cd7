@@ -151,11 +151,18 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     type LiveR = { itineraries: Itinerary[]; diagnostics?: MultiLegDiagnostics } | null;
     type SchedR = { itineraries: Itinerary[]; diagnostics: ScheduledDiagnostics } | null;
 
+    // A planner that *crashed* is not the same claim as a corridor with no
+    // service. We track the difference so an infrastructure hiccup never
+    // renders as the honest-sounding lie "no bus serves this journey".
+    let liveFailed = false;
+    let schedFailed = false;
+
     const livePromise: Promise<LiveR> =
       mode === "live" || mode === "both"
         ? planMultiLegJourney(data.from, data.to, {
             collectDiagnostics: data.debug ?? false,
           }).catch((e: unknown) => {
+            liveFailed = true;
             log.warn("live planner failed", { err: (e as Error).message });
             return null;
           })
@@ -181,6 +188,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
               log.warn("no schedule shard", { date: e.date });
               return null;
             }
+            schedFailed = true;
             log.warn("scheduled planner failed", { err: (e as Error).message });
             return null;
           })
@@ -188,10 +196,29 @@ export const planMultiLeg = createServerFn({ method: "POST" })
 
     const [liveResult, schedResult] = await Promise.all([livePromise, schedPromise]);
 
+    // Every engine we asked blew up: surface it so the client retries and the
+    // rider sees "we couldn't reach the planner", not "no route exists".
+    const liveAsked = mode === "live" || mode === "both";
+    const schedAsked = mode === "scheduled" || mode === "both";
+    const liveOk = liveAsked ? !liveFailed : true;
+    const schedOk = schedAsked ? !schedFailed : true;
+    if (!liveOk && !schedOk) {
+      throw new Error("planner_unavailable");
+    }
+
+
     const merged: Itinerary[] = [
       ...(liveResult?.itineraries ?? []),
       ...(schedResult?.itineraries ?? []),
     ];
+
+    // One engine down and the survivor found nothing: we genuinely do not
+    // know whether a route exists, so ask the client to try again rather
+    // than assert an empty corridor.
+    if (merged.length === 0 && (liveFailed || schedFailed) && !noScheduleAvailable) {
+      throw new Error("planner_unavailable");
+    }
+
     const learningMod = await import("./planner-learning.server");
     const learning = await learningMod.loadPlannerLearningContext(merged).catch(() => null);
     for (const it of merged) learningMod.rescoreItineraryWithLearning(it, learning);
