@@ -379,8 +379,9 @@ function WalletRoute() {
               />
               <Fare
                 label={t("wallet.fare.intercity")}
-                value="€7.00"
+                value="€4.00"
                 sub={t("wallet.fare.intercitySub")}
+                note={t("wallet.fare.intercityReturn")}
                 image={fareIntercity}
                 imageAlt={t("wallet.fare.intercityAlt")}
               />
