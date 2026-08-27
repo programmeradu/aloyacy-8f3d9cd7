@@ -88,14 +88,28 @@ export function Fare({
         >
           {label}
         </p>
-        <div className="flex items-baseline justify-between gap-2">
+        <div className="flex items-end justify-between gap-1.5">
           <p
             className={`font-display text-[20px] leading-none tabular-nums tracking-[-0.01em] ${isDark ? "text-limestone" : "text-ink"}`}
           >
             {value}
           </p>
-          <p className={`text-[10px] ${isDark ? "text-limestone/75" : "text-ink-soft"}`}>{sub}</p>
+          <div className="min-w-0 text-right">
+            <p
+              className={`text-[10px] leading-[1.15] ${isDark ? "text-limestone/75" : "text-ink-soft"}`}
+            >
+              {sub}
+            </p>
+            {note && (
+              <p
+                className={`text-[9px] leading-[1.2] tabular-nums ${isDark ? "text-limestone/60" : "text-ink-soft/75"}`}
+              >
+                {note}
+              </p>
+            )}
+          </div>
         </div>
+
       </div>
     </article>
   );
