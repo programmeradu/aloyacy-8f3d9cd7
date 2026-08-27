@@ -40,6 +40,7 @@ export function Fare({
   label,
   value,
   sub,
+  note,
   image,
   imageAlt,
   tone = "light",
@@ -47,6 +48,8 @@ export function Fare({
   label: string;
   value: string;
   sub: string;
+  /** Optional secondary price line (e.g. the return fare), stacked under `sub`. */
+  note?: string;
   image?: string;
   imageAlt?: string;
   /** "light" = limestone wash with ink text; "dark" = dim wash with cream text (for already-dark images). */
