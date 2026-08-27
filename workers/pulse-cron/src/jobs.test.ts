@@ -104,3 +104,22 @@ describe("job table", () => {
     expect(new Set(minuteLabels).size).toBe(minuteLabels.length);
   });
 });
+
+// rt_snapshots is purged 30 minutes after capture, so an hourly archiver
+// deletes more history than it saves. The archive job has to fire on the
+// 15-minute cadence for the data lake to receive anything at all.
+describe("archive cadence vs. Postgres retention", () => {
+  const has = (jobs: { label: string }[]) => jobs.some((j) => j.label === "archive-lake");
+
+  it("runs archive-lake every 15 minutes", () => {
+    expect(has(planFor("*/15 * * * *", Date.parse("2026-08-27T10:15:00Z")).jobs)).toBe(true);
+  });
+
+  it("no longer leaves archival to the hourly group alone", () => {
+    expect(has(planFor("17 * * * *", Date.parse("2026-08-27T10:17:00Z")).jobs)).toBe(false);
+  });
+
+  it("still sweeps on the nightly group as a backstop", () => {
+    expect(has(planFor("0 3 * * *", Date.parse("2026-08-27T03:00:00Z")).jobs)).toBe(true);
+  });
+});
