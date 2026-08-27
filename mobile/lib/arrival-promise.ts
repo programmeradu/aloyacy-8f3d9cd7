@@ -99,6 +99,14 @@ export async function refreshPromise(id: string): Promise<ArrivalPromise> {
   return body.promise;
 }
 
+export async function adjustPromise(id: string, targetArrivalUnix: number): Promise<ArrivalPromise> {
+  const body = await call<{ promise: ArrivalPromise }>({
+    method: "POST",
+    body: JSON.stringify({ action: "adjust", id, targetArrivalUnix }),
+  });
+  return body.promise;
+}
+
 /** Poll-light hook: refreshes on mount and every minute while mounted. */
 export function useArrivalPromises(enabled: boolean) {
   const [promises, setPromises] = useState<ArrivalPromise[]>([]);
