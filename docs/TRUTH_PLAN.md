@@ -107,7 +107,7 @@ This table is the current one.
 
 | # | Item | Status at plan rewrite | Why |
 | - | ---- | ---------------------- | --- |
-| 0.1 | **Rotate the leaked keys.** Service-role JWT is **off `vars` in HEAD**. `scripts/check-secrets.mjs` now scans `*.jsonc` and root `wrangler.jsonc`. Human still must `wrangler secret put CUSTOM_SUPABASE_SERVICE_ROLE_KEY` (and ANON_KEY) on the pulse-cron worker with the *rotated* values — git history still has the old JWT. | **Code done. Confirm secret put.** | Everything below writes new data through that key. |
+| 0.1 | **Rotate the leaked keys.** Service-role JWT is off `vars`. Scanner covers `*.jsonc` and root `wrangler.jsonc`. Rotated service-role + anon + `CRON_SECRET` put on `aloya-pulse-cron` (2026-08-28). Git history still has the old JWT. | **Done.** | — |
 | 0.2 | Dead confidence branch in `packages/core/src/freshness.ts`. | **Done.** Live tier is `samples >= 10 ? high : >= 4 ? medium : low`. Do not re-open. | — |
 | 0.3 | Retention: `rt_snapshots` deleted after 30 min, `observed_arrivals` after 2 days. | **Open, but see 0.4.** | Workstream A needs durable history. Raw rows should not be the durable copy. |
 | 0.4 | Archive / data lake. | **Auth + order + checked DELETE done.** Archive-on-ingest, partitions, longer live window still open (target architecture below). | |
@@ -722,16 +722,16 @@ Already true in this repo, and why the OS is a credible bet:
 - Inferred A2 resolver (later-stop evidence). Vehicle-cross is next.
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.
+- Ledger tables live on `aloya-prod-5`. Pulse-cron holds the rotated secrets.
 
 Not yet true, and why we are still a portal:
 
-- Ledger is writing but empty until the SQL is applied and riders hit stops.
+- **The citizen app and marketing site have not published this slice.** `POST /api/public/eta-log` and `aloya.cy/partners` 404 until Lovable deploys `9dbdc1a2` / `967a7dd`. Until then the ledger stays empty even though the tables exist.
 - Marketing boards are still `gen()` frequency tables.
 - No versioned Truth API, no embed, no operator report card.
 - Motion is a balance viewer via a JCC CORS proxy.
 - Modes around the planner are cards and deep-links.
 - Archive-on-ingest and daily partitions are not built.
-- Pulse-cron still needs `wrangler secret put` of the rotated service role.
 
 The doctrine is written. The switch does not exist yet. This plan is
 how it gets built, in order, without another brochure.
