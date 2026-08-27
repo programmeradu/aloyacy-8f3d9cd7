@@ -211,6 +211,14 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       ...(liveResult?.itineraries ?? []),
       ...(schedResult?.itineraries ?? []),
     ];
+
+    // One engine down and the survivor found nothing: we genuinely do not
+    // know whether a route exists, so ask the client to try again rather
+    // than assert an empty corridor.
+    if (merged.length === 0 && (liveFailed || schedFailed) && !noScheduleAvailable) {
+      throw new Error("planner_unavailable");
+    }
+
     const learningMod = await import("./planner-learning.server");
     const learning = await learningMod.loadPlannerLearningContext(merged).catch(() => null);
     for (const it of merged) learningMod.rescoreItineraryWithLearning(it, learning);
