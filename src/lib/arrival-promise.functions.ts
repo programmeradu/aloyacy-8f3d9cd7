@@ -235,3 +235,68 @@ export const refreshArrivalPromise = createServerFn({ method: "POST" })
     if (upErr) throw new Error(upErr.message);
     return updated as unknown as ArrivalPromiseRow;
   });
+
+const adjustSchema = z.object({
+  id: z.string().uuid(),
+  targetArrivalUnix: z.number().int().positive(),
+});
+
+/**
+ * Give the promise more room: move the target arrival later and re-plan
+ * against it. Nudges already sent are cleared so the escalation ladder
+ * restarts against the new time rather than staying silent.
+ */
+export const adjustArrivalPromise = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => adjustSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const nowUnix = Math.floor(Date.now() / 1000);
+    if (data.targetArrivalUnix <= nowUnix + 300) {
+      throw new Error("Pick an arrival time at least 5 minutes from now.");
+    }
+    if (data.targetArrivalUnix > nowUnix + MAX_HORIZON_SEC) {
+      throw new Error("Aloya can watch a trip up to a week ahead.");
+    }
+
+    const db = loose(context.supabase);
+    const { data: row, error } = await db
+      .from("arrival_promises")
+      .select(SELECT_COLS)
+      .eq("id", data.id)
+      .single();
+    if (error || !row) throw new Error(error?.message ?? "Promise not found");
+    const promise = row as unknown as ArrivalPromiseRow;
+
+    const { computePromisePlan, planSnapshot } = await import("@/lib/arrival-promise.server");
+    const plan = await computePromisePlan({
+      origin: { lat: promise.origin_lat, lng: promise.origin_lng, label: promise.origin_label },
+      destination: {
+        lat: promise.destination_lat,
+        lng: promise.destination_lng,
+        label: promise.destination_label,
+      },
+      targetArrivalUnix: data.targetArrivalUnix,
+      margin: promise.margin_pref,
+    });
+
+    const leaveBy = plan.leaveByUnix ?? data.targetArrivalUnix - 3600;
+    const { data: updated, error: upErr } = await db
+      .from("arrival_promises")
+      .update({
+        target_arrival_unix: data.targetArrivalUnix,
+        plan_json: JSON.parse(JSON.stringify(planSnapshot(plan.itinerary))),
+        ladder_json: JSON.parse(JSON.stringify(plan.ladder)),
+        leave_by_unix: leaveBy,
+        baseline_leave_by_unix: leaveBy,
+        buffer_sec: plan.bufferSec,
+        reason_short: plan.reasonShort,
+        status: plan.unmakeable ? "missed" : "watching",
+        nudges_sent: [],
+        last_replan_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .select(SELECT_COLS)
+      .single();
+    if (upErr) throw new Error(upErr.message);
+    return updated as unknown as ArrivalPromiseRow;
+  });
