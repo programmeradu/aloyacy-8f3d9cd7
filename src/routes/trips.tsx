@@ -136,10 +136,11 @@ function Plan() {
   });
   const planning = planQuery.isFetching && !planQuery.data;
   const planError = planQuery.error
-    ? planQuery.error instanceof Error
+    ? planQuery.error instanceof Error && planQuery.error.message !== "planner_unavailable"
       ? planQuery.error.message
       : t("trips.planFailed")
     : null;
+
 
   const extras = useTripSideQueries({
     origin,
