@@ -251,76 +251,77 @@ export function TimeIntentChip({
     { key: "arrive", label: t("trips.intentArriveBy") },
   ];
 
+  const activeIndex = options.findIndex((o) => o.key === mode);
+
   return (
-    <div className="mt-3 rounded-[22px] bg-card ring-1 ring-line p-3">
-      <div className="flex items-center gap-2">
-        <IconClock className="size-3.5 shrink-0 text-aegean-deep" />
-        <div className="flex flex-wrap gap-1.5">
-          {options.map((o) => (
-            <button
-              key={o.key}
-              type="button"
-              onClick={() => set(o.key)}
-              aria-pressed={mode === o.key}
-              className={`h-8 rounded-full px-3.5 font-sans text-[12.5px] font-semibold transition-colors ${
-                mode === o.key
-                  ? "bg-ink text-limestone"
-                  : "bg-limestone-soft text-ink-soft ring-1 ring-line hover:text-ink"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
+    <div className="mt-3 rounded-[20px] bg-card ring-1 ring-line px-2.5 py-2">
+      {/* One equal-width segmented track with a sliding thumb reads faster than
+          three loose pills, and it never reflows as the labels change length. */}
+      <div className="relative grid grid-cols-3 rounded-full bg-limestone-soft p-0.5 ring-1 ring-line/70">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0.5 left-0.5 w-[calc((100%-0.25rem)/3)] rounded-full bg-ink transition-transform duration-200 ease-out"
+          style={{ transform: `translateX(${Math.max(activeIndex, 0) * 100}%)` }}
+        />
+        {options.map((o) => (
+          <button
+            key={o.key}
+            type="button"
+            onClick={() => set(o.key)}
+            aria-pressed={mode === o.key}
+            className={`relative z-10 flex h-8 items-center justify-center gap-1.5 rounded-full px-2 font-sans text-[12.5px] font-semibold transition-colors ${
+              mode === o.key ? "text-limestone" : "text-ink-soft hover:text-ink"
+            }`}
+          >
+            {o.key === "now" && <IconClock className="size-3.5 shrink-0" />}
+            <span className="truncate">{o.label}</span>
+          </button>
+        ))}
       </div>
 
       {mode !== "now" && (
-        <div className="mt-3 border-t border-line pt-3">
-          <input
-            type="datetime-local"
-            value={iso ? toLocalInput(iso) : ""}
-            onChange={(e) => setISO(fromLocalInput(e.target.value))}
-            aria-label={mode === "arrive" ? t("trips.intentArriveBy") : t("trips.intentLeave")}
-            className="h-9 w-full rounded-full bg-limestone-soft px-4 font-sans text-[13px] font-semibold text-ink ring-1 ring-line outline-none focus:ring-aegean"
-          />
-          {presets.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {presets.map((p) => {
-                const active = iso
-                  ? Math.abs(new Date(iso).getTime() - new Date(p.iso).getTime()) < 60_000
-                  : false;
-                return (
-                  <button
-                    key={p.iso}
-                    type="button"
-                    onClick={() => setISO(p.iso)}
-                    aria-pressed={active}
-                    className={`flex h-9 items-center gap-1.5 rounded-full px-3.5 font-sans text-[12.5px] font-semibold ring-1 transition-colors ${
-                      active
-                        ? "bg-aegean/12 text-aegean-deep ring-aegean/40"
-                        : "bg-limestone-soft text-ink-soft ring-line hover:text-ink"
-                    }`}
-                  >
-                    <span className="whitespace-nowrap">{presetLabel(p, t, locale)}</span>
-                    {p.source === "habit" && (
-                      <span className="rounded-full bg-ochre/20 px-1.5 font-mono text-[9.5px] tracking-[0.08em] text-ink uppercase">
-                        {t("trips.presetUsual")}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+        <div className="mt-2 flex items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {/* The native picker sits transparent over its own chip so the row
+              stays one consistent scale instead of a full-width input block. */}
+          <label className="relative flex h-8 shrink-0 items-center rounded-full bg-limestone-soft px-3.5 font-sans text-[12.5px] font-semibold text-ink ring-1 ring-line focus-within:ring-aegean">
+            <span className="whitespace-nowrap">
+              {iso ? formatIntentLabel(iso, t) : t("trips.intentSetTime")}
+            </span>
+            <input
+              type="datetime-local"
+              value={iso ? toLocalInput(iso) : ""}
+              onChange={(e) => setISO(fromLocalInput(e.target.value))}
+              aria-label={mode === "arrive" ? t("trips.intentArriveBy") : t("trips.intentLeave")}
+              className="absolute inset-0 h-full w-full cursor-pointer rounded-full opacity-0 outline-none"
+            />
+          </label>
 
-      {iso && (
-        <p className="mt-2.5 font-sans text-[12.5px] leading-relaxed font-medium text-ink-soft">
-          {mode === "arrive"
-            ? t("trips.intentPlanArrive", { when: formatIntentLabel(iso, t) })
-            : t("trips.intentPlanLeave", { when: formatIntentLabel(iso, t) })}
-        </p>
+          {presets.map((p) => {
+            const active = iso
+              ? Math.abs(new Date(iso).getTime() - new Date(p.iso).getTime()) < 60_000
+              : false;
+            return (
+              <button
+                key={p.iso}
+                type="button"
+                onClick={() => setISO(p.iso)}
+                aria-pressed={active}
+                className={`flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3.5 font-sans text-[12.5px] font-semibold ring-1 transition-colors ${
+                  active
+                    ? "bg-aegean/12 text-aegean-deep ring-aegean/40"
+                    : "bg-limestone-soft text-ink-soft ring-line hover:text-ink"
+                }`}
+              >
+                <span className="whitespace-nowrap">{presetLabel(p, t, locale)}</span>
+                {p.source === "habit" && (
+                  <span className="rounded-full bg-ochre/20 px-1.5 font-mono text-[9.5px] tracking-[0.08em] text-ink uppercase">
+                    {t("trips.presetUsual")}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       )}
     </div>
   );

@@ -39,6 +39,7 @@ export const trips = {
   "trips.fasterN": "{n} faster routes with transfers",
   "trips.intentArriveBy": "Arrive by",
   "trips.intentLeave": "Leave",
+  "trips.intentSetTime": "Pick a time",
   "trips.intentNow": "Now",
   "trips.intentTomorrow": "tomorrow {time}",
   "trips.intentPlanArrive":

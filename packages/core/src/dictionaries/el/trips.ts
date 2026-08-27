@@ -41,6 +41,7 @@ export const trips: Record<keyof typeof tripsEn, string> = {
   "trips.fasterN": "{n} ταχύτερες διαδρομές με μετεπιβιβάσεις",
   "trips.intentArriveBy": "Άφιξη έως",
   "trips.intentLeave": "Αναχώρηση",
+  "trips.intentSetTime": "Επιλογή ώρας",
   "trips.intentNow": "Τώρα",
   "trips.intentTomorrow": "αύριο {time}",
   "trips.intentPlanArrive":
