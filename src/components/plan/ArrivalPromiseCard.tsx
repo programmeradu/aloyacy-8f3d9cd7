@@ -31,6 +31,7 @@ import {
 import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "@/components/AuthSheet";
 import arrivalHero from "@/assets/arrival-promise-hero.jpg";
+import { ArrivalShiftPanel } from "./ArrivalShiftPanel";
 import {
   ARRIVAL_PROMISE_QUERY_KEY as QUERY_KEY,
   ensurePushDevice,
@@ -254,11 +255,22 @@ function PromiseRow({ promise }: { promise: ArrivalPromiseRow }) {
       </div>
 
       {missed ? (
-        <p className="mt-3 font-sans text-[13.5px] leading-relaxed text-ink">
-          No service currently reaches {promise.destination_label} by{" "}
-          {formatClock(promise.target_arrival_unix)}. We are still checking every few minutes in
-          case a later plan opens up.
-        </p>
+        <>
+          <p className="mt-3 font-sans text-[13.5px] leading-relaxed text-ink">
+            No service currently reaches {promise.destination_label} by{" "}
+            {formatClock(promise.target_arrival_unix)}. We are still checking every few minutes in
+            case a later plan opens up.
+          </p>
+          <ArrivalShiftPanel
+            promiseId={promise.id}
+            ladder={ladder}
+            targetArrivalUnix={promise.target_arrival_unix}
+            margin={promise.margin_pref}
+            bufferSec={promise.buffer_sec}
+            destinationLabel={promise.destination_label}
+            nowUnix={nowUnix}
+          />
+        </>
       ) : (
         <p className="mt-3 font-display text-[22px] leading-none font-bold text-ink">
           Leave {formatClock(promise.leave_by_unix)}

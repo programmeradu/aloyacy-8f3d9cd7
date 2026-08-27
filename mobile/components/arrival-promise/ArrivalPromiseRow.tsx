@@ -13,6 +13,7 @@ import {
 import { palette } from "@/constants/theme";
 import { cancelPromise, refreshPromise, type ArrivalPromise } from "@/lib/arrival-promise";
 import { useNowUnix } from "./useNowUnix";
+import { ArrivalShiftPanel } from "./ArrivalShiftPanel";
 
 export function ArrivalPromiseRow({
   promise,
@@ -124,19 +125,31 @@ export function ArrivalPromiseRow({
       </View>
 
       {missed ? (
-        <Text
-          style={{
-            marginTop: 12,
-            fontFamily: "Geist_500Medium",
-            fontSize: 13.5,
-            lineHeight: 20,
-            color: palette.ink,
-          }}
-        >
-          No service currently reaches {promise.destination_label} by{" "}
-          {formatClock(promise.target_arrival_unix)}. We keep checking in case a later plan opens
-          up.
-        </Text>
+        <>
+          <Text
+            style={{
+              marginTop: 12,
+              fontFamily: "Geist_500Medium",
+              fontSize: 13.5,
+              lineHeight: 20,
+              color: palette.ink,
+            }}
+          >
+            No service currently reaches {promise.destination_label} by{" "}
+            {formatClock(promise.target_arrival_unix)}. We keep checking in case a later plan opens
+            up.
+          </Text>
+          <ArrivalShiftPanel
+            promiseId={promise.id}
+            ladder={ladder}
+            targetArrivalUnix={promise.target_arrival_unix}
+            margin={promise.margin_pref}
+            bufferSec={promise.buffer_sec}
+            destinationLabel={promise.destination_label}
+            nowUnix={nowUnix}
+            onChanged={onChanged}
+          />
+        </>
       ) : (
         <View style={{ marginTop: 12, flexDirection: "row", alignItems: "baseline", gap: 8 }}>
           <Text style={{ fontFamily: "BricolageGrotesque_700Bold", fontSize: 24, color: palette.ink }}>

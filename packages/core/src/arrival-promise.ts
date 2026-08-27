@@ -15,3 +15,4 @@ export * from "./arrival-promise/ladder";
 export * from "./arrival-promise/buffer";
 export * from "./arrival-promise/nudges";
 export * from "./arrival-promise/copy";
+export * from "./arrival-promise/shift";
