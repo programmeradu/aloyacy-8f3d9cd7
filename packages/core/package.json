@@ -42,6 +42,10 @@
       "types": "./src/cy-time.ts",
       "default": "./src/cy-time.ts"
     },
+    "./device-reputation": {
+      "types": "./src/device-reputation.ts",
+      "default": "./src/device-reputation.ts"
+    },
     "./dictionaries/el": {
       "types": "./src/dictionaries/el/index.ts",
       "default": "./src/dictionaries/el/index.ts"

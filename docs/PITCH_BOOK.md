@@ -214,6 +214,9 @@ This is the part that makes Aloya hard to copy. Say it simply.
    dwelling → skipped. A real kerb stop → served. Sparse pings stay
    unknown. We only speak at 1 in N, when it is common enough to
    change what you do with your arm.
+7. **A phone that has been right can stand alone.** Two riders agree,
+   or one rider whose GPS has matched real arrivals. A first-time tap
+   is named as one rider.
 
 That is the moat: **ground truth that is not an ETA**, collected in
 Cyprus, in Greek and English, on the same clock the rider sees.

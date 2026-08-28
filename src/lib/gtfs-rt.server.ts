@@ -13,6 +13,8 @@ import { fetchFeedOverSocket } from "@/lib/gtfs-socket.server";
 import { getRoute } from "@/lib/gtfs";
 import { tagGhostTripIds } from "@/lib/ghost-trips";
 import { RIDER_PHYSICS_FOLD_MIN, riderFold } from "@aloya/core/rider-physics";
+import { foldSightings } from "@aloya/core/device-reputation";
+import { loadCanCarryDevices } from "@/lib/device-reputation.server";
 
 // Feed sources, tried in order until one returns a decodable protobuf.
 //
@@ -82,8 +84,9 @@ export type RiderConfirmedTrip = {
   ageSec: number;
   /** Distinct riders that confirmed this trip in the trust window. */
   count: number;
-  /** Trust-weighted confidence 0..1 combining distinct-rider count,
-   *  recency, and each rider's historical trust score. */
+  /** True when a high-reputation device is among them and can carry alone. */
+  canCarry?: boolean;
+  /** 0..1 — recency × corroboration. Classifier uses count + canCarry. */
   confidence: number;
 };
 
@@ -240,72 +243,27 @@ async function fetchRiderFixes(): Promise<LiveVehicle[]> {
 }
 
 async function fetchSightings(): Promise<RiderConfirmedTrip[]> {
-  // Trust window: 90 s for the freshness upgrade. We also read a wider
-  // 7-day slice for per-device trust weighting so a rider with a consistent
-  // sighting history counts more than a first-tap device.
-  const WINDOW_SEC = 90;
   const now = Date.now();
-  const cutoff = new Date(now - WINDOW_SEC * 1000).toISOString();
-  const trustCutoff = new Date(now - 7 * 86_400_000).toISOString();
-  const [{ data: recent, error }, { data: history }] = await Promise.all([
-    supabase
-      .from("bus_sightings")
-      .select("trip_id, device_id, reported_at")
-      .gte("reported_at", cutoff)
-      .order("reported_at", { ascending: false })
-      .limit(500),
-    supabase.from("bus_sightings").select("device_id").gte("reported_at", trustCutoff).limit(5000),
-  ]);
+  const cutoff = new Date(now - 90_000).toISOString();
+  const { data: recent, error } = await supabase
+    .from("bus_sightings")
+    .select("trip_id, device_id, reported_at")
+    .gte("reported_at", cutoff)
+    .order("reported_at", { ascending: false })
+    .limit(500);
   if (error || !recent || recent.length === 0) return [];
-
-  // Per-device trust: sightings-per-week is a crude but useful proxy — a
-  // device that only ever taps once is treated conservatively (0.8),
-  // while a device with sustained history is weighted up (max 1.5).
-  const seenByDevice = new Map<string, number>();
-  for (const row of history ?? []) {
-    seenByDevice.set(row.device_id, (seenByDevice.get(row.device_id) ?? 0) + 1);
-  }
-  const trustOf = (deviceId: string) => {
-    const n = seenByDevice.get(deviceId) ?? 0;
-    if (n <= 1) return 0.8;
-    if (n <= 4) return 1;
-    if (n <= 12) return 1.25;
-    return 1.5;
-  };
-
-  type Agg = {
-    tripId: string;
-    ageSec: number;
-    devices: Set<string>;
-    weightedCount: number;
-  };
-  const byTrip = new Map<string, Agg>();
-  for (const row of recent) {
-    const ageSec = Math.max(0, Math.floor((now - new Date(row.reported_at).getTime()) / 1000));
-    const existing = byTrip.get(row.trip_id);
-    if (existing) {
-      if (!existing.devices.has(row.device_id)) {
-        existing.devices.add(row.device_id);
-        existing.weightedCount += trustOf(row.device_id);
-      }
-      existing.ageSec = Math.min(existing.ageSec, ageSec);
-    } else {
-      byTrip.set(row.trip_id, {
-        tripId: row.trip_id,
-        ageSec,
-        devices: new Set([row.device_id]),
-        weightedCount: trustOf(row.device_id),
-      });
-    }
-  }
-
-  return Array.from(byTrip.values()).map((a) => {
-    const recency = Math.max(0, 1 - a.ageSec / WINDOW_SEC);
-    // Weighted-count saturates at ~3 trusted riders → confidence 1.
-    const density = Math.min(1, a.weightedCount / 3);
-    const confidence = Math.round((0.35 * recency + 0.65 * density) * 100) / 100;
-    return { tripId: a.tripId, ageSec: a.ageSec, count: a.devices.size, confidence };
-  });
+  const rows = recent.map((row) => ({
+    tripId: row.trip_id as string,
+    deviceId: row.device_id as string,
+    ageSec: Math.max(0, Math.floor((now - new Date(row.reported_at).getTime()) / 1000)),
+  }));
+  const carry = await loadCanCarryDevices(rows.map((r) => r.deviceId)).catch(
+    () => new Set<string>(),
+  );
+  return foldSightings(rows, carry).map((a) => ({
+    ...a,
+    confidence: a.canCarry || a.count >= 2 ? 0.9 : 0.4,
+  }));
 }
 
 export async function fetchRealtime(): Promise<RealtimeSnapshot> {

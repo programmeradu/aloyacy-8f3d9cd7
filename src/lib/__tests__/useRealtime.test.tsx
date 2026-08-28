@@ -53,6 +53,24 @@ describe("useRealtime", () => {
     expect(result.current.riderConfirmedCount.get("t3")).toBe(2);
   });
 
+  it("lets a high-rep lone phone count as corroborated", async () => {
+    const fetchedAt = Math.floor(Date.now() / 1000);
+    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        fetchedAt,
+        stale: false,
+        ghostTripIds: [],
+        riderConfirmedTrips: [{ tripId: "t4", ageSec: 8, count: 1, canCarry: true }],
+      }),
+    });
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(() => useRealtime(), { wrapper: Wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.riderConfirmedCount.get("t4")).toBe(2);
+    expect(result.current.riderConfirmedAge.get("t4")).toBe(8);
+  });
+
   it("flags isStale when the upstream stale flag is set", async () => {
     const fetchedAt = Math.floor(Date.now() / 1000);
     (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({

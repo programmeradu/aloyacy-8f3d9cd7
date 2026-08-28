@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import * as Location from "expo-location";
 import { fetchRealtime, fetchRouteSequences, fetchStopsBundle } from "./api";
 import { setStops } from "./gtfs";
+import { effectiveRiderSources } from "@aloya/core/device-reputation";
 
 export function useRealtime() {
   const q = useQuery({
@@ -22,7 +23,13 @@ export function useRealtime() {
     const m = new Map<string, number>();
     for (const r of q.data?.riderConfirmedTrips ?? []) {
       if (r && typeof r === "object" && "tripId" in r) {
-        m.set(r.tripId, typeof r.count === "number" && r.count >= 1 ? r.count : 1);
+        m.set(
+          r.tripId,
+          effectiveRiderSources(
+            typeof r.count === "number" ? r.count : undefined,
+            r.canCarry === true,
+          ),
+        );
       }
     }
     return m;

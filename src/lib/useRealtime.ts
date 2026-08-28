@@ -8,6 +8,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import type { RealtimeSnapshot } from "./gtfs-rt.server";
+import { effectiveRiderSources } from "@aloya/core/device-reputation";
 
 const STALE_THRESHOLD_SEC = 60;
 
@@ -48,7 +49,7 @@ export function useRealtime() {
   const riderConfirmedCount = useMemo(() => {
     const m = new Map<string, number>();
     for (const r of q.data?.riderConfirmedTrips ?? []) {
-      m.set(r.tripId, r.count >= 1 ? r.count : 1);
+      m.set(r.tripId, effectiveRiderSources(r.count, r.canCarry === true));
     }
     return m;
   }, [q.data?.riderConfirmedTrips]);

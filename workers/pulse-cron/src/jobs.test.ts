@@ -140,6 +140,18 @@ describe("eta-backtest cadence", () => {
   });
 });
 
+describe("device-reputation cadence", () => {
+  it("scores phones against arrival_truth on the nightly group", () => {
+    const labels = (jobs: { label: string }[]) => jobs.map((j) => j.label);
+    expect(labels(planFor("0 3 * * *", Date.parse("2026-08-28T03:00:00Z")).jobs)).toContain(
+      "device-reputation",
+    );
+    expect(labels(planFor("* * * * *", Date.parse("2026-08-28T10:00:00Z")).jobs)).not.toContain(
+      "device-reputation",
+    );
+  });
+});
+
 describe("authorizeCronFetch", () => {
   const env = { CRON_SECRET: "s3cret" };
 
