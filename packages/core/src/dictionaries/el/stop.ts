@@ -94,4 +94,7 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.cond.partial": "Μερική",
   "stop.cond.wrong": "Λάθος",
   "stop.cond.fromRiders": "Από {n} επιβάτες",
+  "stop.cond.askPhoto": "Φωτογραφία αυτής της στάσης;",
+  "stop.cond.takePhoto": "Φωτογράφιση",
+  "stop.cond.fromRider": "Από επιβάτη",
 };

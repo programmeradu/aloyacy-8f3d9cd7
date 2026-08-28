@@ -19,6 +19,7 @@ import {
   EtaLogSchema,
   PartnerApplySchema,
   StopConditionSchema,
+  StopPhotoSchema,
 } from "./public-api";
 
 describe("LatLngSchema", () => {
@@ -338,6 +339,39 @@ describe("StopConditionSchema", () => {
         stopId: "1009",
         attribute: "shade",
         value: "yes",
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("StopPhotoSchema", () => {
+  it("accepts a get and an upload, and rejects a short device and a huge body", () => {
+    expect(StopPhotoSchema.safeParse({ action: "get", stopId: "1009" }).success).toBe(true);
+    expect(
+      StopPhotoSchema.safeParse({
+        action: "upload",
+        deviceId: "device-01",
+        stopId: "1009",
+        mime: "image/jpeg",
+        imageBase64: "A".repeat(64),
+      }).success,
+    ).toBe(true);
+    expect(
+      StopPhotoSchema.safeParse({
+        action: "upload",
+        deviceId: "short",
+        stopId: "1009",
+        mime: "image/jpeg",
+        imageBase64: "A".repeat(64),
+      }).success,
+    ).toBe(false);
+    expect(
+      StopPhotoSchema.safeParse({
+        action: "upload",
+        deviceId: "device-01",
+        stopId: "1009",
+        mime: "image/gif",
+        imageBase64: "A".repeat(64),
       }).success,
     ).toBe(false);
   });

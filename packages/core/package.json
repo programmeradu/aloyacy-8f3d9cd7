@@ -290,6 +290,10 @@
       "types": "./src/eta-backtest.ts",
       "default": "./src/eta-backtest.ts"
     },
+    "./stop-photo": {
+      "types": "./src/stop-photo.ts",
+      "default": "./src/stop-photo.ts"
+    },
     "./stop-condition": {
       "types": "./src/stop-condition.ts",
       "default": "./src/stop-condition.ts"

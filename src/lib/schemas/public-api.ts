@@ -367,3 +367,4 @@ export const CronSecretQuerySchema = z.object({
 });
 
 export { StopConditionSchema } from "./stop-condition";
+export { StopPhotoSchema } from "./stop-photo";

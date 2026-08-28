@@ -89,4 +89,7 @@ export const stop = {
   "stop.cond.partial": "Partial",
   "stop.cond.wrong": "Wrong",
   "stop.cond.fromRiders": "From {n} riders",
+  "stop.cond.askPhoto": "A photo of this stop?",
+  "stop.cond.takePhoto": "Take photo",
+  "stop.cond.fromRider": "From a rider",
 } as const;
