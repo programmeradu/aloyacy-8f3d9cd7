@@ -1,7 +1,7 @@
 // Stop condition — ground truth that is not an ETA.
-// One-tap attributes first. Photos, ambiguous pole, and routing
-// filters stay later. Unknown stays silent. Seed is the curated
-// Nicosia hubs; riders overwrite once two devices agree.
+// One-tap attributes first. Photo is the last ask (stop-photo.ts).
+// Ambiguous pole and routing filters stay later. Unknown stays silent.
+// Seed is the curated Nicosia hubs; riders overwrite once two devices agree.
 
 export const CONSENSUS_MIN = 2;
 export const REPORT_RATE_LIMIT_SEC = 60;

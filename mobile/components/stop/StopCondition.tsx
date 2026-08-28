@@ -11,6 +11,7 @@ import {
   type StopAttribute,
   type StopConsensus,
 } from "@aloya/core/stop-condition";
+import { StopPhoto } from "@/components/stop/StopPhoto";
 import { palette } from "@/constants/theme";
 import { API_BASE } from "@/lib/api";
 import { getOrCreateDeviceId } from "@/lib/push";
@@ -55,7 +56,9 @@ export function StopCondition({ stopId }: { stopId: string }) {
     })
     .filter((c): c is { label: string; n: number; source: StopConsensus["source"]; id: string } => c != null);
 
-  if (chips.length === 0 && !ask) return null;
+  if (chips.length === 0 && !ask) {
+    return <StopPhoto stopId={stopId} rows={rows} />;
+  }
   const askLine = ask ? stopConditionAsk(ask) : null;
 
   return (
@@ -114,6 +117,7 @@ export function StopCondition({ stopId }: { stopId: string }) {
           </View>
         </View>
       ) : null}
+      <StopPhoto stopId={stopId} rows={rows} />
     </View>
   );
 }

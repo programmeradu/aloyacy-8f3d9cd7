@@ -7,6 +7,7 @@ import {
   type StopAttribute,
   type StopConsensus,
 } from "@aloya/core/stop-condition";
+import { StopPhoto } from "@/components/stop/StopPhoto";
 import { getDeviceId } from "@/lib/pwa";
 import { useI18n, type DictKey } from "@/lib/i18n";
 
@@ -95,7 +96,9 @@ export function StopCondition({ stopId }: { stopId: string }) {
     })
     .filter((c): c is { key: DictKey; n: number; source: StopConsensus["source"] } => c != null);
 
-  if (chips.length === 0 && !ask) return null;
+  if (chips.length === 0 && !ask) {
+    return <StopPhoto stopId={stopId} rows={rows} />;
+  }
 
   return (
     <section className="px-6 pb-5 animate-rise" style={{ animationDelay: "90ms" }}>
@@ -139,6 +142,7 @@ export function StopCondition({ stopId }: { stopId: string }) {
           </div>
         </div>
       )}
+      <StopPhoto stopId={stopId} rows={rows} inset />
     </section>
   );
 }
