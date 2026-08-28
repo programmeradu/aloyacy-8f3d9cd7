@@ -23,8 +23,19 @@ export type CrowdEyesRoute = {
 async function loadReports(sinceIso: string): Promise<CoverageReport[]> {
   const out: CoverageReport[] = [];
   const [{ data: gps }, { data: taps }] = await Promise.all([
-    supabaseAdmin
-      .from("rider_vehicle_fixes")
+    // physics_score is present in production but missing from generated types.
+    (supabaseAdmin.from("rider_vehicle_fixes") as unknown as {
+      select: (cols: string) => {
+        gte: (
+          col: string,
+          v: string,
+        ) => {
+          limit: (n: number) => PromiseLike<{
+            data: { route_id: string | null; device_id: string | null; physics_score: number | null }[] | null;
+          }>;
+        };
+      };
+    })
       .select("route_id, device_id, physics_score")
       .gte("reported_at", sinceIso)
       .limit(5000),

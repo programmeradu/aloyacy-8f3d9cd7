@@ -500,12 +500,11 @@ const ApiPublicGbfsDotjsonRoute = ApiPublicGbfsDotjsonRouteImport.update({
   path: '/api/public/gbfs.json',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicFeedDeltaRoute =
-  ApiPublicFeedDeltaRouteImport.update({
-    id: '/api/public/feed-delta',
-    path: '/api/public/feed-delta',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ApiPublicFeedDeltaRoute = ApiPublicFeedDeltaRouteImport.update({
+  id: '/api/public/feed-delta',
+  path: '/api/public/feed-delta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicExpoPushRegisterRoute =
   ApiPublicExpoPushRegisterRouteImport.update({
     id: '/api/public/expo-push-register',
