@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { PulseLiveSection } from "@/components/PulseLiveSection";
 import { RoadPulseCard } from "@/components/pulse/RoadPulseCard";
+import { CrowdEyesCard } from "@/components/pulse/CrowdEyesCard";
 import { TodayEditorial } from "@/components/pulse/TodayEditorial";
 import { usePulseData } from "@/components/pulse/usePulseData";
 import { useI18n } from "@/lib/i18n";
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/pulse")({
 
 function Pulse() {
   const { t, locale } = useI18n();
-  const { today, live, hourly, liveSignals } = usePulseData();
+  const { today, live, hourly, crowdEyes, liveSignals } = usePulseData();
 
   return (
     <AppShell>
@@ -56,6 +57,12 @@ function Pulse() {
           t={t}
         />
       </section>
+
+      {crowdEyes && crowdEyes.routes.length > 0 && (
+        <section className="px-6 mt-4 animate-rise" style={{ animationDelay: "160ms" }}>
+          <CrowdEyesCard routes={crowdEyes.routes} t={t} />
+        </section>
+      )}
 
       {liveSignals && <PulseLiveSection bundle={liveSignals} locale={locale} />}
 

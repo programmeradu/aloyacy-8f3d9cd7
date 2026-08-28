@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getLivePulse, getPulseHourStrip } from "@/lib/pulse.functions";
+import { getCrowdEyes } from "@/lib/crowd-coverage.server";
 import { getPulseLive } from "@/lib/pulse-live.functions";
 import { getTodayBriefing } from "@/lib/today.functions";
 import { useActiveTrip } from "@/lib/trip-store";
@@ -40,6 +41,7 @@ export function usePulseData() {
   const todayFn = useServerFn(getTodayBriefing);
   const liveFn = useServerFn(getLivePulse);
   const hourFn = useServerFn(getPulseHourStrip);
+  const eyesFn = useServerFn(getCrowdEyes);
   const pulseLiveFn = useServerFn(getPulseLive);
 
   const active = useActiveTrip();
@@ -78,6 +80,13 @@ export function usePulseData() {
     staleTime: 4 * 60_000,
   });
 
+  const { data: crowdEyes } = useQuery({
+    queryKey: ["pulse-crowd-eyes"],
+    queryFn: () => eyesFn(),
+    refetchInterval: 5 * 60_000,
+    staleTime: 4 * 60_000,
+  });
+
   const liveSignalsInput = useMemo(
     () => ({ lat: briefingInput.lat, lng: briefingInput.lng }),
     [briefingInput.lat, briefingInput.lng],
@@ -90,5 +99,5 @@ export function usePulseData() {
     staleTime: 4 * 60_000,
   });
 
-  return { today, live, hourly, liveSignals };
+  return { today, live, hourly, crowdEyes, liveSignals };
 }

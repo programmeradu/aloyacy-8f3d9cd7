@@ -82,6 +82,10 @@ export const pulse = {
   "pulse.mood.rough": "Rough hour on the network.",
   "pulse.mood.storming": "The network's struggling.",
   "pulse.mood.quiet": "Too quiet to read.",
+  "pulse.eyes.kicker": "Crowd eyes",
+  "pulse.eyes.title": "Where riders are watching",
+  "pulse.eyes.lede":
+    "Phones on these lines in the last two days. The rest of the island is still dark.",
   "pulse.weather.kicker": "Today, from the live feed",
   "pulse.weather.subPos":
     "{pct}% on time across {routes} routes — {delta} points above this week's typical.",

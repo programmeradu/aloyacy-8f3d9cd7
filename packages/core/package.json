@@ -38,6 +38,10 @@
       "types": "./src/companion-view.ts",
       "default": "./src/companion-view.ts"
     },
+    "./crowd-coverage": {
+      "types": "./src/crowd-coverage.ts",
+      "default": "./src/crowd-coverage.ts"
+    },
     "./cy-time": {
       "types": "./src/cy-time.ts",
       "default": "./src/cy-time.ts"

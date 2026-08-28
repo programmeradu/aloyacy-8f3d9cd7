@@ -82,6 +82,10 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "pulse.mood.rough": "Δύσκολη ώρα στο δίκτυο.",
   "pulse.mood.storming": "Το δίκτυο δυσκολεύεται.",
   "pulse.mood.quiet": "Πολύ ήσυχα για να διαβαστεί.",
+  "pulse.eyes.kicker": "Μάτια επιβατών",
+  "pulse.eyes.title": "Πού κοιτούν οι επιβάτες",
+  "pulse.eyes.lede":
+    "Τηλέφωνα σε αυτές τις γραμμές τις τελευταίες δύο μέρες. Το υπόλοιπο νησί είναι ακόμα σκοτεινό.",
   "pulse.weather.kicker": "Σήμερα, από τη ζωντανή ροή",
   "pulse.weather.subPos":
     "{pct}% στην ώρα σε {routes} γραμμές — {delta} πάνω από το τυπικό της εβδομάδας.",
