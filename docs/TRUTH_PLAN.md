@@ -772,6 +772,49 @@ identical in both repos.
 
 ---
 
+## Progress checklist (living)
+
+One place to see what shipped. Detail stays in the workstream sections.
+Update this table in the same commit as the slice.
+
+| ID | Slice | Status |
+| -- | ----- | ------ |
+| 0.1 | Rotate leaked keys | **Shipped.** Git history still has the old JWT. |
+| 0.2 | Dead confidence branch | **Shipped.** Do not re-open. |
+| 0.3 | Retention windows | Open — see 0.4. |
+| 0.4 | Archive lake | Auth + ordered paging + checked DELETE **shipped.** Archive-on-ingest, partitions, longer live window **open.** |
+| 0.5 | Nicosia hours | **Shipped.** |
+| 0.6 | Agency-aware ghost cutoff | **Shipped.** |
+| A1 | Prediction ledger | **Shipped.** `eta_predictions` write path. |
+| A2 | Actual-arrival resolver | **Shipped.** Inferred + vehicle-cross. Apply `20260828_vehicle_pings.sql`. |
+| A3 | Nightly backtest | **Shipped.** Apply `20260828_eta_accuracy.sql`. |
+| A4 | Self-tune thresholds | **Blocked** until A3 has weeks of coverage. |
+| A5 | `/accuracy` + why-this-number + regression gate | **Blocked** until a route has n ≥ 30 headline (vehicle/rider) samples. Empty accuracy is a worse lie than no page. |
+| B1 | Still on Bus N? | **Shipped** on the companion. Push to riders who left the app **open.** |
+| B2 | Headway chance | **Shipped** on the stop card and on the HUD keep-wait sentence. Silent below 15%. |
+| B3 | No-show + last-bus | **Shipped** on the stop. Apply `20260828_no_show_hour.sql`. |
+| B4 | Wait-or-bail | **Shipped** same-stop skip/other/last-tonight, plus dest-aware HUD walk vs wait. RAPTOR HUD sentence, Bolt/scooter price, taxi tariff **open** (need a dest / a quote). |
+| B5 | Walk-or-wait flip push | **Shipped** once-per-wait. RAPTOR other-stop **open.** |
+| C1 | Rider-fix physics | **Shipped.** Apply `20260828_rider_physics.sql`. Learned segment speeds wait on A4. |
+| C2 | Corroboration + reputation | **Open.** |
+| C3 | Cold-start ask | **Open.** |
+| D1 | Stop condition | **Shipped** one-tap: shelter, seating, walk, light, step-free. Seed = eight hubs. Apply `20260828_stop_condition.sql`. Photos, sign/timetable, ambiguous pole, `lowFloor` filter **open.** |
+| D2 | Skip rate | **Open.** |
+| D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
+| D4 | Report decay / one ask per journey | **Open.** |
+| D5 | Public stop page (indexable) | **Open.** Index only with real content (E2). |
+| E0 | Two-repo contradictions | **Shipped** (boards, 301, hreflang, fare/line copy, drop overclaims). |
+| E2 | Programmatic index | Rides on A5 + D1/D2 content. |
+| E3 | Transit JSON-LD | **Open.** |
+| F1–F4 | Truth API, report card, embed | **Blocked** until A1/A2 are writing *and* a design partner is waiting. |
+| G1 | Airport as a job | **Shipped** first slice (Kapnos vs city bus vs taxi rank). Dest-aware total cost **open.** |
+| G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
+| G3 | Green Line named | **Shipped.** Hours **not** invented. |
+
+**Next unblocked:** D1 sign/timetable, then photos, then D2 skip rate.
+
+---
+
 ## Status against HEAD (first slice, 2026-08-28)
 
 Already true in this repo, and why the OS is a credible bet:
