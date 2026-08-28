@@ -258,10 +258,10 @@
       "types": "./src/alight-countdown.ts",
       "default": "./src/alight-countdown.ts"
     },
-    "./walk-anchor": {
-      "types": "./src/walk-anchor.ts",
-      "default": "./src/walk-anchor.ts"
-    }
+    "./wait-or-bail": {
+      "types": "./src/wait-or-bail.ts",
+      "default": "./src/wait-or-bail.ts"
+    },
   },
   "dependencies": {
     "@mapbox/polyline": "^1.2.1"

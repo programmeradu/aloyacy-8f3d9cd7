@@ -319,23 +319,34 @@ Bolt, a taxi, or tomorrow.”
 
 ### B4. Wait-or-bail
 
-A single decision component that fires on `ghost` / `scheduled` / high
-no-show risk, ranking the rider’s real options with honest numbers:
+A single decision that fires on `ghost` / `scheduled` / high no-show
+risk. Recommends **one** action with the reason in a sentence.
+
+**On the stop (thin, shipped).** Same-stop only — we can see the other
+buses on this board. First dark row per route:
+
+| Option | When |
+| ------ | ---- |
+| Skip this one | A later live trip on the same route and headsign is ≤ 20 min |
+| Other route here | A live different route is ≥ 3 min sooner than this wait |
+| Bolt / taxi | This was the last tonight and it is not on the map |
+
+Headway chance stays off that row once an action fires. Walk and RAPTOR
+re-plan still need a destination — those belong on the journey HUD
+(remaining B4 + B5), not as a second card on the stop.
+
+**Still open (needs dest):**
 
 | Option | Shown as |
 | ------ | -------- |
 | Keep waiting | expected wait + probability, from B2 |
-| Walk it | walking ETA (walk links + pace stats) — often wins in Cyprus city centres |
+| Walk it | walking ETA (walk links + pace stats) |
 | Next departure on another route | RAPTOR re-plan from the current stop |
-| Bolt / scooter / bikeshare | integrations already exist — surface price and ETA *here*, not in a separate tab |
-| Taxi | honest last resort with regulated tariff ±15% and the dispatcher number |
+| Bolt / scooter / bikeshare | price and ETA *here* |
+| Taxi | regulated tariff ±15% and the dispatcher number |
 
-Rule: it recommends **one** action with the reason in a sentence, and
-shows the alternatives underneath. It must be willing to say “walk, the
-bus isn’t worth it.” An app that sometimes tells you not to use it is
-an app people trust.
-
-This is the OS moment at the stop.
+The stop line must stay willing to say the bus isn’t worth it. An app
+that sometimes tells you not to use it is an app people trust.
 
 ### B5. Escalation while waiting
 
@@ -739,6 +750,9 @@ Already true in this repo, and why the OS is a credible bet:
 - B2 headway chance on the first dark row per route. Observed gaps from
   `headway_observations`; timetable gap when samples are thin. No new
   SQL — the table already exists.
+- Thin B4 on the stop: skip this dark row for a live same-route (same
+  headsign) or a faster live other route, or name Bolt/taxi when it was
+  the last tonight. Walk + RAPTOR re-plan still need a destination.
 
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.

@@ -21,6 +21,7 @@ import { getStopReliability, aggregateStopReliability } from "@/lib/reliability.
 import { getStopRunHints } from "@/lib/headway.functions";
 import { lastTonightOnRoute, pickNoShow } from "@aloya/core/no-show";
 import { pickHeadwayForDepartures } from "@aloya/core/headway-chance";
+import { pickWaitOrBailForDepartures } from "@aloya/core/wait-or-bail";
 import { useI18n } from "@/lib/i18n";
 import { sampleEtaPrediction } from "@/lib/eta-log";
 
@@ -147,6 +148,29 @@ function StopDetail() {
       Math.floor(Date.now() / 1000),
     );
   }, [rt, runHints, departures, stopId]);
+
+  const waitOrBailByTrip = useMemo(() => {
+    const nowMs = Date.now();
+    const slots = runHints?.slots ?? [];
+    return pickWaitOrBailForDepartures(
+      departures.map((d) => ({
+        tripId: d.tripId,
+        routeId: d.routeId,
+        routeShort: getRoute(d.routeId)?.short ?? d.routeId,
+        headsign: getHeadsignSync(d.tripId, d.routeId),
+        etaMin: d.eta.etaMin,
+        tier: d.eta.tier,
+      })),
+      (row) => {
+        const d = departures.find((x) => x.tripId === row.tripId);
+        return {
+          lastTonight:
+            !!rt && !!d && lastTonightOnRoute(rt.arrivals, stopId, d.routeId, d.arrivalUnix),
+          noShow: !!d && !!pickNoShow(slots, d.routeId, d.arrivalUnix, nowMs),
+        };
+      },
+    );
+  }, [departures, rt, stopId, runHints]);
 
   useEffect(() => {
     for (const d of departures) {
@@ -292,6 +316,7 @@ function StopDetail() {
                       rt ? lastTonightOnRoute(rt.arrivals, stopId, d.routeId, d.arrivalUnix) : false
                     }
                     headway={headwayByTrip.get(d.tripId) ?? null}
+                    waitOrBail={waitOrBailByTrip.get(d.tripId) ?? null}
                   />
 
                   {isGhost && stop && (

@@ -20,6 +20,7 @@ import { ConfidenceIcon } from "@/components/ConfidenceIcon";
 import accentAsset from "@/assets/route-card-accent.jpg.asset.json";
 import { cyClock } from "@aloya/core/cy-time";
 import type { HeadwayHint, HeadwayWhen } from "@aloya/core/headway-chance";
+import type { WaitOrBail } from "@aloya/core/wait-or-bail";
 
 type DepartureRowProps = {
   tripId: string;
@@ -42,6 +43,7 @@ type DepartureRowProps = {
   noShow?: { missed: number; days: number; weekend: boolean } | null;
   lastTonight?: boolean;
   headway?: HeadwayHint | null;
+  waitOrBail?: WaitOrBail | null;
 };
 
 const TIER_KEYS: Record<FreshnessTier, DictKey> = {
@@ -75,6 +77,7 @@ export function DepartureRow({
   noShow,
   lastTonight,
   headway,
+  waitOrBail,
 }: DepartureRowProps) {
   const { t } = useI18n();
   const accent = tierAccent(eta.tier);
@@ -149,7 +152,8 @@ export function DepartureRow({
             <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
               {t("stop.scheduledAt", { time: clock })}
             </p>
-            {lastTonight && (
+            {waitOrBail && <WaitOrBailLine action={waitOrBail} t={t} />}
+            {lastTonight && waitOrBail?.kind !== "bail" && (
               <p className="mt-2 text-[13px] leading-snug text-ink">
                 {t("stop.lastTonight", { route: routeShort })}
               </p>
@@ -163,7 +167,9 @@ export function DepartureRow({
                 })}
               </p>
             )}
-            {headway && <HeadwayLines hint={headway} routeShort={routeShort} t={t} />}
+            {headway && !waitOrBail && (
+              <HeadwayLines hint={headway} routeShort={routeShort} t={t} />
+            )}
           </div>
 
           <div className="flex flex-col items-end text-right shrink-0 pl-1">
@@ -199,6 +205,26 @@ export function DepartureRow({
       </div>
     </Link>
   );
+}
+
+function WaitOrBailLine({
+  action,
+  t,
+}: {
+  action: WaitOrBail;
+  t: (key: DictKey, vars?: Record<string, string | number>) => string;
+}) {
+  const line =
+    action.kind === "skipSame"
+      ? t("stop.bailSkip", { route: action.routeShort, min: action.etaMin })
+      : action.kind === "otherRoute"
+        ? t("stop.bailOther", {
+            alt: action.altRouteShort,
+            min: action.etaMin,
+            route: action.routeShort,
+          })
+        : t("stop.bailLast", { route: action.routeShort });
+  return <p className="mt-2 text-[13px] leading-snug text-ink">{line}</p>;
 }
 
 function HeadwayLines({

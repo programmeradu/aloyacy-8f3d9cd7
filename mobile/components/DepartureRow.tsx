@@ -20,6 +20,7 @@ import {
 } from "@/lib/freshness";
 import { cyClock } from "@aloya/core/cy-time";
 import type { HeadwayHint } from "@aloya/core/headway-chance";
+import { waitOrBailCopy, type WaitOrBail } from "@aloya/core/wait-or-bail";
 import { headwayCopy, softLine, truthLine } from "@/lib/headway-copy";
 
 type Props = {
@@ -44,6 +45,7 @@ type Props = {
   noShow?: { missed: number; days: number; weekend: boolean } | null;
   lastTonight?: boolean;
   headway?: HeadwayHint | null;
+  waitOrBail?: WaitOrBail | null;
   /** Tap target. Defaults to navigating to the trip-info screen via the
    *  parent screen — caller decides because not every host wants this. */
   onPress?: () => void;
@@ -79,6 +81,7 @@ export function DepartureRow({
   noShow,
   lastTonight,
   headway,
+  waitOrBail,
   onPress,
 }: Props) {
 
@@ -225,7 +228,8 @@ export function DepartureRow({
             >
               Scheduled {clock}
             </Text>
-            {lastTonight ? (
+            {waitOrBail ? <Text style={truthLine}>{waitOrBailCopy(waitOrBail)}</Text> : null}
+            {lastTonight && waitOrBail?.kind !== "bail" ? (
               <Text style={truthLine}>
                 {`Last ${routeShort} tonight. After this it's Bolt, a taxi, or tomorrow.`}
               </Text>
@@ -237,7 +241,9 @@ export function DepartureRow({
                   : `This ${clock} didn't run on ${noShow.missed} of the last ${noShow.days} weekdays.`}
               </Text>
             ) : null}
-            {headway ? <Text style={softLine}>{headwayCopy(headway, routeShort)}</Text> : null}
+            {headway && !waitOrBail ? (
+              <Text style={softLine}>{headwayCopy(headway, routeShort)}</Text>
+            ) : null}
           </View>
 
           <View style={{ alignItems: "flex-end", paddingLeft: 4 }}>

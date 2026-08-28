@@ -49,5 +49,8 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.headway.weekendAfternoon": "τα σαββατοκύριακα το μεσημέρι",
   "stop.headway.weekendEvening": "τα σαββατοκύριακα το απόγευμα",
   "stop.headway.weekendNight": "τα σαββατοκύριακα το βράδυ",
+  "stop.bailSkip": "Αυτό το {route} δεν είναι στον χάρτη. Το επόμενο είναι, σε {min} λεπτά.",
+  "stop.bailOther": "Το {alt} είναι στον χάρτη, σε {min} λεπτά. Αυτό το {route} όχι.",
+  "stop.bailLast":
+    "Αυτό ήταν το τελευταίο {route} απόψε και δεν είναι στον χάρτη. Bolt, ταξί, ή αύριο.",
 };
-

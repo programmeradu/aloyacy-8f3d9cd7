@@ -1,5 +1,3 @@
-// Stop detail — mirror of src/routes/stop.$stopId.tsx.
-
 import { useMemo, useCallback } from "react";
 import {
   View,
@@ -22,7 +20,7 @@ import { useRealtime, useStopsBundle } from "@/lib/hooks";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getStop } from "@/lib/gtfs";
 import { fetchStopReliability } from "@/lib/reliability";
-import { fetchStopRunHints, headwaysForStop } from "@/lib/no-show";
+import { fetchStopRunHints, headwaysForStop, waitOrBailForStop } from "@/lib/no-show";
 import { lastTonightOnRoute, pickNoShow } from "@aloya/core/no-show";
 
 export default function StopDetailScreen() {
@@ -87,6 +85,10 @@ export default function StopDetailScreen() {
         stopId,
       ),
     [rt.data, hints.data, departures, stopId],
+  );
+  const waitOrBailByTrip = useMemo(
+    () => waitOrBailForStop(departures, routeMeta, rt.data, hints.data?.slots ?? [], stopId),
+    [departures, routeMeta, rt.data, hints.data, stopId],
   );
   const stale = rt.data?.stale === true;
   const ghostFirst = departures.length > 0 && departures[0].eta.tier === "ghost";
@@ -203,20 +205,12 @@ export default function StopDetailScreen() {
               height={220}
               center={{ lat: stop.lat, lng: stop.lng }}
               spanKm={2}
-              markers={[
-                {
-                  lat: stop.lat,
-                  lng: stop.lng,
-                  kind: "origin",
-                  label: stop.name,
-                },
-              ]}
+              markers={[{ lat: stop.lat, lng: stop.lng, kind: "origin", label: stop.name }]}
               fitToContent={false}
             />
           </View>
         </>
       ) : null}
-
 
       {ghostFirst && stop ? (
         <View style={{ marginTop: 20, gap: 12 }}>
@@ -387,6 +381,7 @@ export default function StopDetailScreen() {
                     : false
                 }
                 headway={headwayByTrip.get(d.tripId) ?? null}
+                waitOrBail={waitOrBailByTrip.get(d.tripId) ?? null}
                 onPress={() => handleRowPress(d.tripId)}
               />
             );

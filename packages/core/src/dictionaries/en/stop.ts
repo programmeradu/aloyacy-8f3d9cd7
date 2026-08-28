@@ -46,5 +46,8 @@ export const stop = {
   "stop.headway.weekendAfternoon": "on weekend afternoons",
   "stop.headway.weekendEvening": "on weekend evenings",
   "stop.headway.weekendNight": "on weekend nights",
+  "stop.bailSkip": "This {route} isn't on the map. The next one is, {min} min.",
+  "stop.bailOther": "The {alt} is on the map, {min} min. This {route} isn't.",
+  "stop.bailLast":
+    "This {route} was the last tonight and it isn't on the map. Bolt, a taxi, or tomorrow.",
 } as const;
-
