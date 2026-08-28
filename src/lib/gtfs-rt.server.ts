@@ -201,6 +201,17 @@ async function fetchUpstream(): Promise<{
   return { vehicles, arrivals };
 }
 
+type RiderFixRow = {
+  trip_id: string;
+  route_id: string | null;
+  lat: number;
+  lng: number;
+  bearing: number | null;
+  speed_mps: number | null;
+  reported_at: string;
+  physics_score?: number | null;
+};
+
 async function fetchRiderFixes(): Promise<LiveVehicle[]> {
   const cutoff = new Date(Date.now() - 60_000).toISOString();
   const run = (cols: string) =>
@@ -209,7 +220,8 @@ async function fetchRiderFixes(): Promise<LiveVehicle[]> {
       .select(cols)
       .gte("reported_at", cutoff)
       .order("reported_at", { ascending: false })
-      .limit(500);
+      .limit(500)
+      .returns<RiderFixRow[]>();
   let { data, error } = await run(
     "trip_id, route_id, lat, lng, bearing, speed_mps, reported_at, physics_score",
   );
