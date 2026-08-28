@@ -128,7 +128,7 @@ know — that silence is the product.
 | Arrive by | A promise, not a hope. We watch weather and delays, then tell you when to walk out. |
 | Group trip | One link. Everyone on a map. No account. |
 | Live companion | Hurry, board, press the bell, get off. Your phone is the bus if the feed dies. |
-| Still on Bus 31? | The companion asks if you left the bus. |
+| Only eyes | “You're the only eyes on Bus 31.” One tap, on a trip with no GPS. |
 | Your stop is next | Stop-by-stop, after the previous doors close — not five stops early. |
 | Missed it / disruption | “The bus has left — next one from here.” A Plan B sheet, not a toast. |
 | Remind me to leave | A push before you must start walking. Hidden if the bus is already close. |

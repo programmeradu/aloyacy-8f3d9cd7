@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { alerts as alertsEn } from "./dictionaries/en/alerts";
 import {
   companionBanners,
   shouldOfferSighting,
@@ -132,6 +133,10 @@ describe("shouldAskStillOnBoard", () => {
   });
   it("asks on the alight-soon card too", () => {
     expect(shouldAskStillOnBoard({ ...a, phase: "alight-soon" })).toBe(true);
+  });
+  it("names the rider as the only eyes, not a volunteer", () => {
+    expect(alertsEn["sighting.onboard.kicker"]).toBe("You're the only eyes on Bus {code}");
+    expect(alertsEn["sighting.onboard.help"]).not.toMatch(/please|contribute|points|badge/i);
   });
 });
 

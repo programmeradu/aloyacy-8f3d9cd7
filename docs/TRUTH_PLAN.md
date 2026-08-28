@@ -454,9 +454,11 @@ sign. GPS-device union into the corroboration count stays next.
 Nobody reports on the routes with no data — which are the routes that
 need it.
 
-1. **Ask at the right moment.** Not “please contribute” — a single tap
-   when the rider is already in the companion, on a trip we know is
-   dark: “you’re the only eyes on this bus right now.”
+1. **Ask at the right moment. (shipped)** Not “please contribute” — a
+   single tap when the rider is already in the companion, on a trip we
+   know is dark: “You're the only eyes on Bus N.” Same button, same
+   trigger as B1 (`tripGhost` or `vehicleLost` while riding). Coverage
+   map and sparse-route seeding stay next.
 2. **Coverage honesty.** A map/list of where crowd data actually
    exists, so riders see the gaps. Also stops us implying island-wide
    truth we don’t have.
@@ -860,7 +862,7 @@ Update this table in the same commit as the slice.
 | B5 | Walk-or-wait flip push | **Shipped** once-per-wait. RAPTOR other-stop **open.** |
 | C1 | Rider-fix physics | **Shipped.** Apply `20260828_rider_physics.sql`. Learned segment speeds wait on A4. |
 | C2 | Corroboration + reputation | **Partial.** One rider vs two named. A phone that has been right can carry alone. Disagreement log writes real metres/seconds and speaks “off this hour” on the stop (silent below n = 8 or 2 min). Apply `20260828_device_reputation.sql`. GPS union **open.** |
-| C3 | Cold-start ask | **Open.** |
+| C3 | Cold-start ask | **Partial.** Only-eyes ask shipped on a dark trip. Coverage map + sparse-route seeding **open.** |
 | D1 | Stop condition | **Shipped** one-tap + photo + step-free filter (hide known kerbs when another option exists). Seed = eight hubs. Apply `20260828_stop_condition.sql` and `20260828_stop_photos.sql`. |
 | D2 | Skip rate | **Shipped** pass-through vs dwell, measured neighbour, and rider “it drove past me”. Apply `20260828_stop_skip.sql` and `20260828_stop_skip_reports.sql`. RAPTOR penalty **open.** |
 | D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
@@ -875,7 +877,7 @@ Update this table in the same commit as the slice.
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** C3 cold-start ask (“you’re the only eyes on this bus”).
+**Next unblocked:** C2 GPS-device union into the corroboration count.
 
 ---
 

@@ -45,10 +45,10 @@ export const alerts: Record<keyof typeof alertsEn, string> = {
   "sighting.thanksLabel": "Ευχαριστούμε — επιβεβαιωμένο",
   "sighting.thanksDetail":
     "Οι άλλοι επιβάτες θα δουν αυτή τη διαδρομή ως επιβεβαιωμένη για το επόμενο λεπτό.",
-  "sighting.onboard.kicker": "Είστε ακόμα στο λεωφορείο {code};",
+  "sighting.onboard.kicker": "Είστε τα μόνα μάτια στο λεωφορείο {code}",
   "sighting.onboard.cta": "Ναι — είμαι μέσα",
   "sighting.onboard.help":
-    "Οι άνθρωποι στις επόμενες στάσεις περιμένουν. Το πάτημά σας είναι αυτό που βλέπουν ως επιβεβαίωση επιβάτη.",
+    "Ο διαχειριστής δεν έχει GPS σε αυτό το λεωφορείο. Το πάτημά σας είναι αυτό που βλέπουν στις επόμενες στάσεις.",
   "sighting.onboard.thanksLabel": "Ευχαριστούμε — το βλέπουν",
   "sighting.onboard.thanksDetail":
     "Οι άλλοι επιβάτες θα δουν το λεωφορείο {code} ως επιβεβαιωμένο για το επόμενο λεπτό.",

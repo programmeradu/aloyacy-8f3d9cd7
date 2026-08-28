@@ -261,7 +261,7 @@ export function SightingButton({
       />
       <View style={{ flex: 1 }}>
         <Text style={{ ...KICKER, color: palette.inkSoft }}>
-          {onboard ? `Still on Bus ${code}?` : "You see the bus?"}
+          {onboard ? `You're the only eyes on Bus ${code}` : "You see the bus?"}
         </Text>
         <Text
           style={{
@@ -284,7 +284,7 @@ export function SightingButton({
           }}
         >
           {onboard
-            ? "People at the next stops are waiting. Your tap is what they see as rider-confirmed."
+            ? "The operator has no GPS on this bus. Your tap is what people at the next stops see."
             : "One tap tells every other rider the bus is really here."}
         </Text>
       </View>
