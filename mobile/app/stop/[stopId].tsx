@@ -1,22 +1,7 @@
-// Stop detail — mobile parity rewire on SmartEtaV2 + DepartureRow.
-//
-// Mirror of `src/routes/stop.$stopId.tsx`:
-//   - same upcoming-trip filter (next 30 s back, distinct tripIds, ≤ 8)
-//   - same Smart ETA v2 algorithm (shared with web; mobile port lives in
-//     `mobile/lib/eta-v2.ts`)
-//   - ghost-bus advisory banner when the soonest departure has no GPS
-//   - editorial header, mediterranean palette, JetBrains Mono micro-meta
-//
-// Native enhancements layered on top:
-//   - haptic feedback on row press
-//   - safe-area aware scroll padding
-//   - pull-to-refresh hook into useRealtime
-//
-// Headsigns / shapes / learned-bias / segment-stats are not yet ported —
-// the algorithm degrades gracefully (operator-only fallback). Wave C will
-// wire them in once `MapView` + shape prefetch land.
+// Stop detail — mirror of src/routes/stop.$stopId.tsx (SmartEtaV2, no-show, last-bus).
 
 import { useMemo, useCallback } from "react";
+
 import {
   View,
   Text,
@@ -39,10 +24,11 @@ import { useRealtime, useStopsBundle } from "@/lib/hooks";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getStop } from "@/lib/gtfs";
 import { fetchStopReliability } from "@/lib/reliability";
-
-
+import { fetchNoShowSlots } from "@/lib/no-show";
+import { lastTonightOnRoute, pickNoShow } from "@aloya/core/no-show";
 
 export default function StopDetailScreen() {
+
   const { stopId } = useLocalSearchParams<{ stopId: string }>();
   const insets = useSafeAreaInsets();
   const rt = useRealtime();
@@ -86,6 +72,12 @@ export default function StopDetailScreen() {
   const reliability = useQuery({
     queryKey: ["stop-reliability", stopId, routeIds.slice().sort().join(",")],
     queryFn: () => fetchStopReliability(stopId, routeIds),
+    enabled: routeIds.length > 0,
+    staleTime: 5 * 60_000,
+  });
+  const noShows = useQuery({
+    queryKey: ["no-show-slots", routeIds.slice().sort().join(",")],
+    queryFn: () => fetchNoShowSlots(routeIds),
     enabled: routeIds.length > 0,
     staleTime: 5 * 60_000,
   });
@@ -388,8 +380,15 @@ export default function StopDetailScreen() {
                   confidence: d.eta.confidence,
                   operatorEtaMin: d.eta.operatorEtaMin,
                 }}
+                noShow={pickNoShow(noShows.data ?? [], d.routeId, d.arrivalUnix, Date.now())}
+                lastTonight={
+                  rt.data
+                    ? lastTonightOnRoute(rt.data.arrivals, stopId, d.routeId, d.arrivalUnix)
+                    : false
+                }
                 onPress={() => handleRowPress(d.tripId)}
               />
+
             );
           })}
         </View>

@@ -31,4 +31,8 @@ export const stop = {
   "stop.heroEyebrow": "At this stop",
   "stop.heroNote":
     "Live ETA fused from operator feeds, fresh vehicle pings, and rider sightings — surfaced as one honest number per departure.",
+  "stop.noShowWeekday": "This {time} didn't run on {missed} of the last {days} weekdays.",
+  "stop.noShowWeekend": "This {time} didn't run on {missed} of the last {days} weekend days.",
+  "stop.lastTonight": "Last {route} tonight. After this it's Bolt, a taxi, or tomorrow.",
 } as const;
+

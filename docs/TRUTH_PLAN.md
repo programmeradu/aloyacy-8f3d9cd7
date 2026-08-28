@@ -724,6 +724,12 @@ Already true in this repo, and why the OS is a credible bet:
 - Inferred A2 resolver (later-stop evidence). Vehicle-cross interpolates
   a geofence entry from persisted pings (`vehicle_pings` + rider fixes).
   Apply `deploy/supabase/sql/20260828_vehicle_pings.sql` on prod.
+- B3 no-show line on the stop card (web + mobile). Counts by route +
+  Cyprus hour, not trip_id. Last-bus only after 21:00 Cyprus, and only
+  when the live snapshot has no later trip on that route at this stop.
+  Apply `deploy/supabase/sql/20260828_no_show_hour.sql` so new detections
+  stamp hour/dow; without it the line stays quiet.
+
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.
 - Ledger tables live on `aloya-prod-5`. Pulse-cron holds the rotated secrets.

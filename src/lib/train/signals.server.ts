@@ -2,8 +2,10 @@
 // and no-show detection.
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { cyHourDow } from "@aloya/core/cy-time";
+import { cyHourDow, cyYmd } from "@aloya/core/cy-time";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
+const db = supabaseAdmin as unknown as SupabaseClient;
 
 export async function rollupCrowding(): Promise<number> {
   const since = new Date(Date.now() - 3 * 3600 * 1000).toISOString();
@@ -201,24 +203,36 @@ export async function detectNoShows(): Promise<number> {
     .limit(2000);
   if (!data) return 0;
   let inserted = 0;
-  const today = new Date().toISOString().slice(0, 10);
+  const nowMs = Date.now();
+  const today = cyYmd(nowMs);
   for (const r of data) {
     const predicted = new Date(r.last_predicted_arrival).getTime();
-    if (Date.now() - predicted < 30 * 60 * 1000) continue; // not late enough yet
+    if (nowMs - predicted < 30 * 60 * 1000) continue; // not late enough yet
     const { data: rf } = await supabaseAdmin
       .from("rider_vehicle_fixes")
       .select("id")
       .eq("trip_id", r.trip_id)
       .limit(1);
     if (rf && rf.length > 0) continue;
-    const { error } = await supabaseAdmin.from("trip_no_shows").upsert(
-      {
-        route_id: r.route_id,
-        trip_id: r.trip_id,
-        service_date: today,
-      },
-      { onConflict: "trip_id,service_date" },
-    );
+    const { hour, dow } = cyHourDow(predicted);
+    const row = {
+      route_id: r.route_id,
+      trip_id: r.trip_id,
+      service_date: today,
+      hour_of_day: hour,
+      day_of_week: dow,
+    };
+    let { error } = await db
+      .from("trip_no_shows")
+      .upsert(row, { onConflict: "trip_id,service_date" });
+    if (error && /hour_of_day|schema cache|PGRST204/i.test(error.message)) {
+      ({ error } = await db
+        .from("trip_no_shows")
+        .upsert(
+          { route_id: r.route_id, trip_id: r.trip_id, service_date: today },
+          { onConflict: "trip_id,service_date" },
+        ));
+    }
     if (!error) inserted++;
   }
   return inserted;

@@ -98,6 +98,12 @@ export function cyWallToMs(year: number, month: number, day: number, hour = 0, m
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
+/** Cyprus calendar date as YYYY-MM-DD. */
+export function cyYmd(atMs: number): string {
+  const p = cyParts(atMs);
+  return `${p.year}-${pad2(p.month)}-${pad2(p.day)}`;
+}
+
 /** "17:05" in Cyprus. */
 export function cyClock(atMs: number): string {
   const p = cyParts(atMs);

@@ -34,4 +34,8 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.heroEyebrow": "Σε αυτή τη στάση",
   "stop.heroNote":
     "Ο χρόνος άφιξης συνδυάζει δεδομένα μεταφορέα, ζωντανά στίγματα οχημάτων και αναφορές επιβατών — μία ειλικρινής ένδειξη ανά αναχώρηση.",
+  "stop.noShowWeekday": "Αυτό το {time} δεν ήρθε {missed} από τις τελευταίες {days} καθημερινές.",
+  "stop.noShowWeekend": "Αυτό το {time} δεν ήρθε {missed} από τα τελευταία {days} σαββατοκύριακα.",
+  "stop.lastTonight": "Τελευταίο {route} απόψε. Μετά είναι Bolt, ταξί, ή αύριο.",
 };
+

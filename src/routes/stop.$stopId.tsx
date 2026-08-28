@@ -18,6 +18,8 @@ import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
 import { getStop, getRoute } from "@/lib/gtfs";
 import { getStopReliability, aggregateStopReliability } from "@/lib/reliability.functions";
+import { getNoShowSlots } from "@/lib/no-show.functions";
+import { lastTonightOnRoute, pickNoShow } from "@aloya/core/no-show";
 import { useI18n } from "@/lib/i18n";
 import { sampleEtaPrediction } from "@/lib/eta-log";
 
@@ -82,6 +84,14 @@ function StopDetail() {
     [stopReliabilityRows],
   );
 
+  const noShowFn = useServerFn(getNoShowSlots);
+  const { data: noShowSlots = [] } = useQuery({
+    queryKey: ["noShowSlots", routeIdsHere.slice().sort().join(",")],
+    queryFn: () => noShowFn({ data: { routeIds: routeIdsHere } }),
+    enabled: routeIdsHere.length > 0,
+    staleTime: 5 * 60_000,
+  });
+
   const [, forceHeadsigns] = useState(0);
   useEffect(() => {
     prefetchShapes();
@@ -137,7 +147,6 @@ function StopDetail() {
       });
     }
   }, [departures, stopId]);
-
 
   const center = stop ? { lat: stop.lat, lng: stop.lng } : undefined;
 
@@ -259,7 +268,12 @@ function StopDetail() {
                       confidence: d.eta.confidence,
                       operatorEtaMin: d.eta.operatorEtaMin,
                     }}
+                    noShow={pickNoShow(noShowSlots, d.routeId, d.arrivalUnix, Date.now())}
+                    lastTonight={
+                      rt ? lastTonightOnRoute(rt.arrivals, stopId, d.routeId, d.arrivalUnix) : false
+                    }
                   />
+
                   {isGhost && stop && (
                     <div className="mt-2 px-1">
                       <SightingButton

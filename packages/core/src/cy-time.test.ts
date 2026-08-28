@@ -10,7 +10,9 @@ import {
   cyParts,
   cyStartOfDayMs,
   cyWallToMs,
+  cyYmd,
 } from "./cy-time";
+
 
 describe("cy-time", () => {
   it("parses a Cyprus summer wall clock at UTC+3", () => {
@@ -27,6 +29,8 @@ describe("cy-time", () => {
     expect(ms).not.toBeNull();
     expect(cyInputValue(ms!)).toBe("2026-08-23T08:30");
     expect(cyClock(ms!)).toBe("08:30");
+    expect(cyYmd(ms!)).toBe("2026-08-23");
+
   });
 
   it("rejects malformed input instead of guessing", () => {

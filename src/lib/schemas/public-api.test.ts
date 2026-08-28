@@ -8,6 +8,7 @@ import {
   PlaceSchema,
   RouteReliabilitySchema,
   StopReliabilitySchema,
+  StopRunHintsSchema,
   TripIntentSchema,
   TtsSchema,
   IndexNowQuerySchema,
@@ -81,6 +82,9 @@ describe("reliability schemas", () => {
       false,
     );
     expect(StopReliabilitySchema.safeParse({ routeIds: ["r1"] }).success).toBe(false);
+    expect(StopRunHintsSchema.safeParse({ routeIds: ids(30) }).success).toBe(true);
+    expect(StopRunHintsSchema.safeParse({ routeIds: ids(31) }).success).toBe(false);
+    expect(StopRunHintsSchema.safeParse({ routeIds: [] }).success).toBe(false);
   });
 });
 

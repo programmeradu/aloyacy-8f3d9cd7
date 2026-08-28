@@ -18,6 +18,7 @@ import { tierAccent, type FreshnessTier, type FreshnessConfidence } from "@/lib/
 import { useI18n, type DictKey } from "@/lib/i18n";
 import { ConfidenceIcon } from "@/components/ConfidenceIcon";
 import accentAsset from "@/assets/route-card-accent.jpg.asset.json";
+import { cyClock } from "@aloya/core/cy-time";
 
 type DepartureRowProps = {
   tripId: string;
@@ -37,6 +38,8 @@ type DepartureRowProps = {
     confidence: FreshnessConfidence;
     operatorEtaMin?: number;
   };
+  noShow?: { missed: number; days: number; weekend: boolean } | null;
+  lastTonight?: boolean;
 };
 
 const TIER_KEYS: Record<FreshnessTier, DictKey> = {
@@ -56,6 +59,8 @@ export function DepartureRow({
   stopId,
   arrivalUnix,
   eta,
+  noShow,
+  lastTonight,
 }: DepartureRowProps) {
   const { t } = useI18n();
   const accent = tierAccent(eta.tier);
@@ -130,6 +135,20 @@ export function DepartureRow({
             <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
               {t("stop.scheduledAt", { time: clock })}
             </p>
+            {lastTonight && (
+              <p className="mt-2 text-[13px] leading-snug text-ink">
+                {t("stop.lastTonight", { route: routeShort })}
+              </p>
+            )}
+            {noShow && (
+              <p className="mt-1 text-[12.5px] leading-snug text-ink-soft">
+                {t(noShow.weekend ? "stop.noShowWeekend" : "stop.noShowWeekday", {
+                  time: clock,
+                  missed: noShow.missed,
+                  days: noShow.days,
+                })}
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col items-end text-right shrink-0 pl-1">
@@ -180,12 +199,7 @@ function bandIsInformative(band: string, headlineMin: number | null): boolean {
 }
 
 function formatClock(unix: number): string {
-  const d = new Date(unix * 1000);
-  return d.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  return cyClock(unix * 1000);
 }
 
 function splitLongName(long: string): [string, string | null] {

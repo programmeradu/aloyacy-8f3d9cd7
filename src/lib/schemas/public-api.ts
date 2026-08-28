@@ -44,6 +44,10 @@ export const StopReliabilitySchema = z.object({
   routeIds: z.array(z.string().min(1).max(128)).min(1).max(30),
 });
 
+export const StopRunHintsSchema = z.object({
+  routeIds: z.array(z.string().min(1).max(128)).min(1).max(30),
+});
+
 /** Mirrors the `parseTripIntent` server function's own validator. */
 export const TripIntentSchema = z.object({
   text: z.string().trim().min(2).max(500),
