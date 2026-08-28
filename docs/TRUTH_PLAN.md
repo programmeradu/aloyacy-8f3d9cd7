@@ -227,6 +227,15 @@ stop-band, hour, dow, tier, horizon bucket, model_version). Hours in
   `tripUpdate` error on the same arrival. This is the entire commercial
   argument, measured.
 
+**On the cron (shipped).** Nightly `eta-backtest` joins the last 14 days
+of `eta_predictions` to `arrival_truth` and replaces `eta_accuracy`.
+Error is actual − predicted (positive = we were optimistic). Inferred
+arrivals live in their own `truth_source` rows so they cannot inflate
+headline n. Apply
+`deploy/supabase/sql/20260828_eta_accuracy.sql` on prod. `/accuracy` and
+the regression gate stay unshipped until a route has 30 headline
+samples.
+
 ### A4. Self-tuning thresholds — *after* A3 has coverage
 
 `URBAN = { fresh: 60, ghost: 180 }` / `INTERCITY = { fresh: 90, ghost:
@@ -786,6 +795,12 @@ Already true in this repo, and why the OS is a credible bet:
 - Dest-aware B4 on the journey HUD: walk vs wait when the trip is ghost
   and we can measure the walk (planner pace, cap 25 min). RAPTOR stays
   the replan sheet. Taxi fare unpublished.
+- B5 first slice: if walk-or-wait holds 60 s then flips, push once.
+  Same numbers as the HUD. No other-route, no euro.
+- A3 nightly backtest writes `eta_accuracy` (MAE, bias, band coverage,
+  beat-the-operator, n by source). Apply
+  `deploy/supabase/sql/20260828_eta_accuracy.sql`. `/accuracy` stays
+  unshipped until a route has 30 headline (vehicle/rider) samples.
 - E0.2: app `/guide/getting-around-cyprus` 301s to marketing.
 - E0.3: Greek URLs at `aloya.cy/el/...` with reciprocal hreflang.
 - C1 physics score on every rider GPS fix. Fold ≥ 0.25; overlay a feed
@@ -810,7 +825,8 @@ Not yet true, and why we are still a portal:
 - Pulse-cron Observability is on in config, but the cron stream is not
   public (`workers.dev` disabled). Secret-rotation 401s on the minute
   loop still need a `wrangler tail` to confirm.
-- No versioned Truth API, no embed, no operator report card.
+- No public `/accuracy` page, no regression gate, no versioned Truth API,
+  no embed, no operator report card.
 - Motion is a balance viewer via a JCC CORS proxy.
 - Modes around the planner are cards and deep-links.
 - Archive-on-ingest and daily partitions are not built.

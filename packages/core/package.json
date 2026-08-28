@@ -285,6 +285,10 @@
     "./green-line": {
       "types": "./src/green-line.ts",
       "default": "./src/green-line.ts"
+    },
+    "./eta-backtest": {
+      "types": "./src/eta-backtest.ts",
+      "default": "./src/eta-backtest.ts"
     }
   },
   "dependencies": {

@@ -128,6 +128,18 @@ describe("archive cadence vs. Postgres retention", () => {
   });
 });
 
+describe("eta-backtest cadence", () => {
+  it("scores the ledger on the nightly group, not the minute loop", () => {
+    const labels = (jobs: { label: string }[]) => jobs.map((j) => j.label);
+    expect(labels(planFor("0 3 * * *", Date.parse("2026-08-28T03:00:00Z")).jobs)).toContain(
+      "eta-backtest",
+    );
+    expect(labels(planFor("* * * * *", Date.parse("2026-08-28T10:00:00Z")).jobs)).not.toContain(
+      "eta-backtest",
+    );
+  });
+});
+
 describe("authorizeCronFetch", () => {
   const env = { CRON_SECRET: "s3cret" };
 

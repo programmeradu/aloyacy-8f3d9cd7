@@ -108,6 +108,7 @@ import { Route as ApiPublicHooksPulseEventsRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksPulseCruisesRouteImport } from './routes/api/public/hooks/pulse-cruises'
 import { Route as ApiPublicHooksPulseAirRouteImport } from './routes/api/public/hooks/pulse-air'
 import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
+import { Route as ApiPublicHooksEtaBacktestRouteImport } from './routes/api/public/hooks/eta-backtest'
 import { Route as ApiPublicHooksDepartureTickRouteImport } from './routes/api/public/hooks/departure-tick'
 import { Route as ApiPublicHooksArrivalWatchTickRouteImport } from './routes/api/public/hooks/arrival-watch-tick'
 import { Route as ApiPublicHooksArchiveLakeRouteImport } from './routes/api/public/hooks/archive-lake'
@@ -638,6 +639,12 @@ const ApiPublicHooksIngestScheduleRoute =
     path: '/api/public/hooks/ingest-schedule',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksEtaBacktestRoute =
+  ApiPublicHooksEtaBacktestRouteImport.update({
+    id: '/api/public/hooks/eta-backtest',
+    path: '/api/public/hooks/eta-backtest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksDepartureTickRoute =
   ApiPublicHooksDepartureTickRouteImport.update({
     id: '/api/public/hooks/departure-tick',
@@ -791,6 +798,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/archive-lake': typeof ApiPublicHooksArchiveLakeRoute
   '/api/public/hooks/arrival-watch-tick': typeof ApiPublicHooksArrivalWatchTickRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
+  '/api/public/hooks/eta-backtest': typeof ApiPublicHooksEtaBacktestRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
   '/api/public/hooks/pulse-cruises': typeof ApiPublicHooksPulseCruisesRoute
@@ -903,6 +911,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/archive-lake': typeof ApiPublicHooksArchiveLakeRoute
   '/api/public/hooks/arrival-watch-tick': typeof ApiPublicHooksArrivalWatchTickRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
+  '/api/public/hooks/eta-backtest': typeof ApiPublicHooksEtaBacktestRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
   '/api/public/hooks/pulse-cruises': typeof ApiPublicHooksPulseCruisesRoute
@@ -1016,6 +1025,7 @@ export interface FileRoutesById {
   '/api/public/hooks/archive-lake': typeof ApiPublicHooksArchiveLakeRoute
   '/api/public/hooks/arrival-watch-tick': typeof ApiPublicHooksArrivalWatchTickRoute
   '/api/public/hooks/departure-tick': typeof ApiPublicHooksDepartureTickRoute
+  '/api/public/hooks/eta-backtest': typeof ApiPublicHooksEtaBacktestRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
   '/api/public/hooks/pulse-cruises': typeof ApiPublicHooksPulseCruisesRoute
@@ -1130,6 +1140,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/archive-lake'
     | '/api/public/hooks/arrival-watch-tick'
     | '/api/public/hooks/departure-tick'
+    | '/api/public/hooks/eta-backtest'
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
     | '/api/public/hooks/pulse-cruises'
@@ -1242,6 +1253,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/archive-lake'
     | '/api/public/hooks/arrival-watch-tick'
     | '/api/public/hooks/departure-tick'
+    | '/api/public/hooks/eta-backtest'
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
     | '/api/public/hooks/pulse-cruises'
@@ -1354,6 +1366,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/archive-lake'
     | '/api/public/hooks/arrival-watch-tick'
     | '/api/public/hooks/departure-tick'
+    | '/api/public/hooks/eta-backtest'
     | '/api/public/hooks/ingest-schedule'
     | '/api/public/hooks/pulse-air'
     | '/api/public/hooks/pulse-cruises'
@@ -1467,6 +1480,7 @@ export interface RootRouteChildren {
   ApiPublicHooksArchiveLakeRoute: typeof ApiPublicHooksArchiveLakeRoute
   ApiPublicHooksArrivalWatchTickRoute: typeof ApiPublicHooksArrivalWatchTickRoute
   ApiPublicHooksDepartureTickRoute: typeof ApiPublicHooksDepartureTickRoute
+  ApiPublicHooksEtaBacktestRoute: typeof ApiPublicHooksEtaBacktestRoute
   ApiPublicHooksIngestScheduleRoute: typeof ApiPublicHooksIngestScheduleRoute
   ApiPublicHooksPulseAirRoute: typeof ApiPublicHooksPulseAirRoute
   ApiPublicHooksPulseCruisesRoute: typeof ApiPublicHooksPulseCruisesRoute
@@ -2185,6 +2199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksIngestScheduleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/eta-backtest': {
+      id: '/api/public/hooks/eta-backtest'
+      path: '/api/public/hooks/eta-backtest'
+      fullPath: '/api/public/hooks/eta-backtest'
+      preLoaderRoute: typeof ApiPublicHooksEtaBacktestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/departure-tick': {
       id: '/api/public/hooks/departure-tick'
       path: '/api/public/hooks/departure-tick'
@@ -2375,6 +2396,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksArchiveLakeRoute: ApiPublicHooksArchiveLakeRoute,
   ApiPublicHooksArrivalWatchTickRoute: ApiPublicHooksArrivalWatchTickRoute,
   ApiPublicHooksDepartureTickRoute: ApiPublicHooksDepartureTickRoute,
+  ApiPublicHooksEtaBacktestRoute: ApiPublicHooksEtaBacktestRoute,
   ApiPublicHooksIngestScheduleRoute: ApiPublicHooksIngestScheduleRoute,
   ApiPublicHooksPulseAirRoute: ApiPublicHooksPulseAirRoute,
   ApiPublicHooksPulseCruisesRoute: ApiPublicHooksPulseCruisesRoute,

@@ -63,6 +63,7 @@ export const NIGHTLY_JOBS: Job[] = [
   { path: "/api/public/hooks/pulse-met-warnings", label: "pulse-met-warnings" },
   { path: "/api/public/hooks/train?mode=full", label: "train-full" },
   { path: "/api/public/hooks/archive-lake", label: "archive-lake" },
+  { path: "/api/public/hooks/eta-backtest", label: "eta-backtest" },
 ];
 
 /** Manual-trigger groups exposed by `GET /?group=...`. */
