@@ -3,12 +3,15 @@ import { stop as stopEn } from "./dictionaries/en/stop";
 import {
   ASK_FIRST,
   CONSENSUS_MIN,
+  CONSENSUS_TTL_DAYS,
   STOP_ATTRIBUTE_VALUES,
   STOP_CONDITION_SEED,
+  daysSince,
   isStopAttributeValue,
   lastReportPerDevice,
   nextStopAsk,
   pickStopConsensus,
+  riderConfirmLine,
   seedConsensus,
   stopAskChoiceLabel,
   stopAskChoices,
@@ -48,24 +51,28 @@ describe("seed", () => {
 });
 
 describe("pickStopConsensus", () => {
+  const now = 10_000;
+
   it("stays silent on one rider when there is no seed", () => {
     expect(CONSENSUS_MIN).toBe(2);
-    expect(pickStopConsensus([report({ deviceId: "a", value: "yes" })], null)).toBeNull();
+    expect(pickStopConsensus([report({ deviceId: "a", value: "yes" })], null, now)).toBeNull();
   });
 
   it("keeps the seed until two devices agree", () => {
     const seed = { value: "yes", source: "seed" as const };
-    expect(pickStopConsensus([report({ deviceId: "a", value: "no" })], seed)).toEqual({
+    expect(pickStopConsensus([report({ deviceId: "a", value: "no" })], seed, now)).toEqual({
       value: "yes",
       n: 1,
       source: "seed",
+      lastAt: 1_000,
     });
     expect(
       pickStopConsensus(
         [report({ deviceId: "a", value: "no" }), report({ deviceId: "b", value: "no" })],
         seed,
+        now,
       ),
-    ).toEqual({ value: "no", n: 2, source: "riders" });
+    ).toEqual({ value: "no", n: 2, source: "riders", lastAt: 1_000 });
   });
 
   it("uses the latest report per device, and holds the previous on a tie", () => {
@@ -80,8 +87,35 @@ describe("pickStopConsensus", () => {
       pickStopConsensus(
         [report({ deviceId: "a", value: "yes" }), report({ deviceId: "b", value: "no" })],
         { value: "yes", source: "seed" },
+        now,
       ),
-    ).toEqual({ value: "yes", n: 2, source: "seed" });
+    ).toEqual({ value: "yes", n: 2, source: "seed", lastAt: 1_000 });
+  });
+
+  it("drops reports older than 90 days and does not hold expired rider consensus", () => {
+    expect(CONSENSUS_TTL_DAYS).toBe(90);
+    const stale = 91 * 86_400_000;
+    const seed = { value: "yes", source: "seed" as const };
+    expect(
+      pickStopConsensus(
+        [
+          report({ deviceId: "a", value: "no", reportedAt: 1 }),
+          report({ deviceId: "b", value: "no", reportedAt: 2 }),
+        ],
+        seed,
+        stale,
+      ),
+    ).toEqual({ value: "yes", n: 0, source: "seed", lastAt: null });
+    expect(
+      pickStopConsensus(
+        [
+          report({ deviceId: "a", value: "no", reportedAt: 1 }),
+          report({ deviceId: "b", value: "no", reportedAt: 2 }),
+        ],
+        { value: "no", source: "riders" },
+        stale,
+      ),
+    ).toBeNull();
   });
 });
 
@@ -104,6 +138,7 @@ describe("nextStopAsk", () => {
       value: "yes",
       n: 0,
       source: "seed",
+      lastAt: null,
     };
     const seating = { ...shelter, attribute: "has_seating" as const, value: "no" };
     const walk = { ...shelter, attribute: "reachable_on_foot" as const, value: "no_crossing" };
@@ -148,5 +183,16 @@ describe("copy", () => {
     expect(["Two poles", "Two poles here?"].join(" ")).not.toMatch(
       /€|taxi|RAPTOR|Green Line|luggage/i,
     );
+  });
+
+  it("says confirmed by n riders, last 12 days ago", () => {
+    expect(daysSince(1, 12 * 86_400_000 + 1)).toBe(12);
+    expect(riderConfirmLine(4, 12)).toBe("Confirmed by 4 riders, last 12 days ago");
+    expect(riderConfirmLine(4, 0)).toBe("Confirmed by 4 riders");
+    expect(riderConfirmLine(4, 1)).toBe("Confirmed by 4 riders, last 1 day ago");
+    expect(stopEn["stop.cond.confirmedAgo"]).toBe(
+      "Confirmed by {n} riders, last {days} days ago",
+    );
+    expect(riderConfirmLine(4, 12)).not.toMatch(/€|taxi|RAPTOR|Green Line|luggage/i);
   });
 });

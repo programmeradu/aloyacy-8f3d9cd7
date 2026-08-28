@@ -1,4 +1,5 @@
 // D1 write/read path. Consensus is pure; this is I/O around it.
+// GET recomputes so a 90-day-old shelter claim does not linger.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -30,27 +31,13 @@ type ReportRow = {
   reported_at: string;
 };
 
-function asConsensus(row: AttrRow): StopConsensus | null {
-  if (!isStopAttribute(row.attribute)) return null;
-  if (row.source !== "seed" && row.source !== "riders") return null;
-  if (!isStopAttributeValue(row.attribute, row.value)) return null;
-  return {
-    stopId: row.stop_id,
-    attribute: row.attribute,
-    value: row.value,
-    n: row.n,
-    source: row.source,
-  };
-}
+type Previous = { value: string; source: "seed" | "riders"; n: number };
 
-export async function loadStopCondition(stopId: string): Promise<StopConsensus[]> {
-  const { data, error } = await db
-    .from("stop_attributes")
-    .select("stop_id, attribute, value, n, source")
-    .eq("stop_id", stopId)
-    .limit(20);
-  if (error || !data) return [];
-  return (data as AttrRow[]).map(asConsensus).filter((r): r is StopConsensus => r != null);
+export async function loadStopCondition(
+  stopId: string,
+  nowMs = Date.now(),
+): Promise<StopConsensus[]> {
+  return reconcileStopCondition(stopId, nowMs);
 }
 
 export async function reportStopCondition(input: {
@@ -81,43 +68,76 @@ export async function reportStopCondition(input: {
     value: input.value,
   });
   if (insertErr) return { ok: false, status: 500, error: "Could not save" };
-  await recomputeStopAttribute(input.stopId, input.attribute);
-  return { ok: true, rows: await loadStopCondition(input.stopId) };
+  return { ok: true, rows: await reconcileStopCondition(input.stopId, Date.now()) };
 }
 
-async function recomputeStopAttribute(stopId: string, attribute: StopAttribute): Promise<void> {
+async function reconcileStopCondition(stopId: string, nowMs: number): Promise<StopConsensus[]> {
+  const { data: attrRows, error: attrErr } = await db
+    .from("stop_attributes")
+    .select("stop_id, attribute, value, n, source")
+    .eq("stop_id", stopId)
+    .limit(20);
+  if (attrErr) return [];
   const { data: reportRows } = await db
     .from("stop_reports")
     .select("stop_id, device_id, attribute, value, reported_at")
     .eq("stop_id", stopId)
-    .eq("attribute", attribute)
     .order("reported_at", { ascending: true })
-    .limit(500);
-  const { data: existing } = await db
-    .from("stop_attributes")
-    .select("value, source")
-    .eq("stop_id", stopId)
-    .eq("attribute", attribute)
-    .maybeSingle();
-  const reports: StopReport[] = ((reportRows ?? []) as ReportRow[]).map((r) => ({
-    stopId: r.stop_id,
-    deviceId: r.device_id,
-    attribute,
-    value: r.value,
-    reportedAt: Date.parse(r.reported_at) || 0,
-  }));
-  const previous =
-    existing && (existing.source === "seed" || existing.source === "riders")
-      ? { value: existing.value as string, source: existing.source as "seed" | "riders" }
-      : null;
-  const next = pickStopConsensus(reports, previous);
-  if (!next) return;
-  await db.from("stop_attributes").upsert({
-    stop_id: stopId,
-    attribute,
-    value: next.value,
-    n: next.n,
-    source: next.source,
-    updated_at: new Date().toISOString(),
-  });
+    .limit(2000);
+
+  const previousBy = new Map<StopAttribute, Previous>();
+  for (const row of (attrRows ?? []) as AttrRow[]) {
+    if (!isStopAttribute(row.attribute)) continue;
+    if (row.source !== "seed" && row.source !== "riders") continue;
+    if (!isStopAttributeValue(row.attribute, row.value)) continue;
+    previousBy.set(row.attribute, { value: row.value, source: row.source, n: row.n });
+  }
+
+  const reportsBy = new Map<StopAttribute, StopReport[]>();
+  for (const r of (reportRows ?? []) as ReportRow[]) {
+    if (!isStopAttribute(r.attribute)) continue;
+    const list = reportsBy.get(r.attribute) ?? [];
+    list.push({
+      stopId: r.stop_id,
+      deviceId: r.device_id,
+      attribute: r.attribute,
+      value: r.value,
+      reportedAt: Date.parse(r.reported_at) || 0,
+    });
+    reportsBy.set(r.attribute, list);
+  }
+
+  const attrs = new Set<StopAttribute>([...previousBy.keys(), ...reportsBy.keys()]);
+  const out: StopConsensus[] = [];
+  for (const attr of attrs) {
+    const previous = previousBy.get(attr) ?? null;
+    const next = pickStopConsensus(
+      reportsBy.get(attr) ?? [],
+      previous ? { value: previous.value, source: previous.source } : null,
+      nowMs,
+    );
+    if (!next) {
+      if (previous?.source === "riders") {
+        await db.from("stop_attributes").delete().eq("stop_id", stopId).eq("attribute", attr);
+      }
+      continue;
+    }
+    out.push({ stopId, attribute: attr, ...next });
+    if (
+      !previous ||
+      previous.value !== next.value ||
+      previous.source !== next.source ||
+      previous.n !== next.n
+    ) {
+      await db.from("stop_attributes").upsert({
+        stop_id: stopId,
+        attribute: attr,
+        value: next.value,
+        n: next.n,
+        source: next.source,
+        updated_at: new Date(nowMs).toISOString(),
+      });
+    }
+  }
+  return out;
 }

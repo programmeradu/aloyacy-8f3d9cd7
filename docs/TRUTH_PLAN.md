@@ -531,6 +531,11 @@ unreachable stops.
 - Flagged/contradictory reports go to the existing admin surface, not
   a new product.
 
+**On the stop (decay, shipped 2026-08-28).** Rider reports older than
+90 days do not count. Expired rider consensus falls back to seed, or
+goes silent. Chip: “Confirmed by 4 riders, last 12 days ago”. One ask
+per journey and photo-weight stay later. No new SQL.
+
 ### D5. Make it public
 
 A per-stop page showing condition, photos, skip rate and reliability
@@ -815,7 +820,7 @@ Update this table in the same commit as the slice.
 | D1 | Stop condition | **Shipped** one-tap: shelter, seating, walk, light, step-free, sign, timetable, two poles, plus one rider photo. Seed = eight hubs. Apply `20260828_stop_condition.sql` and `20260828_stop_photos.sql`. `lowFloor` filter **open.** |
 | D2 | Skip rate | **Shipped** pass-through vs dwell, measured neighbour, and rider “it drove past me”. Apply `20260828_stop_skip.sql` and `20260828_stop_skip_reports.sql`. RAPTOR penalty **open.** |
 | D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
-| D4 | Report decay / one ask per journey | **Open.** |
+| D4 | Report decay / one ask per journey | **Shipped** 90-day decay + “Confirmed by n riders, last N days ago”. One ask per journey, photo-weight **open.** |
 | D5 | Public stop page (indexable) | **Open.** Index only with real content (E2). |
 | E0 | Two-repo contradictions | **Shipped** (boards, 301, hreflang, fare/line copy, drop overclaims). |
 | E2 | Programmatic index | Rides on A5 + D1/D2 content. |
@@ -825,7 +830,7 @@ Update this table in the same commit as the slice.
 | G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 
-**Next unblocked:** D4 report decay / one ask per journey, then D1 `lowFloor` filter.
+**Next unblocked:** D4 one ask per journey, then D1 `lowFloor` filter.
 
 ---
 

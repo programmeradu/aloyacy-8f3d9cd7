@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  daysSince,
   nextStopAsk,
   stopAskChoices,
   type StopAttribute,
@@ -92,13 +93,18 @@ export function StopCondition({ stopId }: { stopId: string }) {
       }),
     onSuccess: (next) => qc.setQueryData(["stop-condition", stopId], next),
   });
+  const nowMs = Date.now();
   const chips = rows
     .map((r) => {
       const key = CHIP_KEY[`${r.attribute}:${r.value}`];
       if (!key) return null;
-      return { key, n: r.n, source: r.source };
+      const days = r.lastAt != null ? daysSince(r.lastAt, nowMs) : 0;
+      return { key, n: r.n, source: r.source, days };
     })
-    .filter((c): c is { key: DictKey; n: number; source: StopConsensus["source"] } => c != null);
+    .filter(
+      (c): c is { key: DictKey; n: number; source: StopConsensus["source"]; days: number } =>
+        c != null,
+    );
 
   if (chips.length === 0 && !ask) {
     return (
@@ -123,7 +129,11 @@ export function StopCondition({ stopId }: { stopId: string }) {
               {t(c.key)}
               {c.source === "riders" && c.n >= 2 ? (
                 <span className="normal-case tracking-normal text-ink-soft/70">
-                  {t("stop.cond.fromRiders", { n: c.n })}
+                  {c.days <= 0
+                    ? t("stop.cond.confirmed", { n: c.n })
+                    : c.days === 1
+                      ? t("stop.cond.confirmedAgoOne", { n: c.n })
+                      : t("stop.cond.confirmedAgo", { n: c.n, days: c.days })}
                 </span>
               ) : null}
             </li>

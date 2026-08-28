@@ -3,7 +3,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pressable, Text, View } from "react-native";
 import {
+  daysSince,
   nextStopAsk,
+  riderConfirmLine,
   stopAskChoiceLabel,
   stopAskChoices,
   stopConditionAsk,
@@ -50,13 +52,25 @@ export function StopCondition({ stopId }: { stopId: string }) {
       }),
     onSuccess: (next) => qc.setQueryData(["stop-condition", stopId], next),
   });
+  const nowMs = Date.now();
   const chips = rows
     .map((r) => {
       const label = stopConditionChip(r.attribute, r.value);
       if (!label) return null;
-      return { label, n: r.n, source: r.source, id: `${r.attribute}:${r.value}` };
+      const days = r.lastAt != null ? daysSince(r.lastAt, nowMs) : 0;
+      return { label, n: r.n, source: r.source, id: `${r.attribute}:${r.value}`, days };
     })
-    .filter((c): c is { label: string; n: number; source: StopConsensus["source"]; id: string } => c != null);
+    .filter(
+      (
+        c,
+      ): c is {
+        label: string;
+        n: number;
+        source: StopConsensus["source"];
+        id: string;
+        days: number;
+      } => c != null,
+    );
 
   if (chips.length === 0 && !ask) {
     return (
@@ -85,7 +99,19 @@ export function StopCondition({ stopId }: { stopId: string }) {
               }}
             >
               {c.label}
-              {c.source === "riders" && c.n >= 2 ? ` · ${c.n} riders` : ""}
+              {c.source === "riders" && c.n >= 2 ? (
+                <Text
+                  style={{
+                    fontFamily: "Geist_500Medium",
+                    fontSize: 10,
+                    letterSpacing: 0,
+                    textTransform: "none",
+                    color: palette.inkSoft,
+                  }}
+                >
+                  {` · ${riderConfirmLine(c.n, c.days)}`}
+                </Text>
+              ) : null}
             </Text>
           ))}
         </View>

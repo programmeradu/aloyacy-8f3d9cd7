@@ -5,6 +5,8 @@
 
 export const CONSENSUS_MIN = 2;
 export const REPORT_RATE_LIMIT_SEC = 60;
+/** A shelter can be removed. Older than this, a rider report is not evidence. */
+export const CONSENSUS_TTL_DAYS = 90;
 
 export const STOP_ATTRIBUTES = [
   "has_shelter",
@@ -56,6 +58,8 @@ export type StopConsensus = {
   value: string;
   n: number;
   source: "seed" | "riders";
+  /** Latest fresh rider report. Null on seed, or when none remain. */
+  lastAt: number | null;
 };
 
 export function isStopAttribute(value: string): value is StopAttribute {
@@ -74,16 +78,33 @@ export function lastReportPerDevice(reports: StopReport[]): StopReport[] {
   return [...byDevice.values()];
 }
 
+export function freshReports(reports: StopReport[], nowMs: number): StopReport[] {
+  const cutoff = nowMs - CONSENSUS_TTL_DAYS * 86_400_000;
+  return reports.filter((r) => r.reportedAt >= cutoff);
+}
+
+export function daysSince(lastAt: number, nowMs: number): number {
+  if (!Number.isFinite(lastAt) || lastAt > nowMs) return 0;
+  return Math.max(0, Math.floor((nowMs - lastAt) / 86_400_000));
+}
+
+export function riderConfirmLine(n: number, days: number): string {
+  if (days <= 0) return `Confirmed by ${n} riders`;
+  return `Confirmed by ${n} riders, last ${days} day${days === 1 ? "" : "s"} ago`;
+}
+
 export function pickStopConsensus(
   reports: StopReport[],
   previous: { value: string; source: "seed" | "riders" } | null,
-): { value: string; n: number; source: "seed" | "riders" } | null {
-  const latest = lastReportPerDevice(reports);
+  nowMs = 0,
+): { value: string; n: number; source: "seed" | "riders"; lastAt: number | null } | null {
+  const latest = lastReportPerDevice(freshReports(reports, nowMs || Date.now()));
   const n = latest.length;
+  const lastAt = n > 0 ? Math.max(...latest.map((r) => r.reportedAt)) : null;
   const seed = previous?.source === "seed" ? previous.value : null;
   if (n < CONSENSUS_MIN) {
-    if (seed) return { value: seed, n, source: "seed" };
-    return previous ? { value: previous.value, n, source: previous.source } : null;
+    if (seed) return { value: seed, n, source: "seed", lastAt };
+    return null;
   }
   const counts = new Map<string, number>();
   for (const r of latest) counts.set(r.value, (counts.get(r.value) ?? 0) + 1);
@@ -100,10 +121,10 @@ export function pickStopConsensus(
     }
   }
   if (!best || tied) {
-    if (seed) return { value: seed, n, source: "seed" };
-    return previous ? { value: previous.value, n, source: previous.source } : null;
+    if (seed) return { value: seed, n, source: "seed", lastAt };
+    return previous ? { value: previous.value, n, source: previous.source, lastAt } : null;
   }
-  return { value: best, n, source: "riders" };
+  return { value: best, n, source: "riders", lastAt };
 }
 
 export function nextStopAsk(rows: StopConsensus[]): StopAttribute | null {
@@ -146,6 +167,7 @@ export function seedConsensus(a: SeedAmenity): StopConsensus[] {
       value: a.shelter ? "yes" : "no",
       n: 0,
       source: "seed",
+      lastAt: null,
     },
     {
       stopId: a.stopId,
@@ -153,6 +175,7 @@ export function seedConsensus(a: SeedAmenity): StopConsensus[] {
       value: a.seating ? "yes" : "no",
       n: 0,
       source: "seed",
+      lastAt: null,
     },
   ];
   if (a.stepFree) {
@@ -162,6 +185,7 @@ export function seedConsensus(a: SeedAmenity): StopConsensus[] {
       value: "yes",
       n: 0,
       source: "seed",
+      lastAt: null,
     });
   }
   return rows;
