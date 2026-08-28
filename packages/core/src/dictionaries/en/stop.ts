@@ -34,5 +34,17 @@ export const stop = {
   "stop.noShowWeekday": "This {time} didn't run on {missed} of the last {days} weekdays.",
   "stop.noShowWeekend": "This {time} didn't run on {missed} of the last {days} weekend days.",
   "stop.lastTonight": "Last {route} tonight. After this it's Bolt, a taxi, or tomorrow.",
+  "stop.headwayObserved": "The {route} runs about every {min} min here {when}.",
+  "stop.headwayScheduled": "The timetable has a {route} about every {min} min here {when}.",
+  "stop.headwayLastSeen": "Last one seen {min} min ago.",
+  "stop.headwayChance": "About {pct}% chance one arrives before {time}.",
+  "stop.headway.weekdayMorning": "on weekday mornings",
+  "stop.headway.weekdayAfternoon": "on weekday afternoons",
+  "stop.headway.weekdayEvening": "on weekday evenings",
+  "stop.headway.weekdayNight": "on weekday nights",
+  "stop.headway.weekendMorning": "on weekend mornings",
+  "stop.headway.weekendAfternoon": "on weekend afternoons",
+  "stop.headway.weekendEvening": "on weekend evenings",
+  "stop.headway.weekendNight": "on weekend nights",
 } as const;
 

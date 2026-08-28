@@ -19,6 +19,7 @@ import { useI18n, type DictKey } from "@/lib/i18n";
 import { ConfidenceIcon } from "@/components/ConfidenceIcon";
 import accentAsset from "@/assets/route-card-accent.jpg.asset.json";
 import { cyClock } from "@aloya/core/cy-time";
+import type { HeadwayHint, HeadwayWhen } from "@aloya/core/headway-chance";
 
 type DepartureRowProps = {
   tripId: string;
@@ -40,6 +41,7 @@ type DepartureRowProps = {
   };
   noShow?: { missed: number; days: number; weekend: boolean } | null;
   lastTonight?: boolean;
+  headway?: HeadwayHint | null;
 };
 
 const TIER_KEYS: Record<FreshnessTier, DictKey> = {
@@ -48,6 +50,17 @@ const TIER_KEYS: Record<FreshnessTier, DictKey> = {
   predicted: "eta.tier.predicted",
   ghost: "eta.tier.ghost",
   scheduled: "eta.tier.scheduled",
+};
+
+const HEADWAY_WHEN: Record<HeadwayWhen, DictKey> = {
+  weekdayMorning: "stop.headway.weekdayMorning",
+  weekdayAfternoon: "stop.headway.weekdayAfternoon",
+  weekdayEvening: "stop.headway.weekdayEvening",
+  weekdayNight: "stop.headway.weekdayNight",
+  weekendMorning: "stop.headway.weekendMorning",
+  weekendAfternoon: "stop.headway.weekendAfternoon",
+  weekendEvening: "stop.headway.weekendEvening",
+  weekendNight: "stop.headway.weekendNight",
 };
 
 export function DepartureRow({
@@ -61,6 +74,7 @@ export function DepartureRow({
   eta,
   noShow,
   lastTonight,
+  headway,
 }: DepartureRowProps) {
   const { t } = useI18n();
   const accent = tierAccent(eta.tier);
@@ -149,6 +163,7 @@ export function DepartureRow({
                 })}
               </p>
             )}
+            {headway && <HeadwayLines hint={headway} routeShort={routeShort} t={t} />}
           </div>
 
           <div className="flex flex-col items-end text-right shrink-0 pl-1">
@@ -183,6 +198,35 @@ export function DepartureRow({
         </div>
       </div>
     </Link>
+  );
+}
+
+function HeadwayLines({
+  hint,
+  routeShort,
+  t,
+}: {
+  hint: HeadwayHint;
+  routeShort: string;
+  t: (key: DictKey, vars?: Record<string, string | number>) => string;
+}) {
+  const every = t(hint.source === "observed" ? "stop.headwayObserved" : "stop.headwayScheduled", {
+    route: routeShort,
+    min: hint.meanMin,
+    when: t(HEADWAY_WHEN[hint.when]),
+  });
+  const last = hint.lastSeenMin != null ? t("stop.headwayLastSeen", { min: hint.lastSeenMin }) : "";
+  const chance =
+    hint.chancePct != null
+      ? t("stop.headwayChance", {
+          pct: hint.chancePct,
+          time: cyClock(hint.beforeUnix * 1000),
+        })
+      : "";
+  return (
+    <p className="mt-1 text-[12.5px] leading-snug text-ink-soft">
+      {[every, last, chance].filter(Boolean).join(" ")}
+    </p>
   );
 }
 

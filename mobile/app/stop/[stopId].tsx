@@ -1,7 +1,6 @@
-// Stop detail — mirror of src/routes/stop.$stopId.tsx (SmartEtaV2, no-show, last-bus).
+// Stop detail — mirror of src/routes/stop.$stopId.tsx.
 
 import { useMemo, useCallback } from "react";
-
 import {
   View,
   Text,
@@ -17,23 +16,19 @@ import { useLocalSearchParams, router } from "expo-router";
 import { palette } from "@/constants/theme";
 import { DepartureRow } from "@/components/DepartureRow";
 import { SightingButton } from "@/components/SightingButton";
-import { MapView } from "@/components/MapView";
 import { ExpandableMap } from "@/components/ExpandableMap";
 import { StopReliabilityStrip } from "@/components/StopReliabilityStrip";
 import { useRealtime, useStopsBundle } from "@/lib/hooks";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getStop } from "@/lib/gtfs";
 import { fetchStopReliability } from "@/lib/reliability";
-import { fetchNoShowSlots } from "@/lib/no-show";
+import { fetchStopRunHints, headwaysForStop } from "@/lib/no-show";
 import { lastTonightOnRoute, pickNoShow } from "@aloya/core/no-show";
 
 export default function StopDetailScreen() {
-
   const { stopId } = useLocalSearchParams<{ stopId: string }>();
   const insets = useSafeAreaInsets();
   const rt = useRealtime();
-
-
   const bundle = useStopsBundle();
 
   const stop = useMemo(() => getStop(stopId), [stopId, bundle.dataUpdatedAt]);
@@ -58,10 +53,7 @@ export default function StopDetailScreen() {
         });
         return { ...a, eta };
       })
-      .filter(
-        (d): d is typeof d & { eta: SmartEtaV2 } =>
-          d.eta != null && d.eta.etaMin <= 180,
-      )
+      .filter((d): d is typeof d & { eta: SmartEtaV2 } => d.eta != null && d.eta.etaMin <= 180)
       .slice(0, 8);
   }, [rt.data, stopId, stop?.agency]);
 
@@ -75,17 +67,29 @@ export default function StopDetailScreen() {
     enabled: routeIds.length > 0,
     staleTime: 5 * 60_000,
   });
-  const noShows = useQuery({
-    queryKey: ["no-show-slots", routeIds.slice().sort().join(",")],
-    queryFn: () => fetchNoShowSlots(routeIds),
+  const hints = useQuery({
+    queryKey: ["stop-run-hints", stopId, routeIds.slice().sort().join(",")],
+    queryFn: () => fetchStopRunHints(routeIds, stopId),
     enabled: routeIds.length > 0,
     staleTime: 5 * 60_000,
   });
-
-
+  const headwayByTrip = useMemo(
+    () =>
+      headwaysForStop(
+        departures.map((d) => ({
+          tripId: d.tripId,
+          routeId: d.routeId,
+          arrivalUnix: d.arrivalUnix,
+          tier: d.eta.tier,
+        })),
+        hints.data,
+        rt.data,
+        stopId,
+      ),
+    [rt.data, hints.data, departures, stopId],
+  );
   const stale = rt.data?.stale === true;
-  const ghostFirst =
-    departures.length > 0 && departures[0].eta.tier === "ghost";
+  const ghostFirst = departures.length > 0 && departures[0].eta.tier === "ghost";
 
   const onRefresh = useCallback(() => {
     rt.refetch();
@@ -207,11 +211,9 @@ export default function StopDetailScreen() {
                   label: stop.name,
                 },
               ]}
-
               fitToContent={false}
             />
           </View>
-
         </>
       ) : null}
 
@@ -271,8 +273,6 @@ export default function StopDetailScreen() {
           />
         </View>
       ) : null}
-
-
 
       <View
         style={{
@@ -380,15 +380,15 @@ export default function StopDetailScreen() {
                   confidence: d.eta.confidence,
                   operatorEtaMin: d.eta.operatorEtaMin,
                 }}
-                noShow={pickNoShow(noShows.data ?? [], d.routeId, d.arrivalUnix, Date.now())}
+                noShow={pickNoShow(hints.data?.slots ?? [], d.routeId, d.arrivalUnix, Date.now())}
                 lastTonight={
                   rt.data
                     ? lastTonightOnRoute(rt.data.arrivals, stopId, d.routeId, d.arrivalUnix)
                     : false
                 }
+                headway={headwayByTrip.get(d.tripId) ?? null}
                 onPress={() => handleRowPress(d.tripId)}
               />
-
             );
           })}
         </View>

@@ -18,8 +18,9 @@ import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
 import { getStop, getRoute } from "@/lib/gtfs";
 import { getStopReliability, aggregateStopReliability } from "@/lib/reliability.functions";
-import { getNoShowSlots } from "@/lib/no-show.functions";
+import { getStopRunHints } from "@/lib/headway.functions";
 import { lastTonightOnRoute, pickNoShow } from "@aloya/core/no-show";
+import { pickHeadwayForDepartures } from "@aloya/core/headway-chance";
 import { useI18n } from "@/lib/i18n";
 import { sampleEtaPrediction } from "@/lib/eta-log";
 
@@ -84,13 +85,14 @@ function StopDetail() {
     [stopReliabilityRows],
   );
 
-  const noShowFn = useServerFn(getNoShowSlots);
-  const { data: noShowSlots = [] } = useQuery({
-    queryKey: ["noShowSlots", routeIdsHere.slice().sort().join(",")],
-    queryFn: () => noShowFn({ data: { routeIds: routeIdsHere } }),
+  const runHintsFn = useServerFn(getStopRunHints);
+  const { data: runHints } = useQuery({
+    queryKey: ["stopRunHints", stopId, routeIdsHere.slice().sort().join(",")],
+    queryFn: () => runHintsFn({ data: { routeIds: routeIdsHere, stopId } }),
     enabled: routeIdsHere.length > 0,
     staleTime: 5 * 60_000,
   });
+  const noShowSlots = runHints?.slots ?? [];
 
   const [, forceHeadsigns] = useState(0);
   useEffect(() => {
@@ -128,6 +130,23 @@ function StopDetail() {
       .filter((d): d is typeof d & { eta: SmartEtaV2 } => d.eta != null && d.eta.etaMin <= 180)
       .slice(0, 8);
   }, [rt, stopId, learnedByStop, stop?.agency, etaStats, riderConfirmedAge]);
+
+  const headwayByTrip = useMemo(() => {
+    if (!rt || !runHints) return new Map();
+    return pickHeadwayForDepartures(
+      departures.map((d) => ({
+        tripId: d.tripId,
+        routeId: d.routeId,
+        arrivalUnix: d.arrivalUnix,
+        tier: d.eta.tier,
+      })),
+      runHints.headways,
+      rt.vehicles,
+      rt.arrivals,
+      stopId,
+      Math.floor(Date.now() / 1000),
+    );
+  }, [rt, runHints, departures, stopId]);
 
   useEffect(() => {
     for (const d of departures) {
@@ -272,6 +291,7 @@ function StopDetail() {
                     lastTonight={
                       rt ? lastTonightOnRoute(rt.arrivals, stopId, d.routeId, d.arrivalUnix) : false
                     }
+                    headway={headwayByTrip.get(d.tripId) ?? null}
                   />
 
                   {isGhost && stop && (

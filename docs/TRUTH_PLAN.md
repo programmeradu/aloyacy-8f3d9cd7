@@ -300,6 +300,11 @@ headway and bunching counts, unused on the rider surface) to answer:
 A survival-curve estimate from observed headways, degrading to the
 scheduled headway when samples are thin — and saying which one it used.
 
+**On the stop card (web + mobile).** First `ghost` / `scheduled` row per
+route. Observed mean at this stop × Cyprus hour if n ≥ 5, else the
+median gap in the live timetable. Last-seen from a vehicle ping 90 s–90
+min old. Chance is `1 − e^(−t/μ)`, rounded to 5%, silent below 15%.
+
 ### B3. No-show detection, on the surface
 
 `trip_no_shows` exists and is written by `detectNoShows()`. It is not
@@ -729,6 +734,9 @@ Already true in this repo, and why the OS is a credible bet:
   when the live snapshot has no later trip on that route at this stop.
   Apply `deploy/supabase/sql/20260828_no_show_hour.sql` so new detections
   stamp hour/dow; without it the line stays quiet.
+- B2 headway chance on the first dark row per route. Observed gaps from
+  `headway_observations`; timetable gap when samples are thin. No new
+  SQL — the table already exists.
 
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.

@@ -1,7 +1,7 @@
-// Public wrapper so mobile can render the same no-show line as the stop card.
+// Public wrapper so mobile can render the same no-show and headway lines.
 
 import { createFileRoute } from "@tanstack/react-router";
-import { loadNoShowSlots } from "@/lib/no-show.functions";
+import { loadStopRunHints } from "@/lib/headway.functions";
 import {
   badRequest,
   jsonResponse,
@@ -29,10 +29,10 @@ export const Route = createFileRoute("/api/public/stop-run-hints")({
         const parsed = StopRunHintsSchema.safeParse(payload.value);
         if (!parsed.success) return badRequest("Invalid request", zodDetails(parsed.error), CORS);
         try {
-          const slots = await loadNoShowSlots(parsed.data.routeIds);
-          return jsonResponse(200, { slots }, CORS);
+          const body = await loadStopRunHints(parsed.data.routeIds, parsed.data.stopId);
+          return jsonResponse(200, body, CORS);
         } catch (e) {
-          const msg = e instanceof Error ? e.message : "No-show lookup failed";
+          const msg = e instanceof Error ? e.message : "Stop-run lookup failed";
           return jsonResponse(400, { error: msg }, CORS);
         }
       },

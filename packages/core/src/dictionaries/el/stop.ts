@@ -37,5 +37,17 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.noShowWeekday": "Αυτό το {time} δεν ήρθε {missed} από τις τελευταίες {days} καθημερινές.",
   "stop.noShowWeekend": "Αυτό το {time} δεν ήρθε {missed} από τα τελευταία {days} σαββατοκύριακα.",
   "stop.lastTonight": "Τελευταίο {route} απόψε. Μετά είναι Bolt, ταξί, ή αύριο.",
+  "stop.headwayObserved": "Το {route} περνά περίπου κάθε {min} λεπτά εδώ {when}.",
+  "stop.headwayScheduled": "Το πρόγραμμα έχει {route} περίπου κάθε {min} λεπτά εδώ {when}.",
+  "stop.headwayLastSeen": "Το τελευταίο φάνηκε πριν {min} λεπτά.",
+  "stop.headwayChance": "Περίπου {pct}% πιθανότητα να έρθει πριν τις {time}.",
+  "stop.headway.weekdayMorning": "τις καθημερινές το πρωί",
+  "stop.headway.weekdayAfternoon": "τις καθημερινές το μεσημέρι",
+  "stop.headway.weekdayEvening": "τις καθημερινές το απόγευμα",
+  "stop.headway.weekdayNight": "τις καθημερινές το βράδυ",
+  "stop.headway.weekendMorning": "τα σαββατοκύριακα το πρωί",
+  "stop.headway.weekendAfternoon": "τα σαββατοκύριακα το μεσημέρι",
+  "stop.headway.weekendEvening": "τα σαββατοκύριακα το απόγευμα",
+  "stop.headway.weekendNight": "τα σαββατοκύριακα το βράδυ",
 };
 

@@ -19,6 +19,8 @@ import {
   type FreshnessConfidence,
 } from "@/lib/freshness";
 import { cyClock } from "@aloya/core/cy-time";
+import type { HeadwayHint } from "@aloya/core/headway-chance";
+import { headwayCopy, softLine, truthLine } from "@/lib/headway-copy";
 
 type Props = {
   tripId: string;
@@ -41,6 +43,7 @@ type Props = {
   };
   noShow?: { missed: number; days: number; weekend: boolean } | null;
   lastTonight?: boolean;
+  headway?: HeadwayHint | null;
   /** Tap target. Defaults to navigating to the trip-info screen via the
    *  parent screen — caller decides because not every host wants this. */
   onPress?: () => void;
@@ -75,6 +78,7 @@ export function DepartureRow({
   eta,
   noShow,
   lastTonight,
+  headway,
   onPress,
 }: Props) {
 
@@ -222,37 +226,18 @@ export function DepartureRow({
               Scheduled {clock}
             </Text>
             {lastTonight ? (
-              <Text
-                style={{
-                  fontFamily: "Geist_500Medium",
-                  fontSize: 13,
-                  lineHeight: 18,
-                  color: palette.ink,
-                  marginTop: 8,
-                  textTransform: "none",
-                  letterSpacing: 0,
-                }}
-              >
+              <Text style={truthLine}>
                 {`Last ${routeShort} tonight. After this it's Bolt, a taxi, or tomorrow.`}
               </Text>
             ) : null}
             {noShow ? (
-              <Text
-                style={{
-                  fontFamily: "Geist_500Medium",
-                  fontSize: 12.5,
-                  lineHeight: 17,
-                  color: palette.inkSoft,
-                  marginTop: 4,
-                  textTransform: "none",
-                  letterSpacing: 0,
-                }}
-              >
+              <Text style={softLine}>
                 {noShow.weekend
                   ? `This ${clock} didn't run on ${noShow.missed} of the last ${noShow.days} weekend days.`
                   : `This ${clock} didn't run on ${noShow.missed} of the last ${noShow.days} weekdays.`}
               </Text>
             ) : null}
+            {headway ? <Text style={softLine}>{headwayCopy(headway, routeShort)}</Text> : null}
           </View>
 
           <View style={{ alignItems: "flex-end", paddingLeft: 4 }}>
@@ -374,7 +359,6 @@ function bandIsInformative(band: string, headlineMin: number | null): boolean {
 function formatClock(unix: number): string {
   return cyClock(unix * 1000);
 }
-
 
 function splitLongName(long: string): [string, string | null] {
   if (!long) return ["", null];

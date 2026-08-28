@@ -85,6 +85,7 @@ describe("reliability schemas", () => {
     expect(StopRunHintsSchema.safeParse({ routeIds: ids(30) }).success).toBe(true);
     expect(StopRunHintsSchema.safeParse({ routeIds: ids(31) }).success).toBe(false);
     expect(StopRunHintsSchema.safeParse({ routeIds: [] }).success).toBe(false);
+    expect(StopRunHintsSchema.safeParse({ routeIds: ["r1"], stopId: "s1" }).success).toBe(true);
   });
 });
 
