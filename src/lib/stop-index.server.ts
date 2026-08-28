@@ -43,10 +43,14 @@ export async function loadStopIndexFacts(stopId: string): Promise<StopIndexFacts
 export async function listIndexableStopIds(): Promise<string[]> {
   try {
     const ids = new Set<string>();
-    const { data: attrs } = await supabaseAdmin
-      .from("stop_attributes")
+    // stop_attributes exists in production but is missing from generated types.
+    const { data: attrs } = (await (
+      supabaseAdmin.from as unknown as (t: string) => {
+        select: (cols: string) => { limit: (n: number) => PromiseLike<unknown> };
+      }
+    )("stop_attributes")
       .select("stop_id")
-      .limit(SITEMAP_CAP);
+      .limit(SITEMAP_CAP)) as { data: { stop_id: string | null }[] | null };
     for (const r of attrs ?? []) {
       const id = safeStopId(r.stop_id);
       if (id) ids.add(id);
