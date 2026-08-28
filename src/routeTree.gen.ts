@@ -54,6 +54,7 @@ import { Route as ApiPublicTrafficAlertsRouteImport } from './routes/api/public/
 import { Route as ApiPublicSttRouteImport } from './routes/api/public/stt'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicStopsRouteImport } from './routes/api/public/stops'
+import { Route as ApiPublicStopConditionRouteImport } from './routes/api/public/stop-condition'
 import { Route as ApiPublicStopReliabilityRouteImport } from './routes/api/public/stop-reliability'
 import { Route as ApiPublicStopRunHintsRouteImport } from './routes/api/public/stop-run-hints'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
@@ -349,6 +350,12 @@ const ApiPublicStopsRoute = ApiPublicStopsRouteImport.update({
   path: '/api/public/stops',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicStopConditionRoute =
+  ApiPublicStopConditionRouteImport.update({
+    id: '/api/public/stop-condition',
+    path: '/api/public/stop-condition',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicStopReliabilityRoute =
   ApiPublicStopReliabilityRouteImport.update({
     id: '/api/public/stop-reliability',
@@ -775,6 +782,7 @@ export interface FileRoutesByFullPath {
   '/api/public/route-sequences': typeof ApiPublicRouteSequencesRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
+  '/api/public/stop-condition': typeof ApiPublicStopConditionRoute
   '/api/public/stop-reliability': typeof ApiPublicStopReliabilityRoute
   '/api/public/stop-run-hints': typeof ApiPublicStopRunHintsRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
@@ -888,6 +896,7 @@ export interface FileRoutesByTo {
   '/api/public/route-sequences': typeof ApiPublicRouteSequencesRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
+  '/api/public/stop-condition': typeof ApiPublicStopConditionRoute
   '/api/public/stop-reliability': typeof ApiPublicStopReliabilityRoute
   '/api/public/stop-run-hints': typeof ApiPublicStopRunHintsRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
@@ -1002,6 +1011,7 @@ export interface FileRoutesById {
   '/api/public/route-sequences': typeof ApiPublicRouteSequencesRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
+  '/api/public/stop-condition': typeof ApiPublicStopConditionRoute
   '/api/public/stop-reliability': typeof ApiPublicStopReliabilityRoute
   '/api/public/stop-run-hints': typeof ApiPublicStopRunHintsRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
@@ -1117,6 +1127,7 @@ export interface FileRouteTypes {
     | '/api/public/route-sequences'
     | '/api/public/sighting'
     | '/api/public/snapshot'
+    | '/api/public/stop-condition'
     | '/api/public/stop-reliability'
     | '/api/public/stop-run-hints'
     | '/api/public/stops'
@@ -1230,6 +1241,7 @@ export interface FileRouteTypes {
     | '/api/public/route-sequences'
     | '/api/public/sighting'
     | '/api/public/snapshot'
+    | '/api/public/stop-condition'
     | '/api/public/stop-reliability'
     | '/api/public/stop-run-hints'
     | '/api/public/stops'
@@ -1343,6 +1355,7 @@ export interface FileRouteTypes {
     | '/api/public/route-sequences'
     | '/api/public/sighting'
     | '/api/public/snapshot'
+    | '/api/public/stop-condition'
     | '/api/public/stop-reliability'
     | '/api/public/stop-run-hints'
     | '/api/public/stops'
@@ -1457,6 +1470,7 @@ export interface RootRouteChildren {
   ApiPublicRouteSequencesRoute: typeof ApiPublicRouteSequencesRoute
   ApiPublicSightingRoute: typeof ApiPublicSightingRoute
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
+  ApiPublicStopConditionRoute: typeof ApiPublicStopConditionRoute
   ApiPublicStopReliabilityRoute: typeof ApiPublicStopReliabilityRoute
   ApiPublicStopRunHintsRoute: typeof ApiPublicStopRunHintsRoute
   ApiPublicStopsRoute: typeof ApiPublicStopsRoute
@@ -1818,6 +1832,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/stops'
       fullPath: '/api/public/stops'
       preLoaderRoute: typeof ApiPublicStopsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stop-condition': {
+      id: '/api/public/stop-condition'
+      path: '/api/public/stop-condition'
+      fullPath: '/api/public/stop-condition'
+      preLoaderRoute: typeof ApiPublicStopConditionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/stop-reliability': {
@@ -2367,6 +2388,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicRouteSequencesRoute: ApiPublicRouteSequencesRoute,
   ApiPublicSightingRoute: ApiPublicSightingRoute,
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
+  ApiPublicStopConditionRoute: ApiPublicStopConditionRoute,
   ApiPublicStopReliabilityRoute: ApiPublicStopReliabilityRoute,
   ApiPublicStopRunHintsRoute: ApiPublicStopRunHintsRoute,
 

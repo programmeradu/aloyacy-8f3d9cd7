@@ -16,6 +16,7 @@ import { DepartureRow } from "@/components/DepartureRow";
 import { SightingButton } from "@/components/SightingButton";
 import { ExpandableMap } from "@/components/ExpandableMap";
 import { StopReliabilityStrip } from "@/components/StopReliabilityStrip";
+import { StopCondition } from "@/components/stop/StopCondition";
 import { useRealtime, useStopsBundle } from "@/lib/hooks";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getStop } from "@/lib/gtfs";
@@ -267,6 +268,8 @@ export default function StopDetailScreen() {
           />
         </View>
       ) : null}
+
+      <StopCondition stopId={stopId} />
 
       <View
         style={{

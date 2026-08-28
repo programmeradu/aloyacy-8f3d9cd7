@@ -476,6 +476,13 @@ nudge.
 Photos are a second slice. One-tap attributes first. A moderation
 queue is ops; don’t block D1 on it.
 
+**On the stop (first slice, shipped 2026-08-28).** `stop_attributes` +
+`stop_reports`. Seed is the eight curated hubs. Consensus needs two
+devices; one report does not overwrite the seed. One-tap shelter, then
+seating, on the stop page. Silent when unknown. Photos, lighting,
+walkability, wheelchair one-tap, and routing filters stay later.
+Apply `deploy/supabase/sql/20260828_stop_condition.sql` on prod.
+
 ### D2. Skipped-stop detection — measured, not just reported
 
 Drivers skipping stops is reportable *and* detectable. Signal already

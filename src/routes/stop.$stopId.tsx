@@ -10,6 +10,7 @@ import { DepartureRow } from "@/components/DepartureRow";
 import { SightingButton } from "@/components/SightingButton";
 import { ShareSheet } from "@/components/ShareSheet";
 import { StopReliabilityStrip } from "@/components/StopReliabilityStrip";
+import { StopCondition } from "@/components/stop/StopCondition";
 import { useRealtime } from "@/lib/useRealtime";
 import { useLearnedStatsBulk } from "@/lib/useLearnedStatsBulk";
 import { useEtaStats } from "@/lib/useEtaStats";
@@ -235,6 +236,8 @@ function StopDetail() {
           <StopReliabilityStrip r={stopReliability} />
         </section>
       )}
+
+      <StopCondition stopId={stopId} />
 
       <section className="px-6 animate-rise" style={{ animationDelay: "120ms" }}>
         <MapPreview

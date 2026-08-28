@@ -18,6 +18,7 @@ import {
   StripeEnvQuerySchema,
   EtaLogSchema,
   PartnerApplySchema,
+  StopConditionSchema,
 } from "./public-api";
 
 describe("LatLngSchema", () => {
@@ -302,5 +303,42 @@ describe("PartnerApplySchema", () => {
   it("rejects a short use case and a bad email", () => {
     expect(PartnerApplySchema.safeParse({ ...body, useCase: "hi" }).success).toBe(false);
     expect(PartnerApplySchema.safeParse({ ...body, email: "not-an-email" }).success).toBe(false);
+  });
+});
+
+describe("StopConditionSchema", () => {
+  it("accepts a get and a shelter report", () => {
+    expect(StopConditionSchema.safeParse({ action: "get", stopId: "1009" }).success).toBe(true);
+    expect(
+      StopConditionSchema.safeParse({
+        action: "report",
+        deviceId: "device-01",
+        stopId: "1009",
+        attribute: "has_shelter",
+        value: "yes",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects a short device id and an unknown attribute", () => {
+    expect(StopConditionSchema.safeParse({ action: "get", stopId: "" }).success).toBe(false);
+    expect(
+      StopConditionSchema.safeParse({
+        action: "report",
+        deviceId: "short",
+        stopId: "1009",
+        attribute: "has_shelter",
+        value: "yes",
+      }).success,
+    ).toBe(false);
+    expect(
+      StopConditionSchema.safeParse({
+        action: "report",
+        deviceId: "device-01",
+        stopId: "1009",
+        attribute: "shade",
+        value: "yes",
+      }).success,
+    ).toBe(false);
   });
 });

@@ -365,3 +365,5 @@ export const SttUploadSchema = z.object({
 export const CronSecretQuerySchema = z.object({
   cron_secret: z.string().trim().min(1).max(200).optional(),
 });
+
+export { StopConditionSchema } from "./stop-condition";

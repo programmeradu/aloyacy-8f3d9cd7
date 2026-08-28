@@ -289,6 +289,10 @@
     "./eta-backtest": {
       "types": "./src/eta-backtest.ts",
       "default": "./src/eta-backtest.ts"
+    },
+    "./stop-condition": {
+      "types": "./src/stop-condition.ts",
+      "default": "./src/stop-condition.ts"
     }
   },
   "dependencies": {
