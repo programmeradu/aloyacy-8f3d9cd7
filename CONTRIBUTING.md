@@ -56,6 +56,10 @@ to a rider (or to `aloya.cy`), it is not done until the marketing repo
 tokens in `src/styles.css` (and `mobile/constants/theme.ts`). No `bg-[#...]`,
 no `text-white`.
 
+**Taste is a contract.** No AI-default fonts, layouts, or copy. Follow the
+surface that already exists. Proofread every rider-facing string. See
+[`docs/TASTE.md`](docs/TASTE.md).
+
 **Accuracy over reinvention.** For ETAs, routing, distance, geocoding and
 places, call the authoritative API. Hand-rolled haversine-plus-average-speed
 maths is not an acceptable substitute for a real routing response.

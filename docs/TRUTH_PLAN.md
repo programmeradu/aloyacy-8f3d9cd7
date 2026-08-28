@@ -701,7 +701,9 @@ This file lives in `aloyacy` (`docs/TRUTH_PLAN.md`) because the ledger,
 the classifier and the API live here. Explorer implements E0 against
 this contract. A change that alters a rider-facing claim is not done
 until both sides agree — preferably because they import the same
-module, not because someone remembered to open a second PR.
+module, not because someone remembered to open a second PR. The same
+rule covers look and voice: [`docs/TASTE.md`](TASTE.md) is kept
+identical in both repos.
 
 ---
 
