@@ -2,6 +2,7 @@
 // callers hand in the static GTFS slices plus the live vehicle list, and get
 // back an ordered, deduped result list ready to render.
 import { distanceM, type LatLng } from "./geo";
+import { GREEN_LINE_PATH, matchesGreenLineQuery } from "./green-line";
 
 export type SearchRouteInput = { id: string; short: string; long: string; agency: string };
 export type SearchStopInput = { id: string; name: string; agency: string };
@@ -34,7 +35,8 @@ export type SearchResult =
       label: string;
       sub: string;
     }
-  | { kind: "airport"; id: string; iata: string; name: string; city: string };
+  | { kind: "airport"; id: string; iata: string; name: string; city: string }
+  | { kind: "page"; id: string; title: string; sub: string; path: string };
 
 export const AGENCY_CITY: Record<string, string> = {
   NPT: "Nicosia",
@@ -63,7 +65,13 @@ export type SearchInputs = {
   vehicles: SearchVehicleInput[];
   origin: LatLng;
   /** Copy for a stop's secondary line, so the caller controls localisation. */
-  labels?: { intercity?: string; urban?: string; kmAway?: (km: number) => string };
+  labels?: {
+    intercity?: string;
+    urban?: string;
+    kmAway?: (km: number) => string;
+    greenLineTitle?: string;
+    greenLineSub?: string;
+  };
 };
 
 const MAX_RESULTS = 18;
@@ -77,6 +85,16 @@ export function searchAll(raw: string, input: SearchInputs): SearchResult[] {
   const kmAway = input.labels?.kmAway ?? ((km: number) => `${km.toFixed(1)} km away`);
 
   const out: SearchResult[] = [];
+
+  if (matchesGreenLineQuery(q)) {
+    out.push({
+      kind: "page",
+      id: "green-line",
+      title: input.labels?.greenLineTitle ?? "The Green Line",
+      sub: input.labels?.greenLineSub ?? "Republic network. Crossing named, not operated.",
+      path: GREEN_LINE_PATH,
+    });
+  }
 
   // Airports — IATA code, city, "airport", or full name in either language.
   for (const a of input.airports) {

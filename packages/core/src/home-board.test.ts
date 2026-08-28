@@ -183,6 +183,15 @@ describe("search result presentation", () => {
     expect(
       searchResultHref({ kind: "airport", id: "lca", iata: "LCA", name: "L", city: "Larnaca" }),
     ).toBe("/airport/lca");
+    expect(
+      searchResultHref({
+        kind: "page",
+        id: "green-line",
+        title: "The Green Line",
+        sub: "named",
+        path: "/green-line",
+      }),
+    ).toBe("/green-line");
   });
 
   it("badges each hit kind", () => {
@@ -192,6 +201,15 @@ describe("search result presentation", () => {
     expect(
       searchResultBadge({ kind: "airport", id: "lca", iata: "LCA", name: "L", city: "C" }),
     ).toBe("AIRPORT");
+    expect(
+      searchResultBadge({
+        kind: "page",
+        id: "green-line",
+        title: "The Green Line",
+        sub: "named",
+        path: "/green-line",
+      }),
+    ).toBe("CROSSING");
   });
 
   it("writes copy without decorative bullets", () => {

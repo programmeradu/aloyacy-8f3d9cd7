@@ -168,6 +168,8 @@ export function searchResultHref(hit: SearchResult): string {
       return `/trip/${hit.tripId}`;
     case "airport":
       return `/airport/${hit.id}`;
+    case "page":
+      return hit.path;
   }
 }
 
@@ -182,6 +184,8 @@ export function searchResultBadge(hit: SearchResult): string {
       return "LIVE BUS";
     case "airport":
       return "AIRPORT";
+    case "page":
+      return "CROSSING";
   }
 }
 
@@ -199,5 +203,7 @@ export function searchResultCopy(hit: SearchResult): { primary: string; meta: st
       return { primary: hit.label, meta: `Route ${hit.routeCode}  ${hit.sub}` };
     case "airport":
       return { primary: hit.name, meta: `${hit.iata}  ${hit.city}` };
+    case "page":
+      return { primary: hit.title, meta: hit.sub };
   }
 }

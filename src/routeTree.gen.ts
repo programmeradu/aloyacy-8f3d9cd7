@@ -31,6 +31,7 @@ import { Route as PlanTokenRouteImport } from './routes/plan.$token'
 import { Route as InternalBedrockUsageRouteImport } from './routes/internal.bedrock-usage'
 import { Route as InternalBedrockRouteImport } from './routes/internal.bedrock'
 import { Route as GuideGettingAroundCyprusRouteImport } from './routes/guide.getting-around-cyprus'
+import { Route as GreenLineRouteImport } from './routes/green-line'
 import { Route as GroupCodeRouteImport } from './routes/group.$code'
 import { Route as EtaTokenRouteImport } from './routes/eta.$token'
 import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
@@ -230,6 +231,11 @@ const GuideGettingAroundCyprusRoute =
     path: '/guide/getting-around-cyprus',
     getParentRoute: () => rootRouteImport,
   } as any)
+const GreenLineRoute = GreenLineRouteImport.update({
+  id: '/green-line',
+  path: '/green-line',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GroupCodeRoute = GroupCodeRouteImport.update({
   id: '/group/$code',
   path: '/group/$code',
@@ -720,6 +726,7 @@ export interface FileRoutesByFullPath {
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
   '/eta/$token': typeof EtaTokenRoute
+  '/green-line': typeof GreenLineRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/internal/bedrock': typeof InternalBedrockRoute
@@ -831,6 +838,7 @@ export interface FileRoutesByTo {
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
   '/eta/$token': typeof EtaTokenRoute
+  '/green-line': typeof GreenLineRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/internal/bedrock': typeof InternalBedrockRoute
@@ -943,6 +951,7 @@ export interface FileRoutesById {
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
   '/eta/$token': typeof EtaTokenRoute
+  '/green-line': typeof GreenLineRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/internal/bedrock': typeof InternalBedrockRoute
@@ -1056,6 +1065,7 @@ export interface FileRouteTypes {
     | '/debug/graph'
     | '/debug/multileg'
     | '/eta/$token'
+    | '/green-line'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
     | '/internal/bedrock'
@@ -1167,6 +1177,7 @@ export interface FileRouteTypes {
     | '/debug/graph'
     | '/debug/multileg'
     | '/eta/$token'
+    | '/green-line'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
     | '/internal/bedrock'
@@ -1278,6 +1289,7 @@ export interface FileRouteTypes {
     | '/debug/graph'
     | '/debug/multileg'
     | '/eta/$token'
+    | '/green-line'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
     | '/internal/bedrock'
@@ -1390,6 +1402,7 @@ export interface RootRouteChildren {
   DebugGraphRoute: typeof DebugGraphRoute
   DebugMultilegRoute: typeof DebugMultilegRoute
   EtaTokenRoute: typeof EtaTokenRoute
+  GreenLineRoute: typeof GreenLineRoute
   GroupCodeRoute: typeof GroupCodeRoute
   GuideGettingAroundCyprusRoute: typeof GuideGettingAroundCyprusRoute
   InternalBedrockRoute: typeof InternalBedrockRoute
@@ -1630,6 +1643,13 @@ declare module '@tanstack/react-router' {
       path: '/guide/getting-around-cyprus'
       fullPath: '/guide/getting-around-cyprus'
       preLoaderRoute: typeof GuideGettingAroundCyprusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/green-line': {
+      id: '/green-line'
+      path: '/green-line'
+      fullPath: '/green-line'
+      preLoaderRoute: typeof GreenLineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/group/$code': {
@@ -2284,6 +2304,7 @@ const rootRouteChildren: RootRouteChildren = {
   DebugGraphRoute: DebugGraphRoute,
   DebugMultilegRoute: DebugMultilegRoute,
   EtaTokenRoute: EtaTokenRoute,
+  GreenLineRoute: GreenLineRoute,
   GroupCodeRoute: GroupCodeRoute,
   GuideGettingAroundCyprusRoute: GuideGettingAroundCyprusRoute,
   InternalBedrockRoute: InternalBedrockRoute,

@@ -269,6 +269,10 @@
     "./rider-physics": {
       "types": "./src/rider-physics.ts",
       "default": "./src/rider-physics.ts"
+    },
+    "./green-line": {
+      "types": "./src/green-line.ts",
+      "default": "./src/green-line.ts"
     }
   },
   "dependencies": {

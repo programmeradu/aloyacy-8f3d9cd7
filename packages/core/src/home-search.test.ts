@@ -50,6 +50,12 @@ describe("searchAll", () => {
     }
   });
 
+  it("surfaces the Green Line page for crossing queries", () => {
+    const hit = searchAll("ledra", base).find((r) => r.kind === "page");
+    expect(hit).toMatchObject({ kind: "page", id: "green-line", path: "/green-line" });
+    expect(searchAll("30", base).some((r) => r.kind === "page")).toBe(false);
+  });
+
   it("labels intercity stops distinctly and honours custom copy", () => {
     const res = searchAll("limassol port", { ...base, labels: { intercity: "Υπεραστικό" } });
     expect(res.find((r) => r.kind === "stop")).toMatchObject({ sub: "Υπεραστικό" });

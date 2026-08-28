@@ -27,11 +27,13 @@ import { CommuteSuggestionCard } from "@/components/CommuteSuggestionCard";
 import { ReturnTripSuggestionCard } from "@/components/ReturnTripSuggestionCard";
 import { areaFromStop, onTimePercent, CY_AIRPORTS } from "@aloya/core/home-board";
 import { searchAll } from "@aloya/core/home-search";
+import { useLocale } from "@/lib/i18n";
 
 const FALLBACK = { lat: 35.1856, lng: 33.3823 };
 
 export default function TodayScreen() {
   const insets = useSafeAreaInsets();
+  const { t, locale } = useLocale();
   const { fix, status } = useGeoFix();
   const bundle = useStopsBundle();
   const rt = useRealtime();
@@ -93,10 +95,14 @@ export default function TodayScreen() {
         lng: v.lng,
       })),
       origin: here,
-      labels: { kmAway: (km: number) => `${km.toFixed(1)} km away` },
+      labels: {
+        kmAway: (km: number) => `${km.toFixed(1)} km away`,
+        greenLineTitle: t("gl.search.title"),
+        greenLineSub: t("gl.search.sub"),
+      },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bundle.data, searchQuery, rt.data, here.lat, here.lng]);
+  }, [bundle.data, searchQuery, rt.data, here.lat, here.lng, locale]);
 
   const mapMarkers = useMemo(
     () =>

@@ -678,10 +678,12 @@ marketing operator pages; they belong on the departure row.
 
 ### G3. Green Line, named
 
-One honest screen: this app is the Republic network; crossing is a
-different problem; here is what we know (Ledra, hours we have, that we
-do not have north-side GTFS). Silence reads as a hole in a Nicosia
-product that claims ground truth.
+**Shipped 2026-08-28.** One honest screen at `/green-line` on the rider app,
+`aloya.cy/green-line` on marketing, and native mobile. Search hits ledra,
+green line, λήδρας. Hours fail-closed: tourist blogs disagree (24h vs
+06:00–midnight), we have no official feed, so we print none. Famagusta in
+this product is the Republic catchment (Paralimni / Deryneia / Ayia Napa /
+Protaras). Silence on a Nicosia product was a hole. It is named now.
 
 ---
 
@@ -780,6 +782,7 @@ Already true in this repo, and why the OS is a credible bet:
   ping only ≥ 0.6. Apply `deploy/supabase/sql/20260828_rider_physics.sql`.
 - Thin B1: “Still on Bus 31?” on the companion when the trip is dark.
   Rider-GPS pings labelled `rider-confirmed`; stop shows the age.
+- G3: `/green-line` on rider, marketing, and mobile. Hours not invented.
 
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.

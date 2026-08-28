@@ -20,6 +20,7 @@ export function SmartSearch({
   onPickRoute,
   onPickVehicle,
   onPickAirport,
+  onPickPage,
 }: {
   query: string;
   setQuery: (s: string) => void;
@@ -28,6 +29,7 @@ export function SmartSearch({
   onPickRoute: (routeId: string) => void;
   onPickVehicle: (tripId: string) => void;
   onPickAirport: (code: AirportCode) => void;
+  onPickPage?: (path: string) => void;
 }) {
   const [focused, setFocused] = useState(false);
   const open = focused && query.trim().length > 0;
@@ -131,6 +133,26 @@ export function SmartSearch({
                             {r.name} <span className="text-ink-soft">{r.iata}</span>
                           </p>
                           <p className={SUB}>{r.city} · Airport hub</p>
+                        </div>
+                        <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
+                      </button>
+                    </li>
+                  );
+                }
+                if (r.kind === "page") {
+                  return (
+                    <li key={`p-${r.id}`}>
+                      <button
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => onPickPage?.(r.path)}
+                        className={ROW}
+                      >
+                        <span className="flex size-9 items-center justify-center rounded-xl bg-olive/15 text-olive">
+                          <IconPin className="size-4" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[14px] text-ink truncate">{r.title}</p>
+                          <p className={SUB}>{r.sub}</p>
                         </div>
                         <IconArrowUpRight className="size-3.5 text-ink-soft group-hover:text-aegean-deep" />
                       </button>

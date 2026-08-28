@@ -35,6 +35,8 @@ export function useHomeSearch(
           intercity: t("home.intercity"),
           urban: t("home.urban"),
           kmAway: (km) => t("common.kmAway", { km: km.toFixed(1) }),
+          greenLineTitle: t("gl.search.title"),
+          greenLineSub: t("gl.search.sub"),
         },
       }),
     // `t` is stable per locale and locale changes re-render this hook's owner.

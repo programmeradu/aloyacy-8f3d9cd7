@@ -119,6 +119,10 @@ export default function SettingsScreen() {
               onPress={() => void Linking.openURL("https://app.aloya.cy/about")}
             />
             <LegalRow
+              label={t("settings.greenLine")}
+              onPress={() => router.push("/green-line")}
+            />
+            <LegalRow
               label={t("settings.privacy")}
               onPress={() => void Linking.openURL("https://app.aloya.cy/privacy")}
             />

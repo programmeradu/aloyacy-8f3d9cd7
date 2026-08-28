@@ -20,6 +20,7 @@ import { replan } from "./replan";
 import { assistant } from "./assistant";
 import { pro } from "./pro";
 import { pulse } from "./pulse";
+import { greenLine } from "./green-line";
 
 export const en = {
   ...common,
@@ -41,4 +42,5 @@ export const en = {
   ...assistant,
   ...pro,
   ...pulse,
+  ...greenLine,
 } as const;

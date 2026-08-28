@@ -185,6 +185,9 @@ function Explore() {
           onPickAirport={(code) => {
             navigate({ to: "/airport/$code", params: { code } });
           }}
+          onPickPage={(path) => {
+            if (path === "/green-line") navigate({ to: "/green-line" });
+          }}
         />
       </div>
 

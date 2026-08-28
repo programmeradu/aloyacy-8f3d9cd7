@@ -14,6 +14,7 @@ const PATHS = [
   "/terms",
   "/airport/lca",
   "/airport/pfo",
+  "/green-line",
 ];
 
 export function indexNowPayload(host = INDEXNOW_HOST) {

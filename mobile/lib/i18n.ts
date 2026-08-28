@@ -59,12 +59,36 @@ const DICT = {
     "settings.terms": "Terms",
     "settings.about": "About Aloya",
     "settings.support": "Support & FAQ",
+    "settings.greenLine": "Green Line",
     "settings.version": "Version",
     "settings.build": "Build",
     "wallet.settingsRow": "App settings",
     "wallet.settingsRow.value": "Language, notifications, legal",
     "common.on": "On",
     "common.off": "Off",
+    "gl.eyebrow": "Republic of Cyprus",
+    "gl.title": "The Green Line.",
+    "gl.lede":
+      "This app is the Republic bus network. Crossing into the north is a different problem. We name it so the silence does not look like a hole.",
+    "gl.know.label": "What we know",
+    "gl.know.network.title": "Republic buses only",
+    "gl.know.network.body":
+      "Every live number, every stop, every route in Aloya is south of the line. OSEL, EMEL, Intercity, Zinonas, OSYPA, Pame. Not the north.",
+    "gl.know.ledra.title": "Ledra Street is the pedestrian crossing",
+    "gl.know.ledra.body":
+      "In the old town, a short walk from Solomos Square. Passport or ID. There are vehicle crossings too. We do not run any of them.",
+    "gl.know.famagusta.title": "Famagusta, in this product",
+    "gl.know.famagusta.body":
+      "Means the Republic catchment: Paralimni, Deryneia, Ayia Napa, Protaras. Not the city north of the line. We do not pretend otherwise.",
+    "gl.dont.label": "What we do not have",
+    "gl.dont.hours.title": "Official crossing hours",
+    "gl.dont.hours.body":
+      "Tourist blogs disagree. We have no official hours feed, so we will not print a time that we cannot stand behind. Check at the crossing.",
+    "gl.dont.gtfs.title": "North-side GTFS",
+    "gl.dont.gtfs.body":
+      "No published stop list, no live vehicles, no timetable we can measure. If it is not in the Republic feeds, it is not in Aloya.",
+    "gl.search.title": "The Green Line",
+    "gl.search.sub": "Republic network. Crossing named, not operated.",
   },
   el: {
     "tab.today": "Σήμερα",
@@ -90,12 +114,36 @@ const DICT = {
     "settings.terms": "Όροι",
     "settings.about": "Σχετικά με την Aloya",
     "settings.support": "Υποστήριξη & FAQ",
+    "settings.greenLine": "Πράσινη Γραμμή",
     "settings.version": "Έκδοση",
     "settings.build": "Build",
     "wallet.settingsRow": "Ρυθμίσεις εφαρμογής",
     "wallet.settingsRow.value": "Γλώσσα, ειδοποιήσεις, νομικά",
     "common.on": "Ενεργό",
     "common.off": "Ανενεργό",
+    "gl.eyebrow": "Κυπριακή Δημοκρατία",
+    "gl.title": "Η Πράσινη Γραμμή.",
+    "gl.lede":
+      "Αυτή η εφαρμογή είναι το δίκτυο λεωφορείων της Δημοκρατίας. Η διάβαση προς τα βόρεια είναι άλλο πρόβλημα. Το λέμε ονομαστικά, για να μην μοιάζει η σιωπή με κενό.",
+    "gl.know.label": "Τι ξέρουμε",
+    "gl.know.network.title": "Μόνο λεωφορεία της Δημοκρατίας",
+    "gl.know.network.body":
+      "Κάθε ζωντανός αριθμός, κάθε στάση, κάθε γραμμή στην Aloya είναι νότια της γραμμής. OSEL, EMEL, Intercity, Ζήνωνας, OSYPA, Pame. Όχι τα βόρεια.",
+    "gl.know.ledra.title": "Η οδός Λήδρας είναι η πεζή διάβαση",
+    "gl.know.ledra.body":
+      "Στην παλιά πόλη, λίγα λεπτά από την Πλατεία Σολωμού. Διαβατήριο ή ταυτότητα. Υπάρχουν και διαβάσεις οχημάτων. Δεν τις λειτουργούμε.",
+    "gl.know.famagusta.title": "Αμμόχωστος, σε αυτό το προϊόν",
+    "gl.know.famagusta.body":
+      "Σημαίνει την λεκάνη της Δημοκρατίας: Παραλίμνι, Δερύνεια, Αγία Νάπα, Πρωταράς. Όχι την πόλη βόρεια της γραμμής. Δεν προσποιούμαστε το αντίθετο.",
+    "gl.dont.label": "Τι δεν έχουμε",
+    "gl.dont.hours.title": "Επίσημο ωράριο διάβασης",
+    "gl.dont.hours.body":
+      "Τα τουριστικά ιστολόγια διαφωνούν. Δεν έχουμε επίσημη ροή ωραρίων, οπότε δεν τυπώνουμε ώρα που δεν μπορούμε να υποστηρίξουμε. Ρωτήστε στη διάβαση.",
+    "gl.dont.gtfs.title": "GTFS από τα βόρεια",
+    "gl.dont.gtfs.body":
+      "Δεν υπάρχει δημοσιευμένος κατάλογος στάσεων, ούτε ζωντανά οχήματα, ούτε πρόγραμμα που να μετράμε. Αν δεν είναι στις ροές της Δημοκρατίας, δεν είναι στην Aloya.",
+    "gl.search.title": "Η Πράσινη Γραμμή",
+    "gl.search.sub": "Δίκτυο Δημοκρατίας. Η διάβαση ονομαστικά, όχι λειτουργία.",
   },
 } satisfies Record<Locale, Record<string, string>>;
 

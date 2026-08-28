@@ -37,6 +37,10 @@ const FAQ: Array<{ q: string; a: string }> = [
     q: "Is my travel data private?",
     a: "Live location is only shared while you actively share an ETA or join a group trip, and it stops when the trip ends. See the privacy page for the full detail.",
   },
+  {
+    q: "Do you cover buses north of the Green Line?",
+    a: "No. Aloya is the Republic network. Crossing exists — Ledra Street is the pedestrian checkpoint in the old town — and we name it rather than leave a hole. We do not have north-side GTFS or official hours, so we will not invent them. Open the Green Line page for the rest.",
+  },
 ];
 
 export const Route = createFileRoute("/support")({
@@ -140,6 +144,9 @@ function SupportPage() {
         <div className="mt-12 flex flex-wrap gap-x-6 gap-y-2 border-t border-ink/10 pt-6 text-[13px] text-ink/55">
           <Link to="/privacy" className="underline-offset-4 hover:text-ink hover:underline">
             Privacy →
+          </Link>
+          <Link to="/green-line" className="underline-offset-4 hover:text-ink hover:underline">
+            Green Line →
           </Link>
           <Link to="/terms" className="underline-offset-4 hover:text-ink hover:underline">
             Terms →
