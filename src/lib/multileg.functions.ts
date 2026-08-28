@@ -18,6 +18,8 @@ import { getSkippedTransferCount } from "./overrides.server";
 import type { Itinerary, RideLeg } from "./itinerary-types";
 import { annotateRationales } from "./itinerary-rationale";
 import { applyAccessibilityWeights } from "./accessibility-weights";
+import { loadWheelchairAccess } from "./stop-condition.server";
+import { collectItineraryStopIds, filterLowFloorItineraries } from "@aloya/core/low-floor";
 import { createLogger } from "./logger";
 import { filterDominated } from "@aloya/core/plan-score";
 
@@ -47,7 +49,7 @@ const InputSchema = z.object({
   departAtUnix: z.number().int().positive().optional(),
   /** Unix seconds. Plan trips arriving at/before this time. */
   arriveByUnix: z.number().int().positive().optional(),
-  /** Wave 2.2 — accessibility weighting. Soft re-ranking only. */
+  /** Wave 2.2 — accessibility. Ranking nudge plus D1 step-free filter. */
   a11y: A11ySchema,
 });
 
@@ -298,6 +300,14 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       kept = pruneAirportTransferNoise(kept);
     }
 
+    if (data.a11y && (data.a11y.stepFree || data.a11y.lowFloor)) {
+      const access = await loadWheelchairAccess(collectItineraryStopIds(kept)).catch(
+        () => ({}) as Record<string, string>,
+      );
+      const filtered = filterLowFloorItineraries(kept, access);
+      if (filtered.length > 0) kept = filtered;
+    }
+
     kept.sort((a, b) => {
       if (airportQuery && a.transfers !== b.transfers) {
         return a.transfers - b.transfers;
@@ -306,8 +316,8 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     });
     const top = kept.slice(0, TOP_K);
 
-    // Wave 2.2 — accessibility weighting. Re-rank the top set so caps and
-    // amenity preferences nudge the order without filtering anything out.
+    // Wave 2.2 — accessibility weighting on the top set. Kerb stops already
+    // dropped above when the rider asked for step-free.
     if (data.a11y) {
       applyAccessibilityWeights(top, {
         stepFree: !!data.a11y.stepFree,

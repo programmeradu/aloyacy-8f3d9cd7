@@ -187,10 +187,11 @@ export const pulse = {
 
   "a11y.eyebrow": "Accessibility",
   "a11y.title": "How you ride",
-  "a11y.lede": "These preferences quietly re-rank your trip options — they never hide a route.",
+  "a11y.lede":
+    "Step-free hides a stop we know has a kerb, when another option exists. Unknown stays on the list.",
   "a11y.stepFree.label": "Step-free routing",
   "a11y.stepFree.help":
-    "Prefer stops we know are level with the curb. Stops without amenity data stay neutral.",
+    "Prefer level boarding. Stops we know have a kerb are hidden if a step-free option exists.",
   "a11y.shade.label": "Prefer shaded waits",
   "a11y.shade.help":
     "Pushes options that wait at sheltered stops up the list, useful in Cyprus summer.",

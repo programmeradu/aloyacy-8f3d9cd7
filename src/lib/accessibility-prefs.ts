@@ -10,9 +10,8 @@
 // - Mirrored to user_settings.accessibility_prefs (JSONB) for cross-device sync.
 //
 // Honesty: we only expose toggles whose effect we can actually deliver
-// today. Vehicle-level "low floor" is stored for forward-compat but the
-// planner doesn't yet penalise on it — we'll wire it up the moment we
-// ingest the per-vehicle accessibility flag from GTFS-RT VehiclePosition.
+// today. `lowFloor` is stored with step-free: the planner hides a stop
+// we know has a kerb (D1 wheelchair_access = no). Unknown stays listed.
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,7 +22,7 @@ export type AccessibilityPrefs = {
   stepFree: boolean;
   /** Prefer waits at shaded/sheltered stops (matters in Cyprus summer). */
   preferShade: boolean;
-  /** Stored for future use when vehicle-level accessibility lands. */
+  /** Same ask as step-free for the D1 kerb filter. */
   lowFloor: boolean;
   /**
    * Soft cap on TOTAL walking distance for an itinerary, in meters.

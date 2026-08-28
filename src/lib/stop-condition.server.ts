@@ -141,3 +141,23 @@ async function reconcileStopCondition(stopId: string, nowMs: number): Promise<St
   }
   return out;
 }
+
+/** Planner lookup. Unknown stays absent — do not invent a kerb. */
+export async function loadWheelchairAccess(stopIds: string[]): Promise<Record<string, string>> {
+  const ids = [...new Set(stopIds.filter((id) => id.length > 0))].slice(0, 200);
+  if (ids.length === 0) return {};
+  const { data, error } = await db
+    .from("stop_attributes")
+    .select("stop_id, value")
+    .eq("attribute", "wheelchair_access")
+    .in("stop_id", ids)
+    .limit(200);
+  if (error || !data) return {};
+  const out: Record<string, string> = {};
+  for (const row of data as { stop_id: string; value: string }[]) {
+    if (row.value === "yes" || row.value === "partial" || row.value === "no") {
+      out[row.stop_id] = row.value;
+    }
+  }
+  return out;
+}

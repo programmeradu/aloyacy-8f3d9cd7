@@ -306,6 +306,10 @@
       "types": "./src/stop-photo.ts",
       "default": "./src/stop-photo.ts"
     },
+    "./low-floor": {
+      "types": "./src/low-floor.ts",
+      "default": "./src/low-floor.ts"
+    },
     "./stop-ask": {
       "types": "./src/stop-ask.ts",
       "default": "./src/stop-ask.ts"

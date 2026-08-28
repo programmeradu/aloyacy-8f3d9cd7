@@ -14,12 +14,14 @@ const KEY = "aloya.a11y.v1";
 export type AccessibilityPrefs = {
   stepFree: boolean;
   preferShade: boolean;
+  lowFloor: boolean;
   maxWalkMeters: number | null;
 };
 
 export const DEFAULT_PREFS: AccessibilityPrefs = {
   stepFree: false,
   preferShade: false,
+  lowFloor: false,
   maxWalkMeters: null,
 };
 
@@ -34,6 +36,7 @@ function normalise(p: Partial<AccessibilityPrefs> | null | undefined): Accessibi
   return {
     stepFree: !!p.stepFree,
     preferShade: !!p.preferShade,
+    lowFloor: !!p.lowFloor,
     maxWalkMeters: cap,
   };
 }

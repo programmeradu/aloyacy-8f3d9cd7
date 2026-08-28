@@ -119,6 +119,25 @@ If we cannot change one of those sentences, we do not deserve a meeting.
 Shipped on the rider app (web + iPhone/Android). Silent when we do not
 know — that silence is the product.
 
+### Getting there
+
+| What a person sees | In one line |
+| ------------------ | ----------- |
+| Door to door | Walk, bus, transfer, walk. Why this option, in one line. Silent on a single result. |
+| Plain words | “To Larnaca airport tomorrow 7am.” Typed or spoken. Greek or English. |
+| Arrive by | A promise, not a hope. We watch weather and delays, then tell you when to walk out. |
+| Group trip | One link. Everyone on a map. No account. |
+| Live companion | Hurry, board, press the bell, get off. Your phone is the bus if the feed dies. |
+| Still on Bus 31? | The companion asks if you left the bus. |
+| Your stop is next | Stop-by-stop, after the previous doors close — not five stops early. |
+| Missed it / disruption | “The bus has left — next one from here.” A Plan B sheet, not a toast. |
+| Remind me to leave | A push before you must start walking. Hidden if the bus is already close. |
+| Saved places | Home, work, the beach. Recents are free; pins are Pro. |
+| Share a plan | A friend opens the meeting point and times before anyone leaves. |
+| Share my ETA | A live “watch me arrive” link. |
+
+### The clock at the stop
+
 | What a person sees | In one line |
 | ------------------ | ----------- |
 | Live board | One arrival time per bus, not three arguing clocks. |
@@ -127,22 +146,36 @@ know — that silence is the product.
 | Headway chance | “About 40% chance one arrives before 18:10.” Silent below 15%. |
 | No-show | “This 18:00 didn’t run on 3 of the last 10 weekdays.” |
 | Last bus tonight | Named. After that: Bolt, a taxi, or tomorrow. |
-| Still on Bus 31? | The companion keeps you honest after you board. |
 | Stop condition | Shelter, seat, walk, light, step-free, sign, timetable, two poles. One tap. |
 | A photo of the stop | From a rider. Silent when none. |
 | Skip rate | “Bus 31 skips this stop about 1 in 5 on weekday evenings. Wave clearly.” |
 | Neighbour stop | “…or use Makarios 180 m north.” Only if that stop is real and does not also skip. |
-| It drove past me | One tap. Two riders before we say it. Does not fake the skip percentage. |
+| It drove past me | One tap. Two riders before we say it. |
+| Step-free filter | If you asked: we hide a stop we know has a kerb, when another option exists. |
+
+### The island around the bus
+
+| What a person sees | In one line |
+| ------------------ | ----------- |
 | Airport | Kapnos vs city bus vs taxi rank. We do not invent a taxi fare. |
 | Pay | Tap Motion €1.80 urban / €6 intercity, or pay the driver the published cash fare. |
-| Green Line | Named. We do not operate north. Hours not invented. Famagusta in this product is Paralimni / Deryneia. |
+| Motion pass | The card you already have: balance, history, kiosk QR. Hold it up or tap NFC. |
+| Green Line | Named. We do not operate north. Hours not invented. Famagusta here is Paralimni / Deryneia. |
+| Pulse / Today | Heat, match night, cruise day, Saharan dust, sea state, a Greek word. The island this morning. |
+| Crowd | “Plenty of seats” / “Packed.” From recent riders. Silent without samples. |
+| Intercity | Weekend vs weekday patterns. Silent while learning. |
+| Park and ride | Drive to the hub, bus in. Live EV-charger counts when the national feed has them. Named as such. |
+| Last mile | Nextbike, Bolt scooter, a taxi tariff band after 21:00. Deep-links until they are a real leg. |
+| Alerts | Board soon, press the bell, hurry, wait-or-walk flipped. Optional spoken. |
 | Greek | Real `/el/` pages, not a flag that pretends. |
-| Same number | Rider, widget-to-come, and marketing boards pull the same feed. |
+| Pro | Optional. Pins, leave-now, offline cache. The clock stays free. |
+| Same number | Rider, a future hotel screen, and marketing boards pull the same feed. |
 
 **Impressive because it is rare, not because it is loud.** Nobody else
 in Cyprus is collecting whether a stop has shade, whether drivers skip
 it, or whether the last bus already ran — and then showing that to the
-person standing there.
+person standing there. The planner, the group link, and the arrival
+promise are how a tourist actually uses it.
 
 **We do not yet have, and we do not claim:**
 
@@ -153,6 +186,10 @@ person standing there.
 - taxi or Bolt prices (we need a quote)
 - Green Line crossing hours
 - that we dispatch or “optimise” operators’ fleets
+- that bike, scooter, or park-and-ride are first-class legs (they are
+  labelled deep-links until they are)
+- Apple Wallet, a home-screen widget, Live Activities, or AR
+- that Pro gets a faster feed (everyone polls the same clock)
 
 ---
 
@@ -274,22 +311,30 @@ Do this on a real Nicosia stop, not a screenshot.
 
 1. **Home.** Nearby stops. Speak English, then flip to Greek. “Both
    are first-class.”
-2. **Open a stop.** Point at the time. Point at the freshness word.
+2. **Plain words.** Type “to Larnaca airport tomorrow 7am.” “A tourist
+   should not have to know a stop code.”
+3. **Arrive by.** Set a clock. Show the promise. “We will move you
+   earlier if the bus is slipping — we will not hope.”
+4. **Open a stop.** Point at the time. Point at the freshness word.
    “If it is a ghost, watch what we tell you to do.”
-3. **Wait-or-bail.** If a bus is missing: the next one, or walk vs
+5. **Wait-or-bail.** If a bus is missing: the next one, or walk vs
    wait. “We do not trap you.”
-4. **Last / no-show** if it is evening. “This is how you do not sleep
+6. **Last / no-show** if it is evening. “This is how you do not sleep
    at the station.”
-5. **Stop condition.** Shelter, seat, light, two poles. One question
+7. **Stop condition.** Shelter, seat, light, two poles. One question
    only. “We do not quiz you for eight things on one wait.”
-6. **Skip line** if it is speaking. Wave clearly, or the neighbour
+8. **Skip line** if it is speaking. Wave clearly, or the neighbour
    stop with a measured distance. “We will not invent a stop 200 m
    north.”
-7. **Airport job** if they care about tourists. Kapnos vs city bus vs
-   rank. “No invented taxi fare.”
-8. **Pay line.** Motion. “We are not a new card.”
-9. **Close.** “Everything you saw is the same data a hotel screen
-   would show. That is the company.”
+9. **Group trip.** Open the shared link. Friends on a map. “A hen
+   party should not SMS screenshots.”
+10. **Airport job** if they care about tourists. Kapnos vs city bus vs
+    rank. “No invented taxi fare.”
+11. **Pay line.** Motion. Scan the card. “We are not a new card.”
+12. **Pulse** if it is speaking. Heat, a cruise, dust. “The island,
+    this morning — not a generic weather icon.”
+13. **Close.** “Everything you saw is the same data a hotel screen
+    would show. That is the company.”
 
 If a feature is silent, say **“we do not know yet”** and move on. That
 line wins more rooms than a fake number.
@@ -412,8 +457,7 @@ is on the stop. If it is not, it is not in the room.
 
 Unblocked, in plan order — see the living checklist in TRUTH_PLAN:
 
-- Step-free as a **filter** for riders who asked for it (`lowFloor`)
-- Rider corroboration and a cold-start question
+- Rider corroboration (two phones agree) and a cold-start question
 - Public stop pages, once they have real content
 - Accuracy page, once a route has enough measured arrivals
 - Truth API + hotel embed, once a design partner is waiting

@@ -44,6 +44,12 @@ vi.mock("../overrides.server", () => ({
   getSkippedTransferCount: vi.fn(async () => state.skips),
 }));
 
+const accessState: { byStop: Record<string, string> } = { byStop: {} };
+
+vi.mock("../stop-condition.server", () => ({
+  loadWheelchairAccess: vi.fn(async () => accessState.byStop),
+}));
+
 vi.mock("../planner-learning.server", () => ({
   loadPlannerLearningContext: vi.fn(async () => ({})),
   rescoreItineraryWithLearning: vi.fn(() => {}),
@@ -106,6 +112,7 @@ describe("planMultiLeg", () => {
     state.sched = { itineraries: [], diagnostics: { x: 1 } };
     state.schedThrows = null;
     state.skips = 0;
+    accessState.byStop = {};
     vi.useRealTimers();
   });
 
@@ -297,6 +304,36 @@ describe("planMultiLeg", () => {
       a11y: { stepFree: true, preferShade: true, lowFloor: true, maxWalkMeters: 400 },
     });
     expect(out.itineraries).toHaveLength(1);
+  });
+
+  it("hides a known-kerb itinerary when a step-free option exists", async () => {
+    const kerb = makeItinerary({ id: "kerb", score: 900, totalDurationSec: 1800 });
+    (kerb.legs[0] as RideLeg).board.stopId = "kerb-stop";
+    const ok = makeItinerary({ id: "ok", score: 1800, totalDurationSec: 1800 });
+    (ok.legs[0] as RideLeg).board.stopId = "ok-stop";
+    state.live.itineraries = [kerb, ok];
+    accessState.byStop = { "kerb-stop": "no", "ok-stop": "yes" };
+    const out = await callServerFn(planMultiLeg, {
+      from: NICOSIA,
+      to: LIMASSOL,
+      mode: "live",
+      a11y: { stepFree: true },
+    });
+    expect(out.itineraries.map((i) => i.id)).toEqual(["ok"]);
+  });
+
+  it("keeps a known-kerb itinerary when it is the only way", async () => {
+    const kerb = makeItinerary({ id: "only" });
+    (kerb.legs[0] as RideLeg).board.stopId = "kerb-stop";
+    state.live.itineraries = [kerb];
+    accessState.byStop = { "kerb-stop": "no" };
+    const out = await callServerFn(planMultiLeg, {
+      from: NICOSIA,
+      to: LIMASSOL,
+      mode: "live",
+      a11y: { stepFree: true },
+    });
+    expect(out.itineraries.map((i) => i.id)).toEqual(["only"]);
   });
 
   it("defaults to scheduled-only mode for far-future departures", async () => {

@@ -474,9 +474,9 @@ New tables `stop_attributes` (current consensus per stop) and
 
 `src/data/stop-amenities.ts` is a handful of curated Nicosia hubs.
 Replace it with this model; keep the seed as the first consensus rows.
-`lowFloor` in accessibility prefs is stored and unused — wire it once
-D1 has enough stops, as a **filter** for those riders, not a 60 s
-nudge.
+`lowFloor` / step-free: the planner **hides** a stop whose D1
+`wheelchair_access` is `no`, when another option exists. Unknown stays.
+Not a 60 s nudge.
 
 Photos are a second slice. One-tap attributes first. A moderation
 queue is ops; don’t block D1 on it.
@@ -490,7 +490,8 @@ seating, then walk (yes / no crossing / no sidewalk), then light
 (yes / no — chip only on yes). Silent when unknown. One rider photo of
 the stop after those one-taps — latest image, silent when none. Apply
 `20260828_stop_condition.sql` and `20260828_stop_photos.sql` on prod.
-Routing filters stay later.
+Routing filters: step-free hides a known kerb when another option
+exists. Walkability in RAPTOR stays later.
 
 ### D2. Skipped-stop detection — measured, not just reported
 
@@ -842,7 +843,7 @@ Update this table in the same commit as the slice.
 | C1 | Rider-fix physics | **Shipped.** Apply `20260828_rider_physics.sql`. Learned segment speeds wait on A4. |
 | C2 | Corroboration + reputation | **Open.** |
 | C3 | Cold-start ask | **Open.** |
-| D1 | Stop condition | **Shipped** one-tap: shelter, seating, walk, light, step-free, sign, timetable, two poles, plus one rider photo. Seed = eight hubs. Apply `20260828_stop_condition.sql` and `20260828_stop_photos.sql`. `lowFloor` filter **open.** |
+| D1 | Stop condition | **Shipped** one-tap + photo + step-free filter (hide known kerbs when another option exists). Seed = eight hubs. Apply `20260828_stop_condition.sql` and `20260828_stop_photos.sql`. |
 | D2 | Skip rate | **Shipped** pass-through vs dwell, measured neighbour, and rider “it drove past me”. Apply `20260828_stop_skip.sql` and `20260828_stop_skip_reports.sql`. RAPTOR penalty **open.** |
 | D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
 | D4 | Report decay / one ask per journey | **Shipped** 90-day decay, “Confirmed by n riders, last N days ago”, one ask per ride. Photo-weight **open.** |
@@ -856,7 +857,7 @@ Update this table in the same commit as the slice.
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** D1 `lowFloor` filter, then C2 corroboration / C3 cold-start ask.
+**Next unblocked:** C2 corroboration + reputation, then C3 cold-start ask.
 
 ---
 
