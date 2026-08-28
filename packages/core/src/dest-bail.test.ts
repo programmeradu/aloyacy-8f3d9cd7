@@ -6,6 +6,7 @@ import {
   destBailFlipCopy,
   destBailFlipLine,
   destBailLine,
+  destBailWithHeadway,
   EMPTY_WAIT_FLIP_HOLD,
   estimateWalk,
   estimateWalkMin,
@@ -19,7 +20,9 @@ import {
   waitFlipPhase,
   type DestBail,
 } from "./dest-bail";
+import { cyClock } from "./cy-time";
 import { multileg as destBailEn } from "./dictionaries/en/multileg";
+import { stop as stopEn } from "./dictionaries/en/stop";
 
 describe("estimateWalk", () => {
   it("uses the planner pace, not a guessed speed", () => {
@@ -168,6 +171,43 @@ describe("destBailLine", () => {
     expect(destBailEn["ml.destBail.keepWait"]).toBe(
       "Walking is {walk} min. Bus {route} is about {wait} min if it shows.",
     );
+  });
+});
+
+describe("destBailWithHeadway", () => {
+  const keep: DestBail = { kind: "keepWait", walkMin: 8, waitMin: 14, routeShort: "31" };
+  const walk: DestBail = {
+    kind: "walk",
+    walkMin: 8,
+    waitMin: 14,
+    destLabel: "Home",
+    routeShort: "31",
+  };
+  const beforeUnix = Date.parse("2026-08-28T18:05:00+03:00") / 1000;
+  const hint = { chancePct: 70, beforeUnix };
+
+  it("stamps B2 chance onto keep-wait, never onto walk", () => {
+    const stamped = destBailWithHeadway(keep, hint);
+    expect(stamped).toMatchObject({ kind: "keepWait", chancePct: 70, beforeUnix });
+    expect(destBailWithHeadway(walk, hint)).toEqual(walk);
+    expect(destBailWithHeadway(keep, { chancePct: null, beforeUnix })).toEqual(keep);
+    expect(destBailWithHeadway(null, hint)).toBeNull();
+  });
+
+  it("uses the stop card's chance clause, not a second number", () => {
+    const line = destBailLine(destBailWithHeadway(keep, hint)!);
+    const time = cyClock(beforeUnix * 1000);
+    expect(line).toBe(
+      `Walking is 8 min. Bus 31 is about 14 min if it shows. About 70% chance one arrives before ${time}.`,
+    );
+    expect(stopEn["stop.headwayChance"]).toBe("About {pct}% chance one arrives before {time}.");
+    expect(destBailEn["ml.destBail.keepWaitChance"]).toBe(
+      "Walking is {walk} min. Bus {route} is about {wait} min if it shows. About {pct}% chance one arrives before {time}.",
+    );
+    expect(destBailEn["ml.destBail.keepWaitDueChance"]).toBe(
+      "Walking is {walk} min. Bus {route} isn't on the map. About {pct}% chance one arrives before {time}.",
+    );
+    expect(line).not.toMatch(/€|luggage|RAPTOR|taxi/i);
   });
 });
 

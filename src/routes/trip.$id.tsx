@@ -197,6 +197,8 @@ function SingleLegCompanion({
               alightName={bus.alight.name}
               minToDoor={minToDoor}
               destBail={destBail}
+              routeId={bus.routeId}
+              stopId={bus.board.stopId}
             />
           </div>
         </article>

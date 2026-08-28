@@ -347,15 +347,15 @@ buses on this board. First dark row per route:
 | Other route here | A live different route is ≥ 3 min sooner than this wait |
 | Bolt / taxi | This was the last tonight and it is not on the map |
 
-Headway chance stays off that row once an action fires. Walk and RAPTOR
-re-plan still need a destination — those belong on the journey HUD
-(remaining B4 + B5), not as a second card on the stop.
+Headway chance stays off that row once an action fires. RAPTOR re-plan
+still needs a destination — that stays the live-replan sheet, not a
+second card on the stop.
 
 **Still open (needs dest):**
 
 | Option | Shown as |
 | ------ | -------- |
-| Keep waiting | **Thin, shipped.** HUD says walking vs wait when the trip is ghost. B2 probability on that sentence still open. |
+| Keep waiting | **Shipped 2026-08-28.** HUD keep-wait sentence carries the stop-card B2 chance when ≥ 15%. Same survival number. Silent below the floor. Walk and the B5 flip stay chance-free. |
 | Walk it | **Shipped 2026-08-28.** HUD sentence when the trip is ghost and we can measure the walk. Planner pace 1.35 m/s × 1.3 detour, cap 25 min. Walk must beat the wait by 2 min. Same number as the replan sheet. |
 | Next departure on another route | RAPTOR re-plan from the current stop — still the live-replan sheet, not a HUD sentence |
 | Bolt / scooter / bikeshare | price and ETA *here* |

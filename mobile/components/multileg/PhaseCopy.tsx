@@ -1,7 +1,8 @@
 // Phase hero copy — kicker label, big headline and supporting line. Pure
 // presentation driven by the live multi-leg phase machine.
 
-import { destBailForWait, destBailLine } from "@aloya/core/dest-bail";
+import { destBailForWait, destBailLine, destBailWithHeadway } from "@aloya/core/dest-bail";
+import { useHeadwayHint } from "@/lib/useHeadwayHint";
 import { Text } from "react-native";
 import { palette } from "@/constants/theme";
 import type { MultiLegLive } from "@/lib/useMultiLegJourney";
@@ -270,7 +271,7 @@ export function PhaseSub({
                       ? `About ${fmtMin(live.currentLeg?.kind === "walk" ? live.currentLeg.durationSec : 0)} min to ${destLabel}.`
                       : `Welcome to ${destLabel}.`;
   const ride = live.currentRideLeg;
-  const bail =
+  const raw =
     ride &&
     destBailForWait({
       dark: live.tripGhost,
@@ -286,6 +287,13 @@ export function PhaseSub({
       destLabel,
       routeShort: ride.routeShort,
     });
+  const keep = raw && raw.kind === "keepWait" ? raw : null;
+  const hint = useHeadwayHint({
+    routeId: keep && ride ? ride.routeId : null,
+    stopId: keep && ride ? ride.board.stopId : null,
+    arrivalUnix: keep ? Math.floor(Date.now() / 1000) + live.secsToCurrentBoard : null,
+  });
+  const bail = destBailWithHeadway(raw || null, hint);
   return (
     <>
       <Text

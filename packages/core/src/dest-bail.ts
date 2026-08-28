@@ -5,6 +5,7 @@
 // unpublished here — we have a dest, but not a driving quote on this path.
 
 import { distanceM, WALK_M_PER_S, type LatLng } from "./geo";
+import { cyClock } from "./cy-time";
 
 /** Street path vs crow-flies. Same factor the replan sheet used. */
 export const WALK_DETOUR = 1.3;
@@ -42,7 +43,14 @@ export type DestBail =
       destLabel: string;
       routeShort: string;
     }
-  | { kind: "keepWait"; walkMin: number; waitMin: number; routeShort: string };
+  | {
+      kind: "keepWait";
+      walkMin: number;
+      waitMin: number;
+      routeShort: string;
+      chancePct?: number;
+      beforeUnix?: number;
+    };
 
 export function pickDestBail(input: {
   dark: boolean;
@@ -96,12 +104,33 @@ export function destBailLine(action: DestBail): string {
   switch (action.kind) {
     case "walk":
       return `Walk to ${action.destLabel} in ${action.walkMin} min. Bus ${action.routeShort} isn't on the map.`;
-    case "keepWait":
+    case "keepWait": {
+      const chance = destBailChanceClause(action);
       if (action.waitMin <= 0) {
-        return `Walking is ${action.walkMin} min. Bus ${action.routeShort} isn't on the map.`;
+        return `Walking is ${action.walkMin} min. Bus ${action.routeShort} isn't on the map.${chance}`;
       }
-      return `Walking is ${action.walkMin} min. Bus ${action.routeShort} is about ${action.waitMin} min if it shows.`;
+      return `Walking is ${action.walkMin} min. Bus ${action.routeShort} is about ${action.waitMin} min if it shows.${chance}`;
+    }
   }
+}
+
+/** Same clause the stop card uses. Silent when B2 has no chance. */
+export function destBailChanceClause(action: DestBail): string {
+  if (action.kind !== "keepWait" || action.chancePct == null || action.beforeUnix == null) {
+    return "";
+  }
+  return ` About ${action.chancePct}% chance one arrives before ${cyClock(action.beforeUnix * 1000)}.`;
+}
+
+/** Stamp the stop-card B2 chance onto a keep-wait call. Walk stays a walk. */
+export function destBailWithHeadway(
+  action: DestBail | null,
+  hint: { chancePct: number | null; beforeUnix: number } | null,
+): DestBail | null {
+  if (!action) return null;
+  if (action.kind !== "keepWait") return action;
+  if (!hint || hint.chancePct == null) return action;
+  return { ...action, chancePct: hint.chancePct, beforeUnix: hint.beforeUnix };
 }
 
 /** Map a live/multi-leg/hero phase onto dest-bail's three states. */

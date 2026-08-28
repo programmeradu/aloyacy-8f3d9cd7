@@ -11,7 +11,8 @@ import {
   phaseSubcopy,
   type SingleLegPhase,
 } from "@aloya/core/single-leg-phase";
-import { destBailForWait, destBailLine } from "@aloya/core/dest-bail";
+import { destBailForWait, destBailLine, destBailWithHeadway } from "@aloya/core/dest-bail";
+import { useHeadwayHint } from "@/lib/useHeadwayHint";
 import { KICKER } from "./kit";
 
 export function TripHero({
@@ -31,6 +32,8 @@ export function TripHero({
   ghost,
   from,
   dest,
+  routeId,
+  stopId,
 }: {
   phase: SingleLegPhase;
   delaySec: number;
@@ -48,6 +51,8 @@ export function TripHero({
   ghost?: boolean;
   from?: { lat: number; lng: number } | null;
   dest?: { lat: number; lng: number };
+  routeId?: string;
+  stopId?: string;
 }) {
   const tone =
     phase === "arrived"
@@ -73,7 +78,7 @@ export function TripHero({
     alightName,
     minToDoor,
   });
-  const bail = destBailForWait({
+  const raw = destBailForWait({
     dark: !!ghost,
     phase: phase === "waiting" ? "waiting" : phase === "walking" ? "walking" : "other",
     waitMin: minToBoard,
@@ -82,6 +87,13 @@ export function TripHero({
     destLabel: destName,
     routeShort,
   });
+  const keep = raw?.kind === "keepWait" ? raw : null;
+  const hint = useHeadwayHint({
+    routeId: keep ? routeId : null,
+    stopId: keep ? stopId : null,
+    arrivalUnix: keep ? Math.floor(Date.now() / 1000) + keep.waitMin * 60 : null,
+  });
+  const bail = destBailWithHeadway(raw, hint);
 
   return (
     <View style={{ paddingHorizontal: 20 }}>

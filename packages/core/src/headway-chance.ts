@@ -202,6 +202,25 @@ export function pickHeadwayHint(input: {
 
 const DARK_TIERS = new Set<HeadwayDeparture["tier"]>(["ghost", "scheduled"]);
 
+/** One route at one stop. Same numbers the stop card uses for that row. */
+export function headwayHintForRoute(input: {
+  obs: HeadwayObs[];
+  vehicles: { routeId: string; timestamp: number }[];
+  arrivals: { stopId: string; routeId: string; arrivalUnix: number }[];
+  routeId: string;
+  stopId: string;
+  arrivalUnix: number;
+  nowSec: number;
+}): HeadwayHint | null {
+  return pickHeadwayHint({
+    obs: matchHeadwayObs(input.obs, input.routeId, input.stopId, input.nowSec * 1000),
+    scheduledGapSec: scheduledGapAtStop(input.arrivals, input.stopId, input.routeId),
+    lastSeenAgeSec: lastSeenAgeSec(input.vehicles, input.routeId, input.nowSec),
+    arrivalUnix: input.arrivalUnix,
+    nowSec: input.nowSec,
+  });
+}
+
 /** First dark row per route at this stop. Live rows already have an ETA. */
 export function pickHeadwayForDepartures(
   deps: HeadwayDeparture[],
@@ -213,13 +232,14 @@ export function pickHeadwayForDepartures(
 ): Map<string, HeadwayHint> {
   const out = new Map<string, HeadwayHint>();
   const spoken = new Set<string>();
-  const nowMs = nowSec * 1000;
   for (const d of deps) {
     if (!DARK_TIERS.has(d.tier) || spoken.has(d.routeId)) continue;
-    const hint = pickHeadwayHint({
-      obs: matchHeadwayObs(obs, d.routeId, stopId, nowMs),
-      scheduledGapSec: scheduledGapAtStop(arrivals, stopId, d.routeId),
-      lastSeenAgeSec: lastSeenAgeSec(vehicles, d.routeId, nowSec),
+    const hint = headwayHintForRoute({
+      obs,
+      vehicles,
+      arrivals,
+      routeId: d.routeId,
+      stopId,
       arrivalUnix: d.arrivalUnix,
       nowSec,
     });

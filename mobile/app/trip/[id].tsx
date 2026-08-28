@@ -318,6 +318,8 @@ function SingleLegCompanion({
         ghost={live.tripGhost}
         from={live.fix}
         dest={active.to}
+        routeId={bus.routeId}
+        stopId={bus.board.stopId}
       />
 
       {/* Watch together — prominent below the hero so friends can be

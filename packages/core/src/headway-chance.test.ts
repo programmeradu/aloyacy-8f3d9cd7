@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   chancePercent,
+  headwayHintForRoute,
   lastSeenAgeSec,
   medianGapSec,
   pickHeadwayForDepartures,
@@ -160,5 +161,27 @@ describe("pickHeadwayForDepartures", () => {
     expect(map.has("g1")).toBe(true);
     expect(map.has("g2")).toBe(false);
     expect(map.has("other")).toBe(true);
+  });
+
+  it("stamps the same number headwayHintForRoute would for that route", () => {
+    const map = pickHeadwayForDepartures(
+      [{ tripId: "g1", routeId: ROUTE, arrivalUnix: NOW + 600, tier: "ghost" }],
+      [obs()],
+      [],
+      arrivals,
+      STOP,
+      NOW,
+    );
+    expect(map.get("g1")).toEqual(
+      headwayHintForRoute({
+        obs: [obs()],
+        vehicles: [],
+        arrivals,
+        routeId: ROUTE,
+        stopId: STOP,
+        arrivalUnix: NOW + 600,
+        nowSec: NOW,
+      }),
+    );
   });
 });

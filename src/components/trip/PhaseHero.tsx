@@ -3,7 +3,9 @@
 // already reconciled by `@aloya/core/single-leg-phase` + `companion-view`.
 
 import type { SingleLegPhase } from "@aloya/core/single-leg-phase";
-import type { DestBail } from "@aloya/core/dest-bail";
+import { destBailWithHeadway, type DestBail } from "@aloya/core/dest-bail";
+import { cyClock } from "@aloya/core/cy-time";
+import { useHeadwayHint } from "@/lib/useHeadwayHint";
 import { IconClock } from "@/components/Icons";
 import { useI18n, type DictKey } from "@/lib/i18n";
 
@@ -135,6 +137,8 @@ export function PhaseSub({
   alightName,
   minToDoor,
   destBail,
+  routeId,
+  stopId,
 }: {
   phase: SingleLegPhase;
   walkInSec: number;
@@ -144,8 +148,17 @@ export function PhaseSub({
   alightName: string;
   minToDoor: number;
   destBail?: DestBail | null;
+  routeId?: string;
+  stopId?: string;
 }) {
   const { t } = useI18n();
+  const keep = destBail?.kind === "keepWait" ? destBail : null;
+  const hint = useHeadwayHint({
+    routeId: keep ? routeId : null,
+    stopId: keep ? stopId : null,
+    arrivalUnix: keep ? Math.floor(Date.now() / 1000) + keep.waitMin * 60 : null,
+  });
+  const action = destBailWithHeadway(destBail ?? null, hint);
   const text =
     phase === "leave-soon"
       ? t("trip.sub.leaveSoon", { m: Math.round(walkInSec / 60) })
@@ -164,7 +177,7 @@ export function PhaseSub({
         <IconClock className="mt-0.5 size-3.5 shrink-0 text-ink-soft" />
         <span>{text}</span>
       </p>
-      {destBail && <DestBailLine action={destBail} t={t} />}
+      {action && <DestBailLine action={action} t={t} />}
     </>
   );
 }
@@ -183,12 +196,27 @@ function DestBailLine({
           min: action.walkMin,
           route: action.routeShort,
         })
-      : action.waitMin <= 0
-        ? t("ml.destBail.keepWaitDue", { walk: action.walkMin, route: action.routeShort })
-        : t("ml.destBail.keepWait", {
-            walk: action.walkMin,
-            route: action.routeShort,
-            wait: action.waitMin,
-          });
+      : action.chancePct != null && action.beforeUnix != null
+        ? action.waitMin <= 0
+          ? t("ml.destBail.keepWaitDueChance", {
+              walk: action.walkMin,
+              route: action.routeShort,
+              pct: action.chancePct,
+              time: cyClock(action.beforeUnix * 1000),
+            })
+          : t("ml.destBail.keepWaitChance", {
+              walk: action.walkMin,
+              route: action.routeShort,
+              wait: action.waitMin,
+              pct: action.chancePct,
+              time: cyClock(action.beforeUnix * 1000),
+            })
+        : action.waitMin <= 0
+          ? t("ml.destBail.keepWaitDue", { walk: action.walkMin, route: action.routeShort })
+          : t("ml.destBail.keepWait", {
+              walk: action.walkMin,
+              route: action.routeShort,
+              wait: action.waitMin,
+            });
   return <p className="mt-2 text-[13px] leading-snug text-ink-soft">{line}</p>;
 }
