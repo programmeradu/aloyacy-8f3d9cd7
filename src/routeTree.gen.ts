@@ -22,6 +22,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MetricsRouteImport } from './routes/metrics'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as HealthzRouteImport } from './routes/healthz'
+import { Route as GreenLineRouteImport } from './routes/green-line'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
@@ -31,7 +32,6 @@ import { Route as PlanTokenRouteImport } from './routes/plan.$token'
 import { Route as InternalBedrockUsageRouteImport } from './routes/internal.bedrock-usage'
 import { Route as InternalBedrockRouteImport } from './routes/internal.bedrock'
 import { Route as GuideGettingAroundCyprusRouteImport } from './routes/guide.getting-around-cyprus'
-import { Route as GreenLineRouteImport } from './routes/green-line'
 import { Route as GroupCodeRouteImport } from './routes/group.$code'
 import { Route as EtaTokenRouteImport } from './routes/eta.$token'
 import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
@@ -54,12 +54,12 @@ import { Route as ApiPublicTrafficAlertsRouteImport } from './routes/api/public/
 import { Route as ApiPublicSttRouteImport } from './routes/api/public/stt'
 import { Route as ApiPublicStreetviewRouteImport } from './routes/api/public/streetview'
 import { Route as ApiPublicStopsRouteImport } from './routes/api/public/stops'
-import { Route as ApiPublicStopConditionRouteImport } from './routes/api/public/stop-condition'
-import { Route as ApiPublicStopPhotoRouteImport } from './routes/api/public/stop-photo'
-import { Route as ApiPublicStopSkipRouteImport } from './routes/api/public/stop-skip'
 import { Route as ApiPublicStopSkipReportRouteImport } from './routes/api/public/stop-skip-report'
-import { Route as ApiPublicStopReliabilityRouteImport } from './routes/api/public/stop-reliability'
+import { Route as ApiPublicStopSkipRouteImport } from './routes/api/public/stop-skip'
 import { Route as ApiPublicStopRunHintsRouteImport } from './routes/api/public/stop-run-hints'
+import { Route as ApiPublicStopReliabilityRouteImport } from './routes/api/public/stop-reliability'
+import { Route as ApiPublicStopPhotoRouteImport } from './routes/api/public/stop-photo'
+import { Route as ApiPublicStopConditionRouteImport } from './routes/api/public/stop-condition'
 import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snapshot'
 import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sighting'
 import { Route as ApiPublicRouteSequencesRouteImport } from './routes/api/public/route-sequences'
@@ -112,8 +112,8 @@ import { Route as ApiPublicHooksPulseEventsRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksPulseCruisesRouteImport } from './routes/api/public/hooks/pulse-cruises'
 import { Route as ApiPublicHooksPulseAirRouteImport } from './routes/api/public/hooks/pulse-air'
 import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
-import { Route as ApiPublicHooksDeviceReputationRouteImport } from './routes/api/public/hooks/device-reputation'
 import { Route as ApiPublicHooksEtaBacktestRouteImport } from './routes/api/public/hooks/eta-backtest'
+import { Route as ApiPublicHooksDeviceReputationRouteImport } from './routes/api/public/hooks/device-reputation'
 import { Route as ApiPublicHooksDepartureTickRouteImport } from './routes/api/public/hooks/departure-tick'
 import { Route as ApiPublicHooksArrivalWatchTickRouteImport } from './routes/api/public/hooks/arrival-watch-tick'
 import { Route as ApiPublicHooksArchiveLakeRouteImport } from './routes/api/public/hooks/archive-lake'
@@ -191,6 +191,11 @@ const HealthzRoute = HealthzRouteImport.update({
   path: '/healthz',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GreenLineRoute = GreenLineRouteImport.update({
+  id: '/green-line',
+  path: '/green-line',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -237,11 +242,6 @@ const GuideGettingAroundCyprusRoute =
     path: '/guide/getting-around-cyprus',
     getParentRoute: () => rootRouteImport,
   } as any)
-const GreenLineRoute = GreenLineRouteImport.update({
-  id: '/green-line',
-  path: '/green-line',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GroupCodeRoute = GroupCodeRouteImport.update({
   id: '/group/$code',
   path: '/group/$code',
@@ -354,42 +354,37 @@ const ApiPublicStopsRoute = ApiPublicStopsRouteImport.update({
   path: '/api/public/stops',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicStopConditionRoute =
-  ApiPublicStopConditionRouteImport.update({
-    id: '/api/public/stop-condition',
-    path: '/api/public/stop-condition',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicStopPhotoRoute =
-  ApiPublicStopPhotoRouteImport.update({
-    id: '/api/public/stop-photo',
-    path: '/api/public/stop-photo',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicStopSkipRoute =
-  ApiPublicStopSkipRouteImport.update({
-    id: '/api/public/stop-skip',
-    path: '/api/public/stop-skip',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicStopSkipReportRoute =
-  ApiPublicStopSkipReportRouteImport.update({
-    id: '/api/public/stop-skip-report',
-    path: '/api/public/stop-skip-report',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ApiPublicStopSkipReportRoute = ApiPublicStopSkipReportRouteImport.update({
+  id: '/api/public/stop-skip-report',
+  path: '/api/public/stop-skip-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicStopSkipRoute = ApiPublicStopSkipRouteImport.update({
+  id: '/api/public/stop-skip',
+  path: '/api/public/stop-skip',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicStopRunHintsRoute = ApiPublicStopRunHintsRouteImport.update({
+  id: '/api/public/stop-run-hints',
+  path: '/api/public/stop-run-hints',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicStopReliabilityRoute =
   ApiPublicStopReliabilityRouteImport.update({
     id: '/api/public/stop-reliability',
     path: '/api/public/stop-reliability',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicStopRunHintsRoute =
-  ApiPublicStopRunHintsRouteImport.update({
-    id: '/api/public/stop-run-hints',
-    path: '/api/public/stop-run-hints',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ApiPublicStopPhotoRoute = ApiPublicStopPhotoRouteImport.update({
+  id: '/api/public/stop-photo',
+  path: '/api/public/stop-photo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicStopConditionRoute = ApiPublicStopConditionRouteImport.update({
+  id: '/api/public/stop-condition',
+  path: '/api/public/stop-condition',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSnapshotRoute = ApiPublicSnapshotRouteImport.update({
   id: '/api/public/snapshot',
   path: '/api/public/snapshot',
@@ -668,16 +663,16 @@ const ApiPublicHooksIngestScheduleRoute =
     path: '/api/public/hooks/ingest-schedule',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksDeviceReputationRoute =
-  ApiPublicHooksDeviceReputationRouteImport.update({
-    id: '/api/public/hooks/device-reputation',
-    path: '/api/public/hooks/device-reputation',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicHooksEtaBacktestRoute =
   ApiPublicHooksEtaBacktestRouteImport.update({
     id: '/api/public/hooks/eta-backtest',
     path: '/api/public/hooks/eta-backtest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksDeviceReputationRoute =
+  ApiPublicHooksDeviceReputationRouteImport.update({
+    id: '/api/public/hooks/device-reputation',
+    path: '/api/public/hooks/device-reputation',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksDepartureTickRoute =
@@ -746,6 +741,7 @@ const ApiPublicOgGroupCodeRoute = ApiPublicOgGroupCodeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/green-line': typeof GreenLineRoute
   '/healthz': typeof HealthzRoute
   '/mcp': typeof McpRoute
   '/metrics': typeof MetricsRoute
@@ -768,7 +764,6 @@ export interface FileRoutesByFullPath {
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
   '/eta/$token': typeof EtaTokenRoute
-  '/green-line': typeof GreenLineRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/internal/bedrock': typeof InternalBedrockRoute
@@ -812,10 +807,10 @@ export interface FileRoutesByFullPath {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stop-condition': typeof ApiPublicStopConditionRoute
   '/api/public/stop-photo': typeof ApiPublicStopPhotoRoute
-  '/api/public/stop-skip': typeof ApiPublicStopSkipRoute
-  '/api/public/stop-skip-report': typeof ApiPublicStopSkipReportRoute
   '/api/public/stop-reliability': typeof ApiPublicStopReliabilityRoute
   '/api/public/stop-run-hints': typeof ApiPublicStopRunHintsRoute
+  '/api/public/stop-skip': typeof ApiPublicStopSkipRoute
+  '/api/public/stop-skip-report': typeof ApiPublicStopSkipReportRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/stt': typeof ApiPublicSttRoute
@@ -864,6 +859,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/green-line': typeof GreenLineRoute
   '/healthz': typeof HealthzRoute
   '/mcp': typeof McpRoute
   '/metrics': typeof MetricsRoute
@@ -886,7 +882,6 @@ export interface FileRoutesByTo {
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
   '/eta/$token': typeof EtaTokenRoute
-  '/green-line': typeof GreenLineRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/internal/bedrock': typeof InternalBedrockRoute
@@ -930,10 +925,10 @@ export interface FileRoutesByTo {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stop-condition': typeof ApiPublicStopConditionRoute
   '/api/public/stop-photo': typeof ApiPublicStopPhotoRoute
-  '/api/public/stop-skip': typeof ApiPublicStopSkipRoute
-  '/api/public/stop-skip-report': typeof ApiPublicStopSkipReportRoute
   '/api/public/stop-reliability': typeof ApiPublicStopReliabilityRoute
   '/api/public/stop-run-hints': typeof ApiPublicStopRunHintsRoute
+  '/api/public/stop-skip': typeof ApiPublicStopSkipRoute
+  '/api/public/stop-skip-report': typeof ApiPublicStopSkipReportRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/stt': typeof ApiPublicSttRoute
@@ -983,6 +978,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/green-line': typeof GreenLineRoute
   '/healthz': typeof HealthzRoute
   '/mcp': typeof McpRoute
   '/metrics': typeof MetricsRoute
@@ -1005,7 +1001,6 @@ export interface FileRoutesById {
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
   '/eta/$token': typeof EtaTokenRoute
-  '/green-line': typeof GreenLineRoute
   '/group/$code': typeof GroupCodeRoute
   '/guide/getting-around-cyprus': typeof GuideGettingAroundCyprusRoute
   '/internal/bedrock': typeof InternalBedrockRoute
@@ -1049,10 +1044,10 @@ export interface FileRoutesById {
   '/api/public/snapshot': typeof ApiPublicSnapshotRoute
   '/api/public/stop-condition': typeof ApiPublicStopConditionRoute
   '/api/public/stop-photo': typeof ApiPublicStopPhotoRoute
-  '/api/public/stop-skip': typeof ApiPublicStopSkipRoute
-  '/api/public/stop-skip-report': typeof ApiPublicStopSkipReportRoute
   '/api/public/stop-reliability': typeof ApiPublicStopReliabilityRoute
   '/api/public/stop-run-hints': typeof ApiPublicStopRunHintsRoute
+  '/api/public/stop-skip': typeof ApiPublicStopSkipRoute
+  '/api/public/stop-skip-report': typeof ApiPublicStopSkipReportRoute
   '/api/public/stops': typeof ApiPublicStopsRoute
   '/api/public/streetview': typeof ApiPublicStreetviewRoute
   '/api/public/stt': typeof ApiPublicSttRoute
@@ -1103,6 +1098,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/green-line'
     | '/healthz'
     | '/mcp'
     | '/metrics'
@@ -1125,7 +1121,6 @@ export interface FileRouteTypes {
     | '/debug/graph'
     | '/debug/multileg'
     | '/eta/$token'
-    | '/green-line'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
     | '/internal/bedrock'
@@ -1169,10 +1164,10 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/stop-condition'
     | '/api/public/stop-photo'
-    | '/api/public/stop-skip'
-    | '/api/public/stop-skip-report'
     | '/api/public/stop-reliability'
     | '/api/public/stop-run-hints'
+    | '/api/public/stop-skip'
+    | '/api/public/stop-skip-report'
     | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/stt'
@@ -1221,6 +1216,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/green-line'
     | '/healthz'
     | '/mcp'
     | '/metrics'
@@ -1243,7 +1239,6 @@ export interface FileRouteTypes {
     | '/debug/graph'
     | '/debug/multileg'
     | '/eta/$token'
-    | '/green-line'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
     | '/internal/bedrock'
@@ -1287,10 +1282,10 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/stop-condition'
     | '/api/public/stop-photo'
-    | '/api/public/stop-skip'
-    | '/api/public/stop-skip-report'
     | '/api/public/stop-reliability'
     | '/api/public/stop-run-hints'
+    | '/api/public/stop-skip'
+    | '/api/public/stop-skip-report'
     | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/stt'
@@ -1339,6 +1334,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/green-line'
     | '/healthz'
     | '/mcp'
     | '/metrics'
@@ -1361,7 +1357,6 @@ export interface FileRouteTypes {
     | '/debug/graph'
     | '/debug/multileg'
     | '/eta/$token'
-    | '/green-line'
     | '/group/$code'
     | '/guide/getting-around-cyprus'
     | '/internal/bedrock'
@@ -1405,10 +1400,10 @@ export interface FileRouteTypes {
     | '/api/public/snapshot'
     | '/api/public/stop-condition'
     | '/api/public/stop-photo'
-    | '/api/public/stop-skip'
-    | '/api/public/stop-skip-report'
     | '/api/public/stop-reliability'
     | '/api/public/stop-run-hints'
+    | '/api/public/stop-skip'
+    | '/api/public/stop-skip-report'
     | '/api/public/stops'
     | '/api/public/streetview'
     | '/api/public/stt'
@@ -1458,6 +1453,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  GreenLineRoute: typeof GreenLineRoute
   HealthzRoute: typeof HealthzRoute
   McpRoute: typeof McpRoute
   MetricsRoute: typeof MetricsRoute
@@ -1480,7 +1476,6 @@ export interface RootRouteChildren {
   DebugGraphRoute: typeof DebugGraphRoute
   DebugMultilegRoute: typeof DebugMultilegRoute
   EtaTokenRoute: typeof EtaTokenRoute
-  GreenLineRoute: typeof GreenLineRoute
   GroupCodeRoute: typeof GroupCodeRoute
   GuideGettingAroundCyprusRoute: typeof GuideGettingAroundCyprusRoute
   InternalBedrockRoute: typeof InternalBedrockRoute
@@ -1524,10 +1519,10 @@ export interface RootRouteChildren {
   ApiPublicSnapshotRoute: typeof ApiPublicSnapshotRoute
   ApiPublicStopConditionRoute: typeof ApiPublicStopConditionRoute
   ApiPublicStopPhotoRoute: typeof ApiPublicStopPhotoRoute
-  ApiPublicStopSkipRoute: typeof ApiPublicStopSkipRoute
-  ApiPublicStopSkipReportRoute: typeof ApiPublicStopSkipReportRoute
   ApiPublicStopReliabilityRoute: typeof ApiPublicStopReliabilityRoute
   ApiPublicStopRunHintsRoute: typeof ApiPublicStopRunHintsRoute
+  ApiPublicStopSkipRoute: typeof ApiPublicStopSkipRoute
+  ApiPublicStopSkipReportRoute: typeof ApiPublicStopSkipReportRoute
   ApiPublicStopsRoute: typeof ApiPublicStopsRoute
   ApiPublicStreetviewRoute: typeof ApiPublicStreetviewRoute
   ApiPublicSttRoute: typeof ApiPublicSttRoute
@@ -1666,6 +1661,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HealthzRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/green-line': {
+      id: '/green-line'
+      path: '/green-line'
+      fullPath: '/green-line'
+      preLoaderRoute: typeof GreenLineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -1727,13 +1729,6 @@ declare module '@tanstack/react-router' {
       path: '/guide/getting-around-cyprus'
       fullPath: '/guide/getting-around-cyprus'
       preLoaderRoute: typeof GuideGettingAroundCyprusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/green-line': {
-      id: '/green-line'
-      path: '/green-line'
-      fullPath: '/green-line'
-      preLoaderRoute: typeof GreenLineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/group/$code': {
@@ -1890,18 +1885,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStopsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/stop-condition': {
-      id: '/api/public/stop-condition'
-      path: '/api/public/stop-condition'
-      fullPath: '/api/public/stop-condition'
-      preLoaderRoute: typeof ApiPublicStopConditionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/stop-photo': {
-      id: '/api/public/stop-photo'
-      path: '/api/public/stop-photo'
-      fullPath: '/api/public/stop-photo'
-      preLoaderRoute: typeof ApiPublicStopPhotoRouteImport
+    '/api/public/stop-skip-report': {
+      id: '/api/public/stop-skip-report'
+      path: '/api/public/stop-skip-report'
+      fullPath: '/api/public/stop-skip-report'
+      preLoaderRoute: typeof ApiPublicStopSkipReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/stop-skip': {
@@ -1911,11 +1899,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStopSkipRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/stop-skip-report': {
-      id: '/api/public/stop-skip-report'
-      path: '/api/public/stop-skip-report'
-      fullPath: '/api/public/stop-skip-report'
-      preLoaderRoute: typeof ApiPublicStopSkipReportRouteImport
+    '/api/public/stop-run-hints': {
+      id: '/api/public/stop-run-hints'
+      path: '/api/public/stop-run-hints'
+      fullPath: '/api/public/stop-run-hints'
+      preLoaderRoute: typeof ApiPublicStopRunHintsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/stop-reliability': {
@@ -1925,14 +1913,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStopReliabilityRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/stop-run-hints': {
-      id: '/api/public/stop-run-hints'
-      path: '/api/public/stop-run-hints'
-      fullPath: '/api/public/stop-run-hints'
-      preLoaderRoute: typeof ApiPublicStopRunHintsRouteImport
+    '/api/public/stop-photo': {
+      id: '/api/public/stop-photo'
+      path: '/api/public/stop-photo'
+      fullPath: '/api/public/stop-photo'
+      preLoaderRoute: typeof ApiPublicStopPhotoRouteImport
       parentRoute: typeof rootRouteImport
     }
-
+    '/api/public/stop-condition': {
+      id: '/api/public/stop-condition'
+      path: '/api/public/stop-condition'
+      fullPath: '/api/public/stop-condition'
+      preLoaderRoute: typeof ApiPublicStopConditionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/snapshot': {
       id: '/api/public/snapshot'
       path: '/api/public/snapshot'
@@ -2297,18 +2291,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksIngestScheduleRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/device-reputation': {
-      id: '/api/public/hooks/device-reputation'
-      path: '/api/public/hooks/device-reputation'
-      fullPath: '/api/public/hooks/device-reputation'
-      preLoaderRoute: typeof ApiPublicHooksDeviceReputationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/hooks/eta-backtest': {
       id: '/api/public/hooks/eta-backtest'
       path: '/api/public/hooks/eta-backtest'
       fullPath: '/api/public/hooks/eta-backtest'
       preLoaderRoute: typeof ApiPublicHooksEtaBacktestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/device-reputation': {
+      id: '/api/public/hooks/device-reputation'
+      path: '/api/public/hooks/device-reputation'
+      fullPath: '/api/public/hooks/device-reputation'
+      preLoaderRoute: typeof ApiPublicHooksDeviceReputationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/departure-tick': {
@@ -2407,6 +2401,7 @@ const ApiPublicWalletRouteWithChildren = ApiPublicWalletRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GreenLineRoute: GreenLineRoute,
   HealthzRoute: HealthzRoute,
   McpRoute: McpRoute,
   MetricsRoute: MetricsRoute,
@@ -2430,7 +2425,6 @@ const rootRouteChildren: RootRouteChildren = {
   DebugGraphRoute: DebugGraphRoute,
   DebugMultilegRoute: DebugMultilegRoute,
   EtaTokenRoute: EtaTokenRoute,
-  GreenLineRoute: GreenLineRoute,
   GroupCodeRoute: GroupCodeRoute,
   GuideGettingAroundCyprusRoute: GuideGettingAroundCyprusRoute,
   InternalBedrockRoute: InternalBedrockRoute,
@@ -2474,11 +2468,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSnapshotRoute: ApiPublicSnapshotRoute,
   ApiPublicStopConditionRoute: ApiPublicStopConditionRoute,
   ApiPublicStopPhotoRoute: ApiPublicStopPhotoRoute,
-  ApiPublicStopSkipRoute: ApiPublicStopSkipRoute,
-  ApiPublicStopSkipReportRoute: ApiPublicStopSkipReportRoute,
   ApiPublicStopReliabilityRoute: ApiPublicStopReliabilityRoute,
   ApiPublicStopRunHintsRoute: ApiPublicStopRunHintsRoute,
-
+  ApiPublicStopSkipRoute: ApiPublicStopSkipRoute,
+  ApiPublicStopSkipReportRoute: ApiPublicStopSkipReportRoute,
   ApiPublicStopsRoute: ApiPublicStopsRoute,
   ApiPublicStreetviewRoute: ApiPublicStreetviewRoute,
   ApiPublicSttRoute: ApiPublicSttRoute,
