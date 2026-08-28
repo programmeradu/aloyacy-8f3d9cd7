@@ -12,7 +12,6 @@ const PATHS = [
   "/wallet",
   "/privacy",
   "/terms",
-  "/guide/getting-around-cyprus",
   "/airport/lca",
   "/airport/pfo",
 ];

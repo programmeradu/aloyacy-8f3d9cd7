@@ -15,7 +15,6 @@ interface SitemapEntry {
 // waste crawl budget on personalized/thin app states.
 const entries: SitemapEntry[] = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
-  { path: "/guide/getting-around-cyprus", changefreq: "monthly", priority: "0.8" },
   { path: "/airport/lca", changefreq: "daily", priority: "0.9" },
   { path: "/airport/pfo", changefreq: "daily", priority: "0.9" },
   { path: "/pulse", changefreq: "daily", priority: "0.8" },

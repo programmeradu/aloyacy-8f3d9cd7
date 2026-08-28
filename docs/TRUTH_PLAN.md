@@ -506,11 +506,17 @@ truth.
    re-open the `gen()`-as-live lie.
 2. **Duplicate content.** `/guide/getting-around-cyprus` exists in
    both repos. Home is marketing; 301 the app copy.
+   **Done.** `app.aloya.cy/guide/getting-around-cyprus` 301s to
+   `aloya.cy/guide/getting-around-cyprus`. Dropped from the app sitemap.
 3. **Broken hreflang.** The guide declares `en`, `el` and `x-default`
    all pointing at the same URL. There is no separately addressable
    Greek URL, so Greek content cannot rank. Real locale paths
    (`/el/...`) with reciprocal alternates. Do this before any other
    language.
+   **Done.** Greek lives at `/el/...`. The router strips the prefix so
+   the same pages render. Reciprocal hreflang on every page. Sitemap
+   lists both with `xhtml:link`. Locale switcher writes the URL, not
+   just localStorage.
 4. **One vocabulary.** Tier names, confidence wording and accuracy
    claims come from `packages/core` (or a tiny published `@aloya/truth`
    the explorer can import). Marketing can never claim something the
@@ -753,6 +759,8 @@ Already true in this repo, and why the OS is a credible bet:
 - Thin B4 on the stop: skip this dark row for a live same-route (same
   headsign) or a faster live other route, or name Bolt/taxi when it was
   the last tonight. Walk + RAPTOR re-plan still need a destination.
+- E0.2: app `/guide/getting-around-cyprus` 301s to marketing.
+- E0.3: Greek URLs at `aloya.cy/el/...` with reciprocal hreflang.
 
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.
@@ -766,7 +774,6 @@ Not yet true, and why we are still a portal:
 - Pulse-cron Observability is on in config, but the cron stream is not
   public (`workers.dev` disabled). Secret-rotation 401s on the minute
   loop still need a `wrangler tail` to confirm.
-- Marketing boards are still `gen()` frequency tables.
 - No versioned Truth API, no embed, no operator report card.
 - Motion is a balance viewer via a JCC CORS proxy.
 - Modes around the planner are cards and deep-links.
