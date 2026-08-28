@@ -2,23 +2,18 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pressable, Text, View } from "react-native";
-import { nextStopAsk, type StopAttribute, type StopConsensus } from "@aloya/core/stop-condition";
+import {
+  nextStopAsk,
+  stopAskChoiceLabel,
+  stopAskChoices,
+  stopConditionAsk,
+  stopConditionChip,
+  type StopAttribute,
+  type StopConsensus,
+} from "@aloya/core/stop-condition";
 import { palette } from "@/constants/theme";
 import { API_BASE } from "@/lib/api";
 import { getOrCreateDeviceId } from "@/lib/push";
-
-const CHIP: Record<string, string> = {
-  "has_shelter:yes": "Shelter",
-  "has_shelter:no": "No shelter",
-  "has_seating:yes": "Seating",
-  "has_seating:no": "No seating",
-  "wheelchair_access:yes": "Step-free",
-};
-
-const ASK: Record<string, string> = {
-  has_shelter: "Shelter here?",
-  has_seating: "A seat here?",
-};
 
 async function postCondition(body: unknown): Promise<StopConsensus[]> {
   const res = await fetch(`${API_BASE}/api/public/stop-condition`, {
@@ -40,8 +35,9 @@ export function StopCondition({ stopId }: { stopId: string }) {
   });
   const rows = q.data ?? [];
   const ask = nextStopAsk(rows);
+  const choices = ask ? (stopAskChoices(ask) ?? []) : [];
   const report = useMutation({
-    mutationFn: async (input: { attribute: StopAttribute; value: "yes" | "no" }) =>
+    mutationFn: async (input: { attribute: StopAttribute; value: string }) =>
       postCondition({
         action: "report",
         deviceId: await getOrCreateDeviceId(),
@@ -53,13 +49,14 @@ export function StopCondition({ stopId }: { stopId: string }) {
   });
   const chips = rows
     .map((r) => {
-      const label = CHIP[`${r.attribute}:${r.value}`];
+      const label = stopConditionChip(r.attribute, r.value);
       if (!label) return null;
       return { label, n: r.n, source: r.source, id: `${r.attribute}:${r.value}` };
     })
     .filter((c): c is { label: string; n: number; source: StopConsensus["source"]; id: string } => c != null);
 
   if (chips.length === 0 && !ask) return null;
+  const askLine = ask ? stopConditionAsk(ask) : null;
 
   return (
     <View style={{ marginBottom: 16 }}>
@@ -82,52 +79,38 @@ export function StopCondition({ stopId }: { stopId: string }) {
           ))}
         </View>
       )}
-      {ask && ASK[ask] ? (
-        <View
-          style={{
-            marginTop: 12,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-          }}
-        >
-          <Text style={{ fontFamily: "Geist_500Medium", fontSize: 13, color: palette.ink, flex: 1 }}>
-            {ASK[ask]}
+      {ask && askLine && choices.length > 0 ? (
+        <View style={{ marginTop: 12, gap: 10 }}>
+          <Text style={{ fontFamily: "Geist_500Medium", fontSize: 13, color: palette.ink }}>
+            {askLine}
           </Text>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Pressable
-              disabled={report.isPending}
-              onPress={() => report.mutate({ attribute: ask, value: "yes" })}
-              style={{
-                backgroundColor: palette.ink,
-                borderRadius: 999,
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                opacity: report.isPending ? 0.5 : 1,
-              }}
-            >
-              <Text style={{ fontFamily: "Geist_600SemiBold", fontSize: 12, color: palette.limestone }}>
-                Yes
-              </Text>
-            </Pressable>
-            <Pressable
-              disabled={report.isPending}
-              onPress={() => report.mutate({ attribute: ask, value: "no" })}
-              style={{
-                backgroundColor: palette.white,
-                borderRadius: 999,
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderWidth: 1,
-                borderColor: palette.line,
-                opacity: report.isPending ? 0.5 : 1,
-              }}
-            >
-              <Text style={{ fontFamily: "Geist_600SemiBold", fontSize: 12, color: palette.ink }}>
-                No
-              </Text>
-            </Pressable>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {choices.map((value, i) => (
+              <Pressable
+                key={value}
+                disabled={report.isPending}
+                onPress={() => report.mutate({ attribute: ask, value })}
+                style={{
+                  backgroundColor: i === 0 ? palette.ink : palette.white,
+                  borderRadius: 999,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderWidth: i === 0 ? 0 : 1,
+                  borderColor: palette.line,
+                  opacity: report.isPending ? 0.5 : 1,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: "Geist_600SemiBold",
+                    fontSize: 12,
+                    color: i === 0 ? palette.limestone : palette.ink,
+                  }}
+                >
+                  {stopAskChoiceLabel(value) ?? value}
+                </Text>
+              </Pressable>
+            ))}
           </View>
         </View>
       ) : null}

@@ -1,7 +1,7 @@
 // Stop condition — ground truth that is not an ETA.
-// One-tap attributes first. Photos, lighting, walkability and wheelchair
-// one-tap stay later. Unknown stays silent. Seed is the curated Nicosia
-// hubs; riders overwrite once two devices agree.
+// One-tap attributes first. Photos, lighting, wheelchair one-tap and
+// routing filters stay later. Unknown stays silent. Seed is the curated
+// Nicosia hubs; riders overwrite once two devices agree.
 
 export const CONSENSUS_MIN = 2;
 export const REPORT_RATE_LIMIT_SEC = 60;
@@ -30,8 +30,8 @@ export const STOP_ATTRIBUTE_VALUES = {
   stop_is_ambiguous: ["yes", "no"],
 } as const satisfies Record<StopAttribute, readonly string[]>;
 
-/** First questions on the stop. One at a time, yes/no. */
-export const ASK_FIRST: StopAttribute[] = ["has_shelter", "has_seating"];
+/** First questions on the stop. One at a time. */
+export const ASK_FIRST: StopAttribute[] = ["has_shelter", "has_seating", "reachable_on_foot"];
 
 export type StopReport = {
   stopId: string;
@@ -104,6 +104,12 @@ export function nextStopAsk(rows: StopConsensus[]): StopAttribute | null {
   return null;
 }
 
+/** Allowed values for the current ask — same set the API accepts. */
+export function stopAskChoices(attr: StopAttribute): readonly string[] | null {
+  if (!ASK_FIRST.includes(attr)) return null;
+  return STOP_ATTRIBUTE_VALUES[attr];
+}
+
 export type SeedAmenity = {
   stopId: string;
   shelter: boolean;
@@ -158,11 +164,23 @@ export function stopConditionChip(attr: StopAttribute, value: string): string | 
   if (attr === "has_seating" && value === "yes") return "Seating";
   if (attr === "has_seating" && value === "no") return "No seating";
   if (attr === "wheelchair_access" && value === "yes") return "Step-free";
+  if (attr === "reachable_on_foot" && value === "yes") return "On foot";
+  if (attr === "reachable_on_foot" && value === "no_crossing") return "No crossing";
+  if (attr === "reachable_on_foot" && value === "no_sidewalk") return "No sidewalk";
   return null;
 }
 
 export function stopConditionAsk(attr: StopAttribute): string | null {
   if (attr === "has_shelter") return "Shelter here?";
   if (attr === "has_seating") return "A seat here?";
+  if (attr === "reachable_on_foot") return "Walk here?";
+  return null;
+}
+
+export function stopAskChoiceLabel(value: string): string | null {
+  if (value === "yes") return "Yes";
+  if (value === "no") return "No";
+  if (value === "no_crossing") return "No crossing";
+  if (value === "no_sidewalk") return "No sidewalk";
   return null;
 }

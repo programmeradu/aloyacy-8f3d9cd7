@@ -1,28 +1,37 @@
 // One-tap stop condition. Silent when we don't know. One question at a time.
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { nextStopAsk, type StopAttribute, type StopConsensus } from "@aloya/core/stop-condition";
+import {
+  nextStopAsk,
+  stopAskChoices,
+  type StopAttribute,
+  type StopConsensus,
+} from "@aloya/core/stop-condition";
 import { getDeviceId } from "@/lib/pwa";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type DictKey } from "@/lib/i18n";
 
-const CHIP_KEY: Record<
-  string,
-  | "stop.cond.shelterYes"
-  | "stop.cond.shelterNo"
-  | "stop.cond.seatingYes"
-  | "stop.cond.seatingNo"
-  | "stop.cond.stepFree"
-> = {
+const CHIP_KEY: Record<string, DictKey> = {
   "has_shelter:yes": "stop.cond.shelterYes",
   "has_shelter:no": "stop.cond.shelterNo",
   "has_seating:yes": "stop.cond.seatingYes",
   "has_seating:no": "stop.cond.seatingNo",
   "wheelchair_access:yes": "stop.cond.stepFree",
+  "reachable_on_foot:yes": "stop.cond.walkYes",
+  "reachable_on_foot:no_crossing": "stop.cond.walkNoCrossing",
+  "reachable_on_foot:no_sidewalk": "stop.cond.walkNoSidewalk",
 };
 
-const ASK_KEY: Record<string, "stop.cond.askShelter" | "stop.cond.askSeating"> = {
+const ASK_KEY: Record<string, DictKey> = {
   has_shelter: "stop.cond.askShelter",
   has_seating: "stop.cond.askSeating",
+  reachable_on_foot: "stop.cond.askWalk",
+};
+
+const CHOICE_KEY: Record<string, DictKey> = {
+  yes: "stop.cond.yes",
+  no: "stop.cond.no",
+  no_crossing: "stop.cond.noCrossing",
+  no_sidewalk: "stop.cond.noSidewalk",
 };
 
 async function postCondition(body: unknown): Promise<StopConsensus[]> {
@@ -46,8 +55,9 @@ export function StopCondition({ stopId }: { stopId: string }) {
   });
   const rows = q.data ?? [];
   const ask = nextStopAsk(rows);
+  const choices = ask ? (stopAskChoices(ask) ?? []) : [];
   const report = useMutation({
-    mutationFn: (input: { attribute: StopAttribute; value: "yes" | "no" }) =>
+    mutationFn: (input: { attribute: StopAttribute; value: string }) =>
       postCondition({
         action: "report",
         deviceId: getDeviceId(),
@@ -63,10 +73,7 @@ export function StopCondition({ stopId }: { stopId: string }) {
       if (!key) return null;
       return { key, n: r.n, source: r.source };
     })
-    .filter(
-      (c): c is { key: (typeof CHIP_KEY)[string]; n: number; source: StopConsensus["source"] } =>
-        c != null,
-    );
+    .filter((c): c is { key: DictKey; n: number; source: StopConsensus["source"] } => c != null);
 
   if (chips.length === 0 && !ask) return null;
 
@@ -90,26 +97,25 @@ export function StopCondition({ stopId }: { stopId: string }) {
           ))}
         </ul>
       )}
-      {ask && ASK_KEY[ask] && (
-        <div className="mt-3 flex items-center justify-between gap-3">
+      {ask && ASK_KEY[ask] && choices.length > 0 && (
+        <div className="mt-3">
           <p className="text-[13px] text-ink">{t(ASK_KEY[ask])}</p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={report.isPending}
-              onClick={() => report.mutate({ attribute: ask, value: "yes" })}
-              className="rounded-full bg-ink px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone disabled:opacity-50"
-            >
-              {t("stop.cond.yes")}
-            </button>
-            <button
-              type="button"
-              disabled={report.isPending}
-              onClick={() => report.mutate({ attribute: ask, value: "no" })}
-              className="rounded-full bg-card px-3 py-1.5 font-sans text-[12px] font-semibold text-ink ring-1 ring-line disabled:opacity-50"
-            >
-              {t("stop.cond.no")}
-            </button>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {choices.map((value, i) => (
+              <button
+                key={value}
+                type="button"
+                disabled={report.isPending}
+                onClick={() => report.mutate({ attribute: ask, value })}
+                className={
+                  i === 0
+                    ? "rounded-full bg-ink px-3 py-1.5 font-sans text-[12px] font-semibold text-limestone disabled:opacity-50"
+                    : "rounded-full bg-card px-3 py-1.5 font-sans text-[12px] font-semibold text-ink ring-1 ring-line disabled:opacity-50"
+                }
+              >
+                {t(CHOICE_KEY[value] ?? "stop.cond.yes")}
+              </button>
+            ))}
           </div>
         </div>
       )}
