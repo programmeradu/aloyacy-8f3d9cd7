@@ -8,7 +8,12 @@ know. The API / SDK / embed is how operators, hotels, municipalities and
 the state plug in. Motion remains the card. We remain the truth.
 
 This document is the working plan. It replaces the earlier rider-only
-Truth & Decision draft. Ground rule for every workstream:
+Truth & Decision draft. The founder kit — elevator pitches, demo
+script, objections, asks — is [`docs/PITCH_BOOK.md`](PITCH_BOOK.md).
+Same claims as the rider. Update that book’s “What exists today”
+table in the same commit as a rider-facing slice.
+
+Ground rule for every workstream:
 
 > **No claim ships without the measurement that proves it, and no
 > measurement lives only in an admin page.** If we can prove it, a rider
@@ -792,6 +797,25 @@ identical in both repos.
 
 ---
 
+## Workstream P — Pitch book (founder kit)
+
+The product is the proof. The pitch is the same sentences in a room.
+
+Living file: [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Plain language. 15 s /
+30 s / 2 min. Hotel, ministry, angel, grant. A five-minute demo on a
+real stop. Objections. Asks. Words we never say.
+
+This is not a marketing site and not a new `/internal` page (those
+surfaces stay frozen). It is the kit a solo founder copies into a
+deck or a conversation. Claims must match the rider. When a
+rider-facing slice ships, update the “What exists today” table in the
+same commit as this checklist.
+
+Grant mechanics stay in `/internal/funding` (RIF, ESF+, CEF). The
+pitch book is what you say before the form.
+
+---
+
 ## Progress checklist (living)
 
 One place to see what shipped. Detail stays in the workstream sections.
@@ -830,6 +854,7 @@ Update this table in the same commit as the slice.
 | G1 | Airport as a job | **Shipped** first slice (Kapnos vs city bus vs taxi rank). Dest-aware total cost **open.** |
 | G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
+| P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
 **Next unblocked:** D1 `lowFloor` filter, then C2 corroboration / C3 cold-start ask.
 
