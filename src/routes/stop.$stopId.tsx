@@ -310,6 +310,7 @@ function StopDetail() {
                       tier: d.eta.tier,
                       confidence: d.eta.confidence,
                       operatorEtaMin: d.eta.operatorEtaMin,
+                      pingAgeSec: d.eta.pingAgeSec,
                     }}
                     noShow={pickNoShow(noShowSlots, d.routeId, d.arrivalUnix, Date.now())}
                     lastTonight={

@@ -124,12 +124,14 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   const operatorEtaSec = Math.max(0, next.arrivalUnix - now);
   const operatorEtaMin = Math.round(operatorEtaSec / 60);
   const rawPingAgeSec = vehicle ? Math.max(0, now - vehicle.timestamp) : Infinity;
-  // A rider sighting acts as a synthetic fresh ping: use min(real ping age,
-  // sighting age) so the classifier sees a young enough signal to upgrade.
+  // A rider sighting *or* a rider-GPS vehicle ping upgrades the trip to
+  // rider-confirmed. Use the younger of the two ages.
   const sightingAge = input.riderConfirmedAgeSec;
-  const riderConfirmed = typeof sightingAge === "number" && Number.isFinite(sightingAge);
+  const fromRiderPing = vehicle?.source === "rider" || vehicle?.source === "feed+rider";
+  const riderConfirmed =
+    fromRiderPing || (typeof sightingAge === "number" && Number.isFinite(sightingAge));
   const pingAgeSec = riderConfirmed
-    ? Math.min(rawPingAgeSec, sightingAge as number)
+    ? Math.min(rawPingAgeSec, typeof sightingAge === "number" ? sightingAge : Infinity)
     : rawPingAgeSec;
   const hasVehicleForClassifier = !!vehicle || riderConfirmed;
 

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   companionBanners,
   shouldOfferSighting,
+  shouldAskStillOnBoard,
   phaseHaptic,
   changesLabel,
   type BannerInput,
@@ -106,6 +107,31 @@ describe("shouldOfferSighting", () => {
   });
   it("declines with an unknown distance", () => {
     expect(shouldOfferSighting({ ...s, metersToTarget: Number.NaN })).toBe(false);
+  });
+});
+
+describe("shouldAskStillOnBoard", () => {
+  const a = {
+    active: true,
+    phase: "on-bus",
+    tripGhost: true,
+    vehicleLost: false,
+    hasCurrentRide: true,
+  };
+  it("asks once the rider is on a ghost trip", () => {
+    expect(shouldAskStillOnBoard(a)).toBe(true);
+  });
+  it("asks when the feed lost the vehicle", () => {
+    expect(shouldAskStillOnBoard({ ...a, tripGhost: false, vehicleLost: true })).toBe(true);
+  });
+  it("stays quiet while the feed is healthy", () => {
+    expect(shouldAskStillOnBoard({ ...a, tripGhost: false, vehicleLost: false })).toBe(false);
+  });
+  it("does not ask at the stop — that is a sighting", () => {
+    expect(shouldAskStillOnBoard({ ...a, phase: "waiting-to-board" })).toBe(false);
+  });
+  it("asks on the alight-soon card too", () => {
+    expect(shouldAskStillOnBoard({ ...a, phase: "alight-soon" })).toBe(true);
   });
 });
 

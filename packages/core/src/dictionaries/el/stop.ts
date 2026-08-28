@@ -38,7 +38,8 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.noShowWeekend": "Αυτό το {time} δεν ήρθε {missed} από τα τελευταία {days} σαββατοκύριακα.",
   "stop.lastTonight": "Τελευταίο λεωφορείο {route} απόψε. Μετά είναι Bolt, ταξί, ή αύριο.",
   "stop.headwayObserved": "Το λεωφορείο {route} περνά περίπου κάθε {min} λεπτά εδώ {when}.",
-  "stop.headwayScheduled": "Το πρόγραμμα έχει λεωφορείο {route} περίπου κάθε {min} λεπτά εδώ {when}.",
+  "stop.headwayScheduled":
+    "Το πρόγραμμα έχει λεωφορείο {route} περίπου κάθε {min} λεπτά εδώ {when}.",
   "stop.headwayLastSeen": "Το τελευταίο φάνηκε πριν {min} λεπτά.",
   "stop.headwayChance": "Περίπου {pct}% πιθανότητα να έρθει πριν τις {time}.",
   "stop.headway.weekdayMorning": "τις καθημερινές το πρωί",
@@ -50,7 +51,9 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.headway.weekendEvening": "τα σαββατοκύριακα το απόγευμα",
   "stop.headway.weekendNight": "τα σαββατοκύριακα το βράδυ",
   "stop.bailSkip": "Το λεωφορείο {route} δεν είναι στον χάρτη. Το επόμενο είναι, σε {min} λεπτά.",
-  "stop.bailOther": "Το λεωφορείο {alt} είναι στον χάρτη, σε {min} λεπτά. Το λεωφορείο {route} όχι.",
+  "stop.bailOther":
+    "Το λεωφορείο {alt} είναι στον χάρτη, σε {min} λεπτά. Το λεωφορείο {route} όχι.",
   "stop.bailLast":
     "Το λεωφορείο {route} ήταν το τελευταίο απόψε και δεν είναι στον χάρτη. Bolt, ταξί, ή αύριο.",
+  "stop.riderChain": "από επιβάτη στο λεωφορείο, πριν {n} δ",
 };

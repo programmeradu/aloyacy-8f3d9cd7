@@ -43,13 +43,19 @@ export function SightingButton({
   stopId,
   lat,
   lng,
+  kind = "stop",
+  routeShort,
 }: {
   tripId: string;
   routeId?: string;
   stopId?: string;
   lat: number;
   lng: number;
+  kind?: "stop" | "onboard";
+  routeShort?: string;
 }) {
+  const onboard = kind === "onboard";
+  const code = routeShort ?? "";
   const [submitting, setSubmitting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [confirmedAt, setConfirmedAt] = useState<number | null>(null);
@@ -130,12 +136,20 @@ export function SightingButton({
 
   if (confirmed) {
     const tone = summary ? toneForConfidence(summary.confidence) : palette.aegeanDeep;
-    const label = summary ? confidenceLabel(summary.confidence) : "Thanks — logged";
+    const label = summary
+      ? confidenceLabel(summary.confidence)
+      : onboard
+        ? "Thanks — they're seeing this bus"
+        : "Thanks — logged";
     const ridersLine = summary
       ? summary.count <= 1
-        ? "You're the first rider to confirm this bus."
+        ? onboard
+          ? "You're the first rider on this bus to confirm it."
+          : "You're the first rider to confirm this bus."
         : `${summary.count} riders have confirmed this bus in the last 90s.`
-      : "Other riders will see this bus is really there.";
+      : onboard
+        ? `Other riders will see Bus ${code} as rider-confirmed.`
+        : "Other riders will see this bus is really there.";
     return (
       <View
         style={{
@@ -246,7 +260,9 @@ export function SightingButton({
         }}
       />
       <View style={{ flex: 1 }}>
-        <Text style={{ ...KICKER, color: palette.inkSoft }}>You see the bus?</Text>
+        <Text style={{ ...KICKER, color: palette.inkSoft }}>
+          {onboard ? `Still on Bus ${code}?` : "You see the bus?"}
+        </Text>
         <Text
           style={{
             marginTop: 4,
@@ -256,7 +272,7 @@ export function SightingButton({
             color: palette.ink,
           }}
         >
-          {submitting ? "Sending…" : "I see this bus"}
+          {submitting ? "Sending…" : onboard ? "Yes — I'm on it" : "I see this bus"}
         </Text>
         <Text
           style={{
@@ -267,7 +283,9 @@ export function SightingButton({
             color: palette.inkSoft,
           }}
         >
-          One tap tells every other rider the bus is really here.
+          {onboard
+            ? "People at the next stops are waiting. Your tap is what they see as rider-confirmed."
+            : "One tap tells every other rider the bus is really here."}
         </Text>
       </View>
       {submitting ? (

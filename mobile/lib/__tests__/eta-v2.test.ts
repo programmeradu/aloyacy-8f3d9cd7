@@ -86,6 +86,16 @@ describe("smartEtaV2", () => {
     expect(result!.tier).toBe("rider-confirmed");
   });
 
+  it("labels a rider-GPS vehicle as rider-confirmed without a separate sighting", () => {
+    const arrivals = [arrival({ arrivalUnix: NOW + 300 })];
+    const vehicles = [vehicle({ timestamp: NOW - 8, source: "rider" })];
+    const result = smartEtaV2({
+      stopId: "s1", arrivals, vehicles, nowSec: NOW,
+    });
+    expect(result!.tier).toBe("rider-confirmed");
+    expect(result!.pingAgeSec).toBe(8);
+  });
+
   it("computes a geometry-based ETA across multiple stops with segment stats", () => {
     setStops([
       { id: "s0", agency: "urban", lat: 35.17, lng: 33.36 } as any,

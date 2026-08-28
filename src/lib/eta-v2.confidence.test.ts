@@ -244,6 +244,17 @@ describe("smartEtaV2 — rider-confirmed upgrades", () => {
     expect(out.pingAgeSec).toBe(5);
     expect(out.tier).toBe("rider-confirmed");
   });
+
+  it("labels a rider-GPS vehicle as rider-confirmed without a separate sighting", () => {
+    const out = smartEtaV2({
+      stopId: "C",
+      arrivals,
+      vehicles: [vehicle({ lat: 35.0, lng: 33.0, timestamp: NOW - 8, source: "rider" })],
+      nowSec: NOW,
+    })!;
+    expect(out.tier).toBe("rider-confirmed");
+    expect(out.pingAgeSec).toBe(8);
+  });
 });
 
 describe("smartEtaV2 — learned bias blurb", () => {

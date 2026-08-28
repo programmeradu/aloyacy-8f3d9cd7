@@ -41,6 +41,7 @@ type Props = {
     tier: FreshnessTier;
     confidence: FreshnessConfidence;
     operatorEtaMin?: number;
+    pingAgeSec?: number;
   };
   noShow?: { missed: number; days: number; weekend: boolean } | null;
   lastTonight?: boolean;
@@ -229,6 +230,11 @@ export function DepartureRow({
               Scheduled {clock}
             </Text>
             {waitOrBail ? <Text style={truthLine}>{waitOrBailCopy(waitOrBail)}</Text> : null}
+            {eta.tier === "rider-confirmed" &&
+            eta.pingAgeSec != null &&
+            Number.isFinite(eta.pingAgeSec) ? (
+              <Text style={truthLine}>{`from a rider on board, ${Math.round(eta.pingAgeSec)}s ago`}</Text>
+            ) : null}
             {lastTonight && waitOrBail?.kind !== "bail" ? (
               <Text style={truthLine}>
                 {`Last bus ${routeShort} tonight. After this it's Bolt, a taxi, or tomorrow.`}

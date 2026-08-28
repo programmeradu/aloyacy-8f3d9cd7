@@ -39,6 +39,7 @@ export type BannerInput = {
 
 const TRANSFER_PHASES = new Set(["walking-to-transfer", "waiting-for-connection"]);
 const AT_STOP_PHASES = new Set(["waiting-to-board", "walking-to-board"]);
+const RIDING_PHASES = new Set(["riding", "on-bus", "alight-soon"]);
 
 /** Distance (m) inside which a rider can honestly confirm a bus at the stop. */
 export const SIGHTING_RADIUS_M = 120;
@@ -104,6 +105,22 @@ export function shouldOfferSighting(input: {
     AT_STOP_PHASES.has(input.phase) &&
     Number.isFinite(input.metersToTarget) &&
     input.metersToTarget < SIGHTING_RADIUS_M
+  );
+}
+
+/** Ask the rider already on the bus when the operator feed has gone dark. */
+export function shouldAskStillOnBoard(input: {
+  active: boolean;
+  phase: CompanionPhase;
+  tripGhost: boolean;
+  vehicleLost: boolean;
+  hasCurrentRide: boolean;
+}): boolean {
+  return (
+    input.active &&
+    input.hasCurrentRide &&
+    RIDING_PHASES.has(input.phase) &&
+    (input.tripGhost || input.vehicleLost)
   );
 }
 

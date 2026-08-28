@@ -41,13 +41,26 @@ export type SightingButtonProps = {
   tripId: string;
   routeId?: string;
   stopId?: string;
-  /** Stop coordinates — used as the sighting's lat/lng (no GPS prompt). */
+  /** Stop or last-known coordinates — used as the sighting's lat/lng. */
   lat: number;
   lng: number;
+  /** "onboard" asks a rider already on the bus; default is the stop confirm. */
+  kind?: "stop" | "onboard";
+  routeShort?: string;
 };
 
-export function SightingButton({ tripId, routeId, stopId, lat, lng }: SightingButtonProps) {
+export function SightingButton({
+  tripId,
+  routeId,
+  stopId,
+  lat,
+  lng,
+  kind = "stop",
+  routeShort,
+}: SightingButtonProps) {
   const { t } = useI18n();
+  const onboard = kind === "onboard";
+  const code = routeShort ?? "";
   const [submitting, setSubmitting] = useState(false);
   const [justConfirmed, setJustConfirmed] = useState(false);
   const [cooldownLeft, setCooldownLeft] = useState(0);
@@ -114,10 +127,10 @@ export function SightingButton({ tripId, routeId, stopId, lat, lng }: SightingBu
         <span aria-hidden className="mt-1 size-2 rounded-full bg-aegean-deep" />
         <div className="min-w-0 flex-1">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-aegean-deep">
-            {t("sighting.thanksLabel")}
+            {onboard ? t("sighting.onboard.thanksLabel") : t("sighting.thanksLabel")}
           </p>
           <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink-soft">
-            {t("sighting.thanksDetail")}
+            {onboard ? t("sighting.onboard.thanksDetail", { code }) : t("sighting.thanksDetail")}
           </p>
         </div>
       </div>
@@ -137,12 +150,18 @@ export function SightingButton({ tripId, routeId, stopId, lat, lng }: SightingBu
       />
       <div className="min-w-0 flex-1">
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
-          {t("sighting.kicker")}
+          {onboard ? t("sighting.onboard.kicker", { code }) : t("sighting.kicker")}
         </p>
         <p className="mt-0.5 font-display text-[15px] leading-tight text-ink">
-          {submitting ? t("sighting.sending") : t("sighting.cta")}
+          {submitting
+            ? t("sighting.sending")
+            : onboard
+              ? t("sighting.onboard.cta")
+              : t("sighting.cta")}
         </p>
-        <p className="mt-1 text-[11.5px] leading-relaxed text-ink-soft/80">{t("sighting.help")}</p>
+        <p className="mt-1 text-[11.5px] leading-relaxed text-ink-soft/80">
+          {onboard ? t("sighting.onboard.help") : t("sighting.help")}
+        </p>
       </div>
     </button>
   );

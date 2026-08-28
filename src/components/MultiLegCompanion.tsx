@@ -31,6 +31,7 @@ import { useTrainingSignals } from "@/lib/useTrainingSignals";
 import { distanceM } from "@/lib/geo";
 import { fmtClock as fmtTime } from "@/lib/journey-copy";
 import { boundsForItinerary } from "@aloya/core/itinerary-bounds";
+import { shouldAskStillOnBoard, shouldOfferSighting } from "@aloya/core/multileg-banners";
 import { useI18n } from "@/lib/i18n";
 import { PhaseLabel, PhaseHeadline, PhaseSub } from "@/components/multileg/PhaseCopy";
 import { MultiLegActions } from "@/components/multileg/MultiLegActions";
@@ -211,19 +212,45 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           </div>
         )}
 
-      {/* Rider-confirmed sighting CTA — appears next to ghost/vehicle-lost banners
-          so a rider physically near the bus can rescue the trip. */}
-      {live.active && (live.tripGhost || live.vehicleLost) && live.currentRideLeg && (
-        <div className="mt-3 px-6">
-          <SightingButton
-            tripId={live.currentRideLeg.tripId}
-            routeId={live.currentRideLeg.routeId}
-            stopId={live.currentRideLeg.board.stopId}
-            lat={live.currentRideLeg.board.lat}
-            lng={live.currentRideLeg.board.lng}
-          />
-        </div>
-      )}
+      {/* Sighting at the stop; still-on-board ask once riding. */}
+      {live.currentRideLeg &&
+        shouldOfferSighting({
+          active: live.active,
+          phase: live.phase,
+          tripGhost: live.tripGhost,
+          hasCurrentRide: true,
+          metersToTarget: live.metersToTarget,
+        }) && (
+          <div className="mt-3 px-6">
+            <SightingButton
+              tripId={live.currentRideLeg.tripId}
+              routeId={live.currentRideLeg.routeId}
+              stopId={live.currentRideLeg.board.stopId}
+              lat={live.currentRideLeg.board.lat}
+              lng={live.currentRideLeg.board.lng}
+            />
+          </div>
+        )}
+      {live.currentRideLeg &&
+        shouldAskStillOnBoard({
+          active: live.active,
+          phase: live.phase,
+          tripGhost: live.tripGhost,
+          vehicleLost: live.vehicleLost,
+          hasCurrentRide: true,
+        }) && (
+          <div className="mt-3 px-6">
+            <SightingButton
+              kind="onboard"
+              tripId={live.currentRideLeg.tripId}
+              routeId={live.currentRideLeg.routeId}
+              routeShort={live.currentRideLeg.routeShort}
+              stopId={live.currentRideLeg.board.stopId}
+              lat={live.fusedCurrentVehicle?.lat ?? live.currentRideLeg.board.lat}
+              lng={live.fusedCurrentVehicle?.lng ?? live.currentRideLeg.board.lng}
+            />
+          </div>
+        )}
       {live.active &&
         (live.phase === "walking-to-transfer" || live.phase === "waiting-for-connection") &&
         live.nextRideLeg &&

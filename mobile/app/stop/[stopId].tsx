@@ -373,6 +373,7 @@ export default function StopDetailScreen() {
                   tier: d.eta.tier,
                   confidence: d.eta.confidence,
                   operatorEtaMin: d.eta.operatorEtaMin,
+                  pingAgeSec: d.eta.pingAgeSec,
                 }}
                 noShow={pickNoShow(hints.data?.slots ?? [], d.routeId, d.arrivalUnix, Date.now())}
                 lastTonight={

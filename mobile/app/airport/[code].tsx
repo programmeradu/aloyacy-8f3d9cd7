@@ -201,6 +201,7 @@ export default function AirportScreen() {
                   tier: eta.tier,
                   confidence: eta.confidence,
                   operatorEtaMin: eta.operatorEtaMin,
+                  pingAgeSec: eta.pingAgeSec,
                 }}
                 onPress={() => handleRowPress(d.tripId)}
               />

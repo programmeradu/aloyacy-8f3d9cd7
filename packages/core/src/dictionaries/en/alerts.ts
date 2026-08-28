@@ -42,6 +42,13 @@ export const alerts = {
   "sighting.thanksLabel": "Thanks — rider-confirmed",
   "sighting.thanksDetail":
     "Other riders will see this trip as confirmed for the next minute or so.",
+  "sighting.onboard.kicker": "Still on Bus {code}?",
+  "sighting.onboard.cta": "Yes — I'm on it",
+  "sighting.onboard.help":
+    "People at the next stops are waiting. Your tap is what they see as rider-confirmed.",
+  "sighting.onboard.thanksLabel": "Thanks — they're seeing this bus",
+  "sighting.onboard.thanksDetail":
+    "Other riders will see Bus {code} as rider-confirmed for the next minute.",
 
   "crowd.tag": "Comfort",
   "crowd.quiet": "Plenty of seats — quiet ride.",

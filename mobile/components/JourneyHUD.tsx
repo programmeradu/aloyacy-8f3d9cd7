@@ -23,6 +23,9 @@ import { StartCard, HurryBanner, LiveStepCard } from "./journey/WalkCards";
 import { AtStopCard, BoardingPrompt, MissedBusCard } from "./journey/BoardCards";
 import { RidingCard, ArrivedCard } from "./journey/RideCards";
 import { AlightCountdownCard } from "./journey/AlightCountdownCard";
+import { SightingButton } from "./SightingButton";
+import { shouldAskStillOnBoard } from "@aloya/core/multileg-banners";
+import { getStop } from "@/lib/gtfs";
 
 export function JourneyHUD({
   trip,
@@ -58,7 +61,39 @@ export function JourneyHUD({
         ) : (
           <RidingCard trip={trip} live={live} />
         ))}
+      {show.riding && <OnBoardAsk trip={trip} live={live} />}
       {show.arrived && <ArrivedCard trip={trip} />}
     </View>
+  );
+}
+
+function OnBoardAsk({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
+  const bus = trip.option.legs.find((l) => l.kind === "bus");
+  if (!bus || bus.kind !== "bus") return null;
+  if (
+    !shouldAskStillOnBoard({
+      active: live.active,
+      phase: live.phase,
+      tripGhost: live.tripGhost,
+      vehicleLost: live.vehicleLost,
+      hasCurrentRide: true,
+    })
+  ) {
+    return null;
+  }
+  const s = getStop(bus.board.stopId);
+  const lat = live.fusedVehicle?.lat ?? s?.lat;
+  const lng = live.fusedVehicle?.lng ?? s?.lng;
+  if (lat == null || lng == null) return null;
+  return (
+    <SightingButton
+      kind="onboard"
+      tripId={bus.tripId}
+      routeId={bus.routeId}
+      routeShort={bus.routeShort}
+      stopId={bus.board.stopId}
+      lat={lat}
+      lng={lng}
+    />
   );
 }

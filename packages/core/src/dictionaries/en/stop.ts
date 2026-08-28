@@ -50,4 +50,5 @@ export const stop = {
   "stop.bailOther": "Bus {alt} is on the map, {min} min. Bus {route} isn't.",
   "stop.bailLast":
     "Bus {route} was the last tonight and it isn't on the map. Bolt, a taxi, or tomorrow.",
+  "stop.riderChain": "from a rider on board, {n}s ago",
 } as const;

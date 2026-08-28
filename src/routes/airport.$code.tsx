@@ -265,6 +265,7 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
                       tier: d.eta.tier,
                       confidence: d.eta.confidence,
                       operatorEtaMin: d.eta.operatorEtaMin,
+                      pingAgeSec: d.eta.pingAgeSec,
                     }}
                   />
                   {isGhost && stop && (

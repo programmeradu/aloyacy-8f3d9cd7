@@ -24,6 +24,7 @@ import { useI18n } from "@/lib/i18n";
 import { SightingButton } from "@/components/SightingButton";
 import { getStop } from "@/lib/gtfs";
 import { AlightCountdownCard } from "@/components/journey/AlightCountdownCard";
+import { shouldAskStillOnBoard } from "@aloya/core/multileg-banners";
 
 function fmtMeters(m: number): string {
   if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
@@ -76,6 +77,9 @@ export function JourneyHUD({
           <RidingCard trip={trip} live={live} />
         ))}
 
+      {(live.phase === "on-bus" || live.phase === "alight-soon") && (
+        <OnBoardAsk trip={trip} live={live} />
+      )}
 
       {/* Final arrival */}
       {live.phase === "arrived" && <ArrivedCard trip={trip} />}
@@ -211,6 +215,39 @@ function LiveStepCard({ live, steps }: { live: LiveJourney; steps: WalkStep[] })
 }
 
 // ----- At stop --------------------------------------------------------------
+
+function OnBoardAsk({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
+  const bus = trip.option.legs.find((l) => l.kind === "bus");
+  if (!bus || bus.kind !== "bus") return null;
+  if (
+    !shouldAskStillOnBoard({
+      active: live.active,
+      phase: live.phase,
+      tripGhost: live.tripGhost,
+      vehicleLost: live.vehicleLost,
+      hasCurrentRide: true,
+    })
+  ) {
+    return null;
+  }
+  const s = getStop(bus.board.stopId);
+  const lat = live.fusedVehicle?.lat ?? s?.lat;
+  const lng = live.fusedVehicle?.lng ?? s?.lng;
+  if (lat == null || lng == null) return null;
+  return (
+    <div className="px-6">
+      <SightingButton
+        kind="onboard"
+        tripId={bus.tripId}
+        routeId={bus.routeId}
+        routeShort={bus.routeShort}
+        stopId={bus.board.stopId}
+        lat={lat}
+        lng={lng}
+      />
+    </div>
+  );
+}
 
 function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
   const { t } = useI18n();

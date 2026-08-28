@@ -288,6 +288,13 @@ Make it deliberate:
 Do **not** widen the ask until Workstream C1 physics checks are on the
 write path. Otherwise we amplify spoofed buses.
 
+**On the companion (thin, shipped).** When the rider is on board and
+the trip is ghost or the feed lost the vehicle, we ask “Still on Bus
+31?” One tap writes a sighting. Rider-GPS vehicles are labelled
+`rider-confirmed` on the stop, with “from a rider on board, Ns ago”.
+We do not invent a waiter count. Push to riders who left the app is
+still open. C1 is on the write path, so this ask is allowed.
+
 ### B2. Headway mode — probability instead of a blank
 
 When no vehicle exists at all, stop showing only a timetable. Use
@@ -771,6 +778,8 @@ Already true in this repo, and why the OS is a credible bet:
 - E0.3: Greek URLs at `aloya.cy/el/...` with reciprocal hreflang.
 - C1 physics score on every rider GPS fix. Fold ≥ 0.25; overlay a feed
   ping only ≥ 0.6. Apply `deploy/supabase/sql/20260828_rider_physics.sql`.
+- Thin B1: “Still on Bus 31?” on the companion when the trip is dark.
+  Rider-GPS pings labelled `rider-confirmed`; stop shows the age.
 
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.

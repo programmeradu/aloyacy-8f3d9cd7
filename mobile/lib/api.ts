@@ -48,7 +48,7 @@ export type RealtimeVehicle = {
   speed: number | null;
   label: string | null;
   timestamp: number;
-  source: "feed" | "rider";
+  source: "feed" | "rider" | "feed+rider";
 };
 
 export type RealtimeSnapshot = {

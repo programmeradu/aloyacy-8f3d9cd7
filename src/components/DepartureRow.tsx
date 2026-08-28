@@ -39,6 +39,7 @@ type DepartureRowProps = {
     tier: FreshnessTier;
     confidence: FreshnessConfidence;
     operatorEtaMin?: number;
+    pingAgeSec?: number;
   };
   noShow?: { missed: number; days: number; weekend: boolean } | null;
   lastTonight?: boolean;
@@ -153,6 +154,13 @@ export function DepartureRow({
               {t("stop.scheduledAt", { time: clock })}
             </p>
             {waitOrBail && <WaitOrBailLine action={waitOrBail} t={t} />}
+            {eta.tier === "rider-confirmed" &&
+              eta.pingAgeSec != null &&
+              Number.isFinite(eta.pingAgeSec) && (
+                <p className="mt-2 text-[13px] leading-snug text-ink">
+                  {t("stop.riderChain", { n: Math.round(eta.pingAgeSec) })}
+                </p>
+              )}
             {lastTonight && waitOrBail?.kind !== "bail" && (
               <p className="mt-2 text-[13px] leading-snug text-ink">
                 {t("stop.lastTonight", { route: routeShort })}

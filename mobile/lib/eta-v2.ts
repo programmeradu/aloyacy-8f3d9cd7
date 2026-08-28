@@ -105,10 +105,11 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   const operatorEtaMin = Math.round(operatorEtaSec / 60);
   const rawPingAgeSec = vehicle ? Math.max(0, now - vehicle.timestamp) : Infinity;
   const sightingAge = input.riderConfirmedAgeSec;
+  const fromRiderPing = vehicle?.source === "rider" || vehicle?.source === "feed+rider";
   const riderConfirmed =
-    typeof sightingAge === "number" && Number.isFinite(sightingAge);
+    fromRiderPing || (typeof sightingAge === "number" && Number.isFinite(sightingAge));
   const pingAgeSec = riderConfirmed
-    ? Math.min(rawPingAgeSec, sightingAge as number)
+    ? Math.min(rawPingAgeSec, typeof sightingAge === "number" ? sightingAge : Infinity)
     : rawPingAgeSec;
   const hasVehicleForClassifier = !!vehicle || riderConfirmed;
 
