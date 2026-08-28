@@ -86,8 +86,8 @@ describe("pickStopConsensus", () => {
 });
 
 describe("nextStopAsk", () => {
-  it("asks shelter, seating, then walk, and stops when those are known", () => {
-    expect(ASK_FIRST).toEqual(["has_shelter", "has_seating", "reachable_on_foot"]);
+  it("asks shelter, seating, walk, then light, and stops when those are known", () => {
+    expect(ASK_FIRST).toEqual(["has_shelter", "has_seating", "reachable_on_foot", "lighting"]);
     expect(nextStopAsk([])).toBe("has_shelter");
     const shelter: StopConsensus = {
       stopId: "s",
@@ -97,37 +97,33 @@ describe("nextStopAsk", () => {
       source: "seed",
     };
     const seating = { ...shelter, attribute: "has_seating" as const, value: "no" };
+    const walk = { ...shelter, attribute: "reachable_on_foot" as const, value: "no_crossing" };
     expect(nextStopAsk([shelter])).toBe("has_seating");
     expect(nextStopAsk([shelter, seating])).toBe("reachable_on_foot");
+    expect(nextStopAsk([shelter, seating, walk])).toBe("lighting");
     expect(
-      nextStopAsk([
-        shelter,
-        seating,
-        { ...shelter, attribute: "reachable_on_foot", value: "no_crossing" },
-      ]),
+      nextStopAsk([shelter, seating, walk, { ...shelter, attribute: "lighting", value: "none" }]),
     ).toBeNull();
   });
 });
 
 describe("copy", () => {
-  it("names shelter, seating and walk, and rejects unknown values", () => {
+  it("names shelter, seating, walk and light, and rejects unknown values", () => {
     expect(stopConditionAsk("has_shelter")).toBe("Shelter here?");
     expect(stopConditionAsk("has_seating")).toBe("A seat here?");
     expect(stopConditionAsk("reachable_on_foot")).toBe("Walk here?");
-    expect(stopConditionAsk("lighting")).toBeNull();
+    expect(stopConditionAsk("lighting")).toBe("Light here?");
     expect(stopConditionChip("reachable_on_foot", "yes")).toBe("On foot");
-    expect(stopConditionChip("reachable_on_foot", "no_crossing")).toBe("No crossing");
-    expect(stopConditionChip("reachable_on_foot", "no_sidewalk")).toBe("No sidewalk");
-    expect(stopAskChoices("reachable_on_foot")).toEqual(STOP_ATTRIBUTE_VALUES.reachable_on_foot);
-    expect(stopAskChoiceLabel("no_crossing")).toBe("No crossing");
-    expect(stopEn["stop.cond.askWalk"]).toBe("Walk here?");
-    expect(stopEn["stop.cond.walkYes"]).toBe("On foot");
-    expect(stopEn["stop.cond.noCrossing"]).toBe("No crossing");
-    expect(isStopAttributeValue("has_shelter", "yes")).toBe(true);
-    expect(isStopAttributeValue("has_shelter", "maybe")).toBe(false);
-    expect(isStopAttributeValue("reachable_on_foot", "no_crossing")).toBe(true);
+    expect(stopConditionChip("lighting", "good")).toBe("Lit");
+    expect(stopConditionChip("lighting", "poor")).toBe("Poor light");
+    expect(stopConditionChip("lighting", "none")).toBe("Unlit");
+    expect(stopAskChoices("lighting")).toEqual(STOP_ATTRIBUTE_VALUES.lighting);
+    expect(stopAskChoiceLabel("none")).toBe("None");
+    expect(stopEn["stop.cond.askLight"]).toBe("Light here?");
+    expect(stopEn["stop.cond.lightNone"]).toBe("Unlit");
+    expect(isStopAttributeValue("lighting", "good")).toBe(true);
     expect(isStopAttributeValue("reachable_on_foot", "no")).toBe(false);
-    expect(["On foot", "No crossing", "No sidewalk", "Walk here?"].join(" ")).not.toMatch(
+    expect(["Lit", "Poor light", "Unlit", "Light here?"].join(" ")).not.toMatch(
       /€|taxi|RAPTOR|Green Line|luggage/i,
     );
   });

@@ -1,6 +1,6 @@
 // Stop condition — ground truth that is not an ETA.
-// One-tap attributes first. Photos, lighting, wheelchair one-tap and
-// routing filters stay later. Unknown stays silent. Seed is the curated
+// One-tap attributes first. Photos, wheelchair one-tap and routing
+// filters stay later. Unknown stays silent. Seed is the curated
 // Nicosia hubs; riders overwrite once two devices agree.
 
 export const CONSENSUS_MIN = 2;
@@ -31,7 +31,12 @@ export const STOP_ATTRIBUTE_VALUES = {
 } as const satisfies Record<StopAttribute, readonly string[]>;
 
 /** First questions on the stop. One at a time. */
-export const ASK_FIRST: StopAttribute[] = ["has_shelter", "has_seating", "reachable_on_foot"];
+export const ASK_FIRST: StopAttribute[] = [
+  "has_shelter",
+  "has_seating",
+  "reachable_on_foot",
+  "lighting",
+];
 
 export type StopReport = {
   stopId: string;
@@ -167,6 +172,9 @@ export function stopConditionChip(attr: StopAttribute, value: string): string | 
   if (attr === "reachable_on_foot" && value === "yes") return "On foot";
   if (attr === "reachable_on_foot" && value === "no_crossing") return "No crossing";
   if (attr === "reachable_on_foot" && value === "no_sidewalk") return "No sidewalk";
+  if (attr === "lighting" && value === "good") return "Lit";
+  if (attr === "lighting" && value === "poor") return "Poor light";
+  if (attr === "lighting" && value === "none") return "Unlit";
   return null;
 }
 
@@ -174,6 +182,7 @@ export function stopConditionAsk(attr: StopAttribute): string | null {
   if (attr === "has_shelter") return "Shelter here?";
   if (attr === "has_seating") return "A seat here?";
   if (attr === "reachable_on_foot") return "Walk here?";
+  if (attr === "lighting") return "Light here?";
   return null;
 }
 
@@ -182,5 +191,8 @@ export function stopAskChoiceLabel(value: string): string | null {
   if (value === "no") return "No";
   if (value === "no_crossing") return "No crossing";
   if (value === "no_sidewalk") return "No sidewalk";
+  if (value === "good") return "Good";
+  if (value === "poor") return "Poor";
+  if (value === "none") return "None";
   return null;
 }
