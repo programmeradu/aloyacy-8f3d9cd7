@@ -32,6 +32,7 @@ const CHIP_KEY: Record<string, DictKey> = {
   "has_timetable:yes": "stop.cond.timetableYes",
   "has_timetable:no": "stop.cond.timetableNo",
   "has_timetable:wrong": "stop.cond.timetableWrong",
+  "stop_is_ambiguous:yes": "stop.cond.ambiguousYes",
 };
 
 const ASK_KEY: Record<string, DictKey> = {
@@ -42,6 +43,7 @@ const ASK_KEY: Record<string, DictKey> = {
   wheelchair_access: "stop.cond.askStep",
   has_sign: "stop.cond.askSign",
   has_timetable: "stop.cond.askTimetable",
+  stop_is_ambiguous: "stop.cond.askAmbiguous",
 };
 
 const CHOICE_KEY: Record<string, DictKey> = {

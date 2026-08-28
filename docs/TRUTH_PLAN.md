@@ -481,11 +481,11 @@ queue is ops; don’t block D1 on it.
 devices; one report does not overwrite the seed. One-tap shelter, then
 seating, then walk (yes / no crossing / no sidewalk), then light
 (good / poor / none), then step-free (yes / partial / no), then sign
-(yes / no / wrong), then timetable (yes / no / wrong). Silent when
-unknown. One rider photo of the stop after those one-taps — latest
-image, silent when none. Apply `20260828_stop_condition.sql` and
-`20260828_stop_photos.sql` on prod. Ambiguous pole and routing filters
-stay later.
+(yes / no / wrong), then timetable (yes / no / wrong), then two poles
+(yes / no — chip only on yes). Silent when unknown. One rider photo of
+the stop after those one-taps — latest image, silent when none. Apply
+`20260828_stop_condition.sql` and `20260828_stop_photos.sql` on prod.
+Routing filters stay later.
 
 ### D2. Skipped-stop detection — measured, not just reported
 
@@ -808,7 +808,7 @@ Update this table in the same commit as the slice.
 | C1 | Rider-fix physics | **Shipped.** Apply `20260828_rider_physics.sql`. Learned segment speeds wait on A4. |
 | C2 | Corroboration + reputation | **Open.** |
 | C3 | Cold-start ask | **Open.** |
-| D1 | Stop condition | **Shipped** one-tap: shelter, seating, walk, light, step-free, sign, timetable, plus one rider photo. Seed = eight hubs. Apply `20260828_stop_condition.sql` and `20260828_stop_photos.sql`. Ambiguous pole, `lowFloor` filter **open.** |
+| D1 | Stop condition | **Shipped** one-tap: shelter, seating, walk, light, step-free, sign, timetable, two poles, plus one rider photo. Seed = eight hubs. Apply `20260828_stop_condition.sql` and `20260828_stop_photos.sql`. `lowFloor` filter **open.** |
 | D2 | Skip rate | **Shipped** pass-through vs dwell on the stop. Apply `20260828_stop_skip.sql`. Neighbour stop, rider report, RAPTOR penalty **open.** |
 | D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
 | D4 | Report decay / one ask per journey | **Open.** |
@@ -821,7 +821,7 @@ Update this table in the same commit as the slice.
 | G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 
-**Next unblocked:** D1 ambiguous pole, then D2 neighbour-stop / rider report.
+**Next unblocked:** D2 neighbour-stop / rider report, then D4 report decay / `lowFloor` filter.
 
 ---
 

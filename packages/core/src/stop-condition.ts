@@ -1,7 +1,7 @@
 // Stop condition — ground truth that is not an ETA.
 // One-tap attributes first. Photo is the last ask (stop-photo.ts).
-// Ambiguous pole and routing filters stay later. Unknown stays silent.
-// Seed is the curated Nicosia hubs; riders overwrite once two devices agree.
+// Routing filters stay later. Unknown stays silent. Seed is the curated
+// Nicosia hubs; riders overwrite once two devices agree.
 
 export const CONSENSUS_MIN = 2;
 export const REPORT_RATE_LIMIT_SEC = 60;
@@ -39,6 +39,7 @@ export const ASK_FIRST: StopAttribute[] = [
   "wheelchair_access",
   "has_sign",
   "has_timetable",
+  "stop_is_ambiguous",
 ];
 
 export type StopReport = {
@@ -186,6 +187,7 @@ export function stopConditionChip(attr: StopAttribute, value: string): string | 
   if (attr === "has_timetable" && value === "yes") return "Timetable";
   if (attr === "has_timetable" && value === "no") return "No timetable";
   if (attr === "has_timetable" && value === "wrong") return "Wrong timetable";
+  if (attr === "stop_is_ambiguous" && value === "yes") return "Two poles";
   return null;
 }
 
@@ -197,6 +199,7 @@ export function stopConditionAsk(attr: StopAttribute): string | null {
   if (attr === "wheelchair_access") return "Step-free here?";
   if (attr === "has_sign") return "A sign here?";
   if (attr === "has_timetable") return "A timetable here?";
+  if (attr === "stop_is_ambiguous") return "Two poles here?";
   return null;
 }
 

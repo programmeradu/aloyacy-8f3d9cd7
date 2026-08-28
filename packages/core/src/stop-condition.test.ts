@@ -86,7 +86,7 @@ describe("pickStopConsensus", () => {
 });
 
 describe("nextStopAsk", () => {
-  it("asks shelter through sign then timetable, and stops when those are known", () => {
+  it("asks shelter through timetable then two poles, and stops when those are known", () => {
     expect(ASK_FIRST).toEqual([
       "has_shelter",
       "has_seating",
@@ -95,6 +95,7 @@ describe("nextStopAsk", () => {
       "wheelchair_access",
       "has_sign",
       "has_timetable",
+      "stop_is_ambiguous",
     ]);
     expect(nextStopAsk([])).toBe("has_shelter");
     const shelter: StopConsensus = {
@@ -115,6 +116,10 @@ describe("nextStopAsk", () => {
     expect(nextStopAsk([shelter, seating, walk, light])).toBe("wheelchair_access");
     expect(nextStopAsk([shelter, seating, walk, light, step])).toBe("has_sign");
     expect(nextStopAsk([shelter, seating, walk, light, step, sign])).toBe("has_timetable");
+    const timetable = { ...shelter, attribute: "has_timetable" as const, value: "no" };
+    expect(nextStopAsk([shelter, seating, walk, light, step, sign, timetable])).toBe(
+      "stop_is_ambiguous",
+    );
     expect(
       nextStopAsk([
         shelter,
@@ -123,26 +128,25 @@ describe("nextStopAsk", () => {
         light,
         step,
         sign,
-        { ...shelter, attribute: "has_timetable", value: "no" },
+        timetable,
+        { ...shelter, attribute: "stop_is_ambiguous", value: "yes" },
       ]),
     ).toBeNull();
   });
 });
 
 describe("copy", () => {
-  it("names the sign and the timetable, and rejects unknown values", () => {
-    expect(stopConditionAsk("has_timetable")).toBe("A timetable here?");
-    expect(stopConditionChip("has_timetable", "yes")).toBe("Timetable");
-    expect(stopConditionChip("has_timetable", "no")).toBe("No timetable");
-    expect(stopConditionChip("has_timetable", "wrong")).toBe("Wrong timetable");
-    expect(stopAskChoices("has_timetable")).toEqual(STOP_ATTRIBUTE_VALUES.has_timetable);
-    expect(stopAskChoiceLabel("wrong")).toBe("Wrong");
-    expect(stopEn["stop.cond.askTimetable"]).toBe("A timetable here?");
-    expect(stopEn["stop.cond.timetableWrong"]).toBe("Wrong timetable");
-    expect(isStopAttributeValue("has_timetable", "wrong")).toBe(true);
-    expect(isStopAttributeValue("has_timetable", "maybe")).toBe(false);
-    expect(
-      ["Timetable", "No timetable", "Wrong timetable", "A timetable here?"].join(" "),
-    ).not.toMatch(/€|taxi|RAPTOR|Green Line|luggage/i);
+  it("names two poles only when the stop is ambiguous, and rejects unknown values", () => {
+    expect(stopConditionAsk("stop_is_ambiguous")).toBe("Two poles here?");
+    expect(stopConditionChip("stop_is_ambiguous", "yes")).toBe("Two poles");
+    expect(stopConditionChip("stop_is_ambiguous", "no")).toBeNull();
+    expect(stopAskChoices("stop_is_ambiguous")).toEqual(STOP_ATTRIBUTE_VALUES.stop_is_ambiguous);
+    expect(stopEn["stop.cond.askAmbiguous"]).toBe("Two poles here?");
+    expect(stopEn["stop.cond.ambiguousYes"]).toBe("Two poles");
+    expect(isStopAttributeValue("stop_is_ambiguous", "yes")).toBe(true);
+    expect(isStopAttributeValue("stop_is_ambiguous", "maybe")).toBe(false);
+    expect(["Two poles", "Two poles here?"].join(" ")).not.toMatch(
+      /€|taxi|RAPTOR|Green Line|luggage/i,
+    );
   });
 });
