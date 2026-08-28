@@ -664,6 +664,11 @@ the two domains are crawled as one estate.
 already does `BreadcrumbList`. Transit schema is under-used and Cyprus
 competition for it is nil.
 
+**On the stop (shipped).** Indexable stop pages emit `BusStop` +
+`BreadcrumbList`. Name, coordinates, Cyprus. No invented shelter, skip,
+or FAQ. Thin pages emit nothing. `BusTrip` / `Schedule` wait on a
+rated trip, not a timetable we retyped.
+
 ### E4. Languages
 
 `en` + `el` in both repos, and the `el` half isn’t separately
@@ -880,17 +885,17 @@ Update this table in the same commit as the slice.
 | D2 | Skip rate | **Shipped** pass-through vs dwell, measured neighbour, and rider “it drove past me”. Apply `20260828_stop_skip.sql` and `20260828_stop_skip_reports.sql`. RAPTOR penalty **open.** |
 | D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
 | D4 | Report decay / one ask per journey | **Shipped** 90-day decay, “Confirmed by n riders, last N days ago”, one ask per ride. Photo-weight **open.** |
-| D5 | Public stop page (indexable) | **Partial.** Named title + noindex unless rated / skip / attribute. Sitemap lists those stops (cap 400). JSON-LD **open** (E3). |
+| D5 | Public stop page (indexable) | **Partial.** Named title + noindex unless rated / skip / attribute. Sitemap lists those stops (cap 400). BusStop JSON-LD on indexable pages. `BusTrip` **open.** |
 | E0 | Two-repo contradictions | **Shipped** (boards, 301, hreflang, fare/line copy, drop overclaims). |
 | E2 | Programmatic index | Rides on A5 + D1/D2 content. |
-| E3 | Transit JSON-LD | **Open.** |
+| E3 | Transit JSON-LD | **Partial.** `BusStop` + breadcrumbs on indexable stop pages. `BusTrip` / `Schedule` / stop FAQ **open.** |
 | F1–F4 | Truth API, report card, embed | **Blocked** until A1/A2 are writing *and* a design partner is waiting. |
 | G1 | Airport as a job | **Shipped** first slice (Kapnos vs city bus vs taxi rank). Dest-aware total cost **open.** |
 | G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** E3 Transit JSON-LD on indexable stop pages, then D2 RAPTOR skip penalty.
+**Next unblocked:** D2 RAPTOR skip penalty (don’t recommend a stop that gets skipped).
 
 ---
 

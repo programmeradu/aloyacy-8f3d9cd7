@@ -5,6 +5,39 @@ import { stopIndexable, type StopIndexFacts } from "@aloya/core/stop-index";
 
 const BASE = "https://app.aloya.cy";
 
+export function buildStopJsonLd(input: {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  url: string;
+}): Record<string, unknown>[] {
+  if (!input.name || !Number.isFinite(input.lat) || !Number.isFinite(input.lng)) return [];
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "BusStop",
+      name: input.name,
+      url: input.url,
+      identifier: input.id,
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: input.lat,
+        longitude: input.lng,
+      },
+      address: { "@type": "PostalAddress", addressCountry: "CY" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Aloya", item: `${BASE}/` },
+        { "@type": "ListItem", position: 2, name: input.name, item: input.url },
+      ],
+    },
+  ];
+}
+
 export function stopHead(stopId: string, facts: StopIndexFacts | undefined) {
   const stop = getStop(stopId);
   const name = stop?.name?.trim() || `Stop ${stopId}`;
@@ -14,6 +47,16 @@ export function stopHead(stopId: string, facts: StopIndexFacts | undefined) {
     ? `Live departures, routes and what we actually know about ${name} in Cyprus.`
     : `Live departures for stop ${stopId} in Cyprus.`;
   const url = `${BASE}/stop/${stopId}`;
+  const scripts =
+    index && stop
+      ? buildStopJsonLd({
+          id: stop.id,
+          name,
+          lat: stop.lat,
+          lng: stop.lng,
+          url,
+        }).map((g) => ({ type: "application/ld+json" as const, children: JSON.stringify(g) }))
+      : [];
   return {
     meta: [
       { title },
@@ -32,5 +75,6 @@ export function stopHead(stopId: string, facts: StopIndexFacts | undefined) {
       { name: "twitter:description", content: desc },
     ],
     links: [{ rel: "canonical", href: url }],
+    scripts,
   };
 }
