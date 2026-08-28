@@ -364,6 +364,8 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     nextBoardLate: result.nextBoardLate,
     fix: result.fix,
     onBoard: driveInputs.onBoard,
+    tripGhost: result.tripGhost,
+    secsToCurrentBoard: result.secsToCurrentBoard,
   });
 
   return result;

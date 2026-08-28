@@ -30,6 +30,7 @@ import {
 } from "./trip-store";
 import type { Leg, RideLeg } from "./journey-types";
 import { sendLocalTripAlert } from "./tripAlerts";
+import { useWaitFlipAlert } from "./useWaitFlipAlert";
 import {
   fuseAlightEta,
   fuseRideVehicle,
@@ -342,6 +343,18 @@ export function useMultiLegJourney(active: ActiveTrip | null): MultiLegLive {
     active,
     itin,
   ]);
+
+  const ride = result.currentRideLeg;
+  useWaitFlipAlert({
+    ready: !!(result.active && active && itin && ride),
+    tripGhost: result.tripGhost,
+    phase: result.phase,
+    waitMin: result.secsToCurrentBoard / 60,
+    from: result.fix ?? (ride ? { lat: ride.board.lat, lng: ride.board.lng } : null),
+    dest: active ? { lat: active.to.lat, lng: active.to.lng, label: active.to.label } : null,
+    routeShort: ride?.routeShort ?? "",
+    url: active ? `/trip/${active.option.id}` : "",
+  });
 
   return result;
 }

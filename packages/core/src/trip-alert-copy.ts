@@ -5,6 +5,8 @@
 // title and body a rider sees on the lock screen. Pure, so the wording is
 // unit-tested instead of being buried in a notification side effect.
 
+import { destBailFlipCopy, destBailForFlipAlert } from "./dest-bail";
+
 export type TripAlertKind =
   | "at-stop"
   | "hurry-soft"
@@ -15,7 +17,8 @@ export type TripAlertKind =
   | "confirm-onboard"
   | "missed-bus"
   | "arrived"
-  | "disruption";
+  | "disruption"
+  | "wait-flip";
 
 export type TripAlertContext = {
   kind: TripAlertKind;
@@ -27,6 +30,10 @@ export type TripAlertContext = {
   stops?: number | null;
   /** Deep link opened when the rider taps the notification. */
   url?: string | null;
+  /** Walk minutes, wait-flip only. */
+  walkMin?: number | null;
+  /** New dest-bail kind, wait-flip only. */
+  flipTo?: "walk" | "keepWait" | null;
 };
 
 export type TripAlertCopy = { id: string; title: string; body: string };
@@ -103,6 +110,23 @@ export function buildTripAlertCopy(ctx: TripAlertContext): TripAlertCopy {
       };
     case "arrived":
       return { id, title: "You've arrived", body: "Trip complete. Have a great one." };
+    case "wait-flip": {
+      const to = destBailForFlipAlert({
+        flipTo: ctx.flipTo,
+        walkMin: ctx.walkMin,
+        waitMin: ctx.minutes,
+        routeShort: ctx.routeShort,
+        destLabel: ctx.stopName,
+      });
+      if (!to) {
+        return {
+          id,
+          title: "Walk or wait changed",
+          body: "Open Aloya — the call on this wait shifted.",
+        };
+      }
+      return { id, ...destBailFlipCopy({ from: to, to }) };
+    }
     case "disruption":
     default:
       return {

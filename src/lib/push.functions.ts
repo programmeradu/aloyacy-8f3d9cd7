@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { destBailFlipCopy, destBailForFlipAlert } from "@aloya/core/dest-bail";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendWebPush, type WebPushPayload } from "./webpush.server";
 import { VAPID_PUBLIC_KEY } from "./vapid";
@@ -135,6 +136,7 @@ const tripAlertSchema = z.object({
     "press-stop",
     "arrived",
     "delayed",
+    "wait-flip",
   ]),
   routeShort: z.string().max(16).optional(),
   stopName: z.string().max(160).optional(),
@@ -142,6 +144,8 @@ const tripAlertSchema = z.object({
   /** Stops still to be served before the rider's own. */
   stops: z.number().int().min(0).max(120).optional(),
   url: z.string().max(512).optional(),
+  walkMin: z.number().min(0).max(120).optional(),
+  flipTo: z.enum(["walk", "keepWait"]).optional(),
 });
 
 export const sendTripAlert = createServerFn({ method: "POST" })
@@ -209,7 +213,26 @@ export const sendTripAlert = createServerFn({ method: "POST" })
         body: `New arrival in ~${min} min at ${stop}.`,
       },
     };
+    if (data.kind === "wait-flip") {
+      const to = destBailForFlipAlert({
+        flipTo: data.flipTo,
+        walkMin: data.walkMin,
+        waitMin: data.minutes,
+        routeShort: data.routeShort,
+        destLabel: data.stopName,
+      });
+      if (!to) return { sent: 0, expired: 0 };
+      const copy = destBailFlipCopy({ from: to, to });
+      return dispatchToDevice(data.deviceId, {
+        title: copy.title,
+        body: copy.body,
+        tag: "aloya-wait-flip",
+        url: data.url ?? "/",
+        requireInteraction: true,
+      });
+    }
     const m = map[data.kind];
+    if (!m) return { sent: 0, expired: 0 };
     return dispatchToDevice(data.deviceId, {
       title: m.title,
       body: m.body,

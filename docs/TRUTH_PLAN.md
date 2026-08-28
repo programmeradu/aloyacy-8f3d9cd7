@@ -357,10 +357,16 @@ that sometimes tells you not to use it is an app people trust.
 
 ### B5. Escalation while waiting
 
-The arrival-promise nudge ladder already exists server-side. Reuse it
-for the waiting case: re-evaluate every 60–90 s and push *once* if the
-recommendation flips (“the 30 is now 14 min out — the 25 leaves in 3
-min from the next stop”).
+**Shipped 2026-08-28 (first slice).** Same dest-bail numbers as the HUD.
+While the trip is ghost, the previous walk-or-wait kind must hold 60 s,
+then a flip pushes once (“Bus 31 is now 14 min if it shows. Walking is
+8 min — walk.”). A 1-frame ghost blip does not flip. Once per wait
+session; reset when the action goes silent. HUD dest-bail still updates
+in place.
+
+Not this slice: RAPTOR “the 25 leaves in 3 min from the next stop”
+stays the live-replan sheet. Taxi/Bolt euros stay unpublished without
+a quote.
 
 ---
 

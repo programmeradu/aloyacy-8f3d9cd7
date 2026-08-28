@@ -18,6 +18,7 @@ import {
 import { alightAlertFor } from "@aloya/core/alight-countdown";
 import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
 import { sendLocalTripAlert } from "./tripAlerts";
+import { useWaitFlipAlert } from "./useWaitFlipAlert";
 import type { LiveJourney, LiveFix } from "./useJourney";
 
 type Leg = ActiveTrip["option"]["legs"][number];
@@ -135,4 +136,15 @@ export function useJourneySideEffects({
     });
   }, [result.phase, result.onBoardSuggested, result.secsToBoard, result.active, active, bus]);
 
+  useWaitFlipAlert({
+    ready: !!(result.active && bus && active),
+    tripGhost: result.tripGhost,
+    phase: result.phase,
+    waitMin: result.secsToBoard / 60,
+    from: fix ?? (walkIn?.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null),
+    dest: active ? { lat: active.to.lat, lng: active.to.lng, label: active.to.label } : null,
+    routeShort: bus?.routeShort ?? "",
+    url: active ? `/trip/${active.option.id}` : "",
+  });
 }
+

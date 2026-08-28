@@ -18,6 +18,13 @@ import {
   shouldAutoConfirmBoarding,
 } from "@aloya/core/journey-live";
 import { alightAlertFor } from "@aloya/core/alight-countdown";
+import {
+  destBailForWait,
+  EMPTY_WAIT_FLIP_HOLD,
+  tickWaitFlip,
+  waitFlipPhase,
+  type WaitFlipHold,
+} from "@aloya/core/dest-bail";
 import { patchActiveTripLive, type ActiveTrip } from "./trip-store";
 import { getDeviceId } from "./pwa";
 import { sendTripAlert } from "./push.functions";
@@ -80,9 +87,7 @@ export function useJourneySideEffects(input: JourneySideEffectInput) {
       return;
     }
     const vehicle = vehicles?.find((v) => v.tripId === bus.tripId) ?? null;
-    const alightLoc = isWalk(walkOut)
-      ? { lat: walkOut.from.lat, lng: walkOut.from.lng }
-      : null;
+    const alightLoc = isWalk(walkOut) ? { lat: walkOut.from.lat, lng: walkOut.from.lng } : null;
     const next = shouldAutoConfirmAlighting({
       fix,
       vehicle: vehicle ? { lat: vehicle.lat, lng: vehicle.lng } : null,
@@ -182,6 +187,50 @@ export function useJourneySideEffects(input: JourneySideEffectInput) {
     result.active,
     active,
     bus,
+    sendAlert,
+  ]);
+
+  // One push if walk-vs-wait holds 60s then flips. HUD dest-bail stays the live line.
+  const waitFlipRef = useRef<WaitFlipHold>(EMPTY_WAIT_FLIP_HOLD);
+  useEffect(() => {
+    if (!result.active || !bus || !active) {
+      waitFlipRef.current = EMPTY_WAIT_FLIP_HOLD;
+      return;
+    }
+    const from = fix ?? (isWalk(walkIn) ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null);
+    const action = destBailForWait({
+      dark: result.tripGhost,
+      phase: waitFlipPhase(result.phase),
+      waitMin: result.secsToBoard / 60,
+      from,
+      to: { lat: active.to.lat, lng: active.to.lng },
+      destLabel: active.to.label,
+      routeShort: bus.routeShort,
+    });
+    const { hold, flip } = tickWaitFlip(waitFlipRef.current, action, Math.floor(Date.now() / 1000));
+    waitFlipRef.current = hold;
+    if (!flip) return;
+    void sendAlert({
+      data: {
+        deviceId: getDeviceId(),
+        kind: "wait-flip",
+        routeShort: flip.to.routeShort,
+        minutes: flip.to.waitMin,
+        walkMin: flip.to.walkMin,
+        flipTo: flip.to.kind,
+        ...(flip.to.kind === "walk" ? { stopName: flip.to.destLabel } : {}),
+        url: `/trip/${active.option.id}`,
+      },
+    }).catch(() => {});
+  }, [
+    result.active,
+    result.tripGhost,
+    result.phase,
+    result.secsToBoard,
+    active,
+    bus,
+    fix,
+    walkIn,
     sendAlert,
   ]);
 }

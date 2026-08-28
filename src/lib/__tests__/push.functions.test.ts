@@ -209,4 +209,41 @@ describe("sendTripAlert", () => {
     const payload = sendWebPush.mock.calls[0][0].payload;
     expect(payload.requireInteraction).toBe(true);
   });
+
+  it("sends dest-bail flip copy once the semantic fields are present", async () => {
+    state.push_subscriptions = {
+      data: [{ endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth }],
+      error: null,
+    };
+    sendWebPush.mockResolvedValue({ ok: true, status: 201 });
+    await callServerFn(sendTripAlert, {
+      deviceId: "device-12345",
+      kind: "wait-flip",
+      routeShort: "31",
+      stopName: "Home",
+      minutes: 14,
+      walkMin: 8,
+      flipTo: "walk",
+    });
+    const payload = sendWebPush.mock.calls[0][0].payload;
+    expect(payload.title).toBe("Walk to Home");
+    expect(payload.body).toBe("Bus 31 is now 14 min if it shows. Walking is 8 min — walk.");
+    expect(payload.tag).toBe("aloya-wait-flip");
+    expect(payload.requireInteraction).toBe(true);
+    expect(payload.body).not.toMatch(/€|luggage|leaves in/i);
+  });
+
+  it("stays silent on a wait-flip that is missing the walk number", async () => {
+    state.push_subscriptions = {
+      data: [{ endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth }],
+      error: null,
+    };
+    const result = await callServerFn(sendTripAlert, {
+      deviceId: "device-12345",
+      kind: "wait-flip",
+      routeShort: "31",
+    });
+    expect(result).toEqual({ sent: 0, expired: 0 });
+    expect(sendWebPush).not.toHaveBeenCalled();
+  });
 });

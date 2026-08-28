@@ -35,6 +35,7 @@ describe("buildTripAlertCopy", () => {
       "missed-bus",
       "arrived",
       "disruption",
+      "wait-flip",
     ] as const;
     const titles = kinds.map((kind) => buildTripAlertCopy({ kind, routeShort: "42" }).title);
     expect(new Set(titles).size).toBe(kinds.length);
@@ -69,5 +70,31 @@ describe("buildTripAlertCopy", () => {
   it("falls back to a countless get-ready line when stops are unknown", () => {
     const c = buildTripAlertCopy({ kind: "alight-ready", stopName: "Ledra" });
     expect(c.title).toBe("Ledra is coming up");
+  });
+
+  it("uses dest-bail flip copy for wait-flip, and stays quiet on missing numbers", () => {
+    const c = buildTripAlertCopy({
+      kind: "wait-flip",
+      routeShort: "31",
+      stopName: "Home",
+      minutes: 14,
+      walkMin: 8,
+      flipTo: "walk",
+    });
+    expect(c.title).toBe("Walk to Home");
+    expect(c.body).toBe("Bus 31 is now 14 min if it shows. Walking is 8 min — walk.");
+    expect(c.body).not.toMatch(/€|luggage|leaves in/i);
+    const wait = buildTripAlertCopy({
+      kind: "wait-flip",
+      routeShort: "31",
+      minutes: 9,
+      walkMin: 8,
+      flipTo: "keepWait",
+    });
+    expect(wait.title).toBe("Keep waiting for Bus 31");
+    expect(wait.body).toContain("— wait.");
+    const missing = buildTripAlertCopy({ kind: "wait-flip", routeShort: "31" });
+    expect(missing.title).toBe("Walk or wait changed");
+    expect(missing.body).not.toMatch(/\d+ min/);
   });
 });

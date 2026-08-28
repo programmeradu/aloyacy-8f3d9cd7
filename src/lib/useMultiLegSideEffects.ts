@@ -10,6 +10,13 @@ import { sendTripAlert } from "./push.functions";
 import { useRiderFixReporter } from "./useRiderFixReporter";
 import { recordCommutePattern } from "./commute-learner.functions";
 import { multiLegAlerts, type MultiLegPhase } from "@aloya/core/multileg-journey";
+import {
+  destBailForWait,
+  EMPTY_WAIT_FLIP_HOLD,
+  tickWaitFlip,
+  waitFlipPhase,
+  type WaitFlipHold,
+} from "@aloya/core/dest-bail";
 import type { ActiveTrip } from "./trip-store";
 import type { RideLeg } from "./itinerary-types";
 import type { LiveFix } from "./useGeoWatch";
@@ -24,6 +31,8 @@ export interface UseMultiLegSideEffectsOptions {
   nextBoardLate: boolean;
   fix: LiveFix | null;
   onBoard: boolean;
+  tripGhost: boolean;
+  secsToCurrentBoard: number;
 }
 
 export function useMultiLegSideEffects({
@@ -36,6 +45,8 @@ export function useMultiLegSideEffects({
   nextBoardLate,
   fix,
   onBoard,
+  tripGhost,
+  secsToCurrentBoard,
 }: UseMultiLegSideEffectsOptions) {
   const itin = active?.itinerary;
 
@@ -80,6 +91,39 @@ export function useMultiLegSideEffects({
     currentRideLeg,
     nextRideLeg,
   ]);
+
+  // One push if walk-vs-wait holds 60s then flips. HUD dest-bail stays the live line.
+  const waitFlipRef = useRef<WaitFlipHold>(EMPTY_WAIT_FLIP_HOLD);
+  useEffect(() => {
+    if (!active || !itin || !currentRideLeg) {
+      waitFlipRef.current = EMPTY_WAIT_FLIP_HOLD;
+      return;
+    }
+    const action = destBailForWait({
+      dark: tripGhost,
+      phase: waitFlipPhase(phase),
+      waitMin: secsToCurrentBoard / 60,
+      from: fix ?? { lat: currentRideLeg.board.lat, lng: currentRideLeg.board.lng },
+      to: { lat: active.to.lat, lng: active.to.lng },
+      destLabel: active.to.label,
+      routeShort: currentRideLeg.routeShort,
+    });
+    const { hold, flip } = tickWaitFlip(waitFlipRef.current, action, Math.floor(Date.now() / 1000));
+    waitFlipRef.current = hold;
+    if (!flip) return;
+    void sendAlert({
+      data: {
+        deviceId: getDeviceId(),
+        kind: "wait-flip",
+        routeShort: flip.to.routeShort,
+        minutes: flip.to.waitMin,
+        walkMin: flip.to.walkMin,
+        flipTo: flip.to.kind,
+        ...(flip.to.kind === "walk" ? { stopName: flip.to.destLabel } : {}),
+        url: `/trip/${active.option.id}`,
+      },
+    }).catch(() => {});
+  }, [active, itin, currentRideLeg, tripGhost, phase, secsToCurrentBoard, fix, sendAlert]);
 
   // ---- Crowdsourced bus position: report rider GPS while on board --------
   useRiderFixReporter({
