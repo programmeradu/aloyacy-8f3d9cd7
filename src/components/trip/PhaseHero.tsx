@@ -3,8 +3,9 @@
 // already reconciled by `@aloya/core/single-leg-phase` + `companion-view`.
 
 import type { SingleLegPhase } from "@aloya/core/single-leg-phase";
+import type { DestBail } from "@aloya/core/dest-bail";
 import { IconClock } from "@/components/Icons";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type DictKey } from "@/lib/i18n";
 
 export function PhaseLabel({ phase, delaySec }: { phase: SingleLegPhase; delaySec: number }) {
   const { t } = useI18n();
@@ -133,6 +134,7 @@ export function PhaseSub({
   boardName,
   alightName,
   minToDoor,
+  destBail,
 }: {
   phase: SingleLegPhase;
   walkInSec: number;
@@ -141,6 +143,7 @@ export function PhaseSub({
   boardName: string;
   alightName: string;
   minToDoor: number;
+  destBail?: DestBail | null;
 }) {
   const { t } = useI18n();
   const text =
@@ -156,9 +159,36 @@ export function PhaseSub({
               ? t("trip.sub.alightSoon", { m: Math.round(walkOutSec / 60), name: destName })
               : t("trip.sub.arrived", { m: minToDoor, name: destName });
   return (
-    <p className="mt-4 flex items-start gap-2 text-[13px] text-ink-soft leading-relaxed">
-      <IconClock className="mt-0.5 size-3.5 shrink-0 text-ink-soft" />
-      <span>{text}</span>
-    </p>
+    <>
+      <p className="mt-4 flex items-start gap-2 text-[13px] text-ink-soft leading-relaxed">
+        <IconClock className="mt-0.5 size-3.5 shrink-0 text-ink-soft" />
+        <span>{text}</span>
+      </p>
+      {destBail && <DestBailLine action={destBail} t={t} />}
+    </>
   );
+}
+
+function DestBailLine({
+  action,
+  t,
+}: {
+  action: DestBail;
+  t: (key: DictKey, vars?: Record<string, string | number>) => string;
+}) {
+  const line =
+    action.kind === "walk"
+      ? t("ml.destBail.walk", {
+          dest: action.destLabel,
+          min: action.walkMin,
+          route: action.routeShort,
+        })
+      : action.waitMin <= 0
+        ? t("ml.destBail.keepWaitDue", { walk: action.walkMin, route: action.routeShort })
+        : t("ml.destBail.keepWait", {
+            walk: action.walkMin,
+            route: action.routeShort,
+            wait: action.waitMin,
+          });
+  return <p className="mt-2 text-[13px] leading-snug text-ink-soft">{line}</p>;
 }

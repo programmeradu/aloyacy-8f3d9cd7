@@ -346,9 +346,9 @@ re-plan still need a destination — those belong on the journey HUD
 
 | Option | Shown as |
 | ------ | -------- |
-| Keep waiting | expected wait + probability, from B2 |
-| Walk it | walking ETA (walk links + pace stats) |
-| Next departure on another route | RAPTOR re-plan from the current stop |
+| Keep waiting | **Thin, shipped.** HUD says walking vs wait when the trip is ghost. B2 probability on that sentence still open. |
+| Walk it | **Shipped 2026-08-28.** HUD sentence when the trip is ghost and we can measure the walk. Planner pace 1.35 m/s × 1.3 detour, cap 25 min. Walk must beat the wait by 2 min. Same number as the replan sheet. |
+| Next departure on another route | RAPTOR re-plan from the current stop — still the live-replan sheet, not a HUD sentence |
 | Bolt / scooter / bikeshare | price and ETA *here* |
 | Taxi | regulated tariff ±15% and the dispatcher number |
 
@@ -776,7 +776,10 @@ Already true in this repo, and why the OS is a credible bet:
   SQL — the table already exists.
 - Thin B4 on the stop: skip this dark row for a live same-route (same
   headsign) or a faster live other route, or name Bolt/taxi when it was
-  the last tonight. Walk + RAPTOR re-plan still need a destination.
+  the last tonight.
+- Dest-aware B4 on the journey HUD: walk vs wait when the trip is ghost
+  and we can measure the walk (planner pace, cap 25 min). RAPTOR stays
+  the replan sheet. Taxi fare unpublished.
 - E0.2: app `/guide/getting-around-cyprus` 301s to marketing.
 - E0.3: Greek URLs at `aloya.cy/el/...` with reciprocal hreflang.
 - C1 physics score on every rider GPS fix. Fold ≥ 0.25; overlay a feed

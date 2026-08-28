@@ -85,4 +85,22 @@ describe("PhaseCopy components", () => {
     render(<PhaseSub live={live} itin={mockItin()} destLabel="Park" />);
     expect(screen.getByText(/We'll watch the bus/i)).toBeInTheDocument();
   });
+
+  it("on a ghost wait, says walk when dest is close", () => {
+    const live = mockLive({
+      phase: "waiting-to-board",
+      tripGhost: true,
+      secsToCurrentBoard: 20 * 60,
+    });
+    render(
+      <PhaseSub
+        live={live}
+        itin={mockItin()}
+        destLabel="Home"
+        dest={{ lat: 34.701, lng: 33.001 }}
+      />,
+    );
+    expect(screen.getByText(/Walk to Home/i)).toBeInTheDocument();
+    expect(screen.getByText(/Bus 30 isn't on the map/i)).toBeInTheDocument();
+  });
 });

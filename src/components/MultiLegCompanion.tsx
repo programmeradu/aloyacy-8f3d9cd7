@@ -182,7 +182,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           <div className="relative p-6">
             <PhaseLabel live={live} itin={itin} />
             <PhaseHeadline live={live} itin={itin} />
-            <PhaseSub live={live} itin={itin} destLabel={active.to.label} />
+            <PhaseSub live={live} itin={itin} destLabel={active.to.label} dest={active.to} />
           </div>
         </article>
       </section>

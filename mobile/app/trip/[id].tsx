@@ -315,6 +315,9 @@ function SingleLegCompanion({
         walkOutSec={walkOutSec}
         routeShort={bus.routeShort}
         routeLong={bus.routeLong}
+        ghost={live.tripGhost}
+        from={live.fix}
+        dest={active.to}
       />
 
       {/* Watch together — prominent below the hero so friends can be

@@ -1,6 +1,7 @@
 // Phase hero copy — kicker label, big headline and supporting line. Pure
 // presentation driven by the live multi-leg phase machine.
 
+import { destBailForWait, destBailLine } from "@aloya/core/dest-bail";
 import { Text } from "react-native";
 import { palette } from "@/constants/theme";
 import type { MultiLegLive } from "@/lib/useMultiLegJourney";
@@ -231,10 +232,12 @@ export function PhaseSub({
   live,
   itin,
   destLabel,
+  dest,
 }: {
   live: MultiLegLive;
   itin: Itinerary;
   destLabel: string;
+  dest?: { lat: number; lng: number };
 }) {
   const changesLabel =
     itin.transfers === 1 ? "1 change" : `${itin.transfers} changes`;
@@ -266,17 +269,49 @@ export function PhaseSub({
                     : live.phase === "walking-to-destination"
                       ? `About ${fmtMin(live.currentLeg?.kind === "walk" ? live.currentLeg.durationSec : 0)} min to ${destLabel}.`
                       : `Welcome to ${destLabel}.`;
+  const ride = live.currentRideLeg;
+  const bail =
+    ride &&
+    destBailForWait({
+      dark: live.tripGhost,
+      phase:
+        live.phase === "waiting-to-board"
+          ? "waiting"
+          : live.phase === "walking-to-board"
+            ? "walking"
+            : "other",
+      waitMin: live.secsToCurrentBoard / 60,
+      from: live.fix ?? { lat: ride.board.lat, lng: ride.board.lng },
+      to: dest ?? null,
+      destLabel,
+      routeShort: ride.routeShort,
+    });
   return (
-    <Text
-      style={{
-        marginTop: 16,
-        fontFamily: "Geist_500Medium",
-        fontSize: 13,
-        lineHeight: 20,
-        color: palette.inkSoft,
-      }}
-    >
-      {text}
-    </Text>
+    <>
+      <Text
+        style={{
+          marginTop: 16,
+          fontFamily: "Geist_500Medium",
+          fontSize: 13,
+          lineHeight: 20,
+          color: palette.inkSoft,
+        }}
+      >
+        {text}
+      </Text>
+      {bail ? (
+        <Text
+          style={{
+            marginTop: 8,
+            fontFamily: "Geist_500Medium",
+            fontSize: 13,
+            lineHeight: 20,
+            color: palette.inkSoft,
+          }}
+        >
+          {destBailLine(bail)}
+        </Text>
+      ) : null}
+    </>
   );
 }

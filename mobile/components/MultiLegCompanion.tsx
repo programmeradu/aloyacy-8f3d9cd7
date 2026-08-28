@@ -99,7 +99,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
           >
             <PhaseLabel live={live} itin={itin} />
             <PhaseHeadline live={live} itin={itin} />
-            <PhaseSub live={live} itin={itin} destLabel={active.to.label} />
+            <PhaseSub live={live} itin={itin} destLabel={active.to.label} dest={active.to} />
           </View>
         </View>
 

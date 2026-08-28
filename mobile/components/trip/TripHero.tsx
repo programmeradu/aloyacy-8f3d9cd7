@@ -11,6 +11,7 @@ import {
   phaseSubcopy,
   type SingleLegPhase,
 } from "@aloya/core/single-leg-phase";
+import { destBailForWait, destBailLine } from "@aloya/core/dest-bail";
 import { KICKER } from "./kit";
 
 export function TripHero({
@@ -27,6 +28,9 @@ export function TripHero({
   walkOutSec,
   routeShort,
   routeLong,
+  ghost,
+  from,
+  dest,
 }: {
   phase: SingleLegPhase;
   delaySec: number;
@@ -41,6 +45,9 @@ export function TripHero({
   walkOutSec: number;
   routeShort: string;
   routeLong: string;
+  ghost?: boolean;
+  from?: { lat: number; lng: number } | null;
+  dest?: { lat: number; lng: number };
 }) {
   const tone =
     phase === "arrived"
@@ -65,6 +72,15 @@ export function TripHero({
     boardName,
     alightName,
     minToDoor,
+  });
+  const bail = destBailForWait({
+    dark: !!ghost,
+    phase: phase === "waiting" ? "waiting" : phase === "walking" ? "walking" : "other",
+    waitMin: minToBoard,
+    from: from ?? null,
+    to: dest ?? null,
+    destLabel: destName,
+    routeShort,
   });
 
   return (
@@ -118,6 +134,19 @@ export function TripHero({
         >
           {sub}
         </Text>
+        {bail ? (
+          <Text
+            style={{
+              marginTop: 8,
+              fontFamily: "Geist_500Medium",
+              fontSize: 13,
+              lineHeight: 20,
+              color: palette.inkSoft,
+            }}
+          >
+            {destBailLine(bail)}
+          </Text>
+        ) : null}
 
         <View
           style={{

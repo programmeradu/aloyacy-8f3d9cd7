@@ -4,7 +4,8 @@
 
 import { IconClock } from "@/components/Icons";
 import { fmtEta as fmtMin } from "@/lib/journey-copy";
-import { useI18n } from "@/lib/i18n";
+import { destBailForWait, type DestBail } from "@aloya/core/dest-bail";
+import { useI18n, type DictKey } from "@/lib/i18n";
 import type { Itinerary, RideLeg } from "@/lib/itinerary-types";
 import type { MultiLegLive } from "@/lib/useMultiLegJourney";
 
@@ -205,10 +206,12 @@ export function PhaseSub({
   live,
   itin,
   destLabel,
+  dest,
 }: {
   live: MultiLegLive;
   itin: Itinerary;
   destLabel: string;
+  dest?: { lat: number; lng: number };
 }) {
   const { t } = useI18n();
   const changesLabel =
@@ -264,10 +267,63 @@ export function PhaseSub({
                         name: destLabel,
                       })
                     : t("ml.sub.welcome", { name: destLabel });
+  const bail = destBailFromLive(live, destLabel, dest);
   return (
-    <p className="mt-4 flex items-start gap-2 text-[13px] text-ink-soft leading-relaxed">
-      <IconClock className="mt-0.5 size-3.5 shrink-0 text-ink-soft" />
-      <span>{text}</span>
-    </p>
+    <>
+      <p className="mt-4 flex items-start gap-2 text-[13px] text-ink-soft leading-relaxed">
+        <IconClock className="mt-0.5 size-3.5 shrink-0 text-ink-soft" />
+        <span>{text}</span>
+      </p>
+      {bail && <DestBailLine action={bail} t={t} />}
+    </>
   );
+}
+
+function destBailFromLive(
+  live: MultiLegLive,
+  destLabel: string,
+  dest?: { lat: number; lng: number },
+): DestBail | null {
+  const ride = live.currentRideLeg;
+  if (!ride) return null;
+  const phase =
+    live.phase === "waiting-to-board"
+      ? "waiting"
+      : live.phase === "walking-to-board"
+        ? "walking"
+        : "other";
+  const from = live.fix ?? { lat: ride.board.lat, lng: ride.board.lng };
+  return destBailForWait({
+    dark: live.tripGhost,
+    phase,
+    waitMin: live.secsToCurrentBoard / 60,
+    from,
+    to: dest ?? null,
+    destLabel,
+    routeShort: ride.routeShort,
+  });
+}
+
+function DestBailLine({
+  action,
+  t,
+}: {
+  action: DestBail;
+  t: (key: DictKey, vars?: Record<string, string | number>) => string;
+}) {
+  const line =
+    action.kind === "walk"
+      ? t("ml.destBail.walk", {
+          dest: action.destLabel,
+          min: action.walkMin,
+          route: action.routeShort,
+        })
+      : action.waitMin <= 0
+        ? t("ml.destBail.keepWaitDue", { walk: action.walkMin, route: action.routeShort })
+        : t("ml.destBail.keepWait", {
+            walk: action.walkMin,
+            route: action.routeShort,
+            wait: action.waitMin,
+          });
+  return <p className="mt-2 text-[13px] leading-snug text-ink-soft">{line}</p>;
 }

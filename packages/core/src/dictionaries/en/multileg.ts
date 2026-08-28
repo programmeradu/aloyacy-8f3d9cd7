@@ -79,4 +79,7 @@ export const multileg = {
   "ml.timeline.rideSub": "{from} → {to} — {dep} — {arr} — {n} stops",
   "ml.timeline.walkSub": "{min} — {d} m",
   "ml.timeline.waitSub": "{min} at the stop",
+  "ml.destBail.walk": "Walk to {dest} in {min} min. Bus {route} isn't on the map.",
+  "ml.destBail.keepWait": "Walking is {walk} min. Bus {route} is about {wait} min if it shows.",
+  "ml.destBail.keepWaitDue": "Walking is {walk} min. Bus {route} isn't on the map.",
 } as const;

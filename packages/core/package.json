@@ -270,6 +270,10 @@
       "types": "./src/wait-or-bail.ts",
       "default": "./src/wait-or-bail.ts"
     },
+    "./dest-bail": {
+      "types": "./src/dest-bail.ts",
+      "default": "./src/dest-bail.ts"
+    },
     "./walk-anchor": {
       "types": "./src/walk-anchor.ts",
       "default": "./src/walk-anchor.ts"

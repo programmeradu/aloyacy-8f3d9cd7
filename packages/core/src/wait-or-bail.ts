@@ -1,6 +1,7 @@
 // Wait or bail — one action at the stop when the row is dark.
-// Same-stop only: a later live bus we can already see. Walk and RAPTOR
-// re-plan need a destination; those stay on the journey HUD.
+// Same-stop only: a later live bus we can already see. Dest-aware walk vs
+// wait lives in dest-bail.ts and renders on the journey HUD. RAPTOR re-plan
+// is the live-replan sheet. Do not invent a taxi fare here.
 
 export const WAIT_OR_BAIL_MAX_MIN = 20;
 export const WAIT_OR_BAIL_OTHER_MARGIN_MIN = 3;

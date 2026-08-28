@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { resolveHeroPhase, type SingleLegPhase } from "@aloya/core/single-leg-phase";
 import { applyLiveEta, feedBannerVariant } from "@aloya/core/companion-view";
+import { destBailForWait } from "@aloya/core/dest-bail";
 import { AppShell } from "@/components/AppShell";
 import { MapPreview } from "@/components/MapPreview";
 import { IconArrowLeft } from "@/components/Icons";
@@ -118,6 +119,15 @@ function SingleLegCompanion({
     { minToBoard: view.minToBoard, minToAlight: view.minToAlight, minToDoor: view.minToDoor },
     { phase, walkOutSec, live },
   );
+  const destBail = destBailForWait({
+    dark: live.tripGhost,
+    phase: phase === "waiting" ? "waiting" : phase === "walking" ? "walking" : "other",
+    waitMin: minToBoard,
+    from: live.fix ?? (walkIn.kind === "walk" ? { lat: walkIn.to.lat, lng: walkIn.to.lng } : null),
+    to: { lat: active.to.lat, lng: active.to.lng },
+    destLabel: active.to.label,
+    routeShort: bus.routeShort,
+  });
 
   const vehicleOverrides = live.fusedVehicle
     ? {
@@ -186,6 +196,7 @@ function SingleLegCompanion({
               boardName={bus.board.name}
               alightName={bus.alight.name}
               minToDoor={minToDoor}
+              destBail={destBail}
             />
           </div>
         </article>

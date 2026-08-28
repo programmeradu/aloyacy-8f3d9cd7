@@ -11,7 +11,7 @@ import { logTripOverride } from "@/lib/overrides.functions";
 import { setActiveTrip, initialLegState, type ActiveTrip } from "@/lib/trip-store";
 import { getDeviceId } from "@/lib/pwa";
 import { track } from "@/lib/analytics";
-import { distanceM } from "@/lib/geo";
+import { estimateWalk } from "@aloya/core/dest-bail";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
 import type { DisruptionKind } from "@/lib/useDisruptionWatch";
@@ -253,13 +253,6 @@ export function LiveReplanSheet({
   );
 }
 
-// Walking detour factor — straight-line × 1.3 approximates real street paths
-// closely enough for a "should I walk?" decision. We cap surfacing at ~25 min
-// so we never propose marathon walks as a serious option.
-const WALK_DETOUR_FACTOR = 1.3;
-const WALK_SPEED_MPS = 1.3; // ~4.7 km/h, comfortable everyday pace
-const WALK_MAX_SEC = 25 * 60;
-
 function WalkOutOption({
   fix,
   active,
@@ -270,21 +263,18 @@ function WalkOutOption({
   kind: DisruptionKind;
 }) {
   const { t } = useI18n();
-  const walk = useMemo(() => {
-    const straightM = distanceM(fix, { lat: active.to.lat, lng: active.to.lng });
-    const walkM = straightM * WALK_DETOUR_FACTOR;
-    const sec = Math.round(walkM / WALK_SPEED_MPS);
-    return sec <= WALK_MAX_SEC ? { sec, m: Math.round(walkM) } : null;
-  }, [fix, active.to.lat, active.to.lng]);
+  const walk = useMemo(
+    () => estimateWalk(fix, { lat: active.to.lat, lng: active.to.lng }),
+    [fix, active.to.lat, active.to.lng],
+  );
   if (!walk) return null;
   const url = `https://www.google.com/maps/dir/?api=1&origin=${fix.lat},${fix.lng}&destination=${active.to.lat},${active.to.lng}&travelmode=walking`;
-  const mins = Math.max(1, Math.round(walk.sec / 60));
   return (
     <a
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => track("ui:live-replan.walk-out", { kind, sec: walk.sec, m: walk.m })}
+      onClick={() => track("ui:live-replan.walk-out", { kind, sec: walk.min * 60, m: walk.meters })}
       className="mt-4 flex items-center justify-between rounded-[24px] bg-aegean-soft/40 ring-1 ring-aegean/30 p-4 hover:ring-aegean-deep transition"
     >
       <div className="min-w-0">
@@ -292,10 +282,10 @@ function WalkOutOption({
           {t("replan.walkInsteadCta")}
         </p>
         <p className="mt-1 font-display text-[18px] leading-tight text-ink">
-          {t("replan.walkInstead", { mins })}
+          {t("replan.walkInstead", { mins: walk.min })}
         </p>
         <p className="mt-0.5 text-[12px] text-ink-soft">
-          {t("replan.walkingTotal", { m: walk.m })}
+          {t("replan.walkingTotal", { m: walk.meters })}
         </p>
       </div>
       <span className="ml-3 font-mono text-[10px] uppercase tracking-[0.18em] text-aegean-deep">
