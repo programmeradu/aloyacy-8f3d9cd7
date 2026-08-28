@@ -383,9 +383,7 @@ export default function StopDetailScreen() {
                 }}
                 noShow={pickNoShow(hints.data?.slots ?? [], d.routeId, d.arrivalUnix, Date.now())}
                 lastTonight={
-                  rt.data
-                    ? lastTonightOnRoute(rt.data.arrivals, stopId, d.routeId, d.arrivalUnix)
-                    : false
+                  !!rt.data && lastTonightOnRoute(rt.data.arrivals, stopId, d.routeId, d.arrivalUnix)
                 }
                 headway={headwayByTrip.get(d.tripId) ?? null}
                 waitOrBail={waitOrBailByTrip.get(d.tripId) ?? null}

@@ -368,5 +368,6 @@ export const CronSecretQuerySchema = z.object({
 
 export { StopConditionSchema } from "./stop-condition";
 export { StopPhotoSchema } from "./stop-photo";
+export { FeedDeltaSchema } from "./feed-delta";
 export { StopSkipSchema } from "./stop-skip";
 export { StopSkipReportSchema } from "./stop-skip-report";

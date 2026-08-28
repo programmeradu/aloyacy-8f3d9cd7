@@ -82,6 +82,7 @@ import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/index
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicGtfsHeadsignsRouteImport } from './routes/api/public/gtfs-headsigns'
 import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
+import { Route as ApiPublicFeedDeltaRouteImport } from './routes/api/public/feed-delta'
 import { Route as ApiPublicExpoPushRegisterRouteImport } from './routes/api/public/expo-push-register'
 import { Route as ApiPublicEtaLogRouteImport } from './routes/api/public/eta-log'
 import { Route as ApiPublicDustAdvisoryRouteImport } from './routes/api/public/dust-advisory'
@@ -499,6 +500,12 @@ const ApiPublicGbfsDotjsonRoute = ApiPublicGbfsDotjsonRouteImport.update({
   path: '/api/public/gbfs.json',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicFeedDeltaRoute =
+  ApiPublicFeedDeltaRouteImport.update({
+    id: '/api/public/feed-delta',
+    path: '/api/public/feed-delta',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicExpoPushRegisterRoute =
   ApiPublicExpoPushRegisterRouteImport.update({
     id: '/api/public/expo-push-register',
@@ -783,6 +790,7 @@ export interface FileRoutesByFullPath {
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/eta-log': typeof ApiPublicEtaLogRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
+  '/api/public/feed-delta': typeof ApiPublicFeedDeltaRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/gtfs-headsigns': typeof ApiPublicGtfsHeadsignsRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -901,6 +909,7 @@ export interface FileRoutesByTo {
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/eta-log': typeof ApiPublicEtaLogRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
+  '/api/public/feed-delta': typeof ApiPublicFeedDeltaRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/gtfs-headsigns': typeof ApiPublicGtfsHeadsignsRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -1020,6 +1029,7 @@ export interface FileRoutesById {
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/eta-log': typeof ApiPublicEtaLogRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
+  '/api/public/feed-delta': typeof ApiPublicFeedDeltaRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
   '/api/public/gtfs-headsigns': typeof ApiPublicGtfsHeadsignsRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -1140,6 +1150,7 @@ export interface FileRouteTypes {
     | '/api/public/dust-advisory'
     | '/api/public/eta-log'
     | '/api/public/expo-push-register'
+    | '/api/public/feed-delta'
     | '/api/public/gbfs.json'
     | '/api/public/gtfs-headsigns'
     | '/api/public/health'
@@ -1258,6 +1269,7 @@ export interface FileRouteTypes {
     | '/api/public/dust-advisory'
     | '/api/public/eta-log'
     | '/api/public/expo-push-register'
+    | '/api/public/feed-delta'
     | '/api/public/gbfs.json'
     | '/api/public/gtfs-headsigns'
     | '/api/public/health'
@@ -1376,6 +1388,7 @@ export interface FileRouteTypes {
     | '/api/public/dust-advisory'
     | '/api/public/eta-log'
     | '/api/public/expo-push-register'
+    | '/api/public/feed-delta'
     | '/api/public/gbfs.json'
     | '/api/public/gtfs-headsigns'
     | '/api/public/health'
@@ -1495,6 +1508,7 @@ export interface RootRouteChildren {
   ApiPublicDustAdvisoryRoute: typeof ApiPublicDustAdvisoryRoute
   ApiPublicEtaLogRoute: typeof ApiPublicEtaLogRoute
   ApiPublicExpoPushRegisterRoute: typeof ApiPublicExpoPushRegisterRoute
+  ApiPublicFeedDeltaRoute: typeof ApiPublicFeedDeltaRoute
   ApiPublicGbfsDotjsonRoute: typeof ApiPublicGbfsDotjsonRoute
   ApiPublicGtfsHeadsignsRoute: typeof ApiPublicGtfsHeadsignsRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
@@ -2081,6 +2095,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGbfsDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/feed-delta': {
+      id: '/api/public/feed-delta'
+      path: '/api/public/feed-delta'
+      fullPath: '/api/public/feed-delta'
+      preLoaderRoute: typeof ApiPublicFeedDeltaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/expo-push-register': {
       id: '/api/public/expo-push-register'
       path: '/api/public/expo-push-register'
@@ -2444,6 +2465,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDustAdvisoryRoute: ApiPublicDustAdvisoryRoute,
   ApiPublicEtaLogRoute: ApiPublicEtaLogRoute,
   ApiPublicExpoPushRegisterRoute: ApiPublicExpoPushRegisterRoute,
+  ApiPublicFeedDeltaRoute: ApiPublicFeedDeltaRoute,
   ApiPublicGbfsDotjsonRoute: ApiPublicGbfsDotjsonRoute,
   ApiPublicGtfsHeadsignsRoute: ApiPublicGtfsHeadsignsRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,

@@ -46,6 +46,10 @@
       "types": "./src/device-reputation.ts",
       "default": "./src/device-reputation.ts"
     },
+    "./feed-delta": {
+      "types": "./src/feed-delta.ts",
+      "default": "./src/feed-delta.ts"
+    },
     "./dictionaries/el": {
       "types": "./src/dictionaries/el/index.ts",
       "default": "./src/dictionaries/el/index.ts"

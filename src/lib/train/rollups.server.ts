@@ -5,7 +5,6 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { blendStat, haversineM } from "./shared.server";
 import { cyHourDow } from "@aloya/core/cy-time";
 
-
 // ---------- segment runtimes (rider GPS → stop-to-stop times) -------------
 // Heuristic v1: per (trip_id) sort fixes, take total duration, distribute
 // proportionally across the legs of the active itinerary recorded in
@@ -171,45 +170,6 @@ export async function rollupDwellTimes(): Promise<number> {
   return inserted;
 }
 
-// ---------- feed-vs-truth delta ------------------------------------------
-// Compare rider GPS to where the GTFS-RT feed claims that vehicle is at the
-// same instant. Distance in meters and inferred time offset (distance / 8 m/s).
-export async function rollupFeedVsTruth(): Promise<number> {
-  // Currently the GTFS-RT vehicle positions live behind /api/public/realtime
-  // and aren't persisted, so we approximate using rt_snapshots arrival
-  // predictions per trip + stop. v1: skip the spatial comparison and instead
-  // accumulate dispersion of rider fixes around the predicted location
-  // (proxy for "feed accuracy in this hour"). Keep simple: count of fixes
-  // per route+hour as a coverage signal.
-  const since = new Date(Date.now() - 3 * 3600 * 1000).toISOString();
-  const { data } = await supabaseAdmin
-    .from("rider_vehicle_fixes")
-    .select("route_id, reported_at")
-    .gte("reported_at", since)
-    .limit(20000);
-  if (!data) return 0;
-  const buckets = new Map<string, number>();
-  for (const r of data) {
-    if (!r.route_id) continue;
-    const d = new Date(r.reported_at);
-    const { hour, dow } = cyHourDow(d.getTime());
-    const key = `${r.route_id}|${hour}|${dow}`;
-    buckets.set(key, (buckets.get(key) ?? 0) + 1);
-  }
-  for (const [k, n] of buckets) {
-    const [route_id, h, dow] = k.split("|");
-    await blendStat(
-      "feed_truth_delta",
-      {
-        route_id,
-        hour_of_day: Number(h),
-        day_of_week: Number(dow),
-      },
-      "mean_delta_m",
-      { mean: 0, count: n }, // count-only; delta filled in once vehicles persisted
-    );
-  }
-  return buckets.size;
-}
-
-// ---------- crowding (concurrent devices per trip / 5-min window) ---------
+// Feed-vs-truth pairing lives in feed-delta.server.ts (both mean fields
+// in one upsert). Re-export so the train hook stays a one-line call.
+export { rollupFeedVsTruth } from "@/lib/feed-delta.server";

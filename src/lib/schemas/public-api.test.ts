@@ -20,6 +20,7 @@ import {
   PartnerApplySchema,
   StopConditionSchema,
   StopPhotoSchema,
+  FeedDeltaSchema,
   StopSkipSchema,
   StopSkipReportSchema,
 } from "./public-api";
@@ -376,6 +377,13 @@ describe("StopPhotoSchema", () => {
         imageBase64: "A".repeat(64),
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("FeedDeltaSchema", () => {
+  it("accepts a stop and rejects an empty id", () => {
+    expect(FeedDeltaSchema.safeParse({ stopId: "1009" }).success).toBe(true);
+    expect(FeedDeltaSchema.safeParse({ stopId: "" }).success).toBe(false);
   });
 });
 

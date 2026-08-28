@@ -150,6 +150,7 @@ know — that silence is the product.
 | Stop condition | Shelter, seat, walk, light, step-free, sign, timetable, two poles. One tap. |
 | A photo of the stop | From a rider. Silent when none. |
 | Skip rate | “Bus 31 skips this stop about 1 in 5 on weekday evenings. Wave clearly.” |
+| Official clock | “The official clock on Bus 31 is usually about 3 min off this hour. We trust a rider on board.” Silent below 8 samples or 2 minutes. We do not say the operator is late. |
 | Neighbour stop | “…or use Makarios 180 m north.” Only if that stop is real and does not also skip. |
 | It drove past me | One tap. Two riders before we say it. |
 | Step-free filter | If you asked: we hide a stop we know has a kerb, when another option exists. |
@@ -217,6 +218,9 @@ This is the part that makes Aloya hard to copy. Say it simply.
 7. **A phone that has been right can stand alone.** Two riders agree,
    or one rider whose GPS has matched real arrivals. A first-time tap
    is named as one rider.
+8. **When the operator clock and a rider disagree, we write it down.**
+   How far apart, this route, this hour. We say “off”, not “optimistic”.
+   Silent until eight samples and two minutes.
 
 That is the moat: **ground truth that is not an ETA**, collected in
 Cyprus, in Greek and English, on the same clock the rider sees.

@@ -50,6 +50,8 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.headway.weekendAfternoon": "τα σαββατοκύριακα το μεσημέρι",
   "stop.headway.weekendEvening": "τα σαββατοκύριακα το απόγευμα",
   "stop.headway.weekendNight": "τα σαββατοκύριακα το βράδυ",
+  "stop.feedDelta":
+    "Το επίσημο ρολόι στο λεωφορείο {route} είναι συνήθως περίπου {m} λεπτά λάθος αυτή την ώρα. Εμπιστευόμαστε επιβάτη μέσα.",
   "stop.skipRate":
     "Το λεωφορείο {route} προσπερνά αυτή τη στάση περίπου 1 στις {k} {when}. Κάντε σήμα.",
   "stop.skipRateNeighbour":

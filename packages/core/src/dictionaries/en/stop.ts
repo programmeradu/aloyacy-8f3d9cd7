@@ -46,6 +46,8 @@ export const stop = {
   "stop.headway.weekendAfternoon": "on weekend afternoons",
   "stop.headway.weekendEvening": "on weekend evenings",
   "stop.headway.weekendNight": "on weekend nights",
+  "stop.feedDelta":
+    "The official clock on Bus {route} is usually about {m} min off this hour. We trust a rider on board.",
   "stop.skipRate": "Bus {route} skips this stop about 1 in {k} {when}. Wave clearly.",
   "stop.skipRateNeighbour":
     "Bus {route} skips this stop about 1 in {k} {when}. Wave clearly, or use {stop} {meters} m {compass}.",

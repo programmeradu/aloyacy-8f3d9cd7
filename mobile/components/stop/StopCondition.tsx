@@ -13,6 +13,7 @@ import {
   type StopAttribute,
   type StopConsensus,
 } from "@aloya/core/stop-condition";
+import { StopFeedDelta } from "@/components/stop/StopFeedDelta";
 import { StopPhoto } from "@/components/stop/StopPhoto";
 import { StopSkipAsk } from "@/components/stop/StopSkipAsk";
 import { StopSkipRate } from "@/components/stop/StopSkipRate";
@@ -81,6 +82,7 @@ export function StopCondition({ stopId }: { stopId: string }) {
     return (
       <>
         <StopSkipRate stopId={stopId} />
+        <StopFeedDelta stopId={stopId} />
         <StopSkipAsk stopId={stopId} rows={rows} />
         <StopPhoto stopId={stopId} rows={rows} />
       </>
@@ -157,6 +159,7 @@ export function StopCondition({ stopId }: { stopId: string }) {
         </View>
       ) : null}
       <StopSkipRate stopId={stopId} />
+      <StopFeedDelta stopId={stopId} />
       <StopSkipAsk stopId={stopId} rows={rows} />
       <StopPhoto stopId={stopId} rows={rows} />
     </View>
