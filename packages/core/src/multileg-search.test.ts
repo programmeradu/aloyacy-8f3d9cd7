@@ -373,4 +373,35 @@ describe("searchMultiLeg", () => {
     });
     expect(diagnostics.transferRawCount).toBe(0);
   });
+
+  it("ranks a spoken-skip board behind a slightly slower clean one", () => {
+    const routes = new Map([...routeById, ["r3", { short: "3", long: "Alpha – Gamma" }]]);
+    const arrivals = [
+      arr("t-skip", "r1", "A", 5),
+      arr("t-skip", "r1", "C", 15),
+      arr("t-ok", "r3", "A", 5),
+      arr("t-ok", "r3", "C", 16),
+    ];
+    const common = {
+      from,
+      to,
+      stops,
+      routeById: routes,
+      arrivals,
+      transferIndex: new Map<string, Array<{ toStopId: string }>>(),
+      now: NOW,
+      headwayOf: () => 10 * 60,
+    };
+    const first = (it: { legs: Leg[] }) =>
+      it.legs.find((l): l is RideLeg => l.kind === "ride")?.routeId;
+    expect(first(searchMultiLeg(common).itineraries[0]!)).toBe("r1");
+    expect(
+      first(
+        searchMultiLeg({
+          ...common,
+          skipOf: (stopId, routeId) => (stopId === "A" && routeId === "r1" ? 0.2 : null),
+        }).itineraries[0]!,
+      ),
+    ).toBe("r3");
+  });
 });

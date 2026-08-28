@@ -91,7 +91,11 @@ export function searchMultiLeg(input: MultiLegInput): {
   const { from, to, stops, routeById, arrivals, transferIndex, now } = input;
   const diag = emptyDiagnostics();
   const stopById = new Map(stops.map((s) => [s.id, s]));
-  const ctx: PlanContext = { sameStation: input.sameStation, headwayOf: input.headwayOf };
+  const ctx: PlanContext = {
+    sameStation: input.sameStation,
+    headwayOf: input.headwayOf,
+    skipOf: input.skipOf,
+  };
 
   // 1) Index the live feed first — candidate selection needs to know which
   //    routes each stop actually offers.

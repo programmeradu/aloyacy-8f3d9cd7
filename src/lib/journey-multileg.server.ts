@@ -15,15 +15,20 @@ import { getTransferCandidates } from "./transfer-graph.server";
 import { getWalkLink } from "./walk-links.server";
 import type { Itinerary } from "./itinerary-types";
 import {
+  MAX_ACCESS_WALK_KM,
+  distanceKm,
   pruneDominated,
   recomputeTotals,
   searchMultiLeg,
   type MlArrival,
   type MultiLegDiagnostics,
+  type PlanContext,
 } from "@aloya/core/multileg-search";
 import { createLogger } from "@/lib/logger";
 import { sameStation, stationIdOf } from "./stations.server";
 import { buildHeadwayIndex } from "@aloya/core/headway";
+import { skipMapKey } from "@aloya/core/skip-rate";
+import { loadSkipFractionMap } from "./skip-rate.server";
 
 const log = createLogger("multileg");
 
@@ -32,9 +37,10 @@ export type { MultiLegDiagnostics };
 const VERIFY_WALKS_FOR_TOP = 3; // upgrade walking geometry only for top 3
 
 const ROUTE_BY_ID = new Map(ROUTES.map((r) => [r.id, { short: r.short, long: r.long }]));
+const STOP_BY_ID = new Map(STOPS.map((s) => [s.id, s]));
 
 /** Real walking geometry for the top picks, then re-score with the truth. */
-async function verifyWalks(top: Itinerary[], now: number): Promise<void> {
+async function verifyWalks(top: Itinerary[], now: number, ctx?: PlanContext): Promise<void> {
   await Promise.all(
     top.slice(0, VERIFY_WALKS_FOR_TOP).map(async (it) => {
       for (const leg of it.legs) {
@@ -48,9 +54,24 @@ async function verifyWalks(top: Itinerary[], now: number): Promise<void> {
           leg.polyline = real.polyline;
         }
       }
-      recomputeTotals(it, now);
+      recomputeTotals(it, now, ctx);
     }),
   );
+}
+
+function nearbyArrivalStopIds(
+  arrivals: MlArrival[],
+  from: { lat: number; lng: number },
+): string[] {
+  const ids = new Set<string>();
+  for (const a of arrivals) {
+    const s = STOP_BY_ID.get(a.stopId);
+    if (!s) continue;
+    if (distanceKm(from, s) > MAX_ACCESS_WALK_KM) continue;
+    ids.add(a.stopId);
+    if (ids.size >= 80) break;
+  }
+  return [...ids];
 }
 
 export async function planMultiLegJourney(
@@ -76,6 +97,14 @@ export async function planMultiLegJourney(
   const headways = buildHeadwayIndex(
     arrivals.map((a) => ({ routeId: a.routeId, stopId: a.stopId, timeUnix: a.arrivalUnix })),
   );
+  const skipMap = await loadSkipFractionMap(nearbyArrivalStopIds(arrivals, from)).catch(
+    () => new Map<string, number>(),
+  );
+  const ctx: PlanContext = {
+    sameStation,
+    headwayOf: (routeId) => headways.get(routeId) ?? null,
+    skipOf: (stopId, routeId) => skipMap.get(skipMapKey(stopId, routeId)) ?? null,
+  };
 
   const { itineraries, diagnostics } = searchMultiLeg({
     from,
@@ -87,10 +116,11 @@ export async function planMultiLegJourney(
     now,
     sameStation,
     stationIdOf,
-    headwayOf: (routeId) => headways.get(routeId) ?? null,
+    headwayOf: ctx.headwayOf,
+    skipOf: ctx.skipOf,
   });
 
-  await verifyWalks(itineraries, now);
+  await verifyWalks(itineraries, now, ctx);
   // Real walking geometry can change which options are genuinely better, so
   // dominance is re-checked against the verified totals rather than the
   // straight-line estimates the search ran on.

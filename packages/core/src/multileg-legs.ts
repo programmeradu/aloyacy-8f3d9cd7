@@ -79,6 +79,8 @@ export type MultiLegInput = {
   stationIdOf?: (stopId: string) => string | undefined;
   /** Typical seconds between departures on a route, when known. */
   headwayOf?: (routeId: string) => number | null;
+  /** Spoken skip fraction (0–1) at a board stop. Null when we stay silent. */
+  skipOf?: (stopId: string, routeId: string) => number | null;
 };
 
 

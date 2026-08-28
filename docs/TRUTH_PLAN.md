@@ -549,7 +549,8 @@ and `20260828_stop_skip_reports.sql` on prod.
 
 **In the planner (shipped).** A spoken skip (n ≥ 8 and ≥ 15%) adds
 expected extra wait = fraction × headway at the boarding stop. The
-stop stays on the list. Silent below the speak bar. Live RAPTOR **open.**
+stop stays on the list. Silent below the speak bar. Same cost on the
+live search and the timetable RAPTOR.
 
 ### D3. Walkability truth in the planner
 
@@ -887,7 +888,7 @@ Update this table in the same commit as the slice.
 | C2 | Corroboration + reputation | **Shipped** one rider vs two, a proven phone can carry alone, disagreement “off this hour”, and GPS ∪ tap as distinct devices. Apply `20260828_device_reputation.sql`. |
 | C3 | Cold-start ask | **Shipped** only-eyes ask, Pulse watching + busy-and-dark seed list, seed copy on the ask. |
 | D1 | Stop condition | **Shipped** one-tap + photo + step-free filter (hide known kerbs when another option exists). Seed = eight hubs. Apply `20260828_stop_condition.sql` and `20260828_stop_photos.sql`. |
-| D2 | Skip rate | **Shipped** pass-through vs dwell, measured neighbour, rider “it drove past me”, and a RAPTOR penalty (expected extra wait). Apply `20260828_stop_skip.sql` and `20260828_stop_skip_reports.sql`. Live RAPTOR **open.** |
+| D2 | Skip rate | **Shipped** pass-through vs dwell, measured neighbour, rider “it drove past me”, and skip wait on live search + timetable RAPTOR. Apply `20260828_stop_skip.sql` and `20260828_stop_skip_reports.sql`. |
 | D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
 | D4 | Report decay / one ask per journey | **Shipped** 90-day decay, “Confirmed by n riders, last N days ago”, one ask per ride, photo = two votes (two phones still required). |
 | D5 | Public stop page (indexable) | **Partial.** Named title + noindex unless rated / skip / attribute. Sitemap lists those stops (cap 400). BusStop JSON-LD on indexable pages. `BusTrip` **open.** |
@@ -900,7 +901,7 @@ Update this table in the same commit as the slice.
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** live RAPTOR skip penalty (same expected extra wait on the live planner).
+**Next unblocked:** B4 RAPTOR HUD wait-or-bail sentence (need a dest). Then B5 RAPTOR other-stop.
 
 ---
 
