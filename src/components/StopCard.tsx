@@ -160,6 +160,7 @@ function TierChip({
   tier,
   confidence,
   blurb,
+  singleSource,
   t,
 }: {
   tier: FreshnessTier;
