@@ -149,6 +149,7 @@ know — that silence is the product.
 | Last bus tonight | Named. After that: Bolt, a taxi, or tomorrow. |
 | Stop condition | Shelter, seat, walk, light, step-free, sign, timetable, two poles. One tap. |
 | A photo of the stop | From a rider. Silent when none. |
+| Public stop page | Google only sees a stop when we have something true to say — a rated clock, a skip, or a confirmed attribute. |
 | Skip rate | “Bus 31 skips this stop about 1 in 5 on weekday evenings. Wave clearly.” |
 | Official clock | “The official clock on Bus 31 is usually about 3 min off this hour. We trust a rider on board.” Silent below 8 samples or 2 minutes. We do not say the operator is late. |
 | Neighbour stop | “…or use Makarios 180 m north.” Only if that stop is real and does not also skip. |

@@ -25,30 +25,12 @@ import { pickHeadwayForDepartures } from "@aloya/core/headway-chance";
 import { pickWaitOrBailForDepartures } from "@aloya/core/wait-or-bail";
 import { useI18n } from "@/lib/i18n";
 import { sampleEtaPrediction } from "@/lib/eta-log";
+import { loadStopIndexFacts } from "@/lib/stop-index.server";
+import { stopHead } from "@/lib/stop-seo";
 
 export const Route = createFileRoute("/stop/$stopId")({
-  head: ({ params }) => {
-    const title = `Stop ${params.stopId} — Aloya`;
-    const desc = `Live departures, routes and next bus times for stop ${params.stopId} in Cyprus.`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: desc },
-        { property: "og:title", content: title },
-        { property: "og:description", content: desc },
-        { property: "og:type", content: "article" },
-        { property: "og:url", content: `https://app.aloya.cy/stop/${params.stopId}` },
-        { property: "og:image", content: "https://app.aloya.cy/og/og-stop.jpg" },
-        { property: "og:image:width", content: "1216" },
-        { property: "og:image:height", content: "640" },
-        { name: "twitter:image", content: "https://app.aloya.cy/og/og-stop.jpg" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: desc },
-      ],
-      links: [{ rel: "canonical", href: `https://app.aloya.cy/stop/${params.stopId}` }],
-    };
-  },
+  loader: ({ params }) => loadStopIndexFacts(params.stopId),
+  head: ({ params, loaderData }) => stopHead(params.stopId, loaderData),
   component: StopDetail,
 });
 

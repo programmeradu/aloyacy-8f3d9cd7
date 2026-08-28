@@ -577,6 +577,11 @@ A per-stop page showing condition, photos, skip rate and reliability
 is both the most useful page in the app and the most linkable. Index
 only once it has real content (see E2).
 
+**On the page (first slice).** Title uses the stop name. `noindex`
+unless we have a rated clock, a skip we can speak, or a confirmed
+attribute (seed or riders). Thin pages stay out of the sitemap.
+JSON-LD is E3.
+
 ---
 
 ## Workstream E — Two repos, one vocabulary
@@ -875,7 +880,7 @@ Update this table in the same commit as the slice.
 | D2 | Skip rate | **Shipped** pass-through vs dwell, measured neighbour, and rider “it drove past me”. Apply `20260828_stop_skip.sql` and `20260828_stop_skip_reports.sql`. RAPTOR penalty **open.** |
 | D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
 | D4 | Report decay / one ask per journey | **Shipped** 90-day decay, “Confirmed by n riders, last N days ago”, one ask per ride. Photo-weight **open.** |
-| D5 | Public stop page (indexable) | **Open.** Index only with real content (E2). |
+| D5 | Public stop page (indexable) | **Partial.** Named title + noindex unless rated / skip / attribute. Sitemap lists those stops (cap 400). JSON-LD **open** (E3). |
 | E0 | Two-repo contradictions | **Shipped** (boards, 301, hreflang, fare/line copy, drop overclaims). |
 | E2 | Programmatic index | Rides on A5 + D1/D2 content. |
 | E3 | Transit JSON-LD | **Open.** |
@@ -885,7 +890,7 @@ Update this table in the same commit as the slice.
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** D5 public stop page (index only with real content).
+**Next unblocked:** E3 Transit JSON-LD on indexable stop pages, then D2 RAPTOR skip penalty.
 
 ---
 

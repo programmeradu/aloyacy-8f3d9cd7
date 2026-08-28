@@ -333,6 +333,10 @@
     "./stop-condition": {
       "types": "./src/stop-condition.ts",
       "default": "./src/stop-condition.ts"
+    },
+    "./stop-index": {
+      "types": "./src/stop-index.ts",
+      "default": "./src/stop-index.ts"
     }
   },
   "dependencies": {

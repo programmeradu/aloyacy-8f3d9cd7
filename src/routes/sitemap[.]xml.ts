@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
+import { listIndexableStopIds } from "@/lib/stop-index.server";
 
 const BASE_URL = "https://app.aloya.cy";
 
@@ -9,10 +10,8 @@ interface SitemapEntry {
   priority?: string;
 }
 
-// Public, indexable landing/content routes only. App utility screens
-// (/pulse, /trips, /saved, /wallet), legal pages, dynamic trip/stop/route
-// pages, and internal surfaces are intentionally omitted so Google doesn't
-// waste crawl budget on personalized/thin app states.
+// Public, indexable landing/content routes. Personalized app screens stay
+// out. Stop pages join only when D5 says they have real content.
 const entries: SitemapEntry[] = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
   { path: "/airport/lca", changefreq: "daily", priority: "0.9" },
@@ -30,7 +29,12 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const urls = entries.map((e) =>
+        const stops = await listIndexableStopIds().catch(() => [] as string[]);
+        const all: SitemapEntry[] = [
+          ...entries,
+          ...stops.map((id) => ({ path: `/stop/${id}`, changefreq: "daily" as const, priority: "0.6" })),
+        ];
+        const urls = all.map((e) =>
           [
             `  <url>`,
             `    <loc>${BASE_URL}${e.path}</loc>`,
