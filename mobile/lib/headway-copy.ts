@@ -34,8 +34,8 @@ export function headwayCopy(hint: HeadwayHint, routeShort: string): string {
   const when = WHEN[hint.when];
   const every =
     hint.source === "observed"
-      ? `The ${routeShort} runs about every ${hint.meanMin} min here ${when}.`
-      : `The timetable has a ${routeShort} about every ${hint.meanMin} min here ${when}.`;
+      ? `Bus ${routeShort} runs about every ${hint.meanMin} min here ${when}.`
+      : `The timetable has a bus ${routeShort} about every ${hint.meanMin} min here ${when}.`;
   const last = hint.lastSeenMin != null ? `Last one seen ${hint.lastSeenMin} min ago.` : "";
   const chance =
     hint.chancePct != null

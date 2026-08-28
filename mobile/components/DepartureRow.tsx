@@ -231,7 +231,7 @@ export function DepartureRow({
             {waitOrBail ? <Text style={truthLine}>{waitOrBailCopy(waitOrBail)}</Text> : null}
             {lastTonight && waitOrBail?.kind !== "bail" ? (
               <Text style={truthLine}>
-                {`Last ${routeShort} tonight. After this it's Bolt, a taxi, or tomorrow.`}
+                {`Last bus ${routeShort} tonight. After this it's Bolt, a taxi, or tomorrow.`}
               </Text>
             ) : null}
             {noShow ? (

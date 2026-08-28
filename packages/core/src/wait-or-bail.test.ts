@@ -151,7 +151,7 @@ describe("pickWaitOrBailForDepartures", () => {
 describe("waitOrBailCopy", () => {
   it("says the next bus, not a slogan", () => {
     expect(waitOrBailCopy({ kind: "skipSame", routeShort: "30", etaMin: 8 })).toBe(
-      "This 30 isn't on the map. The next one is, 8 min.",
+      "Bus 30 isn't on the map. The next one is, 8 min.",
     );
   });
 });

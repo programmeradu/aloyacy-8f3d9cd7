@@ -120,10 +120,10 @@ export function pickWaitOrBailForDepartures(
 export function waitOrBailCopy(action: WaitOrBail): string {
   switch (action.kind) {
     case "skipSame":
-      return `This ${action.routeShort} isn't on the map. The next one is, ${action.etaMin} min.`;
+      return `Bus ${action.routeShort} isn't on the map. The next one is, ${action.etaMin} min.`;
     case "otherRoute":
-      return `The ${action.altRouteShort} is on the map, ${action.etaMin} min. This ${action.routeShort} isn't.`;
+      return `Bus ${action.altRouteShort} is on the map, ${action.etaMin} min. Bus ${action.routeShort} isn't.`;
     case "bail":
-      return `This ${action.routeShort} was the last tonight and it isn't on the map. Bolt, a taxi, or tomorrow.`;
+      return `Bus ${action.routeShort} was the last tonight and it isn't on the map. Bolt, a taxi, or tomorrow.`;
   }
 }
