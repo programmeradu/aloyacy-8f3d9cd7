@@ -1,10 +1,9 @@
 // Airport page — /airport/lca, /airport/pfo
 //
-// Mirrors /stop/$stopId exactly. The airport's GTFS stop drives the
-// "Next departures" list; Kapnos intercity coach cards are slotted in
-// at the top of that same list (same UI rhythm as a stop page — no
-// editorial article, no numbered sections, no flight pulse strip).
-// SEO metadata + JSON-LD are kept for indexability only.
+// A job: how to leave. Kapnos seats and price, the next city bus, the taxi
+// rank with no invented fare. CoachLineCards and urban DepartureRows stay
+// as the detail list under that strip. SEO metadata + JSON-LD are kept
+// for indexability only.
 
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
@@ -26,7 +25,9 @@ import { getStop, getRoute } from "@/lib/gtfs";
 import { useI18n, type Locale } from "@/lib/i18n";
 import { getAirportPage, type AirportCode, type AirportPageData } from "@/lib/airport.functions";
 import { CoachLineCard } from "@/components/airport/CoachLineCard";
+import { AirportWaysOut } from "@/components/airport/AirportWaysOut";
 import { AIRPORT_COPY, AIRPORT_STOP, BASE, airportHead, isAirportCode } from "@/lib/airport-page";
+import { buildAirportJob } from "@aloya/core/airport-job";
 
 function airportQuery(code: AirportCode) {
   return queryOptions({
@@ -169,6 +170,17 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
   const center = stop ? { lat: stop.lat, lng: stop.lng } : { lat: airport.lat, lng: airport.lng };
   const airportName = locale === "el" ? airport.nameEl : airport.name;
   const totalCount = data.coachLines.length + departures.length;
+  const firstLive = departures.find((d) => d.eta.tier !== "ghost");
+  const job = buildAirportJob({
+    coachLines: data.coachLines,
+    cityBus: firstLive
+      ? {
+          routeShort: getRoute(firstLive.routeId)?.short ?? "?",
+          etaMin: firstLive.eta.etaMin,
+          ghost: false,
+        }
+      : null,
+  });
 
   return (
     <AppShell>
@@ -180,7 +192,7 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
           <IconArrowLeft className="size-4" />
         </Link>
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          {t("stop.kicker", { code: airport.iata })}
+          {t("airport.kicker", { code: airport.iata })}
         </span>
         <button
           type="button"
@@ -220,21 +232,9 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
         </div>
       )}
 
-      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
-        <div className="flex items-end justify-between gap-4 mb-4">
-          <div className="min-w-0">
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.24em] text-ink-soft">
-              {t("stop.heroEyebrow")}
-            </span>
-            <h2 className="mt-1 font-display text-[22px] sm:text-[26px] leading-[1.1] text-ink">
-              {t("stop.nextDepartures")}
-            </h2>
-          </div>
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-ink-soft shrink-0 pb-1">
-            {isLoading ? t("stop.loading") : t("stop.liveSmart")}
-          </span>
-        </div>
+      <AirportWaysOut job={job} status={isLoading ? t("stop.loading") : t("stop.liveSmart")} />
 
+      <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "200ms" }}>
         {totalCount === 0 ? (
           <div className="rounded-3xl bg-card p-6 text-center ring-1 ring-line">
             <p className="font-display text-lg text-ink">{c.emptyTitle}</p>

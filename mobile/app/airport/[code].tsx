@@ -1,10 +1,8 @@
 // Airport — mobile parity for `src/routes/airport.$code.tsx`.
 //
-// One editorial screen that reads as a single "next things leaving the
-// airport" list. Kapnos intercity coach cards render at the top of the
-// live urban DepartureRow list, using the same GTFS stop the web page
-// pins to (LCA=6117, PFO=1813). Native enhancements: haptic row press,
-// pull-to-refresh, Share sheet via expo-sharing, safe-area padding.
+// A job: how to leave. Kapnos seats and price, the next live city bus,
+// the taxi rank with no invented fare. Coach cards and urban rows stay
+// as the detail list under that strip.
 //
 // Data path — never any hardcoded fallback:
 //   - `fetchAirportPage(code)` (public wrapper around `getAirportPage`)
@@ -31,11 +29,11 @@ import {
   AirportTopBar,
   AirportTitle,
   GhostFeedNotice,
-  BoardHeading,
   AirportEmptyState,
   AirportNotice,
   UnknownAirport,
 } from "@/components/airport/AirportChrome";
+import { AirportWaysOut } from "@/components/airport/AirportWaysOut";
 import {
   selectAirportDepartures,
   hasGhostLead,
@@ -44,6 +42,7 @@ import {
   airportShareMessage,
   coordinateLine,
 } from "@aloya/core/airport-board";
+import { buildAirportJob } from "@aloya/core/airport-job";
 
 const ALLOWED: AirportCode[] = ["lca", "pfo"];
 
@@ -109,6 +108,17 @@ export default function AirportScreen() {
   const coachLines = data?.coachLines ?? [];
   const stale = rt.data?.stale === true;
   const totalCount = coachLines.length + departures.length;
+  const firstLive = departures.find((d) => d.eta.tier !== "ghost");
+  const job = buildAirportJob({
+    coachLines,
+    cityBus: firstLive
+      ? {
+          routeShort: bundle.data?.routes?.[firstLive.arrival.routeId]?.short ?? "—",
+          etaMin: firstLive.eta.etaMin,
+          ghost: false,
+        }
+      : null,
+  });
 
   const onShare = () => {
     Haptics.selectionAsync().catch(() => {});
@@ -157,8 +167,8 @@ export default function AirportScreen() {
 
       {hasGhostLead(departures) && <GhostFeedNotice />}
 
-      <BoardHeading
-        stale={stale}
+      <AirportWaysOut
+        job={job}
         status={feedStatusLabel({ stale, loading: rt.isLoading })}
       />
 

@@ -654,14 +654,16 @@ Without G, F has no volume. Without F, G is still just an app.
 
 ### G1. Airport door-to-door as a first-class job
 
-LCA and PFO arrivals are the tourist query that pays, and the review
-that gets written.
+**Shipped 2026-08-28 (first slice).** `/airport/lca` and `/airport/pfo` are a
+job, not a stop clone. "How to leave" is Kapnos next coach (live seats +
+price) vs the next live city bus (urban Motion €1.80) vs the taxi rank.
+Taxi fare is unpublished — we have no destination, so we print none.
+Luggage and last-coach stay quiet: neither is in the product, and Kapnos
+`nextDepartures` is a slice so we cannot claim the last coach.
 
-Kapnos live seats vs city bus vs taxi, with luggage, last coach, and
-honest total cost (fare + wait + walk). Not a generic RAPTOR from
-“Larnaca Airport” to “Limassol”. A dedicated job with a dedicated
-surface, deep-linked from the marketing journey pages that already
-rank for those queries.
+Honest total cost (fare + wait + walk) and a dedicated RAPTOR from the
+door still need a destination. Marketing journey pages already deep-link
+here.
 
 ### G2. Boarding truth + last-bus as named states
 
@@ -784,6 +786,8 @@ Already true in this repo, and why the OS is a credible bet:
 - G3: `/green-line` on rider, marketing, and mobile. Hours not invented.
 - G2 pay line on the departure row. Urban €1.80 / €2.40, IC €6 / €8.
   Pame and Kapnos stay quiet. Driver-wait is not claimed.
+- G1 airport job: "How to leave" on web + mobile. Kapnos seats/price vs
+  city bus vs taxi rank. No taxi euro. No luggage. No last-coach.
 
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.
