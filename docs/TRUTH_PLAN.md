@@ -307,7 +307,9 @@ the trip is ghost or the feed lost the vehicle, we ask “Still on Bus
 31?” One tap writes a sighting. Rider-GPS vehicles are labelled
 `rider-confirmed` on the stop, with “from a rider on board, Ns ago”.
 We do not invent a waiter count. Push to riders who left the app is
-still open. C1 is on the write path, so this ask is allowed.
+shipped: one “Still on Bus 31?” per trip, same ask as the companion,
+when the feed is dark and they have boarded. Tap opens the trip. C1 is
+on the write path, so this ask is allowed.
 
 ### B2. Headway mode — probability instead of a blank
 
@@ -883,7 +885,7 @@ Update this table in the same commit as the slice.
 | A3 | Nightly backtest | **Shipped.** Apply `20260828_eta_accuracy.sql`. |
 | A4 | Self-tune thresholds | **Blocked** until A3 has weeks of coverage. |
 | A5 | `/accuracy` + why-this-number + regression gate | **Blocked** until a route has n ≥ 30 headline (vehicle/rider) samples. Empty accuracy is a worse lie than no page. |
-| B1 | Still on Bus N? | **Shipped** on the companion. Push to riders who left the app **open.** |
+| B1 | Still on Bus N? | **Shipped** on the companion and as a one-shot push when they left the app. |
 | B2 | Headway chance | **Shipped** on the stop card and on the HUD keep-wait sentence. Silent below 15%. |
 | B3 | No-show + last-bus | **Shipped** on the stop. Apply `20260828_no_show_hour.sql`. |
 | B4 | Wait-or-bail | **Shipped** same-stop skip/other/last-tonight, plus dest-aware HUD walk vs wait. RAPTOR HUD sentence, Bolt/scooter price, taxi tariff **open** (need a dest / a quote). |
@@ -905,7 +907,7 @@ Update this table in the same commit as the slice.
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** B1 still-on-board push to riders who left the app. Then G1 dest-aware airport cost.
+**Next unblocked:** G1 dest-aware airport total cost (needs a destination).
 
 ---
 

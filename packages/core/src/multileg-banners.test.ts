@@ -4,6 +4,9 @@ import {
   companionBanners,
   shouldOfferSighting,
   shouldAskStillOnBoard,
+  shouldPushStillOnBoard,
+  stillOnBoardPush,
+  STILL_ON_ALERT,
   phaseHaptic,
   changesLabel,
   type BannerInput,
@@ -139,6 +142,27 @@ describe("shouldAskStillOnBoard", () => {
     expect(alertsEn["sighting.onboard.help"]).not.toMatch(/please|contribute|points|badge/i);
     expect(alertsEn["sighting.onboard.help.seed"]).not.toMatch(/please|contribute|points|badge/i);
     expect(alertsEn["sighting.help.seed"]).not.toMatch(/please|contribute|points|badge/i);
+  });
+});
+
+describe("shouldPushStillOnBoard", () => {
+  it("pings once when the rider left and the feed is dark", () => {
+    expect(
+      shouldPushStillOnBoard({ sent: [], riding: true, tripGhost: true }),
+    ).toBe(true);
+    expect(
+      shouldPushStillOnBoard({ sent: [STILL_ON_ALERT], riding: true, tripGhost: true }),
+    ).toBe(false);
+    expect(shouldPushStillOnBoard({ sent: [], riding: false, tripGhost: true })).toBe(false);
+    expect(shouldPushStillOnBoard({ sent: [], riding: true, tripGhost: false })).toBe(false);
+  });
+
+  it("asks still on Bus 31, and does not invent a waiter count", () => {
+    const p = stillOnBoardPush("31");
+    expect(p.title).toBe("Still on Bus 31?");
+    expect(p.body).toMatch(/no GPS/i);
+    expect(`${p.title} ${p.body}`).not.toMatch(/\d+\s+people|waiting on it|points|badge/i);
+    expect(stillOnBoardPush("").title).toBe("Still on this bus?");
   });
 });
 

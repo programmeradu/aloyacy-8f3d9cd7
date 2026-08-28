@@ -16,10 +16,12 @@ import type { WebPushPayload } from "@/lib/webpush.server";
 import { createLogger } from "@/lib/logger";
 import {
   buildPayload,
+  currentRideTripId,
   dispatch,
   type ActiveTripRow,
   type SingleLegKind,
 } from "@/lib/trip-alerts.server";
+import { shouldPushStillOnBoard, STILL_ON_ALERT } from "@aloya/core/multileg-banners";
 import { TripAlertsTickSchema } from "@/lib/schemas/public-api";
 
 import type { RideLeg } from "@/lib/itinerary-types";
@@ -47,8 +49,14 @@ async function processTrips(limit?: number) {
 
   // Pull live feed once for the whole batch.
   const arrivalsByKey = new Map<string, { arrivalUnix: number; delaySec: number }>();
+  const ghostTripIds = new Set<string>();
+  const confirmedTripIds = new Set<string>();
+  let staleFeed = false;
   try {
     const rt = await fetchRealtime();
+    staleFeed = rt.stale === true;
+    for (const id of rt.ghostTripIds ?? []) ghostTripIds.add(id);
+    for (const s of rt.riderConfirmedTrips ?? []) confirmedTripIds.add(s.tripId);
     for (const a of rt.arrivals) {
       arrivalsByKey.set(`${a.tripId}::${a.stopId}`, {
         arrivalUnix: a.arrivalUnix,
@@ -103,6 +111,21 @@ async function processTrips(limit?: number) {
     const delaySec = liveBoard?.delaySec ?? liveAlight?.delaySec ?? 0;
     if (!sent.has("delayed") && delaySec >= 5 * 60 && secsToBoard > 60) {
       fire.push({ kind: "delayed", minutes: minToBoard });
+    }
+
+    const rideTripId = currentRideTripId(row, now);
+    const tripGhost =
+      !!rideTripId &&
+      !confirmedTripIds.has(rideTripId) &&
+      (staleFeed || ghostTripIds.has(rideTripId));
+    if (
+      shouldPushStillOnBoard({
+        sent,
+        riding: rideTripId != null,
+        tripGhost,
+      })
+    ) {
+      fire.push({ kind: STILL_ON_ALERT, minutes: 0 });
     }
 
     // Alight soon — 2 min before scheduled alight.

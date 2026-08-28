@@ -142,7 +142,7 @@ know — that silence is the product.
 | ------------------ | ----------- |
 | Live board | One arrival time per bus, not three arguing clocks. |
 | How fresh | Live, rider-confirmed, one rider, predicted, ghost, or scheduled. We name the uncertainty. |
-| One rider | One tap, or one phone on board, is named as one rider. A second phone — tapping or riding — is rider-confirmed. |
+| One rider | One tap, or one phone on board, is named as one rider. A second phone — tapping or riding — is rider-confirmed. If you left the app, we still ask once: still on Bus 31? |
 | Ghost / wait-or-bail | “Bus 31 isn’t on the map. The next one is, 8 min.” Or walk vs wait to your dest. |
 | Headway chance | “About 40% chance one arrives before 18:10.” Silent below 15%. |
 | No-show | “This 18:00 didn’t run on 3 of the last 10 weekdays.” |

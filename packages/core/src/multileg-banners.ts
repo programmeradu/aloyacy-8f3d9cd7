@@ -124,6 +124,29 @@ export function shouldAskStillOnBoard(input: {
   );
 }
 
+/** One push per trip while the rider has left the companion. */
+export const STILL_ON_ALERT = "still-on";
+
+export function stillOnBoardPush(routeShort: string): { title: string; body: string } {
+  const code = routeShort.trim();
+  const bus = code ? `Bus ${code}` : "this bus";
+  return {
+    title: `Still on ${bus}?`,
+    body: "The operator has no GPS. One tap is what people at the next stops see.",
+  };
+}
+
+/** Riding, feed dark, not already asked. Does not invent a waiter count. */
+export function shouldPushStillOnBoard(input: {
+  sent: Iterable<string>;
+  riding: boolean;
+  tripGhost: boolean;
+}): boolean {
+  if (!input.riding || !input.tripGhost) return false;
+  for (const k of input.sent) if (k === STILL_ON_ALERT) return false;
+  return true;
+}
+
 /** Haptic cue for entering an alert-worthy phase; null means stay quiet. */
 export function phaseHaptic(phase: CompanionPhase): "heavy" | "success" | "warning" | null {
   if (phase === "alight-soon") return "heavy";

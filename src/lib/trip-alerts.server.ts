@@ -6,7 +6,8 @@
 
 import type { WebPushPayload } from "@/lib/webpush.server";
 import { deliver } from "@/lib/notify.server";
-import type { Leg } from "@/lib/itinerary-types";
+import type { Leg, RideLeg } from "@/lib/itinerary-types";
+import { stillOnBoardPush, STILL_ON_ALERT } from "@aloya/core/multileg-banners";
 
 
 export type ActiveTripRow = {
@@ -27,7 +28,13 @@ export type ActiveTripRow = {
 };
 
 export type SingleLegKind =
-  "board-soon" | "hurry-soft" | "at-stop" | "alight-soon" | "arrived" | "delayed";
+  | "board-soon"
+  | "hurry-soft"
+  | "at-stop"
+  | "alight-soon"
+  | "arrived"
+  | "delayed"
+  | "still-on";
 
 export function buildPayload(
   kind: SingleLegKind,
@@ -86,6 +93,16 @@ export function buildPayload(
         tag: `aloya-delayed-${row.trip_id}`,
         url,
       };
+    case "still-on": {
+      const ask = stillOnBoardPush(row.route_short ?? "");
+      return {
+        title: ask.title,
+        body: ask.body,
+        tag: `aloya-${STILL_ON_ALERT}-${row.trip_id}`,
+        url,
+        requireInteraction: true,
+      };
+    }
   }
 }
 
@@ -102,4 +119,22 @@ export async function dispatch(deviceId: string, payload: WebPushPayload) {
     },
   );
   return { sent: receipt.sent, expired: receipt.pruned };
+}
+
+/** The GTFS trip the rider should be on right now, if they have boarded. */
+export function currentRideTripId(row: ActiveTripRow, now: number): string | null {
+  if (Array.isArray(row.legs)) {
+    for (const l of row.legs) {
+      if (l.kind !== "ride") continue;
+      const ride = l as RideLeg;
+      if (now >= ride.board.departureUnix - 30 && now < ride.alight.arrivalUnix) {
+        return ride.tripId;
+      }
+    }
+    return null;
+  }
+  const board = row.board_unix ?? 0;
+  const alight = row.alight_unix ?? 0;
+  if (board > 0 && now >= board - 30 && (alight <= 0 || now < alight)) return row.trip_id;
+  return null;
 }
