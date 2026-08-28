@@ -7,6 +7,8 @@ export const CONSENSUS_MIN = 2;
 export const REPORT_RATE_LIMIT_SEC = 60;
 /** A shelter can be removed. Older than this, a rider report is not evidence. */
 export const CONSENSUS_TTL_DAYS = 90;
+/** A photo from that phone is two votes. Two phones still required. */
+export const PHOTO_REPORT_WEIGHT = 2;
 
 export const STOP_ATTRIBUTES = [
   "has_shelter",
@@ -50,6 +52,8 @@ export type StopReport = {
   attribute: StopAttribute;
   value: string;
   reportedAt: number;
+  /** 1 for a tap. PHOTO_REPORT_WEIGHT when that phone also sent a photo. */
+  weight?: number;
 };
 
 export type StopConsensus = {
@@ -93,6 +97,18 @@ export function riderConfirmLine(n: number, days: number): string {
   return `Confirmed by ${n} riders, last ${days} day${days === 1 ? "" : "s"} ago`;
 }
 
+export function reportWeight(r: StopReport): number {
+  return r.weight && r.weight > 0 ? r.weight : 1;
+}
+
+/** A photo on this stop from that phone doubles the tap. Does not invent an attribute. */
+export function weighReports(reports: StopReport[], photoDevices: Set<string>): StopReport[] {
+  if (photoDevices.size === 0) return reports;
+  return reports.map((r) =>
+    photoDevices.has(r.deviceId) ? { ...r, weight: PHOTO_REPORT_WEIGHT } : r,
+  );
+}
+
 export function pickStopConsensus(
   reports: StopReport[],
   previous: { value: string; source: "seed" | "riders" } | null,
@@ -107,7 +123,7 @@ export function pickStopConsensus(
     return null;
   }
   const counts = new Map<string, number>();
-  for (const r of latest) counts.set(r.value, (counts.get(r.value) ?? 0) + 1);
+  for (const r of latest) counts.set(r.value, (counts.get(r.value) ?? 0) + reportWeight(r));
   let best: string | null = null;
   let bestN = 0;
   let tied = false;

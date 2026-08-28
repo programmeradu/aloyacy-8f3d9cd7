@@ -573,7 +573,8 @@ unreachable stops.
 older than 90 days do not count. Expired rider consensus falls back to
 seed, or goes silent. Chip: “Confirmed by 4 riders, last 12 days ago”.
 One question at the stop per ride (3 h): condition, then photo, then
-skip. Photo-weight stays later. No new SQL.
+skip. A photo from that phone counts as two votes, not one. Two phones
+still required. No new SQL.
 
 ### D5. Make it public
 
@@ -888,7 +889,7 @@ Update this table in the same commit as the slice.
 | D1 | Stop condition | **Shipped** one-tap + photo + step-free filter (hide known kerbs when another option exists). Seed = eight hubs. Apply `20260828_stop_condition.sql` and `20260828_stop_photos.sql`. |
 | D2 | Skip rate | **Shipped** pass-through vs dwell, measured neighbour, rider “it drove past me”, and a RAPTOR penalty (expected extra wait). Apply `20260828_stop_skip.sql` and `20260828_stop_skip_reports.sql`. Live RAPTOR **open.** |
 | D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
-| D4 | Report decay / one ask per journey | **Shipped** 90-day decay, “Confirmed by n riders, last N days ago”, one ask per ride. Photo-weight **open.** |
+| D4 | Report decay / one ask per journey | **Shipped** 90-day decay, “Confirmed by n riders, last N days ago”, one ask per ride, photo = two votes (two phones still required). |
 | D5 | Public stop page (indexable) | **Partial.** Named title + noindex unless rated / skip / attribute. Sitemap lists those stops (cap 400). BusStop JSON-LD on indexable pages. `BusTrip` **open.** |
 | E0 | Two-repo contradictions | **Shipped** (boards, 301, hreflang, fare/line copy, drop overclaims). |
 | E2 | Programmatic index | Rides on A5 + D1/D2 content. |
@@ -899,7 +900,7 @@ Update this table in the same commit as the slice.
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** D4 photo-weight on stop condition, then live RAPTOR skip.
+**Next unblocked:** live RAPTOR skip penalty (same expected extra wait on the live planner).
 
 ---
 

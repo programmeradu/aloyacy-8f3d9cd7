@@ -4,10 +4,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
+  CONSENSUS_TTL_DAYS,
   REPORT_RATE_LIMIT_SEC,
   isStopAttribute,
   isStopAttributeValue,
   pickStopConsensus,
+  weighReports,
   type StopAttribute,
   type StopConsensus,
   type StopReport,
@@ -85,6 +87,19 @@ async function reconcileStopCondition(stopId: string, nowMs: number): Promise<St
     .order("reported_at", { ascending: true })
     .limit(2000);
 
+  const photoSince = new Date(nowMs - CONSENSUS_TTL_DAYS * 86_400_000).toISOString();
+  const { data: photoRows } = await db
+    .from("stop_photos")
+    .select("device_id")
+    .eq("stop_id", stopId)
+    .gte("taken_at", photoSince)
+    .limit(200);
+  const photoDevices = new Set(
+    ((photoRows ?? []) as { device_id: string }[])
+      .map((p) => p.device_id)
+      .filter((id) => id.length > 0),
+  );
+
   const previousBy = new Map<StopAttribute, Previous>();
   for (const row of (attrRows ?? []) as AttrRow[]) {
     if (!isStopAttribute(row.attribute)) continue;
@@ -94,16 +109,20 @@ async function reconcileStopCondition(stopId: string, nowMs: number): Promise<St
   }
 
   const reportsBy = new Map<StopAttribute, StopReport[]>();
+  const raw: StopReport[] = [];
   for (const r of (reportRows ?? []) as ReportRow[]) {
     if (!isStopAttribute(r.attribute)) continue;
-    const list = reportsBy.get(r.attribute) ?? [];
-    list.push({
+    raw.push({
       stopId: r.stop_id,
       deviceId: r.device_id,
       attribute: r.attribute,
       value: r.value,
       reportedAt: Date.parse(r.reported_at) || 0,
     });
+  }
+  for (const r of weighReports(raw, photoDevices)) {
+    const list = reportsBy.get(r.attribute) ?? [];
+    list.push(r);
     reportsBy.set(r.attribute, list);
   }
 

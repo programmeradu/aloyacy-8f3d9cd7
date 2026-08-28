@@ -4,6 +4,7 @@ import {
   ASK_FIRST,
   CONSENSUS_MIN,
   CONSENSUS_TTL_DAYS,
+  PHOTO_REPORT_WEIGHT,
   STOP_ATTRIBUTE_VALUES,
   STOP_CONDITION_SEED,
   daysSince,
@@ -13,6 +14,7 @@ import {
   pickStopConsensus,
   riderConfirmLine,
   seedConsensus,
+  weighReports,
   stopAskChoiceLabel,
   stopAskChoices,
   stopConditionAsk,
@@ -116,6 +118,34 @@ describe("pickStopConsensus", () => {
         stale,
       ),
     ).toBeNull();
+  });
+
+  it("lets a photo break a tap-vs-tap tie without dropping the two-phone bar", () => {
+    expect(PHOTO_REPORT_WEIGHT).toBe(2);
+    const seed = { value: "yes", source: "seed" as const };
+    const taps = [
+      report({ deviceId: "a", value: "no" }),
+      report({ deviceId: "b", value: "yes" }),
+    ];
+    expect(pickStopConsensus(taps, seed, now)).toEqual({
+      value: "yes",
+      n: 2,
+      source: "seed",
+      lastAt: 1_000,
+    });
+    expect(pickStopConsensus(weighReports(taps, new Set(["a"])), seed, now)).toEqual({
+      value: "no",
+      n: 2,
+      source: "riders",
+      lastAt: 1_000,
+    });
+    expect(
+      pickStopConsensus(
+        weighReports([report({ deviceId: "a", value: "no" })], new Set(["a"])),
+        seed,
+        now,
+      ),
+    ).toEqual({ value: "yes", n: 1, source: "seed", lastAt: 1_000 });
   });
 });
 
