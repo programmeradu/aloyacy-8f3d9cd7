@@ -81,6 +81,7 @@ import { Route as ApiPublicExpoPushRegisterRouteImport } from './routes/api/publ
 import { Route as ApiPublicEtaLogRouteImport } from './routes/api/public/eta-log'
 import { Route as ApiPublicDustAdvisoryRouteImport } from './routes/api/public/dust-advisory'
 import { Route as ApiPublicBoltScooterRouteImport } from './routes/api/public/bolt-scooter'
+import { Route as ApiPublicBoardRouteImport } from './routes/api/public/board'
 import { Route as ApiPublicBikeShareRouteImport } from './routes/api/public/bike-share'
 import { Route as ApiPublicBedrockTestRouteImport } from './routes/api/public/bedrock-test'
 import { Route as ApiPublicArrivalPromiseRouteImport } from './routes/api/public/arrival-promise'
@@ -488,6 +489,11 @@ const ApiPublicBoltScooterRoute = ApiPublicBoltScooterRouteImport.update({
   path: '/api/public/bolt-scooter',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicBoardRoute = ApiPublicBoardRouteImport.update({
+  id: '/api/public/board',
+  path: '/api/public/board',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicBikeShareRoute = ApiPublicBikeShareRouteImport.update({
   id: '/api/public/bike-share',
   path: '/api/public/bike-share',
@@ -728,6 +734,7 @@ export interface FileRoutesByFullPath {
   '/api/public/arrival-promise': typeof ApiPublicArrivalPromiseRoute
   '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
+  '/api/public/board': typeof ApiPublicBoardRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/eta-log': typeof ApiPublicEtaLogRoute
@@ -838,6 +845,7 @@ export interface FileRoutesByTo {
   '/api/public/arrival-promise': typeof ApiPublicArrivalPromiseRoute
   '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
+  '/api/public/board': typeof ApiPublicBoardRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/eta-log': typeof ApiPublicEtaLogRoute
@@ -949,6 +957,7 @@ export interface FileRoutesById {
   '/api/public/arrival-promise': typeof ApiPublicArrivalPromiseRoute
   '/api/public/bedrock-test': typeof ApiPublicBedrockTestRoute
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
+  '/api/public/board': typeof ApiPublicBoardRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/eta-log': typeof ApiPublicEtaLogRoute
@@ -1061,6 +1070,7 @@ export interface FileRouteTypes {
     | '/api/public/arrival-promise'
     | '/api/public/bedrock-test'
     | '/api/public/bike-share'
+    | '/api/public/board'
     | '/api/public/bolt-scooter'
     | '/api/public/dust-advisory'
     | '/api/public/eta-log'
@@ -1171,6 +1181,7 @@ export interface FileRouteTypes {
     | '/api/public/arrival-promise'
     | '/api/public/bedrock-test'
     | '/api/public/bike-share'
+    | '/api/public/board'
     | '/api/public/bolt-scooter'
     | '/api/public/dust-advisory'
     | '/api/public/eta-log'
@@ -1281,6 +1292,7 @@ export interface FileRouteTypes {
     | '/api/public/arrival-promise'
     | '/api/public/bedrock-test'
     | '/api/public/bike-share'
+    | '/api/public/board'
     | '/api/public/bolt-scooter'
     | '/api/public/dust-advisory'
     | '/api/public/eta-log'
@@ -1392,6 +1404,7 @@ export interface RootRouteChildren {
   ApiPublicArrivalPromiseRoute: typeof ApiPublicArrivalPromiseRoute
   ApiPublicBedrockTestRoute: typeof ApiPublicBedrockTestRoute
   ApiPublicBikeShareRoute: typeof ApiPublicBikeShareRoute
+  ApiPublicBoardRoute: typeof ApiPublicBoardRoute
   ApiPublicBoltScooterRoute: typeof ApiPublicBoltScooterRoute
   ApiPublicDustAdvisoryRoute: typeof ApiPublicDustAdvisoryRoute
   ApiPublicEtaLogRoute: typeof ApiPublicEtaLogRoute
@@ -1970,6 +1983,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBoltScooterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/board': {
+      id: '/api/public/board'
+      path: '/api/public/board'
+      fullPath: '/api/public/board'
+      preLoaderRoute: typeof ApiPublicBoardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/bike-share': {
       id: '/api/public/bike-share'
       path: '/api/public/bike-share'
@@ -2278,6 +2298,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicArrivalPromiseRoute: ApiPublicArrivalPromiseRoute,
   ApiPublicBedrockTestRoute: ApiPublicBedrockTestRoute,
   ApiPublicBikeShareRoute: ApiPublicBikeShareRoute,
+  ApiPublicBoardRoute: ApiPublicBoardRoute,
   ApiPublicBoltScooterRoute: ApiPublicBoltScooterRoute,
   ApiPublicDustAdvisoryRoute: ApiPublicDustAdvisoryRoute,
   ApiPublicEtaLogRoute: ApiPublicEtaLogRoute,

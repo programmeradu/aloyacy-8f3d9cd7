@@ -49,6 +49,19 @@ export const StopRunHintsSchema = z.object({
   stopId: z.string().min(1).max(128).optional(),
 });
 
+/** Marketing / embed board. `IC:45,NPT:31` — agency + published short name. */
+export const BoardQuerySchema = z.object({
+  q: z
+    .string()
+    .trim()
+    .min(3)
+    .max(400)
+    .regex(
+      /^[A-Z]{2,6}:[A-Za-z0-9-]{1,16}(,[A-Z]{2,6}:[A-Za-z0-9-]{1,16})*$/,
+      "must be AGENCY:short pairs",
+    ),
+});
+
 /** Mirrors the `parseTripIntent` server function's own validator. */
 export const TripIntentSchema = z.object({
   text: z.string().trim().min(2).max(500),

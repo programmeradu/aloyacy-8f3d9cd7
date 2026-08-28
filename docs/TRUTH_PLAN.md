@@ -487,14 +487,12 @@ truth.
 ### E0. Fix the contradictions first (blocking)
 
 1. **Marketing departure boards are not connected to the app.**
-   `aloyaexplorer/src/lib/transit/schedule.ts` states “Cyprus has no
-   public GTFS-Realtime feed” and computes next departures from
-   `gen()` frequency tables, while this repo ingests a real GTFS-RT
-   feed every minute through `workers/gtfs-relay`. The surface that
-   *sells* truth is the least truthful one we run. Marketing must
-   consume `/api/public/*` (cached at the edge) and fall back to a
-   static timetable *labelled as scheduled*, using the same freshness
-   vocabulary.
+   **Done.** `GET /api/public/board?q=IC:45,NPT:31` returns the same
+   snapshot the rider sees (`live` | `predicted`, ghosts skipped unless
+   a vehicle or rider still holds the trip). Marketing
+   (`aloyaexplorer/src/lib/transit/live-board.ts`) fetches that feed and
+   falls back to the published timetable labelled `scheduled`. Do not
+   re-open the `gen()`-as-live lie.
 2. **Duplicate content.** `/guide/getting-around-cyprus` exists in
    both repos. Home is marketing; 301 the app copy.
 3. **Broken hreflang.** The guide declares `en`, `el` and `x-default`
@@ -506,12 +504,16 @@ truth.
    claims come from `packages/core` (or a tiny published `@aloya/truth`
    the explorer can import). Marketing can never claim something the
    app won’t back up. Process (“pair of PRs”) does not beat a shared
-   module.
+   module. Board overlay uses `live` | `predicted` | `scheduled`.
 5. **Line and fare collisions on marketing** (425 vs 618, 64 vs 615,
    €1.50 vs the Aug 2026 Motion €1.80, Intercity Greek name inverted
-   to Ενδοαστικά). Fix against the app’s GTFS, not against memory.
+   to Ενδοαστικά). **Done against the app GTFS.** Home board and
+   journey pages quote IC 45 / PFO 615 / NPT 31 / LCA 425 / IC 42 /
+   25 / 56 / 43 / 35. Motion personal from 3 August 2026: urban
+   €1.80, intercity €6, paper higher. Intercity Greek is Υπεραστικά.
 6. **Drop “ferry”, “one fare”, “±90s”, “15-second live ETAs”** from
-   marketing until the app defends them. Ferry is a future vertical.
+   marketing until the app defends them. **Done on rider-facing copy.**
+   Ferry stays on the 2028 vision horizon and as a Pulse news keyword.
    One fare is Motion’s job, not ours, until a contract exists.
 
 ### E1. Domain split

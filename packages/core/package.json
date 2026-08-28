@@ -242,6 +242,10 @@
       "types": "./src/plan-candidates.ts",
       "default": "./src/plan-candidates.ts"
     },
+    "./board-pick": {
+      "types": "./src/board-pick.ts",
+      "default": "./src/board-pick.ts"
+    },
     "./headway": {
       "types": "./src/headway.ts",
       "default": "./src/headway.ts"

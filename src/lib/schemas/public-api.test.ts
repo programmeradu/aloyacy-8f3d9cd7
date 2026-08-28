@@ -9,6 +9,7 @@ import {
   RouteReliabilitySchema,
   StopReliabilitySchema,
   StopRunHintsSchema,
+  BoardQuerySchema,
   TripIntentSchema,
   TtsSchema,
   IndexNowQuerySchema,
@@ -86,6 +87,20 @@ describe("reliability schemas", () => {
     expect(StopRunHintsSchema.safeParse({ routeIds: ids(31) }).success).toBe(false);
     expect(StopRunHintsSchema.safeParse({ routeIds: [] }).success).toBe(false);
     expect(StopRunHintsSchema.safeParse({ routeIds: ["r1"], stopId: "s1" }).success).toBe(true);
+  });
+});
+
+describe("BoardQuerySchema", () => {
+  it("accepts agency:short pairs", () => {
+    expect(BoardQuerySchema.safeParse({ q: "IC:45,NPT:31" }).success).toBe(true);
+    expect(BoardQuerySchema.safeParse({ q: "PFO:615,LCA:425" }).success).toBe(true);
+  });
+
+  it("rejects a bare short name, junk, and an oversized query", () => {
+    expect(BoardQuerySchema.safeParse({ q: "nope" }).success).toBe(false);
+    expect(BoardQuerySchema.safeParse({ q: "45" }).success).toBe(false);
+    expect(BoardQuerySchema.safeParse({ q: "ic:45" }).success).toBe(false);
+    expect(BoardQuerySchema.safeParse({ q: "x".repeat(401) }).success).toBe(false);
   });
 });
 
