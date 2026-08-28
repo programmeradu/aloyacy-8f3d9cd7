@@ -12,6 +12,7 @@ import { StopPhoto } from "@/components/stop/StopPhoto";
 import { StopSkipAsk } from "@/components/stop/StopSkipAsk";
 import { StopSkipRate } from "@/components/stop/StopSkipRate";
 import { getDeviceId } from "@/lib/pwa";
+import { useStopAskGate } from "@/lib/stop-ask-at";
 import { useI18n, type DictKey } from "@/lib/i18n";
 
 const CHIP_KEY: Record<string, DictKey> = {
@@ -74,13 +75,14 @@ async function postCondition(body: unknown): Promise<StopConsensus[]> {
 export function StopCondition({ stopId }: { stopId: string }) {
   const { t } = useI18n();
   const qc = useQueryClient();
+  const { open, markAsked } = useStopAskGate();
   const q = useQuery({
     queryKey: ["stop-condition", stopId],
     queryFn: () => postCondition({ action: "get", stopId }),
     staleTime: 60_000,
   });
   const rows = q.data ?? [];
-  const ask = nextStopAsk(rows);
+  const ask = open ? nextStopAsk(rows) : null;
   const choices = ask ? (stopAskChoices(ask) ?? []) : [];
   const report = useMutation({
     mutationFn: (input: { attribute: StopAttribute; value: string }) =>
@@ -91,7 +93,10 @@ export function StopCondition({ stopId }: { stopId: string }) {
         attribute: input.attribute,
         value: input.value,
       }),
-    onSuccess: (next) => qc.setQueryData(["stop-condition", stopId], next),
+    onSuccess: (next) => {
+      markAsked();
+      qc.setQueryData(["stop-condition", stopId], next);
+    },
   });
   const nowMs = Date.now();
   const chips = rows
@@ -110,7 +115,7 @@ export function StopCondition({ stopId }: { stopId: string }) {
     return (
       <>
         <StopSkipRate stopId={stopId} />
-        <StopSkipAsk stopId={stopId} />
+        <StopSkipAsk stopId={stopId} rows={rows} />
         <StopPhoto stopId={stopId} rows={rows} />
       </>
     );
@@ -163,7 +168,7 @@ export function StopCondition({ stopId }: { stopId: string }) {
         </div>
       )}
       <StopSkipRate stopId={stopId} inset />
-      <StopSkipAsk stopId={stopId} inset />
+      <StopSkipAsk stopId={stopId} rows={rows} inset />
       <StopPhoto stopId={stopId} rows={rows} inset />
     </section>
   );

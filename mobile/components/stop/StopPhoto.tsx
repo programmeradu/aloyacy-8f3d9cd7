@@ -7,6 +7,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import type { CameraView as CameraViewRef } from "expo-camera";
 import { Pressable, Text, View } from "react-native";
 import { nextStopAsk, type StopConsensus } from "@aloya/core/stop-condition";
+import { pickStopAsk } from "@aloya/core/stop-ask";
 import {
   shouldAskStopPhoto,
   stopPhotoAsk,
@@ -16,6 +17,7 @@ import {
 import { palette } from "@/constants/theme";
 import { API_BASE } from "@/lib/api";
 import { getOrCreateDeviceId } from "@/lib/push";
+import { useStopAskGate } from "@/lib/stop-ask-at";
 
 async function postPhoto(body: unknown): Promise<Photo | null> {
   const res = await fetch(`${API_BASE}/api/public/stop-photo`, {
@@ -30,6 +32,7 @@ async function postPhoto(body: unknown): Promise<Photo | null> {
 
 export function StopPhoto({ stopId, rows }: { stopId: string; rows: StopConsensus[] }) {
   const qc = useQueryClient();
+  const { open: rideOpen, markAsked } = useStopAskGate();
   const camRef = useRef<CameraViewRef>(null);
   const [open, setOpen] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
@@ -39,7 +42,10 @@ export function StopPhoto({ stopId, rows }: { stopId: string; rows: StopConsensu
     staleTime: 60_000,
   });
   const photo = photoQ.data ?? null;
-  const ask = shouldAskStopPhoto(nextStopAsk(rows), photo != null);
+  const condition = nextStopAsk(rows) != null;
+  const photoWanted = shouldAskStopPhoto(nextStopAsk(rows), photo != null);
+  const ask =
+    rideOpen && pickStopAsk({ condition, photo: photoWanted, skipReport: false }) === "photo";
   const upload = useMutation({
     mutationFn: async (imageBase64: string) =>
       postPhoto({
@@ -50,6 +56,7 @@ export function StopPhoto({ stopId, rows }: { stopId: string; rows: StopConsensu
         imageBase64,
       }),
     onSuccess: (next) => {
+      markAsked();
       qc.setQueryData(["stop-photo", stopId], next);
       setOpen(false);
     },

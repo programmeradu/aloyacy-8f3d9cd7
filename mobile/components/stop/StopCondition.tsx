@@ -19,6 +19,7 @@ import { StopSkipRate } from "@/components/stop/StopSkipRate";
 import { palette } from "@/constants/theme";
 import { API_BASE } from "@/lib/api";
 import { getOrCreateDeviceId } from "@/lib/push";
+import { useStopAskGate } from "@/lib/stop-ask-at";
 
 async function postCondition(body: unknown): Promise<StopConsensus[]> {
   const res = await fetch(`${API_BASE}/api/public/stop-condition`, {
@@ -33,13 +34,14 @@ async function postCondition(body: unknown): Promise<StopConsensus[]> {
 
 export function StopCondition({ stopId }: { stopId: string }) {
   const qc = useQueryClient();
+  const { open, markAsked } = useStopAskGate();
   const q = useQuery({
     queryKey: ["stop-condition", stopId],
     queryFn: () => postCondition({ action: "get", stopId }),
     staleTime: 60_000,
   });
   const rows = q.data ?? [];
-  const ask = nextStopAsk(rows);
+  const ask = open ? nextStopAsk(rows) : null;
   const choices = ask ? (stopAskChoices(ask) ?? []) : [];
   const report = useMutation({
     mutationFn: async (input: { attribute: StopAttribute; value: string }) =>
@@ -50,7 +52,10 @@ export function StopCondition({ stopId }: { stopId: string }) {
         attribute: input.attribute,
         value: input.value,
       }),
-    onSuccess: (next) => qc.setQueryData(["stop-condition", stopId], next),
+    onSuccess: (next) => {
+      markAsked();
+      qc.setQueryData(["stop-condition", stopId], next);
+    },
   });
   const nowMs = Date.now();
   const chips = rows
@@ -76,7 +81,7 @@ export function StopCondition({ stopId }: { stopId: string }) {
     return (
       <>
         <StopSkipRate stopId={stopId} />
-        <StopSkipAsk stopId={stopId} />
+        <StopSkipAsk stopId={stopId} rows={rows} />
         <StopPhoto stopId={stopId} rows={rows} />
       </>
     );
@@ -152,7 +157,7 @@ export function StopCondition({ stopId }: { stopId: string }) {
         </View>
       ) : null}
       <StopSkipRate stopId={stopId} />
-      <StopSkipAsk stopId={stopId} />
+      <StopSkipAsk stopId={stopId} rows={rows} />
       <StopPhoto stopId={stopId} rows={rows} />
     </View>
   );
