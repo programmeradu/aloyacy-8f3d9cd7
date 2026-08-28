@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchRealtime } from "@/lib/gtfs-rt.server";
 import { createLogger } from "@/lib/logger";
 import { cyHourDow } from "@aloya/core/cy-time";
-
+import { persistVehiclePings } from "@/lib/vehicle-pings.server";
 
 const log = createLogger("snapshot");
 
@@ -82,8 +82,19 @@ export const Route = createFileRoute("/api/public/snapshot")({
 async function ingest() {
   try {
     const snap = await fetchRealtime();
+    if (snap.arrivals.length === 0 && snap.vehicles.length === 0) {
+      return json({ ok: true, inserted: 0, stats_updated: 0, pings: 0 });
+    }
+
+    let pings = 0;
+    try {
+      pings = await persistVehiclePings(snap.vehicles, snap.fetchedAt);
+    } catch {
+      pings = 0;
+    }
+
     if (snap.arrivals.length === 0) {
-      return json({ ok: true, inserted: 0, stats_updated: 0 });
+      return json({ ok: true, inserted: 0, stats_updated: 0, pings });
     }
 
     // Take only arrivals predicted within the next 90 minutes — keeps the
@@ -237,6 +248,7 @@ async function ingest() {
       ok: true,
       inserted,
       stats_updated: statsUpdated,
+      pings,
       stats_mode: useV2 ? "v2" : "skipped (apply 20260821_ingest_v2_and_retention.sql)",
       ...(truncated ? { truncated: true } : {}),
       ...(lastError ? { last_error: lastError } : {}),

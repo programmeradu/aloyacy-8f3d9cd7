@@ -202,6 +202,10 @@
       "types": "./src/trip-board.ts",
       "default": "./src/trip-board.ts"
     },
+    "./vehicle-cross": {
+      "types": "./src/vehicle-cross.ts",
+      "default": "./src/vehicle-cross.ts"
+    },
     "./plan-share": {
       "types": "./src/plan-share.ts",
       "default": "./src/plan-share.ts"

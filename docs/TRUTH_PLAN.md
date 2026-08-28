@@ -721,7 +721,9 @@ Already true in this repo, and why the OS is a credible bet:
 - Agency-aware ghost cutoff shared by snapshot tag and classifier.
 - Delay / speed / dwell / ledger buckets in `Asia/Nicosia`.
 - `eta_predictions` + `arrival_truth` schema; stop and home cards sample.
-- Inferred A2 resolver (later-stop evidence). Vehicle-cross is next.
+- Inferred A2 resolver (later-stop evidence). Vehicle-cross interpolates
+  a geofence entry from persisted pings (`vehicle_pings` + rider fixes).
+  Apply `deploy/supabase/sql/20260828_vehicle_pings.sql` on prod.
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.
 - Ledger tables live on `aloya-prod-5`. Pulse-cron holds the rotated secrets.
