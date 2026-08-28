@@ -47,6 +47,12 @@ export const stop = {
   "stop.headway.weekendEvening": "on weekend evenings",
   "stop.headway.weekendNight": "on weekend nights",
   "stop.skipRate": "Bus {route} skips this stop about 1 in {k} {when}. Wave clearly.",
+  "stop.skipRateNeighbour":
+    "Bus {route} skips this stop about 1 in {k} {when}. Wave clearly, or use {stop} {meters} m {compass}.",
+  "stop.skip.north": "north",
+  "stop.skip.south": "south",
+  "stop.skip.east": "east",
+  "stop.skip.west": "west",
   "stop.bailSkip": "Bus {route} isn't on the map. The next one is, {min} min.",
   "stop.bailOther": "Bus {alt} is on the map, {min} min. Bus {route} isn't.",
   "stop.bailLast":

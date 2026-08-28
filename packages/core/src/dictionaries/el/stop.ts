@@ -52,6 +52,12 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.headway.weekendNight": "τα σαββατοκύριακα το βράδυ",
   "stop.skipRate":
     "Το λεωφορείο {route} προσπερνά αυτή τη στάση περίπου 1 στις {k} {when}. Κάντε σήμα.",
+  "stop.skipRateNeighbour":
+    "Το λεωφορείο {route} προσπερνά αυτή τη στάση περίπου 1 στις {k} {when}. Κάντε σήμα, ή η στάση {stop} {meters} μ. {compass}.",
+  "stop.skip.north": "βόρεια",
+  "stop.skip.south": "νότια",
+  "stop.skip.east": "ανατολικά",
+  "stop.skip.west": "δυτικά",
   "stop.bailSkip": "Το λεωφορείο {route} δεν είναι στον χάρτη. Το επόμενο είναι, σε {min} λεπτά.",
   "stop.bailOther":
     "Το λεωφορείο {alt} είναι στον χάρτη, σε {min} λεπτά. Το λεωφορείο {route} όχι.",

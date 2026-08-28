@@ -506,8 +506,10 @@ routing so the planner stops recommending a stop that gets skipped.
 entry and exit of the 60 m geofence. Dense pass-through → skipped;
 kerb dwell ≥ 12 s → served; a gap over 45 s stays unknown. Written when
 A2 crosses, while pings are still live. Speak only at n ≥ 8 and ≥ 15%,
-as 1 in N, current time-of-week. No neighbour stop, no rider “drove
-past me”, no RAPTOR penalty. Apply `20260828_stop_skip.sql` on prod.
+as 1 in N, current time-of-week. Neighbour is the next same-route stop
+80–400 m away, named from GTFS, compass from the coords — silent if
+none, or if that stop also skips. No rider “drove past me”, no RAPTOR
+penalty. Apply `20260828_stop_skip.sql` on prod.
 
 ### D3. Walkability truth in the planner
 
@@ -809,7 +811,7 @@ Update this table in the same commit as the slice.
 | C2 | Corroboration + reputation | **Open.** |
 | C3 | Cold-start ask | **Open.** |
 | D1 | Stop condition | **Shipped** one-tap: shelter, seating, walk, light, step-free, sign, timetable, two poles, plus one rider photo. Seed = eight hubs. Apply `20260828_stop_condition.sql` and `20260828_stop_photos.sql`. `lowFloor` filter **open.** |
-| D2 | Skip rate | **Shipped** pass-through vs dwell on the stop. Apply `20260828_stop_skip.sql`. Neighbour stop, rider report, RAPTOR penalty **open.** |
+| D2 | Skip rate | **Shipped** pass-through vs dwell on the stop, plus a measured neighbour. Apply `20260828_stop_skip.sql`. Rider report, RAPTOR penalty **open.** |
 | D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
 | D4 | Report decay / one ask per journey | **Open.** |
 | D5 | Public stop page (indexable) | **Open.** Index only with real content (E2). |
@@ -821,7 +823,7 @@ Update this table in the same commit as the slice.
 | G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 
-**Next unblocked:** D2 neighbour-stop / rider report, then D4 report decay / `lowFloor` filter.
+**Next unblocked:** D2 rider “it drove past me”, then D4 report decay / `lowFloor` filter.
 
 ---
 
