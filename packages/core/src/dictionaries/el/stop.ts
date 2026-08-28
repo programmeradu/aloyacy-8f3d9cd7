@@ -63,6 +63,8 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.cond.seatingYes": "Κάθισμα",
   "stop.cond.seatingNo": "Χωρίς κάθισμα",
   "stop.cond.stepFree": "Χωρίς σκαλοπάτι",
+  "stop.cond.stepPartial": "Μερική πρόσβαση",
+  "stop.cond.stepNo": "Με σκαλοπάτι",
   "stop.cond.walkYes": "Με τα πόδια",
   "stop.cond.walkNoCrossing": "Χωρίς διάβαση",
   "stop.cond.walkNoSidewalk": "Χωρίς πεζοδρόμιο",
@@ -73,6 +75,7 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.cond.askSeating": "Κάθισμα εδώ;",
   "stop.cond.askWalk": "Περπάτημα ως εδώ;",
   "stop.cond.askLight": "Φως εδώ;",
+  "stop.cond.askStep": "Χωρίς σκαλοπάτι εδώ;",
   "stop.cond.yes": "Ναι",
   "stop.cond.no": "Όχι",
   "stop.cond.noCrossing": "Χωρίς διάβαση",
@@ -80,5 +83,6 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.cond.good": "Καλός",
   "stop.cond.poor": "Αδύναμος",
   "stop.cond.none": "Κανένας",
+  "stop.cond.partial": "Μερική",
   "stop.cond.fromRiders": "Από {n} επιβάτες",
 };

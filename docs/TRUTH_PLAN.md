@@ -480,8 +480,8 @@ queue is ops; don’t block D1 on it.
 `stop_reports`. Seed is the eight curated hubs. Consensus needs two
 devices; one report does not overwrite the seed. One-tap shelter, then
 seating, then walk (yes / no crossing / no sidewalk), then light
-(good / poor / none). Silent when unknown. Photos, wheelchair one-tap,
-and routing filters stay later. Apply
+(good / poor / none), then step-free (yes / partial / no). Silent when
+unknown. Photos, sign/timetable, and routing filters stay later. Apply
 `deploy/supabase/sql/20260828_stop_condition.sql` on prod.
 
 ### D2. Skipped-stop detection — measured, not just reported

@@ -58,6 +58,8 @@ export const stop = {
   "stop.cond.seatingYes": "Seating",
   "stop.cond.seatingNo": "No seating",
   "stop.cond.stepFree": "Step-free",
+  "stop.cond.stepPartial": "Partial access",
+  "stop.cond.stepNo": "Not step-free",
   "stop.cond.walkYes": "On foot",
   "stop.cond.walkNoCrossing": "No crossing",
   "stop.cond.walkNoSidewalk": "No sidewalk",
@@ -68,6 +70,7 @@ export const stop = {
   "stop.cond.askSeating": "A seat here?",
   "stop.cond.askWalk": "Walk here?",
   "stop.cond.askLight": "Light here?",
+  "stop.cond.askStep": "Step-free here?",
   "stop.cond.yes": "Yes",
   "stop.cond.no": "No",
   "stop.cond.noCrossing": "No crossing",
@@ -75,5 +78,6 @@ export const stop = {
   "stop.cond.good": "Good",
   "stop.cond.poor": "Poor",
   "stop.cond.none": "None",
+  "stop.cond.partial": "Partial",
   "stop.cond.fromRiders": "From {n} riders",
 } as const;
