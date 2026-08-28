@@ -4,9 +4,11 @@ import {
   effectiveRiderSources,
   errorsByDevice,
   foldSightings,
+  gpsReportsToSightings,
   REP_HIT_SEC,
   REP_MIN_N,
   scoreDeviceReputation,
+  SOURCE_WINDOW_SEC,
 } from "./device-reputation";
 
 const STOP = { lat: 35.17, lng: 33.36 };
@@ -67,5 +69,37 @@ describe("foldSightings / effectiveRiderSources", () => {
     expect(effectiveRiderSources(t.count, t.canCarry)).toBe(1);
     expect(effectiveRiderSources(u.count, u.canCarry)).toBe(2);
     expect(effectiveRiderSources(undefined, false)).toBe(1);
+  });
+
+  it("unions a tap with a different phone on board, and ignores a car", () => {
+    const gps = gpsReportsToSightings([
+      { tripId: "t", deviceId: "board", ageSec: 8, physicsScore: 0.8 },
+      { tripId: "t", deviceId: "car", ageSec: 4, physicsScore: 0.1 },
+      { tripId: "t", deviceId: "stale", ageSec: SOURCE_WINDOW_SEC, physicsScore: 0.9 },
+      { tripId: "t", deviceId: "", ageSec: 2, physicsScore: 0.9 },
+    ]);
+    const folded = foldSightings(
+      [{ tripId: "t", deviceId: "tap", ageSec: 2 }, ...gps],
+      new Set(),
+    );
+    expect(folded).toHaveLength(1);
+    expect(folded[0].count).toBe(2);
+  });
+
+  it("does not double-count the same phone tapping and pinging", () => {
+    const gps = gpsReportsToSightings([
+      { tripId: "t", deviceId: "a", ageSec: 5, physicsScore: 0.7 },
+    ]);
+    const folded = foldSightings([{ tripId: "t", deviceId: "a", ageSec: 2 }, ...gps], new Set());
+    expect(folded[0].count).toBe(1);
+  });
+
+  it("lets two phones on board corroborate with no tap", () => {
+    const gps = gpsReportsToSightings([
+      { tripId: "t", deviceId: "a", ageSec: 3, physicsScore: 0.6 },
+      { tripId: "t", deviceId: "b", ageSec: 4, physicsScore: null },
+    ]);
+    const folded = foldSightings(gps, new Set());
+    expect(folded[0].count).toBe(2);
   });
 });

@@ -2,7 +2,7 @@
 // with arrival_truth. Volume of taps is not a reputation. Pure — no I/O.
 
 import { distanceM, type LatLng } from "./geo";
-import { SNAP_HARD_M } from "./rider-physics";
+import { SNAP_HARD_M, RIDER_PHYSICS_FOLD_MIN } from "./rider-physics";
 import { CORROBORATION_MIN } from "./freshness";
 
 export const REP_WINDOW_DAYS = 14;
@@ -12,6 +12,9 @@ export const REP_HIGH = 0.75;
 export const REP_MAX_GAP_SEC = 180;
 /** Inside this error the sample is a hit. */
 export const REP_HIT_SEC = 90;
+
+/** Inside this window a tap and a GPS ping can corroborate each other. */
+export const SOURCE_WINDOW_SEC = 90;
 
 export type ReputationTruth = {
   tripId: string;
@@ -38,6 +41,14 @@ export type SightingRow = {
   tripId: string;
   deviceId: string;
   ageSec: number;
+};
+
+export type GpsReport = {
+  tripId: string;
+  deviceId: string;
+  ageSec: number;
+  /** Absent on legacy rows — treat as foldable. */
+  physicsScore?: number | null;
 };
 
 export type FoldedSighting = {
@@ -97,6 +108,18 @@ export function errorsByDevice(
       if (arr) arr.push(best);
       else out.set(deviceId, [best]);
     }
+  }
+  return out;
+}
+
+/** GPS pings that may join a tap as a second source. A car on the road does not. */
+export function gpsReportsToSightings(fixes: GpsReport[]): SightingRow[] {
+  const out: SightingRow[] = [];
+  for (const f of fixes) {
+    if (!f.tripId || !f.deviceId) continue;
+    if (f.ageSec < 0 || f.ageSec >= SOURCE_WINDOW_SEC) continue;
+    if (f.physicsScore != null && f.physicsScore < RIDER_PHYSICS_FOLD_MIN) continue;
+    out.push({ tripId: f.tripId, deviceId: f.deviceId, ageSec: f.ageSec });
   }
   return out;
 }

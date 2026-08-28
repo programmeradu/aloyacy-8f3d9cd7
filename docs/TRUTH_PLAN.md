@@ -433,7 +433,9 @@ IC 33 m/s cap until A4. Apply
 
 **On the chip (first slice).** A lone reporter is named **one rider**,
 low confidence. Two distinct devices in the 90 s window drop the
-caveat. A missing count fails closed (treated as one).
+caveat — a tap, a GPS ping on board, or both. Same phone is one.
+A missing count fails closed (treated as one). A car-like GPS ping
+does not count.
 
 **Reputation (shipped).** Nightly job scores each device: GPS inside
 80 m of a stop vs `arrival_truth`, 14 days, n ≥ 5 and ≥ 75% within
@@ -447,7 +449,11 @@ trip. Distance under 40 m is noise. We store unsigned
 `feed_truth_delta`. The stop says “the official clock on Bus N is
 usually about M min off this hour. We trust a rider on board.” Silent
 below n = 8 or 2 minutes. We do not say optimistic — distance has no
-sign. GPS-device union into the corroboration count stays next.
+sign.
+
+**GPS union (shipped).** A tap and a GPS ping from distinct devices
+in the 90 s window count as two. Same phone is one. Physics-rejected
+pings do not join the count.
 
 ### C3. Cold start
 
@@ -861,7 +867,7 @@ Update this table in the same commit as the slice.
 | B4 | Wait-or-bail | **Shipped** same-stop skip/other/last-tonight, plus dest-aware HUD walk vs wait. RAPTOR HUD sentence, Bolt/scooter price, taxi tariff **open** (need a dest / a quote). |
 | B5 | Walk-or-wait flip push | **Shipped** once-per-wait. RAPTOR other-stop **open.** |
 | C1 | Rider-fix physics | **Shipped.** Apply `20260828_rider_physics.sql`. Learned segment speeds wait on A4. |
-| C2 | Corroboration + reputation | **Partial.** One rider vs two named. A phone that has been right can carry alone. Disagreement log writes real metres/seconds and speaks “off this hour” on the stop (silent below n = 8 or 2 min). Apply `20260828_device_reputation.sql`. GPS union **open.** |
+| C2 | Corroboration + reputation | **Shipped** one rider vs two, a proven phone can carry alone, disagreement “off this hour”, and GPS ∪ tap as distinct devices. Apply `20260828_device_reputation.sql`. |
 | C3 | Cold-start ask | **Partial.** Only-eyes ask shipped on a dark trip. Coverage map + sparse-route seeding **open.** |
 | D1 | Stop condition | **Shipped** one-tap + photo + step-free filter (hide known kerbs when another option exists). Seed = eight hubs. Apply `20260828_stop_condition.sql` and `20260828_stop_photos.sql`. |
 | D2 | Skip rate | **Shipped** pass-through vs dwell, measured neighbour, and rider “it drove past me”. Apply `20260828_stop_skip.sql` and `20260828_stop_skip_reports.sql`. RAPTOR penalty **open.** |
@@ -877,7 +883,7 @@ Update this table in the same commit as the slice.
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** C2 GPS-device union into the corroboration count.
+**Next unblocked:** C3 coverage map (where crowd data actually exists), then sparse-route seeding.
 
 ---
 

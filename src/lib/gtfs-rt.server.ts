@@ -13,7 +13,13 @@ import { fetchFeedOverSocket } from "@/lib/gtfs-socket.server";
 import { getRoute } from "@/lib/gtfs";
 import { tagGhostTripIds } from "@/lib/ghost-trips";
 import { RIDER_PHYSICS_FOLD_MIN, riderFold } from "@aloya/core/rider-physics";
-import { foldSightings } from "@aloya/core/device-reputation";
+import {
+  foldSightings,
+  gpsReportsToSightings,
+  SOURCE_WINDOW_SEC,
+  type GpsReport,
+  type SightingRow,
+} from "@aloya/core/device-reputation";
 import { loadCanCarryDevices } from "@/lib/device-reputation.server";
 
 // Feed sources, tried in order until one returns a decodable protobuf.
@@ -210,10 +216,12 @@ type RiderFixRow = {
   speed_mps: number | null;
   reported_at: string;
   physics_score?: number | null;
+  device_id?: string | null;
 };
 
-async function fetchRiderFixes(): Promise<LiveVehicle[]> {
-  const cutoff = new Date(Date.now() - 60_000).toISOString();
+async function fetchRiderFixes(): Promise<{ vehicles: LiveVehicle[]; reports: SightingRow[] }> {
+  const now = Date.now();
+  const cutoff = new Date(now - SOURCE_WINDOW_SEC * 1000).toISOString();
   const run = (cols: string) =>
     supabase
       .from("rider_vehicle_fixes")
@@ -223,21 +231,30 @@ async function fetchRiderFixes(): Promise<LiveVehicle[]> {
       .limit(500)
       .returns<RiderFixRow[]>();
   let { data, error } = await run(
-    "trip_id, route_id, lat, lng, bearing, speed_mps, reported_at, physics_score",
+    "trip_id, route_id, lat, lng, bearing, speed_mps, reported_at, physics_score, device_id",
   );
   if (error) {
-    ({ data, error } = await run("trip_id, route_id, lat, lng, bearing, speed_mps, reported_at"));
+    ({ data, error } = await run(
+      "trip_id, route_id, lat, lng, bearing, speed_mps, reported_at, device_id",
+    ));
   }
-  if (error || !data) return [];
-  // Keep only the freshest foldable fix per tripId.
+  if (error || !data) return { vehicles: [], reports: [] };
   const seen = new Set<string>();
-  const out: LiveVehicle[] = [];
+  const vehicles: LiveVehicle[] = [];
+  const gps: GpsReport[] = [];
   for (const row of data) {
+    const score = row.physics_score;
+    const ageSec = Math.max(0, Math.floor((now - new Date(row.reported_at).getTime()) / 1000));
+    gps.push({
+      tripId: row.trip_id,
+      deviceId: row.device_id ?? "",
+      ageSec,
+      physicsScore: score,
+    });
     if (seen.has(row.trip_id)) continue;
-    const score = (row as { physics_score?: number | null }).physics_score;
     if (score != null && score < RIDER_PHYSICS_FOLD_MIN) continue;
     seen.add(row.trip_id);
-    out.push({
+    vehicles.push({
       id: `rider:${row.trip_id}`,
       tripId: row.trip_id,
       routeId: row.route_id ?? "",
@@ -251,27 +268,27 @@ async function fetchRiderFixes(): Promise<LiveVehicle[]> {
       physicsScore: score ?? undefined,
     });
   }
-  return out;
+  return { vehicles, reports: gpsReportsToSightings(gps) };
 }
 
-async function fetchSightings(): Promise<RiderConfirmedTrip[]> {
+async function fetchSightingRows(): Promise<SightingRow[]> {
   const now = Date.now();
-  const cutoff = new Date(now - 90_000).toISOString();
+  const cutoff = new Date(now - SOURCE_WINDOW_SEC * 1000).toISOString();
   const { data: recent, error } = await supabase
     .from("bus_sightings")
     .select("trip_id, device_id, reported_at")
     .gte("reported_at", cutoff)
     .order("reported_at", { ascending: false })
     .limit(500);
-  if (error || !recent || recent.length === 0) return [];
-  const rows = recent.map((row) => ({
+  if (error || !recent) return [];
+  return recent.map((row) => ({
     tripId: row.trip_id as string,
     deviceId: row.device_id as string,
     ageSec: Math.max(0, Math.floor((now - new Date(row.reported_at).getTime()) / 1000)),
   }));
-  const carry = await loadCanCarryDevices(rows.map((r) => r.deviceId)).catch(
-    () => new Set<string>(),
-  );
+}
+
+function foldConfirmed(rows: SightingRow[], carry: Set<string>): RiderConfirmedTrip[] {
   return foldSightings(rows, carry).map((a) => ({
     ...a,
     confidence: a.canCarry || a.count >= 2 ? 0.9 : 0.4,
@@ -280,11 +297,17 @@ async function fetchSightings(): Promise<RiderConfirmedTrip[]> {
 
 export async function fetchRealtime(): Promise<RealtimeSnapshot> {
   const now = Math.floor(Date.now() / 1000);
-  const [upstreamResult, riderFixes, sightings] = await Promise.all([
+  const [upstreamResult, riderBundle, sightingRows] = await Promise.all([
     fetchUpstream().catch((e) => ({ error: e as Error })),
-    fetchRiderFixes().catch(() => [] as LiveVehicle[]),
-    fetchSightings().catch(() => [] as RiderConfirmedTrip[]),
+    fetchRiderFixes().catch(() => ({ vehicles: [] as LiveVehicle[], reports: [] as SightingRow[] })),
+    fetchSightingRows().catch(() => [] as SightingRow[]),
   ]);
+  const riderFixes = riderBundle.vehicles;
+  const reports = [...sightingRows, ...riderBundle.reports];
+  const carry = await loadCanCarryDevices(reports.map((r) => r.deviceId)).catch(
+    () => new Set<string>(),
+  );
+  const sightings = foldConfirmed(reports, carry);
 
   if ("error" in upstreamResult) {
     // Upstream down — still surface rider fixes as the only source of truth.
