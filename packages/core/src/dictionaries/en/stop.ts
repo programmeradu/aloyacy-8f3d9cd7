@@ -53,6 +53,9 @@ export const stop = {
   "stop.skip.south": "south",
   "stop.skip.east": "east",
   "stop.skip.west": "west",
+  "stop.skipReport": "Riders say a bus passed them here.",
+  "stop.skipReportAsk": "Did a bus drive past you?",
+  "stop.skipReportYes": "It drove past",
   "stop.bailSkip": "Bus {route} isn't on the map. The next one is, {min} min.",
   "stop.bailOther": "Bus {alt} is on the map, {min} min. Bus {route} isn't.",
   "stop.bailLast":

@@ -8,6 +8,7 @@ import {
   type StopConsensus,
 } from "@aloya/core/stop-condition";
 import { StopPhoto } from "@/components/stop/StopPhoto";
+import { StopSkipAsk } from "@/components/stop/StopSkipAsk";
 import { StopSkipRate } from "@/components/stop/StopSkipRate";
 import { getDeviceId } from "@/lib/pwa";
 import { useI18n, type DictKey } from "@/lib/i18n";
@@ -103,6 +104,7 @@ export function StopCondition({ stopId }: { stopId: string }) {
     return (
       <>
         <StopSkipRate stopId={stopId} />
+        <StopSkipAsk stopId={stopId} />
         <StopPhoto stopId={stopId} rows={rows} />
       </>
     );
@@ -151,6 +153,7 @@ export function StopCondition({ stopId }: { stopId: string }) {
         </div>
       )}
       <StopSkipRate stopId={stopId} inset />
+      <StopSkipAsk stopId={stopId} inset />
       <StopPhoto stopId={stopId} rows={rows} inset />
     </section>
   );

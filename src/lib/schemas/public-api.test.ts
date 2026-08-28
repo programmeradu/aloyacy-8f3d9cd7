@@ -21,6 +21,7 @@ import {
   StopConditionSchema,
   StopPhotoSchema,
   StopSkipSchema,
+  StopSkipReportSchema,
 } from "./public-api";
 
 describe("LatLngSchema", () => {
@@ -382,5 +383,25 @@ describe("StopSkipSchema", () => {
   it("accepts a stop and rejects an empty id", () => {
     expect(StopSkipSchema.safeParse({ stopId: "1009" }).success).toBe(true);
     expect(StopSkipSchema.safeParse({ stopId: "" }).success).toBe(false);
+  });
+});
+
+describe("StopSkipReportSchema", () => {
+  it("accepts get and report, and rejects a short device id", () => {
+    expect(StopSkipReportSchema.safeParse({ action: "get", stopId: "1009" }).success).toBe(true);
+    expect(
+      StopSkipReportSchema.safeParse({
+        action: "report",
+        stopId: "1009",
+        deviceId: "abcd1234",
+      }).success,
+    ).toBe(true);
+    expect(
+      StopSkipReportSchema.safeParse({
+        action: "report",
+        stopId: "1009",
+        deviceId: "short",
+      }).success,
+    ).toBe(false);
   });
 });

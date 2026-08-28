@@ -298,6 +298,10 @@
       "types": "./src/skip-neighbour.ts",
       "default": "./src/skip-neighbour.ts"
     },
+    "./skip-report": {
+      "types": "./src/skip-report.ts",
+      "default": "./src/skip-report.ts"
+    },
     "./stop-photo": {
       "types": "./src/stop-photo.ts",
       "default": "./src/stop-photo.ts"

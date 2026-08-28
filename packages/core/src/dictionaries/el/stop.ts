@@ -58,6 +58,9 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.skip.south": "νότια",
   "stop.skip.east": "ανατολικά",
   "stop.skip.west": "δυτικά",
+  "stop.skipReport": "Επιβάτες λένε ότι ένα λεωφορείο πέρασε χωρίς να σταματήσει.",
+  "stop.skipReportAsk": "Σας προσπέρασε λεωφορείο;",
+  "stop.skipReportYes": "Πέρασε χωρίς να σταματήσει",
   "stop.bailSkip": "Το λεωφορείο {route} δεν είναι στον χάρτη. Το επόμενο είναι, σε {min} λεπτά.",
   "stop.bailOther":
     "Το λεωφορείο {alt} είναι στον χάρτη, σε {min} λεπτά. Το λεωφορείο {route} όχι.",
