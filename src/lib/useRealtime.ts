@@ -45,7 +45,15 @@ export function useRealtime() {
     return m;
   }, [q.data?.riderConfirmedTrips]);
 
-  return { ...q, isStale, staleSec, ghostTripIds, riderConfirmedAge };
+  const riderConfirmedCount = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of q.data?.riderConfirmedTrips ?? []) {
+      m.set(r.tripId, r.count >= 1 ? r.count : 1);
+    }
+    return m;
+  }, [q.data?.riderConfirmedTrips]);
+
+  return { ...q, isStale, staleSec, ghostTripIds, riderConfirmedAge, riderConfirmedCount };
 }
 
 /** Hook returning a function that forces a fresh realtime fetch.

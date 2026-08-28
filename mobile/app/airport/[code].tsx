@@ -83,9 +83,10 @@ export default function AirportScreen() {
           nowSec,
           agency: stop?.agency,
           riderConfirmedAgeSec: rt.riderConfirmedAge.get(a.tripId),
+          riderConfirmedSources: rt.riderConfirmedCount.get(a.tripId),
         }),
     });
-  }, [rt.data, rt.riderConfirmedAge, stopId, stop?.agency]);
+  }, [rt.data, rt.riderConfirmedAge, rt.riderConfirmedCount, stopId, stop?.agency]);
 
   const onRefresh = useCallback(() => {
     rt.refetch();
@@ -212,6 +213,7 @@ export default function AirportScreen() {
                   confidence: eta.confidence,
                   operatorEtaMin: eta.operatorEtaMin,
                   pingAgeSec: eta.pingAgeSec,
+                  singleSource: eta.singleSource,
                 }}
                 feedId={meta?.feedId}
                 onPress={() => handleRowPress(d.tripId)}

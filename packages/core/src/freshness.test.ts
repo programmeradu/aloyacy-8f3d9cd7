@@ -84,15 +84,33 @@ describe("classifyFreshness", () => {
   });
 
   it("lets a rider sighting outrank a stale feed row", () => {
-    const r = classifyFreshness({ hasVehicle: true, pingAgeSec: 150, riderConfirmed: true });
+    const r = classifyFreshness({
+      hasVehicle: true,
+      pingAgeSec: 150,
+      riderConfirmed: true,
+      riderSources: 2,
+    });
     expect(r.tier).toBe("rider-confirmed");
     expect(r.token).toBe("rider");
     expect(r.confidence).toBe("medium");
   });
 
-  it("gives a fresh rider sighting high confidence", () => {
-    const r = classifyFreshness({ hasVehicle: true, pingAgeSec: 10, riderConfirmed: true });
+  it("gives a fresh corroborated sighting high confidence", () => {
+    const r = classifyFreshness({
+      hasVehicle: true,
+      pingAgeSec: 10,
+      riderConfirmed: true,
+      riderSources: 2,
+    });
     expect(r.confidence).toBe("high");
+    expect(r.token).toBe("rider");
+  });
+
+  it("names a lone reporter as one rider and keeps confidence low", () => {
+    const r = classifyFreshness({ hasVehicle: true, pingAgeSec: 10, riderConfirmed: true });
+    expect(r.tier).toBe("rider-confirmed");
+    expect(r.token).toBe("one rider");
+    expect(r.confidence).toBe("low");
   });
 
   it("stops trusting a rider sighting past the ghost cutoff", () => {

@@ -34,6 +34,8 @@ export type EtaPillData = {
   operatorEtaMin?: number;
   /** Short freshness chip text (stable english token mapped via i18n). */
   token?: string;
+  /** True when rider-confirmed is a lone reporter. */
+  singleSource?: boolean;
   /** Free-form short blurb e.g. "usually 2 min late". Optional. */
   blurb?: string;
 };
@@ -60,7 +62,9 @@ export function EtaPill({
   const { t } = useI18n();
   const isGhost = data.tier === "ghost";
   const accent = tierAccent(data.tier);
-  const tierLabel = t(TIER_KEYS[data.tier]);
+  const tierLabel = t(
+    data.tier === "rider-confirmed" && data.singleSource ? "eta.tier.riderOne" : TIER_KEYS[data.tier],
+  );
   const shifted =
     data.etaMin != null && data.operatorEtaMin != null && data.operatorEtaMin !== data.etaMin;
   const showBand = !isGhost && data.band && bandIsInformative(data.band, data.etaMin);

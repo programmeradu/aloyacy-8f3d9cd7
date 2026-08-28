@@ -41,6 +41,7 @@ type DepartureRowProps = {
     confidence: FreshnessConfidence;
     operatorEtaMin?: number;
     pingAgeSec?: number;
+    singleSource?: boolean;
   };
   noShow?: { missed: number; days: number; weekend: boolean } | null;
   lastTonight?: boolean;
@@ -87,7 +88,9 @@ export function DepartureRow({
 }: DepartureRowProps) {
   const { t } = useI18n();
   const accent = tierAccent(eta.tier);
-  const tierLabel = t(TIER_KEYS[eta.tier]);
+  const tierLabel = t(
+    eta.tier === "rider-confirmed" && eta.singleSource ? "eta.tier.riderOne" : TIER_KEYS[eta.tier],
+  );
 
   const isLiveish =
     eta.tier === "live" || eta.tier === "rider-confirmed" || eta.tier === "predicted";

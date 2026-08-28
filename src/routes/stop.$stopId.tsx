@@ -57,7 +57,7 @@ function StopDetail() {
   const [shareOpen, setShareOpen] = useState(false);
   const { stopId } = Route.useParams();
   const stop = getStop(stopId);
-  const { data: rt, isLoading, riderConfirmedAge } = useRealtime();
+  const { data: rt, isLoading, riderConfirmedAge, riderConfirmedCount } = useRealtime();
   const { data: learnedByStop } = useLearnedStatsBulk([stopId]);
 
   // Route IDs serving this stop right now — fed to ETA v2 stats fetcher.
@@ -126,12 +126,13 @@ function StopDetail() {
           shape: getShapeForTripSync(a.tripId, a.routeId),
           learnedByRoute,
           riderConfirmedAgeSec: riderConfirmedAge.get(a.tripId),
+          riderConfirmedSources: riderConfirmedCount.get(a.tripId),
         });
         return { ...a, eta };
       })
       .filter((d): d is typeof d & { eta: SmartEtaV2 } => d.eta != null && d.eta.etaMin <= 180)
       .slice(0, 8);
-  }, [rt, stopId, learnedByStop, stop?.agency, etaStats, riderConfirmedAge]);
+  }, [rt, stopId, learnedByStop, stop?.agency, etaStats, riderConfirmedAge, riderConfirmedCount]);
 
   const headwayByTrip = useMemo(() => {
     if (!rt || !runHints) return new Map();
@@ -314,6 +315,7 @@ function StopDetail() {
                       confidence: d.eta.confidence,
                       operatorEtaMin: d.eta.operatorEtaMin,
                       pingAgeSec: d.eta.pingAgeSec,
+                      singleSource: d.eta.singleSource,
                     }}
                     noShow={pickNoShow(noShowSlots, d.routeId, d.arrivalUnix, Date.now())}
                     lastTonight={

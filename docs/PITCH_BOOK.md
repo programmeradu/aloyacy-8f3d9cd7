@@ -141,7 +141,8 @@ know — that silence is the product.
 | What a person sees | In one line |
 | ------------------ | ----------- |
 | Live board | One arrival time per bus, not three arguing clocks. |
-| How fresh | Live, rider on board, predicted, ghost, or scheduled. We name the uncertainty. |
+| How fresh | Live, rider-confirmed, one rider, predicted, ghost, or scheduled. We name the uncertainty. |
+| One rider | A single tap is named as one rider. Two phones agree → rider-confirmed. |
 | Ghost / wait-or-bail | “Bus 31 isn’t on the map. The next one is, 8 min.” Or walk vs wait to your dest. |
 | Headway chance | “About 40% chance one arrives before 18:10.” Silent below 15%. |
 | No-show | “This 18:00 didn’t run on 3 of the last 10 weekdays.” |
@@ -457,7 +458,7 @@ is on the stop. If it is not, it is not in the room.
 
 Unblocked, in plan order — see the living checklist in TRUTH_PLAN:
 
-- Rider corroboration (two phones agree) and a cold-start question
+- Device reputation (how often this phone was right) and a cold-start question
 - Public stop pages, once they have real content
 - Accuracy page, once a route has enough measured arrivals
 - Truth API + hotel embed, once a design partner is waiting

@@ -122,7 +122,7 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
   const stop = getStop(stopId);
   const [shareOpen, setShareOpen] = useState(false);
 
-  const { data: rt, isLoading, riderConfirmedAge } = useRealtime();
+  const { data: rt, isLoading, riderConfirmedAge, riderConfirmedCount } = useRealtime();
   const { data: learnedByStop } = useLearnedStatsBulk([stopId]);
   const routeIdsHere = useMemo(() => {
     if (!rt) return [] as string[];
@@ -160,12 +160,13 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
           shape: getShapeForTripSync(a.tripId, a.routeId),
           learnedByRoute,
           riderConfirmedAgeSec: riderConfirmedAge.get(a.tripId),
+          riderConfirmedSources: riderConfirmedCount.get(a.tripId),
         });
         return { ...a, eta };
       })
       .filter((d): d is typeof d & { eta: SmartEtaV2 } => d.eta != null && d.eta.etaMin <= 180)
       .slice(0, 8);
-  }, [rt, stopId, learnedByStop, stop?.agency, etaStats, riderConfirmedAge]);
+  }, [rt, stopId, learnedByStop, stop?.agency, etaStats, riderConfirmedAge, riderConfirmedCount]);
 
   const center = stop ? { lat: stop.lat, lng: stop.lng } : { lat: airport.lat, lng: airport.lng };
   const airportName = locale === "el" ? airport.nameEl : airport.name;
@@ -266,6 +267,7 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
                       confidence: d.eta.confidence,
                       operatorEtaMin: d.eta.operatorEtaMin,
                       pingAgeSec: d.eta.pingAgeSec,
+                      singleSource: d.eta.singleSource,
                     }}
                     agency={route?.agency}
                   />

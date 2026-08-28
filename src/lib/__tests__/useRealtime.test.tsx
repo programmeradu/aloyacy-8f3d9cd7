@@ -38,7 +38,7 @@ describe("useRealtime", () => {
         fetchedAt,
         stale: false,
         ghostTripIds: ["t1", "t2"],
-        riderConfirmedTrips: [{ tripId: "t3", ageSec: 12 }],
+        riderConfirmedTrips: [{ tripId: "t3", ageSec: 12, count: 2 }],
       }),
     });
 
@@ -50,6 +50,7 @@ describe("useRealtime", () => {
     expect(result.current.staleSec).toBeLessThanOrEqual(1);
     expect(result.current.ghostTripIds).toEqual(new Set(["t1", "t2"]));
     expect(result.current.riderConfirmedAge.get("t3")).toBe(12);
+    expect(result.current.riderConfirmedCount.get("t3")).toBe(2);
   });
 
   it("flags isStale when the upstream stale flag is set", async () => {

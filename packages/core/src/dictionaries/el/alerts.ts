@@ -27,6 +27,7 @@ export const alerts: Record<keyof typeof alertsEn, string> = {
 
   "eta.tier.live": "ζωντανό",
   "eta.tier.rider": "από επιβάτη",
+  "eta.tier.riderOne": "ένας επιβάτης",
   "eta.tier.predicted": "πρόβλεψη",
   "eta.tier.ghost": "χωρίς gps",
   "eta.tier.scheduled": "πρόγραμμα",

@@ -30,6 +30,8 @@ export type FreshnessInput = {
   pingAgeSec: number;
   /** Was the latest ping a rider-confirmed sighting? (Wave 1.1) */
   riderConfirmed?: boolean;
+  /** Distinct devices that confirmed this trip. Absent → one (fail closed). */
+  riderSources?: number;
   /** How many GTFS stops separate the bus from the rider's stop. */
   stopsAway?: number;
   /** "IC" relaxes thresholds. */
@@ -38,16 +40,32 @@ export type FreshnessInput = {
   modelSamples?: number;
 };
 
+export type FreshnessToken =
+  | "live"
+  | "rider"
+  | "one rider"
+  | "predicted"
+  | "stale ping"
+  | "no gps"
+  | "scheduled";
+
 export type FreshnessResult = {
   tier: FreshnessTier;
   confidence: FreshnessConfidence;
   /** Short uppercase chip text. Already localised? No — it is a
    *  stable English token; surfaces map it through i18n. */
-  token: "live" | "rider" | "predicted" | "stale ping" | "no gps" | "scheduled";
+  token: FreshnessToken;
 };
 
 const URBAN = { fresh: 60, ghost: 180, near: 5 } as const;
 const INTERCITY = { fresh: 90, ghost: 300, near: 8 } as const;
+
+/** Two distinct devices before we drop the "one rider" caveat. */
+export const CORROBORATION_MIN = 2;
+
+export function isSingleRiderSource(sources: number | undefined): boolean {
+  return (sources ?? 1) < CORROBORATION_MIN;
+}
 
 export function thresholdsFor(agency: Agency) {
   return agency === "IC" ? INTERCITY : URBAN;
@@ -67,10 +85,13 @@ export function classifyFreshness(input: FreshnessInput): FreshnessResult {
 
   // Rider-confirmed within the trust window wins over "stale ping" /
   // "ghost" — one rider physically seeing the bus is stronger evidence
-  // than the absence of a fresh GTFS-RT row. Confidence degrades with
-  // sighting age but the tier stays rider-confirmed up to the ghost
-  // cutoff, so we never falsely demote a freshly-confirmed trip.
+  // than the absence of a fresh GTFS-RT row. A lone reporter stays
+  // rider-confirmed but is named as one rider, low confidence. Two
+  // devices agree → full rider-confirmed. Missing count fails closed.
   if (input.riderConfirmed && age < T.ghost) {
+    if (isSingleRiderSource(input.riderSources)) {
+      return { tier: "rider-confirmed", confidence: "low", token: "one rider" };
+    }
     const conf: FreshnessConfidence = age < T.fresh ? "high" : "medium";
     return { tier: "rider-confirmed", confidence: conf, token: "rider" };
   }

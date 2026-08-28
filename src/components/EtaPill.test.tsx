@@ -61,4 +61,14 @@ describe("EtaPill", () => {
     render(<EtaPill data={base({ tier: "ghost", etaMin: null })} variant="stack" />);
     expect(screen.getByText("—")).toBeInTheDocument();
   });
+
+  it("names a lone reporter as one rider", () => {
+    render(
+      <EtaPill
+        data={base({ tier: "rider-confirmed", singleSource: true, confidence: "low" })}
+        variant="compact"
+      />,
+    );
+    expect(screen.getByText(/one rider/i)).toBeInTheDocument();
+  });
 });

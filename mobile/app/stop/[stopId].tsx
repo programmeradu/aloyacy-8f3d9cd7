@@ -49,12 +49,14 @@ export default function StopDetailScreen() {
           vehicles: rt.data!.vehicles,
           nowSec: now,
           agency: stop?.agency,
+          riderConfirmedAgeSec: rt.riderConfirmedAge.get(a.tripId),
+          riderConfirmedSources: rt.riderConfirmedCount.get(a.tripId),
         });
         return { ...a, eta };
       })
       .filter((d): d is typeof d & { eta: SmartEtaV2 } => d.eta != null && d.eta.etaMin <= 180)
       .slice(0, 8);
-  }, [rt.data, stopId, stop?.agency]);
+  }, [rt.data, rt.riderConfirmedAge, rt.riderConfirmedCount, stopId, stop?.agency]);
 
   const routeIds = useMemo(
     () => Array.from(new Set(departures.map((d) => d.routeId))).slice(0, 30),
@@ -377,6 +379,7 @@ export default function StopDetailScreen() {
                   confidence: d.eta.confidence,
                   operatorEtaMin: d.eta.operatorEtaMin,
                   pingAgeSec: d.eta.pingAgeSec,
+                  singleSource: d.eta.singleSource,
                 }}
                 noShow={pickNoShow(hints.data?.slots ?? [], d.routeId, d.arrivalUnix, Date.now())}
                 lastTonight={

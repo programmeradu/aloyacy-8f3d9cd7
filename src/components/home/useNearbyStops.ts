@@ -19,7 +19,7 @@ const MAX_ETA_MIN = 120;
  */
 export function useNearbyStops(coords: { lat: number; lng: number }, count = 5) {
   const { t: tt } = useI18n();
-  const { data: rt, riderConfirmedAge } = useRealtime();
+  const { data: rt, riderConfirmedAge, riderConfirmedCount } = useRealtime();
 
   const nearStops = useMemo(() => nearestStops(coords, count), [coords, count]);
   const nearStopIds = useMemo(() => nearStops.map((s) => s.id), [nearStops]);
@@ -64,6 +64,7 @@ export function useNearbyStops(coords: { lat: number; lng: number }, count = 5) 
           learnedByRoute: learnedByStop?.get(s.id),
           shape: nextHere ? getShapeForTripSync(nextHere.tripId, nextHere.routeId) : null,
           riderConfirmedAgeSec: nextHere ? riderConfirmedAge.get(nextHere.tripId) : undefined,
+          riderConfirmedSources: nextHere ? riderConfirmedCount.get(nextHere.tripId) : undefined,
         });
       }
 
@@ -99,6 +100,7 @@ export function useNearbyStops(coords: { lat: number; lng: number }, count = 5) 
         etaTier: smart?.tier,
         etaConfidenceLevel: smart?.confidence,
         etaBlurb: smart?.blurb,
+        etaSingleSource: smart?.singleSource,
         routes,
         highlight: idx === 0,
         kind: stopKind(s),
@@ -106,7 +108,7 @@ export function useNearbyStops(coords: { lat: number; lng: number }, count = 5) 
       };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rt, nearStops, learnedByStop, riderConfirmedAge, headsignsReady]);
+  }, [rt, nearStops, learnedByStop, riderConfirmedAge, riderConfirmedCount, headsignsReady]);
 
   useEffect(() => {
     if (!rt) return;
@@ -125,6 +127,7 @@ export function useNearbyStops(coords: { lat: number; lng: number }, count = 5) 
         learnedByRoute: learnedByStop?.get(s.id),
         shape: getShapeForTripSync(nextHere.tripId, nextHere.routeId),
         riderConfirmedAgeSec: riderConfirmedAge.get(nextHere.tripId),
+        riderConfirmedSources: riderConfirmedCount.get(nextHere.tripId),
       });
       if (!smart) continue;
       sampleEtaPrediction({
@@ -142,7 +145,7 @@ export function useNearbyStops(coords: { lat: number; lng: number }, count = 5) 
         surface: "home",
       });
     }
-  }, [rt, nearStops, learnedByStop, riderConfirmedAge]);
+  }, [rt, nearStops, learnedByStop, riderConfirmedAge, riderConfirmedCount]);
 
   return cards;
 }

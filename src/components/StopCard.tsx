@@ -28,6 +28,8 @@ export type Stop = {
   etaConfidenceLevel?: FreshnessConfidence;
   /** Optional short label ("live", "stale ping", "scheduled"). */
   etaBlurb?: string;
+  /** Rider-confirmed from a lone reporter. */
+  etaSingleSource?: boolean;
   routes: { code: string; tone: Tone; headsign?: string | null }[];
   highlight?: boolean;
   kind?: StopKind;
@@ -141,6 +143,7 @@ export function StopCard({ stop }: { stop: Stop }) {
               tier={tier}
               confidence={stop.etaConfidenceLevel}
               blurb={stop.etaBlurb}
+              singleSource={stop.etaSingleSource}
               t={t}
             />
           )}
@@ -162,13 +165,18 @@ function TierChip({
   tier: FreshnessTier;
   confidence?: FreshnessConfidence;
   blurb?: string;
+  singleSource?: boolean;
   t: (k: never) => string;
 }) {
   const showConfidence =
     !!confidence && (tier === "live" || tier === "rider-confirmed" || tier === "predicted");
   // i18n keys are typed against the dictionary; cast here is intentional —
   // every tier value maps to an existing key.
-  const tierLabel = t(`eta.tier.${tier === "rider-confirmed" ? "rider" : tier}` as never);
+  const tierLabel = t(
+    (tier === "rider-confirmed" && singleSource
+      ? "eta.tier.riderOne"
+      : `eta.tier.${tier === "rider-confirmed" ? "rider" : tier}`) as never,
+  );
   return (
     <div className="mt-1 flex flex-col items-end gap-0.5">
       <span className="inline-flex items-center gap-1.5 leading-none font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft whitespace-nowrap">

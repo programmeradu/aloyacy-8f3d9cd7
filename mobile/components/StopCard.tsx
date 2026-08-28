@@ -37,6 +37,7 @@ export type StopCardData = {
   etaTier?: FreshnessTier;
   etaConfidenceLevel?: FreshnessConfidence;
   etaBlurb?: string;
+  etaSingleSource?: boolean;
   routes: StopCardRoute[];
   highlight?: boolean;
 };
@@ -168,7 +169,9 @@ export function StopCard({ stop }: { stop: StopCardData }) {
                   textTransform: "uppercase",
                 }}
               >
-                {TIER_LABEL[tier]}
+                {tier === "rider-confirmed" && stop.etaSingleSource
+                  ? "ONE RIDER"
+                  : TIER_LABEL[tier]}
               </Text>
               {(tier === "live" ||
                 tier === "rider-confirmed" ||

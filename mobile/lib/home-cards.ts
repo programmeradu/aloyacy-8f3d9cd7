@@ -27,6 +27,7 @@ export function buildStopCards(input: {
   vehicles: RealtimeVehicle[];
   routes: RouteMetaMap;
   riderConfirmedAge: Map<string, number>;
+  riderConfirmedCount?: Map<string, number>;
   nowSec?: number;
 }): StopCardData[] {
   const nowSec = input.nowSec ?? Math.floor(Date.now() / 1000);
@@ -41,6 +42,7 @@ export function buildStopCards(input: {
       nowSec,
       agency: s.agency,
       riderConfirmedAgeSec: arr[0] ? input.riderConfirmedAge.get(arr[0].tripId) : undefined,
+      riderConfirmedSources: arr[0] ? input.riderConfirmedCount?.get(arr[0].tripId) : undefined,
     });
 
     const routes = routeChipsForStop(arr, input.routes, (tripId, routeId) =>
@@ -56,6 +58,7 @@ export function buildStopCards(input: {
       etaTier: smart?.tier,
       etaConfidenceLevel: smart?.confidence,
       etaBlurb: smart?.blurb,
+      etaSingleSource: smart?.singleSource,
       routes,
       highlight: idx === 0,
     } satisfies StopCardData;

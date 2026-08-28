@@ -84,6 +84,7 @@ describe("smartEtaV2", () => {
     });
     expect(result!.pingAgeSec).toBe(5);
     expect(result!.tier).toBe("rider-confirmed");
+    expect(result!.singleSource).toBe(true);
   });
 
   it("labels a rider-GPS vehicle as rider-confirmed without a separate sighting", () => {
@@ -93,6 +94,7 @@ describe("smartEtaV2", () => {
       stopId: "s1", arrivals, vehicles, nowSec: NOW,
     });
     expect(result!.tier).toBe("rider-confirmed");
+    expect(result!.singleSource).toBe(true);
     expect(result!.pingAgeSec).toBe(8);
   });
 

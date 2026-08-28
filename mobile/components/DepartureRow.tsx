@@ -43,6 +43,7 @@ type Props = {
     confidence: FreshnessConfidence;
     operatorEtaMin?: number;
     pingAgeSec?: number;
+    singleSource?: boolean;
   };
   noShow?: { missed: number; days: number; weekend: boolean } | null;
   lastTonight?: boolean;
@@ -95,7 +96,8 @@ export function DepartureRow({
   void routeId;
   void stopId;
   const tierColor = TIER_COLOR[eta.tier];
-  const tierLabel = TIER_LABEL[eta.tier];
+  const tierLabel =
+    eta.tier === "rider-confirmed" && eta.singleSource ? "ONE RIDER" : TIER_LABEL[eta.tier];
 
   const isLiveish =
     eta.tier === "live" ||

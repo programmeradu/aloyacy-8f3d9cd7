@@ -66,8 +66,9 @@ export default function TodayScreen() {
         vehicles: rt.data?.vehicles ?? [],
         routes: bundle.data?.routes ?? {},
         riderConfirmedAge: rt.riderConfirmedAge,
+        riderConfirmedCount: rt.riderConfirmedCount,
       }),
-    [nearby, rt.data, rt.riderConfirmedAge, bundle.data],
+    [nearby, rt.data, rt.riderConfirmedAge, rt.riderConfirmedCount, bundle.data],
   );
 
   const liveCount = rt.data?.vehicles.length ?? 0;

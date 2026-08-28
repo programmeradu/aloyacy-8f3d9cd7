@@ -70,6 +70,8 @@ export type SmartEtaV2 = {
   band: string;
   /** Ping age of the vehicle in seconds (Infinity if no vehicle). */
   pingAgeSec: number;
+  /** True when the rider-confirmed tier is a lone reporter. */
+  singleSource?: boolean;
 };
 
 const URBAN_FALLBACK_MPS = 18 / 3.6;
@@ -100,6 +102,8 @@ export type SmartEtaV2Input = {
    *  When set and within the trust window, the classifier upgrades the
    *  trip to the `rider-confirmed` tier — overriding ghost / stale ping. */
   riderConfirmedAgeSec?: number;
+  /** Distinct devices behind the sighting. Absent → one (fail closed). */
+  riderConfirmedSources?: number;
 };
 
 export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
@@ -130,6 +134,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   const fromRiderPing = vehicle?.source === "rider" || vehicle?.source === "feed+rider";
   const riderConfirmed =
     fromRiderPing || (typeof sightingAge === "number" && Number.isFinite(sightingAge));
+  const riderSources = riderConfirmed ? (input.riderConfirmedSources ?? 1) : undefined;
   const pingAgeSec = riderConfirmed
     ? Math.min(rawPingAgeSec, typeof sightingAge === "number" ? sightingAge : Infinity)
     : rawPingAgeSec;
@@ -150,6 +155,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
       hasVehicle: hasVehicleForClassifier,
       pingAgeSec,
       riderConfirmed,
+      riderSources,
       agency: input.agency,
       stopsAway: 0,
       modelSamples: 0,
@@ -170,10 +176,11 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
       freshness,
       tier: cls.tier,
       operatorEtaMin,
-      blurb: blurbFor(cls.tier, pingAgeSec, learned, learnedBiasSec),
+      blurb: blurbFor(cls.tier, pingAgeSec, learned, learnedBiasSec, cls.token === "one rider"),
       learnedBiasSec,
       band: `≈${adjMin} min`,
       pingAgeSec,
+      singleSource: cls.token === "one rider",
     };
   }
 
@@ -302,6 +309,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     hasVehicle: hasVehicleForClassifier,
     pingAgeSec,
     riderConfirmed,
+    riderSources,
     agency: input.agency,
     stopsAway,
     modelSamples: avgSamples,
@@ -323,10 +331,11 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     freshness,
     tier: cls.tier,
     operatorEtaMin,
-    blurb: blurbFor(cls.tier, pingAgeSec, learned, learnedBiasSec),
+    blurb: blurbFor(cls.tier, pingAgeSec, learned, learnedBiasSec, cls.token === "one rider"),
     learnedBiasSec,
     band,
     pingAgeSec,
+    singleSource: cls.token === "one rider",
   };
 }
 
@@ -335,6 +344,7 @@ function blurbFor(
   pingAgeSec: number,
   learned: LearnedBias | undefined,
   learnedBiasSec: number,
+  singleSource = false,
 ): string {
   // Surface a learned-pattern blurb when the sample is meaningful and we
   // still have some live signal to back it.
@@ -349,7 +359,7 @@ function blurbFor(
   }
   if (tier === "ghost") return "no gps — using schedule";
   if (tier === "scheduled") return "scheduled";
-  if (tier === "rider-confirmed") return "rider-confirmed";
+  if (tier === "rider-confirmed") return singleSource ? "one rider" : "rider-confirmed";
   if (tier === "predicted" && pingAgeSec > 240) return "stale ping";
   return tier;
 }

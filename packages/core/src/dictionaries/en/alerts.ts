@@ -25,6 +25,7 @@ export const alerts = {
 
   "eta.tier.live": "live",
   "eta.tier.rider": "rider-confirmed",
+  "eta.tier.riderOne": "one rider",
   "eta.tier.predicted": "predicted",
   "eta.tier.ghost": "no gps",
   "eta.tier.scheduled": "scheduled",

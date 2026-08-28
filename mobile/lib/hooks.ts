@@ -18,11 +18,20 @@ export function useRealtime() {
     }
     return m;
   }, [q.data?.riderConfirmedTrips]);
+  const riderConfirmedCount = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of q.data?.riderConfirmedTrips ?? []) {
+      if (r && typeof r === "object" && "tripId" in r) {
+        m.set(r.tripId, typeof r.count === "number" && r.count >= 1 ? r.count : 1);
+      }
+    }
+    return m;
+  }, [q.data?.riderConfirmedTrips]);
   const ghostTripIds = useMemo(
     () => new Set(q.data?.ghostTripIds ?? []),
     [q.data?.ghostTripIds],
   );
-  return { ...q, riderConfirmedAge, ghostTripIds };
+  return { ...q, riderConfirmedAge, riderConfirmedCount, ghostTripIds };
 }
 
 /**

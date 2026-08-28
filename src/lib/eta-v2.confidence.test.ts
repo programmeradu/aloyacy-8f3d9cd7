@@ -207,7 +207,8 @@ describe("smartEtaV2 — rider-confirmed upgrades", () => {
       riderConfirmedAgeSec: 10,
     })!;
     expect(upgraded.tier).toBe("rider-confirmed");
-    expect(upgraded.blurb).toBe("rider-confirmed");
+    expect(upgraded.blurb).toBe("one rider");
+    expect(upgraded.singleSource).toBe(true);
     expect(upgraded.pingAgeSec).toBe(10);
   });
 
@@ -253,7 +254,23 @@ describe("smartEtaV2 — rider-confirmed upgrades", () => {
       nowSec: NOW,
     })!;
     expect(out.tier).toBe("rider-confirmed");
+    expect(out.singleSource).toBe(true);
     expect(out.pingAgeSec).toBe(8);
+  });
+
+  it("drops the one-rider caveat when two devices agree", () => {
+    const out = smartEtaV2({
+      stopId: "C",
+      arrivals,
+      vehicles: [vehicle({ lat: 35.0, lng: 33.0, timestamp: NOW - 200 })],
+      nowSec: NOW,
+      riderConfirmedAgeSec: 10,
+      riderConfirmedSources: 2,
+    })!;
+    expect(out.tier).toBe("rider-confirmed");
+    expect(out.blurb).toBe("rider-confirmed");
+    expect(out.singleSource).toBe(false);
+    expect(out.confidence).toBe("high");
   });
 });
 
