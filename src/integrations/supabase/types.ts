@@ -712,7 +712,6 @@ export type Database = {
           id: number
           lat: number
           lng: number
-          physics_score: number | null
           reported_at: string
           route_id: string | null
           speed_mps: number | null
@@ -725,7 +724,6 @@ export type Database = {
           id?: number
           lat: number
           lng: number
-          physics_score?: number | null
           reported_at?: string
           route_id?: string | null
           speed_mps?: number | null
@@ -738,7 +736,6 @@ export type Database = {
           id?: number
           lat?: number
           lng?: number
-          physics_score?: number | null
           reported_at?: string
           route_id?: string | null
           speed_mps?: number | null

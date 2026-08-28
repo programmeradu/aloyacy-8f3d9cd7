@@ -126,7 +126,11 @@ export const Route = createFileRoute("/api/public/rider-fix")({
           device_id: parsed.deviceId,
           physics_score: physicsScore,
         };
-        let { error: insErr } = await supabaseAdmin.from("rider_vehicle_fixes").insert(row);
+        // physics_score is not yet in the generated types; the fallback below
+        // re-inserts without it when the column is missing on the instance.
+        let { error: insErr } = await supabaseAdmin
+          .from("rider_vehicle_fixes")
+          .insert(row as never);
         if (insErr) {
           const { physics_score: _score, ...bare } = row;
           ({ error: insErr } = await supabaseAdmin.from("rider_vehicle_fixes").insert(bare));
