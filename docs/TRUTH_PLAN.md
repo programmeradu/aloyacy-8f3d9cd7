@@ -665,16 +665,15 @@ rank for those queries.
 
 ### G2. Boarding truth + last-bus as named states
 
-A sentence on every departure, not an ETA refinement:
+**Last-bus shipped with B3/B4.** A sentence on the row after 21:00 Cyprus
+when the snapshot has no later trip on that route.
 
-- how you pay (Motion tap / cash / exact change),
-- whether this driver waits,
-- whether this is the last run,
-- whether Sunday / holiday / term-time actually applies.
+**Pay line shipped 2026-08-28.** Urban Motion €1.80 / paper €2.40,
+intercity €6 / €8, from 3 August 2026. Pame and Kapnos stay quiet —
+those are not these numbers. We do not claim the driver waits.
 
-Cash-only coaches that leave on the minute are more believed than a
-prettier p50. Intercity quirks already live as editorial copy on
-marketing operator pages; they belong on the departure row.
+Sunday / holiday / term-time still needs a published calendar before
+it becomes a sentence. Do not invent it.
 
 ### G3. Green Line, named
 
@@ -783,6 +782,8 @@ Already true in this repo, and why the OS is a credible bet:
 - Thin B1: “Still on Bus 31?” on the companion when the trip is dark.
   Rider-GPS pings labelled `rider-confirmed`; stop shows the age.
 - G3: `/green-line` on rider, marketing, and mobile. Hours not invented.
+- G2 pay line on the departure row. Urban €1.80 / €2.40, IC €6 / €8.
+  Pame and Kapnos stay quiet. Driver-wait is not claimed.
 
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.

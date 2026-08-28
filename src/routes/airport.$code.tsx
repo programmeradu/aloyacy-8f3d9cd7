@@ -267,6 +267,7 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
                       operatorEtaMin: d.eta.operatorEtaMin,
                       pingAgeSec: d.eta.pingAgeSec,
                     }}
+                    agency={route?.agency}
                   />
                   {isGhost && stop && (
                     <div className="mt-2 px-1">

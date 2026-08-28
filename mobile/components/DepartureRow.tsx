@@ -21,6 +21,7 @@ import {
 import { cyClock } from "@aloya/core/cy-time";
 import type { HeadwayHint } from "@aloya/core/headway-chance";
 import { waitOrBailCopy, type WaitOrBail } from "@aloya/core/wait-or-bail";
+import { boardingPayKind, boardingPayLine } from "@aloya/core/boarding-pay";
 import { headwayCopy, softLine, truthLine } from "@/lib/headway-copy";
 
 type Props = {
@@ -47,6 +48,8 @@ type Props = {
   lastTonight?: boolean;
   headway?: HeadwayHint | null;
   waitOrBail?: WaitOrBail | null;
+  agency?: string;
+  feedId?: number;
   /** Tap target. Defaults to navigating to the trip-info screen via the
    *  parent screen — caller decides because not every host wants this. */
   onPress?: () => void;
@@ -83,6 +86,8 @@ export function DepartureRow({
   lastTonight,
   headway,
   waitOrBail,
+  agency,
+  feedId,
   onPress,
 }: Props) {
 
@@ -113,6 +118,7 @@ export function DepartureRow({
   const fallback = splitLongName(routeLong);
   const origin = fallback[0];
   const destination = (headsign && headsign.trim()) || fallback[1];
+  const payKind = boardingPayKind({ agency, feedId, short: routeShort });
 
   return (
     <Pressable
@@ -229,6 +235,7 @@ export function DepartureRow({
             >
               Scheduled {clock}
             </Text>
+            {payKind ? <Text style={softLine}>{boardingPayLine(payKind)}</Text> : null}
             {waitOrBail ? <Text style={truthLine}>{waitOrBailCopy(waitOrBail)}</Text> : null}
             {eta.tier === "rider-confirmed" &&
             eta.pingAgeSec != null &&

@@ -21,6 +21,7 @@ import accentAsset from "@/assets/route-card-accent.jpg.asset.json";
 import { cyClock } from "@aloya/core/cy-time";
 import type { HeadwayHint, HeadwayWhen } from "@aloya/core/headway-chance";
 import type { WaitOrBail } from "@aloya/core/wait-or-bail";
+import { boardingPayKind, type BoardingPayKind } from "@aloya/core/boarding-pay";
 
 type DepartureRowProps = {
   tripId: string;
@@ -45,6 +46,8 @@ type DepartureRowProps = {
   lastTonight?: boolean;
   headway?: HeadwayHint | null;
   waitOrBail?: WaitOrBail | null;
+  agency?: string;
+  feedId?: number;
 };
 
 const TIER_KEYS: Record<FreshnessTier, DictKey> = {
@@ -79,6 +82,8 @@ export function DepartureRow({
   lastTonight,
   headway,
   waitOrBail,
+  agency,
+  feedId,
 }: DepartureRowProps) {
   const { t } = useI18n();
   const accent = tierAccent(eta.tier);
@@ -104,6 +109,7 @@ export function DepartureRow({
   const fallback = splitLongName(routeLong);
   const origin = fallback[0];
   const destination = (headsign && headsign.trim()) || fallback[1];
+  const payKind = boardingPayKind({ agency, feedId, short: routeShort });
 
   return (
     <Link
@@ -153,6 +159,7 @@ export function DepartureRow({
             <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
               {t("stop.scheduledAt", { time: clock })}
             </p>
+            {payKind && <PayLine kind={payKind} t={t} />}
             {waitOrBail && <WaitOrBailLine action={waitOrBail} t={t} />}
             {eta.tier === "rider-confirmed" &&
               eta.pingAgeSec != null &&
@@ -212,6 +219,20 @@ export function DepartureRow({
         </div>
       </div>
     </Link>
+  );
+}
+
+function PayLine({
+  kind,
+  t,
+}: {
+  kind: BoardingPayKind;
+  t: (key: DictKey, vars?: Record<string, string | number>) => string;
+}) {
+  return (
+    <p className="mt-1 text-[12.5px] leading-snug text-ink-soft">
+      {t(kind === "intercity" ? "stop.payIntercity" : "stop.payUrban")}
+    </p>
   );
 }
 

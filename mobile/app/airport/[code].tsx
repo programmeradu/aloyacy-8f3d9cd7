@@ -203,6 +203,7 @@ export default function AirportScreen() {
                   operatorEtaMin: eta.operatorEtaMin,
                   pingAgeSec: eta.pingAgeSec,
                 }}
+                feedId={meta?.feedId}
                 onPress={() => handleRowPress(d.tripId)}
               />
             );

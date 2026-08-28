@@ -383,6 +383,7 @@ export default function StopDetailScreen() {
                 }
                 headway={headwayByTrip.get(d.tripId) ?? null}
                 waitOrBail={waitOrBailByTrip.get(d.tripId) ?? null}
+                feedId={meta?.feedId}
                 onPress={() => handleRowPress(d.tripId)}
               />
             );

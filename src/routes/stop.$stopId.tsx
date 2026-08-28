@@ -318,6 +318,7 @@ function StopDetail() {
                     }
                     headway={headwayByTrip.get(d.tripId) ?? null}
                     waitOrBail={waitOrBailByTrip.get(d.tripId) ?? null}
+                    agency={route?.agency}
                   />
 
                   {isGhost && stop && (
