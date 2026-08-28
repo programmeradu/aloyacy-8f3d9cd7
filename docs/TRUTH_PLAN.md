@@ -481,9 +481,9 @@ queue is ops; don’t block D1 on it.
 devices; one report does not overwrite the seed. One-tap shelter, then
 seating, then walk (yes / no crossing / no sidewalk), then light
 (good / poor / none), then step-free (yes / partial / no), then sign
-(yes / no / wrong). Silent when unknown. Photos, timetable, and routing
-filters stay later. Apply `deploy/supabase/sql/20260828_stop_condition.sql`
-on prod.
+(yes / no / wrong), then timetable (yes / no / wrong). Silent when
+unknown. Photos, ambiguous pole, and routing filters stay later. Apply
+`deploy/supabase/sql/20260828_stop_condition.sql` on prod.
 
 ### D2. Skipped-stop detection — measured, not just reported
 
@@ -799,7 +799,7 @@ Update this table in the same commit as the slice.
 | C1 | Rider-fix physics | **Shipped.** Apply `20260828_rider_physics.sql`. Learned segment speeds wait on A4. |
 | C2 | Corroboration + reputation | **Open.** |
 | C3 | Cold-start ask | **Open.** |
-| D1 | Stop condition | **Shipped** one-tap: shelter, seating, walk, light, step-free, sign. Seed = eight hubs. Apply `20260828_stop_condition.sql`. Photos, timetable, ambiguous pole, `lowFloor` filter **open.** |
+| D1 | Stop condition | **Shipped** one-tap: shelter, seating, walk, light, step-free, sign, timetable. Seed = eight hubs. Apply `20260828_stop_condition.sql`. Photos, ambiguous pole, `lowFloor` filter **open.** |
 | D2 | Skip rate | **Open.** |
 | D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
 | D4 | Report decay / one ask per journey | **Open.** |
@@ -812,7 +812,7 @@ Update this table in the same commit as the slice.
 | G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 
-**Next unblocked:** D1 timetable, then photos, then D2 skip rate.
+**Next unblocked:** D1 photos, then D2 skip rate.
 
 ---
 

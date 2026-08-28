@@ -27,6 +27,9 @@ const CHIP_KEY: Record<string, DictKey> = {
   "has_sign:yes": "stop.cond.signYes",
   "has_sign:no": "stop.cond.signNo",
   "has_sign:wrong": "stop.cond.signWrong",
+  "has_timetable:yes": "stop.cond.timetableYes",
+  "has_timetable:no": "stop.cond.timetableNo",
+  "has_timetable:wrong": "stop.cond.timetableWrong",
 };
 
 const ASK_KEY: Record<string, DictKey> = {
@@ -36,6 +39,7 @@ const ASK_KEY: Record<string, DictKey> = {
   lighting: "stop.cond.askLight",
   wheelchair_access: "stop.cond.askStep",
   has_sign: "stop.cond.askSign",
+  has_timetable: "stop.cond.askTimetable",
 };
 
 const CHOICE_KEY: Record<string, DictKey> = {

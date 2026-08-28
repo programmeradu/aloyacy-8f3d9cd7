@@ -86,7 +86,7 @@ describe("pickStopConsensus", () => {
 });
 
 describe("nextStopAsk", () => {
-  it("asks shelter, seating, walk, light, step-free, then sign, and stops when those are known", () => {
+  it("asks shelter through sign then timetable, and stops when those are known", () => {
     expect(ASK_FIRST).toEqual([
       "has_shelter",
       "has_seating",
@@ -94,6 +94,7 @@ describe("nextStopAsk", () => {
       "lighting",
       "wheelchair_access",
       "has_sign",
+      "has_timetable",
     ]);
     expect(nextStopAsk([])).toBe("has_shelter");
     const shelter: StopConsensus = {
@@ -107,11 +108,13 @@ describe("nextStopAsk", () => {
     const walk = { ...shelter, attribute: "reachable_on_foot" as const, value: "no_crossing" };
     const light = { ...shelter, attribute: "lighting" as const, value: "none" };
     const step = { ...shelter, attribute: "wheelchair_access" as const, value: "partial" };
+    const sign = { ...shelter, attribute: "has_sign" as const, value: "wrong" };
     expect(nextStopAsk([shelter])).toBe("has_seating");
     expect(nextStopAsk([shelter, seating])).toBe("reachable_on_foot");
     expect(nextStopAsk([shelter, seating, walk])).toBe("lighting");
     expect(nextStopAsk([shelter, seating, walk, light])).toBe("wheelchair_access");
     expect(nextStopAsk([shelter, seating, walk, light, step])).toBe("has_sign");
+    expect(nextStopAsk([shelter, seating, walk, light, step, sign])).toBe("has_timetable");
     expect(
       nextStopAsk([
         shelter,
@@ -119,26 +122,27 @@ describe("nextStopAsk", () => {
         walk,
         light,
         step,
-        { ...shelter, attribute: "has_sign", value: "wrong" },
+        sign,
+        { ...shelter, attribute: "has_timetable", value: "no" },
       ]),
     ).toBeNull();
   });
 });
 
 describe("copy", () => {
-  it("names shelter, seating, walk, light, step-free and sign, and rejects unknown values", () => {
-    expect(stopConditionAsk("has_sign")).toBe("A sign here?");
-    expect(stopConditionChip("has_sign", "yes")).toBe("Sign");
-    expect(stopConditionChip("has_sign", "no")).toBe("No sign");
-    expect(stopConditionChip("has_sign", "wrong")).toBe("Wrong sign");
-    expect(stopAskChoices("has_sign")).toEqual(STOP_ATTRIBUTE_VALUES.has_sign);
+  it("names the sign and the timetable, and rejects unknown values", () => {
+    expect(stopConditionAsk("has_timetable")).toBe("A timetable here?");
+    expect(stopConditionChip("has_timetable", "yes")).toBe("Timetable");
+    expect(stopConditionChip("has_timetable", "no")).toBe("No timetable");
+    expect(stopConditionChip("has_timetable", "wrong")).toBe("Wrong timetable");
+    expect(stopAskChoices("has_timetable")).toEqual(STOP_ATTRIBUTE_VALUES.has_timetable);
     expect(stopAskChoiceLabel("wrong")).toBe("Wrong");
-    expect(stopEn["stop.cond.askSign"]).toBe("A sign here?");
-    expect(stopEn["stop.cond.signWrong"]).toBe("Wrong sign");
-    expect(isStopAttributeValue("has_sign", "wrong")).toBe(true);
-    expect(isStopAttributeValue("has_sign", "maybe")).toBe(false);
-    expect(["Sign", "No sign", "Wrong sign", "A sign here?"].join(" ")).not.toMatch(
-      /€|taxi|RAPTOR|Green Line|luggage/i,
-    );
+    expect(stopEn["stop.cond.askTimetable"]).toBe("A timetable here?");
+    expect(stopEn["stop.cond.timetableWrong"]).toBe("Wrong timetable");
+    expect(isStopAttributeValue("has_timetable", "wrong")).toBe(true);
+    expect(isStopAttributeValue("has_timetable", "maybe")).toBe(false);
+    expect(
+      ["Timetable", "No timetable", "Wrong timetable", "A timetable here?"].join(" "),
+    ).not.toMatch(/€|taxi|RAPTOR|Green Line|luggage/i);
   });
 });
