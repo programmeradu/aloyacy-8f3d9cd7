@@ -20,6 +20,7 @@ import {
   PartnerApplySchema,
   StopConditionSchema,
   StopPhotoSchema,
+  StopSkipSchema,
 } from "./public-api";
 
 describe("LatLngSchema", () => {
@@ -374,5 +375,12 @@ describe("StopPhotoSchema", () => {
         imageBase64: "A".repeat(64),
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("StopSkipSchema", () => {
+  it("accepts a stop and rejects an empty id", () => {
+    expect(StopSkipSchema.safeParse({ stopId: "1009" }).success).toBe(true);
+    expect(StopSkipSchema.safeParse({ stopId: "" }).success).toBe(false);
   });
 });

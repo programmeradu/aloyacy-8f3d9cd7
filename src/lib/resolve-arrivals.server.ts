@@ -5,8 +5,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { cyHourDow } from "@aloya/core/cy-time";
 import { strongerTruthSource, vehicleCrossHits, type VehiclePing } from "@aloya/core/vehicle-cross";
+import { classifyStopVisit } from "@aloya/core/skip-rate";
 import { getRoute, getStop } from "@/lib/gtfs";
 import { loadTripPings } from "@/lib/vehicle-pings.server";
+import { recordSkipVisit } from "@/lib/skip-rate.server";
 
 const db = supabaseAdmin as unknown as SupabaseClient;
 
@@ -91,6 +93,21 @@ export async function resolveVehicleCrossArrivals(
     nowMs,
   );
   const hits = vehicleCrossHits(unresolved, pings, stopLatLng);
+  for (const hit of hits) {
+    const stop = stopLatLng(hit.stop_id, hit.route_id);
+    const tripPings = pings.get(hit.trip_id);
+    if (!stop || !tripPings) continue;
+    const visit = classifyStopVisit(tripPings, stop);
+    if (!visit) continue;
+    await recordSkipVisit({
+      stopId: hit.stop_id,
+      routeId: hit.route_id,
+      tripId: hit.trip_id,
+      outcome: visit.outcome,
+      dwellSec: visit.dwellSec,
+      classifiedAt: hit.actualMs,
+    });
+  }
   let resolved = 0;
   for (const hit of hits) {
     const ok = await writeTruth({
