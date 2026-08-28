@@ -47,6 +47,8 @@ export type SightingButtonProps = {
   /** "onboard" asks a rider already on the bus; default is the stop confirm. */
   kind?: "stop" | "onboard";
   routeShort?: string;
+  /** C3 — this line is busy and still dark. Changes the one-sentence why. */
+  needEyes?: boolean;
 };
 
 export function SightingButton({
@@ -57,6 +59,7 @@ export function SightingButton({
   lng,
   kind = "stop",
   routeShort,
+  needEyes = false,
 }: SightingButtonProps) {
   const { t } = useI18n();
   const onboard = kind === "onboard";
@@ -160,7 +163,9 @@ export function SightingButton({
               : t("sighting.cta")}
         </p>
         <p className="mt-1 text-[11.5px] leading-relaxed text-ink-soft/80">
-          {onboard ? t("sighting.onboard.help") : t("sighting.help")}
+          {onboard
+            ? t(needEyes ? "sighting.onboard.help.seed" : "sighting.onboard.help")
+            : t(needEyes ? "sighting.help.seed" : "sighting.help")}
         </p>
       </div>
     </button>

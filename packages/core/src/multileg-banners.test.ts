@@ -137,6 +137,8 @@ describe("shouldAskStillOnBoard", () => {
   it("names the rider as the only eyes, not a volunteer", () => {
     expect(alertsEn["sighting.onboard.kicker"]).toBe("You're the only eyes on Bus {code}");
     expect(alertsEn["sighting.onboard.help"]).not.toMatch(/please|contribute|points|badge/i);
+    expect(alertsEn["sighting.onboard.help.seed"]).not.toMatch(/please|contribute|points|badge/i);
+    expect(alertsEn["sighting.help.seed"]).not.toMatch(/please|contribute|points|badge/i);
   });
 });
 

@@ -165,6 +165,7 @@ know — that silence is the product.
 | Green Line | Named. We do not operate north. Hours not invented. Famagusta here is Paralimni / Deryneia. |
 | Pulse / Today | Heat, match night, cruise day, Saharan dust, sea state, a Greek word. The island this morning. |
 | Crowd eyes | Which lines have rider phones. The rest of the island is named as dark. |
+| Still dark | Busy lines with almost no rider phones. We ask there, not everywhere. |
 | Crowd | “Plenty of seats” / “Packed.” From recent riders. Silent without samples. |
 | Intercity | Weekend vs weekday patterns. Silent while learning. |
 | Park and ride | Drive to the hub, bus in. Live EV-charger counts when the national feed has them. Named as such. |

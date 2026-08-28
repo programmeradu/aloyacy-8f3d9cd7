@@ -467,8 +467,11 @@ need it.
 2. **Coverage honesty. (shipped)** Pulse names the lines with rider
    phones in the last two days (n ≥ 2 devices). Silent when none.
    “The rest of the island is still dark.” A list, not a map.
-3. **Seed the sparse routes deliberately.** Rank routes by
-   (ridership × data darkness) and target those in-app.
+3. **Seed the sparse routes deliberately. (shipped)** Rank by feed
+   observations × darkness (0–1 phones). Pulse lists the busy lines we
+   can’t see. The ask on those buses says the line runs often and
+   almost nobody is watching — not “please contribute”. Silent when
+   nothing is both busy and dark.
 
 Explicitly **not** doing: points, badges, leaderboards. They attract
 the wrong reports. The incentive is “you get better ETAs because
@@ -867,7 +870,7 @@ Update this table in the same commit as the slice.
 | B5 | Walk-or-wait flip push | **Shipped** once-per-wait. RAPTOR other-stop **open.** |
 | C1 | Rider-fix physics | **Shipped.** Apply `20260828_rider_physics.sql`. Learned segment speeds wait on A4. |
 | C2 | Corroboration + reputation | **Shipped** one rider vs two, a proven phone can carry alone, disagreement “off this hour”, and GPS ∪ tap as distinct devices. Apply `20260828_device_reputation.sql`. |
-| C3 | Cold-start ask | **Partial.** Only-eyes ask + Pulse “where riders are watching”. Sparse-route seeding **open.** |
+| C3 | Cold-start ask | **Shipped** only-eyes ask, Pulse watching + busy-and-dark seed list, seed copy on the ask. |
 | D1 | Stop condition | **Shipped** one-tap + photo + step-free filter (hide known kerbs when another option exists). Seed = eight hubs. Apply `20260828_stop_condition.sql` and `20260828_stop_photos.sql`. |
 | D2 | Skip rate | **Shipped** pass-through vs dwell, measured neighbour, and rider “it drove past me”. Apply `20260828_stop_skip.sql` and `20260828_stop_skip_reports.sql`. RAPTOR penalty **open.** |
 | D3 | Walkability in RAPTOR | **Blocked** on enough D1 walk reports. |
@@ -882,7 +885,7 @@ Update this table in the same commit as the slice.
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** C3 sparse-route seeding (rank by ridership × darkness), then D5 public stop page.
+**Next unblocked:** D5 public stop page (index only with real content).
 
 ---
 

@@ -1,4 +1,5 @@
-// C3 I/O. Where rider phones actually are. Missing tables fail open — silence.
+// C3 I/O. Where rider phones actually are — and which busy lines are
+// still dark. Missing tables fail open — silence.
 
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -9,6 +10,7 @@ import {
   unionDevicesByRoute,
   type CoverageReport,
 } from "@aloya/core/crowd-coverage";
+import { pickSparseSeeds } from "@aloya/core/sparse-seed";
 import { getRoute, routeTone } from "@/lib/gtfs";
 
 export type CrowdEyesRoute = {
@@ -43,26 +45,50 @@ async function loadReports(sinceIso: string): Promise<CoverageReport[]> {
   return out;
 }
 
+async function loadRidership(): Promise<Map<string, number>> {
+  const { data, error } = await supabaseAdmin.rpc("pulse_route_stats");
+  const map = new Map<string, number>();
+  if (error || !data) return map;
+  for (const row of data as { route_id: string; sample_count: number }[]) {
+    if (!row.route_id) continue;
+    map.set(row.route_id, Number(row.sample_count) || 0);
+  }
+  return map;
+}
+
+function named(rows: { routeId: string; devices: number }[]): CrowdEyesRoute[] {
+  const out: CrowdEyesRoute[] = [];
+  for (const r of rows) {
+    const short = getRoute(r.routeId)?.short?.trim();
+    if (!short) continue;
+    out.push({
+      routeId: r.routeId,
+      short,
+      tone: routeTone(r.routeId),
+      devices: r.devices,
+    });
+  }
+  return out;
+}
+
 export const getCrowdEyes = createServerFn({ method: "GET" }).handler(
-  async (): Promise<{ routes: CrowdEyesRoute[] }> => {
+  async (): Promise<{ routes: CrowdEyesRoute[]; seeds: CrowdEyesRoute[] }> => {
     try {
       const since = new Date(Date.now() - COVERAGE_WINDOW_HOURS * 3600 * 1000).toISOString();
-      const picked = pickCoverageRoutes(unionDevicesByRoute(await loadReports(since)));
-      const routes: CrowdEyesRoute[] = [];
-      for (const r of picked) {
-        const meta = getRoute(r.routeId);
-        const short = meta?.short?.trim();
-        if (!short) continue;
-        routes.push({
-          routeId: r.routeId,
-          short,
-          tone: routeTone(r.routeId),
-          devices: r.devices,
-        });
-      }
-      return { routes };
+      const [reports, ridership] = await Promise.all([loadReports(since), loadRidership()]);
+      const byRoute = unionDevicesByRoute(reports);
+      const devices = new Map(byRoute.map((r) => [r.routeId, r.devices]));
+      const seedRows = [...ridership.entries()].map(([routeId, n]) => ({
+        routeId,
+        ridership: n,
+        devices: devices.get(routeId) ?? 0,
+      }));
+      return {
+        routes: named(pickCoverageRoutes(byRoute)),
+        seeds: named(pickSparseSeeds(seedRows)),
+      };
     } catch {
-      return { routes: [] };
+      return { routes: [], seeds: [] };
     }
   },
 );

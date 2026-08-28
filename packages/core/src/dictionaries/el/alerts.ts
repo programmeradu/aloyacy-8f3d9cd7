@@ -41,6 +41,8 @@ export const alerts: Record<keyof typeof alertsEn, string> = {
   "sighting.cta": "Επιβεβαίωση — το βλέπω τώρα",
   "sighting.help":
     "Πατήστε αν το λεωφορείο είναι στη στάση. Το πάτημα σας το ανεβάζει από «χωρίς GPS» για όλους.",
+  "sighting.help.seed":
+    "Αυτή η γραμμή τρέχει συχνά και σχεδόν κανείς δεν κοιτά. Ένα πάτημα εδώ είναι αυτό που βλέπει ο επόμενος επιβάτης.",
   "sighting.sending": "Αποστολή…",
   "sighting.thanksLabel": "Ευχαριστούμε — επιβεβαιωμένο",
   "sighting.thanksDetail":
@@ -49,6 +51,8 @@ export const alerts: Record<keyof typeof alertsEn, string> = {
   "sighting.onboard.cta": "Ναι — είμαι μέσα",
   "sighting.onboard.help":
     "Ο διαχειριστής δεν έχει GPS σε αυτό το λεωφορείο. Το πάτημά σας είναι αυτό που βλέπουν στις επόμενες στάσεις.",
+  "sighting.onboard.help.seed":
+    "Αυτή η γραμμή τρέχει συχνά και σχεδόν κανείς δεν κοιτά. Το πάτημά σας είναι αυτό που βλέπει η επόμενη στάση.",
   "sighting.onboard.thanksLabel": "Ευχαριστούμε — το βλέπουν",
   "sighting.onboard.thanksDetail":
     "Οι άλλοι επιβάτες θα δουν το λεωφορείο {code} ως επιβεβαιωμένο για το επόμενο λεπτό.",

@@ -64,6 +64,12 @@ function Pulse() {
         </section>
       )}
 
+      {crowdEyes && crowdEyes.seeds.length > 0 && (
+        <section className="px-6 mt-4 animate-rise" style={{ animationDelay: "180ms" }}>
+          <CrowdEyesCard kind="seed" routes={crowdEyes.seeds} t={t} />
+        </section>
+      )}
+
       {liveSignals && <PulseLiveSection bundle={liveSignals} locale={locale} />}
 
       <div className="px-6 pt-8 pb-2">

@@ -314,6 +314,10 @@
       "types": "./src/skip-report.ts",
       "default": "./src/skip-report.ts"
     },
+    "./sparse-seed": {
+      "types": "./src/sparse-seed.ts",
+      "default": "./src/sparse-seed.ts"
+    },
     "./stop-photo": {
       "types": "./src/stop-photo.ts",
       "default": "./src/stop-photo.ts"

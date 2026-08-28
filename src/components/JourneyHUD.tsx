@@ -25,6 +25,7 @@ import { SightingButton } from "@/components/SightingButton";
 import { getStop } from "@/lib/gtfs";
 import { AlightCountdownCard } from "@/components/journey/AlightCountdownCard";
 import { shouldAskStillOnBoard } from "@aloya/core/multileg-banners";
+import { useSparseSeedIds } from "@/lib/useSparseSeeds";
 
 function fmtMeters(m: number): string {
   if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
@@ -218,6 +219,7 @@ function LiveStepCard({ live, steps }: { live: LiveJourney; steps: WalkStep[] })
 
 function OnBoardAsk({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
   const bus = trip.option.legs.find((l) => l.kind === "bus");
+  const seeds = useSparseSeedIds();
   if (!bus || bus.kind !== "bus") return null;
   if (
     !shouldAskStillOnBoard({
@@ -244,6 +246,7 @@ function OnBoardAsk({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
         stopId={bus.board.stopId}
         lat={lat}
         lng={lng}
+        needEyes={seeds.has(bus.routeId)}
       />
     </div>
   );
@@ -251,6 +254,7 @@ function OnBoardAsk({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
 
 function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
   const { t } = useI18n();
+  const seeds = useSparseSeedIds();
   const bus = trip.option.legs.find((l) => l.kind === "bus");
   if (!bus || bus.kind !== "bus") return null;
   const needsSighting = live.tripGhost || live.vehicleNotTracked || live.feedStale;
@@ -278,6 +282,7 @@ function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney }) {
               stopId={bus.board.stopId}
               lat={s.lat}
               lng={s.lng}
+              needEyes={seeds.has(bus.routeId)}
             />
           );
         })()}

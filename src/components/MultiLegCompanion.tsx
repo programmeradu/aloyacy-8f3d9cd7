@@ -32,6 +32,7 @@ import { distanceM } from "@/lib/geo";
 import { fmtClock as fmtTime } from "@/lib/journey-copy";
 import { boundsForItinerary } from "@aloya/core/itinerary-bounds";
 import { shouldAskStillOnBoard, shouldOfferSighting } from "@aloya/core/multileg-banners";
+import { useSparseSeedIds } from "@/lib/useSparseSeeds";
 import { useI18n } from "@/lib/i18n";
 import { PhaseLabel, PhaseHeadline, PhaseSub } from "@/components/multileg/PhaseCopy";
 import { MultiLegActions } from "@/components/multileg/MultiLegActions";
@@ -41,6 +42,7 @@ import companionHero from "@/assets/companion-hero.jpg";
 export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const navigate = useNavigate();
   const { t } = useI18n();
+  const seeds = useSparseSeedIds();
   const itin = active.itinerary!;
   const live = useMultiLegJourney(active);
   const tripId = active.option.id;
@@ -228,6 +230,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
               stopId={live.currentRideLeg.board.stopId}
               lat={live.currentRideLeg.board.lat}
               lng={live.currentRideLeg.board.lng}
+              needEyes={seeds.has(live.currentRideLeg.routeId)}
             />
           </div>
         )}
@@ -248,6 +251,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
               stopId={live.currentRideLeg.board.stopId}
               lat={live.fusedCurrentVehicle?.lat ?? live.currentRideLeg.board.lat}
               lng={live.fusedCurrentVehicle?.lng ?? live.currentRideLeg.board.lng}
+              needEyes={seeds.has(live.currentRideLeg.routeId)}
             />
           </div>
         )}
@@ -262,6 +266,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
               stopId={live.nextRideLeg.board.stopId}
               lat={live.nextRideLeg.board.lat}
               lng={live.nextRideLeg.board.lng}
+              needEyes={seeds.has(live.nextRideLeg.routeId)}
             />
           </div>
         )}

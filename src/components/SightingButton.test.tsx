@@ -43,4 +43,10 @@ describe("SightingButton", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.getByRole("button")).toBeInTheDocument();
   });
+
+  it("names a busy dark line without asking anyone to volunteer", () => {
+    render(<SightingButton tripId="trip-4" lat={1} lng={2} kind="onboard" routeShort="40" needEyes />);
+    expect(screen.getByText(/runs often and almost nobody is watching/i)).toBeInTheDocument();
+    expect(screen.queryByText(/please|contribute|points|badge/i)).not.toBeInTheDocument();
+  });
 });

@@ -39,6 +39,8 @@ export const alerts = {
   "sighting.cta": "Confirm — I see it now",
   "sighting.help":
     "Tap if the bus is at the stop. Your tap upgrades it from 'no GPS' for everyone else.",
+  "sighting.help.seed":
+    "This line runs often and almost nobody is watching. A tap here is what the next rider sees.",
   "sighting.sending": "Sending…",
   "sighting.thanksLabel": "Thanks — rider-confirmed",
   "sighting.thanksDetail":
@@ -47,6 +49,8 @@ export const alerts = {
   "sighting.onboard.cta": "Yes — I'm on it",
   "sighting.onboard.help":
     "The operator has no GPS on this bus. Your tap is what people at the next stops see.",
+  "sighting.onboard.help.seed":
+    "This line runs often and almost nobody is watching. Your tap is what the next stop sees.",
   "sighting.onboard.thanksLabel": "Thanks — they're seeing this bus",
   "sighting.onboard.thanksDetail":
     "Other riders will see Bus {code} as rider-confirmed for the next minute.",

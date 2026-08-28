@@ -86,6 +86,10 @@ export const pulse = {
   "pulse.eyes.title": "Where riders are watching",
   "pulse.eyes.lede":
     "Phones on these lines in the last two days. The rest of the island is still dark.",
+  "pulse.seed.kicker": "Still dark",
+  "pulse.seed.title": "Busy lines we can't see",
+  "pulse.seed.lede":
+    "These run a lot. Almost no rider phones. A tap on board is what the next stop sees.",
   "pulse.weather.kicker": "Today, from the live feed",
   "pulse.weather.subPos":
     "{pct}% on time across {routes} routes — {delta} points above this week's typical.",
