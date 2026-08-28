@@ -1,5 +1,5 @@
 // Stop condition — ground truth that is not an ETA.
-// One-tap attributes first. Photos, sign/timetable, and routing
+// One-tap attributes first. Photos, timetable, and routing
 // filters stay later. Unknown stays silent. Seed is the curated
 // Nicosia hubs; riders overwrite once two devices agree.
 
@@ -37,6 +37,7 @@ export const ASK_FIRST: StopAttribute[] = [
   "reachable_on_foot",
   "lighting",
   "wheelchair_access",
+  "has_sign",
 ];
 
 export type StopReport = {
@@ -178,6 +179,9 @@ export function stopConditionChip(attr: StopAttribute, value: string): string | 
   if (attr === "lighting" && value === "good") return "Lit";
   if (attr === "lighting" && value === "poor") return "Poor light";
   if (attr === "lighting" && value === "none") return "Unlit";
+  if (attr === "has_sign" && value === "yes") return "Sign";
+  if (attr === "has_sign" && value === "no") return "No sign";
+  if (attr === "has_sign" && value === "wrong") return "Wrong sign";
   return null;
 }
 
@@ -187,6 +191,7 @@ export function stopConditionAsk(attr: StopAttribute): string | null {
   if (attr === "reachable_on_foot") return "Walk here?";
   if (attr === "lighting") return "Light here?";
   if (attr === "wheelchair_access") return "Step-free here?";
+  if (attr === "has_sign") return "A sign here?";
   return null;
 }
 
@@ -199,5 +204,6 @@ export function stopAskChoiceLabel(value: string): string | null {
   if (value === "poor") return "Poor";
   if (value === "none") return "None";
   if (value === "partial") return "Partial";
+  if (value === "wrong") return "Wrong";
   return null;
 }

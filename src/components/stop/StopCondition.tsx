@@ -24,6 +24,9 @@ const CHIP_KEY: Record<string, DictKey> = {
   "lighting:good": "stop.cond.lightGood",
   "lighting:poor": "stop.cond.lightPoor",
   "lighting:none": "stop.cond.lightNone",
+  "has_sign:yes": "stop.cond.signYes",
+  "has_sign:no": "stop.cond.signNo",
+  "has_sign:wrong": "stop.cond.signWrong",
 };
 
 const ASK_KEY: Record<string, DictKey> = {
@@ -32,6 +35,7 @@ const ASK_KEY: Record<string, DictKey> = {
   reachable_on_foot: "stop.cond.askWalk",
   lighting: "stop.cond.askLight",
   wheelchair_access: "stop.cond.askStep",
+  has_sign: "stop.cond.askSign",
 };
 
 const CHOICE_KEY: Record<string, DictKey> = {
@@ -43,6 +47,7 @@ const CHOICE_KEY: Record<string, DictKey> = {
   poor: "stop.cond.poor",
   none: "stop.cond.none",
   partial: "stop.cond.partial",
+  wrong: "stop.cond.wrong",
 };
 
 async function postCondition(body: unknown): Promise<StopConsensus[]> {

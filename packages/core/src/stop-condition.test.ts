@@ -86,13 +86,14 @@ describe("pickStopConsensus", () => {
 });
 
 describe("nextStopAsk", () => {
-  it("asks shelter, seating, walk, light, then step-free, and stops when those are known", () => {
+  it("asks shelter, seating, walk, light, step-free, then sign, and stops when those are known", () => {
     expect(ASK_FIRST).toEqual([
       "has_shelter",
       "has_seating",
       "reachable_on_foot",
       "lighting",
       "wheelchair_access",
+      "has_sign",
     ]);
     expect(nextStopAsk([])).toBe("has_shelter");
     const shelter: StopConsensus = {
@@ -105,37 +106,39 @@ describe("nextStopAsk", () => {
     const seating = { ...shelter, attribute: "has_seating" as const, value: "no" };
     const walk = { ...shelter, attribute: "reachable_on_foot" as const, value: "no_crossing" };
     const light = { ...shelter, attribute: "lighting" as const, value: "none" };
+    const step = { ...shelter, attribute: "wheelchair_access" as const, value: "partial" };
     expect(nextStopAsk([shelter])).toBe("has_seating");
     expect(nextStopAsk([shelter, seating])).toBe("reachable_on_foot");
     expect(nextStopAsk([shelter, seating, walk])).toBe("lighting");
     expect(nextStopAsk([shelter, seating, walk, light])).toBe("wheelchair_access");
+    expect(nextStopAsk([shelter, seating, walk, light, step])).toBe("has_sign");
     expect(
       nextStopAsk([
         shelter,
         seating,
         walk,
         light,
-        { ...shelter, attribute: "wheelchair_access", value: "partial" },
+        step,
+        { ...shelter, attribute: "has_sign", value: "wrong" },
       ]),
     ).toBeNull();
   });
 });
 
 describe("copy", () => {
-  it("names shelter, seating, walk, light and step-free, and rejects unknown values", () => {
-    expect(stopConditionAsk("lighting")).toBe("Light here?");
-    expect(stopConditionAsk("wheelchair_access")).toBe("Step-free here?");
-    expect(stopConditionChip("wheelchair_access", "yes")).toBe("Step-free");
-    expect(stopConditionChip("wheelchair_access", "partial")).toBe("Partial access");
-    expect(stopConditionChip("wheelchair_access", "no")).toBe("Not step-free");
-    expect(stopAskChoices("wheelchair_access")).toEqual(STOP_ATTRIBUTE_VALUES.wheelchair_access);
-    expect(stopAskChoiceLabel("partial")).toBe("Partial");
-    expect(stopEn["stop.cond.askStep"]).toBe("Step-free here?");
-    expect(stopEn["stop.cond.stepPartial"]).toBe("Partial access");
-    expect(isStopAttributeValue("wheelchair_access", "partial")).toBe(true);
-    expect(isStopAttributeValue("wheelchair_access", "maybe")).toBe(false);
-    expect(
-      ["Step-free", "Partial access", "Not step-free", "Step-free here?"].join(" "),
-    ).not.toMatch(/€|taxi|RAPTOR|Green Line|luggage/i);
+  it("names shelter, seating, walk, light, step-free and sign, and rejects unknown values", () => {
+    expect(stopConditionAsk("has_sign")).toBe("A sign here?");
+    expect(stopConditionChip("has_sign", "yes")).toBe("Sign");
+    expect(stopConditionChip("has_sign", "no")).toBe("No sign");
+    expect(stopConditionChip("has_sign", "wrong")).toBe("Wrong sign");
+    expect(stopAskChoices("has_sign")).toEqual(STOP_ATTRIBUTE_VALUES.has_sign);
+    expect(stopAskChoiceLabel("wrong")).toBe("Wrong");
+    expect(stopEn["stop.cond.askSign"]).toBe("A sign here?");
+    expect(stopEn["stop.cond.signWrong"]).toBe("Wrong sign");
+    expect(isStopAttributeValue("has_sign", "wrong")).toBe(true);
+    expect(isStopAttributeValue("has_sign", "maybe")).toBe(false);
+    expect(["Sign", "No sign", "Wrong sign", "A sign here?"].join(" ")).not.toMatch(
+      /€|taxi|RAPTOR|Green Line|luggage/i,
+    );
   });
 });
