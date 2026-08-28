@@ -8,10 +8,14 @@
 //
 // Fixes <30 s old are folded into the live vehicles list server-side so
 // every other passenger sees a smoother bus marker and better ETAs.
+// A physics score is stored on every row; fusion ignores < 0.25.
 
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { scoreRiderFix, type RiderFixSample } from "@aloya/core/rider-physics";
+import { getShapeForTripSync, loadShapesFromUrl } from "@aloya/core/shapes";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { getRoute } from "@/lib/gtfs";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -30,6 +34,8 @@ const Body = z.object({
   accuracyM: z.number().min(0).max(2000).optional(),
 });
 
+type Parsed = z.infer<typeof Body>;
+
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
     status,
@@ -37,12 +43,48 @@ function json(status: number, body: unknown) {
   });
 }
 
+async function physicsScoreFor(parsed: Parsed, requestUrl: string): Promise<number | null> {
+  try {
+    const [{ data: priorRows }] = await Promise.all([
+      supabaseAdmin
+        .from("rider_vehicle_fixes")
+        .select("lat, lng, reported_at, speed_mps, accuracy_m")
+        .eq("device_id", parsed.deviceId)
+        .eq("trip_id", parsed.tripId)
+        .order("reported_at", { ascending: false })
+        .limit(12),
+      loadShapesFromUrl(new URL("/gtfs-shapes.json", requestUrl).href),
+    ]);
+    const prior: RiderFixSample[] = [...(priorRows ?? [])].reverse().map((p) => ({
+      lat: p.lat,
+      lng: p.lng,
+      tMs: new Date(p.reported_at).getTime(),
+      speedMps: p.speed_mps,
+      accuracyM: p.accuracy_m,
+    }));
+    return scoreRiderFix({
+      fix: {
+        lat: parsed.lat,
+        lng: parsed.lng,
+        tMs: Date.now(),
+        speedMps: parsed.speedMps,
+        accuracyM: parsed.accuracyM,
+      },
+      prior,
+      shape: getShapeForTripSync(parsed.tripId, parsed.routeId),
+      agency: parsed.routeId ? getRoute(parsed.routeId)?.agency : undefined,
+    }).score;
+  } catch {
+    return null;
+  }
+}
+
 export const Route = createFileRoute("/api/public/rider-fix")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        let parsed;
+        let parsed: Parsed;
         try {
           parsed = Body.parse(await request.json());
         } catch {
@@ -72,7 +114,8 @@ export const Route = createFileRoute("/api/public/rider-fix")({
           return json(403, { error: "trip mismatch" });
         }
 
-        const { error: insErr } = await supabaseAdmin.from("rider_vehicle_fixes").insert({
+        const physicsScore = await physicsScoreFor(parsed, request.url);
+        const row = {
           trip_id: parsed.tripId,
           route_id: parsed.routeId ?? null,
           lat: parsed.lat,
@@ -81,7 +124,13 @@ export const Route = createFileRoute("/api/public/rider-fix")({
           speed_mps: parsed.speedMps ?? null,
           accuracy_m: parsed.accuracyM ?? null,
           device_id: parsed.deviceId,
-        });
+          physics_score: physicsScore,
+        };
+        let { error: insErr } = await supabaseAdmin.from("rider_vehicle_fixes").insert(row);
+        if (insErr) {
+          const { physics_score: _score, ...bare } = row;
+          ({ error: insErr } = await supabaseAdmin.from("rider_vehicle_fixes").insert(bare));
+        }
         if (insErr) {
           return json(500, { error: "insert failed" });
         }

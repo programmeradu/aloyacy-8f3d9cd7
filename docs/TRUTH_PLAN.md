@@ -382,6 +382,14 @@ position:
 Store the score on `rider_vehicle_fixes` and let fusion weight by it,
 rather than a binary accept/reject.
 
+**On the write path (shipped).** Every rider GPS fix is scored before
+insert (snap residual, implied speed, backtrack, accuracy, dwell).
+Fusion skips < 0.25; 0.6+ can overlay a stale feed ping; 0.25–0.6 only
+appears when the operator has nothing. Learned per-segment speeds (the
+“90 km/h on a 30 km/h urban street”) still use a hard urban 22 m/s /
+IC 33 m/s cap until A4. Apply
+`deploy/supabase/sql/20260828_rider_physics.sql` on prod.
+
 ### C2. Corroboration and reputation
 
 - **Two-device agreement** upgrades a trip higher than a single
@@ -761,6 +769,8 @@ Already true in this repo, and why the OS is a credible bet:
   the last tonight. Walk + RAPTOR re-plan still need a destination.
 - E0.2: app `/guide/getting-around-cyprus` 301s to marketing.
 - E0.3: Greek URLs at `aloya.cy/el/...` with reciprocal hreflang.
+- C1 physics score on every rider GPS fix. Fold ≥ 0.25; overlay a feed
+  ping only ≥ 0.6. Apply `deploy/supabase/sql/20260828_rider_physics.sql`.
 
 - Archive `fetch()` is authenticated; deletes are checked and keyed.
 - Service-role key is no longer in worker `vars`.

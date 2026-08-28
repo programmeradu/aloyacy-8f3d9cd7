@@ -51,6 +51,17 @@ export function prefetchShapes() {
   void loadIndex();
 }
 
+/** Server-side: load the index from an absolute URL (Worker origin). */
+export async function loadShapesFromUrl(url: string): Promise<void> {
+  if (cache) return;
+  try {
+    const r = await fetch(url, { cache: "force-cache", signal: AbortSignal.timeout(2500) });
+    if (r.ok) cache = (await r.json()) as ShapesIndex;
+  } catch {
+    // Leave cache unset so the next isolate request retries.
+  }
+}
+
 /** Synchronous lookup — returns null until the index has finished loading. */
 export function getShapeForTripSync(tripId: string, routeId?: string): LatLng[] | null {
   if (!cache) return null;

@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchFeedOverSocket } from "@/lib/gtfs-socket.server";
 import { getRoute } from "@/lib/gtfs";
 import { tagGhostTripIds } from "@/lib/ghost-trips";
-
+import { RIDER_PHYSICS_FOLD_MIN, riderFold } from "@aloya/core/rider-physics";
 
 // Feed sources, tried in order until one returns a decodable protobuf.
 //
@@ -64,6 +64,8 @@ export type LiveVehicle = {
   timestamp: number;
   /** Where this position came from. "rider" = crowdsourced GPS. */
   source?: "feed" | "rider" | "feed+rider";
+  /** 0..1 physics score when source is rider. Absent on feed pings. */
+  physicsScore?: number;
 };
 
 export type LiveArrival = {
@@ -198,18 +200,27 @@ async function fetchUpstream(): Promise<{
 
 async function fetchRiderFixes(): Promise<LiveVehicle[]> {
   const cutoff = new Date(Date.now() - 60_000).toISOString();
-  const { data, error } = await supabase
-    .from("rider_vehicle_fixes")
-    .select("trip_id, route_id, lat, lng, bearing, speed_mps, reported_at")
-    .gte("reported_at", cutoff)
-    .order("reported_at", { ascending: false })
-    .limit(500);
+  const run = (cols: string) =>
+    supabase
+      .from("rider_vehicle_fixes")
+      .select(cols)
+      .gte("reported_at", cutoff)
+      .order("reported_at", { ascending: false })
+      .limit(500);
+  let { data, error } = await run(
+    "trip_id, route_id, lat, lng, bearing, speed_mps, reported_at, physics_score",
+  );
+  if (error) {
+    ({ data, error } = await run("trip_id, route_id, lat, lng, bearing, speed_mps, reported_at"));
+  }
   if (error || !data) return [];
-  // Keep only the freshest fix per tripId.
+  // Keep only the freshest foldable fix per tripId.
   const seen = new Set<string>();
   const out: LiveVehicle[] = [];
   for (const row of data) {
     if (seen.has(row.trip_id)) continue;
+    const score = (row as { physics_score?: number | null }).physics_score;
+    if (score != null && score < RIDER_PHYSICS_FOLD_MIN) continue;
     seen.add(row.trip_id);
     out.push({
       id: `rider:${row.trip_id}`,
@@ -222,6 +233,7 @@ async function fetchRiderFixes(): Promise<LiveVehicle[]> {
       label: "",
       timestamp: Math.floor(new Date(row.reported_at).getTime() / 1000),
       source: "rider",
+      physicsScore: score ?? undefined,
     });
   }
   return out;
@@ -317,17 +329,22 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
   }
 
   const { vehicles, arrivals } = upstreamResult;
-  // Merge: a rider fix wins when it's fresh AND newer than the upstream
-  // position by RIDER_PREFER_DELTA_SEC. Otherwise upstream wins.
+  // Merge: a rider fix wins when it's fresh, physics-plausible, AND newer
+  // than the upstream position by RIDER_PREFER_DELTA_SEC. Middling scores
+  // only appear when the feed has nothing for that trip.
   const byTrip = new Map<string, LiveVehicle>();
   for (const v of vehicles) byTrip.set(v.tripId, v);
   for (const r of riderFixes) {
     const ageSec = now - r.timestamp;
     if (ageSec > RIDER_FIX_TRUST_SEC) continue;
     const upstream = byTrip.get(r.tripId);
-    if (!upstream) {
+    const fold = riderFold(r.physicsScore, !!upstream);
+    if (fold === "skip") continue;
+    if (fold === "place" || !upstream) {
       byTrip.set(r.tripId, r);
-    } else if (r.timestamp - upstream.timestamp >= RIDER_PREFER_DELTA_SEC) {
+      continue;
+    }
+    if (r.timestamp - upstream.timestamp >= RIDER_PREFER_DELTA_SEC) {
       byTrip.set(r.tripId, {
         ...upstream,
         lat: r.lat,
@@ -336,6 +353,7 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
         speed: r.speed || upstream.speed,
         timestamp: r.timestamp,
         source: "feed+rider",
+        physicsScore: r.physicsScore,
       });
     }
   }
@@ -352,7 +370,6 @@ export async function fetchRealtime(): Promise<RealtimeSnapshot> {
     confirmedTripIds: confirmedSet,
     agencyForRoute: (routeId) => getRoute(routeId)?.agency,
   });
-
 
   return {
     fetchedAt: now,

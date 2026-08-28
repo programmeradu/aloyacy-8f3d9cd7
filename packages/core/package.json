@@ -262,6 +262,14 @@
       "types": "./src/wait-or-bail.ts",
       "default": "./src/wait-or-bail.ts"
     },
+    "./walk-anchor": {
+      "types": "./src/walk-anchor.ts",
+      "default": "./src/walk-anchor.ts"
+    },
+    "./rider-physics": {
+      "types": "./src/rider-physics.ts",
+      "default": "./src/rider-physics.ts"
+    }
   },
   "dependencies": {
     "@mapbox/polyline": "^1.2.1"
