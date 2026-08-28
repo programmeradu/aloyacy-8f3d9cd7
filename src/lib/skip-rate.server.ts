@@ -8,6 +8,8 @@ import { cyHourDow } from "@aloya/core/cy-time";
 import {
   SKIP_WINDOW_DAYS,
   pickSkipRates,
+  skipFraction,
+  skipMapKey,
   tallySkipVisits,
   type SkipOutcome,
   type SkipSlot,
@@ -92,6 +94,37 @@ async function loadVisits(stopIds: string[], routeIds: string[], from: string): 
     if (v) rows.push(v);
   }
   return rows;
+}
+
+/** Spoken skip fractions for RAPTOR. Silent below the speak bar. */
+export async function loadSkipFractionMap(
+  stopIds: string[],
+  nowMs = Date.now(),
+): Promise<Map<string, number>> {
+  const ids = [...new Set(stopIds.filter((id) => id.length > 0))].slice(0, 80);
+  if (ids.length === 0) return new Map();
+  const from = new Date(nowMs - SKIP_WINDOW_DAYS * 86_400_000).toISOString();
+  const { data, error } = await db
+    .from("stop_skip_visits")
+    .select("stop_id, route_id, outcome, classified_at, hour_of_day, day_of_week")
+    .in("stop_id", ids)
+    .gte("classified_at", from)
+    .limit(4000);
+  if (error || !data) return new Map();
+  const rows: SkipVisitRow[] = [];
+  for (const r of data as VisitRow[]) {
+    const v = asVisit(r);
+    if (v) rows.push(v);
+  }
+  const slots = tallySkipVisits(rows);
+  const out = new Map<string, number>();
+  for (const stopId of ids) {
+    for (const r of pickSkipRates(slots, stopId, nowMs)) {
+      const f = skipFraction(r.k);
+      if (f > 0) out.set(skipMapKey(stopId, r.routeId), f);
+    }
+  }
+  return out;
 }
 
 function candidatesOnRoute(routeId: string): NeighbourCandidate[] {

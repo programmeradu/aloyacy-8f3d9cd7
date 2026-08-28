@@ -122,6 +122,16 @@ export function skipInN(n: number, skipped: number): number {
   return Math.max(2, Math.round(n / skipped));
 }
 
+/** 1 in k → fraction. k < 2 is not a skip we speak. */
+export function skipFraction(k: number): number {
+  if (!(k >= 2)) return 0;
+  return 1 / k;
+}
+
+export function skipMapKey(stopId: string, routeId: string): string {
+  return `${stopId}\t${routeId}`;
+}
+
 function periodOf(row: SkipVisitRow): HeadwayWhen {
   const hour =
     row.hour != null && row.hour >= 0 && row.hour <= 23

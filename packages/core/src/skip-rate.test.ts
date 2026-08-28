@@ -11,6 +11,8 @@ import {
   shouldSpeakSkip,
   skipPct,
   skipRateLine,
+  skipFraction,
+  skipMapKey,
   tallySkipVisits,
   type SkipVisitRow,
 } from "./skip-rate";
@@ -141,5 +143,11 @@ describe("pickSkipRate", () => {
       "Bus {route} skips this stop about 1 in {k} {when}. Wave clearly.",
     );
     expect(line).not.toMatch(/This 30|The 30|€|taxi|RAPTOR|Green Line|luggage/i);
+  });
+
+  it("turns 1 in 5 into a fifth, and nothing below the speak bar", () => {
+    expect(skipFraction(5)).toBe(0.2);
+    expect(skipFraction(1)).toBe(0);
+    expect(skipMapKey("1009", "30")).toBe("1009\t30");
   });
 });

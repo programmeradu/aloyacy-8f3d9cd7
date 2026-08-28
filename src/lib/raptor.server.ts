@@ -39,6 +39,8 @@ import { distanceKm } from "@aloya/core/multileg-legs";
 import { buildHeadwayIndex } from "@aloya/core/headway";
 import { sameStation, stationIdOf } from "./stations.server";
 import type { PlanContext } from "@aloya/core/raptor-core";
+import { loadSkipFractionMap } from "./skip-rate.server";
+import { skipMapKey } from "@aloya/core/skip-rate";
 
 // Headways are a property of the schedule shard, not of one request, so they
 // are measured once per loaded shard and reused for every plan that day.
@@ -124,10 +126,6 @@ export async function planRaptor(
   // Measured service frequency for this service date, cached per shard: what
   // a change costs depends on how long the next bus on that route really is.
   const headways = headwayIndexFor(schedule);
-  const planContext: PlanContext = {
-    sameStation,
-    headwayOf: (routeId) => headways.get(routeId) ?? null,
-  };
 
   // 1) Pick origin / destination candidate stops from the schedule's stop set.
   const stopList = Object.entries(stops); // [id, stop][]
@@ -181,6 +179,15 @@ export async function planRaptor(
     diag.reasons.push(`No schedule stop within ${MAX_DIRECT_EGRESS_WALK_KM}km of destination`);
   if (origins.length === 0 || (dests.length === 0 && directDests.length === 0))
     return { itineraries: [], diagnostics: diag };
+
+  const skipMap = await loadSkipFractionMap(origins.map((o) => o.id)).catch(
+    () => new Map<string, number>(),
+  );
+  const planContext: PlanContext = {
+    sameStation,
+    headwayOf: (routeId) => headways.get(routeId) ?? null,
+    skipOf: (stopId, routeId) => skipMap.get(skipMapKey(stopId, routeId)) ?? null,
+  };
 
   const destSet = new Map<string, { stop: ScheduleStop; id: string; distKm: number }>();
   for (const d of dests) destSet.set(d.id, { id: d.id, stop: d.stop, distKm: d.distKm });

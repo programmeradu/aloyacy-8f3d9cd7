@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scoreItinerary } from "./plan-score";
+import { scoreItinerary, skipRiskSec } from "./plan-score";
 import {
   pruneDominated,
   buildTripIndex,
@@ -109,6 +109,10 @@ describe("scoring", () => {
     expect(scoreItinerary({ ...base, walkMeters: 1000 })).toBeGreaterThan(
       scoreItinerary({ ...base, walkMeters: 900 }),
     );
+    // 1 in 5 skip on a 10-minute headway is two minutes of expected extra wait.
+    expect(skipRiskSec(0.2, 600)).toBe(120);
+    expect(skipRiskSec(0, 600)).toBe(0);
+    expect(scoreItinerary({ ...base, skipRiskSec: 120 })).toBe(1200 + 60 + 120);
   });
 
   it("charges more for changing onto a rare route than a frequent one", () => {

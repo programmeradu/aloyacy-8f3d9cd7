@@ -20,8 +20,10 @@
 //     same station, where the rider can see the next bus, is priced as the
 //     short hop it is;
 //   - observed unreliability (feed delay / learned history) for the routes
-//     involved.
-//
+//     involved;
+//   - a skip risk at the boarding stop, only when we already speak the skip
+//     (expected extra wait = fraction × headway). The stop stays on the list.
+
 // Nothing here filters options. Filtering is `filterDominated`, which drops an
 // option only when another is measurably better on every axis a rider cares
 // about.
@@ -45,6 +47,8 @@ export type ScoreInput = {
   changes: ChangeCost[];
   /** Seconds of observed lateness across the ride legs. */
   reliabilitySec?: number;
+  /** Expected extra wait from a spoken skip at a boarding stop. */
+  skipRiskSec?: number;
 };
 
 /** Effort premium per metre of street walking, on top of the time it costs. */
@@ -75,12 +79,20 @@ export function changeRiskSec(change: ChangeCost): number {
   return Math.max(0, risk * (1 - slackRelief) + overhead);
 }
 
+export function skipRiskSec(fraction: number, headwaySec: number | null): number {
+  if (!(fraction > 0) || fraction > 1) return 0;
+  const hw = headwaySec != null && headwaySec > 0 ? headwaySec : UNKNOWN_HEADWAY_SEC;
+  return Math.round(fraction * Math.min(hw, MAX_HEADWAY_RISK_SEC));
+}
+
 export function scoreItinerary(input: ScoreInput): number {
   const walkEffort = input.walkMeters * WALK_EFFORT_SEC_PER_M;
   const hopEffort = (input.inStationHopMeters ?? 0) * IN_STATION_EFFORT_SEC_PER_M;
   const changeCost = input.changes.reduce((acc, c) => acc + changeRiskSec(c), 0);
   const reliability = (input.reliabilitySec ?? 0) * 0.5;
-  return input.totalDurationSec + walkEffort + hopEffort + changeCost + reliability;
+  return (
+    input.totalDurationSec + walkEffort + hopEffort + changeCost + reliability + (input.skipRiskSec ?? 0)
+  );
 }
 
 // ---- dominance --------------------------------------------------------------

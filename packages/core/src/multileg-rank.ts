@@ -7,7 +7,7 @@
 // what each change actually involves.
 
 import type { Itinerary, Leg, RideLeg, WalkLeg } from "./itinerary-types";
-import { filterDominated, scoreItinerary, type ChangeCost } from "./plan-score";
+import { filterDominated, scoreItinerary, skipRiskSec, UNKNOWN_HEADWAY_SEC, type ChangeCost } from "./plan-score";
 import { MAX_TOTAL_JOURNEY_SEC, TOP_K_RESULTS, type MultiLegDiagnostics } from "./multileg-legs";
 
 /**
@@ -17,6 +17,8 @@ import { MAX_TOTAL_JOURNEY_SEC, TOP_K_RESULTS, type MultiLegDiagnostics } from "
 export type PlanContext = {
   sameStation?: (aStopId: string, bStopId: string) => boolean;
   headwayOf?: (routeId: string) => number | null;
+  /** Spoken skip fraction (0–1) at a board stop. Null when we stay silent. */
+  skipOf?: (stopId: string, routeId: string) => number | null;
 };
 
 // ---- Itinerary assembly ---------------------------------------------------
@@ -92,12 +94,21 @@ export function walkBreakdown(
 export function scoreLegs(legs: Leg[], totalDurationSec: number, ctx?: PlanContext): number {
   const rides = legs.filter((l): l is RideLeg => l.kind === "ride");
   const { streetMeters, inStationMeters } = walkBreakdown(legs, ctx);
+  let skip = 0;
+  if (ctx?.skipOf) {
+    for (const r of rides) {
+      const f = ctx.skipOf(r.board.stopId, r.routeId);
+      if (f == null) continue;
+      skip += skipRiskSec(f, ctx.headwayOf?.(r.routeId) ?? UNKNOWN_HEADWAY_SEC);
+    }
+  }
   return scoreItinerary({
     totalDurationSec,
     walkMeters: streetMeters,
     inStationHopMeters: inStationMeters,
     changes: describeChanges(legs, ctx),
     reliabilitySec: rides.reduce((acc, r) => acc + Math.max(0, r.delaySec), 0),
+    skipRiskSec: skip,
   });
 }
 
