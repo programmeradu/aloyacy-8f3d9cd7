@@ -23,11 +23,13 @@ import { getRoute, getStop, routeTone } from "@/lib/gtfs";
 import { getRouteReliability } from "@/lib/reliability.functions";
 import { getIntercityInsights } from "@/lib/intercity-intel.functions";
 import { routeHead } from "@/lib/route-page";
+import { loadRouteSampleCount } from "@/lib/route-index.server";
 import routeVignette from "@/assets/route-vignette.jpg";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/route/$routeId")({
-  head: ({ params }) => routeHead(params.routeId),
+  loader: ({ params }) => loadRouteSampleCount(params.routeId),
+  head: ({ params, loaderData }) => routeHead(params.routeId, loaderData),
   component: RoutePage,
 });
 

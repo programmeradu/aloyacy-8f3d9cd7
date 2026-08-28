@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { listIndexableStopIds } from "@/lib/stop-index.server";
+import { listIndexableRouteIds } from "@/lib/route-index.server";
 
 const BASE_URL = "https://app.aloya.cy";
 
@@ -30,9 +31,11 @@ export const Route = createFileRoute("/sitemap.xml")({
     handlers: {
       GET: async () => {
         const stops = await listIndexableStopIds().catch(() => [] as string[]);
+        const routes = await listIndexableRouteIds().catch(() => [] as string[]);
         const all: SitemapEntry[] = [
           ...entries,
           ...stops.map((id) => ({ path: `/stop/${id}`, changefreq: "daily" as const, priority: "0.6" })),
+          ...routes.map((id) => ({ path: `/route/${id}`, changefreq: "daily" as const, priority: "0.6" })),
         ];
         const urls = all.map((e) =>
           [

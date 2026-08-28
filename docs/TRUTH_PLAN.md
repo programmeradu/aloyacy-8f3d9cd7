@@ -661,6 +661,10 @@ the two domains are crawled as one estate.
 | ---- | ----- | ------------------------------ |
 | `/stop/{id}` | app | Name, routes, next departures, **measured reliability**, shelter/sign/access, skip rate. Index only if at least one of: rated reliability, skip rate, or a confirmed attribute. |
 | `/route/{id}` | app | Timetable, on-time %, our accuracy vs the operator, busiest hours, bunching, map. Index only if rated. |
+
+**On the route (shipped).** Named title + noindex unless delay_stats n ≥ 30.
+Sitemap lists those routes (cap 100). Breadcrumbs only. `BusTrip` waits
+on a rated trip, not a line we retyped.
 | `/routes/{from}-to-{to}` | marketing | Already exists — upgrade with live data and measured reliability via the API. |
 | `/accuracy` | both | Data page on the app, story page on marketing. |
 
@@ -893,15 +897,15 @@ Update this table in the same commit as the slice.
 | D4 | Report decay / one ask per journey | **Shipped** 90-day decay, “Confirmed by n riders, last N days ago”, one ask per ride, photo = two votes (two phones still required). |
 | D5 | Public stop page (indexable) | **Partial.** Named title + noindex unless rated / skip / attribute. Sitemap lists those stops (cap 400). BusStop JSON-LD on indexable pages. `BusTrip` **open.** |
 | E0 | Two-repo contradictions | **Shipped** (boards, 301, hreflang, fare/line copy, drop overclaims). |
-| E2 | Programmatic index | Rides on A5 + D1/D2 content. |
-| E3 | Transit JSON-LD | **Partial.** `BusStop` + breadcrumbs on indexable stop pages. `BusTrip` / `Schedule` / stop FAQ **open.** |
+| E2 | Programmatic index | **Partial.** Stops and rated routes. `/accuracy` waits on A5. |
+| E3 | Transit JSON-LD | **Partial.** `BusStop` + breadcrumbs on indexable stop pages. Breadcrumbs on rated route pages. `BusTrip` / `Schedule` / stop FAQ **open.** |
 | F1–F4 | Truth API, report card, embed | **Blocked** until A1/A2 are writing *and* a design partner is waiting. |
 | G1 | Airport as a job | **Shipped** first slice (Kapnos vs city bus vs taxi rank). Dest-aware total cost **open.** |
 | G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** B4 RAPTOR HUD wait-or-bail sentence (need a dest). Then B5 RAPTOR other-stop.
+**Next unblocked:** B1 still-on-board push to riders who left the app. Then G1 dest-aware airport cost.
 
 ---
 

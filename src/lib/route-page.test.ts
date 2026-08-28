@@ -4,19 +4,33 @@ import { renderHook } from "@testing-library/react";
 import { routeHead, fmtRouteClock, useMinutesFromNow } from "./route-page";
 
 describe("routeHead", () => {
-  it("builds meta and links referencing the route id", () => {
-    const head = routeHead("30");
-    const titleMeta = head.meta.find((m) => "title" in m);
-    expect(titleMeta).toEqual({ title: "Route 30 — Aloya" });
-    const ogUrl = head.meta.find((m) => (m as any).property === "og:url");
-    expect(ogUrl).toEqual({ property: "og:url", content: "https://app.aloya.cy/route/30" });
-    expect(head.links).toEqual([{ rel: "canonical", href: "https://app.aloya.cy/route/30" }]);
+  it("noindexes a thin timetable and names the bus", () => {
+    const head = routeHead("no-such-route");
+    expect(head.meta.find((m) => "title" in m)).toEqual({
+      title: "Bus no-such-route — live departures | Aloya",
+    });
+    expect(head.meta.find((m) => "name" in m && m.name === "robots")).toMatchObject({
+      content: "noindex,follow",
+    });
+    expect(head.scripts).toEqual([]);
   });
 
-  it("includes description referencing the route id in both places", () => {
-    const head = routeHead("101");
-    const desc = head.meta.find((m) => (m as any).name === "description");
-    expect((desc as any).content).toContain("101");
+  it("indexes only once the clock is rated, and emits breadcrumbs not a trip", () => {
+    const open = routeHead("no-such-route", 30);
+    expect(open.meta.find((m) => "name" in m && m.name === "robots")).toMatchObject({
+      content: "index,follow",
+    });
+    expect(open.scripts).toHaveLength(1);
+    const parsed = JSON.parse(open.scripts[0]!.children) as { "@type": string };
+    expect(parsed["@type"]).toBe("BreadcrumbList");
+    expect(JSON.stringify(open.scripts)).not.toMatch(/BusTrip|fare|FAQ/i);
+    expect(routeHead("no-such-route", 29).scripts).toEqual([]);
+  });
+
+  it("includes description referencing the route id when the line is unknown", () => {
+    const head = routeHead("no-such-route");
+    const desc = head.meta.find((m) => "name" in m && m.name === "description");
+    expect((desc as { content?: string } | undefined)?.content).toContain("no-such-route");
   });
 });
 

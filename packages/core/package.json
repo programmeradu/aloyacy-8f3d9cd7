@@ -326,6 +326,10 @@
       "types": "./src/low-floor.ts",
       "default": "./src/low-floor.ts"
     },
+    "./route-index": {
+      "types": "./src/route-index.ts",
+      "default": "./src/route-index.ts"
+    },
     "./stop-ask": {
       "types": "./src/stop-ask.ts",
       "default": "./src/stop-ask.ts"

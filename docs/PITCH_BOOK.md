@@ -150,6 +150,7 @@ know — that silence is the product.
 | Stop condition | Shelter, seat, walk, light, step-free, sign, timetable, two poles. One tap. |
 | A photo of the stop | From a rider. Silent when none. That rider’s tap counts twice. Two phones still required. |
 | Public stop page | Google only sees a stop when we have something true to say — a rated clock, a skip, or a confirmed attribute. The page tells search engines it is a bus stop in Cyprus, not a blank timetable. |
+| Public route page | A bus line is indexable only when we have measured its clock (30 samples). A timetable alone is not a page. |
 | Skip rate | “Bus 31 skips this stop about 1 in 5 on weekday evenings. Wave clearly.” The planner also waits as if that extra bus might not stop. |
 | Official clock | “The official clock on Bus 31 is usually about 3 min off this hour. We trust a rider on board.” Silent below 8 samples or 2 minutes. We do not say the operator is late. |
 | Neighbour stop | “…or use Makarios 180 m north.” Only if that stop is real and does not also skip. |

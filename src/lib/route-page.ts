@@ -1,19 +1,52 @@
 // Shared bits for the /route/$routeId page: head metadata and the two clock
-// formatters its sections use.
+// formatters its sections use. Index only when the clock is rated.
 
 import { useI18n } from "@/lib/i18n";
+import { getRoute } from "@/lib/gtfs";
+import { routeIndexable } from "@aloya/core/route-index";
 
 const BASE = "https://app.aloya.cy";
 
-export function routeHead(routeId: string) {
-  const title = `Route ${routeId} — Aloya`;
-  const desc = `Live buses, next departure and every stop on Cyprus bus route ${routeId}.`;
+export function buildRouteJsonLd(input: {
+  short: string;
+  name: string;
+  url: string;
+}): Record<string, unknown>[] {
+  if (!input.short || !input.name) return [];
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Aloya", item: `${BASE}/` },
+        { "@type": "ListItem", position: 2, name: input.name, item: input.url },
+      ],
+    },
+  ];
+}
+
+export function routeHead(routeId: string, sampleCount?: number) {
+  const route = getRoute(routeId);
+  const short = route?.short?.trim() || routeId;
+  const name = route?.long?.trim() || `Bus ${short}`;
+  const index = routeIndexable(sampleCount ?? 0);
+  const title = `Bus ${short} — live departures | Aloya`;
+  const desc = route
+    ? `Live buses and what we actually measured on ${name} in Cyprus.`
+    : `Live buses on Cyprus route ${routeId}.`;
   const url = `${BASE}/route/${routeId}`;
   const og = `${BASE}/og/og-route.jpg`;
+  const scripts = index
+    ? buildRouteJsonLd({ short, name, url }).map((g) => ({
+        type: "application/ld+json" as const,
+        children: JSON.stringify(g),
+      }))
+    : [];
   return {
     meta: [
       { title },
       { name: "description", content: desc },
+      { name: "robots", content: index ? "index,follow" : "noindex,follow" },
       { property: "og:title", content: title },
       { property: "og:description", content: desc },
       { property: "og:type", content: "article" },
@@ -27,6 +60,7 @@ export function routeHead(routeId: string) {
       { name: "twitter:description", content: desc },
     ],
     links: [{ rel: "canonical", href: url }],
+    scripts,
   };
 }
 
