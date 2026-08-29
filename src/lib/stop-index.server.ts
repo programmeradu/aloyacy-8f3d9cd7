@@ -11,32 +11,44 @@ function safeStopId(id: unknown): string | null {
   return typeof id === "string" && /^[A-Za-z0-9._-]+$/.test(id) ? id : null;
 }
 
-async function ratedReliability(stopId: string): Promise<boolean> {
+async function ratedRouteIds(stopId: string): Promise<string[]> {
   const { data, error } = await supabaseAdmin
     .from("delay_stats")
-    .select("sample_count")
+    .select("route_id, sample_count")
     .eq("stop_id", stopId)
-    .limit(500);
-  if (error || !data) return false;
-  let n = 0;
-  for (const r of data as { sample_count: number }[]) n += Number(r.sample_count) || 0;
-  return n >= STOP_INDEX_RATED_MIN;
+    .limit(1000);
+  if (error || !data) return [];
+  
+  const routeCounts = new Map<string, number>();
+  for (const r of data as { route_id: string; sample_count: number }[]) {
+    const rid = r.route_id;
+    if (rid) {
+      routeCounts.set(rid, (routeCounts.get(rid) ?? 0) + (Number(r.sample_count) || 0));
+    }
+  }
+  
+  const rated: string[] = [];
+  for (const [rid, n] of routeCounts) {
+    if (n >= STOP_INDEX_RATED_MIN) rated.push(rid);
+  }
+  return rated;
 }
 
-export async function loadStopIndexFacts(stopId: string): Promise<StopIndexFacts> {
+export async function loadStopIndexFacts(stopId: string): Promise<StopIndexFacts & { ratedRouteIds?: string[] }> {
   try {
-    const [condition, skips, rated] = await Promise.all([
+    const [condition, skips, ratedIds] = await Promise.all([
       loadStopCondition(stopId).catch(() => []),
       loadSkipRates(stopId).catch(() => []),
-      ratedReliability(stopId).catch(() => false),
+      ratedRouteIds(stopId).catch(() => []),
     ]);
     return {
       confirmedAttribute: condition.some((r) => r.n >= 1),
       skipSpeaks: skips.length > 0,
-      ratedReliability: rated,
+      ratedReliability: ratedIds.length > 0,
+      ratedRouteIds: ratedIds,
     };
   } catch {
-    return { ratedReliability: false, skipSpeaks: false, confirmedAttribute: false };
+    return { ratedReliability: false, skipSpeaks: false, confirmedAttribute: false, ratedRouteIds: [] };
   }
 }
 

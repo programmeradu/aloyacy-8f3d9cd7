@@ -65,7 +65,22 @@ describe("buildStopJsonLd", () => {
     const stop = graphs[0];
     expect(stop["name"]).toBe("Larnaka Airport");
     expect(stop["address"]).toMatchObject({ addressCountry: "CY" });
-    expect(JSON.stringify(graphs)).not.toMatch(/shelter|skip|on-time|FAQ/i);
+    expect(JSON.stringify(graphs)).not.toMatch(/shelter|skip|on-time|FAQ|BusTrip/i);
     expect(buildStopJsonLd({ id: "x", name: "", lat: 1, lng: 2, url: "https://x" })).toEqual([]);
+  });
+
+  it("emits BusTrip for rated routes", () => {
+    const graphs = buildStopJsonLd({
+      id: "6117",
+      name: "Larnaka Airport",
+      lat: 34.87,
+      lng: 33.6,
+      url: "https://app.aloya.cy/stop/6117",
+      ratedRouteIds: ["20030011"], // Route 431
+    });
+    expect(graphs.map((g) => g["@type"])).toEqual(["BusStop", "BreadcrumbList", "BusTrip"]);
+    const trip = graphs[2];
+    expect(trip["name"]).toBe("Bus 431");
+    expect((trip["departureBusStop"] as any)["name"]).toBe("Larnaka Airport");
   });
 });

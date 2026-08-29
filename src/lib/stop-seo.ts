@@ -1,6 +1,6 @@
 // D5 head for /stop/$stopId. Index only with real content. Fail closed.
 
-import { getStop } from "@/lib/gtfs";
+import { getStop, getRoute } from "@/lib/gtfs";
 import { stopIndexable, type StopIndexFacts } from "@aloya/core/stop-index";
 
 const BASE = "https://app.aloya.cy";
@@ -11,9 +11,11 @@ export function buildStopJsonLd(input: {
   lat: number;
   lng: number;
   url: string;
+  ratedRouteIds?: string[];
 }): Record<string, unknown>[] {
   if (!input.name || !Number.isFinite(input.lat) || !Number.isFinite(input.lng)) return [];
-  return [
+  
+  const blocks: Record<string, unknown>[] = [
     {
       "@context": "https://schema.org",
       "@type": "BusStop",
@@ -36,9 +38,35 @@ export function buildStopJsonLd(input: {
       ],
     },
   ];
+
+  if (input.ratedRouteIds) {
+    for (const rid of input.ratedRouteIds) {
+      const route = getRoute(rid);
+      if (!route) continue;
+      
+      blocks.push({
+        "@context": "https://schema.org",
+        "@type": "BusTrip",
+        name: route.short ? `Bus ${route.short}` : route.long,
+        busName: route.short || rid,
+        busNumber: route.short || rid,
+        provider: {
+          "@type": "Organization",
+          name: route.agency === "IC" ? "Intercity Buses" : "Cyprus Public Transport",
+        },
+        departureBusStop: {
+          "@type": "BusStop",
+          name: input.name,
+          identifier: input.id,
+        }
+      });
+    }
+  }
+
+  return blocks;
 }
 
-export function stopHead(stopId: string, facts: StopIndexFacts | undefined) {
+export function stopHead(stopId: string, facts: (StopIndexFacts & { ratedRouteIds?: string[] }) | undefined) {
   const stop = getStop(stopId);
   const name = stop?.name?.trim() || `Stop ${stopId}`;
   const index = facts ? stopIndexable(facts) : false;
@@ -55,6 +83,7 @@ export function stopHead(stopId: string, facts: StopIndexFacts | undefined) {
           lat: stop.lat,
           lng: stop.lng,
           url,
+          ratedRouteIds: facts?.ratedRouteIds,
         }).map((g) => ({ type: "application/ld+json" as const, children: JSON.stringify(g) }))
       : [];
   return {

@@ -20,10 +20,12 @@ describe("routeHead", () => {
     expect(open.meta.find((m) => "name" in m && m.name === "robots")).toMatchObject({
       content: "index,follow",
     });
-    expect(open.scripts).toHaveLength(1);
+    expect(open.scripts).toHaveLength(2);
     const parsed = JSON.parse(open.scripts[0]!.children) as { "@type": string };
     expect(parsed["@type"]).toBe("BreadcrumbList");
-    expect(JSON.stringify(open.scripts)).not.toMatch(/BusTrip|fare|FAQ/i);
+    const parsedTrip = JSON.parse(open.scripts[1]!.children) as { "@type": string };
+    expect(parsedTrip["@type"]).toBe("BusTrip");
+    expect(JSON.stringify(open.scripts)).not.toMatch(/fare|FAQ/i);
     expect(routeHead("no-such-route", 29).scripts).toEqual([]);
   });
 

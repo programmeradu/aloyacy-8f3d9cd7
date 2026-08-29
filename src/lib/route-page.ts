@@ -8,9 +8,11 @@ import { routeIndexable } from "@aloya/core/route-index";
 const BASE = "https://app.aloya.cy";
 
 export function buildRouteJsonLd(input: {
+  id: string;
   short: string;
   name: string;
   url: string;
+  agency?: string;
 }): Record<string, unknown>[] {
   if (!input.short || !input.name) return [];
   return [
@@ -22,6 +24,17 @@ export function buildRouteJsonLd(input: {
         { "@type": "ListItem", position: 2, name: input.name, item: input.url },
       ],
     },
+    {
+      "@context": "https://schema.org",
+      "@type": "BusTrip",
+      name: input.short ? `Bus ${input.short}` : input.name,
+      busName: input.short || input.id,
+      busNumber: input.short || input.id,
+      provider: {
+        "@type": "Organization",
+        name: input.agency === "IC" ? "Intercity Buses" : "Cyprus Public Transport",
+      }
+    }
   ];
 }
 
@@ -37,7 +50,7 @@ export function routeHead(routeId: string, sampleCount?: number) {
   const url = `${BASE}/route/${routeId}`;
   const og = `${BASE}/og/og-route.jpg`;
   const scripts = index
-    ? buildRouteJsonLd({ short, name, url }).map((g) => ({
+    ? buildRouteJsonLd({ id: routeId, short, name, url, agency: route?.agency }).map((g) => ({
         type: "application/ld+json" as const,
         children: JSON.stringify(g),
       }))
