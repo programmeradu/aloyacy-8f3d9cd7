@@ -4,6 +4,13 @@ import { render, screen, cleanup } from "@testing-library/react";
 import { PhaseLabel, PhaseHeadline, PhaseSub } from "./PhaseCopy";
 import type { Itinerary } from "@/lib/itinerary-types";
 import type { MultiLegLive } from "@/lib/useMultiLegJourney";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
 
 function mockItin(): Itinerary {
   return {
@@ -62,27 +69,27 @@ describe("PhaseCopy components", () => {
   afterEach(cleanup);
 
   it("renders PhaseLabel for walking-to-board", () => {
-    render(<PhaseLabel live={mockLive()} itin={mockItin()} />);
+    renderWithProviders(<PhaseLabel live={mockLive()} itin={mockItin()} />);
     expect(screen.getByText(/walk/i)).toBeInTheDocument();
   });
 
   it("renders PhaseHeadline for riding phase with destination stop", () => {
     const live = mockLive({ phase: "riding", secsToCurrentAlight: 300 });
-    render(<PhaseHeadline live={live} itin={mockItin()} />);
+    renderWithProviders(<PhaseHeadline live={live} itin={mockItin()} />);
     expect(screen.getByText("5")).toBeInTheDocument();
     expect(screen.getByText(/at Park/i)).toBeInTheDocument();
   });
 
   it("renders PhaseHeadline for arrived phase", () => {
     const live = mockLive({ phase: "arrived" });
-    render(<PhaseHeadline live={live} itin={mockItin()} />);
+    renderWithProviders(<PhaseHeadline live={live} itin={mockItin()} />);
     expect(screen.getByText(/there/i)).toBeInTheDocument();
     expect(screen.getByText(/welcome/i)).toBeInTheDocument();
   });
 
   it("renders PhaseSub with walk guidance subtitle", () => {
     const live = mockLive({ phase: "walking-to-board", metersToTarget: 350 });
-    render(<PhaseSub live={live} itin={mockItin()} destLabel="Park" />);
+    renderWithProviders(<PhaseSub live={live} itin={mockItin()} destLabel="Park" />);
     expect(screen.getByText(/We'll watch the bus/i)).toBeInTheDocument();
   });
 
@@ -92,7 +99,7 @@ describe("PhaseCopy components", () => {
       tripGhost: true,
       secsToCurrentBoard: 20 * 60,
     });
-    render(
+    renderWithProviders(
       <PhaseSub
         live={live}
         itin={mockItin()}

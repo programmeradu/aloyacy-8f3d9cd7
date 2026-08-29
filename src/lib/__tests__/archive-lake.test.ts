@@ -35,8 +35,9 @@ describe("archive-lake pipeline", () => {
     const limitMock = vi.fn()
       .mockResolvedValueOnce({ data: mockData, error: null })
       .mockResolvedValueOnce({ data: [], error: null });
-
-    const ltMock = vi.fn().mockReturnValue({ limit: limitMock });
+    const orderMock = vi.fn();
+    orderMock.mockReturnValue({ limit: limitMock, order: orderMock });
+    const ltMock = vi.fn().mockReturnValue({ order: orderMock });
     const selectMock = vi.fn().mockReturnValue({ lt: ltMock });
     
     const inMock = vi.fn().mockResolvedValue({ error: null });

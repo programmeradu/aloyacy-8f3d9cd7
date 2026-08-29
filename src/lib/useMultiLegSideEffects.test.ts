@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { useMultiLegSideEffects } from "./useMultiLegSideEffects";
 
 describe("useMultiLegSideEffects", () => {
-  it("exports useMultiLegSideEffects hook function", async () => {
-    const mod = await import("./useMultiLegSideEffects");
-    expect(typeof mod.useMultiLegSideEffects).toBe("function");
+  it("exports useMultiLegSideEffects hook function", () => {
+    expect(typeof useMultiLegSideEffects).toBe("function");
   });
 });
