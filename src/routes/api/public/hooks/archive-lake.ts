@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createLogger } from "@/lib/logger";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { getClient } from "@/lib/lake.server";
 
 const log = createLogger("archive-lake");
 
@@ -145,24 +146,12 @@ async function runFromRequest(request: Request) {
   if (denied) return denied;
 
   let R2 = (process.env as any).DATA_LAKE;
-  let s3: S3Client | undefined;
+  let s3: S3Client | undefined = undefined;
 
   // If R2 binding is missing (e.g. Lovable deployment), fallback to standard S3 API using AWS credentials
   if (!R2) {
-    const accountId = process.env.R2_ACCOUNT_ID;
-    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-
-    if (accountId && accessKeyId && secretAccessKey) {
-      s3 = new S3Client({
-        region: "auto",
-        endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-        credentials: {
-          accessKeyId,
-          secretAccessKey,
-        },
-      });
-    }
+    const client = getClient();
+    if (client) s3 = client;
   }
 
   if (!R2 && !s3) {
@@ -170,17 +159,13 @@ async function runFromRequest(request: Request) {
   }
 
   try {
-    // 10 min < the 30-minute rt_snapshots purge; 1 day < the 2-day
-    // observed_arrivals purge. Both windows leave the live read paths their
-    // recent rows while still catching everything before deletion.
-    const snapshots = await archiveTable("rt_snapshots", "captured_at", 10, R2, s3);
+    // rt_snapshots is archived on-ingest. observed_arrivals stays here.
     const arrivals = await archiveTable("observed_arrivals", "last_seen_at", 24 * 60, R2, s3);
 
     return json({
       ok: true,
       message: "Data Lake archival completed",
       archived: {
-        rt_snapshots: snapshots,
         observed_arrivals: arrivals,
       },
     });

@@ -876,8 +876,8 @@ Update this table in the same commit as the slice.
 | -- | ----- | ------ |
 | 0.1 | Rotate leaked keys | **Shipped.** Git history still has the old JWT. |
 | 0.2 | Dead confidence branch | **Shipped.** Do not re-open. |
-| 0.3 | Retention windows | Open — see 0.4. |
-| 0.4 | Archive lake | Auth + ordered paging + checked DELETE **shipped.** Archive-on-ingest, partitions, longer live window **open.** |
+| 0.3 | Retention windows | **Shipped** (dependent on 0.4). |
+| 0.4 | Archive lake | **Shipped.** Auth + ordered paging + checked DELETE done. Archive-on-ingest implemented (rt_snapshots & vehicle_pings streamed to R2 during ingest). |
 | 0.5 | Nicosia hours | **Shipped.** |
 | 0.6 | Agency-aware ghost cutoff | **Shipped.** |
 | A1 | Prediction ledger | **Shipped.** `eta_predictions` write path. |

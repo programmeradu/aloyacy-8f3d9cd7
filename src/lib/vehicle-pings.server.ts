@@ -6,6 +6,8 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { LiveVehicle } from "@/lib/gtfs-rt.server";
 import type { VehiclePing } from "@aloya/core/vehicle-cross";
 
+import { streamToLake } from "@/lib/lake.server";
+
 const db = supabaseAdmin as unknown as SupabaseClient;
 
 const PING_WINDOW_MS = 3 * 60 * 60_000;
@@ -29,6 +31,10 @@ export async function persistVehiclePings(
       source: v.source === "rider" ? "rider" : "feed",
     }));
   if (rows.length === 0) return 0;
+  
+  // Archive-on-ingest: raw vehicle pings to lake
+  void streamToLake("vehicle_pings", rows);
+  
   const { error } = await db.from("vehicle_pings").insert(rows);
   if (error) return 0;
   return rows.length;

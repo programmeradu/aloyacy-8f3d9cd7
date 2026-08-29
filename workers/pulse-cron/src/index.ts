@@ -31,11 +31,8 @@ export async function archiveLakeDirect(env: Env): Promise<{ ok: boolean; archiv
     return { ok: false, archived: {}, error: "Missing Supabase URL or Service Role Key" };
   }
 
-  // Windows are in MINUTES and must stay shorter than each table's Postgres
-  // TTL (rt_snapshots: 30 min, observed_arrivals: 2 days), otherwise rows are
-  // purged before they are ever archived and the lake stays empty.
+  // rt_snapshots is now archived on-ingest by the snapshot handler directly.
   const tables = [
-    { name: "rt_snapshots", timeColumn: "captured_at", minutes: 10 },
     { name: "observed_arrivals", timeColumn: "last_seen_at", minutes: 24 * 60 },
   ];
 

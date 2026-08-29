@@ -9,6 +9,7 @@ import { fetchRealtime } from "@/lib/gtfs-rt.server";
 import { createLogger } from "@/lib/logger";
 import { cyHourDow } from "@aloya/core/cy-time";
 import { persistVehiclePings } from "@/lib/vehicle-pings.server";
+import { streamToLake } from "@/lib/lake.server";
 
 const log = createLogger("snapshot");
 
@@ -109,13 +110,19 @@ async function ingest() {
         a.tripId,
     );
 
+    const capturedAt = new Date(snap.fetchedAt * 1000).toISOString();
+    
     const rows = fresh.map((a) => ({
       route_id: a.routeId,
       stop_id: a.stopId,
       trip_id: a.tripId,
       predicted_arrival: new Date(a.arrivalUnix * 1000).toISOString(),
       delay_sec: a.delaySec,
+      captured_at: capturedAt,
     }));
+
+    // Archive-on-ingest: send raw snapshot to data lake immediately
+    void streamToLake("rt_snapshots", rows);
 
     // Update observed_arrivals (last known prediction per trip+stop)
     const observedMap = new Map<string, (typeof fresh)[number]>();
