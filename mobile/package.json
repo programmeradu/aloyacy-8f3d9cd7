@@ -40,7 +40,7 @@
     "expo-splash-screen": "~56.0.12",
     "expo-sqlite": "~56.0.5",
     "expo-status-bar": "~56.0.4",
-    "expo-symbols": "~56.0.6",
+    "expo-symbols": "~57.0.2",
     "expo-task-manager": "~56.0.21",
     "expo-tracking-transparency": "~56.0.5",
     "expo-web-browser": "~56.0.5",
