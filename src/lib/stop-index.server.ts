@@ -34,7 +34,7 @@ async function ratedRouteIds(stopId: string): Promise<string[]> {
   return rated;
 }
 
-export async function loadStopIndexFacts(stopId: string): Promise<StopIndexFacts & { ratedRouteIds?: string[] }> {
+export async function loadStopIndexFacts(stopId: string): Promise<StopIndexFacts & { ratedRouteIds?: string[]; conditions?: any[] }> {
   try {
     const [condition, skips, ratedIds] = await Promise.all([
       loadStopCondition(stopId).catch(() => []),
@@ -46,9 +46,10 @@ export async function loadStopIndexFacts(stopId: string): Promise<StopIndexFacts
       skipSpeaks: skips.length > 0,
       ratedReliability: ratedIds.length > 0,
       ratedRouteIds: ratedIds,
+      conditions: condition,
     };
   } catch {
-    return { ratedReliability: false, skipSpeaks: false, confirmedAttribute: false, ratedRouteIds: [] };
+    return { ratedReliability: false, skipSpeaks: false, confirmedAttribute: false, ratedRouteIds: [], conditions: [] };
   }
 }
 

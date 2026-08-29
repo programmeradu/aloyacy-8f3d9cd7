@@ -83,4 +83,23 @@ describe("buildStopJsonLd", () => {
     expect(trip["name"]).toBe("Bus 431");
     expect((trip["departureBusStop"] as any)["name"]).toBe("Larnaka Airport");
   });
+  it("emits FAQPage for confirmed conditions", () => {
+    const graphs = buildStopJsonLd({
+      id: "6117",
+      name: "Larnaka Airport",
+      lat: 34.87,
+      lng: 33.6,
+      url: "https://app.aloya.cy/stop/6117",
+      conditions: [
+        { attribute: "has_shelter", value: "yes", n: 2 },
+        { attribute: "has_seating", value: "no", n: 2 } // shouldn't emit a question since value is "no"
+      ]
+    });
+    
+    expect(graphs.map((g) => g["@type"])).toEqual(["BusStop", "BreadcrumbList", "FAQPage"]);
+    const faq = graphs[2] as any;
+    expect(faq.mainEntity).toHaveLength(1);
+    expect(faq.mainEntity[0].name).toMatch(/Is there a shelter/);
+    expect(faq.mainEntity[0].acceptedAnswer.text).toMatch(/Yes/);
+  });
 });

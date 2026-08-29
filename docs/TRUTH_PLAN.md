@@ -900,7 +900,7 @@ Update this table in the same commit as the slice.
 | D5 | Public stop page (indexable) | **Partial.** Named title + noindex unless rated / skip / attribute. Sitemap lists those stops (cap 400). BusStop JSON-LD on indexable pages. `BusTrip` **shipped.** |
 | E0 | Two-repo contradictions | **Shipped** (boards, 301, hreflang, fare/line copy, drop overclaims). |
 | E2 | Programmatic index | **Partial.** Stops and rated routes. `/accuracy` waits on A5. |
-| E3 | Transit JSON-LD | **Partial.** `BusStop` + breadcrumbs on indexable stop pages. Breadcrumbs + `BusTrip` on rated route pages. `Schedule` / stop FAQ **open.** |
+| E3 | Transit JSON-LD | **Shipped.** `BusStop` + breadcrumbs on indexable stop pages. Breadcrumbs + `BusTrip` on rated route pages. `FAQPage` on stops. |
 | F1–F4 | Truth API, report card, embed | **Blocked** until A1/A2 are writing *and* a design partner is waiting. |
 | G1 | Airport as a job | **Shipped** first slice (Kapnos vs city bus vs taxi rank). Dest-aware total cost **open.** |
 | G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
