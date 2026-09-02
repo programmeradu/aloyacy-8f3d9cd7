@@ -161,7 +161,7 @@ know — that silence is the product.
 
 | What a person sees | In one line |
 | ------------------ | ----------- |
-| Airport | Kapnos vs city bus vs taxi rank. We do not invent a taxi fare. |
+| Airport | Kapnos vs city bus vs taxi rank. With a destination: fare, wait, and walk. We do not invent a taxi fare. |
 | Pay | Tap Motion €1.80 urban / €6 intercity, or pay the driver the published cash fare. |
 | Motion pass | The card you already have: balance, history, kiosk QR. Hold it up or tap NFC. |
 | Green Line | Named. We do not operate north. Hours not invented. Famagusta here is Paralimni / Deryneia. |

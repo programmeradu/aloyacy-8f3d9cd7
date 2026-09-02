@@ -760,9 +760,11 @@ Taxi fare is unpublished — we have no destination, so we print none.
 Luggage and last-coach stay quiet: neither is in the product, and Kapnos
 `nextDepartures` is a slice so we cannot claim the last coach.
 
-Honest total cost (fare + wait + walk) and a dedicated RAPTOR from the
-door still need a destination. Marketing journey pages already deep-link
-here.
+Honest total cost (fare + wait + walk) ships when a destination is on
+the URL (`toLat`/`toLng`/`toLabel`). Kapnos is the coach that actually
+goes there, not the soonest other city. RAPTOR from the door is the
+city-bus walk. Taxi fare stays unpublished without a measured drive.
+Luggage and last-coach stay quiet.
 
 ### G2. Boarding truth + last-bus as named states
 
@@ -902,12 +904,12 @@ Update this table in the same commit as the slice.
 | E2 | Programmatic index | **Partial.** Stops and rated routes. `/accuracy` waits on A5. |
 | E3 | Transit JSON-LD | **Partial.** `BusStop` + breadcrumbs on indexable stop pages. Breadcrumbs + `BusTrip` on rated route pages. `Schedule` / stop FAQ **open.** |
 | F1–F4 | Truth API, report card, embed | **Blocked** until A1/A2 are writing *and* a design partner is waiting. |
-| G1 | Airport as a job | **Shipped** first slice (Kapnos vs city bus vs taxi rank). Dest-aware total cost **open.** |
+| G1 | Airport as a job | **Shipped.** Kapnos vs city bus vs taxi rank. Dest-aware fare + wait + walk when `toLat`/`toLng` are present. Taxi euro still unpublished without a measured drive. |
 | G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** G1 dest-aware airport total cost (needs a destination).
+**Next unblocked:** B5 RAPTOR other-stop on the live-replan sheet. Then 0.4 archive-on-ingest.
 
 ---
 

@@ -26,8 +26,10 @@ import { useI18n, type Locale } from "@/lib/i18n";
 import { getAirportPage, type AirportCode, type AirportPageData } from "@/lib/airport.functions";
 import { CoachLineCard } from "@/components/airport/CoachLineCard";
 import { AirportWaysOut } from "@/components/airport/AirportWaysOut";
+import { useAirportDoor } from "@/components/airport/useAirportDoor";
 import { AIRPORT_COPY, AIRPORT_STOP, BASE, airportHead, isAirportCode } from "@/lib/airport-page";
 import { buildAirportJob } from "@aloya/core/airport-job";
+import { airportDest, parseAirportSearch } from "@aloya/core/airport-cost";
 
 function airportQuery(code: AirportCode) {
   return queryOptions({
@@ -41,6 +43,7 @@ export const Route = createFileRoute("/airport/$code")({
   beforeLoad: ({ params }) => {
     if (!isAirportCode(params.code)) throw notFound();
   },
+  validateSearch: (raw: Record<string, unknown>) => parseAirportSearch(raw),
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(airportQuery(params.code.toLowerCase() as AirportCode)),
   head: ({ params }) => airportHead(params.code),
@@ -108,13 +111,22 @@ function AirportNotFoundState() {
 
 function AirportPage() {
   const { code } = Route.useParams();
+  const search = Route.useSearch();
   const normalized = code.toLowerCase() as AirportCode;
   const { data } = useSuspenseQuery(airportQuery(normalized));
   const { locale } = useI18n();
-  return <AirportView data={data} locale={locale} />;
+  return <AirportView data={data} locale={locale} dest={airportDest(search)} />;
 }
 
-function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }) {
+function AirportView({
+  data,
+  locale,
+  dest,
+}: {
+  data: AirportPageData;
+  locale: Locale;
+  dest: ReturnType<typeof airportDest>;
+}) {
   const { t } = useI18n();
   const c = AIRPORT_COPY[locale];
   const airport = data.airport;
@@ -170,6 +182,10 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
 
   const center = stop ? { lat: stop.lat, lng: stop.lng } : { lat: airport.lat, lng: airport.lng };
   const airportName = locale === "el" ? airport.nameEl : airport.name;
+  const { door, pending: doorPending } = useAirportDoor(
+    { lat: airport.lat, lng: airport.lng, label: airportName },
+    dest,
+  );
   const totalCount = data.coachLines.length + departures.length;
   const firstLive = departures.find((d) => d.eta.tier !== "ghost");
   const job = buildAirportJob({
@@ -220,7 +236,10 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
           markers={
             [
               { lat: airport.lat, lng: airport.lng, kind: "origin", label: airportName },
-            ] as MapMarker[]
+              dest
+                ? { lat: dest.lat, lng: dest.lng, kind: "destination" as const, label: dest.label }
+                : null,
+            ].filter(Boolean) as MapMarker[]
           }
           restrictTripIds={departures.map((d) => d.tripId)}
           fitToContent={false}
@@ -233,7 +252,12 @@ function AirportView({ data, locale }: { data: AirportPageData; locale: Locale }
         </div>
       )}
 
-      <AirportWaysOut job={job} status={isLoading ? t("stop.loading") : t("stop.liveSmart")} />
+      <AirportWaysOut
+        job={job}
+        status={isLoading || doorPending ? t("stop.loading") : t("stop.liveSmart")}
+        dest={dest}
+        door={door}
+      />
 
       <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "200ms" }}>
         {totalCount === 0 ? (
