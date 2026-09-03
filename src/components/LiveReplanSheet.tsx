@@ -12,6 +12,7 @@ import { setActiveTrip, initialLegState, type ActiveTrip } from "@/lib/trip-stor
 import { getDeviceId } from "@/lib/pwa";
 import { track } from "@/lib/analytics";
 import { estimateWalk } from "@aloya/core/dest-bail";
+import { otherStopAsk } from "@aloya/core/other-stop";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
 import type { JourneyOption } from "@/lib/journey.server";
 import type { DisruptionKind } from "@/lib/useDisruptionWatch";
@@ -190,6 +191,11 @@ export function LiveReplanSheet({
               rides.length === 0
                 ? t("replan.walkOnly")
                 : rides.map((r) => t("replan.bus", { code: r.routeShort })).join(" → ");
+            const ask = otherStopAsk({
+              legs: it.legs,
+              hereStopId: hereStopId(active),
+              nowUnix: Math.floor(Date.now() / 1000),
+            });
             return (
               <li key={it.id}>
                 <button
@@ -226,11 +232,25 @@ export function LiveReplanSheet({
                       : t("replan.changes", { n: it.transfers })}
                   </p>
                   <p className="mt-1 font-display text-[20px] leading-tight text-ink">
-                    {t("replan.headToDest", {
-                      mins: fmtMin(it.totalDurationSec),
-                      dest: active.to.label,
-                    })}
+                    {ask
+                      ? t(ask.leaveMin <= 0 ? "replan.otherStopNow" : "replan.otherStop", {
+                          code: ask.routeShort,
+                          min: ask.leaveMin,
+                          stop: ask.stopName,
+                        })
+                      : t("replan.headToDest", {
+                          mins: fmtMin(it.totalDurationSec),
+                          dest: active.to.label,
+                        })}
                   </p>
+                  {ask && (
+                    <p className="mt-1 text-[12px] text-ink-soft">
+                      {t("replan.headToDest", {
+                        mins: fmtMin(it.totalDurationSec),
+                        dest: active.to.label,
+                      })}
+                    </p>
+                  )}
                   <p className="mt-1 text-[12px] text-ink-soft">
                     {t("replan.walkingTotal", { m: Math.round(it.totalWalkMeters) })}
                   </p>
@@ -251,6 +271,13 @@ export function LiveReplanSheet({
       </div>
     </div>
   );
+}
+
+function hereStopId(active: ActiveTrip): string | null {
+  const ride = active.itinerary?.legs.find((l): l is RideLeg => l.kind === "ride");
+  if (ride) return ride.board.stopId;
+  const bus = active.option.legs.find((l) => l.kind === "bus");
+  return bus && "board" in bus ? bus.board.stopId : null;
 }
 
 function WalkOutOption({

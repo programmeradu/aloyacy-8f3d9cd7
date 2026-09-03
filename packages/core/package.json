@@ -290,6 +290,10 @@
       "types": "./src/dest-bail.ts",
       "default": "./src/dest-bail.ts"
     },
+    "./other-stop": {
+      "types": "./src/other-stop.ts",
+      "default": "./src/other-stop.ts"
+    },
     "./walk-anchor": {
       "types": "./src/walk-anchor.ts",
       "default": "./src/walk-anchor.ts"

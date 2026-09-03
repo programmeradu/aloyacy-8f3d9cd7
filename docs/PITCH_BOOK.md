@@ -130,7 +130,7 @@ know — that silence is the product.
 | Live companion | Hurry, board, press the bell, get off. Your phone is the bus if the feed dies. |
 | Only eyes | “You're the only eyes on Bus 31.” One tap, on a trip with no GPS. |
 | Your stop is next | Stop-by-stop, after the previous doors close — not five stops early. |
-| Missed it / disruption | “The bus has left — next one from here.” A Plan B sheet, not a toast. |
+| Missed it / disruption | “The bus has left — next one from here.” If the faster bus is at the next stop: “Bus 25 leaves in 3 min from Makariou.” |
 | Remind me to leave | A push before you must start walking. Hidden if the bus is already close. |
 | Saved places | Home, work, the beach. Recents are free; pins are Pro. |
 | Share a plan | A friend opens the meeting point and times before anyone leaves. |

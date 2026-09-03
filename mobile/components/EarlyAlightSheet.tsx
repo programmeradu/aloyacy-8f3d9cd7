@@ -32,6 +32,7 @@ import type {
   JourneyOption,
 } from "@/lib/journey-types";
 import type { DisruptionKind } from "@/lib/useDisruptionWatch";
+import { otherStopAsk, otherStopLine } from "@aloya/core/other-stop";
 
 const KICKER = {
   fontFamily: "Geist_700Bold" as const,
@@ -138,6 +139,13 @@ function synthesizeOption(it: PlanItinerary, destLabel: string): JourneyOption {
 
 function fmtMin(sec: number): string {
   return `${Math.max(1, Math.round(sec / 60))} min`;
+}
+
+function hereStopId(active: ActiveTrip): string | null {
+  const ride = active.itinerary?.legs.find((l): l is RideLeg => l.kind === "ride");
+  if (ride) return ride.board.stopId;
+  const bus = active.option.legs.find((l) => l.kind === "bus");
+  return bus && "board" in bus ? bus.board.stopId : null;
 }
 
 export function EarlyAlightSheet({
@@ -308,6 +316,11 @@ export function EarlyAlightSheet({
                       : it.transfers === 1
                         ? "1 change"
                         : `${it.transfers} changes`;
+                  const ask = otherStopAsk({
+                    legs: it.legs,
+                    hereStopId: hereStopId(active),
+                    nowUnix: Math.floor(Date.now() / 1000),
+                  });
                   return (
                     <Pressable
                       key={it.id}
@@ -342,7 +355,7 @@ export function EarlyAlightSheet({
                           color: palette.ink,
                         }}
                       >
-                        {fmtMin(it.totalDurationSec)} to {active.to.label}
+                        {ask ? otherStopLine(ask) : `${fmtMin(it.totalDurationSec)} to ${active.to.label}`}
                       </Text>
                       <Text
                         style={{

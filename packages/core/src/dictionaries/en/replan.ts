@@ -32,4 +32,6 @@ export const replan = {
   "replan.latePreBoard.sub": "Here's what's faster from where you are now.",
   "replan.walkInstead": "Or walk there in about {mins}",
   "replan.walkInsteadCta": "Walk it",
+  "replan.otherStop": "Bus {code} leaves in {min} min from {stop}.",
+  "replan.otherStopNow": "Bus {code} leaves now from {stop}.",
 } as const;
