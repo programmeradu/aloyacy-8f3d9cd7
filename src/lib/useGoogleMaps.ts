@@ -11,16 +11,15 @@ declare global {
 }
 
 // The Maps browser key is publishable and restricted by HTTP referrer in
-// Google Cloud. Keep the connector value preferred, but retain the restricted
-// production key as a build fallback: custom-domain publishes do not always
-// receive workspace connector VITE variables, which previously produced a
-// silent limestone "Map unavailable" panel without even requesting the SDK.
-const PRODUCTION_BROWSER_KEY = "AIzaSyA3COtlmbtIdqAAV_bEVU56OkIELFCD6Hw"; // secret-scan:allow — Maps JS browser key, HTTP-referrer restricted
+// Google Cloud. Aloya owns this key — the previously-preferred workspace
+// connector key has billing disabled and now fails with
+// BillingNotEnabledMapError, so it is no longer consulted at all. The literal
+// is kept as a build fallback because custom-domain publishes do not always
+// receive VITE variables, which produced a silent "Map unavailable" panel.
+const PRODUCTION_BROWSER_KEY = "AIzaSyBmvJph4LmrbtW7skeczzpBIyb9WWzFKo4"; // secret-scan:allow — Aloya Maps JS browser key, HTTP-referrer restricted
 const KEY =
-  (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined) ||
-  PRODUCTION_BROWSER_KEY;
-const CHANNEL = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID as
-  string | undefined;
+  (import.meta.env.VITE_GOOGLE_MAPS_BROWSER_KEY as string | undefined) || PRODUCTION_BROWSER_KEY;
+const CHANNEL = import.meta.env.VITE_GOOGLE_MAPS_TRACKING_ID as string | undefined;
 
 function load(): Promise<typeof google> {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
