@@ -29,6 +29,7 @@ import { sameStation, stationIdOf } from "./stations.server";
 import { buildHeadwayIndex } from "@aloya/core/headway";
 import { skipMapKey } from "@aloya/core/skip-rate";
 import { loadSkipFractionMap } from "./skip-rate.server";
+import { withTimeout } from "@/lib/server-cache";
 
 const log = createLogger("multileg");
 
@@ -97,8 +98,13 @@ export async function planMultiLegJourney(
   const headways = buildHeadwayIndex(
     arrivals.map((a) => ({ routeId: a.routeId, stopId: a.stopId, timeUnix: a.arrivalUnix })),
   );
-  const skipMap = await loadSkipFractionMap(nearbyArrivalStopIds(arrivals, from)).catch(
-    () => new Map<string, number>(),
+  // Skip rates only sharpen ranking; a slow database must not stall the plan.
+  const skipMap = await withTimeout(
+    loadSkipFractionMap(nearbyArrivalStopIds(arrivals, from)).catch(
+      () => new Map<string, number>(),
+    ),
+    1_200,
+    new Map<string, number>(),
   );
   const ctx: PlanContext = {
     sameStation,

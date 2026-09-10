@@ -19,6 +19,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { STOPS, distanceKm } from "./gtfs";
 import { createLogger, serializeError } from "@/lib/logger";
+import { withTimeout } from "@/lib/server-cache";
 
 const log = createLogger("walk-links");
 
@@ -79,6 +80,9 @@ function softFallback(fromId: string, toId: string): WalkLink {
 }
 
 const inFlight = new Map<string, Promise<WalkLink>>();
+/** Verified geometry, memoised for the life of the process. */
+const memory = new Map<string, WalkLink>();
+const DB_READ_TIMEOUT_MS = 800;
 
 /**
  * Returns a real (or cached, or soft-fallback) walking link between two stops.
@@ -100,9 +104,16 @@ export async function getWalkLink(fromId: string, toId: string): Promise<WalkLin
   const [lo, hi] = canonicalPair(fromId, toId);
   const key = `${lo}|${hi}`;
 
+  // 0) Process memory — stop-to-stop walking geometry is static.
+  const memo = memory.get(key);
+  if (memo) return reorient(memo, fromId, toId);
+
   // 1) Cache hit
-  const cached = await readCache(lo, hi);
-  if (cached) return reorient(cached, fromId, toId);
+  const cachedRow = await readCache(lo, hi);
+  if (cachedRow) {
+    memory.set(key, cachedRow);
+    return reorient(cachedRow, fromId, toId);
+  }
 
   // 2) Coalesce concurrent fetches for the same pair
   const existing = inFlight.get(key);
@@ -112,6 +123,7 @@ export async function getWalkLink(fromId: string, toId: string): Promise<WalkLin
   inFlight.set(key, p);
   try {
     const link = await p;
+    if (link.verified) memory.set(key, link);
     return reorient(link, fromId, toId);
   } finally {
     inFlight.delete(key);
@@ -123,14 +135,37 @@ function reorient(link: WalkLink, wantFrom: string, wantTo: string): WalkLink {
   return { ...link, fromStopId: wantFrom, toStopId: wantTo };
 }
 
+/** When the walk-links table keeps timing out, stop asking for a while: every
+ *  extra attempt is dead time added to a rider's plan. */
+let readsTrippedUntil = 0;
+let consecutiveReadFailures = 0;
+
 async function readCache(lo: string, hi: string): Promise<WalkLink | null> {
-  const { data, error } = await supabaseAdmin
-    .from("walk_links")
-    .select("from_stop_id, to_stop_id, distance_m, duration_sec, polyline")
-    .eq("from_stop_id", lo)
-    .eq("to_stop_id", hi)
-    .maybeSingle();
-  if (error || !data) return null;
+  if (Date.now() < readsTrippedUntil) return null;
+  // Walking geometry between two fixed stops never changes, so the row is
+  // memoised per process. A degraded database must not add seconds to every
+  // leg of every plan, hence the hard read timeout.
+  const { data, error } = await withTimeout(
+    supabaseAdmin
+      .from("walk_links")
+      .select("from_stop_id, to_stop_id, distance_m, duration_sec, polyline")
+      .eq("from_stop_id", lo)
+      .eq("to_stop_id", hi)
+      .maybeSingle()
+      .then((r) => r),
+    DB_READ_TIMEOUT_MS,
+    { data: null, error: { message: "walk_links read timed out" } } as never,
+  );
+  if (error) {
+    if (++consecutiveReadFailures >= 3) {
+      readsTrippedUntil = Date.now() + 60_000;
+      consecutiveReadFailures = 0;
+      log.warn("walk_links reads paused for 60s after repeated failures");
+    }
+    return null;
+  }
+  consecutiveReadFailures = 0;
+  if (!data) return null;
   return {
     fromStopId: data.from_stop_id,
     toStopId: data.to_stop_id,
@@ -160,7 +195,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
   url.searchParams.set("key", key);
 
   try {
-    const res = await fetch(url.toString());
+    const res = await fetch(url.toString(), { signal: AbortSignal.timeout(3_000) });
     const json = (await res.json()) as DirectionsResponse;
 
     if (json.status === "ZERO_RESULTS") {
@@ -173,7 +208,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
         polyline: "",
         verified: true,
       };
-      await writeCache(sentinel);
+      void writeCache(sentinel);
       return sentinel;
     }
 
@@ -191,7 +226,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
       polyline: json.routes[0].overview_polyline?.points ?? "",
       verified: true,
     };
-    await writeCache(link);
+    void writeCache(link);
     return link;
   } catch (err) {
     log.warn("fetch failed", { ...serializeError(err) });

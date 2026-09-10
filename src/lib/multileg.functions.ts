@@ -22,6 +22,7 @@ import { loadWheelchairAccess } from "./stop-condition.server";
 import { collectItineraryStopIds, filterLowFloorItineraries } from "@aloya/core/low-floor";
 import { createLogger } from "./logger";
 import { filterDominated } from "@aloya/core/plan-score";
+import { withTimeout } from "./server-cache";
 
 const log = createLogger("multileg");
 
@@ -222,7 +223,11 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     }
 
     const learningMod = await import("./planner-learning.server");
-    const learning = await learningMod.loadPlannerLearningContext(merged).catch(() => null);
+    const learning = await withTimeout(
+      learningMod.loadPlannerLearningContext(merged).catch(() => null),
+      1_200,
+      null,
+    );
     for (const it of merged) learningMod.rescoreItineraryWithLearning(it, learning);
     const mergedRaw = merged.length;
 
@@ -287,7 +292,11 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     // repeatedly skipped the transfer for this exact OD pair. Each prior
     // skip adds 90 s of effective penalty, capped at 6 min, so a stubborn
     // transfer can still win if it's genuinely faster.
-    const skips = await getSkippedTransferCount(data.from, data.to).catch(() => 0);
+    const skips = await withTimeout(
+      getSkippedTransferCount(data.from, data.to).catch(() => 0),
+      800,
+      0,
+    );
     if (skips >= 3) {
       const bias = Math.min(skips * 90, 360);
       for (const it of kept) {
@@ -301,8 +310,12 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     }
 
     if (data.a11y && (data.a11y.stepFree || data.a11y.lowFloor)) {
-      const access = await loadWheelchairAccess(collectItineraryStopIds(kept)).catch(
-        () => ({}) as Record<string, string>,
+      const access = await withTimeout(
+        loadWheelchairAccess(collectItineraryStopIds(kept)).catch(
+          () => ({}) as Record<string, string>,
+        ),
+        1_200,
+        {} as Record<string, string>,
       );
       const filtered = filterLowFloorItineraries(kept, access);
       if (filtered.length > 0) kept = filtered;
