@@ -156,7 +156,16 @@ async function readCache(lo: string, hi: string): Promise<WalkLink | null> {
     DB_READ_TIMEOUT_MS,
     { data: null, error: { message: "walk_links read timed out" } } as never,
   );
-  if (error || !data) return null;
+  if (error) {
+    if (++consecutiveReadFailures >= 3) {
+      readsTrippedUntil = Date.now() + 60_000;
+      consecutiveReadFailures = 0;
+      log.warn("walk_links reads paused for 60s after repeated failures");
+    }
+    return null;
+  }
+  consecutiveReadFailures = 0;
+  if (!data) return null;
   return {
     fromStopId: data.from_stop_id,
     toStopId: data.to_stop_id,
