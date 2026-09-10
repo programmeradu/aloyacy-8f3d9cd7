@@ -100,9 +100,16 @@ export async function getWalkLink(fromId: string, toId: string): Promise<WalkLin
   const [lo, hi] = canonicalPair(fromId, toId);
   const key = `${lo}|${hi}`;
 
+  // 0) Process memory — stop-to-stop walking geometry is static.
+  const memo = memory.get(key);
+  if (memo) return reorient(memo, fromId, toId);
+
   // 1) Cache hit
-  const cached = await readCache(lo, hi);
-  if (cached) return reorient(cached, fromId, toId);
+  const cachedRow = await readCache(lo, hi);
+  if (cachedRow) {
+    memory.set(key, cachedRow);
+    return reorient(cachedRow, fromId, toId);
+  }
 
   // 2) Coalesce concurrent fetches for the same pair
   const existing = inFlight.get(key);
