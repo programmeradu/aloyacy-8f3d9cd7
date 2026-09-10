@@ -295,17 +295,33 @@ function foldConfirmed(rows: SightingRow[], carry: Set<string>): RiderConfirmedT
   }));
 }
 
-export async function fetchRealtime(): Promise<RealtimeSnapshot> {
+/** How long one snapshot is reused. The upstream feed itself only refreshes
+ *  every ~15 s, so anything shorter is pure duplicated work. */
+const SNAPSHOT_TTL_MS = 10_000;
+/** Rider sightings and reputation only refine the snapshot; when the database
+ *  is slow they are dropped rather than delaying every rider's answer. */
+const AUX_DB_TIMEOUT_MS = 1_200;
+
+export function fetchRealtime(): Promise<RealtimeSnapshot> {
+  return cached("realtime-snapshot", SNAPSHOT_TTL_MS, buildRealtime);
+}
+
+async function buildRealtime(): Promise<RealtimeSnapshot> {
   const now = Math.floor(Date.now() / 1000);
   const [upstreamResult, riderBundle, sightingRows] = await Promise.all([
     fetchUpstream().catch((e) => ({ error: e as Error })),
-    fetchRiderFixes().catch(() => ({ vehicles: [] as LiveVehicle[], reports: [] as SightingRow[] })),
-    fetchSightingRows().catch(() => [] as SightingRow[]),
+    withTimeout(fetchRiderFixes(), AUX_DB_TIMEOUT_MS, {
+      vehicles: [] as LiveVehicle[],
+      reports: [] as SightingRow[],
+    }),
+    withTimeout(fetchSightingRows(), AUX_DB_TIMEOUT_MS, [] as SightingRow[]),
   ]);
   const riderFixes = riderBundle.vehicles;
   const reports = [...sightingRows, ...riderBundle.reports];
-  const carry = await loadCanCarryDevices(reports.map((r) => r.deviceId)).catch(
-    () => new Set<string>(),
+  const carry = await withTimeout(
+    loadCanCarryDevices(reports.map((r) => r.deviceId)),
+    AUX_DB_TIMEOUT_MS,
+    new Set<string>(),
   );
   const sightings = foldConfirmed(reports, carry);
 
