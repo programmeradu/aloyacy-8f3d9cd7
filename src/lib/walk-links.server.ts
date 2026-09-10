@@ -79,6 +79,9 @@ function softFallback(fromId: string, toId: string): WalkLink {
 }
 
 const inFlight = new Map<string, Promise<WalkLink>>();
+/** Verified geometry, memoised for the life of the process. */
+const memory = new Map<string, WalkLink>();
+const DB_READ_TIMEOUT_MS = 800;
 
 /**
  * Returns a real (or cached, or soft-fallback) walking link between two stops.
