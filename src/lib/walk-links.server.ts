@@ -19,6 +19,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { STOPS, distanceKm } from "./gtfs";
 import { createLogger, serializeError } from "@/lib/logger";
+import { withTimeout } from "@/lib/server-cache";
 
 const log = createLogger("walk-links");
 
@@ -122,6 +123,7 @@ export async function getWalkLink(fromId: string, toId: string): Promise<WalkLin
   inFlight.set(key, p);
   try {
     const link = await p;
+    if (link.verified) memory.set(key, link);
     return reorient(link, fromId, toId);
   } finally {
     inFlight.delete(key);
@@ -178,7 +180,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
   url.searchParams.set("key", key);
 
   try {
-    const res = await fetch(url.toString());
+    const res = await fetch(url.toString(), { signal: AbortSignal.timeout(3_000) });
     const json = (await res.json()) as DirectionsResponse;
 
     if (json.status === "ZERO_RESULTS") {
@@ -191,7 +193,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
         polyline: "",
         verified: true,
       };
-      await writeCache(sentinel);
+      void writeCache(sentinel);
       return sentinel;
     }
 
@@ -209,7 +211,7 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
       polyline: json.routes[0].overview_polyline?.points ?? "",
       verified: true,
     };
-    await writeCache(link);
+    void writeCache(link);
     return link;
   } catch (err) {
     log.warn("fetch failed", { ...serializeError(err) });

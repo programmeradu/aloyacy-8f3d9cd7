@@ -11,6 +11,7 @@ import gr from "gtfs-realtime-bindings";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchFeedOverSocket } from "@/lib/gtfs-socket.server";
 import { getRoute } from "@/lib/gtfs";
+import { cached, withTimeout } from "@/lib/server-cache";
 import { tagGhostTripIds } from "@/lib/ghost-trips";
 import { RIDER_PHYSICS_FOLD_MIN, riderFold } from "@aloya/core/rider-physics";
 import {
