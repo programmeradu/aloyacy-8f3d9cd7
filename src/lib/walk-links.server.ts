@@ -135,7 +135,13 @@ function reorient(link: WalkLink, wantFrom: string, wantTo: string): WalkLink {
   return { ...link, fromStopId: wantFrom, toStopId: wantTo };
 }
 
+/** When the walk-links table keeps timing out, stop asking for a while: every
+ *  extra attempt is dead time added to a rider's plan. */
+let readsTrippedUntil = 0;
+let consecutiveReadFailures = 0;
+
 async function readCache(lo: string, hi: string): Promise<WalkLink | null> {
+  if (Date.now() < readsTrippedUntil) return null;
   // Walking geometry between two fixed stops never changes, so the row is
   // memoised per process. A degraded database must not add seconds to every
   // leg of every plan, hence the hard read timeout.
