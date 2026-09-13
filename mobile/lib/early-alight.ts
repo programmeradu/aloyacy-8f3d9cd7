@@ -118,3 +118,4 @@ export function hereStopId(active: ActiveTrip): string | null {
   if (ride) return ride.board.stopId;
   const bus = active.option.legs.find((l) => l.kind === "bus");
   return bus && "board" in bus ? bus.board.stopId : null;
+}
