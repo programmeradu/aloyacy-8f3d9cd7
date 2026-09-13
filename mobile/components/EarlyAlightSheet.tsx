@@ -36,8 +36,6 @@ import { otherStopAsk, otherStopLine } from "@aloya/core/other-stop";
 
 import { KICKER, COPY, synthesizeOption, fmtMin, hereStopId } from "@/lib/early-alight";
 
-}
-
 export function EarlyAlightSheet({
   visible,
   active,
