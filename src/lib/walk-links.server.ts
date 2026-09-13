@@ -146,13 +146,14 @@ async function readCache(lo: string, hi: string): Promise<WalkLink | null> {
   // memoised per process. A degraded database must not add seconds to every
   // leg of every plan, hence the hard read timeout.
   const { data, error } = await withTimeout(
-    supabaseAdmin
-      .from("walk_links")
-      .select("from_stop_id, to_stop_id, distance_m, duration_sec, polyline")
-      .eq("from_stop_id", lo)
-      .eq("to_stop_id", hi)
-      .maybeSingle()
-      .then((r) => r),
+    Promise.resolve(
+      supabaseAdmin
+        .from("walk_links")
+        .select("from_stop_id, to_stop_id, distance_m, duration_sec, polyline")
+        .eq("from_stop_id", lo)
+        .eq("to_stop_id", hi)
+        .maybeSingle(),
+    ),
     DB_READ_TIMEOUT_MS,
     { data: null, error: { message: "walk_links read timed out" } } as never,
   );

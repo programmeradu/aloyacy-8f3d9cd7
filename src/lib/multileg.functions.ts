@@ -209,7 +209,6 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       throw new Error("planner_unavailable");
     }
 
-
     const merged: Itinerary[] = [
       ...(liveResult?.itineraries ?? []),
       ...(schedResult?.itineraries ?? []),
