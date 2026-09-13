@@ -60,10 +60,7 @@ async function verifyWalks(top: Itinerary[], now: number, ctx?: PlanContext): Pr
   );
 }
 
-function nearbyArrivalStopIds(
-  arrivals: MlArrival[],
-  from: { lat: number; lng: number },
-): string[] {
+function nearbyArrivalStopIds(arrivals: MlArrival[], from: { lat: number; lng: number }): string[] {
   const ids = new Set<string>();
   for (const a of arrivals) {
     const s = STOP_BY_ID.get(a.stopId);
@@ -137,5 +134,8 @@ export async function planMultiLegJourney(
   if (elapsed > 1500) {
     log.warn("search over budget", { elapsedMs: elapsed });
   }
-  return { itineraries: preferred, diagnostics: opts?.collectDiagnostics ? diagnostics : undefined };
+  return {
+    itineraries: preferred,
+    diagnostics: opts?.collectDiagnostics ? diagnostics : undefined,
+  };
 }

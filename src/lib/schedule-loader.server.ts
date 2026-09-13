@@ -113,9 +113,19 @@ export function todayLocalDate(offsetDays = 0): string {
   return `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, "0")}${String(now.getUTCDate()).padStart(2, "0")}`;
 }
 
+/** Dates whose shard is not published. Re-fetching a known 404 on every plan
+ *  is pure latency, so a miss is remembered for a few minutes. */
+const _missingShards = new Map<string, number>();
+const MISS_TTL_MS = 5 * 60_000;
+
 export async function loadShard(date: string): Promise<DateShard> {
   const cached = _shards.get(date);
   if (cached && Date.now() - cached.loadedAt < SHARD_TTL_MS) return cached;
+
+  const missedAt = _missingShards.get(date);
+  if (missedAt && Date.now() - missedAt < MISS_TTL_MS) {
+    throw new Error(`schedule shard ${date} → 404 (cached miss)`);
+  }
 
   // Evict old shards before loading new ones (keep at most 3 in memory).
   if (_shards.size >= 3) {
@@ -123,10 +133,17 @@ export async function loadShard(date: string): Promise<DateShard> {
     if (oldest) _shards.delete(oldest[0]);
   }
 
-  const [stopTrips, stopTimes] = await Promise.all([
-    fetchJson<Record<string, StopTripRow[]>>(`/data/schedule/by-date/${date}/stop-trips.json`),
-    fetchJson<Record<string, StopTimeRow[]>>(`/data/schedule/by-date/${date}/stop-times.json`),
-  ]);
+  let stopTrips: Record<string, StopTripRow[]>;
+  let stopTimes: Record<string, StopTimeRow[]>;
+  try {
+    [stopTrips, stopTimes] = await Promise.all([
+      fetchJson<Record<string, StopTripRow[]>>(`/data/schedule/by-date/${date}/stop-trips.json`),
+      fetchJson<Record<string, StopTimeRow[]>>(`/data/schedule/by-date/${date}/stop-times.json`),
+    ]);
+  } catch (err) {
+    if (/404/.test((err as Error).message ?? "")) _missingShards.set(date, Date.now());
+    throw err;
+  }
   const shard: DateShard = { stopTrips, stopTimes, loadedAt: Date.now() };
   _shards.set(date, shard);
   return shard;
