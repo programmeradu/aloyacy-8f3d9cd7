@@ -34,4 +34,6 @@ export const replan: Record<keyof typeof replanEn, string> = {
   "replan.latePreBoard.sub": "Να τι είναι πιο γρήγορο από την τρέχουσα θέση σου.",
   "replan.walkInstead": "Ή πήγαινε με τα πόδια σε περίπου {mins}",
   "replan.walkInsteadCta": "Με τα πόδια",
+  "replan.otherStop": "Το λεωφορείο {code} φεύγει σε {min} λεπ. από {stop}.",
+  "replan.otherStopNow": "Το λεωφορείο {code} φεύγει τώρα από {stop}.",
 };

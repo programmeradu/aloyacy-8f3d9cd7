@@ -29,6 +29,7 @@ import { sameStation, stationIdOf } from "./stations.server";
 import { buildHeadwayIndex } from "@aloya/core/headway";
 import { skipMapKey } from "@aloya/core/skip-rate";
 import { loadSkipFractionMap } from "./skip-rate.server";
+import { withTimeout } from "@/lib/server-cache";
 
 const log = createLogger("multileg");
 
@@ -59,10 +60,7 @@ async function verifyWalks(top: Itinerary[], now: number, ctx?: PlanContext): Pr
   );
 }
 
-function nearbyArrivalStopIds(
-  arrivals: MlArrival[],
-  from: { lat: number; lng: number },
-): string[] {
+function nearbyArrivalStopIds(arrivals: MlArrival[], from: { lat: number; lng: number }): string[] {
   const ids = new Set<string>();
   for (const a of arrivals) {
     const s = STOP_BY_ID.get(a.stopId);
@@ -97,8 +95,13 @@ export async function planMultiLegJourney(
   const headways = buildHeadwayIndex(
     arrivals.map((a) => ({ routeId: a.routeId, stopId: a.stopId, timeUnix: a.arrivalUnix })),
   );
-  const skipMap = await loadSkipFractionMap(nearbyArrivalStopIds(arrivals, from)).catch(
-    () => new Map<string, number>(),
+  // Skip rates only sharpen ranking; a slow database must not stall the plan.
+  const skipMap = await withTimeout(
+    loadSkipFractionMap(nearbyArrivalStopIds(arrivals, from)).catch(
+      () => new Map<string, number>(),
+    ),
+    1_200,
+    new Map<string, number>(),
   );
   const ctx: PlanContext = {
     sameStation,
@@ -131,5 +134,8 @@ export async function planMultiLegJourney(
   if (elapsed > 1500) {
     log.warn("search over budget", { elapsedMs: elapsed });
   }
-  return { itineraries: preferred, diagnostics: opts?.collectDiagnostics ? diagnostics : undefined };
+  return {
+    itineraries: preferred,
+    diagnostics: opts?.collectDiagnostics ? diagnostics : undefined,
+  };
 }

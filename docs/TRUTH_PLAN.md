@@ -380,9 +380,11 @@ then a flip pushes once (“Bus 31 is now 14 min if it shows. Walking is
 session; reset when the action goes silent. HUD dest-bail still updates
 in place.
 
-Not this slice: RAPTOR “the 25 leaves in 3 min from the next stop”
-stays the live-replan sheet. Taxi/Bolt euros stay unpublished without
-a quote.
+Not this slice: Taxi/Bolt euros stay unpublished without a quote.
+
+**On the live-replan sheet (shipped).** When RAPTOR boards at a different
+stop, the option is named: “Bus 25 leaves in 3 min from Makariou.” Same
+stop stays the dest sentence. No invented taxi euro.
 
 ---
 
@@ -760,9 +762,11 @@ Taxi fare is unpublished — we have no destination, so we print none.
 Luggage and last-coach stay quiet: neither is in the product, and Kapnos
 `nextDepartures` is a slice so we cannot claim the last coach.
 
-Honest total cost (fare + wait + walk) and a dedicated RAPTOR from the
-door still need a destination. Marketing journey pages already deep-link
-here.
+Honest total cost (fare + wait + walk) ships when a destination is on
+the URL (`toLat`/`toLng`/`toLabel`). Kapnos is the coach that actually
+goes there, not the soonest other city. RAPTOR from the door is the
+city-bus walk. Taxi fare stays unpublished without a measured drive.
+Luggage and last-coach stay quiet.
 
 ### G2. Boarding truth + last-bus as named states
 
@@ -889,7 +893,7 @@ Update this table in the same commit as the slice.
 | B2 | Headway chance | **Shipped** on the stop card and on the HUD keep-wait sentence. Silent below 15%. |
 | B3 | No-show + last-bus | **Shipped** on the stop. Apply `20260828_no_show_hour.sql`. |
 | B4 | Wait-or-bail | **Shipped** same-stop skip/other/last-tonight, plus dest-aware HUD walk vs wait. Shipped RAPTOR HUD sentence, Bolt/scooter price, taxi tariff. |
-| B5 | Walk-or-wait flip push | **Shipped** once-per-wait. Shipped RAPTOR other-stop. |
+| B5 | Walk-or-wait flip push | **Shipped** once-per-wait. RAPTOR other-stop on the live-replan sheet and HUD **shipped.** |
 | C1 | Rider-fix physics | **Shipped.** Apply `20260828_rider_physics.sql`. Learned segment speeds wait on A4. |
 | C2 | Corroboration + reputation | **Shipped** one rider vs two, a proven phone can carry alone, disagreement “off this hour”, and GPS ∪ tap as distinct devices. Apply `20260828_device_reputation.sql`. |
 | C3 | Cold-start ask | **Shipped** only-eyes ask, Pulse watching + busy-and-dark seed list, seed copy on the ask. |
@@ -902,12 +906,12 @@ Update this table in the same commit as the slice.
 | E2 | Programmatic index | **Partial.** Stops and rated routes. `/accuracy` waits on A5. |
 | E3 | Transit JSON-LD | **Shipped.** `BusStop` + breadcrumbs on indexable stop pages. Breadcrumbs + `BusTrip` on rated route pages. `FAQPage` on stops. |
 | F1–F4 | Truth API, report card, embed | **Blocked** until A1/A2 are writing *and* a design partner is waiting. |
-| G1 | Airport as a job | **Shipped** first slice (Kapnos vs city bus vs taxi rank). Dest-aware total cost **open.** |
+| G1 | Airport as a job | **Shipped.** Kapnos vs city bus vs taxi rank. Dest-aware fare + wait + walk when `toLat`/`toLng` are present. Taxi euro still unpublished without a measured drive. |
 | G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** G1 dest-aware airport total cost (needs a destination).
+**Next unblocked:** B4 Bolt / taxi quote on wait-or-bail (needs a measured drive). Then E3 stop FAQ / Schedule JSON-LD.
 
 ---
 
