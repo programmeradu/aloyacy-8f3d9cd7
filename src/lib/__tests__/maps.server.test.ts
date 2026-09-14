@@ -18,14 +18,13 @@ describe("maps.server authHeaders", () => {
     expect(() => authHeaders()).toThrow(/missing/i);
   });
 
-  it("prefers Lovable managed connection without client key when LOVABLE_API_KEY is present", () => {
+  it("passes X-Connection-Api-Key and X-Connection-Id when LOVABLE_API_KEY is present", () => {
     process.env.LOVABLE_API_KEY = "lovable_test_token";
-    process.env.GOOGLE_MAPS_API_KEY = "restricted_browser_key";
+    process.env.GOOGLE_MAPS_API_KEY = "client_key";
 
     const headers = authHeaders();
     expect(headers.Authorization).toBe("Bearer lovable_test_token");
-    // Crucial: do NOT send the browser-restricted GOOGLE_MAPS_API_KEY
-    expect(headers["X-Connection-Api-Key"]).toBeUndefined();
+    expect(headers["X-Connection-Api-Key"]).toBe("client_key");
     expect(headers["X-Connection-Id"]).toBe("std_01ks89na5gfj8ar9b3vtc8qg92");
     expect(headers["Content-Type"]).toBe("application/json");
   });

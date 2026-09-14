@@ -16,8 +16,9 @@ export function authHeaders(extra: Record<string, string> = {}) {
   const lk = process.env.LOVABLE_API_KEY;
   const serverKey = process.env.GOOGLE_MAPS_SERVER_KEY;
   const clientKey = process.env.GOOGLE_MAPS_API_KEY;
+  const effectiveKey = serverKey || clientKey;
 
-  if (!lk && !serverKey && !clientKey) {
+  if (!lk && !effectiveKey) {
     throw new Error("LOVABLE_API_KEY or GOOGLE_MAPS_API_KEY missing");
   }
 
@@ -26,20 +27,14 @@ export function authHeaders(extra: Record<string, string> = {}) {
     ...extra,
   };
 
+  if (effectiveKey) {
+    headers["X-Connection-Api-Key"] = effectiveKey;
+  }
+
   if (lk) {
     headers.Authorization = `Bearer ${lk}`;
-    // Prefer the managed Lovable connector gateway connection (std_01ks89na5gfj8ar9b3vtc8qg92).
-    // Client-side GOOGLE_MAPS_API_KEYs usually have HTTP-referrer restrictions that
-    // fail server-side requests (403/REQUEST_DENIED). Only send X-Connection-Api-Key
-    // if an explicit, unrestricted GOOGLE_MAPS_SERVER_KEY is configured.
-    if (serverKey) {
-      headers["X-Connection-Api-Key"] = serverKey;
-    } else {
-      headers["X-Connection-Id"] =
-        process.env.GOOGLE_MAPS_CONNECTION_ID || "std_01ks89na5gfj8ar9b3vtc8qg92";
-    }
-  } else {
-    headers["X-Connection-Api-Key"] = (serverKey || clientKey)!;
+    headers["X-Connection-Id"] =
+      process.env.GOOGLE_MAPS_CONNECTION_ID || "std_01ks89na5gfj8ar9b3vtc8qg92";
   }
 
   return headers;
