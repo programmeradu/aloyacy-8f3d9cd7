@@ -23,12 +23,15 @@ export function authHeaders(extra: Record<string, string> = {}) {
 
   if (lk) {
     headers.Authorization = `Bearer ${lk}`;
-    // Prefer the managed Lovable connector gateway connection.
+    // Prefer the managed Lovable connector gateway connection (std_01ks89na5gfj8ar9b3vtc8qg92).
     // Client-side GOOGLE_MAPS_API_KEYs usually have HTTP-referrer restrictions that
     // fail server-side requests (403/REQUEST_DENIED). Only send X-Connection-Api-Key
     // if an explicit, unrestricted GOOGLE_MAPS_SERVER_KEY is configured.
     if (serverKey) {
       headers["X-Connection-Api-Key"] = serverKey;
+    } else {
+      headers["X-Connection-Id"] =
+        process.env.GOOGLE_MAPS_CONNECTION_ID || "std_01ks89na5gfj8ar9b3vtc8qg92";
     }
   } else {
     headers["X-Connection-Api-Key"] = (serverKey || clientKey)!;
@@ -219,7 +222,11 @@ export async function walkingDirections(
       units: "METRIC",
     }),
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    log.error({ status: res.status, body: errText }, "walking directions computeRoutes failed");
+    return null;
+  }
   type Step = {
     distanceMeters?: number;
     staticDuration?: string;
@@ -294,7 +301,11 @@ export async function drivingRoute(
         units: "METRIC",
       }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      log.error({ status: res.status, body: errText }, "drivingRoute computeRoutes failed");
+      return null;
+    }
     const json = (await res.json()) as {
       routes?: {
         duration: string;

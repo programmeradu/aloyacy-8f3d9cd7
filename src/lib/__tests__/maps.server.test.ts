@@ -26,6 +26,7 @@ describe("maps.server authHeaders", () => {
     expect(headers.Authorization).toBe("Bearer lovable_test_token");
     // Crucial: do NOT send the browser-restricted GOOGLE_MAPS_API_KEY
     expect(headers["X-Connection-Api-Key"]).toBeUndefined();
+    expect(headers["X-Connection-Id"]).toBe("std_01ks89na5gfj8ar9b3vtc8qg92");
     expect(headers["Content-Type"]).toBe("application/json");
   });
 
