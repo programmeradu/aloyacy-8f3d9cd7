@@ -364,14 +364,14 @@ function WalletRoute() {
             <div className="grid grid-cols-3 gap-2.5">
               <Fare
                 label={t("wallet.fare.urban")}
-                value="€1.50"
+                value="€2.00"
                 sub={t("wallet.fare.urbanSub")}
                 image={fareUrban}
                 imageAlt={t("wallet.fare.urbanAlt")}
               />
               <Fare
                 label={t("wallet.fare.night")}
-                value="€2.50"
+                value="€3.50"
                 sub={t("wallet.fare.nightSub")}
                 image={fareNight}
                 imageAlt={t("wallet.fare.nightAlt")}
@@ -379,7 +379,7 @@ function WalletRoute() {
               />
               <Fare
                 label={t("wallet.fare.intercity")}
-                value="€4.00"
+                value="€5–€8"
                 sub={t("wallet.fare.intercitySub")}
                 image={fareIntercity}
                 imageAlt={t("wallet.fare.intercityAlt")}

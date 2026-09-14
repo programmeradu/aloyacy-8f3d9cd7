@@ -20,6 +20,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { STOPS, distanceKm } from "./gtfs";
 import { createLogger, serializeError } from "@/lib/logger";
 import { withTimeout } from "@/lib/server-cache";
+import { walkingRoute } from "./maps.server";
 
 const log = createLogger("walk-links");
 
@@ -182,25 +183,11 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
   const b = STOP_BY_ID.get(hi);
   if (!a || !b) return softFallback(lo, hi);
 
-  const key = process.env.GOOGLE_MAPS_API_KEY;
-  if (!key) {
-    log.warn("GOOGLE_MAPS_API_KEY missing — returning soft fallback");
-    return softFallback(lo, hi);
-  }
-
-  const url = new URL("https://maps.googleapis.com/maps/api/directions/json");
-
-  url.searchParams.set("origin", `${a.lat},${a.lng}`);
-  url.searchParams.set("destination", `${b.lat},${b.lng}`);
-  url.searchParams.set("mode", "walking");
-  url.searchParams.set("key", key);
-
   try {
-    const res = await fetch(url.toString(), { signal: AbortSignal.timeout(3_000) });
-    const json = (await res.json()) as DirectionsResponse;
+    const route = await walkingRoute({ lat: a.lat, lng: a.lng }, { lat: b.lat, lng: b.lng });
 
-    if (json.status === "ZERO_RESULTS") {
-      // Persist a sentinel so we don't keep hammering Google for unreachable pairs.
+    if (!route) {
+      // Persist a sentinel so we don't keep hammering for unreachable pairs.
       const sentinel: WalkLink = {
         fromStopId: lo,
         toStopId: hi,
@@ -213,24 +200,18 @@ async function fetchAndStore(lo: string, hi: string): Promise<WalkLink> {
       return sentinel;
     }
 
-    if (json.status !== "OK" || !json.routes?.[0]?.legs?.[0]) {
-      log.warn("non-OK status", { status: json.status, errorMessage: json.error_message });
-      return softFallback(lo, hi);
-    }
-
-    const leg = json.routes[0].legs[0];
     const link: WalkLink = {
       fromStopId: lo,
       toStopId: hi,
-      distanceM: Math.round(leg.distance?.value ?? 0),
-      durationSec: Math.round(leg.duration?.value ?? 0),
-      polyline: json.routes[0].overview_polyline?.points ?? "",
+      distanceM: Math.round(route.distanceMeters),
+      durationSec: Math.round(route.durationSec),
+      polyline: route.polyline,
       verified: true,
     };
     void writeCache(link);
     return link;
   } catch (err) {
-    log.warn("fetch failed", { ...serializeError(err) });
+    log.warn("walkingRoute fetch failed", { ...serializeError(err) });
     return softFallback(lo, hi);
   }
 }

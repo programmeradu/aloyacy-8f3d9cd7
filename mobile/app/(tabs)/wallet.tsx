@@ -186,9 +186,9 @@ export default function WalletScreen() {
           {/* Fare grid */}
           <FadeSection index={0} style={{ paddingHorizontal: 22, marginTop: 24 }}>
             <View style={{ flexDirection: "row", gap: 10 }}>
-              <FareTile label="Urban" value="€1.50" sub="90 min" image={fareUrban} />
-              <FareTile label="Night" value="€2.50" sub="21:00–05:00" image={fareNight} tone="dark" />
-              <FareTile label="Intercity" value="€7.00" sub="single ride" image={fareIntercity} />
+              <FareTile label="Urban" value="€2.00" sub="90 min" image={fareUrban} />
+              <FareTile label="Night" value="€3.50" sub="21:00–04:00" image={fareNight} tone="dark" />
+              <FareTile label="Intercity" value="€5–€8" sub="single (cash)" image={fareIntercity} />
             </View>
           </FadeSection>
 

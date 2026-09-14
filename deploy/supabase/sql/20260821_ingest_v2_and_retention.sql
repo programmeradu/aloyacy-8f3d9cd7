@@ -45,14 +45,20 @@ set search_path = public
 as $$
 begin
   if jsonb_array_length(coalesce(snapshots, '[]'::jsonb)) > 0 then
-    insert into rt_snapshots (route_id, stop_id, trip_id, predicted_arrival, delay_sec)
+    insert into rt_snapshots (route_id, stop_id, trip_id, predicted_arrival, delay_sec, captured_at)
     select
       (value->>'route_id')::text,
       (value->>'stop_id')::text,
       (value->>'trip_id')::text,
       (value->>'predicted_arrival')::timestamptz,
-      (value->>'delay_sec')::integer
-    from jsonb_array_elements(snapshots);
+      (value->>'delay_sec')::integer,
+      coalesce((value->>'captured_at')::timestamptz, now())
+    from jsonb_array_elements(snapshots)
+    on conflict (trip_id, stop_id) do update set
+      route_id          = excluded.route_id,
+      predicted_arrival = excluded.predicted_arrival,
+      delay_sec         = excluded.delay_sec,
+      captured_at       = excluded.captured_at;
   end if;
 
   if jsonb_array_length(coalesce(observed, '[]'::jsonb)) > 0 then
@@ -95,8 +101,14 @@ begin
       updated_at   = now();
   end if;
 
-  -- Inline Automatic Retention: purge raw snapshots older than 30 minutes on every minute tick
-  delete from rt_snapshots where captured_at < now() - interval '30 minutes';
+  -- Inline Automatic Retention:
+  -- Purge finished trips from rt_snapshots older than 2 hours
+  delete from rt_snapshots where captured_at < now() - interval '2 hours';
+
+  -- Purge stale vehicle pings older than 6 hours
+  if exists (select from pg_tables where schemaname = 'public' and tablename = 'vehicle_pings') then
+    delete from vehicle_pings where captured_at < now() - interval '6 hours';
+  end if;
 end;
 $$;
 

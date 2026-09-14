@@ -79,8 +79,8 @@ describe("airport way copy", () => {
       cityBus: { routeShort: "425", etaMin: 6 },
     });
     expect(coachJobLine(job.nextCoach!)).toBe("Coach to Nicosia at 14:20 — 12 seats, from €8.");
-    expect(cityBusJobLine(job.cityBus!)).toBe("Bus 425 in 6 min. Tap Motion €1.80.");
-    expect(formatEur(BOARDING_PAY.urban.motionEur)).toBe("€1.80");
+    expect(cityBusJobLine(job.cityBus!)).toBe("Bus 425 in 6 min. Tap Motion €2.00.");
+    expect(formatEur(BOARDING_PAY.urban.motionEur, true)).toBe("€2.00");
     expect(TAXI_JOB_LINE).toBe(
       "Taxi rank outside arrivals. We don't quote a fare we haven't measured.",
     );
@@ -88,7 +88,7 @@ describe("airport way copy", () => {
     const lines = airportWayRows(job).map((r) => r.line);
     expect(lines).toEqual([
       "Coach to Nicosia at 14:20 — 12 seats, from €8.",
-      "Bus 425 in 6 min. Tap Motion €1.80.",
+      "Bus 425 in 6 min. Tap Motion €2.00.",
       TAXI_JOB_LINE,
     ]);
     expect(lines.join(" ")).not.toMatch(/luggage|last coach|exact change|wait/i);
@@ -103,7 +103,7 @@ describe("airport way copy", () => {
       cityBus: { routeShort: "612", etaMin: 0 },
     });
     expect(coachJobLine(job.nextCoach!)).toBe("Coach to Limassol at 15:00 — Sold out.");
-    expect(cityBusJobLine(job.cityBus!)).toBe("Bus 612 now. Tap Motion €1.80.");
+    expect(cityBusJobLine(job.cityBus!)).toBe("Bus 612 now. Tap Motion €2.00.");
   });
 
   it("still names the taxi rank when nothing else is running", () => {

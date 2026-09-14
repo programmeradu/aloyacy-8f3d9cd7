@@ -237,7 +237,11 @@ export function DepartureRow({
             >
               Scheduled {clock}
             </Text>
-            {payKind ? <Text style={softLine}>{boardingPayLine(payKind)}</Text> : null}
+            {payKind ? (
+              <Text style={softLine}>
+                {boardingPayLine(payKind, arrivalUnix ? arrivalUnix * 1000 : undefined)}
+              </Text>
+            ) : null}
             {waitOrBail ? <Text style={truthLine}>{waitOrBailCopy(waitOrBail)}</Text> : null}
             {eta.tier === "rider-confirmed" &&
             eta.pingAgeSec != null &&

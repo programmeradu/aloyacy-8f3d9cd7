@@ -128,7 +128,7 @@ export function cityBusDoorLine(input: {
   walkMin: number;
   destLabel: string;
 }): string {
-  const fare = formatEur(input.fareEur);
+  const fare = formatEur(input.fareEur, true);
   return `Bus ${input.routeShort}: ${fare}, ${input.waitMin} min wait, ${input.walkMin} min walk to ${input.destLabel}.`;
 }
 
@@ -157,8 +157,8 @@ export function destJobLines(input: {
     const b = input.job.cityBus;
     lines.push(
       b.etaMin <= 0
-        ? `Bus ${b.routeShort} now. Tap Motion ${formatEur(b.motionEur)}.`
-        : `Bus ${b.routeShort} in ${b.etaMin} min. Tap Motion ${formatEur(b.motionEur)}.`,
+        ? `Bus ${b.routeShort} now. Tap Motion ${formatEur(b.motionEur, true)}.`
+        : `Bus ${b.routeShort} in ${b.etaMin} min. Tap Motion ${formatEur(b.motionEur, true)}.`,
     );
   }
   lines.push("Taxi rank outside arrivals. We don't quote a fare we haven't measured.");

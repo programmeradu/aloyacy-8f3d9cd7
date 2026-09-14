@@ -69,12 +69,12 @@ describe("destJobLines", () => {
     expect(lines[0]).toBe(`Coach to Nicosia at 14:20 — €8, ${wait} min wait, 8 min walk.`);
     expect(lines[1]).toBe(cityBusDoorLine({
       routeShort: "456",
-      fareEur: 1.8,
+      fareEur: 2.0,
       waitMin: 12,
       walkMin: 14,
       destLabel: "Nicosia",
     }));
-    expect(lines[1]).toBe("Bus 456: €1.80, 12 min wait, 14 min walk to Nicosia.");
+    expect(lines[1]).toBe("Bus 456: €2.00, 12 min wait, 14 min walk to Nicosia.");
     expect(lines[2]).not.toMatch(/€/);
     expect(lines.join(" ")).not.toMatch(/luggage|last coach|RAPTOR/i);
   });

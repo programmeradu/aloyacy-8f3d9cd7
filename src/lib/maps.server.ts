@@ -7,17 +7,34 @@ const log = createLogger("maps");
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
 
-function authHeaders(extra: Record<string, string> = {}) {
+export function authHeaders(extra: Record<string, string> = {}) {
   const lk = process.env.LOVABLE_API_KEY;
-  const gk = process.env.GOOGLE_MAPS_API_KEY;
-  if (!lk) throw new Error("LOVABLE_API_KEY missing");
-  if (!gk) throw new Error("GOOGLE_MAPS_API_KEY missing");
-  return {
-    Authorization: `Bearer ${lk}`,
-    "X-Connection-Api-Key": gk,
+  const serverKey = process.env.GOOGLE_MAPS_SERVER_KEY;
+  const clientKey = process.env.GOOGLE_MAPS_API_KEY;
+
+  if (!lk && !serverKey && !clientKey) {
+    throw new Error("LOVABLE_API_KEY or GOOGLE_MAPS_API_KEY missing");
+  }
+
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...extra,
   };
+
+  if (lk) {
+    headers.Authorization = `Bearer ${lk}`;
+    // Prefer the managed Lovable connector gateway connection.
+    // Client-side GOOGLE_MAPS_API_KEYs usually have HTTP-referrer restrictions that
+    // fail server-side requests (403/REQUEST_DENIED). Only send X-Connection-Api-Key
+    // if an explicit, unrestricted GOOGLE_MAPS_SERVER_KEY is configured.
+    if (serverKey) {
+      headers["X-Connection-Api-Key"] = serverKey;
+    }
+  } else {
+    headers["X-Connection-Api-Key"] = (serverKey || clientKey)!;
+  }
+
+  return headers;
 }
 
 export type PlaceSuggestion = {

@@ -63,8 +63,9 @@ export const stop = {
   "stop.bailLast":
     "Bus {route} was the last tonight and it isn't on the map. Bolt, a taxi, or tomorrow.",
   "stop.riderChain": "from a rider on board, {n}s ago",
-  "stop.payUrban": "Tap Motion €1.80, or pay the driver €2.40.",
-  "stop.payIntercity": "Tap Motion €6, or pay the driver €8.",
+  "stop.payUrban": "Tap Motion €2.00, or pay the driver €2.70.",
+  "stop.payUrbanNight": "Tap Motion €3.50, or pay the driver €4.70.",
+  "stop.payIntercity": "€5.00–€8.00 by distance, cash only.",
   "stop.cond.shelterYes": "Shelter",
   "stop.cond.shelterNo": "No shelter",
   "stop.cond.seatingYes": "Seating",

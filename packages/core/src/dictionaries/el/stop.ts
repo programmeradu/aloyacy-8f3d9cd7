@@ -69,8 +69,9 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.bailLast":
     "Το λεωφορείο {route} ήταν το τελευταίο απόψε και δεν είναι στον χάρτη. Bolt, ταξί, ή αύριο.",
   "stop.riderChain": "από επιβάτη στο λεωφορείο, πριν {n} δ",
-  "stop.payUrban": "Motion €1.80, ή πληρωμή στον οδηγό €2.40.",
-  "stop.payIntercity": "Motion €6, ή πληρωμή στον οδηγό €8.",
+  "stop.payUrban": "Motion €2.00, ή πληρωμή στον οδηγό €2.70.",
+  "stop.payUrbanNight": "Νυχτερινό: Motion €3.50, ή πληρωμή στον οδηγό €4.70.",
+  "stop.payIntercity": "€5.00–€8.00 ανάλογα με την απόσταση, μόνο μετρητά.",
   "stop.cond.shelterYes": "Στέγαστρο",
   "stop.cond.shelterNo": "Χωρίς στέγαστρο",
   "stop.cond.seatingYes": "Κάθισμα",

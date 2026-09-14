@@ -124,7 +124,7 @@ export function coachJobLine(way: AirportCoachWay): string {
 }
 
 export function cityBusJobLine(way: AirportCityBusWay): string {
-  const fare = formatEur(way.motionEur);
+  const fare = formatEur(way.motionEur, true);
   if (way.etaMin <= 0) return `Bus ${way.routeShort} now. Tap Motion ${fare}.`;
   return `Bus ${way.routeShort} in ${way.etaMin} min. Tap Motion ${fare}.`;
 }
