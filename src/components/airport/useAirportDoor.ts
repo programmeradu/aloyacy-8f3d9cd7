@@ -1,5 +1,5 @@
 // Dest-aware door cost: Kapnos last-mile walk + RAPTOR to the dest.
-// Taxi is not quoted here — we have no measured drive on this path.
+// Taxi euro only from a measured drive.
 
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,12 +9,15 @@ import {
   walkMinFromMeters,
   type AirportDest,
 } from "@aloya/core/airport-cost";
+import type { TaxiQuote } from "@aloya/core/taxi-quote";
 import { planMultiLeg } from "@/lib/multileg.functions";
 import { suggestKapnos } from "@/lib/kapnos.functions";
+import { suggestTaxiQuote } from "@/lib/taxi-quote.functions";
 
 export type AirportDoor = {
   coachWalkMin: number | null;
   busDoor: { routeShort: string; waitMin: number; walkMin: number; fareEur: number } | null;
+  taxiQuote: TaxiQuote | null;
 };
 
 export function useAirportDoor(
@@ -23,12 +26,13 @@ export function useAirportDoor(
 ): { door: AirportDoor | null; pending: boolean } {
   const planFn = useServerFn(planMultiLeg);
   const kapnosFn = useServerFn(suggestKapnos);
+  const taxiFn = useServerFn(suggestTaxiQuote);
   const q = useQuery({
     enabled: !!from && !!dest,
     queryKey: ["airport-door", from?.lat, from?.lng, dest?.lat, dest?.lng],
     staleTime: 60_000,
     queryFn: async (): Promise<AirportDoor> => {
-      const [plan, kapnos] = await Promise.all([
+      const [plan, kapnos, taxi] = await Promise.all([
         planFn({
           data: {
             from: { lat: from!.lat, lng: from!.lng, label: from!.label },
@@ -37,6 +41,9 @@ export function useAirportDoor(
           },
         }).catch(() => null),
         kapnosFn({
+          data: { from: { lat: from!.lat, lng: from!.lng }, to: { lat: dest!.lat, lng: dest!.lng } },
+        }).catch(() => null),
+        taxiFn({
           data: { from: { lat: from!.lat, lng: from!.lng }, to: { lat: dest!.lat, lng: dest!.lng } },
         }).catch(() => null),
       ]);
@@ -49,6 +56,7 @@ export function useAirportDoor(
         busDoor: extracted
           ? { ...extracted, fareEur: BOARDING_PAY.urban.motionEur }
           : null,
+        taxiQuote: taxi ?? null,
       };
     },
   });

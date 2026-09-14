@@ -161,7 +161,7 @@ know — that silence is the product.
 
 | What a person sees | In one line |
 | ------------------ | ----------- |
-| Airport | Kapnos vs city bus vs taxi rank. With a destination: fare, wait, and walk. We do not invent a taxi fare. |
+| Airport | Kapnos vs city bus vs taxi rank. With a destination: fare, wait, and walk. Taxi euro from a measured drive — unpublished without one. |
 | Pay | Tap Motion €1.80 urban / €6 intercity, or pay the driver the published cash fare. |
 | Motion pass | The card you already have: balance, history, kiosk QR. Hold it up or tap NFC. |
 | Green Line | Named. We do not operate north. Hours not invented. Famagusta here is Paralimni / Deryneia. |
@@ -189,7 +189,7 @@ promise are how a tourist actually uses it.
   arrivals — empty accuracy is a worse lie than no page)
 - a sold Truth API or hotel embed (rails are ready; we wait for a
   design partner)
-- taxi or Bolt prices (we need a quote)
+- Bolt scooter prices at the stop (we need a live dock, not a guess)
 - Green Line crossing hours
 - that we dispatch or “optimise” operators’ fleets
 - that bike, scooter, or park-and-ride are first-class legs (they are

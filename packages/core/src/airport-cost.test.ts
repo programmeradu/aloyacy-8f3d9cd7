@@ -11,6 +11,7 @@ import {
   pickCoachForDest,
   waitMinFromDepart,
 } from "./airport-cost";
+import { taxiQuoteFromDrive } from "./taxi-quote";
 
 function coach(city: string, depart: string, seats = 12, price = "€8") {
   return {
@@ -77,6 +78,24 @@ describe("destJobLines", () => {
     expect(lines[1]).toBe("Bus 456: €2.00, 12 min wait, 14 min walk to Nicosia.");
     expect(lines[2]).not.toMatch(/€/);
     expect(lines.join(" ")).not.toMatch(/luggage|last coach|RAPTOR/i);
+  });
+
+  it("prints a taxi euro only from a measured drive", () => {
+    const quote = taxiQuoteFromDrive({ distanceMeters: 40_000, durationSec: 2100 }, false);
+    expect(quote).not.toBeNull();
+    const now = Date.UTC(2026, 7, 28, 10, 0, 0);
+    const job = buildAirportJob({
+      coachLines: [coach("Nicosia", "14:20")],
+      cityBus: { routeShort: "425", etaMin: 6 },
+    });
+    const lines = destJobLines({
+      job,
+      destLabel: "Nicosia",
+      nowMs: now,
+      taxiQuote: quote,
+    });
+    expect(lines.at(-1)).toMatch(/^Taxi to Nicosia in \d+ min, €\d/);
+    expect(lines.at(-1)).toContain("Call 77 777 474");
   });
 
   it("reads wait and walk from a RAPTOR itinerary", () => {

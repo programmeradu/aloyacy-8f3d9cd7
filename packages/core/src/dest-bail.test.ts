@@ -5,6 +5,7 @@ import {
   destBailForWait,
   destBailFlipCopy,
   destBailFlipLine,
+  destBailFromQuote,
   destBailLine,
   destBailWithHeadway,
   EMPTY_WAIT_FLIP_HOLD,
@@ -20,6 +21,7 @@ import {
   waitFlipPhase,
   type DestBail,
 } from "./dest-bail";
+import { pickTaxiBail, taxiBailLine, taxiQuoteFromDrive } from "./taxi-quote";
 import { cyClock } from "./cy-time";
 import { multileg as destBailEn } from "./dictionaries/en/multileg";
 import { stop as stopEn } from "./dictionaries/en/stop";
@@ -353,5 +355,40 @@ describe("destBailForFlipAlert", () => {
     expect(
       destBailForFlipAlert({ flipTo: "keepWait", walkMin: 8, waitMin: 9, routeShort: "31" }),
     ).toEqual(keep);
+  });
+});
+
+describe("destBailFromQuote", () => {
+  it("prints the same taxi sentence as taxiBailLine, and stays quiet without a drive", () => {
+    const quote = taxiQuoteFromDrive({ distanceMeters: 2500, durationSec: 400 }, false);
+    const taxi = pickTaxiBail({
+      dark: true,
+      phase: "waiting",
+      waitMin: 22,
+      walkPossible: false,
+      destLabel: "Home",
+      routeShort: "31",
+      quote,
+    });
+    const action = destBailFromQuote({
+      dark: true,
+      phase: "waiting",
+      waitMin: 22,
+      walkPossible: false,
+      destLabel: "Home",
+      routeShort: "31",
+      quote,
+    });
+    expect(action?.kind).toBe("taxi");
+    expect(destBailLine(action!)).toBe(taxiBailLine(taxi!));
+    expect(destBailFromQuote({
+      dark: true,
+      phase: "waiting",
+      waitMin: 22,
+      walkPossible: false,
+      destLabel: "Home",
+      routeShort: "31",
+      quote: null,
+    })).toBeNull();
   });
 });

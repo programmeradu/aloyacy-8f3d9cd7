@@ -14,4 +14,5 @@ export const airport: Record<keyof typeof airportEn, string> = {
   "airport.cityBusNow": "Λεωφορείο {route} τώρα. Motion {fare}.",
   "airport.cityBusDoor": "Λεωφορείο {route}: {fare}, {wait} λεπ. αναμονή, {walk} λεπ. περπάτημα ως {dest}.",
   "airport.taxi": "Πιάτσα ταξί έξω από τις αφίξεις. Δεν αναφέρουμε ναύλο που δεν έχουμε μετρήσει.",
+  "airport.taxiDoor": "Ταξί προς {dest} σε {drive} λεπ, {fare}. Καλέστε {tel}.",
 };

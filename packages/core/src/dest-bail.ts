@@ -1,11 +1,12 @@
 // Dest-aware wait-or-bail for the journey HUD, plus one push if the
 // call flips while the rider is still standing there.
 // Same-stop skip / other-route / last-tonight stay in wait-or-bail.ts.
-// RAPTOR re-plan already lives in the live-replan sheet. Taxi fares stay
-// unpublished here — we have a dest, but not a driving quote on this path.
+// RAPTOR re-plan already lives in the live-replan sheet. A taxi euro is
+// only overlaid when destBailFromQuote has a measured drive.
 
 import { distanceM, WALK_M_PER_S, type LatLng } from "./geo";
 import { cyClock } from "./cy-time";
+import { formatTaxiBand, pickTaxiBail, type TaxiQuote } from "./taxi-quote";
 
 /** Street path vs crow-flies. Same factor the replan sheet used. */
 export const WALK_DETOUR = 1.3;
@@ -66,6 +67,9 @@ export type DestBail =
       kind: "taxi";
       priceFrom: string;
       routeShort: string;
+      destLabel?: string;
+      driveMin?: number;
+      waitMin?: number;
     };
 
 export function pickDestBail(input: {
@@ -132,8 +136,36 @@ export function destBailLine(action: DestBail): string {
     case "boltScooter":
       return `Bus ${action.routeShort} isn't on the map. Bolt scooter from ${action.priceFrom}.`;
     case "taxi":
+      if (action.destLabel && action.driveMin != null && action.waitMin != null) {
+        if (action.waitMin <= 0) {
+          return `Taxi to ${action.destLabel} in ${action.driveMin} min, ${action.priceFrom}. Bus ${action.routeShort} isn't on the map.`;
+        }
+        return `Taxi to ${action.destLabel} in ${action.driveMin} min, ${action.priceFrom}. Bus ${action.routeShort} is about ${action.waitMin} min if it shows.`;
+      }
       return `Bus ${action.routeShort} isn't on the map. Taxi from ${action.priceFrom}.`;
   }
+}
+
+/** Overlay a measured taxi onto a keep-wait. Walk still wins. */
+export function destBailFromQuote(input: {
+  dark: boolean;
+  phase: "walking" | "waiting" | "other";
+  waitMin: number;
+  walkPossible: boolean;
+  destLabel: string;
+  routeShort: string;
+  quote: TaxiQuote | null;
+}): DestBail | null {
+  const taxi = pickTaxiBail(input);
+  if (!taxi) return null;
+  return {
+    kind: "taxi",
+    priceFrom: formatTaxiBand(taxi.fareLow, taxi.fareHigh),
+    routeShort: taxi.routeShort,
+    destLabel: taxi.destLabel,
+    driveMin: taxi.driveMin,
+    waitMin: taxi.waitMin,
+  };
 }
 
 /** Same clause the stop card uses. Silent when B2 has no chance. */
@@ -248,9 +280,11 @@ export function destBailFlipLine(flip: DestBailFlip): string {
   if (a.kind === "raptorWalk") {
     return `Bus ${a.routeShort} isn't on the map. Walk ${a.walkMin} min to catch another bus.`;
   }
-  if (a.kind === "boltScooter" || a.kind === "taxi") {
-    const mode = a.kind === "boltScooter" ? "Bolt scooter" : "Taxi";
-    return `Bus ${a.routeShort} isn't on the map. ${mode} from ${a.priceFrom}.`;
+  if (a.kind === "taxi") {
+    return destBailLine(a);
+  }
+  if (a.kind === "boltScooter") {
+    return `Bus ${a.routeShort} isn't on the map. Bolt scooter from ${a.priceFrom}.`;
   }
   return "";
 }
@@ -258,7 +292,11 @@ export function destBailFlipLine(flip: DestBailFlip): string {
 export function destBailFlipCopy(flip: DestBailFlip): { title: string; body: string } {
   const { to } = flip;
   const title =
-    to.kind === "walk" ? `Walk to ${to.destLabel}` : `Keep waiting for Bus ${to.routeShort}`;
+    to.kind === "walk"
+      ? `Walk to ${to.destLabel}`
+      : to.kind === "taxi"
+        ? `Taxi to ${to.destLabel ?? "your door"}`
+        : `Keep waiting for Bus ${to.routeShort}`;
   return { title, body: destBailFlipLine(flip) };
 }
 

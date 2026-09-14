@@ -366,7 +366,7 @@ second card on the stop.
 | Walk it | **Shipped 2026-08-28.** HUD sentence when the trip is ghost and we can measure the walk. Planner pace 1.35 m/s × 1.3 detour, cap 25 min. Walk must beat the wait by 2 min. Same number as the replan sheet. |
 | Next departure on another route | RAPTOR re-plan from the current stop — still the live-replan sheet, not a HUD sentence |
 | Bolt / scooter / bikeshare | price and ETA *here* |
-| Taxi | regulated tariff ±15% and the dispatcher number |
+| Taxi | **Shipped 2026-09-15.** Regulated tariff ±15% from a Google Routes drive. Silent without meters and seconds. Walk still beats taxi. |
 
 The stop line must stay willing to say the bus isn’t worth it. An app
 that sometimes tells you not to use it is an app people trust.
@@ -380,7 +380,7 @@ then a flip pushes once (“Bus 31 is now 14 min if it shows. Walking is
 session; reset when the action goes silent. HUD dest-bail still updates
 in place.
 
-Not this slice: Taxi/Bolt euros stay unpublished without a quote.
+Not this slice: Bolt scooter *here* still needs a live dock, not a last-mile fare.
 
 **On the live-replan sheet (shipped).** When RAPTOR boards at a different
 stop, the option is named: “Bus 25 leaves in 3 min from Makariou.” Same
@@ -765,8 +765,10 @@ Luggage and last-coach stay quiet: neither is in the product, and Kapnos
 Honest total cost (fare + wait + walk) ships when a destination is on
 the URL (`toLat`/`toLng`/`toLabel`). Kapnos is the coach that actually
 goes there, not the soonest other city. RAPTOR from the door is the
-city-bus walk. Taxi fare stays unpublished without a measured drive.
-Luggage and last-coach stay quiet.
+city-bus walk. Taxi euro **ships from a measured drive** (Google Routes
+TRAFFIC_AWARE + the 2024 regulated tariff, ±15%, Travel Express number).
+No dest, or no drive, still prints the unpublished line. Luggage and
+last-coach stay quiet.
 
 ### G2. Boarding truth + last-bus as named states
 
@@ -892,7 +894,7 @@ Update this table in the same commit as the slice.
 | B1 | Still on Bus N? | **Shipped** on the companion and as a one-shot push when they left the app. |
 | B2 | Headway chance | **Shipped** on the stop card and on the HUD keep-wait sentence. Silent below 15%. |
 | B3 | No-show + last-bus | **Shipped** on the stop. Apply `20260828_no_show_hour.sql`. |
-| B4 | Wait-or-bail | **Shipped** same-stop skip/other/last-tonight, plus dest-aware HUD walk vs wait. Shipped RAPTOR HUD sentence, Bolt/scooter price, taxi tariff. |
+| B4 | Wait-or-bail | **Shipped** same-stop skip/other/last-tonight, dest-aware HUD walk vs wait, RAPTOR HUD, Bolt/scooter price, taxi from a measured drive. |
 | B5 | Walk-or-wait flip push | **Shipped** once-per-wait. RAPTOR other-stop on the live-replan sheet and HUD **shipped.** |
 | C1 | Rider-fix physics | **Shipped.** Apply `20260828_rider_physics.sql`. Learned segment speeds wait on A4. |
 | C2 | Corroboration + reputation | **Shipped** one rider vs two, a proven phone can carry alone, disagreement “off this hour”, and GPS ∪ tap as distinct devices. Apply `20260828_device_reputation.sql`. |
@@ -906,12 +908,12 @@ Update this table in the same commit as the slice.
 | E2 | Programmatic index | **Partial.** Stops and rated routes. `/accuracy` waits on A5. |
 | E3 | Transit JSON-LD | **Shipped.** `BusStop` + breadcrumbs on indexable stop pages. Breadcrumbs + `BusTrip` on rated route pages. `FAQPage` on stops. |
 | F1–F4 | Truth API, report card, embed | **Blocked** until A1/A2 are writing *and* a design partner is waiting. |
-| G1 | Airport as a job | **Shipped.** Kapnos vs city bus vs taxi rank. Dest-aware fare + wait + walk when `toLat`/`toLng` are present. Taxi euro still unpublished without a measured drive. |
+| G1 | Airport as a job | **Shipped.** Kapnos vs city bus vs taxi rank. Dest-aware fare + wait + walk. Taxi euro from a measured drive; unpublished without one. |
 | G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 
-**Next unblocked:** B4 Bolt / taxi quote on wait-or-bail (needs a measured drive). Then E3 stop FAQ / Schedule JSON-LD.
+**Next unblocked:** D5 richer stop page, or 0.4 partitions / longer live window. Marketing `/green-line` and `/el` are in git — Lovable must publish that tree.
 
 ---
 

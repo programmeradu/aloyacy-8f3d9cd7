@@ -1,13 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { suggestLastMileChain } from "./last-mile-chain.functions";
-import type { DestBail } from "@aloya/core/dest-bail";
+import { destBailFromQuote, type DestBail } from "@aloya/core/dest-bail";
 import { planMultiLegScheduled } from "./journey-scheduled.server";
+import { suggestTaxiQuote } from "./taxi-quote.functions";
 
 const Pt = z.object({
-  lat: z.number(),
-  lng: z.number(),
-  name: z.string().optional(),
+  lat: z.number().min(34).max(36),
+  lng: z.number().min(32).max(35),
+  name: z.string().max(200).optional(),
 });
 
 const InputSchema = z.object({
@@ -20,42 +20,20 @@ const InputSchema = z.object({
 export const upgradeDestBail = createServerFn({ method: "POST" })
   .inputValidator((data: z.input<typeof InputSchema>) => InputSchema.parse(data))
   .handler(async ({ data }): Promise<DestBail | null> => {
-    try {
-      const chain = await suggestLastMileChain({
-        data: {
-          alight: data.from,
-          destination: data.destination,
-        },
-      });
-      if (chain) {
-        if (chain.boltDeepLink && chain.fareLow > 0) {
-          return {
-            kind: "boltScooter",
-            priceFrom: `€${chain.fareLow.toFixed(2)}`,
-            routeShort: data.routeShort,
-          };
-        }
-        if (chain.telDispatcher && chain.fareLow > 0) {
-          return {
-            kind: "taxi",
-            priceFrom: `€${chain.fareLow.toFixed(2)}`,
-            routeShort: data.routeShort,
-          };
-        }
-      }
-    } catch {}
-
-
+    // Other bus first — cheaper than a taxi, and we already measured the walk.
     try {
       const plans = await planMultiLegScheduled(
         { lat: data.from.lat, lng: data.from.lng, label: "Here" },
-        { lat: data.destination.lat, lng: data.destination.lng, label: "Dest" }
+        {
+          lat: data.destination.lat,
+          lng: data.destination.lng,
+          label: data.destination.name ?? "Dest",
+        },
       );
       if (plans.itineraries.length > 0) {
         const best = plans.itineraries[0];
         const firstWalk = best.legs[0];
         const firstRide = best.legs[1];
-
         if (
           firstWalk &&
           firstRide &&
@@ -73,5 +51,23 @@ export const upgradeDestBail = createServerFn({ method: "POST" })
       }
     } catch {}
 
-    return null;
+    try {
+      const quote = await suggestTaxiQuote({
+        data: {
+          from: { lat: data.from.lat, lng: data.from.lng },
+          to: { lat: data.destination.lat, lng: data.destination.lng },
+        },
+      });
+      return destBailFromQuote({
+        dark: true,
+        phase: "waiting",
+        waitMin: data.waitMin,
+        walkPossible: false,
+        destLabel: data.destination.name?.trim() || "your door",
+        routeShort: data.routeShort,
+        quote,
+      });
+    } catch {
+      return null;
+    }
   });

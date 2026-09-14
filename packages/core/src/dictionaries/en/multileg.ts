@@ -96,4 +96,8 @@ export const multileg = {
     "Bus {route} isn't on the map. Bolt scooter from {price}.",
   "ml.destBail.taxi":
     "Bus {route} isn't on the map. Taxi from {price}.",
+  "ml.destBail.taxiDoor":
+    "Taxi to {dest} in {drive} min, {price}. Bus {route} is about {wait} min if it shows.",
+  "ml.destBail.taxiDoorDue":
+    "Taxi to {dest} in {drive} min, {price}. Bus {route} isn't on the map.",
 } as const;

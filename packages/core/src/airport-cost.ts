@@ -1,10 +1,11 @@
 // Dest-aware airport cost. Fare + wait + walk, only from numbers we have.
-// Taxi stays unpublished without a measured drive. Do not invent a euro.
+// Taxi euro only when destJobLines is handed a measured drive.
 
 import { formatEur } from "./boarding-pay";
 import { cyParts } from "./cy-time";
 import { WALK_M_PER_S } from "./geo";
 import type { AirportCoachWay, AirportJob } from "./airport-job";
+import { taxiDoorLine, type TaxiQuote } from "./taxi-quote";
 
 export type AirportSearch = {
   toLat?: number;
@@ -138,6 +139,7 @@ export function destJobLines(input: {
   nowMs: number;
   coachWalkMin?: number | null;
   busDoor?: { routeShort: string; waitMin: number; walkMin: number; fareEur: number } | null;
+  taxiQuote?: TaxiQuote | null;
 }): string[] {
   const lines: string[] = [];
   const coach = pickCoachForDest(input.job.coaches, input.destLabel);
@@ -161,6 +163,10 @@ export function destJobLines(input: {
         : `Bus ${b.routeShort} in ${b.etaMin} min. Tap Motion ${formatEur(b.motionEur, true)}.`,
     );
   }
-  lines.push("Taxi rank outside arrivals. We don't quote a fare we haven't measured.");
+  if (input.taxiQuote) {
+    lines.push(taxiDoorLine(input.taxiQuote, input.destLabel));
+  } else {
+    lines.push("Taxi rank outside arrivals. We don't quote a fare we haven't measured.");
+  }
   return lines;
 }

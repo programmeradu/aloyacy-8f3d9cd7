@@ -12,4 +12,5 @@ export const airport = {
   "airport.cityBusNow": "Bus {route} now. Tap Motion {fare}.",
   "airport.cityBusDoor": "Bus {route}: {fare}, {wait} min wait, {walk} min walk to {dest}.",
   "airport.taxi": "Taxi rank outside arrivals. We don't quote a fare we haven't measured.",
+  "airport.taxiDoor": "Taxi to {dest} in {drive} min, {fare}. Call {tel}.",
 } as const;

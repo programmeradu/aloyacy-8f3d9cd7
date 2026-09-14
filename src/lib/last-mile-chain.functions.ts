@@ -22,6 +22,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { drivingRoute } from "./maps.server";
 import { distanceM } from "./geo";
+import {
+  TAXI_DISPATCHER_TEL,
+  taxiNightAt,
+  taxiQuoteFromDrive,
+} from "@aloya/core/taxi-quote";
 
 const Pt = z.object({
   lat: z.number().min(34).max(36),
@@ -60,16 +65,6 @@ export type LastMileChainSuggestion = {
   telDispatcher: string;
 };
 
-// Cyprus taxi tariff (gov-regulated, 2024 schedule).
-const FLAG_FALL_EUR = 3.42;
-const DAY_PER_KM = 0.85;
-const NIGHT_PER_KM = 1.05;
-const MIN_FARE_EUR = 5.0;
-const FARE_VARIANCE = 0.15;
-
-// Travel Express Cyprus — nationwide 24/7 dispatcher.
-const CY_DISPATCHER_TEL = "+35777777474";
-
 // Triggers (meters).
 const LONG_WALK_M = 1500;
 const MODERATE_WALK_M = 800;
@@ -92,11 +87,6 @@ function isLateLocal(hour: number) {
   return hour >= LATE_START_HOUR || hour < LATE_END_HOUR;
 }
 
-function isNightTariff(hour: number) {
-  // Cyprus night-tariff window is 20:30–06:00. We're coarse-grained on the hour.
-  return hour >= 20 || hour < 6;
-}
-
 function chooseTrigger(
   walkMeters: number,
   arrivalUnix: number | null | undefined,
@@ -107,24 +97,6 @@ function chooseTrigger(
   if (walkMeters >= LONG_WALK_M) return "long-walk";
   if (walkMeters >= MODERATE_WALK_M && late) return "late-night";
   return null;
-}
-
-function fareRange(
-  distanceMeters: number,
-  night: boolean,
-): {
-  fareLow: number;
-  fareHigh: number;
-} {
-  const km = Math.max(0, distanceMeters) / 1000;
-  const perKm = night ? NIGHT_PER_KM : DAY_PER_KM;
-  const point = FLAG_FALL_EUR + km * perKm;
-  const guarded = Math.max(MIN_FARE_EUR, point);
-  const low = Math.max(MIN_FARE_EUR, guarded * (1 - FARE_VARIANCE));
-  const high = guarded * (1 + FARE_VARIANCE);
-  // Round to 0.50 — actual Cyprus taxis settle on 50c.
-  const round50 = (n: number) => Math.round(n * 2) / 2;
-  return { fareLow: round50(low), fareHigh: round50(high) };
 }
 
 function boltLink(from: { lat: number; lng: number }, to: { lat: number; lng: number }): string {
@@ -156,31 +128,25 @@ export const suggestLastMileChain = createServerFn({ method: "POST" })
 
     // Real driving ETA. If Google fails, we'd be guessing — bail.
     const drive = await drivingRoute(data.alight, data.destination);
-    if (!drive || drive.durationSec < 30) return null;
-
-    // Suppress nonsense: if the driving distance is so small (< 600 m) the
-    // walk is obviously fine, even at night.
-    if (drive.distanceMeters < 600) return null;
-
+    if (!drive) return null;
     const arrival = data.arrivalUnix ?? Math.floor(Date.now() / 1000);
-    const hour = cyprusHour(arrival);
-    const nightRate = isNightTariff(hour);
+    const quote = taxiQuoteFromDrive(drive, taxiNightAt(arrival));
+    if (!quote) return null;
 
-    const { fareLow, fareHigh } = fareRange(drive.distanceMeters, nightRate);
     const walkSec = Math.round(walkMeters / 1.3); // 1.3 m/s pace.
 
     return {
       trigger,
       drivingSec: drive.durationSec,
-      distanceMeters: drive.distanceMeters,
+      distanceMeters: quote.distanceMeters,
       walkSec,
-      fareLow,
-      fareHigh,
-      isNightRate: nightRate,
+      fareLow: quote.fareLow,
+      fareHigh: quote.fareHigh,
+      isNightRate: quote.night,
       fromName: data.alight.name ?? "",
       toName: data.destination.name ?? "",
       boltDeepLink: boltLink(data.alight, data.destination),
       mapsDeepLink: mapsLink(data.alight, data.destination),
-      telDispatcher: CY_DISPATCHER_TEL,
+      telDispatcher: TAXI_DISPATCHER_TEL,
     };
   });

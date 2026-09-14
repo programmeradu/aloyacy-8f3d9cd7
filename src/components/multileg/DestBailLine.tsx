@@ -1,4 +1,4 @@
-﻿import type { DictKey } from "@/lib/i18n";
+import type { DictKey } from "@/lib/i18n";
 import type { DestBail } from "@aloya/core/dest-bail";
 import { cyClock } from "@aloya/core/cy-time";
 
@@ -59,10 +59,28 @@ export function DestBailLine({
       });
       break;
     case "taxi":
-      line = t("ml.destBail.taxi", {
-        price: action.priceFrom,
-        route: action.routeShort,
-      });
+      if (action.destLabel && action.driveMin != null && action.waitMin != null) {
+        line =
+          action.waitMin <= 0
+            ? t("ml.destBail.taxiDoorDue", {
+                dest: action.destLabel,
+                drive: action.driveMin,
+                price: action.priceFrom,
+                route: action.routeShort,
+              })
+            : t("ml.destBail.taxiDoor", {
+                dest: action.destLabel,
+                drive: action.driveMin,
+                price: action.priceFrom,
+                route: action.routeShort,
+                wait: action.waitMin,
+              });
+      } else {
+        line = t("ml.destBail.taxi", {
+          price: action.priceFrom,
+          route: action.routeShort,
+        });
+      }
       break;
   }
   return <p className="mt-2 text-[13px] leading-snug text-ink-soft">{line}</p>;

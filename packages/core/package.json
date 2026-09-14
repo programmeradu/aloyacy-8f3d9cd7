@@ -290,6 +290,10 @@
       "types": "./src/dest-bail.ts",
       "default": "./src/dest-bail.ts"
     },
+    "./taxi-quote": {
+      "types": "./src/taxi-quote.ts",
+      "default": "./src/taxi-quote.ts"
+    },
     "./other-stop": {
       "types": "./src/other-stop.ts",
       "default": "./src/other-stop.ts"

@@ -1,6 +1,5 @@
 // How to leave the airport — stacked sentences, not three equal cards.
-// Kapnos next coach, first live city bus, taxi rank with no invented fare.
-// With a dest: fare + wait + walk for the coach that goes there and RAPTOR.
+// Kapnos next coach, first live city bus, taxi rank. Euro only from a measured drive.
 
 import { useI18n, type DictKey } from "@/lib/i18n";
 import { AIRPORT_COPY } from "@/lib/airport-page";
@@ -13,6 +12,7 @@ import {
   waitMinFromDepart,
   type AirportDest,
 } from "@aloya/core/airport-cost";
+import { formatTaxiBand, taxiTelDisplay } from "@aloya/core/taxi-quote";
 import type { AirportDoor } from "./useAirportDoor";
 
 export function AirportWaysOut({
@@ -85,8 +85,20 @@ function destLines(
   } else if (job.cityBus) {
     lines.push(...cityBusPlain(job, t));
   }
-  const taxi = t("airport.taxi");
-  lines.push(taxi === "airport.taxi" ? TAXI_JOB_LINE : taxi);
+  if (door?.taxiQuote) {
+    const q = door.taxiQuote;
+    lines.push(
+      t("airport.taxiDoor", {
+        dest: dest.label,
+        drive: q.driveMin,
+        fare: formatTaxiBand(q.fareLow, q.fareHigh),
+        tel: taxiTelDisplay(q.tel),
+      }),
+    );
+  } else {
+    const taxi = t("airport.taxi");
+    lines.push(taxi === "airport.taxi" ? TAXI_JOB_LINE : taxi);
+  }
   return lines;
 }
 
