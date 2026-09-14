@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { getLastMapsError, walkingDirections } from "@/lib/maps.server";
+import { authHeaders, getLastMapsError, walkingDirections } from "@/lib/maps.server";
 
 // CORS-open HTTP wrapper for the shared Google Routes walking-directions
 // helper. The mobile companion screen calls this identical endpoint so
@@ -46,7 +46,15 @@ export const Route = createFileRoute("/api/public/walk-directions")({
             parsed.data.to,
             parsed.data.locale ?? "en",
           );
+          let sentHeaders: string[] = [];
+          try {
+            sentHeaders = Object.keys(authHeaders());
+          } catch {
+            // ignore
+          }
           const debug = {
+            version: "v2-sent-headers",
+            sentHeaders,
             hasLovableKey: !!process.env.LOVABLE_API_KEY,
             hasGoogleKey: !!process.env.GOOGLE_MAPS_API_KEY,
             hasServerKey: !!process.env.GOOGLE_MAPS_SERVER_KEY,
