@@ -50,6 +50,22 @@ export type DestBail =
       routeShort: string;
       chancePct?: number;
       beforeUnix?: number;
+    }
+  | {
+      kind: "raptorWalk";
+      walkMin: number;
+      destLabel: string;
+      routeShort: string;
+    }
+  | {
+      kind: "boltScooter";
+      priceFrom: string;
+      routeShort: string;
+    }
+  | {
+      kind: "taxi";
+      priceFrom: string;
+      routeShort: string;
     };
 
 export function pickDestBail(input: {
@@ -111,6 +127,12 @@ export function destBailLine(action: DestBail): string {
       }
       return `Walking is ${action.walkMin} min. Bus ${action.routeShort} is about ${action.waitMin} min if it shows.${chance}`;
     }
+    case "raptorWalk":
+      return `Bus ${action.routeShort} isn't on the map. Walk ${action.walkMin} min to catch another bus.`;
+    case "boltScooter":
+      return `Bus ${action.routeShort} isn't on the map. Bolt scooter from ${action.priceFrom}.`;
+    case "taxi":
+      return `Bus ${action.routeShort} isn't on the map. Taxi from ${action.priceFrom}.`;
   }
 }
 
@@ -217,10 +239,20 @@ export function destBailFlipLine(flip: DestBailFlip): string {
     }
     return `Bus ${a.routeShort} is now ${a.waitMin} min if it shows. Walking is ${a.walkMin} min — walk.`;
   }
-  if (a.waitMin <= 0) {
-    return `Bus ${a.routeShort} isn't on the map. Walking is ${a.walkMin} min — wait.`;
+  if (a.kind === "keepWait") {
+    if (a.waitMin <= 0) {
+      return `Bus ${a.routeShort} isn't on the map. Walking is ${a.walkMin} min — wait.`;
+    }
+    return `Bus ${a.routeShort} is about ${a.waitMin} min if it shows. Walking is ${a.walkMin} min — wait.`;
   }
-  return `Bus ${a.routeShort} is about ${a.waitMin} min if it shows. Walking is ${a.walkMin} min — wait.`;
+  if (a.kind === "raptorWalk") {
+    return `Bus ${a.routeShort} isn't on the map. Walk ${a.walkMin} min to catch another bus.`;
+  }
+  if (a.kind === "boltScooter" || a.kind === "taxi") {
+    const mode = a.kind === "boltScooter" ? "Bolt scooter" : "Taxi";
+    return `Bus ${a.routeShort} isn't on the map. ${mode} from ${a.priceFrom}.`;
+  }
+  return "";
 }
 
 export function destBailFlipCopy(flip: DestBailFlip): { title: string; body: string } {
@@ -232,17 +264,39 @@ export function destBailFlipCopy(flip: DestBailFlip): { title: string; body: str
 
 /** Rebuild the new dest-bail from a wait-flip alert's semantic fields. */
 export function destBailForFlipAlert(input: {
-  flipTo?: "walk" | "keepWait" | null;
+  flipTo?: string | null;
   walkMin?: number | null;
   waitMin?: number | null;
   routeShort?: string | null;
   destLabel?: string | null;
+  priceFrom?: string | null;
 }): DestBail | null {
+  const routeShort = (input.routeShort ?? "").trim();
+  if (!routeShort) return null;
+
+  if (input.flipTo === "boltScooter" || input.flipTo === "taxi") {
+    if (!input.priceFrom) return null;
+    return {
+      kind: input.flipTo,
+      priceFrom: input.priceFrom,
+      routeShort,
+    };
+  }
+
+  if (input.flipTo === "raptorWalk") {
+    if (input.walkMin == null || !Number.isFinite(input.walkMin)) return null;
+    return {
+      kind: "raptorWalk",
+      walkMin: Math.round(input.walkMin),
+      destLabel: (input.destLabel ?? "").trim(),
+      routeShort,
+    };
+  }
+
   if (input.flipTo !== "walk" && input.flipTo !== "keepWait") return null;
   if (input.walkMin == null || input.waitMin == null) return null;
   if (!Number.isFinite(input.walkMin) || !Number.isFinite(input.waitMin)) return null;
-  const routeShort = (input.routeShort ?? "").trim();
-  if (!routeShort) return null;
+
   if (input.flipTo === "walk") {
     const destLabel = (input.destLabel ?? "").trim();
     if (!destLabel) return null;

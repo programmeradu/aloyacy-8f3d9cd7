@@ -96,4 +96,10 @@ export const multileg: Record<keyof typeof multilegEn, string> = {
     "Το λεωφορείο {route} είναι τώρα {wait} λεπ αν εμφανιστεί. Το περπάτημα είναι {walk} λεπ — περπατήστε.",
   "ml.destBail.flipWait":
     "Το λεωφορείο {route} είναι περίπου {wait} λεπ αν εμφανιστεί. Το περπάτημα είναι {walk} λεπ — περιμένετε.",
+  "ml.destBail.raptorWalk":
+    "Το λεωφορείο {route} δεν είναι στον χάρτη. Περπατήστε {walk} λεπ για να πάρετε άλλο λεωφορείο.",
+  "ml.destBail.boltScooter":
+    "Το λεωφορείο {route} δεν είναι στον χάρτη. Bolt scooter από {price}.",
+  "ml.destBail.taxi":
+    "Το λεωφορείο {route} δεν είναι στον χάρτη. Ταξί από {price}.",
 };

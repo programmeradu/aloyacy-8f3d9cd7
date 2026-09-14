@@ -116,10 +116,10 @@ export function useMultiLegSideEffects({
         deviceId: getDeviceId(),
         kind: "wait-flip",
         routeShort: flip.to.routeShort,
-        minutes: flip.to.waitMin,
-        walkMin: flip.to.walkMin,
+        minutes: "waitMin" in flip.to ? flip.to.waitMin : 0,
+        walkMin: "walkMin" in flip.to ? flip.to.walkMin : 0,
         flipTo: flip.to.kind,
-        ...(flip.to.kind === "walk" ? { stopName: flip.to.destLabel } : {}),
+        ...("destLabel" in flip.to ? { stopName: flip.to.destLabel } : {}),
         url: `/trip/${active.option.id}`,
       },
     }).catch(() => {});

@@ -1,3 +1,4 @@
+import { DestBailLine } from './DestBailLine';
 // Hero copy for the multi-leg companion: the phase eyebrow, the big
 // headline and the supporting line. Kept apart from the companion shell so
 // the copy logic can change without touching layout or live wiring.
@@ -10,6 +11,40 @@ import { useHeadwayHint } from "@/lib/useHeadwayHint";
 import { useI18n, type DictKey } from "@/lib/i18n";
 import type { Itinerary, RideLeg } from "@/lib/itinerary-types";
 import type { MultiLegLive } from "@/lib/useMultiLegJourney";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { upgradeDestBail } from "@/lib/dest-bail.functions";
+
+function useBailUpgrade(
+  live: MultiLegLive,
+  raw: DestBail | null,
+  dest?: { lat: number; lng: number },
+) {
+  const upgradeFn = useServerFn(upgradeDestBail);
+  const ride = live.currentRideLeg;
+  
+  const query = useQuery({
+    queryKey: ["bailUpgrade", ride?.tripId, raw?.kind, dest?.lat, dest?.lng],
+    queryFn: async () => {
+      if (!raw || raw.kind !== "keepWait" || !dest || !ride) return null;
+      if (!live.tripGhost) return null;
+      
+      const from = live.fix ?? { lat: ride.board.lat, lng: ride.board.lng };
+      return upgradeFn({
+        data: {
+          from,
+          destination: dest,
+          routeShort: raw.routeShort,
+          waitMin: raw.waitMin,
+        },
+      });
+    },
+    enabled: raw?.kind === "keepWait" && live.tripGhost && !!dest,
+    staleTime: 60_000,
+  });
+
+  return query.data || raw;
+}
 
 export function PhaseLabel({ live, itin }: { live: MultiLegLive; itin: Itinerary }) {
   const { t } = useI18n();
@@ -277,7 +312,10 @@ export function PhaseSub({
     stopId: keep && ride ? ride.board.stopId : null,
     arrivalUnix: keep ? Math.floor(Date.now() / 1000) + live.secsToCurrentBoard : null,
   });
-  const bail = destBailWithHeadway(raw, hint);
+  
+  const upgraded = useBailUpgrade(live, raw, dest);
+  const bail = destBailWithHeadway(upgraded, hint);
+
   return (
     <>
       <p className="mt-4 flex items-start gap-2 text-[13px] text-ink-soft leading-relaxed">
@@ -312,43 +350,4 @@ function destBailFromLive(
     destLabel,
     routeShort: ride.routeShort,
   });
-}
-
-function DestBailLine({
-  action,
-  t,
-}: {
-  action: DestBail;
-  t: (key: DictKey, vars?: Record<string, string | number>) => string;
-}) {
-  const line =
-    action.kind === "walk"
-      ? t("ml.destBail.walk", {
-          dest: action.destLabel,
-          min: action.walkMin,
-          route: action.routeShort,
-        })
-      : action.chancePct != null && action.beforeUnix != null
-        ? action.waitMin <= 0
-          ? t("ml.destBail.keepWaitDueChance", {
-              walk: action.walkMin,
-              route: action.routeShort,
-              pct: action.chancePct,
-              time: cyClock(action.beforeUnix * 1000),
-            })
-          : t("ml.destBail.keepWaitChance", {
-              walk: action.walkMin,
-              route: action.routeShort,
-              wait: action.waitMin,
-              pct: action.chancePct,
-              time: cyClock(action.beforeUnix * 1000),
-            })
-        : action.waitMin <= 0
-          ? t("ml.destBail.keepWaitDue", { walk: action.walkMin, route: action.routeShort })
-          : t("ml.destBail.keepWait", {
-              walk: action.walkMin,
-              route: action.routeShort,
-              wait: action.waitMin,
-            });
-  return <p className="mt-2 text-[13px] leading-snug text-ink-soft">{line}</p>;
 }

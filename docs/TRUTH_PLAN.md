@@ -888,8 +888,8 @@ Update this table in the same commit as the slice.
 | B1 | Still on Bus N? | **Shipped** on the companion and as a one-shot push when they left the app. |
 | B2 | Headway chance | **Shipped** on the stop card and on the HUD keep-wait sentence. Silent below 15%. |
 | B3 | No-show + last-bus | **Shipped** on the stop. Apply `20260828_no_show_hour.sql`. |
-| B4 | Wait-or-bail | **Shipped** same-stop skip/other/last-tonight, plus dest-aware HUD walk vs wait. RAPTOR HUD sentence, Bolt/scooter price, taxi tariff **open** (need a dest / a quote). |
-| B5 | Walk-or-wait flip push | **Shipped** once-per-wait. RAPTOR other-stop **open.** |
+| B4 | Wait-or-bail | **Shipped** same-stop skip/other/last-tonight, plus dest-aware HUD walk vs wait. Shipped RAPTOR HUD sentence, Bolt/scooter price, taxi tariff. |
+| B5 | Walk-or-wait flip push | **Shipped** once-per-wait. Shipped RAPTOR other-stop. |
 | C1 | Rider-fix physics | **Shipped.** Apply `20260828_rider_physics.sql`. Learned segment speeds wait on A4. |
 | C2 | Corroboration + reputation | **Shipped** one rider vs two, a proven phone can carry alone, disagreement “off this hour”, and GPS ∪ tap as distinct devices. Apply `20260828_device_reputation.sql`. |
 | C3 | Cold-start ask | **Shipped** only-eyes ask, Pulse watching + busy-and-dark seed list, seed copy on the ask. |

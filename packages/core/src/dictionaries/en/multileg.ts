@@ -90,4 +90,10 @@ export const multileg = {
     "Bus {route} is now {wait} min if it shows. Walking is {walk} min — walk.",
   "ml.destBail.flipWait":
     "Bus {route} is about {wait} min if it shows. Walking is {walk} min — wait.",
+  "ml.destBail.raptorWalk":
+    "Bus {route} isn't on the map. Walk {walk} min to catch another bus.",
+  "ml.destBail.boltScooter":
+    "Bus {route} isn't on the map. Bolt scooter from {price}.",
+  "ml.destBail.taxi":
+    "Bus {route} isn't on the map. Taxi from {price}.",
 } as const;
