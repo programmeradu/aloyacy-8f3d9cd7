@@ -17,12 +17,12 @@ import { createClient } from "@supabase/supabase-js";
 const ENV_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const ENV_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-// Current standalone project (aloya-prod-5). Kept as a fallback so existing
+// Current standalone project (aloya-prod-6). Kept as a fallback so existing
 // builds and local dev keep working until EXPO_PUBLIC_SUPABASE_* are set in
 // EAS; delete both constants once every build ships its own env.
-const FALLBACK_SUPABASE_URL = "https://mjyvihhgwtqpltbddits.supabase.co";
+const FALLBACK_SUPABASE_URL = "https://xbidevhyloeetxfjdjiy.supabase.co";
 const FALLBACK_SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qeXZpaGhnd3RxcGx0YmRkaXRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1ODIyMTYsImV4cCI6MjEwMzE1ODIxNn0.a-yBLBpeczw2BGEvxzk6Z2eWK3hYoAGtPNgGZzqMl2w";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhiaWRldmh5bG9lZXR4Zmpkaml5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNzYzODgsImV4cCI6MjEwNDk1MjM4OH0._t2YC2QtJRWGxpzohFdHOV6_pPNZbItUIA-UngrxtE4";
 
 const SUPABASE_URL = (ENV_URL || FALLBACK_SUPABASE_URL).replace(/\/+$/, "");
 const SUPABASE_ANON_KEY = ENV_ANON_KEY || FALLBACK_SUPABASE_ANON_KEY;

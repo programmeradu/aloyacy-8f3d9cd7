@@ -44,6 +44,8 @@ deploy/supabase/.env
 .tmp/
 *.bak
 coverage/
+supabase/.temp/*
+!supabase/.temp/linked-project.json
 
 # Build metadata
 *.tsbuildinfo
