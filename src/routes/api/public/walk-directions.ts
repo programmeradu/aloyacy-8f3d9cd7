@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { walkingDirections } from "@/lib/maps.server";
+import { getLastMapsError, walkingDirections } from "@/lib/maps.server";
 
 // CORS-open HTTP wrapper for the shared Google Routes walking-directions
 // helper. The mobile companion screen calls this identical endpoint so
@@ -46,16 +46,35 @@ export const Route = createFileRoute("/api/public/walk-directions")({
             parsed.data.to,
             parsed.data.locale ?? "en",
           );
-          return new Response(JSON.stringify({ directions }), {
+          const debug = {
+            hasLovableKey: !!process.env.LOVABLE_API_KEY,
+            hasGoogleKey: !!process.env.GOOGLE_MAPS_API_KEY,
+            hasServerKey: !!process.env.GOOGLE_MAPS_SERVER_KEY,
+            connectionId: process.env.GOOGLE_MAPS_CONNECTION_ID || "std_01ks89na5gfj8ar9b3vtc8qg92",
+            lastError: getLastMapsError(),
+          };
+          return new Response(JSON.stringify({ directions, debug }), {
             status: 200,
             headers: CORS,
           });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "walking failed";
-          return new Response(JSON.stringify({ directions: null, error: msg }), {
-            status: 200,
-            headers: CORS,
-          });
+          return new Response(
+            JSON.stringify({
+              directions: null,
+              error: msg,
+              debug: {
+                hasLovableKey: !!process.env.LOVABLE_API_KEY,
+                hasGoogleKey: !!process.env.GOOGLE_MAPS_API_KEY,
+                hasServerKey: !!process.env.GOOGLE_MAPS_SERVER_KEY,
+                lastError: getLastMapsError(),
+              },
+            }),
+            {
+              status: 200,
+              headers: CORS,
+            },
+          );
         }
       },
     },

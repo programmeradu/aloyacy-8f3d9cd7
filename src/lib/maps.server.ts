@@ -7,6 +7,11 @@ const log = createLogger("maps");
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
 
+let lastMapsError: { status: number; text: string } | null = null;
+export function getLastMapsError() {
+  return lastMapsError;
+}
+
 export function authHeaders(extra: Record<string, string> = {}) {
   const lk = process.env.LOVABLE_API_KEY;
   const serverKey = process.env.GOOGLE_MAPS_SERVER_KEY;
@@ -224,7 +229,8 @@ export async function walkingDirections(
   });
   if (!res.ok) {
     const errText = await res.text().catch(() => "");
-    log.error({ status: res.status, body: errText }, "walking directions computeRoutes failed");
+    lastMapsError = { status: res.status, text: errText };
+    log.error("walking directions computeRoutes failed", undefined, { status: res.status, body: errText });
     return null;
   }
   type Step = {
@@ -244,7 +250,10 @@ export async function walkingDirections(
     }[];
   };
   const r = json.routes?.[0];
-  if (!r) return null;
+  if (!r) {
+    lastMapsError = { status: res.status, text: "No route in response: " + JSON.stringify(json) };
+    return null;
+  }
   const rawSteps = r.legs?.flatMap((l) => l.steps ?? []) ?? [];
   const steps: WalkStep[] = rawSteps.map((s) => {
     const start = {
@@ -303,7 +312,7 @@ export async function drivingRoute(
     });
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
-      log.error({ status: res.status, body: errText }, "drivingRoute computeRoutes failed");
+      log.error("drivingRoute computeRoutes failed", undefined, { status: res.status, body: errText });
       return null;
     }
     const json = (await res.json()) as {
