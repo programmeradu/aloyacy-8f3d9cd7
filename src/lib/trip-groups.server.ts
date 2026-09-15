@@ -4,23 +4,11 @@
 // haversine guesses.
 
 import { createLogger, serializeError } from "@/lib/logger";
+import { fetchMapsWithFailover } from "@/lib/maps.server";
 
 const log = createLogger("trip-groups");
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
-
-function authHeaders(extra: Record<string, string> = {}) {
-  const lk = process.env.LOVABLE_API_KEY;
-  const gk = process.env.GOOGLE_MAPS_API_KEY;
-  if (!lk) throw new Error("LOVABLE_API_KEY missing");
-  if (!gk) throw new Error("GOOGLE_MAPS_API_KEY missing");
-  return {
-    Authorization: `Bearer ${lk}`,
-    "X-Connection-Api-Key": gk,
-    "Content-Type": "application/json",
-    ...extra,
-  };
-}
 
 /** Try transit first (bus is the point of the app), fall back to walking
  *  for short hops or when Google can't build a transit itinerary. Returns
@@ -55,10 +43,22 @@ export async function memberEtaMinutes(
         departureTime: new Date().toISOString(),
       });
     }
-    const res = await fetch(`${GATEWAY}/routes/directions/v2:computeRoutes`, {
-      method: "POST",
-      headers: authHeaders({ "X-Goog-FieldMask": "routes.duration" }),
-      body: JSON.stringify(body),
+    const bodyStr = JSON.stringify(body);
+    const fieldMask = "routes.duration";
+
+    const res = await fetchMapsWithFailover({
+      direct: () => ({
+        url: "https://routes.googleapis.com/directions/v2:computeRoutes",
+        method: "POST",
+        headers: { "X-Goog-FieldMask": fieldMask },
+        body: bodyStr,
+      }),
+      gateway: () => ({
+        url: `${GATEWAY}/routes/directions/v2:computeRoutes`,
+        method: "POST",
+        headers: { "X-Goog-FieldMask": fieldMask },
+        body: bodyStr,
+      }),
     });
     if (!res.ok) {
       // Transit unavailable — fall back to walking so we still return an ETA.
@@ -84,15 +84,27 @@ async function walkingEtaMinutes(
   to: { lat: number; lng: number },
 ): Promise<number | null> {
   try {
-    const res = await fetch(`${GATEWAY}/routes/directions/v2:computeRoutes`, {
-      method: "POST",
-      headers: authHeaders({ "X-Goog-FieldMask": "routes.duration" }),
-      body: JSON.stringify({
-        origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
-        destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
-        travelMode: "WALK",
-        languageCode: "en",
-        units: "METRIC",
+    const bodyStr = JSON.stringify({
+      origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
+      destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
+      travelMode: "WALK",
+      languageCode: "en",
+      units: "METRIC",
+    });
+    const fieldMask = "routes.duration";
+
+    const res = await fetchMapsWithFailover({
+      direct: () => ({
+        url: "https://routes.googleapis.com/directions/v2:computeRoutes",
+        method: "POST",
+        headers: { "X-Goog-FieldMask": fieldMask },
+        body: bodyStr,
+      }),
+      gateway: () => ({
+        url: `${GATEWAY}/routes/directions/v2:computeRoutes`,
+        method: "POST",
+        headers: { "X-Goog-FieldMask": fieldMask },
+        body: bodyStr,
       }),
     });
     if (!res.ok) return null;

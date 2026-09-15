@@ -114,4 +114,27 @@ describe("getCurrentWeather", () => {
   it("rejects out-of-range coordinates", async () => {
     await expect(callServerFn(mod.getCurrentWeather, { lat: 999, lng: 0 })).rejects.toThrow();
   });
+
+  it("prioritizes direct Google Weather API when GOOGLE_MAPS_SERVER_KEY is set", async () => {
+    delete process.env.LOVABLE_API_KEY;
+    process.env.GOOGLE_MAPS_SERVER_KEY = "direct-server-key";
+    vi.resetModules();
+    mod = await import("../weather.functions");
+
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        temperature: { degrees: 31 },
+        weatherCondition: { type: "CLEAR", description: { text: "Sunny" } },
+      }),
+    });
+
+    const out = await callServerFn(mod.getCurrentWeather, COORDS);
+    expect(out?.tempC).toBe(31);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("https://weather.googleapis.com/v1/currentConditions:lookup"),
+      expect.anything(),
+    );
+  });
 });
+
