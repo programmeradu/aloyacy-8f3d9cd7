@@ -16,6 +16,8 @@
 // closely, and the shard records which feeds were projected so the UI and
 // diagnostics can be explicit about it.
 
+import { effectiveTransitWeekday } from "./cyprus-holidays";
+
 export type ServiceCalendar = { feedId: number; dates: string[] };
 
 export type ResolvedServiceDate = {
@@ -25,6 +27,10 @@ export type ResolvedServiceDate = {
   projectedFeeds: number[];
   /** feedId -> the published source date the projection was copied from. */
   projectedFrom: Record<number, string>;
+  /** True if this date is an official statutory Republic of Cyprus public holiday. */
+  isHoliday?: boolean;
+  /** English name of the public holiday if applicable. */
+  holidayNameEn?: string;
 };
 
 /** YYYYMMDD -> 0 (Sun) .. 6 (Sat). */
@@ -70,12 +76,15 @@ export function resolveServiceDates(
   const out = new Map<string, ResolvedServiceDate>();
 
   for (const date of targetDates) {
+    const transit = effectiveTransitWeekday(date);
     const entry: ResolvedServiceDate = {
       active: new Set(),
       projectedFeeds: [],
       projectedFrom: {},
+      isHoliday: transit.isHoliday,
+      holidayNameEn: transit.holidayNameEn,
     };
-    const wanted = weekdayOf(date);
+    const wanted = transit.weekday;
 
     for (const [feedId, feed] of byFeed) {
       const direct = feed.dates.get(date);

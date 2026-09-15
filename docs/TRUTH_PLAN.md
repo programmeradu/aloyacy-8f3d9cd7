@@ -779,8 +779,10 @@ when the snapshot has no later trip on that route.
 intercity €6 / €8, from 3 August 2026. Pame and Kapnos stay quiet —
 those are not these numbers. We do not claim the driver waits.
 
-Sunday / holiday / term-time still needs a published calendar before
-it becomes a sentence. Do not invent it.
+**Holiday calendar shipped 2026-09-15.** Official 15 Republic of Cyprus statutory
+public holidays (`@aloya/core/cyprus-holidays`) resolved via Meeus Orthodox Easter
+algorithm; weekday holidays project the Sunday operating schedule. Term-time still
+needs a published Ministry of Education calendar.
 
 ### G3. Green Line, named
 
@@ -909,7 +911,7 @@ Update this table in the same commit as the slice.
 | E3 | Transit JSON-LD | **Shipped.** `BusStop` + breadcrumbs on indexable stop pages. Breadcrumbs + `BusTrip` on rated route pages. `FAQPage` on stops. |
 | F1–F4 | Truth API, report card, embed | **Blocked** until A1/A2 are writing *and* a design partner is waiting. |
 | G1 | Airport as a job | **Shipped.** Kapnos vs city bus vs taxi rank. Dest-aware fare + wait + walk. Taxi euro from a measured drive; unpublished without one. |
-| G2 | Pay line + last-bus | **Shipped.** Sunday/holiday calendar **open** (need a published calendar). |
+| G2 | Pay line + last-bus + Holiday calendar | **Shipped.** Statutory holidays project Sunday schedule (@aloya/core/cyprus-holidays). Term-time open. |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
 | P | Pitch book | **Shipped** first draft. [`docs/PITCH_BOOK.md`](PITCH_BOOK.md). Update “What exists today” with each rider-facing slice. |
 

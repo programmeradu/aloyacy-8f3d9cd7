@@ -330,6 +330,7 @@ for (const date of dates) {
     ...(entry && entry.projectedFeeds.length
       ? { projectedFeeds: entry.projectedFeeds, projectedFrom: entry.projectedFrom }
       : {}),
+    ...(entry?.isHoliday ? { isHoliday: true, holidayNameEn: entry.holidayNameEn } : {}),
   };
   if (entry && entry.projectedFeeds.length) {
     console.log(

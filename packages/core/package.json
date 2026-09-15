@@ -50,6 +50,10 @@
       "types": "./src/cy-time.ts",
       "default": "./src/cy-time.ts"
     },
+    "./cyprus-holidays": {
+      "types": "./src/cyprus-holidays.ts",
+      "default": "./src/cyprus-holidays.ts"
+    },
     "./device-reputation": {
       "types": "./src/device-reputation.ts",
       "default": "./src/device-reputation.ts"

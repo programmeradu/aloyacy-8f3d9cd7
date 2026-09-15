@@ -285,6 +285,7 @@ async function runIngest(
       ...(entry && entry.projectedFeeds.length
         ? { projectedFeeds: entry.projectedFeeds, projectedFrom: entry.projectedFrom }
         : {}),
+      ...(entry?.isHoliday ? { isHoliday: true, holidayNameEn: entry.holidayNameEn } : {}),
     };
 
     totalBytes += stRes.raw + trRes.raw;

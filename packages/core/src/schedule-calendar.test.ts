@@ -61,4 +61,21 @@ describe("resolveServiceDates", () => {
     const r = resolveServiceDates(onlyMonday, ["20260822"]).get("20260822")!;
     expect(r.active.size).toBe(0);
   });
+
+  it("identifies Cyprus public holidays and projects Sunday schedule for unmapped feeds", () => {
+    // 20261001 is Cyprus Independence Day (Thursday, calendar weekday = 4)
+    // Short feed published up to 20260920 (Sunday: 6:sun, Sat: 6:sat, Weekday: 6:weekday)
+    const feed = {
+      "6:weekday": { feedId: 6, dates: ["20260918"] },
+      "6:sat": { feedId: 6, dates: ["20260919"] },
+      "6:sun": { feedId: 6, dates: ["20260920"] },
+    };
+    const r = resolveServiceDates(feed, ["20261001"]).get("20261001")!;
+    expect(r.isHoliday).toBe(true);
+    expect(r.holidayNameEn).toBe("Cyprus Independence Day");
+    expect(r.projectedFeeds).toEqual([6]);
+    // Projects from Sunday (20260920), NOT Friday/weekday (20260918)!
+    expect(r.projectedFrom[6]).toBe("20260920");
+    expect([...r.active]).toEqual(["6:sun"]);
+  });
 });
