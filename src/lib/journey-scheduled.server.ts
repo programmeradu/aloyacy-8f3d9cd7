@@ -50,10 +50,12 @@ export class NoScheduleAvailableError extends Error {
   }
 }
 
+import type { AccessibilityPrefs } from "@aloya/core/raptor-core";
+
 export async function planMultiLegScheduled(
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
-  opts?: { departureUnix?: number; date?: string; explicitTime?: boolean },
+  opts?: { departureUnix?: number; date?: string; explicitTime?: boolean; accessibilityPrefs?: AccessibilityPrefs },
 ): Promise<{ itineraries: Itinerary[]; diagnostics: ScheduledDiagnostics }> {
   const departureUnix = opts?.departureUnix ?? Math.floor(Date.now() / 1000);
   // Derive service date from the departure time (Cyprus local), so "tomorrow 7am"
@@ -85,7 +87,9 @@ export async function planMultiLegScheduled(
     from,
     to,
     departureUnix,
-    opts?.explicitTime ? { searchHorizonSec: 24 * 3600, maxJourneySec: 30 * 3600 } : undefined,
+    opts?.explicitTime 
+      ? { searchHorizonSec: 24 * 3600, maxJourneySec: 30 * 3600, accessibilityPrefs: opts?.accessibilityPrefs } 
+      : { accessibilityPrefs: opts?.accessibilityPrefs },
   );
 
   // "Leave now" defaults to a 4h horizon so the common case stays fast. When
@@ -99,6 +103,7 @@ export async function planMultiLegScheduled(
     const wide = await planRaptor(schedule, from, to, departureUnix, {
       searchHorizonSec: 24 * 3600,
       maxJourneySec: 30 * 3600,
+      accessibilityPrefs: opts?.accessibilityPrefs,
     });
     itineraries = wide.itineraries;
     diagnostics = wide.diagnostics;
@@ -114,6 +119,7 @@ export async function planMultiLegScheduled(
         const rolled = await planRaptor(nextSchedule, from, to, nextStart, {
           searchHorizonSec: 24 * 3600,
           maxJourneySec: 30 * 3600,
+          accessibilityPrefs: opts?.accessibilityPrefs,
         });
         if (rolled.itineraries.length > 0) {
           itineraries = rolled.itineraries;

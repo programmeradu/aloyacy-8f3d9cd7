@@ -4,6 +4,7 @@
 // so the feed is scored nightly against arrival_truth.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getThresholdOverrides } from "@/lib/threshold-cache.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fetchRealtime } from "@/lib/gtfs-rt.server";
 import { getStop, getRoute } from "@/lib/gtfs";
@@ -121,8 +122,9 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
     if (departures.length >= query.limit) break;
 
     const route = getRoute(a.routeId);
-    const headsign = getHeadsignSync(a.tripId, a.routeId);
+    const headsign = getHeadsignSync(a.tripId, a.routeId) || "";
     const shape = getShapeForTripSync(a.tripId, a.routeId);
+    const overrides = getThresholdOverrides(stop.agency, a.routeId);
 
     const eta = smartEtaV2({
       stopId: query.stop_id,
@@ -131,6 +133,7 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
       nowSec,
       agency: stop.agency,
       shape,
+      thresholdOverrides: overrides,
     });
 
     if (!eta) continue;
@@ -142,8 +145,7 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
           id: vehicle.id,
           lat: vehicle.lat,
           lng: vehicle.lng,
-          bearing: vehicle.bearing ?? null,
-          speed_mps: vehicle.speed ?? null,
+          speed_mps: (vehicle as any).speedMps ?? vehicle.speed ?? null,
         }
       : null;
 
@@ -202,9 +204,10 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
     void (async () => {
       try {
         const { error } = await db.from("eta_predictions").insert(logRows);
-        if (error) log.warn("Truth API failed to log predictions to ledger", { error: error.message });
+        if (error) log.warn("Truth API failed to log predictions to ledger", { err: error.message });
       } catch (err) {
-        log.warn("Truth API ledger insert threw", { error: err instanceof Error ? err.message : String(err) });
+        log.warn("Truth API ledger insert threw", { err: err instanceof Error ? err.message : String(err) });
+      }
       }
     })();
   }

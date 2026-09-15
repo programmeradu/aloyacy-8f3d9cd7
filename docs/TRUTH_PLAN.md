@@ -241,7 +241,7 @@ headline n. Apply
 the regression gate stay unshipped until a route has 30 headline
 samples.
 
-### A4. Self-tuning thresholds — *after* A3 has coverage
+### A4. Self-tuning thresholds — *after* A3 has coverage (shipped)
 
 `URBAN = { fresh: 60, ghost: 180 }` / `INTERCITY = { fresh: 90, ghost:
 300 }` stay as fallbacks. Do **not** derive them from ping cadence
@@ -556,7 +556,7 @@ expected extra wait = fraction × headway at the boarding stop. The
 stop stays on the list. Silent below the speak bar. Same cost on the
 live search and the timetable RAPTOR.
 
-### D3. Walkability truth in the planner
+### D3. Walkability truth in the RAPTOR graph (shipped)
 
 `reachable_on_foot` should change routing. A transfer that requires
 crossing a 4-lane road with no crossing is not a 3-minute transfer.

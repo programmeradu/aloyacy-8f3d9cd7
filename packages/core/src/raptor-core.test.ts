@@ -106,6 +106,13 @@ describe("spatial buckets", () => {
     expect(near.length).toBe(RAPTOR_TUNING.maxTransferNeighbours);
   });
 
+  it("filters out stops present in the exclude set", () => {
+    const b = buildSpatialBuckets(stops);
+    const exclude = new Set(["b"]);
+    const near = nearbyStops(b, stops, stops.a, 600, exclude);
+    expect(near.map((n) => n[0])).toEqual(["a"]);
+  });
+
   it("returns nothing when the grid around the point is empty", () => {
     const b = buildSpatialBuckets(stops);
     expect(nearbyStops(b, stops, { lat: 0, lng: 0 }, 600)).toEqual([]);

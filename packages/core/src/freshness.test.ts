@@ -14,6 +14,20 @@ describe("thresholdsFor", () => {
   it("treats an unknown or missing agency as urban", () => {
     expect(thresholdsFor(undefined)).toEqual(thresholdsFor("NPT"));
   });
+
+  it("applies threshold overrides while keeping fallbacks for missing keys (A4)", () => {
+    // Override fresh and ghost, but leave near to fall back to the base constant.
+    const urbanOverride = thresholdsFor("NPT", { fresh: 75, ghost: 210 });
+    expect(urbanOverride.fresh).toBe(75);
+    expect(urbanOverride.ghost).toBe(210);
+    // 5 is the URBAN.near default
+    expect(urbanOverride.near).toBe(5);
+
+    const icOverride = thresholdsFor("IC", { fresh: 110 });
+    expect(icOverride.fresh).toBe(110);
+    // 300 is the INTERCITY.ghost default
+    expect(icOverride.ghost).toBe(300);
+  });
 });
 
 describe("classifyFreshness", () => {

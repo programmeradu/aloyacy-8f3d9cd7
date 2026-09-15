@@ -4,7 +4,7 @@
 // with `surface: 'api'` so the Truth API is audited against arrival_truth.
 
 import { createFileRoute } from "@tanstack/react-router";
-import { badRequest, jsonResponse, queryRecord, readJsonBody, zodDetails } from "@/lib/http/validate";
+import { badRequest, jsonResponse, malformedJsonBody, queryRecord, readJsonBody, zodDetails } from "@/lib/http/validate";
 import { TruthEtaQuerySchema } from "@/lib/schemas/truth-api";
 import { loadTruthEta } from "@/lib/truth-api.server";
 
@@ -24,7 +24,7 @@ async function handleEtaRequest(request: Request) {
   } else if (request.method === "POST") {
     const bodyRes = await readJsonBody(request);
     if (!bodyRes.ok) {
-      return badRequest("Malformed JSON body", [], CORS);
+      return malformedJsonBody(CORS);
     }
     rawInput = bodyRes.value;
   } else {
@@ -48,12 +48,12 @@ async function handleEtaRequest(request: Request) {
   }
 }
 
-export const Route = createFileRoute("/api/v1/truth/eta")({
+export const Route = (createFileRoute as any)("/api/v1/truth/eta")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
-      GET: async ({ request }) => handleEtaRequest(request),
-      POST: async ({ request }) => handleEtaRequest(request),
+      GET: async ({ request }: { request: Request }) => handleEtaRequest(request),
+      POST: async ({ request }: { request: Request }) => handleEtaRequest(request),
     },
   },
 });

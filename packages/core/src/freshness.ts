@@ -38,6 +38,8 @@ export type FreshnessInput = {
   agency?: Agency;
   /** Backing sample count behind the speed/dwell model. */
   modelSamples?: number;
+  /** A4: data-derived threshold overrides from ping-gap percentiles. */
+  thresholdOverrides?: { fresh?: number; ghost?: number; near?: number };
 };
 
 export type FreshnessToken =
@@ -67,12 +69,21 @@ export function isSingleRiderSource(sources: number | undefined): boolean {
   return (sources ?? 1) < CORROBORATION_MIN;
 }
 
-export function thresholdsFor(agency: Agency) {
-  return agency === "IC" ? INTERCITY : URBAN;
+export function thresholdsFor(
+  agency: Agency,
+  overrides?: { fresh?: number; ghost?: number; near?: number },
+) {
+  const base = agency === "IC" ? INTERCITY : URBAN;
+  if (!overrides) return base;
+  return {
+    fresh: overrides.fresh ?? base.fresh,
+    ghost: overrides.ghost ?? base.ghost,
+    near: overrides.near ?? base.near,
+  } as const;
 }
 
 export function classifyFreshness(input: FreshnessInput): FreshnessResult {
-  const T = thresholdsFor(input.agency);
+  const T = thresholdsFor(input.agency, input.thresholdOverrides);
   const samples = input.modelSamples ?? 0;
   const stops = input.stopsAway ?? 99;
 

@@ -182,6 +182,10 @@ export const planMultiLeg = createServerFn({ method: "POST" })
                   departureUnix,
                   explicitTime: !!(data.departAtUnix || data.arriveByUnix),
                   date: data.arriveByUnix ? localDateForUnix(data.arriveByUnix) : undefined,
+                  accessibilityPrefs: {
+                    requireSafeCrossing: data.a11y?.stepFree ?? false,
+                    requireWheelchair: data.a11y?.lowFloor ?? false,
+                  },
                 }
               : undefined,
           ).catch((e: unknown) => {

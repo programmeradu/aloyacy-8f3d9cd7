@@ -50,6 +50,7 @@
       "types": "./src/cy-time.ts",
       "default": "./src/cy-time.ts"
     },
+    "./ping-gap-stats": "./src/ping-gap-stats.ts",
     "./cyprus-holidays": {
       "types": "./src/cyprus-holidays.ts",
       "default": "./src/cyprus-holidays.ts"

@@ -10,6 +10,23 @@ import type { Itinerary, Leg, RideLeg, WalkLeg } from "./itinerary-types";
 import { scoreLegs, type PlanContext } from "./multileg-rank";
 export type { PlanContext };
 
+export type WalkQuality = "verified" | "no_crossing" | "no_sidewalk" | "unknown";
+
+/** Penalty multiplier on walk time based on quality. */
+export const WALK_QUALITY_PENALTY: Record<WalkQuality, number> = {
+  verified: 1.0,        // Google-verified route — trust it
+  no_crossing: 2.5,     // Crossing a highway — big time/safety penalty
+  no_sidewalk: 4.0,     // No sidewalk — almost a hard exclude
+  unknown: 1.0,         // No data — use default estimate
+};
+
+export type AccessibilityPrefs = {
+  /** Hard-exclude stops with no_crossing or no_sidewalk. */
+  requireSafeCrossing?: boolean;
+  /** Hard-exclude stops not wheelchair accessible. */
+  requireWheelchair?: boolean;
+};
+
 /** Search-shape constants. Shared so web and any future native planner agree. */
 export const RAPTOR_TUNING = {
   /** 1 ride + up to 4 transfer rides — enough to cross the island. */
@@ -124,6 +141,7 @@ export function nearbyStops<S extends StopLike>(
   stops: Record<string, S>,
   from: { lat: number; lng: number },
   maxMeters: number,
+  exclude?: Set<string>,
 ): Array<[string, number]> {
   const out: Array<[string, number]> = [];
   const baseLat = Math.floor(from.lat / BUCKET_DEG);
@@ -133,6 +151,7 @@ export function nearbyStops<S extends StopLike>(
       const list = buckets.get(`${baseLat + dy}:${baseLng + dx}`);
       if (!list) continue;
       for (const id of list) {
+        if (exclude?.has(id)) continue;
         const s = stops[id];
         if (!s) continue;
         const m = haversineKm(from, s) * 1000;

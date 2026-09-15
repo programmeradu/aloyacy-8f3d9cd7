@@ -2,6 +2,13 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { vi } from "vitest";
+
+vi.mock("./walk-quality.server", () => ({
+  loadStopWalkQuality: vi.fn().mockResolvedValue(new Map()),
+  loadVerifiedWalkLinks: vi.fn().mockResolvedValue(new Map()),
+}));
+
 import type { RideLeg } from "./itinerary-types";
 import { planRaptor } from "./raptor.server";
 import type { LoadedSchedule } from "./schedule-loader.server";

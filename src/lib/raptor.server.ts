@@ -1,24 +1,7 @@
 // Schedule-based bounded RAPTOR for Cyprus.
-//
 // Inputs: origin/dest lat-lng + a departure time (unix sec).
-// Output: up to N Itinerary DTOs with legs that match the existing
-// `itinerary-types` shape, so the same UI renders both realtime and
-// scheduled results.
-//
-// Design notes:
-//
-//  - We run at most MAX_ROUNDS rounds (= max transfers + 1). Each round k
-//    extends the frontier by one ride leg, with walking transfers applied
-//    between rounds.
-//  - Earliest arrival at each stop is tracked across rounds. A trip that
-//    arrives later than the current best for a stop is skipped.
-//  - The schedule's stop_times for a trip are ordered by sequence; we scan
-//    them in order from the boarding stop to mark each downstream stop.
-//  - Walking transfers between stops use a cheap haversine × 1.35 estimate
-//    capped at MAX_TRANSFER_WALK_M; the no-mediocrity filter in the
-//    dispatcher takes care of pruning weak routes.
-//  - All times are unix seconds (absolute), converted from
-//    seconds-since-service-midnight via the loader.
+// Output: up to N Itinerary DTOs matching `itinerary-types` shape.
+// Max MAX_ROUNDS rounds, earliest arrival tracked per stop, walk transfers capped at MAX_TRANSFER_WALK_M.
 
 import type { LoadedSchedule, ScheduleStop } from "./schedule-loader.server";
 import { serviceDateToUnix } from "./schedule-loader.server";
@@ -38,9 +21,11 @@ import { selectCandidateStops } from "@aloya/core/plan-candidates";
 import { distanceKm } from "@aloya/core/multileg-legs";
 import { buildHeadwayIndex } from "@aloya/core/headway";
 import { sameStation, stationIdOf } from "./stations.server";
-import type { PlanContext } from "@aloya/core/raptor-core";
+import type { PlanContext, AccessibilityPrefs, WalkQuality } from "@aloya/core/raptor-core";
+import { WALK_QUALITY_PENALTY } from "@aloya/core/raptor-core";
 import { loadSkipFractionMap } from "./skip-rate.server";
 import { skipMapKey } from "@aloya/core/skip-rate";
+import { loadStopWalkQuality, loadVerifiedWalkLinks } from "./walk-quality.server";
 
 // Headways are a property of the schedule shard, not of one request, so they
 // are measured once per loaded shard and reused for every plan that day.
@@ -58,26 +43,17 @@ function headwayIndexFor(schedule: LoadedSchedule): Map<string, number> {
   return index;
 }
 
-// Cross-island journeys can legitimately require a local feeder, an
-// intercity service, and one or two airport-side connections. Three rounds
-// silently made those destinations look unreachable even though the schedule
-// contained a valid path. Keep the search bounded, but allow the complete
-// Cyprus network to be traversed.
+// Cross-island journeys can legitimately require a local feeder, an intercity service,
+// and airport-side connections. Keep the search bounded, but allow the full network.
 const {
-  maxRounds: MAX_ROUNDS,
-  maxAccessWalkKm: MAX_ACCESS_WALK_KM,
-  maxEgressWalkKm: MAX_EGRESS_WALK_KM,
-  maxDirectEgressWalkKm: MAX_DIRECT_EGRESS_WALK_KM,
-  maxTransferWalkM: MAX_TRANSFER_WALK_M,
-  topOriginStops: TOP_ORIGIN_STOPS,
-  topDestStops: TOP_DEST_STOPS,
-  maxOriginCandidates: MAX_ORIGIN_CANDIDATES,
-  maxDestCandidates: MAX_DEST_CANDIDATES,
-  minTransferBufferSec: MIN_TRANSFER_BUFFER_SEC,
-  maxTotalJourneySec: MAX_TOTAL_JOURNEY_SEC,
-  topKResults: TOP_K_RESULTS,
-  defaultSearchHorizonSec: DEFAULT_SEARCH_HORIZON_SEC,
+  maxRounds: MAX_ROUNDS, maxAccessWalkKm: MAX_ACCESS_WALK_KM, maxEgressWalkKm: MAX_EGRESS_WALK_KM,
+  maxDirectEgressWalkKm: MAX_DIRECT_EGRESS_WALK_KM, maxTransferWalkM: MAX_TRANSFER_WALK_M,
+  topOriginStops: TOP_ORIGIN_STOPS, topDestStops: TOP_DEST_STOPS,
+  maxOriginCandidates: MAX_ORIGIN_CANDIDATES, maxDestCandidates: MAX_DEST_CANDIDATES,
+  minTransferBufferSec: MIN_TRANSFER_BUFFER_SEC, maxTotalJourneySec: MAX_TOTAL_JOURNEY_SEC,
+  topKResults: TOP_K_RESULTS, defaultSearchHorizonSec: DEFAULT_SEARCH_HORIZON_SEC,
 } = RAPTOR_TUNING;
+
 
 export type RaptorDiagnostics = {
   date: string;
@@ -99,7 +75,7 @@ export async function planRaptor(
   from: { lat: number; lng: number; label?: string },
   to: { lat: number; lng: number; label?: string },
   departureUnix: number,
-  opts?: { searchHorizonSec?: number; maxJourneySec?: number },
+  opts?: { searchHorizonSec?: number; maxJourneySec?: number; accessibilityPrefs?: AccessibilityPrefs },
 ): Promise<{ itineraries: Itinerary[]; diagnostics: RaptorDiagnostics }> {
   const SEARCH_HORIZON_SEC = opts?.searchHorizonSec ?? DEFAULT_SEARCH_HORIZON_SEC;
   // The journey cap is measured from the requested departure, so a long wait
@@ -197,6 +173,16 @@ export async function planRaptor(
   // at most 9 buckets. Built once per request from the in-memory stops map.
   const buckets = buildSpatialBuckets(stops);
 
+  // A4 + D3: Pre-fetch stop walkability attributes and verified links for the active candidate set.
+  // We fetch walk quality for all schedule stops since they're heavily cached and small.
+  // (Alternatively, we could lazy-load or load just the candidate set, but this runs in a Worker 
+  // so we prefer a single batched read).
+  const candidateStopIds = Object.keys(stops);
+  const [stopWalkQuality, walkLinkCache] = await Promise.all([
+    loadStopWalkQuality(candidateStopIds),
+    loadVerifiedWalkLinks(candidateStopIds),
+  ]);
+
   // 2) Round 0 — access walks from origin.
   // labels[round]: Map<stopId, Label>. We keep round-specific labels so
   // round k+1 only extends frontier stops reached in round k.
@@ -291,15 +277,50 @@ export async function planRaptor(
     }
 
     // Walking transfers between freshly-touched stops and nearby stops.
+    const prefs = opts?.accessibilityPrefs;
+    const excludeSet = new Set<string>();
+    
+    // We can pre-filter nearbyStops using the exclude set based on preferences.
+    // If prefs require safe crossing, exclude "no_crossing" stops.
+    // Always exclude "no_sidewalk" stops (hard exclude).
+    if (prefs?.requireSafeCrossing) {
+      for (const [sid, q] of stopWalkQuality.entries()) {
+        if (q.reachableOnFoot === "no_crossing" || q.reachableOnFoot === "no_sidewalk") {
+          excludeSet.add(sid);
+        }
+      }
+    } else {
+      for (const [sid, q] of stopWalkQuality.entries()) {
+        if (q.reachableOnFoot === "no_sidewalk") {
+          excludeSet.add(sid);
+        }
+      }
+    }
+
     for (const sid of touched) {
       const cur = next.get(sid);
       if (!cur) continue;
       const stop = stops[sid];
       if (!stop) continue;
-      const near = nearbyStops(buckets, stops, stop, MAX_TRANSFER_WALK_M);
+      
+      const near = nearbyStops(buckets, stops, stop, MAX_TRANSFER_WALK_M, excludeSet);
       for (const [nid, ndistM] of near) {
         if (nid === sid) continue;
-        const walkSec = walkSecFromMeters(ndistM);
+        
+        let walkSec: number;
+        const linkKey = `${sid}|${nid}`;
+        const verified = walkLinkCache.get(linkKey);
+        
+        if (verified) {
+          walkSec = verified.durationSec;
+        } else {
+          // No verified link, fall back to haversine + penalty
+          const q = stopWalkQuality.get(nid);
+          const wq: WalkQuality = q?.reachableOnFoot === "no_crossing" ? "no_crossing" : "unknown";
+          const penalty = WALK_QUALITY_PENALTY[wq];
+          walkSec = walkSecFromMeters(ndistM) * penalty;
+        }
+
         const arr = cur.arrivalUnix + walkSec;
         const existing = bestArrival.get(nid);
         if (existing !== undefined && arr >= existing) continue;
@@ -308,7 +329,7 @@ export async function planRaptor(
           arrivalUnix: arr,
           prevStopId: sid,
           prevArrivalUnix: cur.arrivalUnix,
-          meters: ndistM,
+          meters: verified ? verified.distanceM : ndistM,
         });
         bestArrival.set(nid, arr);
         diag.walkTransfers++;

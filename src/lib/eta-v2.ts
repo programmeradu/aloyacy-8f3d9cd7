@@ -104,6 +104,8 @@ export type SmartEtaV2Input = {
   riderConfirmedAgeSec?: number;
   /** Distinct devices behind the sighting. Absent → one (fail closed). */
   riderConfirmedSources?: number;
+  /** A4: data-derived threshold overrides from ping-gap percentiles. */
+  thresholdOverrides?: { fresh?: number; ghost?: number; near?: number };
 };
 
 export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
@@ -313,6 +315,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
     agency: input.agency,
     stopsAway,
     modelSamples: avgSamples,
+    thresholdOverrides: input.thresholdOverrides,
   });
   const freshness: EtaFreshness =
     cls.tier === "ghost" || cls.tier === "scheduled"
