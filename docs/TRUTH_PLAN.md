@@ -909,7 +909,8 @@ Update this table in the same commit as the slice.
 | E0 | Two-repo contradictions | **Shipped** (boards, 301, hreflang, fare/line copy, drop overclaims). |
 | E2 | Programmatic index | **Partial.** Stops and rated routes. `/accuracy` waits on A5. |
 | E3 | Transit JSON-LD | **Shipped.** `BusStop` + breadcrumbs on indexable stop pages. Breadcrumbs + `BusTrip` on rated route pages. `FAQPage` on stops. |
-| F1–F4 | Truth API, report card, embed | **Blocked** until A1/A2 are writing *and* a design partner is waiting. |
+| F1 | B2B Truth API (/api/v1/truth/eta) | **Shipped.** Versioned API with Zod boundary validation, confidence bands, live vehicle coordinates, reliability metrics, and prediction logging to ledger (surface: 'api'). |
+| F2–F4 | Report card, embed, beat-the-operator | Awaiting design partner pilot & quarterly A3 backtest data. |
 | G1 | Airport as a job | **Shipped.** Kapnos vs city bus vs taxi rank. Dest-aware fare + wait + walk. Taxi euro from a measured drive; unpublished without one. |
 | G2 | Pay line + last-bus + Holiday calendar | **Shipped.** Statutory holidays project Sunday schedule (@aloya/core/cyprus-holidays). Term-time open. |
 | G3 | Green Line named | **Shipped.** Hours **not** invented. |
