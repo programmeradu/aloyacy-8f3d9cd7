@@ -10,4 +10,7 @@
       "bucket_name": "aloya-data-lake"
     }
   ],
+  "vars": {
+    "CUSTOM_SUPABASE_URL": "https://xbidevhyloeetxfjdjiy.supabase.co"
+  }
 }

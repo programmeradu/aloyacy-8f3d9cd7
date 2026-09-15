@@ -44,14 +44,26 @@ let _trips: Record<string, ScheduleTrip> | null = null;
 const _shards = new Map<string, DateShard>();
 const SHARD_TTL_MS = 60 * 60 * 1000; // 1h
 
+const DEFAULT_SCHEDULE_STORAGE_URL = "https://xbidevhyloeetxfjdjiy.supabase.co";
+
 function candidateUrls(path: string): string[] {
   const urls: string[] = [];
   // Prefer the Supabase Storage `schedule` bucket — refreshed nightly by the
   // pg_cron job, no redeploy needed. `path` is /data/schedule/<rest>, so we
   // strip the prefix when mapping to the bucket key.
   const bucketKey = path.replace(/^\/data\/schedule\//, "");
-  const supaUrl = process.env.CUSTOM_SUPABASE_URL;
-  if (supaUrl) urls.push(`${supaUrl}/storage/v1/object/public/schedule/${bucketKey}`);
+  const supaUrl = (
+    process.env.CUSTOM_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    (typeof import.meta !== "undefined" && import.meta.env?.VITE_CUSTOM_SUPABASE_URL) ||
+    DEFAULT_SCHEDULE_STORAGE_URL
+  ).replace(/\/+$/, "");
+
+  urls.push(`${supaUrl}/storage/v1/object/public/schedule/${bucketKey}`);
+  if (supaUrl !== DEFAULT_SCHEDULE_STORAGE_URL) {
+    urls.push(`${DEFAULT_SCHEDULE_STORAGE_URL}/storage/v1/object/public/schedule/${bucketKey}`);
+  }
+
   // Fallback: the bundled snapshot in /public, served by the origin.
   try {
     const req = getRequest();
@@ -61,12 +73,7 @@ function candidateUrls(path: string): string[] {
   }
   if (process.env.PUBLIC_SITE_URL) urls.push(new URL(path, process.env.PUBLIC_SITE_URL).toString());
   urls.push(new URL(path, "https://app.aloya.cy").toString());
-  urls.push(
-    new URL(
-      path,
-      "https://project--cb91f9c9-a30e-4540-948c-0683f1088d6c-dev.lovable.app",
-    ).toString(),
-  );
+  urls.push(new URL(path, "https://aloyacy.lovable.app").toString());
   return [...new Set(urls)];
 }
 
