@@ -96,6 +96,7 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiV1TruthEtaRouteImport } from './routes/api/v1/truth/eta'
 import { Route as ApiPublicWalletPassRouteImport } from './routes/api/public/wallet/pass'
 import { Route as ApiPublicWalletOcrRouteImport } from './routes/api/public/wallet/ocr'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -573,6 +574,11 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1TruthEtaRoute = ApiV1TruthEtaRouteImport.update({
+  id: '/api/v1/truth/eta',
+  path: '/api/v1/truth/eta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWalletPassRoute = ApiPublicWalletPassRouteImport.update({
   id: '/pass',
   path: '/pass',
@@ -858,6 +864,7 @@ export interface FileRoutesByFullPath {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
+  '/api/v1/truth/eta': typeof ApiV1TruthEtaRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -977,6 +984,7 @@ export interface FileRoutesByTo {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
+  '/api/v1/truth/eta': typeof ApiV1TruthEtaRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -1097,6 +1105,7 @@ export interface FileRoutesById {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
+  '/api/v1/truth/eta': typeof ApiV1TruthEtaRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -1218,6 +1227,7 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/api/public/wallet/ocr'
     | '/api/public/wallet/pass'
+    | '/api/v1/truth/eta'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1337,6 +1347,7 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/api/public/wallet/ocr'
     | '/api/public/wallet/pass'
+    | '/api/v1/truth/eta'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1456,6 +1467,7 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/api/public/wallet/ocr'
     | '/api/public/wallet/pass'
+    | '/api/v1/truth/eta'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1574,6 +1586,7 @@ export interface RootRouteChildren {
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
   ApiPublicPartnersApplyRoute: typeof ApiPublicPartnersApplyRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiV1TruthEtaRoute: typeof ApiV1TruthEtaRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -2192,6 +2205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/truth/eta': {
+      id: '/api/v1/truth/eta'
+      path: '/api/v1/truth/eta'
+      fullPath: '/api/v1/truth/eta'
+      preLoaderRoute: typeof ApiV1TruthEtaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/wallet/pass': {
       id: '/api/public/wallet/pass'
       path: '/pass'
@@ -2536,6 +2556,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
   ApiPublicPartnersApplyRoute: ApiPublicPartnersApplyRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiV1TruthEtaRoute: ApiV1TruthEtaRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

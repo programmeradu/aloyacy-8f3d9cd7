@@ -143,7 +143,7 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
           lat: vehicle.lat,
           lng: vehicle.lng,
           bearing: vehicle.bearing ?? null,
-          speed_mps: vehicle.speedMps ?? null,
+          speed_mps: vehicle.speed ?? null,
         }
       : null;
 
@@ -160,7 +160,7 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
       trip_id: a.tripId,
       route_id: a.routeId,
       route_short: route?.short || a.routeId,
-      headsign,
+      headsign: headsign ?? route?.long ?? "",
       agency: route?.agency || stop.agency,
       p50_sec: Math.round(eta.etaSec),
       eta_min: Math.round(eta.etaMin),
@@ -199,13 +199,14 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
 
   // Fire-and-forget clearing house ledger logging
   if (logRows.length > 0) {
-    void db
-      .from("eta_predictions")
-      .insert(logRows)
-      .then(({ error }) => {
-        if (error) log.warn("Truth API failed to log predictions to ledger", error);
-      })
-      .catch((err) => log.warn("Truth API ledger insert threw", err));
+    void (async () => {
+      try {
+        const { error } = await db.from("eta_predictions").insert(logRows);
+        if (error) log.warn("Truth API failed to log predictions to ledger", { error: error.message });
+      } catch (err) {
+        log.warn("Truth API ledger insert threw", { error: err instanceof Error ? err.message : String(err) });
+      }
+    })();
   }
 
   return {
