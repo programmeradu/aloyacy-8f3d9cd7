@@ -24,7 +24,7 @@ async function handleEtaRequest(request: Request) {
   } else if (request.method === "POST") {
     const bodyRes = await readJsonBody(request);
     if (!bodyRes.ok) {
-      return badRequest("Malformed JSON body", undefined, CORS);
+      return badRequest("Malformed JSON body", [], CORS);
     }
     rawInput = bodyRes.value;
   } else {
