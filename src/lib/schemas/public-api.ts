@@ -292,15 +292,6 @@ export const IngestScheduleBodySchema = z
   .default({});
 
 /**
- * Stripe posts webhooks to `?env=live` or `?env=sandbox`. Anything else is a
- * misconfigured endpoint, and silently defaulting it would verify the payload
- * against the wrong signing secret.
- */
-export const StripeEnvQuerySchema = z.object({
-  env: z.enum(["live", "sandbox"]).default("sandbox"),
-});
-
-/**
  * Body of a `/api/public/trip-alerts` cron tick.
  *
  * The scheduler normally posts no body at all; an operator running the tick by
