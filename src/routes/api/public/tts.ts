@@ -18,7 +18,24 @@ const CORS = {
 // Martha — natural, expressive voice tuned for multilingual content.
 const DEFAULT_VOICE_ID = "JrrE7QTGDmQKQuUnqk7H";
 
+async function synthOpenAI(input: string, apiKey: string) {
+  return fetch("https://api.openai.com/v1/audio/speech", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "tts-1",
+      input,
+      voice: "alloy",
+      response_format: "mp3",
+    }),
+  });
+}
+
 async function synthLovable(input: string, instructions: string, apiKey: string) {
+
   return fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
     method: "POST",
     headers: {
@@ -65,8 +82,9 @@ export const Route = createFileRoute("/api/public/tts")({
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
         const elevenKey = process.env.ELEVENLABS_API_KEY;
+        const openAiKey = process.env.OPENAI_API_KEY;
         const lovableKey = process.env.LOVABLE_API_KEY;
-        if (!elevenKey && !lovableKey) {
+        if (!elevenKey && !openAiKey && !lovableKey) {
           return new Response(JSON.stringify({ error: "TTS not configured" }), {
             status: 500,
             headers: { ...CORS, "Content-Type": "application/json" },
@@ -100,22 +118,30 @@ export const Route = createFileRoute("/api/public/tts")({
               headers: { ...CORS, "Content-Type": "audio/mpeg" },
             });
           }
-          // 401/402/429 → try Lovable AI as fallback if available.
-          if (!lovableKey) {
-            const text = await resp.text();
-            return new Response(text, {
-              status: resp.status,
-              headers: {
-                ...CORS,
-                "Content-Type": resp.headers.get("content-type") ?? "application/json",
-              },
+        }
+
+        // Secondary: Direct OpenAI TTS
+        if (openAiKey) {
+          const resp = await synthOpenAI(input, openAiKey);
+          if (resp.ok) {
+            const audio = await resp.arrayBuffer();
+            return new Response(audio, {
+              status: 200,
+              headers: { ...CORS, "Content-Type": "audio/mpeg" },
             });
           }
         }
 
-        // Fallback: Lovable AI Gateway.
-        const resp = await synthLovable(input, instructions, lovableKey!);
-        if (!resp.ok) {
+        // Tertiary fallback: Lovable AI Gateway (if configured).
+        if (lovableKey) {
+          const resp = await synthLovable(input, instructions, lovableKey);
+          if (resp.ok) {
+            const audio = await resp.arrayBuffer();
+            return new Response(audio, {
+              status: 200,
+              headers: { ...CORS, "Content-Type": "audio/mpeg" },
+            });
+          }
           const text = await resp.text();
           return new Response(text, {
             status: resp.status,
@@ -125,12 +151,13 @@ export const Route = createFileRoute("/api/public/tts")({
             },
           });
         }
-        const audio = await resp.arrayBuffer();
-        return new Response(audio, {
-          status: 200,
-          headers: { ...CORS, "Content-Type": "audio/mpeg" },
+
+        return new Response(JSON.stringify({ error: "TTS synthesis failed" }), {
+          status: 502,
+          headers: { ...CORS, "Content-Type": "application/json" },
         });
       },
+
     },
   },
 });

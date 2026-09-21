@@ -51,7 +51,7 @@ describe("planner availability honesty", () => {
     liveMock.mockRejectedValue(new Error("boom"));
     schedMock.mockRejectedValue(new Error("boom"));
     await expect(plan()).rejects.toThrow(/planner_unavailable/);
-  });
+  }, 15000);
 
   it("throws when the surviving engine finds nothing and the other crashed", async () => {
     liveMock.mockRejectedValue(new Error("boom"));

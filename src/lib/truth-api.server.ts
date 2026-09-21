@@ -145,9 +145,11 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
           id: vehicle.id,
           lat: vehicle.lat,
           lng: vehicle.lng,
+          bearing: vehicle.bearing ?? null,
           speed_mps: (vehicle as any).speedMps ?? vehicle.speed ?? null,
         }
       : null;
+
 
     let sourceMix: TruthDeparture["source_mix"] = "feed_prediction";
     if (eta.tier === "live") {
@@ -208,8 +210,8 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
       } catch (err) {
         log.warn("Truth API ledger insert threw", { err: err instanceof Error ? err.message : String(err) });
       }
-      }
     })();
+
   }
 
   return {

@@ -102,3 +102,9 @@ export const IconScanCard = ({ className, strokeWidth = 1.5 }: IconProps) => (
     <path d="M5.5 12h13" />
   </svg>
 );
+
+export const IconStarFilled = ({ className }: IconProps) => (
+  <svg viewBox="0 0 24 24" className={iconClass(className)} fill="currentColor">
+    <path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83L12 3.6z" />
+  </svg>
+);

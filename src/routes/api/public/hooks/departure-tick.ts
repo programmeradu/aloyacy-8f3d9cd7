@@ -16,6 +16,7 @@ import {
   type WeatherCondition,
   type WeatherCoupling,
 } from "@/lib/leave-time-adjuster";
+import { getWorkerEnv } from "@/lib/worker-env";
 import { createLogger, serializeError } from "@/lib/logger";
 
 const log = createLogger("departure-tick");
@@ -48,6 +49,8 @@ type PlanShape = {
   toLabel?: string;
   fromLat?: number;
   fromLng?: number;
+  toLat?: number;
+  toLng?: number;
   legs?: Array<{ kind?: string; routeId?: string; routeShort?: string }>;
   // Stored by phase-1 so phase-2 can surface it in the push body.
   adjustment?: {
@@ -74,7 +77,11 @@ async function tick(request: Request) {
   const denied = guard(request);
   if (denied) return denied;
 
-  const priv = process.env.VAPID_PRIVATE_KEY;
+  const env = getWorkerEnv();
+  const priv =
+    ((env?.VAPID_PRIVATE_KEY as string | undefined) || process.env.VAPID_PRIVATE_KEY || "")
+      .replace(/^\uFEFF/, "")
+      .trim();
   if (!priv) return json({ ok: false, error: "VAPID_PRIVATE_KEY missing" }, 500);
 
   const nowUnix = Math.floor(Date.now() / 1000);
@@ -172,11 +179,24 @@ async function tick(request: Request) {
     const minutesUntil = Math.max(0, Math.round((row.arrive_by_unix - nowUnix) / 60));
     const adj = plan.adjustment;
     const bodyExtra = adj && adj.extraSec >= 60 && adj.reasonShort ? ` ${adj.reasonShort}.` : "";
+    const tripParams = new URLSearchParams();
+    if (plan.fromLat != null && plan.fromLng != null) {
+      tripParams.set("fromLat", String(plan.fromLat));
+      tripParams.set("fromLng", String(plan.fromLng));
+      if (plan.fromLabel) tripParams.set("fromLabel", plan.fromLabel);
+    }
+    if (plan.toLat != null && plan.toLng != null) {
+      tripParams.set("toLat", String(plan.toLat));
+      tripParams.set("toLng", String(plan.toLng));
+      if (plan.toLabel) tripParams.set("toLabel", plan.toLabel);
+    }
+    const targetUrl = tripParams.toString() ? `/trips?${tripParams.toString()}` : "/saved";
+
     const payload = {
       title: `Time to head out${firstRoute ? ` — BUS ${firstRoute}` : ""}`,
       body: `Leave now to reach ${plan.toLabel ?? "your destination"} on time (~${minutesUntil} min).${bodyExtra}`,
       tag: `aloya-depart-${row.id}`,
-      url: "/trips",
+      url: targetUrl,
       requireInteraction: true,
     } as const;
 
@@ -197,13 +217,15 @@ async function tick(request: Request) {
 
     // No registered surface is not a failure — the reminder simply has
     // nowhere to go, so close it out rather than retrying every tick.
-    const settled = receipt.ok || receipt.sent + receipt.failed === 0;
+    // Also settle if the departure/remind window is already > 15m in the past.
+    const isPastDue = nowUnix > row.arrive_by_unix || nowUnix > row.remind_at_unix + 15 * 60;
+    const settled = receipt.ok || receipt.sent + receipt.failed === 0 || isPastDue;
 
     await supabaseAdmin
       .from("scheduled_departures")
       .update({
-        status: settled ? "notified" : "scheduled",
-        notified_at: settled ? new Date().toISOString() : null,
+        status: settled ? (receipt.ok ? "notified" : "expired") : "scheduled",
+        notified_at: receipt.ok ? new Date().toISOString() : null,
         last_check_at: new Date().toISOString(),
       })
       .eq("id", row.id);

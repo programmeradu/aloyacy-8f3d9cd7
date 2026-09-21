@@ -39,9 +39,15 @@ vi.mock("@/integrations/supabase/client.server", () => ({
 
 const createStripeClient = vi.fn((..._args: unknown[]) => undefined as unknown);
 const getStripeErrorMessage = vi.fn((e: unknown) => (e instanceof Error ? e.message : "err"));
+const findOrCreatePriceByPlanKey = vi.fn(
+  async (_stripe: unknown, _planKey: string): Promise<{ id: string } | null> => ({
+    id: "price_mock",
+  }),
+);
 vi.mock("../stripe.server", () => ({
   createStripeClient: (...args: unknown[]) => createStripeClient(...args),
   getStripeErrorMessage: (e: unknown) => getStripeErrorMessage(e),
+  findOrCreatePriceByPlanKey: (s: unknown, k: string) => findOrCreatePriceByPlanKey(s, k),
 }));
 
 const { createCheckoutSession, createPortalSession } = await import("../billing.functions");
@@ -67,6 +73,8 @@ describe("createCheckoutSession", () => {
       trial_grants: { data: null, error: null },
     };
     createStripeClient.mockReset();
+    findOrCreatePriceByPlanKey.mockReset();
+    findOrCreatePriceByPlanKey.mockResolvedValue({ id: "price_mock" } as never);
   });
 
   it("rejects when there is no authorization header", async () => {
@@ -116,6 +124,7 @@ describe("createCheckoutSession", () => {
   });
 
   it("returns an error when the plan price can't be found", async () => {
+    findOrCreatePriceByPlanKey.mockResolvedValueOnce(null);
     createStripeClient.mockReturnValue({
       prices: { search: vi.fn(async () => ({ data: [] })) },
       customers: { search: vi.fn(async () => ({ data: [] })) },

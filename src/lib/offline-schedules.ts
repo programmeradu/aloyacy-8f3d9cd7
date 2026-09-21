@@ -4,6 +4,13 @@
 // the `aloya-schedule-v1` Cache Storage bucket. The service worker serves
 // `/data/schedule/*` cache-first so subsequent reads work offline.
 
+import {
+  saveTripsToDb,
+  saveDateScheduleToDb,
+  clearOfflineTimetableDb,
+  isIndexedDbSupported,
+} from "./offline-timetable-db";
+
 const SCHEDULE_CACHE = "aloya-schedule-v1";
 const STATUS_KEY = "aloya.offline.status.v1";
 
@@ -60,6 +67,22 @@ function saveStatus(s: OfflineStatus) {
   } catch {}
 }
 
+const SCHEDULE_CDN_BASE =
+  "https://xbidevhyloeetxfjdjiy.supabase.co/storage/v1/object/public/schedule";
+
+async function fetchScheduleAsset(path: string, init?: RequestInit): Promise<Response> {
+  // 1. Try local origin first
+  try {
+    const res = await fetch(path, init);
+    if (res.ok) return res;
+  } catch {}
+
+  // 2. Fall back to CDN storage bucket
+  const bucketKey = path.replace(/^\/data\/schedule\//, "");
+  const fallbackUrl = `${SCHEDULE_CDN_BASE}/${bucketKey}`;
+  return await fetch(fallbackUrl, init);
+}
+
 export function getOfflineStatus(): OfflineStatus | null {
   return loadStatus();
 }
@@ -70,7 +93,7 @@ export function isOfflineCacheSupported(): boolean {
 
 async function cacheUrl(cache: Cache, url: string): Promise<{ ok: boolean; bytes: number }> {
   try {
-    const res = await fetch(url, { cache: "no-cache" });
+    const res = await fetchScheduleAsset(url, { cache: "no-cache" });
     if (!res.ok) return { ok: false, bytes: 0 };
     const clone = res.clone();
     await cache.put(url, res);
@@ -95,12 +118,15 @@ export async function downloadOfflineSchedules(opts: {
   // the static bundle hasn't been ingested for yet.
   let available: Set<string> | null = null;
   try {
-    const idxRes = await fetch("/data/schedule/by-date/index.json", { cache: "no-cache" });
+    const idxRes = await fetchScheduleAsset("/data/schedule/by-date/index.json", {
+      cache: "no-cache",
+    });
     if (idxRes.ok) {
       const idx = (await idxRes.json()) as Record<string, unknown>;
       available = new Set(Object.keys(idx));
     }
   } catch {}
+
 
   const dates = available ? requested.filter((d) => available!.has(d)) : requested;
   const dateUrls = dates.flatMap((d) => [
@@ -127,6 +153,33 @@ export async function downloadOfflineSchedules(opts: {
     }
   }
 
+  // Index downloaded data into IndexedDB for fast offline querying
+  if (isIndexedDbSupported()) {
+    try {
+      opts.onProgress?.({
+        total: all.length,
+        done: all.length,
+        currentLabel: "Indexing offline database...",
+      });
+      const tripsRes = await cache.match("/data/schedule/trips.json");
+      if (tripsRes) {
+        const trips = await tripsRes.json();
+        await saveTripsToDb(trips);
+      }
+      for (const d of cachedDates) {
+        const stRes = await cache.match(`/data/schedule/by-date/${d}/stop-times.json`);
+        const tripRes = await cache.match(`/data/schedule/by-date/${d}/stop-trips.json`);
+        if (stRes && tripRes) {
+          const stopTimes = await stRes.json();
+          const stopTrips = await tripRes.json();
+          await saveDateScheduleToDb(d, stopTrips, stopTimes);
+        }
+      }
+    } catch (dbErr) {
+      console.warn("[offline-schedules] Failed to index into IndexedDB:", dbErr);
+    }
+  }
+
   opts.onProgress?.({ total: all.length, done: all.length, currentLabel: "Done" });
 
   const status: OfflineStatus = {
@@ -141,6 +194,7 @@ export async function downloadOfflineSchedules(opts: {
 export async function clearOfflineSchedules(): Promise<void> {
   if (!isOfflineCacheSupported()) return;
   await caches.delete(SCHEDULE_CACHE);
+  await clearOfflineTimetableDb();
   try {
     localStorage.removeItem(STATUS_KEY);
   } catch {}

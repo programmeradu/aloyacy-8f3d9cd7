@@ -1,10 +1,15 @@
-// Aloya service worker — push notifications + basic navigation cache.
-// Kept tiny on purpose: NetworkFirst for HTML so new deploys reach users.
+// Aloya service worker — push notifications + offline resilient PWA cache.
+// NetworkFirst for HTML with Cache fallback to keep new deploys fresh,
+// StaleWhileRevalidate for assets so scripts and styles load offline.
 
-const CACHE = "aloya-v1";
+const CACHE = "aloya-v2";
 const SCHEDULE_CACHE = "aloya-schedule-v1"; // preserved across SW updates
+const PRECACHE_URLS = ["/offline.html", "/manifest.webmanifest", "/icon-192.png"];
 
 self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE).then((cache) => cache.addAll(PRECACHE_URLS).catch(() => {})),
+  );
   self.skipWaiting();
 });
 
@@ -28,6 +33,7 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
+  // 1. Static schedule shards
   if (url.origin === self.location.origin && url.pathname.startsWith("/data/schedule/")) {
     event.respondWith(
       (async () => {
@@ -45,16 +51,59 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // 2. Production assets & static media: Stale-While-Revalidate
+  if (
+    url.origin === self.location.origin &&
+    (url.pathname.startsWith("/assets/") ||
+      /\.(js|css|woff2|woff|ttf|png|jpg|jpeg|svg|webp|ico)$/i.test(url.pathname))
+  ) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE);
+        const cached = await cache.match(req);
+        const fetchPromise = fetch(req)
+          .then((networkRes) => {
+            if (networkRes && networkRes.status === 200) {
+              cache.put(req, networkRes.clone());
+            }
+            return networkRes;
+          })
+          .catch(() => null);
+
+        return cached || (await fetchPromise) || new Response("Asset offline", { status: 503 });
+      })(),
+    );
+    return;
+  }
+
+  // 3. Navigation requests: Network-first, fallback to cached route, root shell, or offline.html
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
         try {
           const fresh = await fetch(req);
+          if (fresh && fresh.status === 200) {
+            const cache = await caches.open(CACHE);
+            cache.put(req, fresh.clone());
+            if (url.pathname === "/") {
+              cache.put("/index.html", fresh.clone());
+            }
+          }
           return fresh;
         } catch (e) {
           const cache = await caches.open(CACHE);
-          const cached = await cache.match("/offline");
-          return cached || new Response("Offline", { status: 503 });
+          const cached = await cache.match(req);
+          if (cached) return cached;
+          const rootCached = await cache.match("/");
+          if (rootCached) return rootCached;
+          const offlinePage = await cache.match("/offline.html");
+          return (
+            offlinePage ||
+            new Response("Offline — please reconnect to the internet.", {
+              status: 503,
+              headers: { "Content-Type": "text/plain; charset=utf-8" },
+            })
+          );
         }
       })(),
     );

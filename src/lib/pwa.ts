@@ -152,10 +152,27 @@ export async function getOrCreatePushSubscription(): Promise<
   if (permission !== "granted") return { ok: false, reason: "Permission denied." };
 
   let sub = await reg.pushManager.getSubscription();
+  const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+
+  // If the browser holds an old subscription from a previous VAPID key,
+  // unsubscribe it first so the push service doesn't reject pushes with 403: BadJwtToken.
+  if (sub && sub.options?.applicationServerKey) {
+    const existingKey = new Uint8Array(sub.options.applicationServerKey);
+    const matches =
+      existingKey.length === appServerKey.length &&
+      existingKey.every((byte, idx) => byte === appServerKey[idx]);
+    if (!matches) {
+      try {
+        await sub.unsubscribe();
+      } catch {}
+      sub = null;
+    }
+  }
+
   if (!sub) {
     sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      applicationServerKey: appServerKey,
     });
   }
   return { ok: true, subscription: serializeSubscription(sub) };

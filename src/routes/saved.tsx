@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { IconPin, IconArrowUpRight, IconClock } from "@/components/Icons";
+import { RouteChip } from "@/components/RouteChip";
 import {
   removeSavedPlace,
   upsertSavedPlace,
@@ -13,6 +14,9 @@ import coast from "@/assets/coast-hero.jpg";
 import { NotificationsCard } from "@/components/NotificationsCard";
 import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
 import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
+import { ActiveLiveTripCard } from "@/components/saved/ActiveLiveTripCard";
+import { ScheduledDeparturesSection } from "@/components/saved/ScheduledDeparturesSection";
+import { ArrivalPromisesSection } from "@/components/saved/ArrivalPromisesSection";
 import { useProPaywall } from "@/lib/useProPaywall";
 import { useI18n } from "@/lib/i18n";
 
@@ -83,7 +87,16 @@ function Saved() {
         </h1>
       </header>
 
-      <section className="px-6 animate-rise" style={{ animationDelay: "80ms" }}>
+      {/* Floating Active Trip Card if user currently has an ongoing trip */}
+      <ActiveLiveTripCard />
+
+      {/* Scheduled Departures & "Remind Me" trips */}
+      <ScheduledDeparturesSection />
+
+      {/* Dynamic Arrival Promises with live traffic buffers & departure nudges */}
+      <ArrivalPromisesSection />
+
+      <section className="px-6 mt-4 animate-rise" style={{ animationDelay: "80ms" }}>
         <div className="relative h-56 w-full overflow-hidden rounded-[28px] ring-1 ring-line">
           <img
             src={coast}
@@ -242,3 +255,4 @@ function RecentRow({
     </div>
   );
 }
+

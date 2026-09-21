@@ -10,6 +10,7 @@ import type { Itinerary } from "@/lib/itinerary-types";
 import type { Point, TimeIntent } from "@/lib/plan-types";
 import { recordTimeUsage } from "@/lib/time-history";
 import type { AccessibilityPrefs } from "@/lib/accessibility-prefs";
+import { useOnlineStatus } from "@/lib/useOnlineStatus";
 
 export type A11yPlanPrefs = {
   stepFree: boolean;
@@ -59,6 +60,7 @@ export function useTripPlanQuery({
   rtTick: number;
 }) {
   const planFn = useServerFn(planMultiLeg);
+  const isOnline = useOnlineStatus();
 
   // Auto-refreshes every 30s, on reconnect, and whenever the realtime feed
   // advances — that is what makes "the bus left, give me the next one" free.
@@ -98,12 +100,12 @@ export function useTripPlanQuery({
         },
       });
     },
-    enabled: !!origin && !!destination,
+    enabled: !!origin && !!destination && isOnline,
     // A cold engine or a dropped upstream call is transient; back off briefly
     // and try again instead of letting one hiccup read as "no route".
-    retry: 2,
+    retry: isOnline ? 2 : 0,
     retryDelay: (attempt) => Math.min(1_500 * 2 ** attempt, 6_000),
-    refetchInterval: 30_000,
+    refetchInterval: isOnline ? 30_000 : false,
     refetchOnWindowFocus: false,
     staleTime: 15_000,
 

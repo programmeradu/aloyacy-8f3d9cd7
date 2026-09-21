@@ -44,6 +44,7 @@ import {
   toPlanA11y,
   useTripPlanQuery,
 } from "@/components/plan/tripPlanQuery";
+import { useOnlineStatus } from "@/lib/useOnlineStatus";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
@@ -135,11 +136,14 @@ function Plan() {
     rtTick,
   });
   const planning = planQuery.isFetching && !planQuery.data;
-  const planError = planQuery.error
-    ? planQuery.error instanceof Error && planQuery.error.message !== "planner_unavailable"
-      ? planQuery.error.message
-      : t("trips.planFailed")
-    : null;
+  const isOnline = useOnlineStatus();
+  const planError = !isOnline
+    ? "Offline: Multi-leg trip planning requires an internet connection. Active trip guidance and saved routes remain available."
+    : planQuery.error
+      ? planQuery.error instanceof Error && planQuery.error.message !== "planner_unavailable"
+        ? planQuery.error.message
+        : t("trips.planFailed")
+      : null;
 
 
   const extras = useTripSideQueries({

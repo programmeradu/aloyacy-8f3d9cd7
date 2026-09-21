@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { createLogger, serializeError } from "@/lib/logger";
 import { badRequest, queryRecord, zodDetails } from "@/lib/http/validate";
 import { StripeEnvQuerySchema } from "@/lib/schemas/public-api";
+import { getWorkerEnv } from "@/lib/worker-env";
 
 const log = createLogger("stripe-webhook");
 
@@ -40,38 +41,61 @@ async function fetchUserIdFromCustomer(customerId: string, env: StripeEnv) {
   }
 }
 
-// Fire-and-forget welcome email. Uses Resend connector via the Lovable
-// gateway. Failure never blocks the webhook.
+// Fire-and-forget welcome email via Cloudflare Email Sending or direct Resend.
+// Failure never blocks the webhook.
 async function sendWelcomeEmail(to: string, planKey: string | null) {
-  const lovable = process.env.LOVABLE_API_KEY;
-  const resend = process.env.RESEND_API_KEY;
-  if (!lovable || !resend) return;
   const planLabel =
     planKey === "pro_weekly" ? "Weekly" : planKey === "pro_monthly" ? "Monthly" : "Pro";
+  const subject = "You're in — welcome to Aloya Pro";
+  const html = `
+    <div style="font-family: ui-sans-serif, system-ui; max-width:520px; margin:0 auto; padding:32px 24px; color:#1a1a1a;">
+      <p style="font-family: ui-monospace, monospace; font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:#a86b2c; margin:0 0 12px;">Aloya Pro · ${planLabel}</p>
+      <h1 style="font-family: 'Instrument Serif', Georgia, serif; font-weight:400; font-size:34px; line-height:1.1; margin:0 0 16px;">The whole island, in your pocket.</h1>
+      <p style="font-size:15px; line-height:1.6; color:#4a4a4a; margin:0 0 24px;">Pro is unlocked across every device you sign in on. Multi-leg trips, live boarding cues, push alerts, and offline schedules are now yours.</p>
+      <p style="font-size:13px; line-height:1.6; color:#6a6a6a; margin:0;">Cancel anytime from the Wallet screen. Reply to this email if anything looks off — a human reads it.</p>
+    </div>
+  `;
+  const text = `Aloya Pro · ${planLabel}\n\nThe whole island, in your pocket.\n\nPro is unlocked across every device you sign in on. Multi-leg trips, live boarding cues, push alerts, and offline schedules are now yours.\n\nCancel anytime from the Wallet screen.`;
+
+  // 1. Try Cloudflare Worker SEND_EMAIL binding
   try {
-    await fetch("https://connector-gateway.lovable.dev/resend/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${lovable}`,
-        "X-Connection-Api-Key": resend,
-      },
-      body: JSON.stringify({
-        from: "Aloya <onboarding@resend.dev>",
-        to: [to],
-        subject: "You're in — welcome to Aloya Pro",
-        html: `
-          <div style="font-family: ui-sans-serif, system-ui; max-width:520px; margin:0 auto; padding:32px 24px; color:#1a1a1a;">
-            <p style="font-family: ui-monospace, monospace; font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:#a86b2c; margin:0 0 12px;">Aloya Pro · ${planLabel}</p>
-            <h1 style="font-family: 'Instrument Serif', Georgia, serif; font-weight:400; font-size:34px; line-height:1.1; margin:0 0 16px;">The whole island, in your pocket.</h1>
-            <p style="font-size:15px; line-height:1.6; color:#4a4a4a; margin:0 0 24px;">Pro is unlocked across every device you sign in on. Multi-leg trips, live boarding cues, push alerts, and offline schedules are now yours.</p>
-            <p style="font-size:13px; line-height:1.6; color:#6a6a6a; margin:0;">Cancel anytime from the Wallet screen. Reply to this email if anything looks off — a human reads it.</p>
-          </div>
-        `,
-      }),
-    });
+    const workerEnv = getWorkerEnv() as Record<string, any> | undefined;
+    const cfBinding = workerEnv?.SEND_EMAIL;
+    if (cfBinding && typeof cfBinding.send === "function") {
+      await cfBinding.send({
+        from: { name: "Aloya CY", email: "auth@app.aloya.cy" },
+        to,
+        subject,
+        html,
+        text,
+      });
+      return;
+    }
   } catch (err) {
-    log.warn("welcome email failed", { ...serializeError(err) });
+    log.warn("welcome email via Cloudflare failed, trying fallback", { ...serializeError(err) });
+  }
+
+  // 2. Direct Resend API
+  const resendKey = process.env.RESEND_DIRECT_API_KEY || process.env.RESEND_API_KEY;
+  if (resendKey) {
+    try {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${resendKey}`,
+        },
+        body: JSON.stringify({
+          from: "Aloya CY <auth@app.aloya.cy>",
+          to: [to],
+          subject,
+          html,
+          text,
+        }),
+      });
+    } catch (err) {
+      log.warn("welcome email failed", { ...serializeError(err) });
+    }
   }
 }
 

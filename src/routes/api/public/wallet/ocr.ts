@@ -118,52 +118,104 @@ export const Route = createFileRoute("/api/public/wallet/ocr")({
         const parsed = schema.safeParse(raw);
         if (!parsed.success) return json({ error: parsed.error.flatten() }, 400);
 
-        const key = process.env.LOVABLE_API_KEY;
-        if (!key) return json({ error: "OCR not configured" }, 503);
+        const geminiKey = process.env.GEMINI_API_KEY;
+        const openAiKey = process.env.OPENAI_API_KEY;
+        const lovableKey = process.env.LOVABLE_API_KEY;
+        if (!geminiKey && !openAiKey && !lovableKey) return json({ error: "OCR not configured" }, 503);
 
         const dataUrl = normaliseDataUrl(parsed.data.imageBase64, parsed.data.mimeType);
         const system = parsed.data.side === "front" ? FRONT_PROMPT : BACK_PROMPT;
 
-        try {
-          const res = await fetch(GATEWAY, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${key}`,
-              "Content-Type": "application/json",
-            },
-            signal: AbortSignal.timeout(12_000),
-            body: JSON.stringify({
-              model: "google/gemini-2.5-flash",
-              temperature: 0,
-              messages: [
-                { role: "system", content: system },
+        const targets = [
+          ...(geminiKey
+            ? [
                 {
-                  role: "user",
-                  content: [
-                    {
-                      type: "text",
-                      text: "Extract the requested fields. Return JSON only.",
-                    },
-                    { type: "image_url", image_url: { url: dataUrl } },
-                  ],
+                  url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                  auth: `Bearer ${geminiKey}`,
+                  model: "gemini-2.5-flash",
                 },
-              ],
-              response_format: {
-                type: "json_schema",
-                json_schema: { name: "motion_card", schema: responseSchema, strict: true },
-              },
-            }),
-          });
-          if (res.status === 429)
-            return json({ error: "Scanner busy. Try again in a moment." }, 429);
-          if (res.status === 402) return json({ error: "Scanner quota exceeded." }, 402);
-          if (!res.ok) return json({ error: `OCR upstream ${res.status}` }, 502);
+              ]
+            : []),
+          ...(openAiKey
+            ? [
+                {
+                  url: "https://api.openai.com/v1/chat/completions",
+                  auth: `Bearer ${openAiKey}`,
+                  model: "gpt-4o-mini",
+                },
+              ]
+            : []),
+          ...(lovableKey
+            ? [
+                {
+                  url: GATEWAY,
+                  auth: `Bearer ${lovableKey}`,
+                  model: "google/gemini-2.5-flash",
+                },
+              ]
+            : []),
+        ];
 
-          const body = (await res.json()) as {
-            choices?: Array<{ message?: { content?: string } }>;
-          };
-          const content = body.choices?.[0]?.message?.content;
-          if (!content) return json({ error: "Empty OCR response" }, 502);
+        try {
+          let content: string | undefined;
+          let lastStatus = 500;
+
+          for (const target of targets) {
+            try {
+              const res = await fetch(target.url, {
+                method: "POST",
+                headers: {
+                  Authorization: target.auth,
+                  "Content-Type": "application/json",
+                },
+                signal: AbortSignal.timeout(12_000),
+                body: JSON.stringify({
+                  model: target.model,
+                  temperature: 0,
+                  messages: [
+                    { role: "system", content: system },
+                    {
+                      role: "user",
+                      content: [
+                        {
+                          type: "text",
+                          text: "Extract the requested fields. Return JSON only.",
+                        },
+                        { type: "image_url", image_url: { url: dataUrl } },
+                      ],
+                    },
+                  ],
+                  response_format: {
+                    type: "json_schema",
+                    json_schema: { name: "motion_card", schema: responseSchema, strict: true },
+                  },
+                }),
+              });
+
+              if (res.status === 429) {
+                lastStatus = 429;
+                continue;
+              }
+              if (!res.ok) {
+                lastStatus = res.status;
+                continue;
+              }
+
+              const body = (await res.json()) as {
+                choices?: Array<{ message?: { content?: string } }>;
+              };
+              content = body.choices?.[0]?.message?.content;
+              if (content) break;
+            } catch {
+              continue;
+            }
+          }
+
+          if (!content) {
+            if (lastStatus === 429) return json({ error: "Scanner busy. Try again in a moment." }, 429);
+            return json({ error: `OCR upstream ${lastStatus}` }, 502);
+          }
+
 
           let extracted: Extracted;
           try {

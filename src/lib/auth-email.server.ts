@@ -22,7 +22,7 @@ import { createLogger } from "@/lib/logger";
 
 const log = createLogger("auth-email");
 
-const SITE_NAME = "aloyacy";
+const SITE_NAME = "Aloya CY";
 const ROOT_DOMAIN = "aloya.cy";
 const SENDER_DOMAIN = "notify.aloya.cy";
 
@@ -34,17 +34,111 @@ function redact(email: string): string {
   return `${local[0]}***@${domain}`;
 }
 
+import { getWorkerEnv } from "@/lib/worker-env";
+
+function extractEmailAddress(str: string): string {
+  const match = str.match(/<([^>]+)>/);
+  return match ? match[1].trim() : str.trim();
+}
+
+function buildMimeMessage({
+  from,
+  to,
+  subject,
+  text,
+  html,
+}: {
+  from: string;
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}): string {
+  const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  return [
+    `From: ${from}`,
+    `To: ${to}`,
+    `Subject: =?utf-8?B?${Buffer.from(subject).toString("base64")}?=`,
+    `MIME-Version: 1.0`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    ``,
+    `--${boundary}`,
+    `Content-Type: text/plain; charset=utf-8`,
+    `Content-Transfer-Encoding: base64`,
+    ``,
+    Buffer.from(text).toString("base64"),
+    ``,
+    `--${boundary}`,
+    `Content-Type: text/html; charset=utf-8`,
+    `Content-Transfer-Encoding: base64`,
+    ``,
+    Buffer.from(html).toString("base64"),
+    ``,
+    `--${boundary}--`,
+  ].join("\r\n");
+}
+
+async function sendViaCloudflareEmail(
+  binding: any,
+  options: { from: string; to: string; subject: string; text: string; html: string },
+): Promise<{ ok: boolean; error?: string }> {
+  const senderAddr = extractEmailAddress(options.from);
+  const recipientAddr = extractEmailAddress(options.to);
+  const senderName = options.from.includes("<")
+    ? options.from.replace(/<[^>]+>/, "").trim() || "Aloya CY"
+    : "Aloya CY";
+
+  const attempts: string[] = [];
+
+  // 1. Try structured send with name/email object
+  try {
+    await binding.send({
+      from: { name: senderName, email: senderAddr },
+      to: recipientAddr,
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
+    });
+    return { ok: true };
+  } catch (err1: any) {
+    attempts.push(`obj: ${err1?.message || String(err1)}`);
+  }
+
+  // 2. Try structured send with plain string from
+  try {
+    await binding.send({
+      from: senderAddr,
+      to: recipientAddr,
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
+    });
+    return { ok: true };
+  } catch (err2: any) {
+    attempts.push(`str: ${err2?.message || String(err2)}`);
+  }
+
+  // 3. Try EmailMessage instance with raw MIME (standard Workerd interface)
+  try {
+    // @ts-ignore
+    const { EmailMessage } = await import(/* @vite-ignore */ "cloudflare:email");
+    const raw = buildMimeMessage(options);
+    const message = new EmailMessage(senderAddr, recipientAddr, raw);
+    await binding.send(message);
+    return { ok: true };
+  } catch (err3: any) {
+    attempts.push(`mime: ${err3?.message || String(err3)}`);
+  }
+
+  return { ok: false, error: attempts.join(" | ") };
+}
+
 /**
  * Generate a sign-in code for `email` (creating the user if needed) and
  * email it. Returns a plain result object — never throws.
  */
 export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
   const email = rawEmail.trim().toLowerCase();
-  const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) {
-    return { ok: false, error: "Email sending is not configured.", code: "no_api_key" };
-  }
-
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   let isNewUser = false;
@@ -100,89 +194,124 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
   const text = await render(element, { plainText: true });
   const messageId = crypto.randomUUID();
 
-  const subject = isNewUser ? "Confirm your email" : "Your Aloya sign-in code";
-  // Sender must be a domain verified in Resend. Today that is stauniverse.tech.
-  // Once notify.aloya.cy verifies, set AUTH_EMAIL_FROM to
-  // "aloyacy <noreply@notify.aloya.cy>" — no code change needed.
+  // Explicit OTP subject so mobile lock screens show the code immediately
+  const subject = isNewUser
+    ? `Your Aloya verification code: ${token}`
+    : `Your Aloya sign-in code: ${token}`;
+
   const VERIFIED_DOMAIN = "stauniverse.tech";
-  const from = process.env.AUTH_EMAIL_FROM?.trim() || `${SITE_NAME} <noreply@${VERIFIED_DOMAIN}>`;
+  const defaultFrom = process.env.AUTH_EMAIL_FROM?.trim() || `${SITE_NAME} <noreply@${VERIFIED_DOMAIN}>`;
   const attempts: string[] = [];
-
-  // 1) Resend. RESEND_API_KEY here is the Lovable connector's *connection*
-  //    key, not a raw Resend key — it authenticates against the connector
-  //    gateway, which holds the real provider credential. Calling
-  //    api.resend.com directly with it returns 401.
-  //    RESEND_DIRECT_API_KEY (optional, user-supplied `re_...`) bypasses the
-  //    gateway and talks to Resend directly.
   let delivered = false;
-  const directKey = process.env.RESEND_DIRECT_API_KEY;
-  const gatewayKey = process.env.RESEND_API_KEY;
-  const lovableKey = process.env.LOVABLE_API_KEY;
 
-  const endpoint = directKey
-    ? "https://api.resend.com/emails"
-    : "https://connector-gateway.lovable.dev/resend/emails";
-  const headers: Record<string, string> = directKey
-    ? { Authorization: `Bearer ${directKey}`, "content-type": "application/json" }
-    : {
-        Authorization: `Bearer ${lovableKey ?? ""}`,
-        "X-Connection-Api-Key": gatewayKey ?? "",
-        "content-type": "application/json",
-      };
+  // 1) Cloudflare Worker Email Service (SEND_EMAIL binding)
+  const workerEnv = getWorkerEnv() || (process.env as any);
+  const cfEmailBinding = workerEnv?.SEND_EMAIL;
 
-  // Sender fallback: if the branded domain isn't verified on the Resend
-  // account yet, retry once from a domain that is, so sign-in never breaks
-  // on a DNS/plan issue. AUTH_EMAIL_FROM_FALLBACK overrides the default.
-  const fallbackFrom =
-    process.env.AUTH_EMAIL_FROM_FALLBACK?.trim() || `${SITE_NAME} <noreply@stauniverse.tech>`;
-
-  const postResend = async (sender: string) => {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ from: sender, to: [email], subject, html, text }),
-    });
-    if (res.ok) return { ok: true as const, status: res.status, body: "" };
-    return {
-      ok: false as const,
-      status: res.status,
-      body: (await res.text()).slice(0, 300),
-    };
-  };
-
-  if (directKey || (gatewayKey && lovableKey)) {
+  if (cfEmailBinding && typeof cfEmailBinding.send === "function") {
     try {
-      let out = await postResend(from);
-      if (
-        !out.ok &&
-        out.status === 403 &&
-        out.body.includes("not verified") &&
-        fallbackFrom !== from
-      ) {
-        attempts.push(`resend ${out.status} (${from}): ${out.body}`);
-        out = await postResend(fallbackFrom);
-      }
-      if (out.ok) {
+      const cfFrom =
+        process.env.CF_EMAIL_FROM?.trim() ||
+        process.env.AUTH_EMAIL_FROM?.trim() ||
+        `Aloya CY <auth@app.aloya.cy>`;
+      const cfRes = await sendViaCloudflareEmail(cfEmailBinding, {
+        from: cfFrom,
+        to: email,
+        subject,
+        text,
+        html,
+      });
+      if (cfRes.ok) {
         delivered = true;
+        log.info("email delivered via Cloudflare Email Service", {
+          email: redact(email),
+          from: cfFrom,
+        });
       } else {
-        attempts.push(`resend ${out.status}: ${out.body}`);
+        attempts.push(`cloudflare: ${cfRes.error}`);
       }
-    } catch (err) {
-      attempts.push(`resend: ${err instanceof Error ? err.message : "failed"}`);
+    } catch (cfErr) {
+      attempts.push(`cloudflare: ${cfErr instanceof Error ? cfErr.message : "failed"}`);
     }
   } else {
-    attempts.push("resend: no key configured");
+    attempts.push("cloudflare: SEND_EMAIL binding not present");
   }
 
-  // 2) Lovable's sender as a fallback (works only while the project still has
-  //    a platform email run available to it).
+  // 2) Resend API (Direct key or Lovable connector gateway)
   if (!delivered) {
+    const directKey = process.env.RESEND_DIRECT_API_KEY;
+    const gatewayKey = process.env.RESEND_API_KEY;
+    const lovableKey = process.env.LOVABLE_API_KEY;
+
+    if (directKey || (gatewayKey && lovableKey)) {
+      const endpoint = directKey
+        ? "https://api.resend.com/emails"
+        : "https://connector-gateway.lovable.dev/resend/emails";
+      const headers: Record<string, string> = directKey
+        ? { Authorization: `Bearer ${directKey}`, "content-type": "application/json" }
+        : {
+            Authorization: `Bearer ${lovableKey ?? ""}`,
+            "X-Connection-Api-Key": gatewayKey ?? "",
+            "content-type": "application/json",
+          };
+
+      const fallbackFrom =
+        process.env.AUTH_EMAIL_FROM_FALLBACK?.trim() || `${SITE_NAME} <noreply@stauniverse.tech>`;
+
+      const postResend = async (sender: string) => {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ from: sender, to: [email], subject, html, text }),
+        });
+        if (res.ok) return { ok: true as const, status: res.status, body: "" };
+        return {
+          ok: false as const,
+          status: res.status,
+          body: (await res.text()).slice(0, 300),
+        };
+      };
+
+      try {
+        let out = await postResend(defaultFrom);
+        if (
+          !out.ok &&
+          out.status === 403 &&
+          out.body.includes("not verified") &&
+          fallbackFrom !== defaultFrom
+        ) {
+          attempts.push(`resend ${out.status} (${defaultFrom}): ${out.body}`);
+          out = await postResend(fallbackFrom);
+        }
+        if (
+          !out.ok &&
+          out.status === 403 &&
+          out.body.includes("not verified")
+        ) {
+          attempts.push(`resend ${out.status} (${fallbackFrom}): ${out.body}`);
+          out = await postResend(`${SITE_NAME} <onboarding@resend.dev>`);
+        }
+        if (out.ok) {
+          delivered = true;
+          log.info("email delivered via Resend", { email: redact(email) });
+        } else {
+          attempts.push(`resend ${out.status}: ${out.body}`);
+        }
+      } catch (err) {
+        attempts.push(`resend: ${err instanceof Error ? err.message : "failed"}`);
+      }
+    } else {
+      attempts.push("resend: no key configured");
+    }
+  }
+
+  // 3) Lovable platform email sender
+  const lovableApiKey = process.env.LOVABLE_API_KEY;
+  if (!delivered && lovableApiKey) {
     try {
       await sendLovableEmail(
         {
           to: email,
-          // Lovable's sender is tied to the delegated notify.* domain, so it
-          // must use the branded address regardless of the Resend sender.
           from: `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`,
           sender_domain: SENDER_DOMAIN,
           subject,
@@ -193,11 +322,30 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
           message_id: messageId,
           idempotency_key: messageId,
         } as Parameters<typeof sendLovableEmail>[0],
-        { apiKey, sendUrl: process.env.LOVABLE_SEND_URL },
+        { apiKey: lovableApiKey, sendUrl: process.env.LOVABLE_SEND_URL },
       );
       delivered = true;
+      log.info("email delivered via Lovable platform", { email: redact(email) });
     } catch (err) {
       attempts.push(`lovable: ${err instanceof Error ? err.message.slice(0, 200) : "failed"}`);
+    }
+  }
+
+  // 4) Supabase GoTrue fallback (last resort if all custom providers fail)
+  if (!delivered) {
+    try {
+      const res = await supabaseAdmin.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true },
+      });
+      if (!res.error) {
+        delivered = true;
+        log.info("email delivered via Supabase GoTrue fallback", { email: redact(email) });
+      } else {
+        attempts.push(`supabase: ${res.error.message}`);
+      }
+    } catch (err) {
+      attempts.push(`supabase: ${err instanceof Error ? err.message : "failed"}`);
     }
   }
 
@@ -211,9 +359,17 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
       status: "failed",
       error_message: error,
     });
+    const msg = error.toLowerCase();
+    if (msg.includes("rate limit") || msg.includes("security purposes")) {
+      return {
+        ok: false,
+        error: `Email delivery failed: ${error}`,
+        code: "rate_limited",
+      };
+    }
     return {
       ok: false,
-      error: "We couldn't send the code right now. Please try again shortly.",
+      error: `Email delivery failed: ${error}`,
       code: "send_failed",
     };
   }

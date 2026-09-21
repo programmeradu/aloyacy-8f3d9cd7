@@ -17,7 +17,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { createStripeClient, getStripeErrorMessage, type StripeEnv } from "@/lib/stripe.server";
+import {
+  createStripeClient,
+  getStripeErrorMessage,
+  findOrCreatePriceByPlanKey,
+  type StripeEnv,
+} from "@/lib/stripe.server";
 
 const STRIPE_API_VERSION = "2026-03-25.dahlia" as const;
 
@@ -89,12 +94,8 @@ export const Route = createFileRoute("/api/public/mobile-payment-sheet")({
         try {
           const stripe = createStripeClient(env);
 
-          // Resolve price by lovable_external_id (same as web checkout).
-          const prices = await stripe.prices.search({
-            query: `active:'true' AND metadata['lovable_external_id']:'${parsed.data.planKey}'`,
-            limit: 1,
-          });
-          const price = prices.data[0];
+          // Resolve or auto-provision price by plan key.
+          const price = await findOrCreatePriceByPlanKey(stripe, parsed.data.planKey);
           if (!price) return json({ error: "Plan not available right now." }, 404);
 
           // Prefer matching an existing customer by user_id metadata so a

@@ -4,6 +4,7 @@ import { destBailFlipCopy, destBailForFlipAlert } from "@aloya/core/dest-bail";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendWebPush, type WebPushPayload } from "./webpush.server";
 import { VAPID_PUBLIC_KEY } from "./vapid";
+import { getWorkerEnv } from "./worker-env";
 import { createLogger } from "./logger";
 
 const log = createLogger("push");
@@ -67,8 +68,15 @@ export const removeSubscription = createServerFn({ method: "POST" })
 const sendTestSchema = z.object({ deviceId: z.string().min(8).max(128) });
 
 async function dispatchToDevice(deviceId: string, payload: WebPushPayload) {
-  const priv = process.env.VAPID_PRIVATE_KEY;
-  const sub = process.env.VAPID_SUBJECT || "mailto:notifications@aloya.app";
+  const env = getWorkerEnv();
+  const priv =
+    ((env?.VAPID_PRIVATE_KEY as string | undefined) || process.env.VAPID_PRIVATE_KEY || "")
+      .replace(/^\uFEFF/, "")
+      .trim();
+  const sub =
+    ((env?.VAPID_SUBJECT as string | undefined) || process.env.VAPID_SUBJECT || "mailto:notifications@aloya.cy")
+      .replace(/^\uFEFF/, "")
+      .trim();
   if (!priv) throw new Error("VAPID_PRIVATE_KEY is not configured");
 
   const { data: subs, error } = await supabaseAdmin

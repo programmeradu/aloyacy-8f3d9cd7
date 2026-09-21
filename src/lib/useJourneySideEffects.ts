@@ -114,6 +114,18 @@ export function useJourneySideEffects(input: JourneySideEffectInput) {
     const cue = alightAlertFor(result.alight.stage, bus.alight.name);
     if (!cue || sentRef.current.has(cue.key)) return;
     sentRef.current.add(cue.key);
+
+    // Haptic vibration feedback for alight cues
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try {
+        if (cue.kind === "press-stop") {
+          navigator.vibrate([180, 80, 180]); // Double pulse: ring the bell
+        } else if (cue.kind === "alight-ready") {
+          navigator.vibrate([100, 100, 100]); // Gentle pulse: stop coming up
+        }
+      } catch {}
+    }
+
     void sendAlert({
       data: {
         deviceId: getDeviceId(),
@@ -142,6 +154,21 @@ export function useJourneySideEffects(input: JourneySideEffectInput) {
     });
     if (!alert || sentRef.current.has(alert.key)) return;
     sentRef.current.add(alert.key);
+
+    // Haptic vibration feedback for phase transition alerts
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try {
+        if (alert.kind === "press-stop") {
+          navigator.vibrate([180, 80, 180]);
+        } else if (alert.kind === "hurry-urgent") {
+          navigator.vibrate([200, 100, 200, 100, 200]);
+        } else if (alert.kind === "hurry-soft" || alert.kind === "at-stop") {
+          navigator.vibrate([100, 100, 100]);
+        } else if (alert.kind === "confirm-onboard") {
+          navigator.vibrate([150]);
+        }
+      } catch {}
+    }
 
     const deviceId = getDeviceId();
     const url = `/trip/${active.option.id}`;
