@@ -108,6 +108,7 @@ export function RemindMeButton({
     if (!user) {
       setAuthOpen(true);
       return;
+    }
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
       setNotifOpen(true);
     } else {

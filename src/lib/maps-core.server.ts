@@ -12,10 +12,6 @@ export function setLastMapsError(err: { status: number; text: string } | null) {
 }
 
 
-export function setLastMapsError(err: { status: number; text: string } | null) {
-  lastMapsError = err;
-}
-
 export function authHeaders(extra: Record<string, string> = {}) {
   const lk = process.env.LOVABLE_API_KEY;
   const serverKey = process.env.GOOGLE_MAPS_SERVER_KEY;

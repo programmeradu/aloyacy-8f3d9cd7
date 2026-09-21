@@ -13,14 +13,9 @@ import {
 import coast from "@/assets/coast-hero.jpg";
 import { NotificationsCard } from "@/components/NotificationsCard";
 import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
-<<<<<<< HEAD
-=======
-import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
 import { ActiveLiveTripCard } from "@/components/saved/ActiveLiveTripCard";
 import { ScheduledDeparturesSection } from "@/components/saved/ScheduledDeparturesSection";
 import { ArrivalPromisesSection } from "@/components/saved/ArrivalPromisesSection";
-import { useProPaywall } from "@/lib/useProPaywall";
->>>>>>> feature/phase2-offline-and-fixes
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/saved")({
