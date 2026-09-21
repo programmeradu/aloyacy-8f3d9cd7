@@ -1,9 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "aloya-app",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  "send_email": [
+    {
+      "name": "SEND_EMAIL"
+    }
+  ],
   "r2_buckets": [
     {
       "binding": "DATA_LAKE",
@@ -12,5 +17,11 @@
   ],
   "vars": {
     "CUSTOM_SUPABASE_URL": "https://xbidevhyloeetxfjdjiy.supabase.co"
-  }
+  },
+  "routes": [
+    {
+      "pattern": "app.aloya.cy",
+      "custom_domain": true
+    }
+  ]
 }

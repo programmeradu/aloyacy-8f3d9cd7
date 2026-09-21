@@ -2,8 +2,8 @@
 // Uses only Web Crypto so it works on Cloudflare Workers / workerd.
 
 function b64urlDecode(input: string): Uint8Array<ArrayBuffer> {
-  // Normalize: trim whitespace/newlines, strip existing padding, convert b64url → b64
-  const clean = input.replace(/\s+/g, "").replace(/=+$/, "");
+  // Normalize: trim whitespace/newlines, strip BOM, strip existing padding, convert b64url → b64
+  const clean = input.replace(/^\uFEFF/, "").replace(/\s+/g, "").replace(/=+$/, "");
   const pad = "=".repeat((4 - (clean.length % 4)) % 4);
   const b64 = (clean + pad).replace(/-/g, "+").replace(/_/g, "/");
   const bin = atob(b64);
@@ -239,12 +239,19 @@ export async function sendWebPush(opts: {
   ttl?: number;
   urgency?: "very-low" | "low" | "normal" | "high";
 }): Promise<SendResult> {
+  const cleanPublicKey = opts.vapidPublicKey.replace(/^\uFEFF/, "").trim();
+  const cleanPrivateKey = opts.vapidPrivateKey.replace(/^\uFEFF/, "").trim();
+  let cleanSubject = opts.vapidSubject.replace(/^\uFEFF/, "").trim();
+  if (!cleanSubject.startsWith("mailto:") && !cleanSubject.startsWith("https://")) {
+    cleanSubject = `mailto:${cleanSubject}`;
+  }
+
   const audience = new URL(opts.subscription.endpoint).origin;
   const jwt = await signVapidJwt({
     audience,
-    subject: opts.vapidSubject,
-    publicKey: opts.vapidPublicKey,
-    privateKey: opts.vapidPrivateKey,
+    subject: cleanSubject,
+    publicKey: cleanPublicKey,
+    privateKey: cleanPrivateKey,
   });
 
   const body = await encryptAes128Gcm({
@@ -261,7 +268,8 @@ export async function sendWebPush(opts: {
       "Content-Length": String(body.byteLength),
       TTL: String(opts.ttl ?? 60),
       Urgency: opts.urgency ?? "normal",
-      Authorization: `vapid t=${jwt}, k=${opts.vapidPublicKey}`,
+      Authorization: `vapid t=${jwt}, k=${cleanPublicKey}`,
+      "Crypto-Key": `p256ecdsa=${cleanPublicKey}`,
     },
     body: body as BodyInit,
   });

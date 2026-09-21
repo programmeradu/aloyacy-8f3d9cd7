@@ -16,7 +16,7 @@ declare global {
 // BillingNotEnabledMapError, so it is no longer consulted at all. The literal
 // is kept as a build fallback because custom-domain publishes do not always
 // receive VITE variables, which produced a silent "Map unavailable" panel.
-const PRODUCTION_BROWSER_KEY = "AIzaSyBmvJph4LmrbtW7skeczzpBIyb9WWzFKo4"; // secret-scan:allow — Aloya Maps JS browser key, HTTP-referrer restricted
+const PRODUCTION_BROWSER_KEY = "AIzaSyCHuiwoRRsM7bUVxvKnIZ8ci7EHjgI1HJ0"; // secret-scan:allow — Aloya Maps JS browser key, HTTP-referrer restricted
 const KEY =
   (import.meta.env.VITE_GOOGLE_MAPS_BROWSER_KEY as string | undefined) || PRODUCTION_BROWSER_KEY;
 const CHANNEL = import.meta.env.VITE_GOOGLE_MAPS_TRACKING_ID as string | undefined;

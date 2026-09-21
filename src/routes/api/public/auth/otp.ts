@@ -33,6 +33,12 @@ export const Route = createFileRoute("/api/public/auth/otp")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
+        const cfEnv = (request as any)?.runtime?.cloudflare?.env;
+        if (cfEnv) {
+          const { setWorkerEnv } = await import("@/lib/worker-env");
+          setWorkerEnv(cfEnv);
+        }
+
         let email: string;
         try {
           const parsed = BodySchema.parse(await request.json());

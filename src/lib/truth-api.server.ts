@@ -150,6 +150,7 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
         }
       : null;
 
+
     let sourceMix: TruthDeparture["source_mix"] = "feed_prediction";
     if (eta.tier === "live") {
       sourceMix = "vehicle_cross";
@@ -210,6 +211,7 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
         log.warn("Truth API ledger insert threw", { err: err instanceof Error ? err.message : String(err) });
       }
     })();
+
   }
 
   return {

@@ -52,41 +52,89 @@ function buildUserPrompt(text: string, nowISO?: string, tzOffsetMin?: number) {
 export const parseTripIntent = createServerFn({ method: "POST" })
   .inputValidator((input) => inputSchema.parse(input))
   .handler(async ({ data }): Promise<TripIntent | null> => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) {
-      log.warn("LOVABLE_API_KEY missing");
+    const geminiKey = process.env.GEMINI_API_KEY;
+    const openAiKey = process.env.OPENAI_API_KEY;
+    const lovableKey = process.env.LOVABLE_API_KEY;
+
+    if (!geminiKey && !openAiKey && !lovableKey) {
+      log.warn("No AI API keys configured (GEMINI_API_KEY, OPENAI_API_KEY, or LOVABLE_API_KEY)");
       return null;
     }
 
-    try {
-      const res = await fetch(GATEWAY, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
-        signal: AbortSignal.timeout(10_000),
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          temperature: 0.2,
-          messages: [
-            { role: "system", content: SYSTEM },
+    const configs = [
+      ...(geminiKey
+        ? [
             {
-              role: "user",
-              content: buildUserPrompt(data.text, data.nowISO, data.tzOffsetMin),
+              url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+              auth: `Bearer ${geminiKey}`,
+              model: "gemini-2.5-flash",
             },
-          ],
-          response_format: { type: "json_object" },
-        }),
-      });
-      if (!res.ok) {
-        log.warn("upstream error", { status: res.status });
-        return null;
+          ]
+        : []),
+      ...(openAiKey
+        ? [
+            {
+              url: "https://api.openai.com/v1/chat/completions",
+              auth: `Bearer ${openAiKey}`,
+              model: "gpt-4o-mini",
+            },
+          ]
+        : []),
+      ...(lovableKey
+        ? [
+            {
+              url: GATEWAY,
+              auth: `Bearer ${lovableKey}`,
+              model: "google/gemini-2.5-flash",
+            },
+          ]
+        : []),
+    ];
+
+    try {
+      let raw: string | undefined;
+
+      for (const target of configs) {
+        try {
+          const res = await fetch(target.url, {
+            method: "POST",
+            headers: {
+              Authorization: target.auth,
+              "Content-Type": "application/json",
+            },
+            signal: AbortSignal.timeout(10_000),
+            body: JSON.stringify({
+              model: target.model,
+              temperature: 0.2,
+              messages: [
+                { role: "system", content: SYSTEM },
+                {
+                  role: "user",
+                  content: buildUserPrompt(data.text, data.nowISO, data.tzOffsetMin),
+                },
+              ],
+              response_format: { type: "json_object" },
+            }),
+          });
+
+          if (!res.ok) {
+            log.warn("AI provider error", { url: target.url, status: res.status });
+            continue;
+          }
+
+          const json = (await res.json()) as {
+            choices?: Array<{ message?: { content?: string } }>;
+          };
+          raw = json.choices?.[0]?.message?.content;
+          if (raw) break;
+        } catch (e) {
+          log.warn("AI provider request failed", {
+            url: target.url,
+            err: e instanceof Error ? e.message : String(e),
+          });
+        }
       }
-      const json = (await res.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
-      };
-      const raw = json.choices?.[0]?.message?.content;
+
       if (!raw) return null;
       const parsed = intentSchema.safeParse(JSON.parse(raw));
       if (!parsed.success) {

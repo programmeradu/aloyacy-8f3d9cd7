@@ -17,8 +17,9 @@ export const Route = createFileRoute("/api/public/stt")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const apiKey = process.env.LOVABLE_API_KEY;
-        if (!apiKey) {
+        const directKey = process.env.OPENAI_API_KEY;
+        const lovableKey = process.env.LOVABLE_API_KEY;
+        if (!directKey && !lovableKey) {
           return new Response(JSON.stringify({ error: "AI not configured" }), {
             status: 500,
             headers: { ...CORS, "Content-Type": "application/json" },
@@ -60,12 +61,17 @@ export const Route = createFileRoute("/api/public/stt")({
           });
         }
         const upstream = new FormData();
-        upstream.append("model", "openai/gpt-4o-mini-transcribe");
+        const isDirect = Boolean(directKey);
+        upstream.append("model", isDirect ? "whisper-1" : "openai/gpt-4o-mini-transcribe");
         upstream.append("file", file, upload.data.name);
 
-        const resp = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+        const targetUrl = isDirect
+          ? "https://api.openai.com/v1/audio/transcriptions"
+          : "https://ai.gateway.lovable.dev/v1/audio/transcriptions";
+
+        const resp = await fetch(targetUrl, {
           method: "POST",
-          headers: { Authorization: `Bearer ${apiKey}` },
+          headers: { Authorization: `Bearer ${directKey || lovableKey}` },
           body: upstream,
         });
         const text = await resp.text();
@@ -77,6 +83,7 @@ export const Route = createFileRoute("/api/public/stt")({
           },
         });
       },
+
     },
   },
 });

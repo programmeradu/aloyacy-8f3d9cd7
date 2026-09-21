@@ -11,6 +11,7 @@ import { scheduleDeparture } from "@/lib/scheduled-departures.functions";
 import { IconClock } from "@/components/Icons";
 import { track, trackImpression } from "@/lib/analytics";
 import { useI18n } from "@/lib/i18n";
+import { NotificationPromptSheet } from "@/components/NotificationPromptSheet";
 
 export function RemindMeButton({
   itinerary,
@@ -107,9 +108,14 @@ export function RemindMeButton({
     if (!user) {
       setAuthOpen(true);
       return;
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      setNotifOpen(true);
+    } else {
+      void doSchedule();
     }
-    void doSchedule();
   }
+
+  const [notifOpen, setNotifOpen] = useState(false);
 
   const label =
     state === "saved"
@@ -130,6 +136,12 @@ export function RemindMeButton({
         <IconClock className={`size-3.5 ${err ? "text-ochre" : "text-ink-soft"}`} />
         <span className="leading-none">{label}</span>
       </button>
+      <NotificationPromptSheet
+        open={notifOpen}
+        onClose={() => setNotifOpen(false)}
+        onSuccess={() => void doSchedule()}
+        reason="departure"
+      />
       <AuthSheet
         open={authOpen}
         onClose={() => setAuthOpen(false)}

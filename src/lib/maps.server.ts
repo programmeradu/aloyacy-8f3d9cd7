@@ -11,7 +11,8 @@ import {
   type MapsRequestPlan,
 } from "./maps-core.server";
 
-export { authHeaders, fetchMapsWithFailover, getLastMapsError, type MapsRequestPlan };
+export { authHeaders, fetchMapsWithFailover, getLastMapsError, setLastMapsError, type MapsRequestPlan };
+
 
 const log = createLogger("maps");
 const GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
@@ -282,6 +283,7 @@ export async function walkingDirections(
       setLastMapsError({ status: res.status, text: "No route in response: " + JSON.stringify(json) });
       return null;
     }
+
     const rawSteps = r.legs?.flatMap((l) => l.steps ?? []) ?? [];
     const steps: WalkStep[] = rawSteps.map((s) => {
       const start = {

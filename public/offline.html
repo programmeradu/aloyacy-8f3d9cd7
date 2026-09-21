@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Offline — Aloya</title>
+  <meta name="theme-color" content="#FAF8F5">
+  <style>
+    :root {
+      --bg: #FAF8F5;
+      --paper: #FFFFFF;
+      --ink: #18191B;
+      --ink-soft: #6E7177;
+      --olive: #2E5A36;
+      --olive-light: #EBF3EC;
+      --line: rgba(24, 25, 27, 0.08);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 32px 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+      position: relative;
+      overflow: hidden;
+    }
+    .accent-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #2E5A36, #4E8759);
+    }
+    .icon-wrapper {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--olive-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      color: var(--olive);
+    }
+    .kicker {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--olive);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+    p {
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--ink-soft);
+      margin-bottom: 24px;
+    }
+    .features-list {
+      background: var(--bg);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .feature-item:last-child {
+      margin-bottom: 0;
+    }
+    .feature-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--olive);
+      flex-shrink: 0;
+    }
+    .feature-dot.paused {
+      background: #D97706;
+    }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    button, .btn {
+      display: block;
+      width: 100%;
+      padding: 13px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 9999px;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:active, .btn:active {
+      transform: scale(0.98);
+    }
+    .btn-primary {
+      background: var(--olive);
+      color: #FFFFFF;
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    .reconnecting-text {
+      margin-top: 18px;
+      font-size: 12px;
+      color: var(--ink-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--olive);
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="accent-bar"></div>
+    <div class="icon-wrapper">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+        <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <line x1="12" y1="20" x2="12.01" y2="20"/>
+        <line x1="2" y1="2" x2="22" y2="22"/>
+      </svg>
+    </div>
+
+    <div class="kicker">No Connection</div>
+    <h1>You're Offline</h1>
+    <p>We lost connection to the Cyprus transit servers. Some real-time features are temporarily paused.</p>
+
+    <div class="features-list">
+      <div class="feature-item">
+        <span class="feature-dot"></span>
+        <span><strong>Active Trip:</strong> GPS guidance works offline</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-dot"></span>
+        <span><strong>Saved:</strong> Starred lines & pins cached</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-dot paused"></span>
+        <span><strong>Live radar:</strong> Telemetry resumes on signal</span>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn-primary" onclick="window.location.reload()">Retry Connection</button>
+      <a class="btn btn-secondary" href="/saved">View Saved & Trips</a>
+    </div>
+
+    <div class="reconnecting-text">
+      <div class="pulse-dot"></div>
+      <span>Auto-reconnecting when signal returns</span>
+    </div>
+  </div>
+
+  <script>
+    // Automatically reload as soon as network returns
+    window.addEventListener('online', function() {
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>

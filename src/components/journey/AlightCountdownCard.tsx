@@ -17,6 +17,7 @@ import type { LiveJourney } from "@/lib/useJourney";
 import type { ActiveTrip } from "@/lib/trip-store";
 import { markAlighted } from "@/lib/useJourney";
 import { useI18n } from "@/lib/i18n";
+import { useOnlineStatus } from "@/lib/useOnlineStatus";
 
 type T = ReturnType<typeof useI18n>["t"];
 import { fmtEta as fmtMinutes } from "@/lib/journey-copy";
@@ -32,7 +33,7 @@ const ACCENT: Record<AlightStage, string> = {
   passed: "text-ink-soft",
 };
 
-const URGENT: AlightStage[] = ["press-now", "alighting"];
+const URGENT: AlightStage[] = ["stand-by", "press-now", "alighting"];
 
 function kickerFor(cd: AlightCountdown, t: T) {
   const n = cd.stopsRemaining;
@@ -51,11 +52,7 @@ function kickerFor(cd: AlightCountdown, t: T) {
   }
 }
 
-function bodyFor(
-  cd: AlightCountdown,
-  alightName: string,
-  t: T,
-) {
+function bodyFor(cd: AlightCountdown, alightName: string, t: T) {
   switch (cd.stage) {
     case "stand-by":
       return t("hud.alight.bodyStandby");
@@ -78,6 +75,7 @@ export function AlightCountdownCard({
   live: LiveJourney;
 }) {
   const { t } = useI18n();
+  const isOnline = useOnlineStatus();
   const bus = trip.option.legs.find((l) => l.kind === "bus");
   if (!bus || bus.kind !== "bus") return null;
 
@@ -103,13 +101,20 @@ export function AlightCountdownCard({
         }`}
       >
         <div className="flex items-baseline justify-between gap-3">
-          <p
-            className={`font-mono text-[10px] uppercase tracking-[0.22em] ${
-              urgent ? "text-ochre" : "text-aegean-deep"
-            }`}
-          >
-            {t("hud.riding.label", { code: bus.routeShort })}
-          </p>
+          <div className="flex items-center gap-2 min-w-0">
+            <p
+              className={`font-mono text-[10px] uppercase tracking-[0.22em] ${
+                urgent ? "text-ochre" : "text-aegean-deep"
+              }`}
+            >
+              {t("hud.riding.label", { code: bus.routeShort })}
+            </p>
+            {!isOnline && (
+              <span className="font-mono text-[8.5px] uppercase tracking-wider text-amber-800 dark:text-amber-200 bg-amber-100/90 dark:bg-amber-900/40 px-1.5 py-0.5 rounded">
+                Satellite GPS
+              </span>
+            )}
+          </div>
           {eta > 0 && (
             <p className="shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
               {fmtMinutes(eta)}
@@ -139,7 +144,13 @@ export function AlightCountdownCard({
           </p>
         )}
 
-        {live.vehicleLost && (
+        {!isOnline && (
+          <p className="mt-2 text-[12px] leading-relaxed text-amber-800/90 dark:text-amber-300/90">
+            Cellular offline • Guidance active via device satellite GPS.
+          </p>
+        )}
+
+        {live.vehicleLost && isOnline && (
           <p className="mt-2 text-[12px] leading-relaxed text-ink-soft">
             {t("hud.riding.lost")}
           </p>

@@ -83,17 +83,84 @@ async function normalizeCatastrophicSsrResponse(
   return brandedErrorResponse();
 }
 
+import { setWorkerEnv } from "./lib/worker-env";
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    setWorkerEnv(env);
+    const workerEnv = env as { ASSETS?: { fetch: typeof fetch } };
+    const url = new URL(request.url);
+
+    // 1. Direct proxy for schedule data shards: if requesting /data/schedule/*,
+    // fetch from Supabase Storage public schedule CDN where all date shards and index.json are reliably hosted.
+    if (
+      url.pathname.startsWith("/data/schedule/") &&
+      (request.method === "GET" || request.method === "HEAD")
+    ) {
+      const bucketKey = url.pathname.replace(/^\/data\/schedule\//, "");
+      const supaStorageUrl = `https://xbidevhyloeetxfjdjiy.supabase.co/storage/v1/object/public/schedule/${bucketKey}`;
+      try {
+        const supaRes = await fetch(supaStorageUrl, {
+          signal: AbortSignal.timeout(10000),
+        });
+        if (supaRes.ok) {
+          const resHeaders = new Headers(supaRes.headers);
+          resHeaders.set("cache-control", "public, max-age=3600, stale-while-revalidate=86400");
+          resHeaders.set("access-control-allow-origin", "*");
+          return new Response(supaRes.body, {
+            status: 200,
+            headers: resHeaders,
+          });
+        }
+      } catch (err) {
+        log.warn("schedule proxy error", { path: url.pathname, error: String(err) });
+      }
+    }
+
+    // If request is a static asset or data file, let Cloudflare Assets binding attempt to serve it first
+    if (
+      workerEnv?.ASSETS &&
+      (request.method === "GET" || request.method === "HEAD") &&
+      (url.pathname.startsWith("/data/") ||
+        url.pathname.startsWith("/assets/") ||
+        /\.[a-z0-9]+$/i.test(url.pathname))
+    ) {
+      try {
+        const assetRes = await workerEnv.ASSETS.fetch(request);
+        if (assetRes.status >= 200 && assetRes.status < 400) {
+          return assetRes;
+        }
+      } catch (assetErr) {
+        log.warn("asset fetch error", { path: url.pathname, error: String(assetErr) });
+      }
+    }
+
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
+
+      // If SSR handler returned 404, fallback to ASSETS if available
+      if (
+        response.status === 404 &&
+        workerEnv?.ASSETS &&
+        (request.method === "GET" || request.method === "HEAD")
+      ) {
+        try {
+          const fallbackRes = await workerEnv.ASSETS.fetch(request);
+          if (fallbackRes.status >= 200 && fallbackRes.status < 400) {
+            return fallbackRes;
+          }
+        } catch {}
+      }
+
       return await normalizeCatastrophicSsrResponse(response, request);
     } catch (error) {
-      const context = { method: request.method, path: new URL(request.url).pathname };
+      const context = { method: request.method, path: url.pathname };
       log.error("unhandled request failure", error, context);
       void captureException(error, context);
       return brandedErrorResponse();
     }
   },
 };
+

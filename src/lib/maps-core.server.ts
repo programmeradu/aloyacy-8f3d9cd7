@@ -7,6 +7,10 @@ let lastMapsError: { status: number; text: string } | null = null;
 export function getLastMapsError() {
   return lastMapsError;
 }
+export function setLastMapsError(err: { status: number; text: string } | null) {
+  lastMapsError = err;
+}
+
 
 export function setLastMapsError(err: { status: number; text: string } | null) {
   lastMapsError = err;

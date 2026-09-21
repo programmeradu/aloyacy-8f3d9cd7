@@ -170,6 +170,21 @@ export const IconClockSmall = ({ className, strokeWidth = 1.5 }: IconProps) => (
   </svg>
 );
 
+export const IconBell = ({ className, strokeWidth = 1.5 }: IconProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    className={iconClass(className)}
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+  </svg>
+);
+
 // ── Filled / duotone variants for active tab-bar states. iOS HIG pattern:
 // outline when inactive, filled when active. Outer shape filled with
 // currentColor, inner glyph cut with the surface color for contrast.

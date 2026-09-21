@@ -30,6 +30,7 @@ const ledgerDb = supabaseAdmin as unknown as SupabaseClient;
 import { sendWebPush } from "@/lib/webpush.server";
 import { sendExpoPush, type ExpoPushMessage } from "@/lib/expopush.server";
 import { VAPID_PUBLIC_KEY } from "@/lib/vapid";
+import { getWorkerEnv } from "@/lib/worker-env";
 import { createLogger, serializeError } from "@/lib/logger";
 
 const log = createLogger("notify");
@@ -164,9 +165,16 @@ async function deliverWeb(
   message: NotifyMessage,
   receipt: NotifyReceipt,
 ): Promise<void> {
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  const env = getWorkerEnv();
+  const privateKey =
+    ((env?.VAPID_PRIVATE_KEY as string | undefined) || process.env.VAPID_PRIVATE_KEY || "")
+      .replace(/^\uFEFF/, "")
+      .trim();
   if (!privateKey || targets.length === 0) return;
-  const subject = process.env.VAPID_SUBJECT || "mailto:notifications@aloya.cy";
+  const subject =
+    ((env?.VAPID_SUBJECT as string | undefined) || process.env.VAPID_SUBJECT || "mailto:notifications@aloya.cy")
+      .replace(/^\uFEFF/, "")
+      .trim();
 
   const payload = {
     title: message.title,

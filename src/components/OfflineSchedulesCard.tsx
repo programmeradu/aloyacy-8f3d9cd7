@@ -93,6 +93,9 @@ export function OfflineSchedulesCard() {
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
           {t("offline.body", { days: DAYS_AHEAD })}
         </p>
+        <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-soft/80">
+          Enables browsing all lines, stops, and scheduled runs without internet. Multi-leg route planning requires a network connection.
+        </p>
 
         {!supported && (
           <p className="mt-3 font-mono text-[11px] tracking-wide text-ochre">

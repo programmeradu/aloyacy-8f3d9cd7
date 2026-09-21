@@ -1,0 +1,3 @@
+# Ignore massive daily schedule date shards; these are served via Supabase Storage CDN
+data/schedule/by-date/**
+data/schedule/by-date/*
