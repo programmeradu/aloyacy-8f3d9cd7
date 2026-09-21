@@ -208,7 +208,6 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
       } catch (err) {
         log.warn("Truth API ledger insert threw", { err: err instanceof Error ? err.message : String(err) });
       }
-      }
     })();
   }
 
