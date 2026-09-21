@@ -7,6 +7,7 @@ import {
   authHeaders,
   fetchMapsWithFailover,
   getLastMapsError,
+  setLastMapsError,
   type MapsRequestPlan,
 } from "./maps-core.server";
 
@@ -256,7 +257,7 @@ export async function walkingDirections(
 
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
-      lastMapsError = { status: res.status, text: errText };
+      setLastMapsError({ status: res.status, text: errText });
       log.error("walking directions computeRoutes failed", undefined, { status: res.status, body: errText });
       return null;
     }
@@ -278,7 +279,7 @@ export async function walkingDirections(
     };
     const r = json.routes?.[0];
     if (!r) {
-      lastMapsError = { status: res.status, text: "No route in response: " + JSON.stringify(json) };
+      setLastMapsError({ status: res.status, text: "No route in response: " + JSON.stringify(json) });
       return null;
     }
     const rawSteps = r.legs?.flatMap((l) => l.steps ?? []) ?? [];
