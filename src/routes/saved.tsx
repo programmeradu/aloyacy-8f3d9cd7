@@ -53,8 +53,7 @@ function Saved() {
   const recents = useRecents();
 
   function pinRecent(r: { id: string; name: string; lat: number; lng: number }, label: string) {
-    {
-      const tone = TONE_CYCLE[saved.length % 3];
+    const tone = TONE_CYCLE[saved.length % 3];
       upsertSavedPlace({
         id: r.id,
         label,
@@ -168,20 +167,12 @@ function Saved() {
         )}
       </section>
 
-      {isPro ? (
-        <>
-          <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "260ms" }}>
-            <NotificationsCard />
-          </section>
-          <section className="mt-6 px-6 pb-12 animate-rise" style={{ animationDelay: "320ms" }}>
-            <OfflineSchedulesCard />
-          </section>
-        </>
-      ) : (
-        <section className="mt-8 px-6 pb-12 animate-rise" style={{ animationDelay: "260ms" }}>
-          <ProFeaturesUpsell />
-        </section>
-      )}
+      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "260ms" }}>
+        <NotificationsCard />
+      </section>
+      <section className="mt-6 px-6 pb-12 animate-rise" style={{ animationDelay: "320ms" }}>
+        <OfflineSchedulesCard />
+      </section>
     </AppShell>
   );
 }
