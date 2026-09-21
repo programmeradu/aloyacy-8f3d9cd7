@@ -1,7 +1,7 @@
 // Saved — native mirror of `src/routes/saved.tsx`.
 //
 // Surfaces pinned places and recent destinations. Non-Pro riders see the
-// editorial ProFeaturesUpsell which opens the paywall sheet. Notification
+// Notification
 // + offline-schedule controls live on the Settings screen (single source
 // of truth — they used to be duplicated across Saved / Wallet / More).
 //
@@ -19,9 +19,7 @@ import {
   useSavedPlaces,
   type RecentDestination,
 } from "@/lib/trip-store";
-import { useProSubscription } from "@/lib/usePro";
 import { useSession } from "@/lib/auth";
-import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
 import { ArrivalPromiseWatchList } from "@/components/ArrivalPromiseCard";
 import { PinnedPlaces, TONE_CYCLE } from "@/components/saved/PinnedPlaces";
 import { RecentDestinations } from "@/components/saved/RecentDestinations";
@@ -39,7 +37,6 @@ export default function SavedScreen() {
   const saved = useSavedPlaces();
   const recents = useRecents();
   const { signedIn } = useSession();
-  const { isPro, loading: proLoading } = useProSubscription();
 
   const requirePro = useCallback(
     (fn: () => void) => {
@@ -50,16 +47,9 @@ export default function SavedScreen() {
         );
         return;
       }
-      if (isPro) {
-        fn();
-        return;
-      }
-      Alert.alert(
-        "Aloya Pro",
-        "Pinning places, quiet alerts, and offline schedules are part of Aloya Pro.",
-      );
+      fn();
     },
-    [signedIn, isPro],
+    [signedIn],
   );
 
   const pinRecent = useCallback(
@@ -134,12 +124,6 @@ export default function SavedScreen() {
       <Text style={{ ...sectionHeading, marginTop: 32 }}>Recent</Text>
       <RecentDestinations recents={recents} onPin={pinRecent} />
 
-      {/* Pro upsell — non-Pro riders only. Alerts + offline live on Settings. */}
-      {!proLoading && !isPro && (
-        <View style={{ marginTop: 32 }}>
-          <ProFeaturesUpsell />
-        </View>
-      )}
     </ScrollView>
   );
 }

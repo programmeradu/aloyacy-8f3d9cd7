@@ -2,7 +2,6 @@ import { View, Text, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { palette } from "@/constants/theme";
 import { Card } from "@/components/Card";
-import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
 import { AuthCard } from "@/components/AuthCard";
 import { MotionCardCard } from "@/components/MotionCardCard";
 
@@ -71,9 +70,6 @@ export default function MoreScreen() {
       </Card>
       <AuthCard />
       <MotionCardCard />
-      <View style={{ marginTop: 18 }}>
-        <ProFeaturesUpsell />
-      </View>
     </ScrollView>
   );
 }
