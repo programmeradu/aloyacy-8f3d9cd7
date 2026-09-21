@@ -113,6 +113,7 @@ import { Route as ApiPublicHooksPulseFlightsRouteImport } from './routes/api/pub
 import { Route as ApiPublicHooksPulseEventsRouteImport } from './routes/api/public/hooks/pulse-events'
 import { Route as ApiPublicHooksPulseCruisesRouteImport } from './routes/api/public/hooks/pulse-cruises'
 import { Route as ApiPublicHooksPulseAirRouteImport } from './routes/api/public/hooks/pulse-air'
+import { Route as ApiPublicHooksPingGapComputeRouteImport } from './routes/api/public/hooks/ping-gap-compute'
 import { Route as ApiPublicHooksIngestScheduleRouteImport } from './routes/api/public/hooks/ingest-schedule'
 import { Route as ApiPublicHooksEtaBacktestRouteImport } from './routes/api/public/hooks/eta-backtest'
 import { Route as ApiPublicHooksDeviceReputationRouteImport } from './routes/api/public/hooks/device-reputation'
@@ -669,6 +670,12 @@ const ApiPublicHooksPulseAirRoute = ApiPublicHooksPulseAirRouteImport.update({
   path: '/api/public/hooks/pulse-air',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksPingGapComputeRoute =
+  ApiPublicHooksPingGapComputeRouteImport.update({
+    id: '/api/public/hooks/ping-gap-compute',
+    path: '/api/public/hooks/ping-gap-compute',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksIngestScheduleRoute =
   ApiPublicHooksIngestScheduleRouteImport.update({
     id: '/api/public/hooks/ingest-schedule',
@@ -848,6 +855,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/device-reputation': typeof ApiPublicHooksDeviceReputationRoute
   '/api/public/hooks/eta-backtest': typeof ApiPublicHooksEtaBacktestRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
+  '/api/public/hooks/ping-gap-compute': typeof ApiPublicHooksPingGapComputeRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
   '/api/public/hooks/pulse-cruises': typeof ApiPublicHooksPulseCruisesRoute
   '/api/public/hooks/pulse-events': typeof ApiPublicHooksPulseEventsRoute
@@ -968,6 +976,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/device-reputation': typeof ApiPublicHooksDeviceReputationRoute
   '/api/public/hooks/eta-backtest': typeof ApiPublicHooksEtaBacktestRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
+  '/api/public/hooks/ping-gap-compute': typeof ApiPublicHooksPingGapComputeRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
   '/api/public/hooks/pulse-cruises': typeof ApiPublicHooksPulseCruisesRoute
   '/api/public/hooks/pulse-events': typeof ApiPublicHooksPulseEventsRoute
@@ -1089,6 +1098,7 @@ export interface FileRoutesById {
   '/api/public/hooks/device-reputation': typeof ApiPublicHooksDeviceReputationRoute
   '/api/public/hooks/eta-backtest': typeof ApiPublicHooksEtaBacktestRoute
   '/api/public/hooks/ingest-schedule': typeof ApiPublicHooksIngestScheduleRoute
+  '/api/public/hooks/ping-gap-compute': typeof ApiPublicHooksPingGapComputeRoute
   '/api/public/hooks/pulse-air': typeof ApiPublicHooksPulseAirRoute
   '/api/public/hooks/pulse-cruises': typeof ApiPublicHooksPulseCruisesRoute
   '/api/public/hooks/pulse-events': typeof ApiPublicHooksPulseEventsRoute
@@ -1211,6 +1221,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/device-reputation'
     | '/api/public/hooks/eta-backtest'
     | '/api/public/hooks/ingest-schedule'
+    | '/api/public/hooks/ping-gap-compute'
     | '/api/public/hooks/pulse-air'
     | '/api/public/hooks/pulse-cruises'
     | '/api/public/hooks/pulse-events'
@@ -1331,6 +1342,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/device-reputation'
     | '/api/public/hooks/eta-backtest'
     | '/api/public/hooks/ingest-schedule'
+    | '/api/public/hooks/ping-gap-compute'
     | '/api/public/hooks/pulse-air'
     | '/api/public/hooks/pulse-cruises'
     | '/api/public/hooks/pulse-events'
@@ -1451,6 +1463,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/device-reputation'
     | '/api/public/hooks/eta-backtest'
     | '/api/public/hooks/ingest-schedule'
+    | '/api/public/hooks/ping-gap-compute'
     | '/api/public/hooks/pulse-air'
     | '/api/public/hooks/pulse-cruises'
     | '/api/public/hooks/pulse-events'
@@ -1572,6 +1585,7 @@ export interface RootRouteChildren {
   ApiPublicHooksDeviceReputationRoute: typeof ApiPublicHooksDeviceReputationRoute
   ApiPublicHooksEtaBacktestRoute: typeof ApiPublicHooksEtaBacktestRoute
   ApiPublicHooksIngestScheduleRoute: typeof ApiPublicHooksIngestScheduleRoute
+  ApiPublicHooksPingGapComputeRoute: typeof ApiPublicHooksPingGapComputeRoute
   ApiPublicHooksPulseAirRoute: typeof ApiPublicHooksPulseAirRoute
   ApiPublicHooksPulseCruisesRoute: typeof ApiPublicHooksPulseCruisesRoute
   ApiPublicHooksPulseEventsRoute: typeof ApiPublicHooksPulseEventsRoute
@@ -2324,6 +2338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPulseAirRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/ping-gap-compute': {
+      id: '/api/public/hooks/ping-gap-compute'
+      path: '/api/public/hooks/ping-gap-compute'
+      fullPath: '/api/public/hooks/ping-gap-compute'
+      preLoaderRoute: typeof ApiPublicHooksPingGapComputeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/ingest-schedule': {
       id: '/api/public/hooks/ingest-schedule'
       path: '/api/public/hooks/ingest-schedule'
@@ -2542,6 +2563,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksDeviceReputationRoute: ApiPublicHooksDeviceReputationRoute,
   ApiPublicHooksEtaBacktestRoute: ApiPublicHooksEtaBacktestRoute,
   ApiPublicHooksIngestScheduleRoute: ApiPublicHooksIngestScheduleRoute,
+  ApiPublicHooksPingGapComputeRoute: ApiPublicHooksPingGapComputeRoute,
   ApiPublicHooksPulseAirRoute: ApiPublicHooksPulseAirRoute,
   ApiPublicHooksPulseCruisesRoute: ApiPublicHooksPulseCruisesRoute,
   ApiPublicHooksPulseEventsRoute: ApiPublicHooksPulseEventsRoute,
