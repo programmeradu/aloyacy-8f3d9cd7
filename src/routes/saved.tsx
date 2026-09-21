@@ -54,16 +54,15 @@ function Saved() {
 
   function pinRecent(r: { id: string; name: string; lat: number; lng: number }, label: string) {
     const tone = TONE_CYCLE[saved.length % 3];
-      upsertSavedPlace({
-        id: r.id,
-        label,
-        name: r.name,
-        lat: r.lat,
-        lng: r.lng,
-        tone,
-        pinned: true,
-        createdAt: Date.now(),
-      });
+    upsertSavedPlace({
+      id: r.id,
+      label,
+      name: r.name,
+      lat: r.lat,
+      lng: r.lng,
+      tone,
+      pinned: true,
+      createdAt: Date.now(),
     });
   }
 
