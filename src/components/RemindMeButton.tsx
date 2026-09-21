@@ -9,7 +9,6 @@ import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "@/components/AuthSheet";
 import { scheduleDeparture } from "@/lib/scheduled-departures.functions";
 import { IconClock } from "@/components/Icons";
-import { useProPaywall } from "@/lib/useProPaywall";
 import { track, trackImpression } from "@/lib/analytics";
 import { useI18n } from "@/lib/i18n";
 
@@ -25,7 +24,6 @@ export function RemindMeButton({
   const { t } = useI18n();
   const { user } = useAuth();
   const schedule = useServerFn(scheduleDeparture);
-  const { isPro, requirePro } = useProPaywall();
   // Stable signature so a "saved" reminder stays marked saved even after the
   // planner refetches and remounts this card with a new itinerary.id.
   const firstRide = itinerary.legs.find((l): l is RideLeg => l.kind === "ride");
@@ -47,9 +45,9 @@ export function RemindMeButton({
   const departIn = Math.round((itinerary.departureUnix - Date.now() / 1000) / 60);
   useEffect(() => {
     if (departIn >= 20) {
-      trackImpression("ui:remind-me.impression", { isPro, departIn });
+      trackImpression("ui:remind-me.impression", { departIn });
     }
-  }, [departIn, isPro]);
+  }, [departIn]);
   if (departIn < 20) return null;
 
   // How long the rider needs before bus departure (first walk leg + 3 min buffer)
@@ -105,14 +103,12 @@ export function RemindMeButton({
   }
 
   function handleClick() {
-    track("ui:remind-me.tap", { isPro, departIn });
+    track("ui:remind-me.tap", { departIn });
     if (!user) {
       setAuthOpen(true);
       return;
     }
-    requirePro(() => {
-      void doSchedule();
-    });
+    void doSchedule();
   }
 
   const label =
@@ -120,9 +116,7 @@ export function RemindMeButton({
       ? t("remind.set")
       : state === "saving"
         ? t("remind.saving")
-        : isPro
-          ? t("remind.cta")
-          : t("remind.ctaPro");
+        : t("remind.cta");
 
   return (
     <>

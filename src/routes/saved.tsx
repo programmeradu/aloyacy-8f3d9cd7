@@ -12,8 +12,6 @@ import {
 import coast from "@/assets/coast-hero.jpg";
 import { NotificationsCard } from "@/components/NotificationsCard";
 import { OfflineSchedulesCard } from "@/components/OfflineSchedulesCard";
-import { ProFeaturesUpsell } from "@/components/ProFeaturesUpsell";
-import { useProPaywall } from "@/lib/useProPaywall";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/saved")({
@@ -53,10 +51,9 @@ function Saved() {
   const { t } = useI18n();
   const saved = useSavedPlaces();
   const recents = useRecents();
-  const { isPro, requirePro } = useProPaywall();
 
   function pinRecent(r: { id: string; name: string; lat: number; lng: number }, label: string) {
-    requirePro(() => {
+    {
       const tone = TONE_CYCLE[saved.length % 3];
       upsertSavedPlace({
         id: r.id,

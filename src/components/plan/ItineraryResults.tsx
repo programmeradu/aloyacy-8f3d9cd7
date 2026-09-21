@@ -1,6 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
 import { ItineraryCard } from "@/components/ItineraryCard";
-import { ProGate } from "@/components/ProGate";
 import { RemindMeButton } from "@/components/RemindMeButton";
 import { SharePlanButton } from "@/components/SharePlanButton";
 import { useI18n } from "@/lib/i18n";
@@ -62,9 +61,7 @@ function ItineraryRow({
 }
 
 /**
- * Splits direct trips (free) from transfer trips (Pro). Renders all directs,
- * then either renders transfers inline (Pro) or wraps them in a single
- * ProGate that unlocks every multi-leg result at once.
+ * Renders direct trips first, then any trips that need a transfer.
  */
 export function ItineraryResults({
   results,
@@ -89,40 +86,15 @@ export function ItineraryResults({
           destination={destination}
         />
       ))}
-      {transfers.length > 0 && (
-        <ProGate
-          feature={
-            transfers.length === 1
-              ? t("trips.fasterOne")
-              : t("trips.fasterN", { n: transfers.length })
-          }
-          preview={
-            <div className="flex flex-col gap-3 p-3">
-              {transfers.slice(0, 2).map((it, i) => (
-                <ItineraryRow
-                  key={`${it.id}-transfer-preview-${it.departureUnix}-${i}`}
-                  itinerary={it}
-                  highlight={false}
-                  origin={origin}
-                  destination={destination}
-                />
-              ))}
-            </div>
-          }
-        >
-          <div className="flex flex-col gap-3">
-            {transfers.map((it, i) => (
-              <ItineraryRow
-                key={`${it.id}-transfer-${it.departureUnix}-${i}`}
-                itinerary={it}
-                highlight={direct.length === 0}
-                origin={origin}
-                destination={destination}
-              />
-            ))}
-          </div>
-        </ProGate>
-      )}
+      {transfers.map((it, i) => (
+        <ItineraryRow
+          key={`${it.id}-transfer-${it.departureUnix}-${i}`}
+          itinerary={it}
+          highlight={direct.length === 0 && i === 0}
+          origin={origin}
+          destination={destination}
+        />
+      ))}
     </div>
   );
 }
