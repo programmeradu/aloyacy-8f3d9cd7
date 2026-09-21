@@ -145,7 +145,8 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
           id: vehicle.id,
           lat: vehicle.lat,
           lng: vehicle.lng,
-          speed_mps: (vehicle as any).speedMps ?? vehicle.speed ?? null,
+          bearing: (vehicle as { bearing?: number | null }).bearing ?? null,
+          speed_mps: (vehicle as { speedMps?: number | null; speed?: number | null }).speedMps ?? (vehicle as { speed?: number | null }).speed ?? null,
         }
       : null;
 
@@ -207,7 +208,6 @@ export async function loadTruthEta(query: TruthEtaQuery, nowMs = Date.now()): Pr
         if (error) log.warn("Truth API failed to log predictions to ledger", { err: error.message });
       } catch (err) {
         log.warn("Truth API ledger insert threw", { err: err instanceof Error ? err.message : String(err) });
-      }
       }
     })();
   }

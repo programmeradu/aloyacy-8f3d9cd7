@@ -17,11 +17,8 @@ import { useUserDataRealtime } from "@/lib/useUserDataRealtime";
 import { bootstrapAnonymousAuth } from "@/lib/anon-auth";
 import { startCloudSync } from "@/lib/cloud-sync";
 import { AuthProvider, useAuth } from "@/lib/useAuth";
-import { ProSubscriptionProvider } from "@/lib/usePro";
 import { OnboardingGate } from "@/components/OnboardingGate";
 import { InstallPrompt } from "@/components/InstallPrompt";
-import { PaywallSheet } from "@/components/PaywallSheet";
-import { paywallStore, usePaywallOpen } from "@/lib/paywall-store";
 
 function NotFoundComponent() {
   return (
@@ -232,23 +229,15 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ProSubscriptionProvider>
           <RealtimeBridge />
           <CloudSyncBridge />
           <OnboardingGate />
           <Outlet />
           <InstallPrompt />
-          <GlobalPaywall />
           <Toaster position="top-center" />
-        </ProSubscriptionProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
-}
-
-function GlobalPaywall() {
-  const open = usePaywallOpen();
-  return <PaywallSheet open={open} onClose={() => paywallStore.close()} />;
 }
 
 // Lives inside QueryClientProvider so it can grab the queryClient via hook.

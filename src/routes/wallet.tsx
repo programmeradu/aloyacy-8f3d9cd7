@@ -17,8 +17,6 @@ import { timeAgo } from "@/components/wallet/utils";
 import fareUrban from "@/assets/fare-urban.jpg";
 import fareNight from "@/assets/fare-night.jpg";
 import fareIntercity from "@/assets/fare-intercity.jpg";
-import { ProUpsellCard } from "@/components/ProUpsell";
-import { ProAccountCard } from "@/components/ProAccountCard";
 import { AccessibilityPrefsCard } from "@/components/AccessibilityPrefsCard";
 import { useI18n } from "@/lib/i18n";
 
@@ -352,10 +350,7 @@ function WalletRoute() {
             </div>
           )}
 
-          {/* Aloya Pro upsell */}
           <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "220ms" }}>
-            <ProAccountCard />
-            <ProUpsellCard />
             <AccessibilityPrefsCard />
           </section>
 

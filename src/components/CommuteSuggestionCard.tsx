@@ -14,7 +14,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { getTopCommuteSuggestion } from "@/lib/commute-learner.functions";
 import { planMultiLeg } from "@/lib/multileg.functions";
-import { useProSubscription } from "@/lib/usePro";
 import { useAuth } from "@/lib/useAuth";
 import { track, trackImpression } from "@/lib/analytics";
 import { IconArrowUpRight } from "@/components/Icons";
@@ -23,7 +22,6 @@ export function CommuteSuggestionCard() {
   const fn = useServerFn(getTopCommuteSuggestion);
   const plan = useServerFn(planMultiLeg);
   const nav = useNavigate();
-  const { isPro } = useProSubscription();
   const { session } = useAuth();
 
   const { data } = useQuery({
@@ -34,10 +32,10 @@ export function CommuteSuggestionCard() {
   });
   const s = data?.suggestion;
 
-  // Pro-only auto-warm: prefetch the top live itinerary so the card
+  // Auto-warm: prefetch the top live itinerary so the card
   // can render "Bus 30 · 12 min" without an extra tap.
   const { data: preview } = useQuery({
-    enabled: !!s && isPro,
+    enabled: !!s,
     queryKey: ["commute-preview", s?.fromLat, s?.fromLng, s?.toLat, s?.toLng],
     queryFn: () =>
       plan({
@@ -55,11 +53,11 @@ export function CommuteSuggestionCard() {
     if (s) {
       trackImpression(
         "ui:commute-card.impression",
-        { isPro, hasPreview: !!preview?.itineraries?.length },
-        `commute:${s.fromLabel}->${s.toLabel}:${isPro ? "pro" : "free"}`,
+        { hasPreview: !!preview?.itineraries?.length },
+        `commute:${s.fromLabel}->${s.toLabel}`,
       );
     }
-  }, [s, isPro, preview]);
+  }, [s, preview]);
 
   if (!s) return null;
 
@@ -73,10 +71,7 @@ export function CommuteSuggestionCard() {
     <button
       type="button"
       onClick={() => {
-        track("ui:commute-card.tap", {
-          isPro,
-          hasPreview: !!top,
-        });
+        track("ui:commute-card.tap", { hasPreview: !!top });
         try {
           sessionStorage.setItem(
             "aloya:nl-plan",
@@ -102,7 +97,7 @@ export function CommuteSuggestionCard() {
         {s.toLabel}
       </p>
 
-      {isPro && firstRide && minsToBoard !== null ? (
+      {firstRide && minsToBoard !== null ? (
         <div className="mt-3 flex items-baseline justify-between gap-3">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-aegean-deep">
             Bus {firstRide.routeShort}
@@ -116,7 +111,7 @@ export function CommuteSuggestionCard() {
       ) : (
         <div className="mt-3 flex items-center justify-between">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            {isPro ? "Tap to plan now" : "Tap to plan now · Live ETA on Pro"}
+            Tap to plan now
           </p>
           <IconArrowUpRight className="size-4 text-aegean-deep" />
         </div>

@@ -22,12 +22,10 @@ import { FareTile } from "@/components/wallet/FareTile";
 import { TransactionList } from "@/components/wallet/TransactionList";
 import { TopupHistory } from "@/components/wallet/TopupHistory";
 import { RenewPasses } from "@/components/wallet/RenewPasses";
-import { ProAccountCard } from "@/components/wallet/ProAccountCard";
 import { AccessibilityPrefsCard } from "@/components/wallet/AccessibilityPrefsCard";
 import { ActionTile, SettingsRow } from "@/components/wallet/WalletTiles";
 import { walletStyles as styles } from "@/components/wallet/walletScreenStyles";
 import { CardScanSheet } from "@/components/CardScanSheet";
-import { ProUpsellCard } from "@/components/ProUpsell";
 import { AuthCard } from "@/components/AuthCard";
 import { useWalletSync } from "@/hooks/useWalletSync";
 import { timeAgo } from "@/lib/walletFormat";
@@ -174,12 +172,7 @@ export default function WalletScreen() {
             </View>
           )}
 
-          {/* Pro + accessibility */}
           <View style={{ paddingHorizontal: 22 }}>
-            <ProAccountCard />
-            <View style={{ marginTop: 18 }}>
-              <ProUpsellCard />
-            </View>
             <AccessibilityPrefsCard />
           </View>
 

@@ -63,7 +63,7 @@ function TermsPage() {
 
         <Section title={t("terms.section.service")} body={t("terms.service.body")} />
         <Section title={t("terms.section.use")} body={t("terms.use.body")} />
-        <Section title={t("terms.section.pro")} body={t("terms.pro.body")} />
+        <Section title={t("terms.section.price")} body={t("terms.price.body")} />
         <Section title={t("terms.section.liability")} body={t("terms.liability.body")} />
         <Section title={t("terms.section.changes")} body={t("terms.changes.body")} />
         <Section title={t("terms.section.law")} body={t("terms.law.body")} />

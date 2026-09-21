@@ -7,18 +7,26 @@ vi.stubGlobal("fetch", fetchMock);
 let mod: typeof import("../weather.functions");
 const originalLovable = process.env.LOVABLE_API_KEY;
 const originalGoogle = process.env.GOOGLE_MAPS_API_KEY;
+const originalServer = process.env.GOOGLE_MAPS_SERVER_KEY;
+const originalBackup = process.env.GOOGLE_MAPS_BACKUP_KEY;
 
 beforeEach(async () => {
   vi.resetModules();
   fetchMock.mockReset();
   process.env.LOVABLE_API_KEY = "lovable-key";
   process.env.GOOGLE_MAPS_API_KEY = "google-key";
+  delete process.env.GOOGLE_MAPS_SERVER_KEY;
+  delete process.env.GOOGLE_MAPS_BACKUP_KEY;
   mod = await import("../weather.functions");
 });
 
 afterEach(() => {
   process.env.LOVABLE_API_KEY = originalLovable;
   process.env.GOOGLE_MAPS_API_KEY = originalGoogle;
+  if (originalServer === undefined) delete process.env.GOOGLE_MAPS_SERVER_KEY;
+  else process.env.GOOGLE_MAPS_SERVER_KEY = originalServer;
+  if (originalBackup === undefined) delete process.env.GOOGLE_MAPS_BACKUP_KEY;
+  else process.env.GOOGLE_MAPS_BACKUP_KEY = originalBackup;
 });
 
 const COORDS = { lat: 35.17, lng: 33.36 };

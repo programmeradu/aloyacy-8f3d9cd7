@@ -37,7 +37,6 @@ import { Route as EtaTokenRouteImport } from './routes/eta.$token'
 import { Route as DebugMultilegRouteImport } from './routes/debug.multileg'
 import { Route as DebugGraphRouteImport } from './routes/debug.graph'
 import { Route as DebugEtaRouteImport } from './routes/debug.eta'
-import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AirportCodeRouteImport } from './routes/airport.$code'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -73,7 +72,6 @@ import { Route as ApiPublicPlacesAutocompleteRouteImport } from './routes/api/pu
 import { Route as ApiPublicPlaceRouteImport } from './routes/api/public/place'
 import { Route as ApiPublicParseTripIntentRouteImport } from './routes/api/public/parse-trip-intent'
 import { Route as ApiPublicParkAndRideRouteImport } from './routes/api/public/park-and-ride'
-import { Route as ApiPublicMobilePaymentSheetRouteImport } from './routes/api/public/mobile-payment-sheet'
 import { Route as ApiPublicMetricsRouteImport } from './routes/api/public/metrics'
 import { Route as ApiPublicLastMileChainRouteImport } from './routes/api/public/last-mile-chain'
 import { Route as ApiPublicKapnosRouteImport } from './routes/api/public/kapnos'
@@ -99,7 +97,6 @@ import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/em
 import { Route as ApiV1TruthEtaRouteImport } from './routes/api/v1/truth/eta'
 import { Route as ApiPublicWalletPassRouteImport } from './routes/api/public/wallet/pass'
 import { Route as ApiPublicWalletOcrRouteImport } from './routes/api/public/wallet/ocr'
-import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicPartnersApplyRouteImport } from './routes/api/public/partners/apply'
 import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
 import { Route as ApiPublicHooksResolveArrivalsRouteImport } from './routes/api/public/hooks/resolve-arrivals'
@@ -268,11 +265,6 @@ const DebugGraphRoute = DebugGraphRouteImport.update({
 const DebugEtaRoute = DebugEtaRouteImport.update({
   id: '/debug/eta',
   path: '/debug/eta',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
-  id: '/checkout/return',
-  path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AirportCodeRoute = AirportCodeRouteImport.update({
@@ -456,12 +448,6 @@ const ApiPublicParkAndRideRoute = ApiPublicParkAndRideRouteImport.update({
   path: '/api/public/park-and-ride',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicMobilePaymentSheetRoute =
-  ApiPublicMobilePaymentSheetRouteImport.update({
-    id: '/api/public/mobile-payment-sheet',
-    path: '/api/public/mobile-payment-sheet',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicMetricsRoute = ApiPublicMetricsRouteImport.update({
   id: '/api/public/metrics',
   path: '/api/public/metrics',
@@ -590,12 +576,6 @@ const ApiPublicWalletOcrRoute = ApiPublicWalletOcrRouteImport.update({
   path: '/ocr',
   getParentRoute: () => ApiPublicWalletRoute,
 } as any)
-const ApiPublicPaymentsWebhookRoute =
-  ApiPublicPaymentsWebhookRouteImport.update({
-    id: '/api/public/payments/webhook',
-    path: '/api/public/payments/webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicPartnersApplyRoute = ApiPublicPartnersApplyRouteImport.update({
   id: '/api/public/partners/apply',
   path: '/api/public/partners/apply',
@@ -778,7 +758,6 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/seo': typeof AdminSeoRoute
   '/airport/$code': typeof AirportCodeRoute
-  '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
@@ -811,7 +790,6 @@ export interface FileRoutesByFullPath {
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
-  '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
   '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
   '/api/public/place': typeof ApiPublicPlaceRoute
@@ -869,7 +847,6 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/resolve-arrivals': typeof ApiPublicHooksResolveArrivalsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/partners/apply': typeof ApiPublicPartnersApplyRoute
-  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
   '/api/v1/truth/eta': typeof ApiV1TruthEtaRoute
@@ -899,7 +876,6 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/seo': typeof AdminSeoRoute
   '/airport/$code': typeof AirportCodeRoute
-  '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
@@ -932,7 +908,6 @@ export interface FileRoutesByTo {
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
-  '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
   '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
   '/api/public/place': typeof ApiPublicPlaceRoute
@@ -990,7 +965,6 @@ export interface FileRoutesByTo {
   '/api/public/hooks/resolve-arrivals': typeof ApiPublicHooksResolveArrivalsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/partners/apply': typeof ApiPublicPartnersApplyRoute
-  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
   '/api/v1/truth/eta': typeof ApiV1TruthEtaRoute
@@ -1021,7 +995,6 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/seo': typeof AdminSeoRoute
   '/airport/$code': typeof AirportCodeRoute
-  '/checkout/return': typeof CheckoutReturnRoute
   '/debug/eta': typeof DebugEtaRoute
   '/debug/graph': typeof DebugGraphRoute
   '/debug/multileg': typeof DebugMultilegRoute
@@ -1054,7 +1027,6 @@ export interface FileRoutesById {
   '/api/public/kapnos': typeof ApiPublicKapnosRoute
   '/api/public/last-mile-chain': typeof ApiPublicLastMileChainRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
-  '/api/public/mobile-payment-sheet': typeof ApiPublicMobilePaymentSheetRoute
   '/api/public/park-and-ride': typeof ApiPublicParkAndRideRoute
   '/api/public/parse-trip-intent': typeof ApiPublicParseTripIntentRoute
   '/api/public/place': typeof ApiPublicPlaceRoute
@@ -1112,7 +1084,6 @@ export interface FileRoutesById {
   '/api/public/hooks/resolve-arrivals': typeof ApiPublicHooksResolveArrivalsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
   '/api/public/partners/apply': typeof ApiPublicPartnersApplyRoute
-  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
   '/api/v1/truth/eta': typeof ApiV1TruthEtaRoute
@@ -1144,7 +1115,6 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin/seo'
     | '/airport/$code'
-    | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
@@ -1177,7 +1147,6 @@ export interface FileRouteTypes {
     | '/api/public/kapnos'
     | '/api/public/last-mile-chain'
     | '/api/public/metrics'
-    | '/api/public/mobile-payment-sheet'
     | '/api/public/park-and-ride'
     | '/api/public/parse-trip-intent'
     | '/api/public/place'
@@ -1235,7 +1204,6 @@ export interface FileRouteTypes {
     | '/api/public/hooks/resolve-arrivals'
     | '/api/public/hooks/train'
     | '/api/public/partners/apply'
-    | '/api/public/payments/webhook'
     | '/api/public/wallet/ocr'
     | '/api/public/wallet/pass'
     | '/api/v1/truth/eta'
@@ -1265,7 +1233,6 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin/seo'
     | '/airport/$code'
-    | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
@@ -1298,7 +1265,6 @@ export interface FileRouteTypes {
     | '/api/public/kapnos'
     | '/api/public/last-mile-chain'
     | '/api/public/metrics'
-    | '/api/public/mobile-payment-sheet'
     | '/api/public/park-and-ride'
     | '/api/public/parse-trip-intent'
     | '/api/public/place'
@@ -1356,7 +1322,6 @@ export interface FileRouteTypes {
     | '/api/public/hooks/resolve-arrivals'
     | '/api/public/hooks/train'
     | '/api/public/partners/apply'
-    | '/api/public/payments/webhook'
     | '/api/public/wallet/ocr'
     | '/api/public/wallet/pass'
     | '/api/v1/truth/eta'
@@ -1386,7 +1351,6 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin/seo'
     | '/airport/$code'
-    | '/checkout/return'
     | '/debug/eta'
     | '/debug/graph'
     | '/debug/multileg'
@@ -1419,7 +1383,6 @@ export interface FileRouteTypes {
     | '/api/public/kapnos'
     | '/api/public/last-mile-chain'
     | '/api/public/metrics'
-    | '/api/public/mobile-payment-sheet'
     | '/api/public/park-and-ride'
     | '/api/public/parse-trip-intent'
     | '/api/public/place'
@@ -1477,7 +1440,6 @@ export interface FileRouteTypes {
     | '/api/public/hooks/resolve-arrivals'
     | '/api/public/hooks/train'
     | '/api/public/partners/apply'
-    | '/api/public/payments/webhook'
     | '/api/public/wallet/ocr'
     | '/api/public/wallet/pass'
     | '/api/v1/truth/eta'
@@ -1508,7 +1470,6 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AdminSeoRoute: typeof AdminSeoRoute
   AirportCodeRoute: typeof AirportCodeRoute
-  CheckoutReturnRoute: typeof CheckoutReturnRoute
   DebugEtaRoute: typeof DebugEtaRoute
   DebugGraphRoute: typeof DebugGraphRoute
   DebugMultilegRoute: typeof DebugMultilegRoute
@@ -1541,7 +1502,6 @@ export interface RootRouteChildren {
   ApiPublicKapnosRoute: typeof ApiPublicKapnosRoute
   ApiPublicLastMileChainRoute: typeof ApiPublicLastMileChainRoute
   ApiPublicMetricsRoute: typeof ApiPublicMetricsRoute
-  ApiPublicMobilePaymentSheetRoute: typeof ApiPublicMobilePaymentSheetRoute
   ApiPublicParkAndRideRoute: typeof ApiPublicParkAndRideRoute
   ApiPublicParseTripIntentRoute: typeof ApiPublicParseTripIntentRoute
   ApiPublicPlaceRoute: typeof ApiPublicPlaceRoute
@@ -1599,7 +1559,6 @@ export interface RootRouteChildren {
   ApiPublicHooksResolveArrivalsRoute: typeof ApiPublicHooksResolveArrivalsRoute
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
   ApiPublicPartnersApplyRoute: typeof ApiPublicPartnersApplyRoute
-  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiV1TruthEtaRoute: typeof ApiV1TruthEtaRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -1804,13 +1763,6 @@ declare module '@tanstack/react-router' {
       path: '/debug/eta'
       fullPath: '/debug/eta'
       preLoaderRoute: typeof DebugEtaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkout/return': {
-      id: '/checkout/return'
-      path: '/checkout/return'
-      fullPath: '/checkout/return'
-      preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/airport/$code': {
@@ -2058,13 +2010,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicParkAndRideRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/mobile-payment-sheet': {
-      id: '/api/public/mobile-payment-sheet'
-      path: '/api/public/mobile-payment-sheet'
-      fullPath: '/api/public/mobile-payment-sheet'
-      preLoaderRoute: typeof ApiPublicMobilePaymentSheetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/metrics': {
       id: '/api/public/metrics'
       path: '/api/public/metrics'
@@ -2239,13 +2184,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/wallet/ocr'
       preLoaderRoute: typeof ApiPublicWalletOcrRouteImport
       parentRoute: typeof ApiPublicWalletRoute
-    }
-    '/api/public/payments/webhook': {
-      id: '/api/public/payments/webhook'
-      path: '/api/public/payments/webhook'
-      fullPath: '/api/public/payments/webhook'
-      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/public/partners/apply': {
       id: '/api/public/partners/apply'
@@ -2481,7 +2419,6 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AdminSeoRoute: AdminSeoRoute,
   AirportCodeRoute: AirportCodeRoute,
-  CheckoutReturnRoute: CheckoutReturnRoute,
   DebugEtaRoute: DebugEtaRoute,
   DebugGraphRoute: DebugGraphRoute,
   DebugMultilegRoute: DebugMultilegRoute,
@@ -2514,7 +2451,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicKapnosRoute: ApiPublicKapnosRoute,
   ApiPublicLastMileChainRoute: ApiPublicLastMileChainRoute,
   ApiPublicMetricsRoute: ApiPublicMetricsRoute,
-  ApiPublicMobilePaymentSheetRoute: ApiPublicMobilePaymentSheetRoute,
   ApiPublicParkAndRideRoute: ApiPublicParkAndRideRoute,
   ApiPublicParseTripIntentRoute: ApiPublicParseTripIntentRoute,
   ApiPublicPlaceRoute: ApiPublicPlaceRoute,
@@ -2577,7 +2513,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksResolveArrivalsRoute: ApiPublicHooksResolveArrivalsRoute,
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
   ApiPublicPartnersApplyRoute: ApiPublicPartnersApplyRoute,
-  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiV1TruthEtaRoute: ApiV1TruthEtaRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,

@@ -22,12 +22,8 @@ const FAQ: Array<{ q: string; a: string }> = [
     a: "Reminders need notification permission and are set per trip. Check that notifications are enabled for Aloya in your device settings, then set the reminder again from the trip screen.",
   },
   {
-    q: "What does Aloya Pro include?",
-    a: "Pro unlocks departure reminders, offline timetables, live ETA sharing, and journey companion alerts. Every new account gets a 7-day free trial, and you can cancel any time before it ends without being charged.",
-  },
-  {
-    q: "How do I cancel Pro or the free trial?",
-    a: "Cancel from the Wallet tab under your Pro account card. Access stays active until the end of the period you've already paid for.",
+    q: "Does Aloya cost anything?",
+    a: "No. Every feature is free — departure reminders, offline timetables, live ETA sharing, multi-leg planning, and journey companion alerts. There is no subscription, no trial, and nothing to cancel.",
   },
   {
     q: "Can I add my Motion card to Google Wallet?",
@@ -50,12 +46,12 @@ export const Route = createFileRoute("/support")({
       {
         name: "description",
         content:
-          "Answers about live bus tracking, reminders, Aloya Pro, wallet passes, and privacy — plus how to reach the Aloya team in Cyprus.",
+          "Answers about live bus tracking, reminders, wallet passes, and privacy — plus how to reach the Aloya team in Cyprus.",
       },
       { property: "og:title", content: "Support & FAQ — Aloya" },
       {
         property: "og:description",
-        content: "Help with live tracking, reminders, Pro, and your Motion card.",
+        content: "Help with live tracking, reminders, and your Motion card.",
       },
       { property: "og:url", content: "https://app.aloya.cy/support" },
       { property: "og:type", content: "website" },
@@ -99,7 +95,7 @@ function SupportPage() {
           Support &amp; FAQ
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-ink/80">
-          Most questions are about how live times behave, reminders, or Pro. If the answer you need
+          Most questions are about how live times behave or reminders. If the answer you need
           isn't here, write to us — a person reads every message.
         </p>
 

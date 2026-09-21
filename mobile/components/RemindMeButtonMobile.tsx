@@ -15,7 +15,6 @@ import * as Device from "expo-device";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { palette } from "@/constants/theme";
 import type { Itinerary } from "@/lib/plan";
-import { useProSubscription } from "@/lib/usePro";
 
 type RideLeg = Extract<Itinerary["legs"][number], { kind: "ride" }>;
 type WalkLeg = Extract<Itinerary["legs"][number], { kind: "walk" }>;
@@ -34,7 +33,6 @@ export function RemindMeButtonMobile({
   origin: { lat: number; lng: number; label: string };
   destination: { lat: number; lng: number; label: string };
 }) {
-  const { isPro } = useProSubscription();
   const firstRide = itinerary.legs.find(
     (l): l is RideLeg => l.kind === "ride",
   );
@@ -134,14 +132,6 @@ export function RemindMeButtonMobile({
   function handlePress() {
     if (state === "saving" || state === "saved") return;
     Haptics.selectionAsync().catch(() => {});
-    if (!isPro) {
-      Alert.alert(
-        "Pro feature",
-        "Reminders are part of Aloya Pro. Upgrade from the Saved tab to unlock them.",
-        [{ text: "OK" }],
-      );
-      return;
-    }
     void schedule();
   }
 
@@ -150,9 +140,7 @@ export function RemindMeButtonMobile({
       ? "Reminder set"
       : state === "saving"
         ? "Scheduling…"
-        : isPro
-          ? "Remind me to leave"
-          : "Remind me — Pro";
+        : "Remind me to leave";
 
   return (
     <View style={{ gap: 6 }}>

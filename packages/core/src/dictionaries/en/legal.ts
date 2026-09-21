@@ -12,10 +12,10 @@ export const legal = {
     "Your saved places, recent trips, Motion card number and balance, language and notification preferences. Location is read only while you have the app open and is never written to a permanent log.",
   "privacy.section.account": "Your account",
   "privacy.account.body":
-    "First open creates an anonymous account on your device. It exists only to give your data a stable identity so it can be backed up to the cloud. When you upgrade to Pro, you may attach an email — at that point the same identity gains a sign-in.",
+    "First open creates an anonymous account on your device. It exists only to give your data a stable identity so it can be backed up to the cloud. You may attach an email at any time — the same identity then gains a sign-in so your data follows you across devices.",
   "privacy.section.sharing": "Who we share with",
   "privacy.sharing.body":
-    "Anonymized vehicle observations are sent to the public realtime feed so other riders see a better ETA. Payment processing is handled by Stripe and JCC. Map tiles are served by Google. We do not run advertising trackers.",
+    "Anonymized vehicle observations are sent to the public realtime feed so other riders see a better ETA. Motion card top-ups are handled by JCC. Map tiles are served by Google. We do not run advertising trackers.",
   "privacy.section.rights": "Your rights",
   "privacy.rights.body":
     "You can clear your local data at any time from the browser. To delete your cloud account, write to hello@aloya.cy and we will remove all rows associated with your user id within 30 days.",
@@ -33,9 +33,9 @@ export const legal = {
   "terms.section.use": "Acceptable use",
   "terms.use.body":
     "Use Aloya for personal travel. Do not scrape, resell, or attempt to disrupt the service. Do not submit false vehicle observations — accurate crowd data is what makes the live ETAs trustworthy.",
-  "terms.section.pro": "Aloya Pro",
-  "terms.pro.body":
-    "Pro features are billed through Stripe on a monthly or annual term. You can cancel at any time from the wallet screen; access continues until the end of the paid period. Refunds are handled case-by-case via hello@aloya.cy.",
+  "terms.section.price": "Price",
+  "terms.price.body":
+    "Aloya is free to use. Every feature is available to every rider at no charge — there is no subscription, no trial, and no payment to cancel. Bus fares themselves are set and collected by the operators, not by us.",
   "terms.section.liability": "Liability",
   "terms.liability.body":
     "Aloya is provided as-is. We work hard to keep ETAs accurate, but we cannot guarantee that a bus will arrive at a specific time, that a route will not change, or that the app will be available without interruption. We are not liable for missed connections or losses arising from use of the service.",
