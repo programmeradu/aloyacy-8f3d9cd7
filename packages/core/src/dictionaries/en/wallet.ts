@@ -120,29 +120,4 @@ export const wallet = {
   "auth.errSend": "Could not send code",
   "auth.errVerify": "Invalid or expired code",
 
-  "pay.kicker": "Aloya Pro",
-  "pay.titleA": "The whole island,",
-  "pay.titleB": "in your pocket.",
-  "pay.lede":
-    "Aloya stays free for everyday rides. Pro adds the features that turn it into a proper navigator — for the cost of two coffees a month.",
-  "pay.continueCheckout": "Continue to checkout",
-  "pay.continue": "Continue",
-  "pay.later": "Maybe later",
-  "pay.fine": "Cancel anytime. Secure checkout by Stripe. Free features stay free, forever.",
-  "pay.back": "← Back",
-  "pay.authTitle": "One step before Pro",
-  "pay.authSubtitle":
-    "We need an email so your subscription works across devices. No password — just a magic link.",
-  "pay.feat.planner.t": "Multi-leg trip planner",
-  "pay.feat.planner.b": "Full transfers across Nicosia and intercity routes — door to door.",
-  "pay.feat.boarding.t": "Live boarding cues",
-  "pay.feat.boarding.b":
-    "Voice and haptic the second your bus arrives. Auto-reroute if you miss it.",
-  "pay.feat.alerts.t": "Saved trips & push alerts",
-  "pay.feat.alerts.b":
-    "Delays, disruptions, and the perfect leave-now moment — straight to your phone.",
-  "pay.feat.offline.t": "Offline schedules",
-  "pay.feat.offline.b": "The whole network cached. Works underground, on planes, anywhere.",
-  "pay.feat.priority.t": "Priority data refresh",
-  "pay.feat.priority.b": "Live positions sync more often. Always the freshest ETAs.",
 } as const;

@@ -18,7 +18,6 @@ import { wallet } from "./wallet";
 import { alerts } from "./alerts";
 import { replan } from "./replan";
 import { assistant } from "./assistant";
-import { pro } from "./pro";
 import { pulse } from "./pulse";
 import { greenLine } from "./green-line";
 import { airport } from "./airport";
@@ -41,7 +40,6 @@ export const en = {
   ...alerts,
   ...replan,
   ...assistant,
-  ...pro,
   ...pulse,
   ...greenLine,
   ...airport,
