@@ -6,13 +6,12 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { MapPreview, type MapMarker } from "@/components/MapPreview";
+import { MapPreview } from "@/components/MapPreview";
 import { StaleFeedBanner } from "@/components/StaleFeedBanner";
 import { IconArrowLeft } from "@/components/Icons";
 import { getStop } from "@/lib/gtfs";
 import { clearActiveTrip, type ActiveTrip } from "@/lib/trip-store";
 import { multiLegMarkAlighted, useMultiLegJourney } from "@/lib/useMultiLegJourney";
-
 import { useResumeRefresh, useInvalidateRealtime } from "@/lib/useRealtime";
 import { WalkGuidance } from "@/components/WalkGuidance";
 import { LiveWalkBanner } from "@/components/LiveWalkBanner";
@@ -28,7 +27,6 @@ import { DisruptionBanner } from "@/components/DisruptionBanner";
 import { useDisruptionWatch } from "@/lib/useDisruptionWatch";
 import { useShortcutDetector } from "@/lib/useShortcutDetector";
 import { useTrainingSignals } from "@/lib/useTrainingSignals";
-import { distanceM } from "@/lib/geo";
 import { fmtClock as fmtTime } from "@/lib/journey-copy";
 import { boundsForItinerary } from "@aloya/core/itinerary-bounds";
 import { shouldAskStillOnBoard, shouldOfferSighting } from "@aloya/core/multileg-banners";
@@ -38,6 +36,12 @@ import { PhaseLabel, PhaseHeadline, PhaseSub } from "@/components/multileg/Phase
 import { MultiLegActions } from "@/components/multileg/MultiLegActions";
 import { LegTimelineRow } from "@/components/multileg/LegTimelineRow";
 import companionHero from "@/assets/companion-hero.jpg";
+import {
+  buildMultiLegMapMarkers,
+  getRestrictTripIds,
+  isEarlyAlight,
+  getWalkBannerTitle,
+} from "@/lib/multileg-companion-helpers";
 
 export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const navigate = useNavigate();
@@ -64,81 +68,28 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
     isOnFinalWalk,
   });
 
-  // Wave 3 — Last-mile chain. When the final walk to destination is long,
-  // pre-fetch a taxi handoff so it's ready when hitting destination phase.
   const lastMileChain = useLastMileChain({ active });
-
-  // Emit training events (walk-complete, transfer-made/missed) into the
-  // learning pipeline.
   useTrainingSignals(active, live);
 
-  // "I'm off" handler — if the rider is well clear of the planned alight
-  // stop, they got off at the wrong place. Open the re-route sheet instead
-  // of marking alighted (which would auto-advance to the wrong walk leg).
-  const EARLY_ALIGHT_THRESHOLD_M = 150;
   const handleImOff = () => {
     const alight = live.currentRideLeg?.alight;
-    const dist = live.fix && alight ? distanceM(live.fix, { lat: alight.lat, lng: alight.lng }) : 0;
-    if (dist > EARLY_ALIGHT_THRESHOLD_M) {
+    if (isEarlyAlight(live.fix, alight)) {
       setEarlyAlightOpen(true);
     } else {
       multiLegMarkAlighted();
     }
   };
 
-  // Map center / span — fit to whole itinerary footprint.
   const bounds = useMemo(() => boundsForItinerary(itin), [itin]);
+  const restrictTripIds = useMemo(
+    () => getRestrictTripIds(live.currentRideLeg, live.nextRideLeg, live.phase),
+    [live.currentRideLeg, live.nextRideLeg, live.phase],
+  );
+  const mapMarkers = useMemo(() => buildMultiLegMapMarkers(active, itin), [active, itin]);
 
-  // Dual-vehicle map: show both the current and (when connecting) the next
-  // leg's vehicles. We pass tripIds via `restrictTripIds` so MapPreview
-  // renders both — it already supports that without focusing.
-  const restrictTripIds = useMemo(() => {
-    const ids: string[] = [];
-    if (live.currentRideLeg) ids.push(live.currentRideLeg.tripId);
-    if (
-      live.nextRideLeg &&
-      (live.phase === "walking-to-transfer" || live.phase === "waiting-for-connection")
-    ) {
-      ids.push(live.nextRideLeg.tripId);
-    }
-    return ids.length > 0 ? ids : undefined;
-  }, [live.currentRideLeg, live.nextRideLeg, live.phase]);
-
-  const mapMarkers: MapMarker[] = useMemo(() => {
-    const out: MapMarker[] = [];
-    out.push({
-      lat: active.from.lat,
-      lng: active.from.lng,
-      kind: "origin",
-      label: active.from.label,
-    });
-    out.push({
-      lat: active.to.lat,
-      lng: active.to.lng,
-      kind: "destination",
-      label: active.to.label,
-    });
-    // Drop a pin at every board + alight stop so the rider sees the chain.
-    for (const leg of itin.legs) {
-      if (leg.kind === "ride") {
-        out.push({
-          lat: leg.board.lat,
-          lng: leg.board.lng,
-          kind: "stop",
-          label: leg.board.name,
-          tone: "aegean",
-        });
-        out.push({
-          lat: leg.alight.lat,
-          lng: leg.alight.lng,
-          kind: "stop",
-          label: leg.alight.name,
-          tone: "ochre",
-        });
-      }
-    }
-    return out;
-  }, [itin, active.from, active.to]);
+  const walkBannerTitle = live.currentLeg
+    ? getWalkBannerTitle(live.phase, live.nextRideLeg?.routeShort, t)
+    : "";
 
   return (
     <AppShell>
@@ -307,9 +258,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         </section>
       )}
 
-      {/* Crowd / comfort prediction during ride or wait. Folds in weather
-          at the alight stop for intercity routes (longer rides where the
-          weather at arrival actually changes the decision). */}
+      {/* Crowd / comfort prediction during ride or wait */}
       {live.active &&
         (live.phase === "riding" ||
           live.phase === "alight-soon" ||
@@ -387,10 +336,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         />
       )}
 
-      {/* Turn-by-turn for any walk leg — initial, transfer, or final.
-          LiveWalkBanner gives the rider the imminent maneuver + meters
-          countdown once GPS is live; WalkGuidance carries the full step
-          list (with Street View imagery) below it. */}
+      {/* Turn-by-turn for any walk leg */}
       {live.currentLeg?.kind === "walk" && (
         <>
           {live.phase === "walking-to-destination" && (
@@ -411,28 +357,12 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
             from={{ lat: live.currentLeg.from.lat, lng: live.currentLeg.from.lng }}
             to={{ lat: live.currentLeg.to.lat, lng: live.currentLeg.to.lng }}
             fix={live.fix}
-            title={
-              live.phase === "walking-to-board"
-                ? t("ml.walk.toFirst")
-                : live.phase === "walking-to-transfer"
-                  ? t("ml.walk.toBus", { code: live.nextRideLeg?.routeShort ?? "" })
-                  : live.phase === "walking-to-destination"
-                    ? t("ml.walk.toDest")
-                    : t("ml.walk.generic")
-            }
+            title={walkBannerTitle}
           />
           <WalkGuidance
             from={{ lat: live.currentLeg.from.lat, lng: live.currentLeg.from.lng }}
             to={{ lat: live.currentLeg.to.lat, lng: live.currentLeg.to.lng }}
-            title={
-              live.phase === "walking-to-board"
-                ? t("ml.walk.toFirst")
-                : live.phase === "walking-to-transfer"
-                  ? t("ml.walk.toBus", { code: live.nextRideLeg?.routeShort ?? "" })
-                  : live.phase === "walking-to-destination"
-                    ? t("ml.walk.toDest")
-                    : t("ml.walk.generic")
-            }
+            title={walkBannerTitle}
           />
         </>
       )}
