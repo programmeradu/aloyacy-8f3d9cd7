@@ -83,6 +83,7 @@ export const recordCommutePattern = createServerFn({ method: "POST" })
 
 export const getTopCommuteSuggestion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .inputValidator((input?: unknown) => z.void().optional().parse(input))
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const now = new Date();

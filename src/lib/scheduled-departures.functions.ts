@@ -65,6 +65,7 @@ export const scheduleDeparture = createServerFn({ method: "POST" })
 
 export const listScheduledDepartures = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .inputValidator((input?: unknown) => z.void().optional().parse(input))
   .handler(async ({ context }) => {
     const { supabase } = context;
     const { data, error } = await supabase

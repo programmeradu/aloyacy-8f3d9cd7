@@ -3,6 +3,7 @@
 // importing the .server module directly.
 
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { getGraphStats, getStopRoutes, getTransferCandidates } from "./transfer-graph.server";
 import { STOPS } from "./gtfs";
 
@@ -22,7 +23,9 @@ export type GraphDiagnostics = {
   histogram: Array<{ bucket: string; stops: number }>;
 };
 
-export const getTransferGraphDiagnostics = createServerFn({ method: "GET" }).handler(
+export const getTransferGraphDiagnostics = createServerFn({ method: "GET" })
+  .inputValidator((input?: unknown) => z.void().optional().parse(input))
+  .handler(
   async (): Promise<GraphDiagnostics> => {
     const t0 = Date.now();
     getStopRoutes();

@@ -155,6 +155,7 @@ export const createArrivalPromise = createServerFn({ method: "POST" })
 
 export const listArrivalPromises = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .inputValidator((input?: unknown) => z.void().optional().parse(input))
   .handler(async ({ context }) => {
     const cutoff = Math.floor(Date.now() / 1000) - 3 * 3600;
     const db = loose(context.supabase);

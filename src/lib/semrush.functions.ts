@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 
 const GATEWAY = "https://connector-gateway.lovable.dev/semrush";
 
@@ -42,7 +43,9 @@ async function call(path: string, params: Record<string, string>) {
 const DOMAINS = ["app.aloya.cy", "intercity-buses.com", "motionbuscard.org.cy"];
 const MARKETS = ["cy", "uk", "de"];
 
-export const getSeoPanel = createServerFn({ method: "GET" }).handler(async () => {
+export const getSeoPanel = createServerFn({ method: "GET" })
+  .inputValidator((input?: unknown) => z.void().optional().parse(input))
+  .handler(async () => {
   // 1) Domain ranks (organic + paid) per market for each tracked domain.
   const matrix = await Promise.all(
     DOMAINS.flatMap((domain) =>

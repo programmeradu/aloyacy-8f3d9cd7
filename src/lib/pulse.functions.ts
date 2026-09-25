@@ -3,6 +3,7 @@
 // Read-only, public. Safe to expose without auth.
 
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { ROUTES } from "@/lib/gtfs";
 import { createLogger } from "./logger";
 
@@ -28,7 +29,9 @@ export type PulseSnapshot = {
   steadiest: PulseRouteStat[]; // closest to zero with high sample count
 };
 
-export const getPulse = createServerFn({ method: "GET" }).handler(async () => {
+export const getPulse = createServerFn({ method: "GET" })
+  .inputValidator((input?: unknown) => z.void().optional().parse(input))
+  .handler(async () => {
   const [{ supabaseAdmin }] = await Promise.all([import("@/integrations/supabase/client.server")]);
   const freshThresholdIso = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
   const { data: freshness } = await supabaseAdmin
@@ -208,7 +211,9 @@ export type LivePulse = {
   medianDelaySec: number;
 };
 
-export const getLivePulse = createServerFn({ method: "GET" }).handler(async () => {
+export const getLivePulse = createServerFn({ method: "GET" })
+  .inputValidator((input?: unknown) => z.void().optional().parse(input))
+  .handler(async () => {
   const [{ supabaseAdmin }] = await Promise.all([import("@/integrations/supabase/client.server")]);
   const WINDOW_MIN = 60;
   const sinceIso = new Date(Date.now() - WINDOW_MIN * 60_000).toISOString();
@@ -305,7 +310,9 @@ function cyprusOffsetMinutes(d: Date): number {
   return inDst ? 180 : 120;
 }
 
-export const getPulseHourStrip = createServerFn({ method: "GET" }).handler(async () => {
+export const getPulseHourStrip = createServerFn({ method: "GET" })
+  .inputValidator((input?: unknown) => z.void().optional().parse(input))
+  .handler(async () => {
   const sums = new Array(24).fill(0);
   const counts = new Array(24).fill(0);
 
