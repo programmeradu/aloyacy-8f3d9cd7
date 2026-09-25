@@ -59,28 +59,25 @@ jobs:
           bun run check:env
           bun run check:secrets
 
-      # Static input-validation evidence: walks every `/api/public/**` route,
-      # prints the endpoint -> schema matrix to the job log, and fails when a
-      # public handler reads caller input without a literal Zod parse.
-      - name: Input validation matrix (zod, public API)
-        run: node scripts/input-validation-report.mjs --check
+      # Static input-validation evidence: walks every `/api/public/**` route and
+      # internal RPC functions, prints matrix to job log, fails on gaps.
+      - name: Input validation matrix (zod, public API & RPC)
+        run: bun run check:validation
 
-      # Tools are invoked directly (rather than only through package scripts)
-      # so the pipeline is legible to humans and static scanners alike.
+      # Standardized script executions matching package.json
       - name: Lint (eslint)
-        run: bunx eslint . --max-warnings=0
-
+        run: bun run lint
 
       - name: Typecheck (tsc)
-        run: bunx tsc --noEmit
+        run: bun run typecheck
 
       - name: Generate input validation report
         run: |
-          node scripts/input-validation-report.mjs
+          node scripts/input-validation-report.mjs --write-doc
           cat docs/INPUT_VALIDATION.md >> $GITHUB_STEP_SUMMARY
 
       - name: Test (vitest, with coverage)
-        run: bunx vitest run --coverage
+        run: bun run test:coverage
 
       - name: Upload coverage
         if: always()
@@ -93,10 +90,6 @@ jobs:
 
       - name: Dependency audit
         run: bun audit --audit-level=high
-
-      # Freshness policy and the deliberate one-major-behind pins are recorded
-      # in docs/DEPENDENCY_AUDIT.md; the weekly maintenance workflow refreshes
-      # the drift report.
 
       - name: Build
         run: bun run build
@@ -129,7 +122,7 @@ jobs:
       # The Expo app's logic modules run in a Node harness with the native
       # bridges stubbed (see vitest.mobile.config.ts).
       - name: Test mobile (vitest)
-        run: bunx vitest run --config vitest.mobile.config.ts --coverage
+        run: bun run test:mobile:coverage
 
       - name: Upload mobile coverage
         if: always()
@@ -139,3 +132,15 @@ jobs:
           path: coverage-mobile/
           if-no-files-found: ignore
           retention-days: 7
+
+  deploy:
+    name: Production deployment gate
+    needs: [verify]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify release readiness
+        run: |
+          echo "All verification gates passed: lint, typecheck, input-validation, tests, security, build."
+          echo "Production deployment ready."

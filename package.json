@@ -23,7 +23,8 @@
     "dependencyAudit": "docs/DEPENDENCY_AUDIT.md"
   },
   "operations": {
-    "health": "/api/public/health",
+    "health": "/healthz",
+    "healthz": "/healthz",
     "metrics": "/api/public/metrics",
     "logger": "src/lib/logger.ts",
     "errorTracking": "src/lib/error-tracking.ts",
