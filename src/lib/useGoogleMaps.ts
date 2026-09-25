@@ -10,22 +10,30 @@ declare global {
   }
 }
 
-// The Maps browser key is publishable and restricted by HTTP referrer in
-// Google Cloud. Aloya owns this key — the previously-preferred workspace
-// connector key has billing disabled and now fails with
-// BillingNotEnabledMapError, so it is no longer consulted at all. The literal
-// is kept as a build fallback because custom-domain publishes do not always
-// receive VITE variables, which produced a silent "Map unavailable" panel.
-const PRODUCTION_BROWSER_KEY = "AIzaSyCHuiwoRRsM7bUVxvKnIZ8ci7EHjgI1HJ0"; // secret-scan:allow — Aloya Maps JS browser key, HTTP-referrer restricted
-const KEY =
-  (import.meta.env.VITE_GOOGLE_MAPS_BROWSER_KEY as string | undefined) || PRODUCTION_BROWSER_KEY;
+// The Maps browser key is loaded strictly from environment configuration.
+// No plaintext API key literals are embedded in source.
+let keyOverride: string | null = null;
+export function setGoogleMapsKeyOverride(key: string | null) {
+  keyOverride = key;
+}
+
+export function getGoogleMapsKey(): string {
+  if (keyOverride !== null) return keyOverride;
+  return (
+    (typeof process !== "undefined" && process.env?.VITE_GOOGLE_MAPS_BROWSER_KEY) ||
+    (import.meta.env.VITE_GOOGLE_MAPS_BROWSER_KEY as string | undefined) ||
+    (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined) ||
+    ""
+  );
+}
 const CHANNEL = import.meta.env.VITE_GOOGLE_MAPS_TRACKING_ID as string | undefined;
 
 function load(): Promise<typeof google> {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
   if (window.google?.maps) return Promise.resolve(window.google);
   if (window.__aloyaGmapsPromise) return window.__aloyaGmapsPromise;
-  if (!KEY) return Promise.reject(new Error("missing maps key"));
+  const key = getGoogleMapsKey();
+  if (!key) return Promise.reject(new Error("missing maps key"));
 
   window.__aloyaGmapsPromise = new Promise((resolve, reject) => {
     // With `loading=async` the bootstrap callback fires before the core
@@ -44,7 +52,7 @@ function load(): Promise<typeof google> {
       }
     };
     const s = document.createElement("script");
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${KEY}&loading=async&callback=__aloyaGmapsInit&libraries=geometry&channel=${CHANNEL ?? ""}`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&loading=async&callback=__aloyaGmapsInit&libraries=geometry&channel=${CHANNEL ?? ""}`;
     s.async = true;
     s.defer = true;
     s.onerror = () => {
