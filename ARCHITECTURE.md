@@ -96,6 +96,55 @@ Two guards keep it honest, with no allowlist between them:
 - **Postgres** — self-hosted Supabase. Every public table is RLS-enabled with
   explicit `GRANT`s; privileged work runs through `SECURITY DEFINER` RPCs.
 
+## Data Lineage & Pipeline Architecture
+
+The GTFS and telemetry data lifecycle moves through distinct ingestion, validation, transactional hot-storage, retention cleanup, and cold-archive stages:
+
+```text
+Cyprus Motion / EMEL / OSEL Raw Feed (TCP Socket / GTFS-RT Protobuf)
+                         │
+                         ▼
+        workers/gtfs-relay (TCP → TLS HTTPS Relay)
+                         │
+                         ▼
+           Edge Worker Ingest Endpoint
+             /api/public/snapshot
+                         │
+       ┌─────────────────┴─────────────────┐
+       │ Data-Quality & Geographic Bounds  │
+       │ (scripts/validate-gtfs-snapshot) │
+       │  lat: 34.5-35.7, lng: 32.2-34.6   │
+       │  monotonic fetchedAt, delay ints  │
+       └─────────────────┬─────────────────┘
+                         │
+                         ├──────────────────────────────────────────┐
+                         │                                          │ (archive-on-ingest)
+                         ▼                                          ▼
+     Hot Database Tables (Self-Hosted Postgres)          R2 Data Lake Cold Storage
+     - rt_snapshots (TTL: 90m live horizon)              - data-lake: rt_snapshots/YYYY-MM-DD/*.jsonl
+     - observed_arrivals (unique trip×stop state)         - data-lake: observed_arrivals/YYYY-MM-DD/*.jsonl
+     - delay_stats (running mean by route/stop/hour/dow)
+                         │
+                         ▼ (Idempotent SQL Upsert)
+            ingest_gtfs_snapshots_v2
+       ON CONFLICT (trip_id, stop_id) DO UPDATE
+                         │
+                         ▼
+          Nightly Retention & Compaction Job
+                workers/pulse-cron
+       - archives stale records to Cloudflare R2
+       - executes deterministic primary key deletion
+       - VACUUM and index defragmentation
+                         │
+                         ▼
+            Downstream Inference Engine
+       - smartEtaV2 (live vs scheduled vs ghost)
+       - wait-or-bail heuristics & raptorWalk
+```
+
+- **Idempotency Guarantees**: Repeating an ingest batch with identical timestamps produces zero duplicate rows in `rt_snapshots` or `observed_arrivals` via PostgreSQL composite key `ON CONFLICT` constraints (verified in `tests/pulse-cron-idempotency.test.ts`).
+- **Data Quality Gates**: `scripts/validate-gtfs-snapshot.mjs` enforces geographic bounding within Cyprus territorial coordinates, non-empty trip telemetry, monotonic timestamps, and integer delay values.
+
 ## Code health rules (enforced by tests, not convention)
 
 | Rule                                                                  | Guard                                                                   |
@@ -103,6 +152,9 @@ Two guards keep it honest, with no allowlist between them:
 | No source file over 500 lines; new files under 400                    | `tests/file-size.test.ts`                                               |
 | No raw `console.*` in server code                                     | `tests/server-logging.test.ts`                                          |
 | Every public endpoint validates input with a Zod call in its own file | `tests/input-validation.test.ts`, `scripts/input-validation-report.mjs` |
+| Every internal server RPC function declares a validated input schema  | `tests/input-validation-rpc.test.ts`, `scripts/input-validation-report.mjs` |
+| Pipeline ingest & cron runs are idempotent without row duplication   | `tests/pulse-cron-idempotency.test.ts`                                  |
+| GTFS telemetry strictly strictly bounded within Cyprus coordinates    | `scripts/validate-gtfs-snapshot.mjs`, `tests/validate-gtfs-snapshot.test.ts` |
 | Tests run fully offline — no network in CI                            | `src/test/no-network.ts`                                                |
 | `.env.example` covers every env var used in source                    | `scripts/check-env-parity.mjs`                                          |
 | No committed secrets                                                  | `scripts/check-secrets.mjs`                                             |
