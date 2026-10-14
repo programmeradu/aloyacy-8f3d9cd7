@@ -3,7 +3,7 @@
 //  * Anonymous device session: on first visit the rider gets a `users` row
 //    (is_anonymous = 1) and a signed session token (HS256, JWT_SECRET).
 //    Web keeps it in an HttpOnly cookie; mobile sends it as a Bearer token.
-//  * Email OTP: 6-digit code, stored hashed in auth_otp_codes (15 min, 5
+//  * Email OTP: 8-digit code, stored hashed in auth_otp_codes (15 min, 5
 //    attempts), delivered by the existing sender in auth-email.server.ts.
 //    Verifying an email nobody owns yet upgrades the caller's anonymous user
 //    in place (same user id, so cloud data follows), like Supabase's
@@ -216,9 +216,15 @@ export async function resolveSession(req: Request, create: boolean): Promise<{ s
 }
 
 // ---- OTP --------------------------------------------------------------------
-function sixDigits(): string {
-  const n = crypto.getRandomValues(new Uint32Array(1))[0]! % 1_000_000;
-  return String(n).padStart(6, "0");
+export const OTP_LENGTH = 8;
+
+/** Uniform 8-digit code (rejection sampling, so no modulo bias). */
+export function eightDigits(): string {
+  const limit = 4_200_000_000; // largest multiple of 1e8 below 2^32
+  for (;;) {
+    const n = crypto.getRandomValues(new Uint32Array(1))[0]!;
+    if (n < limit) return String(n % 100_000_000).padStart(OTP_LENGTH, "0");
+  }
 }
 
 async function codeHash(email: string, code: string): Promise<string> {
@@ -231,7 +237,7 @@ export async function issueOtp(
   opts: { linkUserId?: string | null } = {},
 ): Promise<{ code: string; isNewUser: boolean }> {
   const email = rawEmail.trim().toLowerCase();
-  const code = sixDigits();
+  const code = eightDigits();
   const existing = await getUserByEmail(email);
   await getD1()
     .prepare(

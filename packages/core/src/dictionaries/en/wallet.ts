@@ -107,8 +107,8 @@ export const wallet = {
   "wallet.toast.synced": "Synced — {n} transactions",
 
   "auth.title": "Sign in to continue",
-  "auth.subtitle": "We'll email you a 6-digit code. No password.",
-  "auth.codeSentTo": "Enter the 6-digit code we sent to {email}.",
+  "auth.subtitle": "We'll email you an 8-digit code. No password.",
+  "auth.codeSentTo": "Enter the 8-digit code we sent to {email}.",
   "auth.emailPlaceholder": "you@example.com",
   "auth.codePlaceholder": "Enter code",
   "auth.send": "Send me the code",

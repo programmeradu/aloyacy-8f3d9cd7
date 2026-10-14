@@ -204,7 +204,7 @@ export function AuthSheet({
             {error && <p className="text-xs text-ochre-deep">{error}</p>}
             <button
               type="submit"
-              disabled={busy || code.length < 6}
+              disabled={busy || code.length !== 8}
               className="w-full rounded-2xl bg-ink py-3 text-sm font-medium text-limestone disabled:opacity-50"
             >
               {busy ? t("auth.verifying") : t("auth.verify")}

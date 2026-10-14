@@ -109,8 +109,8 @@ export const wallet: Record<keyof typeof walletEn, string> = {
   "wallet.toast.synced": "Συγχρονίστηκαν — {n} συναλλαγές",
 
   "auth.title": "Συνδεθείτε για να συνεχίσετε",
-  "auth.subtitle": "Θα σας στείλουμε email με 6ψήφιο κωδικό. Χωρίς κωδικό πρόσβασης.",
-  "auth.codeSentTo": "Εισαγάγετε τον 6ψήφιο κωδικό που στείλαμε στο {email}.",
+  "auth.subtitle": "Θα σας στείλουμε email με 8ψήφιο κωδικό. Χωρίς κωδικό πρόσβασης.",
+  "auth.codeSentTo": "Εισαγάγετε τον 8ψήφιο κωδικό που στείλαμε στο {email}.",
   "auth.emailPlaceholder": "esy@paradeigma.com",
   "auth.codePlaceholder": "Εισαγάγετε κωδικό",
   "auth.send": "Στείλτε μου τον κωδικό",

@@ -32,14 +32,14 @@ export const SignupEmail = ({ recipient, token }: SignupEmailProps) => (
     </Text>
 
     <Text style={sectionLabel}>Confirmation code</Text>
-    <div style={codeBlock}>{token ?? "------"}</div>
+    <div style={codeBlock}>{token ?? "--------"}</div>
 
     <Text style={bodyTextMuted}>
       We're confirming{" "}
       <a href={`mailto:${recipient}`} style={inlineLink}>
         {recipient}
       </a>
-      . Enter the code above in the app to finish signing in.
+      . Enter the 8-digit code above in the app to finish signing in.
     </Text>
 
     <Text style={fineprint}>

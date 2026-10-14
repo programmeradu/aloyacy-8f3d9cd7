@@ -17,12 +17,12 @@ export const MagicLinkEmail = ({ token }: MagicLinkEmailProps) => (
     heroAlt="Antique brass key on cream paper, sunlit limestone"
   >
     <Text style={bodyText}>
-      Enter this code in the Aloya app to finish signing in. It expires in a few minutes and can
+      Enter this 8-digit code in the Aloya app to finish signing in. It expires in a few minutes and can
       only be used once.
     </Text>
 
     <Text style={sectionLabel}>Sign-in code</Text>
-    <div style={codeBlock}>{token ?? "------"}</div>
+    <div style={codeBlock}>{token ?? "--------"}</div>
 
     <Text style={fineprint}>
       If you didn't request this, you can safely ignore the message — no one can sign in without the

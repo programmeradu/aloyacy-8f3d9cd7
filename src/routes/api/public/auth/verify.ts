@@ -1,5 +1,5 @@
 // Verify an emailed sign-in code (replaces supabase.auth.verifyOtp).
-// Body: { email, token }. Returns { ok, session } and sets the session cookie.
+// Body: { email, token } where token is the 8-digit emailed code. Returns { ok, session } and sets the session cookie.
 // A new email is attached to the caller's anonymous user (same user id).
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
@@ -7,7 +7,7 @@ import { claimsFromRequest, sessionCookie, verifyOtp } from "@/lib/auth/session.
 
 const BodySchema = z.object({
   email: z.string().email().max(254),
-  token: z.string().regex(/^\d{6}$/),
+  token: z.string().regex(/^\d{8}$/),
 });
 
 const CORS = {
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/public/auth/verify")({
         try {
           body = BodySchema.parse(await request.json());
         } catch {
-          return json({ ok: false, error: "Enter the 6-digit code." }, 400);
+          return json({ ok: false, error: "Enter the 8-digit code." }, 400);
         }
         const current = await claimsFromRequest(request);
         const res = await verifyOtp(body.email, body.token, current?.sub ?? null);
