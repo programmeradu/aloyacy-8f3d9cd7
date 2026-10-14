@@ -51,6 +51,12 @@ function mapSqliteError(e: unknown): DbError {
 
 function ident(name: string): string {
   const n = name.trim();
+  // PostgREST JSON path: col->>key / col->key (one or more segments).
+  const jp = /^([A-Za-z_][A-Za-z0-9_]*)((?:->>?[A-Za-z0-9_]+)+)$/.exec(n);
+  if (jp) {
+    const path = jp[2]!.split(/->>?/).filter(Boolean).join(".");
+    return `json_extract("${jp[1]}", '$.${path}')`;
+  }
   if (!IDENT.test(n)) throw new Error(`invalid identifier: ${name}`);
   return `"${n}"`;
 }
@@ -111,7 +117,11 @@ function parseCols(cols: string | undefined): string {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean)
-    .map((s) => (s === "*" ? "*" : ident(s)))
+    .map((s) => {
+      if (s === "*") return "*";
+      const jp = /->>?([A-Za-z0-9_]+)$/.exec(s);
+      return jp ? `${ident(s)} AS "${jp[1]}"` : ident(s);
+    })
     .join(", ");
 }
 

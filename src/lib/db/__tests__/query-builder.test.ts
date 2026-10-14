@@ -145,3 +145,14 @@ describe("ingest rpc", () => {
     expect(r.data).toEqual([{ delay_sec: 90 }]);
   });
 });
+
+describe("json paths", () => {
+  it("filters and selects on col->>key", async () => {
+    await db.from("model_versions").insert([
+      { name: "a", params: { type: "ping_gap_thresholds", v: 1 } },
+      { name: "b", params: { type: "other" } },
+    ]);
+    const r = await db.from("model_versions").select("name, params->>type").eq("params->>type", "ping_gap_thresholds");
+    expect(r.data).toEqual([{ name: "a", type: "ping_gap_thresholds" }]);
+  });
+});
