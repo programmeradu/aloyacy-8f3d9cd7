@@ -6,7 +6,12 @@
 // remains the source of truth for offline reads; the cloud copy is the durable
 // mirror.
 
-import { supabase } from "@/integrations/supabase/client";
+import {
+  getMotionCard,
+  listSavedPlacesCloud,
+  saveMotionCard,
+  upsertSavedPlacesCloud,
+} from "@/lib/user-data.functions";
 import { readPass, writePass, type MotionPass } from "./motion-pass";
 import { listSavedPlaces, type SavedPlace } from "./trip-store";
 
@@ -74,11 +79,7 @@ function rowToPass(row: MotionRow, current: MotionPass): MotionPass {
 }
 
 async function pullMotionCard(userId: string): Promise<void> {
-  const { data } = await supabase
-    .from("motion_card")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { row: data } = await getMotionCard();
   const local = readPass();
   if (!data) {
     // Cloud is empty — migrate the local card up if there is one.
@@ -99,8 +100,8 @@ async function pushMotionCard(userId: string): Promise<void> {
   const local = readPass();
   if (!local.number || local.number.replace(/\D/g, "").length < 6) return;
   const row = passToRow(local, userId);
-  const { error } = await supabase.from("motion_card").upsert(row, { onConflict: "user_id" });
-  if (error) console.warn("[cloud-sync] motion push:", error.message);
+  const res = await saveMotionCard({ data: { row: row as never } });
+  if (!res.ok) console.warn("[cloud-sync] motion push:", res.error);
 }
 
 // ── Saved places ──────────────────────────────────────────────────────────
@@ -130,13 +131,16 @@ async function pushSavedPlaces(userId: string): Promise<void> {
     lng: p.lng,
     address: p.name,
   }));
-  const { error } = await supabase.from("saved_places").upsert(rows);
-  if (error) console.warn("[cloud-sync] saved push:", error.message);
+  const res = await upsertSavedPlacesCloud({
+    data: { rows: rows.map(({ user_id: _u, ...r }) => r) as never },
+  });
+  if (!res.ok) console.warn("[cloud-sync] saved push:", res.error);
 }
 
 async function pullSavedPlaces(userId: string): Promise<void> {
-  const { data, error } = await supabase.from("saved_places").select("*").eq("user_id", userId);
-  if (error || !data) return;
+  void userId;
+  const { rows: data } = await listSavedPlacesCloud();
+  if (!data) return;
   if (!data.length) {
     // Cloud empty — migrate local up if any.
     if (listSavedPlaces().length) await pushSavedPlaces(userId);

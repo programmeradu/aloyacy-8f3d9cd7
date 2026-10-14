@@ -1,19 +1,23 @@
-// Subscribes to Supabase Realtime for the signed-in user's data tables and
-// invalidates the matching React Query caches so any open tab / device
-// reflects the change within ~1s of it happening server-side.
+// Keeps the signed-in user's cached data fresh across tabs/devices.
 //
-// Tables watched (RLS scopes events to the current user):
-//   - subscriptions        → ProGate, billing screens, paywall
-//   - scheduled_departures → "remind me" list, departure-tick processor
-//   - commute_patterns     → Commute suggestion card, learned suggestions
-//   - alert_counters       → service-alerts badge (anon-readable, app-wide)
-//
-// Mount once at the root so we don't open duplicate channels per route.
+// Supabase Realtime is gone (D1 has no change feed), so instead of
+// postgres_changes subscriptions we invalidate the same React Query caches
+// when the tab regains focus/visibility and on a slow interval while visible.
+// Mount once at the root.
 
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+
+export const USER_DATA_POLL_MS = 60_000;
+
+export const USER_DATA_QUERY_KEYS: string[][] = [
+  ["scheduled-departures"],
+  ["reminders"],
+  ["commute-suggestion"],
+  ["trip-suggestions"],
+];
+const PUBLIC_QUERY_KEYS: string[][] = [["alert-counters"], ["service-alerts"]];
 
 export function useUserDataRealtime() {
   const { user } = useAuth();
@@ -21,57 +25,19 @@ export function useUserDataRealtime() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Public counter — works for signed-out users too.
-    const counters = supabase
-      .channel("rt-alert-counters")
-      .on("postgres_changes", { event: "*", schema: "public", table: "alert_counters" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["alert-counters"] });
-        queryClient.invalidateQueries({ queryKey: ["service-alerts"] });
-      })
-      .subscribe();
-
-    if (!userId) {
-      return () => {
-        void supabase.removeChannel(counters);
-      };
-    }
-
-    const userChan = supabase
-      .channel(`rt-user-${userId}`)
-      // subscriptions is intentionally NOT in the supabase_realtime publication
-      // (it contains Stripe IDs). Rely on cache invalidation on webhook writes
-      // + the natural refetch cadence instead.
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "scheduled_departures",
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["scheduled-departures"] });
-          queryClient.invalidateQueries({ queryKey: ["reminders"] });
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "commute_patterns",
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["commute-suggestion"] });
-          queryClient.invalidateQueries({ queryKey: ["trip-suggestions"] });
-        },
-      )
-      .subscribe();
-
+    if (typeof window === "undefined") return;
+    const refresh = () => {
+      if (document.visibilityState === "hidden") return;
+      const keys = userId ? [...PUBLIC_QUERY_KEYS, ...USER_DATA_QUERY_KEYS] : PUBLIC_QUERY_KEYS;
+      for (const queryKey of keys) void queryClient.invalidateQueries({ queryKey });
+    };
+    const timer = window.setInterval(refresh, USER_DATA_POLL_MS);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
     return () => {
-      void supabase.removeChannel(counters);
-      void supabase.removeChannel(userChan);
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
     };
   }, [userId, queryClient]);
 }

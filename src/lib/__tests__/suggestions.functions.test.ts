@@ -38,6 +38,11 @@ vi.mock("@/integrations/supabase/client.server", () => {
   return { supabaseAdmin: client };
 });
 
+// Access tokens are Aloya session tokens now.
+vi.mock("@/lib/auth/session.server", () => ({
+  verifyToken: vi.fn(async () => (state.user ? { sub: (state.user as { id: string }).id } : null)),
+}));
+
 vi.mock("../device-auth.server", () => ({
   verifyDeviceToken: vi.fn(async () => state.verified),
   ensureDeviceToken: vi.fn(async () => state.ensure),

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { Session, User } from "@supabase/supabase-js";
+import type { ClientSession as Session, ClientUser as User } from "@/lib/auth/client";
 import { supabase } from "@/integrations/supabase/client";
 import { isAnonymousUser } from "./anon-auth";
 

@@ -23,9 +23,9 @@ const DeviceAuth = z.object({
 async function resolveUserId(accessToken?: string | null): Promise<string | null> {
   if (!accessToken) return null;
   try {
-    const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
-    if (error || !data.user) return null;
-    return data.user.id;
+    const { verifyToken } = await import("@/lib/auth/session.server");
+    const claims = await verifyToken(accessToken);
+    return claims?.sub ?? null;
   } catch {
     return null;
   }

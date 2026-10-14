@@ -1,9 +1,9 @@
 // Onboarding state lives in `user_settings.onboarded_at`. Read/write happens
-// through the browser supabase client because every rider has an anonymous
-// session by the time __root mounts. We cache a yes/no in localStorage to
+// through server functions (session cookie) because every rider has an
+// anonymous session by the time __root mounts. We cache a yes/no in localStorage to
 // avoid a network round-trip on every cold start.
 
-import { supabase } from "@/integrations/supabase/client";
+import { getUserSettings, saveUserSettings } from "@/lib/user-data.functions";
 
 const CACHE_KEY = "aloya:onboarded";
 
@@ -16,12 +16,10 @@ export function isOnboardedCached(): boolean | null {
 }
 
 export async function fetchOnboardedAt(userId: string): Promise<boolean> {
-  const { data, error } = await supabase
-    .from("user_settings")
-    .select("onboarded_at")
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (error) {
+  void userId;
+  const res = await getUserSettings().catch(() => null);
+  const data = res?.ok ? res.settings : null;
+  if (!res?.ok) {
     // Treat read failure as "not onboarded yet" — better to show the welcome
     // screen once too often than to silently skip it.
     return false;
@@ -37,8 +35,9 @@ export async function markOnboarded(userId: string): Promise<void> {
   if (typeof window !== "undefined") {
     window.localStorage.setItem(CACHE_KEY, "1");
   }
-  const { error } = await supabase
-    .from("user_settings")
-    .upsert({ user_id: userId, onboarded_at: new Date().toISOString() }, { onConflict: "user_id" });
-  if (error) console.warn("[onboarding] mark failed:", error.message);
+  void userId;
+  const res = await saveUserSettings({ data: { patch: { onboarded_at: new Date().toISOString() } } }).catch(
+    (e: Error) => ({ ok: false as const, error: e.message }),
+  );
+  if (!res.ok) console.warn("[onboarding] mark failed:", res.error);
 }

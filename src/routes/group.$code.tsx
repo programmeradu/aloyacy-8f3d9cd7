@@ -17,7 +17,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getTripGroupView } from "@/lib/public-views.functions";
 import { GroupMap } from "@/components/group-watch/GroupMap";
 import { Hero, IdentityRibbon } from "@/components/group-watch/Hero";
 import { JoinCard } from "@/components/group-watch/JoinCard";
@@ -84,11 +84,9 @@ function GroupWatchPage() {
   const viewQuery = useQuery({
     queryKey: ["trip-group-view", code, myToken],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_trip_group_view", {
-        p_code: code.toUpperCase(),
-        p_member_token: myToken ?? undefined,
+      const data = await getTripGroupView({
+        data: { code: code.toUpperCase(), memberToken: myToken ?? null },
       });
-      if (error) throw error;
       return (data as GroupView | null) ?? null;
     },
     refetchInterval: 15_000,

@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { createTripGroup } from "@/lib/trip-groups.functions";
-import { supabase } from "@/integrations/supabase/client";
+import { getTripGroupView } from "@/lib/public-views.functions";
 
 type Point = { lat: number; lng: number; label: string };
 
@@ -66,7 +66,7 @@ export function WatchTogetherButton({
       // trip_groups / trip_group_members is no longer available to browsers.
       const views = await Promise.all(
         joinedCodes.map(async (code) => {
-          const { data } = await supabase.rpc("get_trip_group_view", { p_code: code });
+          const data = await getTripGroupView({ data: { code } }).catch(() => null);
           return data as {
             id: string;
             code: string;

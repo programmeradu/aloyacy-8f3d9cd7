@@ -13,7 +13,7 @@
 // today. `lowFloor` is stored with step-free: the planner hides a stop
 // we know has a kerb (D1 wheelchair_access = no). Unknown stays listed.
 
-import { supabase } from "@/integrations/supabase/client";
+import { getUserSettings, saveUserSettings } from "@/lib/user-data.functions";
 
 const CACHE_KEY = "aloya:a11yPrefs";
 
@@ -80,12 +80,10 @@ export function normalise(p: Partial<AccessibilityPrefs> | null | undefined): Ac
 }
 
 export async function fetchFromCloud(userId: string): Promise<AccessibilityPrefs> {
-  const { data, error } = await supabase
-    .from("user_settings")
-    .select("accessibility_prefs")
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (error || !data) return readCached();
+  void userId; // the session decides whose settings these are
+  const res = await getUserSettings().catch(() => null);
+  const data = res?.ok ? res.settings : null;
+  if (!data) return readCached();
   const merged = normalise(data.accessibility_prefs as Partial<AccessibilityPrefs> | null);
   writeCache(merged);
   return merged;
@@ -94,8 +92,8 @@ export async function fetchFromCloud(userId: string): Promise<AccessibilityPrefs
 export async function savePrefs(userId: string | null, next: AccessibilityPrefs): Promise<void> {
   writeCache(next);
   if (!userId) return; // anon riders keep prefs in localStorage only
-  const { error } = await supabase
-    .from("user_settings")
-    .upsert({ user_id: userId, accessibility_prefs: next }, { onConflict: "user_id" });
-  if (error) console.warn("[a11y-prefs] save failed:", error.message);
+  const res = await saveUserSettings({ data: { patch: { accessibility_prefs: next } } }).catch(
+    (e: Error) => ({ ok: false as const, error: e.message }),
+  );
+  if (!res.ok) console.warn("[a11y-prefs] save failed:", res.error);
 }

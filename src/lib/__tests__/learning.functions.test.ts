@@ -7,12 +7,12 @@ const state: { delayStats: TableResult; observedArrivals: TableResult } = {
   observedArrivals: { data: [], error: null },
 };
 
-vi.mock("@/integrations/supabase/client", () => {
+vi.mock("@/integrations/supabase/client.server", () => {
   const { client } = makeSupabaseMock({
     delay_stats: () => state.delayStats,
     observed_arrivals: () => state.observedArrivals,
   });
-  return { supabase: client };
+  return { supabaseAdmin: client };
 });
 
 const { getLearnedStatsForStop, getLearnedStatsBulk, getAccuracySnapshot } =

@@ -7,8 +7,22 @@ const eq = vi.fn((_col: string, _val: string) => ({ maybeSingle }));
 const select = vi.fn(() => ({ eq }));
 const from = vi.fn((_table: string) => ({ select, upsert }));
 
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { from: (table: string) => from(table) },
+// Cloud reads/writes go through server functions now; the session decides
+// whose row it is. The query-shaped mocks above feed these stand-ins.
+const saveUserSettings = vi.fn(async (args: { data: { patch: Record<string, unknown> } }) => {
+  from("user_settings");
+  const r = await upsert(args.data.patch);
+  return r?.error ? { ok: false, error: r.error.message } : { ok: true };
+});
+vi.mock("@/lib/user-data.functions", () => ({
+  getUserSettings: async () => {
+    from("user_settings");
+    const r = await maybeSingle();
+    return r?.error
+      ? { ok: false, error: r.error.message, settings: null }
+      : { ok: true, settings: r?.data ?? null };
+  },
+  saveUserSettings: (args: { data: { patch: Record<string, unknown> } }) => saveUserSettings(args),
 }));
 
 import {
@@ -145,10 +159,7 @@ describe("savePrefs", () => {
     const next = { ...DEFAULT_PREFS, preferShade: true };
     await savePrefs("u1", next);
     expect(from).toHaveBeenCalledWith("user_settings");
-    expect(upsert).toHaveBeenCalledWith(
-      { user_id: "u1", accessibility_prefs: next },
-      { onConflict: "user_id" },
-    );
+    expect(upsert).toHaveBeenCalledWith({ accessibility_prefs: next });
   });
 
   it("warns but does not throw when the cloud upsert fails", async () => {

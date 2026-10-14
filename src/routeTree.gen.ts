@@ -92,7 +92,6 @@ import { Route as ApiPublicArrivalPromiseRouteImport } from './routes/api/public
 import { Route as ApiPublicAirportRouteImport } from './routes/api/public/airport'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiV1TruthEtaRouteImport } from './routes/api/v1/truth/eta'
 import { Route as ApiPublicWalletPassRouteImport } from './routes/api/public/wallet/pass'
@@ -122,6 +121,8 @@ import { Route as ApiPublicGbfsSystem_informationDotjsonRouteImport } from './ro
 import { Route as ApiPublicGbfsStation_statusDotjsonRouteImport } from './routes/api/public/gbfs/station_status[.]json'
 import { Route as ApiPublicGbfsStation_informationDotjsonRouteImport } from './routes/api/public/gbfs/station_information[.]json'
 import { Route as ApiPublicGbfsFree_bike_statusDotjsonRouteImport } from './routes/api/public/gbfs/free_bike_status[.]json'
+import { Route as ApiPublicAuthVerifyRouteImport } from './routes/api/public/auth/verify'
+import { Route as ApiPublicAuthSessionRouteImport } from './routes/api/public/auth/session'
 import { Route as ApiPublicAuthOtpRouteImport } from './routes/api/public/auth/otp'
 import { Route as ApiPublicOgPlanTokenRouteImport } from './routes/api/public/og/plan.$token'
 import { Route as ApiPublicOgGroupCodeRouteImport } from './routes/api/public/og/group.$code'
@@ -551,11 +552,6 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
   path: '/lovable/email/auth/preview',
@@ -722,6 +718,16 @@ const ApiPublicGbfsFree_bike_statusDotjsonRoute =
     path: '/api/public/gbfs/free_bike_status.json',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicAuthVerifyRoute = ApiPublicAuthVerifyRouteImport.update({
+  id: '/api/public/auth/verify',
+  path: '/api/public/auth/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAuthSessionRoute = ApiPublicAuthSessionRouteImport.update({
+  id: '/api/public/auth/session',
+  path: '/api/public/auth/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAuthOtpRoute = ApiPublicAuthOtpRouteImport.update({
   id: '/api/public/auth/otp',
   path: '/api/public/auth/otp',
@@ -822,6 +828,8 @@ export interface FileRoutesByFullPath {
   '/internal/funding/docs': typeof InternalFundingDocsRoute
   '/internal/funding/': typeof InternalFundingIndexRoute
   '/api/public/auth/otp': typeof ApiPublicAuthOtpRoute
+  '/api/public/auth/session': typeof ApiPublicAuthSessionRoute
+  '/api/public/auth/verify': typeof ApiPublicAuthVerifyRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -851,7 +859,6 @@ export interface FileRoutesByFullPath {
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
   '/api/v1/truth/eta': typeof ApiV1TruthEtaRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
-  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/og/group/$code': typeof ApiPublicOgGroupCodeRoute
   '/api/public/og/plan/$token': typeof ApiPublicOgPlanTokenRoute
@@ -940,6 +947,8 @@ export interface FileRoutesByTo {
   '/internal/funding/docs': typeof InternalFundingDocsRoute
   '/internal/funding': typeof InternalFundingIndexRoute
   '/api/public/auth/otp': typeof ApiPublicAuthOtpRoute
+  '/api/public/auth/session': typeof ApiPublicAuthSessionRoute
+  '/api/public/auth/verify': typeof ApiPublicAuthVerifyRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -969,7 +978,6 @@ export interface FileRoutesByTo {
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
   '/api/v1/truth/eta': typeof ApiV1TruthEtaRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
-  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/og/group/$code': typeof ApiPublicOgGroupCodeRoute
   '/api/public/og/plan/$token': typeof ApiPublicOgPlanTokenRoute
@@ -1059,6 +1067,8 @@ export interface FileRoutesById {
   '/internal/funding/docs': typeof InternalFundingDocsRoute
   '/internal/funding/': typeof InternalFundingIndexRoute
   '/api/public/auth/otp': typeof ApiPublicAuthOtpRoute
+  '/api/public/auth/session': typeof ApiPublicAuthSessionRoute
+  '/api/public/auth/verify': typeof ApiPublicAuthVerifyRoute
   '/api/public/gbfs/free_bike_status.json': typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   '/api/public/gbfs/station_information.json': typeof ApiPublicGbfsStation_informationDotjsonRoute
   '/api/public/gbfs/station_status.json': typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -1088,7 +1098,6 @@ export interface FileRoutesById {
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
   '/api/v1/truth/eta': typeof ApiV1TruthEtaRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
-  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/og/group/$code': typeof ApiPublicOgGroupCodeRoute
   '/api/public/og/plan/$token': typeof ApiPublicOgPlanTokenRoute
@@ -1179,6 +1188,8 @@ export interface FileRouteTypes {
     | '/internal/funding/docs'
     | '/internal/funding/'
     | '/api/public/auth/otp'
+    | '/api/public/auth/session'
+    | '/api/public/auth/verify'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -1208,7 +1219,6 @@ export interface FileRouteTypes {
     | '/api/public/wallet/pass'
     | '/api/v1/truth/eta'
     | '/lovable/email/auth/preview'
-    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/api/public/og/group/$code'
     | '/api/public/og/plan/$token'
@@ -1297,6 +1307,8 @@ export interface FileRouteTypes {
     | '/internal/funding/docs'
     | '/internal/funding'
     | '/api/public/auth/otp'
+    | '/api/public/auth/session'
+    | '/api/public/auth/verify'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -1326,7 +1338,6 @@ export interface FileRouteTypes {
     | '/api/public/wallet/pass'
     | '/api/v1/truth/eta'
     | '/lovable/email/auth/preview'
-    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/api/public/og/group/$code'
     | '/api/public/og/plan/$token'
@@ -1415,6 +1426,8 @@ export interface FileRouteTypes {
     | '/internal/funding/docs'
     | '/internal/funding/'
     | '/api/public/auth/otp'
+    | '/api/public/auth/session'
+    | '/api/public/auth/verify'
     | '/api/public/gbfs/free_bike_status.json'
     | '/api/public/gbfs/station_information.json'
     | '/api/public/gbfs/station_status.json'
@@ -1444,7 +1457,6 @@ export interface FileRouteTypes {
     | '/api/public/wallet/pass'
     | '/api/v1/truth/eta'
     | '/lovable/email/auth/preview'
-    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/api/public/og/group/$code'
     | '/api/public/og/plan/$token'
@@ -1534,6 +1546,8 @@ export interface RootRouteChildren {
   InternalFundingDocsRoute: typeof InternalFundingDocsRoute
   InternalFundingIndexRoute: typeof InternalFundingIndexRoute
   ApiPublicAuthOtpRoute: typeof ApiPublicAuthOtpRoute
+  ApiPublicAuthSessionRoute: typeof ApiPublicAuthSessionRoute
+  ApiPublicAuthVerifyRoute: typeof ApiPublicAuthVerifyRoute
   ApiPublicGbfsFree_bike_statusDotjsonRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRoute
   ApiPublicGbfsStation_informationDotjsonRoute: typeof ApiPublicGbfsStation_informationDotjsonRoute
   ApiPublicGbfsStation_statusDotjsonRoute: typeof ApiPublicGbfsStation_statusDotjsonRoute
@@ -1561,7 +1575,6 @@ export interface RootRouteChildren {
   ApiPublicPartnersApplyRoute: typeof ApiPublicPartnersApplyRoute
   ApiV1TruthEtaRoute: typeof ApiV1TruthEtaRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
-  LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   ApiPublicOgGroupCodeRoute: typeof ApiPublicOgGroupCodeRoute
   ApiPublicOgPlanTokenRoute: typeof ApiPublicOgPlanTokenRoute
@@ -2150,13 +2163,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/auth/webhook': {
-      id: '/lovable/email/auth/webhook'
-      path: '/lovable/email/auth/webhook'
-      fullPath: '/lovable/email/auth/webhook'
-      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
       path: '/lovable/email/auth/preview'
@@ -2360,6 +2366,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGbfsFree_bike_statusDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/auth/verify': {
+      id: '/api/public/auth/verify'
+      path: '/api/public/auth/verify'
+      fullPath: '/api/public/auth/verify'
+      preLoaderRoute: typeof ApiPublicAuthVerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auth/session': {
+      id: '/api/public/auth/session'
+      path: '/api/public/auth/session'
+      fullPath: '/api/public/auth/session'
+      preLoaderRoute: typeof ApiPublicAuthSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/auth/otp': {
       id: '/api/public/auth/otp'
       path: '/api/public/auth/otp'
@@ -2483,6 +2503,8 @@ const rootRouteChildren: RootRouteChildren = {
   InternalFundingDocsRoute: InternalFundingDocsRoute,
   InternalFundingIndexRoute: InternalFundingIndexRoute,
   ApiPublicAuthOtpRoute: ApiPublicAuthOtpRoute,
+  ApiPublicAuthSessionRoute: ApiPublicAuthSessionRoute,
+  ApiPublicAuthVerifyRoute: ApiPublicAuthVerifyRoute,
   ApiPublicGbfsFree_bike_statusDotjsonRoute:
     ApiPublicGbfsFree_bike_statusDotjsonRoute,
   ApiPublicGbfsStation_informationDotjsonRoute:
@@ -2515,7 +2537,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPartnersApplyRoute: ApiPublicPartnersApplyRoute,
   ApiV1TruthEtaRoute: ApiV1TruthEtaRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
-  LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   ApiPublicOgGroupCodeRoute: ApiPublicOgGroupCodeRoute,
   ApiPublicOgPlanTokenRoute: ApiPublicOgPlanTokenRoute,

@@ -43,26 +43,37 @@ export function getRpConfig(originHeader?: string) {
   return { rpName, rpID, expectedOrigin };
 }
 
-// In-memory challenge store for short-lived challenges (5 minutes TTL)
-const challengeStore = new Map<string, { challenge: string; expiresAt: number; userId?: string }>();
-
-function setChallenge(key: string, challenge: string, userId?: string) {
-  challengeStore.set(key, {
-    challenge,
-    userId,
-    expiresAt: Date.now() + 5 * 60 * 1000,
-  });
+// Challenges live in D1 (auth_challenges, 5-minute TTL) so the options and
+// verify calls may land on different Worker isolates.
+async function setChallenge(key: string, challenge: string, userId?: string) {
+  const { getD1 } = await import("@/lib/db/d1");
+  await getD1()
+    .prepare(
+      `INSERT INTO auth_challenges (id, challenge, user_id, kind, expires_at) VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT (id) DO UPDATE SET challenge = excluded.challenge, user_id = excluded.user_id,
+         expires_at = excluded.expires_at`,
+    )
+    .bind(key, challenge, userId ?? null, key.split("_")[0] ?? "webauthn", Date.now() + 5 * 60 * 1000)
+    .run();
 }
 
-function getChallenge(key: string): { challenge: string; userId?: string } | null {
-  const entry = challengeStore.get(key);
-  if (!entry) return null;
-  if (Date.now() > entry.expiresAt) {
-    challengeStore.delete(key);
-    return null;
-  }
-  challengeStore.delete(key);
-  return { challenge: entry.challenge, userId: entry.userId };
+async function getChallenge(key: string): Promise<{ challenge: string; userId?: string } | null> {
+  const { getD1 } = await import("@/lib/db/d1");
+  const d1 = getD1();
+  const row = await d1
+    .prepare(`DELETE FROM auth_challenges WHERE id = ? RETURNING challenge, user_id, expires_at`)
+    .bind(key)
+    .first<{ challenge: string; user_id: string | null; expires_at: number }>();
+  if (!row || row.expires_at < Date.now()) return null;
+  return { challenge: row.challenge, userId: row.user_id ?? undefined };
+}
+
+/** The signed-in caller; registration never trusts a client-supplied user id. */
+async function sessionUserId(): Promise<string | null> {
+  const { getRequest } = await import("@tanstack/react-start/server");
+  const { claimsFromRequest } = await import("@/lib/auth/session.server");
+  const claims = await claimsFromRequest(getRequest());
+  return claims?.sub ?? null;
 }
 
 /**
@@ -72,6 +83,9 @@ export const getPasskeyRegistrationOptions = createServerFn({ method: "POST" })
   .validator((data: { origin?: string; userId: string; userEmail: string }) => data)
   .handler(async ({ data }) => {
     try {
+      const userId = await sessionUserId();
+      if (!userId) return { ok: false as const, error: "Sign in first." };
+      data = { ...data, userId };
       const { rpName, rpID } = getRpConfig(data.origin);
 
       // Fetch user's existing passkeys to prevent re-registering the same credential
@@ -99,7 +113,7 @@ export const getPasskeyRegistrationOptions = createServerFn({ method: "POST" })
         },
       });
 
-      setChallenge(`reg_${data.userId}`, options.challenge, data.userId);
+      await setChallenge(`reg_${data.userId}`, options.challenge, data.userId);
       return { ok: true as const, options };
     } catch (e) {
       log.error("Failed to generate passkey registration options", e);
@@ -119,7 +133,10 @@ export const verifyPasskeyRegistration = createServerFn({ method: "POST" })
   }) => data)
   .handler(async ({ data }) => {
     try {
-      const saved = getChallenge(`reg_${data.userId}`);
+      const userId = await sessionUserId();
+      if (!userId) return { ok: false as const, error: "Sign in first." };
+      data = { ...data, userId };
+      const saved = await getChallenge(`reg_${data.userId}`);
       if (!saved) {
         return { ok: false as const, error: "Registration session expired. Please try again." };
       }
@@ -209,7 +226,7 @@ export const getPasskeyAuthOptions = createServerFn({ method: "POST" })
       });
 
       const challengeKey = `auth_${options.challenge.slice(0, 16)}`;
-      setChallenge(challengeKey, options.challenge);
+      await setChallenge(challengeKey, options.challenge);
 
       return { ok: true as const, options, challengeKey };
     } catch (e) {
@@ -229,7 +246,7 @@ export const verifyPasskeyAuthentication = createServerFn({ method: "POST" })
   }) => data)
   .handler(async ({ data }) => {
     try {
-      const saved = getChallenge(data.challengeKey);
+      const saved = await getChallenge(data.challengeKey);
       if (!saved) {
         return { ok: false as const, error: "Sign-in session expired. Please try again." };
       }
@@ -248,8 +265,10 @@ export const verifyPasskeyAuthentication = createServerFn({ method: "POST" })
       }
 
       // Fetch user's email from auth.users
-      const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(passkey.user_id);
-      if (userError || !userData.user || !userData.user.email) {
+      const { getUserById } = await import("@/lib/auth/session.server");
+      const authUser = await getUserById(passkey.user_id);
+      const userData = { user: authUser };
+      if (!userData.user || !userData.user.email) {
         return { ok: false as const, error: "User account not found." };
       }
 
@@ -282,19 +301,15 @@ export const verifyPasskeyAuthentication = createServerFn({ method: "POST" })
         .eq("id", passkey.id);
 
       // Mint a 1-time token to sign in the rider instantly
-      const link = await supabaseAdmin.auth.admin.generateLink({
-        type: "magiclink",
-        email: userData.user.email,
-      });
-
-      if (link.error || !link.data.properties?.email_otp) {
-        return { ok: false as const, error: "Failed to establish secure session." };
-      }
+      // Mint a one-time code (not emailed); the browser redeems it at
+      // POST /api/public/auth/verify, which sets the session cookie.
+      const { issueOtp } = await import("@/lib/auth/session.server");
+      const { code } = await issueOtp(userData.user.email);
 
       return {
         ok: true as const,
         email: userData.user.email,
-        token: link.data.properties.email_otp,
+        token: code,
       };
     } catch (e) {
       log.error("Error verifying passkey authentication", e);

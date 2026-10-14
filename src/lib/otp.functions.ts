@@ -1,15 +1,10 @@
 // Project-specific OTP delivery layer.
 //
-// Routes through Lovable Emails: we call supabase.auth.signInWithOtp, which
-// fires Supabase's auth email hook → our /lovable/email/auth/webhook route,
-// which renders the branded React Email templates (signup / magiclink) with
-// the 6-digit {{ .Token }} and enqueues them for delivery.
-//
-// We do NOT call Resend directly here anymore.
+// Codes are minted and stored in D1 (src/lib/auth/session.server.ts) and
+// delivered by sendAuthOtpEmail (Cloudflare Email / Resend / Lovable sender).
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // Per-email throttle so a hammered button can't drain quota.
@@ -96,44 +91,23 @@ export const linkEmailAndRequestOtp = createServerFn({ method: "POST" })
     }
 
     try {
-      // Attach the email to the anon user. email_confirm:true skips
-      // Supabase's built-in confirmation email — we send our own OTP next.
-      const upd = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        email,
-        email_confirm: true,
-      });
-      if (upd.error) {
+      // The email is attached when the code is verified
+      // (POST /api/public/auth/verify); here we only refuse taken emails.
+      const { getUserByEmail } = await import("@/lib/auth/session.server");
+      const owner = await getUserByEmail(email);
+      if (owner && owner.id !== userId) {
         lastSentAt.delete(email);
-        const msg = upd.error.message.toLowerCase();
-        const errCode = (upd.error as { code?: string }).code ?? "";
-        const status = (upd.error as { status?: number }).status ?? 0;
-        if (
-          errCode === "email_exists" ||
-          errCode === "user_already_exists" ||
-          status === 422 ||
-          msg.includes("already") ||
-          msg.includes("registered") ||
-          msg.includes("exists") ||
-          msg.includes("duplicate") ||
-          msg.includes("in use")
-        ) {
-          return {
-            ok: false as const,
-            code: "email_taken" as const,
-            error: "Email is already in use.",
-          };
-        }
         return {
           ok: false as const,
-          code: "update_failed" as const,
-          error: upd.error.message,
+          code: "email_taken" as const,
+          error: "Email is already in use.",
         };
       }
 
       // Mint + deliver the branded code ourselves (Supabase's own sender is
       // not used — see auth-email.server.ts).
       const { sendAuthOtpEmail } = await import("@/lib/auth-email.server");
-      const sent = await sendAuthOtpEmail(email);
+      const sent = await sendAuthOtpEmail(email, { linkUserId: userId });
       if (!sent.ok) {
         lastSentAt.delete(email);
         return {

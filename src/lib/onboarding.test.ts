@@ -7,8 +7,22 @@ const eq = vi.fn((_col: string, _val: string) => ({ maybeSingle }));
 const select = vi.fn(() => ({ eq }));
 const from = vi.fn((_table: string) => ({ select, upsert }));
 
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { from: (table: string) => from(table) },
+// Cloud reads/writes go through server functions now; the session decides
+// whose row it is. The query-shaped mocks above feed these stand-ins.
+const saveUserSettings = vi.fn(async (args: { data: { patch: Record<string, unknown> } }) => {
+  from("user_settings");
+  const r = await upsert(args.data.patch);
+  return r?.error ? { ok: false, error: r.error.message } : { ok: true };
+});
+vi.mock("@/lib/user-data.functions", () => ({
+  getUserSettings: async () => {
+    from("user_settings");
+    const r = await maybeSingle();
+    return r?.error
+      ? { ok: false, error: r.error.message, settings: null }
+      : { ok: true, settings: r?.data ?? null };
+  },
+  saveUserSettings: (args: { data: { patch: Record<string, unknown> } }) => saveUserSettings(args),
 }));
 
 import { isOnboardedCached, fetchOnboardedAt, markOnboarded } from "./onboarding";
@@ -90,8 +104,7 @@ describe("markOnboarded", () => {
     expect(window.localStorage.getItem(KEY)).toBe("1");
     expect(from).toHaveBeenCalledWith("user_settings");
     expect(upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ user_id: "u1", onboarded_at: expect.any(String) }),
-      { onConflict: "user_id" },
+      expect.objectContaining({ onboarded_at: expect.any(String) }),
     );
   });
 

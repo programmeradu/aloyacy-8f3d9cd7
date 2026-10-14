@@ -5,7 +5,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSharedTripView } from "@/lib/public-views.functions";
 import { MapPreview } from "@/components/MapPreview";
 
 type SharedTripRow = {
@@ -50,8 +50,7 @@ function EtaWatchPage() {
   const query = useQuery({
     queryKey: ["shared-trip", token],
     queryFn: async (): Promise<SharedTripRow | null> => {
-      const { data, error } = await supabase.rpc("get_shared_trip_view", { p_token: token });
-      if (error) throw error;
+      const data = await getSharedTripView({ data: { token } });
       return (data as SharedTripRow | null) ?? null;
     },
     refetchInterval: 15_000,

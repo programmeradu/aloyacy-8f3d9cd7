@@ -1,7 +1,7 @@
 // Server fns for the learning pipeline output (delay_stats).
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin as supabase } from "@/integrations/supabase/client.server";
 import { createLogger } from "./logger";
 import { cyHourDow } from "@aloya/core/cy-time";
 

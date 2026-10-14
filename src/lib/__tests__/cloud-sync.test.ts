@@ -19,32 +19,23 @@ const upsertMotionMock = vi.fn(async (_row: Row, _opts: unknown) => ({
 }));
 const upsertPlacesMock = vi.fn(async (_rows: Row[]) => ({ error: state.placesUpsertError }));
 
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: {
-    from: (table: string) => {
-      if (table === "motion_card") {
-        return {
-          select: () => ({
-            eq: () => ({
-              maybeSingle: async () => {
-                if (state.motionSelectError) throw state.motionSelectError;
-                return { data: state.motionRow };
-              },
-            }),
-          }),
-          upsert: upsertMotionMock,
-        };
-      }
-      if (table === "saved_places") {
-        return {
-          select: () => ({
-            eq: async () => ({ data: state.placesRows, error: state.placesSelectError }),
-          }),
-          upsert: upsertPlacesMock,
-        };
-      }
-      throw new Error(`unexpected table ${table}`);
-    },
+// Cloud reads/writes go through server functions (session-scoped). These
+// stand-ins keep the old row/error state machine the cases below drive.
+vi.mock("@/lib/user-data.functions", () => ({
+  getMotionCard: async () => {
+    if (state.motionSelectError) throw state.motionSelectError;
+    return { row: state.motionRow };
+  },
+  saveMotionCard: async (args: { data: { row: Row } }) => {
+    const { error } = await upsertMotionMock(args.data.row, { onConflict: "user_id" });
+    return error ? { ok: false, error: error.message } : { ok: true };
+  },
+  listSavedPlacesCloud: async () => ({
+    rows: state.placesSelectError ? null : state.placesRows,
+  }),
+  upsertSavedPlacesCloud: async (args: { data: { rows: Row[] } }) => {
+    const { error } = await upsertPlacesMock(args.data.rows);
+    return error ? { ok: false, error: error.message } : { ok: true };
   },
 }));
 

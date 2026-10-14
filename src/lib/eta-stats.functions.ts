@@ -4,7 +4,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin as supabase } from "@/integrations/supabase/client.server";
 import type { SegmentStatMap, DwellStatMap } from "./eta-v2";
 import { cyHourDow } from "@aloya/core/cy-time";
 

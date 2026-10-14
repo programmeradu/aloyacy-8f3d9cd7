@@ -1,36 +1,18 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import { callServerFn } from "./server-fn";
-import { makeSupabaseMock, type TableResult } from "./supabase-mock";
 
-const authState: { claims: unknown; error: unknown } = { claims: null, error: null };
-const dbState: { tables: Record<string, TableResult> } = { tables: {} };
-const updateUserById = vi.fn();
+const authState: { claims: unknown } = { claims: null };
+const getUserByEmail = vi.fn();
 
-vi.mock("@supabase/supabase-js", () => ({
-  createClient: vi.fn(() => {
-    const { client } = makeSupabaseMock(dbState.tables);
-    return {
-      ...client,
-      auth: {
-        getClaims: vi.fn(async () =>
-          authState.error
-            ? { data: null, error: authState.error }
-            : { data: { claims: authState.claims }, error: null },
-        ),
-      },
-    };
-  }),
+// The middleware verifies the Aloya session token; the test stands in for it.
+vi.mock("@/lib/auth/session.server", () => ({
+  claimsFromRequest: vi.fn(async (req: Request | undefined) =>
+    req?.headers?.get?.("authorization") ? authState.claims : null,
+  ),
+  getUserByEmail: (...args: unknown[]) => getUserByEmail(...args),
 }));
 
-vi.mock("@/integrations/supabase/client.server", () => {
-  const { client } = makeSupabaseMock(dbState.tables);
-  return {
-    supabaseAdmin: {
-      ...client,
-      auth: { admin: { updateUserById: (...args: unknown[]) => updateUserById(...args) } },
-    },
-  };
-});
+vi.mock("@/lib/db", () => ({ createUserScopedClient: vi.fn(() => ({})) }));
 
 const sendAuthOtpEmail = vi.fn();
 vi.mock("@/lib/auth-email.server", () => ({
@@ -92,12 +74,10 @@ describe("requestEmailOtp", () => {
 
 describe("linkEmailAndRequestOtp", () => {
   beforeEach(() => {
-    vi.stubEnv("CUSTOM_SUPABASE_URL", "https://project.supabase.co");
-    vi.stubEnv("CUSTOM_SUPABASE_ANON_KEY", "anon-key");
     vi.setSystemTime(new Date("2024-01-02T00:00:00Z"));
     authState.claims = { sub: "user-1", is_anonymous: true };
-    authState.error = null;
-    updateUserById.mockReset();
+    getUserByEmail.mockReset();
+    getUserByEmail.mockResolvedValue(null);
     sendAuthOtpEmail.mockReset();
   });
 
@@ -114,47 +94,34 @@ describe("linkEmailAndRequestOtp", () => {
   });
 
   it("throttles repeated requests for the same email", async () => {
-    updateUserById.mockResolvedValue({ error: null });
     sendAuthOtpEmail.mockResolvedValue({ ok: true });
     await callServerFn(linkEmailAndRequestOtp, { email: "link1@example.com" }, auth());
     const out = await callServerFn(linkEmailAndRequestOtp, { email: "link1@example.com" }, auth());
     expect(out).toEqual(expect.objectContaining({ ok: true, throttled: true }));
   });
 
-  it("reports email_taken when the email is already registered", async () => {
-    updateUserById.mockResolvedValue({
-      error: { message: "Email address already registered", code: "email_exists", status: 422 },
-    });
+  it("reports email_taken when another account owns the email", async () => {
+    getUserByEmail.mockResolvedValue({ id: "someone-else", email: "link2@example.com" });
     const out = await callServerFn(linkEmailAndRequestOtp, { email: "link2@example.com" }, auth());
     expect(out).toEqual({ ok: false, code: "email_taken", error: "Email is already in use." });
+    expect(sendAuthOtpEmail).not.toHaveBeenCalled();
   });
 
-  it("returns update_failed for other update errors", async () => {
-    updateUserById.mockResolvedValue({ error: { message: "db down" } });
-    const out = await callServerFn(linkEmailAndRequestOtp, { email: "link3@example.com" }, auth());
-    expect(out).toEqual({ ok: false, code: "update_failed", error: "db down" });
-  });
-
-  it("returns otp_failed when sending the code fails after linking", async () => {
-    updateUserById.mockResolvedValue({ error: null });
+  it("returns otp_failed when sending the code fails", async () => {
     sendAuthOtpEmail.mockResolvedValue({ ok: false, error: "smtp down" });
     const out = await callServerFn(linkEmailAndRequestOtp, { email: "link4@example.com" }, auth());
     expect(out).toEqual({ ok: false, code: "otp_failed", error: "smtp down" });
   });
 
-  it("links the email and sends the code on the happy path", async () => {
-    updateUserById.mockResolvedValue({ error: null });
+  it("sends a link code bound to the anonymous user on the happy path", async () => {
     sendAuthOtpEmail.mockResolvedValue({ ok: true });
     const out = await callServerFn(linkEmailAndRequestOtp, { email: "link5@example.com" }, auth());
     expect(out).toEqual({ ok: true, throttled: false });
-    expect(updateUserById).toHaveBeenCalledWith("user-1", {
-      email: "link5@example.com",
-      email_confirm: true,
-    });
+    expect(sendAuthOtpEmail).toHaveBeenCalledWith("link5@example.com", { linkUserId: "user-1" });
   });
 
   it("returns send_failed when an unexpected error is thrown", async () => {
-    updateUserById.mockImplementation(() => {
+    getUserByEmail.mockImplementation(() => {
       throw new Error("kaboom");
     });
     const out = await callServerFn(linkEmailAndRequestOtp, { email: "link6@example.com" }, auth());

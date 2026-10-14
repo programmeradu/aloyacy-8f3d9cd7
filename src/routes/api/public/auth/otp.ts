@@ -1,10 +1,8 @@
 // Public endpoint the mobile app uses to request a sign-in code.
 //
-// The device cannot call supabase.auth.signInWithOtp directly: this project's
-// GoTrue send-email hook rejects the send ("Hook requires authorization
-// token"), so no code ever leaves. Here we mint and deliver the code with the
-// same server-side path the web app uses, then the device verifies it with
-// supabase.auth.verifyOtp({ type: "email" }).
+// Mints the code in D1 and delivers it with the same server-side path the
+// web app uses; the device then verifies it with POST /api/public/auth/verify
+// (response shape of this endpoint is unchanged).
 
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";

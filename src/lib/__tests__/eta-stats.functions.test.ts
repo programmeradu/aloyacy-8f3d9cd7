@@ -7,12 +7,12 @@ const state: { segmentSpeeds: TableResult; dwellObservations: TableResult } = {
   dwellObservations: { data: [], error: null },
 };
 
-vi.mock("@/integrations/supabase/client", () => {
+vi.mock("@/integrations/supabase/client.server", () => {
   const { client } = makeSupabaseMock({
     segment_speeds: () => state.segmentSpeeds,
     dwell_observations: () => state.dwellObservations,
   });
-  return { supabase: client };
+  return { supabaseAdmin: client };
 });
 
 const { getEtaStatsForRoutes } = await import("../eta-stats.functions");

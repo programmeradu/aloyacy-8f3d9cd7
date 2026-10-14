@@ -5,7 +5,6 @@
 // is scoped to the token's user — there is no unauthenticated path here.
 
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { SupabaseClient } from "@/lib/db/compat";
@@ -32,25 +31,12 @@ function json(body: unknown, status = 200) {
   });
 }
 
+// Bearer = Aloya session token (from POST /api/public/auth/session or
+// /api/public/auth/verify). Same header shape mobile already sends.
 async function resolveUserId(request: Request): Promise<string | null> {
-  const auth = request.headers.get("authorization");
-  if (!auth?.toLowerCase().startsWith("bearer ")) return null;
-  const token = auth.slice(7).trim();
-  if (!token) return null;
-  try {
-    const supa = createClient(
-      (process.env.CUSTOM_SUPABASE_URL || process.env.SUPABASE_URL)!,
-      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY ||
-        process.env.CUSTOM_SUPABASE_ANON_KEY ||
-        process.env.SUPABASE_PUBLISHABLE_KEY)!,
-      { auth: { persistSession: false, autoRefreshToken: false } },
-    );
-    const { data, error } = await supa.auth.getUser(token);
-    if (error || !data.user) return null;
-    return data.user.id;
-  } catch {
-    return null;
-  }
+  const { claimsFromRequest } = await import("@/lib/auth/session.server");
+  const claims = await claimsFromRequest(request);
+  return claims?.sub ?? null;
 }
 
 const point = z.object({

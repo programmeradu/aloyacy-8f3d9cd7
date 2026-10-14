@@ -8,7 +8,6 @@
 // passenger sees a smoother bus and better ETAs.
 
 import gr from "gtfs-realtime-bindings";
-import { supabase } from "@/integrations/supabase/client";
 import { fetchFeedOverSocket } from "@/lib/gtfs-socket.server";
 import { getRoute } from "@/lib/gtfs";
 import { cached, withTimeout } from "@/lib/server-cache";
@@ -223,8 +222,8 @@ type RiderFixRow = {
 async function fetchRiderFixes(): Promise<{ vehicles: LiveVehicle[]; reports: SightingRow[] }> {
   const now = Date.now();
   const cutoff = new Date(now - SOURCE_WINDOW_SEC * 1000).toISOString();
-  const run = (cols: string) =>
-    supabase
+  const run = async (cols: string) =>
+    (await import("@/integrations/supabase/client.server")).supabaseAdmin
       .from("rider_vehicle_fixes")
       .select(cols)
       .gte("reported_at", cutoff)
@@ -275,6 +274,7 @@ async function fetchRiderFixes(): Promise<{ vehicles: LiveVehicle[]; reports: Si
 async function fetchSightingRows(): Promise<SightingRow[]> {
   const now = Date.now();
   const cutoff = new Date(now - SOURCE_WINDOW_SEC * 1000).toISOString();
+  const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
   const { data: recent, error } = await supabase
     .from("bus_sightings")
     .select("trip_id, device_id, reported_at")

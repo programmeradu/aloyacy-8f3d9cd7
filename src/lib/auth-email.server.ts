@@ -5,13 +5,13 @@
 // `unexpected_failure: Hook requires authorization token`, which surfaced in
 // the app as "Error updating user" / "Error sending code".
 //
-// Instead we mint the one-time code ourselves with the admin API
-// (generate_link returns `email_otp` without sending anything), render the
+// Instead we mint the one-time code ourselves (src/lib/auth/session.server.ts,
+// stored hashed in D1), render the
 // same branded React Email template the auth webhook would have rendered,
 // and hand it straight to the Lovable email sender — no queue hop, so the
 // code lands in the inbox immediately instead of on the next cron tick.
 //
-// verifyOtp({ type: "email" }) on the client accepts these codes unchanged.
+// The code is checked by POST /api/public/auth/verify.
 
 import * as React from "react";
 import { render } from "@react-email/components";
@@ -137,47 +137,23 @@ async function sendViaCloudflareEmail(
  * Generate a sign-in code for `email` (creating the user if needed) and
  * email it. Returns a plain result object — never throws.
  */
-export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
+export async function sendAuthOtpEmail(
+  rawEmail: string,
+  opts: { linkUserId?: string | null } = {},
+): Promise<SendResult> {
   const email = rawEmail.trim().toLowerCase();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { issueOtp } = await import("@/lib/auth/session.server");
 
-  let isNewUser = false;
-  let link = await supabaseAdmin.auth.admin.generateLink({
-    type: "magiclink",
-    email,
-  });
-
-  if (link.error) {
-    const msg = link.error.message.toLowerCase();
-    const missing =
-      msg.includes("not found") || msg.includes("signups not allowed") || msg.includes("no user");
-    if (!missing) {
-      return { ok: false, error: link.error.message, code: "generate_failed" };
-    }
-    // First-time rider: create the account, then mint the code.
-    const created = await supabaseAdmin.auth.admin.createUser({
-      email,
-      email_confirm: false,
-    });
-    if (created.error) {
-      return { ok: false, error: created.error.message, code: "create_failed" };
-    }
-    isNewUser = true;
-    link = await supabaseAdmin.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-    });
-    if (link.error) {
-      return { ok: false, error: link.error.message, code: "generate_failed" };
-    }
+  let token: string;
+  let isNewUser: boolean;
+  try {
+    const issued = await issueOtp(email, { linkUserId: opts.linkUserId });
+    token = issued.code;
+    isNewUser = issued.isNewUser;
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Could not generate a sign-in code.", code: "generate_failed" };
   }
-
-  const props = link.data.properties as { email_otp?: string; action_link?: string } | null;
-  const token = props?.email_otp;
-  if (!token) {
-    return { ok: false, error: "Could not generate a sign-in code.", code: "no_token" };
-  }
-
   const Template = (isNewUser ? SignupEmail : MagicLinkEmail) as unknown as React.ComponentType<
     Record<string, unknown>
   >;
@@ -187,7 +163,7 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
     recipient: email,
     email,
     token,
-    confirmationUrl: props?.action_link,
+    confirmationUrl: undefined,
   } as Record<string, unknown>);
 
   const html = await render(element);
@@ -328,24 +304,6 @@ export async function sendAuthOtpEmail(rawEmail: string): Promise<SendResult> {
       log.info("email delivered via Lovable platform", { email: redact(email) });
     } catch (err) {
       attempts.push(`lovable: ${err instanceof Error ? err.message.slice(0, 200) : "failed"}`);
-    }
-  }
-
-  // 4) Supabase GoTrue fallback (last resort if all custom providers fail)
-  if (!delivered) {
-    try {
-      const res = await supabaseAdmin.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: true },
-      });
-      if (!res.error) {
-        delivered = true;
-        log.info("email delivered via Supabase GoTrue fallback", { email: redact(email) });
-      } else {
-        attempts.push(`supabase: ${res.error.message}`);
-      }
-    } catch (err) {
-      attempts.push(`supabase: ${err instanceof Error ? err.message : "failed"}`);
     }
   }
 

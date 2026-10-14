@@ -30,15 +30,13 @@ const state: {
   },
 };
 
-vi.mock("@supabase/supabase-js", () => ({
-  createClient: vi.fn(() => ({
-    auth: {
-      getClaims: vi.fn(async () =>
-        state.claims
-          ? { data: { claims: state.claims }, error: null }
-          : { data: null, error: { message: "bad token" } },
-      ),
-    },
+// Session verification and the user-scoped D1 client stand in for the old
+// Supabase getClaims + RLS client.
+vi.mock("@/lib/auth/session.server", () => ({
+  claimsFromRequest: vi.fn(async () => state.claims),
+}));
+vi.mock("@/lib/db", () => ({
+  createUserScopedClient: vi.fn(() => ({
     from: makeSupabaseMock({ arrival_promises: () => state.arrival_promises }).client.from,
   })),
 }));
