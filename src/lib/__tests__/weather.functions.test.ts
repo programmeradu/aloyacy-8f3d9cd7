@@ -1,148 +1,57 @@
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import { callServerFn } from "./server-fn";
 
 const fetchMock = vi.fn();
 vi.stubGlobal("fetch", fetchMock);
 
 let mod: typeof import("../weather.functions");
-const originalLovable = process.env.LOVABLE_API_KEY;
-const originalGoogle = process.env.GOOGLE_MAPS_API_KEY;
-const originalServer = process.env.GOOGLE_MAPS_SERVER_KEY;
-const originalBackup = process.env.GOOGLE_MAPS_BACKUP_KEY;
 
 beforeEach(async () => {
   vi.resetModules();
   fetchMock.mockReset();
-  process.env.LOVABLE_API_KEY = "lovable-key";
-  process.env.GOOGLE_MAPS_API_KEY = "google-key";
-  delete process.env.GOOGLE_MAPS_SERVER_KEY;
-  delete process.env.GOOGLE_MAPS_BACKUP_KEY;
   mod = await import("../weather.functions");
-});
-
-afterEach(() => {
-  process.env.LOVABLE_API_KEY = originalLovable;
-  process.env.GOOGLE_MAPS_API_KEY = originalGoogle;
-  if (originalServer === undefined) delete process.env.GOOGLE_MAPS_SERVER_KEY;
-  else process.env.GOOGLE_MAPS_SERVER_KEY = originalServer;
-  if (originalBackup === undefined) delete process.env.GOOGLE_MAPS_BACKUP_KEY;
-  else process.env.GOOGLE_MAPS_BACKUP_KEY = originalBackup;
-});
+}, 30_000);
 
 const COORDS = { lat: 35.17, lng: 33.36 };
+const om = (current: Record<string, number>) => ({ ok: true, json: async () => ({ current }) });
 
-describe("getCurrentWeather", () => {
-  it("returns null when required API keys are missing", async () => {
-    delete process.env.GOOGLE_MAPS_API_KEY;
-    vi.resetModules();
-    mod = await import("../weather.functions");
+describe("getCurrentWeather (Open-Meteo)", () => {
+  it("calls Open-Meteo with the rider's coordinates, no key", async () => {
+    fetchMock.mockResolvedValue(om({ temperature_2m: 24.6, apparent_temperature: 25.2, weather_code: 0, wind_speed_10m: 8, is_day: 1 }));
     const out = await callServerFn(mod.getCurrentWeather, COORDS);
-    expect(out).toBeNull();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(String(fetchMock.mock.calls[0][0])).toContain("api.open-meteo.com/v1/forecast?latitude=35.1700&longitude=33.3600");
+    expect(out).toEqual({ tempC: 25, feelsLikeC: 25, condition: "Clear", iconKey: "sun", isDaytime: true });
   });
 
   it("returns null on an upstream error status", async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 503 });
-    const out = await callServerFn(mod.getCurrentWeather, COORDS);
-    expect(out).toBeNull();
+    expect(await callServerFn(mod.getCurrentWeather, COORDS)).toBeNull();
   });
 
   it("returns null when fetch throws", async () => {
     fetchMock.mockRejectedValue(new Error("network down"));
-    const out = await callServerFn(mod.getCurrentWeather, COORDS);
-    expect(out).toBeNull();
+    expect(await callServerFn(mod.getCurrentWeather, COORDS)).toBeNull();
   });
 
-  it("maps a thunderstorm condition during the day", async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        temperature: { degrees: 28.4 },
-        feelsLikeTemperature: { degrees: 30.1 },
-        weatherCondition: { type: "THUNDERSTORM", description: { text: "Thunderstorms" } },
-        isDaytime: true,
-      }),
-    });
-    const out = await callServerFn(mod.getCurrentWeather, COORDS);
-    expect(out?.iconKey).toBe("storm");
-    expect(out?.tempC).toBe(28);
-    expect(out?.feelsLikeC).toBe(30);
-    expect(out?.condition).toBe("Thunderstorms");
+  it("maps thunderstorm, rain, wind and cloud codes", async () => {
+    fetchMock.mockResolvedValueOnce(om({ temperature_2m: 20, weather_code: 95, wind_speed_10m: 10, is_day: 1 }));
+    expect((await callServerFn(mod.getCurrentWeather, COORDS))?.iconKey).toBe("storm");
+    fetchMock.mockResolvedValueOnce(om({ temperature_2m: 20, weather_code: 61, wind_speed_10m: 10, is_day: 1 }));
+    expect((await callServerFn(mod.getCurrentWeather, COORDS))?.iconKey).toBe("rain");
+    fetchMock.mockResolvedValueOnce(om({ temperature_2m: 20, weather_code: 0, wind_speed_10m: 55, is_day: 1 }));
+    expect((await callServerFn(mod.getCurrentWeather, COORDS))?.iconKey).toBe("wind");
+    fetchMock.mockResolvedValueOnce(om({ temperature_2m: 20, weather_code: 3, wind_speed_10m: 5, is_day: 1 }));
+    expect((await callServerFn(mod.getCurrentWeather, COORDS))?.iconKey).toBe("cloud");
   });
 
-  it("maps rain, wind, and cloud conditions", async () => {
-    for (const [type, expected] of [
-      ["LIGHT_RAIN_SHOWERS", "rain"],
-      ["WINDY", "wind"],
-      ["MOSTLY_CLOUDY", "cloud"],
-    ] as const) {
-      fetchMock.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          temperature: { degrees: 20 },
-          feelsLikeTemperature: { degrees: 20 },
-          weatherCondition: { type },
-          isDaytime: true,
-        }),
-      });
-      const out = await callServerFn(mod.getCurrentWeather, COORDS);
-      expect(out?.iconKey).toBe(expected);
-    }
-  });
-
-  it("maps clear conditions to a moon icon at night", async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        temperature: { degrees: 18 },
-        feelsLikeTemperature: { degrees: 17 },
-        weatherCondition: { type: "CLEAR" },
-        isDaytime: false,
-      }),
-    });
+  it("shows a moon for clear nights", async () => {
+    fetchMock.mockResolvedValue(om({ temperature_2m: 18, weather_code: 0, wind_speed_10m: 4, is_day: 0 }));
     const out = await callServerFn(mod.getCurrentWeather, COORDS);
     expect(out?.iconKey).toBe("moon");
     expect(out?.isDaytime).toBe(false);
   });
 
-  it("falls back to the mapped label when no description text is given", async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        temperature: { degrees: 18 },
-        feelsLikeTemperature: { degrees: 17 },
-        weatherCondition: { type: "UNKNOWN_CODE" },
-        isDaytime: true,
-      }),
-    });
-    const out = await callServerFn(mod.getCurrentWeather, COORDS);
-    expect(out?.condition).toBe("Clear");
-  });
-
   it("rejects out-of-range coordinates", async () => {
-    await expect(callServerFn(mod.getCurrentWeather, { lat: 999, lng: 0 })).rejects.toThrow();
-  });
-
-  it("prioritizes direct Google Weather API when GOOGLE_MAPS_SERVER_KEY is set", async () => {
-    delete process.env.LOVABLE_API_KEY;
-    process.env.GOOGLE_MAPS_SERVER_KEY = "direct-server-key";
-    vi.resetModules();
-    mod = await import("../weather.functions");
-
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        temperature: { degrees: 31 },
-        weatherCondition: { type: "CLEAR", description: { text: "Sunny" } },
-      }),
-    });
-
-    const out = await callServerFn(mod.getCurrentWeather, COORDS);
-    expect(out?.tempC).toBe(31);
-    expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining("https://weather.googleapis.com/v1/currentConditions:lookup"),
-      expect.anything(),
-    );
+    await expect(callServerFn(mod.getCurrentWeather, { lat: 200, lng: 0 })).rejects.toThrow();
   });
 });
-

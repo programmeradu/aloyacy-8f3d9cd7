@@ -1,9 +1,11 @@
-/// <reference types="google.maps" />
 import { useEffect, useRef } from "react";
 import { distanceM as haversineM } from "@aloya/core/geo";
 import { vehicleOverlayKey } from "@aloya/core/path-geometry";
 import type { LatLng, MapVehicle } from "@aloya/core/map-vehicles";
+import type mapboxgl from "mapbox-gl";
 import { AnimatedBus } from "@/components/map/AnimatedBus";
+import { STOPS_SOURCE, type StaticLayerState } from "@/components/map/useStaticLayer";
+import type { MapboxApi } from "@/lib/useMapbox";
 
 /** A bus within this distance of a stop marker pulses that marker. */
 const STOP_PULSE_RADIUS_M = 30;
@@ -13,10 +15,10 @@ const STALE_PING_SEC = 90;
 const FLEET_LIMIT = 40;
 
 type Options = {
-  api: typeof google | null | undefined;
-  mapRef: React.RefObject<google.maps.Map | null>;
+  api: MapboxApi | null | undefined;
+  mapRef: React.RefObject<mapboxgl.Map | null>;
   /** Stop markers currently on the map, pulsed when a bus is boarding. */
-  markersRef: React.RefObject<{ markers: google.maps.Marker[] }>;
+  markersRef: React.RefObject<StaticLayerState>;
   vehicles: MapVehicle[] | undefined;
   tripPaths: Map<string, LatLng[]>;
   focused: boolean;
@@ -122,7 +124,7 @@ export function useLiveBusLayer({
           return;
         }
         busLayerRef.current.forEach((b) => b.tick(t));
-        pulseStopsUnderBoardingBuses(busLayerRef.current, markersRef.current?.markers ?? []);
+        pulseStopsUnderBoardingBuses(busLayerRef.current, markersRef.current);
         rafRef.current = requestAnimationFrame(tick);
       };
       rafRef.current = requestAnimationFrame(tick);
@@ -148,27 +150,27 @@ export function useLiveBusLayer({
  */
 function pulseStopsUnderBoardingBuses(
   buses: Map<string, AnimatedBus>,
-  stopMarkers: google.maps.Marker[],
+  layer: StaticLayerState | null | undefined,
 ) {
-  if (!stopMarkers.length) return;
-  const active = new Set<google.maps.Marker>();
+  const map = layer?.map;
+  const stops = layer?.stops ?? [];
+  if (!map || !stops.length || !map.getSource(STOPS_SOURCE)) return;
+  const active = new Set<number>();
   buses.forEach((b) => {
     if (!b.isBoarding()) return;
     const pos = b.getPos();
-    for (const mk of stopMarkers) {
-      const p = mk.getPosition();
-      if (!p) continue;
-      if (haversineM(pos, { lat: p.lat(), lng: p.lng() }) < STOP_PULSE_RADIUS_M) active.add(mk);
+    for (const st of stops) {
+      if (haversineM(pos, st) < STOP_PULSE_RADIUS_M) active.add(st.id);
     }
   });
-  for (const mk of stopMarkers) {
-    const on = active.has(mk);
-    const flagged = mk as unknown as { __pulse?: boolean };
-    if (on === !!flagged.__pulse) continue;
-    flagged.__pulse = on;
-    const icon = mk.getIcon() as google.maps.Symbol | undefined;
-    if (icon && typeof icon === "object" && "scale" in icon) {
-      mk.setIcon({ ...icon, scale: on ? (icon.scale ?? 6) * 1.6 : (icon.scale ?? 6) / 1.6 });
-    }
+  const prev = pulsed.get(map) ?? new Set<number>();
+  for (const id of prev) {
+    if (!active.has(id)) map.setFeatureState({ source: STOPS_SOURCE, id }, { pulse: false });
   }
+  for (const id of active) {
+    if (!prev.has(id)) map.setFeatureState({ source: STOPS_SOURCE, id }, { pulse: true });
+  }
+  pulsed.set(map, active);
 }
+
+const pulsed = new WeakMap<mapboxgl.Map, Set<number>>();

@@ -1,19 +1,35 @@
-/// <reference types="google.maps" />
 import { useEffect, useRef } from "react";
-import * as markerClustererPkg from "@googlemaps/markerclusterer";
-import type { MarkerClusterer as MarkerClustererType } from "@googlemaps/markerclusterer";
-import { clusterIcon, markerIcon } from "@/components/map/mapSymbols";
+import type mapboxgl from "mapbox-gl";
+import { decodePolyline } from "@aloya/core/shapes";
+import { markerStyle } from "@/components/map/mapSymbols";
+import { whenStyleReady } from "@/components/map/mapReady";
 import type { MapMarker } from "@/components/map/types";
-
-const { MarkerClusterer, SuperClusterAlgorithm } = markerClustererPkg;
+import type { MapboxApi } from "@/lib/useMapbox";
 
 /** Below this many stops, clustering hides more than it helps. */
 const CLUSTER_THRESHOLD = 12;
-const FIT_PADDING = { top: 40, bottom: 40, left: 40, right: 40 };
+const FIT_PADDING = 40;
+
+export const STOPS_SOURCE = "aloya-stops";
+const ROUTE_SOURCE = "aloya-route";
+const ANCHOR_SOURCE = "aloya-anchors";
+const LAYERS = [
+  "aloya-route-line",
+  "aloya-clusters",
+  "aloya-cluster-count",
+  "aloya-stop-dots",
+  "aloya-anchor-dots",
+];
+
+export type StaticLayerState = {
+  map: mapboxgl.Map | null;
+  /** Rendered stop markers (feature id = index), pulsed by the bus layer. */
+  stops: { id: number; lat: number; lng: number }[];
+};
 
 type Options = {
-  api: typeof google | null | undefined;
-  mapRef: React.RefObject<google.maps.Map | null>;
+  api: MapboxApi | null | undefined;
+  mapRef: React.RefObject<mapboxgl.Map | null>;
   polyline?: string;
   markers?: MapMarker[];
   fitToContent?: boolean;
@@ -21,9 +37,15 @@ type Options = {
   suppressClustering: boolean;
 };
 
+function clear(map: mapboxgl.Map) {
+  for (const id of LAYERS) if (map.getLayer(id)) map.removeLayer(id);
+  for (const id of [ROUTE_SOURCE, STOPS_SOURCE, ANCHOR_SOURCE]) if (map.getSource(id)) map.removeSource(id);
+}
+
 /**
- * Draws the route polyline and the stop/anchor markers, and fits the viewport
- * to them. Returns the layer ref so the bus overlay can pulse stop markers.
+ * Draws the route polyline and the stop/anchor markers as GeoJSON layers and
+ * fits the viewport to them. Returns the layer ref so the bus overlay can
+ * pulse stop markers.
  */
 export function useStaticLayer({
   api,
@@ -33,93 +55,141 @@ export function useStaticLayer({
   fitToContent,
   suppressClustering,
 }: Options) {
-  const layerRef = useRef<{
-    polyline?: google.maps.Polyline;
-    markers: google.maps.Marker[];
-    clusterer?: MarkerClustererType;
-  }>({ markers: [] });
+  const layerRef = useRef<StaticLayerState>({ map: null, stops: [] });
 
   useEffect(() => {
     const m = mapRef.current;
     if (!api || !m) return;
-    const layer = layerRef.current;
 
-    layer.polyline?.setMap(null);
-    // Tear the clusterer down first so its managed markers detach cleanly.
-    layer.clusterer?.clearMarkers();
-    layer.clusterer?.setMap(null);
-    layer.clusterer = undefined;
-    layer.markers.forEach((mk) => mk.setMap(null));
-    layer.markers = [];
+    return whenStyleReady(m, () => {
+      clear(m);
+      layerRef.current = { map: m, stops: [] };
+      const bounds = new api.LngLatBounds();
+      let hasBounds = false;
 
-    const bounds = new api.maps.LatLngBounds();
-    let hasBounds = false;
+      if (polyline) {
+        const path = decodePolyline(polyline);
+        if (path.length) {
+          m.addSource(ROUTE_SOURCE, {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              properties: {},
+              geometry: { type: "LineString", coordinates: path.map((p) => [p.lng, p.lat]) },
+            },
+          });
+          m.addLayer({
+            id: "aloya-route-line",
+            type: "line",
+            source: ROUTE_SOURCE,
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: { "line-color": "#1c5566", "line-opacity": 0.95, "line-width": 4 },
+          });
+          path.forEach((p) => {
+            bounds.extend([p.lng, p.lat]);
+            hasBounds = true;
+          });
+        }
+      }
 
-    if (polyline) {
-      const path = api.maps.geometry.encoding.decodePath(polyline);
-      layer.polyline = new api.maps.Polyline({
-        path,
-        strokeColor: "#1c5566",
-        strokeOpacity: 0.95,
-        strokeWeight: 4,
-        map: m,
-      });
-      path.forEach((p) => {
-        bounds.extend(p);
+      // Anonymous "stop" pins are clusterable; origin/destination/pin markers
+      // are anchors the rider must always be able to see.
+      const stopFeatures: GeoJSON.Feature<GeoJSON.Point>[] = [];
+      const anchorFeatures: GeoJSON.Feature<GeoJSON.Point>[] = [];
+      (markers ?? []).forEach((mk, i) => {
+        const isStop = !mk.kind || mk.kind === "stop";
+        const { color, radius } = markerStyle(mk);
+        const f: GeoJSON.Feature<GeoJSON.Point> = {
+          type: "Feature",
+          id: i,
+          properties: { color, radius, label: mk.label ?? "" },
+          geometry: { type: "Point", coordinates: [mk.lng, mk.lat] },
+        };
+        if (isStop) {
+          stopFeatures.push(f);
+          layerRef.current.stops.push({ id: i, lat: mk.lat, lng: mk.lng });
+        } else anchorFeatures.push(f);
+        bounds.extend([mk.lng, mk.lat]);
         hasBounds = true;
       });
-    }
 
-    // Anonymous "stop" pins are clusterable; origin/destination/pin markers are
-    // anchors the rider must always be able to see.
-    const clusterable: google.maps.Marker[] = [];
+      const cluster = stopFeatures.length >= CLUSTER_THRESHOLD && !suppressClustering;
+      if (stopFeatures.length) {
+        m.addSource(STOPS_SOURCE, {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: stopFeatures },
+          cluster,
+          clusterRadius: 40,
+          clusterMaxZoom: 14,
+        });
+        if (cluster) {
+          m.addLayer({
+            id: "aloya-clusters",
+            type: "circle",
+            source: STOPS_SOURCE,
+            filter: ["has", "point_count"],
+            paint: {
+              "circle-color": "#1c5566",
+              "circle-opacity": 0.92,
+              "circle-stroke-color": "#f6f1e4",
+              "circle-stroke-width": 3,
+              "circle-radius": ["interpolate", ["linear"], ["get", "point_count"], 2, 14, 20, 20, 200, 26],
+            },
+          });
+          m.addLayer({
+            id: "aloya-cluster-count",
+            type: "symbol",
+            source: STOPS_SOURCE,
+            filter: ["has", "point_count"],
+            layout: {
+              "text-field": ["get", "point_count_abbreviated"],
+              "text-size": 12,
+              "text-font": ["DIN Pro Medium", "Arial Unicode MS Regular"],
+            },
+            paint: { "text-color": "#f6f1e4" },
+          });
+        }
+        m.addLayer({
+          id: "aloya-stop-dots",
+          type: "circle",
+          source: STOPS_SOURCE,
+          filter: ["!", ["has", "point_count"]],
+          paint: {
+            "circle-color": ["get", "color"],
+            "circle-radius": [
+              "case",
+              ["boolean", ["feature-state", "pulse"], false],
+              ["*", ["get", "radius"], 1.6],
+              ["get", "radius"],
+            ],
+            "circle-stroke-color": "#ffffff",
+            "circle-stroke-width": 3,
+          },
+        });
+      }
+      if (anchorFeatures.length) {
+        m.addSource(ANCHOR_SOURCE, {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: anchorFeatures },
+        });
+        m.addLayer({
+          id: "aloya-anchor-dots",
+          type: "circle",
+          source: ANCHOR_SOURCE,
+          paint: {
+            "circle-color": ["get", "color"],
+            "circle-radius": ["get", "radius"],
+            "circle-stroke-color": "#ffffff",
+            "circle-stroke-width": 3,
+          },
+        });
+      }
 
-    (markers ?? []).forEach((mk) => {
-      const isStop = !mk.kind || mk.kind === "stop";
-      const marker = new api.maps.Marker({
-        position: { lat: mk.lat, lng: mk.lng },
-        // Clustered markers get attached by the clusterer; anchors render directly.
-        map: isStop ? undefined : m,
-        title: mk.label,
-        icon: markerIcon(mk),
-        zIndex: mk.kind === "origin" || mk.kind === "destination" ? 100 : 50,
-      });
-      layer.markers.push(marker);
-      if (isStop) clusterable.push(marker);
-      bounds.extend(marker.getPosition()!);
-      hasBounds = true;
+      const shouldFit = fitToContent ?? hasBounds;
+      if (shouldFit && hasBounds && !bounds.isEmpty()) {
+        m.fitBounds(bounds, { padding: FIT_PADDING, maxZoom: 16, duration: 0 });
+      }
     });
-
-    // Clustering is for dense fleet/overview maps. On a single-route view or an
-    // inline trip preview the rider expects every stop on the line — folding
-    // them into anonymous "5" / "7" bubbles is confusing.
-    if (clusterable.length >= CLUSTER_THRESHOLD && !suppressClustering) {
-      layer.clusterer = new MarkerClusterer({
-        map: m,
-        markers: clusterable,
-        algorithm: new SuperClusterAlgorithm({ radius: 80, maxZoom: 15 }),
-        renderer: {
-          render: ({ count, position }) =>
-            new api.maps.Marker({
-              position,
-              icon: clusterIcon(count),
-              label: {
-                text: String(count),
-                color: "#f6f1e4",
-                fontFamily: "Geist, system-ui, sans-serif",
-                fontSize: "12px",
-                fontWeight: "600",
-              },
-              zIndex: 60,
-            }),
-        },
-      });
-    } else {
-      clusterable.forEach((mk) => mk.setMap(m));
-    }
-
-    const shouldFit = fitToContent ?? hasBounds;
-    if (shouldFit && hasBounds) m.fitBounds(bounds, FIT_PADDING);
     // markers is compared by value: parents rebuild the array every render.
   }, [api, polyline, JSON.stringify(markers), fitToContent, suppressClustering]); // eslint-disable-line react-hooks/exhaustive-deps
 

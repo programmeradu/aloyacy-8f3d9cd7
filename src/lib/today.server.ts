@@ -21,64 +21,17 @@ import {
   type VenuePattern,
   type Weather,
 } from "@aloya/core/today-brief";
+import { fetchOpenMeteoNow } from "@/lib/open-meteo.server";
 import facts from "@/data/cyprus-facts.json";
 import nameDays from "@/data/cyprus-name-days.json";
 import events from "@/data/cyprus-events.json";
 import greekWords from "@/data/cyprus-greek-words.json";
 
 async function fetchCyprusWeather(lat: number, lng: number): Promise<Weather> {
-  try {
-    const primaryKey = process.env.GOOGLE_MAPS_SERVER_KEY || process.env.GOOGLE_MAPS_API_KEY;
-    const backupKey = process.env.GOOGLE_MAPS_BACKUP_KEY;
-    const lk = process.env.LOVABLE_API_KEY;
-
-    const directKeys = [primaryKey, backupKey].filter((k): k is string => Boolean(k && k.trim()));
-
-    // 1. Direct Google Weather API
-    for (const key of directKeys) {
-      try {
-        const url = `https://weather.googleapis.com/v1/currentConditions:lookup?location.latitude=${lat}&location.longitude=${lng}&unitsSystem=METRIC&languageCode=en&key=${key}`;
-        const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
-        if (res.ok) {
-          const json = (await res.json()) as {
-            temperature?: { degrees?: number };
-            weatherCondition?: { type?: string };
-          };
-          const code = (json.weatherCondition?.type ?? "").toUpperCase();
-          return {
-            tempC: Math.round(json.temperature?.degrees ?? 0),
-            condition: code || "CLEAR",
-            iconKey: weatherIconKey(code),
-          };
-        }
-      } catch {}
-    }
-
-    // 2. Gateway fallback
-    if (lk && primaryKey) {
-      const url = `https://connector-gateway.lovable.dev/google_maps/weather/v1/currentConditions:lookup?location.latitude=${lat}&location.longitude=${lng}&unitsSystem=METRIC&languageCode=en`;
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${lk}`, "X-Connection-Api-Key": primaryKey },
-        signal: AbortSignal.timeout(6000),
-      });
-      if (!res.ok) return null;
-      const json = (await res.json()) as {
-        temperature?: { degrees?: number };
-        weatherCondition?: { type?: string };
-      };
-      const code = (json.weatherCondition?.type ?? "").toUpperCase();
-      return {
-        tempC: Math.round(json.temperature?.degrees ?? 0),
-        condition: code || "CLEAR",
-        iconKey: weatherIconKey(code),
-      };
-    }
-    return null;
-  } catch {
-    return null;
-  }
+  const now = await fetchOpenMeteoNow(lat, lng);
+  if (!now) return null;
+  return { tempC: now.tempC, condition: now.code, iconKey: weatherIconKey(now.code) };
 }
-
 
 /** Reads a fresh pulse_signals payload, or null when missing/stale. */
 async function readSignal<T>(key: string, scope: string): Promise<T | null> {

@@ -1,7 +1,13 @@
-// Core dispatcher and failover logic for Google Maps Platform APIs.
+// Core HTTP client for Mapbox APIs (Geocoding v6, Directions v5).
+// Replaces the Google Maps Platform dispatcher (Oct 2026).
+//
+// Token resolution: MAPBOX_ACCESS_TOKEN (server secret, preferred), then
+// MAPBOX_BACKUP_TOKEN on 401/403/429, then the public VITE_MAPBOX_TOKEN.
 import { createLogger, serializeError } from "@/lib/logger";
 
 const log = createLogger("maps");
+
+export const MAPBOX_API = "https://api.mapbox.com";
 
 let lastMapsError: { status: number; text: string } | null = null;
 export function getLastMapsError() {
@@ -11,120 +17,53 @@ export function setLastMapsError(err: { status: number; text: string } | null) {
   lastMapsError = err;
 }
 
-
-export function authHeaders(extra: Record<string, string> = {}) {
-  const lk = process.env.LOVABLE_API_KEY;
-  const serverKey = process.env.GOOGLE_MAPS_SERVER_KEY;
-  const clientKey = process.env.GOOGLE_MAPS_API_KEY;
-  const effectiveKey = serverKey || clientKey;
-
-  if (!lk && !effectiveKey) {
-    throw new Error("LOVABLE_API_KEY or GOOGLE_MAPS_API_KEY missing");
-  }
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...extra,
-  };
-
-  if (effectiveKey) {
-    headers["X-Connection-Api-Key"] = effectiveKey;
-  }
-
-  if (lk) {
-    headers.Authorization = `Bearer ${lk}`;
-    headers["X-Connection-Id"] =
-      process.env.GOOGLE_MAPS_CONNECTION_ID || "std_01ks89na5gfj8ar9b3vtc8qg92";
-  }
-
-  return headers;
+function readEnv(name: string): string | undefined {
+  const v =
+    (typeof process !== "undefined" && process.env?.[name]) ||
+    ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.[name] ??
+      undefined);
+  return v && v.trim() ? v.trim() : undefined;
 }
 
-export interface MapsRequestPlan {
-  direct: (key: string) => {
-    url: string;
-    method?: "GET" | "POST";
-    headers?: Record<string, string>;
-    body?: string;
-  };
-  gateway: () => {
-    url: string;
-    method?: "GET" | "POST";
-    headers?: Record<string, string>;
-    body?: string;
-  };
+export function mapboxTokens(): string[] {
+  const list = [
+    readEnv("MAPBOX_ACCESS_TOKEN"),
+    readEnv("MAPBOX_BACKUP_TOKEN"),
+    readEnv("VITE_MAPBOX_TOKEN"),
+  ].filter((t): t is string => Boolean(t));
+  return Array.from(new Set(list));
 }
 
 /**
- * Executes a Google Maps request with direct key prioritization,
- * fallback key failover on 403/429/network errors, and Lovable gateway fallback.
+ * GET a Mapbox endpoint. `path` is everything after api.mapbox.com, with its
+ * query string but without access_token. Retries with the next token on
+ * 401/403/429 or a network error.
  */
-export async function fetchMapsWithFailover(plan: MapsRequestPlan): Promise<Response> {
-  const primaryKey = process.env.GOOGLE_MAPS_SERVER_KEY || process.env.GOOGLE_MAPS_API_KEY;
-  const backupKey = process.env.GOOGLE_MAPS_BACKUP_KEY;
-  const directKeys = [primaryKey, backupKey].filter((k): k is string => Boolean(k && k.trim()));
-
-  // 1. Attempt direct Google Maps Platform endpoints using configured direct keys
-  for (const key of directKeys) {
+export async function mapboxFetch(path: string): Promise<Response> {
+  const tokens = mapboxTokens();
+  if (tokens.length === 0) throw new Error("MAPBOX_ACCESS_TOKEN is not configured");
+  const sep = path.includes("?") ? "&" : "?";
+  let last: Response | null = null;
+  for (const token of tokens) {
     try {
-      const { url, method = "GET", headers = {}, body } = plan.direct(key);
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": key,
-          ...headers,
-        },
-        body,
-      });
-
-      // If success or expected client error (e.g. 404/400 bad placeId), return response
-      if (res.ok || (res.status >= 400 && res.status < 500 && res.status !== 403 && res.status !== 429)) {
+      const res = await fetch(`${MAPBOX_API}${path}${sep}access_token=${encodeURIComponent(token)}`);
+      if (res.ok || ![401, 403, 429].includes(res.status)) {
+        if (!res.ok) {
+          const text = await res.clone().text().catch(() => "");
+          lastMapsError = { status: res.status, text };
+        }
         return res;
       }
-
-      const errText = await res.text().catch(() => "");
-      lastMapsError = { status: res.status, text: errText };
-      log.warn("direct Google Maps API status error, attempting key failover", {
-        status: res.status,
-        url,
-      });
+      last = res;
+      lastMapsError = { status: res.status, text: await res.clone().text().catch(() => "") };
+      log.warn("mapbox token rejected, trying next", { status: res.status });
     } catch (err) {
-      log.warn("direct Google Maps API network error, attempting key failover", {
-        ...serializeError(err),
-      });
+      log.warn("mapbox network error, trying next token", { ...serializeError(err) });
     }
   }
-
-  // 2. Fall back to Lovable connector gateway if LOVABLE_API_KEY is available
-  if (process.env.LOVABLE_API_KEY) {
-    try {
-      const { url, method = "GET", headers = {}, body } = plan.gateway();
-      const gwHeaders = authHeaders(headers);
-      const res = await fetch(url, {
-        method,
-        headers: gwHeaders,
-        body,
-      });
-      if (!res.ok) {
-        const errText = await res.text().catch(() => "");
-        lastMapsError = { status: res.status, text: errText };
-      }
-      return res;
-    } catch (err) {
-      log.error("Lovable gateway request failed", undefined, { ...serializeError(err) });
-      throw err;
-    }
-  }
-
-  // 3. No direct keys configured and no Lovable key
-  if (directKeys.length === 0) {
-    throw new Error("Neither GOOGLE_MAPS_SERVER_KEY nor LOVABLE_API_KEY is configured");
-  }
-
-  throw new Error(
-    `Google Maps request failed across all providers: ${lastMapsError?.status ?? 500} - ${
-      lastMapsError?.text ?? "No error details"
-    }`,
-  );
+  if (last) return last;
+  throw new Error(`Mapbox request failed: ${lastMapsError?.status ?? 0} ${lastMapsError?.text ?? ""}`);
 }
+
+export type LngLat = { lat: number; lng: number };
+export const coordPair = (p: LngLat) => `${p.lng.toFixed(6)},${p.lat.toFixed(6)}`;

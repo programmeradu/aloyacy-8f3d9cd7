@@ -1,23 +1,20 @@
 // Server-only helpers for live group trips: create groups with a short
-// human-shareable code and compute member ETAs via Google Routes so the
-// converging-on-a-place experience shows real minutes, not straight-line
-// haversine guesses.
+// human-shareable code and compute member ETAs so the converging-on-a-place
+// experience shows real minutes, not straight-line haversine guesses.
+// Walking legs come from Mapbox; longer hops use Aloya's own bus planner.
 
 import { createLogger, serializeError } from "@/lib/logger";
-import { fetchMapsWithFailover } from "@/lib/maps.server";
+import { walkingRoute } from "@/lib/maps.server";
+import { planJourney } from "@/lib/journey.server";
 
 const log = createLogger("trip-groups");
 
-const GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
-
-/** Try transit first (bus is the point of the app), fall back to walking
- *  for short hops or when Google can't build a transit itinerary. Returns
- *  minutes rounded to the nearest whole minute. */
+/** Bus first for longer hops (bus is the point of the app), walking for
+ *  short ones or when no bus itinerary exists. Returns whole minutes. */
 export async function memberEtaMinutes(
   from: { lat: number; lng: number },
   to: { lat: number; lng: number },
 ): Promise<number | null> {
-  // Haversine gate — no point pinging Google for 40 m
   const R = 6371000;
   const toRad = (d: number) => (d * Math.PI) / 180;
   const dLat = toRad(to.lat - from.lat);
@@ -28,91 +25,19 @@ export async function memberEtaMinutes(
   const meters = 2 * R * Math.asin(Math.sqrt(a));
   if (meters < 60) return 0;
 
-  const mode = meters > 1200 ? "TRANSIT" : "WALK";
   try {
-    const body: Record<string, unknown> = {
-      origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
-      destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
-      travelMode: mode,
-      languageCode: "en",
-      units: "METRIC",
-    };
-    if (mode === "TRANSIT") {
-      Object.assign(body, {
-        transitPreferences: { allowedTravelModes: ["BUS"] },
-        departureTime: new Date().toISOString(),
-      });
+    if (meters > 1200) {
+      const options = await planJourney(from, to);
+      const best = options[0];
+      if (best) {
+        const now = Math.floor(Date.now() / 1000);
+        return Math.max(0, Math.round((best.arrivalUnix - now) / 60));
+      }
     }
-    const bodyStr = JSON.stringify(body);
-    const fieldMask = "routes.duration";
-
-    const res = await fetchMapsWithFailover({
-      direct: () => ({
-        url: "https://routes.googleapis.com/directions/v2:computeRoutes",
-        method: "POST",
-        headers: { "X-Goog-FieldMask": fieldMask },
-        body: bodyStr,
-      }),
-      gateway: () => ({
-        url: `${GATEWAY}/routes/directions/v2:computeRoutes`,
-        method: "POST",
-        headers: { "X-Goog-FieldMask": fieldMask },
-        body: bodyStr,
-      }),
-    });
-    if (!res.ok) {
-      // Transit unavailable — fall back to walking so we still return an ETA.
-      if (mode === "TRANSIT") return walkingEtaMinutes(from, to);
-      return null;
-    }
-    const json = (await res.json()) as { routes?: { duration: string }[] };
-    const dur = json.routes?.[0]?.duration;
-    if (!dur) {
-      if (mode === "TRANSIT") return walkingEtaMinutes(from, to);
-      return null;
-    }
-    const secs = parseInt(dur.replace("s", ""), 10) || 0;
-    return Math.max(0, Math.round(secs / 60));
+    const walk = await walkingRoute(from, to);
+    return walk ? Math.max(0, Math.round(walk.durationSec / 60)) : null;
   } catch (e) {
     log.warn("eta failed", { ...serializeError(e) });
-    return null;
-  }
-}
-
-async function walkingEtaMinutes(
-  from: { lat: number; lng: number },
-  to: { lat: number; lng: number },
-): Promise<number | null> {
-  try {
-    const bodyStr = JSON.stringify({
-      origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
-      destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
-      travelMode: "WALK",
-      languageCode: "en",
-      units: "METRIC",
-    });
-    const fieldMask = "routes.duration";
-
-    const res = await fetchMapsWithFailover({
-      direct: () => ({
-        url: "https://routes.googleapis.com/directions/v2:computeRoutes",
-        method: "POST",
-        headers: { "X-Goog-FieldMask": fieldMask },
-        body: bodyStr,
-      }),
-      gateway: () => ({
-        url: `${GATEWAY}/routes/directions/v2:computeRoutes`,
-        method: "POST",
-        headers: { "X-Goog-FieldMask": fieldMask },
-        body: bodyStr,
-      }),
-    });
-    if (!res.ok) return null;
-    const json = (await res.json()) as { routes?: { duration: string }[] };
-    const dur = json.routes?.[0]?.duration;
-    if (!dur) return null;
-    return Math.max(0, Math.round((parseInt(dur.replace("s", ""), 10) || 0) / 60));
-  } catch {
     return null;
   }
 }

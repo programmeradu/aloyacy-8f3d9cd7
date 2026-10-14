@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import type mapboxgl from "mapbox-gl";
+import type { MapboxApi } from "@/lib/useMapbox";
 
-type Api = typeof google | null | undefined;
+type Api = MapboxApi | null | undefined;
 
 /**
  * Fullscreen behaviour for an inline map.
  *
  * Prefers the native Fullscreen API — the browser lifts the wrapper out of the
- * document so no ancestor transform or overflow can clip it, and the Google
- * Maps host node never gets re-parented. iOS Safari exposes neither
+ * document so no ancestor transform or overflow can clip it, and the map host
+ * node never gets re-parented. iOS Safari exposes neither
  * `requestFullscreen` on elements nor `exitFullscreen`, so it falls back to an
  * in-page fixed overlay, which needs extra work (below) to escape transformed
  * ancestors.
  */
-export function useMapFullscreen(api: Api, mapRef: React.RefObject<google.maps.Map | null>) {
+export function useMapFullscreen(api: Api, mapRef: React.RefObject<mapboxgl.Map | null>) {
   const [expanded, setExpanded] = useState(false);
   const [fallbackOverlay, setFallbackOverlay] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -141,21 +143,13 @@ export function useMapFullscreen(api: Api, mapRef: React.RefObject<google.maps.M
     return () => restorers.forEach((r) => r());
   }, [expanded, fallbackOverlay]);
 
-  // The container has new dimensions after every toggle; Google Maps caches the
-  // old bounds and paints grey margins until told to resize. Do it on the next
-  // frame and again after the transition settles.
+  // The container has new dimensions after every toggle; tell Mapbox to
+  // re-measure on the next frame and again after the transition settles.
   useEffect(() => {
     const m = mapRef.current;
     if (!api || !m) return;
-    const center = m.getCenter();
-    const frame = requestAnimationFrame(() => {
-      api.maps.event.trigger(m, "resize");
-      if (center) m.setCenter(center);
-    });
-    const timeout = window.setTimeout(() => {
-      api.maps.event.trigger(m, "resize");
-      if (center) m.setCenter(center);
-    }, 60);
+    const frame = requestAnimationFrame(() => m.resize());
+    const timeout = window.setTimeout(() => m.resize(), 60);
     return () => {
       cancelAnimationFrame(frame);
       window.clearTimeout(timeout);

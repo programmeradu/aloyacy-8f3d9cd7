@@ -1,8 +1,9 @@
-/// <reference types="google.maps" />
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
-import { useGoogleMaps, ALOYA_MAP_STYLE } from "@/lib/useGoogleMaps";
+import type mapboxgl from "mapbox-gl";
+import { useMapbox, applyAloyaTint, ALOYA_MAP_STYLE_URL, type MapboxApi } from "@/lib/useMapbox";
+import { GOOGLE_TO_MAPBOX_ZOOM } from "@/components/map/mapSymbols";
 import { IconExpand, IconClose } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
 import { spanToZoom } from "@aloya/core/path-geometry";
@@ -26,7 +27,7 @@ type Props = {
   center?: { lat: number; lng: number };
   /** Approximate viewport span in km. Used as fallback zoom when no bounds. */
   spanKm?: number;
-  /** Encoded polyline (Google polyline algorithm). */
+  /** Encoded polyline (precision 5 polyline algorithm). */
   polyline?: string;
   markers?: MapMarker[];
   /** If true, overlays realtime bus vehicles. Defaults to true. */
@@ -90,39 +91,40 @@ export function MapPreview({
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
-  const { api, error } = useGoogleMaps();
+  const { api, error } = useMapbox();
   const { data: rt } = useRealtime();
   const { t } = useI18n();
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const [mapReady, setMapReady] = useState(0);
 
   const focused = !!(focusTripId || focusRouteId);
   const restricted = !focused && !!(restrictTripIds && restrictTripIds.length);
 
-  // Initialize map once API is ready. If the SDK core is still settling the
-  // constructor can throw on the first attempt — retry on the next frame
-  // instead of leaving an empty limestone box for the rest of the session.
-  const [initAttempt, setInitAttempt] = useState(0);
+  // Initialize map once the Mapbox library is loaded.
   useEffect(() => {
     if (!api || !hostRef.current || mapRef.current) return;
-    try {
-      mapRef.current = new api.maps.Map(hostRef.current, {
-        center,
-        zoom: spanToZoom(spanKm),
-        disableDefaultUI: true,
-        gestureHandling: "greedy",
-        backgroundColor: "#f3ede1",
-        styles: ALOYA_MAP_STYLE,
-        clickableIcons: false,
-      });
-    } catch {
-      if (initAttempt < 20) {
-        const id = window.setTimeout(() => setInitAttempt((n) => n + 1), 150);
-        return () => window.clearTimeout(id);
-      }
-    }
-  }, [api, initAttempt]); // eslint-disable-line react-hooks/exhaustive-deps
-
+    const m = new api.Map({
+      container: hostRef.current,
+      style: ALOYA_MAP_STYLE_URL,
+      center: [center.lng, center.lat],
+      zoom: spanToZoom(spanKm) + GOOGLE_TO_MAPBOX_ZOOM,
+      attributionControl: false,
+      pitchWithRotate: false,
+      dragRotate: false,
+      cooperativeGestures: false,
+      logoPosition: "top-left",
+    });
+    m.addControl(new api.AttributionControl({ compact: true }), "top-left");
+    m.touchZoomRotate.disableRotation();
+    m.on("style.load", () => applyAloyaTint(m));
+    m.on("load", () => setMapReady((n) => n + 1));
+    mapRef.current = m;
+    return () => {
+      m.remove();
+      mapRef.current = null;
+    };
+  }, [api]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { expanded, fallbackOverlay, wrapperRef, toggleFullscreen } = useMapFullscreen(api, mapRef);
 
@@ -132,15 +134,14 @@ export function MapPreview({
     if (!m) return;
     const hasContent = (polyline && polyline.length > 0) || (markers && markers.length > 0);
     if (fitToContent ?? hasContent) return;
-    m.setCenter(center);
-    m.setZoom(spanToZoom(spanKm));
+    m.jumpTo({ center: [center.lng, center.lat], zoom: spanToZoom(spanKm) + GOOGLE_TO_MAPBOX_ZOOM });
     // center.lat/lng are depended on individually so a new object identity from
     // the parent does not re-pan the map on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [center.lat, center.lng, spanKm, polyline, markers, fitToContent]);
+  }, [center.lat, center.lng, spanKm, polyline, markers, fitToContent, mapReady]);
 
   const layerRef = useStaticLayer({
-    api,
+    api: mapReady ? api : null,
     mapRef,
     polyline,
     markers,
@@ -168,7 +169,7 @@ export function MapPreview({
 
   const tripPaths = useTripPaths(rt);
   const busLayerRef = useLiveBusLayer({
-    api,
+    api: mapReady ? api : null,
     mapRef,
     markersRef: layerRef,
     vehicles: liveVehicles ? vehicles : undefined,
@@ -177,7 +178,7 @@ export function MapPreview({
     restricted,
   });
 
-  useUserHereOverlay(api, mapRef, userLocation);
+  useUserHereOverlay(mapReady ? api : null, mapRef, userLocation);
 
   const liveCount = focused || restricted ? vehicles.length : (rt?.vehicles.length ?? 0);
 
@@ -238,8 +239,8 @@ export function MapPreview({
 
 /** Rider's own location dot + heading cone, updated imperatively. */
 function useUserHereOverlay(
-  api: typeof google | null | undefined,
-  mapRef: React.RefObject<google.maps.Map | null>,
+  api: MapboxApi | null | undefined,
+  mapRef: React.RefObject<mapboxgl.Map | null>,
   userLocation: Props["userLocation"],
 ) {
   const overlayRef = useRef<UserHereOverlay | null>(null);

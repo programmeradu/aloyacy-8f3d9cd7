@@ -1,5 +1,3 @@
-/// <reference types="google.maps" />
-
 import type { MapMarker } from "@/components/map/types";
 
 export const TONE_COLOR: Record<NonNullable<MapMarker["tone"]>, string> = {
@@ -9,35 +7,12 @@ export const TONE_COLOR: Record<NonNullable<MapMarker["tone"]>, string> = {
   ink: "#2a261f",
 };
 
-/** Simple ringed dot used for stops and trip anchors. */
-export function dot(color: string, size = 11, ring = 3): google.maps.Symbol {
-  return {
-    path: google.maps.SymbolPath.CIRCLE,
-    fillColor: color,
-    fillOpacity: 1,
-    strokeColor: "#ffffff",
-    strokeWeight: ring,
-    scale: size / 2,
-  };
+/** Fill colour and radius (px) for a marker, honouring origin/destination emphasis. */
+export function markerStyle(mk: MapMarker): { color: string; radius: number } {
+  if (mk.kind === "origin") return { color: "#2a261f", radius: 7 };
+  if (mk.kind === "destination") return { color: "#d99645", radius: 7 };
+  return { color: TONE_COLOR[mk.tone ?? "aegean"], radius: 5.5 };
 }
 
-/** Editorial cluster bubble — aegean fill, limestone ring, grows with count. */
-export function clusterIcon(count: number): google.maps.Symbol {
-  // Bubble grows logarithmically so 20 and 200 don't render at the same size.
-  const scale = 13 + Math.min(10, Math.log2(Math.max(2, count)) * 2.5);
-  return {
-    path: google.maps.SymbolPath.CIRCLE,
-    fillColor: "#1c5566",
-    fillOpacity: 0.92,
-    strokeColor: "#f6f1e4",
-    strokeWeight: 3,
-    scale,
-  };
-}
-
-/** Icon for a marker, honouring the origin/destination emphasis. */
-export function markerIcon(mk: MapMarker): google.maps.Symbol {
-  if (mk.kind === "origin") return dot("#2a261f", 14, 3);
-  if (mk.kind === "destination") return dot("#d99645", 14, 3);
-  return dot(TONE_COLOR[mk.tone ?? "aegean"], 11, 3);
-}
+/** Mapbox zoom runs one level below Google's for the same view (512px tiles). */
+export const GOOGLE_TO_MAPBOX_ZOOM = -1;

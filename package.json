@@ -121,6 +121,7 @@
     "input-otp": "^1.4.2",
     "jose": "^6.2.3",
     "lucide-react": "^0.575.0",
+    "mapbox-gl": "^3",
     "mapillary-js": "^4.1.2",
     "nitro": "3.0.260603-beta",
     "pg": "^8.23.0",

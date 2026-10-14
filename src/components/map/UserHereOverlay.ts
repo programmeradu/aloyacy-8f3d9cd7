@@ -1,24 +1,27 @@
-/// <reference types="google.maps" />
+import type mapboxgl from "mapbox-gl";
+import type { MapboxApi } from "@/lib/useMapbox";
+
 /* ============================================================
- * UserHereOverlay — Google-Maps-style "blue dot" for the rider's
+ * UserHereOverlay: the classic "blue dot" for the rider's
  * own location, with an optional translucent heading cone when a
  * compass or GPS heading is available. Lightweight DOM overlay so
  * it composites smoothly with the gliding bus markers.
  * ============================================================ */
 export class UserHereOverlay {
-  private overlay: google.maps.OverlayView;
+  private marker: mapboxgl.Marker;
+  private onZoom: () => void;
   private el: HTMLDivElement;
   private cone: HTMLDivElement;
   private accuracyHalo: HTMLDivElement;
-  private map: google.maps.Map;
+  private map: mapboxgl.Map;
   private lat: number;
   private lng: number;
   private heading: number | null;
   private accuracyM: number;
 
   constructor(
-    api: typeof google,
-    map: google.maps.Map,
+    api: MapboxApi,
+    map: mapboxgl.Map,
     init: { lat: number; lng: number; headingDeg?: number | null; accuracyM?: number },
   ) {
     this.lat = init.lat;
@@ -105,30 +108,12 @@ export class UserHereOverlay {
     this.applyAccuracy(map);
     this.applyHeading();
 
-    // Google's OverlayView subclass rebinds `this`; capture the marker
-    // instance so the overlay callbacks can reach it.
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    class HereOverlay extends api.maps.OverlayView {
-      onAdd() {
-        const panes = this.getPanes();
-        panes?.floatPane.appendChild(self.el);
-      }
-      draw() {
-        const projection = this.getProjection();
-        if (!projection) return;
-        const pt = projection.fromLatLngToDivPixel(new api.maps.LatLng(self.lat, self.lng));
-        if (!pt) return;
-        self.el.style.transform = `translate3d(${pt.x}px, ${pt.y}px, 0)`;
-        self.applyAccuracy(self.map);
-      }
-      onRemove() {
-        self.el.parentNode?.removeChild(self.el);
-      }
-    }
     this.map = map;
-    this.overlay = new HereOverlay();
-    this.overlay.setMap(map);
+    this.marker = new api.Marker({ element: el, anchor: "center" })
+      .setLngLat([this.lng, this.lat])
+      .addTo(map);
+    this.onZoom = () => this.applyAccuracy(this.map);
+    map.on("zoom", this.onZoom);
   }
 
   update(next: { lat: number; lng: number; headingDeg?: number | null; accuracyM?: number }) {
@@ -137,7 +122,8 @@ export class UserHereOverlay {
     this.heading = next.headingDeg ?? null;
     this.accuracyM = next.accuracyM ?? this.accuracyM;
     this.applyHeading();
-    this.overlay.draw();
+    this.marker.setLngLat([this.lng, this.lat]);
+    this.applyAccuracy(this.map);
   }
 
   private applyHeading() {
@@ -149,20 +135,19 @@ export class UserHereOverlay {
     }
   }
 
-  private applyAccuracy(map: google.maps.Map) {
-    // Convert accuracy in metres to pixels at current zoom.
-    const proj = map.getProjection();
-    if (!proj) return;
-    const zoom = map.getZoom() ?? 14;
+  private applyAccuracy(map: mapboxgl.Map) {
+    // Convert accuracy in metres to pixels at current zoom (512px tiles).
+    const zoom = map.getZoom() ?? 13;
     const scale = 2 ** zoom;
-    const metersPerPixel = (156543.03392 * Math.cos((this.lat * Math.PI) / 180)) / scale;
+    const metersPerPixel = (78271.517 * Math.cos((this.lat * Math.PI) / 180)) / scale;
     const px = Math.max(24, Math.min(160, this.accuracyM / metersPerPixel));
     this.accuracyHalo.style.width = `${px * 2}px`;
     this.accuracyHalo.style.height = `${px * 2}px`;
   }
 
   destroy() {
-    this.overlay.setMap(null);
+    this.map.off("zoom", this.onZoom);
+    this.marker.remove();
   }
 }
 

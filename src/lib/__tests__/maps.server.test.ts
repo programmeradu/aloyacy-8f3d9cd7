@@ -1,149 +1,149 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { authHeaders } from "../maps.server";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import polyline from "@mapbox/polyline";
+import {
+  drivingRoute,
+  placesAutocomplete,
+  resolvePlace,
+  reverseGeocode,
+  toManeuverKey,
+  walkingDirections,
+  walkingRoute,
+} from "../maps.server";
 
-describe("maps.server authHeaders", () => {
-  const originalEnv = { ...process.env };
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
+describe("maps.server (Mapbox)", () => {
+  const fetchMock = vi.fn();
   beforeEach(() => {
-    delete process.env.LOVABLE_API_KEY;
-    delete process.env.GOOGLE_MAPS_API_KEY;
-    delete process.env.GOOGLE_MAPS_SERVER_KEY;
+    process.env.MAPBOX_ACCESS_TOKEN = "pk.test";
+    vi.stubGlobal("fetch", fetchMock);
   });
-
   afterEach(() => {
-    process.env = { ...originalEnv };
+    fetchMock.mockReset();
+    vi.unstubAllGlobals();
+    delete process.env.MAPBOX_ACCESS_TOKEN;
+    delete process.env.MAPBOX_BACKUP_TOKEN;
   });
 
-  it("throws when all keys are missing", () => {
-    expect(() => authHeaders()).toThrow(/missing/i);
-  });
-
-  it("passes X-Connection-Api-Key and X-Connection-Id when LOVABLE_API_KEY is present", () => {
-    process.env.LOVABLE_API_KEY = "lovable_test_token";
-    process.env.GOOGLE_MAPS_API_KEY = "client_key";
-
-    const headers = authHeaders();
-    expect(headers.Authorization).toBe("Bearer lovable_test_token");
-    expect(headers["X-Connection-Api-Key"]).toBe("client_key");
-    expect(headers["X-Connection-Id"]).toBe("std_01ks89na5gfj8ar9b3vtc8qg92");
-    expect(headers["Content-Type"]).toBe("application/json");
-  });
-
-  it("sends X-Connection-Api-Key when explicit GOOGLE_MAPS_SERVER_KEY is provided", () => {
-    process.env.LOVABLE_API_KEY = "lovable_test_token";
-    process.env.GOOGLE_MAPS_SERVER_KEY = "unrestricted_server_key";
-
-    const headers = authHeaders();
-    expect(headers.Authorization).toBe("Bearer lovable_test_token");
-    expect(headers["X-Connection-Api-Key"]).toBe("unrestricted_server_key");
-  });
-
-  it("falls back to GOOGLE_MAPS_API_KEY when LOVABLE_API_KEY is unset", () => {
-    process.env.GOOGLE_MAPS_API_KEY = "standalone_key";
-
-    const headers = authHeaders();
-    expect(headers.Authorization).toBeUndefined();
-    expect(headers["X-Connection-Api-Key"]).toBe("standalone_key");
-  });
-});
-
-describe("maps.server direct Google Maps and failover", () => {
-  const originalEnv = { ...process.env };
-  const originalFetch = globalThis.fetch;
-
-  beforeEach(() => {
-    delete process.env.LOVABLE_API_KEY;
-    delete process.env.GOOGLE_MAPS_API_KEY;
-    delete process.env.GOOGLE_MAPS_SERVER_KEY;
-    delete process.env.GOOGLE_MAPS_BACKUP_KEY;
-  });
-
-  afterEach(() => {
-    process.env = { ...originalEnv };
-    globalThis.fetch = originalFetch;
-  });
-
-  it("prioritizes direct Google Maps Platform call using GOOGLE_MAPS_SERVER_KEY", async () => {
-    process.env.GOOGLE_MAPS_SERVER_KEY = "direct_server_key";
-    process.env.LOVABLE_API_KEY = "lovable_gateway_key";
-
-    const calledUrls: string[] = [];
-    const calledHeaders: Record<string, string>[] = [];
-
-    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === "string" ? input : input.toString();
-      calledUrls.push(url);
-      calledHeaders.push((init?.headers as Record<string, string>) || {});
-      return new Response(JSON.stringify({ suggestions: [] }), { status: 200 });
-    }) as typeof fetch;
-
-    const { placesAutocomplete } = await import("../maps.server");
-    const results = await placesAutocomplete("Solomou");
-
-    expect(results).toEqual([]);
-    expect(calledUrls).toHaveLength(1);
-    expect(calledUrls[0]).toBe("https://places.googleapis.com/v1/places:autocomplete");
-    expect(calledHeaders[0]["X-Goog-Api-Key"]).toBe("direct_server_key");
-  });
-
-  it("fails over to GOOGLE_MAPS_BACKUP_KEY when primary returns 403", async () => {
-    process.env.GOOGLE_MAPS_SERVER_KEY = "primary_failing_key";
-    process.env.GOOGLE_MAPS_BACKUP_KEY = "backup_working_key";
-
-    const keyAttempts: string[] = [];
-
-    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-      const headers = (init?.headers as Record<string, string>) || {};
-      const key = headers["X-Goog-Api-Key"];
-      keyAttempts.push(key);
-
-      if (key === "primary_failing_key") {
-        return new Response("Permission denied", { status: 403 });
-      }
-      return new Response(
-        JSON.stringify({
-          suggestions: [
-            {
-              placePrediction: {
-                placeId: "cy_solomou_1",
-                text: { text: "Solomou Square Bus Station" },
-              },
+  it("autocomplete returns POIs from Search Box and resolves them without a second call", async () => {
+    fetchMock.mockResolvedValueOnce(
+      json({
+        features: [
+          {
+            properties: {
+              mapbox_id: "abc",
+              feature_type: "poi",
+              name: "University of Cyprus",
+              place_formatted: "2109 Aglantzia, Cyprus",
+              coordinates: { latitude: 35.144, longitude: 33.381 },
             },
-          ],
-        }),
-        { status: 200 },
-      );
-    }) as typeof fetch;
-
-    const { placesAutocomplete } = await import("../maps.server");
-    const results = await placesAutocomplete("Solomou");
-
-    expect(results).toHaveLength(1);
-    expect(results[0].placeId).toBe("cy_solomou_1");
-    expect(keyAttempts).toEqual(["primary_failing_key", "backup_working_key"]);
+          },
+        ],
+      }),
+    );
+    const out = await placesAutocomplete("University of Cyprus", { lat: 35.17, lng: 33.36 });
+    expect(fetchMock.mock.calls[0][0]).toContain("/search/searchbox/v1/forward");
+    expect(fetchMock.mock.calls[0][0]).toContain("country=cy");
+    expect(out[0].primary).toBe("University of Cyprus");
+    const place = await resolvePlace(out[0].placeId);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(place.lat).toBeCloseTo(35.144);
+    expect(place.lng).toBeCloseTo(33.381);
   });
 
-  it("falls back to Lovable gateway if all direct keys return 403/429", async () => {
-    process.env.GOOGLE_MAPS_SERVER_KEY = "exhausted_key";
-    process.env.LOVABLE_API_KEY = "lovable_fallback_token";
+  it("falls back to geocoding when Search Box has nothing", async () => {
+    fetchMock.mockResolvedValueOnce(json({ features: [] })).mockResolvedValueOnce(
+      json({
+        features: [
+          {
+            properties: {
+              name: "Makariou Avenue",
+              place_formatted: "Nicosia",
+              coordinates: { latitude: 35.16, longitude: 33.36 },
+            },
+          },
+        ],
+      }),
+    );
+    const out = await placesAutocomplete("Makariou");
+    expect(fetchMock.mock.calls[1][0]).toContain("/search/geocode/v6/forward");
+    expect(out[0].primary).toBe("Makariou Avenue");
+  });
 
-    const endpoints: string[] = [];
+  it("retries with the backup token on 401", async () => {
+    process.env.MAPBOX_BACKUP_TOKEN = "pk.backup";
+    fetchMock
+      .mockResolvedValueOnce(json({ message: "Not Authorized" }, 401))
+      .mockResolvedValueOnce(json({ features: [{ properties: { full_address: "1 Odos, Nicosia" } }] }));
+    expect(await reverseGeocode(35.17, 33.36)).toBe("1 Odos, Nicosia");
+    expect(fetchMock.mock.calls[1][0]).toContain("access_token=pk.backup");
+  });
 
-    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === "string" ? input : input.toString();
-      endpoints.push(url);
-      if (url.includes("places.googleapis.com")) {
-        return new Response("Quota exceeded", { status: 429 });
-      }
-      return new Response(JSON.stringify({ suggestions: [] }), { status: 200 });
-    }) as typeof fetch;
+  it("walkingRoute maps duration, distance and geometry", async () => {
+    fetchMock.mockResolvedValueOnce(
+      json({ code: "Ok", routes: [{ duration: 301.4, distance: 402.6, geometry: "abc", legs: [] }] }),
+    );
+    const r = await walkingRoute({ lat: 35.17, lng: 33.36 }, { lat: 35.168, lng: 33.365 });
+    expect(r).toEqual({ durationSec: 301, distanceMeters: 403, polyline: "abc" });
+    expect(fetchMock.mock.calls[0][0]).toContain("/directions/v5/mapbox/walking/33.360000,35.170000;");
+  });
 
-    const { placesAutocomplete } = await import("../maps.server");
-    await placesAutocomplete("Eleftheria");
-
-    expect(endpoints).toEqual([
-      "https://places.googleapis.com/v1/places:autocomplete",
-      "https://connector-gateway.lovable.dev/google_maps/places/v1/places:autocomplete",
+  it("walkingDirections maps steps and maneuvers", async () => {
+    const geom = polyline.encode([
+      [35.17, 33.36],
+      [35.171, 33.361],
     ]);
+    fetchMock.mockResolvedValueOnce(
+      json({
+        code: "Ok",
+        routes: [
+          {
+            duration: 60,
+            distance: 120,
+            geometry: geom,
+            legs: [
+              {
+                steps: [
+                  {
+                    distance: 120,
+                    duration: 60,
+                    geometry: geom,
+                    maneuver: { type: "turn", modifier: "left", instruction: "Turn left", location: [33.36, 35.17] },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    const d = await walkingDirections({ lat: 35.17, lng: 33.36 }, { lat: 35.171, lng: 33.361 }, "el");
+    expect(fetchMock.mock.calls[0][0]).toContain("language=el");
+    expect(d?.steps[0].maneuver).toBe("TURN_LEFT");
+    expect(d?.steps[0].end.lat).toBeCloseTo(35.171);
+  });
+
+  it("drivingRoute uses driving-traffic with typical duration as the baseline", async () => {
+    fetchMock.mockResolvedValueOnce(
+      json({ code: "Ok", routes: [{ duration: 900, duration_typical: 780, distance: 8000, geometry: "", legs: [] }] }),
+    );
+    const r = await drivingRoute({ lat: 35.1, lng: 33.3 }, { lat: 35.17, lng: 33.36 });
+    expect(fetchMock.mock.calls[0][0]).toContain("/mapbox/driving-traffic/");
+    expect(r).toEqual({ durationSec: 900, staticDurationSec: 780, distanceMeters: 8000 });
+  });
+
+  it("returns null when no route exists", async () => {
+    fetchMock.mockResolvedValueOnce(json({ code: "NoRoute", routes: [] }));
+    expect(await walkingRoute({ lat: 0, lng: 0 }, { lat: 1, lng: 1 })).toBeNull();
+  });
+
+  it("maps Mapbox maneuvers onto the translated keys", () => {
+    expect(toManeuverKey("depart")).toBe("DEPART");
+    expect(toManeuverKey("arrive")).toBe("ARRIVE");
+    expect(toManeuverKey("turn", "slight right")).toBe("TURN_SLIGHT_RIGHT");
+    expect(toManeuverKey("fork", "left")).toBe("FORK_LEFT");
+    expect(toManeuverKey("roundabout", "right")).toBe("ROUNDABOUT_RIGHT");
+    expect(toManeuverKey("continue", "straight")).toBe("STRAIGHT");
   });
 });

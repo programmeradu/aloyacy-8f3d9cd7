@@ -1,14 +1,14 @@
-/// <reference types="google.maps" />
-// AnimatedBus — Google Maps overlay that glides a live bus between feed
+// AnimatedBus: Mapbox GL marker that glides a live bus between feed
 // pings. Split out of MapPreview so the component stays presentational and
 // the kinematic model can evolve on its own in ./kinematic-engine.
 
+import type mapboxgl from "mapbox-gl";
+import type { MapboxApi } from "@/lib/useMapbox";
 import { createBusElements, renderBusVariant } from "./bus-dom";
 import { KinematicBusEngine } from "./kinematic-engine";
 
 export class AnimatedBus {
-  private api: typeof google;
-  private map: google.maps.Map;
+
   private label: string;
   private size: number;
   private focused: boolean;
@@ -19,15 +19,15 @@ export class AnimatedBus {
   private engine: KinematicBusEngine;
 
   // overlay
-  private overlay: google.maps.OverlayView;
+  private marker: mapboxgl.Marker;
   private el: HTMLDivElement;
   private rotor: HTMLDivElement; // the element we rotate (img or svg)
   private halo: HTMLDivElement; // freshness ring shown when ping is stale
   private boardingRing: HTMLDivElement; // pulsing ring when bus is stopped at a stop
 
   constructor(
-    api: typeof google,
-    map: google.maps.Map,
+    api: MapboxApi,
+    map: mapboxgl.Map,
     pos: { lat: number; lng: number },
     bearing: number,
     size: number,
@@ -38,8 +38,6 @@ export class AnimatedBus {
     stale = false,
     _speedMps = 0,
   ) {
-    this.api = api;
-    this.map = map;
     this.label = label;
     this.size = size;
     this.focused = focused;
@@ -60,30 +58,11 @@ export class AnimatedBus {
     this.applyStale();
     this.setPath(path);
 
-    // Build OverlayView
-    // Google's OverlayView subclass rebinds `this`; capture the marker instance.
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    class BusOverlay extends api.maps.OverlayView {
-      onAdd() {
-        const panes = this.getPanes();
-        panes?.overlayMouseTarget.appendChild(self.el);
-      }
-      draw() {
-        const projection = this.getProjection();
-        if (!projection) return;
-        const pos = self.engine.getPos();
-        const pt = projection.fromLatLngToDivPixel(new api.maps.LatLng(pos.lat, pos.lng));
-        if (!pt) return;
-        self.el.style.transform = `translate3d(${pt.x - self.size / 2}px, ${pt.y - self.size / 2}px, 0)`;
-        self.rotor.style.transform = `rotate(${self.engine.getDebug(performance.now()).bearing}deg)`;
-      }
-      onRemove() {
-        self.el.parentNode?.removeChild(self.el);
-      }
-    }
-    this.overlay = new BusOverlay();
-    this.overlay.setMap(map);
+    // Mapbox owns the element's transform for positioning; we only rotate
+    // the inner rotor, so the two never fight.
+    this.marker = new api.Marker({ element: this.el, anchor: "center" })
+      .setLngLat([pos.lng, pos.lat])
+      .addTo(map);
   }
 
   private renderVariant() {
@@ -176,16 +155,11 @@ export class AnimatedBus {
   tick(nowMs: number) {
     const state = this.engine.tick(nowMs);
     this.syncBoarding();
-
-    const projection = this.overlay.getProjection();
-    if (!projection) return;
-    const pt = projection.fromLatLngToDivPixel(new this.api.maps.LatLng(state.lat, state.lng));
-    if (!pt) return;
-    this.el.style.transform = `translate3d(${pt.x - this.size / 2}px, ${pt.y - this.size / 2}px, 0)`;
+    this.marker.setLngLat([state.lng, state.lat]);
     this.rotor.style.transform = `rotate(${state.bearing}deg)`;
   }
 
   destroy() {
-    this.overlay.setMap(null);
+    this.marker.remove();
   }
 }
