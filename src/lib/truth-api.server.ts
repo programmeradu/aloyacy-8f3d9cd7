@@ -3,7 +3,7 @@
 // sees, logs every returned prediction to `eta_predictions` with `surface: 'api'`
 // so the feed is scored nightly against arrival_truth.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { getThresholdOverrides } from "@/lib/threshold-cache.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fetchRealtime } from "@/lib/gtfs-rt.server";

@@ -1,7 +1,7 @@
 // B3 — no-show rates for the stop card. One round-trip per stop, then the
 // client matches each departure's Cyprus hour.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";

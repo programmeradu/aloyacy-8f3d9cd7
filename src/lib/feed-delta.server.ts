@@ -2,7 +2,7 @@
 // writes both mean_delta_m and mean_delta_sec in one upsert.
 // Missing table fails silent — the stop stays quiet.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { cyHourDow } from "@aloya/core/cy-time";
 import {

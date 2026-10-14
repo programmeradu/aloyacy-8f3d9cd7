@@ -5,7 +5,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { LadderRung, MarginPref, PromiseStatus } from "@aloya/core/arrival-promise";
 

@@ -2,7 +2,7 @@
 // Neighbour is the next same-route stop in walk range. Silent when
 // GTFS has no such stop, or that stop also skips.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { cyHourDow } from "@aloya/core/cy-time";
 import {

@@ -1,7 +1,7 @@
 // Persist and reload GTFS-RT vehicle pings for A2 vehicle-cross.
 // Feed positions used to die with the request; the ledger needs history.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { LiveVehicle } from "@/lib/gtfs-rt.server";
 import type { VehiclePing } from "@aloya/core/vehicle-cross";
@@ -33,9 +33,14 @@ export async function persistVehiclePings(
   if (rows.length === 0) return 0;
   
   // Archive-on-ingest: raw vehicle pings to lake
-  void streamToLake("vehicle_pings", rows);
+  void streamToLake("vehicle_pings", rows.slice());
   
-  const { error } = await db.from("vehicle_pings").insert(rows);
+  // D1 free plan: 100k rows written/day. Every capture still lands in the R2
+  // lake; D1 keeps a sampled, capped history (tunable, see docs/D1_MIGRATION.md).
+  const everyMin = Math.max(1, Number(process.env.D1_PINGS_EVERY_MIN ?? 30));
+  const maxRows = Math.max(0, Number(process.env.D1_PINGS_MAX_ROWS ?? 300));
+  if (Math.floor(fetchedAtUnix / 60) % everyMin !== 0) return 0;
+  const { error } = await db.from("vehicle_pings").insert(rows.slice(0, maxRows));
   if (error) return 0;
   return rows.length;
 }

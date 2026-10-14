@@ -3,7 +3,7 @@
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { cyHourDow, cyYmd } from "@aloya/core/cy-time";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 
 const db = supabaseAdmin as unknown as SupabaseClient;
 

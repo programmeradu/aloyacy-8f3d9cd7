@@ -1,7 +1,7 @@
 // A2 resolver. Vehicle-cross first (geofence interpolation), inferred
 // later-stop evidence second. Never overwrite a stronger source.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { cyHourDow } from "@aloya/core/cy-time";
 import { strongerTruthSource, vehicleCrossHits, type VehiclePing } from "@aloya/core/vehicle-cross";

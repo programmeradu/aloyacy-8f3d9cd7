@@ -1,5 +1,6 @@
 import { sendLovableEmail } from "@lovable.dev/email-js";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { createFileRoute } from "@tanstack/react-router";
 import { createLogger } from "@/lib/logger";
 
@@ -68,27 +69,25 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
     handlers: {
       POST: async ({ request }) => {
         const apiKey = process.env.LOVABLE_API_KEY;
-        const supabaseUrl = import.meta.env.VITE_CUSTOM_SUPABASE_URL;
-        const supabaseServiceKey = process.env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY;
+        const cronSecret = process.env.CRON_SECRET;
 
-        if (!apiKey || !supabaseUrl || !supabaseServiceKey) {
-          log.error("missing required environment variables");
+        if (!apiKey || !cronSecret) {
+          log.error("missing required environment variables (LOVABLE_API_KEY, CRON_SECRET)");
           return Response.json({ error: "Server configuration error" }, { status: 500 });
         }
 
-        // Verify the caller is authorized with the service role key.
-        // In the TanStack stack, the pg_cron job sends the service role key as a Bearer token.
+        // Called by the Worker's own scheduled() dispatcher with Bearer CRON_SECRET.
         const authHeader = request.headers.get("Authorization");
         if (!authHeader?.startsWith("Bearer ")) {
           return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const token = authHeader.slice("Bearer ".length).trim();
-        if (token !== supabaseServiceKey) {
+        if (token !== cronSecret) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        const supabase: SupabaseClient<any, any> = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase: SupabaseClient = supabaseAdmin;
 
         // 1. Check rate-limit cooldown and read queue config
         const { data: state } = await supabase

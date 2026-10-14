@@ -22,7 +22,7 @@
 // Callers stay declarative: describe the audience and the message, read the
 // receipt.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 /** The delivery ledger is newer than the generated types. */

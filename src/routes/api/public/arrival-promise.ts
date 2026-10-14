@@ -8,7 +8,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { computePromisePlan, planSnapshot } from "@/lib/arrival-promise.server";
 import { logger } from "@/lib/logger";
 

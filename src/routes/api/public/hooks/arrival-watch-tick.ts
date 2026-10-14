@@ -7,7 +7,7 @@
 // crash can never notify the same rider twice.
 
 import { createFileRoute } from "@tanstack/react-router";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 /** arrival_promises + job_leases are newer than the generated types. */

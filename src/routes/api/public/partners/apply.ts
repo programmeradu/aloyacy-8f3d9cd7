@@ -2,7 +2,7 @@
 // a console, not keys, not usage — those wait for a paying Truth API customer.
 
 import { createFileRoute } from "@tanstack/react-router";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { PartnerApplySchema } from "@/lib/schemas/public-api";
 

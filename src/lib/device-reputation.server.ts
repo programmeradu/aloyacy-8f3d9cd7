@@ -1,7 +1,7 @@
 // C2 I/O. Scoring is pure; this loads arrival_truth + rider GPS and
 // writes device_reputation. Missing table fails open — nobody carries.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
   REP_WINDOW_DAYS,

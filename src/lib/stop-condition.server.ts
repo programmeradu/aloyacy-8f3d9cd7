@@ -1,7 +1,7 @@
 // D1 write/read path. Consensus is pure; this is I/O around it.
 // GET recomputes so a 90-day-old shelter claim does not linger.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
   CONSENSUS_TTL_DAYS,

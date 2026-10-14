@@ -33,17 +33,6 @@ async function guard(request: Request): Promise<Response | null> {
   const apikey = request.headers.get("apikey");
   const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   let legacySecret: string | null = process.env.CRON_SECRET ?? null;
-  try {
-    const { data } = await supabase
-      .schema("vault" as never)
-      .from("decrypted_secrets" as never)
-      .select("decrypted_secret")
-      .eq("name", "aloya_cron_secret")
-      .maybeSingle();
-    legacySecret = (data as { decrypted_secret?: string } | null)?.decrypted_secret ?? legacySecret;
-  } catch {
-    // ignore vault lookup failures and fall back to env
-  }
   const legacyHeader =
     request.headers.get("X-Cron-Secret") ??
     request.headers.get("x-cron-secret") ??
@@ -122,7 +111,7 @@ async function ingest() {
     }));
 
     // Archive-on-ingest: send raw snapshot to data lake immediately
-    void streamToLake("rt_snapshots", rows);
+    void streamToLake("rt_snapshots", rows.slice());
 
     // Update observed_arrivals (last known prediction per trip+stop)
     const observedMap = new Map<string, (typeof fresh)[number]>();

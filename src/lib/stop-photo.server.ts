@@ -1,6 +1,6 @@
 // D1 photo write/read. Magic-bytes and size live in core; this is I/O.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
   PHOTO_MAX_BYTES,

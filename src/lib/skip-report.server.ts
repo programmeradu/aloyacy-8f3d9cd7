@@ -1,6 +1,6 @@
 // D2 rider skip report. Tally is pure; this is I/O around it.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@/lib/db/compat";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
   SKIP_REPORT_RATE_LIMIT_SEC,

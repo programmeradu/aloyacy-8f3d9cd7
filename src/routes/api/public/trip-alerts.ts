@@ -303,18 +303,6 @@ export const Route = createFileRoute("/api/public/trip-alerts")({
         const apikey = request.headers.get("apikey");
         const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
         let legacySecret: string | null = process.env.CRON_SECRET ?? null;
-        try {
-          const { data } = await supabaseAdmin
-            .schema("vault" as never)
-            .from("decrypted_secrets" as never)
-            .select("decrypted_secret")
-            .eq("name", "aloya_cron_secret")
-            .maybeSingle();
-          legacySecret =
-            (data as { decrypted_secret?: string } | null)?.decrypted_secret ?? legacySecret;
-        } catch {
-          // ignore vault lookup failures and fall back to env
-        }
         const legacyHeader = request.headers.get("x-cron-secret");
         const validApiKey =
           apikey &&
