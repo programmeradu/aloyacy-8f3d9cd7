@@ -141,6 +141,7 @@ export class QueryBuilder<T = any> implements PromiseLike<DbResult<T>> {
   private meta: TableMeta | undefined;
   private buildError: DbError | null = null;
   private promise: Promise<DbResult<T>> | null = null;
+  private scoped: { col: string; value: unknown } | null = null;
 
   constructor(
     private readonly table: string,
@@ -148,6 +149,16 @@ export class QueryBuilder<T = any> implements PromiseLike<DbResult<T>> {
   ) {
     this.meta = metaFor(table);
     if (!IDENT.test(table)) this.buildError = dbError(`invalid table ${table}`, "42P01");
+  }
+
+  /**
+   * Row ownership in place of RLS: every read/update/delete is filtered by
+   * `col = value`, and every inserted/upserted row gets `col = value`.
+   * Ignored for tables without that column.
+   */
+  scopeTo(col: string, value: unknown): this {
+    if (this.meta?.cols[col]) this.scoped = { col, value };
+    return this;
   }
 
   // ---- verbs ---------------------------------------------------------------
@@ -364,6 +375,20 @@ export class QueryBuilder<T = any> implements PromiseLike<DbResult<T>> {
 
   private async run(): Promise<DbResult<any>> {
     if (this.buildError) return fail(this.buildError, 400);
+    if (this.scoped) {
+      const { col, value } = this.scoped;
+      if (this.op === "insert" || this.op === "upsert") {
+        this.values = this.values.map((r) => ({ ...r, [col]: value }));
+      } else {
+        if (this.op === "update") {
+          const patch = { ...this.values[0] };
+          delete patch[col];
+          this.values = [patch];
+        }
+        this.conds.push(this.cmp(col, "eq", value));
+      }
+      this.scoped = null;
+    }
     const db = this.dbFn();
     const t = ident(this.table);
     const w = this.where();

@@ -38,6 +38,19 @@ export function createDbClient(dbFn: () => D1Database = getD1): DbClient {
 
 export const db: DbClient = createDbClient();
 
+/**
+ * The client handed to authenticated server functions (`context.supabase`).
+ * Tables with a `user_id` column only ever see the caller's rows, which is
+ * what the Supabase "owner" RLS policies enforced before.
+ */
+export function createUserScopedClient(userId: string, dbFn: () => D1Database = getD1): DbClient {
+  const base = createDbClient(dbFn);
+  return {
+    ...base,
+    from: (table: string) => new QueryBuilder<any>(table, dbFn).scopeTo("user_id", userId),
+  };
+}
+
 export { getD1, setD1ForTests, nowIso } from "./d1";
 export type { D1Database } from "./d1";
 export { QueryBuilder } from "./query-builder";

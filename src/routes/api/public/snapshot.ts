@@ -4,7 +4,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin as supabase } from "@/integrations/supabase/client.server";
 import { fetchRealtime } from "@/lib/gtfs-rt.server";
 import { createLogger } from "@/lib/logger";
 import { cyHourDow } from "@aloya/core/cy-time";
@@ -113,6 +113,16 @@ async function ingest() {
     // Archive-on-ingest: send raw snapshot to data lake immediately
     void streamToLake("rt_snapshots", rows.slice());
 
+    // D1 free plan allows 100k rows written per day (index updates count too),
+    // far below one full snapshot per minute. The R2 lake keeps every capture;
+    // D1 gets a sampled, capped write every D1_SNAPSHOT_EVERY_MIN minutes.
+    const everyMin = Math.max(1, Number(process.env.D1_SNAPSHOT_EVERY_MIN ?? 120));
+    const maxRows = Math.max(0, Number(process.env.D1_SNAPSHOT_MAX_ROWS ?? 500));
+    const minuteOfDay = Math.floor(snap.fetchedAt / 60) % 1440;
+    if (minuteOfDay % everyMin !== 0) {
+      return json({ ok: true, inserted: 0, stats_updated: 0, pings, d1: "skipped (sampling)" });
+    }
+
     // Update observed_arrivals (last known prediction per trip+stop)
     const observedMap = new Map<string, (typeof fresh)[number]>();
     for (const a of fresh) {
@@ -164,7 +174,9 @@ async function ingest() {
       b.count += 1;
       buckets.set(key, b);
     }
-    const statDeltas = Array.from(buckets.values());
+    const statDeltas = Array.from(buckets.values()).slice(0, maxRows);
+    rows.splice(maxRows);
+    observed.splice(maxRows);
 
     // Chunked so no single statement runs long, but large enough that a full
     // snapshot finishes in a handful of round trips.

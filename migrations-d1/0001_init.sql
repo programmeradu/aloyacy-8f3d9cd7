@@ -272,6 +272,19 @@ CREATE TABLE IF NOT EXISTS motion_card (
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
+CREATE TABLE IF NOT EXISTS notification_deliveries (
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))||'-'||hex(randomblob(2))||'-4'||substr(hex(randomblob(2)),2)||'-'||substr('89ab',1+(abs(random())%4),1)||substr(hex(randomblob(2)),2)||'-'||hex(randomblob(6)))),
+  category TEXT NOT NULL,
+  tag TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  url TEXT,
+  device_id TEXT,
+  sent INTEGER NOT NULL DEFAULT 0,
+  failed INTEGER NOT NULL DEFAULT 0,
+  pruned INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
 CREATE TABLE IF NOT EXISTS observed_arrivals (
   trip_id TEXT NOT NULL,
   stop_id TEXT NOT NULL,
@@ -708,6 +721,7 @@ CREATE INDEX IF NOT EXISTS observed_arrivals_last_seen_idx ON observed_arrivals 
 CREATE UNIQUE INDEX IF NOT EXISTS delay_stats_key_idx ON delay_stats (route_id, stop_id, hour_of_day, day_of_week);
 CREATE INDEX IF NOT EXISTS arrival_promises_watch_idx ON arrival_promises (status, leave_by_unix);
 CREATE INDEX IF NOT EXISTS arrival_promises_user_idx ON arrival_promises (user_id, target_arrival_unix DESC);
+CREATE INDEX IF NOT EXISTS notification_deliveries_device_time_idx ON notification_deliveries (device_id, created_at DESC);
 
 -- ---------------------------------------------------------------------------
 -- Replacements for Supabase-managed objects (auth schema, pgmq, vault).
@@ -755,22 +769,6 @@ CREATE TABLE IF NOT EXISTS email_queue (
   enqueued_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 CREATE INDEX IF NOT EXISTS email_queue_ready_idx ON email_queue (queue_name, vt, msg_id);
-
--- Delivery ledger written by notify.server.ts (had no Supabase migration).
-CREATE TABLE IF NOT EXISTS notification_deliveries (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  category TEXT,
-  tag TEXT,
-  title TEXT,
-  body TEXT,
-  url TEXT,
-  device_id TEXT,
-  sent INTEGER NOT NULL DEFAULT 0,
-  failed INTEGER NOT NULL DEFAULT 0,
-  pruned INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
-);
-CREATE INDEX IF NOT EXISTS notification_deliveries_created_idx ON notification_deliveries (created_at);
 
 -- Names the code reads that never had their own table in Supabase.
 CREATE VIEW IF NOT EXISTS stop_conditions AS

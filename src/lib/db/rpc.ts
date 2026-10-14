@@ -22,12 +22,14 @@ const RPCS: Record<string, RpcFn> = {
     return row ?? null;
   },
 
-  // Group page payload: group + members (+ me_id when the caller's member token matches).
+  // Group page payload: group + members (+ me_id when the caller's member
+  // token matches). Expired groups stay readable for 24 h with expired=true
+  // (deploy/supabase/sql/20260817_group_view_grace.sql).
   async get_trip_group_view(db, { p_code, p_member_token }) {
     if (!p_code || String(p_code).length < 4) return null;
     const g = await db
       .prepare(`SELECT * FROM trip_groups WHERE code = ? AND expires_at > ? LIMIT 1`)
-      .bind(String(p_code).toUpperCase(), iso())
+      .bind(String(p_code).toUpperCase(), iso(-24 * 3600_000))
       .first<Record<string, unknown>>();
     if (!g) return null;
     let meId: string | null = null;
@@ -56,6 +58,7 @@ const RPCS: Record<string, RpcFn> = {
       created_by_name: g.created_by_name,
       created_at: g.created_at,
       expires_at: g.expires_at,
+      expired: String(g.expires_at) <= iso(),
       me_id: meId,
       members: (members.results ?? []).map((m) => fromDbRow(meta, m)),
     };
@@ -113,6 +116,72 @@ const RPCS: Record<string, RpcFn> = {
       )
       .all();
     return out.results ?? [];
+  },
+
+  // GTFS-RT ingest (deploy/supabase/sql/20260821_ingest_v2_and_retention.sql).
+  // One statement per table over json_each(?) so a whole chunk costs a single
+  // bound parameter and one D1 round trip (batched).
+  async ingest_gtfs_snapshots_v2(db, { snapshots, observed, stats }) {
+    const stmts = [];
+    const now = iso();
+    if (Array.isArray(snapshots) && snapshots.length) {
+      stmts.push(
+        db
+          .prepare(
+            `INSERT INTO rt_snapshots (route_id, stop_id, trip_id, predicted_arrival, delay_sec, captured_at)
+             SELECT json_extract(value,'$.route_id'), json_extract(value,'$.stop_id'), json_extract(value,'$.trip_id'),
+                    json_extract(value,'$.predicted_arrival'), COALESCE(json_extract(value,'$.delay_sec'),0),
+                    COALESCE(json_extract(value,'$.captured_at'), ?1)
+               FROM json_each(?2) WHERE true
+             ON CONFLICT (trip_id, stop_id) DO UPDATE SET route_id = excluded.route_id,
+               predicted_arrival = excluded.predicted_arrival, delay_sec = excluded.delay_sec,
+               captured_at = excluded.captured_at`,
+          )
+          .bind(now, JSON.stringify(snapshots)),
+      );
+    }
+    if (Array.isArray(observed) && observed.length) {
+      stmts.push(
+        db
+          .prepare(
+            `INSERT INTO observed_arrivals (trip_id, stop_id, route_id, last_predicted_arrival, last_delay_sec, last_seen_at)
+             SELECT json_extract(value,'$.trip_id'), json_extract(value,'$.stop_id'), json_extract(value,'$.route_id'),
+                    json_extract(value,'$.last_predicted_arrival'), COALESCE(json_extract(value,'$.last_delay_sec'),0),
+                    COALESCE(json_extract(value,'$.last_seen_at'), ?1)
+               FROM json_each(?2) WHERE true
+             ON CONFLICT (trip_id, stop_id) DO UPDATE SET
+               last_predicted_arrival = excluded.last_predicted_arrival,
+               last_delay_sec = excluded.last_delay_sec, last_seen_at = excluded.last_seen_at`,
+          )
+          .bind(now, JSON.stringify(observed)),
+      );
+    }
+    if (Array.isArray(stats) && stats.length) {
+      stmts.push(
+        db
+          .prepare(
+            `INSERT INTO delay_stats (route_id, stop_id, hour_of_day, day_of_week, mean_delay_sec, sample_count, updated_at)
+             SELECT json_extract(value,'$.route_id'), json_extract(value,'$.stop_id'),
+                    json_extract(value,'$.hour_of_day'), json_extract(value,'$.day_of_week'),
+                    CAST(json_extract(value,'$.sum_delay_sec') AS REAL) / MAX(json_extract(value,'$.count'), 1),
+                    json_extract(value,'$.count'), ?1
+               FROM json_each(?2) WHERE true
+             ON CONFLICT (route_id, stop_id, hour_of_day, day_of_week) DO UPDATE SET
+               mean_delay_sec = ((delay_stats.mean_delay_sec * delay_stats.sample_count)
+                                 + (excluded.mean_delay_sec * excluded.sample_count))
+                                / MAX(delay_stats.sample_count + excluded.sample_count, 1),
+               sample_count = MIN(delay_stats.sample_count + excluded.sample_count, 100000),
+               updated_at = excluded.updated_at`,
+          )
+          .bind(now, JSON.stringify(stats)),
+      );
+    }
+    if (stmts.length) await db.batch(stmts);
+    return null;
+  },
+
+  async ingest_gtfs_snapshots(db, args) {
+    return RPCS.ingest_gtfs_snapshots_v2!(db, { ...args, stats: [] });
   },
 
   // ---- pgmq replacement (email queues) ------------------------------------

@@ -541,7 +541,7 @@ export const SCHEMA: Record<string, TableMeta> = {
    "created_at": "ts",
    "device_id": "text",
    "failed": "int",
-   "id": "int",
+   "id": "text",
    "pruned": "int",
    "sent": "int",
    "tag": "text",
@@ -552,7 +552,9 @@ export const SCHEMA: Record<string, TableMeta> = {
    "id"
   ],
   "unique": [],
-  "uuid": []
+  "uuid": [
+   "id"
+  ]
  },
  "observed_arrivals": {
   "cols": {

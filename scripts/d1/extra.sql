@@ -46,22 +46,6 @@ CREATE TABLE IF NOT EXISTS email_queue (
 );
 CREATE INDEX IF NOT EXISTS email_queue_ready_idx ON email_queue (queue_name, vt, msg_id);
 
--- Delivery ledger written by notify.server.ts (had no Supabase migration).
-CREATE TABLE IF NOT EXISTS notification_deliveries (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  category TEXT,
-  tag TEXT,
-  title TEXT,
-  body TEXT,
-  url TEXT,
-  device_id TEXT,
-  sent INTEGER NOT NULL DEFAULT 0,
-  failed INTEGER NOT NULL DEFAULT 0,
-  pruned INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
-);
-CREATE INDEX IF NOT EXISTS notification_deliveries_created_idx ON notification_deliveries (created_at);
-
 -- Names the code reads that never had their own table in Supabase.
 CREATE VIEW IF NOT EXISTS stop_conditions AS
   SELECT stop_id, attribute, value, n, source, updated_at FROM stop_attributes;

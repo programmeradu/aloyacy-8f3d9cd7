@@ -117,3 +117,31 @@ describe("D1 query builder", () => {
     expect((await db.rpc("delete_email", { queue_name: "auth_emails", message_id: b1.data[0].msg_id })).data).toBe(false);
   });
 });
+
+describe("user scoped client", () => {
+  it("only reads and writes the caller's rows", async () => {
+    const { createUserScopedClient } = await import("../index");
+    const d1 = createTestD1();
+    const admin = createDbClient(() => d1);
+    const a = createUserScopedClient("ua", () => d1);
+    await admin.from("user_settings").insert([{ user_id: "ua", locale: "el" }, { user_id: "ub", locale: "en" }]);
+    expect((await a.from("user_settings").select("user_id, locale")).data).toEqual([{ user_id: "ua", locale: "el" }]);
+    await a.from("user_settings").update({ locale: "ru", user_id: "ub" }).eq("locale", "en");
+    expect((await admin.from("user_settings").select("locale").eq("user_id", "ub").single()).data.locale).toBe("en");
+    await a.from("saved_places").insert({ user_id: "evil", kind: "custom", label: "x", lat: 1, lng: 1 });
+    expect((await admin.from("saved_places").select("user_id").single()).data.user_id).toBe("ua");
+  });
+});
+
+describe("ingest rpc", () => {
+  it("merges delay_stats deltas and upserts snapshots", async () => {
+    const snap = { route_id: "r", stop_id: "s", trip_id: "t", predicted_arrival: "2026-10-15T10:00:00.000Z", delay_sec: 60 };
+    const stat = { route_id: "r", stop_id: "s", hour_of_day: 10, day_of_week: 4, sum_delay_sec: 120, count: 2 };
+    expect((await db.rpc("ingest_gtfs_snapshots_v2", { snapshots: [snap], observed: [], stats: [stat] })).error).toBeNull();
+    await db.rpc("ingest_gtfs_snapshots_v2", { snapshots: [{ ...snap, delay_sec: 90 }], observed: [], stats: [{ ...stat, sum_delay_sec: 0, count: 2 }] });
+    const d = await db.from("delay_stats").select("mean_delay_sec, sample_count").single();
+    expect(d.data).toEqual({ mean_delay_sec: 30, sample_count: 4 });
+    const r = await db.from("rt_snapshots").select("delay_sec");
+    expect(r.data).toEqual([{ delay_sec: 90 }]);
+  });
+});
