@@ -18,7 +18,7 @@ export default defineConfig({
   vite: {
     build: {
       rollupOptions: {
-        external: [/^cloudflare:/],
+        external: [/^cloudflare:/, /\.wasm$/],
       },
     },
     plugins: [],

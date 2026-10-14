@@ -64,7 +64,18 @@ function b64ToBytes(b64: string): Uint8Array {
 const G = globalThis as unknown as { __aloya_resvg_ready?: Promise<void> };
 function ensureWasm(): Promise<void> {
   if (!G.__aloya_resvg_ready) {
-    G.__aloya_resvg_ready = initWasm(fetch(RESVG_WASM_URL)).catch((e) => {
+    // Workers forbid compiling WASM from fetched bytes, so prefer the binary
+    // bundled as a module (wrangler's CompiledWasm rule); fall back to the CDN
+    // in runtimes that can compile at run time (node tests, dev).
+    G.__aloya_resvg_ready = (async () => {
+      try {
+        const mod = await import(/* @vite-ignore */ "@resvg/resvg-wasm/index_bg.wasm");
+        await initWasm(mod.default as WebAssembly.Module);
+      } catch (e) {
+        if (String((e as Error)?.message || e).includes("Already initialized")) return;
+        await initWasm(fetch(RESVG_WASM_URL));
+      }
+    })().catch((e) => {
       if (String(e?.message || e).includes("Already initialized")) return;
       throw e;
     });

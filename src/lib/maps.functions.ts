@@ -36,7 +36,9 @@ const PlaceIdSchema = z
   .string()
   .min(1)
   .max(300)
-  .regex(/^[A-Za-z0-9_-]+$/, "Invalid place ID");
+  // Mapbox ids are prefixed `mbx.` and may contain dots; never allow `/` or `..`.
+  .regex(/^[A-Za-z0-9_.:-]+$/, "Invalid place ID")
+  .refine((v) => !v.includes(".."), "Invalid place ID");
 
 export const getPlace = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ placeId: PlaceIdSchema }).parse(input))
