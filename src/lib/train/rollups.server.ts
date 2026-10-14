@@ -2,7 +2,8 @@
 // segment runtimes, stop dwell times, and feed-vs-truth accuracy.
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { blendStat, haversineM } from "./shared.server";
+import { haversineM } from "./shared.server";
+import { bulkMerge, trainBudget, type MergeRow } from "@/lib/db/bulk";
 import { cyHourDow } from "@aloya/core/cy-time";
 
 // ---------- segment runtimes (rider GPS → stop-to-stop times) -------------
@@ -11,6 +12,7 @@ import { cyHourDow } from "@aloya/core/cy-time";
 // active_trips. This is rough but real — actual end-to-end time is the
 // strongest signal we have until we wire stop-snap.
 export async function rollupSegmentRuntimes(): Promise<number> {
+  const budget = trainBudget();
   const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
   const { data: fixes } = await supabaseAdmin
     .from("rider_vehicle_fixes")
@@ -18,7 +20,7 @@ export async function rollupSegmentRuntimes(): Promise<number> {
     .gte("reported_at", since)
     .order("trip_id")
     .order("reported_at")
-    .limit(20000);
+    .limit(budget.scanRows);
   if (!fixes || fixes.length < 2) return 0;
 
   const byTrip = new Map<string, typeof fixes>();
@@ -28,17 +30,24 @@ export async function rollupSegmentRuntimes(): Promise<number> {
     byTrip.set(f.trip_id, arr);
   }
 
-  let inserted = 0;
-  for (const [tripId, arr] of byTrip) {
-    if (arr.length < 4) continue;
-    // Pull the rider's planned legs so we can attribute the trip span
-    // across known board→alight pairs.
-    const { data: at } = await supabaseAdmin
-      .from("active_trips")
-      .select("legs")
-      .eq("trip_id", tripId)
-      .maybeSingle();
-    const legs = (at?.legs ?? []) as Array<{
+  // One query for every candidate trip's planned legs (was one per trip).
+  const candidates = [...byTrip].filter(([, arr]) => arr.length >= 4).map(([id]) => id);
+  if (candidates.length === 0) return 0;
+  const { data: active } = await supabaseAdmin
+    .from("active_trips")
+    .select("trip_id, legs")
+    .in("trip_id", candidates);
+  const legsByTrip = new Map<string, unknown>();
+  for (const a of (active ?? []) as Array<{ trip_id: string; legs: unknown }>) {
+    if (!legsByTrip.has(a.trip_id)) legsByTrip.set(a.trip_id, a.legs);
+  }
+
+  const rows: MergeRow[] = [];
+  for (const tripId of candidates) {
+    const arr = byTrip.get(tripId)!;
+    // The rider's planned legs attribute the trip span across known
+    // board→alight pairs.
+    const legs = (legsByTrip.get(tripId) ?? []) as Array<{
       kind: string;
       routeId?: string;
       board?: { stopId: string };
@@ -53,25 +62,26 @@ export async function rollupSegmentRuntimes(): Promise<number> {
     if (elapsedSec < 30 || elapsedSec > 5400) continue;
     const d = new Date(first.reported_at);
     const { hour, dow } = cyHourDow(d.getTime());
-    await blendStat(
-      "segment_runtimes",
-      {
-        route_id: ride.routeId ?? first.route_id ?? "unknown",
-        from_stop_id: ride.board.stopId,
-        to_stop_id: ride.alight.stopId,
-        hour_of_day: hour,
-        day_of_week: dow,
-      },
-      "mean_runtime_sec",
-      { mean: elapsedSec, count: 1 },
-    );
-    inserted++;
+    rows.push({
+      route_id: ride.routeId ?? first.route_id ?? "unknown",
+      from_stop_id: ride.board.stopId,
+      to_stop_id: ride.alight.stopId,
+      hour_of_day: hour,
+      day_of_week: dow,
+      mean_runtime_sec: elapsedSec,
+      sample_count: 1,
+    });
   }
-  return inserted;
+  return bulkMerge("segment_runtimes", rows.slice(0, budget.writeKeys), {
+    key: ["route_id", "from_stop_id", "to_stop_id", "hour_of_day", "day_of_week"],
+    mean: ["mean_runtime_sec"],
+    touchUpdatedAt: true,
+  });
 }
 
 // ---------- dwell times (rider speed ≈ 0) ---------------------------------
 export async function rollupDwellTimes(): Promise<number> {
+  const budget = trainBudget();
   const since = new Date(Date.now() - 6 * 3600 * 1000).toISOString();
   const { data: fixes } = await supabaseAdmin
     .from("rider_vehicle_fixes")
@@ -81,7 +91,7 @@ export async function rollupDwellTimes(): Promise<number> {
     .lte("speed_mps", 0.8)
     .order("trip_id")
     .order("reported_at")
-    .limit(20000);
+    .limit(budget.scanRows);
   if (!fixes || fixes.length < 2) return 0;
 
   // Group consecutive low-speed fixes per trip into dwell windows.
@@ -143,7 +153,7 @@ export async function rollupDwellTimes(): Promise<number> {
     stopsByTrip.set(t.trip_id, stops);
   }
 
-  let inserted = 0;
+  const rows: MergeRow[] = [];
   for (const d of dwells) {
     const stops = stopsByTrip.get(d.trip) ?? [];
     let best: { id: string; distM: number } | null = null;
@@ -154,20 +164,20 @@ export async function rollupDwellTimes(): Promise<number> {
     if (!best || best.distM > 60) continue; // not at a stop
     const dt = new Date(d.at);
     const { hour, dow } = cyHourDow(dt.getTime());
-    await blendStat(
-      "dwell_stats",
-      {
-        route_id: d.route,
-        stop_id: best.id,
-        hour_of_day: hour,
-        day_of_week: dow,
-      },
-      "mean_dwell_sec",
-      { mean: d.sec, count: 1 },
-    );
-    inserted++;
+    rows.push({
+      route_id: d.route,
+      stop_id: best.id,
+      hour_of_day: hour,
+      day_of_week: dow,
+      mean_dwell_sec: d.sec,
+      sample_count: 1,
+    });
   }
-  return inserted;
+  return bulkMerge("dwell_stats", rows.slice(0, budget.writeKeys), {
+    key: ["route_id", "stop_id", "hour_of_day", "day_of_week"],
+    mean: ["mean_dwell_sec"],
+    touchUpdatedAt: true,
+  });
 }
 
 // Feed-vs-truth pairing lives in feed-delta.server.ts (both mean fields

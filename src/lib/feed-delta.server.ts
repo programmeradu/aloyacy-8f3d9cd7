@@ -16,6 +16,7 @@ import {
 } from "@aloya/core/feed-delta";
 import { RIDER_PHYSICS_FOLD_MIN } from "@aloya/core/rider-physics";
 import routeStops from "@/data/route_stops.json";
+import { bulkMerge, trainBudget } from "@/lib/db/bulk";
 
 const db = supabaseAdmin as unknown as SupabaseClient;
 const ROUTE_STOPS = routeStops as Record<string, string[]>;
@@ -47,45 +48,12 @@ function routesForStop(stopId: string): string[] {
   return _routesByStop.get(stopId) ?? [];
 }
 
-async function blendFeedDelta(
-  key: { route_id: string; hour_of_day: number; day_of_week: number },
-  sample: { meanM: number; meanSec: number; count: number },
-): Promise<boolean> {
-  const { data, error } = await db
-    .from("feed_truth_delta")
-    .select("mean_delta_m, mean_delta_sec, sample_count")
-    .eq("route_id", key.route_id)
-    .eq("hour_of_day", key.hour_of_day)
-    .eq("day_of_week", key.day_of_week)
-    .maybeSingle();
-  if (error && missingTable(error.message)) return false;
-  const prev = data as {
-    mean_delta_m?: number;
-    mean_delta_sec?: number;
-    sample_count?: number;
-  } | null;
-  const prevN = prev?.sample_count ?? 0;
-  const newN = prevN + sample.count;
-  if (newN === 0) return false;
-  const newMeanM = ((prev?.mean_delta_m ?? 0) * prevN + sample.meanM * sample.count) / newN;
-  const newMeanSec = ((prev?.mean_delta_sec ?? 0) * prevN + sample.meanSec * sample.count) / newN;
-  const { error: upErr } = await db.from("feed_truth_delta").upsert(
-    {
-      ...key,
-      mean_delta_m: newMeanM,
-      mean_delta_sec: newMeanSec,
-      sample_count: newN,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "route_id,hour_of_day,day_of_week" },
-  );
-  return !upErr;
-}
-
 export async function rollupFeedVsTruth(nowMs = Date.now()): Promise<number> {
   const since = new Date(nowMs - WINDOW_MS).toISOString();
+  // Free-plan cap on pages read (each page is one D1 query).
+  const scan = Math.min(trainBudget().scanRows, MAX_PINGS);
   const feeds: FeedPing[] = [];
-  for (let from = 0; from < MAX_PINGS; from += PAGE) {
+  for (let from = 0; from < scan; from += PAGE) {
     const { data, error } = await db
       .from("vehicle_pings")
       .select("trip_id, route_id, lat, lng, captured_at, source")
@@ -116,7 +84,7 @@ export async function rollupFeedVsTruth(nowMs = Date.now()): Promise<number> {
   if (feeds.length === 0) return 0;
 
   const riders: RiderFix[] = [];
-  for (let from = 0; from < MAX_FIXES; from += PAGE) {
+  for (let from = 0; from < Math.min(scan, MAX_FIXES); from += PAGE) {
     const { data, error } = await db
       .from("rider_vehicle_fixes")
       .select("trip_id, lat, lng, reported_at, physics_score")
@@ -146,15 +114,28 @@ export async function rollupFeedVsTruth(nowMs = Date.now()): Promise<number> {
   if (riders.length === 0) return 0;
 
   const buckets = bucketPairs(pairFeedAndRider(feeds, riders));
-  let written = 0;
-  for (const b of buckets) {
-    const ok = await blendFeedDelta(
-      { route_id: b.routeId, hour_of_day: b.hour, day_of_week: b.dow },
-      { meanM: b.meanDeltaM, meanSec: b.meanDeltaSec, count: b.n },
+  // Both means blended in SQL, one batched write (was SELECT + UPSERT per bucket).
+  try {
+    return await bulkMerge(
+      "feed_truth_delta",
+      buckets.slice(0, trainBudget().writeKeys).map((b) => ({
+        route_id: b.routeId,
+        hour_of_day: b.hour,
+        day_of_week: b.dow,
+        mean_delta_m: b.meanDeltaM,
+        mean_delta_sec: b.meanDeltaSec,
+        sample_count: b.n,
+      })),
+      {
+        key: ["route_id", "hour_of_day", "day_of_week"],
+        mean: ["mean_delta_m", "mean_delta_sec"],
+        touchUpdatedAt: true,
+      },
     );
-    if (ok) written += 1;
+  } catch (e) {
+    if (missingTable((e as Error)?.message)) return 0;
+    throw e;
   }
-  return written;
 }
 
 export async function loadFeedDeltaHints(

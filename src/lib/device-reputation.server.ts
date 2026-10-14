@@ -12,6 +12,7 @@ import {
   type ReputationTruth,
 } from "@aloya/core/device-reputation";
 import { RIDER_PHYSICS_FOLD_MIN } from "@aloya/core/rider-physics";
+import { trainBudget } from "@/lib/db/bulk";
 import { getRoute, getStop } from "@/lib/gtfs";
 
 const db = supabaseAdmin as unknown as SupabaseClient;
@@ -48,8 +49,9 @@ export async function loadCanCarryDevices(deviceIds: string[]): Promise<Set<stri
 
 export async function rollupDeviceReputation(nowMs = Date.now()): Promise<{ devices: number }> {
   const since = new Date(nowMs - REP_WINDOW_DAYS * 86_400_000).toISOString();
+  const budget = trainBudget();
   const truths: ReputationTruth[] = [];
-  for (let from = 0; from < MAX_TRUTH; from += PAGE) {
+  for (let from = 0; from < Math.min(MAX_TRUTH, budget.scanRows); from += PAGE) {
     const { data, error } = await db
       .from("arrival_truth")
       .select("trip_id, stop_id, route_id, actual_arrival")
@@ -75,8 +77,12 @@ export async function rollupDeviceReputation(nowMs = Date.now()): Promise<{ devi
 
   const tripIds = [...new Set(truths.map((t) => t.tripId))];
   const fixes: ReputationFix[] = [];
-  for (let i = 0; i < tripIds.length && fixes.length < MAX_FIXES; i += 80) {
-    const chunk = tripIds.slice(i, i + 80);
+  // The adapter binds an IN list as one JSON parameter, so big chunks are
+  // fine; cap the number of queries for the free plan.
+  const CHUNK = 400;
+  const maxChunks = 4;
+  for (let i = 0; i < tripIds.length && i < CHUNK * maxChunks && fixes.length < Math.min(MAX_FIXES, budget.scanRows * 2); i += CHUNK) {
+    const chunk = tripIds.slice(i, i + CHUNK);
     const { data, error } = await db
       .from("rider_vehicle_fixes")
       .select("trip_id, device_id, lat, lng, reported_at, physics_score")
@@ -104,21 +110,18 @@ export async function rollupDeviceReputation(nowMs = Date.now()): Promise<{ devi
   }
 
   const errors = errorsByDevice(truths, fixes, stopOf);
-  let devices = 0;
+  const rows: Array<{ device_id: string; score: number; n: number; updated_at: string }> = [];
   for (const [deviceId, err] of errors) {
     const r = scoreDeviceReputation(err);
     if (r.n === 0) continue;
-    const { error } = await db.from("device_reputation").upsert(
-      {
-        device_id: deviceId,
-        score: r.score,
-        n: r.n,
-        updated_at: new Date(nowMs).toISOString(),
-      },
-      { onConflict: "device_id" },
-    );
-    if (error && !missingTable(error.message)) continue;
-    if (!error) devices += 1;
+    rows.push({ device_id: deviceId, score: r.score, n: r.n, updated_at: new Date(nowMs).toISOString() });
+  }
+  // One multi-row upsert (was one per device).
+  const capped = rows.slice(0, budget.writeKeys);
+  let devices = 0;
+  if (capped.length) {
+    const { error } = await db.from("device_reputation").upsert(capped, { onConflict: "device_id" });
+    if (!error) devices = capped.length;
   }
   return { devices };
 }

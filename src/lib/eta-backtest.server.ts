@@ -12,6 +12,7 @@ import {
   type TruthRow,
 } from "@aloya/core/eta-backtest";
 import { createLogger } from "./logger";
+import { trainBudget } from "@/lib/db/bulk";
 
 const db = supabaseAdmin as unknown as SupabaseClient;
 const log = createLogger("eta-backtest");
@@ -133,7 +134,7 @@ export async function runEtaBacktest(nowMs = Date.now()): Promise<{
     sinceIso,
     "created_at",
     "created_at",
-    MAX_PREDICTIONS,
+    Math.min(MAX_PREDICTIONS, trainBudget().scanRows),
   );
   const truths = await pageRows<TruthDb>(
     "arrival_truth",
@@ -141,12 +142,16 @@ export async function runEtaBacktest(nowMs = Date.now()): Promise<{
     sinceIso,
     "actual_arrival",
     "actual_arrival",
-    MAX_TRUTH,
+    Math.min(MAX_TRUTH, trainBudget().scanRows),
   );
   const scored = scorePredictions(preds.map(asPrediction), truths.map(asTruth));
   const aggs = aggregateScores(scored);
   const computedAt = new Date(nowMs).toISOString();
-  const payload = aggs.map((a) => dbRow(a, computedAt));
+  const all = aggs.map((a) => dbRow(a, computedAt));
+  // Free-plan cap on rows written per run; when truncated the stale-row
+  // sweep is skipped so unwritten groups keep their previous score.
+  const payload = all.slice(0, trainBudget().writeKeys);
+  const truncated = payload.length < all.length;
 
   if (payload.length > 0) {
     const { error } = await db.from("eta_accuracy").upsert(payload, {
@@ -157,8 +162,10 @@ export async function runEtaBacktest(nowMs = Date.now()): Promise<{
       log.error("upsert failed", error, { rows: payload.length });
       return { predictions: preds.length, truth: truths.length, scored: scored.length, rows: 0 };
     }
-    const { error: delErr } = await db.from("eta_accuracy").delete().lt("computed_at", computedAt);
-    if (delErr) log.error("stale delete failed", delErr);
+    if (!truncated) {
+      const { error: delErr } = await db.from("eta_accuracy").delete().lt("computed_at", computedAt);
+      if (delErr) log.error("stale delete failed", delErr);
+    }
   }
 
   log.info("backtest wrote", {
