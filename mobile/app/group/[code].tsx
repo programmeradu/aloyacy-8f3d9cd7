@@ -26,7 +26,6 @@ import * as Clipboard from "expo-clipboard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { palette } from "@/constants/theme";
-import { supabase } from "@/lib/supabase";
 import { API_BASE } from "@/lib/api";
 import { GroupMap, type GroupMapMember } from "@/components/GroupMap";
 import {
@@ -74,11 +73,11 @@ export default function GroupWatchScreen() {
     queryKey: ["mobile-trip-group-view", code, myToken],
     enabled: !!code,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_trip_group_view", {
-        p_code: code,
-        p_member_token: myToken ?? undefined,
-      });
-      if (error) throw error;
+      const qs = new URLSearchParams({ code: String(code) });
+      if (myToken) qs.set("memberToken", myToken);
+      const res = await fetch(`${API_BASE}/api/public/trip-group-view?${qs}`);
+      if (!res.ok) throw new Error(`trip-group-view ${res.status}`);
+      const data = (await res.json()) as unknown;
       return (data as (GroupRow & { members: MemberRow[]; me_id: string | null }) | null) ?? null;
     },
     refetchInterval: 15_000,

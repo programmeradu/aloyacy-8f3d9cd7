@@ -23,7 +23,7 @@ import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { useQuery } from "@tanstack/react-query";
 import { palette } from "@/constants/theme";
-import { supabase } from "@/lib/supabase";
+import { API_BASE } from "@/lib/api";
 import { GroupMap, type GroupMapMember } from "@/components/GroupMap";
 
 const HERO =
@@ -74,13 +74,11 @@ export default function EtaWatchScreen() {
     queryKey: ["mobile-shared-trip", cleanToken],
     enabled: !!cleanToken,
     queryFn: async (): Promise<SharedTripRow | null> => {
-      const { data, error } = await supabase
-        .from("shared_trips")
-        .select("*")
-        .eq("token", cleanToken)
-        .maybeSingle();
-      if (error) throw error;
-      return (data as SharedTripRow | null) ?? null;
+      const res = await fetch(
+        `${API_BASE}/api/public/eta-share?token=${encodeURIComponent(cleanToken)}`,
+      );
+      if (!res.ok) throw new Error(`eta-share ${res.status}`);
+      return ((await res.json()) as SharedTripRow | null) ?? null;
     },
     refetchInterval: 15_000,
   });

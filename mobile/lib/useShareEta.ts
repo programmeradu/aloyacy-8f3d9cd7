@@ -5,15 +5,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-function randomToken(): string {
-  // 128-bit token, base36 — good enough as an unguessable capability.
-  const a = Math.floor(Math.random() * 0xffffffff).toString(36);
-  const b = Math.floor(Math.random() * 0xffffffff).toString(36);
-  const c = Math.floor(Math.random() * 0xffffffff).toString(36);
-  const d = Math.floor(Math.random() * 0xffffffff).toString(36);
-  return `${a}${b}${c}${d}${Date.now().toString(36)}`;
-}
-import { supabase } from "./supabase";
+import { API_BASE } from "./api";
 import type { ActiveTrip } from "./trip-store";
 
 const PING_INTERVAL_MS = 20_000;
@@ -23,7 +15,17 @@ export type ShareEtaSession = {
   token: string;
   url: string;
   createdAt: number;
+  /** Capability for ping/end; only this device holds it. */
+  writeKey: string;
 };
+
+async function postShare(body: Record<string, unknown>): Promise<Response> {
+  return fetch(`${API_BASE}/api/public/eta-share`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
 
 const STORAGE_PREFIX = "aloya.shareEta.v1:";
 const memoryCache = new Map<string, ShareEtaSession>();
@@ -48,29 +50,26 @@ export function useShareEta(opts: {
     if (creating) return null;
     setCreating(true);
     try {
-      const token = randomToken();
-      const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("shared_trips").insert({
-        token,
-        owner_id: user?.id ?? null,
-        origin_label: active.from.label,
-        destination_label: active.to.label,
-        destination_lat: active.to.lat,
-        destination_lng: active.to.lng,
-        last_lat: fix?.lat ?? null,
-        last_lng: fix?.lng ?? null,
-        last_updated: fix ? new Date().toISOString() : null,
-        eta_minutes: etaMinutes,
-        status: "active",
-      });
-      if (error) {
-        console.warn("[shareEta] insert failed", error);
+      const res = await postShare({
+        action: "create",
+        originLabel: active.from.label,
+        destinationLabel: active.to.label,
+        destinationLat: active.to.lat,
+        destinationLng: active.to.lng,
+        lastLat: fix?.lat ?? null,
+        lastLng: fix?.lng ?? null,
+        etaMinutes,
+      }).catch(() => null);
+      if (!res?.ok) {
+        console.warn("[shareEta] create failed", res?.status);
         return null;
       }
+      const created = (await res.json()) as { token: string; url: string; writeKey: string };
       const next: ShareEtaSession = {
-        token,
-        url: `${PUBLIC_BASE}/eta/${token}`,
+        token: created.token,
+        url: created.url || `${PUBLIC_BASE}/eta/${created.token}`,
         createdAt: Date.now(),
+        writeKey: created.writeKey,
       };
       memoryCache.set(keyFor(active), next);
       setSession(next);
@@ -82,10 +81,7 @@ export function useShareEta(opts: {
 
   const stop = useCallback(async () => {
     if (!session) return;
-    await supabase
-      .from("shared_trips")
-      .update({ status: "ended", last_updated: new Date().toISOString() })
-      .eq("token", session.token);
+    await postShare({ action: "end", token: session.token, writeKey: session.writeKey }).catch(() => null);
     memoryCache.delete(keyFor(active));
     setSession(null);
   }, [session, active]);
@@ -96,15 +92,14 @@ export function useShareEta(opts: {
     const now = Date.now();
     if (now - lastPingRef.current < PING_INTERVAL_MS) return;
     lastPingRef.current = now;
-    void supabase
-      .from("shared_trips")
-      .update({
-        last_lat: fix.lat,
-        last_lng: fix.lng,
-        last_updated: new Date().toISOString(),
-        eta_minutes: etaMinutes,
-      })
-      .eq("token", session.token);
+    void postShare({
+      action: "ping",
+      token: session.token,
+      writeKey: session.writeKey,
+      lastLat: fix.lat,
+      lastLng: fix.lng,
+      etaMinutes,
+    }).catch(() => null);
   }, [session, fix, etaMinutes]);
 
   return { session, create, stop, creating };
