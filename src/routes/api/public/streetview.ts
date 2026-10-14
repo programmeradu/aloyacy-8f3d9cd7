@@ -174,11 +174,24 @@ export const Route = createFileRoute("/api/public/streetview")({
 
         // Default: stream the JPEG back so the browser doesn't need a
         // Mapillary token for thumbnails and we keep one cacheable origin.
-        const img = await fetch(best.thumb_1024_url);
-        if (!img.ok) {
-          return new Response(`Mapillary thumbnail fetch failed: ${img.status}`, {
-            status: 502,
-            headers: CORS,
+        // Meta's CDN rejects the Worker's default fetch, so send a browser-ish
+        // UA. If it still refuses, redirect the client to the signed CDN URL
+        // (it carries Meta's signature, not our access token).
+        const img = await fetch(best.thumb_1024_url, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (compatible; AloyaBot/1.0; +https://app.aloya.cy)",
+            Accept: "image/*",
+          },
+        }).catch(() => null);
+        if (!img || !img.ok) {
+          return new Response(null, {
+            status: 302,
+            headers: {
+              Location: best.thumb_1024_url,
+              "Cache-Control": "private, max-age=600",
+              "X-Mapillary-Image-Id": best.id,
+              ...CORS,
+            },
           });
         }
         const buf = await img.arrayBuffer();
