@@ -1,3 +1,1 @@
-# Ignore massive daily schedule date shards; these are served via Supabase Storage CDN
-data/schedule/by-date/**
-data/schedule/by-date/*
+# Schedule shards under data/schedule/by-date are served as static assets (read by the Worker via the ASSETS binding).

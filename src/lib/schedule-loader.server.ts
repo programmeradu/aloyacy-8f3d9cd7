@@ -1,7 +1,7 @@
 // Lazy loader for the static schedule bundle in public/data/schedule/.
 //
-// Cold-path: fetch the per-date shard from the origin (served as a static
-// asset by the Worker). Warm-path: served from an in-memory module-scope
+// Cold-path: read the per-date shard through the Worker's ASSETS binding
+// (bundled static assets), then R2. Warm-path: served from an in-memory module-scope
 // cache that survives across requests within the same isolate.
 //
 // We deliberately load only what we need:
@@ -44,27 +44,32 @@ let _trips: Record<string, ScheduleTrip> | null = null;
 const _shards = new Map<string, DateShard>();
 const SHARD_TTL_MS = 60 * 60 * 1000; // 1h
 
-const DEFAULT_SCHEDULE_STORAGE_URL = "https://xbidevhyloeetxfjdjiy.supabase.co";
+type AssetsBinding = { fetch: (req: Request) => Promise<Response> };
+type R2ObjectBodyLike = { json<T>(): Promise<T> };
+type R2BucketLike = { get: (key: string) => Promise<R2ObjectBodyLike | null> };
+type ScheduleEnv = { ASSETS?: AssetsBinding; SCHEDULE?: R2BucketLike; DATA_LAKE?: R2BucketLike };
 
-function candidateUrls(path: string): string[] {
-  const urls: string[] = [];
-  // Prefer the Supabase Storage `schedule` bucket — refreshed nightly by the
-  // pg_cron job, no redeploy needed. `path` is /data/schedule/<rest>, so we
-  // strip the prefix when mapping to the bucket key.
-  const bucketKey = path.replace(/^\/data\/schedule\//, "");
-  const supaUrl = (
-    process.env.CUSTOM_SUPABASE_URL ||
-    process.env.SUPABASE_URL ||
-    (typeof import.meta !== "undefined" && import.meta.env?.VITE_CUSTOM_SUPABASE_URL) ||
-    DEFAULT_SCHEDULE_STORAGE_URL
-  ).replace(/\/+$/, "");
-
-  urls.push(`${supaUrl}/storage/v1/object/public/schedule/${bucketKey}`);
-  if (supaUrl !== DEFAULT_SCHEDULE_STORAGE_URL) {
-    urls.push(`${DEFAULT_SCHEDULE_STORAGE_URL}/storage/v1/object/public/schedule/${bucketKey}`);
+/** Worker bindings: `cloudflare:workers` env first (works outside a request,
+ *  e.g. in scheduled()), then the env server.ts stashes on every fetch. */
+async function scheduleEnv(): Promise<ScheduleEnv> {
+  try {
+    const mod = (await import(/* @vite-ignore */ "cloudflare:workers")) as { env?: ScheduleEnv };
+    if (mod?.env && (mod.env.ASSETS || mod.env.DATA_LAKE || mod.env.SCHEDULE)) return mod.env;
+  } catch {
+    // not running on workerd (node tests, vite dev)
   }
+  try {
+    const { getWorkerEnv } = await import("./worker-env");
+    return (getWorkerEnv() ?? {}) as ScheduleEnv;
+  } catch {
+    return {};
+  }
+}
 
-  // Fallback: the bundled snapshot in /public, served by the origin.
+/** Last-resort HTTP origins for the bundled snapshot in /public. A Worker
+ *  cannot reliably fetch its own hostname, so these only help in dev/tests. */
+function originUrls(path: string): string[] {
+  const urls: string[] = [];
   try {
     const req = getRequest();
     if (req) urls.push(new URL(path, req.url).toString());
@@ -73,14 +78,39 @@ function candidateUrls(path: string): string[] {
   }
   if (process.env.PUBLIC_SITE_URL) urls.push(new URL(path, process.env.PUBLIC_SITE_URL).toString());
   urls.push(new URL(path, "https://app.aloya.cy").toString());
-  urls.push(new URL(path, "https://aloyacy.lovable.app").toString());
   return [...new Set(urls)];
 }
 
+// Read order: ASSETS binding (bundled shards, no self-subrequest) → R2
+// (`schedule/<rest>` in SCHEDULE or DATA_LAKE, refreshed by ingest-schedule)
+// → HTTP origin fallback. Supabase Storage is no longer a source.
 async function fetchJson<T>(path: string): Promise<T> {
-  const urls = candidateUrls(path);
   const errors: string[] = [];
-  for (const url of urls) {
+  const env = await scheduleEnv();
+
+  if (env.ASSETS) {
+    try {
+      const res = await env.ASSETS.fetch(new Request(`https://assets.local${path}`));
+      if (res.ok) return (await res.json()) as T;
+      errors.push(`ASSETS ${path} → ${res.status}`);
+    } catch (err) {
+      errors.push(`ASSETS ${path} → ${(err as Error).message}`);
+    }
+  }
+
+  const bucket = env.SCHEDULE ?? env.DATA_LAKE;
+  if (bucket) {
+    const key = `schedule/${path.replace(/^\/data\/schedule\//, "")}`;
+    try {
+      const obj = await bucket.get(key);
+      if (obj) return await obj.json<T>();
+      errors.push(`R2 ${key} → 404`);
+    } catch (err) {
+      errors.push(`R2 ${key} → ${(err as Error).message}`);
+    }
+  }
+
+  for (const url of originUrls(path)) {
     try {
       const res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
       if (!res.ok) {
