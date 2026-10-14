@@ -23,6 +23,21 @@ afterEach(() => {
 });
 
 describe("GET /api/public/health", () => {
+  it("probes D1 when the binding is present", async () => {
+    const { setD1ForTests } = await import("@/lib/db");
+    const { createTestD1 } = await import("@/lib/db/__tests__/sqlite-d1");
+    setD1ForTests(createTestD1());
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("no network"); }));
+    try {
+      const res = await callHealth();
+      const body = (await res.json()) as { status: string; checks: { name: string; ok: boolean }[] };
+      expect(res.status).toBe(200);
+      expect(body.checks.find((c) => c.name === "database")?.ok).toBe(true);
+    } finally {
+      setD1ForTests(null);
+    }
+  });
+
   it("reports ok when the database answers and no relay is configured", async () => {
     vi.stubGlobal(
       "fetch",

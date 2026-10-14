@@ -88,6 +88,23 @@ async function fetchJson<T>(path: string): Promise<T> {
   const errors: string[] = [];
   const env = await scheduleEnv();
 
+  // R2 first: the nightly ingest-schedule hook writes stops/routes/trips and
+  // the date shards there together, so they stay consistent with each other.
+  // The bundled snapshot in ASSETS is the fallback (fresh deploy, R2 empty).
+  const bucket = env.SCHEDULE ?? env.DATA_LAKE;
+  if (bucket) {
+    // Same key layout as storage.ts writes: own SCHEDULE bucket = no prefix,
+    // shared DATA_LAKE = `schedule/` prefix (schedule/by-date/<d>/...).
+    const key = `${env.SCHEDULE ? "" : "schedule/"}${path.replace(/^\/data\/schedule\//, "")}`;
+    try {
+      const obj = await bucket.get(key);
+      if (obj) return await obj.json<T>();
+      errors.push(`R2 ${key} → 404`);
+    } catch (err) {
+      errors.push(`R2 ${key} → ${(err as Error).message}`);
+    }
+  }
+
   if (env.ASSETS) {
     try {
       const res = await env.ASSETS.fetch(new Request(`https://assets.local${path}`));
@@ -95,18 +112,6 @@ async function fetchJson<T>(path: string): Promise<T> {
       errors.push(`ASSETS ${path} → ${res.status}`);
     } catch (err) {
       errors.push(`ASSETS ${path} → ${(err as Error).message}`);
-    }
-  }
-
-  const bucket = env.SCHEDULE ?? env.DATA_LAKE;
-  if (bucket) {
-    const key = `schedule/${path.replace(/^\/data\/schedule\//, "")}`;
-    try {
-      const obj = await bucket.get(key);
-      if (obj) return await obj.json<T>();
-      errors.push(`R2 ${key} → 404`);
-    } catch (err) {
-      errors.push(`R2 ${key} → ${(err as Error).message}`);
     }
   }
 

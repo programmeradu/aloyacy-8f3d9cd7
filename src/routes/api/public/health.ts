@@ -36,6 +36,22 @@ async function timed(name: string, run: (signal: AbortSignal) => Promise<void>):
 }
 
 async function probeDatabase(): Promise<Probe> {
+  // D1 (the primary store) when bound; the legacy Supabase REST probe only
+  // for deployments that still run without the DB binding.
+  let d1: import("@/lib/db").D1Database | null = null;
+  try {
+    const { getD1 } = await import("@/lib/db");
+    d1 = getD1();
+  } catch {
+    d1 = null;
+  }
+  if (d1) {
+    const bound = d1;
+    return timed("database", async () => {
+      const row = await bound.prepare("SELECT 1 AS ok").first<{ ok: number }>();
+      if (!row || Number(row.ok) !== 1) throw new Error("D1 SELECT 1 failed");
+    });
+  }
   const url = process.env["CUSTOM_SUPABASE_URL"] ?? process.env["SUPABASE_URL"];
   const key = process.env["CUSTOM_SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"];
   if (!url || !key) {

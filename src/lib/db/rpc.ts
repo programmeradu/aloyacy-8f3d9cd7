@@ -107,6 +107,18 @@ const RPCS: Record<string, RpcFn> = {
     return null;
   },
 
+  // Island-wide delay by hour of day, from the delay_stats roll-up.
+  async pulse_hour_strip(db) {
+    const out = await db
+      .prepare(
+        `SELECT hour_of_day, SUM(sample_count) AS sample_count,
+                SUM(mean_delay_sec * sample_count) * 1.0 / NULLIF(SUM(sample_count), 0) AS mean_delay_sec
+           FROM delay_stats GROUP BY hour_of_day ORDER BY hour_of_day`,
+      )
+      .all();
+    return out.results ?? [];
+  },
+
   async pulse_route_stats(db) {
     const out = await db
       .prepare(

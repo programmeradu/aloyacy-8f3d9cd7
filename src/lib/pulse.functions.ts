@@ -317,19 +317,10 @@ export const getPulseHourStrip = createServerFn({ method: "GET" })
   const counts = new Array(24).fill(0);
 
   try {
-    const url = process.env.CUSTOM_SUPABASE_URL!;
-    const key = process.env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY!;
-    const res = await fetch(`${url}/rest/v1/rpc/pulse_hour_strip`, {
-      method: "POST",
-      headers: {
-        apikey: key,
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: "{}",
-    });
-    if (res.ok) {
-      const data = (await res.json()) as Array<{
+    const { db } = await import("@/lib/db");
+    const res = await db.rpc("pulse_hour_strip");
+    if (!res.error) {
+      const data = (res.data ?? []) as Array<{
         hour_of_day: number;
         sample_count: number;
         mean_delay_sec: number;
@@ -340,10 +331,7 @@ export const getPulseHourStrip = createServerFn({ method: "GET" })
         sums[h] = (Number(row.mean_delay_sec) || 0) * counts[h];
       }
     } else {
-      log.error("pulse_hour_strip RPC failed", undefined, {
-        status: res.status,
-        body: await res.text(),
-      });
+      log.error("pulse_hour_strip RPC failed", undefined, { error: res.error.message });
     }
   } catch (e) {
     log.error("pulse_hour_strip RPC threw", e);

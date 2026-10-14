@@ -67,20 +67,15 @@ function saveStatus(s: OfflineStatus) {
   } catch {}
 }
 
-const SCHEDULE_CDN_BASE =
-  "https://xbidevhyloeetxfjdjiy.supabase.co/storage/v1/object/public/schedule";
-
+// The Worker serves /data/schedule/* from R2 (fresh nightly ingest) with the
+// bundled static snapshot as fallback; /media/schedule/* is the raw R2 object.
 async function fetchScheduleAsset(path: string, init?: RequestInit): Promise<Response> {
-  // 1. Try local origin first
   try {
     const res = await fetch(path, init);
     if (res.ok) return res;
   } catch {}
-
-  // 2. Fall back to CDN storage bucket
   const bucketKey = path.replace(/^\/data\/schedule\//, "");
-  const fallbackUrl = `${SCHEDULE_CDN_BASE}/${bucketKey}`;
-  return await fetch(fallbackUrl, init);
+  return await fetch(`/media/schedule/${bucketKey}`, init);
 }
 
 export function getOfflineStatus(): OfflineStatus | null {

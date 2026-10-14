@@ -85,6 +85,7 @@ async function normalizeCatastrophicSsrResponse(
 
 import { setWorkerEnv } from "./lib/worker-env";
 import { runScheduled } from "./lib/cron-schedule";
+import { serveMedia } from "./lib/db/storage";
 
 const server = {
   async fetch(request: Request, env: unknown, ctx: unknown) {
@@ -92,30 +93,17 @@ const server = {
     const workerEnv = env as { ASSETS?: { fetch: typeof fetch } };
     const url = new URL(request.url);
 
-    // 1. Direct proxy for schedule data shards: if requesting /data/schedule/*,
-    // fetch from Supabase Storage public schedule CDN where all date shards and index.json are reliably hosted.
-    if (
-      url.pathname.startsWith("/data/schedule/") &&
-      (request.method === "GET" || request.method === "HEAD")
-    ) {
-      const bucketKey = url.pathname.replace(/^\/data\/schedule\//, "");
-      const supaStorageUrl = `https://xbidevhyloeetxfjdjiy.supabase.co/storage/v1/object/public/schedule/${bucketKey}`;
-      try {
-        const supaRes = await fetch(supaStorageUrl, {
-          signal: AbortSignal.timeout(10000),
-        });
-        if (supaRes.ok) {
-          const resHeaders = new Headers(supaRes.headers);
-          resHeaders.set("cache-control", "public, max-age=3600, stale-while-revalidate=86400");
-          resHeaders.set("access-control-allow-origin", "*");
-          return new Response(supaRes.body, {
-            status: 200,
-            headers: resHeaders,
-          });
-        }
-      } catch (err) {
-        log.warn("schedule proxy error", { path: url.pathname, error: String(err) });
-      }
+    // 1. Public R2 media (/media/<bucket>/<path>, see src/lib/db/storage.ts).
+    if (url.pathname.startsWith("/media/") && (request.method === "GET" || request.method === "HEAD")) {
+      const media = await serveMedia(url.pathname);
+      if (media) return media;
+    }
+
+    // 2. Schedule data: the nightly ingest writes fresh shards to R2
+    // (schedule/...); the snapshot bundled in ASSETS is the fallback below.
+    if (url.pathname.startsWith("/data/schedule/") && (request.method === "GET" || request.method === "HEAD")) {
+      const fromR2 = await serveMedia(url.pathname.replace(/^\/data\/schedule\//, "/media/schedule/"));
+      if (fromR2 && fromR2.ok) return fromR2;
     }
 
     // If request is a static asset or data file, let Cloudflare Assets binding attempt to serve it first
