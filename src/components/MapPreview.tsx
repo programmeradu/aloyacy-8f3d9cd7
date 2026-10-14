@@ -192,7 +192,8 @@ export function MapPreview({
 
   return (
     <div ref={wrapperRef} className={wrapperClass}>
-      <div ref={hostRef} className="absolute inset-0" />
+      {/* Inline position: mapbox-gl adds .mapboxgl-map { position: relative }. */}
+      <div ref={hostRef} className="absolute inset-0" style={{ position: "absolute", inset: 0 }} />
       {error && (
         <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
