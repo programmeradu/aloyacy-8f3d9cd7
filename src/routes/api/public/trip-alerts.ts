@@ -25,6 +25,7 @@ import { shouldPushStillOnBoard, STILL_ON_ALERT } from "@aloya/core/multileg-ban
 import { TripAlertsTickSchema } from "@/lib/schemas/public-api";
 
 import type { RideLeg } from "@/lib/itinerary-types";
+import { isCronAuthorized } from "@/lib/cron-auth.server";
 
 const log = createLogger("trip-alerts");
 
@@ -300,17 +301,7 @@ export const Route = createFileRoute("/api/public/trip-alerts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apikey = request.headers.get("apikey");
-        const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-        let legacySecret: string | null = process.env.CRON_SECRET ?? null;
-        const legacyHeader = request.headers.get("x-cron-secret");
-        const validApiKey =
-          apikey &&
-          apikey ===
-            (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
-        const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
-        const validLegacy = legacySecret && legacyHeader && legacyHeader === legacySecret;
-        if (!validApiKey && !validCron && !validLegacy) {
+        if (!isCronAuthorized(request)) {
           return new Response("Unauthorized", { status: 401 });
         }
         // Caller input (an optional JSON body) is schema-parsed before any

@@ -84,8 +84,9 @@ async function normalizeCatastrophicSsrResponse(
 }
 
 import { setWorkerEnv } from "./lib/worker-env";
+import { runScheduled } from "./lib/cron-schedule";
 
-export default {
+const server = {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     setWorkerEnv(env);
     const workerEnv = env as { ASSETS?: { fetch: typeof fetch } };
@@ -162,5 +163,25 @@ export default {
       return brandedErrorResponse();
     }
   },
+
+  /**
+   * Cron triggers (wrangler `triggers.crons`, see src/lib/cron-schedule.ts).
+   * Each job is a POST to its hook through this same fetch handler, in-process,
+   * with `Authorization: Bearer ${CRON_SECRET}`.
+   */
+  async scheduled(
+    event: { cron: string; scheduledTime: number },
+    env: unknown,
+    ctx: { waitUntil(p: Promise<unknown>): void },
+  ): Promise<void> {
+    setWorkerEnv(env);
+    await runScheduled(
+      (request, e, c) => server.fetch(request, e, c),
+      event,
+      env as Record<string, unknown>,
+      ctx,
+    );
+  },
 };
 
+export default server;

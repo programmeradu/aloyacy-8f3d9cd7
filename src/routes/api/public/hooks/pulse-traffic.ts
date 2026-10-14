@@ -15,13 +15,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { XMLParser } from "fast-xml-parser";
 import { nearestZone, PULSE_ZONES, type PulseZone } from "@/lib/pulse-zones";
-import { queryRecord } from "@/lib/http/validate";
-import { CronSecretQuerySchema } from "@/lib/schemas/public-api";
+import { isCronAuthorized } from "@/lib/cron-auth.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, apikey, Authorization, X-Cron-Secret",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Cron-Secret",
 };
 
 function json(body: unknown, status = 200) {
@@ -32,19 +31,8 @@ function json(body: unknown, status = 200) {
 }
 
 async function guard(request: Request): Promise<Response | null> {
-  const apikey = request.headers.get("apikey");
-  // The only caller-supplied field on this endpoint is the shared secret, and
-  // it is schema-checked before the comparison so an absurd value never even
-  // reaches a string compare (and is never echoed back).
-  const query = CronSecretQuerySchema.safeParse(queryRecord(new URL(request.url)));
-  if (!query.success) return json({ ok: false, error: "Unauthorized" }, 401);
-  const legacy = request.headers.get("x-cron-secret") ?? query.data.cron_secret ?? null;
-  const validApiKey =
-    apikey &&
-    apikey ===
-      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
-  const validLegacy = legacy && process.env.CRON_SECRET && legacy === process.env.CRON_SECRET;
-  if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
+  // Bearer CRON_SECRET only; refuses everything when the secret is unset.
+  if (!isCronAuthorized(request)) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
 }
 

@@ -10,13 +10,14 @@ import { createLogger } from "@/lib/logger";
 import { cyHourDow } from "@aloya/core/cy-time";
 import { persistVehiclePings } from "@/lib/vehicle-pings.server";
 import { streamToLake } from "@/lib/lake.server";
+import { isCronAuthorized } from "@/lib/cron-auth.server";
 
 const log = createLogger("snapshot");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, apikey, Authorization, X-Cron-Secret",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Cron-Secret",
 };
 
 // No query params expected. Strict reject keeps the surface tiny.
@@ -30,21 +31,7 @@ function badRequest(message: string) {
 }
 
 async function guard(request: Request): Promise<Response | null> {
-  const apikey = request.headers.get("apikey");
-  const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  let legacySecret: string | null = process.env.CRON_SECRET ?? null;
-  const legacyHeader =
-    request.headers.get("X-Cron-Secret") ??
-    request.headers.get("x-cron-secret") ??
-    new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey =
-    apikey &&
-    (apikey ===
-      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY) ||
-      apikey === import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY);
-  const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
-  const validLegacy = legacySecret && legacyHeader && legacyHeader === legacySecret;
-  if (!validApiKey && !validCron && !validLegacy) {
+  if (!isCronAuthorized(request)) {
     return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json", ...CORS },

@@ -4,11 +4,12 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { isCronAuthorized } from "@/lib/cron-auth.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, apikey, Authorization, X-Cron-Secret",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Cron-Secret",
 };
 
 function json(body: unknown, status = 200) {
@@ -19,15 +20,8 @@ function json(body: unknown, status = 200) {
 }
 
 async function guard(request: Request): Promise<Response | null> {
-  const apikey = request.headers.get("apikey");
-  const legacy =
-    request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("cron_secret");
-  const validApiKey =
-    apikey &&
-    apikey ===
-      (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
-  const validLegacy = legacy && process.env.CRON_SECRET && legacy === process.env.CRON_SECRET;
-  if (!validApiKey && !validLegacy) return json({ ok: false, error: "Unauthorized" }, 401);
+  // Bearer CRON_SECRET only; refuses everything when the secret is unset.
+  if (!isCronAuthorized(request)) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
 }
 

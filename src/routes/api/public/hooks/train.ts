@@ -21,11 +21,12 @@ import {
   processTrainingEvents,
   detectNoShows,
 } from "@/lib/train/signals.server";
+import { isCronAuthorized } from "@/lib/cron-auth.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, apikey",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
 const QuerySchema = z.object({ mode: z.enum(["fast", "full"]).default("fast") });
@@ -38,12 +39,8 @@ function json(body: unknown, status = 200) {
 }
 
 function guard(request: Request) {
-  const expected =
-    import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY;
-  const provided = request.headers.get("apikey");
-  if (expected && provided !== expected) {
-    return json({ ok: false, error: "Unauthorized" }, 401);
-  }
+  // Bearer CRON_SECRET only; refuses everything when the secret is unset.
+  if (!isCronAuthorized(request)) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
 }
 

@@ -6,8 +6,7 @@
 // URL: /api/public/hooks/ingest-schedule
 // Optional body: { days?: number, force?: boolean }
 //
-// Auth: requires `apikey` header matching the project anon key (matches our
-// other public hooks pattern), OR a Bearer with CRON_SECRET.
+// Auth: Bearer CRON_SECRET (fails closed when unset).
 
 import { createFileRoute } from "@tanstack/react-router";
 import { unzipSync, gzipSync, strFromU8 } from "fflate";
@@ -16,6 +15,7 @@ import { resolveServiceDates } from "@aloya/core/schedule-calendar";
 import { createLogger } from "@/lib/logger";
 import { badRequest, malformedJsonBody, readJsonBody, zodDetails } from "@/lib/http/validate";
 import { IngestScheduleBodySchema } from "@/lib/schemas/public-api";
+import { isCronAuthorized } from "@/lib/cron-auth.server";
 
 const log = createLogger("ingest-schedule");
 
@@ -306,15 +306,8 @@ export const Route = createFileRoute("/api/public/hooks/ingest-schedule")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        // Auth: anon key in apikey header, or Bearer CRON_SECRET
-        const apikey = request.headers.get("apikey");
-        const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-        const validApiKey =
-          apikey &&
-          apikey ===
-            (import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY);
-        const validCron = bearer && process.env.CRON_SECRET && bearer === process.env.CRON_SECRET;
-        if (!validApiKey && !validCron) {
+        // Auth: Bearer CRON_SECRET only; refused when the secret is unset.
+        if (!isCronAuthorized(request)) {
           return new Response(JSON.stringify({ error: "unauthorized" }), {
             status: 401,
             headers: { "Content-Type": "application/json" },

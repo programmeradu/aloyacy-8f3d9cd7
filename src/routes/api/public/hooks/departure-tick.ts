@@ -18,13 +18,14 @@ import {
 } from "@/lib/leave-time-adjuster";
 import { getWorkerEnv } from "@/lib/worker-env";
 import { createLogger, serializeError } from "@/lib/logger";
+import { isCronAuthorized } from "@/lib/cron-auth.server";
 
 const log = createLogger("departure-tick");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, apikey",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
 function json(body: unknown, status = 200) {
@@ -35,12 +36,8 @@ function json(body: unknown, status = 200) {
 }
 
 function guard(request: Request) {
-  const expected =
-    import.meta.env.VITE_CUSTOM_SUPABASE_ANON_KEY || process.env.CUSTOM_SUPABASE_ANON_KEY;
-  const provided = request.headers.get("apikey");
-  if (expected && provided !== expected) {
-    return json({ ok: false, error: "Unauthorized" }, 401);
-  }
+  // Bearer CRON_SECRET only; refuses everything when the secret is unset.
+  if (!isCronAuthorized(request)) return json({ ok: false, error: "Unauthorized" }, 401);
   return null;
 }
 
