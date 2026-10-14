@@ -1,199 +1,216 @@
 import * as React from "react";
-import {
-  Body,
-  Container,
-  Head,
-  Hr,
-  Html,
-  Img,
-  Link,
-  Preview,
-  Section,
-  Text,
-} from "@react-email/components";
+import { Body, Container, Head, Html, Img, Link, Preview, Section, Text } from "@react-email/components";
 
 /**
- * Aloya editorial email shell.
- * Mediterranean palette, Bricolage Grotesque display, Geist body,
- * JetBrains Mono labels. No icons, no thin weights.
- *
- * Colors are hex (oklch is unsafe in mail clients).
+ * Aloya email shell, "Under the Kyrenia range".
+ * Dawn skyline on top, night skyline at the foot: a day of riding.
+ * Zodiak (display) and Satoshi (UI) from Fontshare, with heavy system
+ * fallbacks for clients that block web fonts. No thin weights anywhere.
+ * Hex colours only, tables for layout (mail client safe).
  */
 export const colors = {
-  limestone: "#f6f1e7",
-  limestoneSoft: "#f1ebdc",
-  paper: "#fbf7ee",
-  ink: "#1a1f1c",
-  inkSoft: "#5b6058",
-  line: "#e2dcc9",
-  aegean: "#2c7892",
-  aegeanDeep: "#1c5870",
-  ochre: "#c98a2c",
-  olive: "#3e4634",
+  page: "#EDE6DA",
+  paper: "#F7F1E8",
+  white: "#FFFFFF",
+  ink: "#16143A",
+  inkSoft: "#3E3B60",
+  line: "#DCD3C4",
+  violet: "#5B4BB0",
+  night: "#0F1130",
+  cream: "#F4EBD6",
+  // legacy names kept so older templates keep compiling
+  limestone: "#F7F1E8",
+  aegeanDeep: "#5B4BB0",
+  ochre: "#5B4BB0",
 };
 
-const ASSET_HOST = "https://aloya.cy";
+const ASSET_HOST = "https://app.aloya.cy";
+const display = "Zodiak, Georgia, 'Times New Roman', serif";
+const sans = "Satoshi, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
 
 interface LayoutProps {
   preview: string;
   eyebrow: string;
   headline: string;
-  /** CDN-relative path, e.g. "/__l5e/assets-v1/.../foo.jpg" */
-  heroImage: string;
+  /** Greek line under the headline (the app is bilingual). */
+  greek?: string;
+  /** Legacy prop, ignored: every email uses the Kyrenia dawn sky. */
+  heroImage?: string;
   heroAlt?: string;
   children: React.ReactNode;
 }
 
-export const Layout = ({
-  preview,
-  eyebrow,
-  headline,
-  heroImage,
-  heroAlt = "",
-  children,
-}: LayoutProps) => (
+export const Layout = ({ preview, eyebrow, headline, greek, children }: LayoutProps) => (
   <Html lang="en" dir="ltr">
     <Head>
       <meta name="color-scheme" content="light only" />
       <meta name="supported-color-schemes" content="light" />
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link
-        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Geist:wght@500;600;700&display=swap"
+        href="https://api.fontshare.com/v2/css?f[]=zodiak@700,800&f[]=satoshi@500,700,900&display=swap"
         rel="stylesheet"
       />
     </Head>
     <Preview>{preview}</Preview>
     <Body style={body}>
       <Container style={container}>
-        <Section style={topBar}>
+        <Section style={brandRow}>
           <table width="100%" cellPadding={0} cellSpacing={0} role="presentation">
             <tbody>
               <tr>
-                <td style={{ verticalAlign: "baseline" }}>
+                <td style={{ verticalAlign: "middle" }}>
                   <span style={wordmark}>Aloya</span>
-                  <span style={wordmarkTag}>CY</span>
                 </td>
-                <td style={{ textAlign: "right", verticalAlign: "baseline" }}>
-                  <span style={topMeta}>CYPRUS TRANSIT</span>
+                <td style={{ textAlign: "right", verticalAlign: "middle" }}>
+                  <span style={brandMeta}>Cyprus buses · <span style={greekFont}>ΛΕΩΦΟΡΕΙΑ</span></span>
                 </td>
               </tr>
             </tbody>
           </table>
         </Section>
 
-        <Img
-          src={`${ASSET_HOST}${heroImage}`}
-          alt={heroAlt}
-          width={560}
-          height={280}
-          style={hero}
-        />
-
-        <Section style={contentWrap}>
-          <Text style={eyebrowStyle}>{eyebrow}</Text>
-          <Text style={headlineStyle}>{headline}</Text>
-          <Hr style={rule} />
-          {children}
+        <Section style={card}>
+          <Img
+            src={`${ASSET_HOST}/email/kyrenia-dawn.png`}
+            alt="The Kyrenia range at dawn, seen from Nicosia"
+            width={596}
+            height={209}
+            style={hero}
+          />
+          <Section style={content}>
+            <Text style={eyebrowStyle}>{eyebrow}</Text>
+            <Text style={headlineStyle}>{headline}</Text>
+            {greek ? <Text style={greekStyle}>{greek}</Text> : null}
+            {children}
+          </Section>
         </Section>
 
         <Section style={footer}>
-          <Hr style={footerRule} />
-          <table width="100%" cellPadding={0} cellSpacing={0} role="presentation">
-            <tbody>
-              <tr>
-                <td>
-                  <Text style={footerBrand}>Aloya</Text>
-                  <Text style={footerLine}>Better bus journeys across Cyprus.</Text>
-                </td>
-                <td style={{ textAlign: "right", verticalAlign: "top" }}>
-                  <Link href="https://aloya.cy" style={footerLink}>
-                    aloya.cy
-                  </Link>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <Text style={footerFine}>NICOSIA LIMASSOL LARNACA PAPHOS FAMAGUSTA</Text>
+          <Img
+            src={`${ASSET_HOST}/email/kyrenia-night.png`}
+            alt=""
+            width={600}
+            height={120}
+            style={footerImg}
+          />
+          <Section style={footerInner}>
+            <table width="100%" cellPadding={0} cellSpacing={0} role="presentation">
+              <tbody>
+                <tr>
+                  <td style={{ verticalAlign: "top" }}>
+                    <Text style={footerBrand}>Aloya</Text>
+                    <Text style={footerLine}>Live buses across Cyprus.</Text>
+                  </td>
+                  <td style={{ textAlign: "right", verticalAlign: "top" }}>
+                    <Link href="https://app.aloya.cy" style={footerLink}>
+                      Open Aloya
+                    </Link>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <Text style={footerFine}>Nicosia · Limassol · Larnaca · Paphos · Famagusta</Text>
+          </Section>
         </Section>
       </Container>
     </Body>
   </Html>
 );
 
+/* Eight digits in two groups of four, on a solid ticket. Copies as one string. */
+export const CodeTicket = ({ code, label, greekLabel }: { code?: string; label: string; greekLabel?: string }) => {
+  const c = (code ?? "--------").replace(/\s/g, "");
+  const a = c.slice(0, 4);
+  const b = c.slice(4);
+  return (
+    <table width="100%" cellPadding={0} cellSpacing={0} role="presentation" style={{ margin: "4px 0 14px" }}>
+      <tbody>
+        <tr>
+          <td style={ticket}>
+            <div style={ticketLabel}>
+              {label}
+              {greekLabel ? <span style={greekFont}> · {greekLabel}</span> : null}
+            </div>
+            <div style={ticketCode}>
+              {a}
+              <span style={{ paddingLeft: "0.42em" }}>{b}</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
+};
+
+/* Small solid chips, e.g. "15 min", "Single use". */
+export const Chips = ({ items }: { items: string[] }) => (
+  <table cellPadding={0} cellSpacing={0} role="presentation" style={{ margin: "0 0 26px" }}>
+    <tbody>
+      <tr>
+        {items.map((t, i) => (
+          <td key={t} style={{ paddingRight: i < items.length - 1 ? "8px" : 0 }}>
+            <span style={chip}>{t}</span>
+          </td>
+        ))}
+      </tr>
+    </tbody>
+  </table>
+);
+
 /* ───────────── styles ───────────── */
 
-const display = "'Bricolage Grotesque', 'Times New Roman', Georgia, serif";
-const sans = "'Geist', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif";
+/* Satoshi and Zodiak have no Greek; give Greek text a heavy system face. */
+const greekFont: React.CSSProperties = { fontFamily: "'Helvetica Neue', Arial, sans-serif" };
 
 const body: React.CSSProperties = {
-  backgroundColor: "#ffffff",
+  backgroundColor: colors.page,
   margin: 0,
-  padding: "0",
+  padding: "24px 12px 36px",
   fontFamily: sans,
   color: colors.ink,
+  WebkitFontSmoothing: "antialiased",
 };
 
-const container: React.CSSProperties = {
-  width: "100%",
-  maxWidth: "560px",
-  margin: "0 auto",
-  backgroundColor: colors.paper,
-  border: `1px solid ${colors.line}`,
-};
+const container: React.CSSProperties = { width: "100%", maxWidth: "600px", margin: "0 auto" };
 
-const topBar: React.CSSProperties = {
-  padding: "22px 32px 18px",
-  borderBottom: `1px solid ${colors.line}`,
-};
+const brandRow: React.CSSProperties = { padding: "0 8px 16px" };
 
 const wordmark: React.CSSProperties = {
   fontFamily: display,
-  fontStyle: "italic",
-  fontWeight: 600,
-  fontSize: "22px",
-  letterSpacing: "-0.01em",
+  fontWeight: 800,
+  fontSize: "28px",
+  letterSpacing: "-0.02em",
   color: colors.ink,
 };
 
-const wordmarkTag: React.CSSProperties = {
-  fontFamily: sans,
-  fontSize: "10px",
-  fontWeight: 700,
-  letterSpacing: "0.22em",
-  color: colors.inkSoft,
-  marginLeft: "8px",
-  verticalAlign: "3px",
-};
-
-const topMeta: React.CSSProperties = {
+const brandMeta: React.CSSProperties = {
   fontFamily: sans,
   fontSize: "11px",
-  fontWeight: 700,
-  letterSpacing: "0.22em",
+  fontWeight: 900,
+  letterSpacing: "0.14em",
   textTransform: "uppercase",
-  color: colors.ink,
+  color: colors.inkSoft,
 };
 
-const hero: React.CSSProperties = {
-  display: "block",
-  width: "100%",
-  height: "auto",
-  maxWidth: "560px",
-  objectFit: "cover",
+const card: React.CSSProperties = {
+  backgroundColor: colors.paper,
+  border: `2px solid ${colors.ink}`,
+  borderBottom: `7px solid ${colors.ink}`,
+  borderRadius: "22px",
+  overflow: "hidden",
 };
 
-const contentWrap: React.CSSProperties = {
-  padding: "40px 36px 32px",
-};
+const hero: React.CSSProperties = { display: "block", width: "100%", height: "auto" };
+
+const content: React.CSSProperties = { padding: "30px 32px 34px" };
 
 const eyebrowStyle: React.CSSProperties = {
   fontFamily: sans,
   fontSize: "12px",
-  letterSpacing: "0.24em",
+  fontWeight: 900,
+  letterSpacing: "0.16em",
   textTransform: "uppercase",
-  color: colors.ochre,
-  margin: "0 0 18px",
-  fontWeight: 700,
+  color: colors.violet,
+  margin: "0 0 12px",
 };
 
 const headlineStyle: React.CSSProperties = {
@@ -201,125 +218,166 @@ const headlineStyle: React.CSSProperties = {
   fontSize: "38px",
   lineHeight: 1.08,
   letterSpacing: "-0.02em",
-  fontWeight: 700,
+  fontWeight: 800,
   color: colors.ink,
-  margin: "0 0 28px",
+  margin: "0 0 8px",
 };
 
-const rule: React.CSSProperties = {
-  border: "none",
-  borderTop: `1px solid ${colors.line}`,
-  margin: "0 0 28px",
+const greekStyle: React.CSSProperties = {
+  fontFamily: "'Helvetica Neue', Arial, sans-serif",
+  fontSize: "16px",
+  fontWeight: 700,
+  color: colors.inkSoft,
+  margin: "0 0 22px",
+};
+
+const ticket: React.CSSProperties = {
+  backgroundColor: colors.white,
+  border: `2px solid ${colors.ink}`,
+  borderBottom: `6px solid ${colors.ink}`,
+  borderRadius: "18px",
+  padding: "18px 20px 20px",
+  textAlign: "center",
+};
+
+const ticketLabel: React.CSSProperties = {
+  fontFamily: sans,
+  fontSize: "11px",
+  fontWeight: 900,
+  letterSpacing: "0.16em",
+  textTransform: "uppercase",
+  color: colors.inkSoft,
+  marginBottom: "6px",
+};
+
+const ticketCode: React.CSSProperties = {
+  fontFamily: display,
+  fontSize: "50px",
+  lineHeight: 1.05,
+  fontWeight: 800,
+  letterSpacing: "0.1em",
+  color: colors.ink,
+  whiteSpace: "nowrap",
+};
+
+const chip: React.CSSProperties = {
+  display: "inline-block",
+  fontFamily: sans,
+  fontSize: "13px",
+  fontWeight: 900,
+  color: colors.ink,
+  backgroundColor: "#E7DFF5",
+  border: `2px solid ${colors.ink}`,
+  borderRadius: "10px",
+  padding: "5px 11px",
 };
 
 const footer: React.CSSProperties = {
-  padding: "24px 32px 32px",
-  backgroundColor: colors.limestoneSoft,
+  backgroundColor: colors.night,
+  borderRadius: "22px",
+  overflow: "hidden",
+  marginTop: "18px",
 };
 
-const footerRule: React.CSSProperties = {
-  border: "none",
-  borderTop: `1px solid ${colors.line}`,
-  margin: "0 0 20px",
-};
+const footerImg: React.CSSProperties = { display: "block", width: "100%", height: "auto" };
+
+const footerInner: React.CSSProperties = { padding: "4px 28px 26px" };
 
 const footerBrand: React.CSSProperties = {
   fontFamily: display,
-  fontStyle: "italic",
-  fontWeight: 700,
-  fontSize: "20px",
-  color: colors.ink,
+  fontWeight: 800,
+  fontSize: "22px",
+  color: colors.cream,
   margin: "0 0 4px",
 };
 
 const footerLine: React.CSSProperties = {
   fontFamily: sans,
-  fontSize: "13px",
+  fontSize: "14px",
   fontWeight: 500,
-  color: colors.inkSoft,
+  color: "#C9C3E6",
   margin: 0,
 };
 
 const footerLink: React.CSSProperties = {
+  display: "inline-block",
   fontFamily: sans,
-  fontSize: "12px",
-  fontWeight: 700,
-  letterSpacing: "0.18em",
-  textTransform: "uppercase",
-  color: colors.aegeanDeep,
+  fontSize: "14px",
+  fontWeight: 900,
+  color: colors.night,
+  backgroundColor: colors.cream,
+  borderRadius: "12px",
+  padding: "10px 16px",
+  whiteSpace: "nowrap",
   textDecoration: "none",
 };
 
 const footerFine: React.CSSProperties = {
   fontFamily: sans,
   fontSize: "11px",
-  fontWeight: 700,
-  letterSpacing: "0.22em",
-  color: colors.inkSoft,
-  margin: "24px 0 0",
+  fontWeight: 900,
+  letterSpacing: "0.14em",
   textTransform: "uppercase",
+  color: "#8F89B8",
+  margin: "20px 0 0",
 };
 
 /* ───────────── exported helpers ───────────── */
 
 export const bodyText: React.CSSProperties = {
   fontFamily: sans,
-  fontSize: "16px",
-  lineHeight: 1.6,
+  fontSize: "17px",
+  lineHeight: 1.55,
   color: colors.ink,
   margin: "0 0 20px",
   fontWeight: 500,
 };
 
-export const bodyTextMuted: React.CSSProperties = {
-  ...bodyText,
-  color: colors.inkSoft,
-  fontSize: "14px",
-  fontWeight: 500,
-};
+export const bodyTextMuted: React.CSSProperties = { ...bodyText, color: colors.inkSoft, fontSize: "15px" };
 
 export const inlineLink: React.CSSProperties = {
-  color: colors.aegeanDeep,
+  color: colors.violet,
   textDecoration: "underline",
   textUnderlineOffset: "2px",
-  fontWeight: 600,
+  fontWeight: 700,
 };
 
 export const ctaButton: React.CSSProperties = {
   display: "inline-block",
   backgroundColor: colors.ink,
-  color: colors.paper,
+  color: colors.cream,
   fontFamily: sans,
-  fontSize: "15px",
-  fontWeight: 700,
-  letterSpacing: "0.02em",
-  padding: "17px 30px",
+  fontSize: "16px",
+  fontWeight: 900,
+  padding: "16px 26px",
   textDecoration: "none",
-  borderRadius: "2px",
+  borderRadius: "16px",
+  borderBottom: "5px solid #000000",
 };
 
-export const ctaWrap: React.CSSProperties = {
-  margin: "8px 0 32px",
-};
+export const ctaWrap: React.CSSProperties = { margin: "6px 0 28px" };
 
+/** Legacy code style, kept for older templates. New templates use CodeTicket. */
 export const codeBlock: React.CSSProperties = {
   fontFamily: display,
-  fontSize: "40px",
-  fontWeight: 700,
-  letterSpacing: "0.22em",
+  fontSize: "48px",
+  fontWeight: 800,
+  letterSpacing: "0.1em",
   color: colors.ink,
-  backgroundColor: colors.limestone,
-  border: `1px solid ${colors.line}`,
-  padding: "26px 28px",
+  backgroundColor: colors.white,
+  border: `2px solid ${colors.ink}`,
+  borderBottom: `6px solid ${colors.ink}`,
+  borderRadius: "18px",
+  padding: "18px 20px",
   textAlign: "center" as const,
-  margin: "0 0 28px",
+  margin: "0 0 24px",
 };
 
 export const sectionLabel: React.CSSProperties = {
   fontFamily: sans,
   fontSize: "11px",
-  fontWeight: 700,
-  letterSpacing: "0.22em",
+  fontWeight: 900,
+  letterSpacing: "0.16em",
   textTransform: "uppercase",
   color: colors.inkSoft,
   margin: "0 0 8px",
@@ -327,9 +385,9 @@ export const sectionLabel: React.CSSProperties = {
 
 export const fineprint: React.CSSProperties = {
   fontFamily: sans,
-  fontSize: "13px",
-  lineHeight: 1.6,
+  fontSize: "14px",
+  lineHeight: 1.55,
   color: colors.inkSoft,
-  margin: "24px 0 0",
+  margin: "4px 0 0",
   fontWeight: 500,
 };

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Text } from "@react-email/components";
-import { Layout, bodyText, codeBlock, fineprint, sectionLabel } from "./_layout";
+import { Chips, CodeTicket, Layout, bodyText, fineprint } from "./_layout";
 
 interface MagicLinkEmailProps {
   siteName: string;
@@ -10,23 +10,18 @@ interface MagicLinkEmailProps {
 
 export const MagicLinkEmail = ({ token }: MagicLinkEmailProps) => (
   <Layout
-    preview="Your Aloya sign-in code is ready."
-    eyebrow="Single-use sign-in"
-    headline="Your sign-in code."
-    heroImage="/__l5e/assets-v1/f79b2c1b-336f-4939-b36d-863768673a70/email-magiclink.jpg"
-    heroAlt="Antique brass key on cream paper, sunlit limestone"
+    preview={token ? `${token} is your Aloya sign-in code.` : "Your Aloya sign-in code."}
+    eyebrow="Sign in"
+    headline="Here's your code."
+    greek="Ο κωδικός σύνδεσής σας."
   >
     <Text style={bodyText}>
-      Enter this 8-digit code in the Aloya app to finish signing in. It expires in a few minutes and can
-      only be used once.
+      Type these 8 digits into Aloya to sign in. Your saved stops and trips come with you.
     </Text>
-
-    <Text style={sectionLabel}>Sign-in code</Text>
-    <div style={codeBlock}>{token ?? "--------"}</div>
-
+    <CodeTicket code={token} label="Sign-in code" greekLabel="ΚΩΔΙΚΟΣ" />
+    <Chips items={["Valid 15 min", "Single use"]} />
     <Text style={fineprint}>
-      If you didn't request this, you can safely ignore the message — no one can sign in without the
-      code above.
+      Didn't ask for this? Ignore it. Nobody can sign in without the code.
     </Text>
   </Layout>
 );

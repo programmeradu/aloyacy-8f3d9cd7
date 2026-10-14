@@ -1,14 +1,6 @@
 import * as React from "react";
 import { Text } from "@react-email/components";
-import {
-  Layout,
-  bodyText,
-  bodyTextMuted,
-  codeBlock,
-  fineprint,
-  inlineLink,
-  sectionLabel,
-} from "./_layout";
+import { Chips, CodeTicket, Layout, bodyText, fineprint, inlineLink } from "./_layout";
 
 interface SignupEmailProps {
   siteName: string;
@@ -20,30 +12,22 @@ interface SignupEmailProps {
 
 export const SignupEmail = ({ recipient, token }: SignupEmailProps) => (
   <Layout
-    preview="One step to start riding with Aloya."
+    preview={token ? `${token} confirms your email for Aloya.` : "Confirm your email for Aloya."}
     eyebrow="Welcome aboard"
-    headline="Confirm your email and start moving."
-    heroImage="/__l5e/assets-v1/c9eb3e6a-3aa4-4db4-8273-4f7fbaf02fef/email-signup.jpg"
-    heroAlt="Olive branch on warm linen, Cyprus limestone"
+    headline="Confirm it's you."
+    greek="Καλώς ήρθατε στην Aloya."
   >
     <Text style={bodyText}>
-      You're a tap away from smarter bus journeys across Cyprus — live arrivals, accurate transfers,
-      and routes that actually make sense.
-    </Text>
-
-    <Text style={sectionLabel}>Confirmation code</Text>
-    <div style={codeBlock}>{token ?? "--------"}</div>
-
-    <Text style={bodyTextMuted}>
-      We're confirming{" "}
+      Enter this code in Aloya to link{" "}
       <a href={`mailto:${recipient}`} style={inlineLink}>
         {recipient}
-      </a>
-      . Enter the 8-digit code above in the app to finish signing in.
+      </a>{" "}
+      to your app. Everything you saved as a guest stays put.
     </Text>
-
+    <CodeTicket code={token} label="Confirmation code" greekLabel="ΚΩΔΙΚΟΣ" />
+    <Chips items={["Valid 15 min", "Single use"]} />
     <Text style={fineprint}>
-      Didn't sign up for Aloya? You can safely ignore this message — no account will be created.
+      Didn't sign up? Ignore this email and nothing will change.
     </Text>
   </Layout>
 );
