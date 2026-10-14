@@ -35,8 +35,8 @@ export function ArrivalPromiseCommit({
   const commit = useCallback(async () => {
     if (!signedIn) {
       Alert.alert(
-        "Sign in to hold your arrival",
-        "Aloya watches the trip on the server, so the reminder reaches you even with the app closed.",
+        "Can't reach Aloya",
+        "Holding an arrival needs a connection once so Aloya can watch the trip on the server. No account needed.",
       );
       return;
     }

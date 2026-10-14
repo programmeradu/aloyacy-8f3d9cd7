@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { LadderRung, MarginPref, PromiseStatus } from "@aloya/core/arrival-promise";
 import { fetchPublicApi } from "./api";
-import { supabase } from "./supabase";
+import { getAccessToken } from "./auth";
 import { getOrCreateDeviceId } from "./push";
 
 export type PromiseLeg =
@@ -44,9 +44,9 @@ export type ArrivalPromise = {
 };
 
 async function authHeaders(): Promise<Record<string, string>> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) throw new Error("Sign in to hold an arrival time.");
+  // A guest session is enough: no email needed to hold an arrival time.
+  const token = await getAccessToken();
+  if (!token) throw new Error("Could not reach Aloya. Check your connection.");
   return {
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",

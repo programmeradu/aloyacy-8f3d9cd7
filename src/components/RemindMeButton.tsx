@@ -12,6 +12,7 @@ import { IconClock } from "@/components/Icons";
 import { track, trackImpression } from "@/lib/analytics";
 import { useI18n } from "@/lib/i18n";
 import { NotificationPromptSheet } from "@/components/NotificationPromptSheet";
+import { bootstrapAnonymousAuth } from "@/lib/anon-auth";
 
 export function RemindMeButton({
   itinerary,
@@ -106,9 +107,14 @@ export function RemindMeButton({
   function handleClick() {
     track("ui:remind-me.tap", { departIn });
     if (!user) {
-      setAuthOpen(true);
+      // Anonymous-first: finish the guest bootstrap instead of asking for an email.
+      void bootstrapAnonymousAuth().then(proceed);
       return;
     }
+    proceed();
+  }
+
+  function proceed() {
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
       setNotifOpen(true);
     } else {

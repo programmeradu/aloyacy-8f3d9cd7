@@ -42,8 +42,8 @@ export default function SavedScreen() {
     (fn: () => void) => {
       if (!signedIn) {
         Alert.alert(
-          "Sign in to pin",
-          "Saved places live with your Aloya account so they follow you across devices.",
+          "Can't reach Aloya",
+          "Pinning needs a connection once to set up this device. No account needed.",
         );
         return;
       }

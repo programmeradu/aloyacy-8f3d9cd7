@@ -32,6 +32,7 @@ import { useAuth } from "@/lib/useAuth";
 import { AuthSheet } from "@/components/AuthSheet";
 import arrivalHero from "@/assets/arrival-promise-hero.jpg";
 import { ArrivalShiftPanel } from "./ArrivalShiftPanel";
+import { bootstrapAnonymousAuth } from "@/lib/anon-auth";
 import {
   ARRIVAL_PROMISE_QUERY_KEY as QUERY_KEY,
   ensurePushDevice,
@@ -128,8 +129,10 @@ export function ArrivalPromiseCommit({
           <button
             type="button"
             onClick={() => {
+              // Anonymous-first: a guest session is enough. If the bootstrap
+              // hasn't finished yet, finish it rather than asking for an email.
               if (!user) {
-                setAuthOpen(true);
+                void bootstrapAnonymousAuth().then(() => mutation.mutate());
                 return;
               }
               mutation.mutate();
