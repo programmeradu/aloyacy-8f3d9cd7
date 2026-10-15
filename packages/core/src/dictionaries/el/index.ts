@@ -23,6 +23,7 @@ import { assistant } from "./assistant";
 import { pulse } from "./pulse";
 import { greenLine } from "./green-line";
 import { airport } from "./airport";
+import { sky } from "./sky";
 
 export const el: Record<keyof typeof en, string> = {
   ...common,
@@ -45,4 +46,5 @@ export const el: Record<keyof typeof en, string> = {
   ...pulse,
   ...greenLine,
   ...airport,
+  ...sky,
 } as const;

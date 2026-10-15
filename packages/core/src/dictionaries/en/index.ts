@@ -21,6 +21,7 @@ import { assistant } from "./assistant";
 import { pulse } from "./pulse";
 import { greenLine } from "./green-line";
 import { airport } from "./airport";
+import { sky } from "./sky";
 
 export const en = {
   ...common,
@@ -43,4 +44,5 @@ export const en = {
   ...pulse,
   ...greenLine,
   ...airport,
+  ...sky,
 } as const;

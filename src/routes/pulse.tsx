@@ -5,6 +5,7 @@ import { RoadPulseCard } from "@/components/pulse/RoadPulseCard";
 import { CrowdEyesCard } from "@/components/pulse/CrowdEyesCard";
 import { TodayEditorial } from "@/components/pulse/TodayEditorial";
 import { usePulseData } from "@/components/pulse/usePulseData";
+import { LiveNetworkSection } from "@/components/pulse/LiveNetworkSection";
 import { useI18n } from "@/lib/i18n";
 import { en } from "@/lib/dictionaries/en";
 
@@ -57,6 +58,8 @@ function Pulse() {
           t={t}
         />
       </section>
+
+      <LiveNetworkSection />
 
       {crowdEyes && crowdEyes.routes.length > 0 && (
         <section className="px-6 mt-4 animate-rise" style={{ animationDelay: "160ms" }}>

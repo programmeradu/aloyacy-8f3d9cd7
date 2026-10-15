@@ -3,6 +3,7 @@
 // All parsing/geocoding state lives in useNLPlanner(); the pure intent
 // extraction lives in @aloya/core/nl-intent (regex pass + AI merge).
 
+import { useEffect, useRef } from "react";
 import nlIllustration from "@/assets/nl-planner-illustration.jpg";
 import { useI18n } from "@/lib/i18n";
 import { useNLPlanner } from "@/components/nl/useNLPlanner";
@@ -10,9 +11,17 @@ import { NLComposer } from "@/components/nl/NLComposer";
 import { NLSuggestions } from "@/components/nl/NLSuggestions";
 import { NLResolvedCard } from "@/components/nl/NLResolvedCard";
 
-export function NLPlannerCard() {
+export function NLPlannerCard({ autoVoice = false }: { autoVoice?: boolean } = {}) {
   const { t } = useI18n();
   const p = useNLPlanner();
+  // Opened from the home mic button: start listening once, straight away.
+  const voiced = useRef(false);
+  useEffect(() => {
+    if (!autoVoice || voiced.current) return;
+    voiced.current = true;
+    p.startVoice();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoVoice]);
   const showSuggestions = !p.intent && !p.busy && !p.resolved && !p.error;
 
   return (

@@ -21,6 +21,7 @@ export function SmartSearch({
   onPickVehicle,
   onPickAirport,
   onPickPage,
+  autoFocus = false,
 }: {
   query: string;
   setQuery: (s: string) => void;
@@ -30,6 +31,7 @@ export function SmartSearch({
   onPickVehicle: (tripId: string) => void;
   onPickAirport: (code: AirportCode) => void;
   onPickPage?: (path: string) => void;
+  autoFocus?: boolean;
 }) {
   const [focused, setFocused] = useState(false);
   const open = focused && query.trim().length > 0;
@@ -46,6 +48,7 @@ export function SmartSearch({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
+          autoFocus={autoFocus}
           onBlur={() => setTimeout(() => setFocused(false), 150)}
           placeholder={tt("home.searchPlaceholder")}
           aria-label={tt("home.searchPlaceholder")}
