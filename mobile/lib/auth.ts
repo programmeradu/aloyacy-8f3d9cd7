@@ -173,3 +173,46 @@ export function useSession() {
   // A guest session counts: Aloya never requires an email.
   return { session, user, loading, signedIn: !!user, hasEmail: !!user?.email };
 }
+
+/**
+ * fetchPublicApi with the device's session as `Authorization: Bearer`
+ * (creating a guest session first if there is none). Use for the
+ * per-rider endpoints: /api/public/user-settings, commute-suggestion.
+ */
+export async function fetchWithSession(path: string, init: RequestInit = {}): Promise<Response> {
+  const token = await getAccessToken();
+  const headers = new Headers(init.headers);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  if (init.body && !headers.has("content-type")) headers.set("content-type", "application/json");
+  return fetchPublicApi(path, { ...init, headers });
+}
+
+export type RemoteSettings = { locale?: string | null; accessibility_prefs?: unknown };
+
+/** The rider's synced settings, or null (none saved yet, offline, or no session). */
+export async function fetchRemoteSettings(): Promise<RemoteSettings | null> {
+  try {
+    const res = await fetchWithSession("/api/public/user-settings", { headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { settings?: RemoteSettings | null };
+    return body.settings ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Saves only the given synced settings; failures are swallowed (local wins). */
+export async function saveRemoteSettings(patch: {
+  locale?: string;
+  accessibility_prefs?: Record<string, unknown>;
+}): Promise<boolean> {
+  try {
+    const res = await fetchWithSession("/api/public/user-settings", {
+      method: "POST",
+      body: JSON.stringify(patch),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

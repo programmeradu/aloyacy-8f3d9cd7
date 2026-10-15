@@ -5,7 +5,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE } from "./api";
-import { supabase } from "./supabase";
 import type { ActiveTrip } from "./trip-store";
 
 const PING_INTERVAL_MS = 20_000;
@@ -83,8 +82,8 @@ export function useGroupTrip(opts: {
     if (busy) return null;
     setBusy(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const name = displayName?.trim() || user?.user_metadata?.full_name || "You";
+      // Aloya sessions carry no profile name (guest first, email optional).
+      const name = displayName?.trim() || "You";
 
       const res = await callGroups<{ code: string; memberToken: string }>("create", {
         destinationLabel: active.to.label,

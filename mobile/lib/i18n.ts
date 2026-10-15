@@ -18,7 +18,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Localization from "expo-localization";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { supabase } from "./supabase";
+import { fetchRemoteSettings, saveRemoteSettings } from "./auth";
 
 
 export const LOCALES = ["en", "el"] as const;
@@ -188,25 +188,18 @@ async function hydrate() {
     current = detectDeviceLocale();
     notify();
   }
-  // Opportunistic cloud sync — if the rider is signed in, prefer their
-  // server-side locale so it roams across web + devices.
+  // Opportunistic cloud sync — prefer the rider's synced locale (guest or
+  // email session) so it roams across web + devices.
   void (async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from("user_settings")
-        .select("locale")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      const remote = data?.locale;
-      if (remote && (LOCALES as readonly string[]).includes(remote) && remote !== current) {
-        current = remote as Locale;
+    const remote = (await fetchRemoteSettings())?.locale;
+    if (remote && (LOCALES as readonly string[]).includes(remote) && remote !== current) {
+      current = remote as Locale;
+      try {
         await AsyncStorage.setItem(STORAGE_KEY, remote);
-        notify();
+      } catch {
+        // in-memory value still applies
       }
-    } catch {
-      // offline / unauthenticated — local value wins.
+      notify();
     }
   })();
 }
@@ -220,18 +213,8 @@ export async function setLocale(next: Locale) {
     // best effort — hold the in-memory value regardless.
   }
   notify();
-  // Mirror to cloud when signed in; ignore failures.
-  void (async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      await supabase
-        .from("user_settings")
-        .upsert({ user_id: user.id, locale: next }, { onConflict: "user_id" });
-    } catch {
-      // best effort
-    }
-  })();
+  // Mirror to the rider's synced settings; ignore failures.
+  void saveRemoteSettings({ locale: next });
 }
 
 

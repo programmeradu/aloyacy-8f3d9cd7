@@ -1,5 +1,5 @@
 // Native client for arrival promises. Talks to /api/public/arrival-promise
-// with the rider's Supabase bearer token — same rows, same watcher, same
+// with the rider's Aloya session bearer token — same rows, same watcher, same
 // nudges as the web app.
 
 import { useCallback, useEffect, useMemo, useState } from "react";

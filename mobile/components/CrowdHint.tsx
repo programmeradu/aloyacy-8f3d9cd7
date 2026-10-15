@@ -1,14 +1,13 @@
-// Mobile mirror of `src/components/CrowdHint.tsx`. Reads
-// aggregated `route_load_estimates` (public-read RLS) directly via the
-// mobile supabase client — no server function needed for a rider-facing
-// read of already-aggregated crowd data.
+// Mobile mirror of `src/components/CrowdHint.tsx`. Reads the aggregated
+// `route_load_estimates` level from /api/public/route-load (same logic as
+// the web getRouteLoad server function). No session needed.
 //
 // Renders nothing when we have no signal. Poll interval matches web (90s).
 
 import { useMemo } from "react";
 import { View, Text } from "react-native";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { fetchPublicApi } from "@/lib/api";
 import { palette } from "@/constants/theme";
 
 export type CrowdLevel = "quiet" | "moderate" | "busy" | "packed";
@@ -16,24 +15,18 @@ export type CrowdLevel = "quiet" | "moderate" | "busy" | "packed";
 type CrowdResult = { level: CrowdLevel | null; sample: number };
 
 async function fetchCrowd(routeId: string, tripId?: string): Promise<CrowdResult> {
-  const since = new Date(Date.now() - 30 * 60_000).toISOString();
-  const { data } = await supabase
-    .from("route_load_estimates")
-    .select("load_index, rider_count, window_start, trip_id")
-    .eq("route_id", routeId)
-    .gte("window_start", since)
-    .order("window_start", { ascending: false })
-    .limit(8);
-  if (!data || data.length === 0) return { level: null, sample: 0 };
-  const tripRows = tripId ? data.filter((r) => r.trip_id === tripId) : [];
-  const pick = tripRows.length ? tripRows : data;
-  const avg =
-    pick.reduce((s, r) => s + (r.load_index ?? 0), 0) / pick.length;
-  let level: CrowdLevel = "quiet";
-  if (avg >= 0.85) level = "packed";
-  else if (avg >= 0.6) level = "busy";
-  else if (avg >= 0.3) level = "moderate";
-  return { level, sample: pick.length };
+  const qs = new URLSearchParams({ routeId });
+  if (tripId) qs.set("tripId", tripId);
+  try {
+    const res = await fetchPublicApi(`/api/public/route-load?${qs}`, {
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return { level: null, sample: 0 };
+    const body = (await res.json()) as { level?: CrowdLevel | null; sample?: number };
+    return { level: body.level ?? null, sample: body.sample ?? 0 };
+  } catch {
+    return { level: null, sample: 0 };
+  }
 }
 
 const COPY: Record<CrowdLevel, { line: string; tone: "olive" | "aegean" | "ochre" | "ochreStrong" }> = {

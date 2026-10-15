@@ -3,7 +3,7 @@
 // Two stages:
 //   1. Enter email → tap "Send code" → Lovable Emails delivers the branded
 //      8-digit code.
-//   2. Enter the code → tap "Verify" → Supabase mints a session that
+//   2. Enter the code → tap "Verify" → Aloya auth mints a session that
 //      AsyncStorage persists across launches.
 //
 // When already signed in, the card collapses to an identity row with a

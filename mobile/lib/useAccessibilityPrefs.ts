@@ -2,12 +2,13 @@
 //
 // Mirrors `src/lib/accessibility-prefs.ts` on web. Anonymous riders keep
 // prefs in AsyncStorage; once signed in we upsert into
-// `user_settings.accessibility_prefs` so the same toggles roam across web
-// and every device.
+// Every device has an Aloya session (guest first, email optional); the
+// prefs are mirrored to the rider's synced settings through
+// /api/public/user-settings so the same toggles roam across web and devices.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
-import { supabase } from "./supabase";
+import { fetchRemoteSettings, saveRemoteSettings } from "./auth";
 
 const KEY = "aloya.a11y.v1";
 
@@ -62,36 +63,17 @@ async function writeLocal(prefs: AccessibilityPrefs): Promise<void> {
 }
 
 async function syncFromCloud(): Promise<AccessibilityPrefs | null> {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-    const { data } = await supabase
-      .from("user_settings")
-      .select("accessibility_prefs")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (!data?.accessibility_prefs) return null;
-    const merged = normalise(data.accessibility_prefs as Partial<AccessibilityPrefs>);
-    await writeLocal(merged);
-    return merged;
-  } catch {
-    return null;
-  }
+  const remote = await fetchRemoteSettings();
+  const raw = remote?.accessibility_prefs;
+  if (!raw || typeof raw !== "object" || Object.keys(raw).length === 0) return null;
+  const merged = normalise(raw as Partial<AccessibilityPrefs>);
+  await writeLocal(merged);
+  return merged;
 }
 
 async function pushToCloud(prefs: AccessibilityPrefs): Promise<void> {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase
-      .from("user_settings")
-      .upsert(
-        { user_id: user.id, accessibility_prefs: prefs },
-        { onConflict: "user_id" },
-      );
-  } catch {
-    // offline / unauthenticated — local copy is authoritative.
-  }
+  // Offline / no session: the local copy is authoritative.
+  await saveRemoteSettings({ accessibility_prefs: prefs });
 }
 
 export function useAccessibilityPrefs() {

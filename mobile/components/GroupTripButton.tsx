@@ -10,7 +10,7 @@ import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { palette } from "@/constants/theme";
 import { useGroupTrip } from "@/lib/useGroupTrip";
-import { supabase } from "@/lib/supabase";
+import { fetchPublicApi } from "@/lib/api";
 import type { ActiveTrip } from "@/lib/trip-store";
 
 // Bespoke trio-of-friends glyph — mirrors the web WatchTogetherButton mark.
@@ -89,7 +89,10 @@ export function GroupTripButton({
     }
     let cancelled = false;
     const load = async () => {
-      const { data } = await supabase.rpc("get_trip_group_view", { p_code: session.code });
+      const qs = new URLSearchParams({ code: session.code, memberToken: session.memberToken });
+      const data = await fetchPublicApi(`/api/public/trip-group-view?${qs}`)
+        .then((r) => (r.ok ? (r.json() as Promise<unknown>) : null))
+        .catch(() => null);
       if (cancelled) return;
       const members = (data as { members?: Array<{ status: string }> } | null)?.members ?? [];
       const active = members.filter((m) => m.status === "active").length;
