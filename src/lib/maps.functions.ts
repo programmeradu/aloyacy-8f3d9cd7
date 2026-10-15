@@ -29,13 +29,17 @@ export const autocompletePlaces = createServerFn({ method: "POST" })
     }
   });
 
-// Google Place IDs are URL-safe base64-ish strings (letters, digits, _ and -),
-// typically prefixed with `ChIJ`. Constrain the format so the value can never
-// path-traverse out of the `/places/v1/places/{placeId}` URL slot.
-const PlaceIdSchema = z
+// Place ids are URL-safe strings. Since the Mapbox migration a search result's
+// id is `mbx.` + base64url(JSON [lat, lng, name, address, mapbox_id]) so
+// resolving it needs no second lookup. Those routinely run past 300 chars
+// (Greek names are 2 bytes each in UTF-8, then grow 4/3 in base64), and the old
+// 300 cap made getPlace reject them: tapping such a search result did nothing.
+// Constrain the charset so the value can never path-traverse a URL slot.
+export const PLACE_ID_MAX = 2048;
+export const PlaceIdSchema = z
   .string()
   .min(1)
-  .max(300)
+  .max(PLACE_ID_MAX)
   // Mapbox ids are prefixed `mbx.` and may contain dots; never allow `/` or `..`.
   .regex(/^[A-Za-z0-9_.:-]+$/, "Invalid place ID")
   .refine((v) => !v.includes(".."), "Invalid place ID");

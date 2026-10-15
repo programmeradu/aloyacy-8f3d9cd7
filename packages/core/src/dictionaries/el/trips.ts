@@ -51,4 +51,5 @@ export const trips: Record<keyof typeof tripsEn, string> = {
   "trips.presetTomorrow": "Αύριο {time}",
   "trips.presetUsual": "συνήθως",
   "trips.planFailed": "Ο σχεδιασμός απέτυχε",
+  "trips.placeFailed": "Δεν ήταν δυνατό να ανοίξει αυτό το μέρος. Δοκιμάστε άλλο αποτέλεσμα.",
 };

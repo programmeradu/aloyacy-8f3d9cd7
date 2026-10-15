@@ -121,16 +121,22 @@ function PlacesPickerContent({
     return () => window.clearTimeout(debounce.current);
   }, [query, bias, acFn]);
 
+  const [picking, setPicking] = useState<string | null>(null);
+  const [pickError, setPickError] = useState(false);
+
   async function choose(placeId: string) {
-    const place = await placeFn({ data: { placeId } });
-    onPick(
-      {
-        lat: place.lat,
-        lng: place.lng,
-        label: place.name === place.address ? place.name : `${place.name}`,
-      },
-      role,
-    );
+    if (picking) return;
+    setPicking(placeId);
+    setPickError(false);
+    try {
+      const place = await placeFn({ data: { placeId } });
+      onPick({ lat: place.lat, lng: place.lng, label: place.name }, role);
+    } catch {
+      // Never swallow a failed pick: the row would just look dead.
+      setPickError(true);
+    } finally {
+      setPicking(null);
+    }
   }
 
   return (
@@ -157,11 +163,19 @@ function PlacesPickerContent({
       ) : (
         suggestions.length > 0 && (
           <ul className="divide-y divide-line">
+            {pickError && (
+              <li role="alert" className="px-4 py-2 text-[12px] text-ink-soft">
+                {t("trips.placeFailed")}
+              </li>
+            )}
             {suggestions.slice(0, 6).map((s) => (
               <li key={s.placeId}>
                 <button
+                  type="button"
                   onClick={() => choose(s.placeId)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-limestone-soft"
+                  aria-busy={picking === s.placeId}
+                  disabled={picking !== null}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-limestone-soft disabled:opacity-60"
                 >
                   <IconPin className="size-4 text-aegean-deep shrink-0" />
                   <div className="min-w-0">

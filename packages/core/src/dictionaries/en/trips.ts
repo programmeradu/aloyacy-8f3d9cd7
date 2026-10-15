@@ -49,4 +49,5 @@ export const trips = {
   "trips.presetTomorrow": "Tomorrow {time}",
   "trips.presetUsual": "usual",
   "trips.planFailed": "Plan failed",
+  "trips.placeFailed": "Couldn't open that place. Try another result.",
 } as const;

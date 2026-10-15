@@ -32,7 +32,8 @@ export const PlacesAutocompleteSchema = z.object({
 });
 
 export const PlaceSchema = z.object({
-  placeId: z.string().min(1).max(512),
+  // Mapbox `mbx.` ids embed the coordinates and names; see maps.functions.ts.
+  placeId: z.string().min(1).max(2048),
 });
 
 export const RouteReliabilitySchema = z.object({
