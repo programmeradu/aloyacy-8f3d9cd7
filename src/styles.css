@@ -340,7 +340,7 @@
 .sky-gr h1:lang(el), .sky:lang(el) .sky-gr h1 { letter-spacing: -0.9px; }
 .sky-gr p { margin-top: 8px; font-weight: 700; font-size: 15px; line-height: 20px; color: rgba(255, 255, 255, 0.82); text-shadow: 0 1px 10px rgba(20, 24, 60, 0.25); }
 
-.sky-card { margin: 16px 16px 0; min-height: 266px; padding: 20px 20px 16px; display: flex; flex-direction: column; }
+.sky-card { margin: 16px 16px 0; padding: 20px 20px 16px; display: flex; flex-direction: column; }
 .sky-r1 { display: flex; justify-content: space-between; align-items: center; min-height: 20px; gap: 8px; }
 .sky-stop { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 15px; letter-spacing: -0.1px; min-width: 0; white-space: nowrap; }
 .sky-stop b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
@@ -370,7 +370,7 @@
 .sky-trk .bus { position: absolute; top: -2px; width: 22px; height: 22px; margin-left: -11px; border-radius: 11px; display: flex; align-items: center; justify-content: center; color: #fff; }
 .sky-trk .me { position: absolute; right: -2px; top: -2px; width: 22px; height: 22px; border-radius: 11px; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); }
 .sky-trk .me i { width: 8px; height: 8px; border-radius: 4px; background: var(--sky-ink); }
-.sky-thn { margin-top: auto; padding-top: 20px; display: flex; align-items: center; gap: 8px; min-height: 40px; }
+.sky-thn { margin-top: 20px; display: flex; align-items: center; gap: 8px; min-height: 40px; }
 .sky-thn > span { font-weight: 700; font-size: 14px; color: rgba(255, 255, 255, 0.62); margin-right: 2px; }
 .sky-tm { height: 32px; padding: 0 11px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); display: flex; align-items: center; font-weight: 900; font-size: 15px; letter-spacing: -0.1px; }
 .sky-btn { margin-left: auto; position: relative; height: 40px; min-width: 44px; border-radius: 20px; padding: 0 15px 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-weight: 900; font-size: 15px; background: #fff; color: var(--sky-ink); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 6px 14px -4px rgba(0, 0, 0, 0.45); white-space: nowrap; transition: transform 0.15s ease; }
@@ -381,7 +381,7 @@
 .sky-btn.inline { margin-left: 0; }
 .sky-card h2 { font-weight: 900; font-size: 24px; line-height: 28px; letter-spacing: -0.5px; }
 .sky-card .body { margin-top: 8px; font-weight: 500; font-size: 15px; line-height: 21px; color: rgba(255, 255, 255, 0.74); }
-.sky-card .acts { margin-top: auto; padding-top: 20px; display: flex; gap: 8px; flex-wrap: wrap; }
+.sky-card .acts { margin-top: 20px; display: flex; gap: 8px; flex-wrap: wrap; }
 .sky-ico { width: 48px; height: 48px; border-radius: 16px; background: rgba(255, 255, 255, 0.12); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14); display: flex; align-items: center; justify-content: center; margin: 14px 0 16px; }
 .sky-change { font-weight: 700; font-size: 13px; color: rgba(255, 255, 255, 0.72); text-decoration: underline; text-underline-offset: 3px; padding: 12px 0; margin: -12px 0; }
 
@@ -420,7 +420,8 @@
 .sky-row .e.lv small { color: var(--sky-live); }
 .sky-extra { margin: 16px 16px 0; }
 
-/* floating glass tab bar */
+/* floating glass tab bar, over a scrim so scrolled content fades out beneath it */
+.sky-scrim { position: fixed; z-index: 39; left: 50%; transform: translateX(-50%); bottom: 0; width: min(100vw, 430px); height: calc(env(safe-area-inset-bottom, 0px) + 112px); pointer-events: none; background: linear-gradient(180deg, rgba(23, 20, 29, 0) 0, rgba(23, 20, 29, 0.82) 55%, #17141d 100%); }
 .sky-tab {
   position: fixed;
   z-index: 40;

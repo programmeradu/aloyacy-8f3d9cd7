@@ -17,8 +17,18 @@ import { smartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync } from "@/lib/shapes";
 import { getHeadsignSync, onHeadsignsLoaded, prefetchHeadsigns } from "@/lib/headsigns";
 import { getRoute, getStop, nearestStops, distanceKm } from "@/lib/gtfs";
-import { getOfflineDeparturesForStop, getTripMeta, isIndexedDbSupported } from "@/lib/offline-timetable-db";
-import { backingFor, viaFromLongName, walkMinutes, type NearbyLine, type NextBus } from "./sky-state";
+import {
+  getOfflineDeparturesForStop,
+  getTripMeta,
+  isIndexedDbSupported,
+} from "@/lib/offline-timetable-db";
+import {
+  backingFor,
+  viaFromLongName,
+  walkMinutes,
+  type NearbyLine,
+  type NextBus,
+} from "./sky-state";
 
 const MAX_ETA_MIN = 120;
 const MAX_STOP_KM = 1.2;
@@ -28,7 +38,7 @@ const LIVE_PING_SEC = 90;
 type Coords = { lat: number; lng: number };
 
 function shortStopName(name: string) {
-  return name.split(/[·,]/)[0].trim();
+  return name.split(/\s[-–]\s|[·,]/)[0].trim();
 }
 
 function colorOf(routeId: string) {
@@ -36,7 +46,11 @@ function colorOf(routeId: string) {
   return c && /^[0-9a-f]{6}$/i.test(c) ? `#${c}` : "#5B6B7A";
 }
 
-export function useNextBus(opts: { coords: Coords; located: boolean; pickedStopId: string | null }) {
+export function useNextBus(opts: {
+  coords: Coords;
+  located: boolean;
+  pickedStopId: string | null;
+}) {
   const { coords, located, pickedStopId } = opts;
   const rt = useRealtime();
   const snap = rt.data;
@@ -54,14 +68,17 @@ export function useNextBus(opts: { coords: Coords; located: boolean; pickedStopI
       return [{ ...s, distanceKm: located ? distanceKm(coords, s) : NaN }];
     }
     if (!located) return [];
-    return nearestStops(coords, CANDIDATES).filter((s, i) => i === 0 || s.distanceKm <= MAX_STOP_KM);
+    return nearestStops(coords, CANDIDATES).filter(
+      (s, i) => i === 0 || s.distanceKm <= MAX_STOP_KM,
+    );
   }, [coords, located, pickedStopId]);
 
   const candidateIds = useMemo(() => candidates.map((s) => s.id), [candidates]);
   const { data: learnedByStop } = useLearnedStatsBulk(candidateIds);
 
   const live = useMemo(() => {
-    if (!snap || candidates.length === 0) return { bus: null as NextBus | null, tiles: [] as NearbyLine[] };
+    if (!snap || candidates.length === 0)
+      return { bus: null as NextBus | null, tiles: [] as NearbyLine[] };
     const now = Math.floor(Date.now() / 1000);
     const ghost = new Set(snap.ghostTripIds ?? []);
     const vehByTrip = new Map(snap.vehicles.map((v) => [v.tripId, v]));
@@ -81,56 +98,77 @@ export function useNextBus(opts: { coords: Coords; located: boolean; pickedStopI
       if (catchable.length === 0) continue;
       catchable.sort((a, b) => a.arrivalUnix - b.arrivalUnix);
       const drop = new Set(
-        snap.arrivals.filter((a) => a.stopId === s.id && !catchable.includes(a)).map((a) => a.tripId),
+        snap.arrivals
+          .filter((a) => a.stopId === s.id && !catchable.includes(a))
+          .map((a) => a.tripId),
       );
       const arrivals = snap.arrivals.filter((a) => !(a.stopId === s.id && drop.has(a.tripId)));
 
       if (!bus) {
-        const next = catchable[0];
-        const smart = smartEtaV2({
-          stopId: s.id,
-          arrivals,
-          vehicles: snap.vehicles,
-          nowSec: now,
-          agency: s.agency,
-          learnedByRoute: learnedByStop?.get(s.id),
-          shape: getShapeForTripSync(next.tripId, next.routeId),
-          riderConfirmedAgeSec: rt.riderConfirmedAge.get(next.tripId),
-          riderConfirmedSources: rt.riderConfirmedCount.get(next.tripId),
-        });
-        const route = getRoute(next.routeId);
-        const dest = getHeadsignSync(next.tripId, next.routeId) ?? route?.long?.split(/\s+-\s+/).pop() ?? "";
-        const backing = backingFor(smart?.tier);
-        const etaSec = smart ? smart.etaSec : Math.max(0, next.arrivalUnix - now);
-        const arrivalUnix = now + Math.round(etaSec);
-        const hasVehicle = vehByTrip.has(next.tripId) && !ghost.has(next.tripId);
-        const sameDir = (tripId: string, routeId: string) =>
-          routeId === next.routeId && (getHeadsignSync(tripId, routeId) ?? dest) === dest;
-        bus = {
-          stopId: s.id,
-          stopName: shortStopName(s.name),
-          walkMin: Number.isFinite(s.distanceKm) ? walkMinutes(s.distanceKm) : null,
-          walkSec,
-          stopLat: s.lat,
-          stopLng: s.lng,
-          tripId: next.tripId,
-          routeId: next.routeId,
-          line: route?.short ?? "—",
-          color: colorOf(next.routeId),
-          dest,
-          via: viaFromLongName(route?.long, dest),
-          etaMin: Math.max(0, Math.round(etaSec / 60)),
-          arrivalUnix,
-          backing,
-          stopsAway:
-            backing === "live" && hasVehicle && smart && smart.stopsAway > 0 ? smart.stopsAway : null,
-          then: catchable
-            .slice(1)
-            .filter((a) => a.tripId !== next.tripId && sameDir(a.tripId, a.routeId))
-            .slice(0, 2)
-            .map((a) => a.arrivalUnix),
-          source: "realtime",
-        };
+        // Smart ETA can pull a bus earlier than the operator said; if it then
+        // arrives before the rider can walk there, move on to the next one.
+        let pick: { idx: number; smart: ReturnType<typeof smartEtaV2> } | null = null;
+        for (let k = 0; k < Math.min(3, catchable.length); k++) {
+          const cand = catchable[k];
+          const skipped = new Set(catchable.slice(0, k).map((c) => c.tripId));
+          const pool = arrivals.filter((a) => !(a.stopId === s.id && skipped.has(a.tripId)));
+          const sm = smartEtaV2({
+            stopId: s.id,
+            arrivals: pool,
+            vehicles: snap.vehicles,
+            nowSec: now,
+            agency: s.agency,
+            learnedByRoute: learnedByStop?.get(s.id),
+            shape: getShapeForTripSync(cand.tripId, cand.routeId),
+            riderConfirmedAgeSec: rt.riderConfirmedAge.get(cand.tripId),
+            riderConfirmedSources: rt.riderConfirmedCount.get(cand.tripId),
+          });
+          if (!sm || sm.etaSec >= walkSec - 60) {
+            pick = { idx: k, smart: sm };
+            break;
+          }
+        }
+        if (pick) {
+          const next = catchable[pick.idx];
+          const smart = pick.smart;
+          const nextIdx = pick.idx;
+          const route = getRoute(next.routeId);
+          const dest =
+            getHeadsignSync(next.tripId, next.routeId) ?? route?.long?.split(/\s+-\s+/).pop() ?? "";
+          const backing = backingFor(smart?.tier);
+          const etaSec = smart ? smart.etaSec : Math.max(0, next.arrivalUnix - now);
+          const arrivalUnix = now + Math.round(etaSec);
+          const hasVehicle = vehByTrip.has(next.tripId) && !ghost.has(next.tripId);
+          const sameDir = (tripId: string, routeId: string) =>
+            routeId === next.routeId && (getHeadsignSync(tripId, routeId) ?? dest) === dest;
+          bus = {
+            stopId: s.id,
+            stopName: shortStopName(s.name),
+            walkMin: Number.isFinite(s.distanceKm) ? walkMinutes(s.distanceKm) : null,
+            walkSec,
+            stopLat: s.lat,
+            stopLng: s.lng,
+            tripId: next.tripId,
+            routeId: next.routeId,
+            line: route?.short ?? "—",
+            color: colorOf(next.routeId),
+            dest,
+            via: viaFromLongName(route?.long, dest),
+            etaMin: Math.max(0, Math.round(etaSec / 60)),
+            arrivalUnix,
+            backing,
+            stopsAway:
+              backing === "live" && hasVehicle && smart && smart.stopsAway > 0
+                ? smart.stopsAway
+                : null,
+            then: catchable
+              .slice(nextIdx + 1)
+              .filter((a) => a.tripId !== next.tripId && sameDir(a.tripId, a.routeId))
+              .slice(0, 2)
+              .map((a) => a.arrivalUnix),
+            source: "realtime",
+          };
+        }
       }
 
       for (const a of catchable) {
@@ -142,7 +180,12 @@ export function useNextBus(opts: { coords: Coords; located: boolean; pickedStopI
           routeId: a.routeId,
           line: getRoute(a.routeId)?.short ?? "—",
           color: colorOf(a.routeId),
-          dest: getHeadsignSync(a.tripId, a.routeId) ?? getRoute(a.routeId)?.long?.split(/\s+-\s+/).pop() ?? "",
+          dest:
+            getHeadsignSync(a.tripId, a.routeId) ??
+            getRoute(a.routeId)
+              ?.long?.split(/\s+-\s+/)
+              .pop() ??
+            "",
           etaMin: Math.max(0, Math.round((a.arrivalUnix - now) / 60)),
           live: isLive,
           dist: s.distanceKm,
@@ -165,7 +208,14 @@ export function useNextBus(opts: { coords: Coords; located: boolean; pickedStopI
 
     return { bus, tiles };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [snap, candidates, learnedByStop, rt.riderConfirmedAge, rt.riderConfirmedCount, headsignsReady]);
+  }, [
+    snap,
+    candidates,
+    learnedByStop,
+    rt.riderConfirmedAge,
+    rt.riderConfirmedCount,
+    headsignsReady,
+  ]);
 
   // Offline timetable fallback, only when realtime gave us nothing for these stops.
   const needOffline = candidates.length > 0 && !live.bus && (!!snap || rt.isError);
@@ -217,7 +267,9 @@ export function useNextBus(opts: { coords: Coords; located: boolean; pickedStopI
     },
   });
 
-  const nearest = candidates[0] ? { id: candidates[0].id, name: shortStopName(candidates[0].name) } : null;
+  const nearest = candidates[0]
+    ? { id: candidates[0].id, name: shortStopName(candidates[0].name) }
+    : null;
 
   return {
     bus: live.bus ?? offline.data ?? null,
