@@ -402,7 +402,7 @@
 .sky-nt .c { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .sky-nt .sky-ln { height: 22px; min-width: 32px; font-size: 13px; border-radius: 6px; flex: none; }
 .sky-nt .dn { font-weight: 700; font-size: 15px; line-height: 19px; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sky-nt .m { font-weight: 900; font-size: 13px; line-height: 16px; color: rgba(255, 255, 255, 0.66); }
+.sky-nt .m { font-weight: 900; font-size: 13px; line-height: 16px; color: rgba(255, 255, 255, 0.66); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sky-nt .m.lv { color: var(--sky-live); }
 
 /* lower: stops near you (moved from the old home list) */

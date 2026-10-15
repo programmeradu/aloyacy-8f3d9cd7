@@ -12,7 +12,7 @@ import { CommuteSuggestionCard } from "@/components/CommuteSuggestionCard";
 import { useNearbyStops } from "@/components/home/useNearbyStops";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { getCurrentWeather } from "@/lib/weather.functions";
-import { nearestStops } from "@/lib/gtfs";
+import { getStop, nearestStops } from "@/lib/gtfs";
 import { useTick } from "@/hooks/use-tick";
 import { LOCALES, useI18n, type Locale } from "@/lib/i18n";
 import { Ph, type PhName } from "./SkyIcons";
@@ -130,10 +130,12 @@ export function SkyHome() {
   const wx = weather ? (WX_ICON[weather.iconKey] ?? WX_ICON.sun) : null;
 
   const area = useMemo(() => {
+    const pickedStop = picked && !located ? getStop(picked) : null;
+    if (pickedStop) return pickedStop.name.split(/[·\-,]/)[0].trim();
     if (!located) return "Cyprus";
     const ref = nearestStops(coords, 1)[0];
     return ref ? ref.name.split(/[·\-,]/)[0].trim() : "Cyprus";
-  }, [coords, located]);
+  }, [coords, located, picked]);
 
   const now = new Date();
   const greet = mounted ? t(greetingKey(now)) : t("sky.greet.morning");
