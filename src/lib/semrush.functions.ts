@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireAdmin } from "@/lib/admin.functions";
 
 const GATEWAY = "https://connector-gateway.lovable.dev/semrush";
 
@@ -44,6 +45,7 @@ const DOMAINS = ["app.aloya.cy", "intercity-buses.com", "motionbuscard.org.cy"];
 const MARKETS = ["cy", "uk", "de"];
 
 export const getSeoPanel = createServerFn({ method: "GET" })
+  .middleware([requireAdmin])
   .inputValidator((input?: unknown) => z.void().optional().parse(input))
   .handler(async () => {
   // 1) Domain ranks (organic + paid) per market for each tracked domain.

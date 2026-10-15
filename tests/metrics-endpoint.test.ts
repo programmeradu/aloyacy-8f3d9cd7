@@ -5,7 +5,9 @@ import { incrementCounter, resetMetrics } from "../src/lib/metrics";
 
 const handler = getHandler(Route, "GET");
 
-function scrape(headers: Record<string, string> = {}) {
+const TOKEN = { authorization: "Bearer scrape-secret" };
+
+function scrape(headers: Record<string, string> = TOKEN) {
   return handler({
     request: new Request("https://app.aloya.cy/api/public/metrics", { headers }),
   });
@@ -13,7 +15,7 @@ function scrape(headers: Record<string, string> = {}) {
 
 beforeEach(() => {
   resetMetrics();
-  delete process.env["METRICS_TOKEN"];
+  process.env["METRICS_TOKEN"] = "scrape-secret";
 });
 
 afterEach(() => {
@@ -47,15 +49,27 @@ describe("GET /api/public/metrics", () => {
     expect(await (await scrape()).text()).toContain('aloya_errors_total{scope="gtfs"} 2');
   });
 
-  it("requires a bearer token when METRICS_TOKEN is set", async () => {
-    process.env["METRICS_TOKEN"] = "scrape-secret";
-
-    const denied = await scrape();
-    expect(denied.status).toBe(401);
+  it("is a 404 without the scrape token", async () => {
+    const denied = await scrape({});
+    expect(denied.status).toBe(404);
     expect(await denied.text()).not.toContain("scrape-secret");
-
-    expect((await scrape({ authorization: "Bearer wrong" })).status).toBe(401);
+    expect((await scrape({ authorization: "Bearer wrong" })).status).toBe(404);
     expect((await scrape({ authorization: "Bearer scrape-secret" })).status).toBe(200);
+  });
+
+  it("fails closed when neither METRICS_TOKEN nor an admin credential is set", async () => {
+    delete process.env["METRICS_TOKEN"];
+    expect((await scrape({})).status).toBe(404);
+  });
+
+  it("lets an admin read it with x-aloya-admin", async () => {
+    delete process.env["METRICS_TOKEN"];
+    process.env["ADMIN_SECRET"] = "admin-secret";
+    try {
+      expect((await scrape({ "x-aloya-admin": "admin-secret" })).status).toBe(200);
+    } finally {
+      delete process.env["ADMIN_SECRET"];
+    }
   });
 
   it("never leaks the scrape token into the payload", async () => {

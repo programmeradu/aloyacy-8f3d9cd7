@@ -15,6 +15,7 @@ import { getHandler } from "./handler";
 
 const POST = getHandler(Route, "POST");
 beforeEach(() => {
+  vi.stubEnv("ADMIN_SECRET", ADMIN);
   vi.stubGlobal(
     "fetch",
     vi.fn(
@@ -25,16 +26,39 @@ beforeEach(() => {
     ),
   );
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
 
-function req(body: unknown) {
+const ADMIN = "test-admin-secret";
+
+function req(body: unknown, headers: Record<string, string> = { "x-aloya-admin": ADMIN }) {
   return new Request("http://x/api/public/bedrock-test", {
     method: "POST",
+    headers,
     body: JSON.stringify(body),
   });
 }
 
 describe("POST /api/public/bedrock-test", () => {
+  it("is a 404 without the admin credential and never calls Bedrock", async () => {
+    const res = await POST({
+      request: req({ apiKey: "ABSK123", modelId: "amazon.titan", prompt: "hello" }, {}),
+    });
+    expect(res.status).toBe(404);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when no admin credential is configured", async () => {
+    vi.stubEnv("ADMIN_SECRET", "");
+    vi.stubEnv("ADMIN_EMAILS", "");
+    const res = await POST({
+      request: req({ apiKey: "ABSK123", modelId: "amazon.titan", prompt: "hello" }),
+    });
+    expect(res.status).toBe(404);
+  });
+
   it("accepts a valid api-key request", async () => {
     const res = await POST({
       request: req({ apiKey: "ABSK123", modelId: "amazon.titan", prompt: "hello" }),

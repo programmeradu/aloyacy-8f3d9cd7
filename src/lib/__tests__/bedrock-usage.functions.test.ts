@@ -2,6 +2,15 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { callServerFn } from "./server-fn";
 import { makeSupabaseMock, type TableResult, type QueryCall } from "./supabase-mock";
 
+// The admin gate has its own suite (src/lib/__tests__/admin-auth.test.ts);
+// here it is a pass-through so these tests exercise the handler itself.
+vi.mock("@/lib/admin.functions", async () => {
+  const { createMiddleware } = await import("@tanstack/react-start");
+  return {
+    requireAdmin: createMiddleware({ type: "function" }).server(({ next }) => next()),
+  };
+});
+
 // bedrock_usage is queried twice (lifetime narrow projection, then windowed "*").
 // Distinguish which logical query is resolving by inspecting the most recent
 // `select` call recorded for the table.

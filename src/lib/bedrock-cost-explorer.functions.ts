@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireAdmin } from "@/lib/admin.functions";
 
 export type BedrockCePoint = {
   start: string;
@@ -32,6 +33,7 @@ const isoDay = (d: Date) => d.toISOString().slice(0, 10);
  * Each call to CE costs ~$0.01 — this fn is designed to be called at most hourly.
  */
 export const getBedrockCostExplorer = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .inputValidator(
     (input: {
       accessKeyId: string;

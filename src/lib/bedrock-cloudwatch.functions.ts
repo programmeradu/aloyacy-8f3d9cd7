@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { estimateCost } from "@/lib/bedrock-pricing";
+import { requireAdmin } from "@/lib/admin.functions";
 
 export type BedrockCwPerModel = {
   modelId: string;
@@ -40,6 +41,7 @@ export type BedrockCwStats = {
  * The provided credentials only need `cloudwatch:GetMetricData`.
  */
 export const getBedrockCloudwatchStats = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .inputValidator(
     (input: {
       accessKeyId: string;

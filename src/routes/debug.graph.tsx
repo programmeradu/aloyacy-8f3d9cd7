@@ -2,8 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getTransferGraphDiagnostics } from "@/lib/transfer-graph.functions";
+import { assertAdminPage } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/debug/graph")({
+  // Internal surface: 404 for anyone who is not an admin (see src/lib/admin.functions.ts).
+  beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [
       { title: "Transfer graph — Phase 1 checkpoint" },

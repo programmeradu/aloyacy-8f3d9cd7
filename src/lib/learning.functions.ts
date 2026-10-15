@@ -4,6 +4,7 @@ import { z } from "zod";
 import { supabaseAdmin as supabase } from "@/integrations/supabase/client.server";
 import { createLogger } from "./logger";
 import { cyHourDow } from "@aloya/core/cy-time";
+import { requireAdmin } from "@/lib/admin.functions";
 
 
 const log = createLogger("learning");
@@ -56,6 +57,7 @@ export const getLearnedStatsBulk = createServerFn({ method: "POST" })
  * into per-route accuracy buckets.
  */
 export const getAccuracySnapshot = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .inputValidator((input) =>
     z
       .object({

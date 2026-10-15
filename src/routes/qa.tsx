@@ -11,8 +11,11 @@ import { useQaUnlocked } from "@/components/qa/qa-gate";
 import { getQaStats, type QaStats } from "@/lib/qa.functions";
 import { MapPreview } from "@/components/MapPreview";
 import { useRealtime } from "@/lib/useRealtime";
+import { assertAdminPage } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/qa")({
+  // Internal surface: 404 for anyone who is not an admin (see src/lib/admin.functions.ts).
+  beforeLoad: () => assertAdminPage(),
   component: QaPage,
   head: () => ({
     meta: [{ title: "Aloya QA" }, { name: "robots", content: "noindex, nofollow" }],

@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { assertAdminPage } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/internal/bedrock")({
+  // Internal surface: 404 for anyone who is not an admin (see src/lib/admin.functions.ts).
+  beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [{ title: "Bedrock Test — Internal" }, { name: "robots", content: "noindex,nofollow" }],
   }),

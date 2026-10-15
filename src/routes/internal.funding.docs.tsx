@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { assertAdminPage } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/internal/funding/docs")({
+  // Internal surface: 404 for anyone who is not an admin (see src/lib/admin.functions.ts).
+  beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [
       { title: "Aloya — Positioning & Funding Roadmap (Internal)" },

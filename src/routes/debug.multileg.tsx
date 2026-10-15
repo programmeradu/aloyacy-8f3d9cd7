@@ -4,8 +4,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { planMultiLeg } from "@/lib/multileg.functions";
 import type { Itinerary, RideLeg } from "@/lib/itinerary-types";
+import { assertAdminPage } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/debug/multileg")({
+  // Internal surface: 404 for anyone who is not an admin (see src/lib/admin.functions.ts).
+  beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [
       { title: "Multi-leg planner — Phase 2c checkpoint" },

@@ -86,12 +86,18 @@ async function normalizeCatastrophicSsrResponse(
 import { setWorkerEnv } from "./lib/worker-env";
 import { runScheduled } from "./lib/cron-schedule";
 import { serveMedia } from "./lib/db/storage";
+import { adminGate } from "./lib/admin-auth.server";
 
 const server = {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     setWorkerEnv(env);
     const workerEnv = env as { ASSETS?: { fetch: typeof fetch } };
     const url = new URL(request.url);
+
+    // 0. Internal / admin / debug / ops surfaces: 404 unless the caller is an
+    // admin (x-aloya-admin: ADMIN_SECRET, or a session email in ADMIN_EMAILS).
+    const denied = await adminGate(request);
+    if (denied) return denied;
 
     // 1. Public R2 media (/media/<bucket>/<path>, see src/lib/db/storage.ts).
     if (url.pathname.startsWith("/media/") && (request.method === "GET" || request.method === "HEAD")) {

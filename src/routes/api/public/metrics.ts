@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { incrementCounter, renderPrometheus, setGauge } from "@/lib/metrics";
+import { adminGate } from "@/lib/admin-auth.server";
 
 // GET /api/public/metrics
 //
@@ -8,29 +9,18 @@ import { incrementCounter, renderPrometheus, setGauge } from "@/lib/metrics";
 // doing". Counters are per-isolate and reset when the instance recycles, which
 // is the normal contract for a scraped process.
 //
-// Access: when METRICS_TOKEN is set the scraper must send
-// `Authorization: Bearer <token>`; without the variable the endpoint is open,
-// which is fine because it exposes only counter names and numbers — never
-// request bodies, user identifiers or credentials.
+// Access (fails closed): the scraper sends `Authorization: Bearer
+// <METRICS_TOKEN>`, or an admin calls it (see src/lib/admin-auth.server.ts).
+// Everyone else gets a 404.
 
 const CONTENT_TYPE = "text/plain; version=0.0.4; charset=utf-8";
-
-function unauthorized(): Response {
-  return new Response("unauthorized\n", {
-    status: 401,
-    headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
-  });
-}
 
 export const Route = createFileRoute("/api/public/metrics")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const expected = process.env["METRICS_TOKEN"];
-        if (expected) {
-          const header = request.headers.get("authorization") ?? "";
-          if (header !== `Bearer ${expected}`) return unauthorized();
-        }
+        const denied = await adminGate(request);
+        if (denied) return denied;
 
         // Two always-present series so a fresh instance never returns an empty
         // body — an empty scrape is indistinguishable from a broken exporter.

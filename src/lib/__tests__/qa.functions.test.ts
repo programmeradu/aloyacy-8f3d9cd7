@@ -2,6 +2,15 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 import { callServerFn } from "./server-fn";
 import { makeSupabaseMock, type TableResult } from "./supabase-mock";
 
+// The admin gate has its own suite (src/lib/__tests__/admin-auth.test.ts);
+// here it is a pass-through so these tests exercise the handler itself.
+vi.mock("@/lib/admin.functions", async () => {
+  const { createMiddleware } = await import("@tanstack/react-start");
+  return {
+    requireAdmin: createMiddleware({ type: "function" }).server(({ next }) => next()),
+  };
+});
+
 const state: { result: TableResult } = { result: { data: [], error: null } };
 
 vi.mock("@/integrations/supabase/client.server", () => {

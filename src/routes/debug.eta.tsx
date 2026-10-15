@@ -4,8 +4,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { getAccuracySnapshot } from "@/lib/learning.functions";
 import { getRoute } from "@/lib/gtfs";
+import { assertAdminPage } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/debug/eta")({
+  // Internal surface: 404 for anyone who is not an admin (see src/lib/admin.functions.ts).
+  beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [{ title: "ETA accuracy — debug" }, { name: "robots", content: "noindex, nofollow" }],
   }),

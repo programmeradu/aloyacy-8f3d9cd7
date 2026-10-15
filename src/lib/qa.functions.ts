@@ -8,6 +8,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireAdmin } from "@/lib/admin.functions";
 
 const Schema = z.object({
   days: z.number().int().min(1).max(30).default(7),
@@ -80,6 +81,7 @@ function isPhaseError(from: string, to: string): boolean {
 }
 
 export const getQaStats = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .inputValidator((input: unknown) => Schema.parse(input))
   .handler(async ({ data }): Promise<QaStats> => {
     const since = new Date(Date.now() - data.days * 86400_000).toISOString();

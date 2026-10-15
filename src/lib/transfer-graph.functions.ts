@@ -6,6 +6,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getGraphStats, getStopRoutes, getTransferCandidates } from "./transfer-graph.server";
 import { STOPS } from "./gtfs";
+import { requireAdmin } from "@/lib/admin.functions";
 
 export type GraphDiagnostics = {
   buildMs: number;
@@ -24,6 +25,7 @@ export type GraphDiagnostics = {
 };
 
 export const getTransferGraphDiagnostics = createServerFn({ method: "GET" })
+  .middleware([requireAdmin])
   .inputValidator((input?: unknown) => z.void().optional().parse(input))
   .handler(
   async (): Promise<GraphDiagnostics> => {

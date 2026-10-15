@@ -3,6 +3,7 @@ import { signRequest } from "@/lib/aws-sigv4.server";
 import { estimateCost } from "@/lib/bedrock-pricing";
 import { badRequest, malformedJsonBody, readJsonBody, zodDetails } from "@/lib/http/validate";
 import { BedrockTestSchema } from "@/lib/schemas/public-api";
+import { adminGate } from "@/lib/admin-auth.server";
 
 // Internal test proxy for AWS Bedrock. Credentials are provided per-request
 // by the caller (BYOK from the test page) and never stored server-side.
@@ -12,7 +13,9 @@ import { BedrockTestSchema } from "@/lib/schemas/public-api";
 export const Route = createFileRoute("/api/public/bedrock-test")({
   server: {
     handlers: {
-      OPTIONS: async () =>
+      // Internal tool: no public CORS preflight; admins call it same-origin.
+      OPTIONS: async ({ request }) =>
+        (await adminGate(request)) ??
         new Response(null, {
           status: 204,
           headers: {
@@ -22,6 +25,8 @@ export const Route = createFileRoute("/api/public/bedrock-test")({
           },
         }),
       POST: async ({ request }) => {
+        const denied = await adminGate(request);
+        if (denied) return denied;
         const cors = {
           "Access-Control-Allow-Origin": "*",
           "Content-Type": "application/json",

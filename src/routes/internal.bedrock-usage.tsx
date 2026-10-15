@@ -2,8 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ProxyUsagePanel } from "@/components/bedrock/ProxyUsagePanel";
 import { CloudwatchPanel } from "@/components/bedrock/CloudwatchPanel";
 import { CostExplorerPanel } from "@/components/bedrock/CostExplorerPanel";
+import { assertAdminPage } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/internal/bedrock-usage")({
+  // Internal surface: 404 for anyone who is not an admin (see src/lib/admin.functions.ts).
+  beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [
       { title: "Bedrock usage — Aloya internal metering" },

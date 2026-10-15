@@ -2,8 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getSeoPanel } from "@/lib/semrush.functions";
+import { assertAdminPage } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin/seo")({
+  // Internal surface: 404 for anyone who is not an admin (see src/lib/admin.functions.ts).
+  beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [
       { title: "SEO panel — Aloya admin" },

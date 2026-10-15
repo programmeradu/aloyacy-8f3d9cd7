@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireAdmin } from "@/lib/admin.functions";
 
 export type BedrockUsageRow = {
   id: string;
@@ -44,6 +45,7 @@ export type BedrockUsageStats = {
 };
 
 export const getBedrockUsageStats = createServerFn({ method: "GET" })
+  .middleware([requireAdmin])
   .inputValidator(
     (input: { keyHint?: string; days?: number; cap?: number } | undefined) => input ?? {},
   )
