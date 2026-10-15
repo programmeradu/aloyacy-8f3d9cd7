@@ -46,8 +46,10 @@ import { Route as InternalFundingDocsRouteImport } from './routes/internal.fundi
 import { Route as ApiPublicWeatherRouteImport } from './routes/api/public/weather'
 import { Route as ApiPublicWalletRouteImport } from './routes/api/public/wallet'
 import { Route as ApiPublicWalkDirectionsRouteImport } from './routes/api/public/walk-directions'
+import { Route as ApiPublicUserSettingsRouteImport } from './routes/api/public/user-settings'
 import { Route as ApiPublicTtsRouteImport } from './routes/api/public/tts'
 import { Route as ApiPublicTripGroupsRouteImport } from './routes/api/public/trip-groups'
+import { Route as ApiPublicTripGroupViewRouteImport } from './routes/api/public/trip-group-view'
 import { Route as ApiPublicTripAlertsRouteImport } from './routes/api/public/trip-alerts'
 import { Route as ApiPublicTrafficAlertsRouteImport } from './routes/api/public/traffic-alerts'
 import { Route as ApiPublicSttRouteImport } from './routes/api/public/stt'
@@ -63,6 +65,7 @@ import { Route as ApiPublicSnapshotRouteImport } from './routes/api/public/snaps
 import { Route as ApiPublicSightingRouteImport } from './routes/api/public/sighting'
 import { Route as ApiPublicRouteSequencesRouteImport } from './routes/api/public/route-sequences'
 import { Route as ApiPublicRouteReliabilityRouteImport } from './routes/api/public/route-reliability'
+import { Route as ApiPublicRouteLoadRouteImport } from './routes/api/public/route-load'
 import { Route as ApiPublicRiderFixRouteImport } from './routes/api/public/rider-fix'
 import { Route as ApiPublicRealtimeRouteImport } from './routes/api/public/realtime'
 import { Route as ApiPublicPulseRouteImport } from './routes/api/public/pulse'
@@ -82,8 +85,10 @@ import { Route as ApiPublicGtfsHeadsignsRouteImport } from './routes/api/public/
 import { Route as ApiPublicGbfsDotjsonRouteImport } from './routes/api/public/gbfs[.]json'
 import { Route as ApiPublicFeedDeltaRouteImport } from './routes/api/public/feed-delta'
 import { Route as ApiPublicExpoPushRegisterRouteImport } from './routes/api/public/expo-push-register'
+import { Route as ApiPublicEtaShareRouteImport } from './routes/api/public/eta-share'
 import { Route as ApiPublicEtaLogRouteImport } from './routes/api/public/eta-log'
 import { Route as ApiPublicDustAdvisoryRouteImport } from './routes/api/public/dust-advisory'
+import { Route as ApiPublicCommuteSuggestionRouteImport } from './routes/api/public/commute-suggestion'
 import { Route as ApiPublicBoltScooterRouteImport } from './routes/api/public/bolt-scooter'
 import { Route as ApiPublicBoardRouteImport } from './routes/api/public/board'
 import { Route as ApiPublicBikeShareRouteImport } from './routes/api/public/bike-share'
@@ -315,6 +320,11 @@ const ApiPublicWalkDirectionsRoute = ApiPublicWalkDirectionsRouteImport.update({
   path: '/api/public/walk-directions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicUserSettingsRoute = ApiPublicUserSettingsRouteImport.update({
+  id: '/api/public/user-settings',
+  path: '/api/public/user-settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTtsRoute = ApiPublicTtsRouteImport.update({
   id: '/api/public/tts',
   path: '/api/public/tts',
@@ -323,6 +333,11 @@ const ApiPublicTtsRoute = ApiPublicTtsRouteImport.update({
 const ApiPublicTripGroupsRoute = ApiPublicTripGroupsRouteImport.update({
   id: '/api/public/trip-groups',
   path: '/api/public/trip-groups',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTripGroupViewRoute = ApiPublicTripGroupViewRouteImport.update({
+  id: '/api/public/trip-group-view',
+  path: '/api/public/trip-group-view',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicTripAlertsRoute = ApiPublicTripAlertsRouteImport.update({
@@ -402,6 +417,11 @@ const ApiPublicRouteReliabilityRoute =
     path: '/api/public/route-reliability',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicRouteLoadRoute = ApiPublicRouteLoadRouteImport.update({
+  id: '/api/public/route-load',
+  path: '/api/public/route-load',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicRiderFixRoute = ApiPublicRiderFixRouteImport.update({
   id: '/api/public/rider-fix',
   path: '/api/public/rider-fix',
@@ -500,6 +520,11 @@ const ApiPublicExpoPushRegisterRoute =
     path: '/api/public/expo-push-register',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicEtaShareRoute = ApiPublicEtaShareRouteImport.update({
+  id: '/api/public/eta-share',
+  path: '/api/public/eta-share',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicEtaLogRoute = ApiPublicEtaLogRouteImport.update({
   id: '/api/public/eta-log',
   path: '/api/public/eta-log',
@@ -510,6 +535,12 @@ const ApiPublicDustAdvisoryRoute = ApiPublicDustAdvisoryRouteImport.update({
   path: '/api/public/dust-advisory',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCommuteSuggestionRoute =
+  ApiPublicCommuteSuggestionRouteImport.update({
+    id: '/api/public/commute-suggestion',
+    path: '/api/public/commute-suggestion',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicBoltScooterRoute = ApiPublicBoltScooterRouteImport.update({
   id: '/api/public/bolt-scooter',
   path: '/api/public/bolt-scooter',
@@ -784,8 +815,10 @@ export interface FileRoutesByFullPath {
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/board': typeof ApiPublicBoardRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/commute-suggestion': typeof ApiPublicCommuteSuggestionRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/eta-log': typeof ApiPublicEtaLogRoute
+  '/api/public/eta-share': typeof ApiPublicEtaShareRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/feed-delta': typeof ApiPublicFeedDeltaRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
@@ -805,6 +838,7 @@ export interface FileRoutesByFullPath {
   '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
+  '/api/public/route-load': typeof ApiPublicRouteLoadRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
   '/api/public/route-sequences': typeof ApiPublicRouteSequencesRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
@@ -820,8 +854,10 @@ export interface FileRoutesByFullPath {
   '/api/public/stt': typeof ApiPublicSttRoute
   '/api/public/traffic-alerts': typeof ApiPublicTrafficAlertsRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/trip-group-view': typeof ApiPublicTripGroupViewRoute
   '/api/public/trip-groups': typeof ApiPublicTripGroupsRoute
   '/api/public/tts': typeof ApiPublicTtsRoute
+  '/api/public/user-settings': typeof ApiPublicUserSettingsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/weather': typeof ApiPublicWeatherRoute
@@ -903,8 +939,10 @@ export interface FileRoutesByTo {
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/board': typeof ApiPublicBoardRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/commute-suggestion': typeof ApiPublicCommuteSuggestionRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/eta-log': typeof ApiPublicEtaLogRoute
+  '/api/public/eta-share': typeof ApiPublicEtaShareRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/feed-delta': typeof ApiPublicFeedDeltaRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
@@ -924,6 +962,7 @@ export interface FileRoutesByTo {
   '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
+  '/api/public/route-load': typeof ApiPublicRouteLoadRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
   '/api/public/route-sequences': typeof ApiPublicRouteSequencesRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
@@ -939,8 +978,10 @@ export interface FileRoutesByTo {
   '/api/public/stt': typeof ApiPublicSttRoute
   '/api/public/traffic-alerts': typeof ApiPublicTrafficAlertsRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/trip-group-view': typeof ApiPublicTripGroupViewRoute
   '/api/public/trip-groups': typeof ApiPublicTripGroupsRoute
   '/api/public/tts': typeof ApiPublicTtsRoute
+  '/api/public/user-settings': typeof ApiPublicUserSettingsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/weather': typeof ApiPublicWeatherRoute
@@ -1023,8 +1064,10 @@ export interface FileRoutesById {
   '/api/public/bike-share': typeof ApiPublicBikeShareRoute
   '/api/public/board': typeof ApiPublicBoardRoute
   '/api/public/bolt-scooter': typeof ApiPublicBoltScooterRoute
+  '/api/public/commute-suggestion': typeof ApiPublicCommuteSuggestionRoute
   '/api/public/dust-advisory': typeof ApiPublicDustAdvisoryRoute
   '/api/public/eta-log': typeof ApiPublicEtaLogRoute
+  '/api/public/eta-share': typeof ApiPublicEtaShareRoute
   '/api/public/expo-push-register': typeof ApiPublicExpoPushRegisterRoute
   '/api/public/feed-delta': typeof ApiPublicFeedDeltaRoute
   '/api/public/gbfs.json': typeof ApiPublicGbfsDotjsonRoute
@@ -1044,6 +1087,7 @@ export interface FileRoutesById {
   '/api/public/pulse': typeof ApiPublicPulseRoute
   '/api/public/realtime': typeof ApiPublicRealtimeRoute
   '/api/public/rider-fix': typeof ApiPublicRiderFixRoute
+  '/api/public/route-load': typeof ApiPublicRouteLoadRoute
   '/api/public/route-reliability': typeof ApiPublicRouteReliabilityRoute
   '/api/public/route-sequences': typeof ApiPublicRouteSequencesRoute
   '/api/public/sighting': typeof ApiPublicSightingRoute
@@ -1059,8 +1103,10 @@ export interface FileRoutesById {
   '/api/public/stt': typeof ApiPublicSttRoute
   '/api/public/traffic-alerts': typeof ApiPublicTrafficAlertsRoute
   '/api/public/trip-alerts': typeof ApiPublicTripAlertsRoute
+  '/api/public/trip-group-view': typeof ApiPublicTripGroupViewRoute
   '/api/public/trip-groups': typeof ApiPublicTripGroupsRoute
   '/api/public/tts': typeof ApiPublicTtsRoute
+  '/api/public/user-settings': typeof ApiPublicUserSettingsRoute
   '/api/public/walk-directions': typeof ApiPublicWalkDirectionsRoute
   '/api/public/wallet': typeof ApiPublicWalletRouteWithChildren
   '/api/public/weather': typeof ApiPublicWeatherRoute
@@ -1144,8 +1190,10 @@ export interface FileRouteTypes {
     | '/api/public/bike-share'
     | '/api/public/board'
     | '/api/public/bolt-scooter'
+    | '/api/public/commute-suggestion'
     | '/api/public/dust-advisory'
     | '/api/public/eta-log'
+    | '/api/public/eta-share'
     | '/api/public/expo-push-register'
     | '/api/public/feed-delta'
     | '/api/public/gbfs.json'
@@ -1165,6 +1213,7 @@ export interface FileRouteTypes {
     | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
+    | '/api/public/route-load'
     | '/api/public/route-reliability'
     | '/api/public/route-sequences'
     | '/api/public/sighting'
@@ -1180,8 +1229,10 @@ export interface FileRouteTypes {
     | '/api/public/stt'
     | '/api/public/traffic-alerts'
     | '/api/public/trip-alerts'
+    | '/api/public/trip-group-view'
     | '/api/public/trip-groups'
     | '/api/public/tts'
+    | '/api/public/user-settings'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
     | '/api/public/weather'
@@ -1263,8 +1314,10 @@ export interface FileRouteTypes {
     | '/api/public/bike-share'
     | '/api/public/board'
     | '/api/public/bolt-scooter'
+    | '/api/public/commute-suggestion'
     | '/api/public/dust-advisory'
     | '/api/public/eta-log'
+    | '/api/public/eta-share'
     | '/api/public/expo-push-register'
     | '/api/public/feed-delta'
     | '/api/public/gbfs.json'
@@ -1284,6 +1337,7 @@ export interface FileRouteTypes {
     | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
+    | '/api/public/route-load'
     | '/api/public/route-reliability'
     | '/api/public/route-sequences'
     | '/api/public/sighting'
@@ -1299,8 +1353,10 @@ export interface FileRouteTypes {
     | '/api/public/stt'
     | '/api/public/traffic-alerts'
     | '/api/public/trip-alerts'
+    | '/api/public/trip-group-view'
     | '/api/public/trip-groups'
     | '/api/public/tts'
+    | '/api/public/user-settings'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
     | '/api/public/weather'
@@ -1382,8 +1438,10 @@ export interface FileRouteTypes {
     | '/api/public/bike-share'
     | '/api/public/board'
     | '/api/public/bolt-scooter'
+    | '/api/public/commute-suggestion'
     | '/api/public/dust-advisory'
     | '/api/public/eta-log'
+    | '/api/public/eta-share'
     | '/api/public/expo-push-register'
     | '/api/public/feed-delta'
     | '/api/public/gbfs.json'
@@ -1403,6 +1461,7 @@ export interface FileRouteTypes {
     | '/api/public/pulse'
     | '/api/public/realtime'
     | '/api/public/rider-fix'
+    | '/api/public/route-load'
     | '/api/public/route-reliability'
     | '/api/public/route-sequences'
     | '/api/public/sighting'
@@ -1418,8 +1477,10 @@ export interface FileRouteTypes {
     | '/api/public/stt'
     | '/api/public/traffic-alerts'
     | '/api/public/trip-alerts'
+    | '/api/public/trip-group-view'
     | '/api/public/trip-groups'
     | '/api/public/tts'
+    | '/api/public/user-settings'
     | '/api/public/walk-directions'
     | '/api/public/wallet'
     | '/api/public/weather'
@@ -1502,8 +1563,10 @@ export interface RootRouteChildren {
   ApiPublicBikeShareRoute: typeof ApiPublicBikeShareRoute
   ApiPublicBoardRoute: typeof ApiPublicBoardRoute
   ApiPublicBoltScooterRoute: typeof ApiPublicBoltScooterRoute
+  ApiPublicCommuteSuggestionRoute: typeof ApiPublicCommuteSuggestionRoute
   ApiPublicDustAdvisoryRoute: typeof ApiPublicDustAdvisoryRoute
   ApiPublicEtaLogRoute: typeof ApiPublicEtaLogRoute
+  ApiPublicEtaShareRoute: typeof ApiPublicEtaShareRoute
   ApiPublicExpoPushRegisterRoute: typeof ApiPublicExpoPushRegisterRoute
   ApiPublicFeedDeltaRoute: typeof ApiPublicFeedDeltaRoute
   ApiPublicGbfsDotjsonRoute: typeof ApiPublicGbfsDotjsonRoute
@@ -1523,6 +1586,7 @@ export interface RootRouteChildren {
   ApiPublicPulseRoute: typeof ApiPublicPulseRoute
   ApiPublicRealtimeRoute: typeof ApiPublicRealtimeRoute
   ApiPublicRiderFixRoute: typeof ApiPublicRiderFixRoute
+  ApiPublicRouteLoadRoute: typeof ApiPublicRouteLoadRoute
   ApiPublicRouteReliabilityRoute: typeof ApiPublicRouteReliabilityRoute
   ApiPublicRouteSequencesRoute: typeof ApiPublicRouteSequencesRoute
   ApiPublicSightingRoute: typeof ApiPublicSightingRoute
@@ -1538,8 +1602,10 @@ export interface RootRouteChildren {
   ApiPublicSttRoute: typeof ApiPublicSttRoute
   ApiPublicTrafficAlertsRoute: typeof ApiPublicTrafficAlertsRoute
   ApiPublicTripAlertsRoute: typeof ApiPublicTripAlertsRoute
+  ApiPublicTripGroupViewRoute: typeof ApiPublicTripGroupViewRoute
   ApiPublicTripGroupsRoute: typeof ApiPublicTripGroupsRoute
   ApiPublicTtsRoute: typeof ApiPublicTtsRoute
+  ApiPublicUserSettingsRoute: typeof ApiPublicUserSettingsRoute
   ApiPublicWalkDirectionsRoute: typeof ApiPublicWalkDirectionsRoute
   ApiPublicWalletRoute: typeof ApiPublicWalletRouteWithChildren
   ApiPublicWeatherRoute: typeof ApiPublicWeatherRoute
@@ -1841,6 +1907,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWalkDirectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/user-settings': {
+      id: '/api/public/user-settings'
+      path: '/api/public/user-settings'
+      fullPath: '/api/public/user-settings'
+      preLoaderRoute: typeof ApiPublicUserSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/tts': {
       id: '/api/public/tts'
       path: '/api/public/tts'
@@ -1853,6 +1926,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/trip-groups'
       fullPath: '/api/public/trip-groups'
       preLoaderRoute: typeof ApiPublicTripGroupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/trip-group-view': {
+      id: '/api/public/trip-group-view'
+      path: '/api/public/trip-group-view'
+      fullPath: '/api/public/trip-group-view'
+      preLoaderRoute: typeof ApiPublicTripGroupViewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/trip-alerts': {
@@ -1958,6 +2038,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/route-reliability'
       fullPath: '/api/public/route-reliability'
       preLoaderRoute: typeof ApiPublicRouteReliabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/route-load': {
+      id: '/api/public/route-load'
+      path: '/api/public/route-load'
+      fullPath: '/api/public/route-load'
+      preLoaderRoute: typeof ApiPublicRouteLoadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/rider-fix': {
@@ -2093,6 +2180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicExpoPushRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/eta-share': {
+      id: '/api/public/eta-share'
+      path: '/api/public/eta-share'
+      fullPath: '/api/public/eta-share'
+      preLoaderRoute: typeof ApiPublicEtaShareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/eta-log': {
       id: '/api/public/eta-log'
       path: '/api/public/eta-log'
@@ -2105,6 +2199,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/dust-advisory'
       fullPath: '/api/public/dust-advisory'
       preLoaderRoute: typeof ApiPublicDustAdvisoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/commute-suggestion': {
+      id: '/api/public/commute-suggestion'
+      path: '/api/public/commute-suggestion'
+      fullPath: '/api/public/commute-suggestion'
+      preLoaderRoute: typeof ApiPublicCommuteSuggestionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/bolt-scooter': {
@@ -2459,8 +2560,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicBikeShareRoute: ApiPublicBikeShareRoute,
   ApiPublicBoardRoute: ApiPublicBoardRoute,
   ApiPublicBoltScooterRoute: ApiPublicBoltScooterRoute,
+  ApiPublicCommuteSuggestionRoute: ApiPublicCommuteSuggestionRoute,
   ApiPublicDustAdvisoryRoute: ApiPublicDustAdvisoryRoute,
   ApiPublicEtaLogRoute: ApiPublicEtaLogRoute,
+  ApiPublicEtaShareRoute: ApiPublicEtaShareRoute,
   ApiPublicExpoPushRegisterRoute: ApiPublicExpoPushRegisterRoute,
   ApiPublicFeedDeltaRoute: ApiPublicFeedDeltaRoute,
   ApiPublicGbfsDotjsonRoute: ApiPublicGbfsDotjsonRoute,
@@ -2480,6 +2583,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPulseRoute: ApiPublicPulseRoute,
   ApiPublicRealtimeRoute: ApiPublicRealtimeRoute,
   ApiPublicRiderFixRoute: ApiPublicRiderFixRoute,
+  ApiPublicRouteLoadRoute: ApiPublicRouteLoadRoute,
   ApiPublicRouteReliabilityRoute: ApiPublicRouteReliabilityRoute,
   ApiPublicRouteSequencesRoute: ApiPublicRouteSequencesRoute,
   ApiPublicSightingRoute: ApiPublicSightingRoute,
@@ -2495,8 +2599,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSttRoute: ApiPublicSttRoute,
   ApiPublicTrafficAlertsRoute: ApiPublicTrafficAlertsRoute,
   ApiPublicTripAlertsRoute: ApiPublicTripAlertsRoute,
+  ApiPublicTripGroupViewRoute: ApiPublicTripGroupViewRoute,
   ApiPublicTripGroupsRoute: ApiPublicTripGroupsRoute,
   ApiPublicTtsRoute: ApiPublicTtsRoute,
+  ApiPublicUserSettingsRoute: ApiPublicUserSettingsRoute,
   ApiPublicWalkDirectionsRoute: ApiPublicWalkDirectionsRoute,
   ApiPublicWalletRoute: ApiPublicWalletRouteWithChildren,
   ApiPublicWeatherRoute: ApiPublicWeatherRoute,
@@ -2544,13 +2650,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
