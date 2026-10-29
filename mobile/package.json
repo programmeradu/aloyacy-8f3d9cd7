@@ -73,6 +73,6 @@
     "web": "expo start --web"
   },
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "commonjs"
 }

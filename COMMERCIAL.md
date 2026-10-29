@@ -1,9 +1,9 @@
 # Commercial terms
 
-Aloya is proprietary software (see [LICENSE](./LICENSE)). This document
-describes what a buyer or licensee receives, what they may do with it, and
-what obligations travel with the code. It is descriptive; nothing here is
-binding until a signed agreement exists.
+Aloya's source code is released under the MIT License (see [LICENSE](./LICENSE)).
+This document describes optional commercial arrangements (support, deployment
+help, brand transfer) and what obligations travel with the code. It is
+descriptive; nothing here is binding until a signed agreement exists.
 
 ## What is included
 

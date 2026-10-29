@@ -255,6 +255,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md). Releases are logged in
 
 ## License
 
-Proprietary — all rights reserved. See [LICENSE](./LICENSE). What a licence
-covers, what a buyer receives, deployment rights and third-party attributions
-are documented in [COMMERCIAL.md](./COMMERCIAL.md).
+MIT. See [LICENSE](./LICENSE). The "Aloya" name, logo and domains are not
+covered by the code licence. Third-party attributions are in
+[COMMERCIAL.md](./COMMERCIAL.md).

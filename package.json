@@ -2,7 +2,7 @@
   "name": "aloya",
   "version": "1.1.0",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "description": "Aloya — transit companion for Cyprus: live arrivals, trip planning and journey guidance across web and mobile.",
   "sideEffects": false,
   "keywords": [

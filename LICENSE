@@ -1,45 +1,21 @@
-Aloya — Proprietary Software License
-Copyright (c) 2026 Aloya. All rights reserved.
+MIT License
 
-1. Ownership
+Copyright (c) 2026 Aloya CY (Samuel Adu-Berekorang)
 
-   This software, including its source code, build tooling, database
-   migrations, generated assets, documentation and the "Aloya" name and
-   marks (collectively, the "Software"), is the exclusive property of the
-   copyright holder. No ownership rights transfer by access, download,
-   fork, or receipt of a copy.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-2. No implied licence
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-   No licence, express or implied, is granted by this file. Absent a
-   separate written agreement signed by the copyright holder, you may not
-   use, copy, modify, merge, publish, distribute, sublicense, sell, host,
-   or create derivative works of the Software, in whole or in part.
-
-3. Permitted evaluation
-
-   A recipient given a copy by the copyright holder may read the source
-   and run it locally for the sole purpose of evaluating a purchase or
-   licence. Evaluation grants no right to deploy publicly, to serve third
-   parties, or to reuse any portion in another product.
-
-4. Commercial licensing
-
-   Commercial terms — including asset transfer, deployment rights and
-   support — are described in COMMERCIAL.md and are only effective once
-   executed in a signed agreement.
-
-5. Third-party components
-
-   The Software depends on open-source packages retained under their own
-   licences. Those licences govern those components only; they do not
-   extend to the Software. See COMMERCIAL.md, "Third-party components".
-
-6. No warranty
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES
-   OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-   SOFTWARE OR ITS USE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

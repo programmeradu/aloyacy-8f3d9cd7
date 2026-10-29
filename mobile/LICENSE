@@ -1,10 +1,5 @@
-Aloya mobile application — Proprietary.
-Copyright (c) 2026 Aloya. All rights reserved.
+Aloya mobile application.
+Copyright (c) 2026 Aloya CY (Samuel Adu-Berekorang).
 
-This workspace package is part of the Aloya monorepo and is governed by the
-root LICENSE file (../LICENSE) and the commercial terms in ../COMMERCIAL.md.
-
-It is NOT MIT licensed. Any MIT text previously present here came from the
-Expo bare-workflow template scaffold and did not describe this application.
-Third-party dependencies, including Expo and React Native, remain under their
-own licences; those licences cover only those components.
+This workspace package is part of the Aloya monorepo and is licensed under
+the MIT License in the root LICENSE file (../LICENSE).
