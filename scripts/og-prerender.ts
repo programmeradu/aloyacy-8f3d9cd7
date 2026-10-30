@@ -95,12 +95,12 @@ async function main() {
     console.log(`og: shard ${shard}/${shards} done, ${n} cards, ${(bytes / 1e6).toFixed(1)} MB, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
     return;
   }
-  const shards: Record<string, string>[] = Array.from({ length: TRIP_SHARDS }, () => ({}));
+  const index: Record<string, string>[] = Array.from({ length: TRIP_SHARDS }, () => ({}));
   for (const [rid, v] of Object.entries(shapes)) {
-    for (const tid of Object.keys(v.trips ?? {})) shards[tripShard(tid)][tid] = rid;
+    for (const tid of Object.keys(v.trips ?? {})) index[tripShard(tid)][tid] = rid;
   }
   mkdirSync(join(out, "trips"), { recursive: true });
-  shards.forEach((s, i) => writeFileSync(join(out, "trips", `${i}.json`), JSON.stringify(s)));
+  index.forEach((s, i) => writeFileSync(join(out, "trips", `${i}.json`), JSON.stringify(s)));
 
   console.log(`og: done, ${n} cards, ${(bytes / 1e6).toFixed(1)} MB, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
 }
