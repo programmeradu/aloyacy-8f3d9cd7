@@ -71,9 +71,9 @@ export function edgeCandidates(
   to: number,
   /** Required contrast direction: 1 dark to light, -1 light to dark, 0 either. */
   wantSign = 0,
-  max = TUNE.max,
-  minSupport = TUNE.sup,
-  minThird = TUNE.third,
+  max: number = TUNE.max,
+  minSupport: number = TUNE.sup,
+  minThird: number = TUNE.third,
 ): Line[] {
   const { data, width } = g;
   const step = 2;
@@ -574,7 +574,7 @@ export function warpQuad(
   q: Quad,
   W: number,
   H: number,
-): Uint8ClampedArray {
+): Uint8ClampedArray<ArrayBuffer> {
   const m = squareToQuad(q);
   const out = new Uint8ClampedArray(W * H * 4);
   const sw = src.width;

@@ -361,7 +361,6 @@ function WalletRoute() {
             )}
           </section>
         ) : null}
-
       </div>
 
       {editing !== "none" && (

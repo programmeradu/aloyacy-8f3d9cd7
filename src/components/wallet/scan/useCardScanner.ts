@@ -134,6 +134,7 @@ export function useCardScanner(opts: {
   useEffect(() => {
     if (!opts.enabled) return;
     let alive = true;
+    const videoEl = videoRef.current;
     (async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -170,7 +171,7 @@ export function useCardScanner(opts: {
       alive = false;
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
-      if (videoRef.current) videoRef.current.srcObject = null;
+      if (videoEl) videoEl.srcObject = null;
       void disposeOcr();
     };
   }, [opts.enabled]);

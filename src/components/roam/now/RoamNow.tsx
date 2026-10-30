@@ -13,7 +13,8 @@ import { useNextBus } from "@/components/home/useNextBus";
 import { useNearbyStops } from "@/components/home/useNearbyStops";
 import { deriveCardState } from "@/components/home/sky-state";
 import { useGeolocation } from "@/lib/useGeolocation";
-import { distanceKm, getStop, nearestStops } from "@/lib/gtfs";
+import { distanceKm, getRoute, getStop, nearestStops } from "@/lib/gtfs";
+import routeStopsData from "@/data/route_stops.json";
 import { useActiveTrip, useSavedPlaces } from "@/lib/trip-store";
 import { useTick } from "@/hooks/use-tick";
 import { useRoamI18n } from "@/lib/roam-i18n";
@@ -102,7 +103,7 @@ export function RoamNow() {
     ? pinStops.map((s, i) => {
         const on = s.id === cardStopId;
         const due = dueByStop.get(s.id) ?? 0;
-        const nLines = new Set(s.routes?.map((x) => x.code).filter((c) => c && c !== "-")).size;
+        const nLines = lineCountAtStop(s.id);
         return {
           id: s.id,
           lat: s.lat,
@@ -199,8 +200,8 @@ export function RoamNow() {
             ? liveNear === 1
               ? r("now.sub1", { stops: pinStops.length })
               : liveNear > 1
-              ? r("now.sub", { stops: pinStops.length, live: liveNear })
-              : r("now.subNoLive", { stops: pinStops.length })
+                ? r("now.sub", { stops: pinStops.length, live: liveNear })
+                : r("now.subNoLive", { stops: pinStops.length })
             : r("now.locating")}
         </p>
         <nav className="r-now-chips" aria-label={r("now.search")}>
@@ -244,7 +245,8 @@ export function RoamNow() {
                     : r("now.resume")}
                 </span>
                 <Icon name="caret-right" />
-              </Link>            ) : null}
+              </Link>
+            ) : null}
           </div>
           <NowCard
             state={state}
@@ -284,4 +286,22 @@ export function RoamNow() {
       />
     </div>
   );
+}
+
+let LINES_AT_STOP: Map<string, Set<string>> | null = null;
+/** Distinct line numbers serving a stop (both directions count once). */
+function lineCountAtStop(stopId: string): number {
+  if (!LINES_AT_STOP) {
+    const m = new Map<string, Set<string>>();
+    for (const [routeId, stopIds] of Object.entries(routeStopsData as Record<string, string[]>)) {
+      const code = getRoute(routeId)?.short || routeId;
+      for (const id of stopIds) {
+        let set = m.get(id);
+        if (!set) m.set(id, (set = new Set()));
+        set.add(code);
+      }
+    }
+    LINES_AT_STOP = m;
+  }
+  return LINES_AT_STOP.get(stopId)?.size ?? 0;
 }

@@ -21,9 +21,31 @@ const GREEK_DIGRAPHS: [RegExp, string][] = [
   [/γγ/g, "ng"],
 ];
 const GREEK_LETTERS: Record<string, string> = {
-  α: "a", β: "v", γ: "g", δ: "d", ε: "e", ζ: "z", η: "i", θ: "th", ι: "i", κ: "k",
-  λ: "l", μ: "m", ν: "n", ξ: "x", ο: "o", π: "p", ρ: "r", σ: "s", ς: "s", τ: "t",
-  υ: "y", φ: "f", χ: "ch", ψ: "ps", ω: "o",
+  α: "a",
+  β: "v",
+  γ: "g",
+  δ: "d",
+  ε: "e",
+  ζ: "z",
+  η: "i",
+  θ: "th",
+  ι: "i",
+  κ: "k",
+  λ: "l",
+  μ: "m",
+  ν: "n",
+  ξ: "x",
+  ο: "o",
+  π: "p",
+  ρ: "r",
+  σ: "s",
+  ς: "s",
+  τ: "t",
+  υ: "y",
+  φ: "f",
+  χ: "ch",
+  ψ: "ps",
+  ω: "o",
 };
 
 /** Lowercase, no accents, Greek transliterated to Latin. */
@@ -143,7 +165,8 @@ export function searchStops(query: string, stops: StopIn[], near: Pt | null, lim
     const km = near ? distKm(near, s) : 0;
     const key = s.name.toLowerCase();
     const prev = byName.get(key);
-    if (!prev || km < prev.km) byName.set(key, { kind: "stop", id: s.id, name: s.name, km, score: sc });
+    if (!prev || km < prev.km)
+      byName.set(key, { kind: "stop", id: s.id, name: s.name, km, score: sc });
   }
   return [...byName.values()]
     .sort((a, b) => b.score - a.score + (near ? (a.km - b.km) * 0.02 : 0))
@@ -197,7 +220,9 @@ export function parseIntent(text: string, now = new Date()): Intent | null {
   let edge: Intent["edge"] = null;
   if (/\blast\s+bus\b|τελευταιο/.test(toLatin(t)) || /\blast\b/.test(t)) edge = "last";
   else if (/\bfirst\s+bus\b/.test(t)) edge = "first";
-  const lineM = t.match(/^(?:next|when'?s?(?:\s+is)?(?:\s+the)?(?:\s+next)?)\s+(?:bus\s+|line\s+)?([a-z]?\d{1,3}[a-z]?)\b/);
+  const lineM = t.match(
+    /^(?:next|when'?s?(?:\s+is)?(?:\s+the)?(?:\s+next)?)\s+(?:bus\s+|line\s+)?([a-z]?\d{1,3}[a-z]?)\b/,
+  );
   const fromHere = /\bfrom\s+(here|my location|me)\b/.test(t) || !/\bfrom\s+/.test(t);
 
   let to: string | null = null;
@@ -216,7 +241,9 @@ export function parseIntent(text: string, now = new Date()): Intent | null {
   const inMin = t.match(/\bin\s+(\d{1,3})\s*(?:min|mins|minutes)\b/);
   if (inMin) leaveAtISO = new Date(now.getTime() + Number(inMin[1]) * 60_000).toISOString();
   else {
-    const tm = t.match(/\b(?:at|by|around)?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b|\b(?:at|by|around)\s+(\d{1,2})(?::(\d{2}))\b/);
+    const tm = t.match(
+      /\b(?:at|by|around)?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b|\b(?:at|by|around)\s+(\d{1,2})(?::(\d{2}))\b/,
+    );
     if (tm) {
       let h = Number(tm[1] ?? tm[4]);
       const m = Number(tm[2] ?? tm[5] ?? 0);

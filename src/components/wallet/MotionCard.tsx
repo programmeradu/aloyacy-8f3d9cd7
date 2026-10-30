@@ -117,9 +117,7 @@ export function MotionCard({
           />
         </article>
         {!hasCard && (
-          <p className="mt-3 text-center text-[13px] text-ink-soft">
-            {t("wallet.tapToSetUp")}
-          </p>
+          <p className="mt-3 text-center text-[13px] text-ink-soft">{t("wallet.tapToSetUp")}</p>
         )}
       </button>
       {onScan && (

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { matchScore, parseIntent, phoneticKey, searchLines, searchStops, toLatin } from "./smart-search";
+import {
+  matchScore,
+  parseIntent,
+  phoneticKey,
+  searchLines,
+  searchStops,
+  toLatin,
+} from "./smart-search";
 
 const stops = [
   { id: "1", name: "Eleftheria Square", lat: 35.17, lng: 33.36, agency: "NPT" },
@@ -15,7 +22,9 @@ describe("smart search", () => {
   });
   it("finds Eleftheria Square from English, Greek, Greeklish and a typo", () => {
     for (const q of ["eleftheria", "ελευθερια", "elefteria", "eleftheira", "elef sq"]) {
-      expect(searchStops(q, stops, { lat: 35.17, lng: 33.36 })[0]?.name, q).toBe("Eleftheria Square");
+      expect(searchStops(q, stops, { lat: 35.17, lng: 33.36 })[0]?.name, q).toBe(
+        "Eleftheria Square",
+      );
     }
   });
   it("does not match unrelated names", () => {

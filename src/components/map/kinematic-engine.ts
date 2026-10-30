@@ -254,11 +254,16 @@ export class KinematicBusEngine {
         // Past the fix: dead-reckon at road speed, capped in time and distance.
         const over = Math.max(0, (el - this.segDur) / 1000);
         const dr =
-          this.drOk && this.speedMps > 1 ? Math.min(this.speedMps * Math.min(over, DR_MAX_S), DR_MAX_M) : 0;
+          this.drOk && this.speedMps > 1
+            ? Math.min(this.speedMps * Math.min(over, DR_MAX_S), DR_MAX_M)
+            : 0;
         along = this.segTo + dr;
       }
       // Monotonic between fixes (holds rather than sliding backwards).
-      this.displayedAlong = Math.max(0, Math.min(this.pathTotal, Math.max(this.displayedAlong, along)));
+      this.displayedAlong = Math.max(
+        0,
+        Math.min(this.pathTotal, Math.max(this.displayedAlong, along)),
+      );
       this.boarding = this.speedMps < 0.5 && Math.abs(this.segTo - this.displayedAlong) < 5;
 
       const sample = sampleAlong(this.path, this.cum, this.displayedAlong);

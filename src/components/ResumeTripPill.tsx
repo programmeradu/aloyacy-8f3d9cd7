@@ -57,7 +57,9 @@ export function ResumeTripPill() {
           <span className="text-[15px] font-medium truncate">
             {routeShort ? (
               <>
-                <span style={{ color: "var(--r-y)" }}>{t("resume.busTo", { code: routeShort })}</span>{" "}
+                <span style={{ color: "var(--r-y)" }}>
+                  {t("resume.busTo", { code: routeShort })}
+                </span>{" "}
                 {destination}
               </>
             ) : (

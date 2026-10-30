@@ -79,7 +79,9 @@ export function useDomPins(
     let raf = 0;
     const run = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => declutter(map, pinsRef.current ?? [], markers.current, declutterPx));
+      raf = requestAnimationFrame(() =>
+        declutter(map, pinsRef.current ?? [], markers.current, declutterPx),
+      );
     };
     run();
     map.on("zoomend", run);

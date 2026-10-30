@@ -19,9 +19,17 @@ import { Icon } from "../Icon";
 import { useKeyboardInset } from "./useKeyboardInset";
 import { addRecent, clearRecent, readRecent, type Recent } from "./recent";
 
-type Vehicle = { id: string; tripId: string; routeId: string; label: string; lat: number; lng: number };
+type Vehicle = {
+  id: string;
+  tripId: string;
+  routeId: string;
+  label: string;
+  lat: number;
+  lng: number;
+};
 import type { Item, Pt } from "./types";
-import { Group, Row, ItemRow, groupItems } from "./SearchRows";
+import { Group, Row, ItemRow } from "./SearchRows";
+import { groupItems } from "./group";
 
 export function RoamSearchSheet({
   open,
@@ -50,7 +58,9 @@ export function RoamSearchSheet({
   const aiFn = useServerFn(parseTripIntent);
   const saved = useSavedPlaces();
   const [q, setQ] = useState("");
-  const [places, setPlaces] = useState<{ placeId: string; primary: string; secondary: string }[]>([]);
+  const [places, setPlaces] = useState<{ placeId: string; primary: string; secondary: string }[]>(
+    [],
+  );
   const [recent, setRecent] = useState<Recent[]>([]);
   const [listening, setListening] = useState(false);
   const [planning, setPlanning] = useState(false);
@@ -122,7 +132,13 @@ export function RoamSearchSheet({
     const out: Item[] = [];
     const stopHits = searchStops(term, STOPS, coords, pick ? 10 : 5);
     if (pick) {
-      return stopHits.map((s) => ({ kind: "stop", key: `s${s.id}`, id: s.id, name: s.name, km: s.km }));
+      return stopHits.map((s) => ({
+        kind: "stop",
+        key: `s${s.id}`,
+        id: s.id,
+        name: s.name,
+        km: s.km,
+      }));
     }
     const intent = parseIntent(term);
     const savedHits = saved
@@ -192,7 +208,13 @@ export function RoamSearchSheet({
     if (lineFirst) out.push(...lineItems, ...stopItems);
     else out.push(...stopItems, ...lineItems);
     for (const p of places)
-      out.push({ kind: "place", key: `g${p.placeId}`, placeId: p.placeId, name: p.primary, sub: p.secondary });
+      out.push({
+        kind: "place",
+        key: `g${p.placeId}`,
+        placeId: p.placeId,
+        name: p.primary,
+        sub: p.secondary,
+      });
     return out;
   }, [q, pick, saved, coords, places, locale]);
 
@@ -206,7 +228,13 @@ export function RoamSearchSheet({
       try {
         sessionStorage.setItem(
           "aloya:nl-plan",
-          JSON.stringify({ from: null, to, leaveByISO: leaveAtISO, arriveByISO: null, rawText: raw }),
+          JSON.stringify({
+            from: null,
+            to,
+            leaveByISO: leaveAtISO,
+            arriveByISO: null,
+            rawText: raw,
+          }),
         );
       } catch {}
       onClose();
@@ -332,8 +360,18 @@ export function RoamSearchSheet({
   const groups = groupItems(items);
 
   return createPortal(
-    <div className="roam r-search" role="dialog" aria-modal="true" aria-label={pick ? r("search.pickTitle") : r("search.title")}>
-      <button type="button" className="r-search-scrim" aria-label={r("search.cancel")} onClick={onClose} />
+    <div
+      className="roam r-search"
+      role="dialog"
+      aria-modal="true"
+      aria-label={pick ? r("search.pickTitle") : r("search.title")}
+    >
+      <button
+        type="button"
+        className="r-search-scrim"
+        aria-label={r("search.cancel")}
+        onClick={onClose}
+      />
       <div className="r-search-panel" style={{ bottom: kb }}>
         <div className="r-search-bar">
           <label className="r-search-field">
@@ -357,7 +395,12 @@ export function RoamSearchSheet({
               inputMode="search"
             />
             {q ? (
-              <button type="button" className="r-search-ic" aria-label={r("search.clearInput")} onClick={() => setQ("")}>
+              <button
+                type="button"
+                className="r-search-ic"
+                aria-label={r("search.clearInput")}
+                onClick={() => setQ("")}
+              >
                 <Icon name="x-circle" />
               </button>
             ) : canVoice && !pick ? (
@@ -391,7 +434,15 @@ export function RoamSearchSheet({
                         className="r-pill r-pill--w r-pill--lg"
                         onClick={() => goTrip({ lat: p.lat, lng: p.lng, label: p.name || p.label })}
                       >
-                        <Icon name={/home|σπίτι/i.test(p.label) ? "house" : /work|office|δουλ/i.test(p.label) ? "briefcase" : "map-pin"} />
+                        <Icon
+                          name={
+                            /home|σπίτι/i.test(p.label)
+                              ? "house"
+                              : /work|office|δουλ/i.test(p.label)
+                                ? "briefcase"
+                                : "map-pin"
+                          }
+                        />
                         {p.label}
                       </button>
                     ))
@@ -411,7 +462,13 @@ export function RoamSearchSheet({
                   <button
                     type="button"
                     className="r-pill r-pill--w r-pill--lg"
-                    onClick={() => goTrip({ lat: AIRPORTS.lca.lat, lng: AIRPORTS.lca.lng, label: AIRPORTS.lca.name })}
+                    onClick={() =>
+                      goTrip({
+                        lat: AIRPORTS.lca.lat,
+                        lng: AIRPORTS.lca.lng,
+                        label: AIRPORTS.lca.name,
+                      })
+                    }
                   >
                     <Icon name="airplane-tilt" />
                     {locale === "el" ? AIRPORTS.lca.cityEl : AIRPORTS.lca.city}
@@ -472,7 +529,15 @@ export function RoamSearchSheet({
                     icon="bus"
                     title={s.name}
                     meta={`${Math.round(s.distanceKm * 1000)} m`}
-                    onClick={() => void choose({ kind: "stop", key: s.id, id: s.id, name: s.name, km: s.distanceKm })}
+                    onClick={() =>
+                      void choose({
+                        kind: "stop",
+                        key: s.id,
+                        id: s.id,
+                        name: s.name,
+                        km: s.distanceKm,
+                      })
+                    }
                   />
                 ))}
               </Group>
@@ -494,4 +559,3 @@ export function RoamSearchSheet({
     document.body,
   );
 }
-
