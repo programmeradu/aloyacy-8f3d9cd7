@@ -9,6 +9,24 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { buildRouteBoard, type BoardStop } from "@aloya/core/route-board";
+import { resolveAgency } from "@aloya/core/home-search";
+import { useRoamI18n, type RoamKey } from "@/lib/roam-i18n";
+
+const AREA_KEY: Record<string, RoamKey> = {
+  NPT: "lines.nicosia",
+  LMS: "lines.limassol",
+  LCA: "lines.larnaca",
+  PFO: "lines.paphos",
+  FAM: "lines.famagusta",
+  IC: "lines.intercity",
+};
+
+/** "Famagusta buses", "Intercity"... from the route's own agency or feed. */
+function areaLabel(agency: string, r: (k: RoamKey) => string): string {
+  if (agency === "SPC") return "Pame Express";
+  const key = AREA_KEY[agency];
+  return key ? r(key) : "";
+}
 import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { RouteChip } from "@/components/RouteChip";
@@ -44,6 +62,7 @@ export const Route = createFileRoute("/route/$routeId")({
 
 function RoutePage() {
   const { t } = useI18n();
+  const { r } = useRoamI18n();
   const { routeId } = Route.useParams();
   const { data: rt, isLoading } = useRealtime();
   const route = getRoute(routeId);
@@ -187,9 +206,7 @@ function RoutePage() {
         <div className="flex items-center gap-3">
           <RouteChip code={route?.short ?? routeId} tone={tone} />
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-            {t("route.lineSuffix", {
-              agency: route?.agency === "IC" ? t("route.intercity") : t("route.nicosia"),
-            })}
+            {areaLabel(resolveAgency({ agency: route?.agency, id: routeId }), r)}
           </span>
         </div>
         <h1 className="mt-3 font-display text-[36px] leading-[1.05] text-ink text-balance">

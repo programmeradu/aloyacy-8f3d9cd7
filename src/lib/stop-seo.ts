@@ -1,6 +1,7 @@
 // D5 head for /stop/$stopId. Index only with real content. Fail closed.
 
 import { getStop, getRoute } from "@/lib/gtfs";
+import { AGENCY_OPERATOR, resolveAgency } from "@aloya/core/home-search";
 import { stopIndexable, type StopIndexFacts } from "@aloya/core/stop-index";
 
 const BASE = "https://app.aloya.cy";
@@ -53,7 +54,7 @@ export function buildStopJsonLd(input: {
         busNumber: route.short || rid,
         provider: {
           "@type": "Organization",
-          name: route.agency === "IC" ? "Intercity Buses" : "Cyprus Public Transport",
+          name: AGENCY_OPERATOR[resolveAgency({ agency: route.agency, id: rid })] ?? "Cyprus Public Transport",
         },
         departureBusStop: {
           "@type": "BusStop",

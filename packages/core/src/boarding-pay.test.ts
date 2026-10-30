@@ -13,7 +13,8 @@ describe("boardingPayKind", () => {
     expect(boardingPayKind({ agency: "NPT" })).toBe("urban");
     expect(boardingPayKind({ agency: "FAM" })).toBe("urban");
     expect(boardingPayKind({ agency: "IC" })).toBe("intercity");
-    expect(boardingPayKind({ feedId: 6 })).toBe("intercity");
+    expect(boardingPayKind({ feedId: 5 })).toBe("intercity");
+    expect(boardingPayKind({ feedId: 6 })).toBe("urban");
     expect(boardingPayKind({ feedId: 2 })).toBe("urban");
     expect(boardingPayKind({ short: "IC4" })).toBe("intercity");
   });

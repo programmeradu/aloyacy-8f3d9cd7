@@ -172,3 +172,38 @@ export function searchAll(raw: string, input: SearchInputs): SearchResult[] {
 
   return out.slice(0, MAX_RESULTS);
 }
+
+/** Operator that runs each agency's buses (official list, 2026). */
+export const AGENCY_OPERATOR: Record<string, string> = {
+  NPT: "Cyprus Public Transport",
+  LCA: "Cyprus Public Transport",
+  LMS: "EMEL",
+  PFO: "OSYPA",
+  FAM: "OSEA",
+  IC: "Intercity Buses",
+  SPC: "Pame Express",
+};
+
+/** Motion GTFS feed id to agency code (feed 5 is Intercity, 6 is Limassol). */
+export const FEED_AGENCY: Record<number, string> = {
+  2: "PFO",
+  4: "FAM",
+  5: "IC",
+  6: "LMS",
+  9: "NPT",
+  10: "LCA",
+  11: "NPT",
+};
+
+/**
+ * Agency code for a route or stop. Trusts a known `agency` code; otherwise
+ * derives it from the feed id or a "feed:local" id prefix. Unknown stays "".
+ */
+export function resolveAgency(input: { agency?: string | null; feedId?: number | null; id?: string | null }): string {
+  const a = (input.agency ?? "").toUpperCase();
+  if (a && a in AGENCY_CITY) return a;
+  if (input.feedId != null && FEED_AGENCY[input.feedId]) return FEED_AGENCY[input.feedId];
+  const m = /^(\d+):/.exec(input.id ?? "");
+  if (m && FEED_AGENCY[Number(m[1])]) return FEED_AGENCY[Number(m[1])];
+  return "";
+}

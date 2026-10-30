@@ -21,7 +21,8 @@ export const BOARDING_PAY = {
 } as const;
 
 const URBAN_AGENCIES = new Set(["NPT", "LMS", "LCA", "PFO", "FAM"]);
-const URBAN_FEED_IDS = new Set([2, 4, 5, 9, 10, 11]);
+// Motion feeds: 5 is Intercity; 2 Paphos, 4 Famagusta, 6 Limassol, 9 and 11 Nicosia, 10 Larnaca.
+const URBAN_FEED_IDS = new Set([2, 4, 6, 9, 10, 11]);
 
 export function formatEur(n: number, forceDecimals = false): string {
   if (forceDecimals) return `€${n.toFixed(2)}`;
@@ -43,7 +44,7 @@ export function boardingPayKind(input: {
 }): BoardingPayKind | null {
   const agency = (input.agency ?? "").toUpperCase();
   if (agency === "SPC") return null;
-  if (agency === "IC" || input.feedId === 6 || /^IC/i.test(input.short ?? "")) {
+  if (agency === "IC" || input.feedId === 5 || /^IC/i.test(input.short ?? "")) {
     return "intercity";
   }
   if (URBAN_AGENCIES.has(agency)) return "urban";

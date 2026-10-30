@@ -3,6 +3,7 @@
 
 import { useI18n } from "@/lib/i18n";
 import { getRoute } from "@/lib/gtfs";
+import { AGENCY_OPERATOR, resolveAgency } from "@aloya/core/home-search";
 import { routeIndexable } from "@aloya/core/route-index";
 
 const BASE = "https://app.aloya.cy";
@@ -32,7 +33,7 @@ export function buildRouteJsonLd(input: {
       busNumber: input.short || input.id,
       provider: {
         "@type": "Organization",
-        name: input.agency === "IC" ? "Intercity Buses" : "Cyprus Public Transport",
+        name: AGENCY_OPERATOR[resolveAgency({ agency: input.agency, id: input.id })] ?? "Cyprus Public Transport",
       }
     }
   ];
