@@ -56,9 +56,7 @@ export function PlanRouteCard({ group, joined }: { group: GroupRow; joined: bool
       : null;
     return (
       <section className="rounded-3xl bg-limestone-soft p-5 ring-1 ring-line">
-        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-aegean-deep">
-          Trip in progress
-        </p>
+        <p className="text-[13px] font-medium text-aegean-deep">Trip in progress</p>
         <h2 className="mt-1 text-balance font-display text-[20px] font-semibold leading-tight text-ink">
           {routeShort
             ? `You're on the ${routeShort} to ${group.destination_label}`
@@ -72,7 +70,7 @@ export function PlanRouteCard({ group, joined }: { group: GroupRow; joined: bool
         <div className="mt-4 flex flex-wrap gap-2">
           <a
             href={`/trip/${active.option.id}`}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-aegean-deep px-5 py-3 font-sans text-[13px] font-semibold uppercase tracking-[0.14em] text-limestone transition-opacity hover:opacity-90"
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-aegean-deep px-5 py-3 font-sans text-[15px] font-semibold text-limestone transition-opacity hover:opacity-90"
           >
             Resume trip
           </a>
@@ -80,7 +78,7 @@ export function PlanRouteCard({ group, joined }: { group: GroupRow; joined: bool
             type="button"
             onClick={goPlan}
             disabled={busy}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink/5 px-4 py-3 font-sans text-[13px] font-semibold uppercase tracking-[0.14em] text-ink transition-colors hover:bg-ink/10 disabled:opacity-60"
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink/5 px-4 py-3 font-sans text-[15px] font-semibold text-ink transition-colors hover:bg-ink/10 disabled:opacity-60"
           >
             {busy ? "Locating…" : "Plan a different route"}
           </button>
@@ -92,7 +90,7 @@ export function PlanRouteCard({ group, joined }: { group: GroupRow; joined: bool
   return (
     <section className="rounded-3xl bg-limestone-soft p-5 ring-1 ring-line">
       <div className="min-w-0">
-        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-aegean-deep">
+        <p className="text-[13px] font-medium text-aegean-deep">
           {joined ? "Now get there" : "Plan your route"}
         </p>
         <h2 className="mt-1 text-balance font-display text-[20px] font-semibold leading-tight text-ink">
@@ -111,18 +109,18 @@ export function PlanRouteCard({ group, joined }: { group: GroupRow; joined: bool
           type="button"
           onClick={goPlan}
           disabled={busy}
-          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-aegean-deep px-5 py-3 font-sans text-[13px] font-semibold uppercase tracking-[0.14em] text-limestone transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-aegean-deep px-5 py-3 font-sans text-[15px] font-semibold text-limestone transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {busy ? "Locating…" : "Plan my route"}
         </button>
         <a
           href={`/trips?toLat=${group.destination_lat}&toLng=${group.destination_lng}&toLabel=${encodeURIComponent(group.destination_label)}`}
-          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink/5 px-4 py-3 font-sans text-[13px] font-semibold uppercase tracking-[0.14em] text-ink transition-colors hover:bg-ink/10"
+          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink/5 px-4 py-3 font-sans text-[15px] font-semibold text-ink transition-colors hover:bg-ink/10"
         >
           Type start point
         </a>
       </div>
-      <p className="mt-3 font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
+      <p className="mt-3 text-[13px] font-medium text-ink-soft">
         Uses live Cyprus bus schedules · you can come back to this page anytime
       </p>
     </section>

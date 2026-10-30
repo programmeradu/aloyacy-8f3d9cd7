@@ -154,10 +154,7 @@ export function Sheet({
           onPointerCancel={onUp}
         >
           {headLeft ? (
-            <div
-              className="r-sheet-headleft"
-              onPointerDown={(e) => e.stopPropagation()}
-            >
+            <div className="r-sheet-headleft" onPointerDown={(e) => e.stopPropagation()}>
               {headLeft}
             </div>
           ) : (

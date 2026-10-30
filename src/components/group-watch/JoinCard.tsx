@@ -87,7 +87,11 @@ export function JoinCard({
           {busy ? "Joining" : "Join"}
         </button>
       </div>
-      {err && <p className="mt-2 text-[13px] font-medium" style={{ color: "var(--r-y)" }}>{err}</p>}
+      {err && (
+        <p className="mt-2 text-[13px] font-medium" style={{ color: "var(--r-y)" }}>
+          {err}
+        </p>
+      )}
       <p className="mt-3 text-[12px]" style={{ color: "var(--r-onchar-mute)" }}>
         Location is shared only while this page is open. Leave any time.
       </p>

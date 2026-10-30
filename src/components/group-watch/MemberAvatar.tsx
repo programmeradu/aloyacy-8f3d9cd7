@@ -65,19 +65,31 @@ function Hair({ t, back }: { t: AvatarTraits; back: boolean }) {
   switch (t.style) {
     case 0: // short crop
       return back ? null : (
-        <path d="M20.6 29.5c-.6-9 4.6-14.3 11.4-14.3s12 5.3 11.4 14.3c-1.6-4.6-5.6-7.4-11.4-7.4s-9.8 2.8-11.4 7.4z" fill={c} />
+        <path
+          d="M20.6 29.5c-.6-9 4.6-14.3 11.4-14.3s12 5.3 11.4 14.3c-1.6-4.6-5.6-7.4-11.4-7.4s-9.8 2.8-11.4 7.4z"
+          fill={c}
+        />
       );
     case 1: // top bun
       return back ? (
         <circle cx="32" cy="13.4" r="5.4" fill={c} />
       ) : (
-        <path d="M20.8 29c0-8.2 5-13.2 11.2-13.2S43.2 20.8 43.2 29c-2.8-3.6-6.6-5.4-11.2-5.4S23.6 25.4 20.8 29z" fill={c} />
+        <path
+          d="M20.8 29c0-8.2 5-13.2 11.2-13.2S43.2 20.8 43.2 29c-2.8-3.6-6.6-5.4-11.2-5.4S23.6 25.4 20.8 29z"
+          fill={c}
+        />
       );
     case 2: // long
       return back ? (
-        <path d="M19 31c0-10 5.8-16.4 13-16.4S45 21 45 31v13.6c-2.6 1.6-5.4 1.8-7.6.8V31H26.6v14.4c-2.2 1-5 .8-7.6-.8z" fill={c} />
+        <path
+          d="M19 31c0-10 5.8-16.4 13-16.4S45 21 45 31v13.6c-2.6 1.6-5.4 1.8-7.6.8V31H26.6v14.4c-2.2 1-5 .8-7.6-.8z"
+          fill={c}
+        />
       ) : (
-        <path d="M20.6 30.4c0-9 5-14.2 11.4-14.2s11.4 5.2 11.4 14.2c-4.2-1.2-8.4-4.4-10.6-8-1.8 3.8-6.4 6.8-12.2 8z" fill={c} />
+        <path
+          d="M20.6 30.4c0-9 5-14.2 11.4-14.2s11.4 5.2 11.4 14.2c-4.2-1.2-8.4-4.4-10.6-8-1.8 3.8-6.4 6.8-12.2 8z"
+          fill={c}
+        />
       );
     case 3: // curls
       return back ? null : (
@@ -91,13 +103,26 @@ function Hair({ t, back }: { t: AvatarTraits; back: boolean }) {
       );
     case 4: // side part
       return back ? null : (
-        <path d="M20.8 29.8c-.4-8.8 4.8-14.4 12.2-14.4 6.4 0 10.6 4.6 10.2 11.2-6.4.2-13-2.2-16.6-6.2-.8 4.2-2.8 7.4-5.8 9.4z" fill={c} />
+        <path
+          d="M20.8 29.8c-.4-8.8 4.8-14.4 12.2-14.4 6.4 0 10.6 4.6 10.2 11.2-6.4.2-13-2.2-16.6-6.2-.8 4.2-2.8 7.4-5.8 9.4z"
+          fill={c}
+        />
       );
     default: // beanie
       return back ? null : (
         <g>
-          <path d="M20.2 27.4c0-8.6 5.2-13.8 11.8-13.8s11.8 5.2 11.8 13.8z" fill={t.shirt === "#E9E4DA" ? "#F6B83C" : "#E9E4DA"} />
-          <rect x="19.4" y="24.6" width="25.2" height="4.6" rx="2.3" fill={t.shirt === "#262626" ? "#F6B83C" : "#262626"} />
+          <path
+            d="M20.2 27.4c0-8.6 5.2-13.8 11.8-13.8s11.8 5.2 11.8 13.8z"
+            fill={t.shirt === "#E9E4DA" ? "#F6B83C" : "#E9E4DA"}
+          />
+          <rect
+            x="19.4"
+            y="24.6"
+            width="25.2"
+            height="4.6"
+            rx="2.3"
+            fill={t.shirt === "#262626" ? "#F6B83C" : "#262626"}
+          />
         </g>
       );
   }
@@ -107,7 +132,15 @@ type Preset =
   | { kind: "person"; label: string; t: AvatarTraits }
   | { kind: "animal"; label: string; animal: "fox" | "owl" | "cat" | "bear" | "panda" };
 
-const P = (label: string, bg: string, skin: string, hair: string, shirt: string, style: number, extra = 0): Preset => ({
+const P = (
+  label: string,
+  bg: string,
+  skin: string,
+  hair: string,
+  shirt: string,
+  style: number,
+  extra = 0,
+): Preset => ({
   kind: "person",
   label,
   t: { bg, skin, hair, shirt, style, extra },
@@ -139,7 +172,13 @@ export function isAvatarChoice(v: unknown): v is string {
 
 function Clip({ id, children, size }: { id: string; children: ReactNode; size: number }) {
   return (
-    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true" style={{ display: "block" }}>
+    <svg
+      viewBox="0 0 64 64"
+      width={size}
+      height={size}
+      aria-hidden="true"
+      style={{ display: "block" }}
+    >
       <defs>
         <clipPath id={id}>
           <circle cx="32" cy="32" r="32" />
@@ -166,7 +205,13 @@ function Person({ t }: { t: AvatarTraits }) {
       <circle cx="36.2" cy="31.2" r="1.45" fill="#1d1d1b" />
       <circle cx="25.4" cy="35" r="2" fill="#EE8E7A" opacity="0.32" />
       <circle cx="38.6" cy="35" r="2" fill="#EE8E7A" opacity="0.32" />
-      <path d="M29 36.2c1.8 1.7 4.2 1.7 6 0" fill="none" stroke="#1d1d1b" strokeWidth="1.4" strokeLinecap="round" />
+      <path
+        d="M29 36.2c1.8 1.7 4.2 1.7 6 0"
+        fill="none"
+        stroke="#1d1d1b"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
       {t.extra === 1 && (
         <g fill="none" stroke="#1d1d1b" strokeWidth="1.2">
           <circle cx="27.8" cy="31.2" r="3.3" />
@@ -193,8 +238,14 @@ function Animal({ a }: { a: "fox" | "owl" | "cat" | "bear" | "panda" }) {
         <>
           <rect width="64" height="64" fill="#FCE7B2" />
           <path d="M14 14l12 10-6 6zM50 14L38 24l6 6z" fill="#D9762F" />
-          <path d="M12 28c4-8 12-12 20-12s16 4 20 12c-2 12-10 22-20 22S14 40 12 28z" fill="#E8893A" />
-          <path d="M20 34c4 0 8 3 12 10 4-7 8-10 12-10-2 8-6 14-12 14s-10-6-12-14z" fill="#FFF6EA" />
+          <path
+            d="M12 28c4-8 12-12 20-12s16 4 20 12c-2 12-10 22-20 22S14 40 12 28z"
+            fill="#E8893A"
+          />
+          <path
+            d="M20 34c4 0 8 3 12 10 4-7 8-10 12-10-2 8-6 14-12 14s-10-6-12-14z"
+            fill="#FFF6EA"
+          />
           {EYES(31, 7, 1.7)}
           <circle cx="32" cy="43" r="2" fill="#1d1d1b" />
         </>
@@ -270,7 +321,13 @@ function Neutral({ seed }: { seed: string }) {
       <circle cx="32" cy="34" r="19" fill={face} />
       <circle cx="25.5" cy="31.5" r="2" fill={ink} />
       <circle cx="38.5" cy="31.5" r="2" fill={ink} />
-      <path d="M26.5 38.5c3 3 8 3 11 0" fill="none" stroke={ink} strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M26.5 38.5c3 3 8 3 11 0"
+        fill="none"
+        stroke={ink}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </>
   );
 }

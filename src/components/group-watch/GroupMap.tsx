@@ -81,7 +81,7 @@ export function GroupMap({
 
   return (
     <section className="relative overflow-hidden rounded-3xl ring-1 ring-line">
-      <div className="pointer-events-none absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full bg-limestone/90 px-3 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-ink ring-1 ring-line backdrop-blur">
+      <div className="pointer-events-none absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full bg-limestone/90 px-3 py-1 text-[13px] font-medium text-ink ring-1 ring-line backdrop-blur">
         <PulseDot />
         &nbsp;Live map · {fixCount} sharing
       </div>

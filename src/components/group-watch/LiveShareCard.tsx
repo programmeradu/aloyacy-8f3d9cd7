@@ -118,9 +118,7 @@ export function LiveShareCard({
     <div className="rounded-3xl bg-card p-5 ring-1 ring-line">
       <div className="flex items-center gap-2">
         <PulseDot />
-        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
-          You're sharing live
-        </p>
+        <p className="text-[13px] font-medium text-ink-soft">You're sharing live</p>
       </div>
       <p className="mt-2 font-sans text-[13px] font-medium text-ink">
         Everyone in the group can see your position and ETA update every ~25 seconds. Keep this tab
@@ -130,7 +128,7 @@ export function LiveShareCard({
         <button
           type="button"
           onClick={onShare}
-          className="min-h-11 rounded-xl bg-aegean-deep px-4 py-2 font-sans text-[12px] font-semibold uppercase tracking-[0.14em] text-limestone transition-opacity hover:opacity-90"
+          className="min-h-11 rounded-xl bg-aegean-deep px-4 py-2 font-sans text-[15px] font-semibold text-limestone transition-opacity hover:opacity-90"
         >
           Invite more people
         </button>
@@ -138,7 +136,7 @@ export function LiveShareCard({
           type="button"
           onClick={onLeave}
           disabled={busy}
-          className="min-h-11 rounded-xl bg-ink/5 px-4 py-2 font-sans text-[12px] font-semibold uppercase tracking-[0.14em] text-ink transition-colors hover:bg-ink/10 disabled:opacity-60"
+          className="min-h-11 rounded-xl bg-ink/5 px-4 py-2 font-sans text-[15px] font-semibold text-ink transition-colors hover:bg-ink/10 disabled:opacity-60"
         >
           {busy ? "Leaving…" : "Leave group"}
         </button>

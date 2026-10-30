@@ -112,15 +112,13 @@ export function IdentityRibbon({
           mode={normaliseMode(me.mode)}
         />
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
-            You appear as
-          </p>
+          <p className="text-[13px] font-medium text-ink-soft">You appear as</p>
           <p className="break-words font-display text-[16px] font-semibold leading-snug text-ink">
             {me.display_name}
             {me.is_creator ? " · host" : ""}
           </p>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-limestone-soft px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-limestone-soft px-2.5 py-1 text-[12px] font-semibold text-ink-soft">
           <PulseDot />
           &nbsp;sharing
         </span>
@@ -129,17 +127,13 @@ export function IdentityRibbon({
   }
   return (
     <div className="rounded-2xl bg-card p-4 ring-1 ring-line">
-      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
-        You're watching as a guest
-      </p>
+      <p className="text-[13px] font-medium text-ink-soft">You're watching as a guest</p>
       <p className="mt-1 font-sans text-[13px] font-medium text-ink">
         {hostName ? `${hostName} shared this trip with you.` : "Someone shared this trip with you."}{" "}
         Join below and everyone will see your ETA too, otherwise you'll just watch.
       </p>
       {hasToken && (
-        <p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
-          Previous session ended
-        </p>
+        <p className="mt-1 text-[12px] font-semibold text-ink-soft">Previous session ended</p>
       )}
     </div>
   );

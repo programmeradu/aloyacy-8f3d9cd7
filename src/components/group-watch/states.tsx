@@ -11,9 +11,7 @@ export function HowThisWorks() {
   ];
   return (
     <section className="rounded-3xl bg-limestone-soft p-5 ring-1 ring-line">
-      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
-        How this works
-      </p>
+      <p className="text-[13px] font-medium text-ink-soft">How this works</p>
       <ol className="mt-3 flex flex-col gap-3">
         {items.map(([n, text]) => (
           <li key={n} className="flex gap-3">
@@ -29,7 +27,7 @@ export function HowThisWorks() {
 export function Footer({ code }: { code: string }) {
   return (
     <footer className="mt-2 flex flex-col items-center gap-2 py-4">
-      <p className="text-center font-mono text-[9px] font-semibold uppercase tracking-[0.24em] text-ink-soft">
+      <p className="text-center text-[13px] font-medium text-ink-soft">
         Group {code} · shared via Aloya
       </p>
       <a
@@ -46,9 +44,7 @@ export function LoadingState() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
       <PulseDot />
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-ink-soft">
-        Tuning into the group
-      </p>
+      <p className="text-[13px] font-medium text-ink-soft">Tuning into the group</p>
       <h1 className="font-display text-[22px] font-semibold text-ink">One moment</h1>
     </div>
   );
@@ -65,16 +61,14 @@ export function MissingState() {
         height={480}
         className="w-64 rounded-2xl opacity-70 ring-1 ring-line"
       />
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-ink-soft">
-        Aloya
-      </p>
+      <p className="text-[13px] font-medium text-ink-soft">Aloya</p>
       <h1 className="font-display text-[24px] font-semibold text-ink">Group not found</h1>
       <p className="font-sans text-[14px] font-medium text-ink-soft">
         This link doesn't match an active group. Ask whoever shared it to send a fresh one.
       </p>
       <a
         href="https://app.aloya.cy"
-        className="mt-2 rounded-xl bg-ink px-5 py-3 font-sans text-[13px] font-semibold uppercase tracking-[0.14em] text-limestone"
+        className="mt-2 rounded-xl bg-ink px-5 py-3 font-sans text-[15px] font-semibold text-limestone"
       >
         Open Aloya
       </a>
