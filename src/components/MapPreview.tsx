@@ -272,7 +272,9 @@ export function MapPreview({
         </div>
       )}
       {pinPortals}
-      {attribution && isAerial() && !error ? <MapAttribution bottom={attribBottom} top={attribTop} /> : null}
+      {attribution && isAerial() && !error ? (
+        <MapAttribution bottom={attribBottom} top={attribTop} />
+      ) : null}
       {liveVehicles && !hideLiveBadge && !bare && (
         <div className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-white/90 px-3.5 py-1.5 backdrop-blur-md ring-1 ring-line">
           <span className="font-sans text-[12px] font-semibold tracking-tight text-ink">

@@ -236,7 +236,8 @@ const en = {
   "sv.recent": "Recent",
   "sv.more": "On this phone",
   "sv.emptyTitle": "Pin the places you go most",
-  "sv.emptyBody": "Home, work, the beach. Pin one from Recent or after you plan a trip, and its next bus is one tap away.",
+  "sv.emptyBody":
+    "Home, work, the beach. Pin one from Recent or after you plan a trip, and its next bus is one tap away.",
   "sv.plan": "Plan a trip",
   "sv.takeMe": "Take me there",
   "sv.unpin": "Unpin {place}",
@@ -494,7 +495,8 @@ const el: Record<RoamKey, string> = {
   "sv.recent": "Πρόσφατα",
   "sv.more": "Σε αυτό το τηλέφωνο",
   "sv.emptyTitle": "Καρφιτσώστε τα μέρη που πηγαίνετε συχνά",
-  "sv.emptyBody": "Σπίτι, δουλειά, παραλία. Καρφιτσώστε ένα από τα Πρόσφατα ή αφού σχεδιάσετε ένα ταξίδι, και το επόμενο λεωφορείο του είναι ένα πάτημα μακριά.",
+  "sv.emptyBody":
+    "Σπίτι, δουλειά, παραλία. Καρφιτσώστε ένα από τα Πρόσφατα ή αφού σχεδιάσετε ένα ταξίδι, και το επόμενο λεωφορείο του είναι ένα πάτημα μακριά.",
   "sv.plan": "Σχεδιάστε ταξίδι",
   "sv.takeMe": "Πάμε εκεί",
   "sv.unpin": "Ξεκαρφίτσωμα {place}",
