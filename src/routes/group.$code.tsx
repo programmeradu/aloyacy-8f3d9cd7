@@ -31,7 +31,7 @@ import { Shell } from "@/components/group-watch/chrome";
 export const Route = createFileRoute("/group/$code")({
   head: ({ params }) => {
     const code = String(params.code || "").toUpperCase();
-    const title = `Group trip · ${code} — Aloya`;
+    const title = `Group trip · ${code} · Aloya`;
     const desc =
       "Everyone in your group, converging on one place. Live positions and arrival ETAs update as friends move.";
     // Dynamic per-group PNG (rasterized from our brand SVG on the Worker).
@@ -56,7 +56,7 @@ export const Route = createFileRoute("/group/$code")({
         { property: "og:image:type", content: "image/png" },
         {
           property: "og:image:alt",
-          content: "Live group trip preview — destination, host, and joined members",
+          content: "Live group trip preview: destination, host, and joined members",
         },
         { property: "og:updated_time", content: String(bucket * 60) },
         { name: "twitter:card", content: "summary_large_image" },
@@ -118,10 +118,10 @@ function GroupWatchPage() {
 
   return (
     <Shell>
-      <div className="mx-auto flex min-h-dvh max-w-xl flex-col">
+      <div className="mx-auto flex min-h-dvh max-w-[440px] flex-col">
         <Hero group={group} members={members} expired={expired} me={me} />
 
-        <div className="flex flex-col gap-4 px-5 pb-10 pt-6">
+        <div className="r-legacy flex flex-col gap-4 px-4 pt-4" style={{ paddingBottom: "calc(var(--r-safe-bottom) + 40px)" }}>
           <IdentityRibbon
             me={me}
             meIndex={meIndex}

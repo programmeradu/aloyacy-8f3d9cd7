@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 
 export function Shell({ children }: { children: ReactNode }) {
-  return <main className="min-h-dvh bg-limestone text-ink">{children}</main>;
+  return <main className="roam r-page min-h-dvh">{children}</main>;
 }
 
 export function PulseDot() {

@@ -37,7 +37,7 @@ export function PhaseLabel({ phase, delaySec }: { phase: SingleLegPhase; delaySe
         : t("trip.delay.onTime");
   return (
     <p className={`font-sans text-[12px] font-semibold tracking-tight ${tone}`}>
-      {txt} <span className="text-ink-soft/80 font-medium tabular-nums">— {delay}</span>
+      {txt} <span className="text-ink-soft/80 font-medium tabular-nums">· {delay}</span>
     </p>
   );
 }

@@ -2,8 +2,9 @@
 // ribbon that tells the current viewer which member card is them.
 
 import { initials } from "@aloya/core/group-format";
-import { heroArt, toneClasses, toneForIndex, type GroupRow, type MemberRow } from "./kit";
+import { toneClasses, toneForIndex, type GroupRow, type MemberRow } from "./kit";
 import { PulseDot } from "./chrome";
+import { BackButton } from "@/components/roam/FrostButton";
 
 export function Hero({
   group,
@@ -18,56 +19,37 @@ export function Hero({
 }) {
   const active = members.filter((m) => m.status === "active").length;
   return (
-    <header className="relative isolate overflow-hidden">
-      <img
-        src={heroArt}
-        alt=""
-        aria-hidden
-        width={1600}
-        height={960}
-        className="absolute inset-0 h-full w-full object-cover opacity-90"
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-limestone/10 via-limestone/40 to-limestone" />
-      <div className="relative flex flex-col gap-6 px-5 pb-10 pt-10">
-        <div className="flex items-center justify-between gap-3">
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-ink">
-            Aloya · Live group
-          </span>
-          <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-limestone/90 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-ink ring-1 ring-line backdrop-blur">
-            {expired ? (
-              "Ended"
-            ) : (
-              <>
-                <PulseDot />
-                &nbsp;Live · {group.code}
-              </>
-            )}
-          </span>
-        </div>
-
-        <div>
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
-            Everyone converging on
-          </p>
-          <h1 className="mt-2 text-balance font-display text-[34px] font-semibold leading-[1.05] tracking-tight text-ink sm:text-[42px]">
-            {group.destination_label}
-          </h1>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
+    <header className="px-4" style={{ paddingTop: "calc(var(--r-safe-top) + 10px)" }}>
+      <div className="flex min-h-[54px] items-center gap-3">
+        <BackButton label="Back" variant="light" fallback="/" />
+        <p className="flex-1 truncate text-center text-[17px] font-medium">Live group</p>
+        <span className="r-pill r-pill--w r-tnum">
+          {expired ? (
+            "Ended"
+          ) : (
+            <>
+              <span className="r-dot r-live-pulse" />
+              {group.code}
+            </>
+          )}
+        </span>
+      </div>
+      <section className="r-jc r-rise mt-3 px-5 pb-5 pt-5">
+        <p className="r-lbl" style={{ color: "var(--r-onchar-mute)" }}>Everyone converging on</p>
+        <h1 className="mt-1.5 text-balance text-[28px] font-normal leading-[1.1] tracking-[-0.02em] text-white">
+          {group.destination_label}
+        </h1>
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           <AvatarStack members={members} />
-          <p className="font-sans text-[13px] font-semibold text-ink">
+          <p className="text-[14px] text-white">
             {active} {active === 1 ? "person" : "people"} on the way
             {group.created_by_name ? (
-              <span className="font-medium text-ink-soft">
-                {" "}
-                · hosted by {group.created_by_name}
-              </span>
+              <span style={{ color: "var(--r-onchar-mute)" }}> · hosted by {group.created_by_name}</span>
             ) : null}
-            {me ? <span className="font-medium text-ink-soft"> · including you</span> : null}
+            {me ? <span style={{ color: "var(--r-onchar-mute)" }}> · including you</span> : null}
           </p>
         </div>
-      </div>
+      </section>
     </header>
   );
 }
@@ -83,14 +65,14 @@ function AvatarStack({ members }: { members: MemberRow[] }) {
           <span
             key={m.id}
             title={m.display_name}
-            className={`inline-flex size-8 items-center justify-center rounded-full font-mono text-[11px] font-semibold uppercase tracking-wider ring-2 ring-limestone ${t.chip}`}
+            className={`inline-flex size-8 items-center justify-center rounded-full font-mono text-[11px] font-semibold uppercase tracking-wider ring-2 ring-[#262626] ${t.chip}`}
           >
             {initials(m.display_name)}
           </span>
         );
       })}
       {extra > 0 && (
-        <span className="inline-flex size-8 items-center justify-center rounded-full bg-ink font-mono text-[11px] font-semibold text-limestone ring-2 ring-limestone">
+        <span className="inline-flex size-8 items-center justify-center rounded-full bg-white font-mono text-[11px] font-semibold text-ink ring-2 ring-[#262626]">
           +{extra}
         </span>
       )}
@@ -144,7 +126,7 @@ export function IdentityRibbon({
       </p>
       <p className="mt-1 font-sans text-[13px] font-medium text-ink">
         {hostName ? `${hostName} shared this trip with you.` : "Someone shared this trip with you."}{" "}
-        Join below and everyone will see your ETA too — otherwise you'll just watch.
+        Join below and everyone will see your ETA too, otherwise you'll just watch.
       </p>
       {hasToken && (
         <p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-ink-soft">

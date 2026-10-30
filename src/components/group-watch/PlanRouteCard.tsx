@@ -66,8 +66,8 @@ export function PlanRouteCard({ group, joined }: { group: GroupRow; joined: bool
         </h2>
         <p className="mt-2 font-sans text-[13px] font-medium text-ink-soft">
           {minsAway != null
-            ? `Arriving in about ${minsAway} min. Open the live trip for turn-by-turn guidance — the group already sees your ETA.`
-            : "Open the live trip for turn-by-turn guidance — the group already sees your ETA."}
+            ? `Arriving in about ${minsAway} min. Open the live trip for turn-by-turn guidance. The group already sees your ETA.`
+            : "Open the live trip for turn-by-turn guidance. The group already sees your ETA."}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <a

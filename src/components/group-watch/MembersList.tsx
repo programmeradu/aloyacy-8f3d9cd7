@@ -63,7 +63,7 @@ export function MembersList({ members, meId }: { members: MemberRow[]; meId: str
                 </p>
                 <p className="mt-0.5 font-sans text-[12px] font-medium text-ink-soft">
                   {line.primary}
-                  {line.freshness ? `  —  ${line.freshness}` : null}
+                  {line.freshness ? ` · ${line.freshness}` : null}
                 </p>
               </div>
               {!line.left && !line.stale && (

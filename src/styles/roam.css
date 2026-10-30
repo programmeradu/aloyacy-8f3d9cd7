@@ -233,3 +233,13 @@ a.r-row:active, button.r-row:active { background: #f6f6f3; }
 .r-hero-sheet { position: relative; z-index: 9; margin-top: -56px; }
 .r-hero-title { color: #fff; font-size: 22px; font-weight: 400; letter-spacing: -0.015em; text-align: center; line-height: 1.15; }
 .r-hero-sub { color: rgba(255,255,255,.88); font-size: 13px; text-align: center; margin-top: 2px; }
+
+/* Live trip phase copy (PhaseHero) inside the Roam sheet */
+.r-phase p { font-family: var(--r-font); }
+.r-phase > p:first-child { font-size: 13px; font-weight: 500; color: var(--r-mute); }
+.r-phase > p:first-child .text-aegean-deep, .r-phase > p:first-child .text-ochre, .r-phase > p:first-child .text-olive { color: var(--r-ink); }
+.r-phase h1 { font-family: var(--r-font) !important; font-size: 34px !important; font-weight: 400; letter-spacing: -0.025em; line-height: 1.1 !important; margin-top: 6px; color: var(--r-ink); }
+.r-phase h1 .text-aegean-deep, .r-phase h1 .text-ochre, .r-phase h1 .text-olive { color: var(--r-ink); font-size: 52px; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.r-phase h1 .italic { font-style: normal; font-size: 18px; color: var(--r-mute); letter-spacing: -0.01em; display: inline-block; margin-top: 6px; }
+.r-phase h1 .font-mono { font-family: var(--r-font); font-size: 18px; text-transform: none; letter-spacing: 0; color: var(--r-ink); }
+.r-phase .text-ink-soft { color: var(--r-ink2); }

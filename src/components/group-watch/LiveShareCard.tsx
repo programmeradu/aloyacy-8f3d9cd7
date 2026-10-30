@@ -76,7 +76,7 @@ export function LiveShareCard({
     const url = `${window.location.origin}/group/${group.code}`;
     const payload = {
       title: `Aloya group trip to ${group.destination_label}`,
-      text: `Join me — we'll see each other converge on ${group.destination_label}.`,
+      text: `Join me, we'll see each other converge on ${group.destination_label}.`,
       url,
     };
     try {
@@ -104,7 +104,7 @@ export function LiveShareCard({
       </div>
       <p className="mt-2 font-sans text-[13px] font-medium text-ink">
         Everyone in the group can see your position and ETA update every ~25 seconds. Keep this tab
-        open — close it or tap Leave to stop sharing.
+        open. Close it or tap Leave to stop sharing.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         <button
