@@ -6,6 +6,7 @@ import { useRoamI18n } from "@/lib/roam-i18n";
 
 export function RouteHero({
   markers,
+  polyline,
   tripIds,
   spanKm,
   starred,
@@ -13,6 +14,7 @@ export function RouteHero({
   onShare,
 }: {
   markers: MapMarker[];
+  polyline?: string;
   tripIds: string[];
   spanKm: number;
   starred: boolean;
@@ -27,6 +29,7 @@ export function RouteHero({
           bare
           spanKm={spanKm}
           markers={markers}
+          polyline={polyline}
           fitToContent={markers.length > 1}
           restrictTripIds={tripIds.length ? tripIds : undefined}
           attribBottom={64}

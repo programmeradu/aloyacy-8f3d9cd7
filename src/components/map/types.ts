@@ -3,5 +3,5 @@ export type MapMarker = {
   lng: number;
   label?: string;
   tone?: "aegean" | "ochre" | "olive" | "ink";
-  kind?: "origin" | "destination" | "stop" | "pin";
+  kind?: "origin" | "destination" | "stop" | "pin" | "next";
 };

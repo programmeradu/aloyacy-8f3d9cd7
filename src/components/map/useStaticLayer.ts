@@ -85,14 +85,22 @@ export function useStaticLayer({
             type: "line",
             source: ROUTE_SOURCE,
             layout: { "line-cap": "round", "line-join": "round" },
-            paint: { "line-color": "rgba(20,20,20,0.35)", "line-width": 8 },
+            paint: {
+              "line-color": "rgba(15,15,12,0.5)",
+              "line-width": ["interpolate", ["linear"], ["zoom"], 10, 5, 14, 9, 17, 13],
+              "line-blur": 1,
+            },
           });
           m.addLayer({
             id: "aloya-route-line",
             type: "line",
             source: ROUTE_SOURCE,
             layout: { "line-cap": "round", "line-join": "round" },
-            paint: { "line-color": "#F6B83C", "line-opacity": 1, "line-width": 4 },
+            paint: {
+              "line-color": "#F6B83C",
+              "line-opacity": 1,
+              "line-width": ["interpolate", ["linear"], ["zoom"], 10, 2.5, 14, 5, 17, 8],
+            },
           });
           path.forEach((p) => {
             bounds.extend([p.lng, p.lat]);
@@ -107,11 +115,11 @@ export function useStaticLayer({
       const anchorFeatures: GeoJSON.Feature<GeoJSON.Point>[] = [];
       (markers ?? []).forEach((mk, i) => {
         const isStop = !mk.kind || mk.kind === "stop";
-        const { color, radius } = markerStyle(mk);
+        const { color, radius, stroke, strokeWidth } = markerStyle(mk);
         const f: GeoJSON.Feature<GeoJSON.Point> = {
           type: "Feature",
           id: i,
-          properties: { color, radius, label: mk.label ?? "" },
+          properties: { color, radius, stroke, strokeWidth, label: mk.label ?? "" },
           geometry: { type: "Point", coordinates: [mk.lng, mk.lat] },
         };
         if (isStop) {
@@ -168,6 +176,22 @@ export function useStaticLayer({
             paint: { "text-color": "#ffffff" },
           });
         }
+        // Plain stops scale with zoom and fade out when zoomed far out, so a
+        // whole line reads as a clean yellow path instead of a pile of dots.
+        const zr = (base: unknown) => [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          10,
+          ["*", base, 0.5],
+          13,
+          ["*", base, 0.85],
+          15,
+          base,
+          17,
+          ["*", base, 1.35],
+        ];
+        const fade = ["interpolate", ["linear"], ["zoom"], 10.5, 0, 11.5, 1];
         m.addLayer({
           id: "aloya-stop-dots",
           type: "circle",
@@ -175,14 +199,16 @@ export function useStaticLayer({
           filter: ["!", ["has", "point_count"]],
           paint: {
             "circle-color": ["get", "color"],
-            "circle-radius": [
+            "circle-radius": zr([
               "case",
               ["boolean", ["feature-state", "pulse"], false],
               ["*", ["get", "radius"], 1.6],
               ["get", "radius"],
-            ],
-            "circle-stroke-color": "#ffffff",
-            "circle-stroke-width": 3,
+            ]) as never,
+            "circle-stroke-color": ["get", "stroke"],
+            "circle-stroke-width": ["get", "strokeWidth"],
+            "circle-opacity": (polyline ? fade : 1) as never,
+            "circle-stroke-opacity": (polyline ? fade : 1) as never,
           },
         });
       }
@@ -198,8 +224,8 @@ export function useStaticLayer({
           paint: {
             "circle-color": ["get", "color"],
             "circle-radius": ["get", "radius"],
-            "circle-stroke-color": "#ffffff",
-            "circle-stroke-width": 3,
+            "circle-stroke-color": ["get", "stroke"],
+            "circle-stroke-width": ["get", "strokeWidth"],
           },
         });
       }

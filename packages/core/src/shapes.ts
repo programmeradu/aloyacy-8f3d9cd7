@@ -104,6 +104,21 @@ export function getAnyShapeForRouteSync(routeId: string): LatLng[] | null {
   return pts.length >= 2 ? pts : null;
 }
 
+/** The encoded polyline (precision 5) for a trip's shape, or the route's
+ *  first shape when the trip is unknown. Null until the index has loaded. */
+export function getEncodedShapeSync(routeId: string, tripId?: string): string | null {
+  if (!cache) return null;
+  const b = cache[routeId];
+  if (!b) return null;
+  const sid = (tripId && b.trips[tripId]) || Object.keys(b.shapes)[0];
+  return (sid && b.shapes[sid]) || null;
+}
+
+/** Resolves once the shape index has loaded (or failed to). */
+export async function whenShapesLoaded(): Promise<void> {
+  await loadIndex();
+}
+
 /** Async variant — waits for the index to load. */
 export async function getShapeForTrip(tripId: string, routeId?: string): Promise<LatLng[] | null> {
   await loadIndex();

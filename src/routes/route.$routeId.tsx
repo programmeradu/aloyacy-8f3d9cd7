@@ -42,6 +42,8 @@ import { RouteRunsList } from "@/components/route/RouteRunsList";
 import { useRealtime } from "@/lib/useRealtime";
 import { getRoute, getStop, STOPS } from "@/lib/gtfs";
 import { splitLongName } from "@/lib/place-names";
+import { getEncodedShapeSync, whenShapesLoaded } from "@/lib/shapes";
+import polylineCodec from "@mapbox/polyline";
 import { getRouteReliability } from "@/lib/reliability.functions";
 import { getIntercityInsights } from "@/lib/intercity-intel.functions";
 import { routeHead } from "@/lib/route-page";
@@ -152,6 +154,14 @@ function RoutePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rt, offlineArrivals, fallbackStopIds, routeId]);
 
+  const tripIds = board?.trips.map((t) => t.tripId) ?? [];
+  const firstTrip = board?.trips[0];
+  const liveBus = firstTrip
+    ? board?.busesOnLine.find((b) => b.tripId === firstTrip.tripId)
+    : undefined;
+
+  // Next stop of the live bus is highlighted on the map.
+  const nextIdx = liveBus ? Math.min(liveBus.stopIndex + 1, (board?.stopIds.length ?? 1) - 1) : -1;
   const markers: MapMarker[] = useMemo(() => {
     if (!board) return [];
     return board.stopIds
@@ -161,17 +171,35 @@ function RoutePage() {
         lat: s.lat,
         lng: s.lng,
         label: s.name,
-        kind: i === 0 ? "origin" : i === arr.length - 1 ? "destination" : "stop",
+        kind:
+          i === 0
+            ? "origin"
+            : i === arr.length - 1
+              ? "destination"
+              : i === nextIdx
+                ? "next"
+                : "stop",
         tone: "aegean",
       }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [board]);
+  }, [board, nextIdx]);
 
-  const tripIds = board?.trips.map((t) => t.tripId) ?? [];
-  const firstTrip = board?.trips[0];
-  const liveBus = firstTrip
-    ? board?.busesOnLine.find((b) => b.tripId === firstTrip.tripId)
-    : undefined;
+  // Route path: the GTFS shape for this line once the shape index loads; until
+  // then (or when the feed has no shape) a line through the stops in order.
+  const [shapesReady, setShapesReady] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void whenShapesLoaded().then(() => live && setShapesReady(true));
+    return () => {
+      live = false;
+    };
+  }, []);
+  const routePolyline = useMemo(() => {
+    const shape = shapesReady ? getEncodedShapeSync(routeId, firstTrip?.tripId) : null;
+    if (shape) return shape;
+    if (markers.length < 2) return undefined;
+    return polylineCodec.encode(markers.map((m) => [m.lat, m.lng] as [number, number]));
+  }, [shapesReady, routeId, firstTrip?.tripId, markers]);
 
   const lineShort = route?.short ?? routeId;
   const { origin, dest } = splitLongName(route?.long, {
@@ -198,6 +226,7 @@ function RoutePage() {
         <OfflineBanner />
         <RouteHero
           markers={markers}
+          polyline={routePolyline}
           tripIds={tripIds}
           spanKm={board?.vehicles.length ? 8 : 12}
           starred={isStarred}
