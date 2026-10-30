@@ -75,8 +75,13 @@ export type ActiveTrip = {
 };
 
 // ---------- raw helpers ----------
+// SSR and the first client render must agree (React #418), so store hooks
+// render the server value (storage unread) until the app has hydrated.
+let ssrPass = false;
+let storeHydrated = false;
+
 function read<T>(key: string): T | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" || ssrPass) return null;
   try {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as T) : null;
@@ -305,9 +310,18 @@ export function pushRecent(r: Omit<RecentDestination, "id" | "lastUsed"> & { id?
 
 // ---------- reactive hook ----------
 export function useStoreValue<T>(key: string, getter: () => T): T {
-  const [value, setValue] = useState<T>(getter);
+  const [value, setValue] = useState<T>(() => {
+    if (storeHydrated) return getter();
+    ssrPass = true;
+    try {
+      return getter();
+    } finally {
+      ssrPass = false;
+    }
+  });
   const refresh = useCallback(() => setValue(getter()), [getter]);
   useEffect(() => {
+    storeHydrated = true;
     refresh();
     const onStore = (e: Event) => {
       const detail = (e as CustomEvent<{ key: string }>).detail;
