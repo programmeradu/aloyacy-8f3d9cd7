@@ -56,7 +56,7 @@ export function JoinCard({
       <p className="text-[13px]" style={{ color: "var(--r-onchar-mute)" }}>
         Join this trip
       </p>
-      <h2 className="mt-1 text-[22px] font-medium leading-tight">
+      <h2 className="mt-1 text-[22px] font-medium leading-tight" style={{ color: "#fff" }}>
         Share your live ETA with the group
       </h2>
       <p className="mt-2 text-[14px]" style={{ color: "var(--r-onchar-mute)" }}>
