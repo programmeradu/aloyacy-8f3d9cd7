@@ -18,8 +18,13 @@ export default defineConfig({
   },
   vite: {
     build: {
+      // ROAM_LOWMEM=1 is a temporary sandbox-only switch (low RAM build); unset for normal builds.
+      ...(process.env.ROAM_LOWMEM === "1"
+        ? { minify: process.env.ROAM_NOMINIFY === "1" ? false : "esbuild", sourcemap: false, reportCompressedSize: false }
+        : {}),
       rollupOptions: {
         external: [/^cloudflare:/, /\.wasm$/],
+        ...(process.env.ROAM_LOWMEM === "1" ? { maxParallelFileOps: 2 } : {}),
       },
     },
     plugins: [],
