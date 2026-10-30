@@ -1,340 +1,284 @@
-import { useEffect, useRef, useState } from "react";
-import type { Worker as TesseractWorker } from "tesseract.js";
+// Motion card scanner (Roam). Full-screen camera with a card-shaped window
+// (ID-1 ratio) over a darkened surround. Nothing is read until a real card
+// outline is found and held still; then the QR and fixed regions are read and
+// voted across frames (see scan/). Each field shows only once validated, with
+// a tick and its confidence, and stays editable before saving.
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import { IconClose } from "@/components/Icons";
 import { readPass, writePass, formatCardNumber, type MotionPass } from "@/lib/motion-pass";
+import { Icon } from "@/components/roam/Icon";
+import { useCardScanner, type Phase } from "./scan/useCardScanner";
+import { maskDigits, validDate, validName, validUid } from "./scan/fields";
+import type { Rect } from "./scan/card-detect";
 
-/* ============================================================
- * Card Scan Sheet — live camera + on-device OCR (Tesseract.js).
- *
- * Two-sided capture:
- *   • FRONT  → cardholder name + valid-until date
- *   • BACK   → 14–16 digit UID (anything shorter is rejected)
- *
- * The user picks a side; the scanner only looks for the fields that
- * live on that side, then auto-advances / auto-closes when done.
- * ============================================================ */
-
-type Side = "front" | "back";
-
-type Detected = {
-  number?: string;
-  holder?: string;
-  validUntil?: string;
+const STATUS: Record<Phase, string> = {
+  starting: "Starting the camera",
+  searching: "Place the card inside the frame",
+  holding: "Card found. Hold still",
+  reading: "Reading the card",
+  blurry: "A little blurry. Move closer or add light",
+  glare: "Glare on the card. Tilt it slightly",
+  notcard: "That does not look like a Motion card",
+  done: "All set. Check the details and save",
+  error: "Camera unavailable",
 };
 
-// UID is 14–16 consecutive digits (spaces tolerated between groups).
-const UID_RE = /(?:\d[\s-]?){14,16}/;
-const DATE_RE = /\b(\d{2}\/\d{2}\/\d{2,4})\b/;
-const NAME_RE = /\b([A-Z]{2,}(?:\s+[A-Z]{2,}){1,3})\b/;
-
 export function CardScanSheet({ onClose }: { onClose: () => void }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const workerRef = useRef<TesseractWorker | null>(null);
-  const runningRef = useRef(true);
-  const sideRef = useRef<Side>("front");
-  const accRef = useRef<Detected>({});
-  const hitsRef = useRef({ number: 0, holder: 0, validUntil: 0 });
-  const [side, setSide] = useState<Side>("front");
-  const [detected, setDetected] = useState<Detected>({});
-  const [status, setStatus] = useState<"loading" | "scanning" | "locked" | "error">("loading");
-  const [errMsg, setErrMsg] = useState<string>("");
-  const frontDoneRef = useRef(false);
-  const backDoneRef = useRef(false);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const [guide, setGuide] = useState<Rect | null>(null);
+  const [stage, setStage] = useState({ w: 0, h: 0 });
+  const scan = useCardScanner({ guide, enabled: true });
+  const [edit, setEdit] = useState({ number: "", holder: "", validUntil: "" });
+  const touched = useRef({ number: false, holder: false, validUntil: false });
 
-  function switchSide(next: Side) {
-    sideRef.current = next;
-    setSide(next);
-    // reset per-side hit counters so we don't cross-contaminate
-    hitsRef.current = { number: 0, holder: 0, validUntil: 0 };
-  }
-
-  function finishIfComplete() {
-    if (!frontDoneRef.current || !backDoneRef.current) return;
-    const acc = accRef.current;
-    if (!acc.number) return;
-    const current = readPass();
-    const next: MotionPass = {
-      ...current,
-      number: formatCardNumber(acc.number),
-      holder: acc.holder ?? current.holder,
-      validUntil: acc.validUntil ?? current.validUntil,
+  // Guide: card-shaped, 20px gutters, upper third of the screen.
+  useLayoutEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const measure = () => {
+      const b = el.getBoundingClientRect();
+      const w = Math.min(b.width - 40, 420);
+      const h = w / 1.586;
+      setStage({ w: b.width, h: b.height });
+      setGuide({ x: (b.width - w) / 2, y: Math.max(140, b.height * 0.36 - h / 2), w, h });
     };
-    writePass(next);
-    setStatus("locked");
-    toast.success("Card captured");
-    setTimeout(() => onClose(), 800);
-  }
-
-  useEffect(() => {
-    let stream: MediaStream | null = null;
-
-    async function start() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-          audio: false,
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play().catch(() => {});
-        }
-        const Tesseract = await import("tesseract.js");
-        const worker = await Tesseract.createWorker("eng", 1, {
-          workerPath: "https://unpkg.com/tesseract.js@v7.0.0/dist/worker.min.js",
-          corePath: "https://unpkg.com/tesseract.js-core@v6.0.0",
-          langPath: "https://tessdata.projectnaptha.com/4.0.0",
-        });
-        await worker.setParameters({
-          tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 /:.-",
-        });
-        workerRef.current = worker;
-        setStatus("scanning");
-        loop();
-      } catch (e) {
-        setStatus("error");
-        setErrMsg(e instanceof Error ? e.message : "Camera unavailable");
-      }
-    }
-
-    async function loop() {
-      while (runningRef.current) {
-        await new Promise((r) => setTimeout(r, 900));
-        if (!runningRef.current) break;
-        const v = videoRef.current;
-        const c = canvasRef.current;
-        const w = workerRef.current;
-        if (!v || !c || !w || v.readyState < 2) continue;
-        const vw = v.videoWidth;
-        const vh = v.videoHeight;
-        if (!vw || !vh) continue;
-        const cw = Math.min(vw, 900);
-        const ch = Math.round(cw / 1.586);
-        c.width = cw;
-        c.height = ch;
-        const ctx = c.getContext("2d");
-        if (!ctx) continue;
-        const sx = (vw - cw) / 2;
-        const sy = (vh - ch) / 2;
-        ctx.drawImage(v, sx, sy, cw, ch, 0, 0, cw, ch);
-        try {
-          const { data } = await w.recognize(c);
-          const text: string = (data?.text ?? "").toUpperCase();
-          const acc = accRef.current;
-          const hits = hitsRef.current;
-          const currentSide = sideRef.current;
-
-          if (currentSide === "back") {
-            // UID — must be 14–16 digits, contiguous (after stripping separators).
-            const m = text.match(UID_RE);
-            if (m) {
-              const digits = m[0].replace(/\D/g, "");
-              if (digits.length >= 14 && digits.length <= 16) {
-                if (acc.number === digits) hits.number++;
-                else {
-                  acc.number = digits;
-                  hits.number = 1;
-                }
-                if (hits.number >= 2 && !backDoneRef.current) {
-                  backDoneRef.current = true;
-                  if (!frontDoneRef.current) {
-                    toast.success("Back captured, flip to the front");
-                    switchSide("front");
-                  } else {
-                    finishIfComplete();
-                  }
-                }
-              }
-            }
-          } else {
-            // FRONT — name + date
-            if (!acc.validUntil || hits.validUntil < 2) {
-              const dateMatch = text.match(DATE_RE);
-              if (dateMatch) {
-                if (acc.validUntil === dateMatch[1]) hits.validUntil++;
-                else {
-                  acc.validUntil = dateMatch[1];
-                  hits.validUntil = 1;
-                }
-              }
-            }
-            if (!acc.holder || hits.holder < 2) {
-              const cleaned = text
-                .split("\n")
-                .filter((l) => !/MOTION|VALID|CARD|BUS|CYPRUS|ΜΕΧΡΙ|ΙΣΧΥΕΙ/.test(l))
-                .join("\n");
-              const nameMatch = cleaned.match(NAME_RE);
-              if (nameMatch) {
-                const candidate = nameMatch[1].trim();
-                if (acc.holder === candidate) hits.holder++;
-                else {
-                  acc.holder = candidate;
-                  hits.holder = 1;
-                }
-              }
-            }
-            const nameOk = !!acc.holder && hits.holder >= 2;
-            const dateOk = !!acc.validUntil && hits.validUntil >= 2;
-            if ((nameOk || dateOk) && ((nameOk && dateOk) || hits.holder + hits.validUntil >= 4)) {
-              if (!frontDoneRef.current) {
-                frontDoneRef.current = true;
-                if (!backDoneRef.current) {
-                  toast.success("Front captured, flip to the back");
-                  switchSide("back");
-                } else {
-                  finishIfComplete();
-                }
-              }
-            }
-          }
-          setDetected({ ...acc });
-        } catch {
-          // ignore single-frame errors
-        }
-      }
-    }
-
-    start();
-    return () => {
-      runningRef.current = false;
-      if (stream) stream.getTracks().forEach((t) => t.stop());
-      if (workerRef.current) workerRef.current.terminate().catch(() => {});
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
-  if (typeof document === "undefined") return null;
+  // Fill fields as they are accepted, unless the rider already typed there.
+  useEffect(() => {
+    setEdit((e) => ({
+      number:
+        !touched.current.number && scan.fields.number
+          ? formatCardNumber(scan.fields.number.value)
+          : e.number,
+      holder: !touched.current.holder && scan.fields.holder ? scan.fields.holder.value : e.holder,
+      validUntil:
+        !touched.current.validUntil && scan.fields.validUntil
+          ? scan.fields.validUntil.value
+          : e.validUntil,
+    }));
+  }, [scan.fields]);
 
-  const sideHint = side === "front" ? "Front · name & valid-until" : "Back · 14 to 16 digit UID";
+  const okNumber =
+    !!validUid(edit.number.replace(/\D/g, "")) || /^\d{8,16}$/.test(edit.number.replace(/\D/g, ""));
+  const okName = !edit.holder || !!validName(edit.holder);
+  const okDate = !edit.validUntil || !!validDate(edit.validUntil);
+  const canSave = okNumber && okName && okDate;
+
+  function save() {
+    const cur = readPass();
+    const next: MotionPass = {
+      ...cur,
+      number: formatCardNumber(edit.number.replace(/\D/g, "")),
+      holder: edit.holder ? (validName(edit.holder) ?? cur.holder) : cur.holder,
+      validUntil: edit.validUntil ? (validDate(edit.validUntil) ?? cur.validUntil) : cur.validUntil,
+    };
+    writePass(next);
+    toast.success("Card saved");
+    onClose();
+  }
+
+  if (typeof document === "undefined") return null;
+  const g = guide;
+  const status =
+    scan.error && scan.phase === "error" ? `${STATUS.error}. ${scan.error}` : STATUS[scan.phase];
+  const poly = scan.quad?.map((p) => `${p.x},${p.y}`).join(" ");
 
   return createPortal(
-    <div className="fixed inset-0 z-[120] bg-ink/95 backdrop-blur-sm flex flex-col">
-      <div className="flex items-center justify-between px-5 pt-5">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/70">
-          Scan your card
-        </p>
-        <button
-          onClick={() => {
-            runningRef.current = false;
-            onClose();
-          }}
-          aria-label="Close scanner"
-          className="flex size-10 items-center justify-center rounded-full bg-limestone/10 text-limestone ring-1 ring-limestone/20"
-        >
-          <IconClose className="size-4" />
-        </button>
-      </div>
-
-      {/* Side toggle */}
-      <div className="mx-5 mt-3 grid grid-cols-2 gap-1 rounded-full bg-limestone/10 p-1 ring-1 ring-limestone/15">
-        {(["front", "back"] as const).map((s) => {
-          const active = side === s;
-          const done = s === "front" ? frontDoneRef.current : backDoneRef.current;
-          return (
-            <button
-              key={s}
-              onClick={() => switchSide(s)}
-              className={`rounded-full px-3 py-2 font-mono text-[10px] uppercase tracking-[0.22em] transition ${
-                active ? "bg-ochre text-ink" : "text-limestone/70"
-              }`}
-            >
-              {s} {done ? "✓" : ""}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="relative flex-1 mx-5 my-4 overflow-hidden rounded-[24px] ring-1 ring-limestone/20 bg-black">
+    <div className="roam r-scan" role="dialog" aria-modal="true" aria-label="Scan your Motion card">
+      <div ref={stageRef} className="r-scan-stage">
         <video
-          ref={videoRef}
+          ref={scan.videoRef}
+          className="r-scan-video"
           playsInline
           muted
           autoPlay
-          className="absolute inset-0 size-full object-cover"
+          disablePictureInPicture
+          aria-hidden="true"
         />
-        <canvas ref={canvasRef} className="hidden" />
+        {g ? (
+          <svg className="r-scan-mask" width={stage.w} height={stage.h} aria-hidden="true">
+            <defs>
+              <mask id="r-scan-hole">
+                <rect width="100%" height="100%" fill="#fff" />
+                <rect x={g.x} y={g.y} width={g.w} height={g.h} rx={16} fill="#000" />
+              </mask>
+            </defs>
+            <rect width="100%" height="100%" fill="rgba(8,8,8,.62)" mask="url(#r-scan-hole)" />
+            <rect
+              x={g.x}
+              y={g.y}
+              width={g.w}
+              height={g.h}
+              rx={16}
+              fill="none"
+              className={`r-scan-frame${scan.locked ? " is-locked" : scan.quad ? " is-found" : ""}`}
+            />
+            {poly ? (
+              <polygon points={poly} className={`r-scan-quad${scan.locked ? " is-locked" : ""}`} />
+            ) : null}
+          </svg>
+        ) : null}
 
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-6">
-          <div className="relative w-full max-w-[420px] aspect-[1.586/1]">
-            {(["tl", "tr", "bl", "br"] as const).map((p) => (
-              <span
-                key={p}
-                className="absolute size-8 border-ochre"
-                style={{
-                  top: p.startsWith("t") ? 0 : "auto",
-                  bottom: p.startsWith("b") ? 0 : "auto",
-                  left: p.endsWith("l") ? 0 : "auto",
-                  right: p.endsWith("r") ? 0 : "auto",
-                  borderTopWidth: p.startsWith("t") ? 3 : 0,
-                  borderBottomWidth: p.startsWith("b") ? 3 : 0,
-                  borderLeftWidth: p.endsWith("l") ? 3 : 0,
-                  borderRightWidth: p.endsWith("r") ? 3 : 0,
-                  borderRadius: 6,
-                }}
-              />
-            ))}
-            {status === "scanning" && (
-              <span
-                className="absolute left-2 right-2 h-px bg-ochre/80 shadow-[0_0_12px_2px_var(--color-ochre)]"
-                style={{ animation: "scanSweep 1.8s ease-in-out infinite" }}
-              />
-            )}
-          </div>
+        <header className="r-scan-head">
+          <button type="button" className="r-fb" aria-label="Close scanner" onClick={onClose}>
+            <Icon name="x" />
+          </button>
+          <h2 className="r-scan-title">Scan your card</h2>
+          {scan.torch.supported ? (
+            <button
+              type="button"
+              className={`r-fb${scan.torch.on ? " r-fb--y" : ""}`}
+              aria-label={scan.torch.on ? "Torch off" : "Torch on"}
+              aria-pressed={scan.torch.on}
+              onClick={() => void scan.toggleTorch()}
+            >
+              <Icon name="flashlight" />
+            </button>
+          ) : (
+            <span className="w-11" />
+          )}
+        </header>
+
+        <div className="r-scan-steps" role="tablist" aria-label="Card side">
+          {(["front", "back"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              role="tab"
+              aria-selected={scan.side === s}
+              className={scan.side === s ? "is-on" : ""}
+              onClick={() => scan.setSide(s)}
+            >
+              {s === "front" ? "Front" : "Back"}
+              {(s === "front" && scan.fields.holder && scan.fields.validUntil) ||
+              (s === "back" && scan.fields.number) ? (
+                <Icon name="check" />
+              ) : null}
+            </button>
+          ))}
         </div>
 
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 rounded-full bg-ink/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-limestone backdrop-blur">
-          {status === "loading" && "Starting camera"}
-          {status === "scanning" && sideHint}
-          {status === "locked" && "Captured"}
-          {status === "error" && (errMsg || "Camera unavailable")}
-        </div>
+        {g ? (
+          <p className="r-scan-status" style={{ top: g.y + g.h + 18 }} aria-live="polite">
+            {scan.phase === "reading" || scan.phase === "holding" ? (
+              <span className="r-scan-dot" />
+            ) : null}
+            {scan.side === "back" && scan.phase === "searching"
+              ? "Turn the card over. Place the back inside the frame"
+              : status}
+          </p>
+        ) : null}
       </div>
 
-      <div className="px-5 pb-7 space-y-2">
+      <div className="r-scan-panel">
         <FieldRow
-          label="UID (back · 14 to 16 digits)"
-          value={detected.number ? formatCardNumber(detected.number) : ""}
+          label="Card number"
+          hint={
+            scan.side === "back" ? "Back of the card, 14 to 16 digits" : "From the QR, or the back"
+          }
+          value={edit.number}
+          conf={scan.fields.number?.conf}
+          source={scan.fields.number?.source}
+          ok={okNumber}
+          inputMode="numeric"
+          masked
+          onChange={(v) => {
+            touched.current.number = true;
+            setEdit((e) => ({ ...e, number: v }));
+          }}
         />
-        <FieldRow label="Name (front)" value={detected.holder ?? ""} />
-        <FieldRow label="Valid until (front)" value={detected.validUntil ?? ""} />
-        <p className="pt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/50">
-          Hold steady · entire card in frame
-        </p>
+        <FieldRow
+          label="Name"
+          hint="Front of the card"
+          value={edit.holder}
+          conf={scan.fields.holder?.conf}
+          ok={!!edit.holder && okName}
+          onChange={(v) => {
+            touched.current.holder = true;
+            setEdit((e) => ({ ...e, holder: v.toUpperCase() }));
+          }}
+        />
+        <FieldRow
+          label="Valid until"
+          hint="Front of the card, DD/MM/YYYY"
+          value={edit.validUntil}
+          conf={scan.fields.validUntil?.conf}
+          ok={!!edit.validUntil && okDate}
+          inputMode="numeric"
+          onChange={(v) => {
+            touched.current.validUntil = true;
+            setEdit((e) => ({ ...e, validUntil: v }));
+          }}
+        />
+        <button
+          type="button"
+          className="r-pill r-pill--k r-pill--lg r-scan-save"
+          disabled={!canSave}
+          onClick={save}
+        >
+          <Icon name="check" />
+          Save card
+        </button>
       </div>
-
-      <style>{`
-        @keyframes scanSweep {
-          0% { top: 4%; opacity: 0; }
-          15% { opacity: 1; }
-          85% { opacity: 1; }
-          100% { top: 96%; opacity: 0; }
-        }
-      `}</style>
     </div>,
     document.body,
   );
 }
 
-function FieldRow({ label, value }: { label: string; value: string }) {
-  const has = value.length > 0;
+function FieldRow({
+  label,
+  hint,
+  value,
+  conf,
+  source,
+  ok,
+  inputMode,
+  masked,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: string;
+  conf?: number;
+  source?: "qr" | "ocr";
+  ok: boolean;
+  inputMode?: "numeric" | "text";
+  /** Show only the last four digits until the rider focuses the field. */
+  masked?: boolean;
+  onChange: (v: string) => void;
+}) {
+  const [focused, setFocused] = useState(false);
+  const shown = masked && !focused ? maskDigits(value) : value;
   return (
-    <div className="flex items-baseline justify-between gap-4 rounded-2xl bg-limestone/5 ring-1 ring-limestone/10 px-4 py-3">
-      <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-limestone/60">
-        {label}
+    <label className="r-scan-field">
+      <span className={`r-scan-tick${ok && value ? " is-ok" : ""}`} aria-hidden="true">
+        <Icon name={ok && value ? "check" : "dots-three"} />
       </span>
-      <span
-        className={`font-mono text-[13px] truncate transition-colors ${
-          has ? "text-ochre" : "text-limestone/30"
-        }`}
-      >
-        {has ? value : "-"}
+      <span className="flex-1 min-w-0">
+        <span className="r-scan-flabel">
+          {label}
+          {conf != null && value ? (
+            <span className="r-scan-conf">{source === "qr" ? "from QR" : `${conf}% sure`}</span>
+          ) : null}
+        </span>
+        <input
+          value={shown}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={hint}
+          inputMode={inputMode}
+          autoComplete="off"
+          spellCheck={false}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label={label}
+        />
       </span>
-    </div>
+    </label>
   );
 }

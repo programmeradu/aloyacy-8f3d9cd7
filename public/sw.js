@@ -51,6 +51,22 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // 1b. Scanner engines (OCR core, language data, QR wasm): cache-first so the
+  // card scanner works offline after its first use.
+  if (url.origin === self.location.origin && url.pathname.startsWith("/ocr/")) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE);
+        const cached = await cache.match(req);
+        if (cached) return cached;
+        const fresh = await fetch(req);
+        if (fresh && fresh.status === 200) cache.put(req, fresh.clone());
+        return fresh;
+      })(),
+    );
+    return;
+  }
+
   // 2. Production assets & static media: Stale-While-Revalidate
   if (
     url.origin === self.location.origin &&
