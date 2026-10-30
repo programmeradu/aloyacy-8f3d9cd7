@@ -8,6 +8,7 @@ import { normaliseMode } from "@aloya/core/group-mode";
 import type { GroupRow, MemberRow, Tone } from "./kit";
 import { PulseDot } from "./chrome";
 import { MemberAvatar } from "./MemberAvatar";
+import { useMyAvatar } from "./avatar-store";
 
 export function GroupMap({
   group,
@@ -18,6 +19,7 @@ export function GroupMap({
   members: MemberRow[];
   meId: string | null;
 }) {
+  const [mine] = useMyAvatar();
   const markers = useMemo(() => {
     const list: {
       lat: number;
@@ -59,6 +61,7 @@ export function GroupMap({
               <span className="r-member-pin">
                 <MemberAvatar
                   seed={m.id}
+                  choice={isMe ? (mine ?? m.avatar) : m.avatar}
                   name={isMe ? `${m.display_name} (you)` : m.display_name}
                   size={44}
                   ring={isMe ? "#F6B83C" : "#ffffff"}
@@ -69,7 +72,7 @@ export function GroupMap({
             ),
           };
         }),
-    [members, meId],
+    [members, meId, mine],
   );
 
   const fixCount = pins.length;

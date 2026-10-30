@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { leaveTripGroup, pingGroupMember } from "@/lib/trip-groups.functions";
+import { readAvatar } from "./avatar-store";
 import { MEMBER_TOKEN_KEY, PING_INTERVAL_MS, type GroupRow } from "./kit";
 import { PulseDot } from "./chrome";
 import { inferMode, speedBetween } from "@aloya/core/group-mode";
@@ -54,7 +55,7 @@ export function LiveShareCard({
         }
         const mode = inferMode({ speedKmh, nearLiveBusM: nearBus });
         void ping({
-          data: { memberToken: token, position: here, mode },
+          data: { memberToken: token, position: here, mode, avatar: readAvatar() ?? undefined },
         }).catch(() => {});
       },
       () => {},

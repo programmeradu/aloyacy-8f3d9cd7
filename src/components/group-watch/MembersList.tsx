@@ -3,11 +3,16 @@
 
 import { memberStatusLine, summariseConverge } from "@aloya/core/group-converge";
 import { normaliseMode } from "@aloya/core/group-mode";
+import { useState } from "react";
 import { MemberAvatar, modeLabel } from "./MemberAvatar";
+import { AvatarPicker } from "./AvatarPicker";
+import { useMyAvatar } from "./avatar-store";
 import { toneClasses, toneForIndex, type MemberRow } from "./kit";
 
 export function MembersList({ members, meId }: { members: MemberRow[]; meId: string | null }) {
   const now = Date.now();
+  const [mine] = useMyAvatar();
+  const [picking, setPicking] = useState(false);
   if (members.length === 0) {
     return (
       <div className="rounded-2xl bg-card p-5 ring-1 ring-line">
@@ -45,7 +50,34 @@ export function MembersList({ members, meId }: { members: MemberRow[]; meId: str
                 isMe ? t.ring : "ring-line"
               } ${line.left ? "opacity-60" : ""}`}
             >
-              <MemberAvatar seed={m.id} name={m.display_name} size={44} mode={mode} />
+              {isMe ? (
+                <button
+                  type="button"
+                  className="relative shrink-0 rounded-full"
+                  aria-label="Change your character"
+                  aria-expanded={picking}
+                  onClick={() => setPicking((v) => !v)}
+                >
+                  <MemberAvatar
+                    seed={m.id}
+                    choice={mine ?? m.avatar}
+                    name={m.display_name}
+                    size={44}
+                    mode={mode}
+                  />
+                  <span className="r-av-edit" aria-hidden="true">
+                    <i className="ph ph-pencil-simple" />
+                  </span>
+                </button>
+              ) : (
+                <MemberAvatar
+                  seed={m.id}
+                  choice={m.avatar}
+                  name={m.display_name}
+                  size={44}
+                  mode={mode}
+                />
+              )}
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-[15px] font-semibold leading-snug text-ink">
                   <span className="min-w-0 break-words">{m.display_name}</span>
@@ -73,6 +105,11 @@ export function MembersList({ members, meId }: { members: MemberRow[]; meId: str
           );
         })}
       </ul>
+      {picking && meId ? (
+        <div className="roam rounded-[24px] bg-white p-4">
+          <AvatarPicker seed={meId} onPicked={() => setPicking(false)} />
+        </div>
+      ) : null}
     </section>
   );
 }

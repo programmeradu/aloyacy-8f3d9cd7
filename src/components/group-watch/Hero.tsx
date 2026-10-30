@@ -2,6 +2,7 @@
 // ribbon that tells the current viewer which member card is them.
 
 import { MemberAvatar } from "./MemberAvatar";
+import { useMyAvatar } from "./avatar-store";
 import { normaliseMode } from "@aloya/core/group-mode";
 import { toneClasses, toneForIndex, type GroupRow, type MemberRow } from "./kit";
 import { PulseDot } from "./chrome";
@@ -66,7 +67,14 @@ function AvatarStack({ members }: { members: MemberRow[] }) {
   return (
     <div className="flex -space-x-2.5">
       {shown.map((m) => (
-        <MemberAvatar key={m.id} seed={m.id} name={m.display_name} size={40} ring="#262626" />
+        <MemberAvatar
+          key={m.id}
+          seed={m.id}
+          choice={m.avatar}
+          name={m.display_name}
+          size={40}
+          ring="#262626"
+        />
       ))}
       {extra > 0 && (
         <span className="inline-flex size-10 items-center justify-center rounded-full bg-white text-[13px] font-semibold text-ink ring-2 ring-[#262626]">
@@ -90,12 +98,19 @@ export function IdentityRibbon({
   expired: boolean;
   hostName: string | null;
 }) {
+  const [mine] = useMyAvatar();
   if (expired) return null;
   if (me) {
     const t = toneClasses(toneForIndex(meIndex));
     return (
       <div className={`flex items-center gap-3 rounded-2xl bg-card p-4 ring-1 ${t.ring}`}>
-        <MemberAvatar seed={me.id} name={me.display_name} size={40} mode={normaliseMode(me.mode)} />
+        <MemberAvatar
+          seed={me.id}
+          choice={mine ?? me.avatar}
+          name={me.display_name}
+          size={40}
+          mode={normaliseMode(me.mode)}
+        />
         <div className="min-w-0 flex-1">
           <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
             You appear as

@@ -1,9 +1,11 @@
-// Illustrated member avatars for the group page: a friendly, consistent
-// character set drawn in SVG (no photos, no external services). Each member
-// gets the same character every time, picked by hashing their member id.
+// Illustrated member avatars for the group page, drawn in SVG (no photos, no
+// external services). Riders CHOOSE their character (AVATAR_CHOICES: people of
+// many looks, plus neutral animals); nothing is guessed about them. Until they
+// choose, everyone gets a neutral, non-gendered face whose colour comes from
+// their member id so people stay distinguishable.
 // An optional mode badge (walking, bus, bike or scooter, taxi) sits on the
 // bottom right; no badge when the mode is unknown.
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { MemberMode } from "@aloya/core/group-mode";
 
 const BG = ["#FCE7B2", "#DCE8D2", "#D6E5F1", "#F6D8CC", "#E6DFF3", "#F0E3CC", "#D3ECE6"];
@@ -101,48 +103,207 @@ function Hair({ t, back }: { t: AvatarTraits; back: boolean }) {
   }
 }
 
-/** The character itself, as a round SVG. */
-export function AvatarArt({ seed, size }: { seed: string; size: number }) {
-  const t = avatarTraits(seed);
-  const clip = `av-${hashSeed(seed).toString(36)}`;
+type Preset =
+  | { kind: "person"; label: string; t: AvatarTraits }
+  | { kind: "animal"; label: string; animal: "fox" | "owl" | "cat" | "bear" | "panda" };
+
+const P = (label: string, bg: string, skin: string, hair: string, shirt: string, style: number, extra = 0): Preset => ({
+  kind: "person",
+  label,
+  t: { bg, skin, hair, shirt, style, extra },
+});
+
+/** The picker's set, in display order. Ids are stored, so never renumber. */
+export const AVATAR_PRESETS: Record<string, Preset> = {
+  p1: P("Short hair", "#D6E5F1", "#EDBF98", "#2A201B", "#262626", 0),
+  p2: P("Bun", "#FCE7B2", "#A9714B", "#2A201B", "#5E806B", 1),
+  p3: P("Long hair", "#F6D8CC", "#F7D6B8", "#8C5A2B", "#3F6B8C", 2),
+  p4: P("Curls", "#DCE8D2", "#7A4E33", "#2A201B", "#F6B83C", 3),
+  p5: P("Side part, glasses", "#E6DFF3", "#D49C72", "#4E3322", "#C9694F", 4, 1),
+  p6: P("Beanie", "#F0E3CC", "#EDBF98", "#3B3B3B", "#262626", 5),
+  p7: P("Long red hair", "#D3ECE6", "#F7D6B8", "#B1472F", "#8A6CB1", 2, 2),
+  p8: P("Curls, glasses", "#FCE7B2", "#A9714B", "#3B3B3B", "#3F6B8C", 3, 1),
+  p9: P("Grey crop", "#D6E5F1", "#D49C72", "#BDBDB8", "#5E806B", 0, 1),
+  p10: P("Blonde bun", "#F6D8CC", "#F7D6B8", "#D2AB63", "#262626", 1),
+  a1: { kind: "animal", label: "Fox", animal: "fox" },
+  a2: { kind: "animal", label: "Owl", animal: "owl" },
+  a3: { kind: "animal", label: "Cat", animal: "cat" },
+  a4: { kind: "animal", label: "Bear", animal: "bear" },
+  a5: { kind: "animal", label: "Panda", animal: "panda" },
+};
+export const AVATAR_CHOICES = Object.keys(AVATAR_PRESETS);
+
+export function isAvatarChoice(v: unknown): v is string {
+  return typeof v === "string" && v in AVATAR_PRESETS;
+}
+
+function Clip({ id, children, size }: { id: string; children: ReactNode; size: number }) {
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true" style={{ display: "block" }}>
       <defs>
-        <clipPath id={clip}>
+        <clipPath id={id}>
           <circle cx="32" cy="32" r="32" />
         </clipPath>
       </defs>
-      <g clipPath={`url(#${clip})`}>
-        <rect width="64" height="64" fill={t.bg} />
-        <Hair t={t} back />
-        <path d="M9 66c1.6-12.4 10.4-19.4 23-19.4S53.4 53.6 55 66z" fill={t.shirt} />
-        <path d="M27.6 38h8.8v7.4c-1.2 2.4-7.6 2.4-8.8 0z" fill={t.skin} />
-        <path d="M27.6 41.2c2.8 1.4 6 1.4 8.8 0v-3.2h-8.8z" fill="#000" opacity="0.08" />
-        <ellipse cx="32" cy="30.4" rx="11" ry="12" fill={t.skin} />
-        <ellipse cx="20.9" cy="31.4" rx="1.8" ry="2.6" fill={t.skin} />
-        <ellipse cx="43.1" cy="31.4" rx="1.8" ry="2.6" fill={t.skin} />
-        <Hair t={t} back={false} />
-        <circle cx="27.8" cy="31.2" r="1.45" fill="#1d1d1b" />
-        <circle cx="36.2" cy="31.2" r="1.45" fill="#1d1d1b" />
-        <circle cx="25.4" cy="35" r="2" fill="#EE8E7A" opacity="0.32" />
-        <circle cx="38.6" cy="35" r="2" fill="#EE8E7A" opacity="0.32" />
-        <path d="M29 36.2c1.8 1.7 4.2 1.7 6 0" fill="none" stroke="#1d1d1b" strokeWidth="1.4" strokeLinecap="round" />
-        {t.extra === 1 && (
-          <g fill="none" stroke="#1d1d1b" strokeWidth="1.2">
-            <circle cx="27.8" cy="31.2" r="3.3" />
-            <circle cx="36.2" cy="31.2" r="3.3" />
-            <path d="M31.1 31.2h1.8" />
-          </g>
-        )}
-        {t.extra === 2 && <circle cx="21" cy="35" r="1.2" fill="#F6B83C" />}
-      </g>
+      <g clipPath={`url(#${id})`}>{children}</g>
     </svg>
+  );
+}
+
+function Person({ t }: { t: AvatarTraits }) {
+  return (
+    <>
+      <rect width="64" height="64" fill={t.bg} />
+      <Hair t={t} back />
+      <path d="M9 66c1.6-12.4 10.4-19.4 23-19.4S53.4 53.6 55 66z" fill={t.shirt} />
+      <path d="M27.6 38h8.8v7.4c-1.2 2.4-7.6 2.4-8.8 0z" fill={t.skin} />
+      <path d="M27.6 41.2c2.8 1.4 6 1.4 8.8 0v-3.2h-8.8z" fill="#000" opacity="0.08" />
+      <ellipse cx="32" cy="30.4" rx="11" ry="12" fill={t.skin} />
+      <ellipse cx="20.9" cy="31.4" rx="1.8" ry="2.6" fill={t.skin} />
+      <ellipse cx="43.1" cy="31.4" rx="1.8" ry="2.6" fill={t.skin} />
+      <Hair t={t} back={false} />
+      <circle cx="27.8" cy="31.2" r="1.45" fill="#1d1d1b" />
+      <circle cx="36.2" cy="31.2" r="1.45" fill="#1d1d1b" />
+      <circle cx="25.4" cy="35" r="2" fill="#EE8E7A" opacity="0.32" />
+      <circle cx="38.6" cy="35" r="2" fill="#EE8E7A" opacity="0.32" />
+      <path d="M29 36.2c1.8 1.7 4.2 1.7 6 0" fill="none" stroke="#1d1d1b" strokeWidth="1.4" strokeLinecap="round" />
+      {t.extra === 1 && (
+        <g fill="none" stroke="#1d1d1b" strokeWidth="1.2">
+          <circle cx="27.8" cy="31.2" r="3.3" />
+          <circle cx="36.2" cy="31.2" r="3.3" />
+          <path d="M31.1 31.2h1.8" />
+        </g>
+      )}
+      {t.extra === 2 && <circle cx="21" cy="35" r="1.2" fill="#F6B83C" />}
+    </>
+  );
+}
+
+const EYES = (y = 31, dx = 6, r = 1.8) => (
+  <>
+    <circle cx={32 - dx} cy={y} r={r} fill="#1d1d1b" />
+    <circle cx={32 + dx} cy={y} r={r} fill="#1d1d1b" />
+  </>
+);
+
+function Animal({ a }: { a: "fox" | "owl" | "cat" | "bear" | "panda" }) {
+  switch (a) {
+    case "fox":
+      return (
+        <>
+          <rect width="64" height="64" fill="#FCE7B2" />
+          <path d="M14 14l12 10-6 6zM50 14L38 24l6 6z" fill="#D9762F" />
+          <path d="M12 28c4-8 12-12 20-12s16 4 20 12c-2 12-10 22-20 22S14 40 12 28z" fill="#E8893A" />
+          <path d="M20 34c4 0 8 3 12 10 4-7 8-10 12-10-2 8-6 14-12 14s-10-6-12-14z" fill="#FFF6EA" />
+          {EYES(31, 7, 1.7)}
+          <circle cx="32" cy="43" r="2" fill="#1d1d1b" />
+        </>
+      );
+    case "owl":
+      return (
+        <>
+          <rect width="64" height="64" fill="#DCE8D2" />
+          <path d="M14 20l8 6M50 20l-8 6" stroke="#7A5A3A" strokeWidth="4" strokeLinecap="round" />
+          <ellipse cx="32" cy="38" rx="19" ry="21" fill="#9C7650" />
+          <circle cx="25" cy="32" r="7" fill="#FFF6EA" />
+          <circle cx="39" cy="32" r="7" fill="#FFF6EA" />
+          <circle cx="25" cy="32" r="2.6" fill="#1d1d1b" />
+          <circle cx="39" cy="32" r="2.6" fill="#1d1d1b" />
+          <path d="M30 38h4l-2 4z" fill="#F6B83C" />
+          <path d="M22 48c3 2 6 3 10 3s7-1 10-3" stroke="#C9A57E" strokeWidth="2" fill="none" />
+        </>
+      );
+    case "cat":
+      return (
+        <>
+          <rect width="64" height="64" fill="#E6DFF3" />
+          <path d="M15 16l4 15 9-7zM49 16l-4 15-9-7z" fill="#5B5B5B" />
+          <ellipse cx="32" cy="35" rx="17" ry="15" fill="#6E6E6E" />
+          <ellipse cx="32" cy="40" rx="7" ry="5" fill="#ECECEC" />
+          <path d="M29.5 38h5L32 40.5z" fill="#EE8E7A" />
+          <circle cx="25.5" cy="32" r="2.2" fill="#F6B83C" />
+          <circle cx="38.5" cy="32" r="2.2" fill="#F6B83C" />
+          <path d="M18 39h7M18 42l7-1M46 39h-7M46 42l-7-1" stroke="#ECECEC" strokeWidth="1" />
+        </>
+      );
+    case "bear":
+      return (
+        <>
+          <rect width="64" height="64" fill="#F0E3CC" />
+          <circle cx="18" cy="20" r="7" fill="#8C5A2B" />
+          <circle cx="46" cy="20" r="7" fill="#8C5A2B" />
+          <circle cx="32" cy="35" r="18" fill="#9E6A38" />
+          <ellipse cx="32" cy="41" rx="8" ry="6" fill="#E7C9A0" />
+          <ellipse cx="32" cy="38.5" rx="2.6" ry="2" fill="#1d1d1b" />
+          {EYES(31, 7, 1.8)}
+        </>
+      );
+    default:
+      return (
+        <>
+          <rect width="64" height="64" fill="#D3ECE6" />
+          <circle cx="18" cy="20" r="7" fill="#262626" />
+          <circle cx="46" cy="20" r="7" fill="#262626" />
+          <circle cx="32" cy="35" r="18" fill="#FFFFFF" />
+          <ellipse cx="25" cy="33" rx="5" ry="6" fill="#262626" transform="rotate(-20 25 33)" />
+          <ellipse cx="39" cy="33" rx="5" ry="6" fill="#262626" transform="rotate(20 39 33)" />
+          <circle cx="25.5" cy="32.5" r="1.4" fill="#fff" />
+          <circle cx="38.5" cy="32.5" r="1.4" fill="#fff" />
+          <ellipse cx="32" cy="40.5" rx="2.4" ry="1.8" fill="#262626" />
+        </>
+      );
+  }
+}
+
+const NEUTRAL_BG = ["#FCE7B2", "#DCE8D2", "#D6E5F1", "#F6D8CC", "#E6DFF3", "#F0E3CC", "#D3ECE6"];
+const NEUTRAL_FACE = ["#F6B83C", "#262626", "#5E806B", "#3F6B8C", "#C9694F", "#8A6CB1"];
+
+/** Default before a rider chooses: a calm round face, no hair, no gender cues. */
+function Neutral({ seed }: { seed: string }) {
+  const h = hashSeed(seed || "guest");
+  const bg = NEUTRAL_BG[h % NEUTRAL_BG.length];
+  const face = NEUTRAL_FACE[(h >>> 5) % NEUTRAL_FACE.length];
+  const ink = face === "#262626" || face === "#3F6B8C" || face === "#8A6CB1" ? "#fff" : "#1d1d1b";
+  return (
+    <>
+      <rect width="64" height="64" fill={bg} />
+      <circle cx="32" cy="34" r="19" fill={face} />
+      <circle cx="25.5" cy="31.5" r="2" fill={ink} />
+      <circle cx="38.5" cy="31.5" r="2" fill={ink} />
+      <path d="M26.5 38.5c3 3 8 3 11 0" fill="none" stroke={ink} strokeWidth="2" strokeLinecap="round" />
+    </>
+  );
+}
+
+/** The character itself, as a round SVG. */
+export function AvatarArt({
+  seed,
+  size,
+  choice,
+}: {
+  seed: string;
+  size: number;
+  choice?: string | null;
+}) {
+  const preset = choice && isAvatarChoice(choice) ? AVATAR_PRESETS[choice] : null;
+  const clip = `av-${hashSeed(`${seed}:${choice ?? ""}`).toString(36)}`;
+  return (
+    <Clip id={clip} size={size}>
+      {preset?.kind === "person" ? (
+        <Person t={preset.t} />
+      ) : preset?.kind === "animal" ? (
+        <Animal a={preset.animal} />
+      ) : (
+        <Neutral seed={seed} />
+      )}
+    </Clip>
   );
 }
 
 /** Avatar disc with an optional ring colour and mode badge. */
 export function MemberAvatar({
   seed,
+  choice,
   name,
   size = 40,
   ring,
@@ -150,6 +311,8 @@ export function MemberAvatar({
   style,
 }: {
   seed: string;
+  /** The rider's chosen character id (AVATAR_CHOICES); neutral default when unset. */
+  choice?: string | null;
   name?: string;
   size?: number;
   ring?: string;
@@ -174,7 +337,7 @@ export function MemberAvatar({
         ...style,
       }}
     >
-      <AvatarArt seed={seed} size={size} />
+      <AvatarArt seed={seed} size={size} choice={choice} />
       {meta && (
         <span
           aria-hidden="true"

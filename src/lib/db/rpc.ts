@@ -63,7 +63,7 @@ const RPCS: Record<string, RpcFn> = {
       me_id: meId,
       members: (members.results ?? []).map((m) => {
         const { member_token: _t, owner_id: _o, ...pub } = m;
-        return fromDbRow(meta, { ...pub, mode: pub.mode ?? null });
+        return fromDbRow(meta, { ...pub, mode: pub.mode ?? null, avatar: pub.avatar ?? null });
       }),
     };
   },

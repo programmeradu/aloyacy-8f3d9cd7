@@ -34,6 +34,8 @@ export type MemberRow = {
   joined_at: string;
   /** Optional travel mode (walk | bus | bike | taxi); absent before migration 0004. */
   mode?: string | null;
+  /** Rider-chosen character id; absent before migration 0005 or until chosen. */
+  avatar?: string | null;
 };
 
 export const MEMBER_TONES = ["aegean", "ochre", "olive", "ink"] as const;

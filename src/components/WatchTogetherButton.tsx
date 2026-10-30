@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { createTripGroup } from "@/lib/trip-groups.functions";
+import { AvatarPicker } from "@/components/group-watch/AvatarPicker";
+import { readAvatar } from "@/components/group-watch/avatar-store";
 import { getTripGroupView } from "@/lib/public-views.functions";
 
 type Point = { lat: number; lng: number; label: string };
@@ -127,6 +129,7 @@ export function WatchTogetherButton({
           originLabel: origin.label,
           origin: originPoint,
           expiresInHours: 6,
+          avatar: readAvatar() ?? undefined,
         },
       });
       const url = `${window.location.origin}/group/${res.code}`;
@@ -262,6 +265,9 @@ export function WatchTogetherButton({
         We'll create a short code and copy the link. Anyone you send it to sees your live ETA and
         you see theirs, one map, one destination.
       </p>
+      <div className="roam mt-3">
+        <AvatarPicker seed={name || "host"} />
+      </div>
       <div className="mt-3 flex gap-2">
         <input
           value={name}

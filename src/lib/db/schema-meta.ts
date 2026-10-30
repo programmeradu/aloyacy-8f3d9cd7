@@ -1024,6 +1024,7 @@ export const SCHEMA: Record<string, TableMeta> = {
    "last_updated": "ts",
    "member_token": "text",
    "mode": "text",
+   "avatar": "text",
    "origin_label": "text",
    "owner_id": "text",
    "status": "text"

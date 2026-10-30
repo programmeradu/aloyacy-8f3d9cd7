@@ -7,6 +7,18 @@ import { inferMode, normaliseMode, speedBetween } from "@aloya/core/group-mode";
 import { z } from "zod";
 import { generateGroupCode, memberEtaMinutes } from "./trip-groups.server";
 
+/** Rider-chosen character id (see MemberAvatar AVATAR_CHOICES). */
+const Avatar = z
+  .string()
+  .regex(/^[a-z][a-z0-9]{0,7}$/)
+  .nullish();
+
+/** Insert/update that drops optional columns (mode 0004, avatar 0005) when a
+ *  database has not applied those migrations yet. */
+function missingOptionalColumn(msg: string | undefined) {
+  return !!msg && /\b(mode|avatar)\b/i.test(msg);
+}
+
 const Point = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
@@ -20,6 +32,7 @@ const CreateInput = z.object({
   origin: Point.optional(),
   /** Trip window in hours before the group auto-expires. */
   expiresInHours: z.number().min(1).max(24).default(6),
+  avatar: Avatar,
 });
 
 /** Create a new group + auto-join the host as the first member. Anonymous:
@@ -58,7 +71,7 @@ export const createTripGroup = createServerFn({ method: "POST" })
       if (data.origin) {
         etaMinutes = await memberEtaMinutes(data.origin, data.destination);
       }
-      const { error: memErr } = await supabaseAdmin.from("trip_group_members").insert({
+      const hostRow = {
         group_id: group.id,
         member_token: memberToken,
         display_name: data.hostName.slice(0, 40),
@@ -69,7 +82,13 @@ export const createTripGroup = createServerFn({ method: "POST" })
         eta_minutes: etaMinutes,
         status: "active",
         is_creator: true,
-      });
+      };
+      let { error: memErr } = await supabaseAdmin
+        .from("trip_group_members")
+        .insert(data.avatar ? { ...hostRow, avatar: data.avatar } : hostRow);
+      if (memErr && data.avatar && missingOptionalColumn(memErr.message)) {
+        ({ error: memErr } = await supabaseAdmin.from("trip_group_members").insert(hostRow));
+      }
       if (memErr) throw new Error(`group host join failed: ${memErr.message}`);
 
       return { code: group.code, memberToken };
@@ -82,6 +101,7 @@ const PingInput = z.object({
   position: Point,
   /** Client's read of how the member travels (speed + live bus match). Optional. */
   mode: z.enum(["walk", "bus", "bike", "taxi"]).nullish(),
+  avatar: Avatar,
 });
 
 /** Update a member's live position AND compute their transit ETA to the
@@ -144,10 +164,10 @@ export const pingGroupMember = createServerFn({ method: "POST" })
     };
     let { error: uErr } = await supabaseAdmin
       .from("trip_group_members")
-      .update({ ...base, mode })
+      .update({ ...base, mode, ...(data.avatar ? { avatar: data.avatar } : null) })
       .eq("id", member.id);
-    // Databases without migration 0004 have no `mode` column: save the fix anyway.
-    if (uErr && /mode/i.test(uErr.message)) {
+    // Databases without migrations 0004/0005 lack `mode`/`avatar`: save the fix anyway.
+    if (uErr && missingOptionalColumn(uErr.message)) {
       ({ error: uErr } = await supabaseAdmin
         .from("trip_group_members")
         .update(base)
@@ -199,6 +219,7 @@ const JoinInput = z.object({
   code: z.string().min(4).max(12),
   displayName: z.string().min(1).max(40),
   origin: Point.optional(),
+  avatar: Avatar,
 });
 
 export const joinTripGroup = createServerFn({ method: "POST" })
@@ -224,7 +245,7 @@ export const joinTripGroup = createServerFn({ method: "POST" })
         lng: group.destination_lng,
       });
     }
-    const { error: iErr } = await supabaseAdmin.from("trip_group_members").insert({
+    const row = {
       group_id: group.id,
       member_token: memberToken,
       display_name: data.displayName.slice(0, 40),
@@ -234,7 +255,13 @@ export const joinTripGroup = createServerFn({ method: "POST" })
       eta_minutes: etaMinutes,
       status: "active",
       is_creator: false,
-    });
+    };
+    let { error: iErr } = await supabaseAdmin
+      .from("trip_group_members")
+      .insert(data.avatar ? { ...row, avatar: data.avatar } : row);
+    if (iErr && data.avatar && missingOptionalColumn(iErr.message)) {
+      ({ error: iErr } = await supabaseAdmin.from("trip_group_members").insert(row));
+    }
     if (iErr) throw new Error(`join failed: ${iErr.message}`);
     return { memberToken, etaMinutes };
   });
