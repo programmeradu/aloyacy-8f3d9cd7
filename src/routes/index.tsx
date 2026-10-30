@@ -1,3 +1,4 @@
+import { ogImage } from "@/lib/og-url";
 import { createFileRoute } from "@tanstack/react-router";
 import { RoamNow } from "@/components/roam/now/RoamNow";
 
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/")({
         { property: "og:description", content: description },
         { property: "og:url", content: url },
         { property: "og:type", content: "website" },
-        { property: "og:image", content: "https://app.aloya.cy/og/og-home.jpg" },
+        { property: "og:image", content: ogImage("/api/public/og/default") },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         {
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/")({
           content: "A rider's hand on a Cyprus bus window at golden hour, olive trees beyond.",
         },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:image", content: "https://app.aloya.cy/og/og-home.jpg" },
+        { name: "twitter:image", content: ogImage("/api/public/og/default") },
       ],
       links: [
         { rel: "canonical", href: url },

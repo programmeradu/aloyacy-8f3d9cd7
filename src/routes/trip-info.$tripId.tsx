@@ -1,3 +1,4 @@
+import { ogImage } from "@/lib/og-url";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { z } from "zod";
@@ -30,10 +31,16 @@ export const Route = createFileRoute("/trip-info/$tripId")({
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { property: "og:url", content: `https://app.aloya.cy/trip-info/${params.tripId}` },
-        { property: "og:image", content: "https://app.aloya.cy/og/og-tripinfo.jpg" },
-        { property: "og:image:width", content: "1216" },
-        { property: "og:image:height", content: "640" },
-        { name: "twitter:image", content: "https://app.aloya.cy/og/og-tripinfo.jpg" },
+        {
+          property: "og:image",
+          content: ogImage(`/api/public/og/trip/${encodeURIComponent(params.tripId)}`),
+        },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        {
+          name: "twitter:image",
+          content: ogImage(`/api/public/og/trip/${encodeURIComponent(params.tripId)}`),
+        },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: desc },

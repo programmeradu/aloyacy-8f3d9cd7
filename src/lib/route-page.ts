@@ -1,6 +1,7 @@
 // Shared bits for the /route/$routeId page: head metadata and the two clock
 // formatters its sections use. Index only when the clock is rated.
 
+import { ogImage } from "@/lib/og-url";
 import { useI18n } from "@/lib/i18n";
 import { getRoute } from "@/lib/gtfs";
 import { AGENCY_OPERATOR, resolveAgency } from "@aloya/core/home-search";
@@ -51,7 +52,7 @@ export function routeHead(routeId: string, sampleCount?: number) {
     ? `Live buses and what we actually measured on ${name} in Cyprus.`
     : `Live buses on Cyprus route ${routeId}.`;
   const url = `${BASE}/route/${routeId}`;
-  const og = `${BASE}/og/og-route.jpg`;
+  const og = ogImage(`/api/public/og/line/${encodeURIComponent(routeId)}`);
   const scripts = index
     ? buildRouteJsonLd({ id: routeId, short, name, url, agency: route?.agency }).map((g) => ({
         type: "application/ld+json" as const,
@@ -68,8 +69,8 @@ export function routeHead(routeId: string, sampleCount?: number) {
       { property: "og:type", content: "article" },
       { property: "og:url", content: url },
       { property: "og:image", content: og },
-      { property: "og:image:width", content: "1216" },
-      { property: "og:image:height", content: "640" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "twitter:image", content: og },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: title },

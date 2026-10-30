@@ -1,3 +1,4 @@
+import { ogImage } from "@/lib/og-url";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
@@ -33,7 +34,7 @@ export const Route = createFileRoute("/saved")({
       },
       { property: "og:url", content: "https://app.aloya.cy/saved" },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://app.aloya.cy/og/og-saved.jpg" },
+      { property: "og:image", content: ogImage("/api/public/og/default") },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       {
@@ -42,7 +43,7 @@ export const Route = createFileRoute("/saved")({
           "A worn paper map of Cyprus held against a limestone wall, ochre ribbon marking a place.",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://app.aloya.cy/og/og-saved.jpg" },
+      { name: "twitter:image", content: ogImage("/api/public/og/default") },
     ],
     links: [{ rel: "canonical", href: "https://app.aloya.cy/saved" }],
   }),

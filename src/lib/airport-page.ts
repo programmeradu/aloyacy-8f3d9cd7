@@ -1,6 +1,7 @@
 // Static configuration, bilingual copy and SEO metadata for /airport/$code.
 // Kept out of the route component so the page file stays presentational.
 
+import { ogImage } from "@/lib/og-url";
 import { AIRPORTS, type AirportCode } from "@/lib/airport.functions";
 import type { Locale } from "@/lib/i18n";
 
@@ -86,7 +87,7 @@ export function airportHead(rawCode: string) {
   const title = `${a.name} (${a.iata}) by Bus · Live Coaches & Routes`;
   const description = `Live intercity coach departures from ${a.name} (${a.iata}), plus urban-bus departures from the airport stop. Direct buses to Nicosia, Limassol, Larnaca, Paphos, Ayia Napa and Protaras with real seat availability.`;
   const canonical = `${BASE}/airport/${code}`;
-  const og = `${BASE}/og/og-airport-${code}.jpg`;
+  const og = ogImage("/api/public/og/default");
   return {
     meta: [
       { title },
@@ -96,8 +97,8 @@ export function airportHead(rawCode: string) {
       { property: "og:url", content: canonical },
       { property: "og:type", content: "article" },
       { property: "og:image", content: og },
-      { property: "og:image:width", content: "1216" },
-      { property: "og:image:height", content: "640" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: og },
     ],

@@ -1,3 +1,4 @@
+import { ogImage } from "@/lib/og-url";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { resolveHeroPhase, type SingleLegPhase } from "@aloya/core/single-leg-phase";
@@ -36,10 +37,16 @@ export const Route = createFileRoute("/trip/$id")({
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { property: "og:url", content: `https://app.aloya.cy/trip/${params.id}` },
-        { property: "og:image", content: "https://app.aloya.cy/og/og-trip-live.jpg" },
-        { property: "og:image:width", content: "1216" },
-        { property: "og:image:height", content: "640" },
-        { name: "twitter:image", content: "https://app.aloya.cy/og/og-trip-live.jpg" },
+        {
+          property: "og:image",
+          content: ogImage(`/api/public/og/trip/${encodeURIComponent(params.id)}`),
+        },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        {
+          name: "twitter:image",
+          content: ogImage(`/api/public/og/trip/${encodeURIComponent(params.id)}`),
+        },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: desc },

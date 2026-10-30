@@ -14,6 +14,7 @@
 // Sections live in src/components/group-watch/; this file is composition,
 // data fetching and head metadata only.
 
+import { ogImage } from "@/lib/og-url";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/group/$code")({
     // Minute-bucket cache-buster nudges platforms that key by URL to re-scrape
     // as members join and ETAs slide.
     const bucket = Math.floor(Date.now() / 60_000);
-    const ogImage = `https://app.aloya.cy/api/public/og/group/${encodeURIComponent(code)}?v=${bucket}`;
+    const ogImage = ogImage(`/api/public/og/group/${encodeURIComponent(code)}?v=${bucket}`);
     const pageUrl = `https://app.aloya.cy/group/${encodeURIComponent(code)}`;
     return {
       meta: [

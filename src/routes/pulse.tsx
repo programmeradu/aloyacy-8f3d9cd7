@@ -1,3 +1,4 @@
+import { ogImage } from "@/lib/og-url";
 import { createFileRoute } from "@tanstack/react-router";
 import { RoamPage } from "@/components/roam/RoamPage";
 import { Squiggle } from "@/components/roam/bits";
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/pulse")({
       { property: "og:description", content: en["pulse.og.desc"] },
       { property: "og:url", content: "https://app.aloya.cy/pulse" },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://app.aloya.cy/og/og-pulse.jpg" },
+      { property: "og:image", content: ogImage("/api/public/og/default") },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       {
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/pulse")({
         content: "Hand-painted map of Cyprus with ochre buses tracing routes across the island.",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://app.aloya.cy/og/og-pulse.jpg" },
+      { name: "twitter:image", content: ogImage("/api/public/og/default") },
     ],
     links: [
       { rel: "canonical", href: "https://app.aloya.cy/pulse" },

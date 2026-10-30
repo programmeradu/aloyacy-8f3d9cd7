@@ -46,7 +46,12 @@ const MAP_CY = H / 2;
 /** Solomos Square, Nicosia's central bus station. */
 const SOLOMOS = { lat: 35.16955, lng: 33.36085 };
 
-function titleBlock(y: number, title: string, size = 60, maxLines = 2): { svg: string; bottom: number } {
+function titleBlock(
+  y: number,
+  title: string,
+  size = 60,
+  maxLines = 2,
+): { svg: string; bottom: number } {
   let s = size;
   let lines = wrap(title, s, TW, maxLines, 800);
   // Shrink a long name before it is cut.
@@ -64,11 +69,19 @@ function titleBlock(y: number, title: string, size = 60, maxLines = 2): { svg: s
     }
   }
   const lh = Math.round(s * 1.08);
-  const svg = lines.map((l, i) => text(IN, y + i * lh, l, { size: s, weight: 800, track: -1 })).join("");
+  const svg = lines
+    .map((l, i) => text(IN, y + i * lh, l, { size: s, weight: 800, track: -1 }))
+    .join("");
   return { svg, bottom: y + (lines.length - 1) * lh };
 }
 
-function paragraph(y: number, s: string, size = 26, max = 2, fill: string = R.ink2): { svg: string; bottom: number } {
+function paragraph(
+  y: number,
+  s: string,
+  size = 26,
+  max = 2,
+  fill: string = R.ink2,
+): { svg: string; bottom: number } {
   const lines = wrap(s, size, TW, max, 600);
   const lh = Math.round(size * 1.3);
   return {
@@ -95,10 +108,16 @@ export function defaultCard(shapes: Shapes | null): string {
   const c = proj(SOLOMOS);
   const map = baseMap(proj, shapes, v) + stopMarker(c.x, c.y, 60);
   const t = titleBlock(PY + 206, "Your next bus, live on the map", 60, 3);
-  const p = paragraph(t.bottom + 54, "Live arrivals, trip plans and group trips on every bus line in Cyprus.");
+  const p = paragraph(
+    t.bottom + 54,
+    "Live arrivals, trip plans and group trips on every bus line in Cyprus.",
+  );
   const y = p.bottom + 32;
   const a = pill(IN, y, `${NETWORK.lines} lines`, { fill: R.y, color: R.ink });
-  const b = pill(IN + a.w + 12, y, `${NETWORK.stops.toLocaleString("en-GB")} stops`, { fill: R.pill, color: R.ink });
+  const b = pill(IN + a.w + 12, y, `${NETWORK.stops.toLocaleString("en-GB")} stops`, {
+    fill: R.pill,
+    color: R.ink,
+  });
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, "Buses across Cyprus")}${t.svg}${p.svg}${a.svg}${b.svg}${footer("aloya.cy")}`;
   return frame(map, card);
 }
@@ -113,15 +132,21 @@ export function stopCard(stopId: string | null, shapes: Shapes | null): string {
   const proj = projector(v, MAP_CX, MAP_CY);
   const feat = routeIds.slice(0, 8).flatMap((rid) => routePaths(rid, shapes));
   const c = proj(s);
-  const map = baseMap(proj, shapes, v) + featuredRoute(proj, feat, [], false) + stopMarker(c.x, c.y, 68);
+  const map =
+    baseMap(proj, shapes, v) + featuredRoute(proj, feat, [], false) + stopMarker(c.x, c.y, 68);
   const t = titleBlock(PY + 206, s.name, 58, 3);
   let y = t.bottom + 58;
   const n = codes.length;
-  const sub = text(IN, y, n ? `${n} ${n === 1 ? "line stops" : "lines stop"} here` : "Live arrivals for this stop", {
-    size: 28,
-    weight: 600,
-    fill: R.ink2,
-  });
+  const sub = text(
+    IN,
+    y,
+    n ? `${n} ${n === 1 ? "line stops" : "lines stop"} here` : "Live arrivals for this stop",
+    {
+      size: 28,
+      weight: 600,
+      fill: R.ink2,
+    },
+  );
   y += 26;
   const pills = n ? pillRow(IN, y, codes, TW) : "";
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, s.code ? `Bus stop ${s.code}` : "Bus stop")}${t.svg}${sub}${pills}${footer("Live arrivals on Aloya")}`;
@@ -135,11 +160,16 @@ function lineMap(routeId: string, shapes: Shapes | null) {
   const stops = routeStopList(routeId);
   const pts = paths.flat().concat(stops);
   if (!pts.length) return null;
-  const v = fitView(pts, { x0: MAP_BOX.x0 + 20, x1: MAP_BOX.x1 - 20, y0: MAP_BOX.y0 + 20, y1: MAP_BOX.y1 - 20 }, 2.4);
+  const v = fitView(
+    pts,
+    { x0: MAP_BOX.x0 + 20, x1: MAP_BOX.x1 - 20, y0: MAP_BOX.y0 + 20, y1: MAP_BOX.y1 - 20 },
+    2.4,
+  );
   const proj = projector(v, MAP_CX, MAP_CY);
   const first = stops[0];
   const last = stops[stops.length - 1];
-  let svg = baseMap(proj, shapes, v) + featuredRoute(proj, paths, stops.length <= 70 ? stops : [], true);
+  let svg =
+    baseMap(proj, shapes, v) + featuredRoute(proj, paths, stops.length <= 70 ? stops : [], true);
   if (first) {
     const p = proj(first);
     svg += endPin(p.x, p.y);
@@ -160,12 +190,27 @@ export function lineCard(routeId: string | null, shapes: Shapes | null, kicker?:
   const names = runsBetween(r.long);
   const from = m.stops[0]?.name ?? names.from;
   const to = m.stops.length > 1 ? m.stops[m.stops.length - 1].name : names.to;
-  const code = pill(IN, PY + 172, r.short, { fill: R.y, color: R.ink, size: 44, h: 76, padX: 26, weight: 800 });
+  const code = pill(IN, PY + 172, r.short, {
+    fill: R.y,
+    color: R.ink,
+    size: 44,
+    h: 76,
+    padX: 26,
+    weight: 800,
+  });
   const t = titleBlock(PY + 334, to || from, 48, 2);
   const y = t.bottom + 46;
-  const fromSvg = to ? text(IN, y, wrap(`From ${from}`, 26, TW, 1, 600)[0], { size: 26, weight: 600, fill: R.ink2 }) : "";
+  const fromSvg = to
+    ? text(IN, y, wrap(`From ${from}`, 26, TW, 1, 600)[0], { size: 26, weight: 600, fill: R.ink2 })
+    : "";
   const stat = m.stops.length
-    ? pill(IN + code.w + 14, PY + 188, `${m.stops.length} stops`, { fill: R.pill, color: R.ink, size: 22, h: 44, padX: 18 }).svg
+    ? pill(IN + code.w + 14, PY + 188, `${m.stops.length} stops`, {
+        fill: R.pill,
+        color: R.ink,
+        size: 22,
+        h: 44,
+        padX: 18,
+      }).svg
     : "";
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, kicker ?? "Bus line")}${code.svg}${eyebrow(IN, PY + 290, "Towards")}${t.svg}${fromSvg}${stat}${footer(kicker ? "Follow along live on Aloya" : "Live buses on Aloya")}`;
   return frame(m.svg, card);
@@ -180,7 +225,10 @@ export function tripCard(routeId: string | null, shapes: Shapes | null): string 
   const c = proj(SOLOMOS);
   const map = baseMap(proj, shapes, v) + stopMarker(c.x, c.y, 60);
   const t = titleBlock(PY + 206, "Follow this trip live", 60, 2);
-  const p = paragraph(t.bottom + 54, "See the bus move, the stops still to go and when it gets in.");
+  const p = paragraph(
+    t.bottom + 54,
+    "See the bus move, the stops still to go and when it gets in.",
+  );
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, "Live trip")}${t.svg}${p.svg}${footer("aloya.cy")}`;
   return frame(map, card);
 }
@@ -199,8 +247,9 @@ export type GroupOg = {
 };
 
 export function groupCard(g: GroupOg, shapes: Shapes | null): string {
-  const place = g.place && Number.isFinite(g.place.lat) && Number.isFinite(g.place.lng) ? g.place : null;
-  const v = at(place ?? SOLOMOS, place ? 3.6 : 4.2);
+  const place =
+    g.place && Number.isFinite(g.place.lat) && Number.isFinite(g.place.lng) ? g.place : null;
+  const v = at(place ?? SOLOMOS, place ? 5 : 4.2);
   const proj = projector(v, MAP_CX, MAP_CY);
   let map = baseMap(proj, shapes, v);
   if (place) {
@@ -209,14 +258,21 @@ export function groupCard(g: GroupOg, shapes: Shapes | null): string {
   }
   const t = titleBlock(PY + 232, g.destination || "A group trip", 52, 2);
   let y = t.bottom + 46;
-  const host = g.host ? wrap(`Hosted by ${g.host}`, 26, TW, 1, 600)[0] : "Join and watch each other arrive";
+  const host = g.host
+    ? wrap(`Hosted by ${g.host}`, 26, TW, 1, 600)[0]
+    : "Join and watch each other arrive";
   const hostSvg = text(IN, y, host, { size: 26, weight: 600, fill: R.ink2 });
   y += 28;
   const tileH = 100;
   const tileW = (TW - 14) / 2;
   const eta = g.nextEta != null ? `${g.nextEta} min` : g.members ? "Live" : "Open";
-  const etaSub = g.nextEta != null ? "next arrival" : g.members ? "positions updating" : "be the first to join";
-  const peopleSub = g.arrived ? `${g.arrived} arrived` : g.members === 1 ? "person on the way" : "people on the way";
+  const etaSub =
+    g.nextEta != null ? "next arrival" : g.members ? "positions updating" : "be the first to join";
+  const peopleSub = g.arrived
+    ? `${g.arrived} arrived`
+    : g.members === 1
+      ? "person on the way"
+      : "people on the way";
   const tiles = `<rect x="${IN}" y="${y}" width="${tileW}" height="${tileH}" rx="28" fill="${R.y}"/>
 ${text(IN + 24, y + 52, eta, { size: 42, weight: 800 })}${text(IN + 24, y + 82, etaSub, { size: 20, weight: 600 })}
 <rect x="${IN + tileW + 14}" y="${y}" width="${tileW}" height="${tileH}" rx="28" fill="${R.pill}"/>
@@ -241,7 +297,8 @@ type LegStop = { stopId?: string; lat?: number; lng?: number };
 
 function legPoint(s: LegStop | undefined, agency?: string): LatLng | undefined {
   if (!s) return undefined;
-  if (Number.isFinite(s.lat) && Number.isFinite(s.lng)) return { lat: s.lat as number, lng: s.lng as number };
+  if (Number.isFinite(s.lat) && Number.isFinite(s.lng))
+    return { lat: s.lat as number, lng: s.lng as number };
   const hit = s.stopId ? getStop(s.stopId, agency) : undefined;
   return hit ? { lat: hit.lat, lng: hit.lng } : undefined;
 }
@@ -283,7 +340,11 @@ export function planCard(plan: PlanOg, shapes: Shapes | null): string {
     ...plan,
     legs: plan.legs.map((l) => {
       const agency = l.routeId ? getRoute(l.routeId)?.agency : undefined;
-      return { ...l, from: l.from ?? legPoint(l.board, agency), to: l.to ?? legPoint(l.alight, agency) };
+      return {
+        ...l,
+        from: l.from ?? legPoint(l.board, agency),
+        to: l.to ?? legPoint(l.alight, agency),
+      };
     }),
   };
   const legPts = p.legs
@@ -291,7 +352,11 @@ export function planCard(plan: PlanOg, shapes: Shapes | null): string {
     .filter((x): x is LatLng => !!x && Number.isFinite(x.lat) && Number.isFinite(x.lng));
   let map: string;
   if (legPts.length >= 2) {
-    const v = fitView(legPts, { x0: MAP_BOX.x0 + 50, x1: MAP_BOX.x1 - 50, y0: MAP_BOX.y0 + 50, y1: MAP_BOX.y1 - 50 }, 2.2);
+    const v = fitView(
+      legPts,
+      { x0: MAP_BOX.x0 + 50, x1: MAP_BOX.x1 - 50, y0: MAP_BOX.y0 + 50, y1: MAP_BOX.y1 - 50 },
+      2.2,
+    );
     const proj = projector(v, MAP_CX, MAP_CY);
     map = baseMap(proj, shapes, v);
     for (const l of p.legs) {
@@ -321,7 +386,11 @@ export function planCard(plan: PlanOg, shapes: Shapes | null): string {
   const t = titleBlock(PY + 232, p.destination || "A trip plan", 52, 2);
   let y = t.bottom + 46;
   const fromSvg = p.origin
-    ? text(IN, y, wrap(`From ${p.origin}`, 26, TW, 1, 600)[0], { size: 26, weight: 600, fill: R.ink2 })
+    ? text(IN, y, wrap(`From ${p.origin}`, 26, TW, 1, 600)[0], {
+        size: 26,
+        weight: 600,
+        fill: R.ink2,
+      })
     : "";
   y += 28;
   let tiles = "";
@@ -348,7 +417,10 @@ export function planCard(plan: PlanOg, shapes: Shapes | null): string {
     }
   }
   const kicker = p.creator ? `Shared by ${p.creator}` : "Shared trip plan";
-  const foot = [p.day, p.transfers ? `${p.transfers} ${p.transfers === 1 ? "change" : "changes"}` : "Direct"]
+  const foot = [
+    p.day,
+    p.transfers ? `${p.transfers} ${p.transfers === 1 ? "change" : "changes"}` : "Direct",
+  ]
     .filter(Boolean)
     .join(" \u00b7 ");
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, wrap(kicker, 18, TW, 1, 600)[0])}${eyebrow(IN, PY + 186, "Going to", R.ink2)}${t.svg}${fromSvg}${tiles}${footer(foot)}`;

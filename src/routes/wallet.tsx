@@ -1,3 +1,4 @@
+import { ogImage } from "@/lib/og-url";
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -40,7 +41,7 @@ export const Route = createFileRoute("/wallet")({
       },
       { property: "og:url", content: "https://app.aloya.cy/wallet" },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://app.aloya.cy/og/og-wallet.jpg" },
+      { property: "og:image", content: ogImage("/api/public/og/default") },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       {
@@ -48,7 +49,7 @@ export const Route = createFileRoute("/wallet")({
         content: "A transit card resting on Cypriot limestone with olive-tree shadow.",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://app.aloya.cy/og/og-wallet.jpg" },
+      { name: "twitter:image", content: ogImage("/api/public/og/default") },
     ],
     links: [{ rel: "canonical", href: "https://app.aloya.cy/wallet" }],
   }),

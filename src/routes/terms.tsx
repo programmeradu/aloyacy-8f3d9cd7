@@ -1,3 +1,4 @@
+import { ogImage } from "@/lib/og-url";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/terms")({
       },
       { property: "og:url", content: "https://app.aloya.cy/terms" },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://app.aloya.cy/og/og-privacy.jpg" },
+      { property: "og:image", content: ogImage("/api/public/og/default") },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       {
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/terms")({
         content: "Cypriot limestone wall split by a shaft of aegean-blue light.",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://app.aloya.cy/og/og-privacy.jpg" },
+      { name: "twitter:image", content: ogImage("/api/public/og/default") },
     ],
     links: [{ rel: "canonical", href: "https://app.aloya.cy/terms" }],
   }),

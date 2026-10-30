@@ -90,7 +90,8 @@ export function wrap(s: string, size: number, width: number, max: number, weight
   if (lines.length < max && cur) lines.push(cur);
   if (used < words.length && lines.length) {
     let last = lines[lines.length - 1];
-    while (last.includes(" ") && textWidth(`${last}\u2026`, size, weight) > width) last = last.replace(/\s*\S+$/, "");
+    while (last.includes(" ") && textWidth(`${last}\u2026`, size, weight) > width)
+      last = last.replace(/\s*\S+$/, "");
     lines[lines.length - 1] = `${last}\u2026`;
   }
   // A single word wider than the box: cut it (callers shrink first).
@@ -105,7 +106,13 @@ export function text(
   x: number,
   y: number,
   s: string,
-  o: { size: number; weight?: number; fill?: string; anchor?: "start" | "middle" | "end"; track?: number },
+  o: {
+    size: number;
+    weight?: number;
+    fill?: string;
+    anchor?: "start" | "middle" | "end";
+    track?: number;
+  },
 ): string {
   return `<text x="${x}" y="${y}" font-family="${FONT}" font-size="${o.size}" font-weight="${o.weight ?? 600}" fill="${o.fill ?? R.ink}"${o.anchor ? ` text-anchor="${o.anchor}"` : ""}${o.track ? ` letter-spacing="${o.track}"` : ""}>${esc(s)}</text>`;
 }
@@ -276,7 +283,8 @@ function pathD(pts: { x: number; y: number }[]): string {
  * a soft edge (the network itself reads as the street map), faint stop dots.
  */
 export function baseMap(proj: Proj, shapes: Shapes | null, v: View): string {
-  const inView = (p: { x: number; y: number }) => p.x > -200 && p.x < W + 200 && p.y > -200 && p.y < H + 200;
+  const inView = (p: { x: number; y: number }) =>
+    p.x > -200 && p.x < W + 200 && p.y > -200 && p.y < H + 200;
   const roads: string[] = [];
   for (const r of ROUTES) {
     for (const path of routePaths(r.id, shapes)) {
@@ -302,7 +310,12 @@ export function baseMap(proj: Proj, shapes: Shapes | null, v: View): string {
 }
 
 /** A featured route: ink path with a white casing, optional ring stops. */
-export function featuredRoute(proj: Proj, paths: LatLng[][], stops: LatLng[], rings = true): string {
+export function featuredRoute(
+  proj: Proj,
+  paths: LatLng[][],
+  stops: LatLng[],
+  rings = true,
+): string {
   const d = paths.map((p) => pathD(p.map(proj))).join("");
   const ring = rings
     ? stops
@@ -376,7 +389,14 @@ export function pill(
   x: number,
   y: number,
   s: string,
-  o: { fill?: string; color?: string; size?: number; h?: number; padX?: number; weight?: number } = {},
+  o: {
+    fill?: string;
+    color?: string;
+    size?: number;
+    h?: number;
+    padX?: number;
+    weight?: number;
+  } = {},
 ): { svg: string; w: number } {
   const size = o.size ?? 24;
   const h = o.h ?? 48;
@@ -408,7 +428,8 @@ export function pillRow(x: number, y: number, codes: string[], maxW: number): st
     out += pill(cx, y, codes[i], { ...opt, fill: R.ink, color: R.white }).svg;
     cx += widths[i] + gap;
   }
-  if (fit < codes.length) out += pill(cx, y, `+${codes.length - fit}`, { ...opt, fill: R.pill, color: R.ink }).svg;
+  if (fit < codes.length)
+    out += pill(cx, y, `+${codes.length - fit}`, { ...opt, fill: R.pill, color: R.ink }).svg;
   return out;
 }
 

@@ -15,7 +15,12 @@ type GroupRow = {
   destination_lng: number | null;
   created_by_name: string | null;
 };
-type MemberRow = { display_name: string | null; eta_minutes: number | null; status: string | null; is_creator: boolean | null };
+type MemberRow = {
+  display_name: string | null;
+  eta_minutes: number | null;
+  status: string | null;
+  is_creator: boolean | null;
+};
 
 export const Route = createFileRoute("/api/public/og/group/$code")({
   server: {
@@ -25,13 +30,23 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
         // generic form rather than erroring at a crawler.
         const parsed = GroupCodeParam.safeParse(params.code);
         const code = parsed.success ? parsed.data : null;
-        const og: GroupOg = { code, destination: null, host: null, members: 0, arrived: 0, nextEta: null, place: null };
+        const og: GroupOg = {
+          code,
+          destination: null,
+          host: null,
+          members: 0,
+          arrived: 0,
+          nextEta: null,
+          place: null,
+        };
         if (code) {
           try {
             const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
             const { data } = await supabaseAdmin
               .from("trip_groups")
-              .select("id, code, destination_label, destination_lat, destination_lng, created_by_name")
+              .select(
+                "id, code, destination_label, destination_lat, destination_lng, created_by_name",
+              )
               .eq("code", code)
               .maybeSingle();
             const group = (data as GroupRow | null) ?? null;
@@ -39,7 +54,10 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
               og.destination = group.destination_label;
               og.host = group.created_by_name;
               if (group.destination_lat != null && group.destination_lng != null)
-                og.place = { lat: Number(group.destination_lat), lng: Number(group.destination_lng) };
+                og.place = {
+                  lat: Number(group.destination_lat),
+                  lng: Number(group.destination_lng),
+                };
               const { data: members } = await supabaseAdmin
                 .from("trip_group_members")
                 .select("display_name, eta_minutes, status, is_creator")

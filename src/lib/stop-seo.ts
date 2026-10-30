@@ -1,5 +1,6 @@
 // D5 head for /stop/$stopId. Index only with real content. Fail closed.
 
+import { ogImage } from "@/lib/og-url";
 import { getStop, getRoute } from "@/lib/gtfs";
 import { AGENCY_OPERATOR, resolveAgency } from "@aloya/core/home-search";
 import { stopIndexable, type StopIndexFacts } from "@aloya/core/stop-index";
@@ -156,10 +157,16 @@ export function stopHead(
       { property: "og:description", content: desc },
       { property: "og:type", content: "article" },
       { property: "og:url", content: url },
-      { property: "og:image", content: `${BASE}/og/og-stop.jpg` },
-      { property: "og:image:width", content: "1216" },
-      { property: "og:image:height", content: "640" },
-      { name: "twitter:image", content: `${BASE}/og/og-stop.jpg` },
+      {
+        property: "og:image",
+        content: ogImage(`/api/public/og/stop/${encodeURIComponent(stopId)}`),
+      },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      {
+        name: "twitter:image",
+        content: ogImage(`/api/public/og/stop/${encodeURIComponent(stopId)}`),
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: desc },

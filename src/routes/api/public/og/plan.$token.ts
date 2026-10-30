@@ -20,9 +20,19 @@ type PlanRow = {
 
 const TZ = "Asia/Nicosia";
 const fmtTime = (unix: number) =>
-  new Date(unix * 1000).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: TZ });
+  new Date(unix * 1000).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: TZ,
+  });
 const fmtDate = (unix: number) =>
-  new Date(unix * 1000).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: TZ });
+  new Date(unix * 1000).toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: TZ,
+  });
 function fmtDur(sec: number): string {
   const m = Math.max(1, Math.round(sec / 60));
   if (m < 60) return `${m} min`;
@@ -41,7 +51,10 @@ function legsOf(raw: unknown): PlanLegOg[] {
     }
   }
   if (!Array.isArray(v)) return [];
-  return v.filter((l): l is PlanLegOg => !!l && typeof l === "object" && typeof (l as PlanLegOg).kind === "string");
+  return v.filter(
+    (l): l is PlanLegOg =>
+      !!l && typeof l === "object" && typeof (l as PlanLegOg).kind === "string",
+  );
 }
 
 export const Route = createFileRoute("/api/public/og/plan/$token")({
