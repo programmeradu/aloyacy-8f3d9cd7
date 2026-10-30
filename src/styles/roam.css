@@ -1331,6 +1331,12 @@ button.r-row:active {
   justify-self: start;
   max-width: 100%;
   white-space: normal;
+  /* long stop names wrap to two lines: grow the pill instead of spilling out of it */
+  height: auto;
+  min-height: 30px;
+  padding: 6px 14px;
+  line-height: 1.3;
+  border-radius: 16px;
 }
 
 /* Lines network card: attribution wraps bottom-left, clear of the docked arrow */
