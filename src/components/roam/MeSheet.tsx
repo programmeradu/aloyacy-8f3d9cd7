@@ -75,19 +75,21 @@ export function MeSheet() {
       user?.email?.split("@")[0] ??
       r("me.guest"))
     : r("me.guest");
+  const back = (
+    <button
+      type="button"
+      className="r-pill r-pill--o"
+      onClick={() => {
+        setView("list");
+        setState((s) => ({ ...s, view: undefined }));
+      }}
+    >
+      <Icon name="caret-left" />
+      {r("me.back")}
+    </button>
+  );
   const detail = (key: RoamKey, node: ReactNode) => (
-    <div className="pt-2">
-      <button
-        type="button"
-        className="r-pill r-pill--o mb-4"
-        onClick={() => {
-          setView("list");
-          setState((s) => ({ ...s, view: undefined }));
-        }}
-      >
-        <Icon name="caret-left" />
-        {r("me.back")}
-      </button>
+    <div>
       <h2 className="r-t2 mb-4">{r(key)}</h2>
       {node}
     </div>
@@ -100,6 +102,7 @@ export function MeSheet() {
       label={r("me.open")}
       closeLabel={r("me.close")}
       full={active !== "list"}
+      headLeft={active !== "list" ? back : undefined}
     >
       {active === "alerts" ? detail("me.alerts", <NotificationsCard />) : null}
       {active === "offline" ? detail("me.offline", <OfflineSchedulesCard />) : null}

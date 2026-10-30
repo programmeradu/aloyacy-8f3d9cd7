@@ -17,6 +17,8 @@ type Props = {
   fill?: string;
   /** Open at the full snap point (detail views). */
   full?: boolean;
+  /** Left of the notch in the sheet head (a detail view's Back), so the head is never an empty band. */
+  headLeft?: ReactNode;
 };
 
 export function Sheet({
@@ -27,6 +29,7 @@ export function Sheet({
   children,
   fill = "#fff",
   full = false,
+  headLeft,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [dragY, setDragY] = useState<number | null>(null);
@@ -150,7 +153,16 @@ export function Sheet({
           onPointerUp={onUp}
           onPointerCancel={onUp}
         >
-          <span />
+          {headLeft ? (
+            <div
+              className="r-sheet-headleft"
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              {headLeft}
+            </div>
+          ) : (
+            <span />
+          )}
         </NotchCard>
         <div
           className="r-sheet-scroll"

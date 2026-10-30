@@ -611,6 +611,12 @@ button.r-row:active {
 .r-sheet[data-open="true"] {
   transform: translateY(0);
 }
+.r-sheet-headleft {
+  position: absolute;
+  left: 16px;
+  top: 14px;
+  z-index: 4;
+}
 .r-sheet-scroll {
   overflow-y: auto;
   overscroll-behavior: contain;
