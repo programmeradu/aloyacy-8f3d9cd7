@@ -46,8 +46,12 @@ export function ReliabilityBadge({
     const late = meanDelaySec > 0;
     const summary = !isRated
       ? t("reliability.summaryLearning")
-      : Math.abs(meanDelaySec) < 60
-        ? t("reliability.summaryOnTime")
+      : tier === "low" && Math.abs(meanDelaySec) < 180
+        ? t("reliability.summaryUneven")
+        : Math.abs(meanDelaySec) < 60
+        ? tier === "high"
+          ? t("reliability.summaryOnTime")
+          : t("reliability.summaryMostly")
         : late
           ? meanDelaySec < 180
             ? t("reliability.summaryLateSmall")

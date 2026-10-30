@@ -50,10 +50,17 @@ export function StopReliabilityStrip({
               label: "Learning",
             };
 
+  // Summary must agree with the on-time tier: a near-zero mean delay can hide
+  // buses that are both early and late (route 102 showed 31% on time next to
+  // "Usually runs on time").
   const summary = !rated
     ? "Still learning this stop"
-    : Math.abs(r.meanDelaySec) < 60
-      ? "Usually runs on time"
+    : r.tier === "low" && Math.abs(r.meanDelaySec) < 180
+      ? "Often off schedule, early or late"
+      : Math.abs(r.meanDelaySec) < 60
+      ? r.tier === "high"
+        ? "Usually runs on time"
+        : "Mostly on time, sometimes off"
       : late
         ? r.meanDelaySec < 180
           ? "Usually a minute or two late"

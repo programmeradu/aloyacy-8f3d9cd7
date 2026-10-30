@@ -104,6 +104,8 @@ export const alerts: Record<keyof typeof alertsEn, string> = {
   "reliability.onTime": "στην ώρα",
   "reliability.summaryLearning": "Μαθαίνουμε ακόμη αυτή τη γραμμή",
   "reliability.summaryOnTime": "Συνήθως στην ώρα του",
+  "reliability.summaryUneven": "Συχνά εκτός ωραρίου, νωρίτερα ή αργότερα",
+  "reliability.summaryMostly": "Κυρίως στην ώρα του, όχι πάντα",
   "reliability.summaryLateSmall": "Συνήθως ένα-δύο λεπτά αργά",
   "reliability.summaryLateBig": "Συχνά αργεί",
   "reliability.summaryEarlySmall": "Καμιά φορά φεύγει λίγο νωρίς",

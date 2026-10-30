@@ -102,6 +102,8 @@ export const alerts = {
   "reliability.onTime": "on time",
   "reliability.summaryLearning": "Still learning this line",
   "reliability.summaryOnTime": "Usually runs on time",
+  "reliability.summaryUneven": "Often off schedule, early or late",
+  "reliability.summaryMostly": "Mostly on time, sometimes off",
   "reliability.summaryLateSmall": "Usually a minute or two late",
   "reliability.summaryLateBig": "Often runs late",
   "reliability.summaryEarlySmall": "Sometimes leaves a touch early",
