@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell } from "@/components/AppShell";
+import { RoamPage } from "@/components/roam/RoamPage";
+import { Squiggle } from "@/components/roam/bits";
+import { useRoamI18n } from "@/lib/roam-i18n";
 import { PulseLiveSection } from "@/components/PulseLiveSection";
 import { RoadPulseCard } from "@/components/pulse/RoadPulseCard";
 import { CrowdEyesCard } from "@/components/pulse/CrowdEyesCard";
@@ -40,10 +42,33 @@ export const Route = createFileRoute("/pulse")({
 
 function Pulse() {
   const { t, locale } = useI18n();
+  const { r } = useRoamI18n();
   const { today, live, hourly, crowdEyes, liveSignals } = usePulseData();
+  const hasLive = !!live && (live.observations ?? 0) > 0;
+  const dateLine = new Intl.DateTimeFormat(locale === "el" ? "el-GR" : "en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    timeZone: "Asia/Nicosia",
+  }).format(new Date());
 
   return (
-    <AppShell>
+    <RoamPage title={r("pulse.title")} sub={dateLine}>
+      <section className="r-card r-rise" style={{ background: "var(--r-char)", color: "#fff", padding: "18px 20px" }}>
+        <p className="r-lbl" style={{ color: "var(--r-onchar-mute)" }}>{r("pulse.networkNow")}</p>
+        {hasLive ? (
+          <div className="mt-2 flex items-end justify-between gap-3">
+            <div>
+              <p className="r-num-xl" style={{ color: "#fff" }}>{Math.round(live!.onTimePct)}%</p>
+              <p className="r-lbl mt-2" style={{ color: "var(--r-onchar-mute)" }}>{r("pulse.onTimeShare")}</p>
+            </div>
+            <Squiggle width={120} height={44} />
+          </div>
+        ) : (
+          <p className="r-t3 mt-2">{r("pulse.learning")}</p>
+        )}
+      </section>
+      <div className="r-legacy -mx-4 mt-2">
       {today && <TodayEditorial briefing={today} locale={locale} t={t} />}
 
       <section className="px-6 mt-8 animate-rise" style={{ animationDelay: "120ms" }}>
@@ -80,6 +105,7 @@ function Pulse() {
           {t("pulse.updated")}
         </p>
       </div>
-    </AppShell>
+      </div>
+    </RoamPage>
   );
 }
