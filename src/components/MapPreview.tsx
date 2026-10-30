@@ -106,7 +106,11 @@ export function MapPreview({
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
-  const { api, error } = useMapbox();
+  const { api, error: loadError } = useMapbox();
+  // WebGL can be missing (old devices, blocked GPU). Map construction then throws;
+  // catch it so the screen keeps working with the "Map unavailable" fallback.
+  const [glError, setGlError] = useState(false);
+  const error = loadError || glError;
   const { data: rt } = useRealtime();
   const { t } = useI18n();
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -119,17 +123,23 @@ export function MapPreview({
   // Initialize map once the Mapbox library is loaded.
   useEffect(() => {
     if (!api || !hostRef.current || mapRef.current) return;
-    const m = new api.Map({
-      container: hostRef.current,
-      style: basemapStyle() as never,
-      center: [center.lng, center.lat],
-      zoom: spanToZoom(spanKm) + GOOGLE_TO_MAPBOX_ZOOM,
-      attributionControl: false,
-      pitchWithRotate: false,
-      dragRotate: false,
-      cooperativeGestures: false,
-      logoPosition: attribTop != null ? "top-left" : "bottom-left",
-    });
+    let m: mapboxgl.Map;
+    try {
+      m = new api.Map({
+        container: hostRef.current,
+        style: basemapStyle() as never,
+        center: [center.lng, center.lat],
+        zoom: spanToZoom(spanKm) + GOOGLE_TO_MAPBOX_ZOOM,
+        attributionControl: false,
+        pitchWithRotate: false,
+        dragRotate: false,
+        cooperativeGestures: false,
+        logoPosition: attribTop != null ? "top-left" : "bottom-left",
+      });
+    } catch {
+      setGlError(true);
+      return;
+    }
     if (!isAerial()) m.addControl(new api.AttributionControl({ compact: true }), "top-left");
     m.touchZoomRotate.disableRotation();
     if (!isAerial()) m.on("style.load", () => applyAloyaTint(m));
