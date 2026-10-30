@@ -2,7 +2,8 @@
 // decisions live in @aloya/core/group-converge so they stay testable.
 
 import { memberStatusLine, summariseConverge } from "@aloya/core/group-converge";
-import { initials } from "@aloya/core/group-format";
+import { normaliseMode } from "@aloya/core/group-mode";
+import { MemberAvatar, modeLabel } from "./MemberAvatar";
 import { toneClasses, toneForIndex, type MemberRow } from "./kit";
 
 export function MembersList({ members, meId }: { members: MemberRow[]; meId: string | null }) {
@@ -35,6 +36,8 @@ export function MembersList({ members, meId }: { members: MemberRow[]; meId: str
             now,
           });
           const isMe = m.id === meId;
+          const mode = normaliseMode(m.mode);
+          const modeText = modeLabel(mode);
           return (
             <li
               key={m.id}
@@ -42,11 +45,7 @@ export function MembersList({ members, meId }: { members: MemberRow[]; meId: str
                 isMe ? t.ring : "ring-line"
               } ${line.left ? "opacity-60" : ""}`}
             >
-              <span
-                className={`inline-flex size-10 shrink-0 items-center justify-center rounded-full font-mono text-[12px] font-semibold uppercase ${t.chip}`}
-              >
-                {initials(m.display_name)}
-              </span>
+              <MemberAvatar seed={m.id} name={m.display_name} size={44} mode={mode} />
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-[15px] font-semibold leading-snug text-ink">
                   <span className="min-w-0 break-words">{m.display_name}</span>
@@ -63,6 +62,7 @@ export function MembersList({ members, meId }: { members: MemberRow[]; meId: str
                 </p>
                 <p className="mt-0.5 font-sans text-[12px] font-medium text-ink-soft">
                   {line.primary}
+                  {modeText && !line.left ? ` · ${modeText}` : null}
                   {line.freshness ? ` · ${line.freshness}` : null}
                 </p>
               </div>

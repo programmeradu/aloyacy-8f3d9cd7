@@ -1,7 +1,8 @@
 // Group hero: destination headline, live/ended badge, avatar stack, plus the
 // ribbon that tells the current viewer which member card is them.
 
-import { initials } from "@aloya/core/group-format";
+import { MemberAvatar } from "./MemberAvatar";
+import { normaliseMode } from "@aloya/core/group-mode";
 import { toneClasses, toneForIndex, type GroupRow, type MemberRow } from "./kit";
 import { PulseDot } from "./chrome";
 import { BackButton } from "@/components/roam/FrostButton";
@@ -63,21 +64,12 @@ function AvatarStack({ members }: { members: MemberRow[] }) {
   const shown = members.slice(0, 5);
   const extra = Math.max(0, members.length - shown.length);
   return (
-    <div className="flex -space-x-2">
-      {shown.map((m, i) => {
-        const t = toneClasses(toneForIndex(i));
-        return (
-          <span
-            key={m.id}
-            title={m.display_name}
-            className={`inline-flex size-8 items-center justify-center rounded-full font-mono text-[11px] font-semibold uppercase tracking-wider ring-2 ring-[#262626] ${t.chip}`}
-          >
-            {initials(m.display_name)}
-          </span>
-        );
-      })}
+    <div className="flex -space-x-2.5">
+      {shown.map((m) => (
+        <MemberAvatar key={m.id} seed={m.id} name={m.display_name} size={40} ring="#262626" />
+      ))}
       {extra > 0 && (
-        <span className="inline-flex size-8 items-center justify-center rounded-full bg-white font-mono text-[11px] font-semibold text-ink ring-2 ring-[#262626]">
+        <span className="inline-flex size-10 items-center justify-center rounded-full bg-white text-[13px] font-semibold text-ink ring-2 ring-[#262626]">
           +{extra}
         </span>
       )}
@@ -103,11 +95,7 @@ export function IdentityRibbon({
     const t = toneClasses(toneForIndex(meIndex));
     return (
       <div className={`flex items-center gap-3 rounded-2xl bg-card p-4 ring-1 ${t.ring}`}>
-        <span
-          className={`inline-flex size-9 shrink-0 items-center justify-center rounded-full font-mono text-[12px] font-semibold uppercase ${t.chip}`}
-        >
-          {initials(me.display_name)}
-        </span>
+        <MemberAvatar seed={me.id} name={me.display_name} size={40} mode={normaliseMode(me.mode)} />
         <div className="min-w-0 flex-1">
           <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
             You appear as

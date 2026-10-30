@@ -32,6 +32,8 @@ export type MemberRow = {
   status: string;
   is_creator: boolean;
   joined_at: string;
+  /** Optional travel mode (walk | bus | bike | taxi); absent before migration 0004. */
+  mode?: string | null;
 };
 
 export const MEMBER_TONES = ["aegean", "ochre", "olive", "ink"] as const;

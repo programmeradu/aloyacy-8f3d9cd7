@@ -3,5 +3,6 @@ export type MapMarker = {
   lng: number;
   label?: string;
   tone?: "aegean" | "ochre" | "olive" | "ink";
-  kind?: "origin" | "destination" | "stop" | "pin" | "next";
+  /** "bounds": not drawn, only included when fitting the view (DOM pins). */
+  kind?: "origin" | "destination" | "stop" | "pin" | "next" | "bounds";
 };

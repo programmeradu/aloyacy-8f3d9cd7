@@ -73,14 +73,14 @@ export function ReliabilityBadge({
           <span className={`size-1.5 rounded-full ${tone.dot}`} aria-hidden />
           {t("reliability.label")}
         </span>
-        <span className={`font-display text-[28px] leading-none ${tone.text}`}>
-          {isRated ? `${onTimePct}%` : "-"}
-          {isRated && (
+        {isRated && (
+          <span className={`font-display text-[28px] leading-none ${tone.text}`}>
+            {`${onTimePct}%`}
             <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/80 align-middle">
               {t("reliability.onTime")}
             </span>
-          )}
-        </span>
+          </span>
+        )}
         <span className="text-[13px] text-ink leading-snug">{summary}</span>
         <span className="text-[11.5px] text-ink-soft leading-snug">{hint}</span>
       </div>

@@ -1365,3 +1365,57 @@ button.r-row:active {
   left: 8px;
   max-width: 40%;
 }
+
+/* Group map: member avatar pins (avatar on the point, first name chip below) */
+.r-member-pin {
+  position: relative;
+  display: block;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+}
+.r-member-pin > span[role="img"] {
+  box-shadow: 0 0 0 3px #fff;
+}
+.r-member-pin-name {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: #fff;
+  color: var(--r-ink);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  padding: 0 8px;
+  border-radius: 9px;
+}
+
+/* React bus glyph line badge */
+.r-busbadge {
+  position: absolute;
+  top: -2px;
+  right: -8px;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #171717;
+  color: #fff;
+  border: 1.5px solid #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 15px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Uppercase eyebrow labels in legacy sections (RELIABILITY, ARRIVING TOGETHER,
+   YOU'RE WATCHING AS A GUEST): one deliberate size, weight and tracking */
+.roam .r-legacy .uppercase[class*="tracking-"] {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 16px;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1;
+}

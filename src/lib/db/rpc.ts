@@ -42,9 +42,10 @@ const RPCS: Record<string, RpcFn> = {
     }
     const members = await db
       .prepare(
-        `SELECT id, group_id, display_name, origin_label, last_lat, last_lng, last_updated,
-                eta_minutes, status, is_creator, joined_at
-           FROM trip_group_members WHERE group_id = ? ORDER BY joined_at ASC`,
+        // SELECT * so the optional `mode` column (migration 0004) is read where it
+        // exists without breaking databases that have not applied it yet.
+        // Secrets (member_token, owner_id) are stripped below.
+        `SELECT * FROM trip_group_members WHERE group_id = ? ORDER BY joined_at ASC`,
       )
       .bind(g.id)
       .all<Record<string, unknown>>();
@@ -60,7 +61,10 @@ const RPCS: Record<string, RpcFn> = {
       expires_at: g.expires_at,
       expired: String(g.expires_at) <= iso(),
       me_id: meId,
-      members: (members.results ?? []).map((m) => fromDbRow(meta, m)),
+      members: (members.results ?? []).map((m) => {
+        const { member_token: _t, owner_id: _o, ...pub } = m;
+        return fromDbRow(meta, { ...pub, mode: pub.mode ?? null });
+      }),
     };
   },
 

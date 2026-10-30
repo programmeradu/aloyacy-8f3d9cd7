@@ -6,6 +6,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { leaveTripGroup, pingGroupMember } from "@/lib/trip-groups.functions";
 import { MEMBER_TOKEN_KEY, PING_INTERVAL_MS, type GroupRow } from "./kit";
 import { PulseDot } from "./chrome";
+import { inferMode, speedBetween } from "@aloya/core/group-mode";
+import { distanceM } from "@aloya/core/geo";
+import { useRealtime } from "@/lib/useRealtime";
 
 export function LiveShareCard({
   group,
@@ -21,6 +24,11 @@ export function LiveShareCard({
   const watchRef = useRef<number | null>(null);
   const lastPingRef = useRef(0);
   const [busy, setBusy] = useState(false);
+  // Live buses, read at ping time to tell "on the bus" from other fast travel.
+  const { data: rt } = useRealtime();
+  const vehiclesRef = useRef(rt?.vehicles ?? []);
+  vehiclesRef.current = rt?.vehicles ?? [];
+  const lastFixRef = useRef<{ lat: number; lng: number; atMs: number } | null>(null);
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !("geolocation" in navigator)) return;
@@ -31,11 +39,22 @@ export function LiveShareCard({
         const now = Date.now();
         if (now - lastPingRef.current < PING_INTERVAL_MS) return;
         lastPingRef.current = now;
+        const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        const gpsKmh =
+          pos.coords.speed != null && Number.isFinite(pos.coords.speed)
+            ? pos.coords.speed * 3.6
+            : null;
+        const prev = lastFixRef.current;
+        const speedKmh = gpsKmh ?? (prev ? speedBetween(prev, { ...here, atMs: now }) : null);
+        lastFixRef.current = { ...here, atMs: now };
+        let nearBus: number | null = null;
+        for (const v of vehiclesRef.current) {
+          const d = distanceM(here, { lat: v.lat, lng: v.lng });
+          if (nearBus == null || d < nearBus) nearBus = d;
+        }
+        const mode = inferMode({ speedKmh, nearLiveBusM: nearBus });
         void ping({
-          data: {
-            memberToken: token,
-            position: { lat: pos.coords.latitude, lng: pos.coords.longitude },
-          },
+          data: { memberToken: token, position: here, mode },
         }).catch(() => {});
       },
       () => {},

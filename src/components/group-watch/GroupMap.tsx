@@ -3,8 +3,11 @@
 
 import { useMemo } from "react";
 import { MapPreview } from "@/components/MapPreview";
-import { toneForIndex, type GroupRow, type MemberRow, type Tone } from "./kit";
+import type { DomPin } from "@/components/map/useDomPins";
+import { normaliseMode } from "@aloya/core/group-mode";
+import type { GroupRow, MemberRow, Tone } from "./kit";
 import { PulseDot } from "./chrome";
+import { MemberAvatar } from "./MemberAvatar";
 
 export function GroupMap({
   group,
@@ -20,7 +23,7 @@ export function GroupMap({
       lat: number;
       lng: number;
       label: string;
-      kind: "pin" | "destination";
+      kind: "bounds" | "destination";
       tone?: Tone;
     }[] = [
       {
@@ -31,20 +34,45 @@ export function GroupMap({
         tone: "ochre",
       },
     ];
-    members.forEach((m, i) => {
+    members.forEach((m) => {
       if (m.status !== "active" || m.last_lat == null || m.last_lng == null) return;
-      list.push({
-        lat: m.last_lat,
-        lng: m.last_lng,
-        label: m.id === meId ? `${m.display_name} (you)` : m.display_name,
-        kind: "pin",
-        tone: toneForIndex(i),
-      });
+      // Members are drawn as avatar pins; this entry only keeps them in view.
+      list.push({ lat: m.last_lat, lng: m.last_lng, label: m.display_name, kind: "bounds" });
     });
     return list;
-  }, [group, members, meId]);
+  }, [group, members]);
 
-  const fixCount = markers.filter((m) => m.kind === "pin").length;
+  // Each sharing member on the map: their avatar, travel-mode badge, first name.
+  const pins: DomPin[] = useMemo(
+    () =>
+      members
+        .filter((m) => m.status === "active" && m.last_lat != null && m.last_lng != null)
+        .map((m) => {
+          const isMe = m.id === meId;
+          const first = m.display_name.trim().split(/\s+/)[0] ?? m.display_name;
+          return {
+            id: m.id,
+            lat: m.last_lat as number,
+            lng: m.last_lng as number,
+            anchor: "center" as const,
+            node: (
+              <span className="r-member-pin">
+                <MemberAvatar
+                  seed={m.id}
+                  name={isMe ? `${m.display_name} (you)` : m.display_name}
+                  size={44}
+                  ring={isMe ? "#F6B83C" : "#ffffff"}
+                  mode={normaliseMode(m.mode)}
+                />
+                <span className="r-member-pin-name">{isMe ? "You" : first}</span>
+              </span>
+            ),
+          };
+        }),
+    [members, meId],
+  );
+
+  const fixCount = pins.length;
   const center =
     fixCount === 0 ? { lat: group.destination_lat, lng: group.destination_lng } : undefined;
 
@@ -59,6 +87,7 @@ export function GroupMap({
         center={center}
         spanKm={fixCount === 0 ? 4 : undefined}
         markers={markers}
+        pins={pins}
         liveVehicles={false}
       />
       {fixCount === 0 && (

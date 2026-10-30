@@ -3,6 +3,7 @@
 // group creation and joining work without an account.
 
 import { createServerFn } from "@tanstack/react-start";
+import { inferMode, normaliseMode, speedBetween } from "@aloya/core/group-mode";
 import { z } from "zod";
 import { generateGroupCode, memberEtaMinutes } from "./trip-groups.server";
 
@@ -79,6 +80,8 @@ export const createTripGroup = createServerFn({ method: "POST" })
 const PingInput = z.object({
   memberToken: z.string().uuid(),
   position: Point,
+  /** Client's read of how the member travels (speed + live bus match). Optional. */
+  mode: z.enum(["walk", "bus", "bike", "taxi"]).nullish(),
 });
 
 /** Update a member's live position AND compute their transit ETA to the
@@ -93,7 +96,7 @@ export const pingGroupMember = createServerFn({ method: "POST" })
     const { data: member, error: mErr } = await supabaseAdmin
       .from("trip_group_members")
       .select(
-        "id, group_id, status, trip_groups!inner(destination_lat, destination_lng, expires_at)",
+        "id, group_id, status, last_lat, last_lng, last_updated, trip_groups!inner(destination_lat, destination_lng, expires_at)",
       )
       .eq("member_token", data.memberToken)
       .maybeSingle();
@@ -115,16 +118,41 @@ export const pingGroupMember = createServerFn({ method: "POST" })
       { lat: group.destination_lat, lng: group.destination_lng },
     );
 
-    const { error: uErr } = await supabaseAdmin
+    // Travel mode: the client's read when it sent one, else speed since the
+    // previous fix (no bus match server side). Unknown stays null (no badge).
+    const prev = member as unknown as {
+      last_lat: number | null;
+      last_lng: number | null;
+      last_updated: string | null;
+    };
+    const nowMs = Date.now();
+    const speed =
+      prev.last_lat != null && prev.last_lng != null && prev.last_updated
+        ? speedBetween(
+            { lat: prev.last_lat, lng: prev.last_lng, atMs: new Date(prev.last_updated).getTime() },
+            { lat: data.position.lat, lng: data.position.lng, atMs: nowMs },
+          )
+        : null;
+    const mode = normaliseMode(data.mode) ?? inferMode({ speedKmh: speed });
+
+    const base = {
+      last_lat: data.position.lat,
+      last_lng: data.position.lng,
+      last_updated: new Date(nowMs).toISOString(),
+      eta_minutes: eta,
+      status: "active",
+    };
+    let { error: uErr } = await supabaseAdmin
       .from("trip_group_members")
-      .update({
-        last_lat: data.position.lat,
-        last_lng: data.position.lng,
-        last_updated: new Date().toISOString(),
-        eta_minutes: eta,
-        status: "active",
-      })
+      .update({ ...base, mode })
       .eq("id", member.id);
+    // Databases without migration 0004 have no `mode` column: save the fix anyway.
+    if (uErr && /mode/i.test(uErr.message)) {
+      ({ error: uErr } = await supabaseAdmin
+        .from("trip_group_members")
+        .update(base)
+        .eq("id", member.id));
+    }
     if (uErr) throw new Error(`member update failed: ${uErr.message}`);
     return { ok: true as const, etaMinutes: eta };
   });

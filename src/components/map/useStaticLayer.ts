@@ -114,6 +114,11 @@ export function useStaticLayer({
       const stopFeatures: GeoJSON.Feature<GeoJSON.Point>[] = [];
       const anchorFeatures: GeoJSON.Feature<GeoJSON.Point>[] = [];
       (markers ?? []).forEach((mk, i) => {
+        if (mk.kind === "bounds") {
+          bounds.extend([mk.lng, mk.lat]);
+          hasBounds = true;
+          return;
+        }
         const isStop = !mk.kind || mk.kind === "stop";
         const { color, radius, stroke, strokeWidth } = markerStyle(mk);
         const f: GeoJSON.Feature<GeoJSON.Point> = {

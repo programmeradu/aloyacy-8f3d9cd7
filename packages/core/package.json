@@ -91,6 +91,10 @@
       "types": "./src/group-converge.ts",
       "default": "./src/group-converge.ts"
     },
+    "./group-mode": {
+      "types": "./src/group-mode.ts",
+      "default": "./src/group-mode.ts"
+    },
     "./group-format": {
       "types": "./src/group-format.ts",
       "default": "./src/group-format.ts"

@@ -31,7 +31,7 @@ describe("ReliabilityBadge", () => {
     expect(screen.getByText("40%")).toBeInTheDocument();
   });
 
-  it("stack: renders em dash placeholder when unrated", () => {
+  it("stack: no numeral placeholder when unrated", () => {
     render(
       <ReliabilityBadge
         tier="unknown"
@@ -41,7 +41,7 @@ describe("ReliabilityBadge", () => {
         variant="stack"
       />,
     );
-    expect(screen.getByText("-")).toBeInTheDocument();
+    expect(screen.queryByText("-")).toBeNull();
   });
 
   it("stack: distinguishes early vs late summaries via title on compact", () => {
