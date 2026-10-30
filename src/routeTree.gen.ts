@@ -104,6 +104,7 @@ import { Route as ApiV1TruthEtaRouteImport } from './routes/api/v1/truth/eta'
 import { Route as ApiPublicWalletPassRouteImport } from './routes/api/public/wallet/pass'
 import { Route as ApiPublicWalletOcrRouteImport } from './routes/api/public/wallet/ocr'
 import { Route as ApiPublicPartnersApplyRouteImport } from './routes/api/public/partners/apply'
+import { Route as ApiPublicOgDefaultRouteImport } from './routes/api/public/og/default'
 import { Route as ApiPublicHooksTrainRouteImport } from './routes/api/public/hooks/train'
 import { Route as ApiPublicHooksResolveArrivalsRouteImport } from './routes/api/public/hooks/resolve-arrivals'
 import { Route as ApiPublicHooksPulseWeatherRouteImport } from './routes/api/public/hooks/pulse-weather'
@@ -131,7 +132,10 @@ import { Route as ApiPublicGbfsFree_bike_statusDotjsonRouteImport } from './rout
 import { Route as ApiPublicAuthVerifyRouteImport } from './routes/api/public/auth/verify'
 import { Route as ApiPublicAuthSessionRouteImport } from './routes/api/public/auth/session'
 import { Route as ApiPublicAuthOtpRouteImport } from './routes/api/public/auth/otp'
+import { Route as ApiPublicOgTripIdRouteImport } from './routes/api/public/og/trip.$id'
+import { Route as ApiPublicOgStopStopIdRouteImport } from './routes/api/public/og/stop.$stopId'
 import { Route as ApiPublicOgPlanTokenRouteImport } from './routes/api/public/og/plan.$token'
+import { Route as ApiPublicOgLineRouteIdRouteImport } from './routes/api/public/og/line.$routeId'
 import { Route as ApiPublicOgGroupCodeRouteImport } from './routes/api/public/og/group.$code'
 
 const WelcomeRoute = WelcomeRouteImport.update({
@@ -620,6 +624,11 @@ const ApiPublicPartnersApplyRoute = ApiPublicPartnersApplyRouteImport.update({
   path: '/api/public/partners/apply',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOgDefaultRoute = ApiPublicOgDefaultRouteImport.update({
+  id: '/api/public/og/default',
+  path: '/api/public/og/default',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksTrainRoute = ApiPublicHooksTrainRouteImport.update({
   id: '/api/public/hooks/train',
   path: '/api/public/hooks/train',
@@ -776,9 +785,24 @@ const ApiPublicAuthOtpRoute = ApiPublicAuthOtpRouteImport.update({
   path: '/api/public/auth/otp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOgTripIdRoute = ApiPublicOgTripIdRouteImport.update({
+  id: '/api/public/og/trip/$id',
+  path: '/api/public/og/trip/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicOgStopStopIdRoute = ApiPublicOgStopStopIdRouteImport.update({
+  id: '/api/public/og/stop/$stopId',
+  path: '/api/public/og/stop/$stopId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicOgPlanTokenRoute = ApiPublicOgPlanTokenRouteImport.update({
   id: '/api/public/og/plan/$token',
   path: '/api/public/og/plan/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicOgLineRouteIdRoute = ApiPublicOgLineRouteIdRouteImport.update({
+  id: '/api/public/og/line/$routeId',
+  path: '/api/public/og/line/$routeId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicOgGroupCodeRoute = ApiPublicOgGroupCodeRouteImport.update({
@@ -904,6 +928,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/resolve-arrivals': typeof ApiPublicHooksResolveArrivalsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
+  '/api/public/og/default': typeof ApiPublicOgDefaultRoute
   '/api/public/partners/apply': typeof ApiPublicPartnersApplyRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
@@ -911,7 +936,10 @@ export interface FileRoutesByFullPath {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/og/group/$code': typeof ApiPublicOgGroupCodeRoute
+  '/api/public/og/line/$routeId': typeof ApiPublicOgLineRouteIdRoute
   '/api/public/og/plan/$token': typeof ApiPublicOgPlanTokenRoute
+  '/api/public/og/stop/$stopId': typeof ApiPublicOgStopStopIdRoute
+  '/api/public/og/trip/$id': typeof ApiPublicOgTripIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1030,6 +1058,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/resolve-arrivals': typeof ApiPublicHooksResolveArrivalsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
+  '/api/public/og/default': typeof ApiPublicOgDefaultRoute
   '/api/public/partners/apply': typeof ApiPublicPartnersApplyRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
@@ -1037,7 +1066,10 @@ export interface FileRoutesByTo {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/og/group/$code': typeof ApiPublicOgGroupCodeRoute
+  '/api/public/og/line/$routeId': typeof ApiPublicOgLineRouteIdRoute
   '/api/public/og/plan/$token': typeof ApiPublicOgPlanTokenRoute
+  '/api/public/og/stop/$stopId': typeof ApiPublicOgStopStopIdRoute
+  '/api/public/og/trip/$id': typeof ApiPublicOgTripIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1157,6 +1189,7 @@ export interface FileRoutesById {
   '/api/public/hooks/pulse-weather': typeof ApiPublicHooksPulseWeatherRoute
   '/api/public/hooks/resolve-arrivals': typeof ApiPublicHooksResolveArrivalsRoute
   '/api/public/hooks/train': typeof ApiPublicHooksTrainRoute
+  '/api/public/og/default': typeof ApiPublicOgDefaultRoute
   '/api/public/partners/apply': typeof ApiPublicPartnersApplyRoute
   '/api/public/wallet/ocr': typeof ApiPublicWalletOcrRoute
   '/api/public/wallet/pass': typeof ApiPublicWalletPassRoute
@@ -1164,7 +1197,10 @@ export interface FileRoutesById {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/og/group/$code': typeof ApiPublicOgGroupCodeRoute
+  '/api/public/og/line/$routeId': typeof ApiPublicOgLineRouteIdRoute
   '/api/public/og/plan/$token': typeof ApiPublicOgPlanTokenRoute
+  '/api/public/og/stop/$stopId': typeof ApiPublicOgStopStopIdRoute
+  '/api/public/og/trip/$id': typeof ApiPublicOgTripIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1285,6 +1321,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/resolve-arrivals'
     | '/api/public/hooks/train'
+    | '/api/public/og/default'
     | '/api/public/partners/apply'
     | '/api/public/wallet/ocr'
     | '/api/public/wallet/pass'
@@ -1292,7 +1329,10 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/queue/process'
     | '/api/public/og/group/$code'
+    | '/api/public/og/line/$routeId'
     | '/api/public/og/plan/$token'
+    | '/api/public/og/stop/$stopId'
+    | '/api/public/og/trip/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1411,6 +1451,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/resolve-arrivals'
     | '/api/public/hooks/train'
+    | '/api/public/og/default'
     | '/api/public/partners/apply'
     | '/api/public/wallet/ocr'
     | '/api/public/wallet/pass'
@@ -1418,7 +1459,10 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/queue/process'
     | '/api/public/og/group/$code'
+    | '/api/public/og/line/$routeId'
     | '/api/public/og/plan/$token'
+    | '/api/public/og/stop/$stopId'
+    | '/api/public/og/trip/$id'
   id:
     | '__root__'
     | '/'
@@ -1537,6 +1581,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/pulse-weather'
     | '/api/public/hooks/resolve-arrivals'
     | '/api/public/hooks/train'
+    | '/api/public/og/default'
     | '/api/public/partners/apply'
     | '/api/public/wallet/ocr'
     | '/api/public/wallet/pass'
@@ -1544,7 +1589,10 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/queue/process'
     | '/api/public/og/group/$code'
+    | '/api/public/og/line/$routeId'
     | '/api/public/og/plan/$token'
+    | '/api/public/og/stop/$stopId'
+    | '/api/public/og/trip/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1664,12 +1712,16 @@ export interface RootRouteChildren {
   ApiPublicHooksPulseWeatherRoute: typeof ApiPublicHooksPulseWeatherRoute
   ApiPublicHooksResolveArrivalsRoute: typeof ApiPublicHooksResolveArrivalsRoute
   ApiPublicHooksTrainRoute: typeof ApiPublicHooksTrainRoute
+  ApiPublicOgDefaultRoute: typeof ApiPublicOgDefaultRoute
   ApiPublicPartnersApplyRoute: typeof ApiPublicPartnersApplyRoute
   ApiV1TruthEtaRoute: typeof ApiV1TruthEtaRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   ApiPublicOgGroupCodeRoute: typeof ApiPublicOgGroupCodeRoute
+  ApiPublicOgLineRouteIdRoute: typeof ApiPublicOgLineRouteIdRoute
   ApiPublicOgPlanTokenRoute: typeof ApiPublicOgPlanTokenRoute
+  ApiPublicOgStopStopIdRoute: typeof ApiPublicOgStopStopIdRoute
+  ApiPublicOgTripIdRoute: typeof ApiPublicOgTripIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2339,6 +2391,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPartnersApplyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/og/default': {
+      id: '/api/public/og/default'
+      path: '/api/public/og/default'
+      fullPath: '/api/public/og/default'
+      preLoaderRoute: typeof ApiPublicOgDefaultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/train': {
       id: '/api/public/hooks/train'
       path: '/api/public/hooks/train'
@@ -2528,11 +2587,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAuthOtpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/og/trip/$id': {
+      id: '/api/public/og/trip/$id'
+      path: '/api/public/og/trip/$id'
+      fullPath: '/api/public/og/trip/$id'
+      preLoaderRoute: typeof ApiPublicOgTripIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/og/stop/$stopId': {
+      id: '/api/public/og/stop/$stopId'
+      path: '/api/public/og/stop/$stopId'
+      fullPath: '/api/public/og/stop/$stopId'
+      preLoaderRoute: typeof ApiPublicOgStopStopIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/og/plan/$token': {
       id: '/api/public/og/plan/$token'
       path: '/api/public/og/plan/$token'
       fullPath: '/api/public/og/plan/$token'
       preLoaderRoute: typeof ApiPublicOgPlanTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/og/line/$routeId': {
+      id: '/api/public/og/line/$routeId'
+      path: '/api/public/og/line/$routeId'
+      fullPath: '/api/public/og/line/$routeId'
+      preLoaderRoute: typeof ApiPublicOgLineRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/og/group/$code': {
@@ -2682,12 +2762,16 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPulseWeatherRoute: ApiPublicHooksPulseWeatherRoute,
   ApiPublicHooksResolveArrivalsRoute: ApiPublicHooksResolveArrivalsRoute,
   ApiPublicHooksTrainRoute: ApiPublicHooksTrainRoute,
+  ApiPublicOgDefaultRoute: ApiPublicOgDefaultRoute,
   ApiPublicPartnersApplyRoute: ApiPublicPartnersApplyRoute,
   ApiV1TruthEtaRoute: ApiV1TruthEtaRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   ApiPublicOgGroupCodeRoute: ApiPublicOgGroupCodeRoute,
+  ApiPublicOgLineRouteIdRoute: ApiPublicOgLineRouteIdRoute,
   ApiPublicOgPlanTokenRoute: ApiPublicOgPlanTokenRoute,
+  ApiPublicOgStopStopIdRoute: ApiPublicOgStopStopIdRoute,
+  ApiPublicOgTripIdRoute: ApiPublicOgTripIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

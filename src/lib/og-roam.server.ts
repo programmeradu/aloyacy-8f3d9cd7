@@ -217,6 +217,7 @@ export async function loadShapes(): Promise<Shapes | null> {
       type Env = { ASSETS?: { fetch: (r: Request) => Promise<Response> } };
       let env: Env = {};
       try {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore runtime module of workerd, no types in this project
         const mod = (await import(/* @vite-ignore */ "cloudflare:workers")) as { env?: Env };
         env = mod?.env ?? {};
@@ -465,6 +466,7 @@ function ensureWasm(): Promise<void> {
   if (!G.__aloya_resvg_ready) {
     G.__aloya_resvg_ready = (async () => {
       try {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore bundled as a CompiledWasm module by wrangler
         const mod = await import(/* @vite-ignore */ "@resvg/resvg-wasm/index_bg.wasm");
         await initWasm(mod.default as WebAssembly.Module);
