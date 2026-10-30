@@ -155,6 +155,19 @@ const en = {
   "save": "Save",
   "map.attrib": "Imagery",
   "el.redirect": "Switching to Greek",
+  "pass.edit": "Edit card",
+  "pass.checked": "Checked {when}",
+  "pass.tapCheck": "Tap to check",
+  "pass.topupOnline": "Top up online",
+  "pass.check": "Check balance",
+  "pass.checking": "Checking",
+  "pass.faresNote": "Cyprus Public Transport town buses. Kapnos is paid to Kapnos.",
+  "pass.emptyTitle": "Keep your Motion card here",
+  "pass.emptySub": "Add the card number to check its balance and passes. It stays on this phone.",
+  "pass.jcc": "Link JCC for top-up history",
+  "pass.jccOn": "JCC linked",
+  "pass.sync": "Sync",
+  "pass.unlink": "Unlink",
 } as const;
 
 export type RoamKey = keyof typeof en;
@@ -310,6 +323,19 @@ const el: Record<RoamKey, string> = {
   save: "Αποθήκευση",
   "map.attrib": "Δορυφορική εικόνα",
   "el.redirect": "Αλλαγή σε Ελληνικά",
+  "pass.edit": "Επεξεργασία κάρτας",
+  "pass.checked": "Έλεγχος {when}",
+  "pass.tapCheck": "Πάτησε για έλεγχο",
+  "pass.topupOnline": "Φόρτιση online",
+  "pass.check": "Έλεγχος υπολοίπου",
+  "pass.checking": "Έλεγχος",
+  "pass.faresNote": "Αστικά λεωφορεία Δημόσιων Συγκοινωνιών Κύπρου. Το Kapnos πληρώνεται στην Kapnos.",
+  "pass.emptyTitle": "Κράτα εδώ την κάρτα Motion",
+  "pass.emptySub": "Πρόσθεσε τον αριθμό για υπόλοιπο και κάρτες διαδρομών. Μένει σε αυτό το κινητό.",
+  "pass.jcc": "Σύνδεσε JCC για ιστορικό φορτίσεων",
+  "pass.jccOn": "JCC συνδεδεμένο",
+  "pass.sync": "Συγχρονισμός",
+  "pass.unlink": "Αποσύνδεση",
 };
 
 const dicts = { en: en as Record<RoamKey, string>, el };

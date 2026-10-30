@@ -209,3 +209,15 @@ a.r-row:active, button.r-row:active { background: #f6f6f3; }
 .r-hscroll { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 4px 16px; scroll-padding: 16px; }
 .r-line-row { --r-row-inset: 120px; min-height: 64px; }
 .r-line-pill { width: 96px; flex: none; }
+
+/* Pass */
+.r-num-xl { font-size: 44px; font-weight: 400; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; color: var(--r-ink); }
+.r-fare-grid { display: grid; grid-template-columns: 1fr 76px 64px; gap: 8px; align-items: center; }
+.r-fare-row { min-height: 46px; font-size: 15px; color: var(--r-ink); }
+.r-fare-row--rule { border-top: 1px solid #e6e6e2; }
+
+/* Legacy components inside Roam pages: keep their layout, take Roam tokens */
+.roam .r-legacy, .roam .r-legacy * { font-family: var(--r-font, inherit); }
+.roam .r-legacy .bg-card { background: #fff; }
+.roam .r-legacy .ring-line { --tw-ring-color: transparent; }
+.roam .r-legacy [class*="rounded-[20px]"], .roam .r-legacy .rounded-2xl { border-radius: 28px; }
