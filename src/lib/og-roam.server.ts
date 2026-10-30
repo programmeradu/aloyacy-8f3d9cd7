@@ -64,7 +64,8 @@ export function textWidth(s: string, size: number, weight = 600): number {
     else if (/[A-Z0-9]/.test(ch)) w += 0.64;
     else w += 0.54;
   }
-  return w * size * (weight >= 800 ? 1.05 : 1);
+  // Calibrated against resvg output for Urbanist 600/800.
+  return w * size * (weight >= 800 ? 0.94 : 0.9);
 }
 
 /** Greedy word wrap into at most `max` lines, the last one ellipsised. */

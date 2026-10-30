@@ -54,6 +54,15 @@ function titleBlock(y: number, title: string, size = 60, maxLines = 2): { svg: s
     s -= 4;
     lines = wrap(title, s, TW, maxLines, 800);
   }
+  // Avoid a widow: a little smaller is better than one short word alone.
+  for (let t = s - 4; t >= s - 12 && lines.length > 1; t -= 4) {
+    const alt = wrap(title, t, TW, maxLines, 800);
+    if (alt.length < lines.length && !alt.some((l) => l.endsWith("\u2026"))) {
+      lines = alt;
+      s = t;
+      break;
+    }
+  }
   const lh = Math.round(s * 1.08);
   const svg = lines.map((l, i) => text(IN, y + i * lh, l, { size: s, weight: 800, track: -1 })).join("");
   return { svg, bottom: y + (lines.length - 1) * lh };
@@ -147,14 +156,16 @@ export function lineCard(routeId: string | null, shapes: Shapes | null, kicker?:
   if (!r) return defaultCard(shapes);
   const m = lineMap(r.id, shapes);
   if (!m) return defaultCard(shapes);
-  const { from, to } = runsBetween(r.long);
+  // Names from the first and last stops (the feed's long names are cut short).
+  const names = runsBetween(r.long);
+  const from = m.stops[0]?.name ?? names.from;
+  const to = m.stops.length > 1 ? m.stops[m.stops.length - 1].name : names.to;
   const code = pill(IN, PY + 172, r.short, { fill: R.y, color: R.ink, size: 44, h: 76, padX: 26, weight: 800 });
-  const t = titleBlock(PY + 336, to || from, 52, 2);
-  let y = t.bottom + 48;
+  const t = titleBlock(PY + 334, to || from, 48, 2);
+  const y = t.bottom + 46;
   const fromSvg = to ? text(IN, y, wrap(`From ${from}`, 26, TW, 1, 600)[0], { size: 26, weight: 600, fill: R.ink2 }) : "";
-  y += 24;
   const stat = m.stops.length
-    ? pill(IN, y, `${m.stops.length} stops`, { fill: R.pill, color: R.ink, size: 22, h: 44, padX: 18 }).svg
+    ? pill(IN + code.w + 14, PY + 188, `${m.stops.length} stops`, { fill: R.pill, color: R.ink, size: 22, h: 44, padX: 18 }).svg
     : "";
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, kicker ?? "Bus line")}${code.svg}${eyebrow(IN, PY + 290, "Towards")}${t.svg}${fromSvg}${stat}${footer(kicker ? "Follow along live on Aloya" : "Live buses on Aloya")}`;
   return frame(m.svg, card);
@@ -183,43 +194,57 @@ export type GroupOg = {
   members: number;
   arrived: number;
   nextEta: number | null;
-  /** Where members are, when known (their last pings). */
-  points?: LatLng[];
+  /** The meeting point. Member positions never go on a public image. */
+  place?: LatLng | null;
 };
 
 export function groupCard(g: GroupOg, shapes: Shapes | null): string {
-  const pts = (g.points ?? []).filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
-  const v =
-    pts.length >= 2
-      ? fitView(pts, { x0: MAP_BOX.x0 + 60, x1: MAP_BOX.x1 - 60, y0: MAP_BOX.y0 + 60, y1: MAP_BOX.y1 - 60 }, 2.6)
-      : at(pts[0] ?? SOLOMOS, 4.2);
+  const place = g.place && Number.isFinite(g.place.lat) && Number.isFinite(g.place.lng) ? g.place : null;
+  const v = at(place ?? SOLOMOS, place ? 3.6 : 4.2);
   const proj = projector(v, MAP_CX, MAP_CY);
   let map = baseMap(proj, shapes, v);
-  for (const p of pts.slice(0, 8)) {
-    const q = proj(p);
-    map += `<circle cx="${q.x.toFixed(1)}" cy="${q.y.toFixed(1)}" r="22" fill="${R.ink}" stroke="${R.white}" stroke-width="5"/><circle cx="${q.x.toFixed(1)}" cy="${q.y.toFixed(1)}" r="8" fill="${R.y}"/>`;
+  if (place) {
+    const q = proj(place);
+    map += stopMarker(q.x, q.y, 64);
   }
-  const t = titleBlock(PY + 240, g.destination || "A group trip", 58, 2);
-  let y = t.bottom + 48;
+  const t = titleBlock(PY + 232, g.destination || "A group trip", 52, 2);
+  let y = t.bottom + 46;
   const host = g.host ? wrap(`Hosted by ${g.host}`, 26, TW, 1, 600)[0] : "Join and watch each other arrive";
   const hostSvg = text(IN, y, host, { size: 26, weight: 600, fill: R.ink2 });
-  y += 30;
-  const tileH = 112;
+  y += 28;
+  const tileH = 100;
   const tileW = (TW - 14) / 2;
   const eta = g.nextEta != null ? `${g.nextEta} min` : g.members ? "Live" : "Open";
   const etaSub = g.nextEta != null ? "next arrival" : g.members ? "positions updating" : "be the first to join";
   const peopleSub = g.arrived ? `${g.arrived} arrived` : g.members === 1 ? "person on the way" : "people on the way";
   const tiles = `<rect x="${IN}" y="${y}" width="${tileW}" height="${tileH}" rx="28" fill="${R.y}"/>
-${text(IN + 24, y + 58, eta, { size: 44, weight: 800 })}${text(IN + 24, y + 90, etaSub, { size: 20, weight: 600 })}
+${text(IN + 24, y + 52, eta, { size: 42, weight: 800 })}${text(IN + 24, y + 82, etaSub, { size: 20, weight: 600 })}
 <rect x="${IN + tileW + 14}" y="${y}" width="${tileW}" height="${tileH}" rx="28" fill="${R.pill}"/>
-${text(IN + tileW + 38, y + 58, String(g.members), { size: 44, weight: 800 })}${text(IN + tileW + 38, y + 90, peopleSub, { size: 20, weight: 600, fill: R.ink2 })}`;
+${text(IN + tileW + 38, y + 52, String(g.members), { size: 42, weight: 800 })}${text(IN + tileW + 38, y + 82, peopleSub, { size: 20, weight: 600, fill: R.ink2 })}`;
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, g.code ? `Group trip ${g.code}` : "Group trip")}${eyebrow(IN, PY + 186, "Meeting at", R.ink2)}${t.svg}${hostSvg}${tiles}${footer("Watch together on Aloya")}`;
   return frame(map, card);
 }
 
 // ------------------------------------------------------------------ plan
 
-export type PlanLegOg = { kind: string; routeId?: string; routeShort?: string; from?: LatLng; to?: LatLng };
+export type PlanLegOg = {
+  kind: string;
+  routeId?: string;
+  routeShort?: string;
+  from?: LatLng;
+  to?: LatLng;
+  /** Bus legs of a trip option carry their stops as board/alight. */
+  board?: LegStop;
+  alight?: LegStop;
+};
+type LegStop = { stopId?: string; lat?: number; lng?: number };
+
+function legPoint(s: LegStop | undefined, agency?: string): LatLng | undefined {
+  if (!s) return undefined;
+  if (Number.isFinite(s.lat) && Number.isFinite(s.lng)) return { lat: s.lat as number, lng: s.lng as number };
+  const hit = s.stopId ? getStop(s.stopId, agency) : undefined;
+  return hit ? { lat: hit.lat, lng: hit.lng } : undefined;
+}
 export type PlanOg = {
   origin: string | null;
   destination: string | null;
@@ -253,7 +278,14 @@ function slicePath(path: LatLng[], a: LatLng, b: LatLng): LatLng[] {
   return path.slice(ia.i, ib.i + 1);
 }
 
-export function planCard(p: PlanOg, shapes: Shapes | null): string {
+export function planCard(plan: PlanOg, shapes: Shapes | null): string {
+  const p = {
+    ...plan,
+    legs: plan.legs.map((l) => {
+      const agency = l.routeId ? getRoute(l.routeId)?.agency : undefined;
+      return { ...l, from: l.from ?? legPoint(l.board, agency), to: l.to ?? legPoint(l.alight, agency) };
+    }),
+  };
   const legPts = p.legs
     .flatMap((l) => [l.from, l.to])
     .filter((x): x is LatLng => !!x && Number.isFinite(x.lat) && Number.isFinite(x.lng));
@@ -286,7 +318,7 @@ export function planCard(p: PlanOg, shapes: Shapes | null): string {
     const v = at(SOLOMOS, 4.2);
     map = baseMap(projector(v, MAP_CX, MAP_CY), shapes, v);
   }
-  const t = titleBlock(PY + 240, p.destination || "A trip plan", 54, 2);
+  const t = titleBlock(PY + 232, p.destination || "A trip plan", 52, 2);
   let y = t.bottom + 46;
   const fromSvg = p.origin
     ? text(IN, y, wrap(`From ${p.origin}`, 26, TW, 1, 600)[0], { size: 26, weight: 600, fill: R.ink2 })
@@ -294,24 +326,24 @@ export function planCard(p: PlanOg, shapes: Shapes | null): string {
   y += 28;
   let tiles = "";
   if (p.arrive || p.depart) {
-    const tileH = 112;
+    const tileH = 100;
     const big = p.arrive ?? p.depart ?? "";
     const small = p.arrive ? (p.depart ? `arrive, leave ${p.depart}` : "arrive") : "leave";
-    tiles += `<rect x="${IN}" y="${y}" width="${TW}" height="${tileH}" rx="28" fill="${R.y}"/>${text(IN + 26, y + 60, big, { size: 48, weight: 800 })}${text(IN + 26, y + 92, small, { size: 20, weight: 600 })}`;
+    tiles += `<rect x="${IN}" y="${y}" width="${TW}" height="${tileH}" rx="28" fill="${R.y}"/>${text(IN + 26, y + 54, big, { size: 44, weight: 800 })}${text(IN + 26, y + 84, small, { size: 20, weight: 600 })}`;
     const opt = { size: 22, h: 44, padX: 16 };
     const lines = [...new Set(p.legs.map((l) => l.routeShort).filter((s): s is string => !!s))];
     let px = IN + TW - 24;
     if (p.duration) {
       const w = pill(0, 0, p.duration, opt).w;
       px -= w;
-      tiles += pill(px, y + 34, p.duration, { ...opt, fill: R.ink, color: R.white }).svg;
+      tiles += pill(px, y + 28, p.duration, { ...opt, fill: R.ink, color: R.white }).svg;
       px -= 10;
     }
     for (const code of lines.slice(0, 2).reverse()) {
       const w = pill(0, 0, code, opt).w;
       if (px - w < IN + 240) break;
       px -= w;
-      tiles += pill(px, y + 34, code, { ...opt, fill: R.white, color: R.ink }).svg;
+      tiles += pill(px, y + 28, code, { ...opt, fill: R.white, color: R.ink }).svg;
       px -= 10;
     }
   }
