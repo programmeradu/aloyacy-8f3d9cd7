@@ -31,7 +31,7 @@ export default defineTool({
   name: "watch_stop_arrivals",
   title: "Watch a stop for live arrivals (long-poll)",
   description:
-    "Long-polls Aloya's real-time feed for a stop and returns as soon as a bus is within `alertWithinSec` seconds, an ETA shifts by more than 60s, or the timeout elapses. Call this instead of repeatedly polling `get_stop_arrivals` — one call effectively streams the next meaningful update. Safe to call in a loop for continuous monitoring.",
+    "Long-polls Aloya's real-time feed for a stop and returns as soon as a bus is within `alertWithinSec` seconds, an ETA shifts by more than 60s, or the timeout elapses. Call this instead of repeatedly polling `get_stop_arrivals`, one call effectively streams the next meaningful update. Safe to call in a loop for continuous monitoring.",
   inputSchema: {
     stopId: z.string().trim().min(1).describe("Stop id from search_stops."),
     routeId: z.string().trim().optional().describe("Optional: only watch this route id."),

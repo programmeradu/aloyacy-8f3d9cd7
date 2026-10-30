@@ -11,10 +11,10 @@ export const wallet: Record<keyof typeof walletEn, string> = {
   "wallet.bodyHasCard":
     "Πατήστε το υπόλοιπο για ενημέρωση μετά από ανανέωση. Σαρώστε το QR σε οποιοδήποτε μηχάνημα Motion για να εμφανίσετε την κάρτα σας.",
   "wallet.bodyEmpty":
-    "Προσθέστε τον αριθμό της κάρτας Motion και την κρατάμε έτοιμη — υπόλοιπο, ιστορικό και QR για το μηχάνημα.",
+    "Προσθέστε τον αριθμό της κάρτας Motion και την κρατάμε έτοιμη, υπόλοιπο, ιστορικό και QR για το μηχάνημα.",
   "wallet.addCardCta": "Προσθήκη κάρτας Motion",
   "wallet.addCardNote":
-    "Τα στοιχεία της κάρτας μένουν μόνο σε αυτή τη συσκευή. Δεν αποστέλλονται πουθενά — εκτός αν το ζητήσετε εσείς.",
+    "Τα στοιχεία της κάρτας μένουν μόνο σε αυτή τη συσκευή. Δεν αποστέλλονται πουθενά, εκτός αν το ζητήσετε εσείς.",
   "wallet.tapToSetUp": "Πατήστε την κάρτα για ρύθμιση",
   "wallet.cardEditAria": "Επεξεργασία της κάρτας Motion",
   "wallet.cardAddAria": "Προσθήκη κάρτας Motion",
@@ -41,26 +41,27 @@ export const wallet: Record<keyof typeof walletEn, string> = {
   "wallet.renewTitlePrefix": "Ανανεώστε το",
   "wallet.renewTitleEmph": "πάσο σας",
   "wallet.renewEligible": "{n} διαθέσιμα",
-  "wallet.renewCopied": "Ο αριθμός κάρτας αντιγράφηκε — επικολλήστε στην επόμενη οθόνη",
+  "wallet.renewCopied": "Ο αριθμός κάρτας αντιγράφηκε, επικολλήστε στην επόμενη οθόνη",
   "wallet.renewValidity": "Ισχύς {n} ημερών",
   "wallet.renewPass": "Πάσο {code}",
   "wallet.renewFoot":
-    "Πατώντας την τιμή αντιγράφεται ο αριθμός κάρτας και ανοίγει η επίσημη σελίδα ανανέωσης — επικολλήστε τον στο πεδίο και η JCC κάνει τα υπόλοιπα.",
+    "Πατώντας την τιμή αντιγράφεται ο αριθμός κάρτας και ανοίγει η επίσημη σελίδα ανανέωσης, επικολλήστε τον στο πεδίο και η JCC κάνει τα υπόλοιπα.",
   "wallet.fare.urban": "Αστικά",
   "wallet.fare.urbanSub": "90 λεπτά",
   "wallet.fare.urbanAlt": "Δρόμος μεσογειακού χωριού σε απαλό φως",
   "wallet.fare.night": "Νυχτερινό",
-  "wallet.fare.nightSub": "21:00 – 04:00",
+  "wallet.fare.nightSub": "21:00 to 04:00",
   "wallet.fare.nightAlt": "Καμάρα χωριού φωτισμένη από ένα φανάρι κάτω από μισοφέγγαρο",
   "wallet.fare.intercity": "Υπεραστικά",
   "wallet.fare.intercitySub": "μονό",
-  "wallet.fare.extra": "Επιστροφή υπεραστικού €7.00 — ισχύει την ίδια μέρα. Ημερήσια κάρτα €5.00 με απεριόριστες αστικές και επαρχιακές διαδρομές.",
+  "wallet.fare.extra":
+    "Επιστροφή υπεραστικού €7.00, ισχύει την ίδια μέρα. Ημερήσια κάρτα €5.00 με απεριόριστες αστικές και επαρχιακές διαδρομές.",
   "wallet.fare.intercityAlt": "Παράκτιος δρόμος στους κυπριακούς γκρεμούς",
   "wallet.fareAria": "Κόμιστρο {label} {value}",
   "wallet.history.topupTitle": "Ιστορικό ανανεώσεων",
   "wallet.history.entries": "{n} καταχωρήσεις",
   "wallet.history.empty":
-    "Τίποτα ακόμη. Καταγράψτε την πρώτη ανανέωση — ή συνδέστε λογαριασμό JCC παραπάνω για αυτόματο συγχρονισμό.",
+    "Τίποτα ακόμη. Καταγράψτε την πρώτη ανανέωση, ή συνδέστε λογαριασμό JCC παραπάνω για αυτόματο συγχρονισμό.",
   "wallet.history.topupRow": "Ανανέωση",
   "wallet.history.recent": "Πρόσφατη δραστηριότητα",
   "wallet.history.last30": "Τελευταίες 30 ημέρες",
@@ -84,7 +85,7 @@ export const wallet: Record<keyof typeof walletEn, string> = {
   "wallet.sheet.never": "ποτέ",
   "wallet.sheet.topupLabel": "Ποσό ανανέωσης",
   "wallet.sheet.linkIntro":
-    "Συνδεόμαστε στο JCC Smart για εσάς και τραβάμε το υπόλοιπο και την πρόσφατη δραστηριότητα. Κρατάμε μόνο το token συνεδρίας — ποτέ τον κωδικό σας.",
+    "Συνδεόμαστε στο JCC Smart για εσάς και τραβάμε το υπόλοιπο και την πρόσφατη δραστηριότητα. Κρατάμε μόνο το token συνεδρίας, ποτέ τον κωδικό σας.",
   "wallet.sheet.email": "Email JCC Smart",
   "wallet.sheet.emailPh": "you@example.com",
   "wallet.sheet.password": "Κωδικός",
@@ -104,9 +105,9 @@ export const wallet: Record<keyof typeof walletEn, string> = {
   "wallet.nfc.readUid": "Διαβάστηκε UID {uid}",
   "wallet.nfc.scanned": "Η κάρτα σαρώθηκε",
   "wallet.nfc.scannedDesc": "UID {uid}",
-  "wallet.toast.expired": "Η συνεδρία έληξε — συνδεθείτε ξανά.",
+  "wallet.toast.expired": "Η συνεδρία έληξε, συνδεθείτε ξανά.",
   "wallet.toast.syncFailed": "Ο συγχρονισμός απέτυχε.",
-  "wallet.toast.synced": "Συγχρονίστηκαν — {n} συναλλαγές",
+  "wallet.toast.synced": "Συγχρονίστηκαν · {n} συναλλαγές",
 
   "auth.title": "Συνδεθείτε για να συνεχίσετε",
   "auth.subtitle": "Θα σας στείλουμε email με 8ψήφιο κωδικό. Χωρίς κωδικό πρόσβασης.",
@@ -121,5 +122,4 @@ export const wallet: Record<keyof typeof walletEn, string> = {
   "auth.useDifferentEmail": "Χρήση άλλου email",
   "auth.errSend": "Αδυναμία αποστολής κωδικού",
   "auth.errVerify": "Άκυρος ή ληγμένος κωδικός",
-
 };

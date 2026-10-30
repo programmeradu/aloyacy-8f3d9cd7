@@ -79,11 +79,11 @@ export function useNearbyStops(coords: { lat: number; lng: number }, count = 5) 
         })
         .slice(0, 3)
         .map((a) => ({
-          code: getRoute(a.routeId)?.short ?? "—",
+          code: getRoute(a.routeId)?.short ?? "-",
           tone: routeTone(a.routeId),
           headsign: a.headsign,
         }));
-      if (routes.length === 0) routes.push({ code: "—", tone: "olive" as const, headsign: null });
+      if (routes.length === 0) routes.push({ code: "-", tone: "olive" as const, headsign: null });
 
       return {
         id: s.id,

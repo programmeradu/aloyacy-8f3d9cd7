@@ -45,9 +45,9 @@ type PlanShare = {
 export const Route = createFileRoute("/plan/$token")({
   head: ({ params }) => {
     const token = String(params.token || "");
-    const title = "A trip plan — Aloya";
+    const title = "A trip plan · Aloya";
     const desc =
-      "Someone shared a Cyprus bus plan with you. Meeting point, bus, timing — open before you leave.";
+      "Someone shared a Cyprus bus plan with you. Meeting point, bus, timing, open before you leave.";
     // Dynamic per-plan PNG (rasterized from our brand SVG on the Worker).
     // Minute-bucket cache-buster nudges platforms that key by URL to re-scrape.
     const bucket = Math.floor(Date.now() / 60_000);
@@ -69,7 +69,7 @@ export const Route = createFileRoute("/plan/$token")({
         { property: "og:image:type", content: "image/png" },
         {
           property: "og:image:alt",
-          content: "Shared trip plan preview — from, to, departure, bus and journey",
+          content: "Shared trip plan preview, from, to, departure, bus and journey",
         },
         { property: "og:updated_time", content: String(bucket * 60) },
         { name: "twitter:card", content: "summary_large_image" },
@@ -355,7 +355,7 @@ function LegRow({ leg }: { leg: Leg }) {
     return (
       <div className="flex items-start gap-3">
         <span className="mt-0.5 inline-flex min-w-[44px] items-center justify-center rounded-lg bg-aegean-deep px-2 py-1 font-mono text-[13px] font-bold text-limestone tabular-nums">
-          {leg.routeShort ?? "—"}
+          {leg.routeShort ?? "-"}
         </span>
         <div className="min-w-0 flex-1">
           <p className="font-sans text-[14px] font-semibold text-ink text-pretty">
@@ -364,7 +364,7 @@ function LegRow({ leg }: { leg: Leg }) {
             {leg.alight?.name?.split(",")[0] ?? ""}
           </p>
           <p className="mt-0.5 font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
-            {dep} – {arr}
+            {dep} · {arr}
             {typeof leg.stopCount === "number" ? ` · ${leg.stopCount} stops` : ""}
           </p>
         </div>

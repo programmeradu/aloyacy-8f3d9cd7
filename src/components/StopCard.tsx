@@ -125,7 +125,7 @@ export function StopCard({ stop }: { stop: Stop }) {
         <div className="flex flex-col items-end gap-1">
           {displayMin === null ? (
             <>
-              <span className={`font-display text-5xl leading-none ${accent}`}>—</span>
+              <span className={`font-display text-5xl leading-none ${accent}`}>-</span>
               <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/70 text-right max-w-[7rem]">
                 {isGhost ? t("eta.tier.ghost") : t("stopCard.noLiveBus")}
               </span>

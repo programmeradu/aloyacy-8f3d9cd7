@@ -95,7 +95,7 @@ export function LiveWalkBanner({
               {title}
             </p>
             <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-limestone/60 tabular-nums">
-              {fmtMeters(projection.metersToDestination)} — {fmtEta(etaSec)}
+              {fmtMeters(projection.metersToDestination)} · {fmtEta(etaSec)}
             </p>
           </div>
 

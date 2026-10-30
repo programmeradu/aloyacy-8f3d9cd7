@@ -35,7 +35,7 @@ describe("taxiQuoteFromDrive", () => {
     ).toBeNull();
   });
 
-  it("does not invent a euro from a haversine — needs meters and seconds", () => {
+  it("does not invent a euro from a haversine, needs meters and seconds", () => {
     const q = taxiQuoteFromDrive(drive, false);
     expect(q).not.toBeNull();
     expect(q!.driveMin).toBe(7);
@@ -59,8 +59,8 @@ describe("taxiQuoteFromDrive", () => {
 
 describe("formatTaxiBand", () => {
   it("prints a 50c band, whole euros from 10", () => {
-    expect(formatTaxiBand(5, 6.5)).toBe("€5–€6.5");
-    expect(formatTaxiBand(28, 38)).toBe("€28–€38");
+    expect(formatTaxiBand(5, 6.5)).toBe("€5 to €6.5");
+    expect(formatTaxiBand(28, 38)).toBe("€28 to €38");
   });
 });
 
@@ -86,12 +86,12 @@ describe("pickTaxiBail", () => {
     const hit = pickTaxiBail(base);
     expect(hit?.kind).toBe("taxi");
     expect(taxiBailLine(hit!)).toBe(
-      "Taxi to Home in 7 min, €5–€6.5. Bus 31 is about 22 min if it shows.",
+      "Taxi to Home in 7 min, €5 to €6.5. Bus 31 is about 22 min if it shows.",
     );
     expect(taxiBailLine(hit!)).not.toMatch(/haversine|luggage|RAPTOR/i);
   });
 
-  it("stays quiet when a walk is possible — we do not sell a taxi over a walk", () => {
+  it("stays quiet when a walk is possible, we do not sell a taxi over a walk", () => {
     expect(pickTaxiBail({ ...base, walkPossible: true })).toBeNull();
   });
 

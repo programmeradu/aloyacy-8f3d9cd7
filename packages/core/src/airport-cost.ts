@@ -114,12 +114,13 @@ export function doorFromItinerary(
 }
 
 export function coachDoorLine(way: AirportCoachWay, cost: DoorCost): string {
-  const fare = cost.fareEur != null ? formatEur(cost.fareEur) : way.priceFrom ?? "price unpublished";
+  const fare =
+    cost.fareEur != null ? formatEur(cost.fareEur) : (way.priceFrom ?? "price unpublished");
   const wait = `${cost.waitMin} min wait`;
   if (cost.walkMin != null && cost.walkMin > 0) {
-    return `Coach to ${way.destinationCity} at ${way.depart} — ${fare}, ${wait}, ${cost.walkMin} min walk.`;
+    return `Coach to ${way.destinationCity} at ${way.depart} · ${fare}, ${wait}, ${cost.walkMin} min walk.`;
   }
-  return `Coach to ${way.destinationCity} at ${way.depart} — ${fare}, ${wait}.`;
+  return `Coach to ${way.destinationCity} at ${way.depart} · ${fare}, ${wait}.`;
 }
 
 export function cityBusDoorLine(input: {

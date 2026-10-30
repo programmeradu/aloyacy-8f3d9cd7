@@ -27,7 +27,7 @@ import { useLocationControl } from "./useLocationControl";
 
 const PICK_KEY = "aloya:home-stop";
 /** Attribution sits under the header chips, clear of the card and tab bar. */
-const NOW_ATTRIB_TOP = "calc(var(--r-safe-top) + 128px)";
+const NOW_ATTRIB_TOP = "calc(var(--r-safe-top) + 152px)";
 /** Larnaca International Airport (LCA), public coordinates. */
 const LCA = { lat: 34.8751, lng: 33.6249, label: "Larnaca Airport" };
 
@@ -134,7 +134,7 @@ export function RoamNow() {
       : null;
   const linesAtStop = useMemo(() => {
     const st = stops.find((s) => s.id === cardStopId);
-    const n = st ? new Set(st.routes.map((x) => x.code).filter((c) => c !== "—")).size : 0;
+    const n = st ? new Set(st.routes.map((x) => x.code).filter((c) => c !== "-")).size : 0;
     return Math.max(n, 1);
   }, [stops, cardStopId]);
   const walkM =

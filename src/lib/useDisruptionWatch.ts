@@ -72,7 +72,7 @@ export function useDisruptionWatch(
         kind: "vehicle-lost-feed",
         slipMin: 0,
         title: "Live tracking interrupted",
-        body: "We've lost the bus from the live feed. We'll keep estimating from your phone — alerts may run a moment late.",
+        body: "We've lost the bus from the live feed. We'll keep estimating from your phone, alerts may run a moment late.",
         suggestReplan: false,
       };
     }
@@ -146,7 +146,7 @@ export function useDisruptionWatch(
           title: `Running ${slipMin} min late`,
           body: suggestReplan
             ? "This may put your next connection at risk. Want to look at a faster route?"
-            : `You'll reach ${active.to.label} a bit later than planned. Sit tight — we're tracking it.`,
+            : `You'll reach ${active.to.label} a bit later than planned. Sit tight, we're tracking it.`,
           suggestReplan,
         };
       }

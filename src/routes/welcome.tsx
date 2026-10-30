@@ -19,7 +19,7 @@ export const Route = createFileRoute("/welcome")({
       { title: "Welcome to Aloya" },
       {
         name: "description",
-        content: "A short, calm welcome to Aloya — the smarter way to ride Cyprus buses.",
+        content: "A short, calm welcome to Aloya, the smarter way to ride Cyprus buses.",
       },
     ],
     links: [{ rel: "canonical", href: "https://app.aloya.cy/" }],

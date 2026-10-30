@@ -249,5 +249,5 @@ function editorialSummary(warnings: Warning[], top: Warning["level"] | null): st
   const first = warnings.find((w) => w.level === top)!;
   const label =
     top === "red" ? "Red alert" : top === "orange" ? "Orange warning" : "Yellow advisory";
-  return `${label} in effect — ${first.headline.replace(/\s+/g, " ").slice(0, 110)}`;
+  return `${label} in effect · ${first.headline.replace(/\s+/g, " ").slice(0, 110)}`;
 }

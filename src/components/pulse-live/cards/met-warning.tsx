@@ -30,7 +30,7 @@ export function MetWarningCard({
         {(isEl ? "Προειδοποίηση Καιρού · " : "Weather warning · ") + levelLabel}
       </p>
       <h3 className="font-display text-[17px] leading-tight text-ink text-balance">
-        {w.summary || `${w.kind} — ${w.area}`}
+        {w.summary || `${w.kind} · ${w.area}`}
       </h3>
       {payload.count > 1 && (
         <p className="mt-2 font-eyebrow text-[9.5px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">

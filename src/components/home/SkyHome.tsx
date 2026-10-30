@@ -156,9 +156,24 @@ export function SkyHome() {
       <div className="sky-col">
         <div className="sky-art" aria-hidden="true">
           <picture className="sky-bg">
-            <source type="image/avif" srcSet="/home/sky-dawn-600.avif 600w, /home/sky-dawn-704.avif 704w" sizes="(max-width: 430px) 100vw, 430px" />
-            <source type="image/webp" srcSet="/home/sky-dawn-600.webp 600w, /home/sky-dawn-704.webp 704w" sizes="(max-width: 430px) 100vw, 430px" />
-            <img src="/home/sky-dawn-600.webp" alt="" width={600} height={936} fetchPriority="high" decoding="async" />
+            <source
+              type="image/avif"
+              srcSet="/home/sky-dawn-600.avif 600w, /home/sky-dawn-704.avif 704w"
+              sizes="(max-width: 430px) 100vw, 430px"
+            />
+            <source
+              type="image/webp"
+              srcSet="/home/sky-dawn-600.webp 600w, /home/sky-dawn-704.webp 704w"
+              sizes="(max-width: 430px) 100vw, 430px"
+            />
+            <img
+              src="/home/sky-dawn-600.webp"
+              alt=""
+              width={600}
+              height={936}
+              fetchPriority="high"
+              decoding="async"
+            />
           </picture>
           <div className="sky-shade" />
         </div>
@@ -169,9 +184,21 @@ export function SkyHome() {
             <div className="sky-top">
               <span className="sky-wm">aloya</span>
               <div className="sky-tr">
-                <div className="g sky-chip tnum" role="img" aria-label={mounted && weather ? t("sky.weatherAria", { temp: Math.round(weather.tempC) }) : t("sky.weatherLoading")}>
-                  {wx ? <Ph name={wx.name} size={18} style={{ color: wx.color }} /> : <span className="sky-sk" style={{ width: 18, height: 18, borderRadius: 9 }} />}
-                  {mounted && weather ? `${Math.round(weather.tempC)}°` : "—°"}
+                <div
+                  className="g sky-chip tnum"
+                  role="img"
+                  aria-label={
+                    mounted && weather
+                      ? t("sky.weatherAria", { temp: Math.round(weather.tempC) })
+                      : t("sky.weatherLoading")
+                  }
+                >
+                  {wx ? (
+                    <Ph name={wx.name} size={18} style={{ color: wx.color }} />
+                  ) : (
+                    <span className="sky-sk" style={{ width: 18, height: 18, borderRadius: 9 }} />
+                  )}
+                  {mounted && weather ? `${Math.round(weather.tempC)}°` : " · °"}
                 </div>
                 <div className="g sky-seg" role="group" aria-label={t("sky.langAria")}>
                   {LOCALES.map((l) => (
@@ -209,11 +236,24 @@ export function SkyHome() {
           />
 
           <div className="g sky-srch">
-            <button type="button" className="q" onClick={() => setSheet({ mode: "search", voice: false })}>
-              <Ph name="search" size={20} style={{ color: "rgba(255,255,255,.85)", marginRight: 10, flex: "none" }} />
+            <button
+              type="button"
+              className="q"
+              onClick={() => setSheet({ mode: "search", voice: false })}
+            >
+              <Ph
+                name="search"
+                size={20}
+                style={{ color: "rgba(255,255,255,.85)", marginRight: 10, flex: "none" }}
+              />
               {t("sky.search.placeholder")}
             </button>
-            <button type="button" className="sky-mic" aria-label={t("sky.search.mic")} onClick={() => setSheet({ mode: "search", voice: true })}>
+            <button
+              type="button"
+              className="sky-mic"
+              aria-label={t("sky.search.mic")}
+              onClick={() => setSheet({ mode: "search", voice: true })}
+            >
               <Ph name="mic" size={20} />
             </button>
           </div>
@@ -230,7 +270,10 @@ export function SkyHome() {
                     className="g sky-nt"
                     aria-label={t("sky.near.aria", { line: tile.line, dest: tile.dest, eta })}
                   >
-                    <span className="sky-ln" style={{ background: tile.color, color: badgeInk(tile.color) }}>
+                    <span
+                      className="sky-ln"
+                      style={{ background: tile.color, color: badgeInk(tile.color) }}
+                    >
                       {tile.line}
                     </span>
                     <span className="c">
@@ -240,7 +283,11 @@ export function SkyHome() {
                         {tile.live ? ` · ${t("sky.near.live")}` : ""}
                       </span>
                     </span>
-                    <Ph name="caret" size={14} style={{ color: "rgba(255,255,255,.5)", flex: "none" }} />
+                    <Ph
+                      name="caret"
+                      size={14}
+                      style={{ color: "rgba(255,255,255,.5)", flex: "none" }}
+                    />
                   </Link>
                 );
               })}
@@ -257,19 +304,33 @@ export function SkyHome() {
                 {stops.map((s) => {
                   const live = s.etaTier === "live" || s.etaTier === "rider-confirmed";
                   return (
-                    <Link key={s.id} to="/stop/$stopId" params={{ stopId: s.id }} className="sky-row">
+                    <Link
+                      key={s.id}
+                      to="/stop/$stopId"
+                      params={{ stopId: s.id }}
+                      className="sky-row"
+                    >
                       <span className="n">
                         <b>{s.name}</b>
                         <small>
-                          {s.routes.map((r) => r.code).filter((c) => c !== "—").join(" · ") || s.towards}
-                          {s.routes.some((r) => r.code !== "—") ? ` · ${s.towards}` : ""}
+                          {s.routes
+                            .map((r) => r.code)
+                            .filter((c) => c !== "-")
+                            .join(" · ") || s.towards}
+                          {s.routes.some((r) => r.code !== "-") ? ` · ${s.towards}` : ""}
                         </small>
                       </span>
                       <span className={`e tnum${live ? " lv" : ""}`}>
-                        {s.etaMin != null ? `${s.etaMin}′` : "—"}
-                        {s.etaMin != null ? <small>{live ? t("sky.near.live") : t("sky.card.scheduled")}</small> : null}
+                        {s.etaMin != null ? `${s.etaMin}′` : "-"}
+                        {s.etaMin != null ? (
+                          <small>{live ? t("sky.near.live") : t("sky.card.scheduled")}</small>
+                        ) : null}
                       </span>
-                      <Ph name="caret" size={14} style={{ color: "rgba(255,255,255,.5)", flex: "none" }} />
+                      <Ph
+                        name="caret"
+                        size={14}
+                        style={{ color: "rgba(255,255,255,.5)", flex: "none" }}
+                      />
                     </Link>
                   );
                 })}

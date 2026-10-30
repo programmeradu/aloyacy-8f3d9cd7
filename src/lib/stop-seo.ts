@@ -130,7 +130,7 @@ export function stopHead(
   const stop = getStop(stopId);
   const name = stop?.name?.trim() || `Stop ${stopId}`;
   const index = facts ? stopIndexable(facts) : false;
-  const title = `${name} — live bus departures | Aloya`;
+  const title = `${name}, live bus departures | Aloya`;
   const desc = stop
     ? `Live departures, routes and what we actually know about ${name} in Cyprus.`
     : `Live departures for stop ${stopId} in Cyprus.`;

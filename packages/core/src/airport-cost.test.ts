@@ -67,7 +67,7 @@ describe("destJobLines", () => {
         fareEur: BOARDING_PAY.urban.motionEur,
       },
     });
-    expect(lines[0]).toBe(`Coach to Nicosia at 14:20 — €8, ${wait} min wait, 8 min walk.`);
+    expect(lines[0]).toBe(`Coach to Nicosia at 14:20 · €8, ${wait} min wait, 8 min walk.`);
     expect(lines[1]).toBe(cityBusDoorLine({
       routeShort: "456",
       fareEur: 2.0,

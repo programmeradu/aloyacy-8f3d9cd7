@@ -88,7 +88,7 @@ export function StopReliabilityStrip({
           <span
             className={`font-display text-[20px] leading-none tabular-nums -tracking-[0.02em] ${tone.num}`}
           >
-            {rated ? r.onTimePct : "—"}
+            {rated ? r.onTimePct : "-"}
           </span>
           {rated && (
             <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-ink-soft mt-0.5">

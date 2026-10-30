@@ -31,7 +31,7 @@ function fmtHourBand(hour: number): string {
   const h = ((hour % 24) + 24) % 24;
   const next = (h + 1) % 24;
   const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${pad(h)}:00–${pad(next)}:00`;
+  return `${pad(h)}:00 · ${pad(next)}:00`;
 }
 
 function fmtDelay(sec: number, t: TFn) {
@@ -145,7 +145,7 @@ export function IntercityPatternsCard({ insights, isLoading }: Props) {
               {t("intercity.weekday")}
             </span>
             <p className="mt-1.5 font-display text-[22px] leading-none text-ink">
-              {weekdayMeanDelaySec === null ? "—" : fmtDelay(weekdayMeanDelaySec, t as TFn)}
+              {weekdayMeanDelaySec === null ? "-" : fmtDelay(weekdayMeanDelaySec, t as TFn)}
             </p>
           </div>
           <div>
@@ -153,7 +153,7 @@ export function IntercityPatternsCard({ insights, isLoading }: Props) {
               {t("intercity.weekend")}
             </span>
             <p className="mt-1.5 font-display text-[22px] leading-none text-ink">
-              {weekendMeanDelaySec === null ? "—" : fmtDelay(weekendMeanDelaySec, t as TFn)}
+              {weekendMeanDelaySec === null ? "-" : fmtDelay(weekendMeanDelaySec, t as TFn)}
             </p>
             {weekendDelta !== null && Math.abs(weekendDelta) >= 60 && (
               <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">

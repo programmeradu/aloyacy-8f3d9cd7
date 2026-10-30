@@ -321,19 +321,19 @@ describe("tickWaitFlip", () => {
 describe("destBailFlipLine", () => {
   it("names Bus N and the walk, with no euro, luggage, or other-route", () => {
     const toWalk = destBailFlipLine({ from: keep, to: walk });
-    expect(toWalk).toBe("Bus 31 is now 14 min if it shows. Walking is 8 min — walk.");
+    expect(toWalk).toBe("Bus 31 is now 14 min if it shows. Walking is 8 min, walk.");
     const toWait = destBailFlipLine({ from: walk, to: keep });
-    expect(toWait).toBe("Bus 31 is about 9 min if it shows. Walking is 8 min — wait.");
+    expect(toWait).toBe("Bus 31 is about 9 min if it shows. Walking is 8 min, wait.");
     const copy = destBailFlipCopy({ from: keep, to: walk });
     expect(copy.title).toBe("Walk to Home");
     expect(copy.body).toBe(toWalk);
     expect(destBailFlipCopy({ from: walk, to: keep }).title).toBe("Keep waiting for Bus 31");
     expect(`${toWalk} ${toWait}`).not.toMatch(/€|luggage|last.?coach|exact change|leaves in/i);
     expect(destBailEn["ml.destBail.flipWalk"]).toBe(
-      "Bus {route} is now {wait} min if it shows. Walking is {walk} min — walk.",
+      "Bus {route} is now {wait} min if it shows. Walking is {walk} min, walk.",
     );
     expect(destBailEn["ml.destBail.flipWait"]).toBe(
-      "Bus {route} is about {wait} min if it shows. Walking is {walk} min — wait.",
+      "Bus {route} is about {wait} min if it shows. Walking is {walk} min, wait.",
     );
   });
 });

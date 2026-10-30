@@ -230,7 +230,7 @@ export function ProxyUsagePanel() {
                 <td className="px-3 py-2 font-mono max-w-[16rem] truncate" title={r.model_id}>
                   {shortModelName(r.model_id)}
                 </td>
-                <td className="px-3 py-2 font-mono">····{r.access_key_hint ?? "—"}</td>
+                <td className="px-3 py-2 font-mono">····{r.access_key_hint ?? "-"}</td>
                 <td className="px-3 py-2 text-right font-mono">{compact(r.input_tokens)}</td>
                 <td className="px-3 py-2 text-right font-mono">{compact(r.output_tokens)}</td>
                 <td className="px-3 py-2 text-right font-mono">{compact(r.latency_ms)}</td>

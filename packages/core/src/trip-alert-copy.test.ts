@@ -82,7 +82,7 @@ describe("buildTripAlertCopy", () => {
       flipTo: "walk",
     });
     expect(c.title).toBe("Walk to Home");
-    expect(c.body).toBe("Bus 31 is now 14 min if it shows. Walking is 8 min — walk.");
+    expect(c.body).toBe("Bus 31 is now 14 min if it shows. Walking is 8 min, walk.");
     expect(c.body).not.toMatch(/€|luggage|leaves in/i);
     const wait = buildTripAlertCopy({
       kind: "wait-flip",
@@ -92,7 +92,7 @@ describe("buildTripAlertCopy", () => {
       flipTo: "keepWait",
     });
     expect(wait.title).toBe("Keep waiting for Bus 31");
-    expect(wait.body).toContain("— wait.");
+    expect(wait.body).toContain(", wait.");
     const missing = buildTripAlertCopy({ kind: "wait-flip", routeShort: "31" });
     expect(missing.title).toBe("Walk or wait changed");
     expect(missing.body).not.toMatch(/\d+ min/);

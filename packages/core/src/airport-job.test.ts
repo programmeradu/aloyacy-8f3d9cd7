@@ -53,7 +53,7 @@ describe("buildAirportJob", () => {
     expect(job.coaches).toEqual([]);
   });
 
-  it("skips a ghost city bus — that is not a way out", () => {
+  it("skips a ghost city bus, that is not a way out", () => {
     const job = buildAirportJob({
       coachLines: [],
       cityBus: { routeShort: "425", etaMin: 4, ghost: true },
@@ -78,7 +78,7 @@ describe("airport way copy", () => {
       coachLines: [coach("Nicosia", "14:20", 12, { price: "€8" })],
       cityBus: { routeShort: "425", etaMin: 6 },
     });
-    expect(coachJobLine(job.nextCoach!)).toBe("Coach to Nicosia at 14:20 — 12 seats, from €8.");
+    expect(coachJobLine(job.nextCoach!)).toBe("Coach to Nicosia at 14:20 · 12 seats, from €8.");
     expect(cityBusJobLine(job.cityBus!)).toBe("Bus 425 in 6 min. Tap Motion €2.00.");
     expect(formatEur(BOARDING_PAY.urban.motionEur, true)).toBe("€2.00");
     expect(TAXI_JOB_LINE).toBe(
@@ -87,14 +87,14 @@ describe("airport way copy", () => {
     expect(TAXI_JOB_LINE).not.toMatch(/€/);
     const lines = airportWayRows(job).map((r) => r.line);
     expect(lines).toEqual([
-      "Coach to Nicosia at 14:20 — 12 seats, from €8.",
+      "Coach to Nicosia at 14:20 · 12 seats, from €8.",
       "Bus 425 in 6 min. Tap Motion €2.00.",
       TAXI_JOB_LINE,
     ]);
     expect(lines.join(" ")).not.toMatch(/luggage|last coach|exact change|wait/i);
     expect(airportEn["airport.taxi"]).toBe(TAXI_JOB_LINE);
     expect(airportEn["airport.cityBus"]).toBe("Bus {route} in {min} min. Tap Motion {fare}.");
-    expect(airportEn["airport.coach"]).toBe("Coach to {city} at {depart} — {detail}.");
+    expect(airportEn["airport.coach"]).toBe("Coach to {city} at {depart} · {detail}.");
   });
 
   it("says sold out without a price, and now when the bus is due", () => {
@@ -102,7 +102,7 @@ describe("airport way copy", () => {
       coachLines: [coach("Limassol", "15:00", 0)],
       cityBus: { routeShort: "612", etaMin: 0 },
     });
-    expect(coachJobLine(job.nextCoach!)).toBe("Coach to Limassol at 15:00 — Sold out.");
+    expect(coachJobLine(job.nextCoach!)).toBe("Coach to Limassol at 15:00 · Sold out.");
     expect(cityBusJobLine(job.cityBus!)).toBe("Bus 612 now. Tap Motion €2.00.");
   });
 

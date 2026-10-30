@@ -150,7 +150,7 @@ export function useNextBus(opts: {
             stopLng: s.lng,
             tripId: next.tripId,
             routeId: next.routeId,
-            line: route?.short ?? "—",
+            line: route?.short ?? "-",
             color: colorOf(next.routeId),
             dest,
             via: viaFromLongName(route?.long, dest),
@@ -178,7 +178,7 @@ export function useNextBus(opts: {
         tileCands.push({
           stopId: s.id,
           routeId: a.routeId,
-          line: getRoute(a.routeId)?.short ?? "—",
+          line: getRoute(a.routeId)?.short ?? "-",
           color: colorOf(a.routeId),
           dest:
             getHeadsignSync(a.tripId, a.routeId) ??
@@ -247,7 +247,7 @@ export function useNextBus(opts: {
           stopLng: s.lng,
           tripId: next.tripId,
           routeId: next.routeId,
-          line: route?.short ?? "—",
+          line: route?.short ?? "-",
           color: colorOf(next.routeId),
           dest,
           via: viaFromLongName(route?.long, dest),

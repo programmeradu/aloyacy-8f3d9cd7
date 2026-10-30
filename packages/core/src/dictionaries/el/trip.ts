@@ -8,14 +8,14 @@ export const trip: Record<keyof typeof tripEn, string> = {
   "trip.endTrip": "Τερματισμός",
   "trip.ended.title": "Η διαδρομή τελείωσε",
   "trip.ended.body":
-    "Επιστρέψατε στον σχεδιαστή. Επιλέξτε αφετηρία και προορισμό για νέα διαδρομή — θα σας οδηγήσουμε από πόρτα σε πόρτα με ζωντανές αντίστροφες μετρήσεις και διακριτικό μήνυμα όταν είναι ώρα να κατέβετε.",
+    "Επιστρέψατε στον σχεδιαστή. Επιλέξτε αφετηρία και προορισμό για νέα διαδρομή, θα σας οδηγήσουμε από πόρτα σε πόρτα με ζωντανές αντίστροφες μετρήσεις και διακριτικό μήνυμα όταν είναι ώρα να κατέβετε.",
   "trip.planNew": "Νέα διαδρομή",
   "trip.yourJourney": "Η διαδρομή σας",
   "trip.minTotal": "{m} λεπ. συνολικά",
   "trip.walkToStopH": "Περπάτημα στη στάση",
   "trip.walkToDestH": "Περπάτημα στον προορισμό",
   "trip.walkToName": "Περπάτημα προς {name}",
-  "trip.walkMeters": "{m} λεπ — {d} μ",
+  "trip.walkMeters": "{m} λεπ · {d} μ",
   "trip.boardBusPrefix": "Επιβίβαση",
   "trip.boardBusName": "ΛΕΩΦ {code}",
   "trip.alightAt": "Αποβίβαση στη {name}",
@@ -48,7 +48,7 @@ export const trip: Record<keyof typeof tripEn, string> = {
   "trip.sub.alightSoon": "Πατήστε το κουμπί. Μετά {m} λεπ με τα πόδια προς {name}.",
   "trip.sub.arrived": "Είστε {m} λεπ από {name}. Προσέξτε τον δρόμο.",
   "trip.alight.press": "Πατήστε το κουμπί στάσης τώρα",
-  "trip.alight.getReady": "Ετοιμαστείτε — {m} λεπ",
+  "trip.alight.getReady": "Ετοιμαστείτε · {m} λεπ",
   "trip.alight.body.now":
     "Πατήστε το κουμπί, πηγαίνετε προς τις πόρτες. Θα σας καθοδηγήσουμε βήμα-βήμα προς {name} μόλις κατέβετε.",
   "trip.alight.body.soon":
@@ -56,7 +56,7 @@ export const trip: Record<keyof typeof tripEn, string> = {
 
   "alight.eyebrow": "Κατέβηκες νωρίς",
   "alight.title": "Να μερικές νέες επιλογές από εκεί που είστε.",
-  "alight.empty": "Δεν βρέθηκαν λεωφορεία — το καλύτερο είναι να συνεχίσετε με τα πόδια.",
+  "alight.empty": "Δεν βρέθηκαν λεωφορεία, το καλύτερο είναι να συνεχίσετε με τα πόδια.",
 
   "walk.tapToLook": "Πατήστε για περιήγηση",
   "walk.then": "Μετά",

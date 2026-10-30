@@ -344,7 +344,7 @@ function buildText(ctx: PlanCardCtx): string {
   lines.push(el ? `Από ${ctx.originLabel}` : `From ${ctx.originLabel}`);
   const dep = fmtHM(ctx.departureUnix, ctx.locale);
   const arr = fmtHM(ctx.arrivalUnix, ctx.locale);
-  lines.push(el ? `Αναχώρηση ${dep} — Άφιξη ${arr}` : `Depart ${dep} — Arrive ${arr}`);
+  lines.push(el ? `Αναχώρηση ${dep} · Άφιξη ${arr}` : `Depart ${dep} · Arrive ${arr}`);
   if (ctx.routeShort) {
     lines.push(el ? `Λεωφορείο ${ctx.routeShort}` : `Bus ${ctx.routeShort}`);
   }

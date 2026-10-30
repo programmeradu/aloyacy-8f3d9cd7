@@ -121,7 +121,7 @@ export function coachJobDetail(way: AirportCoachWay): string {
 }
 
 export function coachJobLine(way: AirportCoachWay): string {
-  return `Coach to ${way.destinationCity} at ${way.depart} — ${coachJobDetail(way)}.`;
+  return `Coach to ${way.destinationCity} at ${way.depart} · ${coachJobDetail(way)}.`;
 }
 
 export function cityBusJobLine(way: AirportCityBusWay): string {

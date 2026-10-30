@@ -13,42 +13,43 @@ export const RHYTHM: Record<string, Record<number, RhythmNote>> = {
     1: {
       title: "Office Monday",
       titleEl: "Δευτέρα γραφείων",
-      detail: "Routes 158 and 259 heaviest 07:30–08:30 and 16:30–18:00 around the ministries.",
+      detail:
+        "Routes 158 and 259 heaviest 07:30 to 08:30 and 16:30 to 18:00 around the ministries.",
       detailEl:
-        "Οι γραμμές 158 και 259 φορτώνουν 07:30–08:30 και 16:30–18:00 γύρω από τα υπουργεία.",
+        "Οι γραμμές 158 και 259 φορτώνουν 07:30 to 08:30 και 16:30 to 18:00 γύρω από τα υπουργεία.",
     },
     2: {
       title: "Market morning",
       titleEl: "Πρωινό λαϊκής",
       detail:
-        "Ochi Square farmers' stalls bring foot traffic 08:00–13:00. Park-and-ride from Pallouriotissa.",
-      detailEl: "Πάγκοι παραγωγών στην Πλατεία Ελευθερίας 08:00–13:00.",
+        "Ochi Square farmers' stalls bring foot traffic 08:00 to 13:00. Park-and-ride from Pallouriotissa.",
+      detailEl: "Πάγκοι παραγωγών στην Πλατεία Ελευθερίας 08:00 to 13:00.",
     },
     3: {
       title: "Midweek calm",
       titleEl: "Μεσοβδόμαδη ηρεμία",
       detail:
-        "Steady all day. Cafés around Faneromeni busy after 19:00 — bus 158 still the smoothest in.",
+        "Steady all day. Cafés around Faneromeni busy after 19:00, bus 158 still the smoothest in.",
       detailEl: "Σταθερή κίνηση. Καφέ γύρω από τη Φανερωμένη μετά τις 19:00.",
     },
     4: {
       title: "Thursday students",
       titleEl: "Πέμπτη φοιτητών",
-      detail: "UCY and EUC let out around 14:00 — expect crowded 121 and 138 across the river.",
-      detailEl: "Πανεπιστήμιο και ΕΠΛ σχολούν 14:00 — φορτωμένες οι 121 και 138.",
+      detail: "UCY and EUC let out around 14:00, expect crowded 121 and 138 across the river.",
+      detailEl: "Πανεπιστήμιο και ΕΠΛ σχολούν 14:00, φορτωμένες οι 121 και 138.",
     },
     5: {
       title: "Friday night out",
       titleEl: "Παρασκευή έξω",
       detail:
-        "Old town tavernas fill from 20:00. Last city buses thin out — plan the return by 22:30.",
+        "Old town tavernas fill from 20:00. Last city buses thin out, plan the return by 22:30.",
       detailEl: "Ταβέρνες στην παλιά πόλη γεμάτες από 20:00. Τελευταία αστικά μετά τις 22:30.",
     },
     6: {
       title: "Saturday brunch",
       titleEl: "Σαββατιάτικο brunch",
-      detail: "Strovolos and Engomi cafés rammed 10:00–13:00. Centre quieter than weekdays.",
-      detailEl: "Καφέ σε Στρόβολο και Έγκωμη γεμάτα 10:00–13:00.",
+      detail: "Strovolos and Engomi cafés rammed 10:00 to 13:00. Centre quieter than weekdays.",
+      detailEl: "Καφέ σε Στρόβολο και Έγκωμη γεμάτα 10:00 to 13:00.",
     },
   },
   Limassol: {
@@ -62,26 +63,26 @@ export const RHYTHM: Record<string, Record<number, RhythmNote>> = {
     1: {
       title: "Port Monday",
       titleEl: "Δευτέρα στο λιμάνι",
-      detail: "Old port quiet by morning; new marina lunch rush 12:30–14:00.",
-      detailEl: "Παλιό λιμάνι ήσυχο το πρωί· νέα μαρίνα γεμάτη 12:30–14:00.",
+      detail: "Old port quiet by morning; new marina lunch rush 12:30 to 14:00.",
+      detailEl: "Παλιό λιμάνι ήσυχο το πρωί· νέα μαρίνα γεμάτη 12:30 to 14:00.",
     },
     2: {
       title: "Midweek waterfront",
       titleEl: "Μεσοβδόμαδη παραλιακή",
-      detail: "Promenade joggers at sunrise; tourist coaches block the seafront 11:00–13:00.",
-      detailEl: "Δρομείς στην παραλιακή με την ανατολή· τουριστικά πούλμαν 11:00–13:00.",
+      detail: "Promenade joggers at sunrise; tourist coaches block the seafront 11:00 to 13:00.",
+      detailEl: "Δρομείς στην παραλιακή με την ανατολή· τουριστικά πούλμαν 11:00 to 13:00.",
     },
     3: {
       title: "Quiet midweek",
       titleEl: "Ήσυχη μεσοβδόμαδη",
-      detail: "Routes flow well all day — the easiest Limassol day to get around.",
-      detailEl: "Όλες οι γραμμές κυλούν — η πιο εύκολη μέρα.",
+      detail: "Routes flow well all day, the easiest Limassol day to get around.",
+      detailEl: "Όλες οι γραμμές κυλούν, η πιο εύκολη μέρα.",
     },
     4: {
       title: "Pre-weekend",
       titleEl: "Παραμονή Σαββατοκύριακου",
-      detail: "Bar street fills early — by 21:00 the old town walking is faster than driving.",
-      detailEl: "Στενά μπαρ γεμάτα νωρίς — μετά τις 21:00 το περπάτημα νικά το αυτοκίνητο.",
+      detail: "Bar street fills early, by 21:00 the old town walking is faster than driving.",
+      detailEl: "Στενά μπαρ γεμάτα νωρίς, μετά τις 21:00 το περπάτημα νικά το αυτοκίνητο.",
     },
     5: {
       title: "Friday seafront",
@@ -93,21 +94,22 @@ export const RHYTHM: Record<string, Record<number, RhythmNote>> = {
       title: "Saturday crowd",
       titleEl: "Σαββατιάτικη συγκέντρωση",
       detail: "Old port to castle is one slow stream of strollers between 18:00 and 23:00.",
-      detailEl: "Από το παλιό λιμάνι ως το κάστρο ένα συνεχές ρεύμα κόσμου 18:00–23:00.",
+      detailEl: "Από το παλιό λιμάνι ως το κάστρο ένα συνεχές ρεύμα κόσμου 18:00 to 23:00.",
     },
   },
   Larnaca: {
     0: {
       title: "Sunday salt lake",
       titleEl: "Κυριακή στην αλυκή",
-      detail: "Promenade Phinikoudes busy 10:00–14:00, then quiet again until sunset.",
-      detailEl: "Φοινικούδες γεμάτες 10:00–14:00.",
+      detail: "Promenade Phinikoudes busy 10:00 to 14:00, then quiet again until sunset.",
+      detailEl: "Φοινικούδες γεμάτες 10:00 to 14:00.",
     },
     1: {
       title: "Airport Monday",
       titleEl: "Αεροδρόμιο Δευτέρα",
-      detail: "Shuttles to LCA peak 05:30–07:00 and 18:00–20:00. Route 425 best for early flights.",
-      detailEl: "Σαττλ προς αεροδρόμιο 05:30–07:00 και 18:00–20:00.",
+      detail:
+        "Shuttles to LCA peak 05:30 to 07:00 and 18:00 to 20:00. Route 425 best for early flights.",
+      detailEl: "Σαττλ προς αεροδρόμιο 05:30 to 07:00 και 18:00 to 20:00.",
     },
     2: {
       title: "Calm midweek",
@@ -118,7 +120,7 @@ export const RHYTHM: Record<string, Record<number, RhythmNote>> = {
     3: {
       title: "Wednesday old town",
       titleEl: "Τετάρτη στην παλιά πόλη",
-      detail: "Laiki Geitonia tavernas fill from 19:30 — Mackenzie buses run late.",
+      detail: "Laiki Geitonia tavernas fill from 19:30 · Mackenzie buses run late.",
       detailEl: "Ταβέρνες στη Λαϊκή Γειτονιά γεμάτες από 19:30.",
     },
     4: {
@@ -144,8 +146,8 @@ export const RHYTHM: Record<string, Record<number, RhythmNote>> = {
     0: {
       title: "Sunday harbour",
       titleEl: "Κυριακή στο λιμάνι",
-      detail: "Kato Paphos harbour packed 11:00–15:00. Castle photo crowd peaks at sunset.",
-      detailEl: "Λιμάνι Κάτω Πάφου γεμάτο 11:00–15:00.",
+      detail: "Kato Paphos harbour packed 11:00 to 15:00. Castle photo crowd peaks at sunset.",
+      detailEl: "Λιμάνι Κάτω Πάφου γεμάτο 11:00 to 15:00.",
     },
     1: {
       title: "Mosaics Monday",
@@ -156,7 +158,7 @@ export const RHYTHM: Record<string, Record<number, RhythmNote>> = {
     2: {
       title: "Akamas midweek",
       titleEl: "Ακάμας μεσοβδόμαδα",
-      detail: "Quietest day for Aphrodite's Baths trips — bus 622 runs comfortably.",
+      detail: "Quietest day for Aphrodite's Baths trips, bus 622 runs comfortably.",
       detailEl: "Πιο ήσυχη μέρα για Λουτρά Αφροδίτης.",
     },
     3: {
@@ -168,7 +170,7 @@ export const RHYTHM: Record<string, Record<number, RhythmNote>> = {
     4: {
       title: "Thursday tavernas",
       titleEl: "Πέμπτη ταβέρνες",
-      detail: "Geroskipou meze nights from 20:00 — book a table by 19:00.",
+      detail: "Geroskipou meze nights from 20:00, book a table by 19:00.",
       detailEl: "Μεζεδοπωλεία Γεροσκήπου από 20:00.",
     },
     5: {
@@ -180,7 +182,7 @@ export const RHYTHM: Record<string, Record<number, RhythmNote>> = {
     6: {
       title: "Saturday Coral Bay",
       titleEl: "Σαββατιάτικος Κόλπος Κοραλλίων",
-      detail: "Bus 615 packed all morning — go early or wait it out until 16:00.",
+      detail: "Bus 615 packed all morning, go early or wait it out until 16:00.",
       detailEl: "Γραμμή 615 γεμάτη όλο το πρωί.",
     },
   },
@@ -194,8 +196,8 @@ export const RHYTHM: Record<string, Record<number, RhythmNote>> = {
     1: {
       title: "Monday commute",
       titleEl: "Δευτέρα στη δουλειά",
-      detail: "Intercity buses peak 06:30–08:30. Quiet again after 09:30.",
-      detailEl: "Υπεραστικά γεμάτα 06:30–08:30.",
+      detail: "Intercity buses peak 06:30 to 08:30. Quiet again after 09:30.",
+      detailEl: "Υπεραστικά γεμάτα 06:30 to 08:30.",
     },
     2: {
       title: "Midweek calm",

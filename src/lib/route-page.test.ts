@@ -7,7 +7,7 @@ describe("routeHead", () => {
   it("noindexes a thin timetable and names the bus", () => {
     const head = routeHead("no-such-route");
     expect(head.meta.find((m) => "title" in m)).toEqual({
-      title: "Bus no-such-route — live departures | Aloya",
+      title: "Bus no-such-route, live departures | Aloya",
     });
     expect(head.meta.find((m) => "name" in m && m.name === "robots")).toMatchObject({
       content: "noindex,follow",

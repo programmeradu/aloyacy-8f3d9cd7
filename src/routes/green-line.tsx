@@ -14,13 +14,13 @@ const CANONICAL = "https://app.aloya.cy/green-line";
 export const Route = createFileRoute("/green-line")({
   head: () => ({
     meta: [
-      { title: "The Green Line — Aloya" },
+      { title: "The Green Line · Aloya" },
       {
         name: "description",
         content:
           "Aloya is the Republic of Cyprus bus network. Crossing the Green Line is named, not operated. What we know about Ledra, and what we do not.",
       },
-      { property: "og:title", content: "The Green Line — Aloya" },
+      { property: "og:title", content: "The Green Line · Aloya" },
       {
         property: "og:description",
         content: "Republic buses only. The crossing exists. We do not run it.",

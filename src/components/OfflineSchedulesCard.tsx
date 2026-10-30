@@ -94,7 +94,8 @@ export function OfflineSchedulesCard() {
           {t("offline.body", { days: DAYS_AHEAD })}
         </p>
         <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-soft/80">
-          Enables browsing all lines, stops, and scheduled runs without internet. Multi-leg route planning requires a network connection.
+          Enables browsing all lines, stops, and scheduled runs without internet. Multi-leg route
+          planning requires a network connection.
         </p>
 
         {!supported && (
@@ -135,7 +136,7 @@ export function OfflineSchedulesCard() {
               />
             </div>
             <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-              {pct}% — {progress.currentLabel}
+              {pct}% · {progress.currentLabel}
             </p>
           </div>
         )}

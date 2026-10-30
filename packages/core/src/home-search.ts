@@ -153,7 +153,7 @@ export function searchAll(raw: string, input: SearchInputs): SearchResult[] {
       id: v.id,
       tripId: v.tripId,
       routeId: v.routeId,
-      routeCode: r?.short ?? "—",
+      routeCode: r?.short ?? "-",
       label: v.label || `Bus ${v.id}`,
       sub: kmAway(distanceM({ lat: v.lat, lng: v.lng }, input.origin) / 1000),
     });

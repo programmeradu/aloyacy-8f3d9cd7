@@ -6,7 +6,7 @@ export const Route = createFileRoute("/internal/funding/")({
   beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [
-      { title: "Aloya — Funding & Positioning (Internal)" },
+      { title: "Aloya · Funding & Positioning (Internal)" },
       { name: "robots", content: "noindex, nofollow" },
       { name: "description", content: "Internal funding strategy and roadmap for Aloya." },
     ],
@@ -48,7 +48,7 @@ function FundingLanding() {
           <p className="mt-8 text-lg md:text-xl text-ink-soft max-w-[640px] leading-relaxed">
             A rider-facing app that fuses official GTFS-RT with crowdsourced GPS and ML anomaly
             detection to deliver ETAs riders actually believe. The missing citizen-side of the
-            national mobility data infrastructure — and the seed of a Mediterranean mobility OS.
+            national mobility data infrastructure, and the seed of a Mediterranean mobility OS.
           </p>
 
           <div className="mt-10 flex flex-wrap gap-3">
@@ -98,32 +98,32 @@ function FundingLanding() {
             <Row
               k="Now"
               a="RIF Fast Track"
-              b="€50–150k"
+              b="€50 to 150k"
               c="Cyprus-only · ~70% co-funding · 3-month decision · realistic first win"
             />
             <Row
               k="Now"
               a="ESF+ Upskilling"
-              b="€30–80k"
-              c="Human Resource Development Authority (AnAD) — train riders + city staff on digital mobility literacy; pairs with an Aloya-in-the-classroom module"
+              b="€30 to 80k"
+              c="Human Resource Development Authority (AnAD), train riders + city staff on digital mobility literacy; pairs with an Aloya-in-the-classroom module"
             />
             <Row
               k="Q4 2026"
               a="CEF Digital · MMTIS"
-              b="€200–500k"
+              b="€200 to 500k"
               c="EU consortium bid with UCY/CUT + an operator (OSEL/Motion) around NAP/GTFS-RT quality"
             />
             <Row
               k="2027"
               a="Horizon Cluster 5"
-              b="€1–3M share"
-              c="CIVITAS consortium — join as digital/data partner, not lead"
+              b="€1 to 3M share"
+              c="CIVITAS consortium, join as digital/data partner, not lead"
             />
             <Row
               k="2027"
               a="Interreg Euro-MED"
-              b="€150–400k"
-              c="Cross-border small-island mobility — Cyprus + Malta + Crete/Balearics"
+              b="€150 to 400k"
+              c="Cross-border small-island mobility · Cyprus + Malta + Crete/Balearics"
             />
             <Row
               k="After traction"
@@ -146,12 +146,12 @@ function FundingLanding() {
           </h2>
           <p className="text-lg text-ink-soft leading-relaxed max-w-[640px]">
             ESF+ (European Social Fund Plus) funds{" "}
-            <strong className="text-ink">people, not products</strong> — digital literacy,
+            <strong className="text-ink">people, not products</strong>, digital literacy,
             green-skills training, workforce transition. Aloya qualifies as the
             <em className="italic"> delivery mechanism</em> for a digital-mobility literacy program:
             older riders, tourists, low-income commuters, municipal staff. AnAD (HRDA) administers
-            the Cyprus tranche. Typical envelope: €30–80k per pilot cohort. It won't build the app —
-            it funds the human infrastructure around it, and every trained user is a permanent
+            the Cyprus tranche. Typical envelope: €30 to 80k per pilot cohort. It won't build the
+            app · it funds the human infrastructure around it, and every trained user is a permanent
             rider.
           </p>
         </div>
@@ -209,7 +209,7 @@ function FundingLanding() {
                 <h3 className="font-display text-2xl mb-2">Malta, Crete, Balearics.</h3>
                 <p className="text-limestone/70 leading-relaxed">
                   Same problem, same GTFS-RT gap, same tourist-heavy island economics. Aloya as the
-                  Mediterranean small-island mobility standard — the EIC narrative.
+                  Mediterranean small-island mobility standard, the EIC narrative.
                 </p>
               </div>
               <div>
@@ -229,7 +229,7 @@ function FundingLanding() {
                 <h3 className="font-display text-2xl mb-2">The signal, published back.</h3>
                 <p className="text-limestone/70 leading-relaxed">
                   Anonymised reliability signals shared as open data with CyNAP, universities,
-                  operators. Positions Aloya as public-interest infrastructure — the moat, and the
+                  operators. Positions Aloya as public-interest infrastructure, the moat, and the
                   LOI generator.
                 </p>
               </div>

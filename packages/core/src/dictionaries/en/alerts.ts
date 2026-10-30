@@ -12,16 +12,16 @@ export const alerts = {
 
   "stale.feedStale.label": "Live feed paused",
   "stale.feedStale.detail":
-    "We can't reach the bus tracking service right now. Times shown are scheduled — we'll switch back the moment the feed returns.",
+    "We can't reach the bus tracking service right now. Times shown are scheduled, we'll switch back the moment the feed returns.",
   "stale.vehicleLost.label": "Tracking from your phone",
   "stale.vehicleLost.detail":
-    "We lost sight of the bus on the live feed — using your GPS to keep the map and countdown honest until it comes back.",
+    "We lost sight of the bus on the live feed, using your GPS to keep the map and countdown honest until it comes back.",
   "stale.nextNotTracked.label": "Next bus not yet tracked",
   "stale.nextNotTracked.detail":
     "Your connecting bus hasn't started sending its location yet. We'll surface it the moment it does.",
   "stale.ghostBus.label": "No GPS for this bus",
   "stale.ghostBus.detail":
-    "We haven't received a position from this vehicle in over 3 minutes. Showing the scheduled time — treat it as an estimate.",
+    "We haven't received a position from this vehicle in over 3 minutes. Showing the scheduled time, treat it as an estimate.",
 
   "eta.tier.live": "live",
   "eta.tier.rider": "rider-confirmed",
@@ -36,54 +36,54 @@ export const alerts = {
   "eta.opShort": "op {m} min",
 
   "sighting.kicker": "Can you see this bus?",
-  "sighting.cta": "Confirm — I see it now",
+  "sighting.cta": "Confirm · I see it now",
   "sighting.help":
     "Tap if the bus is at the stop. Your tap upgrades it from 'no GPS' for everyone else.",
   "sighting.help.seed":
     "This line runs often and almost nobody is watching. A tap here is what the next rider sees.",
   "sighting.sending": "Sending…",
-  "sighting.thanksLabel": "Thanks — rider-confirmed",
+  "sighting.thanksLabel": "Thanks, rider-confirmed",
   "sighting.thanksDetail":
     "Other riders will see this trip as confirmed for the next minute or so.",
   "sighting.onboard.kicker": "You're the only eyes on Bus {code}",
-  "sighting.onboard.cta": "Yes — I'm on it",
+  "sighting.onboard.cta": "Yes · I'm on it",
   "sighting.onboard.help":
     "The operator has no GPS on this bus. Your tap is what people at the next stops see.",
   "sighting.onboard.help.seed":
     "This line runs often and almost nobody is watching. Your tap is what the next stop sees.",
-  "sighting.onboard.thanksLabel": "Thanks — they're seeing this bus",
+  "sighting.onboard.thanksLabel": "Thanks, they're seeing this bus",
   "sighting.onboard.thanksDetail":
     "Other riders will see Bus {code} as rider-confirmed for the next minute.",
 
   "crowd.tag": "Comfort",
-  "crowd.quiet": "Plenty of seats — quiet ride.",
+  "crowd.quiet": "Plenty of seats, quiet ride.",
   "crowd.moderate": "Some seats free.",
-  "crowd.busy": "Busy — standing likely.",
-  "crowd.packed": "Packed — consider the next bus if you can.",
-  "crowd.weather.storm": "Storms at arrival — bring cover.",
-  "crowd.weather.rain": "Rain at arrival — bring cover.",
+  "crowd.busy": "Busy, standing likely.",
+  "crowd.packed": "Packed, consider the next bus if you can.",
+  "crowd.weather.storm": "Storms at arrival, bring cover.",
+  "crowd.weather.rain": "Rain at arrival, bring cover.",
   "crowd.weather.wind": "Windy at arrival.",
   "crowd.weather.hot": "Hot at arrival ({temp}°).",
   "crowd.weather.cold": "Cold at arrival ({temp}°).",
   "crowd.fromRiders": "From {n} recent riders",
 
-  "lfw.kicker": "Last stretch — long on foot",
+  "lfw.kicker": "Last stretch, long on foot",
   "lfw.headPrefix": "Roughly",
   "lfw.headTo": "left to {dest}.",
   "lfw.head": "left.",
   "lfw.openMaps": "Open walk in Google Maps",
   "lfw.line.hike":
-    "That's a real hike {where} — about {min} min on foot from here. No bus gets closer, so take it slow or save it for another time.",
+    "That's a real hike {where}, about {min} min on foot from here. No bus gets closer, so take it slow or save it for another time.",
   "lfw.line.longNight":
     "Around {min} min walking {where}, and it's getting late. The route's below if you'd like to follow it.",
   "lfw.line.long":
-    "You're about {min} min on foot {where} — a proper walk. Stretch out and follow the route below.",
+    "You're about {min} min on foot {where}, a proper walk. Stretch out and follow the route below.",
   "lfw.line.warm":
-    "Roughly {min} min walking {where}. Bit warm out — take water if you have it. Turn-by-turn is just below.",
+    "Roughly {min} min walking {where}. Bit warm out, take water if you have it. Turn-by-turn is just below.",
   "lfw.line.night":
-    "About {min} min walking {where} from here. Quiet streets at this hour — the route's below.",
+    "About {min} min walking {where} from here. Quiet streets at this hour, the route's below.",
   "lfw.line.default":
-    "About {min} min walking {where} from here — no bus gets closer. The turn-by-turn is just below.",
+    "About {min} min walking {where} from here, no bus gets closer. The turn-by-turn is just below.",
   "lfw.toDest": "to {dest}",
   "lfw.toYourDest": "to your destination",
 

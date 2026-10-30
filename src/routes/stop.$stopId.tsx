@@ -104,9 +104,11 @@ function StopDetail() {
       .filter((a) => (seen.has(a.tripId) ? false : (seen.add(a.tripId), true)));
     return here
       .map((a) => {
+        // smartEtaV2 reads the soonest arrival at the stop, so give it only
+        // this row's trip here; otherwise every row showed the first bus's ETA.
         const eta = smartEtaV2({
           stopId,
-          arrivals: rt.arrivals,
+          arrivals: rt.arrivals.filter((x) => x.stopId !== stopId || x.tripId === a.tripId),
           vehicles: rt.vehicles,
           nowSec: now,
           agency: stop?.agency,

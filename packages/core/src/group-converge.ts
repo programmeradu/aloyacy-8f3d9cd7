@@ -41,8 +41,8 @@ export function summariseConverge(
 
   const detail = allTogether
     ? spread === 0
-      ? "Same minute across the group — perfect meet-up window."
-      : `Spread of ${spread} min — you'll all land inside a coffee's wait.`
+      ? "Same minute across the group, perfect meet-up window."
+      : `Spread of ${spread} min, you'll all land inside a coffee's wait.`
     : `${spread} min gap. The earliest can grab a table while the rest catch up.`;
 
   return { first, last, spread, allTogether, headline, detail };

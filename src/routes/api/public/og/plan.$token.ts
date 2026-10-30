@@ -71,10 +71,10 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
         const creator = plan?.creator_name ? clip(plan.creator_name, 22) : null;
         const kicker = (creator ? `Shared by ${creator}` : "A trip plan on Aloya").toUpperCase();
 
-        const dep = plan?.departure_unix ? fmtTime(plan.departure_unix) : "—";
-        const arr = plan?.arrival_unix ? fmtTime(plan.arrival_unix) : "—";
+        const dep = plan?.departure_unix ? fmtTime(plan.departure_unix) : "-";
+        const arr = plan?.arrival_unix ? fmtTime(plan.arrival_unix) : "-";
         const day = plan?.departure_unix ? fmtDate(plan.departure_unix).toUpperCase() : "";
-        const dur = plan?.total_duration_sec ? fmtDur(plan.total_duration_sec) : "—";
+        const dur = plan?.total_duration_sec ? fmtDur(plan.total_duration_sec) : "-";
         const transfers = plan?.transfers ?? 0;
 
         let routeShort: string | null = null;
@@ -88,7 +88,7 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
         }
 
         const chipTime = `${dep} → ${arr}`;
-        const journeyText = `${dur}${transfers ? `  —  ${transfers} transfer${transfers === 1 ? "" : "s"}` : ""}`;
+        const journeyText = `${dur}${transfers ? ` · ${transfers} transfer${transfers === 1 ? "" : "s"}` : ""}`;
 
         // Bus chip sits to the right of the time chip on the same row (y=470).
         // Time chip: x=560, w=280 → ends at 840. Bus chip: x=864, w=200 → ends 1064. 24px gap.
@@ -157,7 +157,7 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
   ${routeShort ? `<text x="560" y="588" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" font-weight="600" letter-spacing="0.2" fill="${OG_PALETTE.inkSoft}">Journey ${esc(journeyText)}</text>` : ""}
 
   <!-- footer -->
-  <text x="48" y="596" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="12" font-weight="700" letter-spacing="2.8" fill="${OG_PALETTE.inkSoft}">PLAN — SHARE BEFORE YOU LEAVE</text>
+  <text x="48" y="596" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="12" font-weight="700" letter-spacing="2.8" fill="${OG_PALETTE.inkSoft}">PLAN · SHARE BEFORE YOU LEAVE</text>
   <text x="${OG_WIDTH - 48}" y="596" text-anchor="end" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="12" font-weight="600" letter-spacing="2.6" fill="${OG_PALETTE.inkSoft}">APP.ALOYA.CY/PLAN</text>
 
 </svg>`;

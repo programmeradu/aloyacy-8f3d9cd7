@@ -70,7 +70,7 @@ export function RoadPulseCard({
           <div className="rounded-2xl bg-card/90 backdrop-blur-sm ring-1 ring-line px-3 py-2 text-right">
             <div className="flex items-baseline gap-1 justify-end">
               <span className="font-display text-[34px] leading-none text-aegean-deep tabular-nums tracking-[-0.02em]">
-                {hasData ? onTimePct : "—"}
+                {hasData ? onTimePct : "-"}
               </span>
               <span className="font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink-soft pb-1">
                 %

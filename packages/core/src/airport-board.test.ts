@@ -143,7 +143,7 @@ describe("airport identity helpers", () => {
   it("builds a share message", () => {
     const s = airportShareMessage({ code: "LCA", name: "Larnaca Airport" });
     expect(s.url).toBe("https://app.aloya.cy/airport/lca");
-    expect(s.title).toBe("Larnaca Airport — Aloya");
+    expect(s.title).toBe("Larnaca Airport · Aloya");
     expect(s.message).toContain("(LCA)");
     expect(airportShareMessage({ code: "pfo", name: "P", baseUrl: "https://x.dev/" }).url).toBe(
       "https://x.dev/airport/pfo",
@@ -151,7 +151,7 @@ describe("airport identity helpers", () => {
   });
 
   it("formats the coordinate line safely", () => {
-    expect(coordinateLine(34.8751, 33.6249)).toBe("Airport service — 34.8751, 33.6249");
+    expect(coordinateLine(34.8751, 33.6249)).toBe("Airport service · 34.8751, 33.6249");
     expect(coordinateLine(null, 33)).toBe("Airport service");
     expect(coordinateLine(undefined, undefined)).toBe("Airport service");
   });

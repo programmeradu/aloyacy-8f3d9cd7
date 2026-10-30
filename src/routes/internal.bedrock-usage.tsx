@@ -9,7 +9,7 @@ export const Route = createFileRoute("/internal/bedrock-usage")({
   beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [
-      { title: "Bedrock usage — Aloya internal metering" },
+      { title: "Bedrock usage · Aloya internal metering" },
       { name: "robots", content: "noindex,nofollow" },
       {
         name: "description",
@@ -33,7 +33,7 @@ function BedrockUsagePage() {
           <p className="text-sm text-muted-foreground max-w-2xl">
             Every call routed through <span className="font-mono">/api/public/bedrock-test</span> is
             logged with model, token counts, latency, and estimated cost. Prices are approximate
-            on-demand Bedrock rates — treat as a running estimate, not a bill.
+            on-demand Bedrock rates, treat as a running estimate, not a bill.
           </p>
         </header>
 
@@ -49,8 +49,8 @@ function BedrockUsagePage() {
         <p className="text-xs text-muted-foreground">
           Proxy log auto-refreshes every 15s. Costs are calculated from Bedrock Converse{" "}
           <span className="font-mono">usage</span> field × on-demand list price per model. Unknown
-          models log 0 — add pricing in{" "}
-          <span className="font-mono">src/lib/bedrock-pricing.ts</span>.
+          models log 0, add pricing in <span className="font-mono">src/lib/bedrock-pricing.ts</span>
+          .
         </p>
       </div>
     </div>

@@ -46,7 +46,7 @@ export function routeHead(routeId: string, sampleCount?: number) {
   const short = route?.short?.trim() || routeId;
   const name = route?.long?.trim() || `Bus ${short}`;
   const index = routeIndexable(sampleCount ?? 0);
-  const title = `Bus ${short} — live departures | Aloya`;
+  const title = `Bus ${short}, live departures | Aloya`;
   const desc = route
     ? `Live buses and what we actually measured on ${name} in Cyprus.`
     : `Live buses on Cyprus route ${routeId}.`;

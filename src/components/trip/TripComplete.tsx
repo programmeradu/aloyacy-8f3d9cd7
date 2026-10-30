@@ -86,6 +86,8 @@ export function TripComplete({ active, bus }: { active: ActiveTrip; bus: BusView
       title={r("done.yourTrip")}
       left={<BackButton label={r("back")} variant="light" fallback="/" />}
       right={<span />}
+      tabs={false}
+      fade={false}
     >
       <NotchCard
         fill="#262626"

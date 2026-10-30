@@ -7,7 +7,7 @@ import mcp from "./index";
 describe("mcp definition", () => {
   it("declares server metadata", () => {
     expect(mcp.name).toBe("aloya-mcp");
-    expect(mcp.title).toBe("Aloya — Cyprus Transit");
+    expect(mcp.title).toBe("Aloya · Cyprus Transit");
     expect(mcp.version).toBe("0.2.0");
     expect(typeof mcp.instructions).toBe("string");
     expect(mcp.instructions).toContain("search_stops");

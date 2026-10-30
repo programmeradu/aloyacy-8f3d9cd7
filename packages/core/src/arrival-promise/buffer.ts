@@ -127,7 +127,7 @@ export function composeLeaveBuffer(signals: BufferSignals): BufferResult {
   const reasonShort =
     reasons.length === 0
       ? null
-      : `${reasons.map((r) => r.label).join(" + ")} — leave ${minutes(extraSec)} min earlier`;
+      : `${reasons.map((r) => r.label).join(" + ")}, leave ${minutes(extraSec)} min earlier`;
 
   return { extraSec, reasons, reasonShort };
 }

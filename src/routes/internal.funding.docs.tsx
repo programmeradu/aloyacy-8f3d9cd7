@@ -6,7 +6,7 @@ export const Route = createFileRoute("/internal/funding/docs")({
   beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [
-      { title: "Aloya — Positioning & Funding Roadmap (Internal)" },
+      { title: "Aloya · Positioning & Funding Roadmap (Internal)" },
       { name: "robots", content: "noindex, nofollow" },
       { name: "description", content: "Internal positioning document and funding roadmap." },
     ],
@@ -72,7 +72,7 @@ function FundingDocs() {
             Positioning &amp; funding roadmap.
           </h1>
           <p className="mt-6 text-lg text-ink-soft leading-relaxed">
-            How Aloya frames itself to grant reviewers, operators, and the Cyprus public sector —
+            How Aloya frames itself to grant reviewers, operators, and the Cyprus public sector ·
             and the sequence in which it goes after money.
           </p>
         </div>
@@ -85,7 +85,7 @@ function FundingDocs() {
           <TocLink num="01" href="#positioning" label="Positioning statement" />
           <TocLink num="02" href="#why-fundable" label="Why Aloya is fundable" />
           <TocLink num="03" href="#instruments" label="Instrument-by-instrument playbook" />
-          <TocLink num="04" href="#esf" label="ESF+ Upskilling — the ignored lever" />
+          <TocLink num="04" href="#esf" label="ESF+ Upskilling, the ignored lever" />
           <TocLink num="05" href="#verticals" label="Future verticals &amp; roadmap" />
           <TocLink num="06" href="#risks" label="Risks &amp; what will kill a bid" />
           <TocLink num="07" href="#next" label="Next 90 days" />
@@ -102,12 +102,12 @@ function FundingDocs() {
         <P>
           The one-line matters because it does three things at once. It{" "}
           <strong>anchors us as infrastructure</strong> (not a startup toy), it{" "}
-          <strong>concedes the operator layer to the operators</strong> (no B2G ambition — we don't
+          <strong>concedes the operator layer to the operators</strong> (no B2G ambition, we don't
           threaten them), and it <strong>names our defensible surface</strong> (signal fusion, not
           another journey planner).
         </P>
         <P>
-          Reviewers of grants — especially Cypriot ones — look for two things: legitimacy and
+          Reviewers of grants, especially Cypriot ones, look for two things: legitimacy and
           non-overlap with existing state products. This sentence gives them both.
         </P>
 
@@ -133,46 +133,46 @@ function FundingDocs() {
         </P>
         <H3>Cross-border replicability</H3>
         <P>
-          The Cypriot GTFS-RT gap is not unique — Malta, Crete, and the Balearics have the same
+          The Cypriot GTFS-RT gap is not unique · Malta, Crete, and the Balearics have the same
           shape of problem. This unlocks Interreg Euro-MED and, eventually, EIC.
         </P>
 
         {/* 03 */}
         <H2 id="instruments">03 · Instrument-by-instrument playbook</H2>
 
-        <H3>RIF Fast Track — start here</H3>
+        <H3>RIF Fast Track, start here</H3>
         <P>
-          €50–150k, Cyprus-only, ~70% co-funding, decisions in ~3 months. This is realistic first
+          €50 to 150k, Cyprus-only, ~70% co-funding, decisions in ~3 months. This is realistic first
           money. Frame Aloya as an{" "}
           <em>
             AI-fused reliability layer for Cyprus public transport, using rider-crowdsourced signals
             to correct GTFS-RT gaps
           </em>
           . Novelty = signal fusion + anomaly detection. Deliverable = the trust score visible
-          in-app + a public dashboard of feed quality per operator. Time-to-submit: 4–6 weeks.
+          in-app + a public dashboard of feed quality per operator. Time-to-submit: 4 to 6 weeks.
         </P>
 
         <H3>ESF+ Upskilling (AnAD / HRDA)</H3>
-        <P>€30–80k per cohort. See §04 for the full angle — this is the most overlooked lever.</P>
+        <P>€30 to 80k per cohort. See §04 for the full angle, this is the most overlooked lever.</P>
 
         <H3>CEF Digital · MMTIS</H3>
         <P>
-          €200–500k. Directly funds NAP compliance and MMTIS/RTTI data quality. Consortium bid —
+          €200 to 500k. Directly funds NAP compliance and MMTIS/RTTI data quality. Consortium bid ·
           Aloya as citizen-facing data consumer + quality-signal producer, with UCY or CUT as
-          academic lead and OSEL/Motion as operator partner. Time-to-submit: 3–4 months once
+          academic lead and OSEL/Motion as operator partner. Time-to-submit: 3 to 4 months once
           consortium is agreed.
         </P>
 
         <H3>Horizon Europe · Cluster 5 (CIVITAS)</H3>
         <P>
-          €1–3M as consortium share. Do not lead. Join two-three bids as digital/data partner. Very
-          slow, very political — treat as background pipeline.
+          €1 to 3M as consortium share. Do not lead. Join two-three bids as digital/data partner.
+          Very slow, very political, treat as background pipeline.
         </P>
 
         <H3>Interreg Euro-MED / NEXT MED</H3>
         <P>
-          €150–400k, small-island cross-border theme. Higher hit rate than Horizon, needs Maltese or
-          Greek co-applicant. Ideal 2027 push once V5 is technically real.
+          €150 to 400k, small-island cross-border theme. Higher hit rate than Horizon, needs Maltese
+          or Greek co-applicant. Ideal 2027 push once V5 is technically real.
         </P>
 
         <H3>EIC Accelerator</H3>
@@ -183,7 +183,7 @@ function FundingDocs() {
         </P>
 
         {/* 04 */}
-        <H2 id="esf">04 · ESF+ Upskilling — the ignored lever</H2>
+        <H2 id="esf">04 · ESF+ Upskilling, the ignored lever</H2>
         <Pull>ESF+ funds people. Aloya makes the people. That's the whole pitch.</Pull>
         <P>
           ESF+ (European Social Fund Plus) is the EU's largest people-focused fund. Cyprus's tranche
@@ -225,17 +225,17 @@ function FundingDocs() {
           ))}
         </ul>
         <P>
-          Bid shape: €30–80k per pilot, 6–9 months, 60–200 trainees, measurable digital-skills
-          uplift. Aloya provides the platform (in-kind, valued at cost); grant pays for curriculum
-          design, trainer hours, venue, and impact evaluation. Every trained user is a permanent
-          Aloya rider and a testimonial for the next bid.
+          Bid shape: €30 to 80k per pilot, 6 to 9 months, 60 to 200 trainees, measurable
+          digital-skills uplift. Aloya provides the platform (in-kind, valued at cost); grant pays
+          for curriculum design, trainer hours, venue, and impact evaluation. Every trained user is
+          a permanent Aloya rider and a testimonial for the next bid.
         </P>
 
         {/* 05 */}
         <H2 id="verticals">05 · Future verticals &amp; roadmap</H2>
         <P>
           The bus is the wedge. Every vertical below has an existing EU funding line attached, which
-          is not coincidence — it's how we picked them.
+          is not coincidence, it's how we picked them.
         </P>
 
         {[
@@ -287,7 +287,7 @@ function FundingDocs() {
         <H2 id="risks">06 · Risks &amp; what will kill a bid</H2>
         <P>
           <strong>Overlap perception.</strong> Any hint that Aloya wants to replace Pame, Cyprus
-          Bus, or Motion Pass sinks the bid. Positioning must always be additive — the trust layer{" "}
+          Bus, or Motion Pass sinks the bid. Positioning must always be additive, the trust layer{" "}
           <em>on top of</em> the state products.
         </P>
         <P>
@@ -297,7 +297,7 @@ function FundingDocs() {
         </P>
         <P>
           <strong>Consortium math.</strong> EU bids fail when a partner underperforms. Cap
-          consortium at 3–4 partners for first CEF bid. Academic lead handles paperwork; operator
+          consortium at 3 to 4 partners for first CEF bid. Academic lead handles paperwork; operator
           provides the data narrative; Aloya provides the product; a municipality provides the
           deployment site.
         </P>
@@ -316,7 +316,7 @@ function FundingDocs() {
             ],
             [
               "Book one Ministry of Transport coffee",
-              "Not a pitch — an update. Ask them what they wish existed.",
+              "Not a pitch, an update. Ask them what they wish existed.",
             ],
             [
               "Scope the CEF Digital MMTIS consortium",

@@ -55,7 +55,7 @@ export function CostExplorerPanel() {
         <div className="min-w-0">
           <h2 className="text-lg font-semibold">AWS-wide · Cost Explorer</h2>
           <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-            Real billed spend for <span className="font-mono">Amazon Bedrock</span> — matches your
+            Real billed spend for <span className="font-mono">Amazon Bedrock</span>, matches your
             invoice. Delayed ~8-24h vs CloudWatch. Each refresh costs ~$0.01 in CE fees, so cached
             for 1h.
           </p>
@@ -124,7 +124,7 @@ export function CostExplorerPanel() {
 
         {days > 14 && (
           <div className="text-[10px] font-mono text-muted-foreground">
-            Hourly granularity is limited by AWS to the last 14 days — showing daily instead.
+            Hourly granularity is limited by AWS to the last 14 days, showing daily instead.
           </div>
         )}
         {q.error && (

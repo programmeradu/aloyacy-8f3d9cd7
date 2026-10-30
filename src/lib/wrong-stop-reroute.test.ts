@@ -97,7 +97,7 @@ describe("detectWrongStop", () => {
       kind: "switch-boarding",
       newStopId: "B",
       newStopName: "Stop B",
-      reason: "Same bus stops here too — boarding from this stop instead.",
+      reason: "Same bus stops here too, boarding from this stop instead.",
     });
   });
 
@@ -115,7 +115,7 @@ describe("detectWrongStop", () => {
       kind: "switch-boarding",
       newStopId: "B",
       newStopName: "Stop B",
-      reason: "Same bus stops here too — boarding from this stop instead.",
+      reason: "Same bus stops here too, boarding from this stop instead.",
     });
   });
 

@@ -4,10 +4,10 @@
 import type { pulse as pulseEn } from "../en/pulse";
 
 export const pulse: Record<keyof typeof pulseEn, string> = {
-  "pulse.meta.title": "Παλμός — Aloya",
+  "pulse.meta.title": "Παλμός · Aloya",
   "pulse.meta.desc":
     "Αξιοπιστία δικτύου για τα λεωφορεία της Κύπρου, μαθαίνεται σε πραγματικό χρόνο. Δείκτης αξιοπιστίας, καυτές και σταθερές γραμμές, ανανεώνεται κάθε λεπτό.",
-  "pulse.og.title": "Aloya Παλμός — οι μεταφορές του νησιού, σε κίνηση",
+  "pulse.og.title": "Aloya Παλμός, οι μεταφορές του νησιού, σε κίνηση",
   "pulse.og.desc":
     "Πραγματική αξιοπιστία για τις δημόσιες μεταφορές της Κύπρου, μέσα από τη ζωντανή ροή.",
   "pulse.kicker": "Δίκτυο, σε πραγματικό χρόνο",
@@ -22,7 +22,7 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "pulse.runningLate.kicker": "Μεγαλύτερη καθυστέρηση αυτή την ώρα",
   "pulse.runningLate.empty": "Τίποτα δεν σέρνει σήμερα. Το δίκτυο είναι ήρεμο.",
   "pulse.runningEarly": "Νωρίτερα",
-  "pulse.runningEarly.kicker": "Πριν την ώρα — φύγε ένα λεπτό νωρίτερα",
+  "pulse.runningEarly.kicker": "Πριν την ώρα, φύγε ένα λεπτό νωρίτερα",
   "pulse.runningEarly.empty": "Καμία γραμμή δεν φεύγει νωρίτερα.",
   "pulse.mostReliable": "Πιο αξιόπιστες",
   "pulse.mostReliable.kicker": "Πιο κοντά στο τυπωμένο πρόγραμμα",
@@ -37,7 +37,7 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "pulse.close": "Κλείσιμο",
   "pulse.item.reliability.label": "Δείκτης αξιοπιστίας",
   "pulse.item.reliability.body":
-    "Για κάθε γραμμή υπολογίζουμε τη μέση καθυστέρηση από όλα τα δρομολόγια που έχουμε δει, σταθμισμένα με το πλήθος τους. Το μετατρέπουμε σε βαθμό 0—100: 100 = στην ώρα, 0 = πέντε λεπτά διαφορά. Είναι ένας ομαλός δείκτης, όχι αυστηρό ποσοστό ακρίβειας.",
+    "Για κάθε γραμμή υπολογίζουμε τη μέση καθυστέρηση από όλα τα δρομολόγια που έχουμε δει, σταθμισμένα με το πλήθος τους. Το μετατρέπουμε σε βαθμό 0 to 100: 100 = στην ώρα, 0 = πέντε λεπτά διαφορά. Είναι ένας ομαλός δείκτης, όχι αυστηρό ποσοστό ακρίβειας.",
   "pulse.item.trips.label": "Δρομολόγια",
   "pulse.item.trips.body":
     "Ένα δρομολόγιο = μια άφιξη που τραβήξαμε από τη ζωντανή ροή. Περισσότερα δρομολόγια σημαίνει πιο αξιόπιστος βαθμός.",
@@ -52,7 +52,7 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
     "Γραμμές με τουλάχιστον οκτώ δρομολόγια, ταξινομημένες με βάση το πόσο κοντά στο μηδέν είναι η μέση καθυστέρηση.",
   "pulse.item.limits.label": "Όρια που θυμόμαστε",
   "pulse.item.limits.body":
-    "Οι καθυστερήσεις έρχονται από τη ζωντανή ροή κάθε φορέα — αν τα δεδομένα τους είναι λάθος, και τα δικά μας. Οι ώρες είναι σε UTC, όχι τοπικές Κύπρου, οπότε το «αυτή την ώρα» είναι κατά προσέγγιση.",
+    "Οι καθυστερήσεις έρχονται από τη ζωντανή ροή κάθε φορέα, αν τα δεδομένα τους είναι λάθος, και τα δικά μας. Οι ώρες είναι σε UTC, όχι τοπικές Κύπρου, οπότε το «αυτή την ώρα» είναι κατά προσέγγιση.",
   "pulse.excluded.one": "{n} γραμμή κρύβεται εδώ γιατί δεν είναι ακόμη στο πακέτο μας.",
   "pulse.excluded.many": "{n} γραμμές κρύβονται εδώ γιατί δεν είναι ακόμη στο πακέτο μας.",
   "pulse.flow.title": "Πώς κινείται το δίκτυο",
@@ -92,11 +92,10 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
     "Τρέχουν συχνά. Σχεδόν κανένα τηλέφωνο επιβάτη. Ένα πάτημα μέσα είναι αυτό που βλέπει η επόμενη στάση.",
   "pulse.weather.kicker": "Σήμερα, από τη ζωντανή ροή",
   "pulse.weather.subPos":
-    "{pct}% στην ώρα σε {routes} γραμμές — {delta} πάνω από το τυπικό της εβδομάδας.",
+    "{pct}% στην ώρα σε {routes} γραμμές · {delta} πάνω από το τυπικό της εβδομάδας.",
   "pulse.weather.subNeg":
-    "{pct}% στην ώρα σε {routes} γραμμές — {delta} κάτω από το τυπικό της εβδομάδας.",
-  "pulse.weather.subFlat":
-    "{pct}% στην ώρα σε {routes} γραμμές — ακριβώς στο τυπικό της εβδομάδας.",
+    "{pct}% στην ώρα σε {routes} γραμμές · {delta} κάτω από το τυπικό της εβδομάδας.",
+  "pulse.weather.subFlat": "{pct}% στην ώρα σε {routes} γραμμές, ακριβώς στο τυπικό της εβδομάδας.",
   "pulse.weather.subQuiet": "Χρειαζόμαστε λίγες ακόμη ζωντανές αφίξεις για να μιλήσει το δίκτυο.",
   "pulse.vsTypical": "έναντι τυπικού",
   "pulse.todayLabel": "Σήμερα",
@@ -124,8 +123,8 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "pulse.filter.early": "Νωρίς",
   "pulse.filter.steady": "Σταθερές",
   "pulse.insight.kicker": "Τι σημαίνει τώρα",
-  "pulse.insight.worstRoute": "Η γραμμή {code} σέρνει — {min} λεπ καθυστέρηση.",
-  "pulse.insight.earlyRoute": "Η γραμμή {code} φεύγει {min} λεπ νωρίτερα — πήγαινε πιο νωρίς.",
+  "pulse.insight.worstRoute": "Η γραμμή {code} σέρνει · {min} λεπ καθυστέρηση.",
+  "pulse.insight.earlyRoute": "Η γραμμή {code} φεύγει {min} λεπ νωρίτερα, πήγαινε πιο νωρίς.",
   "pulse.insight.steadyRoute": "Η γραμμή {code} είναι η πιο σταθερή σήμερα.",
   "pulse.insight.calmer": "Το δίκτυο είναι πιο ήρεμο από συνήθως.",
   "pulse.insight.busier": "Πιο πολλές καθυστερήσεις από μια τυπική {weekday}.",
@@ -137,7 +136,7 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "today.fact.tourist": "Για επισκέπτες",
   "today.greek.kicker": "Ελληνική λέξη της ημέρας",
 
-  "tripInfo.meta.title": "Δρομολόγιο {id} — Aloya",
+  "tripInfo.meta.title": "Δρομολόγιο {id} · Aloya",
   "tripInfo.meta.desc": "Ζωντανό δρομολόγιο: στάσεις, ώρες άφιξης και πού είναι το λεωφορείο τώρα.",
   "tripInfo.live": "Ζωντανό",
   "tripInfo.loading": "Φόρτωση δρομολογίου…",
@@ -147,9 +146,9 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "tripInfo.busLabel": "Λεωφορείο {label}",
   "tripInfo.unknownRoute": "Γραμμή",
   "tripInfo.stopsCount": "{n} στάσεις",
-  "tripInfo.kmOfRoute": " — {km} χλμ διαδρομής",
-  "tripInfo.endsAt": " — καταλήγει στο {name}",
-  "tripInfo.busActive": "Λεωφορείο εν κινήσει — ζωντανά",
+  "tripInfo.kmOfRoute": " · {km} χλμ διαδρομής",
+  "tripInfo.endsAt": ", καταλήγει στο {name}",
+  "tripInfo.busActive": "Λεωφορείο εν κινήσει, ζωντανά",
   "tripInfo.busEmpty": "Δεν αναφέρει θέση",
   "tripInfo.nextStop": "Επόμενη",
   "tripInfo.etaThere": "Άφιξη",
@@ -162,8 +161,8 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "tripInfo.liveScheduled": "Ζωντανό, ώρες προγράμματος",
   "tripInfo.stopCode": "Στάση {code}",
   "tripInfo.stopIndex": "#{n}",
-  "tripInfo.approaching": " — πλησιάζει",
-  "tripInfo.youAreHere": " — είσαι εδώ",
+  "tripInfo.approaching": ", πλησιάζει",
+  "tripInfo.youAreHere": ", είσαι εδώ",
   "tripInfo.stopFallback": "Στάση {id}",
   "tripInfo.feedFoot":
     "Οι ώρες ενημερώνονται ζωντανά από τη ροή του φορέα και προσαρμόζονται στην αναφερόμενη καθυστέρηση. Πάτησε μια στάση για να δεις τις αναχωρήσεις της.",
@@ -188,7 +187,7 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "itin.walk": "Περπ.",
   "itin.wait": "Αναμονή",
   "itin.at": "στο",
-  "itin.stopsLive": "{n} στάσεις — ζωντανά",
+  "itin.stopsLive": "{n} στάσεις, ζωντανά",
   "itin.stops": "{n} στάσεις",
 
   "map.live.active": "Το λεωφορείο σου, ζωντανά",
@@ -204,7 +203,7 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
     "Προτίμηση στάσεων στο επίπεδο του πεζοδρομίου. Στάσεις με κράσπεδο κρύβονται αν υπάρχει άλλη επιλογή.",
   "a11y.shade.label": "Προτίμηση σκιερών στάσεων",
   "a11y.shade.help":
-    "Ανεβάζει στη λίστα επιλογές με σκιερές/στεγασμένες αναμονές — χρήσιμο το κυπριακό καλοκαίρι.",
+    "Ανεβάζει στη λίστα επιλογές με σκιερές/στεγασμένες αναμονές, χρήσιμο το κυπριακό καλοκαίρι.",
   "a11y.cap.label": "Όριο περπατήματος ανά διαδρομή",
   "a11y.cap.help":
     "Διαδρομές που το ξεπερνούν πέφτουν στην κατάταξη. Τις εμφανίζουμε πάντα για να αποφασίσεις εσύ.",
@@ -220,5 +219,5 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "walkLive.now": "Τώρα",
   "walkLive.inMeters": "Σε {m}",
   "walkLive.then": "Στη συνέχεια",
-  "walkLive.lastStep": "Τελευταίο βήμα — σχεδόν έφτασες",
+  "walkLive.lastStep": "Τελευταίο βήμα, σχεδόν έφτασες",
 };

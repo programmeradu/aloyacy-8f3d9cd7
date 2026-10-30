@@ -28,7 +28,7 @@ export function MotionCard({
     (pass.holder?.trim() || pass.jcc?.displayName?.trim() || "").toUpperCase() ||
     t("wallet.addYourName");
   const tierLabel = (pass.tier?.trim() || t("wallet.tierDefault")).toUpperCase();
-  const validUntil = pass.validUntil?.trim() || "—/—/——";
+  const validUntil = pass.validUntil?.trim() || " · / · / ·  · ";
 
   return (
     <div className="relative group">

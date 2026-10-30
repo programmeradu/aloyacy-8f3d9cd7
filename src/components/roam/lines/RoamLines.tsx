@@ -22,7 +22,7 @@ import {
   type Operator,
 } from "./lines-data";
 
-const ALL_ROWS = lineRows(ROUTES);
+const ALL_ROWS = lineRows(ROUTES, Array.from(new Set(STOPS.map((s) => s.name))));
 const FILTERS: { op: Operator; key: RoamKey }[] = [
   { op: "all", key: "lines.all" },
   { op: "NPT", key: OPERATOR_KEYS.NPT },
@@ -124,14 +124,15 @@ export function RoamLines() {
             },
           ]}
           underlay={
-            <div style={{ position: "absolute", inset: 0 }}>
+            <div className="r-lines-map" style={{ position: "absolute", inset: 0 }}>
               <MapPreview
                 bare
                 center={NICOSIA_CENTER}
                 spanKm={9}
                 liveVehicles
                 fitToContent={false}
-                attribBottom={6}
+                attribBottom={8}
+                logoCorner="top-left"
               />
               <div
                 className="r-shade-top"

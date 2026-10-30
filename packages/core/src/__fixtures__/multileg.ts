@@ -21,7 +21,7 @@ export function ride(over: Partial<RideLeg> = {}): RideLeg {
     kind: "ride",
     routeId: "R1",
     routeShort: "150",
-    routeLong: "Nicosia — Larnaca",
+    routeLong: "Nicosia · Larnaca",
     tripId: "T1",
     live: true,
     board: { stopId: "A", name: "Stop A", lat: NIC.lat + 0.005, lng: NIC.lng, departureUnix: 1000 },

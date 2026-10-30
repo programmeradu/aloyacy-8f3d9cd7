@@ -10,7 +10,7 @@ vi.mock("./gtfs", async () => {
 import { smartEtaV2 } from "./eta-v2";
 import type { LiveArrival } from "./gtfs-rt.server";
 import { NOW, arrival, vehicle } from "./__fixtures__/eta-v2";
-describe("smartEtaV2 — shape mode", () => {
+describe("smartEtaV2, shape mode", () => {
   // A perfectly straight shape overlapping the stop chord exactly, so the
   // along-track distances line up 1:1 with the chord version above.
   const shape = [
@@ -81,7 +81,7 @@ describe("smartEtaV2 — shape mode", () => {
   });
 });
 
-describe("smartEtaV2 — confidence bands & freshness tiers", () => {
+describe("smartEtaV2, confidence bands & freshness tiers", () => {
   const arrivals: LiveArrival[] = [
     arrival({ stopId: "A", tripId: "T1", arrivalUnix: NOW - 20 }),
     arrival({ stopId: "B", tripId: "T1", arrivalUnix: NOW + 90 }),
@@ -166,7 +166,7 @@ describe("smartEtaV2 — confidence bands & freshness tiers", () => {
     })!;
     expect(out.tier).toBe("ghost");
     expect(out.freshness).toBe("scheduled");
-    expect(out.blurb).toBe("no gps — using schedule");
+    expect(out.blurb).toBe("no gps, using schedule");
   });
 
   it("uses relaxed Intercity thresholds via the agency field", () => {
@@ -183,7 +183,7 @@ describe("smartEtaV2 — confidence bands & freshness tiers", () => {
   });
 });
 
-describe("smartEtaV2 — rider-confirmed upgrades", () => {
+describe("smartEtaV2, rider-confirmed upgrades", () => {
   const arrivals: LiveArrival[] = [
     arrival({ stopId: "A", tripId: "T1", arrivalUnix: NOW - 20 }),
     arrival({ stopId: "B", tripId: "T1", arrivalUnix: NOW + 90 }),
@@ -274,7 +274,7 @@ describe("smartEtaV2 — rider-confirmed upgrades", () => {
   });
 });
 
-describe("smartEtaV2 — learned bias blurb", () => {
+describe("smartEtaV2, learned bias blurb", () => {
   const arrivals: LiveArrival[] = [
     arrival({ stopId: "A", tripId: "T1", arrivalUnix: NOW - 20 }),
     arrival({ stopId: "B", tripId: "T1", arrivalUnix: NOW + 90 }),
@@ -323,6 +323,6 @@ describe("smartEtaV2 — learned bias blurb", () => {
       learnedByRoute: { R1: { meanDelaySec: 240, sampleCount: 20 } },
     })!;
     expect(out.tier).toBe("ghost");
-    expect(out.blurb).toBe("no gps — using schedule");
+    expect(out.blurb).toBe("no gps, using schedule");
   });
 });

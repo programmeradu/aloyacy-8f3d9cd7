@@ -4,7 +4,7 @@
 export const replan = {
   "replan.close": "Close",
   "replan.searching": "Searching nearby buses…",
-  "replan.empty": "No fresh options found — sit tight, we'll keep tracking.",
+  "replan.empty": "No fresh options found, sit tight, we'll keep tracking.",
   "replan.walkOnly": "Walk only",
   "replan.bus": "Bus {code}",
   "replan.noChange": "no change",
@@ -20,7 +20,7 @@ export const replan = {
   "replan.late.sub": "We'll re-plan around the current delay.",
   "replan.atRisk.eyebrow": "Plan B ready",
   "replan.atRisk.title": "If you miss it, here's what's next.",
-  "replan.atRisk.sub": "Tap any option to switch — or keep going if you make the bus.",
+  "replan.atRisk.sub": "Tap any option to switch, or keep going if you make the bus.",
   "replan.lostFeed.eyebrow": "Switch route",
   "replan.lostFeed.title": "Re-plan from where you are.",
   "replan.lostFeed.sub": "Fresh options computed from your current position.",

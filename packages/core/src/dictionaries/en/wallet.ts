@@ -9,10 +9,10 @@ export const wallet = {
   "wallet.bodyHasCard":
     "Tap your balance to update it after a top-up. Scan the QR at any Motion vending kiosk to pull up your card.",
   "wallet.bodyEmpty":
-    "Add your Motion bus card number and we'll keep it ready — balance, history, and a scan-ready QR for the kiosk.",
+    "Add your Motion bus card number and we'll keep it ready, balance, history, and a scan-ready QR for the kiosk.",
   "wallet.addCardCta": "Add my Motion card",
   "wallet.addCardNote":
-    "Your card details live only on this device. We don't send them anywhere — at least not until you ask us to.",
+    "Your card details live only on this device. We don't send them anywhere, at least not until you ask us to.",
   "wallet.tapToSetUp": "Tap the card to set it up",
   "wallet.cardEditAria": "Edit your Motion card",
   "wallet.cardAddAria": "Add your Motion card",
@@ -39,26 +39,27 @@ export const wallet = {
   "wallet.renewTitlePrefix": "Renew your",
   "wallet.renewTitleEmph": "pass",
   "wallet.renewEligible": "{n} eligible",
-  "wallet.renewCopied": "Card number copied — paste on the next screen",
+  "wallet.renewCopied": "Card number copied, paste on the next screen",
   "wallet.renewValidity": "{n} day validity",
   "wallet.renewPass": "Pass {code}",
   "wallet.renewFoot":
-    "Tapping a price copies your card number, then opens the official Cyprus Public Transport top-up page — paste it into the card field and JCC handles the rest.",
+    "Tapping a price copies your card number, then opens the official Cyprus Public Transport top-up page, paste it into the card field and JCC handles the rest.",
   "wallet.fare.urban": "Urban",
   "wallet.fare.urbanSub": "90-min",
   "wallet.fare.urbanAlt": "A Mediterranean village street in soft daylight",
   "wallet.fare.night": "Night",
-  "wallet.fare.nightSub": "21:00 – 04:00",
+  "wallet.fare.nightSub": "21:00 to 04:00",
   "wallet.fare.nightAlt": "A village arch lit by a single lamp under a crescent moon",
   "wallet.fare.intercity": "Intercity",
   "wallet.fare.intercitySub": "single",
-  "wallet.fare.extra": "Intercity return €7.00 — valid same day. Day card €5.00 covers unlimited urban and district rides.",
+  "wallet.fare.extra":
+    "Intercity return €7.00, valid same day. Day card €5.00 covers unlimited urban and district rides.",
   "wallet.fare.intercityAlt": "A coastal road winding along Cypriot cliffs",
   "wallet.fareAria": "{label} fare {value}",
   "wallet.history.topupTitle": "Top-up history",
   "wallet.history.entries": "{n} entries",
   "wallet.history.empty":
-    "Nothing here yet. Log your first top-up — or link your JCC account above to auto-sync from the source.",
+    "Nothing here yet. Log your first top-up, or link your JCC account above to auto-sync from the source.",
   "wallet.history.topupRow": "Top-up",
   "wallet.history.recent": "Recent activity",
   "wallet.history.last30": "Last 30 days",
@@ -82,7 +83,7 @@ export const wallet = {
   "wallet.sheet.never": "never",
   "wallet.sheet.topupLabel": "Top-up amount",
   "wallet.sheet.linkIntro":
-    "We log in to JCC Smart on your behalf and pull your bus card balance + recent activity. We keep only the session token on this device — never your password.",
+    "We log in to JCC Smart on your behalf and pull your bus card balance + recent activity. We keep only the session token on this device, never your password.",
   "wallet.sheet.email": "JCC Smart email",
   "wallet.sheet.emailPh": "you@example.com",
   "wallet.sheet.password": "Password",
@@ -102,9 +103,9 @@ export const wallet = {
   "wallet.nfc.readUid": "Read UID {uid}",
   "wallet.nfc.scanned": "Card scanned",
   "wallet.nfc.scannedDesc": "UID {uid}",
-  "wallet.toast.expired": "Session expired — please link again.",
+  "wallet.toast.expired": "Session expired, please link again.",
   "wallet.toast.syncFailed": "Sync failed.",
-  "wallet.toast.synced": "Synced — {n} transactions",
+  "wallet.toast.synced": "Synced · {n} transactions",
 
   "auth.title": "Sign in to continue",
   "auth.subtitle": "We'll email you an 8-digit code. No password.",
@@ -119,5 +120,4 @@ export const wallet = {
   "auth.useDifferentEmail": "Use a different email",
   "auth.errSend": "Could not send code",
   "auth.errVerify": "Invalid or expired code",
-
 } as const;

@@ -174,7 +174,7 @@ function SingleLegCompanion({
                   : undefined
               }
               userLocation={userLocation}
-              attribTop="calc(var(--r-safe-top) + 64px)"
+              attribTop="calc(var(--r-safe-top) + 68px)"
             />
           </div>
           <div className="r-shade-top" style={{ height: 170 }} />
@@ -183,7 +183,7 @@ function SingleLegCompanion({
             <BackButton label={r("back")} fallback="/trips" />
             <div className="min-w-0 flex-1 r-scrim-text">
               <p className="r-hero-title truncate">
-                {t("trip.live")} · {bus.routeShort}
+                {r("trip.lineTitle", { line: bus.routeShort })}
               </p>
               <p className="r-hero-sub truncate">{active.to.label}</p>
             </div>
@@ -193,7 +193,7 @@ function SingleLegCompanion({
                 clearActiveTrip();
                 navigate({ to: "/trips" });
               }}
-              className="r-pill r-pill--glass r-pill--lg"
+              className="r-pill r-pill--glass r-pill--lg shrink-0"
             >
               {t("trip.endTrip")}
             </button>

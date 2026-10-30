@@ -81,7 +81,7 @@ export function formatTaxiEur(n: number): string {
 
 export function formatTaxiBand(low: number, high: number): string {
   if (low === high) return formatTaxiEur(low);
-  return `${formatTaxiEur(low)}–${formatTaxiEur(high)}`;
+  return `${formatTaxiEur(low)} to ${formatTaxiEur(high)}`;
 }
 
 export function taxiTelDisplay(tel = TAXI_DISPATCHER_TEL): string {

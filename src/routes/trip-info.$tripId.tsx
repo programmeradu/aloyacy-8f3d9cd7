@@ -170,9 +170,9 @@ function TripInfo() {
           {(() => {
             const finished = trip.nextIdx === -1;
             const nextStop = finished ? null : trip.stops[trip.nextIdx];
-            const nextName = nextStop?.meta?.name ?? "—";
+            const nextName = nextStop?.meta?.name ?? "-";
             const nextCode = nextStop?.meta?.code ?? null;
-            const eta = nextStop ? fmtClock(nextStop.arrivalUnix) : "—";
+            const eta = nextStop ? fmtClock(nextStop.arrivalUnix) : "-";
             const minsTo = nextStop
               ? Math.max(0, Math.round((nextStop.arrivalUnix - Date.now() / 1000) / 60))
               : null;

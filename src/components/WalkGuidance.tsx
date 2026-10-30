@@ -39,7 +39,7 @@ export function WalkGuidance({
       <div className="flex items-end justify-between mb-3">
         <h2 className="font-display text-2xl text-ink">{title}</h2>
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-          {Math.round(directions.durationSec / 60)} {t("common.minShort")} —{" "}
+          {Math.round(directions.durationSec / 60)} {t("common.minShort")} ·{" "}
           {directions.distanceMeters >= 1000
             ? `${(directions.distanceMeters / 1000).toFixed(1)} km`
             : `${Math.round(directions.distanceMeters)} m`}

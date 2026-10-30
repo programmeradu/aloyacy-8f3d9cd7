@@ -30,7 +30,7 @@ export const trips: Record<keyof typeof tripsEn, string> = {
     "Θα σας οδηγήσουμε στην πλησιέστερη στάση, θα επιβιβαστείτε σε πραγματικό λεωφορείο από το ζωντανό feed και θα σας οδηγήσουμε ως την πόρτα. Τέλος στις υποθέσεις για το ποια γραμμή περνά.",
   "trips.noScheduleTitle": "Δεν υπάρχει δρομολόγιο για την ημερομηνία αυτή",
   "trips.noScheduleBody":
-    "Δεν έχουμε δημοσιευμένα προγράμματα για {date} ακόμη. Τα δρομολόγια φορτώνονται για τις επόμενες 14 ημέρες — δοκιμάστε ημερομηνία εντός αυτού του εύρους.",
+    "Δεν έχουμε δημοσιευμένα προγράμματα για {date} ακόμη. Τα δρομολόγια φορτώνονται για τις επόμενες 14 ημέρες, δοκιμάστε ημερομηνία εντός αυτού του εύρους.",
   "trips.noScheduleDay": "αυτή την ημέρα",
   "trips.noRouteTitle": "Δεν βρέθηκε ζωντανή διαδρομή",
   "trips.noRouteBody":
@@ -45,7 +45,7 @@ export const trips: Record<keyof typeof tripsEn, string> = {
   "trips.intentNow": "Τώρα",
   "trips.intentTomorrow": "αύριο {time}",
   "trips.intentPlanArrive":
-    "Άφιξη έως {when} — η Aloya μπορεί να παρακολουθεί αυτή την άφιξη πιο κάτω.",
+    "Άφιξη έως {when}, η Aloya μπορεί να παρακολουθεί αυτή την άφιξη πιο κάτω.",
   "trips.intentPlanLeave": "Σχεδιασμός από {when}.",
   "trips.presetToday": "Σήμερα {time}",
   "trips.presetTomorrow": "Αύριο {time}",

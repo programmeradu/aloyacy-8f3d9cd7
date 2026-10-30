@@ -6,7 +6,7 @@ export const Route = createFileRoute("/internal/bedrock")({
   // Internal surface: 404 for anyone who is not an admin (see src/lib/admin.functions.ts).
   beforeLoad: () => assertAdminPage(),
   head: () => ({
-    meta: [{ title: "Bedrock Test — Internal" }, { name: "robots", content: "noindex,nofollow" }],
+    meta: [{ title: "Bedrock Test · Internal" }, { name: "robots", content: "noindex,nofollow" }],
   }),
   component: BedrockTestPage,
 });
@@ -200,13 +200,13 @@ function BedrockTestPage() {
                   key:{" "}
                   {parsedPreview.accessKeyId
                     ? `${parsedPreview.accessKeyId.slice(0, 6)}…${parsedPreview.accessKeyId.slice(-4)}`
-                    : "—"}
+                    : "-"}
                 </span>
                 <span className="rounded-full border px-2 py-0.5 font-mono">
                   secret:{" "}
                   {parsedPreview.secretAccessKey
                     ? `${parsedPreview.secretAccessKey.length} chars`
-                    : "—"}
+                    : "-"}
                 </span>
                 <span className="rounded-full border px-2 py-0.5 font-mono">
                   region: {parsedPreview.region || region}

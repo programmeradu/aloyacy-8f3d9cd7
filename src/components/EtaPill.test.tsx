@@ -19,7 +19,7 @@ describe("EtaPill", () => {
 
   it("headline: ghost tier renders em dash and no minute label", () => {
     render(<EtaPill data={base({ tier: "ghost", etaMin: null })} variant="headline" />);
-    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.getByText("-")).toBeInTheDocument();
     expect(screen.queryByText(/min/i)).not.toBeInTheDocument();
   });
 
@@ -35,13 +35,13 @@ describe("EtaPill", () => {
   });
 
   it("headline: renders an informative band", () => {
-    render(<EtaPill data={base({ etaMin: 8, band: "3–15 min" })} variant="headline" />);
-    expect(screen.getByText("3–15 min")).toBeInTheDocument();
+    render(<EtaPill data={base({ etaMin: 8, band: "3 to 15 min" })} variant="headline" />);
+    expect(screen.getByText("3 to 15 min")).toBeInTheDocument();
   });
 
   it("headline: suppresses a band that is redundant with the headline number", () => {
-    render(<EtaPill data={base({ etaMin: 8, band: "8–9 min" })} variant="headline" />);
-    expect(screen.queryByText("8–9 min")).not.toBeInTheDocument();
+    render(<EtaPill data={base({ etaMin: 8, band: "8 to 9 min" })} variant="headline" />);
+    expect(screen.queryByText("8 to 9 min")).not.toBeInTheDocument();
   });
 
   it("headline: shows a blurb when provided", () => {
@@ -59,7 +59,7 @@ describe("EtaPill", () => {
 
   it("stack: renders eta number and no min label for ghost", () => {
     render(<EtaPill data={base({ tier: "ghost", etaMin: null })} variant="stack" />);
-    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.getByText("-")).toBeInTheDocument();
   });
 
   it("names a lone reporter as one rider", () => {

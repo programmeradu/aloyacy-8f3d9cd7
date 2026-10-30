@@ -63,7 +63,9 @@ export function EtaPill({
   const isGhost = data.tier === "ghost";
   const accent = tierAccent(data.tier);
   const tierLabel = t(
-    data.tier === "rider-confirmed" && data.singleSource ? "eta.tier.riderOne" : TIER_KEYS[data.tier],
+    data.tier === "rider-confirmed" && data.singleSource
+      ? "eta.tier.riderOne"
+      : TIER_KEYS[data.tier],
   );
   const shifted =
     data.etaMin != null && data.operatorEtaMin != null && data.operatorEtaMin !== data.etaMin;
@@ -77,7 +79,7 @@ export function EtaPill({
       >
         <div className="flex items-baseline gap-2">
           <span className={`font-display text-6xl leading-none ${accent}`}>
-            {data.etaMin ?? "—"}
+            {data.etaMin ?? "-"}
           </span>
           {data.etaMin != null && (
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
@@ -115,7 +117,7 @@ export function EtaPill({
         className={`inline-flex items-center gap-2 rounded-full bg-limestone-soft/70 ring-1 ring-line px-3 py-1`}
       >
         <span className={`font-display text-[15px] leading-none ${accent}`}>
-          {data.etaMin ?? "—"}
+          {data.etaMin ?? "-"}
         </span>
         <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
           {data.etaMin != null ? t("eta.minLabel") : t("eta.tier.ghost")}
@@ -133,7 +135,7 @@ export function EtaPill({
     <div
       className={`flex flex-col ${align === "right" ? "items-end text-right" : "items-start text-left"}`}
     >
-      <span className={`font-display text-5xl leading-none ${accent}`}>{data.etaMin ?? "—"}</span>
+      <span className={`font-display text-5xl leading-none ${accent}`}>{data.etaMin ?? "-"}</span>
       <span className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft/80">
         {data.etaMin != null ? t("eta.minLabel") : t("eta.tier.ghost")}
       </span>
@@ -181,8 +183,8 @@ function ChipRow({
 
 /** Only show the band when it materially differs from the headline minute. */
 function bandIsInformative(band: string, headlineMin: number | null): boolean {
-  if (!band.includes("–")) return false;
-  const m = band.match(/^(\d+)\s*–\s*(\d+)/);
+  if (!/–| to /.test(band)) return false;
+  const m = band.match(/^(\d+)\s*(?:–|to)\s*(\d+)/);
   if (!m) return true;
   const lo = Number(m[1]);
   const hi = Number(m[2]);

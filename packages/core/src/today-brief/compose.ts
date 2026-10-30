@@ -56,8 +56,8 @@ export function composeTodayBriefing(args: ComposeArgs): TodayBriefing {
       el: `${festival.nameEl} στη ${cityElAcc(festival.city)}.`,
     };
     lede = {
-      en: "Locals and visitors crowd the venue tonight — bus to the city centre then walk in.",
-      el: "Ντόπιοι και επισκέπτες γεμίζουν τον χώρο απόψε — λεωφορείο στο κέντρο και πεζοί από εκεί.",
+      en: "Locals and visitors crowd the venue tonight, bus to the city centre then walk in.",
+      el: "Ντόπιοι και επισκέπτες γεμίζουν τον χώρο απόψε, λεωφορείο στο κέντρο και πεζοί από εκεί.",
     };
   } else if (theme === "holiday" && holiday) {
     headline = { en: `${holiday.en} today.`, el: `${holiday.el} σήμερα.` };
@@ -68,8 +68,8 @@ export function composeTodayBriefing(args: ComposeArgs): TodayBriefing {
   } else if (theme === "storm" && weather) {
     headline = { en: "Wet stretch rolling through.", el: "Βροχερό διάλειμμα στο νησί." };
     lede = {
-      en: "Roads are slick — buses may slow on the Troodos descent and Limassol motorway.",
-      el: "Οι δρόμοι γλιστρούν — τα λεωφορεία μπορεί να αργήσουν στην κάθοδο του Τροόδους και στον αυτοκινητόδρομο Λεμεσού.",
+      en: "Roads are slick, buses may slow on the Troodos descent and Limassol motorway.",
+      el: "Οι δρόμοι γλιστρούν, τα λεωφορεία μπορεί να αργήσουν στην κάθοδο του Τροόδους και στον αυτοκινητόδρομο Λεμεσού.",
     };
   } else if (theme === "cruise" && cruise) {
     headline = {
@@ -86,7 +86,7 @@ export function composeTodayBriefing(args: ComposeArgs): TodayBriefing {
       el: "Τα λεωφορεία στην παλιά πόλη και στην παραλιακή φορτώνουν περισσότερο τα απογεύματα.",
     };
   } else if (theme === "heatwave" && weather) {
-    headline = { en: `Hot one — ${weather.tempC}°C.`, el: `Ζέστη σήμερα — ${weather.tempC}°C.` };
+    headline = { en: `Hot one · ${weather.tempC}°C.`, el: `Ζέστη σήμερα · ${weather.tempC}°C.` };
     lede = {
       en: "Buses run with AC on max; dwell times stretch a minute at busy stops.",
       el: "Τα λεωφορεία με A/C στο φουλ· οι χρόνοι παραμονής αυξάνονται ένα λεπτό σε γεμάτες στάσεις.",
@@ -120,8 +120,8 @@ export function composeTodayBriefing(args: ComposeArgs): TodayBriefing {
       kickerEl: "ΣΕ ΕΞΕΛΙΞΗ",
       title: festival.name,
       titleEl: festival.nameEl,
-      detail: `${festival.city} — bus to the centre, walk in.`,
-      detailEl: `${cityEl(festival.city)} — λεωφορείο στο κέντρο και πεζοί.`,
+      detail: `${festival.city}, bus to the centre, walk in.`,
+      detailEl: `${cityEl(festival.city)}, λεωφορείο στο κέντρο και πεζοί.`,
       accent: "aegean",
     });
   }
@@ -144,8 +144,8 @@ export function composeTodayBriefing(args: ComposeArgs): TodayBriefing {
       kickerEl: "ΑΡΓΙΑ",
       title: holiday.en,
       titleEl: holiday.el,
-      detail: "Reduced timetable — check route page before you leave.",
-      detailEl: "Μειωμένο πρόγραμμα — δες τη σελίδα της γραμμής πριν φύγεις.",
+      detail: "Reduced timetable, check route page before you leave.",
+      detailEl: "Μειωμένο πρόγραμμα, δες τη σελίδα της γραμμής πριν φύγεις.",
       accent: "olive",
     });
   }
@@ -158,12 +158,12 @@ export function composeTodayBriefing(args: ComposeArgs): TodayBriefing {
       titleEl: `Χρόνια Πολλά ${nd.nameEl}`,
       detail:
         nd.scale === "huge"
-          ? "Expect family gatherings — coastal villages busy through evening."
-          : "Wish your friends — and watch dinner-time bus crowds.",
+          ? "Expect family gatherings, coastal villages busy through evening."
+          : "Wish your friends, and watch dinner-time bus crowds.",
       detailEl:
         nd.scale === "huge"
-          ? "Οικογενειακά τραπέζια — παραλιακά χωριά φορτωμένα ως αργά."
-          : "Πες χρόνια πολλά στους φίλους σου — προσοχή στις βραδινές γραμμές.",
+          ? "Οικογενειακά τραπέζια, παραλιακά χωριά φορτωμένα ως αργά."
+          : "Πες χρόνια πολλά στους φίλους σου, προσοχή στις βραδινές γραμμές.",
       accent: "olive",
     });
   }
@@ -190,12 +190,12 @@ export function composeTodayBriefing(args: ComposeArgs): TodayBriefing {
       detail: beachOk
         ? "Beach index: high. Fig Tree Bay, Konnos and Lady's Mile busy after 10:00."
         : weather.iconKey === "rain"
-          ? "Carry an umbrella — buses may dwell longer at sheltered stops."
+          ? "Carry an umbrella, buses may dwell longer at sheltered stops."
           : "Comfortable across the island.",
       detailEl: beachOk
         ? "Δείκτης παραλίας: υψηλός. Φυκιά, Κόννος και Lady's Mile γεμάτες μετά τις 10:00."
         : weather.iconKey === "rain"
-          ? "Πάρε ομπρέλα — τα λεωφορεία μπορεί να καθυστερούν σε στεγασμένες στάσεις."
+          ? "Πάρε ομπρέλα, τα λεωφορεία μπορεί να καθυστερούν σε στεγασμένες στάσεις."
           : "Άνετος καιρός σε όλο το νησί.",
       accent: weather.iconKey === "rain" ? "ink" : "ochre",
     });
@@ -229,8 +229,8 @@ const VERDICTS: Record<TodayTheme, { en: string; el: string }> = {
     el: "Φύγε λίγο πιο νωρίς αν διασχίζεις την πόλη.",
   },
   festival: {
-    en: "Bring a layer — sea breeze drops the temperature after dark.",
-    el: "Πάρε ένα ρούχο μαζί — βραδιάζει με αεράκι από τη θάλασσα.",
+    en: "Bring a layer, sea breeze drops the temperature after dark.",
+    el: "Πάρε ένα ρούχο μαζί, βραδιάζει με αεράκι από τη θάλασσα.",
   },
   holiday: {
     en: "Coast for the morning, mountains for the afternoon.",
@@ -242,7 +242,7 @@ const VERDICTS: Record<TodayTheme, { en: string; el: string }> = {
   },
   cruise: {
     en: "Skip the seafront route between 14:00 and 17:00 if you can.",
-    el: "Απόφυγε την παραλιακή γραμμή 14:00–17:00 αν μπορείς.",
+    el: "Απόφυγε την παραλιακή γραμμή 14:00 to 17:00 αν μπορείς.",
   },
   heatwave: {
     en: "Carry water. Buses help, but the walk between stops doesn't.",

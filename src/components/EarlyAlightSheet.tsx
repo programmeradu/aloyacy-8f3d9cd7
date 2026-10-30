@@ -156,7 +156,7 @@ export function EarlyAlightSheet({
                   className="w-full text-left rounded-[24px] bg-card ring-1 ring-line p-4 hover:ring-aegean-deep transition"
                 >
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                    {summary} —{" "}
+                    {summary} ·{" "}
                     {it.transfers === 0
                       ? t("replan.noChange")
                       : t("replan.changes", { n: it.transfers })}

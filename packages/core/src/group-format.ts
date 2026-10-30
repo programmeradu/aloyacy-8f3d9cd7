@@ -15,7 +15,7 @@ export function initials(name: string): string {
 
 /** Rider-facing ETA: "—", "Arriving", "12 min", "1 h", "1 h 20". */
 export function formatEta(minutes: number | null | undefined): string {
-  if (minutes == null || !Number.isFinite(minutes)) return "—";
+  if (minutes == null || !Number.isFinite(minutes)) return "-";
   if (minutes <= 0) return "Arriving";
   if (minutes < 60) return `${Math.round(minutes)} min`;
   const h = Math.floor(minutes / 60);

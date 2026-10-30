@@ -30,7 +30,7 @@ export const stop = {
   "stop.nextDepartures": "Next departures",
   "stop.heroEyebrow": "At this stop",
   "stop.heroNote":
-    "Live ETA fused from operator feeds, fresh vehicle pings, and rider sightings — surfaced as one honest number per departure.",
+    "Live ETA fused from operator feeds, fresh vehicle pings, and rider sightings, surfaced as one honest number per departure.",
   "stop.noShowWeekday": "This {time} didn't run on {missed} of the last {days} weekdays.",
   "stop.noShowWeekend": "This {time} didn't run on {missed} of the last {days} weekend days.",
   "stop.lastTonight": "Last bus {route} tonight. After this it's Bolt, a taxi, or tomorrow.",
@@ -65,7 +65,7 @@ export const stop = {
   "stop.riderChain": "from a rider on board, {n}s ago",
   "stop.payUrban": "Tap Motion €2.00, or pay the driver €2.70.",
   "stop.payUrbanNight": "Tap Motion €3.50, or pay the driver €4.70.",
-  "stop.payIntercity": "€5.00–€8.00 by distance, cash only.",
+  "stop.payIntercity": "€5.00 to €8.00 by distance, cash only.",
   "stop.cond.shelterYes": "Shelter",
   "stop.cond.shelterNo": "No shelter",
   "stop.cond.seatingYes": "Seating",

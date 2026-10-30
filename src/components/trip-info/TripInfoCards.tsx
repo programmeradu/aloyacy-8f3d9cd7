@@ -72,7 +72,7 @@ export function NextStopCard({
         <div className="shrink-0 text-right">
           {finished ? (
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
-              —
+              ·
             </span>
           ) : (
             <>

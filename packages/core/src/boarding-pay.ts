@@ -54,7 +54,7 @@ export function boardingPayKind(input: {
 
 export function boardingPayLine(kind: BoardingPayKind, atMs?: number): string {
   if (kind === "intercity") {
-    return "€5.00–€8.00 by distance, cash only.";
+    return "€5.00 to €8.00 by distance, cash only.";
   }
   const night = isCyprusNight(atMs);
   const p = night ? BOARDING_PAY.urban.night : BOARDING_PAY.urban.day;

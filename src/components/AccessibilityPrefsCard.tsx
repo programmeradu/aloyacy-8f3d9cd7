@@ -91,7 +91,7 @@ export function AccessibilityPrefsCard() {
             aria="decrease walking cap"
           />
           <span className="min-w-[64px] text-center font-mono text-[13px] font-semibold tabular-nums text-ink">
-            {capOn ? `${currentCap}m` : "—"}
+            {capOn ? `${currentCap}m` : "-"}
           </span>
           <StepBtn
             onClick={incCap}

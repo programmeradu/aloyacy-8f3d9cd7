@@ -18,10 +18,13 @@ type Props = {
 
 export function NextBusCard(p: Props) {
   const s = p.state;
-  if (s.kind === "bus") return <BusCard bus={s.bus} picked={p.picked} origin={p.origin} onPickStop={p.onPickStop} />;
+  if (s.kind === "bus")
+    return <BusCard bus={s.bus} picked={p.picked} origin={p.origin} onPickStop={p.onPickStop} />;
   if (s.kind === "loading") return <SkeletonCard />;
-  if (s.kind === "no-location") return <NoLocationCard denied={s.denied} onAllow={p.onAllowLocation} onPick={p.onPickStop} />;
-  if (s.kind === "none") return <NoServiceCard stopId={s.stopId} stopName={s.stopName} onPick={p.onPickStop} />;
+  if (s.kind === "no-location")
+    return <NoLocationCard denied={s.denied} onAllow={p.onAllowLocation} onPick={p.onPickStop} />;
+  if (s.kind === "none")
+    return <NoServiceCard stopId={s.stopId} stopName={s.stopName} onPick={p.onPickStop} />;
   return <ErrorCard onRetry={p.onRetry} />;
 }
 
@@ -63,7 +66,13 @@ function BusCard({
         )}
       </div>
 
-      <Link to="/stop/$stopId" params={{ stopId: bus.stopId }} className="sky-big" tabIndex={-1} aria-hidden="true">
+      <Link
+        to="/stop/$stopId"
+        params={{ stopId: bus.stopId }}
+        className="sky-big"
+        tabIndex={-1}
+        aria-hidden="true"
+      >
         <div className="sky-mn tnum">
           {bus.etaMin <= 0 ? (
             <b className="word">{t("sky.card.now")}</b>
@@ -115,7 +124,10 @@ function Progress({ bus }: { bus: NextBus }) {
   // road it has already covered.
   const shown = Math.min(n, 6);
   const busPct = 38;
-  const dots = Array.from({ length: Math.max(0, shown - 1) }, (_, i) => busPct + ((100 - busPct) * (i + 1)) / shown);
+  const dots = Array.from(
+    { length: Math.max(0, shown - 1) },
+    (_, i) => busPct + ((100 - busPct) * (i + 1)) / shown,
+  );
   return (
     <div className="sky-prog">
       <div className="sky-pl tnum">
@@ -130,7 +142,10 @@ function Progress({ bus }: { bus: NextBus }) {
         <div className="l0" />
         <div
           className="l1"
-          style={{ left: `${busPct}%`, background: `linear-gradient(90deg, ${bus.color}, ${bus.color}cc)` }}
+          style={{
+            left: `${busPct}%`,
+            background: `linear-gradient(90deg, ${bus.color}, ${bus.color}cc)`,
+          }}
         />
         <div className="d p" style={{ left: "6%" }} />
         <div className="d p" style={{ left: "20%" }} />
@@ -175,7 +190,10 @@ function SkeletonCard() {
       <div className="sky-thn">
         <div className="sky-sk" style={{ width: 58, height: 32, borderRadius: 12 }} />
         <div className="sky-sk" style={{ width: 58, height: 32, borderRadius: 12 }} />
-        <div className="sky-sk" style={{ width: 132, height: 40, borderRadius: 20, marginLeft: "auto" }} />
+        <div
+          className="sky-sk"
+          style={{ width: 132, height: 40, borderRadius: 20, marginLeft: "auto" }}
+        />
       </div>
     </section>
   );
@@ -204,10 +222,22 @@ function StateCard({
   );
 }
 
-function NoLocationCard({ denied, onAllow, onPick }: { denied: boolean; onAllow: () => void; onPick: () => void }) {
+function NoLocationCard({
+  denied,
+  onAllow,
+  onPick,
+}: {
+  denied: boolean;
+  onAllow: () => void;
+  onPick: () => void;
+}) {
   const { t } = useI18n();
   return (
-    <StateCard icon="crosshair" title={t("sky.loc.title")} body={denied ? t("sky.loc.denied") : t("sky.loc.body")}>
+    <StateCard
+      icon="crosshair"
+      title={t("sky.loc.title")}
+      body={denied ? t("sky.loc.denied") : t("sky.loc.body")}
+    >
       {!denied ? (
         <button type="button" className="sky-btn inline" onClick={onAllow}>
           <Ph name="crosshair" size={18} />
@@ -222,10 +252,22 @@ function NoLocationCard({ denied, onAllow, onPick }: { denied: boolean; onAllow:
   );
 }
 
-function NoServiceCard({ stopId, stopName, onPick }: { stopId: string | null; stopName: string | null; onPick: () => void }) {
+function NoServiceCard({
+  stopId,
+  stopName,
+  onPick,
+}: {
+  stopId: string | null;
+  stopName: string | null;
+  onPick: () => void;
+}) {
   const { t } = useI18n();
   return (
-    <StateCard icon="moonStars" title={t("sky.none.title")} body={t("sky.none.body", { stop: stopName ?? "—" })}>
+    <StateCard
+      icon="moonStars"
+      title={t("sky.none.title")}
+      body={t("sky.none.body", { stop: stopName ?? "-" })}
+    >
       <Link to="/trips" className="sky-btn inline">
         <Ph name="map" size={18} />
         {t("sky.none.plan")}

@@ -77,7 +77,7 @@ export type LegCopy = {
 
 export function legCopy(leg: PlanShareLeg): LegCopy {
   const kind = leg.kind ?? "ride";
-  const fromName = leg.board?.name ?? leg.from?.name ?? leg.name ?? "—";
+  const fromName = leg.board?.name ?? leg.from?.name ?? leg.name ?? "-";
   const toName = leg.alight?.name ?? leg.to?.name ?? "";
   const depart = leg.board?.departureUnix ? planClock(leg.board.departureUnix) : null;
   const arrive = leg.alight?.arrivalUnix ? planClock(leg.alight.arrivalUnix) : null;
@@ -120,7 +120,7 @@ export function expiryLabel(expiresAt: string, nowMs = Date.now()): string {
 /** Message body for the native/web share sheet. */
 export function planShareMessage(plan: PlanShare | null, url: string): string {
   if (!plan) return url;
-  return `Aloya plan — ${plan.origin_label} → ${plan.destination_label} — ${planDate(
+  return `Aloya plan · ${plan.origin_label} → ${plan.destination_label} · ${planDate(
     plan.departure_unix,
   )} ${planClock(plan.departure_unix)}\n${url}`;
 }

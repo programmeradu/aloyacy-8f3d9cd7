@@ -144,7 +144,7 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
                 if (hits.number >= 2 && !backDoneRef.current) {
                   backDoneRef.current = true;
                   if (!frontDoneRef.current) {
-                    toast.success("Back captured — flip to the front");
+                    toast.success("Back captured, flip to the front");
                     switchSide("front");
                   } else {
                     finishIfComplete();
@@ -185,7 +185,7 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
               if (!frontDoneRef.current) {
                 frontDoneRef.current = true;
                 if (!backDoneRef.current) {
-                  toast.success("Front captured — flip to the back");
+                  toast.success("Front captured, flip to the back");
                   switchSide("back");
                 } else {
                   finishIfComplete();
@@ -211,7 +211,7 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
 
   if (typeof document === "undefined") return null;
 
-  const sideHint = side === "front" ? "Front · name & valid-until" : "Back · 14–16 digit UID";
+  const sideHint = side === "front" ? "Front · name & valid-until" : "Back · 14 to 16 digit UID";
 
   return createPortal(
     <div className="fixed inset-0 z-[120] bg-ink/95 backdrop-blur-sm flex flex-col">
@@ -298,7 +298,7 @@ export function CardScanSheet({ onClose }: { onClose: () => void }) {
 
       <div className="px-5 pb-7 space-y-2">
         <FieldRow
-          label="UID (back · 14–16 digits)"
+          label="UID (back · 14 to 16 digits)"
           value={detected.number ? formatCardNumber(detected.number) : ""}
         />
         <FieldRow label="Name (front)" value={detected.holder ?? ""} />
@@ -333,7 +333,7 @@ function FieldRow({ label, value }: { label: string; value: string }) {
           has ? "text-ochre" : "text-limestone/30"
         }`}
       >
-        {has ? value : "—"}
+        {has ? value : "-"}
       </span>
     </div>
   );

@@ -197,7 +197,7 @@ export const jccSync = createServerFn({ method: "POST" })
         ok: false as const,
         code: "card" as const,
         error: isWrong
-          ? "JCC doesn't recognize this card number. Double-check the 10–16 digits on the back."
+          ? "JCC doesn't recognize this card number. Double-check the 10 to 16 digits on the back."
           : jccMsg
             ? `JCC: ${jccMsg}`
             : `JCC rejected the request (${res.status}).`,

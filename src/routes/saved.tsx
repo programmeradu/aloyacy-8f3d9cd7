@@ -21,15 +21,15 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/saved")({
   head: () => ({
     meta: [
-      { title: "Saved — Aloya" },
+      { title: "Saved · Aloya" },
       {
         name: "description",
         content: "Pinned places, recent journeys, and offline schedules for your Cyprus rides.",
       },
-      { property: "og:title", content: "Saved — Aloya" },
+      { property: "og:title", content: "Saved · Aloya" },
       {
         property: "og:description",
-        content: "Pinned places, recent journeys, and offline schedules — kept close.",
+        content: "Pinned places, recent journeys, and offline schedules, kept close.",
       },
       { property: "og:url", content: "https://app.aloya.cy/saved" },
       { property: "og:type", content: "website" },
@@ -242,4 +242,3 @@ function RecentRow({
     </div>
   );
 }
-

@@ -51,14 +51,14 @@ function json(body: unknown, status = 200) {
 
 const FRONT_PROMPT = `You are reading the FRONT of a Cyprus "Motion" public-transport card.
 The front shows the cardholder's name (uppercase Latin, sometimes Greek) and a "valid until" date in DD/MM/YY or DD/MM/YYYY form.
-There is NO long number on the front — never invent one.
+There is NO long number on the front, never invent one.
 Return strict JSON: { "number": null, "holder": "FIRST LAST" | null, "validUntil": "DD/MM/YYYY" | null, "confidence": 0..1 }.
 Confidence is 0.9+ only if you can clearly read at least one field.
 Normalise the date to DD/MM/YYYY (expand "27" to "2027" for years 00-49, "1999" otherwise).`;
 
 const BACK_PROMPT = `You are reading the BACK of a Cyprus "Motion" public-transport card.
 The back shows a long card number, 14 to 16 digits, often printed as "12 3456 7890" or in one block.
-There is NO name or date on the back — never invent them.
+There is NO name or date on the back, never invent them.
 Return strict JSON: { "number": "<14-16 digit string, no spaces>" | null, "holder": null, "validUntil": null, "confidence": 0..1 }.
 Confidence is 0.9+ only if you can clearly read the full number. Reject anything shorter than 14 digits.`;
 
@@ -121,7 +121,8 @@ export const Route = createFileRoute("/api/public/wallet/ocr")({
         const geminiKey = process.env.GEMINI_API_KEY;
         const openAiKey = process.env.OPENAI_API_KEY;
         const lovableKey = process.env.LOVABLE_API_KEY;
-        if (!geminiKey && !openAiKey && !lovableKey) return json({ error: "OCR not configured" }, 503);
+        if (!geminiKey && !openAiKey && !lovableKey)
+          return json({ error: "OCR not configured" }, 503);
 
         const dataUrl = normaliseDataUrl(parsed.data.imageBase64, parsed.data.mimeType);
         const system = parsed.data.side === "front" ? FRONT_PROMPT : BACK_PROMPT;
@@ -212,10 +213,10 @@ export const Route = createFileRoute("/api/public/wallet/ocr")({
           }
 
           if (!content) {
-            if (lastStatus === 429) return json({ error: "Scanner busy. Try again in a moment." }, 429);
+            if (lastStatus === 429)
+              return json({ error: "Scanner busy. Try again in a moment." }, 429);
             return json({ error: `OCR upstream ${lastStatus}` }, 502);
           }
-
 
           let extracted: Extracted;
           try {

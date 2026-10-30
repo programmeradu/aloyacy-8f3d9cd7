@@ -53,8 +53,8 @@ export function CruiseCard({
           {payload.summary ||
             (next
               ? isEl
-                ? `Επόμενο — ${next.shipName}${next.arrival ? ` στις ${next.arrival}` : ""}.`
-                : `Next — ${next.shipName}${next.arrival ? ` arriving ${next.arrival}` : ""}.`
+                ? `Επόμενο · ${next.shipName}${next.arrival ? ` στις ${next.arrival}` : ""}.`
+                : `Next · ${next.shipName}${next.arrival ? ` arriving ${next.arrival}` : ""}.`
               : "")}
         </p>
         {payload.totalPassengers >= 2000 && (
@@ -64,11 +64,11 @@ export function CruiseCard({
           >
             {payload.totalPassengers >= 4000
               ? isEl
-                ? "Υψηλή κίνηση — αναμένετε γεμάτα δρομολόγια προς το παλιό λιμάνι και το κέντρο"
-                : "High surge — expect packed runs to Old Port and city centre"
+                ? "Υψηλή κίνηση, αναμένετε γεμάτα δρομολόγια προς το παλιό λιμάνι και το κέντρο"
+                : "High surge, expect packed runs to Old Port and city centre"
               : isEl
-                ? "Μέτρια κίνηση — δρομολόγια προς λιμάνι ίσως είναι γεμάτα"
-                : "Moderate surge — port-bound runs may be busy"}
+                ? "Μέτρια κίνηση, δρομολόγια προς λιμάνι ίσως είναι γεμάτα"
+                : "Moderate surge, port-bound runs may be busy"}
           </p>
         )}
         {payload.ships.length > 1 && (
@@ -82,7 +82,7 @@ export function CruiseCard({
                   {s.shipName}
                 </span>
                 <span className="font-eyebrow text-[9.5px] uppercase tracking-[0.18em] text-ink-soft tabular-nums whitespace-nowrap">
-                  {s.arrival ?? "—"}
+                  {s.arrival ?? "-"}
                   {s.departure ? ` › ${s.departure}` : ""}
                 </span>
               </li>

@@ -33,7 +33,7 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.nextDepartures": "Επόμενες αναχωρήσεις",
   "stop.heroEyebrow": "Σε αυτή τη στάση",
   "stop.heroNote":
-    "Ο χρόνος άφιξης συνδυάζει δεδομένα μεταφορέα, ζωντανά στίγματα οχημάτων και αναφορές επιβατών — μία ειλικρινής ένδειξη ανά αναχώρηση.",
+    "Ο χρόνος άφιξης συνδυάζει δεδομένα μεταφορέα, ζωντανά στίγματα οχημάτων και αναφορές επιβατών, μία ειλικρινής ένδειξη ανά αναχώρηση.",
   "stop.noShowWeekday": "Αυτό το {time} δεν ήρθε {missed} από τις τελευταίες {days} καθημερινές.",
   "stop.noShowWeekend": "Αυτό το {time} δεν ήρθε {missed} από τα τελευταία {days} σαββατοκύριακα.",
   "stop.lastTonight": "Τελευταίο λεωφορείο {route} απόψε. Μετά είναι Bolt, ταξί, ή αύριο.",
@@ -71,7 +71,7 @@ export const stop: Record<keyof typeof stopEn, string> = {
   "stop.riderChain": "από επιβάτη στο λεωφορείο, πριν {n} δ",
   "stop.payUrban": "Motion €2.00, ή πληρωμή στον οδηγό €2.70.",
   "stop.payUrbanNight": "Νυχτερινό: Motion €3.50, ή πληρωμή στον οδηγό €4.70.",
-  "stop.payIntercity": "€5.00–€8.00 ανάλογα με την απόσταση, μόνο μετρητά.",
+  "stop.payIntercity": "€5.00 to €8.00 ανάλογα με την απόσταση, μόνο μετρητά.",
   "stop.cond.shelterYes": "Στέγαστρο",
   "stop.cond.shelterNo": "Χωρίς στέγαστρο",
   "stop.cond.seatingYes": "Κάθισμα",

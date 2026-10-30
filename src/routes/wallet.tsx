@@ -28,16 +28,16 @@ const CardScanSheet = lazy(() =>
 export const Route = createFileRoute("/wallet")({
   head: () => ({
     meta: [
-      { title: "Motion Pass — Aloya" },
+      { title: "Motion Pass · Aloya" },
       {
         name: "description",
         content:
           "Your Cyprus Motion bus card in your pocket. Balance, top-ups, and a scan-ready QR.",
       },
-      { property: "og:title", content: "Motion Pass — Aloya" },
+      { property: "og:title", content: "Motion Pass · Aloya" },
       {
         property: "og:description",
-        content: "Balance, top-ups, and a scan-ready Motion QR — always with you.",
+        content: "Balance, top-ups, and a scan-ready Motion QR, always with you.",
       },
       { property: "og:url", content: "https://app.aloya.cy/wallet" },
       { property: "og:type", content: "website" },

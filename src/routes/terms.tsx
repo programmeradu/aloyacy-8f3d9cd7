@@ -6,12 +6,12 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms — Aloya" },
+      { title: "Terms · Aloya" },
       {
         name: "description",
         content: "The agreement between Aloya and riders using the app on Cyprus buses.",
       },
-      { property: "og:title", content: "Terms — Aloya" },
+      { property: "og:title", content: "Terms · Aloya" },
       {
         property: "og:description",
         content: "Service, acceptable use, Pro billing, liability, and governing law.",

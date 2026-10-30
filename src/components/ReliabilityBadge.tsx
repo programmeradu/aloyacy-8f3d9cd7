@@ -74,7 +74,7 @@ export function ReliabilityBadge({
           {t("reliability.label")}
         </span>
         <span className={`font-display text-[28px] leading-none ${tone.text}`}>
-          {isRated ? `${onTimePct}%` : "—"}
+          {isRated ? `${onTimePct}%` : "-"}
           {isRated && (
             <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/80 align-middle">
               {t("reliability.onTime")}
@@ -90,7 +90,7 @@ export function ReliabilityBadge({
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full bg-card px-2.5 py-1 ring-1 ${tone.ring}`}
-      title={`${headline} — ${subline}${sampleLine ? ` (${sampleLine})` : ""}`}
+      title={`${headline} · ${subline}${sampleLine ? ` (${sampleLine})` : ""}`}
     >
       <span className={`size-1.5 rounded-full ${tone.dot}`} aria-hidden />
       <span className={`font-mono text-[10px] uppercase tracking-[0.18em] ${tone.text}`}>

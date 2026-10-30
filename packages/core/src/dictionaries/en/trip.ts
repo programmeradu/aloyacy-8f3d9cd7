@@ -6,14 +6,14 @@ export const trip = {
   "trip.endTrip": "End trip",
   "trip.ended.title": "Trip ended",
   "trip.ended.body":
-    "You're back to the planner. Pick a starting point and a destination to begin a new journey — we'll guide you door-to-door with live countdowns and a gentle nudge when it's time to step off.",
+    "You're back to the planner. Pick a starting point and a destination to begin a new journey, we'll guide you door-to-door with live countdowns and a gentle nudge when it's time to step off.",
   "trip.planNew": "Plan a new trip",
   "trip.yourJourney": "Your journey",
   "trip.minTotal": "{m} min total",
   "trip.walkToStopH": "Walk to the stop",
   "trip.walkToDestH": "Walk to destination",
   "trip.walkToName": "Walk to {name}",
-  "trip.walkMeters": "{m} min — {d} m",
+  "trip.walkMeters": "{m} min · {d} m",
   "trip.boardBusPrefix": "Board",
   "trip.boardBusName": "BUS {code}",
   "trip.alightAt": "Alight at {name}",
@@ -45,7 +45,7 @@ export const trip = {
   "trip.sub.alightSoon": "Pull the cord now. Then {m} min on foot to {name}.",
   "trip.sub.arrived": "You're {m} min from {name}. Mind the path.",
   "trip.alight.press": "Press the stop button now",
-  "trip.alight.getReady": "Get ready — {m} min",
+  "trip.alight.getReady": "Get ready · {m} min",
   "trip.alight.body.now":
     "Pull the cord, head to the doors. We'll guide you turn-by-turn to {name} once you're off.",
   "trip.alight.body.soon":
@@ -53,7 +53,7 @@ export const trip = {
 
   "alight.eyebrow": "You got off early",
   "alight.title": "Here are fresh options from where you are.",
-  "alight.empty": "No buses found — your best bet is walking the rest of the way.",
+  "alight.empty": "No buses found, your best bet is walking the rest of the way.",
 
   "walk.tapToLook": "Tap to look around",
   "walk.then": "Then",

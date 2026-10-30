@@ -68,7 +68,7 @@ describe("formatAxisTs", () => {
     expect(out).toMatch(/Aug/);
   });
   it("degrades on invalid input", () => {
-    expect(formatAxisTs("not-a-date", 6)).toBe("—");
+    expect(formatAxisTs("not-a-date", 6)).toBe("-");
   });
 });
 
@@ -141,7 +141,7 @@ describe("chart math", () => {
 describe("misc labels", () => {
   it("formats success rate and empty windows", () => {
     expect(successRateLabel(9, 10)).toBe("90%");
-    expect(successRateLabel(0, 0)).toBe("—");
+    expect(successRateLabel(0, 0)).toBe("-");
   });
   it("downgrades granularity beyond the AWS 14-day hourly limit", () => {
     expect(effectiveGranularity(7, "HOURLY")).toBe("HOURLY");
@@ -154,6 +154,6 @@ describe("misc labels", () => {
   });
   it("shortens model ids", () => {
     expect(shortModelName("eu.anthropic.claude-sonnet-4-v1:0")).toBe("claude-sonnet-4-v1:0");
-    expect(shortModelName("")).toBe("—");
+    expect(shortModelName("")).toBe("-");
   });
 });

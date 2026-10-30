@@ -160,14 +160,14 @@ function DashboardBody({ data }: { data: QaStats }) {
                             : "text-ochre"
                       }
                     >
-                      {r.promptsShown ? `${r.coveragePct}%` : "—"}
+                      {r.promptsShown ? `${r.coveragePct}%` : "-"}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right font-mono text-[12px] text-ink">
-                    {r.phaseErrors || "—"}
+                    {r.phaseErrors || "-"}
                   </td>
                   <td className="px-4 py-3 text-right font-mono text-[12px] text-ink">
-                    {r.falsePositives || "—"}
+                    {r.falsePositives || "-"}
                   </td>
                 </tr>
               ))}
@@ -242,7 +242,7 @@ function BusGlideStressTest() {
   const liveCount = rt?.vehicles.length ?? 0;
   return (
     <section className="px-6 pt-12">
-      <Heading kicker="Stress test" title="Bus glide telemetry — live feed" />
+      <Heading kicker="Stress test" title="Bus glide telemetry, live feed" />
       <p className="mt-3 text-[13px] text-ink-soft max-w-2xl">
         Every animated vehicle on the map. The overlay shows ping age (ochre when {">"} 30s),
         animation mode (path = gliding on the GTFS shape, lerp = straight-line fallback), smoothed
@@ -336,7 +336,7 @@ function HourGrid({ rows }: { rows: QaStats["byHour"] }) {
             </div>
             <p className="font-mono text-[9px] text-ink-soft">{String(r.hour).padStart(2, "0")}</p>
             <p className="font-mono text-[9px] text-ink">
-              {r.promptsShown ? `${r.coveragePct}%` : "—"}
+              {r.promptsShown ? `${r.coveragePct}%` : "-"}
             </p>
           </div>
         );

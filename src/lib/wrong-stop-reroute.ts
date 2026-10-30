@@ -77,7 +77,7 @@ export function detectWrongStop(args: {
       kind: "switch-boarding",
       newStopId: nearestId,
       newStopName: stop?.name ?? nearestId,
-      reason: "Same bus stops here too — boarding from this stop instead.",
+      reason: "Same bus stops here too, boarding from this stop instead.",
     };
   }
 

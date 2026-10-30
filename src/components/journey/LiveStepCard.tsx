@@ -23,7 +23,7 @@ export function LiveStepCard({ live, steps }: { live: LiveJourney; steps: WalkSt
             {live.phase === "walking-to-dest" ? t("hud.walking.toDest") : t("hud.walking.toStop")}
           </p>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            {fmtMeters(live.metersToDestination)} — {fmtMinutes(live.walkingEtaSec)}
+            {fmtMeters(live.metersToDestination)} · {fmtMinutes(live.walkingEtaSec)}
           </p>
         </div>
 
@@ -31,7 +31,7 @@ export function LiveStepCard({ live, steps }: { live: LiveJourney; steps: WalkSt
           {step.instruction}
         </p>
         <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-soft">
-          {fmtMeters(live.metersToStepEnd)} — {(step.maneuver || "straight").replace(/-/g, " ")}
+          {fmtMeters(live.metersToStepEnd)} · {(step.maneuver || "straight").replace(/-/g, " ")}
         </p>
 
         {next && !isFinal && (

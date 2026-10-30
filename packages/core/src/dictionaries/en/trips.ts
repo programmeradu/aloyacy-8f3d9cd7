@@ -28,7 +28,7 @@ export const trips = {
     "We'll walk you to the nearest stop, board a real bus from the live feed, and walk you to the front door. No more guessing which line passes by.",
   "trips.noScheduleTitle": "No timetable for that date",
   "trips.noScheduleBody":
-    "We don't have published bus schedules for {date} yet. Timetables are loaded for the next 14 days — try a date inside that window.",
+    "We don't have published bus schedules for {date} yet. Timetables are loaded for the next 14 days, try a date inside that window.",
   "trips.noScheduleDay": "that day",
   "trips.noRouteTitle": "No live route found",
   "trips.noRouteBody":
@@ -43,7 +43,7 @@ export const trips = {
   "trips.intentNow": "Now",
   "trips.intentTomorrow": "tomorrow {time}",
   "trips.intentPlanArrive":
-    "Planning to land by {when} — Aloya can watch this arrival for you below.",
+    "Planning to land by {when} · Aloya can watch this arrival for you below.",
   "trips.intentPlanLeave": "Planning from {when}.",
   "trips.presetToday": "Today {time}",
   "trips.presetTomorrow": "Tomorrow {time}",

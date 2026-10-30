@@ -227,7 +227,7 @@ describe("sendTripAlert", () => {
     });
     const payload = sendWebPush.mock.calls[0][0].payload;
     expect(payload.title).toBe("Walk to Home");
-    expect(payload.body).toBe("Bus 31 is now 14 min if it shows. Walking is 8 min — walk.");
+    expect(payload.body).toBe("Bus 31 is now 14 min if it shows. Walking is 8 min, walk.");
     expect(payload.tag).toBe("aloya-wait-flip");
     expect(payload.requireInteraction).toBe(true);
     expect(payload.body).not.toMatch(/€|luggage|leaves in/i);

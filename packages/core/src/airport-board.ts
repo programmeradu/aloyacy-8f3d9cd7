@@ -127,8 +127,8 @@ export function airportShareMessage(input: { code: string; name: string; baseUrl
   const base = (input.baseUrl ?? "https://app.aloya.cy").replace(/\/+$/, "");
   const url = `${base}/airport/${code}`;
   return {
-    title: `${input.name} — Aloya`,
-    message: `${input.name} (${code.toUpperCase()}) live coaches and buses — ${url}`,
+    title: `${input.name} · Aloya`,
+    message: `${input.name} (${code.toUpperCase()}) live coaches and buses · ${url}`,
     url,
   };
 }
@@ -138,5 +138,5 @@ export function coordinateLine(lat?: number | null, lng?: number | null): string
   if (!Number.isFinite(lat ?? NaN) || !Number.isFinite(lng ?? NaN)) {
     return "Airport service";
   }
-  return `Airport service — ${(lat as number).toFixed(4)}, ${(lng as number).toFixed(4)}`;
+  return `Airport service · ${(lat as number).toFixed(4)}, ${(lng as number).toFixed(4)}`;
 }

@@ -200,7 +200,7 @@ describe("composeLeaveBuffer", () => {
       rushSec: 120,
     });
     expect(r.extraSec).toBe(420);
-    expect(r.reasonShort).toBe("heavy rain + buses running late + rush hour — leave 7 min earlier");
+    expect(r.reasonShort).toBe("heavy rain + buses running late + rush hour, leave 7 min earlier");
   });
 
   it("caps each component and the total", () => {
@@ -379,7 +379,7 @@ describe("copy", () => {
       targetArrivalUnix: T + 3600,
       leaveByUnix: T,
       routes: ["410"],
-      reasonShort: "rush hour — leave 4 min earlier",
+      reasonShort: "rush hour, leave 4 min earlier",
     });
     expect(copy.title).toContain("BUS 410");
     expect(copy.body).toContain("rush hour");

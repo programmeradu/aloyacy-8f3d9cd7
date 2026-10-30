@@ -190,7 +190,7 @@ async function fetchOpenSky(qs: string): Promise<OpenSkyFlight[] | null> {
 function airportSummary(city: string, arr: number, dep: number): string {
   if (arr === 0 && dep === 0) return `${city} airport quiet in the next hour`;
   if (arr >= dep) {
-    return `${city} arrivals next hour — ${arr}${dep ? `, ${dep} departing` : ""}`;
+    return `${city} arrivals next hour · ${arr}${dep ? `, ${dep} departing` : ""}`;
   }
-  return `${city} departures next hour — ${dep}${arr ? `, ${arr} arriving` : ""}`;
+  return `${city} departures next hour · ${dep}${arr ? `, ${arr} arriving` : ""}`;
 }

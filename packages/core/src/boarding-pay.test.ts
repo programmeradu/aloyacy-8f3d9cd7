@@ -50,7 +50,7 @@ describe("boardingPayLine", () => {
 
     expect(boardingPayLine("urban", dayMs)).toBe("Tap Motion €2.00, or pay the driver €2.70.");
     expect(boardingPayLine("urban", nightMs)).toBe("Tap Motion €3.50, or pay the driver €4.70.");
-    expect(boardingPayLine("intercity")).toBe("€5.00–€8.00 by distance, cash only.");
+    expect(boardingPayLine("intercity")).toBe("€5.00 to €8.00 by distance, cash only.");
     expect(boardingPayLine("urban", dayMs)).not.toMatch(/wait/i);
     expect(boardingPayLine("intercity")).not.toMatch(/exact change/i);
   });

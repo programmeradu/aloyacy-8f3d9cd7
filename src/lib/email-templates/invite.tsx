@@ -25,7 +25,7 @@ export const InviteEmail = ({ siteUrl, confirmationUrl }: InviteEmailProps) => (
     heroAlt="Cream postcard tied with twine and a bougainvillea bloom"
   >
     <Text style={bodyText}>
-      Someone thought you'd love Aloya — and we agree. Accept the invite to set up your account in
+      Someone thought you'd love Aloya, and we agree. Accept the invite to set up your account in
       under a minute.
     </Text>
 

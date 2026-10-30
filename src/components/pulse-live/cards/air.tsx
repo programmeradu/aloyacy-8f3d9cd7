@@ -26,7 +26,7 @@ export function AirCard({
         case "very-poor":
           return "Πολύ κακή";
         default:
-          return "—";
+          return "-";
       }
     }
     switch (payload.band) {
@@ -41,7 +41,7 @@ export function AirCard({
       case "very-poor":
         return "Very poor";
       default:
-        return "—";
+        return "-";
     }
   })();
   return (

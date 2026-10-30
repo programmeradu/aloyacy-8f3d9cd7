@@ -61,7 +61,7 @@ export function WeatherStamp({ dayLabel, tempC, iconKey, Icon, tone }: Props) {
               <span className="text-ochre">°</span>
             </>
           ) : (
-            <span className="text-ink-soft">—</span>
+            <span className="text-ink-soft">-</span>
           )}
         </span>
       </div>

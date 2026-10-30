@@ -51,7 +51,7 @@ describe("AIRPORT_COPY", () => {
 describe("airportHead", () => {
   it("returns fallback head for an unknown code", () => {
     const head = airportHead("zzz");
-    expect(head.meta).toEqual([{ title: "Airport — Aloya" }]);
+    expect(head.meta).toEqual([{ title: "Airport · Aloya" }]);
     expect((head as any).links).toBeUndefined();
   });
 

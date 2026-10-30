@@ -69,14 +69,20 @@ const sendTestSchema = z.object({ deviceId: z.string().min(8).max(128) });
 
 async function dispatchToDevice(deviceId: string, payload: WebPushPayload) {
   const env = getWorkerEnv();
-  const priv =
-    ((env?.VAPID_PRIVATE_KEY as string | undefined) || process.env.VAPID_PRIVATE_KEY || "")
-      .replace(/^\uFEFF/, "")
-      .trim();
-  const sub =
-    ((env?.VAPID_SUBJECT as string | undefined) || process.env.VAPID_SUBJECT || "mailto:notifications@aloya.cy")
-      .replace(/^\uFEFF/, "")
-      .trim();
+  const priv = (
+    (env?.VAPID_PRIVATE_KEY as string | undefined) ||
+    process.env.VAPID_PRIVATE_KEY ||
+    ""
+  )
+    .replace(/^\uFEFF/, "")
+    .trim();
+  const sub = (
+    (env?.VAPID_SUBJECT as string | undefined) ||
+    process.env.VAPID_SUBJECT ||
+    "mailto:notifications@aloya.cy"
+  )
+    .replace(/^\uFEFF/, "")
+    .trim();
   if (!priv) throw new Error("VAPID_PRIVATE_KEY is not configured");
 
   const { data: subs, error } = await supabaseAdmin
@@ -172,7 +178,7 @@ export const sendTripAlert = createServerFn({ method: "POST" })
         body: `${bus} reaches ${stop} in ${min} min.`,
       },
       "hurry-urgent": {
-        title: `Hurry — ${bus} is arriving`,
+        title: `Hurry · ${bus} is arriving`,
         body: `Only ${min} min to ${stop}.`,
         requireInteraction: true,
       },
@@ -199,7 +205,7 @@ export const sendTripAlert = createServerFn({ method: "POST" })
       },
       "stand-by": {
         title: `${stop} is next`,
-        body: "Stay seated — press the button once the bus pulls away from this stop.",
+        body: "Stay seated, press the button once the bus pulls away from this stop.",
         requireInteraction: true,
       },
       "alight-soon": {

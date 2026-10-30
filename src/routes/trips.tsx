@@ -215,6 +215,7 @@ function Plan() {
 
   return (
     <RoamPage
+      compact={showResults}
       title={showResults ? destination!.label : r("go.title")}
       sub={showResults ? r("go.fromPlace", { place: origin!.label }) : undefined}
       left={

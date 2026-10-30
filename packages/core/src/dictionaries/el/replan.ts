@@ -6,7 +6,7 @@ import type { replan as replanEn } from "../en/replan";
 export const replan: Record<keyof typeof replanEn, string> = {
   "replan.close": "Κλείσιμο",
   "replan.searching": "Αναζήτηση κοντινών λεωφορείων…",
-  "replan.empty": "Δεν βρέθηκαν νέες επιλογές — μείνετε εκεί, συνεχίζουμε την παρακολούθηση.",
+  "replan.empty": "Δεν βρέθηκαν νέες επιλογές, μείνετε εκεί, συνεχίζουμε την παρακολούθηση.",
   "replan.walkOnly": "Μόνο με τα πόδια",
   "replan.bus": "Λεωφορείο {code}",
   "replan.noChange": "χωρίς αλλαγή",
@@ -22,7 +22,7 @@ export const replan: Record<keyof typeof replanEn, string> = {
   "replan.late.sub": "Ξανασχεδιάζουμε γύρω από την καθυστέρηση.",
   "replan.atRisk.eyebrow": "Εφεδρικό σχέδιο",
   "replan.atRisk.title": "Αν το χάσετε, να τι ακολουθεί.",
-  "replan.atRisk.sub": "Πατήστε μια επιλογή για αλλαγή — ή συνεχίστε αν προλάβετε το λεωφορείο.",
+  "replan.atRisk.sub": "Πατήστε μια επιλογή για αλλαγή, ή συνεχίστε αν προλάβετε το λεωφορείο.",
   "replan.lostFeed.eyebrow": "Αλλαγή διαδρομής",
   "replan.lostFeed.title": "Ξανασχεδιάστε από εκεί που είστε.",
   "replan.lostFeed.sub": "Νέες επιλογές από την τρέχουσα θέση σας.",

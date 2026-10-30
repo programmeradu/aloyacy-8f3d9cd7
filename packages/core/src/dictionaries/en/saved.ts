@@ -32,7 +32,7 @@ export const saved = {
   "remind.set": "Reminder set",
   "remind.saving": "Saving…",
   "remind.cta": "Remind me to leave",
-  "remind.ctaPro": "Remind me to leave — Pro",
+  "remind.ctaPro": "Remind me to leave · Pro",
   "remind.foot": "We'll re-check weather & traffic and ping you a little earlier if needed.",
   "remind.error": "Could not schedule reminder",
   "remind.authTitle": "Sign in to save reminders",

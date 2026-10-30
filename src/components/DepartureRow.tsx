@@ -250,7 +250,7 @@ export function DepartureRow({
             <span
               className={`font-display text-[36px] sm:text-[44px] leading-none tracking-tight tabular-nums ${accent}`}
             >
-              {eta.etaMin ?? "—"}
+              {eta.etaMin ?? "-"}
             </span>
             <span className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft/80">
               {eta.etaMin != null ? t("eta.minLabel") : t("eta.tier.ghost")}
@@ -346,8 +346,8 @@ function HeadwayLines({
 }
 
 function bandIsInformative(band: string, headlineMin: number | null): boolean {
-  if (!band.includes("–")) return false;
-  const m = band.match(/^(\d+)\s*–\s*(\d+)/);
+  if (!/–| to /.test(band)) return false;
+  const m = band.match(/^(\d+)\s*(?:–|to)\s*(\d+)/);
   if (!m) return true;
   const lo = Number(m[1]);
   const hi = Number(m[2]);
@@ -365,7 +365,7 @@ function splitLongName(long: string): [string, string | null] {
   if (!long) return ["", null];
   const parts = long.split(/\s+[—-]\s+/);
   if (parts.length >= 2) {
-    return [parts[0].trim(), parts.slice(1).join(" — ").trim()];
+    return [parts[0].trim(), parts.slice(1).join("-").trim()];
   }
   return [long, null];
 }

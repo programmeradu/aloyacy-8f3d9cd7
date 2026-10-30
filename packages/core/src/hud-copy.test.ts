@@ -19,14 +19,14 @@ describe("formatters", () => {
     expect(fmtMin(60)).toBe("1 min");
     expect(fmtMin(725)).toBe("12 min");
     expect(fmtMin(-90)).toBe("under a minute");
-    expect(fmtMin(Number.NaN)).toBe("—");
+    expect(fmtMin(Number.NaN)).toBe("-");
   });
 
   it("formats distances", () => {
     expect(fmtDist(180.4)).toBe("180 m");
     expect(fmtDist(1400)).toBe("1.4 km");
-    expect(fmtDist(-1)).toBe("—");
-    expect(fmtDist(Number.POSITIVE_INFINITY)).toBe("—");
+    expect(fmtDist(-1)).toBe("-");
+    expect(fmtDist(Number.POSITIVE_INFINITY)).toBe("-");
   });
 });
 
@@ -62,7 +62,7 @@ describe("hudVisibility", () => {
 
 describe("copy", () => {
   it("switches hurry tone on urgency", () => {
-    expect(hurryCopy(true).kicker).toBe("Hurry — bus is here");
+    expect(hurryCopy(true).kicker).toBe("Hurry, bus is here");
     expect(hurryCopy(false).kicker).toBe("Pace up");
     expect(hurryCopy(false).body).toContain("pace");
   });
@@ -73,7 +73,7 @@ describe("copy", () => {
 
   it("builds boarding body copy", () => {
     expect(boardingBody({ onBoardSuggested: true, secondsLeft: 12.4, alightName: "X" })).toBe(
-      "Looks like you're on board — auto-confirming in 12s.",
+      "Looks like you're on board, auto-confirming in 12s.",
     );
     expect(
       boardingBody({ onBoardSuggested: false, secondsLeft: 30, alightName: "Finikoudes" }),

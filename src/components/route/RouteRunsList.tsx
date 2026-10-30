@@ -44,7 +44,7 @@ export function RouteRunsList({
                 <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
                   {live && <IconBus className="size-3 text-ochre" />}
                   {live ? t("route.liveNow") : t("route.scheduled")}
-                  {" — "}
+                  {"-"}
                   {t("route.toName", {
                     name:
                       stopOf(trip.lastStop.stopId)

@@ -25,7 +25,7 @@ type SharedTripRow = {
 
 export const Route = createFileRoute("/eta/$token")({
   head: () => {
-    const title = "Live ETA — Aloya";
+    const title = "Live ETA · Aloya";
     const desc = "Watch a friend's live bus trip across Cyprus.";
     return {
       meta: [

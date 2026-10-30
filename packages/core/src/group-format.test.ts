@@ -18,9 +18,9 @@ describe("initials", () => {
 
 describe("formatEta", () => {
   it("handles missing and invalid values", () => {
-    expect(formatEta(null)).toBe("—");
-    expect(formatEta(undefined)).toBe("—");
-    expect(formatEta(Number.NaN)).toBe("—");
+    expect(formatEta(null)).toBe("-");
+    expect(formatEta(undefined)).toBe("-");
+    expect(formatEta(Number.NaN)).toBe("-");
   });
 
   it("says Arriving at or past zero", () => {

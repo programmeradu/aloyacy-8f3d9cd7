@@ -64,7 +64,7 @@ export function SkyCard({
               ? "Ήρεμη επόμενη ώρα στους ουρανούς."
               : "Quiet skies in the next hour."
             : isEl
-              ? "Επόμενη ώρα — επιπλέον αιτήματα ταξί και Bus 425 / Express."
+              ? "Επόμενη ώρα, επιπλέον αιτήματα ταξί και Bus 425 / Express."
               : "Expect extra demand on airport shuttles and taxi ranks."}
         </p>
       </div>

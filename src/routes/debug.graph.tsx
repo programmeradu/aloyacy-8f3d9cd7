@@ -9,7 +9,7 @@ export const Route = createFileRoute("/debug/graph")({
   beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [
-      { title: "Transfer graph — Phase 1 checkpoint" },
+      { title: "Transfer graph · Phase 1 checkpoint" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -105,7 +105,7 @@ function DebugGraph() {
             <section className="mt-10">
               <h2 className="font-display text-[22px] text-ink">Hub stops</h2>
               <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft mt-1">
-                Most transfer-rich — sanity check these by hand
+                Most transfer-rich, sanity check these by hand
               </p>
               <ol className="mt-4 rounded-[24px] bg-card ring-1 ring-line divide-y divide-line/60">
                 {data.topHubs.map((h, i) => (
@@ -116,7 +116,7 @@ function DebugGraph() {
                     <div className="flex-1 min-w-0">
                       <p className="font-sans text-[14px] text-ink truncate">{h.name}</p>
                       <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft mt-0.5">
-                        stop {h.stopId} · {h.nearestMeters}—{h.farthestMeters} m range
+                        stop {h.stopId} · {h.nearestMeters} · {h.farthestMeters} m range
                       </p>
                     </div>
                     <span className="font-display text-[24px] text-aegean-deep tabular-nums">
@@ -128,7 +128,7 @@ function DebugGraph() {
             </section>
 
             <p className="mt-10 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft text-center">
-              Phase 1 of 5 — foundation
+              Phase 1 of 5, foundation
             </p>
           </>
         )}

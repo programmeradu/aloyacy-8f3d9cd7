@@ -23,7 +23,7 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
     <Text style={codeBlock}>{token}</Text>
 
     <Text style={fineprint}>
-      If you didn't request this code, you can safely ignore the message — no changes have been made
+      If you didn't request this code, you can safely ignore the message, no changes have been made
       to your account.
     </Text>
   </Layout>

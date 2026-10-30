@@ -35,7 +35,7 @@ export const saved: Record<keyof typeof savedEn, string> = {
   "remind.set": "Υπενθύμιση ενεργή",
   "remind.saving": "Αποθήκευση…",
   "remind.cta": "Υπενθύμισέ μου",
-  "remind.ctaPro": "Υπενθύμισέ μου — Pro",
+  "remind.ctaPro": "Υπενθύμισέ μου · Pro",
   "remind.foot":
     "Θα ξαναελέγξουμε καιρό και κίνηση και θα σας ειδοποιήσουμε λίγο νωρίτερα αν χρειαστεί.",
   "remind.error": "Αδυναμία προγραμματισμού υπενθύμισης",

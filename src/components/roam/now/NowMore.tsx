@@ -27,7 +27,7 @@ export function NowMore({ stops, live }: { stops: Stop[]; live: boolean }) {
           <div className="r-card" style={{ padding: "4px 0" }}>
             {stops.map((s) => {
               const isLive = s.etaTier === "live" || s.etaTier === "rider-confirmed";
-              const codes = s.routes.map((x) => x.code).filter((c) => c !== "—");
+              const codes = s.routes.map((x) => x.code).filter((c) => c !== "-");
               return (
                 <Link
                   key={s.id}

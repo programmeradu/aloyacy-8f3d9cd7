@@ -27,7 +27,7 @@ export function LastMileChainCard({ suggestion }: { suggestion: LastMileChainSug
   const driveMin = fmtMin(suggestion.drivingSec);
   const walkMin = fmtMin(suggestion.walkSec);
   const dist = fmtKm(suggestion.distanceMeters);
-  const fare = `${fmtEur(suggestion.fareLow)}–${fmtEur(suggestion.fareHigh)}`;
+  const fare = `${fmtEur(suggestion.fareLow)} · ${fmtEur(suggestion.fareHigh)}`;
 
   const eyebrow =
     suggestion.trigger === "long-late"

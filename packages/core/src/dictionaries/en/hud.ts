@@ -7,9 +7,9 @@ export const hud = {
   "hud.startBody":
     "We'll follow your steps, nudge you to hurry if the bus is close, let you know when you reach the stop, and guide you off at the right moment.",
   "hud.startCta": "Start journey",
-  "hud.hurry.urgentTitle": "Hurry — bus is arriving",
+  "hud.hurry.urgentTitle": "Hurry, bus is arriving",
   "hud.hurry.softTitle": "Pick up the pace",
-  "hud.hurry.headline": "{board} to bus — {walk} on foot",
+  "hud.hurry.headline": "{board} to bus · {walk} on foot",
   "hud.hurry.urgentBody":
     "You will miss it at your current pace. Quicken up or we'll find the next one.",
   "hud.hurry.softBody": "It's going to be tight. Keep moving and you'll just catch it.",
@@ -20,7 +20,7 @@ export const hud = {
   "hud.atStop.headline": "BUS {code} in {min}",
   "hud.atStop.body": "Stay near the curb at {name}. We'll prompt you the moment the bus pulls in.",
   "hud.board.label": "Are you on board?",
-  "hud.board.headline": "BUS {code} — {long}",
+  "hud.board.headline": "BUS {code} · {long}",
   "hud.board.bodyAuto": "Looks like you boarded. Auto-confirming in {s}s.",
   "hud.board.body": "Confirm so we can switch to ride mode and watch for {name}.",
   "hud.board.onboard": "I'm on board",
@@ -32,7 +32,7 @@ export const hud = {
   "hud.missed.finding": "Finding…",
   "hud.missed.find": "Find next ride",
   "hud.missed.err": "No nearby options. Try again in a moment.",
-  "hud.riding.label": "On board — BUS {code}",
+  "hud.riding.label": "On board · BUS {code}",
   "hud.riding.headline": "Off in {min} at {name}.",
   "hud.riding.lost":
     "Feed lost the bus, so we're using your phone as the bus and keeping the stop countdown on your movement.",
@@ -54,7 +54,8 @@ export const hud = {
   "hud.alight.bodyAlighting": "Step off here at {name}.",
   "hud.alight.bodyPassed": "We'll re-route you on foot from wherever you get off.",
   "hud.alight.remaining": "Remaining stops",
-  "hud.alight.noSequence": "We don't have this trip's stop list, so the countdown follows distance instead.",
+  "hud.alight.noSequence":
+    "We don't have this trip's stop list, so the countdown follows distance instead.",
   "hud.alight.yourStop": "Your stop",
   "hud.arrived.label": "You've arrived",
   "hud.arrived.title": "Welcome to {name}.",

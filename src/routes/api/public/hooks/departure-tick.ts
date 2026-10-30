@@ -75,10 +75,13 @@ async function tick(request: Request) {
   if (denied) return denied;
 
   const env = getWorkerEnv();
-  const priv =
-    ((env?.VAPID_PRIVATE_KEY as string | undefined) || process.env.VAPID_PRIVATE_KEY || "")
-      .replace(/^\uFEFF/, "")
-      .trim();
+  const priv = (
+    (env?.VAPID_PRIVATE_KEY as string | undefined) ||
+    process.env.VAPID_PRIVATE_KEY ||
+    ""
+  )
+    .replace(/^\uFEFF/, "")
+    .trim();
   if (!priv) return json({ ok: false, error: "VAPID_PRIVATE_KEY missing" }, 500);
 
   const nowUnix = Math.floor(Date.now() / 1000);
@@ -190,7 +193,7 @@ async function tick(request: Request) {
     const targetUrl = tripParams.toString() ? `/trips?${tripParams.toString()}` : "/saved";
 
     const payload = {
-      title: `Time to head out${firstRoute ? ` — BUS ${firstRoute}` : ""}`,
+      title: `Time to head out${firstRoute ? ` · BUS ${firstRoute}` : ""}`,
       body: `Leave now to reach ${plan.toLabel ?? "your destination"} on time (~${minutesUntil} min).${bodyExtra}`,
       tag: `aloya-depart-${row.id}`,
       url: targetUrl,

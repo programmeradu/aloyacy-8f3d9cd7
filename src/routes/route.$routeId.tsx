@@ -1,10 +1,10 @@
-// Route detail page — /route/$routeId
+// Route detail page: /route/$routeId (Roam, concept 07)
 //
 // Board logic (trips on the line, canonical stop sequence, where each bus
 // sits) lives in @aloya/core/route-board so the web and native screens agree.
 // This file wires realtime data into the three sections below it.
 
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -29,22 +29,23 @@ function areaLabel(agency: string, r: (k: RoamKey) => string): string {
   const key = AREA_KEY[agency];
   return key ? r(key) : "";
 }
-import { AppShell } from "@/components/AppShell";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { NotchCard } from "@/components/roam/NotchCard";
+import { FrostButton } from "@/components/roam/FrostButton";
+import { RouteHero } from "@/components/route/RouteHero";
+import { RouteTimeline } from "@/components/route/RouteTimeline";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
-import { RouteChip } from "@/components/RouteChip";
 import { ReliabilityBadge } from "@/components/ReliabilityBadge";
 import { IntercityPatternsCard } from "@/components/IntercityPatternsCard";
-import { IconArrowLeft, IconStar, IconStarFilled } from "@/components/Icons";
 import { RouteNextDepartureCard } from "@/components/route/RouteNextDepartureCard";
 import { RouteRunsList } from "@/components/route/RouteRunsList";
-import { RouteStopsList } from "@/components/route/RouteStopsList";
 import { useRealtime } from "@/lib/useRealtime";
-import { getRoute, getStop, routeTone } from "@/lib/gtfs";
+import { getRoute, getStop, STOPS } from "@/lib/gtfs";
+import { repairPlace } from "@/components/roam/lines/lines-data";
 import { getRouteReliability } from "@/lib/reliability.functions";
 import { getIntercityInsights } from "@/lib/intercity-intel.functions";
 import { routeHead } from "@/lib/route-page";
 import { loadRouteSampleCount } from "@/lib/route-index.server";
-import routeVignette from "@/assets/route-vignette.jpg";
 import { useI18n } from "@/lib/i18n";
 import {
   useStarredRoutes,
@@ -55,6 +56,8 @@ import { NotificationPromptSheet } from "@/components/NotificationPromptSheet";
 import routeStopsData from "@/data/route_stops.json";
 import { buildOfflineBoardArrivals } from "@/lib/offline-timetable-db";
 import { useOnlineStatus } from "@/lib/useOnlineStatus";
+
+const STOP_NAMES = Array.from(new Set(STOPS.map((s) => s.name)));
 
 export const Route = createFileRoute("/route/$routeId")({
   loader: ({ params }) => loadRouteSampleCount(params.routeId),
@@ -100,7 +103,7 @@ function RoutePage() {
   });
   const rel = reliability?.[0];
 
-  // Wave 3 — intercity intelligence (IC-only)
+  // Wave 3: intercity intelligence (IC-only)
   const isIntercity = agency === "IC";
   const fetchIntercity = useServerFn(getIntercityInsights);
   const { data: intercity, isLoading: intercityLoading } = useQuery({
@@ -164,196 +167,186 @@ function RoutePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [board]);
 
-  const tone = routeTone(routeId);
   const tripIds = board?.trips.map((t) => t.tripId) ?? [];
   const firstTrip = board?.trips[0];
   const liveBus = firstTrip
     ? board?.busesOnLine.find((b) => b.tripId === firstTrip.tripId)
     : undefined;
 
+  const lineShort = route?.short ?? routeId;
+  const { origin, dest } = splitLong(route?.long, stopOf(board?.stopIds[0] ?? "")?.name);
+  const area = areaLabel(resolveAgency({ agency: route?.agency, id: routeId }), r);
+  const liveCount = board?.vehicles.length ?? 0;
+  const onShare = () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator.share({ title: `${lineShort} ${dest}`, url }).catch(() => {});
+    } else {
+      void navigator.clipboard?.writeText(url);
+    }
+  };
+
   return (
-    <AppShell>
-      <div className="px-6 pt-2 pb-4 flex items-center justify-between animate-rise">
-        <Link
-          to="/"
-          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink"
-        >
-          <IconArrowLeft className="size-4" />
-        </Link>
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-            {t("route.overview")}
-          </span>
-          {!isOnline && (
-            <span className="rounded-full bg-olive-soft/80 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-olive font-semibold ring-1 ring-olive/20">
-              Offline
-            </span>
-          )}
-        </div>
-        <span className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => openMeSheet("alerts")}
-            aria-label={r("me.alerts")}
-            className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink hover:bg-limestone-soft transition-colors"
-          >
-            <Icon name="bell-simple" />
-          </button>
-          <button
-            type="button"
-            onClick={handleToggleStar}
-            aria-label={isStarred ? "Remove from starred routes" : "Star favorite route"}
-            className={`flex size-10 items-center justify-center rounded-full ring-1 transition-all ${
-              isStarred
-                ? "bg-ochre-soft text-ochre ring-ochre/40 shadow-sm"
-                : "bg-card ring-line text-ink-soft hover:text-ink hover:bg-limestone-soft"
-            }`}
-          >
-            {isStarred ? <IconStarFilled className="size-4" /> : <IconStar className="size-4" />}
-          </button>
-        </span>
-      </div>
-
-      <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
-        <div className="flex items-center gap-3">
-          <RouteChip code={route?.short ?? routeId} tone={tone} />
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-            {areaLabel(resolveAgency({ agency: route?.agency, id: routeId }), r)}
-          </span>
-        </div>
-        <h1 className="mt-3 font-display text-[36px] leading-[1.05] text-ink text-balance">
-          {route?.long ?? t("route.fallbackName", { id: routeId })}
-        </h1>
-        <p className="mt-2 text-[13px] text-ink-soft">
-          {board?.vehicles.length
-            ? board.vehicles.length === 1
-              ? t("route.busesRunningOne")
-              : t("route.busesRunningN", { n: board.vehicles.length })
-            : t("route.noBusesReporting")}
-          {board?.stopIds.length ? t("route.stopsOnLineSuffix", { n: board.stopIds.length }) : ""}
-        </p>
-        {rel && (
-          <div className="mt-4">
-            <ReliabilityBadge
-              tier={rel.tier}
-              onTimePct={rel.onTimePct}
-              meanDelaySec={rel.meanDelaySec}
-              sampleCount={rel.sampleCount}
-              variant="stack"
-            />
-          </div>
-        )}
-
-        {isStarred && (
-          <div className="mt-4 flex items-center justify-between rounded-2xl bg-card p-3.5 ring-1 ring-line text-[12px] shadow-sm animate-fade-in">
-            <div className="flex items-center gap-2.5">
-              <span className="text-base leading-none">⚠️</span>
-              <div>
-                <p className="text-ink font-semibold leading-tight">Disruption Alerts</p>
-                <p className="text-[11px] text-ink-soft">
-                  Push alerts for major delays on Line {route?.short ?? routeId}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                const next = !notifyDisruptions;
-                setRouteNotifyDisruptions(routeId, next);
-                if (
-                  next &&
-                  typeof window !== "undefined" &&
-                  "Notification" in window &&
-                  Notification.permission === "default"
-                ) {
-                  setPromptOpen(true);
-                }
-              }}
-              className={`rounded-full px-3 py-1 font-sans text-[11.5px] font-semibold transition-colors ${
-                notifyDisruptions
-                  ? "bg-aegean-deep text-limestone"
-                  : "bg-limestone-soft text-ink-soft ring-1 ring-line hover:bg-card"
-              }`}
-            >
-              {notifyDisruptions ? "Active" : "Off"}
-            </button>
-          </div>
-        )}
-      </header>
-
-      {/* Editorial vignette + map stacked */}
-      <section className="px-6 animate-rise" style={{ animationDelay: "120ms" }}>
-        {board?.vehicles.length || board?.stopIds.length ? (
-          <MapPreview
-            height="h-56"
-            spanKm={board.vehicles.length ? 8 : 12}
-            markers={markers}
-            restrictTripIds={tripIds.length ? tripIds : undefined}
-            liveLabel={{
-              active: t("route.liveOnLine"),
-              empty: t("route.noLiveOnLine"),
-            }}
-          />
-        ) : (
-          <div className="relative h-56 rounded-[28px] overflow-hidden ring-1 ring-line">
-            <img
-              src={routeVignette}
-              alt=""
-              width={1536}
-              height={768}
-              loading="lazy"
-              className="absolute inset-0 size-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-limestone/80 via-limestone/10 to-transparent" />
-            <div className="absolute bottom-4 left-5 right-5">
-              <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ink-soft">
-                {t("route.serviceWindow")}
-              </p>
-              <p className="mt-1 font-display text-[20px] leading-tight text-ink">
-                {isLoading ? t("route.checking") : t("route.quiet")}
-              </p>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {board && firstTrip && (
-        <RouteNextDepartureCard
-          trip={firstTrip}
-          liveBus={liveBus}
-          atStop={liveBus ? stopOf(board.stopIds[liveBus.stopIndex]) : undefined}
-          nextStop={stopOf(firstTrip.nextArrival.stopId)}
-          terminus={stopOf(firstTrip.lastStop.stopId)}
+    <div className="roam r-page">
+      <div className="r-col">
+        <OfflineBanner />
+        <RouteHero
+          markers={markers}
+          tripIds={tripIds}
+          spanKm={board?.vehicles.length ? 8 : 12}
+          starred={isStarred}
+          onStar={handleToggleStar}
+          onShare={onShare}
         />
-      )}
-
-      {/* Wave 3 — Cross-island intercity intelligence (IC only) */}
-      {isIntercity && (
-        <section className="mt-6 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
-          <IntercityPatternsCard insights={intercity} isLoading={intercityLoading} />
-        </section>
-      )}
-
-      {board && board.trips.length > 1 ? <RouteRunsList board={board} stopOf={stopOf} /> : null}
-
-      {board && board.stopIds.length ? (
-        <RouteStopsList board={board} stopOf={stopOf} />
-      ) : !isLoading ? (
-        <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "240ms" }}>
-          <div className="rounded-[28px] bg-card ring-1 ring-line p-6">
-            <p className="font-display text-[20px] leading-tight text-ink">
-              {t("route.stopsAppearTitle")}
+        <NotchCard
+          className="r-hero-sheet"
+          radius={34}
+          shadow="drop-shadow(0 -8px 24px rgba(0,0,0,.16))"
+          notches={[
+            {
+              edge: "top",
+              cx: 0,
+              center: true,
+              width: 100,
+              depth: 26,
+              dock: (
+                <FrostButton
+                  icon="bell-simple"
+                  variant="white"
+                  large
+                  label={r("line.alerts")}
+                  onClick={() => openMeSheet("alerts")}
+                />
+              ),
+            },
+          ]}
+        >
+          <div
+            className="px-5 pt-8"
+            style={{
+              paddingBottom: "calc(var(--r-safe-bottom) + 120px)",
+              minHeight: "calc(100dvh - 304px)",
+            }}
+          >
+            <span className="r-pill r-pill--y r-tnum">
+              <Icon name="bus" /> {lineShort}
+            </span>
+            <h1 className="r-t1 mt-3" style={{ textWrap: "balance" }}>
+              {dest || t("route.fallbackName", { id: routeId })}
+            </h1>
+            <p className="r-lbl mt-1.5">
+              {[
+                origin ? r("line.from", { place: origin }) : "",
+                board?.stopIds.length ? r("line.nStops", { n: board.stopIds.length }) : "",
+                area,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
-            <p className="mt-2 text-[13px] text-ink-soft">{t("route.stopsAppearBody")}</p>
+
+            <div className="r-hscroll mt-4">
+              <span className="r-pill r-pill--lg r-pill--o">
+                <span className={`r-dot${liveCount ? "" : " r-dot--grey"}`} />
+                {liveCount ? r("line.live", { n: liveCount }) : r("line.noLive")}
+              </span>
+              {!isOnline && <span className="r-pill r-pill--lg r-pill--o">Offline</span>}
+            </div>
+
+            {rel && (
+              <div className="r-legacy mt-4">
+                <ReliabilityBadge
+                  tier={rel.tier}
+                  onTimePct={rel.onTimePct}
+                  meanDelaySec={rel.meanDelaySec}
+                  sampleCount={rel.sampleCount}
+                  variant="stack"
+                />
+              </div>
+            )}
+
+            {isStarred && (
+              <div className="r-card r-card--soft mt-4 flex items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-[15px] font-medium leading-tight">{r("line.disruptions")}</p>
+                  <p className="r-lbl mt-0.5">{r("line.disruptionsSub", { line: lineShort })}</p>
+                </div>
+                <button
+                  type="button"
+                  aria-pressed={!!notifyDisruptions}
+                  onClick={() => {
+                    const next = !notifyDisruptions;
+                    setRouteNotifyDisruptions(routeId, next);
+                    if (
+                      next &&
+                      typeof window !== "undefined" &&
+                      "Notification" in window &&
+                      Notification.permission === "default"
+                    ) {
+                      setPromptOpen(true);
+                    }
+                  }}
+                  className={`r-pill r-pill--lg ${notifyDisruptions ? "r-pill--k" : "r-pill--o"}`}
+                >
+                  {notifyDisruptions ? r("line.on") : r("line.off")}
+                </button>
+              </div>
+            )}
+
+            {board && board.stopIds.length ? (
+              <div className="mt-5">
+                <RouteTimeline
+                  stopIds={board.stopIds}
+                  stopOf={stopOf}
+                  trip={firstTrip}
+                  bus={liveBus}
+                  lineShort={lineShort}
+                />
+              </div>
+            ) : !isLoading ? (
+              <div className="r-card r-card--soft mt-5 p-5">
+                <p className="text-[18px] font-medium leading-tight">
+                  {t("route.stopsAppearTitle")}
+                </p>
+                <p className="r-lbl mt-2">{t("route.stopsAppearBody")}</p>
+              </div>
+            ) : null}
+
+            <div className="r-legacy -mx-6 mt-4">
+              {board && firstTrip && (
+                <RouteNextDepartureCard
+                  trip={firstTrip}
+                  liveBus={liveBus}
+                  atStop={liveBus ? stopOf(board.stopIds[liveBus.stopIndex]) : undefined}
+                  nextStop={stopOf(firstTrip.nextArrival.stopId)}
+                  terminus={stopOf(firstTrip.lastStop.stopId)}
+                />
+              )}
+              {isIntercity && (
+                <section className="mt-6 px-6">
+                  <IntercityPatternsCard insights={intercity} isLoading={intercityLoading} />
+                </section>
+              )}
+              {board && board.trips.length > 1 ? (
+                <RouteRunsList board={board} stopOf={stopOf} />
+              ) : null}
+            </div>
           </div>
-        </section>
-      ) : null}
+        </NotchCard>
+      </div>
 
       <NotificationPromptSheet
         open={promptOpen}
         onClose={() => setPromptOpen(false)}
         reason="disruption"
       />
-    </AppShell>
+    </div>
   );
+}
+
+/** Origin and destination from a GTFS long name ("A - B - C"), dash free. */
+function splitLong(long: string | undefined, firstStop: string | undefined) {
+  const parts = (long ?? "").split(/\s+[-\u2013\u2014]\s+/).filter(Boolean);
+  const fix = (x: string) => repairPlace(x, STOP_NAMES);
+  if (parts.length < 2) return { origin: firstStop ?? "", dest: fix(parts[0] ?? "") };
+  return { origin: fix(parts[0]), dest: parts.slice(1).map(fix).join(", ") };
 }

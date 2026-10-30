@@ -161,9 +161,10 @@ function AirportView({
       .filter((a) => (seen.has(a.tripId) ? false : (seen.add(a.tripId), true)));
     return here
       .map((a) => {
+        // Only this row's trip at the stop: smartEtaV2 reads the soonest one.
         const eta = smartEtaV2({
           stopId,
-          arrivals: rt.arrivals,
+          arrivals: rt.arrivals.filter((x) => x.stopId !== stopId || x.tripId === a.tripId),
           vehicles: rt.vehicles,
           nowSec: now,
           agency: stop?.agency,
@@ -224,7 +225,7 @@ function AirportView({
       <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
         <h1 className="font-display text-[40px] leading-[1.05] text-ink">{airportName}</h1>
         <p className="mt-2 text-[13px] text-ink-soft">
-          {c.serviceLabel} — {airport.lat.toFixed(4)}, {airport.lng.toFixed(4)}
+          {c.serviceLabel} · {airport.lat.toFixed(4)}, {airport.lng.toFixed(4)}
         </p>
       </header>
 

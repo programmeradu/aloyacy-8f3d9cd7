@@ -115,7 +115,7 @@ export function routeChipsForStop(
     });
     if (chips.length >= limit) break;
   }
-  if (chips.length === 0) chips.push({ code: "—", tone: "olive", headsign: null });
+  if (chips.length === 0) chips.push({ code: "-", tone: "olive", headsign: null });
   return chips;
 }
 

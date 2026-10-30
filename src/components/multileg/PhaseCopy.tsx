@@ -1,4 +1,4 @@
-import { DestBailLine } from './DestBailLine';
+import { DestBailLine } from "./DestBailLine";
 // Hero copy for the multi-leg companion: the phase eyebrow, the big
 // headline and the supporting line. Kept apart from the companion shell so
 // the copy logic can change without touching layout or live wiring.
@@ -22,13 +22,13 @@ function useBailUpgrade(
 ) {
   const upgradeFn = useServerFn(upgradeDestBail);
   const ride = live.currentRideLeg;
-  
+
   const query = useQuery({
     queryKey: ["bailUpgrade", ride?.tripId, raw?.kind, dest?.lat, dest?.lng],
     queryFn: async () => {
       if (!raw || raw.kind !== "keepWait" || !dest || !ride) return null;
       if (!live.tripGhost) return null;
-      
+
       const from = live.fix ?? { lat: ride.board.lat, lng: ride.board.lng };
       return upgradeFn({
         data: {
@@ -92,7 +92,7 @@ export function PhaseLabel({ live, itin }: { live: MultiLegLive; itin: Itinerary
           : t("ml.detail.scheduled");
   return (
     <p className={`font-mono text-[10px] uppercase tracking-[0.24em] ${tone}`}>
-      {text} <span className="text-ink-soft">— {detail}</span>
+      {text} <span className="text-ink-soft"> · {detail}</span>
     </p>
   );
 }
@@ -312,7 +312,7 @@ export function PhaseSub({
     stopId: keep && ride ? ride.board.stopId : null,
     arrivalUnix: keep ? Math.floor(Date.now() / 1000) + live.secsToCurrentBoard : null,
   });
-  
+
   const upgraded = useBailUpgrade(live, raw, dest);
   const bail = destBailWithHeadway(upgraded, hint);
 

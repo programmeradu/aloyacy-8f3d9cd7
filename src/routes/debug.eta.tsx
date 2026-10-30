@@ -10,7 +10,7 @@ export const Route = createFileRoute("/debug/eta")({
   // Internal surface: 404 for anyone who is not an admin (see src/lib/admin.functions.ts).
   beforeLoad: () => assertAdminPage(),
   head: () => ({
-    meta: [{ title: "ETA accuracy — debug" }, { name: "robots", content: "noindex, nofollow" }],
+    meta: [{ title: "ETA accuracy, debug" }, { name: "robots", content: "noindex, nofollow" }],
   }),
   component: DebugEta,
 });
@@ -25,7 +25,7 @@ function fmtSec(s: number) {
 }
 
 function fmtTime(iso: string | null) {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const d = new Date(iso);
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
@@ -78,18 +78,18 @@ function DebugEta() {
 
         {/* Totals */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
-          <Stat label="Samples" value={data?.totals.count?.toString() ?? "—"} />
+          <Stat label="Samples" value={data?.totals.count?.toString() ?? "-"} />
           <Stat
             label="Mean bias"
-            value={data ? fmtSec(data.totals.meanSec) : "—"}
+            value={data ? fmtSec(data.totals.meanSec) : "-"}
             hint="bus vs. ETA"
           />
           <Stat
             label="Median miss"
-            value={data ? fmtSec(data.totals.p50Sec) : "—"}
+            value={data ? fmtSec(data.totals.p50Sec) : "-"}
             hint="absolute"
           />
-          <Stat label="P90 miss" value={data ? fmtSec(data.totals.p90Sec) : "—"} hint="absolute" />
+          <Stat label="P90 miss" value={data ? fmtSec(data.totals.p90Sec) : "-"} hint="absolute" />
         </section>
 
         {/* By route */}

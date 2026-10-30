@@ -4,7 +4,7 @@ import { RoamNow } from "@/components/roam/now/RoamNow";
 export const Route = createFileRoute("/")({
   head: () => {
     const url = "https://app.aloya.cy/";
-    const title = "Aloya — Cyprus bus, the way it should feel";
+    const title = "Aloya · Cyprus bus, the way it should feel";
     const description =
       "Plan, track and ride Cyprus buses with a calm, intelligent interface. Live ETAs, nearby stops, smart routing across the island.";
     return {

@@ -11,7 +11,7 @@ import { beforeEach } from "vitest";
 
 const message = (target: string) =>
   new Error(
-    `Blocked network access to ${target}. Tests must run offline — ` +
+    `Blocked network access to ${target}. Tests must run offline · ` +
       `stub the call with vi.fn()/vi.stubGlobal("fetch", ...) or inject a fake fetcher.`,
   );
 

@@ -15,7 +15,7 @@ const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "Location is wrong or the app can't find me.",
-    a: "Open your device settings and allow precise location for Aloya. Indoors, GPS drifts by a block or two — stepping outside for a moment usually snaps it back.",
+    a: "Open your device settings and allow precise location for Aloya. Indoors, GPS drifts by a block or two, stepping outside for a moment usually snaps it back.",
   },
   {
     q: "I'm not getting departure reminders.",
@@ -23,11 +23,11 @@ const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "Does Aloya cost anything?",
-    a: "No. Every feature is free — departure reminders, offline timetables, live ETA sharing, multi-leg planning, and journey companion alerts. There is no subscription, no trial, and nothing to cancel.",
+    a: "No. Every feature is free, departure reminders, offline timetables, live ETA sharing, multi-leg planning, and journey companion alerts. There is no subscription, no trial, and nothing to cancel.",
   },
   {
     q: "Can I add my Motion card to Google Wallet?",
-    a: "Yes — add your card number in the Wallet tab, then tap Add to Google Wallet. Apple Wallet passes are not available yet.",
+    a: "Yes, add your card number in the Wallet tab, then tap Add to Google Wallet. Apple Wallet passes are not available yet.",
   },
   {
     q: "Is my travel data private?",
@@ -35,20 +35,20 @@ const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "Do you cover buses north of the Green Line?",
-    a: "No. Aloya is the Republic network. Crossing exists — Ledra Street is the pedestrian checkpoint in the old town — and we name it rather than leave a hole. We do not have north-side GTFS or official hours, so we will not invent them. Open the Green Line page for the rest.",
+    a: "No. Aloya is the Republic network. Crossing exists · Ledra Street is the pedestrian checkpoint in the old town, and we name it rather than leave a hole. We do not have north-side GTFS or official hours, so we will not invent them. Open the Green Line page for the rest.",
   },
 ];
 
 export const Route = createFileRoute("/support")({
   head: () => ({
     meta: [
-      { title: "Support & FAQ — Aloya" },
+      { title: "Support & FAQ · Aloya" },
       {
         name: "description",
         content:
-          "Answers about live bus tracking, reminders, wallet passes, and privacy — plus how to reach the Aloya team in Cyprus.",
+          "Answers about live bus tracking, reminders, wallet passes, and privacy, plus how to reach the Aloya team in Cyprus.",
       },
-      { property: "og:title", content: "Support & FAQ — Aloya" },
+      { property: "og:title", content: "Support & FAQ · Aloya" },
       {
         property: "og:description",
         content: "Help with live tracking, reminders, and your Motion card.",
@@ -95,8 +95,8 @@ function SupportPage() {
           Support &amp; FAQ
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-ink/80">
-          Most questions are about how live times behave or reminders. If the answer you need
-          isn't here, write to us — a person reads every message.
+          Most questions are about how live times behave or reminders. If the answer you need isn't
+          here, write to us, a person reads every message.
         </p>
 
         <a

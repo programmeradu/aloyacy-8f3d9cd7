@@ -125,7 +125,13 @@ export function suggestArrivalShift(args: {
       newTargetUnix,
       slackSec,
       verdict:
-        slackSec == null ? null : slackSec < 0 ? "late" : slackSec >= marginSec ? "comfortable" : "tight",
+        slackSec == null
+          ? null
+          : slackSec < 0
+            ? "late"
+            : slackSec >= marginSec
+              ? "comfortable"
+              : "tight",
     });
   });
 
@@ -156,7 +162,7 @@ export function shiftHeadline(
   if (suggestion.blind || suggestion.reachableArrivalUnix == null) {
     return `No option reaches you by ${formatClock(targetArrivalUnix, timeZone)} yet. Give the trip a little more room and we will keep watching.`;
   }
-  return `The earliest we can land you is ${formatClock(suggestion.reachableArrivalUnix, timeZone)} — ${minutes(
+  return `The earliest we can land you is ${formatClock(suggestion.reachableArrivalUnix, timeZone)} · ${minutes(
     suggestion.shortfallSec,
   )} min past your ${formatClock(targetArrivalUnix, timeZone)}.`;
 }

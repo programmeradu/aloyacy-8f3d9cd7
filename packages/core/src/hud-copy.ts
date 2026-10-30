@@ -17,7 +17,7 @@ export type JourneyPhase =
 
 /** Human duration from seconds: "under a minute", "1 min", "12 min". */
 export function fmtMin(sec: number): string {
-  if (!Number.isFinite(sec)) return "—";
+  if (!Number.isFinite(sec)) return "-";
   const m = Math.max(0, Math.round(sec / 60));
   if (m < 1) return "under a minute";
   if (m === 1) return "1 min";
@@ -26,7 +26,7 @@ export function fmtMin(sec: number): string {
 
 /** Human distance from metres: "180 m", "1.4 km". */
 export function fmtDist(m: number): string {
-  if (!Number.isFinite(m) || m < 0) return "—";
+  if (!Number.isFinite(m) || m < 0) return "-";
   if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
   return `${Math.round(m)} m`;
 }
@@ -77,8 +77,8 @@ export function hudVisibility(input: {
 export function hurryCopy(urgent: boolean): { kicker: string; body: string } {
   return urgent
     ? {
-        kicker: "Hurry — bus is here",
-        body: "Wave it down as you approach — the driver can still see you.",
+        kicker: "Hurry, bus is here",
+        body: "Wave it down as you approach, the driver can still see you.",
       }
     : {
         kicker: "Pace up",
@@ -98,7 +98,7 @@ export function boardingBody(input: {
 }): string {
   if (input.onBoardSuggested) {
     const s = Math.max(0, Math.round(input.secondsLeft));
-    return `Looks like you're on board — auto-confirming in ${s}s.`;
+    return `Looks like you're on board, auto-confirming in ${s}s.`;
   }
   return `We'll press-stop at ${input.alightName}. Tap "I'm on" once you board.`;
 }

@@ -118,7 +118,7 @@ describe("renderStopShareCard", () => {
 
   it("formats a null ETA as an em-dash with no unit suffix drawn", async () => {
     await renderStopShareCard(baseCtx({ nextEtaMin: null }));
-    expect((ctx.fillText as any).mock.calls.some((c: any[]) => c[0] === "—")).toBe(true);
+    expect((ctx.fillText as any).mock.calls.some((c: any[]) => c[0] === "-")).toBe(true);
     expect((ctx.fillText as any).mock.calls.some((c: any[]) => c[0] === "min")).toBe(false);
   });
 

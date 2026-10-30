@@ -131,5 +131,5 @@ export function skipScanSide(state: ScanState, side: ScanSide): ScanIngest {
 
 /** Copy for the status badge under the live viewport. */
 export function sideHint(side: ScanSide): string {
-  return side === "front" ? "Front — name & valid until" : "Back — 14-16 digit number";
+  return side === "front" ? "Front, name & valid until" : "Back, 14 to 16 digit number";
 }

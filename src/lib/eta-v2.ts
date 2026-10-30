@@ -302,7 +302,7 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   const upperMin = Math.max(lowerMin + 1, Math.round(upperSec / 60));
   const etaMin = Math.max(0, Math.round(p50 / 60));
 
-  const band = upperMin - lowerMin <= 1 ? `≈${etaMin} min` : `${lowerMin}–${upperMin} min`;
+  const band = upperMin - lowerMin <= 1 ? `≈${etaMin} min` : `${lowerMin} · ${upperMin} min`;
 
   // Freshness — shared classifier is source of truth. Map its rich `tier`
   // back to the legacy three-value `freshness` field for back-compat (ghost
@@ -360,7 +360,7 @@ function blurbFor(
   ) {
     return biasMin > 0 ? `usually ${biasMin} min late` : `usually ${-biasMin} min early`;
   }
-  if (tier === "ghost") return "no gps — using schedule";
+  if (tier === "ghost") return "no gps, using schedule";
   if (tier === "scheduled") return "scheduled";
   if (tier === "rider-confirmed") return singleSource ? "one rider" : "rider-confirmed";
   if (tier === "predicted" && pingAgeSec > 240) return "stale ping";

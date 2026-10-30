@@ -236,7 +236,7 @@ export async function renderStopShareCard(c: StopCardCtx): Promise<{
 
     // Layout: ETA on the right at fixed width, headsign fills the rest.
     const etaMin = c.nextEtaMin;
-    const big = etaMin != null ? String(etaMin) : "—";
+    const big = etaMin != null ? String(etaMin) : "-";
     ctx.font = "600 110px 'JetBrains Mono', ui-monospace, monospace";
     const bigW = ctx.measureText(big).width;
     const unit = c.locale === "el" ? "λεπτά" : "min";

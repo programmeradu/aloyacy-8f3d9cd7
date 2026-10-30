@@ -55,7 +55,7 @@ export function CloudwatchPanel() {
           <h2 className="text-lg font-semibold">AWS-wide · CloudWatch</h2>
           <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
             Near real-time (~1-2 min lag). Captures every Bedrock call in the account, from any app
-            or key — not just calls through our proxy. Split by{" "}
+            or key, not just calls through our proxy. Split by{" "}
             <span className="font-mono">ModelId</span>; per-key split needs CloudTrail.
           </p>
         </div>
@@ -136,7 +136,7 @@ export function CloudwatchPanel() {
         )}
         {!parsed && combined.length > 0 && (
           <div className="text-xs text-destructive font-mono">
-            Could not parse — expected AKIA…:SECRET[:region][:sessionToken]
+            Could not parse, expected AKIA…:SECRET[:region][:sessionToken]
           </div>
         )}
         {q.error && (
@@ -232,8 +232,8 @@ export function CloudwatchPanel() {
           <div className="text-xs text-muted-foreground">
             Paste an AWS access key with <span className="font-mono">cloudwatch:GetMetricData</span>{" "}
             permission and hit <em>Start live</em>. Creds live in{" "}
-            <span className="font-mono">sessionStorage</span> for this tab only — never sent
-            anywhere except AWS.
+            <span className="font-mono">sessionStorage</span> for this tab only, never sent anywhere
+            except AWS.
           </div>
         )}
       </div>

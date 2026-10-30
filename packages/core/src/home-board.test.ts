@@ -128,7 +128,7 @@ describe("routeChipsForStop", () => {
 
   it("falls back to a placeholder chip when nothing is predicted", () => {
     const chips = routeChipsForStop([], routes, headsign);
-    expect(chips).toEqual([{ code: "—", tone: "olive", headsign: null }]);
+    expect(chips).toEqual([{ code: "-", tone: "olive", headsign: null }]);
   });
 
   it("uses the route id when metadata is missing", () => {

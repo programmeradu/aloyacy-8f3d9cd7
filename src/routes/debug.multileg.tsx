@@ -11,7 +11,7 @@ export const Route = createFileRoute("/debug/multileg")({
   beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [
-      { title: "Multi-leg planner — Phase 2c checkpoint" },
+      { title: "Multi-leg planner · Phase 2c checkpoint" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -177,7 +177,7 @@ function DebugMultiLeg() {
                     </p>
                     {m.data.diagnostics.scheduled.reasons.map((r: string, i: number) => (
                       <p key={i} className="text-ink leading-relaxed">
-                        — {r}
+                        · {r}
                       </p>
                     ))}
                   </div>
@@ -210,7 +210,7 @@ function DebugMultiLeg() {
                     </p>
                     {m.data.diagnostics.live.reasons.map((r: string, i: number) => (
                       <p key={i} className="text-ink leading-relaxed">
-                        — {r}
+                        · {r}
                       </p>
                     ))}
                   </div>
@@ -224,7 +224,7 @@ function DebugMultiLeg() {
           <section className="mt-8 space-y-4">
             {m.data.itineraries.length === 0 ? (
               <p className="font-mono text-[11px] text-ink-soft">
-                No itineraries found — see funnel above for why.
+                No itineraries found, see funnel above for why.
               </p>
             ) : (
               m.data.itineraries.map((it, idx) => (
@@ -235,7 +235,7 @@ function DebugMultiLeg() {
         ) : null}
 
         <p className="mt-10 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft text-center">
-          Phase 2c of 5 — RAPTOR + realtime overlay
+          Phase 2c of 5 · RAPTOR + realtime overlay
         </p>
       </div>
     </main>
@@ -296,7 +296,7 @@ function ItineraryCard({ it, rank }: { it: Itinerary; rank: number }) {
                   {leg.board.name} → {leg.alight.name}
                 </p>
                 <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mt-0.5">
-                  {fmtTime(leg.board.departureUnix)} — {fmtTime(leg.alight.arrivalUnix)} ·{" "}
+                  {fmtTime(leg.board.departureUnix)} · {fmtTime(leg.alight.arrivalUnix)} ·{" "}
                   {leg.stopCount} stops
                   {leg.delaySec
                     ? ` · ${leg.delaySec > 0 ? "+" : ""}${Math.round(leg.delaySec / 60)} min`

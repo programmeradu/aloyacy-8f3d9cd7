@@ -6,12 +6,12 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy — Aloya" },
+      { title: "Privacy · Aloya" },
       {
         name: "description",
         content: "How Aloya collects, stores, and protects your travel data on Cyprus buses.",
       },
-      { property: "og:title", content: "Privacy — Aloya" },
+      { property: "og:title", content: "Privacy · Aloya" },
       {
         property: "og:description",
         content: "What we store, who we share with, and your rights.",

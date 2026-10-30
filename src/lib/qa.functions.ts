@@ -194,13 +194,13 @@ export const getQaStats = createServerFn({ method: "POST" })
     const recent = list.slice(0, 60).map((r) => {
       const p = (r.payload ?? {}) as Record<string, unknown>;
       let summary = "";
-      if (r.kind === "phase-transition") summary = `${p.from} → ${p.to} · ${p.routeShort ?? "—"}`;
+      if (r.kind === "phase-transition") summary = `${p.from} → ${p.to} · ${p.routeShort ?? "-"}`;
       else if (r.kind === "boarding-prompt-shown")
-        summary = `prompt shown · ${p.routeShort ?? "—"} @ ${p.stopId ?? "—"}`;
+        summary = `prompt shown · ${p.routeShort ?? "-"} @ ${p.stopId ?? "-"}`;
       else if (r.kind === "boarding-prompt-confirmed")
-        summary = `confirmed · ${p.routeShort ?? "—"}`;
+        summary = `confirmed · ${p.routeShort ?? "-"}`;
       else if (r.kind === "missed-bus-false-positive")
-        summary = `false miss · ${p.routeShort ?? "—"} (gap ${Math.round(((p.gapMs as number) ?? 0) / 1000)}s)`;
+        summary = `false miss · ${p.routeShort ?? "-"} (gap ${Math.round(((p.gapMs as number) ?? 0) / 1000)}s)`;
       else {
         const bits: string[] = [];
         for (const k of ["query", "intent", "reason", "route", "label", "ms"]) {

@@ -76,6 +76,8 @@ type Props = {
   attribBottom?: number;
   /** Roam: put attribution and logo at this distance from the top instead. */
   attribTop?: number | string;
+  /** Corner for the Mapbox logo; defaults to the attribution side. */
+  logoCorner?: "top-left" | "bottom-left";
 };
 
 export function MapPreview({
@@ -100,6 +102,7 @@ export function MapPreview({
   pins,
   attribBottom = 8,
   attribTop,
+  logoCorner,
 }: Props) {
   // placeName is derived from browser geolocation on the client, so the SSR
   // markup ("Cyprus") never matches. Render the badge only after hydration.
@@ -134,7 +137,7 @@ export function MapPreview({
         pitchWithRotate: false,
         dragRotate: false,
         cooperativeGestures: false,
-        logoPosition: attribTop != null ? "top-left" : "bottom-left",
+        logoPosition: logoCorner ?? (attribTop != null ? "top-left" : "bottom-left"),
       });
     } catch {
       setGlError(true);

@@ -140,7 +140,7 @@ export function WatchTogetherButton({
 
       const shareData = {
         title: `Aloya group trip to ${destination.label}`,
-        text: `Join me on Aloya — we'll see each other converge on ${destination.label}.`,
+        text: `Join me on Aloya, we'll see each other converge on ${destination.label}.`,
         url,
       };
       if (typeof navigator !== "undefined" && "share" in navigator) {
@@ -240,7 +240,7 @@ export function WatchTogetherButton({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block font-display text-[14.5px] font-semibold leading-tight text-ink">
-            Watch together — live
+            Watch together, live
           </span>
           <span className="mt-0.5 block font-sans text-[11.5px] font-medium text-ink-soft">
             Invite friends · one map, real ETAs, no account
@@ -260,7 +260,7 @@ export function WatchTogetherButton({
       </p>
       <p className="mt-1 font-sans text-[12px] font-medium text-ink-soft">
         We'll create a short code and copy the link. Anyone you send it to sees your live ETA and
-        you see theirs — one map, one destination.
+        you see theirs, one map, one destination.
       </p>
       <div className="mt-3 flex gap-2">
         <input

@@ -411,21 +411,21 @@ export const getDustAdvisory = createServerFn({ method: "GET" })
     const pm10Str = pm10 != null ? `PM10 ${Math.round(pm10)}` : "Air monitor active";
     const advice =
       severity === "heavy-dust"
-        ? `${pm10Str} — mask up if sensitive, wait in a covered shelter${long ? `, and consider skipping the ${walk} m walk leg` : ""}.`
+        ? `${pm10Str}, mask up if sensitive, wait in a covered shelter${long ? `, and consider skipping the ${walk} m walk leg` : ""}.`
         : severity === "dust-front"
-          ? `${pm10Str} — sensitive riders should wait under cover${long ? ` and shorten the ${walk} m walk if possible` : ""}.`
+          ? `${pm10Str}, sensitive riders should wait under cover${long ? ` and shorten the ${walk} m walk if possible` : ""}.`
           : severity === "haze"
-            ? `${pm10Str} — fine for most riders; cover the wait if you have asthma or allergies.`
-            : `Air rated poor — limit exertion outdoors${long ? `; the ${walk} m walk may feel heavy` : ""}.`;
+            ? `${pm10Str}, fine for most riders; cover the wait if you have asthma or allergies.`
+            : `Air rated poor, limit exertion outdoors${long ? `; the ${walk} m walk may feel heavy` : ""}.`;
 
     const adviceEl =
       severity === "heavy-dust"
-        ? `${pm10Str} — προτείνεται μάσκα και αναμονή σε καλυμμένο σημείο${long ? `· σκεφτείτε να αποφύγετε τα ${walk} μ. περπατήματος` : ""}.`
+        ? `${pm10Str}, προτείνεται μάσκα και αναμονή σε καλυμμένο σημείο${long ? `· σκεφτείτε να αποφύγετε τα ${walk} μ. περπατήματος` : ""}.`
         : severity === "dust-front"
-          ? `${pm10Str} — οι ευαίσθητοι επιβάτες ας περιμένουν υπό σκέπη${long ? ` και ας μειώσουν τα ${walk} μ. περπατήματος` : ""}.`
+          ? `${pm10Str}, οι ευαίσθητοι επιβάτες ας περιμένουν υπό σκέπη${long ? ` και ας μειώσουν τα ${walk} μ. περπατήματος` : ""}.`
           : severity === "haze"
-            ? `${pm10Str} — εντάξει για τους περισσότερους· καλυμμένη αναμονή για άσθμα ή αλλεργίες.`
-            : `Κακός αέρας — μειώστε την έντονη δραστηριότητα έξω${long ? `· τα ${walk} μ. περπατήματος ίσως είναι κουραστικά` : ""}.`;
+            ? `${pm10Str}, εντάξει για τους περισσότερους· καλυμμένη αναμονή για άσθμα ή αλλεργίες.`
+            : `Κακός αέρας, μειώστε την έντονη δραστηριότητα έξω${long ? `· τα ${walk} μ. περπατήματος ίσως είναι κουραστικά` : ""}.`;
 
     return {
       zone: zone.id,

@@ -67,7 +67,7 @@ export function TrafficAlertsCard({ report }: { report: ItineraryTrafficReport }
               <div className="min-w-0">
                 <p className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-ink-soft leading-tight mb-0.5">
                   {t(`traffic.kind.${a.kind}`)}
-                  {a.road ? ` — ${a.road}` : ""}
+                  {a.road ? ` · ${a.road}` : ""}
                 </p>
                 <p className="font-sans text-[13.5px] leading-snug text-ink break-words">
                   {a.headline}

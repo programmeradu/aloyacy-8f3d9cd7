@@ -85,7 +85,7 @@ export function RouteStopsList({
                         : i === last
                           ? t("route.terminus")
                           : t("route.stopN", { n: i + 1 })}
-                      {s.code ? ` — #${s.code}` : ""}
+                      {s.code ? ` · #${s.code}` : ""}
                     </>
                   )}
                 </p>

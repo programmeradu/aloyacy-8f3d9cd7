@@ -8,7 +8,7 @@
     { "id": "kourion-summer", "name": "Kourion Summer Theatre", "nameEl": "Καλοκαιρινό Θέατρο Κουρίου", "city": "Limassol", "month": 7, "kind": "festival", "weekRule": "weekend-nights" }
   ],
   "fixturesPattern": {
-    "note": "Major Cyprus football derbies — used as fallback when live CFA data not scraped",
+    "note": "Major Cyprus football derbies, used as fallback when live CFA data not scraped",
     "weekendOdds": 0.6,
     "venues": [
       { "id": "gsp", "name": "GSP Stadium", "nameEl": "Στάδιο ΓΣΠ", "city": "Nicosia", "teams": ["APOEL", "Omonia"], "routeIds": ["158", "259"] },

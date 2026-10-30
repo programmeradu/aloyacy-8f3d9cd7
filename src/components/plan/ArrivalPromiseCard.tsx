@@ -89,7 +89,7 @@ export function ArrivalPromiseCommit({
       <section className="overflow-hidden rounded-3xl bg-card ring-1 ring-line">
         <img
           src={arrivalHero}
-          alt="Coastal road curving toward a steady clock face — Aloya holding an arrival time"
+          alt="Coastal road curving toward a steady clock face · Aloya holding an arrival time"
           width={1536}
           height={832}
           loading="lazy"
@@ -104,7 +104,7 @@ export function ArrivalPromiseCommit({
           </h2>
           <p className="mt-2 max-w-prose font-sans text-[13.5px] leading-relaxed text-ink-soft">
             Aloya keeps re-planning this trip as the timetable, the weather and the roads change,
-            then tells you when to leave — an hour before, thirty minutes before, and at the moment
+            then tells you when to leave, an hour before, thirty minutes before, and at the moment
             you need to walk out the door.
           </p>
 

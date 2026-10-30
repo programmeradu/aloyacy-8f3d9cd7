@@ -36,7 +36,7 @@ export function LegTimelineRow({
       <>
         {t("ml.timeline.boardPrefix")}{" "}
         <span className="text-aegean-deep">{t("trip.boardBusName", { code: leg.routeShort })}</span>{" "}
-        — {leg.routeLong}
+        · {leg.routeLong}
       </>
     );
     sub = t("ml.timeline.rideSub", {

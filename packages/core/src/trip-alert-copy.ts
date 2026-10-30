@@ -61,7 +61,7 @@ export function buildTripAlertCopy(ctx: TripAlertContext): TripAlertCopy {
       return {
         id,
         title: `${capitalize(bus(ctx.routeShort))} ${inMinutes(ctx.minutes)}`,
-        body: `Head to ${stop(ctx.stopName)} — we're watching it for you.`,
+        body: `Head to ${stop(ctx.stopName)}, we're watching it for you.`,
       };
     case "hurry-soft":
       return {
@@ -88,7 +88,7 @@ export function buildTripAlertCopy(ctx: TripAlertContext): TripAlertCopy {
           ctx.stops != null && ctx.stops > 0
             ? `${ctx.stops} stops until ${stop(ctx.stopName)}`
             : `${capitalize(stop(ctx.stopName))} is coming up`,
-        body: "Gather your things — we'll tell you the moment to press the button.",
+        body: "Gather your things, we'll tell you the moment to press the button.",
       };
     case "press-stop":
       return {
@@ -122,7 +122,7 @@ export function buildTripAlertCopy(ctx: TripAlertContext): TripAlertCopy {
         return {
           id,
           title: "Walk or wait changed",
-          body: "Open Aloya — the call on this wait shifted.",
+          body: "Open Aloya, the call on this wait shifted.",
         };
       }
       return { id, ...destBailFlipCopy({ from: to, to }) };

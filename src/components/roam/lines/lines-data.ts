@@ -30,14 +30,42 @@ function lineSort(a: LineRow, b: LineRow) {
   return a.short.localeCompare(b.short, "en", { numeric: true });
 }
 
+/**
+ * The feed cuts some long names mid-word ("Solomou Squar"). Complete a cut
+ * place from the shortest known stop name that starts with it.
+ */
+export function repairPlace(place: string, names: readonly string[]): string {
+  const p = place.trim();
+  if (!p || names.length === 0) return p;
+  const lower = p.toLowerCase();
+  let best: string | null = null;
+  for (const n of names) {
+    const nl = n.toLowerCase();
+    if (nl === lower) return p;
+    if (
+      nl.startsWith(lower) &&
+      /\w/.test(nl.charAt(lower.length)) &&
+      (!best || n.length < best.length)
+    )
+      best = n;
+  }
+  return best ?? p;
+}
+
 /** One row per agency + short name (the feed lists each direction/variant). */
-export function lineRows(routes: StaticRoute[]): LineRow[] {
+export function lineRows(routes: StaticRoute[], stopNames: readonly string[] = []): LineRow[] {
   const seen = new Map<string, LineRow>();
   for (const r of routes) {
     const key = `${r.agency}|${r.short}`;
     if (seen.has(key)) continue;
     const { origin, dest } = splitLong(r.long);
-    seen.set(key, { routeId: r.id, short: r.short, agency: r.agency, dest, origin });
+    seen.set(key, {
+      routeId: r.id,
+      short: r.short,
+      agency: r.agency,
+      dest: repairPlace(dest, stopNames),
+      origin: origin ? repairPlace(origin, stopNames) : null,
+    });
   }
   return [...seen.values()].sort(lineSort);
 }

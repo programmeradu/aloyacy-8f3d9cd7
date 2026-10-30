@@ -27,8 +27,7 @@ export type GraphDiagnostics = {
 export const getTransferGraphDiagnostics = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .inputValidator((input?: unknown) => z.void().optional().parse(input))
-  .handler(
-  async (): Promise<GraphDiagnostics> => {
+  .handler(async (): Promise<GraphDiagnostics> => {
     const t0 = Date.now();
     getStopRoutes();
     const tc = getTransferCandidates();
@@ -49,9 +48,9 @@ export const getTransferGraphDiagnostics = createServerFn({ method: "GET" })
 
     const buckets = [
       { label: "1", lo: 1, hi: 1 },
-      { label: "2 — 3", lo: 2, hi: 3 },
-      { label: "4 — 5", lo: 4, hi: 5 },
-      { label: "6 — 7", lo: 6, hi: 7 },
+      { label: "2 to 3", lo: 2, hi: 3 },
+      { label: "4 to 5", lo: 4, hi: 5 },
+      { label: "6 to 7", lo: 6, hi: 7 },
       { label: "8", lo: 8, hi: 8 },
     ];
     const histogram = buckets.map((b) => ({
@@ -66,5 +65,4 @@ export const getTransferGraphDiagnostics = createServerFn({ method: "GET" })
       topHubs: hubs,
       histogram,
     };
-  },
-);
+  });

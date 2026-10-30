@@ -41,7 +41,7 @@ describe("ReliabilityBadge", () => {
         variant="stack"
       />,
     );
-    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.getByText("-")).toBeInTheDocument();
   });
 
   it("stack: distinguishes early vs late summaries via title on compact", () => {

@@ -60,14 +60,14 @@ export function nudgeCopy(args: {
   const target = formatClock(args.targetArrivalUnix, tz);
   const leave = formatClock(args.leaveByUnix, tz);
   const dest = args.destinationLabel;
-  const route = args.routes[0] ? ` — BUS ${args.routes[0]}` : "";
+  const route = args.routes[0] ? ` · BUS ${args.routes[0]}` : "";
   const reason = args.reasonShort ? ` ${args.reasonShort}.` : "";
 
   switch (args.kind) {
     case "t60":
       return {
         title: `${dest} by ${target}`,
-        body: `Leave at ${leave} (in about an hour)${route ? `, taking${route.replace(" —", "")}` : ""}.${reason}`,
+        body: `Leave at ${leave} (in about an hour)${route ? `, taking${route.replace(" ·", "")}` : ""}.${reason}`,
       };
     case "t30":
       return {
@@ -142,6 +142,6 @@ export function bufferNote(args: {
     args.scheduledLeaveUnix != null
       ? ` ahead of the ${formatClock(args.scheduledLeaveUnix, tz)} option`
       : "";
-  const why = args.reasonShort ? ` — ${args.reasonShort}` : "";
+  const why = args.reasonShort ? ` · ${args.reasonShort}` : "";
   return `Set off ${mins} min${anchor} as a cushion${why}.`;
 }

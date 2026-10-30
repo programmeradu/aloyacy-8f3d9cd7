@@ -12,7 +12,7 @@ export const legal = {
     "Your saved places, recent trips, Motion card number and balance, language and notification preferences. Location is read only while you have the app open and is never written to a permanent log.",
   "privacy.section.account": "Your account",
   "privacy.account.body":
-    "First open creates an anonymous account on your device. It exists only to give your data a stable identity so it can be backed up to the cloud. You may attach an email at any time — the same identity then gains a sign-in so your data follows you across devices.",
+    "First open creates an anonymous account on your device. It exists only to give your data a stable identity so it can be backed up to the cloud. You may attach an email at any time, the same identity then gains a sign-in so your data follows you across devices.",
   "privacy.section.sharing": "Who we share with",
   "privacy.sharing.body":
     "Anonymized vehicle observations are sent to the public realtime feed so other riders see a better ETA. Motion card top-ups are handled by JCC. Map tiles are served by Google. We do not run advertising trackers.",
@@ -32,10 +32,10 @@ export const legal = {
     "Aloya provides travel-planning, live tracking, and a companion experience for Cyprus public transport. Schedules and live data come from the official GTFS feeds; we present them but do not operate the buses. Departures are estimates and can be affected by traffic, weather, and operator decisions.",
   "terms.section.use": "Acceptable use",
   "terms.use.body":
-    "Use Aloya for personal travel. Do not scrape, resell, or attempt to disrupt the service. Do not submit false vehicle observations — accurate crowd data is what makes the live ETAs trustworthy.",
+    "Use Aloya for personal travel. Do not scrape, resell, or attempt to disrupt the service. Do not submit false vehicle observations, accurate crowd data is what makes the live ETAs trustworthy.",
   "terms.section.price": "Price",
   "terms.price.body":
-    "Aloya is free to use. Every feature is available to every rider at no charge — there is no subscription, no trial, and no payment to cancel. Bus fares themselves are set and collected by the operators, not by us.",
+    "Aloya is free to use. Every feature is available to every rider at no charge, there is no subscription, no trial, and no payment to cancel. Bus fares themselves are set and collected by the operators, not by us.",
   "terms.section.liability": "Liability",
   "terms.liability.body":
     "Aloya is provided as-is. We work hard to keep ETAs accurate, but we cannot guarantee that a bus will arrive at a specific time, that a route will not change, or that the app will be available without interruption. We are not liable for missed connections or losses arising from use of the service.",

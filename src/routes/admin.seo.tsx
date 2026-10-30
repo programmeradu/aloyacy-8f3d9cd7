@@ -9,7 +9,7 @@ export const Route = createFileRoute("/admin/seo")({
   beforeLoad: () => assertAdminPage(),
   head: () => ({
     meta: [
-      { title: "SEO panel — Aloya admin" },
+      { title: "SEO panel · Aloya admin" },
       {
         name: "description",
         content:
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/admin/seo")({
 
 function num(s: string) {
   const n = Number(s);
-  return Number.isFinite(n) ? n.toLocaleString() : s || "—";
+  return Number.isFinite(n) ? n.toLocaleString() : s || "-";
 }
 
 function SeoPanel() {
@@ -40,7 +40,7 @@ function SeoPanel() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              ADMIN — SEO
+              ADMIN · SEO
             </p>
             <h1 className="mt-2 font-display text-3xl text-foreground md:text-4xl">
               Live search visibility
@@ -112,23 +112,23 @@ function SeoPanel() {
             </section>
 
             <KeywordTable
-              title="Intercity Buses — top organic keywords (CY)"
+              title="Intercity Buses, top organic keywords (CY)"
               rows={data.incumbentOrganic}
             />
             <KeywordTable
-              title="Intercity Buses — paid-search keywords (CY)"
+              title="Intercity Buses, paid-search keywords (CY)"
               rows={data.incumbentPaid}
             />
             <KeywordTable
-              title="Aloya — current organic keywords (CY)"
+              title="Aloya, current organic keywords (CY)"
               rows={data.aloyaOrganic}
-              empty="Not yet ranking. Publish and wait for the index — first impressions usually arrive in 4–8 weeks."
+              empty="Not yet ranking. Publish and wait for the index, first impressions usually arrive in 4 to 8 weeks."
             />
 
             <section className="mt-10">
               <h2 className="font-display text-xl text-foreground">Backlink profile</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Authority Score and referring-domain counts. Semrush crawl, not the whole web — use
+                Authority Score and referring-domain counts. Semrush crawl, not the whole web, use
                 for direction.
               </p>
               <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-card">
@@ -170,11 +170,11 @@ function SeoPanel() {
             </section>
 
             <RefDomainsTable
-              title="Intercity Buses — top referring domains"
+              title="Intercity Buses, top referring domains"
               rows={data.incumbentRefDomains}
             />
             <RefDomainsTable
-              title="Aloya — top referring domains"
+              title="Aloya, top referring domains"
               rows={data.aloyaRefDomains}
               empty="No referring domains crawled yet."
             />
@@ -223,7 +223,7 @@ function KeywordTable({
                 <tr key={i} className="border-t border-border">
                   <td className="px-3 py-2 text-foreground">{r.Ph}</td>
                   <td className="px-3 py-2">{r.Po}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{r.Pp || "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{r.Pp || "-"}</td>
                   <td className="px-3 py-2">{num(r.Nq)}</td>
                   <td className="px-3 py-2">{r.Cp}</td>
                   <td className="px-3 py-2">{r.Tr}</td>
@@ -268,7 +268,7 @@ function RefDomainsTable({
                   <td className="px-3 py-2 text-foreground">{r.domain}</td>
                   <td className="px-3 py-2">{num(r.domain_ascore)}</td>
                   <td className="px-3 py-2">{num(r.backlinks_num)}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{r.ip || "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{r.ip || "-"}</td>
                 </tr>
               ))}
             </tbody>

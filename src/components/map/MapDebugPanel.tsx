@@ -36,7 +36,7 @@ export function MapDebugPanel({
       </div>
       {rows.length === 0 && <p className="text-limestone/50">no animated buses</p>}
       {rows.map((r) => {
-        const age = r.pingAgeMs < 0 ? "—" : `${(r.pingAgeMs / 1000).toFixed(1)}s`;
+        const age = r.pingAgeMs < 0 ? "-" : `${(r.pingAgeMs / 1000).toFixed(1)}s`;
         const ageWarn = r.pingAgeMs > 30_000;
         return (
           <div key={r.label} className="py-1.5 border-b border-limestone/10 last:border-b-0">
@@ -57,7 +57,7 @@ export function MapDebugPanel({
                   ? `${(r.alongM / 1000).toFixed(2)}/${(r.pathTotalM / 1000).toFixed(2)} km`
                   : "no shape"}
               </span>
-              <span>{r.correctionVel !== 0 ? `±${r.correctionVel.toFixed(1)}m/s` : "—"}</span>
+              <span>{r.correctionVel !== 0 ? `±${r.correctionVel.toFixed(1)}m/s` : "-"}</span>
             </div>
           </div>
         );

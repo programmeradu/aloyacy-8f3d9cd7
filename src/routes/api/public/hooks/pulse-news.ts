@@ -178,8 +178,8 @@ function unwrap(raw: string | null): string {
     .replace(/&#39;/g, "'")
     .replace(/&#8217;/g, "’")
     .replace(/&#8216;/g, "‘")
-    .replace(/&#8211;/g, "–")
-    .replace(/&#8212;/g, "—")
+    .replace(/&#8211;/g, "-")
+    .replace(/&#8212;/g, ",")
     .replace(/&nbsp;/g, " ");
   // Strip any leftover tags
   s = s.replace(/<[^>]+>/g, "").trim();

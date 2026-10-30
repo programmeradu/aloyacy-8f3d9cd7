@@ -62,7 +62,7 @@ function roundTo(n: number, decimals: number): number {
 /** Time axis label — clock for short windows, calendar date for long ones. */
 export function formatAxisTs(iso: string, hours: number, locale?: string): string {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return hours <= 24
     ? d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
     : d.toLocaleDateString(locale, { month: "short", day: "numeric" });
@@ -129,7 +129,7 @@ export function seriesMax(values: readonly number[]): number {
 }
 
 export function successRateLabel(okCalls: number, calls: number): string {
-  if (!calls || calls <= 0) return "—";
+  if (!calls || calls <= 0) return "-";
   return `${Math.round((okCalls / calls) * 100)}%`;
 }
 
@@ -156,6 +156,6 @@ export function axisTicks<T>(items: readonly T[]): T[] {
 
 /** Trailing model segment: "eu.anthropic.claude-sonnet-4-v1:0" → "claude-sonnet-4-v1:0" */
 export function shortModelName(modelId: string): string {
-  if (!modelId) return "—";
+  if (!modelId) return "-";
   return modelId.split(/[/.]/).pop() || modelId;
 }

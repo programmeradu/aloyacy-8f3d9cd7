@@ -267,15 +267,15 @@ export function destBailFlipLine(flip: DestBailFlip): string {
   const a = flip.to;
   if (a.kind === "walk") {
     if (a.waitMin <= 0) {
-      return `Bus ${a.routeShort} isn't on the map. Walking is ${a.walkMin} min — walk.`;
+      return `Bus ${a.routeShort} isn't on the map. Walking is ${a.walkMin} min, walk.`;
     }
-    return `Bus ${a.routeShort} is now ${a.waitMin} min if it shows. Walking is ${a.walkMin} min — walk.`;
+    return `Bus ${a.routeShort} is now ${a.waitMin} min if it shows. Walking is ${a.walkMin} min, walk.`;
   }
   if (a.kind === "keepWait") {
     if (a.waitMin <= 0) {
-      return `Bus ${a.routeShort} isn't on the map. Walking is ${a.walkMin} min — wait.`;
+      return `Bus ${a.routeShort} isn't on the map. Walking is ${a.walkMin} min, wait.`;
     }
-    return `Bus ${a.routeShort} is about ${a.waitMin} min if it shows. Walking is ${a.walkMin} min — wait.`;
+    return `Bus ${a.routeShort} is about ${a.waitMin} min if it shows. Walking is ${a.walkMin} min, wait.`;
   }
   if (a.kind === "raptorWalk") {
     return `Bus ${a.routeShort} isn't on the map. Walk ${a.walkMin} min to catch another bus.`;

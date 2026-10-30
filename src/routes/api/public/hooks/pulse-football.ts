@@ -164,7 +164,7 @@ async function ingest() {
     const lines = markdown.split(/\r?\n/);
     for (const line of lines) {
       const m = line.match(
-        /^\s*([A-Z][\w\s.&'-]{1,40})\s+(?:vs?|-|–|—)\s+([A-Z][\w\s.&'-]{1,40})\s*$/,
+        /^\s*([A-Z][\w\s.&'-]{1,40})\s+(?:vs?|-| · | · )\s+([A-Z][\w\s.&'-]{1,40})\s*$/,
       );
       if (!m) continue;
       const parsed = FixtureSchema.safeParse({

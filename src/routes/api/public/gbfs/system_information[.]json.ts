@@ -25,14 +25,14 @@ export const Route = createFileRoute("/api/public/gbfs/system_information.json")
             language: "en",
             name: "Cyprus Micromobility (Aloya aggregator)",
             short_name: "Aloya CY",
-            operator: "Aloya — aggregating Nextbike Cyprus and Bolt Cyprus",
+            operator: "Aloya, aggregating Nextbike Cyprus and Bolt Cyprus",
             url: "https://aloya.cy",
             purchase_url: "https://aloya.cy",
             start_date: "2024-01-01",
             timezone: "Asia/Nicosia",
             email: "hello@aloya.cy",
             attribution_organization_name:
-              "Nextbike Cyprus, Bolt Cyprus, CyNAP — aggregated by Aloya",
+              "Nextbike Cyprus, Bolt Cyprus, CyNAP, aggregated by Aloya",
             attribution_url: "https://app.aloya.cy",
           },
         };

@@ -160,7 +160,7 @@ describe("jccSync", () => {
     expect(out).toEqual({
       ok: false,
       code: "card",
-      error: "JCC doesn't recognize this card number. Double-check the 10–16 digits on the back.",
+      error: "JCC doesn't recognize this card number. Double-check the 10 to 16 digits on the back.",
     });
   });
 

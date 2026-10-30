@@ -16,7 +16,7 @@ export function FixturesStrip({
   return (
     <section className="mt-6">
       <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ink-soft mb-2">
-        {isEl ? "Επόμενοι αγώνες — Α' Κατηγορία" : "Next up — Cyprus First Division"}
+        {isEl ? "Επόμενοι αγώνες · Α' Κατηγορία" : "Next up · Cyprus First Division"}
       </p>
       <ul className="grid gap-2">
         {next.map((f, i) => {

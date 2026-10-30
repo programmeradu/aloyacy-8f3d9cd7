@@ -145,7 +145,7 @@ async function ingest() {
     const lines = markdown.split(/\r?\n/);
     for (const line of lines) {
       const m = line.match(
-        /^[#*\-\s]*([A-Z][^|·\n]{4,120}?)(?:\s+\|\s+|\s+—\s+|\s+-\s+)([\w\s,]+)?$/,
+        /^[#*\-\s]*([A-Z][^|·\n]{4,120}?)(?:\s+\|\s+|\s+ · \s+|\s+-\s+)([\w\s,]+)?$/,
       );
       if (!m) continue;
       const parsed = EventSchema.safeParse({

@@ -2,10 +2,10 @@
 // Use {placeholders} for interpolation: t("greet", { name: "Andreas" }).
 
 export const pulse = {
-  "pulse.meta.title": "Cyprus Today — Daily Briefing, Bus Pulse & Greek Word | Aloya",
+  "pulse.meta.title": "Cyprus Today · Daily Briefing, Bus Pulse & Greek Word | Aloya",
   "pulse.meta.desc":
     "Your daily Cyprus briefing: weather and what to expect today, how the bus network is moving right now (on-time, late, early), live sightings near you, plus a Greek word of the day and a local or visitor fact.",
-  "pulse.og.title": "Cyprus Today — daily briefing, live bus pulse, Greek word",
+  "pulse.og.title": "Cyprus Today, daily briefing, live bus pulse, Greek word",
   "pulse.og.desc":
     "What today feels like on the island: weather verdict, how the buses are moving in the last hour, live sightings near you, and a Greek word with pronunciation.",
 
@@ -21,7 +21,7 @@ export const pulse = {
   "pulse.runningLate.kicker": "Higher delay learned at this hour",
   "pulse.runningLate.empty": "Nothing dragging today. The network's calm.",
   "pulse.runningEarly": "Running early",
-  "pulse.runningEarly.kicker": "Beating schedule — leave a minute sooner",
+  "pulse.runningEarly.kicker": "Beating schedule, leave a minute sooner",
   "pulse.runningEarly.empty": "No routes are leaving ahead of schedule.",
   "pulse.mostReliable": "Most reliable",
   "pulse.mostReliable.kicker": "Closest to the printed timetable",
@@ -36,7 +36,7 @@ export const pulse = {
   "pulse.close": "Close",
   "pulse.item.reliability.label": "Reliability index",
   "pulse.item.reliability.body":
-    "For each route we average the live delay across every trip we've observed, weighted by how many trips we have. We map that to a 0—100 score where on the dot is 100 and five minutes off (early or late) is 0. It's a smooth proxy, not a strict on-time percentage.",
+    "For each route we average the live delay across every trip we've observed, weighted by how many trips we have. We map that to a 0 to 100 score where on the dot is 100 and five minutes off (early or late) is 0. It's a smooth proxy, not a strict on-time percentage.",
   "pulse.item.trips.label": "Trips logged",
   "pulse.item.trips.body":
     "One trip logged = one arrival event we pulled from the live feed for that route. More trips means a more trustworthy score.",
@@ -51,7 +51,7 @@ export const pulse = {
     "Routes with at least eight trips logged, sorted by how close their mean delay sits to zero.",
   "pulse.item.limits.label": "Limits to keep in mind",
   "pulse.item.limits.body":
-    'Delays come from each operator\'s live feed — if their data is off, ours will be too. Buckets are in UTC, not Cyprus local time, so the "at this hour" framing is approximate.',
+    'Delays come from each operator\'s live feed, if their data is off, ours will be too. Buckets are in UTC, not Cyprus local time, so the "at this hour" framing is approximate.',
   "pulse.excluded.one": "{n} route is hidden here because it's not in our bundled timetable yet.",
   "pulse.excluded.many":
     "{n} routes are hidden here because they're not in our bundled timetable yet.",
@@ -92,10 +92,10 @@ export const pulse = {
     "These run a lot. Almost no rider phones. A tap on board is what the next stop sees.",
   "pulse.weather.kicker": "Today, from the live feed",
   "pulse.weather.subPos":
-    "{pct}% on time across {routes} routes — {delta} points above this week's typical.",
+    "{pct}% on time across {routes} routes · {delta} points above this week's typical.",
   "pulse.weather.subNeg":
-    "{pct}% on time across {routes} routes — {delta} points under this week's typical.",
-  "pulse.weather.subFlat": "{pct}% on time across {routes} routes — right at this week's typical.",
+    "{pct}% on time across {routes} routes · {delta} points under this week's typical.",
+  "pulse.weather.subFlat": "{pct}% on time across {routes} routes, right at this week's typical.",
   "pulse.weather.subQuiet": "We need a few more live arrivals before the network speaks.",
   "pulse.vsTypical": "vs typical",
   "pulse.todayLabel": "Today",
@@ -122,9 +122,9 @@ export const pulse = {
   "pulse.filter.early": "Early",
   "pulse.filter.steady": "Steadiest",
   "pulse.insight.kicker": "What it means right now",
-  "pulse.insight.worstRoute": "Route {code} is the rough one — running {min} min late.",
-  "pulse.insight.earlyRoute": "Route {code} is leaving {min} min early — show up sooner.",
-  "pulse.insight.steadyRoute": "Route {code} is the steadiest — right on the dot.",
+  "pulse.insight.worstRoute": "Route {code} is the rough one, running {min} min late.",
+  "pulse.insight.earlyRoute": "Route {code} is leaving {min} min early, show up sooner.",
+  "pulse.insight.steadyRoute": "Route {code} is the steadiest, right on the dot.",
   "pulse.insight.calmer": "Network is calmer than usual.",
   "pulse.insight.busier": "Heavier delays than a typical {weekday}.",
   "pulse.insight.tooQuiet": "Too quiet to read the network yet.",
@@ -135,7 +135,7 @@ export const pulse = {
   "today.fact.tourist": "For visitors",
   "today.greek.kicker": "Greek word of the day",
 
-  "tripInfo.meta.title": "Trip {id} — Aloya",
+  "tripInfo.meta.title": "Trip {id} · Aloya",
   "tripInfo.meta.desc": "Live trip detail: stops, ETAs and where the bus is right now.",
   "tripInfo.live": "Live trip",
   "tripInfo.loading": "Loading trip…",
@@ -145,9 +145,9 @@ export const pulse = {
   "tripInfo.busLabel": "Bus {label}",
   "tripInfo.unknownRoute": "Route",
   "tripInfo.stopsCount": "{n} stops",
-  "tripInfo.kmOfRoute": " — {km} km of route",
-  "tripInfo.endsAt": " — ends at {name}",
-  "tripInfo.busActive": "Bus on this trip — live",
+  "tripInfo.kmOfRoute": " · {km} km of route",
+  "tripInfo.endsAt": ", ends at {name}",
+  "tripInfo.busActive": "Bus on this trip, live",
   "tripInfo.busEmpty": "Bus position not reporting",
   "tripInfo.nextStop": "Next stop",
   "tripInfo.etaThere": "Eta there",
@@ -160,8 +160,8 @@ export const pulse = {
   "tripInfo.liveScheduled": "Live, scheduled clock",
   "tripInfo.stopCode": "Stop {code}",
   "tripInfo.stopIndex": "#{n}",
-  "tripInfo.approaching": " — approaching",
-  "tripInfo.youAreHere": " — you are here",
+  "tripInfo.approaching": ", approaching",
+  "tripInfo.youAreHere": ", you are here",
   "tripInfo.stopFallback": "Stop {id}",
   "tripInfo.feedFoot":
     "Stop times are pulled live from the operator's feed and adjusted for the bus's reported delay. Tap any stop to open its live departures.",
@@ -186,7 +186,7 @@ export const pulse = {
   "itin.walk": "Walk",
   "itin.wait": "Wait",
   "itin.at": "at",
-  "itin.stopsLive": "{n} stops — live",
+  "itin.stopsLive": "{n} stops, live",
   "itin.stops": "{n} stops",
 
   "map.live.active": "Your bus, live",
@@ -218,5 +218,5 @@ export const pulse = {
   "walkLive.now": "Now",
   "walkLive.inMeters": "In {m}",
   "walkLive.then": "Then",
-  "walkLive.lastStep": "Last step — you're almost there",
+  "walkLive.lastStep": "Last step, you're almost there",
 } as const;

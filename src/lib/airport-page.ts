@@ -30,7 +30,7 @@ export function buildAirportFaq(city: string): { q: string; a: string }[] {
     },
     {
       q: `Do the airport coaches run at night?`,
-      a: `Yes — the main lines connect overnight flights. The live departures above reflect what is actually running tonight, not just the published timetable.`,
+      a: `Yes, the main lines connect overnight flights. The live departures above reflect what is actually running tonight, not just the published timetable.`,
     },
   ];
 }
@@ -82,8 +82,8 @@ export const AIRPORT_COPY: Record<Locale, AirportCopy> = {
 export function airportHead(rawCode: string) {
   const code = rawCode.toLowerCase() as AirportCode;
   const a = AIRPORTS[code];
-  if (!a) return { meta: [{ title: "Airport — Aloya" }] };
-  const title = `${a.name} (${a.iata}) by Bus — Live Coaches & Routes`;
+  if (!a) return { meta: [{ title: "Airport · Aloya" }] };
+  const title = `${a.name} (${a.iata}) by Bus · Live Coaches & Routes`;
   const description = `Live intercity coach departures from ${a.name} (${a.iata}), plus urban-bus departures from the airport stop. Direct buses to Nicosia, Limassol, Larnaca, Paphos, Ayia Napa and Protaras with real seat availability.`;
   const canonical = `${BASE}/airport/${code}`;
   const og = `${BASE}/og/og-airport-${code}.jpg`;

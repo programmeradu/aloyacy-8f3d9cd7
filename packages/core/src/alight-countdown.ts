@@ -250,7 +250,9 @@ export function computeAlightCountdown(input: AlightCountdownInput): AlightCount
   const alightStop = toStop(sequence, alightIdx, getStop, nextIdx);
   const metersToAlight = alightStop
     ? distanceM(position, { lat: alightStop.lat, lng: alightStop.lng })
-    : (alightLoc ? distanceM(position, alightLoc) : null);
+    : alightLoc
+      ? distanceM(position, alightLoc)
+      : null;
 
   let stage: AlightStage;
   if (stopsRemaining < 0) stage = "passed";
@@ -304,10 +306,7 @@ export function alightAlertFor(
 export type AlightCopy = { kicker: string; headline: string; body: string };
 
 /** Rider-facing wording for the countdown card. */
-export function alightCountdownCopy(
-  cd: AlightCountdown,
-  alightName: string,
-): AlightCopy {
+export function alightCountdownCopy(cd: AlightCountdown, alightName: string): AlightCopy {
   const at = cd.currentStop?.name ?? null;
   const next = cd.nextStop?.name ?? null;
   const n = cd.stopsRemaining;
@@ -316,7 +315,7 @@ export function alightCountdownCopy(
     case "alighting":
       return {
         kicker: "This is your stop",
-        headline: `${alightName} — step off`,
+        headline: `${alightName}, step off`,
         body: "Mind the step. We'll pick the walk up from wherever you land.",
       };
     case "press-now":
@@ -354,8 +353,8 @@ export function alightCountdownCopy(
         kicker: n != null ? `${n} stops to go` : "On board",
         headline: `Sit back until ${alightName}`,
         body: at
-          ? `Now at ${at}. Nothing to do yet — we're counting the stops for you.`
-          : "Nothing to do yet — we're counting the stops for you.",
+          ? `Now at ${at}. Nothing to do yet, we're counting the stops for you.`
+          : "Nothing to do yet, we're counting the stops for you.",
       };
   }
 }
