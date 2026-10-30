@@ -104,7 +104,9 @@ export function useNextBus(opts: {
       );
       const arrivals = snap.arrivals.filter((a) => !(a.stopId === s.id && drop.has(a.tripId)));
 
-      if (!bus) {
+      // A nearer stop wins unless a stop a little further has a bus at least
+      // 15 min sooner (no "next in 2 hours" when a bus is 10 min away).
+      if (!bus || bus.etaMin > 20) {
         // Smart ETA can pull a bus earlier than the operator said; if it then
         // arrives before the rider can walk there, move on to the next one.
         let pick: { idx: number; smart: ReturnType<typeof smartEtaV2> } | null = null;
@@ -141,7 +143,7 @@ export function useNextBus(opts: {
           const hasVehicle = vehByTrip.has(next.tripId) && !ghost.has(next.tripId);
           const sameDir = (tripId: string, routeId: string) =>
             routeId === next.routeId && (getHeadsignSync(tripId, routeId) ?? dest) === dest;
-          bus = {
+          const cand: NextBus = {
             stopId: s.id,
             stopName: shortStopName(s.name),
             walkMin: Number.isFinite(s.distanceKm) ? walkMinutes(s.distanceKm) : null,
@@ -168,6 +170,7 @@ export function useNextBus(opts: {
               .map((a) => a.arrivalUnix),
             source: "realtime",
           };
+          if (!bus || cand.etaMin + 15 < bus.etaMin) bus = cand;
         }
       }
 

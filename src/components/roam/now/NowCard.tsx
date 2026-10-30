@@ -10,6 +10,39 @@ import { NotchCard } from "../NotchCard";
 import { Icon } from "../Icon";
 import { ConfTag, Squiggle, type Confidence } from "../bits";
 
+type Dep = { line: string; etaMin: number; unix: number };
+
+/** Two soonest departures at the card's stop, soonest first, no duplicates. */
+export function departuresAt(bus: NextBus, tiles: NearbyLine[], nowSec = Date.now() / 1000): Dep[] {
+  const all: Dep[] = [
+    { line: bus.line, etaMin: bus.etaMin, unix: bus.arrivalUnix },
+    ...bus.then.map((u) => ({
+      line: bus.line,
+      etaMin: Math.max(0, Math.round((u - nowSec) / 60)),
+      unix: u,
+    })),
+    ...tiles
+      .filter((t) => t.stopId === bus.stopId)
+      .map((t) => ({ line: t.line, etaMin: t.etaMin, unix: nowSec + t.etaMin * 60 })),
+  ];
+  all.sort((a, b) => a.etaMin - b.etaMin);
+  const out: Dep[] = [];
+  for (const d of all) {
+    if (out.some((o) => o.line === d.line && Math.abs(o.etaMin - d.etaMin) < 1)) continue;
+    out.push(d);
+    if (out.length === 2) break;
+  }
+  return out;
+}
+
+function clockOf(unix: number, locale: string) {
+  return new Intl.DateTimeFormat(locale === "el" ? "el-GR" : "en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Nicosia",
+  }).format(new Date(unix * 1000));
+}
+
 function confOf(b: NextBus): Confidence {
   return b.backing === "live" ? "live" : b.backing === "estimated" ? "est" : "tt";
 }
@@ -36,7 +69,7 @@ export function NowCard({
   onRetry,
   origin,
 }: Props) {
-  const { r } = useRoamI18n();
+  const { r, locale } = useRoamI18n();
   const bus = state.kind === "bus" ? state.bus : null;
   const stopId = bus?.stopId ?? (state.kind === "none" ? state.stopId : null);
   const stopName = bus?.stopName ?? (state.kind === "none" ? state.stopName : null);
@@ -53,16 +86,13 @@ export function NowCard({
     </Link>
   ) : null;
 
-  const then = bus
-    ? (tiles.find((t) => t.routeId !== bus.routeId) ??
-      (bus.then[0]
-        ? {
-            line: bus.line,
-            etaMin: Math.max(0, Math.round((bus.then[0] - Date.now() / 1000) / 60)),
-            live: false,
-          }
-        : null))
-    : null;
+  // Next and Then are the two soonest departures at THIS stop, whatever the
+  // source (the chosen bus, its later runs, other lines here), soonest first.
+  const deps = bus ? departuresAt(bus, tiles) : [];
+  const next = deps[0] ?? null;
+  const then = deps[1] ?? null;
+  const etaText = (d: Dep) =>
+    d.etaMin < 60 ? `${d.etaMin} ${r("now.min")}` : clockOf(d.unix, locale);
 
   return (
     <NotchCard
@@ -145,36 +175,32 @@ export function NowCard({
               </div>
               <ConfTag kind={confOf(bus)} pill />
             </div>
-            <div className="mt-5 grid grid-cols-[auto_auto_1fr] items-end gap-x-2">
+            <div className="mt-5 grid grid-cols-[auto_auto_minmax(0,1fr)] items-end gap-x-2">
               <span className="r-lbl">{r("now.next")}</span>
               <span className="r-lbl">{then ? r("now.then") : ""}</span>
-              <span className="text-right r-tnum text-[15px] font-medium">
-                {walkM != null && bus.walkMin != null ? (
-                  <>
-                    {walkM} m{" "}
-                    <span className="text-[var(--r-mute)] font-normal">
-                      · {bus.walkMin} {r("now.min")}
-                    </span>
-                  </>
-                ) : null}
+              <span className="r-lbl text-right truncate r-tnum">
+                {walkM != null && bus.walkMin != null
+                  ? r("now.walk", { m: walkM, min: bus.walkMin })
+                  : ""}
               </span>
-              <span
-                className="r-pill r-pill--y r-tnum mt-2"
-                style={{ height: 36, borderRadius: 18 }}
-              >
-                <Icon name="bus" />
-                {bus.line} · {bus.etaMin} {r("now.min")}
-              </span>
-              {then ? (
-                <span className="r-pill r-tnum mt-2" style={{ height: 36, borderRadius: 18 }}>
+              {next ? (
+                <span className="r-pill r-pill--y r-tnum mt-2 r-now-dep">
                   <Icon name="bus" />
-                  {then.line} · {then.etaMin} {r("now.min")}
+                  {next.line} · {etaText(next)}
                 </span>
               ) : (
                 <span />
               )}
-              <span className="flex justify-end -mr-2 mt-1">
-                <Squiggle width={104} height={38} />
+              {then ? (
+                <span className="r-pill r-tnum mt-2 r-now-dep">
+                  <Icon name="bus" />
+                  {then.line} · {etaText(then)}
+                </span>
+              ) : (
+                <span />
+              )}
+              <span className="min-w-0 overflow-hidden mt-1">
+                <Squiggle width={104} height={38} fluid />
               </span>
             </div>
             {origin ? (

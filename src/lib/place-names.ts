@@ -13,7 +13,11 @@ const SEP = /\s+[-\u2013\u2014]\s+/g;
 
 /** "A - B" reads as "A, B"; collapses double spaces. */
 export function displayPlace(name: string): string {
-  return name.replace(SEP, ", ").replace(/\s{2,}/g, " ").trim();
+  return name
+    .replace(/\s*\u00b4/g, "")
+    .replace(SEP, ", ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 function trimTail(s: string): string {

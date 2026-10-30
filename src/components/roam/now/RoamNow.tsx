@@ -23,6 +23,7 @@ import { AvatarButton } from "../Avatar";
 import { Icon } from "../Icon";
 import { NowCard } from "./NowCard";
 import { NowMore } from "./NowMore";
+import { StopPin } from "../StopPin";
 import { useLocationControl } from "./useLocationControl";
 
 const PICK_KEY = "aloya:home-stop";
@@ -98,28 +99,24 @@ export function RoamNow() {
   const cardStopId =
     state.kind === "bus" ? state.bus.stopId : state.kind === "none" ? state.stopId : null;
   const pins = mounted
-    ? pinStops.map((s) => {
+    ? pinStops.map((s, i) => {
         const on = s.id === cardStopId;
         const due = dueByStop.get(s.id) ?? 0;
+        const nLines = new Set(s.routes?.map((x) => x.code).filter((c) => c && c !== "-")).size;
         return {
           id: s.id,
           lat: s.lat,
           lng: s.lng,
+          anchor: "bottom" as const,
+          priority: on ? 1000 : due * 10 - i,
           node: (
-            <button
-              type="button"
-              className={`r-pin${on ? " r-pin--on" : ""}`}
-              aria-label={r("now.openStop", { name: s.name })}
-              aria-pressed={on}
+            <StopPin
+              on={on}
+              label={r("now.openStop", { name: s.name })}
+              lines={nLines}
+              due={due}
               onClick={() => setFocus(s.id)}
-            >
-              <Icon name="bus" />
-              {due > 0 ? (
-                <span className="r-badge" aria-hidden="true">
-                  {due}
-                </span>
-              ) : null}
-            </button>
+            />
           ),
         };
       })
@@ -176,6 +173,7 @@ export function RoamNow() {
           spanKm={1.6}
           liveVehicles
           pins={pins}
+          declutterPx={30}
           userLocation={located ? { lat: coords.lat, lng: coords.lng } : null}
           fitToContent={false}
           attribTop={NOW_ATTRIB_TOP}
@@ -198,7 +196,9 @@ export function RoamNow() {
         </header>
         <p className="r-now-sub r-scrim-text" aria-live="polite">
           {located && mounted
-            ? liveNear > 0
+            ? liveNear === 1
+              ? r("now.sub1", { stops: pinStops.length })
+              : liveNear > 1
               ? r("now.sub", { stops: pinStops.length, live: liveNear })
               : r("now.subNoLive", { stops: pinStops.length })
             : r("now.locating")}
@@ -234,14 +234,17 @@ export function RoamNow() {
               <Link
                 to="/trip/$id"
                 params={{ id: active.option.id }}
-                className="r-pill r-pill--glass"
+                className="r-pill r-now-trip"
+                aria-label={r("now.tripLive")}
               >
-                <Icon name="house-line" style={{ color: "var(--r-y)" }} />
-                {activeBus && activeBus.kind === "bus"
-                  ? `${activeBus.routeShort} · ${active.to.label}`
-                  : r("now.resume")}
-              </Link>
-            ) : null}
+                <span className="r-now-trip-dot" aria-hidden="true" />
+                <span className="truncate">
+                  {activeBus && activeBus.kind === "bus"
+                    ? `${activeBus.routeShort} · ${active.to.label}`
+                    : r("now.resume")}
+                </span>
+                <Icon name="caret-right" />
+              </Link>            ) : null}
           </div>
           <NowCard
             state={state}

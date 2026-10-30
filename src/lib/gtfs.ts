@@ -18,7 +18,11 @@ export type StaticRoute = {
   agency: string;
 };
 
-export const STOPS: StaticStop[] = stopsData as StaticStop[];
+// The feed marks ordinals with a stray acute accent ("Makariou C´" = 3rd);
+// it renders as a prime on iOS, so it is dropped from every displayed name.
+export const STOPS: StaticStop[] = (stopsData as StaticStop[]).map((s) =>
+  s.name.includes("\u00b4") ? { ...s, name: s.name.replace(/\s*\u00b4/g, "") } : s,
+);
 export const ROUTES: StaticRoute[] = routesData as StaticRoute[];
 
 const ROUTE_BY_ID = new Map(ROUTES.map((r) => [r.id, r]));

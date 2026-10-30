@@ -67,16 +67,29 @@ export function LinePill({
   );
 }
 
-export function Squiggle({ width = 120, height = 44 }: { width?: number; height?: number }) {
+export function Squiggle({
+  width = 120,
+  height = 44,
+  fluid = false,
+}: {
+  width?: number;
+  height?: number;
+  /** Scale to the parent's width (never wider than it). */
+  fluid?: boolean;
+}) {
   const d =
     "M2 34 C 14 30, 18 40, 30 36 S 44 22, 52 30 S 64 40, 72 30 S 78 14, 88 18 S 100 26, 104 16 S 112 4, 118 10";
   return (
     <svg
-      width={width}
-      height={height}
-      viewBox="0 0 120 44"
+      width={fluid ? "100%" : width}
+      height={fluid ? undefined : height}
+      viewBox="-6 -6 132 56"
       aria-hidden="true"
-      style={{ overflow: "visible", display: "block" }}
+      style={
+        fluid
+          ? { display: "block", maxWidth: width, marginLeft: "auto" }
+          : { overflow: "visible", display: "block" }
+      }
     >
       <defs>
         <filter id="r-sq" x="-20%" y="-50%" width="140%" height="200%">

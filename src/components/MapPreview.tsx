@@ -72,6 +72,8 @@ type Props = {
   bare?: boolean;
   /** Roam: React-rendered DOM pins. */
   pins?: DomPin[];
+  /** Hide overlapping pins closer than this many px (0 = off). */
+  declutterPx?: number;
   /** Roam: distance in px from the map bottom for the attribution and logo. */
   attribBottom?: number;
   /** Roam: put attribution and logo at this distance from the top instead. */
@@ -100,6 +102,7 @@ export function MapPreview({
   debug = false,
   bare = false,
   pins,
+  declutterPx = 0,
   attribBottom = 8,
   attribTop,
   logoCorner,
@@ -209,7 +212,7 @@ export function MapPreview({
   });
 
   useUserHereOverlay(mapReady ? api : null, mapRef, userLocation);
-  const pinPortals = useDomPins(mapReady ? api : null, mapRef, pins);
+  const pinPortals = useDomPins(mapReady ? api : null, mapRef, pins, declutterPx);
 
   const liveCount = focused || restricted ? vehicles.length : (rt?.vehicles.length ?? 0);
 

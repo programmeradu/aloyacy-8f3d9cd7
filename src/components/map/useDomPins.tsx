@@ -11,12 +11,34 @@ export type DomPin = {
   lng: number;
   node: ReactNode;
   anchor?: "center" | "bottom";
+  /** Higher wins when two pins overlap on screen (declutter). */
+  priority?: number;
 };
+
+/** Hide lower-priority pins closer than `px` on screen to a kept one. */
+function declutter(
+  map: mapboxgl.Map,
+  pins: DomPin[],
+  els: Map<string, { el: HTMLElement }>,
+  px: number,
+) {
+  const kept: { x: number; y: number }[] = [];
+  const order = [...pins].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+  for (const p of order) {
+    const el = els.get(p.id)?.el;
+    if (!el) continue;
+    const pt = map.project([p.lng, p.lat]);
+    const clash = kept.some((k) => Math.abs(k.x - pt.x) < px && Math.abs(k.y - pt.y) < px);
+    el.classList.toggle("r-pin-hidden", clash);
+    if (!clash) kept.push({ x: pt.x, y: pt.y });
+  }
+}
 
 export function useDomPins(
   api: MapboxApi | null,
   mapRef: RefObject<mapboxgl.Map | null>,
   pins: DomPin[] | undefined,
+  declutterPx = 0,
 ) {
   const markers = useRef(new Map<string, { m: mapboxgl.Marker; el: HTMLElement }>());
   const [, bump] = useState(0);
@@ -48,6 +70,26 @@ export function useDomPins(
     // key stands in for the pins array identity
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, mapRef, key]);
+
+  const pinsRef = useRef(pins);
+  pinsRef.current = pins;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!api || !map || !declutterPx) return;
+    let raf = 0;
+    const run = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => declutter(map, pinsRef.current ?? [], markers.current, declutterPx));
+    };
+    run();
+    map.on("zoomend", run);
+    map.on("moveend", run);
+    return () => {
+      cancelAnimationFrame(raf);
+      map.off("zoomend", run);
+      map.off("moveend", run);
+    };
+  }, [api, mapRef, key, declutterPx]);
 
   useEffect(
     () => () => {
