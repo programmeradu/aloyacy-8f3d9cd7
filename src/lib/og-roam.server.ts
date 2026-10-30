@@ -348,13 +348,20 @@ export function busGlyph(x: number, y: number, s: number, fill: string): string 
 <circle cx="${f(x0 + w * 0.74)}" cy="${f(y0 + h * 0.66)}" r="${f(s * 0.07)}" fill="${R.y}"/>`;
 }
 
-/** Roam stop sign: yellow disc with an ink bus, on a white halo. */
+/** Roam stop marker: the ink signpost pin with a white stop sign, tip on (x, y). */
 export function stopMarker(x: number, y: number, size = 64): string {
-  const r = size / 2;
-  return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})">
-<circle r="${r + 10}" fill="${R.y}" opacity="0.3"/>
-<circle r="${r}" fill="${R.y}" stroke="${R.white}" stroke-width="5"/>
-${busGlyph(0, 0, size * 0.5, R.ink)}
+  const k = size / 28;
+  const f = (n: number) => n.toFixed(1);
+  const body = "M14 35c-1-3.5-12-12-12-21a12 12 0 0 1 24 0c0 9-11 17.5-12 21z";
+  return `<g transform="translate(${f(x - 14 * k)} ${f(y - 35 * k)}) scale(${k.toFixed(3)})">
+<ellipse cx="14" cy="35.4" rx="4.5" ry="1.4" fill="#000" opacity="0.22"/>
+<path d="${body}" transform="translate(0 1.6)" fill="#000" opacity="0.2"/>
+<path d="${body}" fill="${R.ink}" stroke="${R.white}" stroke-width="2" stroke-linejoin="round"/>
+<g transform="translate(5.5 4.2) scale(0.95)">
+<rect x="4" y="1.5" width="10" height="8" rx="2.2" fill="${R.white}"/>
+<rect x="8.1" y="9" width="1.8" height="7" rx="0.9" fill="${R.white}"/>
+<rect x="6.2" y="4.6" width="5.6" height="1.8" rx="0.9" fill="${R.ink}"/>
+</g>
 </g>`;
 }
 

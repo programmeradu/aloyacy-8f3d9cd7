@@ -1,6 +1,8 @@
 import { ogImage } from "@/lib/og-url";
+import type { DomPin } from "@/components/map/useDomPins";
+import { StopPin } from "@/components/roam/StopPin";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { resolveHeroPhase, type SingleLegPhase } from "@aloya/core/single-leg-phase";
 import { applyLiveEta, feedBannerVariant } from "@aloya/core/companion-view";
 import { destBailForWait } from "@aloya/core/dest-bail";
@@ -82,6 +84,25 @@ function SingleLegCompanion({
   const { r } = useRoamI18n();
   const { view, walkingPhase, directions, live, mapMarkers, userLocation } =
     useSingleLegView(active);
+  // Board and alight stops draw as signpost pins; the circle layer only keeps
+  // them in the fitted view.
+  const stopPins: DomPin[] = useMemo(
+    () =>
+      mapMarkers
+        .filter((m) => m.kind === "stop")
+        .map((m, i) => ({
+          id: `trip-stop-${i}`,
+          lat: m.lat,
+          lng: m.lng,
+          anchor: "bottom" as const,
+          node: <StopPin label={m.label ?? ""} />,
+        })),
+    [mapMarkers],
+  );
+  const mapAnchors = useMemo(
+    () => mapMarkers.map((m) => (m.kind === "stop" ? { ...m, kind: "bounds" as const } : m)),
+    [mapMarkers],
+  );
 
   // ---- Early returns (all hooks above this line) -------------------------
 
@@ -167,7 +188,8 @@ function SingleLegCompanion({
               }}
               spanKm={1.5}
               polyline={directions?.polyline}
-              markers={mapMarkers}
+              markers={mapAnchors}
+              pins={stopPins}
               liveVehicles
               focusTripId={bus.tripId}
               focusRouteId={bus.routeId}

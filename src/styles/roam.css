@@ -1705,92 +1705,95 @@ html.r-has-resume .r-now-more {
   box-shadow: 0 0 0 2px #fff;
 }
 
-/* Stop markers (M9): opaque stop sign on a post, anchored at the post foot. */
+/* Stop markers: the signpost pin. Ink teardrop (20x26) with a white outline
+   and a white stop sign; its tip sits on the stop (marker anchor bottom).
+   Selected: yellow 28x36 pin with an ink sign and a yellow bar. */
 .r-stop-pin {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 30px;
+  display: block;
+  width: 20px;
+  height: 26px;
   padding: 0;
   cursor: pointer;
   transform-origin: 50% 100%;
   transition:
+    width 220ms var(--r-spring),
+    height 220ms var(--r-spring),
     transform 220ms var(--r-spring),
     opacity 180ms ease;
 }
 .r-stop-pin::before {
   content: "";
   position: absolute;
-  inset: -8px -6px -4px;
+  inset: -10px -12px -4px;
 }
-.r-stop-sign {
-  position: relative;
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  background: #fff;
-  color: var(--r-ink);
-  padding: 3px;
-  box-shadow:
-    0 0 0 1.5px rgba(23, 23, 23, 0.9),
-    0 3px 8px rgba(0, 0, 0, 0.35);
+.r-stop-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.4));
 }
-.r-stop-post {
-  width: 2.5px;
-  height: 7px;
-  background: rgba(23, 23, 23, 0.9);
-  border-radius: 0 0 2px 2px;
+/* 2.8 viewBox units at 20px wide is a 2px outline. */
+.r-sp-body {
+  fill: #141414;
+  stroke: #fff;
+  stroke-width: 2.8;
+  stroke-linejoin: round;
 }
-.r-stop-foot {
-  width: 10px;
-  height: 4px;
-  margin-top: -1px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.35);
-  filter: blur(1px);
+.r-sp-sign {
+  fill: #fff;
+}
+.r-sp-bar {
+  fill: #141414;
 }
 .r-stop-due {
   position: absolute;
-  top: -3px;
+  top: -2px;
   right: -3px;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: var(--r-y);
-  box-shadow: 0 0 0 1.5px #fff;
+  background: #f6c33c;
+  border: 2px solid #141414;
+  box-sizing: border-box;
 }
 .r-stop-pin.is-on {
-  transform: scale(1.25);
+  width: 28px;
+  height: 36px;
   z-index: 2;
 }
-.r-stop-pin.is-on .r-stop-sign {
-  background: var(--r-y);
-  box-shadow:
-    0 0 0 1.5px rgba(23, 23, 23, 0.95),
-    0 0 0 6px rgba(246, 184, 60, 0.28),
-    0 4px 10px rgba(0, 0, 0, 0.35);
+.r-stop-pin.is-on .r-sp-body {
+  fill: #f6c33c;
+  stroke-width: 2;
+}
+.r-stop-pin.is-on .r-sp-sign {
+  fill: #141414;
+}
+.r-stop-pin.is-on .r-sp-bar {
+  fill: #f6c33c;
 }
 .r-stop-count {
   position: absolute;
-  top: -7px;
-  right: -9px;
-  min-width: 15px;
-  height: 15px;
+  top: -6px;
+  right: -11px;
+  min-width: 16px;
+  height: 16px;
   padding: 0 4px;
   border-radius: 8px;
-  background: var(--r-char);
+  background: #141414;
   color: #fff;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
-  line-height: 15px;
+  line-height: 16px;
   text-align: center;
+  box-shadow: 0 0 0 1.5px #fff;
 }
 .r-stop-pin:active {
   transform: scale(0.92);
 }
 .r-stop-pin.is-on:active {
-  transform: scale(1.18);
+  transform: scale(0.95);
 }
 .r-pin-hidden {
   opacity: 0 !important;

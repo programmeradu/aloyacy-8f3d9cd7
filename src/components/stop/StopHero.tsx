@@ -1,6 +1,8 @@
 // Stop screen map hero (Roam): the stop from above with its buses, the top
 // shade and haze, and the frosted back, alerts and share buttons.
-import { MapPreview, type MapMarker } from "@/components/MapPreview";
+import { MapPreview } from "@/components/MapPreview";
+import type { DomPin } from "@/components/map/useDomPins";
+import { StopPin } from "@/components/roam/StopPin";
 import { BackButton, FrostButton } from "@/components/roam/FrostButton";
 import { openMeSheet } from "@/components/roam/me-store";
 import { useRoamI18n } from "@/lib/roam-i18n";
@@ -17,6 +19,18 @@ export function StopHero({
 }) {
   const { r, t } = useRoamI18n();
   const center = stop ? { lat: stop.lat, lng: stop.lng } : undefined;
+  // The stop itself: the selected signpost pin, tip on the kerb.
+  const pins: DomPin[] | undefined = stop
+    ? [
+        {
+          id: `stop-${stop.id}`,
+          lat: stop.lat,
+          lng: stop.lng,
+          anchor: "bottom",
+          node: <StopPin on label={stop.name} />,
+        },
+      ]
+    : undefined;
   return (
     <div className="r-hero-map r-mapwrap">
       <div className="r-map-fill">
@@ -24,13 +38,7 @@ export function StopHero({
           bare
           center={center ? { lat: center.lat - 0.0016, lng: center.lng } : undefined}
           spanKm={1.4}
-          markers={
-            stop
-              ? ([
-                  { lat: stop.lat, lng: stop.lng, kind: "origin", label: stop.name },
-                ] as MapMarker[])
-              : undefined
-          }
+          pins={pins}
           restrictTripIds={tripIds}
           fitToContent={false}
           attribBottom={64}

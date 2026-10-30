@@ -1,6 +1,7 @@
-// Bus-stop marker for Roam maps: a small opaque stop sign on a post, clearly a
-// place (not a vehicle). Selected stop turns yellow, grows and shows its line
-// count; buses due soon show as a quiet dot on the sign.
+// Bus-stop marker for Roam maps: the signpost pin. An ink teardrop carrying a
+// white stop sign on a post, its tip on the exact kerb, so a stop never reads
+// as a vehicle next to the yellow buses. Selected grows into a yellow pin with
+// an ink sign and shows its line count; buses due soon add a small yellow dot.
 type Props = {
   on?: boolean;
   label: string;
@@ -20,37 +21,23 @@ export function StopPin({ on = false, label, lines = 0, due = 0, onClick }: Prop
       aria-pressed={on}
       onClick={onClick}
     >
-      <span className="r-stop-sign">
-        <svg viewBox="0 0 16 16" width="100%" height="100%" aria-hidden="true">
-          <rect
-            x="3"
-            y="2.6"
-            width="10"
-            height="8.6"
-            rx="2.2"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          />
-          <path d="M3 7.2h10" stroke="currentColor" strokeWidth="1.3" />
-          <circle cx="5.6" cy="9.3" r=".9" fill="currentColor" />
-          <circle cx="10.4" cy="9.3" r=".9" fill="currentColor" />
-          <path
-            d="M5 11.2v1.6M11 11.2v1.6"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
-        {due > 0 && !on ? <span className="r-stop-due" aria-hidden="true" /> : null}
-        {on && lines > 0 ? (
-          <span className="r-stop-count" aria-hidden="true">
-            {lines}
-          </span>
-        ) : null}
-      </span>
-      <span className="r-stop-post" aria-hidden="true" />
-      <span className="r-stop-foot" aria-hidden="true" />
+      <svg className="r-stop-svg" viewBox="0 0 28 36" aria-hidden="true">
+        <path
+          className="r-sp-body"
+          d="M14 35c-1-3.5-12-12-12-21a12 12 0 0 1 24 0c0 9-11 17.5-12 21z"
+        />
+        <g transform="translate(5.5 4.2) scale(.95)">
+          <rect className="r-sp-sign" x="4" y="1.5" width="10" height="8" rx="2.2" />
+          <rect className="r-sp-sign" x="8.1" y="9" width="1.8" height="7" rx=".9" />
+          <rect className="r-sp-bar" x="6.2" y="4.6" width="5.6" height="1.8" rx=".9" />
+        </g>
+      </svg>
+      {due > 0 && !on ? <span className="r-stop-due" aria-hidden="true" /> : null}
+      {on && lines > 0 ? (
+        <span className="r-stop-count" aria-hidden="true">
+          {lines}
+        </span>
+      ) : null}
     </button>
   );
 }
