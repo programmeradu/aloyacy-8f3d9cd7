@@ -35,7 +35,7 @@ export const Route = createFileRoute("/group/$code")({
     const title = `Group trip · ${code} · Aloya`;
     const desc =
       "Everyone in your group, converging on one place. Live positions and arrival ETAs update as friends move.";
-    // Dynamic per-group PNG (rasterized from our brand SVG on the Worker).
+    // Group share card (drawn at build time, served by /api/public/og/group).
     // Minute-bucket cache-buster nudges platforms that key by URL to re-scrape
     // as members join and ETAs slide.
     const bucket = Math.floor(Date.now() / 60_000);
