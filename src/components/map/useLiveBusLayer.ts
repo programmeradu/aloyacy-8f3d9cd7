@@ -86,7 +86,7 @@ export function useLiveBusLayer({
         // Dedupe: only consume a ping fresher than the last one applied.
         // Otherwise the bus continues dead-reckoning between real updates.
         if (!v.timestamp || v.timestamp > existing.getLastTs()) {
-          existing.setTarget(v.lat, v.lng, bearing, now, v.speed ?? 0);
+          existing.setTarget(v.lat, v.lng, bearing, now, v.speed ?? 0, v.timestamp || undefined);
           existing.setLastTs(v.timestamp ?? 0);
         }
       } else {

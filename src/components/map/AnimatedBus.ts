@@ -119,8 +119,15 @@ export class AnimatedBus {
     this.engine.setPath(path);
   }
 
-  setTarget(lat: number, lng: number, bearing: number, nowMs: number, speedMps = 0) {
-    this.engine.setTarget(lat, lng, bearing, nowMs, speedMps);
+  setTarget(
+    lat: number,
+    lng: number,
+    bearing: number,
+    nowMs: number,
+    speedMps = 0,
+    feedTs?: number,
+  ) {
+    this.engine.setTarget(lat, lng, bearing, nowMs, speedMps, feedTs);
     this.syncBoarding();
   }
 

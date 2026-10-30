@@ -15,6 +15,14 @@ export const CORRECTION_TAU = 0.6;
 export const DENSIFY_MAX_M = 25;
 export const SPEED_SMOOTH = 0.55;
 export const BEARING_SLEW_PER_S = 6;
+/** Dead reckoning past the newest fix: at most this long and this far. */
+export const DR_MAX_S = 8;
+export const DR_MAX_M = 60;
+/** A fix this far behind the shown position is a correction (jump), else hold. */
+export const BACKTRACK_JUMP_M = 150;
+/** Bounds for the fix-to-fix glide duration (ms). */
+export const SEG_MIN_MS = 2500;
+export const SEG_MAX_MS = 25_000;
 export const EASE = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
 
 export interface KinematicState {
@@ -67,6 +75,14 @@ export class KinematicBusEngine {
   private boarding = false;
   private curLat: number;
   private curLng: number;
+  // Fix-to-fix glide along the road shape.
+  private segFrom = 0;
+  private segTo = 0;
+  private segStart = 0;
+  private segDur = 0;
+  private lastFixAlong: number | null = null;
+  private lastFixTs = 0;
+  private drOk = true;
 
   constructor(pos: { lat: number; lng: number }, bearing: number) {
     this.fromLat = this.toLat = this.curLat = pos.lat;
@@ -99,7 +115,15 @@ export class KinematicBusEngine {
     this.correctionVel = 0;
   }
 
-  setTarget(lat: number, lng: number, bearing: number, nowMs: number, speedMps = 0) {
+  setTarget(
+    lat: number,
+    lng: number,
+    bearing: number,
+    nowMs: number,
+    speedMps = 0,
+    /** Feed timestamp of this fix (unix seconds); arrival time when absent. */
+    feedTs?: number,
+  ) {
     this.toLat = lat;
     this.toLng = lng;
     this.toBearing = bearing;
@@ -118,34 +142,50 @@ export class KinematicBusEngine {
 
     if (this.path && this.path.length >= 2) {
       const snap = snapAlong({ lat, lng }, this.path, this.cum);
-      const tightOk = snap && snap.perpM <= MAX_SNAP_M;
-      const looseOk = snap && snap.perpM <= PATH_ATTACH_M;
-
-      if (tightOk || looseOk) {
-        const pingAlong = snap!.along;
-        const err = pingAlong - this.displayedAlong;
-
-        if (Math.abs(err) > TELEPORT_M) {
-          this.correctionVel = err / FAST_SETTLE_S;
-        } else {
-          this.correctionVel = err / SETTLE_S;
+      if (snap && snap.perpM <= PATH_ATTACH_M) {
+        const fixAlong = snap.along;
+        const tsSec = feedTs && feedTs > 0 ? feedTs : nowMs / 1000;
+        // Speed along the road between real fixes (feed timestamps when given).
+        if (this.lastFixAlong != null && this.lastFixTs > 0) {
+          const dt = tsSec - this.lastFixTs;
+          if (dt > 0.5 && dt < 180) {
+            const v = Math.max(0, Math.min(25, (fixAlong - this.lastFixAlong) / dt));
+            this.speedMps = this.speedMps === 0 ? v : this.speedMps * 0.4 + v * 0.6;
+          }
+        } else if (estSpeed > 0) {
+          this.speedMps = estSpeed;
         }
+        const gapMs =
+          this.lastFixTs > 0 ? Math.max(0, (tsSec - this.lastFixTs) * 1000) : SEG_MIN_MS * 2;
+        this.lastFixAlong = fixAlong;
+        this.lastFixTs = tsSec;
 
-        const weight = tightOk ? SPEED_SMOOTH : SPEED_SMOOTH * 0.4;
-        this.speedMps =
-          this.speedMps === 0 && estSpeed > 0
-            ? estSpeed
-            : this.speedMps * (1 - weight) + estSpeed * weight;
-
+        const shown = this.displayedAlong;
+        if (fixAlong < shown && shown - fixAlong <= BACKTRACK_JUMP_M) {
+          // Dead reckoning ran a little ahead: hold here until the bus catches up.
+          this.segFrom = shown;
+          this.segTo = shown;
+          this.drOk = false;
+        } else if (Math.abs(fixAlong - shown) > TELEPORT_M * 2 || fixAlong < shown) {
+          // Big correction or a real reversal: place the bus on the fix.
+          this.displayedAlong = fixAlong;
+          this.segFrom = fixAlong;
+          this.segTo = fixAlong;
+          this.drOk = true;
+        } else {
+          this.segFrom = shown;
+          this.segTo = fixAlong;
+        }
+        if (fixAlong >= shown) this.drOk = true;
+        this.segStart = nowMs;
+        // Glide over roughly one feed interval so it arrives as the next fix is due.
+        this.segDur = Math.max(SEG_MIN_MS, Math.min(SEG_MAX_MS, gapMs || TWEEN_MS));
+        this.correctionVel = 0;
         this.usePath = true;
-        this.boarding = this.speedMps < 0.5;
+        this.boarding = this.speedMps < 0.5 && Math.abs(this.segTo - this.segFrom) < 5;
         return;
       }
-      this.correctionVel = 0;
-      this.speedMps *= 0.75;
-      if (this.speedMps < 0.4) this.boarding = true;
-      this.usePath = true;
-      return;
+      // Off the shape (detour, wrong shape): straight glide to the fix.
     }
 
     this.usePath = false;
@@ -178,6 +218,9 @@ export class KinematicBusEngine {
       const snap = snapAlong({ lat, lng }, this.path, this.cum);
       if (snap && snap.perpM <= PATH_ATTACH_M) {
         this.displayedAlong = snap.along;
+        this.segFrom = this.segTo = snap.along;
+        this.lastFixAlong = snap.along;
+        this.lastFixTs = ts > 0 ? ts : nowMs / 1000;
         const seededSpeed = Math.max(0, Math.min(22, speedMps));
         if (seededSpeed > 0.5) {
           this.speedMps = seededSpeed;
@@ -201,10 +244,22 @@ export class KinematicBusEngine {
     let targetBearing: number | null = null;
 
     if (this.usePath && this.path) {
-      this.displayedAlong += (this.speedMps + this.correctionVel) * dt;
-      this.displayedAlong = Math.max(0, Math.min(this.pathTotal, this.displayedAlong));
-      this.correctionVel *= Math.exp(-dt / CORRECTION_TAU);
-      if (Math.abs(this.correctionVel) < 0.01) this.correctionVel = 0;
+      const el = nowMs - this.segStart;
+      let along: number;
+      if (this.segDur > 0 && el < this.segDur) {
+        // Constant road speed into the fix: no overshoot, never past it.
+        const t = Math.min(1, Math.max(0, el / this.segDur));
+        along = this.segFrom + (this.segTo - this.segFrom) * t;
+      } else {
+        // Past the fix: dead-reckon at road speed, capped in time and distance.
+        const over = Math.max(0, (el - this.segDur) / 1000);
+        const dr =
+          this.drOk && this.speedMps > 1 ? Math.min(this.speedMps * Math.min(over, DR_MAX_S), DR_MAX_M) : 0;
+        along = this.segTo + dr;
+      }
+      // Monotonic between fixes (holds rather than sliding backwards).
+      this.displayedAlong = Math.max(0, Math.min(this.pathTotal, Math.max(this.displayedAlong, along)));
+      this.boarding = this.speedMps < 0.5 && Math.abs(this.segTo - this.displayedAlong) < 5;
 
       const sample = sampleAlong(this.path, this.cum, this.displayedAlong);
       lat = sample.lat;

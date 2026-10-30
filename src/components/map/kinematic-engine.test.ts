@@ -57,4 +57,45 @@ describe("KinematicBusEngine", () => {
     expect(engine.getLastTs()).toBe(12345);
     expect(engine.isBoarding()).toBe(true);
   });
+
+  it("glides along the road shape between fixes and never past the next fix", () => {
+    // An L-shaped road: north 556 m, then east.
+    const road = [
+      { lat: 35.17, lng: 33.36 },
+      { lat: 35.175, lng: 33.36 },
+      { lat: 35.175, lng: 33.366 },
+    ];
+    const engine = new KinematicBusEngine({ lat: 35.17, lng: 33.36 }, 0);
+    engine.setPath(road);
+    engine.prime(35.17, 33.36, 0, 0, 1000, 0);
+    // Next fix 20 s later, round the corner on the east leg.
+    engine.setTarget(35.175, 33.362, 90, 0, 0, 1020);
+    const mid = engine.tick(10_000);
+    // Halfway in time, the bus is ON the road (north leg or corner), not cutting the corner.
+    const onNorthLeg = Math.abs(mid.lng - 33.36) < 1e-5;
+    const onEastLeg = Math.abs(mid.lat - 35.175) < 1e-5;
+    expect(onNorthLeg || onEastLeg).toBe(true);
+    // Long after the glide, dead reckoning stays within its cap past the fix.
+    let s2 = engine.tick(20_000);
+    for (let t = 20_100; t <= 60_000; t += 100) s2 = engine.tick(t);
+    const fixAlong = engine.getDebug(60_000).alongM;
+    expect(fixAlong).toBeLessThan(556 + 182 + 61);
+    expect(s2.lat).toBeCloseTo(35.175, 4);
+  });
+
+  it("holds instead of sliding back when a fix lands just behind the bus", () => {
+    const road = [
+      { lat: 35.17, lng: 33.36 },
+      { lat: 35.18, lng: 33.36 },
+    ];
+    const engine = new KinematicBusEngine({ lat: 35.17, lng: 33.36 }, 0);
+    engine.setPath(road);
+    engine.prime(35.17, 33.36, 0, 0, 1000, 0);
+    engine.setTarget(35.172, 33.36, 0, 0, 0, 1020);
+    for (let t = 0; t <= 30_000; t += 100) engine.tick(t);
+    const ahead = engine.getDebug(30_000).alongM;
+    engine.setTarget(35.1719, 33.36, 0, 30_000, 0, 1040);
+    for (let t = 30_000; t <= 40_000; t += 100) engine.tick(t);
+    expect(engine.getDebug(40_000).alongM).toBeGreaterThanOrEqual(ahead - 0.01);
+  });
 });
