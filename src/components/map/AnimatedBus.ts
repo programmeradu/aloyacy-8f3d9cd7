@@ -4,7 +4,7 @@
 
 import type mapboxgl from "mapbox-gl";
 import type { MapboxApi } from "@/lib/useMapbox";
-import { createBusElements, renderBusVariant } from "./bus-dom";
+import { createBusElements, renderBusVariant, setBusBadge } from "./bus-dom";
 import { KinematicBusEngine } from "./kinematic-engine";
 
 export class AnimatedBus {
@@ -37,6 +37,7 @@ export class AnimatedBus {
     path: { lat: number; lng: number }[] | null = null,
     stale = false,
     _speedMps = 0,
+    badge: string | null = null,
   ) {
     this.label = label;
     this.size = size;
@@ -57,6 +58,7 @@ export class AnimatedBus {
     this.applySize();
     this.applyStale();
     this.setPath(path);
+    this.setBadge(badge);
 
     // Mapbox owns the element's transform for positioning; we only rotate
     // the inner rotor, so the two never fight.
@@ -78,6 +80,11 @@ export class AnimatedBus {
   private applyStale() {
     this.halo.style.opacity = this.stale ? "1" : "0";
     this.rotor.style.filter = this.stale ? "grayscale(0.35) opacity(0.7)" : "";
+  }
+
+  /** Line number shown upright beside the bus (close-ups only). */
+  setBadge(text: string | null) {
+    setBusBadge(this.el, text);
   }
 
   setSize(size: number) {

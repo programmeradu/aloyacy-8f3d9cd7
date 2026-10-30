@@ -6,6 +6,7 @@ import type mapboxgl from "mapbox-gl";
 import { AnimatedBus } from "@/components/map/AnimatedBus";
 import { STOPS_SOURCE, type StaticLayerState } from "@/components/map/useStaticLayer";
 import type { MapboxApi } from "@/lib/useMapbox";
+import { getRoute } from "@/lib/gtfs";
 
 /** A bus within this distance of a stop marker pulses that marker. */
 const STOP_PULSE_RADIUS_M = 30;
@@ -60,9 +61,9 @@ export function useLiveBusLayer({
 
     const seen = new Set<string>();
     const slice = vehicles.slice(0, focused ? 1 : FLEET_LIMIT);
-    const sizePx = focused ? 64 : restricted ? 48 : 16;
-    // Premium top-down bus asset only for focused/restricted close-ups. Wide
-    // fleet views use lightweight directional triangles so the map stays legible.
+    const sizePx = focused ? 64 : restricted ? 48 : 24;
+    // Close-ups (focused/restricted) get the full-size bus with its line badge;
+    // wide fleet views use the same glyph small and badge-free so the map stays legible.
     const variant: "premium" | "triangle" = focused || restricted ? "premium" : "triangle";
 
     for (const v of slice) {
@@ -73,6 +74,7 @@ export function useLiveBusLayer({
       const path = tripPaths.get(v.tripId) ?? null;
       const ageSec = v.timestamp ? Math.max(0, nowSec - v.timestamp) : 0;
       const stale = ageSec > STALE_PING_SEC;
+      const badge = variant === "premium" ? (getRoute(v.routeId)?.short ?? null) : null;
 
       if (existing) {
         existing.setVariant(variant);
@@ -80,6 +82,7 @@ export function useLiveBusLayer({
         existing.setSize(sizePx);
         existing.setFocused(focused);
         existing.setStale(stale);
+        existing.setBadge(badge);
         // Dedupe: only consume a ping fresher than the last one applied.
         // Otherwise the bus continues dead-reckoning between real updates.
         if (!v.timestamp || v.timestamp > existing.getLastTs()) {
@@ -99,6 +102,7 @@ export function useLiveBusLayer({
           path,
           stale,
           v.speed ?? 0,
+          badge,
         );
         // Record the first ping WITHOUT firing setTarget — that path forces
         // lerp mode + boarding=true (distM=0 against itself), freezing the bus

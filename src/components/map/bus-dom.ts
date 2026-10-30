@@ -3,7 +3,7 @@
 // visual treatment (halo, boarding pulse, premium vs triangle art) can be
 // read and tweaked in one place.
 
-import busPremium from "@/assets/bus-premium.png";
+import { BUS_SHADOW, busGlyphSvg } from "./bus-glyph";
 
 export type BusElements = {
   el: HTMLDivElement;
@@ -59,7 +59,11 @@ export function createBusElements(label: string): BusElements {
   return { el, halo, boardingRing, rotor };
 }
 
-/** Paint the rotor with either the premium bus art or a light triangle. */
+/**
+ * Paint the rotor with the Roam bus glyph (top-down, brand yellow). "premium"
+ * is the close-up size with a focus glow; "triangle" is the small fleet size
+ * (name kept for callers), the same glyph without the glow.
+ */
 export function renderBusVariant(
   rotor: HTMLDivElement,
   variant: "premium" | "triangle",
@@ -72,43 +76,52 @@ export function renderBusVariant(
     glow.style.inset = "0";
     glow.style.borderRadius = "50%";
     glow.style.background =
-      "radial-gradient(circle, color-mix(in oklab, #F6B83C 35%, transparent) 0%, transparent 65%)";
-    glow.style.opacity = focused ? "0.95" : "0";
+      "radial-gradient(circle, color-mix(in oklab, #F6B83C 40%, transparent) 0%, transparent 62%)";
+    glow.style.opacity = focused ? "0.9" : "0";
     glow.style.transition = "opacity 240ms ease";
-    glow.style.transform = "scale(1.6)";
-
-    const img = document.createElement("img");
-    img.src = busPremium;
-    img.alt = "";
-    img.draggable = false;
-    img.style.position = "absolute";
-    img.style.inset = "0";
-    img.style.width = "100%";
-    img.style.height = "100%";
-    img.style.objectFit = "contain";
-    img.style.filter = focused
-      ? "drop-shadow(0 6px 10px rgba(20,20,20,0.35))"
-      : "drop-shadow(0 3px 6px rgba(20,20,20,0.28))";
+    glow.style.transform = "scale(1.5)";
     rotor.appendChild(glow);
-    rotor.appendChild(img);
-  } else {
-    // Lightweight directional triangle. Points "up" by default — the rotor
-    // applies the bearing, matching the premium asset's convention.
-    const svgNS = "http://www.w3.org/2000/svg";
-    const svg = document.createElementNS(svgNS, "svg");
-    svg.setAttribute("viewBox", "0 0 24 24");
-    svg.style.width = "100%";
-    svg.style.height = "100%";
-    svg.style.filter = "drop-shadow(0 1px 2px rgba(20,20,20,0.35))";
-    const tri = document.createElementNS(svgNS, "path");
-    tri.setAttribute("d", "M12 3 L19 19 L12 16 L5 19 Z");
-    tri.setAttribute("fill", "#262626"); // aegean-deep
-    tri.setAttribute("stroke", "#ffffff");
-    tri.setAttribute("stroke-width", "1.5");
-    tri.setAttribute("stroke-linejoin", "round");
-    svg.appendChild(tri);
-    rotor.appendChild(svg);
   }
+  const art = document.createElement("div");
+  art.style.position = "absolute";
+  art.style.inset = "0";
+  art.style.filter = BUS_SHADOW;
+  art.innerHTML = busGlyphSvg();
+  rotor.appendChild(art);
+}
+
+/** Line-number badge that stays upright beside the bus (not rotated). */
+export function setBusBadge(el: HTMLDivElement, text: string | null): void {
+  let b = el.querySelector<HTMLSpanElement>("[data-bus-badge]");
+  if (!text) {
+    b?.remove();
+    return;
+  }
+  if (!b) {
+    b = document.createElement("span");
+    b.dataset.busBadge = "1";
+    Object.assign(b.style, {
+      position: "absolute",
+      top: "-2px",
+      right: "-8px",
+      minWidth: "20px",
+      height: "18px",
+      padding: "0 5px",
+      borderRadius: "9px",
+      background: "#171717",
+      color: "#ffffff",
+      border: "1.5px solid #ffffff",
+      boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+      font: "600 11px/15px Urbanist, ui-sans-serif, system-ui, sans-serif",
+      textAlign: "center",
+      boxSizing: "border-box",
+      fontVariantNumeric: "tabular-nums",
+      whiteSpace: "nowrap",
+      pointerEvents: "none",
+    } satisfies Partial<CSSStyleDeclaration>);
+    el.appendChild(b);
+  }
+  if (b.textContent !== text) b.textContent = text;
 }
 
 // Inject the boarding-pulse keyframes once per page load. Keeps the
