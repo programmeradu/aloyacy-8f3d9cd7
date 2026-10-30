@@ -167,6 +167,7 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "tripInfo.feedFoot":
     "Οι ώρες ενημερώνονται ζωντανά από τη ροή του φορέα και προσαρμόζονται στην αναφερόμενη καθυστέρηση. Πάτησε μια στάση για να δεις τις αναχωρήσεις της.",
 
+  "itin.leavesNow": "Φεύγει τώρα",
   "itin.leavesIn": "Φεύγει σε {n} λεπ",
   "itin.leavesAt": "Φεύγει στις {t}",
   "itin.boardAtPrefix": "Επιβίβαση στο",

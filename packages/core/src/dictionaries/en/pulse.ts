@@ -166,6 +166,7 @@ export const pulse = {
   "tripInfo.feedFoot":
     "Stop times are pulled live from the operator's feed and adjusted for the bus's reported delay. Tap any stop to open its live departures.",
 
+  "itin.leavesNow": "Leaves now",
   "itin.leavesIn": "Leaves in {n} min",
   "itin.leavesAt": "Leaves {t}",
   "itin.boardAtPrefix": "Board at",

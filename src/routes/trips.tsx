@@ -275,19 +275,21 @@ function Plan() {
 
       <section className="mt-2">
         {showResults ? (
-          <div className="r-hscroll mb-3" role="group" aria-label={t("trips.bestRoutes")}>
-            {(["rec", "fast", "direct"] as const).map((k) => (
-              <button
-                key={k}
-                type="button"
-                aria-pressed={sort === k}
-                onClick={() => setSort(k)}
-                className={`r-pill r-pill--lg ${sort === k ? "r-pill--y" : "r-pill--w"}`}
-              >
-                {r(k === "rec" ? "go.recommended" : k === "fast" ? "go.fastest" : "go.direct")}
-              </button>
-            ))}
-            <span className="r-conf ml-auto self-center pr-1">
+          <div className="mb-3">
+            <div className="r-hscroll" role="group" aria-label={t("trips.bestRoutes")}>
+              {(["rec", "fast", "direct"] as const).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  aria-pressed={sort === k}
+                  onClick={() => setSort(k)}
+                  className={`r-pill r-pill--lg ${sort === k ? "r-pill--y" : "r-pill--w"}`}
+                >
+                  {r(k === "rec" ? "go.recommended" : k === "fast" ? "go.fastest" : "go.direct")}
+                </button>
+              ))}
+            </div>
+            <span className="r-conf mt-2 flex justify-end pr-1 text-[13px]">
               {planning ? (
                 <>
                   <span className="r-dot r-dot--grey" />

@@ -44,7 +44,8 @@ function fmtTime(unix: number) {
     timeZone: "Asia/Nicosia",
   });
 }
-const short = (s: string) => s.split(",")[0];
+// Card end labels: first part of a stop name ("A, B" or "A - B" becomes "A").
+const short = (s: string) => s.split(",")[0].split(" - ")[0];
 
 export function ItineraryCard({
   itinerary,
@@ -87,7 +88,9 @@ export function ItineraryCard({
 
   const sourceLabel =
     itinerary.source === "live"
-      ? t("itin.leavesIn", { n: departIn })
+      ? departIn <= 0
+        ? t("itin.leavesNow")
+        : t("itin.leavesIn", { n: departIn })
       : t("itin.leavesAt", { t: fmtTime(itinerary.departureUnix) });
   const changes =
     itinerary.transfers === 0
@@ -168,7 +171,7 @@ export function ItineraryCard({
         ) : null}
       </div>
       <div className="mt-2 flex items-center justify-between gap-2 text-[14px]">
-        <span className="min-w-0 truncate">{short(firstRide?.board.name ?? "")}</span>
+        <span className="min-w-0 flex-1 truncate">{short(firstRide?.board.name ?? "")}</span>
         {rides.length > 1 ? (
           <span
             className="r-dpill shrink-0"
@@ -177,7 +180,9 @@ export function ItineraryCard({
             {rt("go.legs", { n: rides.length })}
           </span>
         ) : null}
-        <span className="min-w-0 truncate text-right">{short(lastRide?.alight.name ?? "")}</span>
+        <span className="min-w-0 flex-1 truncate text-right">
+          {short(lastRide?.alight.name ?? "")}
+        </span>
       </div>
 
       {itinerary.rationale && itinerary.rationale.length > 0 ? (
