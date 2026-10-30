@@ -194,6 +194,7 @@ export const pulse: Record<keyof typeof pulseEn, string> = {
   "map.live.active": "Το λεωφορείο σου, ζωντανά",
   "map.live.locating": "Εντοπισμός λεωφορείου",
   "map.unavailable": "Ο χάρτης δεν φόρτωσε",
+  "map.credits": "Πηγές χάρτη",
   "map.retry": "Δοκιμάστε ξανά",
   "map.live.none": "Κανένα λεωφορείο εδώ τώρα",
 

@@ -193,6 +193,7 @@ export const pulse = {
   "map.live.active": "Your bus, live",
   "map.live.locating": "Locating your bus",
   "map.unavailable": "The map didn't load",
+  "map.credits": "Map credits",
   "map.retry": "Try again",
   "map.live.none": "No buses here right now",
 

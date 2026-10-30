@@ -5,6 +5,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { MapPreview } from "@/components/MapPreview";
+import { MapAttribution } from "@/components/map/MapAttribution";
+import { isAerial } from "@/lib/basemap";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { ResumeTripPill } from "@/components/ResumeTripPill";
 import { PasskeyEnrollPrompt } from "@/components/PasskeyEnrollPrompt";
@@ -28,7 +30,7 @@ import { StopPin } from "../StopPin";
 import { useLocationControl } from "./useLocationControl";
 
 const PICK_KEY = "aloya:home-stop";
-/** Attribution sits under the header chips, clear of the card and tab bar. */
+/** Mapbox wordmark sits under the header chips; the imagery credit sits above the card. */
 const NOW_ATTRIB_TOP = "calc(var(--r-safe-top) + 152px)";
 /** Larnaca International Airport (LCA), public coordinates. */
 const LCA = { lat: 34.8751, lng: 33.6249, label: "Larnaca Airport" };
@@ -178,6 +180,8 @@ export function RoamNow() {
           userLocation={located ? { lat: coords.lat, lng: coords.lng } : null}
           fitToContent={false}
           attribTop={NOW_ATTRIB_TOP}
+          logoCorner="top-left"
+          attribution={false}
         />
         <div className="r-shade-top" style={{ height: 250 }} />
         <div className="r-haze r-haze--tl" />
@@ -222,6 +226,7 @@ export function RoamNow() {
         </nav>
 
         <div className="r-now-bottom">
+          {isAerial() ? <MapAttribution inline /> : null}
           <div className="r-now-pills">
             {vehKm != null && bus ? (
               <span className="r-pill r-pill--glass r-tnum">

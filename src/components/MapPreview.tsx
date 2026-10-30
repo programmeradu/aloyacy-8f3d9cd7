@@ -78,6 +78,8 @@ type Props = {
   attribBottom?: number;
   /** Roam: put attribution and logo at this distance from the top instead. */
   attribTop?: number | string;
+  /** Show the imagery credit button on the map (off when the page renders it). */
+  attribution?: boolean;
   /** Corner for the Mapbox logo; defaults to the attribution side. */
   logoCorner?: "top-left" | "bottom-left";
 };
@@ -105,6 +107,7 @@ export function MapPreview({
   declutterPx = 0,
   attribBottom = 8,
   attribTop,
+  attribution = true,
   logoCorner,
 }: Props) {
   // placeName is derived from browser geolocation on the client, so the SSR
@@ -269,7 +272,7 @@ export function MapPreview({
         </div>
       )}
       {pinPortals}
-      {isAerial() && !error ? <MapAttribution bottom={attribBottom} top={attribTop} /> : null}
+      {attribution && isAerial() && !error ? <MapAttribution bottom={attribBottom} top={attribTop} /> : null}
       {liveVehicles && !hideLiveBadge && !bare && (
         <div className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-white/90 px-3.5 py-1.5 backdrop-blur-md ring-1 ring-line">
           <span className="font-sans text-[12px] font-semibold tracking-tight text-ink">

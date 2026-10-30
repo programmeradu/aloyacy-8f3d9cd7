@@ -33,7 +33,7 @@ export function StopHero({
           }
           restrictTripIds={tripIds}
           fitToContent={false}
-          attribTop="calc(var(--r-safe-top) + 68px)"
+          attribBottom={64}
         />
       </div>
       <div className="r-shade-top" style={{ height: 150 }} />
