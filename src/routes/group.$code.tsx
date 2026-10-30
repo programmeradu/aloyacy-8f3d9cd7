@@ -121,7 +121,10 @@ function GroupWatchPage() {
       <div className="mx-auto flex min-h-dvh max-w-[440px] flex-col">
         <Hero group={group} members={members} expired={expired} me={me} />
 
-        <div className="r-legacy flex flex-col gap-4 px-4 pt-4" style={{ paddingBottom: "calc(var(--r-safe-bottom) + 40px)" }}>
+        <div
+          className="r-legacy flex flex-col gap-4 px-4 pt-4"
+          style={{ paddingBottom: "calc(var(--r-safe-bottom) + 40px)" }}
+        >
           <IdentityRibbon
             me={me}
             meIndex={meIndex}

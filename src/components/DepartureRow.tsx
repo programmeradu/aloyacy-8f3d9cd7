@@ -136,25 +136,43 @@ export function DepartureRow({
         params={{ tripId }}
         search={{ from: stopId }}
         className="r-row items-start"
-        style={{ minHeight: 68, paddingTop: 12, paddingBottom: 12, ["--r-row-inset" as string]: "16px", background: first ? "#fbf7ee" : undefined, borderRadius: first ? 20 : undefined }}
+        style={{
+          minHeight: 68,
+          paddingTop: 12,
+          paddingBottom: 12,
+          ["--r-row-inset" as string]: "16px",
+          background: first ? "#fbf7ee" : undefined,
+          borderRadius: first ? 20 : undefined,
+        }}
       >
-        <span className={`r-pill r-tnum mt-0.5 ${first ? "r-pill--y" : ""}`} style={{ height: 28, minWidth: 58, justifyContent: "center", padding: "0 10px", gap: 4 }}>
+        <span
+          className={`r-pill r-tnum mt-0.5 ${first ? "r-pill--y" : ""}`}
+          style={{ height: 28, minWidth: 58, justifyContent: "center", padding: "0 10px", gap: 4 }}
+        >
           <i className="ph ph-bus" style={{ fontSize: 15 }} aria-hidden="true" />
           {routeShort}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[16px] font-medium leading-snug line-clamp-2">{destination || origin}</span>
+          <span className="block text-[16px] font-medium leading-snug line-clamp-2">
+            {destination || origin}
+          </span>
           <span className="r-lbl mt-0.5 block r-tnum">
             {t("stop.scheduledAt", { time: clock })}
             {showBand ? ` · ${eta.band}` : ""}
           </span>
           <span className="r-dep-hints block">
-            {payKind && <PayLine kind={payKind} t={t} atMs={arrivalUnix ? arrivalUnix * 1000 : undefined} />}
-            {waitOrBail && <WaitOrBailLine action={waitOrBail} t={t} />}
-            {eta.tier === "rider-confirmed" && eta.pingAgeSec != null && Number.isFinite(eta.pingAgeSec) && (
-              <p>{t("stop.riderChain", { n: Math.round(eta.pingAgeSec) })}</p>
+            {payKind && (
+              <PayLine kind={payKind} t={t} atMs={arrivalUnix ? arrivalUnix * 1000 : undefined} />
             )}
-            {lastTonight && waitOrBail?.kind !== "bail" && <p>{t("stop.lastTonight", { route: routeShort })}</p>}
+            {waitOrBail && <WaitOrBailLine action={waitOrBail} t={t} />}
+            {eta.tier === "rider-confirmed" &&
+              eta.pingAgeSec != null &&
+              Number.isFinite(eta.pingAgeSec) && (
+                <p>{t("stop.riderChain", { n: Math.round(eta.pingAgeSec) })}</p>
+              )}
+            {lastTonight && waitOrBail?.kind !== "bail" && (
+              <p>{t("stop.lastTonight", { route: routeShort })}</p>
+            )}
             {noShow && (
               <p>
                 {t(noShow.weekend ? "stop.noShowWeekend" : "stop.noShowWeekday", {
@@ -164,7 +182,9 @@ export function DepartureRow({
                 })}
               </p>
             )}
-            {headway && !waitOrBail && <HeadwayLines hint={headway} routeShort={routeShort} t={t} />}
+            {headway && !waitOrBail && (
+              <HeadwayLines hint={headway} routeShort={routeShort} t={t} />
+            )}
           </span>
         </span>
         <span className="flex shrink-0 flex-col items-end gap-1 pl-1 text-right">
@@ -234,11 +254,7 @@ export function DepartureRow({
               {t("stop.scheduledAt", { time: clock })}
             </p>
             {payKind && (
-              <PayLine
-                kind={payKind}
-                t={t}
-                atMs={arrivalUnix ? arrivalUnix * 1000 : undefined}
-              />
+              <PayLine kind={payKind} t={t} atMs={arrivalUnix ? arrivalUnix * 1000 : undefined} />
             )}
             {waitOrBail && <WaitOrBailLine action={waitOrBail} t={t} />}
             {eta.tier === "rider-confirmed" &&
@@ -313,16 +329,8 @@ function PayLine({
 }) {
   const night = isCyprusNight(atMs);
   const key =
-    kind === "intercity"
-      ? "stop.payIntercity"
-      : night
-        ? "stop.payUrbanNight"
-        : "stop.payUrban";
-  return (
-    <p className="mt-1 text-[12.5px] leading-snug text-ink-soft">
-      {t(key)}
-    </p>
-  );
+    kind === "intercity" ? "stop.payIntercity" : night ? "stop.payUrbanNight" : "stop.payUrban";
+  return <p className="mt-1 text-[12.5px] leading-snug text-ink-soft">{t(key)}</p>;
 }
 
 function WaitOrBailLine({

@@ -150,9 +150,9 @@ const en = {
   "done.co2": "CO₂ saved vs a car",
   "done.fare": "Fare {fare}",
   "done.yourTrip": "Your trip",
-  "back": "Back",
-  "share": "Share",
-  "save": "Save",
+  back: "Back",
+  share: "Share",
+  save: "Save",
   "map.attrib": "Imagery",
   "el.redirect": "Switching to Greek",
   "pass.edit": "Edit card",
@@ -337,9 +337,11 @@ const el: Record<RoamKey, string> = {
   "pass.topupOnline": "Φόρτιση online",
   "pass.check": "Έλεγχος υπολοίπου",
   "pass.checking": "Έλεγχος",
-  "pass.faresNote": "Αστικά λεωφορεία Δημόσιων Συγκοινωνιών Κύπρου. Το Kapnos πληρώνεται στην Kapnos.",
+  "pass.faresNote":
+    "Αστικά λεωφορεία Δημόσιων Συγκοινωνιών Κύπρου. Το Kapnos πληρώνεται στην Kapnos.",
   "pass.emptyTitle": "Κράτα εδώ την κάρτα Motion",
-  "pass.emptySub": "Πρόσθεσε τον αριθμό για υπόλοιπο και κάρτες διαδρομών. Μένει σε αυτό το κινητό.",
+  "pass.emptySub":
+    "Πρόσθεσε τον αριθμό για υπόλοιπο και κάρτες διαδρομών. Μένει σε αυτό το κινητό.",
   "pass.jcc": "Σύνδεσε JCC για ιστορικό φορτίσεων",
   "pass.jccOn": "JCC συνδεδεμένο",
   "pass.sync": "Συγχρονισμός",
@@ -352,7 +354,11 @@ const el: Record<RoamKey, string> = {
 
 const dicts = { en: en as Record<RoamKey, string>, el };
 
-export function roamText(locale: "en" | "el", key: RoamKey, vars?: Record<string, string | number>) {
+export function roamText(
+  locale: "en" | "el",
+  key: RoamKey,
+  vars?: Record<string, string | number>,
+) {
   const raw = dicts[locale][key] ?? en[key];
   return vars ? raw.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? `{${k}}`)) : raw;
 }

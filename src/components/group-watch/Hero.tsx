@@ -35,7 +35,9 @@ export function Hero({
         </span>
       </div>
       <section className="r-jc r-rise mt-3 px-5 pb-5 pt-5">
-        <p className="r-lbl" style={{ color: "var(--r-onchar-mute)" }}>Everyone converging on</p>
+        <p className="r-lbl" style={{ color: "var(--r-onchar-mute)" }}>
+          Everyone converging on
+        </p>
         <h1 className="mt-1.5 text-balance text-[28px] font-normal leading-[1.1] tracking-[-0.02em] text-white">
           {group.destination_label}
         </h1>
@@ -44,7 +46,10 @@ export function Hero({
           <p className="text-[14px] text-white">
             {active} {active === 1 ? "person" : "people"} on the way
             {group.created_by_name ? (
-              <span style={{ color: "var(--r-onchar-mute)" }}> · hosted by {group.created_by_name}</span>
+              <span style={{ color: "var(--r-onchar-mute)" }}>
+                {" "}
+                · hosted by {group.created_by_name}
+              </span>
             ) : null}
             {me ? <span style={{ color: "var(--r-onchar-mute)" }}> · including you</span> : null}
           </p>

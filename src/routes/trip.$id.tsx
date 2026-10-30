@@ -86,11 +86,18 @@ function SingleLegCompanion({
 
   if (!active) {
     return (
-      <RoamPage title={r("done.yourTrip")} left={<BackButton label={r("back")} variant="light" fallback="/trips" />} right={<span />}>
+      <RoamPage
+        title={r("done.yourTrip")}
+        left={<BackButton label={r("back")} variant="light" fallback="/trips" />}
+        right={<span />}
+      >
         <section className="r-card r-card--pad r-rise">
           <h2 className="r-t2">{t("trip.ended.title")}</h2>
           <p className="r-lbl mt-2">{t("trip.ended.body")}</p>
-          <Link to="/trips" className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-[var(--r-char)] px-5 text-[15px] font-semibold text-white">
+          <Link
+            to="/trips"
+            className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-[var(--r-char)] px-5 text-[15px] font-semibold text-white"
+          >
             {t("trip.planNew")}
             <Icon name="arrow-up-right" size={16} />
           </Link>
@@ -177,7 +184,9 @@ function SingleLegCompanion({
           <header className="r-hero-head">
             <BackButton label={r("back")} fallback="/trips" />
             <div className="min-w-0 flex-1 r-scrim-text">
-              <p className="r-hero-title truncate">{t("trip.live")} · {bus.routeShort}</p>
+              <p className="r-hero-title truncate">
+                {t("trip.live")} · {bus.routeShort}
+              </p>
               <p className="r-hero-sub truncate">{active.to.label}</p>
             </div>
             <button
@@ -239,7 +248,11 @@ function SingleLegCompanion({
 
             {ringNow && (
               <div className="mt-5 flex flex-col items-center gap-2 text-center">
-                <a href="#trip-hud" className="r-fb r-fb--y r-fb--lg r-live-pulse" aria-label={r("trip.ring")}>
+                <a
+                  href="#trip-hud"
+                  className="r-fb r-fb--y r-fb--lg r-live-pulse"
+                  aria-label={r("trip.ring")}
+                >
                   <Icon name="bell-simple-ringing" />
                 </a>
                 <p className="text-[14px]">{r("trip.ring")}</p>
@@ -371,9 +384,13 @@ function LegStrip({ bus, dark = false }: { bus: BusView; dark?: boolean }) {
   return (
     <div className={dark ? "" : "mt-5 rounded-[22px] bg-[#f3f3f0] px-4 py-4"}>
       <div className="grid grid-cols-[auto_1fr_auto] items-baseline gap-3 r-tnum">
-        <span className="text-[14px]" style={{ color: mute }}>{clock(bus.board.departureUnix)}</span>
+        <span className="text-[14px]" style={{ color: mute }}>
+          {clock(bus.board.departureUnix)}
+        </span>
         <span className="text-center text-[16px] font-medium">{mins} min</span>
-        <span className="text-[14px]" style={{ color: mute }}>{clock(bus.alight.arrivalUnix)}</span>
+        <span className="text-[14px]" style={{ color: mute }}>
+          {clock(bus.alight.arrivalUnix)}
+        </span>
       </div>
       <div className="r-tl-line mt-2" style={{ height: 30 }} aria-hidden="true">
         <span className="ln" />
@@ -395,7 +412,13 @@ function LegStrip({ bus, dark = false }: { bus: BusView; dark?: boolean }) {
 }
 
 /** Trip complete (Roam): charcoal summary with the scoop and check, then the line card. */
-function TripComplete({ active, bus }: { active: NonNullable<ReturnType<typeof useActiveTrip>>; bus: BusView }) {
+function TripComplete({
+  active,
+  bus,
+}: {
+  active: NonNullable<ReturnType<typeof useActiveTrip>>;
+  bus: BusView;
+}) {
   const { t, locale } = useI18n();
   const { r } = useRoamI18n();
   const navigate = useNavigate();
@@ -404,7 +427,10 @@ function TripComplete({ active, bus }: { active: NonNullable<ReturnType<typeof u
   const night = isCyprusNight(bus.board.departureUnix * 1000);
   const fare =
     payKind === "urban"
-      ? formatEur(night ? BOARDING_PAY.urban.night.motionEur : BOARDING_PAY.urban.day.motionEur, true)
+      ? formatEur(
+          night ? BOARDING_PAY.urban.night.motionEur : BOARDING_PAY.urban.day.motionEur,
+          true,
+        )
       : null;
   const board = getStop(bus.board.stopId);
   const alight = getStop(bus.alight.stopId);
@@ -435,12 +461,18 @@ function TripComplete({ active, bus }: { active: NonNullable<ReturnType<typeof u
         <div className="px-5 pt-5 pb-9">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h1 className="r-t1" style={{ color: "#fff" }}>{r("done.title")}</h1>
+              <h1 className="r-t1" style={{ color: "#fff" }}>
+                {r("done.title")}
+              </h1>
               <p className="r-lbl mt-1.5" style={{ color: "var(--r-onchar-mute)" }}>
                 {date} · {route?.short ? `${t("stop.routeKicker")} ${route.short}` : bus.routeShort}
               </p>
             </div>
-            <span className="flex size-11 items-center justify-center rounded-full" style={{ background: "var(--r-y)", color: "var(--r-ink)" }} aria-hidden="true">
+            <span
+              className="flex size-11 items-center justify-center rounded-full"
+              style={{ background: "var(--r-y)", color: "var(--r-ink)" }}
+              aria-hidden="true"
+            >
               <Icon name="check" size={22} />
             </span>
           </div>
@@ -457,11 +489,20 @@ function TripComplete({ active, bus }: { active: NonNullable<ReturnType<typeof u
 
       <section className="r-card mt-4 overflow-hidden r-rise" style={{ animationDelay: "80ms" }}>
         <div className="px-5 pt-5">
-          <p className="r-t2">{t("stop.routeKicker")} {bus.routeShort}</p>
+          <p className="r-t2">
+            {t("stop.routeKicker")} {bus.routeShort}
+          </p>
           <p className="r-lbl mt-1">{active.to.label}</p>
         </div>
         <div className="flex justify-center py-2">
-          <img src="/roam/bus-front.webp" alt="" width={220} height={190} loading="lazy" style={{ objectFit: "contain" }} />
+          <img
+            src="/roam/bus-front.webp"
+            alt=""
+            width={220}
+            height={190}
+            loading="lazy"
+            style={{ objectFit: "contain" }}
+          />
         </div>
         <div className="flex items-center justify-between gap-3 px-5 pb-5">
           <p className="r-lbl">{t("hud.arrived.title", { name: active.to.label })}</p>
@@ -475,10 +516,18 @@ function TripComplete({ active, bus }: { active: NonNullable<ReturnType<typeof u
       </section>
 
       <div className="mt-4 flex gap-2">
-        <button type="button" onClick={done} className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-[var(--r-char)] text-[15px] font-semibold text-white">
+        <button
+          type="button"
+          onClick={done}
+          className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-[var(--r-char)] text-[15px] font-semibold text-white"
+        >
           {t("hud.arrived.done")}
         </button>
-        <Link to="/trips" onClick={() => clearActiveTrip()} className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-white text-[15px] font-semibold">
+        <Link
+          to="/trips"
+          onClick={() => clearActiveTrip()}
+          className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-white text-[15px] font-semibold"
+        >
           {t("trip.planNew")}
         </Link>
       </div>

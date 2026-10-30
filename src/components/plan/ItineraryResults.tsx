@@ -4,7 +4,10 @@ import { RemindMeButton } from "@/components/RemindMeButton";
 import { SharePlanButton } from "@/components/SharePlanButton";
 import { useI18n } from "@/lib/i18n";
 import type { Itinerary } from "@/lib/itinerary-types";
-import { isSingleRide, itineraryToJourneyOption, splitItineraries } from "@/lib/plan-bridge";
+import { isSingleRide, itineraryToJourneyOption } from "@/lib/plan-bridge";
+import { sortItineraries, type ResultSort } from "./sort-itineraries";
+
+export type { ResultSort };
 import type { Point } from "@/lib/plan-types";
 import { setActiveTrip } from "@/lib/trip-store";
 
@@ -58,21 +61,6 @@ function ItineraryRow({
       </div>
     </div>
   );
-}
-
-export type ResultSort = "rec" | "fast" | "direct";
-
-/**
- * Recommended: direct trips first, then any trips that need a transfer
- * (planner order within each). Fastest: earliest arrival. Direct: fewest
- * changes, then earliest arrival. The first card is the highlighted one.
- */
-export function sortItineraries(results: Itinerary[], sort: ResultSort = "rec"): Itinerary[] {
-  if (sort === "fast") return [...results].sort((a, b) => a.arrivalUnix - b.arrivalUnix);
-  if (sort === "direct")
-    return [...results].sort((a, b) => a.transfers - b.transfers || a.arrivalUnix - b.arrivalUnix);
-  const { direct, transfers } = splitItineraries(results);
-  return [...direct, ...transfers];
 }
 
 export function ItineraryResults({

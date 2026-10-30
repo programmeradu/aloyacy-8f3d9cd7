@@ -154,7 +154,6 @@ function Plan() {
         : t("trips.planFailed")
       : null;
 
-
   const extras = useTripSideQueries({
     origin,
     destination,
@@ -213,11 +212,19 @@ function Plan() {
   );
 
   const recents = useRecents().slice(0, 4);
-  const saved = useSavedPlaces().filter((p) => p.pinned).slice(0, 3);
+  const saved = useSavedPlaces()
+    .filter((p) => p.pinned)
+    .slice(0, 3);
   const placeChips = [
     ...saved.map((p) => ({
       key: p.id,
-      icon: /home|σπίτι/i.test(p.label) ? "house" : /uni|πανεπ/i.test(p.label) ? "graduation-cap" : /work|office|δουλ/i.test(p.label) ? "briefcase" : "map-pin",
+      icon: /home|σπίτι/i.test(p.label)
+        ? "house"
+        : /uni|πανεπ/i.test(p.label)
+          ? "graduation-cap"
+          : /work|office|δουλ/i.test(p.label)
+            ? "briefcase"
+            : "map-pin",
       label: p.label,
       point: { lat: p.lat, lng: p.lng, label: p.name || p.label } as Point,
     })),
@@ -229,20 +236,56 @@ function Plan() {
     pushRecent({ name: p.label, lat: p.lat, lng: p.lng });
     setActive(origin ? null : "from");
   };
-  const tiles: { key: "stepFree" | "preferShade" | "shortWalk"; icon: string; label: string; on: boolean; toggle: () => void }[] = [
-    { key: "stepFree", icon: "wheelchair", label: r("go.stepFree"), on: a11yPrefs.stepFree, toggle: () => updateA11y({ stepFree: !a11yPrefs.stepFree, lowFloor: !a11yPrefs.stepFree }) },
-    { key: "preferShade", icon: "umbrella-simple", label: r("go.shade"), on: a11yPrefs.preferShade, toggle: () => updateA11y({ preferShade: !a11yPrefs.preferShade }) },
-    { key: "shortWalk", icon: "person-simple-walk", label: r("go.shortWalk"), on: a11yPrefs.maxWalkMeters != null, toggle: () => updateA11y({ maxWalkMeters: a11yPrefs.maxWalkMeters != null ? null : 500 }) },
+  const tiles: {
+    key: "stepFree" | "preferShade" | "shortWalk";
+    icon: string;
+    label: string;
+    on: boolean;
+    toggle: () => void;
+  }[] = [
+    {
+      key: "stepFree",
+      icon: "wheelchair",
+      label: r("go.stepFree"),
+      on: a11yPrefs.stepFree,
+      toggle: () => updateA11y({ stepFree: !a11yPrefs.stepFree, lowFloor: !a11yPrefs.stepFree }),
+    },
+    {
+      key: "preferShade",
+      icon: "umbrella-simple",
+      label: r("go.shade"),
+      on: a11yPrefs.preferShade,
+      toggle: () => updateA11y({ preferShade: !a11yPrefs.preferShade }),
+    },
+    {
+      key: "shortWalk",
+      icon: "person-simple-walk",
+      label: r("go.shortWalk"),
+      on: a11yPrefs.maxWalkMeters != null,
+      toggle: () => updateA11y({ maxWalkMeters: a11yPrefs.maxWalkMeters != null ? null : 500 }),
+    },
   ];
 
   return (
     <RoamPage
       title={showResults ? destination!.label : r("go.title")}
       sub={showResults ? r("go.fromPlace", { place: origin!.label }) : undefined}
-      left={showResults ? <BackInline label={r("back")} onClick={() => setDestination(null)} /> : undefined}
+      left={
+        showResults ? (
+          <BackInline label={r("back")} onClick={() => setDestination(null)} />
+        ) : undefined
+      }
       right={
         showResults ? (
-          <FrostButton icon="arrows-down-up" label={r("go.swap")} variant="light" onClick={() => { setOrigin(destination); setDestination(origin); }} />
+          <FrostButton
+            icon="arrows-down-up"
+            label={r("go.swap")}
+            variant="light"
+            onClick={() => {
+              setOrigin(destination);
+              setDestination(origin);
+            }}
+          />
         ) : undefined
       }
     >
@@ -320,11 +363,18 @@ function Plan() {
                 onClick={tile.toggle}
                 aria-pressed={tile.on}
                 className="r-card relative flex h-[92px] flex-col items-center justify-center gap-2 px-2 text-center"
-                style={{ borderRadius: 22, boxShadow: tile.on ? "inset 0 0 0 1.5px var(--r-ink)" : undefined }}
+                style={{
+                  borderRadius: 22,
+                  boxShadow: tile.on ? "inset 0 0 0 1.5px var(--r-ink)" : undefined,
+                }}
               >
                 <span
                   className="absolute right-2.5 top-2.5 flex size-[18px] items-center justify-center rounded-full"
-                  style={tile.on ? { background: "var(--r-y)" } : { boxShadow: "inset 0 0 0 1.5px #c9c9c4" }}
+                  style={
+                    tile.on
+                      ? { background: "var(--r-y)" }
+                      : { boxShadow: "inset 0 0 0 1.5px #c9c9c4" }
+                  }
                   aria-hidden="true"
                 >
                   {tile.on ? <Icon name="check" size={11} /> : null}
@@ -337,7 +387,12 @@ function Plan() {
 
           <div className="r-hscroll mt-4">
             {placeChips.map((c) => (
-              <button key={c.key} type="button" className="r-pill r-pill--w r-pill--lg" onClick={() => pickDest(c.point)}>
+              <button
+                key={c.key}
+                type="button"
+                className="r-pill r-pill--w r-pill--lg"
+                onClick={() => pickDest(c.point)}
+              >
                 <Icon name={c.icon} />
                 {c.label}
               </button>
@@ -355,7 +410,9 @@ function Plan() {
                     className="r-row w-full text-left"
                     onClick={() => pickDest({ lat: rc.lat, lng: rc.lng, label: rc.name })}
                   >
-                    <span className="r-icobox"><Icon name="clock-counter-clockwise" /></span>
+                    <span className="r-icobox">
+                      <Icon name="clock-counter-clockwise" />
+                    </span>
                     <span className="min-w-0 flex-1 truncate text-[16px]">{rc.name}</span>
                     <Icon name="arrow-up-right" size={17} style={{ color: "var(--r-mute)" }} />
                   </button>
@@ -465,7 +522,12 @@ function Plan() {
                 />
               )}
             </div>
-            <ItineraryResults results={results} origin={origin} destination={destination} sort={sort} />
+            <ItineraryResults
+              results={results}
+              origin={origin}
+              destination={destination}
+              sort={sort}
+            />
             <div className="r-legacy -mx-6 flex flex-col gap-3 px-6">
               {kapnosBlock}
               {extras.parkAndRide && (

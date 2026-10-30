@@ -39,15 +39,26 @@ export function PersonalSuggestions({
         {items.map((s) => {
           const { text } = suggestionLabel(s.toLabel);
           return (
-            <button key={s.key} type="button" onClick={() => onPick(s)} className="r-row w-full text-left">
-              <span className="r-icobox r-tnum text-[15px] font-semibold">{s.count > 9 ? "9+" : s.count}</span>
+            <button
+              key={s.key}
+              type="button"
+              onClick={() => onPick(s)}
+              className="r-row w-full text-left"
+            >
+              <span className="r-icobox r-tnum text-[15px] font-semibold">
+                {s.count > 9 ? "9+" : s.count}
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[16px] font-medium" title={text}>
                   {text}
                 </span>
                 <span className="r-lbl block truncate">{s.blurb}</span>
               </span>
-              <i className="ph ph-arrow-up-right" style={{ fontSize: 17, color: "var(--r-mute)" }} aria-hidden="true" />
+              <i
+                className="ph ph-arrow-up-right"
+                style={{ fontSize: 17, color: "var(--r-mute)" }}
+                aria-hidden="true"
+              />
             </button>
           );
         })}
@@ -88,13 +99,24 @@ export function FieldRow({
 }) {
   const { t } = useI18n();
   return (
-    <div className={`flex w-full items-center gap-3 rounded-[20px] px-3 transition-colors ${active ? "bg-[#f3f3f0]" : ""}`}>
+    <div
+      className={`flex w-full items-center gap-3 rounded-[20px] px-3 transition-colors ${active ? "bg-[#f3f3f0]" : ""}`}
+    >
       <span className="flex w-4 justify-center" aria-hidden="true">
-        {role === "from" ? <span className="r-dot" style={{ width: 10, height: 10 }} /> : <span className="r-ring" style={{ width: 11, height: 11, boxShadow: "inset 0 0 0 3px var(--r-ink)" }} />}
+        {role === "from" ? (
+          <span className="r-dot" style={{ width: 10, height: 10 }} />
+        ) : (
+          <span
+            className="r-ring"
+            style={{ width: 11, height: 11, boxShadow: "inset 0 0 0 3px var(--r-ink)" }}
+          />
+        )}
       </span>
       <button type="button" onClick={onActivate} className="min-w-0 flex-1 py-3 text-left">
         <span className="block r-lbl">{label}</span>
-        <span className={`mt-0.5 block truncate text-[16px] ${point ? "font-medium text-[var(--r-ink)]" : "text-[var(--r-mute)]"}`}>
+        <span
+          className={`mt-0.5 block truncate text-[16px] ${point ? "font-medium text-[var(--r-ink)]" : "text-[var(--r-mute)]"}`}
+        >
           {point?.label ?? (role === "from" ? t("trips.detecting") : t("trips.searchPlaceholder"))}
         </span>
       </button>
@@ -244,7 +266,10 @@ export function TimeIntentChip({
         <div className="r-hscroll mt-2">
           {/* The native picker sits transparent over its own chip so the row
               stays one consistent scale instead of a full-width input block. */}
-          <label className="r-pill r-pill--lg r-pill--w relative" style={{ boxShadow: "inset 0 0 0 1.5px var(--r-ink)" }}>
+          <label
+            className="r-pill r-pill--lg r-pill--w relative"
+            style={{ boxShadow: "inset 0 0 0 1.5px var(--r-ink)" }}
+          >
             <i className="ph ph-calendar-blank" aria-hidden="true" />
             <span className="whitespace-nowrap">
               {iso ? formatIntentLabel(iso, t) : t("trips.intentSetTime")}

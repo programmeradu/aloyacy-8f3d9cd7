@@ -23,7 +23,12 @@ function cls(variant: FrostVariant, large?: boolean, extra = "") {
   return `r-fb${v}${large ? " r-fb--lg" : ""} ${extra}`.trim();
 }
 
-function Inner({ icon, badge, badgeDark, children }: Pick<Common, "icon" | "badge" | "badgeDark" | "children">) {
+function Inner({
+  icon,
+  badge,
+  badgeDark,
+  children,
+}: Pick<Common, "icon" | "badge" | "badgeDark" | "children">) {
   return (
     <>
       {icon ? <Icon name={icon} /> : children}
@@ -39,7 +44,22 @@ function Inner({ icon, badge, badgeDark, children }: Pick<Common, "icon" | "badg
 export const FrostButton = forwardRef<
   HTMLButtonElement,
   Common & { onClick?: () => void; pressed?: boolean; type?: "button" | "submit" }
->(function FrostButton({ icon, label, variant = "frost", large, badge, badgeDark, className, children, onClick, pressed, type = "button" }, ref) {
+>(function FrostButton(
+  {
+    icon,
+    label,
+    variant = "frost",
+    large,
+    badge,
+    badgeDark,
+    className,
+    children,
+    onClick,
+    pressed,
+    type = "button",
+  },
+  ref,
+) {
   return (
     <button
       ref={ref}
@@ -83,7 +103,15 @@ export function FrostLink({
 }
 
 /** Back button: history back when there is history, else the given fallback route. */
-export function BackButton({ label, variant = "frost", fallback = "/" }: { label: string; variant?: FrostVariant; fallback?: string }) {
+export function BackButton({
+  label,
+  variant = "frost",
+  fallback = "/",
+}: {
+  label: string;
+  variant?: FrostVariant;
+  fallback?: string;
+}) {
   return (
     <FrostButton
       icon="caret-left"

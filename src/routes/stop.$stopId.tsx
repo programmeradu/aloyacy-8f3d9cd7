@@ -228,7 +228,9 @@ function StopDetail() {
               spanKm={1.4}
               markers={
                 stop
-                  ? ([{ lat: stop.lat, lng: stop.lng, kind: "origin", label: stop.name }] as MapMarker[])
+                  ? ([
+                      { lat: stop.lat, lng: stop.lng, kind: "origin", label: stop.name },
+                    ] as MapMarker[])
                   : undefined
               }
               restrictTripIds={departures.map((d) => d.tripId)}
@@ -241,8 +243,16 @@ function StopDetail() {
           <header className="r-hero-head">
             <BackButton label={r("back")} />
             <span className="flex-1" />
-            <FrostButton icon="bell-simple" label={r("me.alerts")} onClick={() => openMeSheet("alerts")} />
-            <FrostButton icon="share-network" label={t("share.openLabel")} onClick={() => setShareOpen(true)} />
+            <FrostButton
+              icon="bell-simple"
+              label={r("me.alerts")}
+              onClick={() => openMeSheet("alerts")}
+            />
+            <FrostButton
+              icon="share-network"
+              label={t("share.openLabel")}
+              onClick={() => setShareOpen(true)}
+            />
           </header>
         </div>
 
@@ -257,19 +267,31 @@ function StopDetail() {
               width: 100,
               depth: 26,
               dock: (
-                <a href={goHref} className="r-fb r-fb--white r-fb--lg" aria-label={r("stop.goHere", { name: stop?.name ?? "" })}>
+                <a
+                  href={goHref}
+                  className="r-fb r-fb--white r-fb--lg"
+                  aria-label={r("stop.goHere", { name: stop?.name ?? "" })}
+                >
                   <Icon name="arrow-bend-up-right" />
                 </a>
               ),
             },
           ]}
         >
-          <div className="px-5 pt-7" style={{ paddingBottom: "calc(var(--r-safe-bottom) + 120px)", minHeight: "calc(100dvh - 304px)" }}>
+          <div
+            className="px-5 pt-7"
+            style={{
+              paddingBottom: "calc(var(--r-safe-bottom) + 120px)",
+              minHeight: "calc(100dvh - 304px)",
+            }}
+          >
             <h1 className="r-t1 pr-16">{stop?.name ?? t("stop.unknown")}</h1>
             <p className="r-lbl mt-1.5">
               {t("stop.kicker", { code: stop?.code ?? stopId })}
               {" · "}
-              {stop ? stopAreaLine(stopId, stop.agency, r) || t("stop.serviceUrban") : t("stop.notInDataset")}
+              {stop
+                ? stopAreaLine(stopId, stop.agency, r) || t("stop.serviceUrban")
+                : t("stop.notInDataset")}
             </p>
 
             {lineChips.length > 1 && (
@@ -359,7 +381,9 @@ function StopDetail() {
                         }}
                         noShow={pickNoShow(noShowSlots, d.routeId, d.arrivalUnix, Date.now())}
                         lastTonight={
-                          rt ? lastTonightOnRoute(rt.arrivals, stopId, d.routeId, d.arrivalUnix) : false
+                          rt
+                            ? lastTonightOnRoute(rt.arrivals, stopId, d.routeId, d.arrivalUnix)
+                            : false
                         }
                         headway={headwayByTrip.get(d.tripId) ?? null}
                         waitOrBail={waitOrBailByTrip.get(d.tripId) ?? null}
@@ -384,7 +408,10 @@ function StopDetail() {
             )}
 
             {stopReliability && stopReliability.sampleCount > 0 && (
-              <section className="r-legacy -mx-5 mt-5 px-5" aria-label={t("reliability.stopEyebrow")}>
+              <section
+                className="r-legacy -mx-5 mt-5 px-5"
+                aria-label={t("reliability.stopEyebrow")}
+              >
                 <StopReliabilityStrip r={stopReliability} />
               </section>
             )}
