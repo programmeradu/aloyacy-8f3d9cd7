@@ -5,6 +5,7 @@ import { Link } from "@tanstack/react-router";
 import type { BoardStop, BoardTrip, BusOnLine } from "@aloya/core/route-board";
 import { Icon } from "@/components/roam/Icon";
 import { useRoamI18n } from "@/lib/roam-i18n";
+import { displayPlace } from "@/lib/place-names";
 
 const hhmm = (unix: number) =>
   new Date(unix * 1000).toLocaleTimeString("en-GB", {
@@ -41,7 +42,9 @@ export function RouteTimeline({
         const passed = busIdx >= 0 && i <= busIdx;
         const at = times.get(id);
         const busRow = i === busIdx && bus;
-        const nextName = stopOf(stopIds[Math.min(i + 1, stopIds.length - 1)])?.name ?? s.name;
+        const nextName = displayPlace(
+          stopOf(stopIds[Math.min(i + 1, stopIds.length - 1)])?.name ?? s.name,
+        );
         const nextAt = times.get(stopIds[i + 1] ?? "");
         const mins = nextAt ? Math.max(0, Math.round((nextAt - nowSec) / 60)) : null;
         return (
@@ -51,7 +54,7 @@ export function RouteTimeline({
               <span className="r-tl-rail" aria-hidden="true">
                 <span className="r-tl-dot" />
               </span>
-              <span className="r-tl-name">{s.name}</span>
+              <span className="r-tl-name">{displayPlace(s.name)}</span>
             </Link>
             {busRow && (
               <div className="r-tl-bus">
@@ -61,12 +64,24 @@ export function RouteTimeline({
                     <Icon name="bus" />
                   </span>
                 </span>
-                <span className="r-pill r-pill--y r-tl-buspill">
-                  {bus.status === "at"
-                    ? r("line.busAt", { line: lineShort })
-                    : mins != null
-                      ? r("line.busNext", { line: lineShort, min: mins, stop: nextName })
-                      : r("line.busTo", { line: lineShort, stop: nextName })}
+                <span
+                  className="r-tl-buscard"
+                  aria-label={
+                    bus.status === "at"
+                      ? r("line.busAt", { line: lineShort })
+                      : mins != null
+                        ? r("line.busNext", { line: lineShort, min: mins, stop: nextName })
+                        : r("line.busTo", { line: lineShort, stop: nextName })
+                  }
+                >
+                  <span className="r-tl-buscard-head r-tnum" aria-hidden="true">
+                    {bus.status !== "at" && mins != null
+                      ? r("line.busHead", { line: lineShort, min: mins })
+                      : r("line.busHeadNow", { line: lineShort })}
+                  </span>
+                  <span className="r-tl-buscard-sub" aria-hidden="true">
+                    {bus.status === "at" ? r("line.busSubAt") : r("line.busSubTo", { stop: nextName })}
+                  </span>
                 </span>
               </div>
             )}

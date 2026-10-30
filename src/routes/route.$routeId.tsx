@@ -41,7 +41,7 @@ import { RouteNextDepartureCard } from "@/components/route/RouteNextDepartureCar
 import { RouteRunsList } from "@/components/route/RouteRunsList";
 import { useRealtime } from "@/lib/useRealtime";
 import { getRoute, getStop, STOPS } from "@/lib/gtfs";
-import { repairPlace } from "@/components/roam/lines/lines-data";
+import { splitLongName } from "@/lib/place-names";
 import { getRouteReliability } from "@/lib/reliability.functions";
 import { getIntercityInsights } from "@/lib/intercity-intel.functions";
 import { routeHead } from "@/lib/route-page";
@@ -174,7 +174,13 @@ function RoutePage() {
     : undefined;
 
   const lineShort = route?.short ?? routeId;
-  const { origin, dest } = splitLong(route?.long, stopOf(board?.stopIds[0] ?? "")?.name);
+  const { origin, dest } = splitLongName(route?.long, {
+    routeStopNames: (board?.stopIds ?? fallbackStopIds)
+      .map((id) => stopOf(id)?.name)
+      .filter((n): n is string => !!n),
+    allNames: STOP_NAMES,
+    firstStop: stopOf(board?.stopIds[0] ?? "")?.name,
+  });
   const area = areaLabel(resolveAgency({ agency: route?.agency, id: routeId }), r);
   const liveCount = board?.vehicles.length ?? 0;
   const onShare = () => {
@@ -341,12 +347,4 @@ function RoutePage() {
       />
     </div>
   );
-}
-
-/** Origin and destination from a GTFS long name ("A - B - C"), dash free. */
-function splitLong(long: string | undefined, firstStop: string | undefined) {
-  const parts = (long ?? "").split(/\s+[-\u2013\u2014]\s+/).filter(Boolean);
-  const fix = (x: string) => repairPlace(x, STOP_NAMES);
-  if (parts.length < 2) return { origin: firstStop ?? "", dest: fix(parts[0] ?? "") };
-  return { origin: fix(parts[0]), dest: parts.slice(1).map(fix).join(", ") };
 }

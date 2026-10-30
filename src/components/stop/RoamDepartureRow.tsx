@@ -2,7 +2,8 @@
 // clock and band, and on the right the minutes with the confidence mark and
 // its word. The rider hints (pay, wait or bail, headway, no-show) sit under
 // the row as one clipped secondary line that expands on tap, so rows stay
-// two lines like the concept and no hint is lost.
+// two lines like the concept and no hint is lost. Row and hint share one
+// card (one background, one radius), so the selected row reads as a unit.
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import type { FreshnessTier } from "@/lib/freshness";
@@ -48,12 +49,12 @@ export function RoamDepartureRow({
     );
   const showClock = etaMin == null || etaMin >= 60;
   return (
-    <>
+    <div className={`r-dep-card${first ? " is-first" : ""}`}>
       <Link
         to="/trip-info/$tripId"
         params={{ tripId }}
         search={{ from: stopId }}
-        className={`r-row r-dep${first ? " r-dep--first" : ""}`}
+        className="r-row r-dep"
       >
         <span className={`r-pill r-tnum r-dep-pill${first ? " r-pill--y" : ""}`}>
           <i className="ph ph-bus" aria-hidden="true" />
@@ -79,12 +80,12 @@ export function RoamDepartureRow({
           </span>
         </span>
       </Link>
-      <details className={`r-dep-more${first ? " r-dep-more--first" : ""}`}>
+      <details className="r-dep-more">
         <summary aria-label={moreLabel}>
           <span className="r-dep-hints">{hints}</span>
           <i className="ph ph-caret-down r-dep-caret" aria-hidden="true" />
         </summary>
       </details>
-    </>
+    </div>
   );
 }

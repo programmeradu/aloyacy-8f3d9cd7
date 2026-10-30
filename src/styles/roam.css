@@ -1059,10 +1059,6 @@ button.r-row:active {
    secondary line under the row, full text on tap */
 .r-dep-more {
   padding: 0 16px 12px 84px;
-  border-radius: 0 0 20px 20px;
-}
-.r-dep-more--first {
-  background: #fbf7ee;
 }
 .r-dep-more:has(.r-dep-hints:empty) {
   display: none;
@@ -1205,16 +1201,28 @@ button.r-row:active {
 .r-phase .text-ink-soft {
   color: var(--r-ink2);
 }
+/* one card per departure: the row and its hint line share background and radius */
+.r-dep-card {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.r-dep-card.is-first {
+  background: #fbf7ee;
+  box-shadow: inset 0 0 0 1px rgba(246, 184, 60, 0.22);
+}
 .r-dep {
   align-items: center;
   min-height: 72px;
   padding-top: 12px;
   padding-bottom: 12px;
   --r-row-inset: 16px;
-  border-radius: 20px;
 }
-.r-dep--first {
-  background: #fbf7ee;
+.r-dep-card:not(:has(.r-dep-hints:empty)) .r-dep {
+  padding-bottom: 8px;
+}
+.r-dep-card a.r-dep:active {
+  background: rgba(0, 0, 0, 0.03);
 }
 .r-dep-pill {
   height: 28px;
@@ -1227,7 +1235,7 @@ button.r-row:active {
 .r-dep-pill .ph {
   font-size: 16px;
 }
-.r-dep-list > div + div > .r-dep::before {
+.r-dep-list > div + div .r-dep-card::before {
   content: "";
   position: absolute;
   top: 0;
@@ -1236,14 +1244,11 @@ button.r-row:active {
   height: 1px;
   background: var(--r-line);
 }
-.r-dep:has(+ .r-dep-more:not(:has(.r-dep-hints:empty))) {
-  padding-bottom: 8px;
-}
-.r-dep--first:has(+ .r-dep-more:not(:has(.r-dep-hints:empty))) {
-  border-radius: 20px 20px 0 0;
-}
-.r-dep-list > div:has(> .r-dep--first) + div > .r-dep::before {
+.r-dep-list > div:has(.r-dep-card.is-first) + div .r-dep-card::before {
   display: none;
+}
+.r-dep-list > div + div {
+  margin-top: 2px;
 }
 
 /* line detail timeline (concept 07) */
@@ -1310,7 +1315,7 @@ button.r-row:active {
   line-height: 1.3;
   color: var(--r-ink);
   padding: 8px 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .r-tl-busicon {
   position: relative;
@@ -1327,16 +1332,31 @@ button.r-row:active {
   font-size: 18px;
   color: var(--r-ink);
 }
-.r-tl-buspill {
-  justify-self: start;
-  max-width: 100%;
-  white-space: normal;
-  /* long stop names wrap to two lines: grow the pill instead of spilling out of it */
-  height: auto;
-  min-height: 30px;
-  padding: 6px 14px;
+/* live bus on the line: one yellow card, head line + destination line, even padding */
+.r-tl-buscard {
+  justify-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin: 6px 0;
+  padding: 10px 16px 11px;
+  border-radius: 18px;
+  background: var(--r-y);
+  color: var(--r-ink);
+  box-shadow: 0 6px 16px rgba(246, 184, 60, 0.28);
+}
+.r-tl-buscard-head {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.r-tl-buscard-sub {
+  font-size: 13px;
+  font-weight: 500;
   line-height: 1.3;
-  border-radius: 16px;
+  color: rgba(23, 23, 23, 0.72);
+  overflow-wrap: break-word;
 }
 
 /* Lines network card: attribution wraps bottom-left, clear of the docked arrow */
