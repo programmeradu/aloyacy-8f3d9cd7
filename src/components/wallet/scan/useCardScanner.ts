@@ -265,17 +265,21 @@ export function useCardScanner(opts: {
           setPhase("notcard");
           return;
         }
-        if (glareShare(small) > 0.05) {
-          setPhase("glare");
-          return;
-        }
+        // Clipped pixels alone are not glare: a card's printed white (the QR
+        // panel, a cream face under bright light) clips on most phone cameras.
+        // So read anyway, and only ask for a tilt when a glary frame read nothing.
+        const glary = glareShare(small) > 0.05;
         if (sharpness(small) < 40) {
           setPhase("blurry");
           return;
         }
         setPhase("reading");
         attempts.current += 1;
+        const before = Object.values(voter.current.accepted).filter(Boolean).length;
         await readSide(flat);
+        const after = Object.values(voter.current.accepted).filter(Boolean).length;
+        if (glary && after === before && attempts.current >= 3 && !sideDone(sideRef.current))
+          setPhase("glare");
       } finally {
         busy.current = false;
         if (alive) timer = window.setTimeout(frame, 60);
