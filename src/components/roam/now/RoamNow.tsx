@@ -8,7 +8,7 @@ import { MapPreview } from "@/components/MapPreview";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { ResumeTripPill } from "@/components/ResumeTripPill";
 import { PasskeyEnrollPrompt } from "@/components/PasskeyEnrollPrompt";
-import { SkySearchSheet } from "@/components/home/SkySearchSheet";
+import { RoamSearchSheet } from "../search/RoamSearchSheet";
 import { useNextBus } from "@/components/home/useNextBus";
 import { useNearbyStops } from "@/components/home/useNearbyStops";
 import { deriveCardState } from "@/components/home/sky-state";
@@ -265,7 +265,7 @@ export function RoamNow() {
       <PasskeyEnrollPrompt />
       <ResumeTripPill />
       <TabBar dark />
-      <SkySearchSheet
+      <RoamSearchSheet
         open={!!sheet}
         mode={sheet?.mode ?? "search"}
         voice={!!sheet?.voice}
