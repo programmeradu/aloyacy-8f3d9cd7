@@ -112,10 +112,12 @@ export function MapPreview({
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
-  const { api, error: loadError } = useMapbox();
-  // WebGL can be missing (old devices, blocked GPU). Map construction then throws;
-  // catch it so the screen keeps working with the "Map unavailable" fallback.
+  const { api, error: loadError, retry: retryLoad } = useMapbox();
+  // WebGL can be missing (old devices, blocked GPU) or briefly unavailable
+  // (iOS Safari frees the previous screen's map context a moment late). Map
+  // construction then throws: try again shortly, then show a retry fallback.
   const [glError, setGlError] = useState(false);
+  const [glTry, setGlTry] = useState(0);
   const error = loadError || glError;
   const { data: rt } = useRealtime();
   const { t } = useI18n();
@@ -142,20 +144,32 @@ export function MapPreview({
         cooperativeGestures: false,
         logoPosition: logoCorner ?? (attribTop != null ? "top-left" : "bottom-left"),
       });
-    } catch {
+    } catch (e) {
+      console.warn("[map] init failed", e);
+      if (glTry < 2) {
+        const id = window.setTimeout(() => setGlTry((n) => n + 1), 700 * (glTry + 1));
+        return () => window.clearTimeout(id);
+      }
       setGlError(true);
       return;
     }
+    setGlError(false);
     if (!isAerial()) m.addControl(new api.AttributionControl({ compact: true }), "top-left");
     m.touchZoomRotate.disableRotation();
     if (!isAerial()) m.on("style.load", () => applyAloyaTint(m));
     m.on("load", () => setMapReady((n) => n + 1));
+    // A lost WebGL context (iOS under memory pressure) leaves a blank map:
+    // rebuild it once the browser restores the context.
+    const canvas = m.getCanvas();
+    const onRestored = () => setGlTry((n) => n + 1);
+    canvas.addEventListener("webglcontextrestored", onRestored);
     mapRef.current = m;
     return () => {
+      canvas.removeEventListener("webglcontextrestored", onRestored);
       m.remove();
       mapRef.current = null;
     };
-  }, [api]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [api, glTry]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { expanded, fallbackOverlay, wrapperRef, toggleFullscreen } = useMapFullscreen(api, mapRef);
 
@@ -239,10 +253,19 @@ export function MapPreview({
       {/* Inline position: mapbox-gl adds .mapboxgl-map { position: relative }. */}
       <div ref={hostRef} className="absolute inset-0" style={{ position: "absolute", inset: 0 }} />
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-            Map unavailable
-          </p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+          <p className="text-[15px] font-medium text-white/85">{t("map.unavailable")}</p>
+          <button
+            type="button"
+            className="r-pill r-pill--k"
+            onClick={() => {
+              setGlError(false);
+              if (loadError) retryLoad();
+              else setGlTry((n) => (n >= 2 ? 0 : n + 1));
+            }}
+          >
+            {t("map.retry")}
+          </button>
         </div>
       )}
       {pinPortals}

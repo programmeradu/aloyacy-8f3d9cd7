@@ -11,6 +11,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { registerServiceWorker } from "@/lib/pwa";
+import { reloadForNewDeploy } from "@/lib/staleDeploy";
 import { speak } from "@/lib/speech";
 import { Toaster } from "@/components/ui/sonner";
 import { useUserDataRealtime } from "@/lib/useUserDataRealtime";
@@ -214,6 +215,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+
+  // An old bundle asking for a chunk the new deploy renamed: reload once.
+  useEffect(() => {
+    const onPreloadError = (e: Event) => {
+      if (reloadForNewDeploy()) e.preventDefault();
+    };
+    window.addEventListener("vite:preloadError", onPreloadError);
+    return () => window.removeEventListener("vite:preloadError", onPreloadError);
+  }, []);
 
   useEffect(() => {
     void registerServiceWorker();

@@ -1,9 +1,10 @@
 // Loader hook for Mapbox GL JS (v3). Client only: the library is imported
 // lazily so it never runs during SSR and stays out of the first bundle.
 // Replaced the Google Maps JS loader in Oct 2026.
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type mapboxglType from "mapbox-gl";
 import type { Map as MapboxMap } from "mapbox-gl";
+import { isChunkLoadError, reloadForNewDeploy } from "@/lib/staleDeploy";
 
 export type MapboxApi = typeof mapboxglType;
 
@@ -24,7 +25,12 @@ function load(): Promise<MapboxApi> {
   const token = getMapboxToken();
   if (!token) return Promise.reject(new Error("missing mapbox token"));
   if (!loader) {
-    loader = Promise.all([import("mapbox-gl"), import("mapbox-gl/dist/mapbox-gl.css")])
+    const fetchLib = () =>
+      Promise.all([import("mapbox-gl"), import("mapbox-gl/dist/mapbox-gl.css")]);
+    loader = fetchLib()
+      // One retry covers a dropped connection; a chunk that 404s because a new
+      // deploy renamed it needs a reload of the page (see staleDeploy.ts).
+      .catch(() => new Promise((r) => setTimeout(r, 600)).then(fetchLib))
       .then(([mod]) => {
         const mapboxgl = ((mod as unknown as { default?: MapboxApi }).default ?? mod) as MapboxApi;
         mapboxgl.accessToken = token;
@@ -32,6 +38,7 @@ function load(): Promise<MapboxApi> {
       })
       .catch((e) => {
         loader = null;
+        if (isChunkLoadError(e)) reloadForNewDeploy();
         throw e;
       });
   }
@@ -41,17 +48,26 @@ function load(): Promise<MapboxApi> {
 export function useMapbox() {
   const [api, setApi] = useState<MapboxApi | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [nonce, setNonce] = useState(0);
   useEffect(() => {
     if (api) return;
     let cancelled = false;
     load()
-      .then((m) => !cancelled && setApi(() => m))
+      .then((m) => {
+        if (cancelled) return;
+        setError(null);
+        setApi(() => m);
+      })
       .catch((e) => !cancelled && setError(e?.message ?? String(e)));
     return () => {
       cancelled = true;
     };
-  }, [api]);
-  return { api, error };
+  }, [api, nonce]);
+  const retry = useCallback(() => {
+    setError(null);
+    setNonce((n) => n + 1);
+  }, []);
+  return { api, error, retry };
 }
 
 /** Base style. Mapbox Light keeps labels legible; we re-tint it to the Aloya
