@@ -33,9 +33,11 @@ export function buildRouteJsonLd(input: {
       busNumber: input.short || input.id,
       provider: {
         "@type": "Organization",
-        name: AGENCY_OPERATOR[resolveAgency({ agency: input.agency, id: input.id })] ?? "Cyprus Public Transport",
-      }
-    }
+        name:
+          AGENCY_OPERATOR[resolveAgency({ agency: input.agency, id: input.id })] ??
+          "Cyprus Public Transport",
+      },
+    },
   ];
 }
 

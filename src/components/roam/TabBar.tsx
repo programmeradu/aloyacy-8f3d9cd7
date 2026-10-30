@@ -5,11 +5,31 @@ import { useRoamI18n, type RoamKey } from "@/lib/roam-i18n";
 import { Icon } from "./Icon";
 
 const TABS: { to: string; key: RoamKey; icon: string; match: (p: string) => boolean }[] = [
-  { to: "/", key: "tab.now", icon: "compass", match: (p) => p === "/" || p.startsWith("/saved") || p.startsWith("/stop/") },
-  { to: "/trips", key: "tab.go", icon: "path", match: (p) => p.startsWith("/trips") || p.startsWith("/plan/") || p.startsWith("/airport") },
-  { to: "/lines", key: "tab.lines", icon: "bus", match: (p) => p.startsWith("/lines") || p.startsWith("/route/") },
+  {
+    to: "/",
+    key: "tab.now",
+    icon: "compass",
+    match: (p) => p === "/" || p.startsWith("/saved") || p.startsWith("/stop/"),
+  },
+  {
+    to: "/trips",
+    key: "tab.go",
+    icon: "path",
+    match: (p) => p.startsWith("/trips") || p.startsWith("/plan/") || p.startsWith("/airport"),
+  },
+  {
+    to: "/lines",
+    key: "tab.lines",
+    icon: "bus",
+    match: (p) => p.startsWith("/lines") || p.startsWith("/route/"),
+  },
   { to: "/pulse", key: "tab.pulse", icon: "pulse", match: (p) => p.startsWith("/pulse") },
-  { to: "/wallet", key: "tab.pass", icon: "wallet", match: (p) => p.startsWith("/wallet") || p.startsWith("/pass") },
+  {
+    to: "/wallet",
+    key: "tab.pass",
+    icon: "wallet",
+    match: (p) => p.startsWith("/wallet") || p.startsWith("/pass"),
+  },
 ];
 
 export function TabBar({ dark = false }: { dark?: boolean }) {

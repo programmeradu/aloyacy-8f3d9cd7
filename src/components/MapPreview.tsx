@@ -149,10 +149,12 @@ export function MapPreview({
     if (!m) return;
     const hasContent = (polyline && polyline.length > 0) || (markers && markers.length > 0);
     if (fitToContent ?? hasContent) return;
-    m.jumpTo({ center: [center.lng, center.lat], zoom: spanToZoom(spanKm) + GOOGLE_TO_MAPBOX_ZOOM });
+    m.jumpTo({
+      center: [center.lng, center.lat],
+      zoom: spanToZoom(spanKm) + GOOGLE_TO_MAPBOX_ZOOM,
+    });
     // center.lat/lng are depended on individually so a new object identity from
     // the parent does not re-pan the map on every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center.lat, center.lng, spanKm, polyline, markers, fitToContent, mapReady]);
 
   const layerRef = useStaticLayer({
@@ -214,7 +216,8 @@ export function MapPreview({
       className={`${wrapperClass} r-mapwrap`}
       style={{
         ["--r-map-ctrl-bottom" as string]: `${attribBottom}px`,
-        ["--r-map-ctrl-top" as string]: typeof attribTop === "string" ? attribTop : `${attribTop ?? 8}px`,
+        ["--r-map-ctrl-top" as string]:
+          typeof attribTop === "string" ? attribTop : `${attribTop ?? 8}px`,
       }}
     >
       {/* Inline position: mapbox-gl adds .mapboxgl-map { position: relative }. */}

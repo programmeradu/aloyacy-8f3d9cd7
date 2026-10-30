@@ -54,13 +54,22 @@ function Pulse() {
 
   return (
     <RoamPage title={r("pulse.title")} sub={dateLine}>
-      <section className="r-card r-rise" style={{ background: "var(--r-char)", color: "#fff", padding: "18px 20px" }}>
-        <p className="r-lbl" style={{ color: "var(--r-onchar-mute)" }}>{r("pulse.networkNow")}</p>
+      <section
+        className="r-card r-rise"
+        style={{ background: "var(--r-char)", color: "#fff", padding: "18px 20px" }}
+      >
+        <p className="r-lbl" style={{ color: "var(--r-onchar-mute)" }}>
+          {r("pulse.networkNow")}
+        </p>
         {hasLive ? (
           <div className="mt-2 flex items-end justify-between gap-3">
             <div>
-              <p className="r-num-xl" style={{ color: "#fff" }}>{Math.round(live!.onTimePct)}%</p>
-              <p className="r-lbl mt-2" style={{ color: "var(--r-onchar-mute)" }}>{r("pulse.onTimeShare")}</p>
+              <p className="r-num-xl" style={{ color: "#fff" }}>
+                {Math.round(live!.onTimePct)}%
+              </p>
+              <p className="r-lbl mt-2" style={{ color: "var(--r-onchar-mute)" }}>
+                {r("pulse.onTimeShare")}
+              </p>
             </div>
             <Squiggle width={120} height={44} />
           </div>
@@ -69,42 +78,42 @@ function Pulse() {
         )}
       </section>
       <div className="r-legacy -mx-4 mt-2">
-      {today && <TodayEditorial briefing={today} locale={locale} t={t} />}
+        {today && <TodayEditorial briefing={today} locale={locale} t={t} />}
 
-      <section className="px-6 mt-8 animate-rise" style={{ animationDelay: "120ms" }}>
-        <RoadPulseCard
-          onTimePct={live?.onTimePct ?? 0}
-          latePct={live?.latePct ?? 0}
-          earlyPct={live?.earlyPct ?? 0}
-          observations={live?.observations ?? 0}
-          medianSec={live?.medianDelaySec ?? 0}
-          buckets={hourly?.buckets ?? []}
-          nowHour={hourly?.nowHour ?? new Date().getHours()}
-          t={t}
-        />
-      </section>
-
-      <LiveNetworkSection />
-
-      {crowdEyes && crowdEyes.routes.length > 0 && (
-        <section className="px-6 mt-4 animate-rise" style={{ animationDelay: "160ms" }}>
-          <CrowdEyesCard routes={crowdEyes.routes} t={t} />
+        <section className="px-6 mt-8 animate-rise" style={{ animationDelay: "120ms" }}>
+          <RoadPulseCard
+            onTimePct={live?.onTimePct ?? 0}
+            latePct={live?.latePct ?? 0}
+            earlyPct={live?.earlyPct ?? 0}
+            observations={live?.observations ?? 0}
+            medianSec={live?.medianDelaySec ?? 0}
+            buckets={hourly?.buckets ?? []}
+            nowHour={hourly?.nowHour ?? new Date().getHours()}
+            t={t}
+          />
         </section>
-      )}
 
-      {crowdEyes && crowdEyes.seeds.length > 0 && (
-        <section className="px-6 mt-4 animate-rise" style={{ animationDelay: "180ms" }}>
-          <CrowdEyesCard kind="seed" routes={crowdEyes.seeds} t={t} />
-        </section>
-      )}
+        <LiveNetworkSection />
 
-      {liveSignals && <PulseLiveSection bundle={liveSignals} locale={locale} />}
+        {crowdEyes && crowdEyes.routes.length > 0 && (
+          <section className="px-6 mt-4 animate-rise" style={{ animationDelay: "160ms" }}>
+            <CrowdEyesCard routes={crowdEyes.routes} t={t} />
+          </section>
+        )}
 
-      <div className="px-6 pt-8 pb-2">
-        <p className="text-center font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink-soft">
-          {t("pulse.updated")}
-        </p>
-      </div>
+        {crowdEyes && crowdEyes.seeds.length > 0 && (
+          <section className="px-6 mt-4 animate-rise" style={{ animationDelay: "180ms" }}>
+            <CrowdEyesCard kind="seed" routes={crowdEyes.seeds} t={t} />
+          </section>
+        )}
+
+        {liveSignals && <PulseLiveSection bundle={liveSignals} locale={locale} />}
+
+        <div className="px-6 pt-8 pb-2">
+          <p className="text-center font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink-soft">
+            {t("pulse.updated")}
+          </p>
+        </div>
       </div>
     </RoamPage>
   );

@@ -107,8 +107,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "preload", href: "/fonts/roam/urbanist-latin-500.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
-      { rel: "preload", href: "/fonts/roam/Phosphor.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
+      {
+        rel: "preload",
+        href: "/fonts/roam/urbanist-latin-500.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        href: "/fonts/roam/Phosphor.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
@@ -226,13 +238,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-          <RealtimeBridge />
-          <CloudSyncBridge />
-          <OnboardingGate />
-          <Outlet />
-          <InstallPrompt />
-          <MeSheet />
-          <Toaster position="top-center" />
+        <RealtimeBridge />
+        <CloudSyncBridge />
+        <OnboardingGate />
+        <Outlet />
+        <InstallPrompt />
+        <MeSheet />
+        <Toaster position="top-center" />
       </AuthProvider>
     </QueryClientProvider>
   );

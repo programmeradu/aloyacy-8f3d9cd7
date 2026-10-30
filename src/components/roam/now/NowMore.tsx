@@ -29,16 +29,26 @@ export function NowMore({ stops, live }: { stops: Stop[]; live: boolean }) {
               const isLive = s.etaTier === "live" || s.etaTier === "rider-confirmed";
               const codes = s.routes.map((x) => x.code).filter((c) => c !== "—");
               return (
-                <Link key={s.id} to="/stop/$stopId" params={{ stopId: s.id }} className="r-row" style={{ ["--r-row-inset" as string]: "64px" }}>
+                <Link
+                  key={s.id}
+                  to="/stop/$stopId"
+                  params={{ stopId: s.id }}
+                  className="r-row"
+                  style={{ ["--r-row-inset" as string]: "64px" }}
+                >
                   <span className="r-icobox">
                     <Icon name="bus" />
                   </span>
                   <span className="flex-1 min-w-0">
                     <span className="block text-[16px] font-medium truncate">{s.name}</span>
-                    <span className="r-lbl block truncate">{codes.length ? `${codes.slice(0, 5).join(" · ")} · ${s.towards}` : s.towards}</span>
+                    <span className="r-lbl block truncate">
+                      {codes.length ? `${codes.slice(0, 5).join(" · ")} · ${s.towards}` : s.towards}
+                    </span>
                   </span>
                   <span className="text-right flex-none">
-                    <span className="block r-tnum text-[16px] font-medium">{s.etaMin != null ? `${s.etaMin} ${r("now.min")}` : ""}</span>
+                    <span className="block r-tnum text-[16px] font-medium">
+                      {s.etaMin != null ? `${s.etaMin} ${r("now.min")}` : ""}
+                    </span>
                     {s.etaMin != null ? <ConfTag kind={isLive ? "live" : "tt"} /> : null}
                   </span>
                 </Link>

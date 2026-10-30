@@ -45,13 +45,19 @@ export function basemapStyle(id: BasemapId = BASEMAP): string | RasterStyle {
   switch (id) {
     case "esri":
       return raster(
-        ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+        [
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        ],
         256,
         19,
       );
     case "maptiler": {
       const key = (import.meta.env.VITE_MAPTILER_KEY as string | undefined) ?? "";
-      return raster([`https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=${key}`], 512, 20);
+      return raster(
+        [`https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=${key}`],
+        512,
+        20,
+      );
     }
     case "mapbox-satellite":
       return "mapbox://styles/mapbox/satellite-v9";
@@ -70,7 +76,10 @@ export function basemapAttribution(id: BasemapId = BASEMAP): { text: string; hre
     case "esri":
       return [
         { text: "Powered by Esri", href: "https://www.esri.com/" },
-        { text: "Imagery © Esri, Maxar, Earthstar Geographics", href: "https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9" },
+        {
+          text: "Imagery © Esri, Maxar, Earthstar Geographics",
+          href: "https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9",
+        },
       ];
     case "maptiler":
       return [

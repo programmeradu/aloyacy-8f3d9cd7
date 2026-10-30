@@ -60,4 +60,3 @@ export function boardingPayLine(kind: BoardingPayKind, atMs?: number): string {
   const p = night ? BOARDING_PAY.urban.night : BOARDING_PAY.urban.day;
   return `Tap Motion ${formatEur(p.motionEur, true)}, or pay the driver ${formatEur(p.paperEur, true)}.`;
 }
-

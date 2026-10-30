@@ -39,11 +39,17 @@ export function Sheet({ open, onClose, label, closeLabel, children, fill = "#fff
   useEffect(() => {
     if (!shown) return;
     const el = panelRef.current;
-    el?.querySelector<HTMLElement>("[data-autofocus], button, a[href]")?.focus({ preventScroll: true });
+    el?.querySelector<HTMLElement>("[data-autofocus], button, a[href]")?.focus({
+      preventScroll: true,
+    });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === "Tab" && el) {
-        const f = Array.from(el.querySelectorAll<HTMLElement>("button, a[href], input, [tabindex]:not([tabindex='-1'])"));
+        const f = Array.from(
+          el.querySelectorAll<HTMLElement>(
+            "button, a[href], input, [tabindex]:not([tabindex='-1'])",
+          ),
+        );
         if (f.length === 0) return;
         const first = f[0];
         const last = f[f.length - 1];
@@ -69,7 +75,14 @@ export function Sheet({ open, onClose, label, closeLabel, children, fill = "#fff
   return createPortal(
     <div className="roam">
       <div className="r-scrim" data-open={shown} onClick={onClose} aria-hidden="true" />
-      <div ref={panelRef} className="r-sheet" data-open={shown} role="dialog" aria-modal="true" aria-label={label}>
+      <div
+        ref={panelRef}
+        className="r-sheet"
+        data-open={shown}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+      >
         <NotchCard
           fill={fill}
           radius={34}
@@ -89,7 +102,10 @@ export function Sheet({ open, onClose, label, closeLabel, children, fill = "#fff
         >
           <span />
         </NotchCard>
-        <div className="r-sheet-scroll" style={{ background: fill, marginTop: -34, paddingTop: 34 }}>
+        <div
+          className="r-sheet-scroll"
+          style={{ background: fill, marginTop: -34, paddingTop: 34 }}
+        >
           {children}
         </div>
       </div>

@@ -91,10 +91,12 @@ export function RoamNow() {
   }, [snap]);
   const liveNear = useMemo(() => {
     if (!snap || !located) return 0;
-    return snap.vehicles.filter((v) => distanceKm(coords, { lat: v.lat, lng: v.lng }) <= 1.5).length;
+    return snap.vehicles.filter((v) => distanceKm(coords, { lat: v.lat, lng: v.lng }) <= 1.5)
+      .length;
   }, [snap, coords, located]);
 
-  const cardStopId = state.kind === "bus" ? state.bus.stopId : state.kind === "none" ? state.stopId : null;
+  const cardStopId =
+    state.kind === "bus" ? state.bus.stopId : state.kind === "none" ? state.stopId : null;
   const pins = mounted
     ? pinStops.map((s) => {
         const on = s.id === cardStopId;
@@ -112,7 +114,11 @@ export function RoamNow() {
               onClick={() => setFocus(s.id)}
             >
               <Icon name="bus" />
-              {due > 0 ? <span className="r-badge" aria-hidden="true">{due}</span> : null}
+              {due > 0 ? (
+                <span className="r-badge" aria-hidden="true">
+                  {due}
+                </span>
+              ) : null}
             </button>
           ),
         };
@@ -120,20 +126,38 @@ export function RoamNow() {
     : [];
 
   const bus = state.kind === "bus" ? state.bus : null;
-  const vehicle = bus && bus.backing === "live" ? snap?.vehicles.find((v) => v.tripId === bus.tripId) : undefined;
-  const vehKm = vehicle && bus ? distanceKm({ lat: vehicle.lat, lng: vehicle.lng }, { lat: bus.stopLat, lng: bus.stopLng }) : null;
+  const vehicle =
+    bus && bus.backing === "live" ? snap?.vehicles.find((v) => v.tripId === bus.tripId) : undefined;
+  const vehKm =
+    vehicle && bus
+      ? distanceKm({ lat: vehicle.lat, lng: vehicle.lng }, { lat: bus.stopLat, lng: bus.stopLng })
+      : null;
   const linesAtStop = useMemo(() => {
     const st = stops.find((s) => s.id === cardStopId);
     const n = st ? new Set(st.routes.map((x) => x.code).filter((c) => c !== "—")).size : 0;
     return Math.max(n, 1);
   }, [stops, cardStopId]);
-  const walkM = bus && Number.isFinite(distanceKm(coords, { lat: bus.stopLat, lng: bus.stopLng })) && located
-    ? Math.round((distanceKm(coords, { lat: bus.stopLat, lng: bus.stopLng }) * 1000) / 10) * 10
-    : null;
+  const walkM =
+    bus && Number.isFinite(distanceKm(coords, { lat: bus.stopLat, lng: bus.stopLng })) && located
+      ? Math.round((distanceKm(coords, { lat: bus.stopLat, lng: bus.stopLng }) * 1000) / 10) * 10
+      : null;
 
-  const saved = useSavedPlaces().filter((p) => p.pinned).slice(0, 3);
+  const saved = useSavedPlaces()
+    .filter((p) => p.pinned)
+    .slice(0, 3);
   const chips = [
-    ...saved.map((p) => ({ key: p.id, icon: /home|σπίτι/i.test(p.label) ? "house" : /uni|πανεπ/i.test(p.label) ? "graduation-cap" : /work|office|δουλ/i.test(p.label) ? "briefcase" : "map-pin", label: p.label, href: placeHref({ lat: p.lat, lng: p.lng, label: p.name || p.label }) })),
+    ...saved.map((p) => ({
+      key: p.id,
+      icon: /home|σπίτι/i.test(p.label)
+        ? "house"
+        : /uni|πανεπ/i.test(p.label)
+          ? "graduation-cap"
+          : /work|office|δουλ/i.test(p.label)
+            ? "briefcase"
+            : "map-pin",
+      label: p.label,
+      href: placeHref({ lat: p.lat, lng: p.lng, label: p.name || p.label }),
+    })),
     { key: "lca", icon: "airplane-tilt", label: r("now.airport"), href: placeHref(LCA) },
   ].slice(0, 3);
 
@@ -166,7 +190,11 @@ export function RoamNow() {
         <header className="r-now-head">
           <AvatarButton variant="frost" />
           <h1 className="r-now-title r-scrim-text">{r("now.title")}</h1>
-          <FrostButton icon="sliders-horizontal" label={r("now.filter")} onClick={() => setSheet({ mode: "search", voice: false })} />
+          <FrostButton
+            icon="sliders-horizontal"
+            label={r("now.filter")}
+            onClick={() => setSheet({ mode: "search", voice: false })}
+          />
         </header>
         <p className="r-now-sub r-scrim-text" aria-live="polite">
           {located && mounted
@@ -182,7 +210,12 @@ export function RoamNow() {
               {c.label}
             </a>
           ))}
-          <button type="button" className="r-pill r-pill--glass r-pill--lg" onClick={() => setSheet({ mode: "search", voice: false })} aria-label={r("now.search")}>
+          <button
+            type="button"
+            className="r-pill r-pill--glass r-pill--lg"
+            onClick={() => setSheet({ mode: "search", voice: false })}
+            aria-label={r("now.search")}
+          >
             <Icon name="magnifying-glass" />
           </button>
         </nav>
@@ -198,9 +231,15 @@ export function RoamNow() {
               <span />
             )}
             {mounted && active ? (
-              <Link to="/trip/$id" params={{ id: active.option.id }} className="r-pill r-pill--glass">
+              <Link
+                to="/trip/$id"
+                params={{ id: active.option.id }}
+                className="r-pill r-pill--glass"
+              >
                 <Icon name="house-line" style={{ color: "var(--r-y)" }} />
-                {activeBus && activeBus.kind === "bus" ? `${activeBus.routeShort} · ${active.to.label}` : r("now.resume")}
+                {activeBus && activeBus.kind === "bus"
+                  ? `${activeBus.routeShort} · ${active.to.label}`
+                  : r("now.resume")}
               </Link>
             ) : null}
           </div>
@@ -212,7 +251,9 @@ export function RoamNow() {
             onAllowLocation={loc.ask}
             onPickStop={() => setSheet({ mode: "pick", voice: false })}
             onRetry={nb.refetch}
-            origin={located && bus ? { lat: coords.lat, lng: coords.lng, label: bus.stopName } : null}
+            origin={
+              located && bus ? { lat: coords.lat, lng: coords.lng, label: bus.stopName } : null
+            }
           />
         </div>
       </section>

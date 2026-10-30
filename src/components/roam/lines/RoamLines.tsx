@@ -13,7 +13,14 @@ import { NotchCard } from "../NotchCard";
 import { Icon } from "../Icon";
 import { ConfTag, LinePill } from "../bits";
 import { openMeSheet } from "../me-store";
-import { filterLines, lineRows, matchStops, OPERATOR_KEYS, splitLong, type Operator } from "./lines-data";
+import {
+  filterLines,
+  lineRows,
+  matchStops,
+  OPERATOR_KEYS,
+  splitLong,
+  type Operator,
+} from "./lines-data";
 
 const ALL_ROWS = lineRows(ROUTES);
 const FILTERS: { op: Operator; key: RoamKey }[] = [
@@ -57,7 +64,14 @@ export function RoamLines() {
   return (
     <RoamPage
       title={r("lines.title")}
-      right={<FrostButton icon="bell-simple" variant="light" label={r("me.alerts")} onClick={() => openMeSheet("alerts")} />}
+      right={
+        <FrostButton
+          icon="bell-simple"
+          variant="light"
+          label={r("me.alerts")}
+          onClick={() => openMeSheet("alerts")}
+        />
+      }
     >
       <label className="r-card flex items-center gap-3 px-[18px] h-[52px]">
         <Icon name="magnifying-glass" size={20} />
@@ -75,7 +89,13 @@ export function RoamLines() {
 
       <div className="r-hscroll mt-4" role="group" aria-label={r("lines.title")}>
         {FILTERS.map((f) => (
-          <button key={f.op} type="button" className={`r-pill${op === f.op ? " r-pill--k" : " r-pill--o"}`} aria-pressed={op === f.op} onClick={() => setOp(f.op)}>
+          <button
+            key={f.op}
+            type="button"
+            className={`r-pill${op === f.op ? " r-pill--k" : " r-pill--o"}`}
+            aria-pressed={op === f.op}
+            onClick={() => setOp(f.op)}
+          >
             {r(f.key)}
           </button>
         ))}
@@ -93,7 +113,11 @@ export function RoamLines() {
               width: 104,
               depth: 24,
               dock: (
-                <Link to="/pulse" className="r-fb r-fb--white r-fb--lg" aria-label={r("lines.openNetwork")}>
+                <Link
+                  to="/pulse"
+                  className="r-fb r-fb--white r-fb--lg"
+                  aria-label={r("lines.openNetwork")}
+                >
                   <Icon name="arrow-up-right" />
                 </Link>
               ),
@@ -101,14 +125,30 @@ export function RoamLines() {
           ]}
           underlay={
             <div style={{ position: "absolute", inset: 0 }}>
-              <MapPreview bare center={NICOSIA_CENTER} spanKm={9} liveVehicles fitToContent={false} attribBottom={6} />
-              <div className="r-shade-top" style={{ height: "100%", background: "linear-gradient(200deg,rgba(0,0,0,.55),rgba(0,0,0,0) 50%,rgba(0,0,0,.15))" }} />
+              <MapPreview
+                bare
+                center={NICOSIA_CENTER}
+                spanKm={9}
+                liveVehicles
+                fitToContent={false}
+                attribBottom={6}
+              />
+              <div
+                className="r-shade-top"
+                style={{
+                  height: "100%",
+                  background:
+                    "linear-gradient(200deg,rgba(0,0,0,.55),rgba(0,0,0,0) 50%,rgba(0,0,0,.15))",
+                }}
+              />
             </div>
           }
         >
           <div className="h-[186px] relative" style={{ pointerEvents: "none" }}>
             <div className="absolute right-5 top-[18px] text-right">
-              <div className="text-white text-[18px] font-medium r-scrim-text">{r("lines.networkNow")}</div>
+              <div className="text-white text-[18px] font-medium r-scrim-text">
+                {r("lines.networkNow")}
+              </div>
               {liveCount > 0 ? (
                 <span className="r-pill r-pill--glass mt-2" style={{ height: 28, fontSize: 13 }}>
                   <span className="r-dot" />
@@ -123,7 +163,12 @@ export function RoamLines() {
       {q && stops.length > 0 ? (
         <div className="r-card mt-5" style={{ padding: "4px 0" }}>
           {stops.map((s) => (
-            <Link key={`${s.agency}:${s.id}`} to="/stop/$stopId" params={{ stopId: s.id }} className="r-row">
+            <Link
+              key={`${s.agency}:${s.id}`}
+              to="/stop/$stopId"
+              params={{ stopId: s.id }}
+              className="r-row"
+            >
               <span className="r-icobox">
                 <Icon name="map-pin" />
               </span>
@@ -139,7 +184,14 @@ export function RoamLines() {
           <h2 className="r-sec-lbl">{r("lines.saved")}</h2>
           <div className="r-card" style={{ padding: "2px 0" }}>
             {saved.map((s) => (
-              <LineRowLink key={s.routeId} routeId={s.routeId} short={s.routeShort} dest={s.dest} sub={s.origin} live={liveRoutes.has(s.routeId)} />
+              <LineRowLink
+                key={s.routeId}
+                routeId={s.routeId}
+                short={s.routeShort}
+                dest={s.dest}
+                sub={s.origin}
+                live={liveRoutes.has(s.routeId)}
+              />
             ))}
           </div>
         </>
@@ -167,7 +219,9 @@ export function RoamLines() {
               <LinePill line="Nextbike" icon="bicycle" />
             </span>
             <span className="flex-1 min-w-0">
-              <span className="block text-[16px] font-medium truncate">{r("lines.nextbikeRow")}</span>
+              <span className="block text-[16px] font-medium truncate">
+                {r("lines.nextbikeRow")}
+              </span>
               <span className="r-lbl block truncate">{r("lines.nextbikeSub")}</span>
             </span>
             <Icon name="caret-right" size={16} style={{ color: "var(--r-mute)" }} />
@@ -177,14 +231,28 @@ export function RoamLines() {
 
       {rows.length > 0 ? (
         <>
-          <h2 className="r-sec-lbl">{op === "all" ? r("lines.allLines") : r(FILTERS.find((f) => f.op === op)!.key)}</h2>
+          <h2 className="r-sec-lbl">
+            {op === "all" ? r("lines.allLines") : r(FILTERS.find((f) => f.op === op)!.key)}
+          </h2>
           <div className="r-card" style={{ padding: "2px 0" }}>
             {rows.slice(0, limit).map((row) => (
-              <LineRowLink key={`${row.agency}${row.short}`} routeId={row.routeId} short={row.short} dest={row.dest} sub={row.origin} live={liveRoutes.has(row.routeId)} icon={agencyIcon(row.agency)} />
+              <LineRowLink
+                key={`${row.agency}${row.short}`}
+                routeId={row.routeId}
+                short={row.short}
+                dest={row.dest}
+                sub={row.origin}
+                live={liveRoutes.has(row.routeId)}
+                icon={agencyIcon(row.agency)}
+              />
             ))}
           </div>
           {rows.length > limit ? (
-            <button type="button" className="r-pill r-pill--w r-pill--lg mx-auto mt-4 flex" onClick={() => setLimit((n) => n + 60)}>
+            <button
+              type="button"
+              className="r-pill r-pill--w r-pill--lg mx-auto mt-4 flex"
+              onClick={() => setLimit((n) => n + 60)}
+            >
               {r("go.seeAll")} · {rows.length}
             </button>
           ) : null}
@@ -196,7 +264,21 @@ export function RoamLines() {
   );
 }
 
-function LineRowLink({ routeId, short, dest, sub, live, icon = "bus" }: { routeId: string; short: string; dest: string; sub: string | null; live: boolean; icon?: string }) {
+function LineRowLink({
+  routeId,
+  short,
+  dest,
+  sub,
+  live,
+  icon = "bus",
+}: {
+  routeId: string;
+  short: string;
+  dest: string;
+  sub: string | null;
+  live: boolean;
+  icon?: string;
+}) {
   const { r } = useRoamI18n();
   return (
     <Link to="/route/$routeId" params={{ routeId }} className="r-row r-line-row">
@@ -205,7 +287,9 @@ function LineRowLink({ routeId, short, dest, sub, live, icon = "bus" }: { routeI
       </span>
       <span className="flex-1 min-w-0">
         <span className="block text-[16px] font-medium truncate">{dest}</span>
-        {sub ? <span className="r-lbl block truncate">{r("lines.from", { place: sub })}</span> : null}
+        {sub ? (
+          <span className="r-lbl block truncate">{r("lines.from", { place: sub })}</span>
+        ) : null}
       </span>
       <ConfTag kind={live ? "live" : "tt"} />
     </Link>

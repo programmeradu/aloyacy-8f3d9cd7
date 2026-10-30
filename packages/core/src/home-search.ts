@@ -199,7 +199,11 @@ export const FEED_AGENCY: Record<number, string> = {
  * Agency code for a route or stop. Trusts a known `agency` code; otherwise
  * derives it from the feed id or a "feed:local" id prefix. Unknown stays "".
  */
-export function resolveAgency(input: { agency?: string | null; feedId?: number | null; id?: string | null }): string {
+export function resolveAgency(input: {
+  agency?: string | null;
+  feedId?: number | null;
+  id?: string | null;
+}): string {
   const a = (input.agency ?? "").toUpperCase();
   if (a && a in AGENCY_CITY) return a;
   if (input.feedId != null && FEED_AGENCY[input.feedId]) return FEED_AGENCY[input.feedId];

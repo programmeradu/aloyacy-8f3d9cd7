@@ -42,6 +42,8 @@ export function notchPath(w: number, h: number, r = 28, notches: Notch[] = []): 
       `L${f(a)},${f(h)} C${f(a - k)},${f(h)} ${f(cx + k)},${f(h - d)} ${f(cx)},${f(h - d)} C${f(cx - k)},${f(h - d)} ${f(b + k)},${f(h)} ${f(b)},${f(h)}`,
     );
   }
-  p.push(`L${f(rr)},${f(h)} C${f(k45)},${f(h)} 0,${f(h - k45)} 0,${f(h - rr)} L0,${f(rr)} C0,${f(k45)} ${f(k45)},0 ${f(rr)},0 Z`);
+  p.push(
+    `L${f(rr)},${f(h)} C${f(k45)},${f(h)} 0,${f(h - k45)} 0,${f(h - rr)} L0,${f(rr)} C0,${f(k45)} ${f(k45)},0 ${f(rr)},0 Z`,
+  );
   return p.join(" ");
 }

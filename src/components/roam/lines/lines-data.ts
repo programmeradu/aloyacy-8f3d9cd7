@@ -48,7 +48,12 @@ export function filterLines(rows: LineRow[], op: Operator, q: string): LineRow[]
     if (op !== "all" && op !== "kapnos" && op !== "nextbike" && r.agency !== op) return false;
     if (op === "kapnos" || op === "nextbike") return false;
     if (!needle) return true;
-    return r.short.toLowerCase() === needle || r.short.toLowerCase().startsWith(needle) || r.dest.toLowerCase().includes(needle) || (r.origin ?? "").toLowerCase().includes(needle);
+    return (
+      r.short.toLowerCase() === needle ||
+      r.short.toLowerCase().startsWith(needle) ||
+      r.dest.toLowerCase().includes(needle) ||
+      (r.origin ?? "").toLowerCase().includes(needle)
+    );
   });
 }
 
@@ -68,7 +73,15 @@ export function matchStops(stops: StaticStop[], q: string, limit = 6): StaticSto
   return out;
 }
 
-export const OPERATOR_KEYS: Record<Exclude<Operator, "all" | "kapnos" | "nextbike">, "lines.nicosia" | "lines.intercity" | "lines.limassol" | "lines.larnaca" | "lines.paphos" | "lines.famagusta"> = {
+export const OPERATOR_KEYS: Record<
+  Exclude<Operator, "all" | "kapnos" | "nextbike">,
+  | "lines.nicosia"
+  | "lines.intercity"
+  | "lines.limassol"
+  | "lines.larnaca"
+  | "lines.paphos"
+  | "lines.famagusta"
+> = {
   NPT: "lines.nicosia",
   IC: "lines.intercity",
   LMS: "lines.limassol",

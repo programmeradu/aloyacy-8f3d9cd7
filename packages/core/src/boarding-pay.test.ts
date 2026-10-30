@@ -55,4 +55,3 @@ describe("boardingPayLine", () => {
     expect(boardingPayLine("intercity")).not.toMatch(/exact change/i);
   });
 });
-

@@ -26,7 +26,16 @@ type Props = {
   origin?: { lat: number; lng: number; label: string } | null;
 };
 
-export function NowCard({ state, tiles, linesAtStop, walkM, onAllowLocation, onPickStop, onRetry, origin }: Props) {
+export function NowCard({
+  state,
+  tiles,
+  linesAtStop,
+  walkM,
+  onAllowLocation,
+  onPickStop,
+  onRetry,
+  origin,
+}: Props) {
   const { r } = useRoamI18n();
   const bus = state.kind === "bus" ? state.bus : null;
   const stopId = bus?.stopId ?? (state.kind === "none" ? state.stopId : null);
@@ -46,7 +55,13 @@ export function NowCard({ state, tiles, linesAtStop, walkM, onAllowLocation, onP
 
   const then = bus
     ? (tiles.find((t) => t.routeId !== bus.routeId) ??
-      (bus.then[0] ? { line: bus.line, etaMin: Math.max(0, Math.round((bus.then[0] - Date.now() / 1000) / 60)), live: false } : null))
+      (bus.then[0]
+        ? {
+            line: bus.line,
+            etaMin: Math.max(0, Math.round((bus.then[0] - Date.now() / 1000) / 60)),
+            live: false,
+          }
+        : null))
     : null;
 
   return (
@@ -73,7 +88,11 @@ export function NowCard({ state, tiles, linesAtStop, walkM, onAllowLocation, onP
             <p className="r-t2">{r("now.noLoc")}</p>
             <div className="mt-5 flex flex-wrap gap-2">
               {!state.denied ? (
-                <button type="button" className="r-pill r-pill--k r-pill--lg" onClick={onAllowLocation}>
+                <button
+                  type="button"
+                  className="r-pill r-pill--k r-pill--lg"
+                  onClick={onAllowLocation}
+                >
                   <Icon name="navigation-arrow" />
                   {r("now.allow")}
                 </button>
@@ -114,7 +133,10 @@ export function NowCard({ state, tiles, linesAtStop, walkM, onAllowLocation, onP
           <div>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="truncate font-medium" style={{ fontSize: 26, letterSpacing: "-0.02em", lineHeight: 1.15 }}>
+                <h2
+                  className="truncate font-medium"
+                  style={{ fontSize: 26, letterSpacing: "-0.02em", lineHeight: 1.15 }}
+                >
                   {bus.stopName}
                 </h2>
                 <p className="r-lbl mt-1">
@@ -129,11 +151,17 @@ export function NowCard({ state, tiles, linesAtStop, walkM, onAllowLocation, onP
               <span className="text-right r-tnum text-[15px] font-medium">
                 {walkM != null && bus.walkMin != null ? (
                   <>
-                    {walkM} m <span className="text-[var(--r-mute)] font-normal">· {bus.walkMin} {r("now.min")}</span>
+                    {walkM} m{" "}
+                    <span className="text-[var(--r-mute)] font-normal">
+                      · {bus.walkMin} {r("now.min")}
+                    </span>
                   </>
                 ) : null}
               </span>
-              <span className="r-pill r-pill--y r-tnum mt-2" style={{ height: 36, borderRadius: 18 }}>
+              <span
+                className="r-pill r-pill--y r-tnum mt-2"
+                style={{ height: 36, borderRadius: 18 }}
+              >
                 <Icon name="bus" />
                 {bus.line} · {bus.etaMin} {r("now.min")}
               </span>

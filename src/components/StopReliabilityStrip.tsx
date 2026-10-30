@@ -58,16 +58,16 @@ export function StopReliabilityStrip({
     : r.tier === "low" && Math.abs(r.meanDelaySec) < 180
       ? "Often off schedule, early or late"
       : Math.abs(r.meanDelaySec) < 60
-      ? r.tier === "high"
-        ? "Usually runs on time"
-        : "Mostly on time, sometimes off"
-      : late
-        ? r.meanDelaySec < 180
-          ? "Usually a minute or two late"
-          : "Often runs late"
-        : Math.abs(r.meanDelaySec) < 180
-          ? "Sometimes leaves a touch early"
-          : "Often leaves early";
+        ? r.tier === "high"
+          ? "Usually runs on time"
+          : "Mostly on time, sometimes off"
+        : late
+          ? r.meanDelaySec < 180
+            ? "Usually a minute or two late"
+            : "Often runs late"
+          : Math.abs(r.meanDelaySec) < 180
+            ? "Sometimes leaves a touch early"
+            : "Often leaves early";
 
   const hint = !rated
     ? "Not enough rider data yet"

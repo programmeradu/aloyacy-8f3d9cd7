@@ -248,13 +248,21 @@ function WalletRoute() {
     >
       <div className="flex flex-col gap-3 pb-6">
         <section className="r-rise">
-          <MotionCard pass={pass} onTap={() => setEditing("card")} onScan={() => setScanning(true)} />
+          <MotionCard
+            pass={pass}
+            onTap={() => setEditing("card")}
+            onScan={() => setScanning(true)}
+          />
         </section>
 
         {hasCard ? (
           <>
             <section className="r-card r-card--pad r-rise flex items-start justify-between gap-3">
-              <button type="button" className="text-left min-w-0" onClick={() => void runPublicSync()}>
+              <button
+                type="button"
+                className="text-left min-w-0"
+                onClick={() => void runPublicSync()}
+              >
                 <span className="r-lbl block">{r("pass.balance")}</span>
                 <span className="r-num-xl block mt-2">€{pass.balanceEur.toFixed(2)}</span>
                 <span className="r-lbl block mt-2">{checkedLine}</span>
@@ -268,7 +276,11 @@ function WalletRoute() {
                 >
                   <Icon name="arrow-up-right" /> {r("pass.topupOnline")}
                 </a>
-                <button type="button" className="r-pill r-pill--lg" onClick={() => void runPublicSync()}>
+                <button
+                  type="button"
+                  className="r-pill r-pill--lg"
+                  onClick={() => void runPublicSync()}
+                >
                   {r("pass.check")}
                 </button>
               </div>
@@ -284,10 +296,18 @@ function WalletRoute() {
                       {pass.jcc?.displayName || pass.jcc?.email || pass.passName}
                     </p>
                   </div>
-                  <button type="button" className="r-pill r-pill--sm" onClick={() => void runSync()}>
+                  <button
+                    type="button"
+                    className="r-pill r-pill--sm"
+                    onClick={() => void runSync()}
+                  >
                     {syncing ? r("pass.checking") : r("pass.sync")}
                   </button>
-                  <button type="button" className="r-pill r-pill--sm r-pill--o" onClick={handleUnlink}>
+                  <button
+                    type="button"
+                    className="r-pill r-pill--sm r-pill--o"
+                    onClick={handleUnlink}
+                  >
                     {r("pass.unlink")}
                   </button>
                 </div>

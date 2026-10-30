@@ -67,8 +67,19 @@ function destLines(
     const walk = door?.coachWalkMin;
     lines.push(
       walk != null && walk > 0
-        ? t("airport.coachDoor", { city: coach.destinationCity, depart: coach.depart, fare, wait, walk })
-        : t("airport.coachDoorNoWalk", { city: coach.destinationCity, depart: coach.depart, fare, wait }),
+        ? t("airport.coachDoor", {
+            city: coach.destinationCity,
+            depart: coach.depart,
+            fare,
+            wait,
+            walk,
+          })
+        : t("airport.coachDoorNoWalk", {
+            city: coach.destinationCity,
+            depart: coach.depart,
+            fare,
+            wait,
+          }),
     );
   }
   if (door?.busDoor) {

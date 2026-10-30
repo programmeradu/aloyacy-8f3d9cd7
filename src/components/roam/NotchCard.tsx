@@ -7,7 +7,10 @@ import { notchPath, type Notch } from "./notch";
 
 const useIsoLayoutEffect = typeof window === "undefined" ? () => {} : useLayoutEffect;
 
-export type DockedNotch = Notch & { dock?: ReactNode; /** Centre the notch horizontally (ignores cx). */ center?: boolean };
+export type DockedNotch = Notch & {
+  dock?: ReactNode;
+  /** Centre the notch horizontally (ignores cx). */ center?: boolean;
+};
 
 type Props = {
   children: ReactNode;
@@ -63,7 +66,13 @@ export function NotchCard({
       {...aria}
     >
       {d ? (
-        <svg className="r-notch-bg" width={size!.w} height={size!.h} aria-hidden="true" style={{ filter: shadow }}>
+        <svg
+          className="r-notch-bg"
+          width={size!.w}
+          height={size!.h}
+          aria-hidden="true"
+          style={{ filter: shadow }}
+        >
           <defs>
             <clipPath id={clipId}>
               <path d={d} />
@@ -75,7 +84,13 @@ export function NotchCard({
       {underlay ? (
         <div
           aria-hidden="true"
-          style={{ position: "absolute", inset: 0, clipPath: d ? `path('${d}')` : undefined, borderRadius: d ? undefined : radius, overflow: "hidden" }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            clipPath: d ? `path('${d}')` : undefined,
+            borderRadius: d ? undefined : radius,
+            overflow: "hidden",
+          }}
         >
           {underlay}
         </div>

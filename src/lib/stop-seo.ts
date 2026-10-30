@@ -16,7 +16,7 @@ export function buildStopJsonLd(input: {
   conditions?: any[];
 }): Record<string, unknown>[] {
   if (!input.name || !Number.isFinite(input.lat) || !Number.isFinite(input.lng)) return [];
-  
+
   const blocks: Record<string, unknown>[] = [
     {
       "@context": "https://schema.org",
@@ -45,7 +45,7 @@ export function buildStopJsonLd(input: {
     for (const rid of input.ratedRouteIds) {
       const route = getRoute(rid);
       if (!route) continue;
-      
+
       blocks.push({
         "@context": "https://schema.org",
         "@type": "BusTrip",
@@ -54,20 +54,22 @@ export function buildStopJsonLd(input: {
         busNumber: route.short || rid,
         provider: {
           "@type": "Organization",
-          name: AGENCY_OPERATOR[resolveAgency({ agency: route.agency, id: rid })] ?? "Cyprus Public Transport",
+          name:
+            AGENCY_OPERATOR[resolveAgency({ agency: route.agency, id: rid })] ??
+            "Cyprus Public Transport",
         },
         departureBusStop: {
           "@type": "BusStop",
           name: input.name,
           identifier: input.id,
-        }
+        },
       });
     }
   }
 
   if (input.conditions && input.conditions.length > 0) {
     const mainEntity: Record<string, unknown>[] = [];
-    
+
     for (const c of input.conditions) {
       if (c.n < 1) continue; // Only confirmed facts
       if (c.attribute === "has_shelter" && c.value === "yes") {
@@ -76,8 +78,8 @@ export function buildStopJsonLd(input: {
           name: `Is there a shelter at ${input.name}?`,
           acceptedAnswer: {
             "@type": "Answer",
-            text: `Yes, ${input.name} has a shelter.`
-          }
+            text: `Yes, ${input.name} has a shelter.`,
+          },
         });
       } else if (c.attribute === "has_seating" && c.value === "yes") {
         mainEntity.push({
@@ -85,8 +87,8 @@ export function buildStopJsonLd(input: {
           name: `Is there seating at ${input.name}?`,
           acceptedAnswer: {
             "@type": "Answer",
-            text: `Yes, seating is available at this stop.`
-          }
+            text: `Yes, seating is available at this stop.`,
+          },
         });
       } else if (c.attribute === "wheelchair_access" && c.value === "yes") {
         mainEntity.push({
@@ -94,8 +96,8 @@ export function buildStopJsonLd(input: {
           name: `Is ${input.name} wheelchair accessible?`,
           acceptedAnswer: {
             "@type": "Answer",
-            text: `Yes, ${input.name} is step-free.`
-          }
+            text: `Yes, ${input.name} is step-free.`,
+          },
         });
       } else if (c.attribute === "lighting" && c.value === "good") {
         mainEntity.push({
@@ -103,8 +105,8 @@ export function buildStopJsonLd(input: {
           name: `Is ${input.name} well lit at night?`,
           acceptedAnswer: {
             "@type": "Answer",
-            text: `Yes, this stop has good lighting.`
-          }
+            text: `Yes, this stop has good lighting.`,
+          },
         });
       }
     }
@@ -113,7 +115,7 @@ export function buildStopJsonLd(input: {
       blocks.push({
         "@context": "https://schema.org",
         "@type": "FAQPage",
-        mainEntity
+        mainEntity,
       });
     }
   }
@@ -121,7 +123,10 @@ export function buildStopJsonLd(input: {
   return blocks;
 }
 
-export function stopHead(stopId: string, facts: (StopIndexFacts & { ratedRouteIds?: string[]; conditions?: any[] }) | undefined) {
+export function stopHead(
+  stopId: string,
+  facts: (StopIndexFacts & { ratedRouteIds?: string[]; conditions?: any[] }) | undefined,
+) {
   const stop = getStop(stopId);
   const name = stop?.name?.trim() || `Stop ${stopId}`;
   const index = facts ? stopIndexable(facts) : false;

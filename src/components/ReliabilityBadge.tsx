@@ -49,16 +49,16 @@ export function ReliabilityBadge({
       : tier === "low" && Math.abs(meanDelaySec) < 180
         ? t("reliability.summaryUneven")
         : Math.abs(meanDelaySec) < 60
-        ? tier === "high"
-          ? t("reliability.summaryOnTime")
-          : t("reliability.summaryMostly")
-        : late
-          ? meanDelaySec < 180
-            ? t("reliability.summaryLateSmall")
-            : t("reliability.summaryLateBig")
-          : Math.abs(meanDelaySec) < 180
-            ? t("reliability.summaryEarlySmall")
-            : t("reliability.summaryEarlyBig");
+          ? tier === "high"
+            ? t("reliability.summaryOnTime")
+            : t("reliability.summaryMostly")
+          : late
+            ? meanDelaySec < 180
+              ? t("reliability.summaryLateSmall")
+              : t("reliability.summaryLateBig")
+            : Math.abs(meanDelaySec) < 180
+              ? t("reliability.summaryEarlySmall")
+              : t("reliability.summaryEarlyBig");
     const hint = !isRated
       ? t("reliability.hintLearning")
       : tier === "high"

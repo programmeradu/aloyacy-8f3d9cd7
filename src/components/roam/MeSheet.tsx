@@ -12,11 +12,26 @@ import { useRoamI18n, type RoamKey } from "@/lib/roam-i18n";
 import { Sheet } from "./Sheet";
 import { Icon } from "./Icon";
 import { useMeSheetState } from "./me-store";
-import { Avatar, initialsOf } from "./Avatar";
+import { Avatar } from "./Avatar";
+import { initialsOf } from "./initials";
 
 type View = "list" | "alerts" | "offline" | "a11y" | "legal";
 
-function Row({ icon, title, sub, onClick, to, right }: { icon: string; title: string; sub?: string; onClick?: () => void; to?: string; right?: ReactNode }) {
+function Row({
+  icon,
+  title,
+  sub,
+  onClick,
+  to,
+  right,
+}: {
+  icon: string;
+  title: string;
+  sub?: string;
+  onClick?: () => void;
+  to?: string;
+  right?: ReactNode;
+}) {
   const body = (
     <>
       <span className="r-me-ic">
@@ -55,10 +70,21 @@ export function MeSheet() {
   }, [setState]);
   const active = (state.view as View | undefined) && view === "list" ? (state.view as View) : view;
 
-  const name = isPermanent ? ((user?.user_metadata?.name as string | undefined) ?? user?.email?.split("@")[0] ?? r("me.guest")) : r("me.guest");
+  const name = isPermanent
+    ? ((user?.user_metadata?.name as string | undefined) ??
+      user?.email?.split("@")[0] ??
+      r("me.guest"))
+    : r("me.guest");
   const detail = (key: RoamKey, node: ReactNode) => (
     <div className="pt-2">
-      <button type="button" className="r-pill r-pill--o mb-4" onClick={() => { setView("list"); setState((s) => ({ ...s, view: undefined })); }}>
+      <button
+        type="button"
+        className="r-pill r-pill--o mb-4"
+        onClick={() => {
+          setView("list");
+          setState((s) => ({ ...s, view: undefined }));
+        }}
+      >
         <Icon name="caret-left" />
         {r("me.back")}
       </button>
@@ -91,16 +117,38 @@ export function MeSheet() {
             </div>
           </div>
           <div className="r-me-group">
-            <Row icon="bell-simple" title={r("me.alerts")} sub={r("me.alertsSub")} onClick={() => setView("alerts")} />
-            <Row icon="download-simple" title={r("me.offline")} sub={r("me.offlineSub")} onClick={() => setView("offline")} />
-            <Row icon="wheelchair" title={r("me.a11y")} sub={r("me.a11ySub")} onClick={() => setView("a11y")} />
+            <Row
+              icon="bell-simple"
+              title={r("me.alerts")}
+              sub={r("me.alertsSub")}
+              onClick={() => setView("alerts")}
+            />
+            <Row
+              icon="download-simple"
+              title={r("me.offline")}
+              sub={r("me.offlineSub")}
+              onClick={() => setView("offline")}
+            />
+            <Row
+              icon="wheelchair"
+              title={r("me.a11y")}
+              sub={r("me.a11ySub")}
+              onClick={() => setView("a11y")}
+            />
             <Row
               icon="translate"
               title={r("me.lang")}
               right={
                 <span className="r-seg" role="group" aria-label={r("me.lang")}>
                   {LOCALES.map((l) => (
-                    <button key={l.code} type="button" lang={l.code} aria-label={l.label} aria-pressed={locale === l.code} onClick={() => setLocale(l.code)}>
+                    <button
+                      key={l.code}
+                      type="button"
+                      lang={l.code}
+                      aria-label={l.label}
+                      aria-pressed={locale === l.code}
+                      onClick={() => setLocale(l.code)}
+                    >
                       {l.code.toUpperCase()}
                     </button>
                   ))}

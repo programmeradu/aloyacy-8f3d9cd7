@@ -191,26 +191,26 @@ function RoutePage() {
           )}
         </div>
         <span className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => openMeSheet("alerts")}
-          aria-label={r("me.alerts")}
-          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink hover:bg-limestone-soft transition-colors"
-        >
-          <Icon name="bell-simple" />
-        </button>
-        <button
-          type="button"
-          onClick={handleToggleStar}
-          aria-label={isStarred ? "Remove from starred routes" : "Star favorite route"}
-          className={`flex size-10 items-center justify-center rounded-full ring-1 transition-all ${
-            isStarred
-              ? "bg-ochre-soft text-ochre ring-ochre/40 shadow-sm"
-              : "bg-card ring-line text-ink-soft hover:text-ink hover:bg-limestone-soft"
-          }`}
-        >
-          {isStarred ? <IconStarFilled className="size-4" /> : <IconStar className="size-4" />}
-        </button>
+          <button
+            type="button"
+            onClick={() => openMeSheet("alerts")}
+            aria-label={r("me.alerts")}
+            className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink hover:bg-limestone-soft transition-colors"
+          >
+            <Icon name="bell-simple" />
+          </button>
+          <button
+            type="button"
+            onClick={handleToggleStar}
+            aria-label={isStarred ? "Remove from starred routes" : "Star favorite route"}
+            className={`flex size-10 items-center justify-center rounded-full ring-1 transition-all ${
+              isStarred
+                ? "bg-ochre-soft text-ochre ring-ochre/40 shadow-sm"
+                : "bg-card ring-line text-ink-soft hover:text-ink hover:bg-limestone-soft"
+            }`}
+          >
+            {isStarred ? <IconStarFilled className="size-4" /> : <IconStar className="size-4" />}
+          </button>
         </span>
       </div>
 
@@ -250,7 +250,9 @@ function RoutePage() {
               <span className="text-base leading-none">⚠️</span>
               <div>
                 <p className="text-ink font-semibold leading-tight">Disruption Alerts</p>
-                <p className="text-[11px] text-ink-soft">Push alerts for major delays on Line {route?.short ?? routeId}</p>
+                <p className="text-[11px] text-ink-soft">
+                  Push alerts for major delays on Line {route?.short ?? routeId}
+                </p>
               </div>
             </div>
             <button

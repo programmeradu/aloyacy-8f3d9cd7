@@ -40,7 +40,8 @@ type Options = {
 
 function clear(map: mapboxgl.Map) {
   for (const id of LAYERS) if (map.getLayer(id)) map.removeLayer(id);
-  for (const id of [ROUTE_SOURCE, STOPS_SOURCE, ANCHOR_SOURCE]) if (map.getSource(id)) map.removeSource(id);
+  for (const id of [ROUTE_SOURCE, STOPS_SOURCE, ANCHOR_SOURCE])
+    if (map.getSource(id)) map.removeSource(id);
 }
 
 /**
@@ -141,7 +142,17 @@ export function useStaticLayer({
               "circle-opacity": 0.92,
               "circle-stroke-color": "#ffffff",
               "circle-stroke-width": 3,
-              "circle-radius": ["interpolate", ["linear"], ["get", "point_count"], 2, 14, 20, 20, 200, 26],
+              "circle-radius": [
+                "interpolate",
+                ["linear"],
+                ["get", "point_count"],
+                2,
+                14,
+                20,
+                20,
+                200,
+                26,
+              ],
             },
           });
           m.addLayer({
