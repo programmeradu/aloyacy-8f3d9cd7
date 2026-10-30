@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SkyHome } from "@/components/home/SkyHome";
+import { RoamNow } from "@/components/roam/now/RoamNow";
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -37,5 +37,5 @@ export const Route = createFileRoute("/")({
 });
 
 function IndexRoute() {
-  return <SkyHome />;
+  return <RoamNow />;
 }

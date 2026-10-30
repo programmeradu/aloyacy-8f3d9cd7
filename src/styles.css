@@ -1,5 +1,6 @@
 @import "tailwindcss" source(none);
 @import "tw-animate-css";
+@import "./styles/roam.css";
 @source "../src";
 
 
@@ -20,9 +21,9 @@
   --radius-3xl: calc(var(--radius) + 20px);
   --radius-4xl: calc(var(--radius) + 28px);
 
-  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-display: 'Urbanist', 'Manrope Greek', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Urbanist', 'Manrope Greek', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Urbanist', 'Manrope Greek', ui-monospace, monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -62,38 +63,40 @@
 :root {
   --radius: 0.75rem;
 
-  --limestone: oklch(0.972 0.012 85);
-  --limestone-soft: oklch(0.955 0.018 82);
-  --aegean: oklch(0.66 0.075 205);
-  --aegean-soft: oklch(0.93 0.025 200);
-  --aegean-deep: oklch(0.48 0.085 215);
-  --ochre: oklch(0.685 0.135 65);
-  --ochre-soft: oklch(0.93 0.045 75);
-  --olive: oklch(0.34 0.025 125);
-  --olive-soft: oklch(0.5 0.028 125);
-  --ink: oklch(0.22 0.012 110);
-  --ink-soft: oklch(0.38 0.014 110);
-  --line: oklch(0.22 0.012 110 / 8%);
+  /* Roam palette mapped onto the legacy token names so every older screen
+   * picks up the new system: canvas, white cards, charcoal, one yellow accent. */
+  --limestone: #d9d9d5;
+  --limestone-soft: #eeeeea;
+  --aegean: #262626;
+  --aegean-soft: #eeeeea;
+  --aegean-deep: #262626;
+  --ochre: #f6b83c;
+  --ochre-soft: #fdf0d5;
+  --olive: #262626;
+  --olive-soft: #5e5e5b;
+  --ink: #171717;
+  --ink-soft: #5e5e5b;
+  --line: rgb(23 23 23 / 9%);
 
   --background: var(--limestone);
   --foreground: var(--ink);
-  --card: oklch(1 0 0);
+  --card: #ffffff;
   --card-foreground: var(--ink);
-  --popover: oklch(1 0 0);
+  --popover: #ffffff;
   --popover-foreground: var(--ink);
-  --primary: var(--aegean-deep);
-  --primary-foreground: oklch(1 0 0);
+  --primary: #262626;
+  --primary-foreground: #ffffff;
   --secondary: var(--limestone-soft);
   --secondary-foreground: var(--ink);
   --muted: var(--limestone-soft);
   --muted-foreground: var(--ink-soft);
   --accent: var(--ochre);
-  --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.6 0.18 25);
-  --destructive-foreground: oklch(1 0 0);
+  --accent-foreground: var(--ink);
+  --destructive: #c2410c;
+  --destructive-foreground: #ffffff;
   --border: var(--line);
   --input: var(--line);
-  --ring: var(--aegean);
+  --ring: #171717;
 }
 
 @layer base {
@@ -119,7 +122,7 @@
    * thin JetBrains Mono across the app. Use font-numeric for tabular figures. */
   .font-mono {
     font-family: var(--font-sans);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.08em;
     font-variant-numeric: tabular-nums;
   }
@@ -128,12 +131,12 @@
     font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
-  .font-display { font-weight: 600; }
+  .font-display { font-weight: 500; }
   /* Eyebrow / kicker label — tiny uppercase, must read strongly on mobile.
    * Geist 700 (not JetBrains Mono, which goes spindly at 9-11px tracked wide). */
   .font-eyebrow {
     font-family: var(--font-sans);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.14em;
   }
   :lang(el) .font-eyebrow { letter-spacing: 0.08em; }

@@ -25,9 +25,9 @@ export function createBusElements(label: string): BusElements {
   halo.style.position = "absolute";
   halo.style.inset = "-18%";
   halo.style.borderRadius = "50%";
-  halo.style.border = "2px solid color-mix(in oklab, #d99645 65%, transparent)";
+  halo.style.border = "2px solid color-mix(in oklab, #F6B83C 65%, transparent)";
   halo.style.background =
-    "radial-gradient(circle, color-mix(in oklab, #d99645 18%, transparent) 0%, transparent 70%)";
+    "radial-gradient(circle, color-mix(in oklab, #F6B83C 18%, transparent) 0%, transparent 70%)";
   halo.style.opacity = "0";
   halo.style.transition = "opacity 240ms ease";
   halo.style.pointerEvents = "none";
@@ -40,7 +40,7 @@ export function createBusElements(label: string): BusElements {
   boardingRing.style.position = "absolute";
   boardingRing.style.inset = "-35%";
   boardingRing.style.borderRadius = "50%";
-  boardingRing.style.border = "2px solid color-mix(in oklab, #2d8a9e 80%, transparent)";
+  boardingRing.style.border = "2px solid color-mix(in oklab, #262626 80%, transparent)";
   boardingRing.style.opacity = "0";
   boardingRing.style.pointerEvents = "none";
   boardingRing.style.transformOrigin = "center center";
@@ -72,7 +72,7 @@ export function renderBusVariant(
     glow.style.inset = "0";
     glow.style.borderRadius = "50%";
     glow.style.background =
-      "radial-gradient(circle, color-mix(in oklab, #d99645 35%, transparent) 0%, transparent 65%)";
+      "radial-gradient(circle, color-mix(in oklab, #F6B83C 35%, transparent) 0%, transparent 65%)";
     glow.style.opacity = focused ? "0.95" : "0";
     glow.style.transition = "opacity 240ms ease";
     glow.style.transform = "scale(1.6)";
@@ -102,7 +102,7 @@ export function renderBusVariant(
     svg.style.filter = "drop-shadow(0 1px 2px rgba(20,20,20,0.35))";
     const tri = document.createElementNS(svgNS, "path");
     tri.setAttribute("d", "M12 3 L19 19 L12 16 L5 19 Z");
-    tri.setAttribute("fill", "#2d8a9e"); // aegean-deep
+    tri.setAttribute("fill", "#262626"); // aegean-deep
     tri.setAttribute("stroke", "#ffffff");
     tri.setAttribute("stroke-width", "1.5");
     tri.setAttribute("stroke-linejoin", "round");

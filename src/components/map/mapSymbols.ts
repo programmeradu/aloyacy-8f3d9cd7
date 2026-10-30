@@ -1,16 +1,16 @@
 import type { MapMarker } from "@/components/map/types";
 
 export const TONE_COLOR: Record<NonNullable<MapMarker["tone"]>, string> = {
-  aegean: "#2d8a9e",
-  ochre: "#d99645",
-  olive: "#7d9b76",
-  ink: "#2a261f",
+  aegean: "#ffffff",
+  ochre: "#F6B83C",
+  olive: "#d9d9d5",
+  ink: "#171717",
 };
 
 /** Fill colour and radius (px) for a marker, honouring origin/destination emphasis. */
 export function markerStyle(mk: MapMarker): { color: string; radius: number } {
-  if (mk.kind === "origin") return { color: "#2a261f", radius: 7 };
-  if (mk.kind === "destination") return { color: "#d99645", radius: 7 };
+  if (mk.kind === "origin") return { color: "#171717", radius: 7 };
+  if (mk.kind === "destination") return { color: "#F6B83C", radius: 7 };
   return { color: TONE_COLOR[mk.tone ?? "aegean"], radius: 5.5 };
 }
 

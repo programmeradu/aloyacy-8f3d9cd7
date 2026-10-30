@@ -2,7 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRealtime } from "@/lib/useRealtime";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
 import type mapboxgl from "mapbox-gl";
-import { useMapbox, applyAloyaTint, ALOYA_MAP_STYLE_URL, type MapboxApi } from "@/lib/useMapbox";
+import { useMapbox, applyAloyaTint, type MapboxApi } from "@/lib/useMapbox";
+import { basemapStyle, isAerial } from "@/lib/basemap";
+import { MapAttribution } from "@/components/map/MapAttribution";
+import { useDomPins, type DomPin } from "@/components/map/useDomPins";
 import { GOOGLE_TO_MAPBOX_ZOOM } from "@/components/map/mapSymbols";
 import { IconExpand, IconClose } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
@@ -65,6 +68,14 @@ type Props = {
   /** Render a live telemetry overlay listing every animated bus (ping age,
    *  mode, speed, correction). For internal /qa stress testing only. */
   debug?: boolean;
+  /** Roam: fill the parent edge to edge with no chrome (badges, expand button). */
+  bare?: boolean;
+  /** Roam: React-rendered DOM pins. */
+  pins?: DomPin[];
+  /** Roam: distance in px from the map bottom for the attribution and logo. */
+  attribBottom?: number;
+  /** Roam: put attribution and logo at this distance from the top instead. */
+  attribTop?: number | string;
 };
 
 export function MapPreview({
@@ -85,6 +96,10 @@ export function MapPreview({
   userLocation,
   fullscreenable = true,
   debug = false,
+  bare = false,
+  pins,
+  attribBottom = 8,
+  attribTop,
 }: Props) {
   // placeName is derived from browser geolocation on the client, so the SSR
   // markup ("Cyprus") never matches. Render the badge only after hydration.
@@ -106,18 +121,18 @@ export function MapPreview({
     if (!api || !hostRef.current || mapRef.current) return;
     const m = new api.Map({
       container: hostRef.current,
-      style: ALOYA_MAP_STYLE_URL,
+      style: basemapStyle() as never,
       center: [center.lng, center.lat],
       zoom: spanToZoom(spanKm) + GOOGLE_TO_MAPBOX_ZOOM,
       attributionControl: false,
       pitchWithRotate: false,
       dragRotate: false,
       cooperativeGestures: false,
-      logoPosition: "top-left",
+      logoPosition: attribTop != null ? "top-left" : "bottom-left",
     });
-    m.addControl(new api.AttributionControl({ compact: true }), "top-left");
+    if (!isAerial()) m.addControl(new api.AttributionControl({ compact: true }), "top-left");
     m.touchZoomRotate.disableRotation();
-    m.on("style.load", () => applyAloyaTint(m));
+    if (!isAerial()) m.on("style.load", () => applyAloyaTint(m));
     m.on("load", () => setMapReady((n) => n + 1));
     mapRef.current = m;
     return () => {
@@ -179,6 +194,7 @@ export function MapPreview({
   });
 
   useUserHereOverlay(mapReady ? api : null, mapRef, userLocation);
+  const pinPortals = useDomPins(mapReady ? api : null, mapRef, pins);
 
   const liveCount = focused || restricted ? vehicles.length : (rt?.vehicles.length ?? 0);
 
@@ -188,10 +204,19 @@ export function MapPreview({
     ? fallbackOverlay
       ? "fixed inset-0 z-[2147483000] w-screen h-screen overflow-hidden bg-limestone-soft"
       : "relative w-full h-full overflow-hidden bg-limestone-soft"
-    : `relative w-full overflow-hidden rounded-[28px] ring-1 ring-line bg-limestone-soft ${height}`;
+    : bare
+      ? "absolute inset-0 overflow-hidden bg-[#3b3d38]"
+      : `relative w-full overflow-hidden rounded-[28px] bg-[#3b3d38] ${height}`;
 
   return (
-    <div ref={wrapperRef} className={wrapperClass}>
+    <div
+      ref={wrapperRef}
+      className={`${wrapperClass} r-mapwrap`}
+      style={{
+        ["--r-map-ctrl-bottom" as string]: `${attribBottom}px`,
+        ["--r-map-ctrl-top" as string]: typeof attribTop === "string" ? attribTop : `${attribTop ?? 8}px`,
+      }}
+    >
       {/* Inline position: mapbox-gl adds .mapboxgl-map { position: relative }. */}
       <div ref={hostRef} className="absolute inset-0" style={{ position: "absolute", inset: 0 }} />
       {error && (
@@ -201,7 +226,9 @@ export function MapPreview({
           </p>
         </div>
       )}
-      {liveVehicles && !hideLiveBadge && (
+      {pinPortals}
+      {isAerial() && !error ? <MapAttribution bottom={attribBottom} top={attribTop} /> : null}
+      {liveVehicles && !hideLiveBadge && !bare && (
         <div className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-white/90 px-3.5 py-1.5 backdrop-blur-md ring-1 ring-line">
           <span className="font-sans text-[12px] font-semibold tracking-tight text-ink">
             {focused
@@ -218,12 +245,12 @@ export function MapPreview({
           </span>
         </div>
       )}
-      {hydrated && placeName && (
+      {hydrated && placeName && !bare && (
         <div className="pointer-events-none absolute bottom-3 right-3 max-w-[65%] rounded-2xl bg-white/85 backdrop-blur-md ring-1 ring-line px-2.5 py-1.5 text-right font-mono text-[10px] leading-[1.35] uppercase tracking-[0.18em] text-ink-soft">
           {placeName}
         </div>
       )}
-      {fullscreenable && !error && (
+      {fullscreenable && !error && !bare && (
         <button
           type="button"
           onClick={toggleFullscreen}

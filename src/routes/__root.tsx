@@ -19,6 +19,7 @@ import { startCloudSync } from "@/lib/cloud-sync";
 import { AuthProvider, useAuth } from "@/lib/useAuth";
 import { OnboardingGate } from "@/components/OnboardingGate";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { MeSheet } from "@/components/roam/MeSheet";
 
 function NotFoundComponent() {
   return (
@@ -82,7 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { name: "theme-color", content: "#f5efe0" },
+      { name: "theme-color", content: "#d9d9d5" },
       { name: "google-site-verification", content: "GcixyHvy5nVekOttajeEqgILXPmlLunXElZbn10tK2I" },
       { name: "google-site-verification", content: "syEOBlWH3NBVhVxhPRfFXHGCvGlua5F94lyhWdutFMo" },
       { title: "Aloya — Cyprus transit, beautifully" },
@@ -106,12 +107,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap",
-      },
+      { rel: "preload", href: "/fonts/roam/urbanist-latin-500.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
+      { rel: "preload", href: "/fonts/roam/Phosphor.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
@@ -234,6 +231,7 @@ function RootComponent() {
           <OnboardingGate />
           <Outlet />
           <InstallPrompt />
+          <MeSheet />
           <Toaster position="top-center" />
       </AuthProvider>
     </QueryClientProvider>

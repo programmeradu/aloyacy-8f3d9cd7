@@ -15,6 +15,7 @@ const ROUTE_SOURCE = "aloya-route";
 const ANCHOR_SOURCE = "aloya-anchors";
 const LAYERS = [
   "aloya-route-line",
+  "aloya-route-casing",
   "aloya-clusters",
   "aloya-cluster-count",
   "aloya-stop-dots",
@@ -79,11 +80,18 @@ export function useStaticLayer({
             },
           });
           m.addLayer({
+            id: "aloya-route-casing",
+            type: "line",
+            source: ROUTE_SOURCE,
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: { "line-color": "rgba(20,20,20,0.35)", "line-width": 8 },
+          });
+          m.addLayer({
             id: "aloya-route-line",
             type: "line",
             source: ROUTE_SOURCE,
             layout: { "line-cap": "round", "line-join": "round" },
-            paint: { "line-color": "#1c5566", "line-opacity": 0.95, "line-width": 4 },
+            paint: { "line-color": "#F6B83C", "line-opacity": 1, "line-width": 4 },
           });
           path.forEach((p) => {
             bounds.extend([p.lng, p.lat]);
@@ -129,9 +137,9 @@ export function useStaticLayer({
             source: STOPS_SOURCE,
             filter: ["has", "point_count"],
             paint: {
-              "circle-color": "#1c5566",
+              "circle-color": "#262626",
               "circle-opacity": 0.92,
-              "circle-stroke-color": "#f6f1e4",
+              "circle-stroke-color": "#ffffff",
               "circle-stroke-width": 3,
               "circle-radius": ["interpolate", ["linear"], ["get", "point_count"], 2, 14, 20, 20, 200, 26],
             },
@@ -146,7 +154,7 @@ export function useStaticLayer({
               "text-size": 12,
               "text-font": ["DIN Pro Medium", "Arial Unicode MS Regular"],
             },
-            paint: { "text-color": "#f6f1e4" },
+            paint: { "text-color": "#ffffff" },
           });
         }
         m.addLayer({

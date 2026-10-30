@@ -21,8 +21,10 @@ import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MetricsRouteImport } from './routes/metrics'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as LinesRouteImport } from './routes/lines'
 import { Route as HealthzRouteImport } from './routes/healthz'
 import { Route as GreenLineRouteImport } from './routes/green-line'
+import { Route as ElRouteImport } from './routes/el'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TripIdRouteImport } from './routes/trip.$id'
 import { Route as TripInfoTripIdRouteImport } from './routes/trip-info.$tripId'
@@ -192,6 +194,11 @@ const McpRoute = McpRouteImport.update({
   path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LinesRoute = LinesRouteImport.update({
+  id: '/lines',
+  path: '/lines',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HealthzRoute = HealthzRouteImport.update({
   id: '/healthz',
   path: '/healthz',
@@ -200,6 +207,11 @@ const HealthzRoute = HealthzRouteImport.update({
 const GreenLineRoute = GreenLineRouteImport.update({
   id: '/green-line',
   path: '/green-line',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ElRoute = ElRouteImport.update({
+  id: '/el',
+  path: '/el',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -777,8 +789,10 @@ const ApiPublicOgGroupCodeRoute = ApiPublicOgGroupCodeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/el': typeof ElRoute
   '/green-line': typeof GreenLineRoute
   '/healthz': typeof HealthzRoute
+  '/lines': typeof LinesRoute
   '/mcp': typeof McpRoute
   '/metrics': typeof MetricsRoute
   '/privacy': typeof PrivacyRoute
@@ -901,8 +915,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/el': typeof ElRoute
   '/green-line': typeof GreenLineRoute
   '/healthz': typeof HealthzRoute
+  '/lines': typeof LinesRoute
   '/mcp': typeof McpRoute
   '/metrics': typeof MetricsRoute
   '/privacy': typeof PrivacyRoute
@@ -1026,8 +1042,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/el': typeof ElRoute
   '/green-line': typeof GreenLineRoute
   '/healthz': typeof HealthzRoute
+  '/lines': typeof LinesRoute
   '/mcp': typeof McpRoute
   '/metrics': typeof MetricsRoute
   '/privacy': typeof PrivacyRoute
@@ -1152,8 +1170,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/el'
     | '/green-line'
     | '/healthz'
+    | '/lines'
     | '/mcp'
     | '/metrics'
     | '/privacy'
@@ -1276,8 +1296,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/el'
     | '/green-line'
     | '/healthz'
+    | '/lines'
     | '/mcp'
     | '/metrics'
     | '/privacy'
@@ -1400,8 +1422,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/el'
     | '/green-line'
     | '/healthz'
+    | '/lines'
     | '/mcp'
     | '/metrics'
     | '/privacy'
@@ -1525,8 +1549,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ElRoute: typeof ElRoute
   GreenLineRoute: typeof GreenLineRoute
   HealthzRoute: typeof HealthzRoute
+  LinesRoute: typeof LinesRoute
   McpRoute: typeof McpRoute
   MetricsRoute: typeof MetricsRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -1732,6 +1758,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lines': {
+      id: '/lines'
+      path: '/lines'
+      fullPath: '/lines'
+      preLoaderRoute: typeof LinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/healthz': {
       id: '/healthz'
       path: '/healthz'
@@ -1744,6 +1777,13 @@ declare module '@tanstack/react-router' {
       path: '/green-line'
       fullPath: '/green-line'
       preLoaderRoute: typeof GreenLineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/el': {
+      id: '/el'
+      path: '/el'
+      fullPath: '/el'
+      preLoaderRoute: typeof ElRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -2521,8 +2561,10 @@ const ApiPublicWalletRouteWithChildren = ApiPublicWalletRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ElRoute: ElRoute,
   GreenLineRoute: GreenLineRoute,
   HealthzRoute: HealthzRoute,
+  LinesRoute: LinesRoute,
   McpRoute: McpRoute,
   MetricsRoute: MetricsRoute,
   PrivacyRoute: PrivacyRoute,
@@ -2650,3 +2692,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

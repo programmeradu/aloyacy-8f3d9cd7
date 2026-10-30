@@ -32,7 +32,7 @@ export function ResumeTripPill() {
   return (
     <div
       className="pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4"
-      style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 84px)" }}
+      style={{ bottom: "calc(max(env(safe-area-inset-bottom, 0px), 14px) + 80px)" }}
     >
       <Link
         to="/trip/$id"
