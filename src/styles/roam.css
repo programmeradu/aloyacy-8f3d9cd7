@@ -1883,6 +1883,11 @@ html.r-has-resume .r-now-more {
   font-weight: 500;
   color: var(--r-ink);
 }
+/* the pill itself shows focus (:focus-within); no second ring on the input */
+.r-search-field input:focus-visible {
+  outline: 0;
+  box-shadow: none;
+}
 .r-search-field input::placeholder {
   color: var(--r-mute);
   font-weight: 400;
