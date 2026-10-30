@@ -143,7 +143,7 @@ export function NowCard({
           </div>
         ) : state.kind === "none" ? (
           <div>
-            <h2 className="r-t2 truncate" style={{ fontSize: 26 }}>
+            <h2 className="r-t2 line-clamp-2 break-words text-balance" style={{ fontSize: 26 }}>
               {stopName ?? r("now.title")}
             </h2>
             <p className="r-t3 mt-4">{r("now.none")}</p>
@@ -164,7 +164,7 @@ export function NowCard({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2
-                  className="truncate font-medium"
+                  className="line-clamp-2 break-words text-balance font-medium"
                   style={{ fontSize: 26, letterSpacing: "-0.02em", lineHeight: 1.15 }}
                 >
                   {bus.stopName}
