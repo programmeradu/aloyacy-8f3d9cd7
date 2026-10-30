@@ -12,6 +12,8 @@ jobs:
       # Public browser values (already shipped in the client bundle).
       VITE_CUSTOM_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhiaWRldmh5bG9lZXR4Zmpkaml5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNzYzODgsImV4cCI6MjEwNDk1MjM4OH0._t2YC2QtJRWGxpzohFdHOV6_pPNZbItUIA-UngrxtE4
       VITE_MAPBOX_TOKEN: pk.eyJ1IjoiYWxnb3JpdGhteCIsImEiOiJjbTdob3lzNmwxYjliMmxzamppbDRqMHlhIn0.bBKjPrD_sp6RY5t2-AEnGQ
+      # Share images come from this deploy until app.aloya.cy moves here.
+      VITE_OG_ORIGIN: https://aloya-app.samueladuberekorang.workers.dev
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN_NEWACCT }}
       CLOUDFLARE_ACCOUNT_ID: b7b613f1de3b73390c538914f68265e6
     steps:
