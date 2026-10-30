@@ -5,7 +5,7 @@
 // they can open the same plan pre-filled in Aloya, or add it to their
 // calendar. No install, no account.
 
-import { ogImage } from "@/lib/og-url";
+import { ogImage as ogUrl } from "@/lib/og-url";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -52,7 +52,7 @@ export const Route = createFileRoute("/plan/$token")({
     // Dynamic per-plan PNG (rasterized from our brand SVG on the Worker).
     // Minute-bucket cache-buster nudges platforms that key by URL to re-scrape.
     const bucket = Math.floor(Date.now() / 60_000);
-    const ogImage = ogImage(`/api/public/og/plan/${encodeURIComponent(token)}?v=${bucket}`);
+    const ogImage = ogUrl(`/api/public/og/plan/${encodeURIComponent(token)}?v=${bucket}`);
     const pageUrl = `https://app.aloya.cy/plan/${encodeURIComponent(token)}`;
     return {
       meta: [
