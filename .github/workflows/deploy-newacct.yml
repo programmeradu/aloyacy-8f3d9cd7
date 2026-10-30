@@ -1,0 +1,33 @@
+name: Deploy rider app (new Cloudflare account, workers.dev)
+on:
+  push:
+    branches: [redesign-roam]
+  workflow_dispatch:
+concurrency: deploy-newacct
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VITE_CUSTOM_SUPABASE_URL: https://xbidevhyloeetxfjdjiy.supabase.co
+      # Public browser values (already shipped in the client bundle).
+      VITE_CUSTOM_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhiaWRldmh5bG9lZXR4Zmpkaml5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNzYzODgsImV4cCI6MjEwNDk1MjM4OH0._t2YC2QtJRWGxpzohFdHOV6_pPNZbItUIA-UngrxtE4
+      VITE_MAPBOX_TOKEN: pk.eyJ1IjoiYWxnb3JpdGhteCIsImEiOiJjbTdob3lzNmwxYjliMmxzamppbDRqMHlhIn0.bBKjPrD_sp6RY5t2-AEnGQ
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN_NEWACCT }}
+      CLOUDFLARE_ACCOUNT_ID: b7b613f1de3b73390c538914f68265e6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: bun install --frozen-lockfile || bun install
+      - run: npx vite build
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+      - name: Apply pending D1 migrations
+        continue-on-error: true
+        working-directory: deploy
+        run: npx -y wrangler@4.105.0 d1 migrations apply aloya-db --remote -c wrangler.newacct.jsonc
+      - name: Deploy
+        working-directory: deploy
+        run: npx -y wrangler@4.105.0 deploy -c wrangler.newacct.jsonc

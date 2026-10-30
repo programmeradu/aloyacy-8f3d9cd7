@@ -1,0 +1,14 @@
+{
+  "name": "aloya-app",
+  "account_id": "b7b613f1de3b73390c538914f68265e6",
+  "compatibility_date": "2025-09-24",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "./worker-entry.mjs",
+  "minify": true,
+  "assets": { "directory": "../dist/client", "binding": "ASSETS" },
+  "send_email": [{ "name": "SEND_EMAIL" }],
+  "d1_databases": [{ "binding": "DB", "database_name": "aloya-db", "database_id": "bd792d63-9772-4bda-a06c-9579465cf409", "migrations_dir": "../migrations-d1" }],
+  "vars": { "CUSTOM_SUPABASE_URL": "" },
+  "workers_dev": true,
+  "keep_vars": true
+}
