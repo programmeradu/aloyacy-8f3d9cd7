@@ -1,13 +1,11 @@
-// Default Roam share card (home and generic pages): the real network around
-// Solomos Square with live counts of lines and stops from the static GTFS.
+// Default Roam share card (home and generic pages), drawn at build time.
 import { createFileRoute } from "@tanstack/react-router";
-import { defaultCard } from "@/lib/og-roam-cards.server";
-import { loadShapes, pngResponse } from "@/lib/og-roam.server";
+import { ogAsset } from "@/lib/og-asset";
 
 export const Route = createFileRoute("/api/public/og/default")({
   server: {
     handlers: {
-      GET: async () => pngResponse(defaultCard(await loadShapes()), 3600),
+      GET: async ({ request }) => ogAsset(request, ["/og/default.png"], 3600),
     },
   },
 });
