@@ -27,8 +27,8 @@ import {
   stopCard,
   lineCard,
   tripCard,
-  groupCard,
-  planCard,
+  genericGroupCard,
+  genericPlanCard,
 } from "@/lib/og-roam-cards.server";
 import { renderPng, type Shapes } from "@/lib/og-roam.server";
 import { ROUTES, STOPS } from "@/lib/gtfs";
@@ -75,14 +75,8 @@ async function main() {
   };
   await job("default.png", () => defaultCard(shapes));
   await job("trip.png", () => tripCard(null, shapes));
-  await job("group.png", () =>
-    groupCard({ code: null, destination: null, host: null, members: 0, arrived: 0, nextEta: null, place: null }, shapes),
-  );
-  await job("plan.png", () =>
-    planCard(
-      { origin: null, destination: null, creator: null, depart: null, arrive: null, day: null, duration: null, transfers: 0, legs: [] },
-      shapes,
-    ));
+  await job("group.png", () => genericGroupCard(shapes));
+  await job("plan.png", () => genericPlanCard(shapes));
 
   const routeIds = [...new Set(ROUTES.map((r) => r.id))].filter((id) => /^[A-Za-z0-9_-]{1,32}$/.test(id));
   for (const id of routeIds.slice(0, limit)) await job(`line/${id}.png`, () => lineCard(id, shapes));

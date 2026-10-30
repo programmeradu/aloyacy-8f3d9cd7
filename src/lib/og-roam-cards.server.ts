@@ -82,7 +82,8 @@ function paragraph(
   max = 2,
   fill: string = R.ink2,
 ): { svg: string; bottom: number } {
-  const lines = wrap(s, size, TW, max, 600);
+  // The width estimate runs short on lowercase-heavy copy; keep a margin off the card edge.
+  const lines = wrap(s, size, TW - 32, max, 600);
   const lh = Math.round(size * 1.3);
   return {
     svg: lines.map((l, i) => text(IN, y + i * lh, l, { size, weight: 600, fill })).join(""),
@@ -424,5 +425,37 @@ export function planCard(plan: PlanOg, shapes: Shapes | null): string {
     .filter(Boolean)
     .join(" \u00b7 ");
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, wrap(kicker, 18, TW, 1, 600)[0])}${eyebrow(IN, PY + 186, "Going to", R.ink2)}${t.svg}${fromSvg}${tiles}${footer(foot)}`;
+  return frame(map, card);
+}
+
+// ------------------------------------------------------------------ generic
+
+/** Static card for any group link (drawn at build time, no group data). */
+export function genericGroupCard(shapes: Shapes | null): string {
+  const v = at(SOLOMOS, 4.2);
+  const proj = projector(v, MAP_CX, MAP_CY);
+  const c = proj(SOLOMOS);
+  const map = baseMap(proj, shapes, v) + stopMarker(c.x, c.y, 60);
+  const t = titleBlock(PY + 206, "Travel together, live", 60, 2);
+  const p = paragraph(
+    t.bottom + 54,
+    "Join the group and watch each other's buses reach the meeting point.",
+  );
+  const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, "Group trip")}${t.svg}${p.svg}${footer("Watch together on Aloya")}`;
+  return frame(map, card);
+}
+
+/** Static card for any shared plan link (drawn at build time, no plan data). */
+export function genericPlanCard(shapes: Shapes | null): string {
+  const v = at(SOLOMOS, 4.2);
+  const proj = projector(v, MAP_CX, MAP_CY);
+  const c = proj(SOLOMOS);
+  const map = baseMap(proj, shapes, v) + stopMarker(c.x, c.y, 60);
+  const t = titleBlock(PY + 206, "Your bus trip, planned", 60, 2);
+  const p = paragraph(
+    t.bottom + 54,
+    "Open it to see each leg, the lines to take and when you get in.",
+  );
+  const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, "Shared trip plan")}${t.svg}${p.svg}${footer("aloya.cy")}`;
   return frame(map, card);
 }
