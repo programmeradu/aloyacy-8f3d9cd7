@@ -65,8 +65,7 @@ export function StopSkipAsk({
   const photoWanted = shouldAskStopPhoto(nextStopAsk(rows), photoQ.data != null);
   const skipWanted = shouldAskSkipReport(tally.deviceReported);
   const ask =
-    open &&
-    pickStopAsk({ condition, photo: photoWanted, skipReport: skipWanted }) === "skipReport";
+    open && pickStopAsk({ condition, photo: photoWanted, skipReport: skipWanted }) === "skipReport";
   const report = useMutation({
     mutationFn: () => postReport({ action: "report", stopId, deviceId: getDeviceId() }),
     onSuccess: (next) => {
@@ -78,9 +77,7 @@ export function StopSkipAsk({
 
   const body = (
     <div className={inset ? "mt-3" : undefined}>
-      {speak ? (
-        <p className="text-[13px] leading-snug text-ink">{t("stop.skipReport")}</p>
-      ) : null}
+      {speak ? <p className="text-[13px] leading-snug text-ink">{t("stop.skipReport")}</p> : null}
       {ask ? (
         <div className={speak ? "mt-2" : undefined}>
           <p className="text-[13px] text-ink">{t("stop.skipReportAsk")}</p>

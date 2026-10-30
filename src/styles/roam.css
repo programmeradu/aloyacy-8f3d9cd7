@@ -243,3 +243,9 @@ a.r-row:active, button.r-row:active { background: #f6f6f3; }
 .r-phase h1 .italic { font-style: normal; font-size: 18px; color: var(--r-mute); letter-spacing: -0.01em; display: inline-block; margin-top: 6px; }
 .r-phase h1 .font-mono { font-family: var(--r-font); font-size: 18px; text-transform: none; letter-spacing: 0; color: var(--r-ink); }
 .r-phase .text-ink-soft { color: var(--r-ink2); }
+.r-dep { align-items: flex-start; min-height: 72px; padding-top: 12px; padding-bottom: 12px; --r-row-inset: 16px; border-radius: 20px; }
+.r-dep--first { background: #fbf7ee; }
+.r-dep-pill { height: 28px; min-width: 56px; justify-content: center; padding: 0 10px; gap: 4px; margin-top: 0; }
+.r-dep-pill .ph { font-size: 16px; }
+.r-dep-list > div + div > .r-dep::before { content: ""; position: absolute; top: 0; left: 16px; right: 16px; height: 1px; background: var(--r-line); }
+.r-dep-list > div:has(> .r-dep--first) + div > .r-dep::before { display: none; }

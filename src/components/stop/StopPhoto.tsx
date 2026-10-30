@@ -4,7 +4,11 @@ import { useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { nextStopAsk, type StopConsensus } from "@aloya/core/stop-condition";
 import { pickStopAsk } from "@aloya/core/stop-ask";
-import { PHOTO_MAX_EDGE, shouldAskStopPhoto, type StopPhoto as Photo } from "@aloya/core/stop-photo";
+import {
+  PHOTO_MAX_EDGE,
+  shouldAskStopPhoto,
+  type StopPhoto as Photo,
+} from "@aloya/core/stop-photo";
 import { getDeviceId } from "@/lib/pwa";
 import { useStopAskGate } from "@/lib/stop-ask-at";
 import { useI18n } from "@/lib/i18n";
@@ -57,8 +61,7 @@ export function StopPhoto({
   const photo = photoQ.data ?? null;
   const condition = nextStopAsk(rows) != null;
   const photoWanted = shouldAskStopPhoto(nextStopAsk(rows), photo != null);
-  const ask =
-    open && pickStopAsk({ condition, photo: photoWanted, skipReport: false }) === "photo";
+  const ask = open && pickStopAsk({ condition, photo: photoWanted, skipReport: false }) === "photo";
   const upload = useMutation({
     mutationFn: async (file: File) => {
       const imageBase64 = await resizeToJpeg(file);

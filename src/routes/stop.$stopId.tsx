@@ -2,11 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { MapPreview, type MapMarker } from "@/components/MapPreview";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { ResumeTripPill } from "@/components/ResumeTripPill";
 import { NotchCard } from "@/components/roam/NotchCard";
-import { BackButton, FrostButton } from "@/components/roam/FrostButton";
 import { StaleFeedBanner } from "@/components/StaleFeedBanner";
 import { DepartureRow } from "@/components/DepartureRow";
 import { SightingButton } from "@/components/SightingButton";
@@ -19,35 +17,12 @@ import { useEtaStats } from "@/lib/useEtaStats";
 import { smartEtaV2, type SmartEtaV2 } from "@/lib/eta-v2";
 import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
-import { getStop, getRoute, STOPS } from "@/lib/gtfs";
-import { useRoamI18n, type RoamKey } from "@/lib/roam-i18n";
-import { openMeSheet } from "@/components/roam/me-store";
+import { getStop, getRoute } from "@/lib/gtfs";
+import { stopAreaLine } from "@/components/stop/stop-area";
+import { StopHero } from "@/components/stop/StopHero";
+import { useRoamI18n } from "@/lib/roam-i18n";
 import { Icon } from "@/components/roam/Icon";
 
-const STOP_AREA_KEY: Record<string, RoamKey> = {
-  NPT: "lines.nicosia",
-  LMS: "lines.limassol",
-  LCA: "lines.larnaca",
-  PFO: "lines.paphos",
-  FAM: "lines.famagusta",
-  IC: "lines.intercity",
-};
-
-/**
- * Who serves this stop. Local stop ids repeat across operator feeds (324 on
- * Makariou is both a Nicosia and an Intercity stop), so list every agency
- * that has this id here, town buses first, instead of the first match.
- */
-function stopAreaLine(stopId: string, primary: string, r: (k: RoamKey) => string): string {
-  const here = STOPS.filter((s) => s.id === stopId).map((s) => s.agency);
-  const agencies = Array.from(new Set([primary, ...here])).sort(
-    (a, b) => Number(a === "IC") - Number(b === "IC"),
-  );
-  return agencies
-    .map((a) => (a === "SPC" ? "Pame Express" : STOP_AREA_KEY[a] ? r(STOP_AREA_KEY[a]) : ""))
-    .filter(Boolean)
-    .join(" · ");
-}
 import { getStopReliability, aggregateStopReliability } from "@/lib/reliability.functions";
 import { getStopRunHints } from "@/lib/headway.functions";
 import { lastTonightOnRoute, pickNoShow } from "@aloya/core/no-show";
@@ -207,7 +182,6 @@ function StopDetail() {
     }
   }, [departures, stopId]);
 
-  const center = stop ? { lat: stop.lat, lng: stop.lng } : undefined;
   const lineChips = Array.from(
     new Map(departures.map((d) => [d.routeId, getRoute(d.routeId)?.short ?? d.routeId])).entries(),
   );
@@ -220,41 +194,11 @@ function StopDetail() {
     <div className="roam r-page">
       <div className="r-col">
         <OfflineBanner />
-        <div className="r-hero-map r-mapwrap">
-          <div className="r-map-fill">
-            <MapPreview
-              bare
-              center={center ? { lat: center.lat - 0.0016, lng: center.lng } : undefined}
-              spanKm={1.4}
-              markers={
-                stop
-                  ? ([
-                      { lat: stop.lat, lng: stop.lng, kind: "origin", label: stop.name },
-                    ] as MapMarker[])
-                  : undefined
-              }
-              restrictTripIds={departures.map((d) => d.tripId)}
-              fitToContent={false}
-              attribTop="calc(var(--r-safe-top) + 64px)"
-            />
-          </div>
-          <div className="r-shade-top" style={{ height: 150 }} />
-          <div className="r-haze r-haze--tr" />
-          <header className="r-hero-head">
-            <BackButton label={r("back")} />
-            <span className="flex-1" />
-            <FrostButton
-              icon="bell-simple"
-              label={r("me.alerts")}
-              onClick={() => openMeSheet("alerts")}
-            />
-            <FrostButton
-              icon="share-network"
-              label={t("share.openLabel")}
-              onClick={() => setShareOpen(true)}
-            />
-          </header>
-        </div>
+        <StopHero
+          stop={stop}
+          tripIds={departures.map((d) => d.tripId)}
+          onShare={() => setShareOpen(true)}
+        />
 
         <NotchCard
           className="r-hero-sheet"
@@ -353,7 +297,7 @@ function StopDetail() {
                 <p className="r-lbl mt-1">{t("stop.noUpcomingBody")}</p>
               </div>
             ) : (
-              <div className="-mx-3 mt-2">
+              <div className="r-dep-list -mx-3 mt-2">
                 {shown.map((d, i) => {
                   const route = getRoute(d.routeId);
                   const isGhost = d.eta.tier === "ghost";

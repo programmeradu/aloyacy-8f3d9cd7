@@ -13,6 +13,7 @@
 
 import { Link } from "@tanstack/react-router";
 import { RouteChip } from "@/components/RouteChip";
+import { RoamDepartureRow } from "@/components/stop/RoamDepartureRow";
 import { routeTone } from "@/lib/gtfs";
 import { tierAccent, type FreshnessTier, type FreshnessConfidence } from "@/lib/freshness";
 import { useI18n, type DictKey } from "@/lib/i18n";
@@ -121,46 +122,22 @@ export function DepartureRow({
   const payKind = boardingPayKind({ agency, feedId, short: routeShort });
 
   if (variant === "roam") {
-    const mark =
-      eta.tier === "live" || eta.tier === "rider-confirmed" ? (
-        <span className="r-dot" />
-      ) : eta.tier === "scheduled" ? (
-        <span className="r-ring" />
-      ) : (
-        <span className="r-dot r-dot--grey" />
-      );
-    const showClock = eta.etaMin == null || eta.etaMin >= 60;
     return (
-      <Link
-        to="/trip-info/$tripId"
-        params={{ tripId }}
-        search={{ from: stopId }}
-        className="r-row items-start"
-        style={{
-          minHeight: 68,
-          paddingTop: 12,
-          paddingBottom: 12,
-          ["--r-row-inset" as string]: "16px",
-          background: first ? "#fbf7ee" : undefined,
-          borderRadius: first ? 20 : undefined,
-        }}
-      >
-        <span
-          className={`r-pill r-tnum mt-0.5 ${first ? "r-pill--y" : ""}`}
-          style={{ height: 28, minWidth: 58, justifyContent: "center", padding: "0 10px", gap: 4 }}
-        >
-          <i className="ph ph-bus" style={{ fontSize: 15 }} aria-hidden="true" />
-          {routeShort}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[16px] font-medium leading-snug line-clamp-2">
-            {destination || origin}
-          </span>
-          <span className="r-lbl mt-0.5 block r-tnum">
-            {t("stop.scheduledAt", { time: clock })}
-            {showBand ? ` · ${eta.band}` : ""}
-          </span>
-          <span className="r-dep-hints block">
+      <RoamDepartureRow
+        tripId={tripId}
+        stopId={stopId}
+        routeShort={routeShort}
+        title={destination || origin}
+        clock={clock}
+        band={showBand ? (eta.band ?? null) : null}
+        etaMin={eta.etaMin}
+        tier={eta.tier}
+        tierLabel={tierLabel}
+        opShift={shifted ? t("eta.opShort", { m: eta.operatorEtaMin! }) : null}
+        first={first}
+        scheduledLabel={t("stop.scheduledAt", { time: clock })}
+        hints={
+          <>
             {payKind && (
               <PayLine kind={payKind} t={t} atMs={arrivalUnix ? arrivalUnix * 1000 : undefined} />
             )}
@@ -185,23 +162,9 @@ export function DepartureRow({
             {headway && !waitOrBail && (
               <HeadwayLines hint={headway} routeShort={routeShort} t={t} />
             )}
-          </span>
-        </span>
-        <span className="flex shrink-0 flex-col items-end gap-1 pl-1 text-right">
-          <span className="text-[20px] font-medium leading-none r-tnum">
-            {showClock ? clock : `${eta.etaMin} min`}
-          </span>
-          {shifted ? (
-            <span className="r-lbl line-through r-tnum" style={{ fontSize: 12 }}>
-              {t("eta.opShort", { m: eta.operatorEtaMin! })}
-            </span>
-          ) : null}
-          <span className="r-conf" style={{ fontSize: 12.5 }}>
-            {mark}
-            {tierLabel}
-          </span>
-        </span>
-      </Link>
+          </>
+        }
+      />
     );
   }
 
