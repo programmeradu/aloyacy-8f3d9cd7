@@ -152,7 +152,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               url: "https://app.aloya.cy/",
               logo: "https://app.aloya.cy/icon-512.png",
               description:
-                "Unified live bus information, planning and ticketing across Cyprus — covering Cyprus Public Transport (Nicosia, Larnaca), EMEL (Limassol), OSYPA (Paphos), OSEA (Famagusta) and Intercity Buses.",
+                "Unified live bus information, planning and ticketing across Cyprus, covering Cyprus Public Transport (Nicosia, Larnaca), EMEL (Limassol), OSYPA (Paphos), OSEA (Famagusta) and Intercity Buses.",
               areaServed: { "@type": "Country", name: "Cyprus" },
               sameAs: ["https://motionbuscard.org.cy/"],
             },
