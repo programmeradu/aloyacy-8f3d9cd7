@@ -2,6 +2,7 @@
 // spring slide (reduced motion respected in roam.css), focus moved in on open
 // and restored on close, Escape closes, background scroll locked.
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import type React from "react";
 import { createPortal } from "react-dom";
 import { NotchCard } from "./NotchCard";
 import { FrostButton } from "./FrostButton";
@@ -14,9 +15,51 @@ type Props = {
   children: ReactNode;
   /** Sheet surface colour. */
   fill?: string;
+  /** Open at the full snap point (detail views). */
+  full?: boolean;
 };
 
-export function Sheet({ open, onClose, label, closeLabel, children, fill = "#fff" }: Props) {
+export function Sheet({
+  open,
+  onClose,
+  label,
+  closeLabel,
+  children,
+  fill = "#fff",
+  full = false,
+}: Props) {
+  const [expanded, setExpanded] = useState(false);
+  const [dragY, setDragY] = useState<number | null>(null);
+  const drag = useRef<{ y0: number; t0: number; last: number } | null>(null);
+  useEffect(() => {
+    if (!open) setExpanded(false);
+  }, [open]);
+  const onDown = (e: React.PointerEvent) => {
+    if ((e.target as HTMLElement).closest("button")) return;
+    drag.current = { y0: e.clientY, t0: performance.now(), last: e.clientY };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    setDragY(0);
+  };
+  const onMove = (e: React.PointerEvent) => {
+    if (!drag.current) return;
+    drag.current.last = e.clientY;
+    const dy = e.clientY - drag.current.y0;
+    // Follow the finger down; rubber-band upward drags.
+    setDragY(dy < 0 ? dy / 4 : dy);
+  };
+  const onUp = () => {
+    const d = drag.current;
+    drag.current = null;
+    setDragY(null);
+    if (!d) return;
+    const dy = d.last - d.y0;
+    const v = dy / Math.max(1, performance.now() - d.t0);
+    if (dy > 120 || v > 0.6) {
+      if (expanded && !full) setExpanded(false);
+      else onClose();
+    } else if (dy < -40 || v < -0.5) setExpanded(true);
+  };
+
   const [mounted, setMounted] = useState(false);
   const [shown, setShown] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -79,6 +122,9 @@ export function Sheet({ open, onClose, label, closeLabel, children, fill = "#fff
         ref={panelRef}
         className="r-sheet"
         data-open={shown}
+        data-full={full || expanded}
+        data-dragging={dragY != null}
+        style={dragY != null && shown ? { transform: `translateY(${dragY}px)` } : undefined}
         role="dialog"
         aria-modal="true"
         aria-label={label}
@@ -99,6 +145,10 @@ export function Sheet({ open, onClose, label, closeLabel, children, fill = "#fff
           ]}
           className="r-sheet-head"
           style={{ height: 64, flex: "none" }}
+          onPointerDown={onDown}
+          onPointerMove={onMove}
+          onPointerUp={onUp}
+          onPointerCancel={onUp}
         >
           <span />
         </NotchCard>

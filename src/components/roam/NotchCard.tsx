@@ -2,7 +2,14 @@
 // ResizeObserver, plus optional docked buttons centred in each scoop.
 // Before the first measure (SSR, first paint) it falls back to a plain
 // rounded box in the same fill so nothing jumps.
-import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEventHandler,
+  type ReactNode,
+} from "react";
 import { notchPath, type Notch } from "./notch";
 
 const useIsoLayoutEffect = typeof window === "undefined" ? () => {} : useLayoutEffect;
@@ -25,6 +32,10 @@ type Props = {
   as?: "div" | "section" | "article";
   "aria-label"?: string;
   "aria-labelledby"?: string;
+  onPointerDown?: PointerEventHandler<HTMLElement>;
+  onPointerMove?: PointerEventHandler<HTMLElement>;
+  onPointerUp?: PointerEventHandler<HTMLElement>;
+  onPointerCancel?: PointerEventHandler<HTMLElement>;
 };
 
 export function NotchCard({

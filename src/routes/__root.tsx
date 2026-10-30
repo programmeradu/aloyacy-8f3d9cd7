@@ -82,8 +82,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
+      },
       { name: "theme-color", content: "#d9d9d5" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Aloya" },
+      { name: "format-detection", content: "telephone=no" },
       { name: "google-site-verification", content: "GcixyHvy5nVekOttajeEqgILXPmlLunXElZbn10tK2I" },
       { name: "google-site-verification", content: "syEOBlWH3NBVhVxhPRfFXHGCvGlua5F94lyhWdutFMo" },
       { title: "Aloya · Cyprus transit, beautifully" },
@@ -241,7 +249,11 @@ function RootComponent() {
         <RealtimeBridge />
         <CloudSyncBridge />
         <OnboardingGate />
-        <Outlet />
+        {/* The app frame: html/body never scroll; only this region does, so the
+            tab bar, headers and map stay put like a native app. */}
+        <div id="app-scroll" className="r-app-scroll" data-scroll-restoration-id="app-scroll">
+          <Outlet />
+        </div>
         <InstallPrompt />
         <MeSheet />
         <Toaster position="top-center" />

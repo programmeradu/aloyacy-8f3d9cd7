@@ -94,7 +94,13 @@ export function MeSheet() {
   );
 
   return (
-    <Sheet open={state.open} onClose={close} label={r("me.open")} closeLabel={r("me.close")}>
+    <Sheet
+      open={state.open}
+      onClose={close}
+      label={r("me.open")}
+      closeLabel={r("me.close")}
+      full={active !== "list"}
+    >
       {active === "alerts" ? detail("me.alerts", <NotificationsCard />) : null}
       {active === "offline" ? detail("me.offline", <OfflineSchedulesCard />) : null}
       {active === "a11y" ? detail("me.a11y", <AccessibilityPrefsCard />) : null}

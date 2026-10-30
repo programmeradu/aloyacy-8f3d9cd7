@@ -8,7 +8,8 @@ import type { Point } from "@/lib/plan-types";
 import type { TripSideQueries } from "./useTripSideQueries";
 
 function scrollToForm() {
-  if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  if (typeof document !== "undefined")
+    (document.getElementById("app-scroll") ?? window).scrollTo({ top: 0, behavior: "smooth" });
 }
 
 export function KapnosBlock({

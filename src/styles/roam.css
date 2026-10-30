@@ -1420,3 +1420,388 @@ button.r-row:active {
   font-kerning: normal;
   font-feature-settings: "kern" 1;
 }
+
+/* ------------------------------------------------------------------ */
+/* Native app frame (M9). html/body are a fixed, non-scrolling frame;   */
+/* only #app-scroll (and sheets/lists inside it) scroll. No rubber-band */
+/* page bounce, no double-tap zoom, no horizontal drift.                */
+/* ------------------------------------------------------------------ */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+.r-app-scroll {
+  position: fixed;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto;
+  background: var(--r-canvas);
+}
+/* Any sheet that locks "page" scroll (body inline overflow) locks the frame. */
+body[style*="overflow: hidden"] .r-app-scroll {
+  overflow: hidden;
+}
+/* Now: the map screen and the "more" sheet are two snap points. */
+.r-app-scroll:has(.r-now) {
+  scroll-snap-type: y proximity;
+}
+.r-now-screen,
+.r-now-more {
+  scroll-snap-align: start;
+}
+.r-now-map {
+  overflow: hidden;
+  contain: strict;
+}
+/* Inner scrollers: momentum, contained, never chain to the frame. */
+.r-sheet-scroll,
+.r-hscroll,
+.r-now-chips,
+.overflow-y-auto,
+.overflow-x-auto,
+.overflow-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.r-hscroll,
+.r-now-chips,
+.overflow-x-auto {
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y;
+}
+/* Chrome is not selectable and has no long-press callout. */
+.r-tabs-wrap,
+.r-head,
+.r-now-head,
+.r-now-sub,
+.r-pill,
+.r-fb,
+.r-pin,
+.r-stop-pin,
+.r-tab,
+.r-sheet-head,
+.r-notch-dock,
+.roam button,
+.roam a {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.roam img,
+.roam svg {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+.roam input,
+.roam textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+/* Light tab pages: the header is pinned and covers the status bar, so
+   content never ghosts under the clock while scrolling. */
+.r-page > .r-col > .r-head {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  background: var(--r-canvas);
+  padding-bottom: 8px;
+}
+.r-page > .r-col > .r-head::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -16px;
+  height: 16px;
+  pointer-events: none;
+  background: linear-gradient(var(--r-canvas), rgba(217, 217, 213, 0));
+}
+/* Resume trip dock: content on every tab clears it as well as the tab bar. */
+html.r-has-resume .r-body,
+html.r-has-resume .r-now-more {
+  padding-bottom: calc(var(--r-safe-bottom) + 200px);
+}
+.r-resume {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 408px;
+  height: 60px;
+  padding: 0 10px 0 10px;
+  border-radius: 30px;
+  background: var(--r-char);
+  color: #fff;
+  font-family: var(--r-font);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+  transform: translateZ(0);
+}
+.r-resume-ic {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--r-char2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.r-resume-dot {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--r-y);
+  box-shadow: 0 0 0 2px var(--r-char);
+}
+.r-resume-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 18px;
+  background: #fff;
+  color: var(--r-ink);
+  font-size: 14px;
+  font-weight: 600;
+  flex: none;
+}
+.r-now-dep {
+  height: 36px;
+  border-radius: 18px;
+  flex: none;
+}
+.r-now-pills > * {
+  min-width: 0;
+  max-width: 62%;
+}
+.r-now-pills .r-pill > span.truncate {
+  min-width: 0;
+}
+.r-now-trip {
+  background: var(--r-char) !important;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  flex: 0 1 auto !important;
+}
+.r-now-trip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--r-y);
+  flex: none;
+  box-shadow: 0 0 0 3px rgba(246, 184, 60, 0.25);
+}
+/* Group avatar picker */
+.r-avpick-lbl {
+  font-size: 13px;
+  color: var(--r-mute);
+  margin-bottom: 10px;
+}
+.r-avpick.is-dark .r-avpick-lbl {
+  color: var(--r-onchar-mute);
+}
+.r-avpick-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  justify-items: center;
+}
+.r-avpick-opt {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 180ms var(--r-spring),
+    box-shadow 180ms;
+}
+.r-avpick-opt:active {
+  transform: scale(0.92);
+}
+.r-avpick-opt.is-on {
+  box-shadow:
+    0 0 0 3px var(--r-y),
+    0 6px 14px rgba(0, 0, 0, 0.18);
+  transform: scale(1.04);
+}
+.r-avpick.is-dark .r-avpick-opt {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+.r-avpick.is-dark .r-avpick-opt.is-on {
+  box-shadow:
+    0 0 0 3px var(--r-y),
+    0 6px 14px rgba(0, 0, 0, 0.4);
+}
+.r-av-edit {
+  position: absolute;
+  left: -4px;
+  bottom: -2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--r-char);
+  color: #fff;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* Stop markers (M9): opaque stop sign on a post, anchored at the post foot. */
+.r-stop-pin {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30px;
+  padding: 0;
+  cursor: pointer;
+  transform-origin: 50% 100%;
+  transition:
+    transform 220ms var(--r-spring),
+    opacity 180ms ease;
+}
+.r-stop-pin::before {
+  content: "";
+  position: absolute;
+  inset: -8px -6px -4px;
+}
+.r-stop-sign {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--r-ink);
+  padding: 3px;
+  box-shadow:
+    0 0 0 1.5px rgba(23, 23, 23, 0.9),
+    0 3px 8px rgba(0, 0, 0, 0.35);
+}
+.r-stop-post {
+  width: 2.5px;
+  height: 7px;
+  background: rgba(23, 23, 23, 0.9);
+  border-radius: 0 0 2px 2px;
+}
+.r-stop-foot {
+  width: 10px;
+  height: 4px;
+  margin-top: -1px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  filter: blur(1px);
+}
+.r-stop-due {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--r-y);
+  box-shadow: 0 0 0 1.5px #fff;
+}
+.r-stop-pin.is-on {
+  transform: scale(1.25);
+  z-index: 2;
+}
+.r-stop-pin.is-on .r-stop-sign {
+  background: var(--r-y);
+  box-shadow:
+    0 0 0 1.5px rgba(23, 23, 23, 0.95),
+    0 0 0 6px rgba(246, 184, 60, 0.28),
+    0 4px 10px rgba(0, 0, 0, 0.35);
+}
+.r-stop-count {
+  position: absolute;
+  top: -7px;
+  right: -9px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--r-char);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+.r-stop-pin:active {
+  transform: scale(0.92);
+}
+.r-stop-pin.is-on:active {
+  transform: scale(1.18);
+}
+.r-pin-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.mapboxgl-marker:has(.r-stop-pin.is-on) {
+  z-index: 3;
+}
+.r-switch {
+  cursor: pointer;
+}
+.r-switch::before {
+  content: "";
+  position: absolute;
+  inset: -10px -6px;
+}
+.r-switch:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.r-switch[data-busy]::after {
+  animation: r-knob-busy 900ms ease-in-out infinite alternate;
+}
+@keyframes r-knob-busy {
+  to {
+    opacity: 0.55;
+  }
+}
+.r-switch:focus-visible {
+  outline: 2px solid var(--r-ink);
+  outline-offset: 2px;
+}
+/* Sheet snap points: default and full; the head is the drag handle. */
+.r-sheet {
+  transition:
+    transform 420ms var(--r-spring),
+    max-height 420ms var(--r-spring);
+}
+.r-sheet[data-full="true"] {
+  max-height: calc(100dvh - var(--r-safe-top) - 16px);
+}
+.r-sheet[data-dragging="true"] {
+  transition: none;
+}
+.r-sheet-head {
+  touch-action: none;
+  cursor: grab;
+}
+.r-sheet-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+}

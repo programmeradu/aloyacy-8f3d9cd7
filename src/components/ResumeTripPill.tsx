@@ -22,8 +22,15 @@ export function ResumeTripPill() {
   const active = useActiveTrip();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  if (!mounted || !active) return null;
-  if (pathname.startsWith("/trip/")) return null;
+  const hidden = !mounted || !active || pathname.startsWith("/trip/") || pathname === "/";
+  // Pages pad their content for the dock while it shows (see roam.css).
+  useEffect(() => {
+    const el = document.documentElement;
+    el.classList.toggle("r-has-resume", !hidden);
+    return () => el.classList.remove("r-has-resume");
+  }, [hidden]);
+  // Now shows the trip in its own layout, above the stop card.
+  if (hidden || !active) return null;
 
   const bus = active.option.legs.find((l) => l.kind === "bus");
   const routeShort = bus && bus.kind === "bus" ? bus.routeShort : null;
@@ -31,29 +38,26 @@ export function ResumeTripPill() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4"
-      style={{ bottom: "calc(max(env(safe-area-inset-bottom, 0px), 14px) + 80px)" }}
+      className="roam pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4"
+      style={{ bottom: "calc(max(var(--r-safe-bottom), 14px) + 80px)" }}
     >
       <Link
         to="/trip/$id"
         params={{ id: active.option.id }}
-        className="pointer-events-auto group flex w-full max-w-[400px] items-center gap-3 rounded-full bg-ink px-3.5 py-2.5 text-limestone shadow-[0_18px_44px_-18px_rgba(28,30,26,0.6)] ring-1 ring-ink/10 animate-rise"
+        className="r-resume pointer-events-auto"
       >
-        <span className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-aegean-deep">
-          <IconBus className="size-4 text-limestone" />
-          <span className="absolute -top-0.5 -right-0.5 flex size-2.5">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-ochre opacity-70" />
-            <span className="relative inline-flex size-2.5 rounded-full bg-ochre ring-2 ring-ink" />
-          </span>
+        <span className="r-resume-ic" aria-hidden="true">
+          <IconBus className="size-4" />
+          <span className="r-resume-dot" />
         </span>
         <span className="flex flex-1 flex-col leading-tight text-left min-w-0">
-          <span className="font-sans text-[11px] font-semibold tracking-wide text-limestone/70">
+          <span className="text-[12px] font-medium" style={{ color: "var(--r-onchar-mute)" }}>
             {t("resume.label")}
           </span>
-          <span className="font-display text-[15px] font-semibold tracking-tight truncate">
+          <span className="text-[15px] font-medium truncate">
             {routeShort ? (
               <>
-                <span className="text-ochre">{t("resume.busTo", { code: routeShort })}</span>{" "}
+                <span style={{ color: "var(--r-y)" }}>{t("resume.busTo", { code: routeShort })}</span>{" "}
                 {destination}
               </>
             ) : (
@@ -61,7 +65,7 @@ export function ResumeTripPill() {
             )}
           </span>
         </span>
-        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-limestone px-3 py-1.5 font-sans text-[12px] font-semibold text-ink">
+        <span className="r-resume-cta">
           {t("resume.cta")}
           <svg
             viewBox="0 0 12 12"
@@ -71,6 +75,7 @@ export function ResumeTripPill() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+            aria-hidden="true"
           >
             <path d="M3 6h6M7 3l3 3-3 3" />
           </svg>
