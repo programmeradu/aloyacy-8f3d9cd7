@@ -9,7 +9,7 @@ export const greenLine = {
   "gl.know.label": "What we know",
   "gl.know.network.title": "Republic buses only",
   "gl.know.network.body":
-    "Every live number, every stop, every route in Aloya is south of the line. OSEL, EMEL, Intercity, Zinonas, OSYPA, Pame. Not the north.",
+    "Every live number, every stop, every route in Aloya is south of the line. Cyprus Public Transport, EMEL, OSYPA, OSEA and Intercity Buses. Not the north.",
   "gl.know.ledra.title": "Ledra Street is the pedestrian crossing",
   "gl.know.ledra.body":
     "In the old town, a short walk from Solomos Square. Passport or ID. There are vehicle crossings too. We do not run any of them.",

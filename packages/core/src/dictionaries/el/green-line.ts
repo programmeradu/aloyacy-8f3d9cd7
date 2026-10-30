@@ -11,7 +11,7 @@ export const greenLine: Record<keyof typeof greenLineEn, string> = {
   "gl.know.label": "Τι ξέρουμε",
   "gl.know.network.title": "Μόνο λεωφορεία της Δημοκρατίας",
   "gl.know.network.body":
-    "Κάθε ζωντανός αριθμός, κάθε στάση, κάθε γραμμή στην Aloya είναι νότια της γραμμής. OSEL, EMEL, Intercity, Ζήνωνας, OSYPA, Pame. Όχι τα βόρεια.",
+    "Κάθε ζωντανός αριθμός, κάθε στάση, κάθε γραμμή στην Aloya είναι νότια της γραμμής. Δημόσιες Συγκοινωνίες Κύπρου, EMEL, OSYPA, OSEA και Intercity Buses. Όχι τα βόρεια.",
   "gl.know.ledra.title": "Η οδός Λήδρας είναι η πεζή διάβαση",
   "gl.know.ledra.body":
     "Στην παλιά πόλη, λίγα λεπτά από την Πλατεία Σολωμού. Διαβατήριο ή ταυτότητα. Υπάρχουν και διαβάσεις οχημάτων. Δεν τις λειτουργούμε.",
