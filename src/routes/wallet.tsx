@@ -371,7 +371,7 @@ function FareTable() {
     [r("pass.single"), "€2.00", "€2.70"],
     [r("pass.night"), "€3.50", "€4.70"],
     [r("pass.week"), "€33.40", null],
-    [r("pass.kapnos"), "€9.00", null],
+    [r("pass.kapnos"), "€10.00", null],
   ];
   return (
     <section className="r-card r-card--pad r-rise">

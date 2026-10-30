@@ -91,13 +91,17 @@ export function feedStatusLabel(input: {
 }
 
 /** Seat-pressure tone for a coach departure row. */
-export function seatPressure(seatsAvailable: number): "sold" | "low" | "open" {
-  if (!Number.isFinite(seatsAvailable) || seatsAvailable <= 0) return "sold";
+export function seatPressure(seatsAvailable: number | null | undefined): "sold" | "low" | "open" {
+  // The Kapnos feed does not publish seat counts (seat_available is absent),
+  // so an unknown count is bookable, not sold out.
+  if (seatsAvailable == null || !Number.isFinite(seatsAvailable)) return "open";
+  if (seatsAvailable <= 0) return "sold";
   return seatsAvailable <= 8 ? "low" : "open";
 }
 
 /** "Sold out" / "6 seats" / "1 seat". */
-export function seatLabel(seatsAvailable: number): string {
+export function seatLabel(seatsAvailable: number | null | undefined): string {
+  if (seatsAvailable == null || !Number.isFinite(seatsAvailable)) return "Book";
   if (seatPressure(seatsAvailable) === "sold") return "Sold out";
   return `${seatsAvailable} seat${seatsAvailable === 1 ? "" : "s"}`;
 }

@@ -290,8 +290,9 @@ export function KapnosShuttleCard({
           <ul className="flex flex-col rounded-2xl ring-1 ring-line/60 divide-y divide-line/40">
             {suggestion.departures.map((d) => {
               const chip = fmtDateChip(d.departLocal, locale);
-              const seatsLow = d.seatsAvailable > 0 && d.seatsAvailable <= 8;
-              const sold = d.seatsAvailable <= 0;
+              const known = d.seatsAvailable != null;
+              const seatsLow = known && d.seatsAvailable! > 0 && d.seatsAvailable! <= 8;
+              const sold = known && d.seatsAvailable! <= 0;
               return (
                 <li
                   key={`${d.tripId}-${d.departLocal}-${d.arriveLocal}`}
@@ -315,7 +316,11 @@ export function KapnosShuttleCard({
                       sold ? "text-red-700" : seatsLow ? "text-ochre-deep" : "text-ink-soft"
                     }`}
                   >
-                    {sold ? t("kapnos.soldOut") : t("kapnos.seatsLeft", { n: d.seatsAvailable })}
+                    {sold
+                      ? t("kapnos.soldOut")
+                      : known
+                        ? t("kapnos.seatsLeft", { n: d.seatsAvailable! })
+                        : d.priceFrom}
                   </span>
                 </li>
               );

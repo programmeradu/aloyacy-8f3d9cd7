@@ -57,7 +57,8 @@ export type KapnosDeparture = {
   departLocal: string;
   /** Local Cyprus arrival, "YYYY-MM-DD HH:MM:SS". */
   arriveLocal: string;
-  seatsAvailable: number;
+  /** null when the feed gives no seat count (it currently never does). */
+  seatsAvailable: number | null;
   priceFrom: string;
 };
 
@@ -71,7 +72,7 @@ export type KapnosRoute = {
     tripId: string;
     /** "YYYY-MM-DD HH:MM:SS" Cyprus local */
     departLocal: string;
-    seatsAvailable: number;
+    seatsAvailable: number | null;
     priceFromRaw: string;
     priceFromFormatted: string;
   }>;
@@ -118,6 +119,13 @@ function isAirportPoint(name: string): boolean {
   return /airport|\(A\d/i.test(name);
 }
 
+/** Seat count from the feed; null when absent or unparsable (never "0"). */
+export function parseSeats(v: unknown): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 export async function fetchKapnosRoutes(): Promise<KapnosRoute[]> {
   const now = Date.now();
   if (cache && now - cache.at < CACHE_TTL_MS) return cache.data;
@@ -162,7 +170,7 @@ export async function fetchKapnosRoutes(): Promise<KapnosRoute[]> {
       const trips = tripListRaw.map((t) => ({
         tripId: String(t.trip_id ?? ""),
         departLocal: String(t.trip_datetime ?? ""),
-        seatsAvailable: Number(t.seat_available ?? 0),
+        seatsAvailable: parseSeats(t.seat_available),
         priceFromRaw: String(
           t.trip_prices && Array.isArray(t.trip_prices) && t.trip_prices[0]
             ? ((t.trip_prices[0] as Record<string, unknown>).price ?? "")

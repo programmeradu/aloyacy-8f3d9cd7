@@ -138,6 +138,7 @@ function wayLines(
 
 function coachDetail(way: AirportCoachWay, copy: (typeof AIRPORT_COPY)["en"]): string {
   if (seatPressure(way.seatsAvailable) === "sold") return copy.sold;
+  if (way.seatsAvailable == null) return way.priceFrom ? `${copy.fromLabel} ${way.priceFrom}` : "";
   const seats = copy.seatsLeft(way.seatsAvailable);
   return way.priceFrom ? `${seats}, ${copy.fromLabel} ${way.priceFrom}` : seats;
 }

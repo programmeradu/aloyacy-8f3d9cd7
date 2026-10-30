@@ -79,7 +79,7 @@ export type AirportCoachLine = {
     arrive: string;
     /** "" if today, otherwise short label like "tomorrow" or "Wed 25". */
     dayChip: string;
-    seatsAvailable: number;
+    seatsAvailable: number | null;
     priceFrom: string | null;
   }>;
 };

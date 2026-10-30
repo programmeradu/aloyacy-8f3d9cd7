@@ -42,8 +42,9 @@ export function CoachLineCard({ line, c }: { line: AirportCoachLine; c: AirportC
       {line.nextDepartures.length > 0 && (
         <ul className="mt-3 flex flex-col rounded-2xl ring-1 ring-line/60 divide-y divide-line/40">
           {line.nextDepartures.slice(0, 3).map((d) => {
-            const sold = d.seatsAvailable <= 0;
-            const low = d.seatsAvailable > 0 && d.seatsAvailable <= 8;
+            const known = d.seatsAvailable != null;
+            const sold = known && d.seatsAvailable! <= 0;
+            const low = known && d.seatsAvailable! > 0 && d.seatsAvailable! <= 8;
             return (
               <li
                 key={`${d.tripId}-${d.depart}`}
@@ -64,7 +65,7 @@ export function CoachLineCard({ line, c }: { line: AirportCoachLine; c: AirportC
                     sold ? "text-red-700" : low ? "text-ochre-deep" : "text-ink/55"
                   }`}
                 >
-                  {sold ? c.sold : c.seatsLeft(d.seatsAvailable)}
+                  {sold ? c.sold : known ? c.seatsLeft(d.seatsAvailable!) : (d.priceFrom ?? "")}
                 </span>
               </li>
             );
@@ -93,7 +94,7 @@ export function CoachLineCard({ line, c }: { line: AirportCoachLine; c: AirportC
             target="_blank"
             rel="noopener noreferrer"
             className={`rounded-full px-3 py-1.5 font-sans text-[12px] font-semibold transition-colors ${
-              next && next.seatsAvailable <= 0
+              next && next.seatsAvailable != null && next.seatsAvailable <= 0
                 ? "bg-card ring-1 ring-line text-ink/50 pointer-events-none"
                 : "bg-ink text-limestone hover:bg-ochre-deep"
             }`}
