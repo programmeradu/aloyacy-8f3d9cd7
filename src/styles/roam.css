@@ -1412,9 +1412,10 @@ button.r-row:active {
 /* Uppercase eyebrow labels in legacy sections (RELIABILITY, ARRIVING TOGETHER,
    YOU'RE WATCHING AS A GUEST): one deliberate size, weight and tracking */
 .roam .r-legacy .uppercase[class*="tracking-"] {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  /* !important: Tailwind utilities sit in a later cascade layer */
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
   line-height: 16px;
   font-kerning: normal;
   font-feature-settings: "kern" 1;
