@@ -2,6 +2,7 @@
 // departures, walk distance, confidence, and a docked button into the stop.
 // Every state of the old Sky card is kept: loading, no location, no buses,
 // feed error and a real bus.
+import { HomeRemindButton } from "@/components/home/HomeRemindButton";
 import { Link } from "@tanstack/react-router";
 import type { CardState, NextBus, NearbyLine } from "@/components/home/sky-state";
 import { useRoamI18n } from "@/lib/roam-i18n";
@@ -21,9 +22,11 @@ type Props = {
   onAllowLocation: () => void;
   onPickStop: () => void;
   onRetry: () => void;
+  /** Where the rider is; enables "Remind me" for the next bus. */
+  origin?: { lat: number; lng: number; label: string } | null;
 };
 
-export function NowCard({ state, tiles, linesAtStop, walkM, onAllowLocation, onPickStop, onRetry }: Props) {
+export function NowCard({ state, tiles, linesAtStop, walkM, onAllowLocation, onPickStop, onRetry, origin }: Props) {
   const { r } = useRoamI18n();
   const bus = state.kind === "bus" ? state.bus : null;
   const stopId = bus?.stopId ?? (state.kind === "none" ? state.stopId : null);
@@ -146,6 +149,11 @@ export function NowCard({ state, tiles, linesAtStop, walkM, onAllowLocation, onP
                 <Squiggle width={104} height={38} />
               </span>
             </div>
+            {origin ? (
+              <div className="mt-3 flex justify-start r-remind">
+                <HomeRemindButton bus={bus} origin={origin} />
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>

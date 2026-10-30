@@ -19,6 +19,8 @@ import { getShapeForTripSync, prefetchShapes } from "@/lib/shapes";
 import { prefetchHeadsigns, getHeadsignSync, onHeadsignsLoaded } from "@/lib/headsigns";
 import { getStop, getRoute, STOPS } from "@/lib/gtfs";
 import { useRoamI18n, type RoamKey } from "@/lib/roam-i18n";
+import { openMeSheet } from "@/components/roam/me-store";
+import { Icon } from "@/components/roam/Icon";
 
 const STOP_AREA_KEY: Record<string, RoamKey> = {
   NPT: "lines.nicosia",
@@ -216,6 +218,15 @@ function StopDetail() {
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
           {t("stop.kicker", { code: stop?.code ?? stopId })}
         </span>
+        <span className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => openMeSheet("alerts")}
+          aria-label={r("me.alerts")}
+          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink hover:bg-limestone-soft transition-colors"
+        >
+          <Icon name="bell-simple" />
+        </button>
         <button
           type="button"
           onClick={() => setShareOpen(true)}
@@ -224,6 +235,7 @@ function StopDetail() {
         >
           <IconShare className="size-4" />
         </button>
+        </span>
       </div>
 
       <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>

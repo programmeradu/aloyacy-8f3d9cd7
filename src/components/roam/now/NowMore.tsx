@@ -4,6 +4,8 @@ import { Link } from "@tanstack/react-router";
 import type { Stop } from "@/components/StopCard";
 import { CommuteSuggestionCard } from "@/components/CommuteSuggestionCard";
 import { ActiveLiveTripCard } from "@/components/saved/ActiveLiveTripCard";
+import { WatchTogetherButton } from "@/components/WatchTogetherButton";
+import { useActiveTrip } from "@/lib/trip-store";
 import { ScheduledDeparturesSection } from "@/components/saved/ScheduledDeparturesSection";
 import { ArrivalPromisesSection } from "@/components/saved/ArrivalPromisesSection";
 import { useRoamI18n } from "@/lib/roam-i18n";
@@ -11,6 +13,7 @@ import { Icon } from "../Icon";
 import { ConfTag } from "../bits";
 
 export function NowMore({ stops, live }: { stops: Stop[]; live: boolean }) {
+  const active = useActiveTrip();
   const { r } = useRoamI18n();
   return (
     <section className="r-now-more" aria-label={r("now.more")}>
@@ -46,6 +49,14 @@ export function NowMore({ stops, live }: { stops: Stop[]; live: boolean }) {
       ) : null}
       <div className="mt-4 space-y-4">
         <ActiveLiveTripCard />
+        {active ? (
+          <div className="r-legacy">
+            <WatchTogetherButton
+              origin={{ lat: active.from.lat, lng: active.from.lng, label: active.from.label }}
+              destination={{ lat: active.to.lat, lng: active.to.lng, label: active.to.label }}
+            />
+          </div>
+        ) : null}
         <ScheduledDeparturesSection />
         <ArrivalPromisesSection />
         <CommuteSuggestionCard />

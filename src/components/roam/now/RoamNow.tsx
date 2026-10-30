@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { MapPreview } from "@/components/MapPreview";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { ResumeTripPill } from "@/components/ResumeTripPill";
 import { PasskeyEnrollPrompt } from "@/components/PasskeyEnrollPrompt";
 import { SkySearchSheet } from "@/components/home/SkySearchSheet";
 import { useNextBus } from "@/components/home/useNextBus";
@@ -211,12 +212,14 @@ export function RoamNow() {
             onAllowLocation={loc.ask}
             onPickStop={() => setSheet({ mode: "pick", voice: false })}
             onRetry={nb.refetch}
+            origin={located && bus ? { lat: coords.lat, lng: coords.lng, label: bus.stopName } : null}
           />
         </div>
       </section>
 
       <NowMore stops={located && mounted ? stops : []} live={loc.source === "live"} />
       <PasskeyEnrollPrompt />
+      <ResumeTripPill />
       <TabBar dark />
       <SkySearchSheet
         open={!!sheet}

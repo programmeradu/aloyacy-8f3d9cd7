@@ -11,6 +11,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { buildRouteBoard, type BoardStop } from "@aloya/core/route-board";
 import { resolveAgency } from "@aloya/core/home-search";
 import { useRoamI18n, type RoamKey } from "@/lib/roam-i18n";
+import { openMeSheet } from "@/components/roam/me-store";
+import { Icon } from "@/components/roam/Icon";
 
 const AREA_KEY: Record<string, RoamKey> = {
   NPT: "lines.nicosia",
@@ -188,6 +190,15 @@ function RoutePage() {
             </span>
           )}
         </div>
+        <span className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => openMeSheet("alerts")}
+          aria-label={r("me.alerts")}
+          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink hover:bg-limestone-soft transition-colors"
+        >
+          <Icon name="bell-simple" />
+        </button>
         <button
           type="button"
           onClick={handleToggleStar}
@@ -200,6 +211,7 @@ function RoutePage() {
         >
           {isStarred ? <IconStarFilled className="size-4" /> : <IconStar className="size-4" />}
         </button>
+        </span>
       </div>
 
       <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
