@@ -21,6 +21,7 @@ import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { createRequire } from "node:module";
 import { initWasm } from "@resvg/resvg-wasm";
+import sharp from "sharp";
 import {
   defaultCard,
   stopCard,
@@ -37,6 +38,10 @@ const args = process.argv.slice(2);
 const out = args.find((a) => !a.startsWith("--")) ?? "dist/client/og";
 const li = args.indexOf("--limit");
 const limit = li >= 0 ? Number(args[li + 1]) : Infinity;
+// --shard i/n: this process draws every n-th card starting at i (CI runs n in parallel).
+const si = args.indexOf("--shard");
+const [shard, shards] = si >= 0 ? args[si + 1].split("/").map(Number) : [0, 1];
+const mine = (k: number) => k % shards === shard;
 
 async function main() {
   const require = createRequire(import.meta.url);
@@ -51,7 +56,11 @@ async function main() {
   let bytes = 0;
   const t0 = Date.now();
   const put = async (rel: string, svg: string) => {
-    const png = await renderPng(svg);
+    // Palette PNG: ~3x smaller than resvg's truecolour output, same look on a
+    // flat-colour card. Thousands of stop cards ship with every deploy.
+    const png = await sharp(await renderPng(svg))
+      .png({ palette: true, quality: 90, colours: 192, effort: 7, compressionLevel: 9 })
+      .toBuffer();
     const f = join(out, rel);
     mkdirSync(dirname(f), { recursive: true });
     writeFileSync(f, png);
@@ -60,24 +69,32 @@ async function main() {
     if (n % 250 === 0) console.log(`og: ${n} cards, ${(bytes / 1e6).toFixed(1)} MB, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   };
 
-  await put("default.png", defaultCard(shapes));
-  await put("trip.png", tripCard(null, shapes));
-  await put(
-    "group.png",
+  let k = 0;
+  const job = async (rel: string, draw: () => string) => {
+    if (mine(k++)) await put(rel, draw());
+  };
+  await job("default.png", () => defaultCard(shapes));
+  await job("trip.png", () => tripCard(null, shapes));
+  await job("group.png", () =>
     groupCard({ code: null, destination: null, host: null, members: 0, arrived: 0, nextEta: null, place: null }, shapes),
   );
-  await put("plan.png", planCard(
+  await job("plan.png", () =>
+    planCard(
       { origin: null, destination: null, creator: null, depart: null, arrive: null, day: null, duration: null, transfers: 0, legs: [] },
       shapes,
     ));
 
   const routeIds = [...new Set(ROUTES.map((r) => r.id))].filter((id) => /^[A-Za-z0-9_-]{1,32}$/.test(id));
-  for (const id of routeIds.slice(0, limit)) await put(`line/${id}.png`, lineCard(id, shapes));
+  for (const id of routeIds.slice(0, limit)) await job(`line/${id}.png`, () => lineCard(id, shapes));
 
   const stopIds = [...new Set(STOPS.map((s) => s.id))].filter((id) => /^[A-Za-z0-9_-]{1,32}$/.test(id));
-  for (const id of stopIds.slice(0, limit)) await put(`stop/${id}.png`, stopCard(id, shapes));
+  for (const id of stopIds.slice(0, limit)) await job(`stop/${id}.png`, () => stopCard(id, shapes));
 
-  // Trip id -> route id, sharded.
+  // Trip id -> route id, sharded (written by shard 0 only).
+  if (shard !== 0) {
+    console.log(`og: shard ${shard}/${shards} done, ${n} cards, ${(bytes / 1e6).toFixed(1)} MB, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+    return;
+  }
   const shards: Record<string, string>[] = Array.from({ length: TRIP_SHARDS }, () => ({}));
   for (const [rid, v] of Object.entries(shapes)) {
     for (const tid of Object.keys(v.trips ?? {})) shards[tripShard(tid)][tid] = rid;

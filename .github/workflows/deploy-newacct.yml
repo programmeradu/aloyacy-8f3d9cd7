@@ -26,6 +26,16 @@ jobs:
       - run: npx vite build
         env:
           NODE_OPTIONS: --max-old-space-size=6144
+      - name: Pre-render share cards (dist/client/og)
+        run: |
+          npx esbuild scripts/og-prerender.ts --bundle --platform=node --format=esm \
+            --alias:@=./src --loader:.json=json --external:@resvg/resvg-wasm --external:sharp \
+            --outfile=.og-prerender.mjs --log-level=warning
+          N=$(nproc); echo "shards: $N"
+          pids=""
+          for i in $(seq 0 $((N-1))); do node .og-prerender.mjs dist/client/og --shard $i/$N & pids="$pids $!"; done
+          for p in $pids; do wait $p; done
+          ls dist/client/og | head; find dist/client/og -type f | wc -l; du -sh dist/client/og
       - name: Apply pending D1 migrations
         continue-on-error: true
         working-directory: deploy

@@ -57,3 +57,4 @@ coverage-mobile/
 # Metro/EAS build output — generated, never committed.
 mobile/*.bundle
 mobile/android.bundle
+.og-prerender.mjs
