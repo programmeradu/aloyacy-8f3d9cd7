@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { MotionPassOption } from "@/lib/motion-pass";
-import { useI18n } from "@/lib/i18n";
+import { useRoamI18n } from "@/lib/roam-i18n";
 
 const TOPUP_URL = "https://www.publictransport.com.cy/topup/page/topup-travel-card";
 
@@ -36,7 +36,7 @@ export function RenewPasses({
   passes: MotionPassOption[];
 }) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const { t } = useI18n();
+  const { t, r } = useRoamI18n();
 
   if (passes.length === 0) return null;
 
@@ -52,25 +52,19 @@ export function RenewPasses({
   }
 
   return (
-    <section className="px-6 animate-rise" style={{ animationDelay: "260ms" }}>
-      <div className="flex items-end justify-between mb-3">
-        <h2 className="font-display text-2xl text-ink">
-          {t("wallet.renewTitlePrefix")}{" "}
-          <span className="italic text-aegean-deep">{t("wallet.renewTitleEmph")}</span>
-        </h2>
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-          {t("wallet.renewEligible", { n: passes.length })}
-        </span>
+    <section className="roam">
+      <div className="flex items-baseline justify-between px-1 mb-2">
+        <h2 className="r-t3">{r("pass.renew")}</h2>
+        <span className="r-lbl">{t("wallet.renewEligible", { n: passes.length })}</span>
       </div>
-
-      <ul className="rounded-[24px] bg-card ring-1 ring-line divide-y divide-line overflow-hidden">
+      <div className="r-card">
         {passes.map((p) => {
           const justCopied = copiedCode === p.code;
           return (
-            <li key={p.code} className="flex items-center justify-between gap-3 p-4">
-              <div className="min-w-0">
-                <p className="text-[13px] text-ink leading-tight truncate">{p.name}</p>
-                <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+            <div key={p.code} className="r-row" style={{ padding: "14px 16px" }}>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-medium leading-snug">{formatPassName(p.name)}</p>
+                <p className="r-lbl mt-1">
                   {justCopied
                     ? t("wallet.renewCopied")
                     : p.validityDays
@@ -81,18 +75,34 @@ export function RenewPasses({
               <button
                 type="button"
                 onClick={() => handleRenew(p.code)}
-                className="shrink-0 rounded-full bg-ink text-limestone px-3.5 py-2 hover:bg-ink/90 transition-colors"
+                className="r-pill r-pill--k r-pill--lg r-tnum"
               >
-                <span className="font-sans font-medium text-[15px] tabular-nums tracking-[-0.01em] leading-none">
-                  €{p.priceEur.toFixed(2)}
-                </span>
+                €{p.priceEur.toFixed(2)}
               </button>
-            </li>
+            </div>
           );
         })}
-      </ul>
-
-      <p className="mt-3 text-[11px] text-ink-soft">{t("wallet.renewFoot")}</p>
+      </div>
+      <p className="r-lbl mt-2 px-1">{t("wallet.renewFoot")}</p>
     </section>
   );
+}
+
+/**
+ * Operator pass names arrive in capitals with zone codes
+ * ("30 DAYS Z01-03 (UDF) PERSONALISED"); show them in sentence case with the
+ * zone range spelled out, acronyms in brackets kept.
+ */
+export function formatPassName(raw: string): string {
+  const s = raw
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/\bZ(\d{1,2})\s*-\s*(\d{1,2})\b/gi, "zones $1 to $2")
+    .replace(/\bZ(\d{1,2})\b/g, "zone $1")
+    .split(" ")
+    .map((w) =>
+      /^\(.*\)$/.test(w) ? w : /^[A-Z\u0391-\u03A9]{2,}$/.test(w) ? w.toLowerCase() : w,
+    )
+    .join(" ");
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }

@@ -117,7 +117,7 @@ export function MotionCard({
           />
         </article>
         {!hasCard && (
-          <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+          <p className="mt-3 text-center text-[13px] text-ink-soft">
             {t("wallet.tapToSetUp")}
           </p>
         )}

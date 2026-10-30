@@ -14,12 +14,13 @@ import {
   setSpeechEnabled,
   speak,
 } from "@/lib/speech";
-import { useI18n } from "@/lib/i18n";
+import { useRoamI18n } from "@/lib/roam-i18n";
+import { Icon } from "@/components/roam/Icon";
 
 type Status = "unknown" | "unsupported" | "preview" | "denied" | "off" | "on";
 
 export function NotificationsCard() {
-  const { t } = useI18n();
+  const { t, r } = useRoamI18n();
   const [status, setStatus] = useState<Status>("unknown");
 
   const [endpoint, setEndpoint] = useState<string | null>(null);
@@ -145,54 +146,44 @@ export function NotificationsCard() {
 
   const interactive = status === "on" || status === "off" || status === "denied";
   const isOn = status === "on";
-
   const copy = {
-    unknown: { line: t("notif.line.unknown"), tone: "ink-soft" as const },
-    unsupported: { line: t("notif.line.unsupported"), tone: "ink-soft" as const },
-    preview: { line: t("notif.line.preview"), tone: "ink-soft" as const },
-    denied: { line: t("notif.line.denied"), tone: "ochre" as const },
-    off: { line: t("notif.line.off"), tone: "ink-soft" as const },
-    on: { line: t("notif.line.on"), tone: "olive" as const },
+    unknown: t("notif.line.unknown"),
+    unsupported: t("notif.line.unsupported"),
+    preview: t("notif.line.preview"),
+    denied: t("notif.line.denied"),
+    off: t("notif.line.off"),
+    on: t("notif.line.on"),
   }[status];
 
+  const hint = pending
+    ? t("notif.hint.working")
+    : isOn
+      ? t("notif.hint.silence")
+      : status === "denied"
+        ? t("notif.hint.unblock")
+        : status === "preview" || status === "unsupported"
+          ? t("notif.hint.unavailable")
+          : t("notif.hint.enable");
+
+  const feats = [
+    { icon: "person-simple-walk", t: t("notif.feat.board.t"), d: t("notif.feat.board.d") },
+    { icon: "bell-ringing", t: t("notif.feat.stop.t"), d: t("notif.feat.stop.d") },
+    { icon: "warning-circle", t: t("notif.feat.delay.t"), d: t("notif.feat.delay.d") },
+  ];
+
   return (
-    <article className="relative overflow-hidden rounded-[28px] bg-paper ring-1 ring-line">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aegean/40 to-transparent" />
-      <div
-        className={[
-          "pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full blur-3xl transition-opacity duration-700",
-          isOn ? "bg-aegean/20 opacity-100" : "bg-ink/5 opacity-60",
-        ].join(" ")}
-      />
-      <div className="relative px-6 py-6">
-        <div className="flex items-baseline justify-between gap-4">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-              {t("notif.kicker")}
-            </p>
-            <h3 className="font-display text-2xl mt-1 text-ink">
-              {t("notif.title1")}{" "}
-              <span className="italic text-aegean-deep">{t("notif.title2")}</span>
-            </h3>
-          </div>
-          <span
-            className={[
-              "font-mono text-[10px] uppercase tracking-[0.22em] transition-colors",
-              isOn ? "text-olive" : status === "denied" ? "text-ochre" : "text-ink-soft",
-            ].join(" ")}
-          >
-            {isOn
-              ? t("notif.status.live")
-              : status === "denied"
-                ? t("notif.status.blocked")
-                : t("notif.status.off")}
+    <div className="roam flex flex-col gap-3">
+      <div className="r-me-group">
+        <div className="r-row r-me-row">
+          <span className="r-me-ic">
+            <Icon name={isOn ? "bell-simple-ringing" : "bell-simple-slash"} />
           </span>
-        </div>
-
-        <p className={`mt-3 text-sm leading-relaxed text-${copy.tone}`}>{copy.line}</p>
-
-        {/* Premium toggle */}
-        <div className="mt-6 flex items-center gap-5">
+          <span className="flex-1 min-w-0">
+            <span className="block text-[16px] font-medium leading-tight">
+              {isOn ? t("notif.label.on") : t("notif.label.off")}
+            </span>
+            <span className="r-lbl block mt-0.5">{hint}</span>
+          </span>
           <button
             type="button"
             role="switch"
@@ -200,119 +191,59 @@ export function NotificationsCard() {
             aria-label={isOn ? t("notif.aria.off") : t("notif.aria.on")}
             onClick={onToggle}
             disabled={!interactive || pending}
-            className={[
-              "group relative h-14 w-[112px] shrink-0 rounded-full outline-none",
-              "ring-1 transition-all duration-500 ease-out",
-              "focus-visible:ring-2 focus-visible:ring-aegean focus-visible:ring-offset-2 focus-visible:ring-offset-paper",
-              isOn
-                ? "bg-gradient-to-r from-aegean to-aegean-deep ring-aegean-deep/40 shadow-[0_18px_40px_-18px_oklch(0.55_0.12_215/.55)]"
-                : "bg-limestone ring-line",
-              !interactive || pending ? "cursor-not-allowed opacity-50" : "cursor-pointer",
-            ].join(" ")}
-          >
-            <span
-              aria-hidden
-              className={[
-                "absolute left-4 top-1/2 -translate-y-1/2 font-mono text-[9px] uppercase tracking-[0.22em] transition-opacity duration-300",
-                isOn ? "text-paper/90 opacity-100" : "opacity-0",
-              ].join(" ")}
-            >
-              {t("notif.knob.on")}
-            </span>
-            <span
-              aria-hidden
-              className={[
-                "absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[9px] uppercase tracking-[0.22em] transition-opacity duration-300",
-                isOn ? "opacity-0" : "text-ink-soft opacity-100",
-              ].join(" ")}
-            >
-              {t("notif.knob.off")}
-            </span>
-            <span
-              aria-hidden
-              className={[
-                "absolute top-1/2 h-11 w-11 -translate-y-1/2 rounded-full",
-                "bg-paper shadow-[0_8px_20px_-6px_oklch(0.2_0.02_240/.35),0_2px_4px_oklch(0.2_0.02_240/.18)]",
-                "transition-all duration-500 ease-[cubic-bezier(.32,.72,0,1)]",
-                "ring-1 ring-ink/5",
-                isOn ? "left-[calc(100%-2.875rem)]" : "left-[0.375rem]",
-                pending ? "scale-95" : "group-active:scale-95",
-              ].join(" ")}
-            >
-              <span
-                className={[
-                  "absolute inset-0 m-auto h-2 w-2 rounded-full transition-colors duration-500",
-                  isOn ? "bg-aegean-deep" : "bg-ink-soft/40",
-                ].join(" ")}
-              />
-              {pending && (
-                <span className="absolute inset-1 rounded-full border-2 border-ink/15 border-t-aegean-deep animate-spin" />
-              )}
-            </span>
-          </button>
-
-          <div className="min-w-0">
-            <p className="font-display text-lg text-ink leading-tight">
-              {isOn ? t("notif.label.on") : t("notif.label.off")}
-            </p>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft mt-1">
-              {pending
-                ? t("notif.hint.working")
-                : isOn
-                  ? t("notif.hint.silence")
-                  : status === "denied"
-                    ? t("notif.hint.unblock")
-                    : status === "preview" || status === "unsupported"
-                      ? t("notif.hint.unavailable")
-                      : t("notif.hint.enable")}
-            </p>
-          </div>
+            className="r-switch"
+            data-busy={pending || undefined}
+          />
         </div>
-
-        {isOn && (
-          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+        {isOn && speechSupported ? (
+          <div className="r-row r-me-row">
+            <span className="r-me-ic">
+              <Icon name="speaker-high" />
+            </span>
+            <span className="flex-1 min-w-0 text-[16px] font-medium">{r("alerts.speak")}</span>
             <button
-              onClick={sendTest}
-              disabled={pending}
-              className="font-mono text-[11px] uppercase tracking-[0.22em] text-aegean-deep underline-offset-4 transition hover:underline disabled:opacity-50"
-            >
-              {t("notif.test")}
-            </button>
-            {speechSupported && (
-              <button
-                onClick={toggleSpeech}
-                aria-pressed={speechOn}
-                className={[
-                  "font-mono text-[11px] uppercase tracking-[0.22em] underline-offset-4 transition hover:underline",
-                  speechOn ? "text-olive" : "text-ink-soft",
-                ].join(" ")}
-              >
-                {speechOn ? t("notif.speech.on") : t("notif.speech.off")}
-              </button>
-            )}
+              type="button"
+              role="switch"
+              aria-checked={speechOn}
+              aria-label={r("alerts.speak")}
+              onClick={toggleSpeech}
+              className="r-switch"
+            />
           </div>
-        )}
-
-        {message && (
-          <p className="mt-4 font-mono text-[11px] tracking-wide text-ink-soft">{message}</p>
-        )}
-
-        <ul className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {[
-            { k: "01", t: t("notif.feat.board.t"), d: t("notif.feat.board.d") },
-            { k: "02", t: t("notif.feat.stop.t"), d: t("notif.feat.stop.d") },
-            { k: "03", t: t("notif.feat.delay.t"), d: t("notif.feat.delay.d") },
-          ].map((x) => (
-            <li key={x.k} className="rounded-2xl bg-limestone/60 px-4 py-3 ring-1 ring-line/60">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                {x.k}
-              </p>
-              <p className="mt-1 font-display text-lg text-ink">{x.t}</p>
-              <p className="text-xs text-ink-soft">{x.d}</p>
-            </li>
-          ))}
-        </ul>
+        ) : null}
+        {isOn ? (
+          <button
+            type="button"
+            className="r-row r-me-row w-full"
+            onClick={sendTest}
+            disabled={pending}
+          >
+            <span className="r-me-ic">
+              <Icon name="paper-plane-tilt" />
+            </span>
+            <span className="flex-1 min-w-0 text-left text-[16px] font-medium">
+              {t("notif.test")}
+            </span>
+            <Icon name="caret-right" size={16} style={{ color: "var(--r-mute)" }} />
+          </button>
+        ) : null}
       </div>
-    </article>
+      <p className="r-lbl px-2" aria-live="polite">
+        {message ?? copy}
+      </p>
+      <div className="r-me-group">
+        {feats.map((x) => (
+          <div key={x.t} className="r-row r-me-row">
+            <span className="r-me-ic">
+              <Icon name={x.icon} />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-[16px] font-medium leading-tight">{x.t}</span>
+              <span className="r-lbl block mt-0.5">{x.d}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

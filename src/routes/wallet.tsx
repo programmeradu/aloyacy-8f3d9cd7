@@ -15,7 +15,6 @@ import { TopupHistory, TransactionList } from "@/components/wallet/History";
 import { RenewPasses } from "@/components/wallet/Passes";
 import type { SheetMode } from "@/components/wallet/PassSheet";
 import { timeAgo } from "@/components/wallet/utils";
-import { AccessibilityPrefsCard } from "@/components/AccessibilityPrefsCard";
 
 // Lazy: the editor sheet only mounts when the user taps to edit.
 const PassSheet = lazy(() =>
@@ -237,22 +236,27 @@ function WalletRoute() {
     <RoamPage
       title={r("pass.title")}
       right={
-        <FrostButton
-          variant="white"
-          large
-          icon="plus"
-          label={hasCard ? r("pass.edit") : r("pass.add")}
-          onClick={() => setEditing("card")}
-        />
+        <div className="flex items-center gap-2">
+          <FrostButton
+            variant="white"
+            large
+            icon="scan"
+            label={r("pass.scan")}
+            onClick={() => setScanning(true)}
+          />
+          <FrostButton
+            variant="white"
+            large
+            icon={hasCard ? "pencil-simple" : "plus"}
+            label={hasCard ? r("pass.edit") : r("pass.add")}
+            onClick={() => setEditing("card")}
+          />
+        </div>
       }
     >
-      <div className="flex flex-col gap-3 pb-6">
+      <div className="r-pass flex flex-col gap-4 px-1 pb-6">
         <section className="r-rise">
-          <MotionCard
-            pass={pass}
-            onTap={() => setEditing("card")}
-            onScan={() => setScanning(true)}
-          />
+          <MotionCard pass={pass} onTap={() => setEditing("card")} />
         </section>
 
         {hasCard ? (
@@ -288,7 +292,7 @@ function WalletRoute() {
 
             <section className="r-card r-rise">
               {linked ? (
-                <div className="r-me-row">
+                <div className="r-row r-me-row">
                   <JccLogo className="h-9 w-9 shrink-0 rounded-md bg-white" />
                   <div className="flex-1 min-w-0">
                     <p className="r-t3 truncate">{r("pass.jccOn")}</p>
@@ -314,12 +318,14 @@ function WalletRoute() {
               ) : (
                 <button
                   type="button"
-                  className="r-me-row w-full text-left"
+                  className="r-row r-me-row w-full text-left"
                   onClick={() => setEditing("link")}
                 >
                   <JccLogo className="h-9 w-9 shrink-0 rounded-md bg-white" />
-                  <span className="flex-1 min-w-0 r-t3 truncate">{r("pass.jcc")}</span>
-                  <Icon name="caret-right" />
+                  <span className="flex-1 min-w-0 text-[16px] font-medium leading-tight">
+                    {r("pass.jcc")}
+                  </span>
+                  <Icon name="caret-right" size={16} style={{ color: "var(--r-mute)" }} />
                 </button>
               )}
             </section>
@@ -356,9 +362,6 @@ function WalletRoute() {
           </section>
         ) : null}
 
-        <section className="r-rise r-legacy">
-          <AccessibilityPrefsCard />
-        </section>
       </div>
 
       {editing !== "none" && (
