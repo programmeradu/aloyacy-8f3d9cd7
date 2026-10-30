@@ -2263,3 +2263,128 @@ html.r-has-resume .r-now-more {
 .r-scan-save:disabled {
   opacity: 0.35;
 }
+
+/* Install card: docked above the tab bar, never over a sheet. */
+.r-install-wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 39;
+  display: flex;
+  justify-content: center;
+  padding: 0 12px;
+  pointer-events: none;
+}
+.r-install {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 408px;
+  background: #fff;
+  color: var(--r-ink);
+  border-radius: 22px;
+  padding: 12px 12px 12px 12px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+.r-install-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.r-install-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+.r-install-text {
+  flex: 1;
+  min-width: 0;
+}
+.r-install-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.r-install-benefit {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--r-mute);
+}
+.r-install-btn {
+  flex: none;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
+  background: var(--r-ink);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.r-install-x {
+  flex: none;
+  position: relative;
+  width: 32px;
+  height: 32px;
+  margin: -4px -4px 0 0;
+  align-self: flex-start;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--r-ink2);
+  background: var(--r-pill);
+}
+.r-install-x::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+.r-install-steps {
+  margin-top: 10px;
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: var(--r-pill);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  font-weight: 500;
+  color: var(--r-ink);
+}
+.r-install-step {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.r-install-step b {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--r-ink);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-grid;
+  place-items: center;
+}
+.r-install-strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.r-install-glyph {
+  flex: none;
+  color: #007aff;
+}
+.r-install-glyph--ink {
+  color: var(--r-ink);
+}
