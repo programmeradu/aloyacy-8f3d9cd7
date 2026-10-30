@@ -1055,15 +1055,63 @@ button.r-row:active {
   border-radius: 28px;
 }
 
-/* Stop sheet departure hints (pay line, wait-or-bail, headway) */
-.r-dep-hints p {
-  margin-top: 3px;
+/* Stop sheet departure hints (pay line, wait-or-bail, headway): one clipped
+   secondary line under the row, full text on tap */
+.r-dep-more {
+  padding: 0 16px 12px 84px;
+  border-radius: 0 0 20px 20px;
+}
+.r-dep-more--first {
+  background: #fbf7ee;
+}
+.r-dep-more:has(.r-dep-hints:empty) {
+  display: none;
+}
+.r-dep-more summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  min-height: 24px;
+}
+.r-dep-more summary::-webkit-details-marker {
+  display: none;
+}
+.r-dep-hints {
+  flex: 1;
+  min-width: 0;
   font-size: 13px;
-  line-height: 1.35;
+  line-height: 18px;
   color: var(--r-ink2);
+}
+.r-dep-hints p {
+  margin: 0;
+}
+.r-dep-hints p + p {
+  margin-top: 4px;
 }
 .r-dep-hints p:empty {
   display: none;
+}
+.r-dep-more:not([open]) .r-dep-hints {
+  max-height: 18px;
+  overflow: hidden;
+}
+.r-dep-more:not([open]) .r-dep-hints p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.r-dep-caret {
+  flex: none;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--r-ink2);
+  transition: transform 0.2s;
+}
+.r-dep-more[open] .r-dep-caret {
+  transform: rotate(180deg);
 }
 
 /* Map-hero screens (Stop, Live trip): map on top, white notched sheet below */
@@ -1158,7 +1206,7 @@ button.r-row:active {
   color: var(--r-ink2);
 }
 .r-dep {
-  align-items: flex-start;
+  align-items: center;
   min-height: 72px;
   padding-top: 12px;
   padding-bottom: 12px;
@@ -1187,6 +1235,12 @@ button.r-row:active {
   right: 16px;
   height: 1px;
   background: var(--r-line);
+}
+.r-dep:has(+ .r-dep-more:not(:has(.r-dep-hints:empty))) {
+  padding-bottom: 8px;
+}
+.r-dep--first:has(+ .r-dep-more:not(:has(.r-dep-hints:empty))) {
+  border-radius: 20px 20px 0 0;
 }
 .r-dep-list > div:has(> .r-dep--first) + div > .r-dep::before {
   display: none;

@@ -14,6 +14,7 @@
 import { Link } from "@tanstack/react-router";
 import { RouteChip } from "@/components/RouteChip";
 import { RoamDepartureRow } from "@/components/stop/RoamDepartureRow";
+import { useRoamI18n } from "@/lib/roam-i18n";
 import { routeTone } from "@/lib/gtfs";
 import { tierAccent, type FreshnessTier, type FreshnessConfidence } from "@/lib/freshness";
 import { useI18n, type DictKey } from "@/lib/i18n";
@@ -94,6 +95,7 @@ export function DepartureRow({
   first,
 }: DepartureRowProps) {
   const { t } = useI18n();
+  const { r } = useRoamI18n();
   const accent = tierAccent(eta.tier);
   const tierLabel = t(
     eta.tier === "rider-confirmed" && eta.singleSource ? "eta.tier.riderOne" : TIER_KEYS[eta.tier],
@@ -136,6 +138,7 @@ export function DepartureRow({
         opShift={shifted ? t("eta.opShort", { m: eta.operatorEtaMin! }) : null}
         first={first}
         scheduledLabel={t("stop.scheduledAt", { time: clock })}
+        moreLabel={r("stop.moreAbout", { route: routeShort })}
         hints={
           <>
             {payKind && (
