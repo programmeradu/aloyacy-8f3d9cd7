@@ -149,8 +149,13 @@ export function smartEtaV2(input: SmartEtaV2Input): SmartEtaV2 | null {
   }
   const targetIdx = verts.findIndex((v) => v.stopId === input.stopId);
 
-  // ----- Fallback path: no usable geometry, lean on the operator number. ---
-  if (targetIdx < 0 || verts.length < 2) {
+  // ----- Fallback path: lean on the operator number. ---
+  // Used when there is no usable geometry, and when there is no vehicle
+  // position to measure from: without a bus on the map the distance model
+  // starts at the first known stop of the trip, which for a stop row is
+  // often the target itself, so every scheduled row read "0 min". The
+  // timetable/tripUpdate time minus now is the honest number then.
+  if (targetIdx < 0 || verts.length < 2 || !vehicle) {
     const adjusted = Math.max(0, operatorEtaSec + learnedBiasSec * LEARNED_BIAS_WEIGHT);
     const adjMin = Math.max(0, Math.round(adjusted / 60));
     const cls = classifyFreshness({

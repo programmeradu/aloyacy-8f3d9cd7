@@ -73,7 +73,8 @@ describe("useTripSeed origin", () => {
   it("uses the device location when no origin was given", async () => {
     window.history.replaceState({}, "", "/trips?toLabel=Paphos&toLat=34.77&toLng=32.42");
     const { result } = renderHook(() => useTripSeed());
-    await waitFor(() => expect(result.current.origin?.label).toBe("Device street"));
+    await waitFor(() => expect(result.current.origin?.label).toBe("Your location"));
+    expect(reverseLookup).not.toHaveBeenCalled();
     expect(result.current.origin).toMatchObject(GPS);
   });
 

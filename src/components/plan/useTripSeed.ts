@@ -6,9 +6,8 @@
 // Extracted from src/routes/trips.tsx so the route renders and this decides.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { parseSharedPlan } from "@aloya/core/plan-signals";
-import { reverseLookup } from "@/lib/maps.functions";
+import { useRoamI18n } from "@/lib/roam-i18n";
 import { NICOSIA_CENTER } from "@/lib/gtfs";
 import { pushRecent } from "@/lib/trip-store";
 import type { Point, TimeIntent } from "@/lib/plan-types";
@@ -35,7 +34,12 @@ export function useTripSeed(): TripSeed {
   const [active, setActive] = useState<"from" | "to" | null>(null);
   const [timeIntent, setTimeIntent] = useState<TimeIntent | null>(null);
 
-  const reverseFn = useServerFn(reverseLookup);
+  // The device-location origin reads "Your location" in the rider's language.
+  // A reverse-geocoded street came back in Greek even in English, and the
+  // rider knows where they are standing anyway.
+  const { r } = useRoamI18n();
+  const hereLabelRef = useRef(r("go.yourLocation"));
+  hereLabelRef.current = r("go.yourLocation");
 
   // Set (synchronously, before the geolocation effect runs in the same
   // commit) whenever an origin is given explicitly: by a deep link, by the
@@ -110,14 +114,7 @@ export function useTripSeed(): TripSeed {
 
     const applyFix = async (lat: number, lng: number) => {
       if (!gpsMayWrite()) return;
-      // Optimistic label so the UI unlocks before reverse-geocoding lands.
-      setOriginState({ lat, lng, label: `${lat.toFixed(4)}, ${lng.toFixed(4)}` });
-      try {
-        const { address } = await reverseFn({ data: { lat, lng } });
-        if (gpsMayWrite()) setOriginState({ lat, lng, label: address });
-      } catch {
-        // Keep the coordinate label rather than blanking the field.
-      }
+      setOriginState({ lat, lng, label: hereLabelRef.current });
     };
 
     const fallbackToCentre = () => {
