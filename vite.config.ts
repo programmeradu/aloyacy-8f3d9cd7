@@ -12,6 +12,7 @@ const isLovableSandbox =
   process.env.LOVABLE_SANDBOX === "1" || Boolean(process.env.DEV_SERVER__PROJECT_PATH);
 
 export default defineConfig({
+  nitro: false,
   tanstackStart: {
     server: { entry: "server" },
   },
