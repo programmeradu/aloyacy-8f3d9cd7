@@ -221,3 +221,15 @@ a.r-row:active, button.r-row:active { background: #f6f6f3; }
 .roam .r-legacy .bg-card { background: #fff; }
 .roam .r-legacy .ring-line { --tw-ring-color: transparent; }
 .roam .r-legacy [class*="rounded-[20px]"], .roam .r-legacy .rounded-2xl { border-radius: 28px; }
+
+/* Stop sheet departure hints (pay line, wait-or-bail, headway) */
+.r-dep-hints p { margin-top: 3px; font-size: 13px; line-height: 1.35; color: var(--r-ink2); }
+.r-dep-hints p:empty { display: none; }
+
+/* Map-hero screens (Stop, Live trip): map on top, white notched sheet below */
+.r-hero-map { position: relative; height: 360px; overflow: hidden; background: #3b3d38; }
+.r-hero-map .r-map-fill { position: absolute; inset: 0; }
+.r-hero-head { position: absolute; left: 0; right: 0; top: 0; z-index: 8; display: flex; align-items: center; gap: 10px; padding: calc(var(--r-safe-top) + 10px) 16px 0; }
+.r-hero-sheet { position: relative; z-index: 9; margin-top: -56px; }
+.r-hero-title { color: #fff; font-size: 22px; font-weight: 400; letter-spacing: -0.015em; text-align: center; line-height: 1.15; }
+.r-hero-sub { color: rgba(255,255,255,.88); font-size: 13px; text-align: center; margin-top: 2px; }

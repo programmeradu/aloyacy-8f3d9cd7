@@ -170,6 +170,10 @@ const en = {
   "pass.jccOn": "JCC linked",
   "pass.sync": "Sync",
   "pass.unlink": "Unlink",
+  "go.shade": "Shaded stops",
+  "go.shortWalk": "Short walks",
+  "stop.goHere": "Plan a trip to {name}",
+  "stop.filter": "Filter by line",
 } as const;
 
 export type RoamKey = keyof typeof en;
@@ -340,6 +344,10 @@ const el: Record<RoamKey, string> = {
   "pass.jccOn": "JCC συνδεδεμένο",
   "pass.sync": "Συγχρονισμός",
   "pass.unlink": "Αποσύνδεση",
+  "go.shade": "Στάσεις με σκιά",
+  "go.shortWalk": "Λίγο περπάτημα",
+  "stop.goHere": "Διαδρομή προς {name}",
+  "stop.filter": "Φίλτρο ανά γραμμή",
 };
 
 const dicts = { en: en as Record<RoamKey, string>, el };

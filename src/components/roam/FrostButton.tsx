@@ -1,6 +1,7 @@
 // Frosted circular button (Roam). Renders a <button> or, with `to`, a router
 // Link. Always 44px or larger, always labelled.
 import { forwardRef, type ReactNode } from "react";
+import type React from "react";
 import { Link } from "@tanstack/react-router";
 import { Icon } from "./Icon";
 
@@ -65,10 +66,15 @@ export function FrostLink({
   badgeDark,
   className,
   children,
-  ...link
+  to,
+  params,
+  search,
 }: Common & { to: string; params?: Record<string, string>; search?: Record<string, unknown> }) {
+  // Route strings come from callers at runtime, so the typed-route props are
+  // passed through untyped on purpose.
+  const linkProps = { to, params, search } as unknown as React.ComponentProps<typeof Link>;
   return (
-    <Link {...(link as Record<string, unknown>)} className={cls(variant, large, className)} aria-label={label}>
+    <Link {...linkProps} className={cls(variant, large, className)} aria-label={label}>
       <Inner icon={icon} badge={badge} badgeDark={badgeDark}>
         {children}
       </Inner>

@@ -8,7 +8,8 @@ import { seatLabel, seatPressure } from "./airport-board";
 
 export type AirportCoachDepartIn = {
   depart: string;
-  seatsAvailable: number;
+  /** null when the feed does not report seats (Kapnos has no seat_available). */
+  seatsAvailable: number | null;
   priceFrom?: string | null;
   /** Empty if today; otherwise "tomorrow" or a weekday chip. */
   dayChip?: string;
@@ -32,7 +33,7 @@ export type AirportCoachWay = {
   kind: "coach";
   destinationCity: string;
   depart: string;
-  seatsAvailable: number;
+  seatsAvailable: number | null;
   priceFrom: string | null;
   rideMin?: number;
   dayChip: string;

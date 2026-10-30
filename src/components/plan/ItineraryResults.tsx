@@ -52,7 +52,7 @@ function ItineraryRow({
         onStart={start}
         startLabel={t("trips.startThis")}
       />
-      <div className="px-1 flex flex-wrap items-center gap-2">
+      <div className="r-legacy px-1 flex flex-wrap items-center gap-2">
         <RemindMeButton itinerary={itinerary} origin={origin} destination={destination} />
         <SharePlanButton itinerary={itinerary} origin={origin} destination={destination} />
       </div>
@@ -60,37 +60,40 @@ function ItineraryRow({
   );
 }
 
+export type ResultSort = "rec" | "fast" | "direct";
+
 /**
- * Renders direct trips first, then any trips that need a transfer.
+ * Recommended: direct trips first, then any trips that need a transfer
+ * (planner order within each). Fastest: earliest arrival. Direct: fewest
+ * changes, then earliest arrival. The first card is the highlighted one.
  */
+export function sortItineraries(results: Itinerary[], sort: ResultSort = "rec"): Itinerary[] {
+  if (sort === "fast") return [...results].sort((a, b) => a.arrivalUnix - b.arrivalUnix);
+  if (sort === "direct")
+    return [...results].sort((a, b) => a.transfers - b.transfers || a.arrivalUnix - b.arrivalUnix);
+  const { direct, transfers } = splitItineraries(results);
+  return [...direct, ...transfers];
+}
+
 export function ItineraryResults({
   results,
   origin,
   destination,
+  sort = "rec",
 }: {
   results: Itinerary[];
   origin: Point;
   destination: Point;
+  sort?: ResultSort;
 }) {
-  const { t } = useI18n();
-  const { direct, transfers } = splitItineraries(results);
-
+  const ordered = sortItineraries(results, sort);
   return (
-    <div className="flex flex-col gap-3">
-      {direct.map((it, i) => (
+    <div className="flex flex-col gap-4">
+      {ordered.map((it, i) => (
         <ItineraryRow
-          key={`${it.id}-direct-${it.departureUnix}-${i}`}
+          key={`${it.id}-${it.departureUnix}-${i}`}
           itinerary={it}
-          highlight={i === 0 && direct.length > 0}
-          origin={origin}
-          destination={destination}
-        />
-      ))}
-      {transfers.map((it, i) => (
-        <ItineraryRow
-          key={`${it.id}-transfer-${it.departureUnix}-${i}`}
-          itinerary={it}
-          highlight={direct.length === 0 && i === 0}
+          highlight={i === 0}
           origin={origin}
           destination={destination}
         />

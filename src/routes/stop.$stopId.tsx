@@ -1,10 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AppShell } from "@/components/AppShell";
 import { MapPreview, type MapMarker } from "@/components/MapPreview";
-import { IconArrowLeft, IconShare } from "@/components/Icons";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { ResumeTripPill } from "@/components/ResumeTripPill";
+import { NotchCard } from "@/components/roam/NotchCard";
+import { BackButton, FrostButton } from "@/components/roam/FrostButton";
 import { StaleFeedBanner } from "@/components/StaleFeedBanner";
 import { DepartureRow } from "@/components/DepartureRow";
 import { SightingButton } from "@/components/SightingButton";
@@ -66,6 +68,7 @@ function StopDetail() {
   const { t, locale } = useI18n();
   const { r } = useRoamI18n();
   const [shareOpen, setShareOpen] = useState(false);
+  const [lineFilter, setLineFilter] = useState<string | null>(null);
   const { stopId } = Route.useParams();
   const stop = getStop(stopId);
   const { data: rt, isLoading, riderConfirmedAge, riderConfirmedCount } = useRealtime();
@@ -205,165 +208,194 @@ function StopDetail() {
   }, [departures, stopId]);
 
   const center = stop ? { lat: stop.lat, lng: stop.lng } : undefined;
+  const lineChips = Array.from(
+    new Map(departures.map((d) => [d.routeId, getRoute(d.routeId)?.short ?? d.routeId])).entries(),
+  );
+  const shown = lineFilter ? departures.filter((d) => d.routeId === lineFilter) : departures;
+  const goHref = stop
+    ? `/trips?toLat=${stop.lat}&toLng=${stop.lng}&toLabel=${encodeURIComponent(stop.name)}`
+    : "/trips";
 
   return (
-    <AppShell>
-      <div className="px-6 pt-2 pb-4 flex items-center justify-between animate-rise">
-        <Link
-          to="/"
-          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink"
-        >
-          <IconArrowLeft className="size-4" />
-        </Link>
-        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          {t("stop.kicker", { code: stop?.code ?? stopId })}
-        </span>
-        <span className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => openMeSheet("alerts")}
-          aria-label={r("me.alerts")}
-          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink hover:bg-limestone-soft transition-colors"
-        >
-          <Icon name="bell-simple" />
-        </button>
-        <button
-          type="button"
-          onClick={() => setShareOpen(true)}
-          aria-label={t("share.openLabel")}
-          className="flex size-10 items-center justify-center rounded-full bg-card ring-1 ring-line text-ink hover:bg-limestone-soft transition-colors"
-        >
-          <IconShare className="size-4" />
-        </button>
-        </span>
-      </div>
-
-      <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
-        <h1 className="font-display text-[40px] leading-[1.05] text-ink">
-          {stop?.name ?? t("stop.unknown")}
-        </h1>
-        <p className="mt-2 text-[13px] text-ink-soft">
-          {stop
-            ? stopAreaLine(stopId, stop.agency, r) || t("stop.serviceUrban")
-            : t("stop.notInDataset")}
-        </p>
-      </header>
-
-      {stopReliability && stopReliability.sampleCount > 0 && (
-        <section
-          className="px-6 pb-5 animate-rise"
-          style={{ animationDelay: "90ms" }}
-          aria-label={t("reliability.stopEyebrow")}
-        >
-          <StopReliabilityStrip r={stopReliability} />
-        </section>
-      )}
-
-      <StopCondition stopId={stopId} />
-
-      <section className="px-6 animate-rise" style={{ animationDelay: "120ms" }}>
-        <MapPreview
-          height="h-56"
-          center={center}
-          spanKm={2}
-          markers={
-            stop
-              ? ([
-                  { lat: stop.lat, lng: stop.lng, kind: "origin", label: stop.name },
-                ] as MapMarker[])
-              : undefined
-          }
-          restrictTripIds={departures.map((d) => d.tripId)}
-          liveLabel={{
-            active:
-              departures.length === 1
-                ? t("stop.busesServingOne")
-                : t("stop.busesServingN", { n: departures.length }),
-            empty: t("stop.noBusesNear"),
-          }}
-          fitToContent={false}
-        />
-      </section>
-
-      {/* Ghost-bus banner — surfaces when the soonest departure has no
-          fresh GPS. Honest fallback in place of a phantom "live" claim. */}
-      {departures.length > 0 && departures[0].eta.tier === "ghost" && (
-        <div className="mt-4">
-          <StaleFeedBanner variant="ghost-bus" />
-        </div>
-      )}
-
-      <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "180ms" }}>
-        <div className="flex items-end justify-between gap-4 mb-4">
-          <div className="min-w-0">
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.24em] text-ink-soft">
-              {t("stop.heroEyebrow")}
-            </span>
-            <h2 className="mt-1 font-display text-[22px] sm:text-[26px] leading-[1.1] text-ink">
-              {t("stop.nextDepartures")}
-            </h2>
+    <div className="roam r-page">
+      <div className="r-col">
+        <OfflineBanner />
+        <div className="r-hero-map r-mapwrap">
+          <div className="r-map-fill">
+            <MapPreview
+              bare
+              center={center ? { lat: center.lat - 0.0016, lng: center.lng } : undefined}
+              spanKm={1.4}
+              markers={
+                stop
+                  ? ([{ lat: stop.lat, lng: stop.lng, kind: "origin", label: stop.name }] as MapMarker[])
+                  : undefined
+              }
+              restrictTripIds={departures.map((d) => d.tripId)}
+              fitToContent={false}
+              attribTop="calc(var(--r-safe-top) + 64px)"
+            />
           </div>
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-ink-soft shrink-0 pb-1">
-            {isLoading ? t("stop.loading") : t("stop.liveSmart")}
-          </span>
+          <div className="r-shade-top" style={{ height: 150 }} />
+          <div className="r-haze r-haze--tr" />
+          <header className="r-hero-head">
+            <BackButton label={r("back")} />
+            <span className="flex-1" />
+            <FrostButton icon="bell-simple" label={r("me.alerts")} onClick={() => openMeSheet("alerts")} />
+            <FrostButton icon="share-network" label={t("share.openLabel")} onClick={() => setShareOpen(true)} />
+          </header>
         </div>
 
-        {departures.length === 0 ? (
-          <div className="rounded-3xl bg-card p-6 text-center ring-1 ring-line">
-            <p className="font-display text-lg text-ink">{t("stop.noUpcomingTitle")}</p>
-            <p className="mt-1 text-[12px] text-ink-soft">{t("stop.noUpcomingBody")}</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {departures.map((d, i) => {
-              const route = getRoute(d.routeId);
-              const isGhost = d.eta.tier === "ghost";
-              const headsign = getHeadsignSync(d.tripId, d.routeId);
-              return (
-                <div key={d.tripId + d.routeId + i}>
-                  <DepartureRow
-                    tripId={d.tripId}
-                    routeId={d.routeId}
-                    routeShort={route?.short ?? "?"}
-                    routeLong={route?.long ?? t("stop.routeFallback")}
-                    headsign={headsign}
-                    stopId={stopId}
-                    arrivalUnix={d.arrivalUnix}
-                    eta={{
-                      etaMin: isGhost ? null : d.eta.etaMin,
-                      band: d.eta.band,
-                      tier: d.eta.tier,
-                      confidence: d.eta.confidence,
-                      operatorEtaMin: d.eta.operatorEtaMin,
-                      pingAgeSec: d.eta.pingAgeSec,
-                      singleSource: d.eta.singleSource,
-                    }}
-                    noShow={pickNoShow(noShowSlots, d.routeId, d.arrivalUnix, Date.now())}
-                    lastTonight={
-                      rt ? lastTonightOnRoute(rt.arrivals, stopId, d.routeId, d.arrivalUnix) : false
-                    }
-                    headway={headwayByTrip.get(d.tripId) ?? null}
-                    waitOrBail={waitOrBailByTrip.get(d.tripId) ?? null}
-                    agency={route?.agency}
-                  />
+        <NotchCard
+          className="r-hero-sheet"
+          radius={34}
+          shadow="drop-shadow(0 -8px 24px rgba(0,0,0,.16))"
+          notches={[
+            {
+              edge: "top",
+              cx: -66,
+              width: 100,
+              depth: 26,
+              dock: (
+                <a href={goHref} className="r-fb r-fb--white r-fb--lg" aria-label={r("stop.goHere", { name: stop?.name ?? "" })}>
+                  <Icon name="arrow-bend-up-right" />
+                </a>
+              ),
+            },
+          ]}
+        >
+          <div className="px-5 pt-7" style={{ paddingBottom: "calc(var(--r-safe-bottom) + 120px)", minHeight: "calc(100dvh - 304px)" }}>
+            <h1 className="r-t1 pr-16">{stop?.name ?? t("stop.unknown")}</h1>
+            <p className="r-lbl mt-1.5">
+              {t("stop.kicker", { code: stop?.code ?? stopId })}
+              {" · "}
+              {stop ? stopAreaLine(stopId, stop.agency, r) || t("stop.serviceUrban") : t("stop.notInDataset")}
+            </p>
 
-                  {isGhost && stop && (
-                    <div className="mt-2 px-1">
-                      <SightingButton
+            {lineChips.length > 1 && (
+              <div className="r-hscroll mt-4" role="group" aria-label={r("stop.filter")}>
+                <button
+                  type="button"
+                  aria-pressed={lineFilter == null}
+                  onClick={() => setLineFilter(null)}
+                  className={`r-pill r-pill--lg ${lineFilter == null ? "r-pill--k" : "r-pill--o"}`}
+                >
+                  {r("lines.all")}
+                </button>
+                {lineChips.map(([id, short]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={lineFilter === id}
+                    onClick={() => setLineFilter(lineFilter === id ? null : id)}
+                    className={`r-pill r-pill--lg r-tnum ${lineFilter === id ? "r-pill--k" : "r-pill--o"}`}
+                  >
+                    {short}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Ghost-bus banner: surfaces when the soonest departure has no
+                fresh GPS. Honest fallback in place of a phantom "live" claim. */}
+            {departures.length > 0 && departures[0].eta.tier === "ghost" && (
+              <div className="r-legacy -mx-5 mt-3">
+                <StaleFeedBanner variant="ghost-bus" />
+              </div>
+            )}
+
+            <div className="mt-4 flex items-baseline justify-between">
+              <h2 className="r-t3">{t("stop.nextDepartures")}</h2>
+              <span className="r-conf">
+                {isLoading ? (
+                  <>
+                    <span className="r-dot r-dot--grey" />
+                    {t("stop.loading")}
+                  </>
+                ) : (
+                  <>
+                    <span className="r-dot" />
+                    {departures.length === 1
+                      ? t("stop.busesServingOne")
+                      : departures.length > 1
+                        ? t("stop.busesServingN", { n: departures.length })
+                        : t("stop.noBusesNear")}
+                  </>
+                )}
+              </span>
+            </div>
+
+            {departures.length === 0 ? (
+              <div className="mt-3 rounded-[22px] bg-[#f3f3f0] p-5 text-center">
+                <p className="r-t3">{t("stop.noUpcomingTitle")}</p>
+                <p className="r-lbl mt-1">{t("stop.noUpcomingBody")}</p>
+              </div>
+            ) : (
+              <div className="-mx-3 mt-2">
+                {shown.map((d, i) => {
+                  const route = getRoute(d.routeId);
+                  const isGhost = d.eta.tier === "ghost";
+                  const headsign = getHeadsignSync(d.tripId, d.routeId);
+                  return (
+                    <div key={d.tripId + d.routeId + i}>
+                      <DepartureRow
+                        variant="roam"
+                        first={i === 0 && !lineFilter}
                         tripId={d.tripId}
                         routeId={d.routeId}
+                        routeShort={route?.short ?? "?"}
+                        routeLong={route?.long ?? t("stop.routeFallback")}
+                        headsign={headsign}
                         stopId={stopId}
-                        lat={stop.lat}
-                        lng={stop.lng}
+                        arrivalUnix={d.arrivalUnix}
+                        eta={{
+                          etaMin: isGhost ? null : d.eta.etaMin,
+                          band: d.eta.band,
+                          tier: d.eta.tier,
+                          confidence: d.eta.confidence,
+                          operatorEtaMin: d.eta.operatorEtaMin,
+                          pingAgeSec: d.eta.pingAgeSec,
+                          singleSource: d.eta.singleSource,
+                        }}
+                        noShow={pickNoShow(noShowSlots, d.routeId, d.arrivalUnix, Date.now())}
+                        lastTonight={
+                          rt ? lastTonightOnRoute(rt.arrivals, stopId, d.routeId, d.arrivalUnix) : false
+                        }
+                        headway={headwayByTrip.get(d.tripId) ?? null}
+                        waitOrBail={waitOrBailByTrip.get(d.tripId) ?? null}
+                        agency={route?.agency}
                       />
+
+                      {isGhost && stop && (
+                        <div className="r-legacy px-3 pb-2">
+                          <SightingButton
+                            tripId={d.tripId}
+                            routeId={d.routeId}
+                            stopId={stopId}
+                            lat={stop.lat}
+                            lng={stop.lng}
+                          />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            )}
+
+            {stopReliability && stopReliability.sampleCount > 0 && (
+              <section className="r-legacy -mx-5 mt-5 px-5" aria-label={t("reliability.stopEyebrow")}>
+                <StopReliabilityStrip r={stopReliability} />
+              </section>
+            )}
+
+            <div className="r-legacy -mx-6 mt-3">
+              <StopCondition stopId={stopId} />
+            </div>
           </div>
-        )}
-      </section>
+        </NotchCard>
+      </div>
+      <ResumeTripPill />
 
       {stop && (
         <ShareSheet
@@ -388,6 +420,6 @@ function StopDetail() {
           }}
         />
       )}
-    </AppShell>
+    </div>
   );
 }

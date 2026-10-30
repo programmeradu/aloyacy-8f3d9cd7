@@ -1,7 +1,6 @@
 import { cyInputToMs, cyInputValue, cyParts, cyWallToMs } from "@aloya/core/cy-time";
 import { useEffect, useMemo, useState } from "react";
 import { buildTimePresets, type TimePreset } from "@aloya/core/time-presets";
-import { IconArrowUpRight, IconClock, IconPin } from "@/components/Icons";
 import { useI18n } from "@/lib/i18n";
 import { useTimeHistory } from "@/lib/time-history";
 import { formatIntentLabel, suggestionLabel } from "@/lib/plan-bridge";
@@ -17,11 +16,11 @@ export function EmptyState({
 }) {
   const { t } = useI18n();
   return (
-    <div className="rounded-[28px] bg-card p-6 ring-1 ring-line">
-      <p className="font-display text-lg text-ink leading-tight text-balance">
+    <div className="r-card r-card--pad">
+      <p className="r-t3 text-balance">
         {origin && !destination ? t("trips.emptyTitleA") : t("trips.emptyTitleB")}
       </p>
-      <p className="mt-2 text-[13px] text-ink-soft leading-relaxed">{t("trips.emptyBody")}</p>
+      <p className="r-lbl mt-1.5 leading-relaxed">{t("trips.emptyBody")}</p>
     </div>
   );
 }
@@ -35,36 +34,25 @@ export function PersonalSuggestions({
 }) {
   const { t } = useI18n();
   return (
-    <div className="flex flex-col gap-2.5">
-      {items.map((s) => {
-        const { text, sizeClass } = suggestionLabel(s.toLabel);
-        return (
-          <button
-            key={s.key}
-            onClick={() => onPick(s)}
-            className="group flex items-center gap-4 rounded-[24px] bg-card ring-1 ring-line px-5 py-4 text-left transition-colors hover:bg-limestone-soft/60 active:scale-[0.995]"
-          >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-aegean/15 ring-1 ring-aegean/30 font-display text-[18px] text-aegean-deep tabular-nums">
-              {s.count > 9 ? "9+" : s.count}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p
-                className={`font-display ${sizeClass} leading-[1.2] text-ink break-words [overflow-wrap:anywhere] line-clamp-2`}
-                title={text}
-              >
-                {text}
-              </p>
-              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft truncate">
-                {s.blurb}
-              </p>
-            </div>
-            <IconArrowUpRight className="size-4 text-ink-soft transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </button>
-        );
-      })}
-      <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-        {t("trips.learnedFromPast")}
-      </p>
+    <div>
+      <div className="r-card overflow-hidden">
+        {items.map((s) => {
+          const { text } = suggestionLabel(s.toLabel);
+          return (
+            <button key={s.key} type="button" onClick={() => onPick(s)} className="r-row w-full text-left">
+              <span className="r-icobox r-tnum text-[15px] font-semibold">{s.count > 9 ? "9+" : s.count}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[16px] font-medium" title={text}>
+                  {text}
+                </span>
+                <span className="r-lbl block truncate">{s.blurb}</span>
+              </span>
+              <i className="ph ph-arrow-up-right" style={{ fontSize: 17, color: "var(--r-mute)" }} aria-hidden="true" />
+            </button>
+          );
+        })}
+      </div>
+      <p className="r-lbl mt-2 px-1">{t("trips.learnedFromPast")}</p>
     </div>
   );
 }
@@ -75,7 +63,7 @@ export function PlanningSkeleton() {
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="h-28 rounded-3xl bg-card ring-1 ring-line animate-pulse"
+          className={`h-36 rounded-[26px] animate-pulse ${i === 0 ? "bg-[var(--r-char)]" : "bg-white"}`}
           style={{ animationDelay: `${i * 80}ms` }}
         />
       ))}
@@ -100,43 +88,27 @@ export function FieldRow({
 }) {
   const { t } = useI18n();
   return (
-    <button
-      onClick={onActivate}
-      className={`group flex w-full items-center gap-3 rounded-[22px] px-4 py-3 text-left transition-colors ${
-        active ? "bg-limestone-soft" : "hover:bg-limestone-soft/60"
-      }`}
-    >
-      <span
-        className={`flex size-9 items-center justify-center rounded-full ring-1 ${
-          role === "from"
-            ? "bg-aegean-soft/60 text-aegean-deep ring-aegean-soft"
-            : "bg-ochre-soft text-ochre ring-ochre-soft"
-        }`}
-      >
-        {role === "from" ? (
-          <span className="block size-2 rounded-full bg-current" />
-        ) : (
-          <IconPin className="size-4" />
-        )}
+    <div className={`flex w-full items-center gap-3 rounded-[20px] px-3 transition-colors ${active ? "bg-[#f3f3f0]" : ""}`}>
+      <span className="flex w-4 justify-center" aria-hidden="true">
+        {role === "from" ? <span className="r-dot" style={{ width: 10, height: 10 }} /> : <span className="r-ring" style={{ width: 11, height: 11, boxShadow: "inset 0 0 0 3px var(--r-ink)" }} />}
       </span>
-      <div className="min-w-0 flex-1">
-        <p className="font-sans text-[11px] font-semibold tracking-tight text-ink-soft">{label}</p>
-        <p className={`truncate text-[15px] ${point ? "text-ink font-medium" : "text-ink-soft"}`}>
+      <button type="button" onClick={onActivate} className="min-w-0 flex-1 py-3 text-left">
+        <span className="block r-lbl">{label}</span>
+        <span className={`mt-0.5 block truncate text-[16px] ${point ? "font-medium text-[var(--r-ink)]" : "text-[var(--r-mute)]"}`}>
           {point?.label ?? (role === "from" ? t("trips.detecting") : t("trips.searchPlaceholder"))}
-        </p>
-      </div>
-      {point && (
-        <span
-          onClick={(e) => {
-            e.stopPropagation();
-            onClear();
-          }}
-          className="rounded-full bg-limestone-soft px-3 py-1.5 font-sans text-[11px] font-semibold tracking-tight text-ink-soft hover:bg-ink hover:text-limestone transition-colors"
-        >
-          {t("trips.clear")}
         </span>
+      </button>
+      {point && (
+        <button
+          type="button"
+          onClick={onClear}
+          aria-label={`${t("trips.clear")} ${label}`}
+          className="flex size-9 shrink-0 items-center justify-center rounded-full text-[var(--r-mute)]"
+        >
+          <i className="ph ph-x" style={{ fontSize: 16 }} aria-hidden="true" />
+        </button>
       )}
-    </button>
+    </div>
   );
 }
 
@@ -251,39 +223,29 @@ export function TimeIntentChip({
     { key: "arrive", label: t("trips.intentArriveBy") },
   ];
 
-  const activeIndex = options.findIndex((o) => o.key === mode);
-
   return (
-    <div className="mt-3 rounded-[20px] bg-card ring-1 ring-line px-2.5 py-2">
-      {/* One equal-width segmented track with a sliding thumb reads faster than
-          three loose pills, and it never reflows as the labels change length. */}
-      <div className="relative grid grid-cols-3 rounded-full bg-limestone-soft p-0.5 ring-1 ring-line/70">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0.5 left-0.5 w-[calc((100%-0.25rem)/3)] rounded-full bg-ink transition-transform duration-200 ease-out"
-          style={{ transform: `translateX(${Math.max(activeIndex, 0) * 100}%)` }}
-        />
+    <div className="mt-4">
+      <div className="flex flex-wrap items-center gap-2" role="group">
         {options.map((o) => (
           <button
             key={o.key}
             type="button"
             onClick={() => set(o.key)}
             aria-pressed={mode === o.key}
-            className={`relative z-10 flex h-8 items-center justify-center gap-1.5 rounded-full px-2 font-sans text-[12.5px] font-semibold transition-colors ${
-              mode === o.key ? "text-limestone" : "text-ink-soft hover:text-ink"
-            }`}
+            className={`r-pill r-pill--lg ${mode === o.key ? "r-pill--k" : "r-pill--w"}`}
           >
-            {o.key === "now" && <IconClock className="size-3.5 shrink-0" />}
-            <span className="truncate">{o.label}</span>
+            {o.key === "now" && <i className="ph ph-clock" aria-hidden="true" />}
+            {o.label}
           </button>
         ))}
       </div>
 
       {mode !== "now" && (
-        <div className="mt-2 flex items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="r-hscroll mt-2">
           {/* The native picker sits transparent over its own chip so the row
               stays one consistent scale instead of a full-width input block. */}
-          <label className="relative flex h-8 shrink-0 items-center rounded-full bg-limestone-soft px-3.5 font-sans text-[12.5px] font-semibold text-ink ring-1 ring-line focus-within:ring-aegean">
+          <label className="r-pill r-pill--lg r-pill--w relative" style={{ boxShadow: "inset 0 0 0 1.5px var(--r-ink)" }}>
+            <i className="ph ph-calendar-blank" aria-hidden="true" />
             <span className="whitespace-nowrap">
               {iso ? formatIntentLabel(iso, t) : t("trips.intentSetTime")}
             </span>
@@ -306,15 +268,11 @@ export function TimeIntentChip({
                 type="button"
                 onClick={() => setISO(p.iso)}
                 aria-pressed={active}
-                className={`flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3.5 font-sans text-[12.5px] font-semibold ring-1 transition-colors ${
-                  active
-                    ? "bg-aegean/12 text-aegean-deep ring-aegean/40"
-                    : "bg-limestone-soft text-ink-soft ring-line hover:text-ink"
-                }`}
+                className={`r-pill r-pill--lg ${active ? "r-pill--y" : "r-pill--w"}`}
               >
                 <span className="whitespace-nowrap">{presetLabel(p, t, locale)}</span>
                 {p.source === "habit" && (
-                  <span className="rounded-full bg-ochre/20 px-1.5 font-mono text-[9.5px] tracking-[0.08em] text-ink uppercase">
+                  <span className="r-lbl" style={{ fontSize: 12 }}>
                     {t("trips.presetUsual")}
                   </span>
                 )}

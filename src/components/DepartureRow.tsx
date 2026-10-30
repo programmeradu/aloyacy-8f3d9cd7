@@ -49,6 +49,10 @@ type DepartureRowProps = {
   waitOrBail?: WaitOrBail | null;
   agency?: string;
   feedId?: number;
+  /** Roam: compact row for the stop sheet list (same signals, new layout). */
+  variant?: "roam";
+  /** Roam: the soonest departure gets the yellow line pill. */
+  first?: boolean;
 };
 
 const TIER_KEYS: Record<FreshnessTier, DictKey> = {
@@ -85,6 +89,8 @@ export function DepartureRow({
   waitOrBail,
   agency,
   feedId,
+  variant,
+  first,
 }: DepartureRowProps) {
   const { t } = useI18n();
   const accent = tierAccent(eta.tier);
@@ -113,6 +119,71 @@ export function DepartureRow({
   const origin = fallback[0];
   const destination = (headsign && headsign.trim()) || fallback[1];
   const payKind = boardingPayKind({ agency, feedId, short: routeShort });
+
+  if (variant === "roam") {
+    const mark =
+      eta.tier === "live" || eta.tier === "rider-confirmed" ? (
+        <span className="r-dot" />
+      ) : eta.tier === "scheduled" ? (
+        <span className="r-ring" />
+      ) : (
+        <span className="r-dot r-dot--grey" />
+      );
+    const showClock = eta.etaMin == null || eta.etaMin >= 60;
+    return (
+      <Link
+        to="/trip-info/$tripId"
+        params={{ tripId }}
+        search={{ from: stopId }}
+        className="r-row items-start"
+        style={{ minHeight: 68, paddingTop: 12, paddingBottom: 12, ["--r-row-inset" as string]: "16px", background: first ? "#fbf7ee" : undefined, borderRadius: first ? 20 : undefined }}
+      >
+        <span className={`r-pill r-tnum mt-0.5 ${first ? "r-pill--y" : ""}`} style={{ height: 28, minWidth: 58, justifyContent: "center", padding: "0 10px", gap: 4 }}>
+          <i className="ph ph-bus" style={{ fontSize: 15 }} aria-hidden="true" />
+          {routeShort}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[16px] font-medium leading-snug line-clamp-2">{destination || origin}</span>
+          <span className="r-lbl mt-0.5 block r-tnum">
+            {t("stop.scheduledAt", { time: clock })}
+            {showBand ? ` · ${eta.band}` : ""}
+          </span>
+          <span className="r-dep-hints block">
+            {payKind && <PayLine kind={payKind} t={t} atMs={arrivalUnix ? arrivalUnix * 1000 : undefined} />}
+            {waitOrBail && <WaitOrBailLine action={waitOrBail} t={t} />}
+            {eta.tier === "rider-confirmed" && eta.pingAgeSec != null && Number.isFinite(eta.pingAgeSec) && (
+              <p>{t("stop.riderChain", { n: Math.round(eta.pingAgeSec) })}</p>
+            )}
+            {lastTonight && waitOrBail?.kind !== "bail" && <p>{t("stop.lastTonight", { route: routeShort })}</p>}
+            {noShow && (
+              <p>
+                {t(noShow.weekend ? "stop.noShowWeekend" : "stop.noShowWeekday", {
+                  time: clock,
+                  missed: noShow.missed,
+                  days: noShow.days,
+                })}
+              </p>
+            )}
+            {headway && !waitOrBail && <HeadwayLines hint={headway} routeShort={routeShort} t={t} />}
+          </span>
+        </span>
+        <span className="flex shrink-0 flex-col items-end gap-1 pl-1 text-right">
+          <span className="text-[20px] font-medium leading-none r-tnum">
+            {showClock ? clock : `${eta.etaMin} min`}
+          </span>
+          {shifted ? (
+            <span className="r-lbl line-through r-tnum" style={{ fontSize: 12 }}>
+              {t("eta.opShort", { m: eta.operatorEtaMin! })}
+            </span>
+          ) : null}
+          <span className="r-conf" style={{ fontSize: 12.5 }}>
+            {mark}
+            {tierLabel}
+          </span>
+        </span>
+      </Link>
+    );
+  }
 
   return (
     <Link
