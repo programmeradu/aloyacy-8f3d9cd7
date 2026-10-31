@@ -121,7 +121,9 @@ function pillsBlock(codes: string[], colors: (string | undefined)[]): Block {
 function linkBlock(link: string): Block {
   const size = 21;
   let s = link.replace(/^https?:\/\//, "");
-  if (textWidth(s, size, 600) > TW) s = s.split("/")[0];
+  // The width estimate runs short on long mixed-case tokens: keep a wide margin,
+  // and fall back to the host alone rather than run off the card.
+  if (textWidth(s, size, 600) > TW - 90) s = s.split("/")[0];
   return { h: 26, draw: (y) => text(IN, y + 20, s, { size, weight: 600, fill: R.mute }) };
 }
 
