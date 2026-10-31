@@ -23,6 +23,11 @@ jobs:
         with:
           node-version: 22
       - run: bun install --frozen-lockfile || bun install
+      - name: Refresh GTFS timetable shards (all operators, Cyprus yesterday + 14 days)
+        continue-on-error: true
+        run: |
+          bun scripts/ingest-schedule.ts
+          ls public/data/schedule/by-date
       - run: npx vite build
         env:
           NODE_OPTIONS: --max-old-space-size=6144

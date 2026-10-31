@@ -11,12 +11,12 @@
 // indifferent to which planner produced a given result.
 
 import { loadScheduleForDate, todayLocalDate, serviceDateToUnix } from "./schedule-loader.server";
+import { cyParts } from "@aloya/core/cy-time";
 
 /** Cyprus-local YYYYMMDD for a given unix second timestamp. */
 export function localDateForUnix(unix: number): string {
-  // UTC+3 approximation matches todayLocalDate().
-  const d = new Date(unix * 1000 + 3 * 3600 * 1000);
-  return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
+  const p = cyParts(unix * 1000);
+  return `${p.year}${String(p.month).padStart(2, "0")}${String(p.day).padStart(2, "0")}`;
 }
 void todayLocalDate;
 import { planRaptor, type RaptorDiagnostics } from "./raptor.server";

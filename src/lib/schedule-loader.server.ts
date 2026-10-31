@@ -13,6 +13,7 @@
 // entirely on the Worker.
 
 import { getRequest } from "@tanstack/react-start/server";
+import { cyParts, cyWallToMs } from "@aloya/core/cy-time";
 
 export type ScheduleStop = { name: string; lat: number; lng: number; feedId: number };
 export type ScheduleRoute = {
@@ -147,12 +148,9 @@ export async function loadTrips(): Promise<Record<string, ScheduleTrip>> {
 }
 
 export function todayLocalDate(offsetDays = 0): string {
-  // Cyprus is UTC+2/+3. The schedule's service dates are local calendar
-  // dates, so we use the user's local date. The Worker has no local TZ,
-  // so we approximate by UTC+3 (Cyprus summer); off-by-one near midnight
-  // is acceptable for a planner that already searches the current + next day.
-  const now = new Date(Date.now() + (3 + offsetDays * 24) * 3600 * 1000);
-  return `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, "0")}${String(now.getUTCDate()).padStart(2, "0")}`;
+  // Service dates are Cyprus calendar dates (Asia/Nicosia, EET/EEST).
+  const p = cyParts(Date.now() + offsetDays * 86_400_000);
+  return `${p.year}${String(p.month).padStart(2, "0")}${String(p.day).padStart(2, "0")}`;
 }
 
 /** Dates whose shard is not published. Re-fetching a known 404 on every plan
@@ -213,13 +211,13 @@ export async function loadScheduleForDate(date: string): Promise<LoadedSchedule>
 /** Convert HH:MM:SS-since-service-midnight + service date → unix seconds.
  *  GTFS values may exceed 86400 (post-midnight on same operating day). */
 export function serviceDateToUnix(date: string, secSinceMidnight: number): number {
-  // date is YYYYMMDD in Cyprus local time. Midnight local = UTC-3 (summer).
+  // date is YYYYMMDD in Cyprus local time. GTFS times count from "noon minus
+  // 12h" of the service day, which keeps DST changeover days exact. The
+  // offset is DST-aware (UTC+2 winter, UTC+3 summer): a fixed +3 put every
+  // winter departure an hour early.
   const y = Number(date.slice(0, 4));
-  const m = Number(date.slice(4, 6)) - 1;
+  const m = Number(date.slice(4, 6));
   const d = Number(date.slice(6, 8));
-  // Cyprus is UTC+3 in summer (DST). Off-by-an-hour in winter is acceptable
-  // for a search horizon of a few hours; the realtime overlay corrects exact
-  // times for any leg whose tripId matches the live feed.
-  const midnightUtcMs = Date.UTC(y, m, d) - 3 * 3600 * 1000;
-  return Math.floor(midnightUtcMs / 1000) + secSinceMidnight;
+  const midnightMs = cyWallToMs(y, m, d, 12, 0) - 12 * 3600 * 1000;
+  return Math.floor(midnightMs / 1000) + secSinceMidnight;
 }

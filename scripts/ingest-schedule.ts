@@ -21,6 +21,7 @@ import { join } from "node:path";
 import { execSync } from "node:child_process";
 import { gzipSync } from "node:zlib";
 import { resolveServiceDates } from "@aloya/core/schedule-calendar";
+import { cyParts } from "@aloya/core/cy-time";
 
 const FEED_IDS = [2, 4, 5, 6, 9, 10, 11];
 const BASE = "https://motionbuscard.org.cy/opendata/downloadfile?file=GTFS\\";
@@ -267,15 +268,15 @@ void stopTrips;
 // stop-trips containing only trips whose service is active on that date.
 // This is what the Worker actually loads at request time.
 
-const SHARD_DAYS = 14;
-const today = new Date();
+// Window is in Cyprus calendar days (Asia/Nicosia), starting yesterday so a
+// rider just after midnight (and post-midnight trips of the previous service
+// day) still has a shard, then today + SHARD_DAYS - 1 days ahead.
+const SHARD_DAYS = 15;
+const nowMs = Date.now();
 const dates: string[] = [];
-for (let i = 0; i < SHARD_DAYS; i++) {
-  const d = new Date(today);
-  d.setUTCDate(today.getUTCDate() + i);
-  dates.push(
-    `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`,
-  );
+for (let i = -1; i < SHARD_DAYS; i++) {
+  const p = cyParts(nowMs + i * 86_400_000);
+  dates.push(`${p.year}${String(p.month).padStart(2, "0")}${String(p.day).padStart(2, "0")}`);
 }
 
 // Reverse index: date → active service ids. Feeds that publish only a short

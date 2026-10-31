@@ -245,6 +245,24 @@ export const getLivePulse = createServerFn({ method: "GET" })
 
   const delays = [...latest.values()];
   if (delays.length === 0) {
+    // No ingested snapshots (cron-less deploy, or the ingest is behind): read
+    // the live GTFS-RT feed directly and take each running trip's next stop.
+    try {
+      const { fetchRealtime } = await import("./gtfs-rt.server");
+      const snap = await fetchRealtime();
+      const nowSec = Math.floor(Date.now() / 1000);
+      const nextByTrip = new Map<string, { t: number; d: number }>();
+      for (const a of snap.arrivals ?? []) {
+        if (!a.tripId || !Number.isFinite(a.arrivalUnix) || a.arrivalUnix < nowSec - 120) continue;
+        const cur = nextByTrip.get(a.tripId);
+        if (!cur || a.arrivalUnix < cur.t) nextByTrip.set(a.tripId, { t: a.arrivalUnix, d: a.delaySec ?? 0 });
+      }
+      for (const v of nextByTrip.values()) delays.push(v.d);
+    } catch {
+      // feed unreachable: fall through to the empty state
+    }
+  }
+  if (delays.length === 0) {
     return {
       generatedAt: Math.floor(Date.now() / 1000),
       windowMinutes: WINDOW_MIN,
