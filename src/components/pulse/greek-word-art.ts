@@ -1,8 +1,13 @@
 // Painted art and a recorded clip for each Greek word of the day.
 // Art: hand-painted squares in the Cyprus today style (src/assets/wotd), one
-// per word in src/data/cyprus-greek-words.json. Audio: a short Greek clip per
-// word in /audio/wotd, so the speaker works even when the browser has no Greek
-// voice and the speech endpoint is not configured.
+// per word in src/data/cyprus-greek-words.json. Audio: a real native speaker
+// recording from Wikimedia Commons in /audio/greek, credited in
+// src/data/greek-voice-credits.json. A word without one has no audio, never a
+// synthetic voice.
+
+import voiceCredits from "@/data/greek-voice-credits.json";
+
+const VOICED = new Set((voiceCredits as { slug: string }[]).map((c) => c.slug));
 
 const ART = import.meta.glob<string>("/src/assets/wotd/*.webp", {
   eager: true,
@@ -59,10 +64,10 @@ export function greekWordArt(word: string | null | undefined): string {
   return ART[`/src/assets/wotd/${slug}.webp`] ?? ART["/src/assets/wotd/omorfa.webp"] ?? "";
 }
 
-/** The recorded clip for a word, when there is one. */
+/** The native speaker clip for a word, or null when there is no recording. */
 export function greekWordAudio(word: string | null | undefined): string | null {
   const slug = greekWordSlug(word);
-  return slug ? `/audio/wotd/${slug}.mp3` : null;
+  return slug && VOICED.has(slug) ? `/audio/greek/${slug}.mp3` : null;
 }
 
 /** Display size for the word: long words step down so nothing clips. */

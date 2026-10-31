@@ -1,0 +1,102 @@
+[
+  {
+    "slug": "kalimera",
+    "word": "Καλημέρα",
+    "file": "EL-καλημέρα.ogg",
+    "author": "Sarri.greek",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:EL-%CE%BA%CE%B1%CE%BB%CE%B7%CE%BC%CE%AD%CF%81%CE%B1.ogg",
+    "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  },
+  {
+    "slug": "kalispera",
+    "word": "Καλησπέρα",
+    "file": "EL-καλησπέρα.ogg",
+    "author": "Sarri.greek",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:EL-%CE%BA%CE%B1%CE%BB%CE%B7%CF%83%CF%80%CE%AD%CF%81%CE%B1.ogg",
+    "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  },
+  {
+    "slug": "efharisto",
+    "word": "Ευχαριστώ",
+    "file": "EL-ευχαριστώ.ogg",
+    "author": "Sarri.greek",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:EL-%CE%B5%CF%85%CF%87%CE%B1%CF%81%CE%B9%CF%83%CF%84%CF%8E.ogg",
+    "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  },
+  {
+    "slug": "parakalo",
+    "word": "Παρακαλώ",
+    "file": "EL-παρακαλώ.ogg",
+    "author": "Sarri.greek",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:EL-%CF%80%CE%B1%CF%81%CE%B1%CE%BA%CE%B1%CE%BB%CF%8E.ogg",
+    "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  },
+  {
+    "slug": "ne",
+    "word": "Ναι",
+    "file": "LL-Q9129 (gre)-Michail Angelos Georgoulas-ναι.wav",
+    "author": "Michail Angelos Georgoulas",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:LL-Q9129_(gre)-Michail_Angelos_Georgoulas-%CE%BD%CE%B1%CE%B9.wav",
+    "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  },
+  {
+    "slug": "ohi",
+    "word": "Όχι",
+    "file": "LL-Q9129 (gre)-Michail Angelos Georgoulas-όχι.wav",
+    "author": "Michail Angelos Georgoulas",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:LL-Q9129_(gre)-Michail_Angelos_Georgoulas-%CF%8C%CF%87%CE%B9.wav",
+    "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  },
+  {
+    "slug": "isitirio",
+    "word": "Εισιτήριο",
+    "file": "EL-εισιτήριο.ogg",
+    "author": "Sarri.greek",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:EL-%CE%B5%CE%B9%CF%83%CE%B9%CF%84%CE%AE%CF%81%CE%B9%CE%BF.ogg",
+    "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  },
+  {
+    "slug": "yiasou",
+    "word": "Γεια σου",
+    "file": "EL-γεια-σου.ogg",
+    "author": "Sarri.greek",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:EL-%CE%B3%CE%B5%CE%B9%CE%B1-%CF%83%CE%BF%CF%85.ogg",
+    "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  },
+  {
+    "slug": "halloumi",
+    "word": "Χαλλούμι",
+    "file": "LL-Q9129 (gre)-MARKELLOS-Χαλούμι.wav",
+    "author": "MARKELLOS",
+    "licence": "CC0",
+    "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:LL-Q9129_(gre)-MARKELLOS-%CE%A7%CE%B1%CE%BB%CE%BF%CF%8D%CE%BC%CE%B9.wav",
+    "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  },
+  {
+    "slug": "kalinyhta",
+    "word": "Καληνύχτα",
+    "file": "EL-καληνύχτα.ogg",
+    "author": "Sarri.greek",
+    "licence": "CC BY-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:EL-%CE%BA%CE%B1%CE%BB%CE%B7%CE%BD%CF%8D%CF%87%CF%84%CE%B1.ogg",
+    "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  }
+]

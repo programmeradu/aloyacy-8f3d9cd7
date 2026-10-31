@@ -13,8 +13,9 @@ import { Sheet } from "./Sheet";
 import { Icon } from "./Icon";
 import { useMeSheetState } from "./me-store";
 import { Avatar, photoOf } from "./Avatar";
+import { GreekVoiceCredits } from "./GreekVoiceCredits";
 
-type View = "list" | "alerts" | "offline" | "a11y" | "legal";
+type View = "list" | "alerts" | "offline" | "a11y" | "legal" | "credits";
 
 function Row({
   icon,
@@ -112,9 +113,16 @@ export function MeSheet() {
             <div className="r-me-group">
               <Row icon="shield-check" title={r("me.privacy")} to="/privacy" />
               <Row icon="file-text" title={r("me.terms")} to="/terms" />
+              <Row
+                icon="microphone"
+                title={r("me.credits")}
+                sub={r("me.creditsSub")}
+                onClick={() => setView("credits")}
+              />
             </div>,
           )
         : null}
+      {active === "credits" ? detail("me.credits", <GreekVoiceCredits />) : null}
       {active === "list" ? (
         <div>
           <div className="flex items-center gap-4 pt-1 pb-5">

@@ -95,6 +95,7 @@ export function TodayStory({ briefing, locale, t }: Props) {
 export function TodayPair({ briefing, locale, t }: Props) {
   const isEl = locale === "el";
   const w = briefing.greekWord;
+  const voice = greekWordAudio(w.el);
   const factText = isEl ? briefing.fact.el : briefing.fact.en;
   const factKicker =
     briefing.fact.tag === "local" ? t("today.fact.local") : t("today.fact.tourist");
@@ -111,9 +112,11 @@ export function TodayPair({ briefing, locale, t }: Props) {
             width={320}
             height={320}
           />
-          <span className="r-pair-speak">
-            <SpeakGreekButton text={w.el} src={greekWordAudio(w.el)} />
-          </span>
+          {voice ? (
+            <span className="r-pair-speak">
+              <SpeakGreekButton text={w.el} src={voice} />
+            </span>
+          ) : null}
         </div>
         <div className="r-pair-body">
           <span className="r-today-kick">{sentence(t("today.greek.kicker"))}</span>
