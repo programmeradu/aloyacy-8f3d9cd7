@@ -332,3 +332,83 @@ Own decode of the Cyprus GTFS-RT feed, 31 Oct 2026 19:43 EET: http://20.19.98.19
 [16] Geofabrik Cyprus extract (37,856,760 bytes, Last-Modified 31 Oct 2026). https://download.geofabrik.de/europe/cyprus.html
 
 ---
+## Layer 15. Cyprus data standards: GTFS, GTFS-RT, SIRI, GBFS (Nextbike, Bolt), NeTEx, Datex II and the National Access Point under MMTIS
+
+### 15.1 What the best in the world do
+
+- **The EU rulebook.** Delegated Regulation (EU) 2017/1926 on multimodal travel information services (MMTIS), amended by Delegated Regulation (EU) 2024/490, requires every Member State to run a National Access Point (NAP) and data holders to publish static data in NeTEx (CEN/TS 16614) and dynamic data in SIRI (CEN/TS 15531), "or any digital machine-readable format that can be proven fully compatible and interoperable with those standards ... including for example through automatic converters and validators", represented through EU minimum profiles or national profiles. [1]
+- **Deadlines in the amended regulation:** [1]
+  - static levels 1 to 3 (timetables, stops, operators, fares, parking places, Park and Ride stops, bike-share stations, scooter parking zones) were due between 1 Dec 2019 and 1 Dec 2024;
+  - level 4 (historic delays and observed delays and cancellations, parking tariffs) by 1 Dec 2025 for the whole network;
+  - dynamic level 1 (disruptions, real-time estimated times, delays, cancellations, "guaranteed connections monitoring") by 1 Dec 2025 for the comprehensive TEN-T network;
+  - dynamic level 2 (parking tariffs, car-sharing, bike-sharing and scooter-sharing availability and location, free car parking spaces) by 1 Dec 2026 for TEN-T;
+  - both levels for the rest of the network by 1 Dec 2028; vehicle occupancy (level 3) at each Member State's choice.
+- **Obligations that touch apps like Aloya:** Article 7 says travel information service providers shall, on request, provide routing results to another travel information service provider. Article 8 says ranking criteria must be transparent and not based on commercial considerations, the first itinerary shown must not mislead, and the data source and update interval must be indicated when the data holder requires it. [1]
+- **Best-practice NAPs** (for example the Norwegian Entur and the Swiss opentransportdata.swiss) publish NeTEx and SIRI alongside GTFS and GTFS-RT, with validators and quality reports. The DATA4PT project produced the EU minimum profiles for NeTEx and SIRI. [2][3]
+- **GBFS** (General Bikeshare Feed Specification, MobilityData) is the open standard for shared bikes and scooters, with stations, vehicles, geofencing zones and pricing; the current specification is in the v3 line. [4]
+- **GTFS best practice** includes transfers.txt (minimum and timed transfers), parent stations for multi-bay stops, wheelchair_boarding and wheelchair_accessible, and GTFS-RT with Service Alerts and, optionally, occupancy and the `uncertainty` field. [5]
+
+### 15.2 The reality in Cyprus
+
+**The NAP is real and fairly rich.** traffic4cyprus.org.cy (CKAN) lists 42 datasets, almost all CC BY 4.0. [6] Relevant to routing:
+
+| Dataset | Format | Endpoint and notes |
+|---|---|---|
+| Public transport static | GTFS | Seven files from motionbuscard.org.cy: OSYPA (2), OSEA (4), Intercity (5), EMEL (6), NPT (9), LPT (10), Pame Express park and ride (11). Metadata updated 17 Jul 2026. |
+| Public transport real time | GTFS-RT | http://20.19.98.194:8328/Api/api/gtfs-realtime (plain HTTP; per-operator paths /2, /4, /5, /6, /9, /10, /11 also exist, as Transitous uses them). |
+| Public transport real time | SIRI | http://20.19.98.194:8313/SiriWS.asmx?op=GetEstimatedTimetable (SIRI-ET web service; answered HTTP 200 on 31 Oct 2026). |
+| Nextbike stations, Bolt e-scooter stations | Datex II (XML) | fixcyprus.cy/gnosis/open/api/nap/datasets/nextbikestations/ and /boltstations/ (255 Bolt zones, 1,779 places, published 30 Oct 2026). Locations only, no live availability. |
+| Park and Ride | Datex II | /parkandride/: 9 sites (GSP Stadium, Aradippou, Kalo Chorio, Kato Polemidia, Agios Tychonas, Spyros Kyprianou Athletic Centre, Tsirio Stadium, Alambra, Alphamega Arena), polygons, no capacity. |
+| Parking areas | Datex II | /parking_areas/: 651 car parks with names and points only (no capacity, tariff or occupancy). |
+| Also | XML | bus lanes, bus stops and stations, cycleways, bicycle racks, bike rental stations, low emission zones, traffic events, Waze alerts and traffic, EV chargers, traffic sensors. |
+
+**Quality of the official GTFS (31 Oct 2026 files, own check):**
+
+- All seven feeds include agency, routes, trips, stop_times, stops, shapes (every trip has a shape), calendar_dates, fare_attributes, fare_rules, translations and feed_info (valid 20261031 to 20270128, feed_lang en).
+- None has calendar.txt, transfers.txt, frequencies.txt, pathways or levels.
+- No stop has wheelchair_boarding set, no trip has wheelchair_accessible set, and no stop uses parent_station, so multi-bay interchanges (for example Solomou Square or Limassol's bus stations) are not grouped.
+- All routes are route_type 3 (bus).
+- The GTFS-RT snapshot (layer 13) had no Service Alerts, no occupancy and no uncertainty.
+- Feeds are re-published every few months with a roughly three-month validity window, so apps must refresh promptly.
+
+**GBFS.** Nextbike publishes an official GBFS v2 feed for Cyprus (`nextbike_cy`, CC0, feed contact gbfs@nextbike.net, ttl 60 s) with station_information, station_status, free_bike_status, vehicle_types, system_hours, system_regions and pricing plans. [7] Bolt publishes no public GBFS for Cyprus; only the static zone list on the NAP.
+
+**NeTEx.** No NeTEx dataset is listed on the Cyprus NAP. [6]
+
+### 15.3 Aloya today, and the gaps
+
+- Aloya ingests the seven GTFS feeds into per-date shards, reads GTFS-RT through a raw socket and relays, and reads the Nextbike legacy live JSON (maps.nextbike.net/maps/nextbike-live.json, in src/lib/bikeshare.functions.ts) and the CyNAP Bolt zones.
+- Aloya also publishes its own GBFS 2.3 at /api/public/gbfs.json with station_information, station_status, vehicle_types (nextbike_ebike, bolt_escooter) and system_information (src/routes/api/public/gbfs*.ts). This re-publishes third-party data; Nextbike's official GBFS already exists, and Bolt zones are CC BY 4.0, which requires attribution.
+- Gaps:
+  1. The SIRI-ET feed is unused; it could be a second source when GTFS-RT stalls.
+  2. The official Nextbike GBFS is not used.
+  3. No stop grouping or transfer rules are derived to fill the missing parent stations and transfers.
+  4. No accessibility data at all, because the source has none.
+  5. Aloya's own learned data (delays, observed arrivals, crowd stop fixes) is not published back in a standard form, which would also position it as a data partner under MMTIS.
+  6. No automated feed validation on each new GTFS release.
+
+### 15.4 Improvements
+
+1. **Switch bike share to Nextbike's official GBFS.** Read gbfs.nextbike.net/maps/gbfs/v2/nextbike_cy (station_information plus station_status, ttl 60 s) instead of the legacy JSON; it is CC0 and stable. Effort S. Impact Medium.
+2. **Make Aloya's own GBFS honest or retire it.** Either stop re-publishing Nextbike (link to the official feed) and keep only the Bolt zones with CC BY attribution and the source URL, or upgrade to GBFS v3 with clear provenance in system_information. Effort S. Impact Low to Medium (legal hygiene).
+3. **Add SIRI-ET as a fallback real-time source.** Poll the NAP SIRI-ET service when GTFS-RT is stale and merge by trip; it is the format the EU regulation names. Effort M. Impact Medium to High (resilience).
+4. **Automated GTFS validation in CI.** Run the MobilityData GTFS validator in GitHub Actions on every new feed release, publish the report on the internal QA page, and alert when the feed's end date is within 14 days. Effort S. Impact High (feeds expire roughly every three months).
+5. **Derived stop groups and transfer rules.** Cluster stops within 60 m with the same name into virtual parent stations, generate a transfers.txt overlay (minimum transfer times by distance, same-stop 60 s, cross-street 120 s) and use it in RAPTOR. Offer it back to the Ministry (contact motionbuscard@gmail.com, as named in the feeds). Effort S. Impact High.
+6. **Crowd-sourced accessibility.** Aloya already has stop_attributes and stop_photos tables; add wheelchair_boarding, shelter and lighting from rider reports and photos, and publish as a GTFS-compatible overlay. Effort M. Impact Medium to High.
+7. **Publish Aloya's learned data under MMTIS level 4.** Historic delays (p50 and p90 per stop and hour, layer 13) and observed delays and cancellations in OTP's Empirical Delay CSV format, offered to the NAP. This turns Aloya into a recognised data contributor rather than only a consumer. Effort M. Impact High (strategic).
+8. **Route-sharing API under Article 7.** Expose a documented `/api/public/plan` contract (it exists) with rate limits and attribution, so Aloya can meet "routing results on request" and integrate with other EU planners such as Transitous or OJP-based services. Effort S. Impact Medium.
+9. **Ask Bolt and Nextbike for live availability via the NAP.** MMTIS dynamic level 2 (bike and scooter sharing availability) is due by 1 Dec 2026 for TEN-T. A short written note to the Ministry's NAP team and Bolt Cyprus (cyprus@bolt.eu, listed as dataset contact) could unlock Bolt GBFS. Effort S. Impact High if it lands.
+10. **NeTEx export, later.** Once the operators or the Ministry ask, convert the GTFS plus Aloya overlays to NeTEx EPIP with an open converter, which strengthens grant applications. Effort M. Impact Low now.
+
+### 15.5 Sources
+
+[1] Commission Delegated Regulation (EU) 2024/490 amending (EU) 2017/1926. https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R0490
+[2] MMTIS implementation handbook (European Commission, Nov 2024). https://transport.ec.europa.eu/document/download/0b75db16-35b1-41df-8229-5c8abfec534d_en?filename=MMTIS_implementation_handbook.pdf
+[3] DATA4PT, D3.2 Profile preparation. https://data4pt-project.eu/wp-content/uploads/2024/09/D.3.2-Profile-Preparation_v.f1.pdf
+[4] GBFS specification. https://gbfs.org/specification/
+[5] GTFS Realtime reference. https://gtfs.org/documentation/realtime/reference/
+[6] Cyprus National Access Point, CKAN API (package list and resources). https://www.traffic4cyprus.org.cy/api/3/action/package_search?rows=100 ; https://www.traffic4cyprus.org.cy/dataset/publictransportrealtime_siri
+[7] Nextbike Cyprus GBFS system_information. https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_cy/en/system_information.json
+Own checks of the seven GTFS zips and the NAP Datex II files on 31 Oct 2026.
+
+---
