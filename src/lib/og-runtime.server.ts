@@ -10,7 +10,7 @@ import { loadShapes, renderPng, setOgNetwork, type Shapes } from "@/lib/og-roam.
 import { ogAsset } from "@/lib/og-asset";
 
 /** Bump when card design changes so cached cards are redrawn. */
-export const OG_VERSION = "roam-3";
+export const OG_VERSION = "roam-4";
 
 type KV = {
   get(key: string, type: "arrayBuffer"): Promise<ArrayBuffer | null>;

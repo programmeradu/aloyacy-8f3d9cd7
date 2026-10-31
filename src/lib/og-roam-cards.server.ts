@@ -433,7 +433,8 @@ export function planCard(plan: PlanOg, shapes: Shapes | null): string {
   }
   const t = titleBlock(PY + 232, p.destination || "A trip plan", 52, 2);
   let y = t.bottom + 46;
-  const fromSvg = p.origin
+  const here = /^(your|current|my) location$/i.test((p.origin ?? "").trim());
+  const fromSvg = p.origin && !here
     ? text(IN, y, wrap(`From ${p.origin}`, 26, TW, 1, 600)[0], {
         size: 26,
         weight: 600,
@@ -448,7 +449,14 @@ export function planCard(plan: PlanOg, shapes: Shapes | null): string {
     const small = p.arrive ? (p.depart ? `arrive, leave ${p.depart}` : "arrive") : "leave";
     tiles += `<rect x="${IN}" y="${y}" width="${TW}" height="${tileH}" rx="28" fill="${R.y}"/>${text(IN + 26, y + 54, big, { size: 44, weight: 800 })}${text(IN + 26, y + 84, small, { size: 20, weight: 600 })}`;
     const opt = { size: 22, h: 44, padX: 16 };
-    const lines = [...new Set(p.legs.map((l) => l.routeShort).filter((s): s is string => !!s))];
+    // Bus legs in ride order, each pill in its line's feed colour.
+    const seenLine = new Set<string>();
+    const lines: { code: string; color: string }[] = [];
+    for (const l of p.legs) {
+      if (!l.routeShort || seenLine.has(l.routeShort)) continue;
+      seenLine.add(l.routeShort);
+      lines.push({ code: l.routeShort, color: routeColor(l.routeId) });
+    }
     let px = IN + TW - 24;
     if (p.duration) {
       const w = pill(0, 0, p.duration, opt).w;
@@ -456,12 +464,19 @@ export function planCard(plan: PlanOg, shapes: Shapes | null): string {
       tiles += pill(px, y + 28, p.duration, { ...opt, fill: R.ink, color: R.white }).svg;
       px -= 10;
     }
-    for (const code of lines.slice(0, 2).reverse()) {
-      const w = pill(0, 0, code, opt).w;
-      if (px - w < IN + 240) break;
-      px -= w;
-      tiles += pill(px, y + 28, code, { ...opt, fill: R.white, color: R.ink }).svg;
-      px -= 10;
+    // Right to left: the first bus sits next to the time, later ones only if they fit.
+    const fit: { code: string; color: string; w: number }[] = [];
+    let room = px - (IN + 240);
+    for (const l of lines.slice(0, 2)) {
+      const w = pill(0, 0, l.code, opt).w;
+      if (w + 10 > room) break;
+      room -= w + 10;
+      fit.push({ ...l, w });
+    }
+    let lx = px - fit.reduce((a, l) => a + l.w + 10, 0) + 10;
+    for (const l of fit) {
+      tiles += pill(lx, y + 28, l.code, { ...opt, fill: l.color, color: onColor(l.color) }).svg;
+      lx += l.w + 10;
     }
   }
   const kicker = p.creator ? `Shared by ${p.creator}` : "Shared trip plan";
@@ -531,7 +546,7 @@ function centreCard(
 /** /lines: the whole island, every line in its own colour. */
 export function networkCard(shapes: Shapes | null): string {
   // Paphos to Ayia Napa fills the map half of the card.
-  const v: View = { lat: 34.9, lng: 33.3, mpp: 395 };
+  const v: View = { lat: 34.9, lng: 33.3, mpp: 345 };
   const proj = projector(v, MAP_CX + 10, MAP_CY);
   let map = `<rect width="${W}" height="${H}" fill="${R.canvas}"/>`;
   const done = new Set<string>();
