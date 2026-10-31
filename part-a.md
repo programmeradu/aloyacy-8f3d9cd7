@@ -278,3 +278,58 @@ Gaps:
 - Code: src/routes/api/public/trip-alerts.ts, src/lib/gtfs-rt.server.ts, src/lib/ghost-trips.ts, src/lib/threshold-cache.server.ts, src/routes/api/public/rider-fix.ts, packages/core/src/eta-backtest.ts, src/lib/useRealtime.ts (redesign-roam @ 1508f3f)
 
 ---
+
+## Layer 6: Disruption replanning (missed buses, delays, detours, no-shows)
+
+### 6.1 What the best in the world do
+
+- **Push, not pull.** Monash University's IJCAI 2025 paper "Dynamic Replanning for Improved Public Transport Routing" compares riders asking for replans ("pull") with a server that monitors each journey and pushes revised plans ("push"). Key ideas: replanning just before each stop is enough because riders cannot act between stops; the best plan can change only if (i) the current journey is delayed, or (ii) a delay makes a previously unreachable trip catchable; the server sends each phone an "envelope" of relevant connections (about 3 to 8% of the timetable, averaging about 3 MB per journey) and the phone replans locally. Push ran an order of magnitude faster than pull, and dynamic replanning saved 5 to 30 minutes per affected journey on average versus static plans in Perth, Berlin, Paris and London, including savings when the original plan was not delayed. The experiments used synthetic delays (exponential, mean 5 min off-peak and 10 min peak for buses), not real delay data (ijcai.org/proceedings/2025/0937).
+- **RAPTOR** (Delling, Pajor and Werneck, Microsoft Research) is the round-based planner that makes millisecond replanning practical on a phone or server (microsoft.com/en-us/research, raptor_alenex).
+- **Products.** Transit's GO "suggest[s] alternatives if you miss your connection" (Transit 101 booklets 2025 and 2026). Citymapper's routing engine "takes out parts of the network that has issues, and finds you alternatives" and sends line disruption alerts (citymapper.com/news/777). Google Maps updates the route for delays or disruptions during transit navigation (howtogeek.com, July 2026).
+
+### 6.2 Cyprus reality and data
+
+- Disruptions are published as PDF announcements, not as machine-readable alerts: for example "Detour on Routes 1 & 2 from 26/10/26 to 30/10/26", "Detour on Route 23 & 24 from 21/9/26 until 10/1/27", "New Nicosia Route 29K from 2 November 2026" and Larnaca timetable changes from 19 Oct 2026 (publictransport.com.cy/announcements, read 31 Oct 2026).
+- The national GTFS-RT feed carries no service alerts (earlier-run finding), so detours and cancellations reach apps only through the timetable or not at all.
+- Low frequency raises the stakes: on hourly routes, IJCAI found the biggest savings when a transfer is missed in low-frequency hours, which is everyday reality on many Cypriot routes (Audit Office: some routes every one to two hours).
+- Shared e-scooters (Bolt in Nicosia, at stations; Electra e-bikes and e-scooters in Nicosia, Larnaca and Limassol) and taxis are the realistic rescue modes (traffic4cyprus.org.cy Bolt stations dataset; electra.space).
+
+### 6.3 Aloya today, and its gaps
+
+Aloya already has several rescue tools, all on the phone and in the foreground:
+- packages/core/src/wait-or-bail.ts: "one action at the stop when the row is dark", choosing between a later live bus at the same stop (up to 20 minutes) and bailing, with tiers live, rider-confirmed, predicted, ghost, scheduled, and flags for last bus tonight and no-show.
+- packages/core/src/other-stop.ts: the "other stop" ask ("Bus 25 leaves in 3 min from Makariou") when a nearby stop beyond 80 m has a better departure.
+- src/lib/reroute.functions.ts: re-plan from the rider's current position, used by the early-alight sheet; src/lib/wrong-stop-reroute.ts: "You're at a different stop. Want me to re-plan from here?"
+- packages/core/src/multileg-journey.ts lines 441 to 448 emit a "missed-bus" alert on the missed-connection phase.
+
+Gaps:
+- Nothing replans while the app is closed. The server only sends the fixed alert set (layer 1), so a rider with the phone in a pocket hears nothing useful when the plan breaks.
+- The miss detector in journey-live.ts needs the rider near the stop and a GPS fix; a rider still walking when the bus passes is not told "you missed it, here is the next option".
+- No ingestion of CPT announcements was found (src/lib/publictransport.functions.ts only proxies Motion card top-up endpoints), so detours and new routes like 29K are invisible until the GTFS changes.
+- No "catchable delayed bus" detection: IJCAI's case (ii), where a late bus on another route becomes the faster option, is not looked for.
+
+### 6.4 Improvements
+
+1. **Server-side push replanning (L, very high).** For each active trip, after every feed refresh, evaluate: is the current plan delayed past a threshold, or has a connection in the trip's envelope become catchable and earlier? If yes, run RAPTOR from the rider's current state (next stop if on board, current position or board stop if walking or waiting) and push one Tier 1 alert with the new plan. Use IJCAI's envelope idea to keep compute small.
+2. **Miss detection anywhere (M, very high).** Missed means: the board trip's vehicle has passed the board stop (feed or crowdsourced position) and rider_state is not on_board. Works whether the rider is at home, walking or at the stop. The alert carries the best next option in the same message.
+3. **One-tap replan from the notification (S, high).** The alert opens a replan sheet already computed, with "Take this" and "Show others". On Chromium add a notification action.
+4. **Detour and announcement ingestion (M, high).** Poll publictransport.com.cy/announcements daily, parse new items (title, routes, dates; the PDF text for streets), and create internal service alerts with affected routes and date ranges. Flag affected stops in planning and warn riders whose saved trips use them. Offer the structured data back to CPT and the Public Works Department as GTFS-RT service alerts.
+5. **"Bus not coming" rescue (S, high).** When the board trip turns ghost close to departure (layer 5) and wait-or-bail finds no live bus within the rider's tolerance, rank rescue options: another stop within walking reach, scooter or e-bike to a faster line (layer 7b), or taxi. Show times only; the code comments rightly forbid inventing taxi fares, so show a fare only from a real API.
+6. **Last bus protection (M, high).** If the rider is on the last viable connection of the night, alert earlier and with a bigger buffer, and say plainly when there is no later public transport option.
+7. **Reliability-aware planning (M, medium).** Prefer itineraries whose transfers have high probability of success (layer 7b), not just the earliest scheduled arrival, especially on hourly routes.
+8. **Replay test harness (M, medium).** Record feed snapshots and replay real disruption days to measure minutes saved, as IJCAI did with synthetic data, but with Cypriot data.
+
+### 6.5 Sources
+
+- https://www.ijcai.org/proceedings/2025/0937.pdf
+- https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/raptor_alenex.pdf
+- https://scmetro.org/wp-content/uploads/2026/03/DIGITAL-Transit101-Booklet-2026.pdf
+- https://citymapper.com/news/777/10-citymapper-tools-to-help-you-master-new-york
+- https://www.howtogeek.com/google-maps-features-that-make-public-transit-less-confusing/
+- https://www.publictransport.com.cy/announcements
+- https://www.traffic4cyprus.org.cy/dataset/bolt
+- https://electra.space/
+- https://www.kathimerini.com.cy/gr/kypros/test-g-elegkti-stis-astikes-sygkoinonies-me-thetiko-prosimo
+- Code: packages/core/src/wait-or-bail.ts, packages/core/src/other-stop.ts, src/lib/reroute.functions.ts, src/lib/wrong-stop-reroute.ts, packages/core/src/multileg-journey.ts, packages/core/src/journey-live.ts, src/lib/publictransport.functions.ts (redesign-roam @ 1508f3f)
+
+---
