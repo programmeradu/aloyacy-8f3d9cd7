@@ -98,5 +98,15 @@
     "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
     "source": "https://commons.wikimedia.org/wiki/File:EL-%CE%BA%CE%B1%CE%BB%CE%B7%CE%BD%CF%8D%CF%87%CF%84%CE%B1.ogg",
     "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  },
+  {
+    "slug": "pou",
+    "word": "Πού είναι;",
+    "file": "common_voice_el_22731340.mp3",
+    "author": "Anonymous Mozilla Common Voice contributor",
+    "licence": "CC0 1.0",
+    "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "source": "https://commonvoice.mozilla.org/el/datasets",
+    "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
   }
 ]
