@@ -4302,3 +4302,26 @@ a.r-today-rowtitle {
 .r-jl-chain.is-white .r-jl-pill {
   background: #fff;
 }
+
+/* change block inside the narrow timeline column: facts as a short list */
+.r-jl-change-facts.is-list {
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding-left: 44px;
+}
+.r-jl-change-facts.is-list .r-jl-fact {
+  min-height: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  font-weight: 500;
+  white-space: normal;
+}
+.r-jl-change.is-dark .r-jl-change-facts.is-list .r-jl-fact {
+  background: none;
+  box-shadow: none;
+}
+.r-jl-change-sub {
+  padding-left: 44px;
+}

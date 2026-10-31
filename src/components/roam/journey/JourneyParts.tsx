@@ -211,7 +211,7 @@ export function ChangeBlock({ ch, dark = false }: { ch: ChangeInfo; dark?: boole
           </span>
         </span>
       </div>
-      <div className="r-jl-change-facts r-tnum">
+      <div className="r-jl-change-facts is-list r-tnum">
         <span className="r-jl-fact">
           <Icon name={walk ? "person-simple-walk" : "map-pin-simple"} size={15} />
           {walk
