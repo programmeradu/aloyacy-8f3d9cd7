@@ -75,6 +75,8 @@ export const mobility: Record<keyof typeof mobilityEn, string> = {
   "chain.eyebrowLongWalk": "Τελευταίο κομμάτι",
   "chain.titleAfterHours": "Πάρε ταξί για το υπόλοιπο μέχρι {name}.",
   "chain.titleLongWalk": "Απόφυγε το μεγάλο περπάτημα μέχρι {name}.",
+  "chain.titleFirstMile": "Πάρε Bolt μέχρι το λεωφορείο στη στάση {name}.",
+  "chain.firstMileLine": "Το περπάτημα μέχρι το πρώτο λεωφορείο είναι μεγάλο. Πήγαινε με Bolt και μετά πάρε το λεωφορείο.",
   "chain.toFallback": "τον προορισμό σου",
   "chain.fromLine": "Από {name}, εδώ σε αφήνει το λεωφορείο.",
   "chain.vsWalk": "έναντι {m} λεπτά περπάτημα",

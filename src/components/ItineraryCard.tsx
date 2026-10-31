@@ -132,7 +132,20 @@ export function ItineraryCard({
                     color: i === 0 && dark ? "var(--r-ink)" : pillFg,
                   }}
                 >
-                  <Icon name="bus" size={16} />
+                  {r.routeId.startsWith("kapnos:") ? (
+                    // Real Kapnos Airport Shuttle mark (same file as the provider tile).
+                    <img
+                      src="/brands/kapnos-mark.png"
+                      alt=""
+                      aria-hidden="true"
+                      width={18}
+                      height={18}
+                      className="shrink-0 rounded-[5px] bg-white"
+                      style={{ width: 18, height: 18, objectFit: "contain" }}
+                    />
+                  ) : (
+                    <Icon name="bus" size={16} />
+                  )}
                   {r.routeShort}
                 </span>
               </span>
@@ -142,7 +155,9 @@ export function ItineraryCard({
             {[
               sourceLabel,
               changes,
-              t("itin.metersWalk", { m: Math.round(itinerary.totalWalkMeters) }),
+              itinerary.totalWalkMeters >= 1000
+                ? t("itin.kmWalk", { km: (itinerary.totalWalkMeters / 1000).toFixed(1) })
+                : t("itin.metersWalk", { m: Math.round(itinerary.totalWalkMeters) }),
             ].join(", ")}
           </p>
         </div>

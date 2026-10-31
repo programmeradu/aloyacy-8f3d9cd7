@@ -239,7 +239,13 @@ function Plan() {
       className="r-page--go"
       compact={showResults}
       title={showResults ? destination!.label : r("go.title")}
-      sub={showResults ? r("go.fromPlace", { place: origin!.label }) : undefined}
+      sub={
+        showResults
+          ? origin!.label === r("go.yourLocation")
+            ? r("go.fromHere")
+            : r("go.fromPlace", { place: origin!.label })
+          : undefined
+      }
       left={
         showResults ? (
           <BackInline label={r("back")} onClick={() => setDestination(null)} />
@@ -398,6 +404,11 @@ function Plan() {
                 />
               )}
             </div>
+            {extras.firstMileChain && (
+              <div className="r-legacy -mx-6 mb-4 flex flex-col gap-3 px-6">
+                <LastMileChainCard suggestion={extras.firstMileChain} firstMile />
+              </div>
+            )}
             <ItineraryResults
               results={results}
               origin={origin}

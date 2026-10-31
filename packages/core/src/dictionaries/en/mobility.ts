@@ -71,6 +71,8 @@ export const mobility = {
   "chain.eyebrowLongWalk": "Last-mile handoff",
   "chain.titleAfterHours": "Take a taxi the rest of the way to {name}.",
   "chain.titleLongWalk": "Skip the long walk to {name}.",
+  "chain.titleFirstMile": "Take a Bolt to the bus at {name}.",
+  "chain.firstMileLine": "The walk to the first bus is long. Ride there, then take the bus.",
   "chain.toFallback": "your destination",
   "chain.fromLine": "From {name}, the bus drops you here.",
   "chain.vsWalk": "vs {m} min walk",

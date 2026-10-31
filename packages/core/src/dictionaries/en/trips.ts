@@ -19,7 +19,7 @@ export const trips = {
   "trips.suggestions": "Suggestions",
   "trips.bestRoutes": "Best routes",
   "trips.statusComputing": "Computing",
-  "trips.statusLive": "Live blended",
+  "trips.statusLive": "Live and timetable",
   "trips.statusLearned": "Learned",
   "trips.statusIdle": "Idle",
   "trips.emptyTitleA": "Where would you like to go?",

@@ -20,7 +20,14 @@ function fmtEur(n: number): string {
   return n >= 10 ? `€${Math.round(n)}` : `€${n.toFixed(1).replace(/\.0$/, "")}`;
 }
 
-export function LastMileChainCard({ suggestion }: { suggestion: LastMileChainSuggestion }) {
+export function LastMileChainCard({
+  suggestion,
+  firstMile = false,
+}: {
+  suggestion: LastMileChainSuggestion;
+  /** Bolt from the start to the first bus stop instead of the last walk. */
+  firstMile?: boolean;
+}) {
   const { t } = useI18n();
 
   const driveMin = fmtMin(suggestion.drivingSec);
@@ -29,8 +36,9 @@ export function LastMileChainCard({ suggestion }: { suggestion: LastMileChainSug
   const toName = cleanPlace(suggestion.toName) || t("chain.toFallback");
   const fromName = cleanPlace(suggestion.fromName);
 
-  const headline =
-    suggestion.trigger === "long-late" || suggestion.trigger === "late-night"
+  const headline = firstMile
+    ? t("chain.titleFirstMile", { name: toName })
+    : suggestion.trigger === "long-late" || suggestion.trigger === "late-night"
       ? t("chain.titleAfterHours", { name: toName })
       : t("chain.titleLongWalk", { name: toName });
 
@@ -41,7 +49,13 @@ export function LastMileChainCard({ suggestion }: { suggestion: LastMileChainSug
       mode={t("mob.boltRideMode")}
       aside={t("chain.vsWalk", { m: walkMin })}
       headline={headline}
-      sub={fromName ? t("chain.fromLine", { name: fromName }) : undefined}
+      sub={
+        firstMile
+          ? t("chain.firstMileLine")
+          : fromName
+            ? t("chain.fromLine", { name: fromName })
+            : undefined
+      }
       stats={[
         { label: t("chain.driveLabel"), value: driveMin, unit: t("mob.minUnit") },
         {

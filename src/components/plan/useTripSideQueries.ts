@@ -28,6 +28,31 @@ import { getDustAdvisory } from "@/lib/pulse-live.functions";
 import { getItineraryTrafficAlerts } from "@/lib/traffic-alerts.functions";
 import type { A11yPlanPrefs } from "./tripPlanQuery";
 
+/** Same threshold as the last-mile Bolt card (long walk, 1.5 km). */
+const FIRST_MILE_BOLT_METERS = 1_500;
+
+/** The walk from the start to the first bus, with the stop it ends at. */
+function accessWalkLeg(it: Itinerary | null): {
+  walkMeters: number;
+  to: { lat: number; lng: number; name: string };
+} | null {
+  if (!it) return null;
+  const firstRide = it.legs.findIndex((l) => l.kind === "ride");
+  if (firstRide <= 0) return null;
+  let m = 0;
+  for (let i = 0; i < firstRide; i++) {
+    const l = it.legs[i];
+    if (l.kind === "walk") m += l.distanceMeters;
+  }
+  if (m <= 0) return null;
+  const ride = it.legs[firstRide];
+  if (ride.kind !== "ride") return null;
+  return {
+    walkMeters: Math.round(m),
+    to: { lat: ride.board.lat, lng: ride.board.lng, name: ride.board.name },
+  };
+}
+
 /** Runs a suggestion call and swallows failures — extras must never nag. */
 async function soft<T>(run: () => Promise<T>): Promise<T | null> {
   try {
@@ -116,6 +141,37 @@ export function useTripSideQueries({
             }),
           ),
     enabled: !!destination && !!finalWalk && !!topItinerary,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+
+  // First mile: when the walk to the first bus is as long as the walk that
+  // triggers the last-mile Bolt card (1.5 km), offer Bolt to that stop too,
+  // rather than an hour on foot.
+  const firstWalk = accessWalkLeg(topItinerary);
+  const firstChainQuery = useQuery({
+    queryKey: [
+      "firstMileChain",
+      origin?.lat,
+      origin?.lng,
+      firstWalk?.to.lat,
+      firstWalk?.to.lng,
+      firstWalk?.walkMeters,
+      topItinerary?.departureUnix ?? null,
+    ],
+    queryFn: () =>
+      soft(() =>
+        chainFn({
+          data: {
+            alight: { lat: origin!.lat, lng: origin!.lng, name: origin!.label },
+            destination: firstWalk!.to,
+            arrivalUnix: topItinerary!.departureUnix,
+            finalWalkMeters: firstWalk!.walkMeters,
+          },
+        }),
+      ),
+    enabled:
+      !!origin && !!firstWalk && !!topItinerary && firstWalk.walkMeters >= FIRST_MILE_BOLT_METERS,
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
@@ -274,6 +330,8 @@ export function useTripSideQueries({
   return {
     parkAndRide: pnrQuery.data ?? null,
     lastMileChain: chainQuery.data ?? null,
+    firstMileChain:
+      firstWalk && firstWalk.walkMeters >= FIRST_MILE_BOLT_METERS ? (firstChainQuery.data ?? null) : null,
     trafficReport: trafficQuery.data ?? null,
     bikeShare: bikeQuery.data ?? null,
     boltScooter: boltQuery.data ?? null,

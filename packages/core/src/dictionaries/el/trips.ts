@@ -21,7 +21,7 @@ export const trips: Record<keyof typeof tripsEn, string> = {
   "trips.suggestions": "Προτάσεις",
   "trips.bestRoutes": "Καλύτερες διαδρομές",
   "trips.statusComputing": "Υπολογισμός",
-  "trips.statusLive": "Ζωντανός συνδυασμός",
+  "trips.statusLive": "Ζωντανά και πρόγραμμα",
   "trips.statusLearned": "Με μάθηση",
   "trips.statusIdle": "Αναμονή",
   "trips.emptyTitleA": "Πού θα θέλατε να πάτε;",
