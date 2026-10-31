@@ -283,7 +283,7 @@ Gaps:
 
 ### 6.1 What the best in the world do
 
-- **Push, not pull.** Monash University's IJCAI 2025 paper "Dynamic Replanning for Improved Public Transport Routing" compares riders asking for replans ("pull") with a server that monitors each journey and pushes revised plans ("push"). Key ideas: replanning just before each stop is enough because riders cannot act between stops; the best plan can change only if (i) the current journey is delayed, or (ii) a delay makes a previously unreachable trip catchable; the server sends each phone an "envelope" of relevant connections (about 3 to 8% of the timetable, averaging about 3 MB per journey) and the phone replans locally. Push ran an order of magnitude faster than pull, and dynamic replanning saved 5 to 30 minutes per affected journey on average versus static plans in Perth, Berlin, Paris and London, including savings when the original plan was not delayed. The experiments used synthetic delays (exponential, mean 5 min off-peak and 10 min peak for buses), not real delay data (ijcai.org/proceedings/2025/0937).
+- **Push, not pull.** Monash University's IJCAI 2025 paper "Dynamic Replanning for Improved Public Transport Routing" compares riders asking for replans ("pull") with a server that monitors each journey and pushes revised plans ("push"). Key ideas: replanning just before each stop is enough because riders cannot act between stops; the best plan can change only if (i) the current journey is delayed, or (ii) a delay makes a previously unreachable trip catchable; the server sends each phone an "envelope" of relevant connections (about 3 to 7.5% of the timetable, averaging about 3 MB per journey) and the phone replans locally. Push ran an order of magnitude faster than pull, and dynamic replanning saved 5 to 30 minutes per affected journey on average versus static plans in Perth, Berlin, Paris and London, including savings when the original plan was not delayed. The experiments used synthetic delays (exponential, mean 5 min off-peak and 10 min peak for buses), not real delay data (ijcai.org/proceedings/2025/0937).
 - **RAPTOR** (Delling, Pajor and Werneck, Microsoft Research) is the round-based planner that makes millisecond replanning practical on a phone or server (microsoft.com/en-us/research, raptor_alenex).
 - **Products.** Transit's GO "suggest[s] alternatives if you miss your connection" (Transit 101 booklets 2025 and 2026). Citymapper's routing engine "takes out parts of the network that has issues, and finds you alternatives" and sends line disruption alerts (citymapper.com/news/777). Google Maps updates the route for delays or disruptions during transit navigation (howtogeek.com, July 2026).
 
@@ -331,5 +331,63 @@ Gaps:
 - https://electra.space/
 - https://www.kathimerini.com.cy/gr/kypros/test-g-elegkti-stis-astikes-sygkoinonies-me-thetiko-prosimo
 - Code: packages/core/src/wait-or-bail.ts, packages/core/src/other-stop.ts, src/lib/reroute.functions.ts, src/lib/wrong-stop-reroute.ts, packages/core/src/multileg-journey.ts, packages/core/src/journey-live.ts, src/lib/publictransport.functions.ts (redesign-roam @ 1508f3f)
+
+---
+
+## Layer 7: Get-off alerts and off-route detection
+
+### 7.1 What the best in the world do
+
+- **Citymapper's Get Off Alerts** fire automatically when the stop approaches after the rider taps GO, and were built to work offline underground (citymapper.com/news/823). Citymapper calls the get-off alert the one alert it will always send (citymapper.com/news/517). Voice guidance covers walking, cycling, scooting and public transport (citymapper.com/news/2395).
+- **Transit GO** counts down "5...4...3...2... more stops" before the destination stop and wakes the phone for "Get off in 2 stops" (help.transitapp.com/article/549).
+- **Google Maps** shows a lock-screen progress notification and a "get off" alert, toggled by "Get transit alerts when it's time to get off" (blog.google, Dec 2017; howtogeek.com, July 2026).
+- **Off-route recovery.** Citymapper reroutes walkers automatically when they go "off-piste" (citymapper.com/news/2553); Transit suggests alternatives after a missed connection.
+
+### 7.2 Cyprus reality and data
+
+- On-board information is weak. The Pancyprian Organisation of the Blind said in November 2024 that operators and the ministry were "refusing to activate the system announcing bus stops" although it is installed (Cyprus Mail, 14 Nov 2024). The ministry replied that almost the whole fleet has the system, except a small number of buses with technical problems, and that inspectors record problems and impose penalties (gov.cy, 15 Nov 2024). In October 2025 the organisation's president again said stop announcements are not used (Nea Kypros, 15 Oct 2025), and in October 2026 he said that in Paphos the on-board stop announcement system had been switched off because it irritated other passengers, and that a blind person at a stop cannot tell which route is arriving (CYPRUS FAQ, 10 Oct 2026).
+- CPT said on 15 Oct 2026 it has enhanced recorded stop announcements and adjusted their volume as part of an on-board information campaign (CPT response via AlphaNews and Cyprus Inform).
+- Stop pins can be 85 to 135 m from the real stop (Audit Office, Oct 2026), which matters for any alert based on distance to the stop.
+- Most buses require pressing a stop button; a missed press on an hourly route can cost an hour.
+
+### 7.3 Aloya today, and its gaps
+
+Strong on the phone:
+- packages/core/src/alight-countdown.ts counts stops, not seconds: get ready at 3 stops out, stand by at 1 stop out, press now when the bus leaves the stop before yours, alighting at the stop, and "passed" if the stop is behind. Its header explains why: ETA and radius rules told riders "to ring the bell five stops out". It is shared by web and native (src/components/journey/AlightCountdownCard.tsx and mobile/components/journey/AlightCountdownCard.tsx).
+- Haptic pulses for "stop coming up" and "ring the bell" (src/lib/useJourneySideEffects.ts lines 122 to 124), and spoken alerts relayed by the service worker when a window is open (public/sw.js).
+
+Gaps:
+- The server still uses the old method the countdown module rejects: "alight-soon" fires 2 minutes before the predicted alight time (src/routes/api/public/trip-alerts.ts lines 132 to 141), and "arrived" fires 30 s after it (lines 143 to 148). With the phone locked, this time-based alert is the only get-off cue the rider gets.
+- Haptics do not work on iPhone web (Vibration API unsupported, firt.dev), and speech needs an open window.
+- "Passed" is detected but there is no automatic recovery plan pushed when the rider misses the stop or boards the wrong bus; wrong-stop rerouting exists (src/lib/wrong-stop-reroute.ts) but needs the app open.
+- No "which bus is mine" cue at the stop for blind riders, the exact gap the Organisation of the Blind describes.
+
+### 7.4 Improvements
+
+1. **Server get-off alerts by stop count (S, very high).** Port alight-countdown to the server using the vehicle's position along the trip shape (feed or crowdsourced). Send one Tier 1 push at "press now" (the bus has left the stop before yours) and an optional quiet Tier 2 at 3 stops out. Drop the 2-minute time rule. If the vehicle position is stale, fall back to time with wider wording ("Your stop is in about 2 stops").
+2. **Confirm on board first (S, high).** Only send get-off alerts for a leg once rider_state is on_board (tap "I'm on", or the native app matches the rider's track to the vehicle). This avoids get-off alerts for a bus the rider never caught.
+3. **Missed stop and wrong bus recovery (M, high).** If "passed" triggers, or the on-board track diverges from the planned route shape by more than a threshold for two consecutive fixes, push "You've passed <stop>. Get off at <next stop>; walk back 6 min or take BUS Y back in 4 min."
+4. **Accessible cues (S, high).** A "voice on" mode that reads the countdown through headphones (Web Speech Synthesis works in iOS web apps when open), large-text get-off card, and distinct haptic patterns on Android and in the native app. On the stop screen, a "Which bus is mine?" mode that announces the approaching route number and headsign from live data when it is within 1 to 2 minutes.
+5. **Lock-screen countdown (M, high).** In the native app, the Live Activity and Android Live Update show stops remaining and "press now" (layer 8).
+6. **Correct stop coordinates (M, medium).** Use the stop corrections table (layer 1 step 7) so "alighting" and the walk to the destination start from the real stop.
+7. **Share the data with advocates (S, medium).** Offer the Pancyprian Organisation of the Blind a test group and publish per-route reports of whether on-board announcements were heard (rider feedback after trips), turning a complaint into evidence.
+
+### 7.5 Sources
+
+- https://citymapper.com/news/823/get-off-alerts
+- https://citymapper.com/news/517/go-your-personal-trip-assistant
+- https://citymapper.com/news/2395/citymapper-in-your-ear
+- https://citymapper.com/news/2553/citymapper-introduces-ios-lock-screen-navigation
+- https://help.transitapp.com/article/549-how-to-use-go
+- https://blog.google/products-and-platforms/products/maps/never-miss-your-stop-again-step-step-directions-transit-navigation
+- https://www.howtogeek.com/google-maps-features-that-make-public-transit-less-confusing/
+- https://cyprus-mail.com/2024/11/14/people-with-disabilities-humiliated-when-using-buses
+- https://www.gov.cy/metafores-epikoinonies-erga/topothetisi-tou-ypourgeiou-metaforon-epikoinonion-kai-ergon-anaforika-me-anisychies-tis-pagkyprias-organosis-tyflon/
+- https://neakypros.com.cy/index.php/news/121938
+- https://cyprus-faq.com/en/south/news/nezryachie-kipr-trotuary-samokaty-perekhody/
+- https://en.alphanews.live/cyprus/the-service-is-not-in-crisis-cpts-response-to-the-audit-offices-findings-on-buses/
+- https://www.kiprinform.com/en/news/cyprus-public-transport-challenges-audit-findings-points-to-service-upgrades
+- https://firt.dev/notes/pwa-ios
+- Code: packages/core/src/alight-countdown.ts, src/components/journey/AlightCountdownCard.tsx, src/lib/useJourneySideEffects.ts, public/sw.js, src/routes/api/public/trip-alerts.ts, src/lib/wrong-stop-reroute.ts (redesign-roam @ 1508f3f)
 
 ---
