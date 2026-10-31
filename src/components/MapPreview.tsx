@@ -121,7 +121,7 @@ export function MapPreview({
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
-  const { api, error: loadError, retry: retryLoad } = useMapbox();
+  const { api, error: loadError } = useMapbox();
   // WebGL can be missing (old devices, blocked GPU) or briefly unavailable
   // (iOS Safari frees the previous screen's map context a moment late). Map
   // construction then throws: try again shortly, then show a retry fallback.
@@ -290,8 +290,10 @@ export function MapPreview({
             onClick={() => {
               setRetrying(true);
               if (loadError) {
-                // Library or chunk failed: load it again; the map builds when it arrives.
-                retryLoad();
+                // The map library failed to download. The browser keeps a failed
+                // dynamic import rejected for the life of the page, so loading it
+                // again in place can never work: reload the page instead.
+                window.location.reload();
                 return;
               }
               // Construction failed: fresh attempt now, with the same two quick
