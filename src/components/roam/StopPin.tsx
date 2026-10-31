@@ -1,18 +1,16 @@
 // Bus-stop marker for Roam maps: the signpost pin. An ink teardrop carrying a
 // white stop sign on a post, its tip on the exact kerb, so a stop never reads
 // as a vehicle next to the yellow buses. Selected grows into a yellow pin with
-// an ink sign and shows its line count; buses due soon add a small yellow dot.
+// an ink sign; buses due soon add a small yellow dot.
 type Props = {
   on?: boolean;
   label: string;
-  /** Distinct lines serving the stop (shown on the selected stop only). */
-  lines?: number;
   /** Buses due in the next 20 min. */
   due?: number;
   onClick?: () => void;
 };
 
-export function StopPin({ on = false, label, lines = 0, due = 0, onClick }: Props) {
+export function StopPin({ on = false, label, due = 0, onClick }: Props) {
   return (
     <button
       type="button"
@@ -33,11 +31,6 @@ export function StopPin({ on = false, label, lines = 0, due = 0, onClick }: Prop
         </g>
       </svg>
       {due > 0 && !on ? <span className="r-stop-due" aria-hidden="true" /> : null}
-      {on && lines > 0 ? (
-        <span className="r-stop-count" aria-hidden="true">
-          {lines}
-        </span>
-      ) : null}
     </button>
   );
 }

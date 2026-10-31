@@ -1,7 +1,8 @@
 // Saved (Roam): pinned places as rich cards with the next bus near each and a
 // one-tap trip, recent destinations with a compact Pin action, the live and
 // scheduled trips and arrival promises, and shortcuts to alerts and offline
-// timetables (which open in the Me sheet).
+// timetables (which open in the Me sheet). Home and Work are always-present
+// slots at the top of Pinned: empty they offer Set home / Set work.
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ActiveLiveTripCard } from "@/components/saved/ActiveLiveTripCard";
@@ -10,10 +11,12 @@ import { ArrivalPromisesSection } from "@/components/saved/ArrivalPromisesSectio
 import { useNextBus } from "@/components/home/useNextBus";
 import { nearestStops } from "@/lib/gtfs";
 import {
+  clearAnchor,
   removeSavedPlace,
   upsertSavedPlace,
   useRecents,
   useSavedPlaces,
+  type AnchorKind,
   type RecentDestination,
   type SavedPlace,
 } from "@/lib/trip-store";
@@ -22,6 +25,7 @@ import { RoamPage } from "../RoamPage";
 import { Icon } from "../Icon";
 import { ConfTag, LinePill } from "../bits";
 import { openMeSheet } from "../me-store";
+import { PlacePickSheet } from "./PlacePickSheet";
 
 const TONE_CYCLE: SavedPlace["tone"][] = ["aegean", "ochre", "olive"];
 const NL_PLAN_KEY = "aloya:nl-plan";
@@ -53,10 +57,14 @@ function placeIcon(label: string) {
 
 export function RoamSaved() {
   const { r } = useRoamI18n();
-  const saved = useSavedPlaces();
+  const all = useSavedPlaces();
+  const saved = all.filter((p) => !p.kind);
+  const home = all.find((p) => p.kind === "home");
+  const work = all.find((p) => p.kind === "work");
   const recents = useRecents();
   const planTo = usePlanTo();
-  const pinnedIds = new Set(saved.map((p) => p.id));
+  const [picking, setPicking] = useState<AnchorKind | null>(null);
+  const pinnedIds = new Set(all.map((p) => p.id));
 
   function pinRecent(rec: RecentDestination, label: string) {
     upsertSavedPlace({
@@ -65,7 +73,7 @@ export function RoamSaved() {
       name: rec.name,
       lat: rec.lat,
       lng: rec.lng,
-      tone: TONE_CYCLE[saved.length % 3],
+      tone: TONE_CYCLE[all.length % 3],
       pinned: true,
       createdAt: Date.now(),
     });
@@ -82,26 +90,14 @@ export function RoamSaved() {
 
         <h2 className="r-sec-lbl" style={{ marginTop: 8 }}>
           <span>{r("sv.pinned")}</span>
-          {saved.length > 0 ? <span className="r-tnum">{saved.length}</span> : null}
+          {all.length > 0 ? <span className="r-tnum">{all.length}</span> : null}
         </h2>
-        {saved.length === 0 ? (
-          <div className="r-card r-card--pad">
-            <div className="flex items-start gap-3">
-              <span className="r-icobox">
-                <Icon name="push-pin" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="r-t3">{r("sv.emptyTitle")}</p>
-                <p className="r-lbl mt-1">{r("sv.emptyBody")}</p>
-              </div>
-            </div>
-            <Link to="/trips" className="r-pill r-pill--y r-pill--lg mt-4">
-              <Icon name="path" />
-              {r("sv.plan")}
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-3">
+        <div className="space-y-3">
+          <AnchorSlot kind="home" place={home} onPlan={planTo} onSet={setPicking} />
+          <AnchorSlot kind="work" place={work} onPlan={planTo} onSet={setPicking} />
+        </div>
+        {saved.length === 0 ? null : (
+          <div className="mt-3 space-y-3">
             {saved.map((p) => (
               <PinnedCard key={p.id} place={p} onPlan={planTo} />
             ))}
@@ -159,12 +155,73 @@ export function RoamSaved() {
           </button>
         </div>
       </div>
+      <PlacePickSheet kind={picking} onClose={() => setPicking(null)} />
     </RoamPage>
   );
 }
 
-function PinnedCard({ place, onPlan }: { place: SavedPlace; onPlan: (to: Place) => void }) {
+function AnchorSlot({
+  kind,
+  place,
+  onPlan,
+  onSet,
+}: {
+  kind: AnchorKind;
+  place: SavedPlace | undefined;
+  onPlan: (to: Place) => void;
+  onSet: (kind: AnchorKind) => void;
+}) {
   const { r } = useRoamI18n();
+  if (place)
+    return (
+      <PinnedCard
+        place={place}
+        onPlan={onPlan}
+        anchor={kind}
+        onChange={() => onSet(kind)}
+        onRemove={() => clearAnchor(kind)}
+      />
+    );
+  return (
+    <button
+      type="button"
+      className="r-card r-card--pad block w-full text-left"
+      onClick={() => onSet(kind)}
+    >
+      <span className="flex items-center gap-3">
+        <span className="r-icobox">
+          <Icon name={kind === "home" ? "house" : "briefcase"} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="r-t3 block text-[17px]">
+            {r(kind === "home" ? "sv.home" : "sv.work")}
+          </span>
+          <span className="r-lbl mt-0.5 block">{r("sv.anchorEmpty")}</span>
+        </span>
+        <span className="r-pill r-pill--y r-pill--sm flex-none">
+          <Icon name="plus" />
+          {r(kind === "home" ? "sv.setHome" : "sv.setWork")}
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function PinnedCard({
+  place,
+  onPlan,
+  anchor,
+  onChange,
+  onRemove,
+}: {
+  place: SavedPlace;
+  onPlan: (to: Place) => void;
+  anchor?: AnchorKind;
+  onChange?: () => void;
+  onRemove?: () => void;
+}) {
+  const { r } = useRoamI18n();
+  const title = anchor ? r(anchor === "home" ? "sv.home" : "sv.work") : place.label;
   const coords = { lat: place.lat, lng: place.lng };
   const { bus, nearestStop } = useNextBus({ coords, located: true, pickedStopId: null });
   const near = nearestStops(coords, 1)[0];
@@ -176,21 +233,30 @@ function PinnedCard({ place, onPlan }: { place: SavedPlace; onPlan: (to: Place) 
     <article className="r-card r-card--pad">
       <div className="flex items-start gap-3">
         <span className="r-icobox">
-          <Icon name={placeIcon(place.label)} />
+          <Icon
+            name={anchor ? (anchor === "home" ? "house" : "briefcase") : placeIcon(place.label)}
+          />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="r-t3 r-clamp2 break-words text-[17px]">{place.label}</h3>
+          <h3 className="r-t3 r-clamp2 break-words text-[17px]">{title}</h3>
           <p className="r-lbl r-clamp2 break-words mt-0.5">{place.name}</p>
         </div>
-        <button
-          type="button"
-          className="r-pill r-pill--sm"
-          aria-label={r("sv.unpin", { place: place.label })}
-          onClick={() => removeSavedPlace(place.id)}
-        >
-          <Icon name="push-pin-slash" />
-          {r("sv.unpinShort")}
-        </button>
+        {anchor ? (
+          <button type="button" className="r-pill r-pill--sm flex-none" onClick={onChange}>
+            <Icon name="pencil-simple" />
+            {r("sv.change")}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="r-pill r-pill--sm"
+            aria-label={r("sv.unpin", { place: place.label })}
+            onClick={() => removeSavedPlace(place.id)}
+          >
+            <Icon name="push-pin-slash" />
+            {r("sv.unpinShort")}
+          </button>
+        )}
       </div>
 
       <div className="r-hair my-4" />
@@ -227,7 +293,7 @@ function PinnedCard({ place, onPlan }: { place: SavedPlace; onPlan: (to: Place) 
         <button
           type="button"
           className="r-pill r-pill--k r-pill--lg"
-          onClick={() => onPlan({ label: place.label, lat: place.lat, lng: place.lng })}
+          onClick={() => onPlan({ label: title, lat: place.lat, lng: place.lng })}
         >
           <Icon name="path" />
           {r("sv.takeMe")}
@@ -237,6 +303,17 @@ function PinnedCard({ place, onPlan }: { place: SavedPlace; onPlan: (to: Place) 
             <Icon name="bus" />
             {r("sv.stop")}
           </Link>
+        ) : null}
+        {anchor ? (
+          <button
+            type="button"
+            className="r-pill r-pill--lg"
+            aria-label={r("sv.removeAria", { place: title })}
+            onClick={onRemove}
+          >
+            <Icon name="trash" />
+            {r("sv.remove")}
+          </button>
         ) : null}
       </div>
     </article>

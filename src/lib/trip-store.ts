@@ -20,7 +20,11 @@ export type SavedPlace = {
   tone: "aegean" | "ochre" | "olive";
   pinned: boolean;
   createdAt: number;
+  /** Home or work anchor (at most one of each); plain pins have none. */
+  kind?: AnchorKind;
 };
+
+export type AnchorKind = "home" | "work";
 
 export type RecentDestination = {
   id: string;
@@ -283,7 +287,56 @@ export function collapseToFinalWalk(fix: { lat: number; lng: number }) {
 
 // ---------- saved places ----------
 export function listSavedPlaces(): SavedPlace[] {
-  return read<SavedPlace[]>(SAVED_KEY) ?? [];
+  return migrateAnchors(read<SavedPlace[]>(SAVED_KEY) ?? []);
+}
+
+const ANCHOR_LABEL: Record<AnchorKind, RegExp> = {
+  home: /^\s*(home|σπίτι)\s*$/i,
+  work: /^\s*(work|office|δουλειά|γραφείο)\s*$/i,
+};
+
+/** A pin the user named "Home" or "Work" before anchors existed becomes that
+ *  anchor (only when no anchor of that kind is set). Pure; persisted on the
+ *  next write. */
+export function migrateAnchors(list: SavedPlace[]): SavedPlace[] {
+  let out = list;
+  for (const kind of ["home", "work"] as const) {
+    if (out.some((p) => p.kind === kind)) continue;
+    const i = out.findIndex((p) => !p.kind && ANCHOR_LABEL[kind].test(p.label));
+    if (i < 0) continue;
+    out = out.slice();
+    out[i] = { ...out[i], kind };
+  }
+  return out;
+}
+
+export function anchorOf(list: SavedPlace[], kind: AnchorKind): SavedPlace | undefined {
+  return list.find((p) => p.kind === kind);
+}
+
+export function setAnchor(kind: AnchorKind, place: { name: string; lat: number; lng: number }) {
+  const all = listSavedPlaces();
+  const prev = anchorOf(all, kind);
+  const rest = all.filter((p) => p.kind !== kind);
+  rest.push({
+    id: prev?.id ?? `anchor-${kind}`,
+    label: kind === "home" ? "Home" : "Work",
+    name: place.name,
+    lat: place.lat,
+    lng: place.lng,
+    tone: kind === "home" ? "aegean" : "ochre",
+    pinned: true,
+    createdAt: prev?.createdAt ?? Date.now(),
+    kind,
+  });
+  write(SAVED_KEY, rest);
+}
+
+export function clearAnchor(kind: AnchorKind) {
+  write(
+    SAVED_KEY,
+    listSavedPlaces().filter((p) => p.kind !== kind),
+  );
 }
 export function upsertSavedPlace(p: SavedPlace) {
   const all = listSavedPlaces().filter((x) => x.id !== p.id);

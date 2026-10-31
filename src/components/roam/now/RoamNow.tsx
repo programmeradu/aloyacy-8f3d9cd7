@@ -15,8 +15,7 @@ import { useNextBus } from "@/components/home/useNextBus";
 import { useNearbyStops } from "@/components/home/useNearbyStops";
 import { deriveCardState } from "@/components/home/sky-state";
 import { useGeolocation } from "@/lib/useGeolocation";
-import { distanceKm, getRoute, getStop, nearestStops } from "@/lib/gtfs";
-import routeStopsData from "@/data/route_stops.json";
+import { distanceKm, getStop, nearestStops } from "@/lib/gtfs";
 import { useActiveTrip, useSavedPlaces } from "@/lib/trip-store";
 import { useTick } from "@/hooks/use-tick";
 import { useRoamI18n } from "@/lib/roam-i18n";
@@ -27,6 +26,8 @@ import { Icon } from "../Icon";
 import { NowCard } from "./NowCard";
 import { NowMore } from "./NowMore";
 import { StopPin } from "../StopPin";
+import { PlacePickSheet } from "../saved/PlacePickSheet";
+import type { AnchorKind } from "@/lib/trip-store";
 import { useLocationControl } from "./useLocationControl";
 
 const PICK_KEY = "aloya:home-stop";
@@ -105,7 +106,6 @@ export function RoamNow() {
     ? pinStops.map((s, i) => {
         const on = s.id === cardStopId;
         const due = dueByStop.get(s.id) ?? 0;
-        const nLines = lineCountAtStop(s.id);
         return {
           id: s.id,
           lat: s.lat,
@@ -116,7 +116,6 @@ export function RoamNow() {
             <StopPin
               on={on}
               label={r("now.openStop", { name: s.name })}
-              lines={nLines}
               due={due}
               onClick={() => setFocus(s.id)}
             />
@@ -142,10 +141,34 @@ export function RoamNow() {
       ? Math.round((distanceKm(coords, { lat: bus.stopLat, lng: bus.stopLng }) * 1000) / 10) * 10
       : null;
 
-  const saved = useSavedPlaces()
-    .filter((p) => p.pinned)
-    .slice(0, 3);
-  const chips = [
+  const allSaved = useSavedPlaces();
+  const home = allSaved.find((p) => p.kind === "home");
+  const work = allSaved.find((p) => p.kind === "work");
+  const saved = allSaved.filter((p) => p.pinned && !p.kind).slice(0, 3);
+  const [anchorPick, setAnchorPick] = useState<AnchorKind | null>(null);
+  type Chip = { key: string; icon: string; label: string; href?: string; onClick?: () => void };
+  const homeChip: Chip = home
+    ? {
+        key: "home",
+        icon: "house",
+        label: r("sv.home"),
+        href: placeHref({ lat: home.lat, lng: home.lng, label: r("sv.home") }),
+      }
+    : { key: "home", icon: "house", label: r("sv.setHome"), onClick: () => setAnchorPick("home") };
+  const workChips: Chip[] = work
+    ? [
+        {
+          key: "work",
+          icon: "briefcase",
+          label: r("sv.work"),
+          href: placeHref({ lat: work.lat, lng: work.lng, label: r("sv.work") }),
+        },
+      ]
+    : [];
+  const chips: Chip[] = [
+    homeChip,
+    ...workChips,
+    { key: "lca", icon: "airplane-tilt", label: r("now.airport"), href: placeHref(LCA) },
     ...saved.map((p) => ({
       key: p.id,
       icon: /home|σπίτι/i.test(p.label)
@@ -158,7 +181,6 @@ export function RoamNow() {
       label: p.label,
       href: placeHref({ lat: p.lat, lng: p.lng, label: p.name || p.label }),
     })),
-    { key: "lca", icon: "airplane-tilt", label: r("now.airport"), href: placeHref(LCA) },
   ].slice(0, 3);
 
   const active = useActiveTrip();
@@ -209,12 +231,24 @@ export function RoamNow() {
             : r("now.locating")}
         </p>
         <nav className="r-now-chips" aria-label={r("now.search")}>
-          {chips.map((c) => (
-            <a key={c.key} href={c.href} className="r-pill r-pill--glass r-pill--lg">
-              <Icon name={c.icon} />
-              {c.label}
-            </a>
-          ))}
+          {chips.map((c) =>
+            c.href ? (
+              <a key={c.key} href={c.href} className="r-pill r-pill--glass r-pill--lg">
+                <Icon name={c.icon} />
+                {c.label}
+              </a>
+            ) : (
+              <button
+                key={c.key}
+                type="button"
+                className="r-pill r-pill--glass r-pill--lg"
+                onClick={c.onClick}
+              >
+                <Icon name={c.icon} />
+                {c.label}
+              </button>
+            ),
+          )}
           <button
             type="button"
             className="r-pill r-pill--glass r-pill--lg"
@@ -289,24 +323,7 @@ export function RoamNow() {
         }}
         hasPickedStop={!!picked}
       />
+      <PlacePickSheet kind={anchorPick} onClose={() => setAnchorPick(null)} coords={coords} />
     </div>
   );
-}
-
-let LINES_AT_STOP: Map<string, Set<string>> | null = null;
-/** Distinct line numbers serving a stop (both directions count once). */
-function lineCountAtStop(stopId: string): number {
-  if (!LINES_AT_STOP) {
-    const m = new Map<string, Set<string>>();
-    for (const [routeId, stopIds] of Object.entries(routeStopsData as Record<string, string[]>)) {
-      const code = getRoute(routeId)?.short || routeId;
-      for (const id of stopIds) {
-        let set = m.get(id);
-        if (!set) m.set(id, (set = new Set()));
-        set.add(code);
-      }
-    }
-    LINES_AT_STOP = m;
-  }
-  return LINES_AT_STOP.get(stopId)?.size ?? 0;
 }

@@ -1773,22 +1773,6 @@ html.r-has-resume .r-now-more {
 .r-stop-pin.is-on .r-sp-bar {
   fill: #f6c33c;
 }
-.r-stop-count {
-  position: absolute;
-  top: -6px;
-  right: -11px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 8px;
-  background: #141414;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 16px;
-  text-align: center;
-  box-shadow: 0 0 0 1.5px #fff;
-}
 .r-stop-pin:active {
   transform: scale(0.92);
 }
