@@ -2202,7 +2202,7 @@ What works well: Greek and fuzzy search; dense trip cards with "Why this option"
 
 # Part F (bonus): Can Aloya reduce car dependence in Cyprus?
 
-Written 31 October 2026. Every number below carries its source in the same line or in the source list at the end of each section. Where a figure could not be verified, the text says so. British spelling, no em or en dashes.
+Written 31 October 2026. Every number below carries its source in the same line or in the book's source list. Where a figure could not be verified, the text says so.
 
 ## The short answer
 
@@ -2282,6 +2282,8 @@ This table merges the top recommendations of Parts A to F into one list and remo
 - **Next:** medium effort (M) with high or very high impact, building the core of the smart companion and the platform.
 - **Later:** large effort (L), or work that depends on partners, funding or the earlier steps.
 
+<div class="roadmap">
+
 ## Now
 
 | # | Action | Layers | Effort | Impact |
@@ -2348,6 +2350,8 @@ This table merges the top recommendations of Parts A to F into one list and remo
 | L5 | Business model: free rider app; B2G trust and accuracy dashboard; employer-funded commuter programmes and rewards for real mode change; earn on referrals and B2B, not ticket margin; no raw data sales | 21, 29, 35, 42, 47 | M to L | High |
 | L6 | Compete on trust (ETA confidence, honest fallbacks) against Google Maps, Moovit and the local apps | 26 | L | Very high |
 | L7 | Car-dependence contribution: turn verified data on where the bus system fails into advocacy, government insight and employer programmes, timed for the 2030 Nicosia bus contract specifications (synthesis of Part F) | Part F, 29, 35 | L | High |
+
+</div>
 
 
 # The QA programme {#qa-programme}
