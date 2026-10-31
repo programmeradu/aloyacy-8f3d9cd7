@@ -2,6 +2,7 @@
 // into on time, delayed and early; the column beside it gives the counts, a
 // sparkline traces today's average delay by hour, and each city gets its own
 // tile. Same numbers as the Live network tiles (useNetworkNow).
+import { useCallback, useEffect, useState } from "react";
 import type { CityKey, NetworkNow } from "@/lib/network-now";
 import type { HourBucket } from "@/lib/pulse.functions";
 import { useRoamI18n, type RoamKey } from "@/lib/roam-i18n";
@@ -165,6 +166,46 @@ function Texture() {
   );
 }
 
+const OPEN_KEY = "aloya:pulse-network-open";
+
+function SumRing({ pct, rated }: { pct: number; rated: boolean }) {
+  const R = 25;
+  const C = 2 * Math.PI * R;
+  const v = rated ? Math.max(0, Math.min(100, pct)) : 0;
+  return (
+    <span className="r-nn-sumring">
+      <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r={R} fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="7" />
+        <circle
+          cx="32"
+          cy="32"
+          r={R}
+          fill="none"
+          stroke="#F6B83C"
+          strokeWidth="7"
+          strokeLinecap="round"
+          strokeDasharray={`${(v / 100) * C} ${C}`}
+          transform="rotate(-90 32 32)"
+        />
+      </svg>
+      <b>
+        {rated ? pct : "-"}
+        {rated ? <small>%</small> : null}
+      </b>
+    </span>
+  );
+}
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <span className="r-nn-chev" data-open={open ? "true" : "false"} aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 14 14">
+        <path d="M3 5.2 7 9l4-3.8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}
+
 export function NetworkNowCard({
   now,
   buckets,
@@ -175,20 +216,61 @@ export function NetworkNowCard({
   nowHour: number | null;
 }) {
   const { r } = useRoamI18n();
+  // Collapsed by default (the compact widget); the rider's last choice wins.
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    try {
+      setOpen(localStorage.getItem(OPEN_KEY) === "1");
+    } catch {
+      /* private mode: stay collapsed */
+    }
+  }, []);
+  const toggle = useCallback(() => {
+    setOpen((o) => {
+      const next = !o;
+      try {
+        localStorage.setItem(OPEN_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
   const ready = !!now && now.liveBuses > 0;
   const rated = ready && now!.tracked > 0;
+  const worst =
+    ready && rated
+      ? now!.cities
+          .filter((c) => c.onTimePct !== null && c.tracked >= 5)
+          .sort((a, b) => (a.onTimePct ?? 0) - (b.onTimePct ?? 0))[0]
+      : undefined;
+
   return (
-    <section className="r-nn r-rise" aria-label={r("pulse.networkNow")}>
+    <section
+      className="r-nn r-rise"
+      data-open={open ? "true" : "false"}
+      aria-label={r("pulse.networkNow")}
+    >
       <Texture />
-      <div className="r-nn-top">
-        <p className="r-nn-lbl">{r("pulse.networkNow")}</p>
-        {ready ? (
-          <span className="r-nn-live">
-            <i aria-hidden="true" />
-            {r("pulse.nn.live", { n: now!.liveBuses })}
-          </span>
-        ) : null}
-      </div>
+      <button
+        type="button"
+        className="r-nn-top r-nn-btn"
+        onClick={toggle}
+        aria-expanded={open}
+        aria-label={open ? r("pulse.nn.collapse") : r("pulse.nn.expand")}
+      >
+        <span className="r-nn-lbl">{r("pulse.networkNow")}</span>
+        <span className="r-nn-topr">
+          {ready ? (
+            <span className="r-nn-live">
+              <i aria-hidden="true" />
+              {r("pulse.nn.live", { n: now!.liveBuses })}
+            </span>
+          ) : null}
+          <Chevron open={open} />
+        </span>
+      </button>
 
       {!now ? (
         <p className="r-nn-empty">{r("pulse.learning")}</p>
@@ -196,63 +278,100 @@ export function NetworkNowCard({
         <p className="r-nn-empty">{r("pulse.nn.quiet")}</p>
       ) : (
         <>
-          <div className="r-nn-main">
-            <div className="r-nn-ringwrap">
-              <Ring
-                onTime={rated ? now.onTimePct : 0}
-                late={rated ? now.latePct : 0}
-                early={rated ? now.earlyPct : 0}
-              />
-              <div className="r-nn-ringtxt">
-                <b>
-                  {rated ? now.onTimePct : "-"}
-                  {rated ? <small>%</small> : null}
-                </b>
-                <span>{r("pulse.nn.onTime")}</span>
-              </div>
+          <div className="r-nn-fold" data-open={open ? "false" : "true"} aria-hidden={open}>
+            <div>
+              <button
+                type="button"
+                className="r-nn-sum r-nn-btn"
+                onClick={toggle}
+                tabIndex={open ? -1 : 0}
+                aria-label={r("pulse.nn.expand")}
+              >
+                <SumRing pct={now.onTimePct} rated={rated} />
+                <span className="r-nn-sumbody">
+                  <span className="r-nn-sumlbl">{r("pulse.nn.onTimeNow")}</span>
+                  <span className="r-nn-pills">
+                    <span className="r-nn-pill">
+                      <i style={{ background: LATE }} />
+                      {r("pulse.nn.delayedN", { n: now.late })}
+                    </span>
+                    <span className="r-nn-pill">
+                      <i style={{ background: EARLY }} />
+                      {r("pulse.nn.earlyN", { n: now.early })}
+                    </span>
+                    {worst ? (
+                      <span className="r-nn-pill" data-tone={cityTone(worst.onTimePct)}>
+                        <i />
+                        {r(CITY[worst.key])} {worst.onTimePct}%
+                      </span>
+                    ) : null}
+                  </span>
+                </span>
+              </button>
             </div>
-            <dl className="r-nn-stats">
-              <div>
-                <dt>
-                  <i style={{ background: LATE }} aria-hidden="true" />
-                  {r("pulse.nn.delayed")}
-                </dt>
-                <dd>{now.late}</dd>
-              </div>
-              <div>
-                <dt>
-                  <i style={{ background: EARLY }} aria-hidden="true" />
-                  {r("pulse.nn.early")}
-                </dt>
-                <dd>{now.early}</dd>
-              </div>
-              <div>
-                <dt>{r("pulse.nn.avgDelay")}</dt>
-                <dd>
-                  {rated ? signedMin(now.avgDelaySec) : "-"}
-                  <small> {r("pulse.nn.minShort")}</small>
-                </dd>
-              </div>
-            </dl>
           </div>
 
-          <Spark buckets={buckets} nowHour={nowHour} />
+          <div className="r-nn-fold" data-open={open ? "true" : "false"} aria-hidden={!open}>
+            <div>
+              <div className="r-nn-main">
+                <div className="r-nn-ringwrap">
+                  <Ring
+                    onTime={rated ? now.onTimePct : 0}
+                    late={rated ? now.latePct : 0}
+                    early={rated ? now.earlyPct : 0}
+                  />
+                  <div className="r-nn-ringtxt">
+                    <b>
+                      {rated ? now.onTimePct : "-"}
+                      {rated ? <small>%</small> : null}
+                    </b>
+                    <span>{r("pulse.nn.onTime")}</span>
+                  </div>
+                </div>
+                <dl className="r-nn-stats">
+                  <div>
+                    <dt>
+                      <i style={{ background: LATE }} aria-hidden="true" />
+                      {r("pulse.nn.delayed")}
+                    </dt>
+                    <dd>{now.late}</dd>
+                  </div>
+                  <div>
+                    <dt>
+                      <i style={{ background: EARLY }} aria-hidden="true" />
+                      {r("pulse.nn.early")}
+                    </dt>
+                    <dd>{now.early}</dd>
+                  </div>
+                  <div>
+                    <dt>{r("pulse.nn.avgDelay")}</dt>
+                    <dd>
+                      {rated ? signedMin(now.avgDelaySec) : "-"}
+                      <small> {r("pulse.nn.minShort")}</small>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
 
-          <ul className="r-nn-cities">
-            {now.cities.map((c) => (
-              <li key={c.key} className="r-nn-city" data-tone={cityTone(c.onTimePct)}>
-                <span className="r-nn-cityname">
-                  <i aria-hidden="true" />
-                  {r(CITY[c.key])}
-                </span>
-                <span className="r-nn-cityval">
-                  <b>{c.onTimePct === null ? "-" : `${c.onTimePct}%`}</b>
-                  <em>{r("pulse.nn.busesN", { n: c.live })}</em>
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="r-nn-def">{r("pulse.nn.def")}</p>
+              <Spark buckets={buckets} nowHour={nowHour} />
+
+              <ul className="r-nn-cities">
+                {now.cities.map((c) => (
+                  <li key={c.key} className="r-nn-city" data-tone={cityTone(c.onTimePct)}>
+                    <span className="r-nn-cityname">
+                      <i aria-hidden="true" />
+                      {r(CITY[c.key])}
+                    </span>
+                    <span className="r-nn-cityval">
+                      <b>{c.onTimePct === null ? "-" : `${c.onTimePct}%`}</b>
+                      <em>{r("pulse.nn.busesN", { n: c.live })}</em>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="r-nn-def">{r("pulse.nn.def")}</p>
+            </div>
+          </div>
         </>
       )}
     </section>

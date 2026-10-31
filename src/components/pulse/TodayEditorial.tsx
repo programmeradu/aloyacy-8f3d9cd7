@@ -53,7 +53,7 @@ export function TodayEditorial({
 
       {/* Hero card */}
       <article className="relative overflow-hidden rounded-[28px] bg-card ring-1 ring-line r-pulse-story">
-        <div className="relative aspect-[16/10] w-full overflow-hidden">
+        <div className="relative m-2 aspect-[16/10] overflow-hidden rounded-[22px]">
           <img
             src={hero}
             alt=""
@@ -62,13 +62,13 @@ export function TodayEditorial({
           />
           <div
             aria-hidden
-            className="absolute inset-x-0 bottom-0 h-2/3 pointer-events-none"
+            className="hidden"
             style={{
               background:
                 "linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--color-card) 30%, transparent) 55%, var(--color-card) 100%)",
             }}
           />
-          <div className="absolute left-5 top-5 right-5 flex items-center justify-between gap-2">
+          <div className="absolute left-3 top-3 right-3 flex items-center justify-between gap-2">
             <p className="inline-flex items-center gap-2 rounded-full bg-card/90 backdrop-blur-sm px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ink ring-1 ring-line">
               {niceDate}
             </p>
@@ -86,8 +86,8 @@ export function TodayEditorial({
           </div>
         </div>
 
-        <div className="relative px-5 pt-2 pb-5">
-          <h2 className="font-display text-[28px] leading-[1.1] text-ink text-balance">
+        <div className="relative px-4 pt-2 pb-5">
+          <h2 className="font-display text-[26px] leading-[1.12] text-ink text-balance">
             {headline}
           </h2>
           <p className="mt-2 text-[15px] leading-[1.45] text-ink-soft text-pretty">{lede}</p>
