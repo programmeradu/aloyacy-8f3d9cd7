@@ -7,6 +7,8 @@ import type {
 } from "./schedule-types";
 import { serviceDateToUnix } from "./schedule-types";
 import { pruneDominated } from "@aloya/core/multileg-search";
+import { rankPenaltySec, RANK_AIRPORT_EGRESS_M } from "@aloya/core/plan-score";
+import { kmBetween, type Airport } from "./plan-airports";
 import {
   finalise,
   walkMetersOnStreet,
@@ -115,10 +117,15 @@ export function buildDirectRaptorItineraries(input: {
     const accessArrivalUnix = departureUnix + accessSec;
     const deadlineSec = accessArrivalUnix - serviceDateToUnix(date, 0);
     const start = firstTripAtOrAfter(rows, deadlineSec);
+    // The next few departures per route are plenty of one-seat choices.
+    const perRoute = new Map<string, number>();
 
     for (let i = start; i < rows.length; i++) {
       const [tripId, depSec, routeId] = rows[i];
       if (depSec - deadlineSec > searchHorizonSec) break;
+      const seen = perRoute.get(routeId) ?? 0;
+      if (seen >= 3) continue;
+      perRoute.set(routeId, seen + 1);
       const tripRows = stopTimes[tripId];
       if (!tripRows) continue;
 
@@ -204,7 +211,25 @@ export function buildDirectRaptorItineraries(input: {
   return out;
 }
 
-export function selectRaptorItineraries(itineraries: Itinerary[], limit: number): Itinerary[] {
+/** True when an airport trip's last bus stops away from the terminal. */
+export function stopsShortOfAirport(it: Itinerary, airport: Airport | null | undefined): boolean {
+  if (!airport) return false;
+  let last: RideLeg | null = null;
+  for (const leg of it.legs) if (leg.kind === "ride") last = leg;
+  if (!last) return false;
+  return kmBetween(last.alight, airport) * 1000 > RANK_AIRPORT_EGRESS_M;
+}
+
+export function selectRaptorItineraries(
+  itineraries: Itinerary[],
+  limit: number,
+  opts?: { airport?: Airport | null },
+): Itinerary[] {
+  // Final rank: changes, long walks and a final walk short of the door cost
+  // extra (plan-score `rankPenaltySec`).
+  for (const it of itineraries) {
+    it.score += rankPenaltySec(it, { airportShort: stopsShortOfAirport(it, opts?.airport) });
+  }
   const bySignature = new Map<string, Itinerary>();
   for (const it of itineraries) {
     const rides = it.legs.filter((leg): leg is RideLeg => leg.kind === "ride");

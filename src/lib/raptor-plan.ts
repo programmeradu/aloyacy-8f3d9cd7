@@ -24,6 +24,7 @@ import { sameStation, stationIdOf } from "./stations";
 import type { PlanContext, AccessibilityPrefs, WalkQuality } from "@aloya/core/raptor-core";
 import { WALK_QUALITY_PENALTY } from "@aloya/core/raptor-core";
 import { skipMapKey } from "@aloya/core/skip-rate";
+import { snapToAirport, AIRPORT_TERMINAL_RADIUS_KM } from "./plan-airports";
 
 /** Server-side signals the search uses when it runs on the Worker. The
  *  browser planner runs without them (haversine walks, no skip data). */
@@ -62,6 +63,17 @@ const {
   topKResults: TOP_K_RESULTS, defaultSearchHorizonSec: DEFAULT_SEARCH_HORIZON_SEC,
 } = RAPTOR_TUNING;
 
+/** Straight-line trip length past which a cross-city search may walk further to a stop. */
+const LONG_TRIP_KM = 12;
+/** Access walk allowed on cross-city trips, to reach an intercity or otherwise-missing route. */
+const LONG_ACCESS_WALK_KM = 3.0;
+/** Journeys end at a stop this close to the door; wider only when nothing this close runs. */
+const NEAR_DEST_KM = 1.0;
+/** Trips scanned per route at each stop in a round (first, plus one spare for short workings). */
+const TRIPS_PER_ROUTE = 2;
+/** GTFS feed of the island-wide intercity coaches. */
+const INTERCITY_FEED_ID = 5;
+
 
 export type RaptorDiagnostics = {
   date: string;
@@ -98,6 +110,19 @@ export async function planRaptor(
   // tomorrow morning" gets pruned before it is ever scored.
   const MAX_JOURNEY_SEC = opts?.maxJourneySec ?? MAX_TOTAL_JOURNEY_SEC;
   const { date, stops, trips, stopTrips, stopTimes } = schedule;
+  // An airport endpoint is the terminal, not wherever the pin landed.
+  const snappedTo = snapToAirport(to);
+  const snappedFrom = snapToAirport(from);
+  to = snappedTo.point;
+  from = snappedFrom.point;
+  const tripKm = distanceKm(from, to);
+  // Cross-city trips may walk further to reach a stop with a route the nearer
+  // stops lack (an intercity, typically); the final rank prices the walk.
+  const accessKm = snappedFrom.airport
+    ? AIRPORT_TERMINAL_RADIUS_KM
+    : tripKm > LONG_TRIP_KM
+      ? LONG_ACCESS_WALK_KM
+      : MAX_ACCESS_WALK_KM;
   const diag: RaptorDiagnostics = {
     date,
     scheduleStopsLoaded: Object.keys(stops).length,
@@ -136,25 +161,39 @@ export async function planRaptor(
   const originPick = selectCandidateStops({
     stops: stopList,
     point: from,
-    maxKm: MAX_ACCESS_WALK_KM,
+    maxKm: accessKm,
     minCount: TOP_ORIGIN_STOPS,
     hardCap: MAX_ORIGIN_CANDIDATES,
     distanceKm: pickKm,
     stationOf,
     routesAt: (id) => routesAtStop(id),
   });
-  const destPick = selectCandidateStops({
-    stops: stopList,
-    point: to,
-    maxKm: MAX_DIRECT_EGRESS_WALK_KM,
-    minCount: TOP_DEST_STOPS,
-    hardCap: MAX_DEST_CANDIDATES,
-    distanceKm: pickKm,
-    stationOf,
-    routesAt: (id) => routesAtStop(id),
-  });
+  // Arrive at the door: only stops near the destination count (the terminal
+  // forecourt for an airport). The wide net is a fallback for places where
+  // nothing that close runs today, and the final rank prices that walk.
+  const pickDest = (maxKm: number) =>
+    selectCandidateStops({
+      stops: stopList,
+      point: to,
+      maxKm,
+      minCount: TOP_DEST_STOPS,
+      hardCap: MAX_DEST_CANDIDATES,
+      distanceKm: pickKm,
+      stationOf,
+      routesAt: (id) => routesAtStop(id),
+    });
+  let destPick = pickDest(snappedTo.airport ? AIRPORT_TERMINAL_RADIUS_KM : NEAR_DEST_KM);
+  if (!destPick.candidates.some((c) => (stopTrips[c.id]?.length ?? 0) > 0)) {
+    destPick = pickDest(MAX_DIRECT_EGRESS_WALK_KM);
+  }
 
-  const origins = originPick.candidates;
+  // Past the normal access radius, only a stop with an intercity coach is
+  // worth the walk; a town bus there is better reached by the local feeder.
+  const servesIntercity = (id: string) =>
+    routesAtStop(id).some((r) => schedule.routes[r]?.feedId === INTERCITY_FEED_ID);
+  const origins = originPick.candidates.filter(
+    (c) => c.distKm <= MAX_ACCESS_WALK_KM || servesIntercity(c.id),
+  );
   // One destination set for every option. Nothing gets a wider walking radius
   // because of how many changes it has.
   const dests = destPick.candidates;
@@ -232,6 +271,8 @@ export async function planRaptor(
     // Track which stops were touched this round so we can apply walking
     // transfers afterwards.
     const touched = new Set<string>();
+    // Trip -> earliest stop index it was boarded at this round.
+    const boardedThisRound = new Map<string, number>();
 
     for (const [stopId, label] of prev) {
       const departReady = label.arrivalUnix + (k === 1 ? 0 : MIN_TRANSFER_BUFFER_SEC);
@@ -252,14 +293,20 @@ export async function planRaptor(
         else hi = mid;
       }
 
+      const perRoute = new Map<string, number>();
       for (let i = lo; i < trips.length; i++) {
-        const [tripId, depSec] = trips[i];
+        const [tripId, depSec, tripRouteId] = trips[i];
         if (depSec - deadlineSec > SEARCH_HORIZON_SEC) break;
         // Don't re-board the same trip we just got off.
         if (label.kind === "ride" && label.tripId === tripId) continue;
+        // RAPTOR: a later trip of the same route from the same stop cannot
+        // arrive anywhere earlier than the first one, so only the first (and
+        // one spare, for short workings) is worth scanning.
+        const seen = perRoute.get(tripRouteId) ?? 0;
+        if (seen >= TRIPS_PER_ROUTE) continue;
+        perRoute.set(tripRouteId, seen + 1);
         const tripSt = stopTimes[tripId];
         if (!tripSt) continue;
-        diag.scannedTrips++;
 
         // Find board index on this trip.
         let boardIdx = -1;
@@ -270,6 +317,12 @@ export async function planRaptor(
           }
         }
         if (boardIdx < 0) continue;
+        // Already ridden this round from an earlier stop: everything
+        // downstream is labelled at least as well.
+        const earlierBoard = boardedThisRound.get(tripId);
+        if (earlierBoard !== undefined && earlierBoard <= boardIdx) continue;
+        boardedThisRound.set(tripId, boardIdx);
+        diag.scannedTrips++;
 
         // Walk downstream and mark new arrivals.
         for (let j = boardIdx + 1; j < tripSt.length; j++) {
@@ -396,7 +449,10 @@ export async function planRaptor(
   }
   diag.candidateItineraries = itineraries.length;
 
-  return { itineraries: selectRaptorItineraries(itineraries, TOP_K_RESULTS), diagnostics: diag };
+  return {
+    itineraries: selectRaptorItineraries(itineraries, TOP_K_RESULTS, { airport: snappedTo.airport }),
+    diagnostics: diag,
+  };
 }
 
 // ---- helpers --------------------------------------------------------------

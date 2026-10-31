@@ -21,6 +21,8 @@ import { serviceDateToUnix } from "./schedule-types";
 import { planRaptor } from "./raptor-plan";
 import type { Itinerary } from "./itinerary-types";
 import { cyParts } from "@aloya/core/cy-time";
+import { airportFor } from "./plan-airports";
+import type { KapnosClientRoute } from "./kapnos-itinerary";
 
 type ShardIndex = Record<string, { trips: number; rows: number }>;
 
@@ -130,6 +132,23 @@ export async function loadClientSchedule(date: string): Promise<LoadedSchedule> 
   return p;
 }
 
+let kapnosCache: { at: number; p: Promise<KapnosClientRoute[]> } | null = null;
+
+/** Kapnos coach timetable (airport routes, next ~40 h), cached 10 minutes. */
+function loadKapnosRoutes(): Promise<KapnosClientRoute[]> {
+  if (kapnosCache && Date.now() - kapnosCache.at < 10 * 60_000) return kapnosCache.p;
+  const p = (async () => {
+    const { getKapnosAirportRoutes } = await import("./kapnos.functions");
+    const routes = await getKapnosAirportRoutes();
+    return Array.isArray(routes) ? routes : [];
+  })();
+  kapnosCache = { at: Date.now(), p };
+  p.catch(() => {
+    kapnosCache = null;
+  });
+  return p;
+}
+
 export type ClientScheduledResult = {
   itineraries: Itinerary[];
   serviceDate: string;
@@ -163,7 +182,14 @@ export async function planScheduledOnClient(
   };
   const wide = { searchHorizonSec: 24 * 3600, maxJourneySec: 30 * 3600, accessibilityPrefs };
 
+  // Airport trips also rank the Kapnos coach; its timetable loads alongside
+  // the shard so it adds no wait.
+  const airportTrip = !!(airportFor(to) || airportFor(from));
+  const kapnosP = airportTrip ? loadKapnosRoutes() : null;
+
   const schedule = await loadClientSchedule(date);
+  let activeSchedule = schedule;
+  let activeDeparture = departureUnix;
   let serviceDate = date;
   let widenedHorizon = false;
   let rolledToNextDay = false;
@@ -187,10 +213,26 @@ export async function planScheduledOnClient(
           itineraries = rolled.itineraries;
           serviceDate = nextDate;
           rolledToNextDay = true;
+          activeSchedule = next;
+          activeDeparture = serviceDateToUnix(nextDate, 0);
         }
       } catch {
         // No shard for tomorrow: keep the empty same-day result.
       }
+    }
+  }
+  if (kapnosP) {
+    try {
+      const routes = await kapnosP;
+      if (routes.length > 0) {
+        const { planKapnosItineraries } = await import("./kapnos-itinerary");
+        const coach = await planKapnosItineraries(activeSchedule, from, to, activeDeparture, routes, {
+          accessibilityPrefs,
+        });
+        itineraries = [...itineraries, ...coach];
+      }
+    } catch {
+      // The coach is an extra option; the bus results stand without it.
     }
   }
   for (const it of itineraries) it.source = "estimated";

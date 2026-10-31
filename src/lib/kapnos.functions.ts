@@ -23,6 +23,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { distanceM } from "./geo";
 import { createLogger } from "./logger";
+import type { KapnosClientRoute } from "./kapnos-itinerary";
 
 const log = createLogger("kapnos");
 
@@ -346,3 +347,80 @@ export const suggestKapnos = createServerFn({ method: "POST" })
     }
     return null;
   });
+
+// ---- Coach timetable for the browser planner -------------------------------
+// The trip screen ranks the Kapnos coach alongside the buses (see
+// kapnos-itinerary.ts). The search runs in the browser; the Worker only hands
+// over the airport routes with departures as unix seconds, which is cheap
+// (one cached feed parse, one zone lookup per calendar day).
+
+let nicosiaFmt: Intl.DateTimeFormat | null = null;
+const offsetByDay = new Map<string, number>();
+
+/** Asia/Nicosia UTC offset (ms) on a calendar day, sampled at noon. */
+function nicosiaOffsetMs(day: string): number {
+  const hit = offsetByDay.get(day);
+  if (hit !== undefined) return hit;
+  const [Y, M, D] = day.split("-").map((n) => parseInt(n, 10));
+  const noonUtc = Date.UTC(Y, M - 1, D, 12, 0, 0);
+  nicosiaFmt ??= new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Nicosia",
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const parts = nicosiaFmt.formatToParts(new Date(noonUtc));
+  const g = (t: string) => parseInt(parts.find((p) => p.type === t)?.value ?? "0", 10);
+  const asLocal = Date.UTC(g("year"), g("month") - 1, g("day"), g("hour"), g("minute"), g("second"));
+  const off = asLocal - noonUtc;
+  offsetByDay.set(day, off);
+  return off;
+}
+
+/** "YYYY-MM-DD HH:MM:SS" Cyprus local -> unix seconds (NaN when malformed). */
+export function cyprusLocalToUnix(local: string): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})(?::(\d{2}))?$/.exec(local);
+  if (!m) return NaN;
+  const asUtc = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] ?? 0));
+  return Math.floor((asUtc - nicosiaOffsetMs(`${m[1]}-${m[2]}-${m[3]}`)) / 1000);
+}
+
+export const getKapnosAirportRoutes = createServerFn({ method: "GET" }).handler(
+  async (): Promise<KapnosClientRoute[]> => {
+    const routes = await fetchKapnosRoutes();
+    const nowSec = Math.floor(Date.now() / 1000);
+    const out: KapnosClientRoute[] = [];
+    for (const r of routes) {
+      if (!r.pickups.some((p) => p.isAirport) && !r.dropoffs.some((d) => d.isAirport)) continue;
+      const trips = r.trips
+        .map((t) => ({
+          tripId: t.tripId,
+          departUnix: cyprusLocalToUnix(t.departLocal),
+          price: t.priceFromFormatted || t.priceFromRaw,
+        }))
+        .filter((t) => Number.isFinite(t.departUnix) && t.departUnix > nowSec - 3600 && t.departUnix < nowSec + 40 * 3600)
+        .sort((a, b) => a.departUnix - b.departUnix);
+      if (trips.length === 0) continue;
+      out.push({
+        id: r.id,
+        code: r.code,
+        name: r.name,
+        pickups: r.pickups.map((p) => ({ id: p.id, name: p.name, lat: p.lat, lng: p.lng, isAirport: p.isAirport, offsetSec: 0 })),
+        dropoffs: r.dropoffs.map((d) => ({
+          id: d.id,
+          name: d.name,
+          lat: d.lat,
+          lng: d.lng,
+          isAirport: d.isAirport,
+          offsetSec: parseRangeToSec(d.rangeFromStart),
+        })),
+        trips,
+      });
+    }
+    return out;
+  },
+);

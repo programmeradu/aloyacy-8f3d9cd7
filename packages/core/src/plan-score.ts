@@ -132,3 +132,67 @@ export function filterDominated<T extends Comparable>(options: T[]): T[] {
     options.every((other, j) => i === j || !dominates(other, candidate)),
   );
 }
+
+// ---- final ranking ------------------------------------------------------------
+//
+// `scoreItinerary` prices time, walking effort and the risk of each change. On
+// its own it let a five-bus journey ending 1.3 km short of an airport outrank
+// a cleaner one, because a change was only worth a minute or two of overhead
+// and the last walk was priced like any other. Riders do not see it that way:
+// every extra bus is a fresh chance to be stranded, and an option that leaves
+// them a long walk from the door has not really arrived. So the final rank
+// adds, on top of the score:
+//
+//   - a flat premium per change (on top of the measured change risk);
+//   - extra effort for walking beyond what most trips need;
+//   - a steep premium for every metre of the final walk past "at the door",
+//     and a further one when an airport trip stops short of the terminal.
+
+/** Flat premium per change, on top of `changeRiskSec`. */
+export const RANK_TRANSFER_SEC = 9 * 60;
+/** Street walking up to this carries no extra premium. */
+export const RANK_FREE_WALK_M = 600;
+/** Extra seconds per metre walked past `RANK_FREE_WALK_M`. */
+export const RANK_WALK_SEC_PER_M = 0.5;
+/** The final walk counts as "at the door" up to this. */
+export const RANK_DOOR_M = 350;
+/** Extra seconds per metre of final walk past `RANK_DOOR_M`. */
+export const RANK_EGRESS_SEC_PER_M = 1.2;
+/** A final walk past this has not really arrived: flat premium. */
+export const RANK_FAR_EGRESS_M = 900;
+export const RANK_FAR_EGRESS_SEC = 20 * 60;
+/** Airport trips: the last bus must stop this close to the terminal. */
+export const RANK_AIRPORT_EGRESS_M = 450;
+export const RANK_AIRPORT_SHORT_SEC = 45 * 60;
+
+type RankLeg = { kind: string; distanceMeters?: number };
+
+/** Final walk in metres: the walk legs after the last ride. */
+export function egressMeters(legs: ReadonlyArray<RankLeg>): number {
+  let m = 0;
+  for (let i = legs.length - 1; i >= 0; i--) {
+    const l = legs[i];
+    if (l.kind === "ride") break;
+    if (l.kind === "walk") m += l.distanceMeters ?? 0;
+  }
+  return m;
+}
+
+/**
+ * Seconds added to an itinerary's score for the final rank. Pure: depends only
+ * on the legs, so every planner (browser timetable, live, mixed) ranks the same
+ * option the same way. `airportShort` is the caller's verdict that an airport
+ * trip's last bus stops away from the terminal.
+ */
+export function rankPenaltySec(
+  it: { transfers: number; totalWalkMeters: number; legs: ReadonlyArray<RankLeg> },
+  opts?: { airportShort?: boolean },
+): number {
+  let p = it.transfers * RANK_TRANSFER_SEC;
+  p += Math.max(0, it.totalWalkMeters - RANK_FREE_WALK_M) * RANK_WALK_SEC_PER_M;
+  const egress = egressMeters(it.legs);
+  p += Math.max(0, egress - RANK_DOOR_M) * RANK_EGRESS_SEC_PER_M;
+  if (egress > RANK_FAR_EGRESS_M) p += RANK_FAR_EGRESS_SEC;
+  if (opts?.airportShort) p += RANK_AIRPORT_SHORT_SEC;
+  return Math.round(p);
+}

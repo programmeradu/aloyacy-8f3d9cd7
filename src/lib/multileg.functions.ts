@@ -24,6 +24,9 @@ import { createLogger } from "./logger";
 import { filterDominated } from "@aloya/core/plan-score";
 import { withTimeout } from "./server-cache";
 import { overlayLiveOnScheduled, sanitizeClientItineraries } from "./schedule-overlay.server";
+import { egressMeters, rankPenaltySec } from "@aloya/core/plan-score";
+import { airportFor } from "./plan-airports";
+import { stopsShortOfAirport } from "./raptor-direct";
 
 const log = createLogger("multileg");
 
@@ -88,6 +91,8 @@ const FUTURE_THRESHOLD_SEC = 20 * 60; // beyond this, skip live and use schedule
 const ARRIVE_BY_BACKSEARCH_SEC = 6 * 3600;
 const AIRPORT_RE = /\b(airport|terminal)\b/i;
 const AIRPORT_EXTRA_TRANSFER_MIN_SAVINGS_SEC = 45 * 60;
+/** On-street metres of final walk that still count as arriving (about 1 km straight). */
+const NEAR_EGRESS_M = 1_400;
 
 /**
  * Time actually spent travelling, excluding the wait before the first bus.
@@ -310,7 +315,20 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     // more walking. Nothing is filtered for having a change, or for lacking
     // one — a direct ride survives because nothing beats it.
     const all = [...dedup.values()];
-    let kept = filterDominated(all);
+    // Arrive at the door, not near it. An option whose last bus stops well
+    // short (or, for an airport, anywhere but the terminal) is kept only when
+    // nothing reaches the door.
+    const destAirport = airportFor(data.to);
+    const arrives = all.filter((it) =>
+      destAirport ? !stopsShortOfAirport(it, destAirport) : egressMeters(it.legs) <= NEAR_EGRESS_M,
+    );
+    const pool = arrives.length > 0 ? arrives : all;
+    // The Kapnos coach is offered on airport trips even when a bus edges it on
+    // paper: one booked seat, luggage space, no change at Larnaca station.
+    // Only its best departure is kept, and it is ranked like everything else.
+    const isCoach = (it: Itinerary) => it.legs.some((l) => l.kind === "ride" && l.routeId.startsWith("kapnos:"));
+    const coach = pool.filter(isCoach).sort((a, b) => a.score - b.score).slice(0, 1);
+    let kept = [...filterDominated(pool.filter((it) => !isCoach(it))), ...coach];
     const prunedMediocre = afterDedup - kept.length;
 
     // Learning loop: penalise transfer itineraries when riders have
@@ -329,9 +347,11 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       }
     }
 
-    const airportQuery = isAirportQuery(data.to);
-    if (airportQuery) {
-      kept = pruneAirportTransferNoise(kept);
+    // Final rank: arrival plus a heavy premium per change, long walks and a
+    // final walk short of the door (plan-score `rankPenaltySec`). One rule for
+    // live, timetable and coach options alike; no transfers-first override.
+    for (const it of kept) {
+      it.score += rankPenaltySec(it, { airportShort: stopsShortOfAirport(it, destAirport) });
     }
 
     if (data.a11y && (data.a11y.stepFree || data.a11y.lowFloor)) {
@@ -346,12 +366,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       if (filtered.length > 0) kept = filtered;
     }
 
-    kept.sort((a, b) => {
-      if (airportQuery && a.transfers !== b.transfers) {
-        return a.transfers - b.transfers;
-      }
-      return a.score - b.score;
-    });
+    kept.sort((a, b) => a.score - b.score);
     const top = kept.slice(0, TOP_K);
 
     // Wave 2.2 — accessibility weighting on the top set. Kerb stops already
@@ -363,12 +378,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
         lowFloor: !!data.a11y.lowFloor,
         maxWalkMeters: data.a11y.maxWalkMeters ?? null,
       });
-      top.sort((a, b) => {
-        if (airportQuery && a.transfers !== b.transfers) {
-          return a.transfers - b.transfers;
-        }
-        return a.score - b.score;
-      });
+      top.sort((a, b) => a.score - b.score);
     }
 
     // Wave 2.4 — attach "Why this route?" rationale tags to each top option.
