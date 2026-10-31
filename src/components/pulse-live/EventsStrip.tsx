@@ -146,7 +146,6 @@ export function EventsStrip({
                   src={eventImage(e, flavor)}
                   alt=""
                   aria-hidden="true"
-                  loading="lazy"
                   decoding="async"
                 />
               </span>

@@ -3793,3 +3793,23 @@ a.r-today-rowtitle {
 .r-tr-rows {
   margin-top: 8px;
 }
+
+/* An odd half card spans the row as a compact side-by-side card, not a second big picture */
+.r-pc-pair[data-n="1"] > .r-pc--half,
+.r-pc-pair[data-n="3"] > .r-pc--half:last-child {
+  flex-direction: row;
+  align-items: stretch;
+}
+.r-pc-pair[data-n="1"] > .r-pc--half .r-pc-art,
+.r-pc-pair[data-n="3"] > .r-pc--half:last-child .r-pc-art {
+  flex: none;
+  width: 36%;
+  min-height: 132px;
+  margin: 6px 0 6px 6px;
+  aspect-ratio: auto;
+}
+.r-pc-pair[data-n="1"] > .r-pc--half .r-pc-body,
+.r-pc-pair[data-n="3"] > .r-pc--half:last-child .r-pc-body {
+  flex: 1;
+  padding: 14px 16px 16px;
+}
