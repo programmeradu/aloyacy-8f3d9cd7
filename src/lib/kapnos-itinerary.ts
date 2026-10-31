@@ -265,11 +265,18 @@ export async function planKapnosItineraries(
       if (boardUnix - f.arrivalUnix > LATE_FEEDER_GAP_SEC && f.legs.some((l) => l.kind === "ride")) {
         const travel = f.arrivalUnix - leaveTime(f.legs, departureUnix);
         const lateStart = Math.max(departureUnix, boardUnix - BOARD_BUFFER_SEC - travel - 15 * 60);
-        if (lateStart > departureUnix + 10 * 60) {
-          const later = (await raptorFeeders(lateStart))
+        // Sparse feeders (an intercity every hour or two): step the search
+        // back until one gets there in time, never earlier than the original.
+        for (let back = 0; back <= 3 * 3600; back += 45 * 60) {
+          const start = lateStart - back;
+          if (start <= departureUnix + 10 * 60) break;
+          const later = (await raptorFeeders(start))
             .filter((x) => x.arrivalUnix + BOARD_BUFFER_SEC <= boardUnix)
             .sort((a, b) => b.arrivalUnix - a.arrivalUnix || rideCount(a.legs) - rideCount(b.legs))[0];
-          if (later && later.arrivalUnix > f.arrivalUnix) f = later;
+          if (later && later.arrivalUnix > f.arrivalUnix + 10 * 60) {
+            f = later;
+            break;
+          }
         }
       }
       const legs: Leg[] = [
