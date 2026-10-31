@@ -451,3 +451,50 @@ Samuel's addendum: the app must be intelligent at every phase of a multi-stop tr
 - Code: packages/core/src/multileg-journey.ts, src/lib/reliability.functions.ts, src/lib/bolt-scooter.functions.ts, src/routes/api/public/bike-share.ts (redesign-roam @ 1508f3f)
 
 ---
+
+## Layer 8: Lock screen, widgets and wearables
+
+### 8.1 What the best in the world do
+
+- **Transit:** a lock-screen Live Activity (iOS) or Live Notification (Android) "will show your entire trip at a glance", the phone wakes only for actions such as "Leave now" or "Get off in 2 stops", and the widget dismisses itself at the end of the trip (help.transitapp.com/article/549).
+- **Citymapper:** Lock Screen Navigation on iOS 16.1+ with a stage-by-stage Live Activity and the Dynamic Island (citymapper.com/news/2553 and /2589); GO notifications also work on the watch (citymapper.com/news/597).
+- **Google Maps:** lock-screen transit progress on Android since 2017 (Engadget, TechCrunch, Dec 2017), and Android's coming Transit mode promises "real-time updates on your home and lock screen" (Android Authority, Jan 2026).
+- **Platform surfaces:** ActivityKit Live Activities stay active for up to 8 hours (Apple documentation); Android 16 Live Updates use ProgressStyle templates and are a privileged notification class that requires the standard templates (developer.android.com; androidpolice.com, Aug 2026). Notifications on a paired Apple Watch or Wear OS watch are mirrored from the phone, so well-designed phone notifications reach the wrist with no extra app.
+
+### 8.2 Cyprus reality and data
+
+- Riders wait at stops in strong sun with little shelter (Audit Office: 32% of stops without shelter, 22% without seat or shelter), so glancing at a lock screen or watch beats unlocking and reading a bright screen.
+- Pame (CPT) offers arrival notifications but no lock-screen trip companion was described in its September 2026 relaunch coverage (Cyprus Mail; DomCar), so this is a clear way for Aloya to stand out.
+
+### 8.3 Aloya today, and its gaps
+
+- Web: notifications only; no persistent trip notification. Each alert kind uses its own tag (src/lib/trip-alerts.server.ts lines 54 to 101), so the lock screen fills with separate cards instead of one updating card.
+- Native: mobile/lib/liveActivities.ts is a stub that logs and returns "activity-session-id" without calling ActivityKit; mobile/widgets/NearestStopWidget.tsx describes itself as "Conceptual" and uses mock data. No Android ongoing or Live Update notification for trips was found. The native build last errored (mobile/build_info.json).
+- No watch-specific design: notification titles and bodies are not written to fit a watch face (for example "Board now." with the route only in the title).
+
+### 8.4 Improvements
+
+1. **One updating trip notification on the web (S, high).** A single tag per itinerary, silent updates for status (Tier 3) and re-alerting only for Tier 1 (layer 4). On Android Chrome this gives a near-ongoing card; on iOS each update replaces the previous one.
+2. **Real Live Activity (M, very high).** Native module calling ActivityKit: start on trip start, update via push-to-update tokens from the server at each phase change and every 30 to 60 s while walking or near the stop, end at arrival or after the 8-hour cap. Content: phase, next action, minutes, stops remaining, and live, estimated or timetable label (layer 5).
+3. **Android Live Update (M, high).** ProgressStyle notification with segments per leg and points for transfers; foreground service tied to the background location session (layer 3).
+4. **Watch-first copy (S, medium).** Every Tier 1 notification must make sense in about 40 characters of title plus a short body: "Leave now: BUS 16 in 6 min", "Get off next: Eleftheria Sq". Put the route and action in the title.
+5. **Home Screen widget, real data (M, medium).** Replace the mock with "Next from your stop" and "Your next trip" widgets fed by a small public endpoint; show the freshness label.
+6. **Dynamic Island and Always-On (S with 2, low).** Compact presentation: route badge plus minutes; expanded: next action.
+7. **Fix the native build first (M, high).** Without a working Expo build none of 2, 3, 5 or 6 can ship; treat the build as the gating task for this layer and layer 3.
+
+### 8.5 Sources
+
+- https://help.transitapp.com/article/549-how-to-use-go
+- https://citymapper.com/news/2553/citymapper-introduces-ios-lock-screen-navigation
+- https://citymapper.com/news/2589/
+- https://citymapper.com/news/597/go-your-personal-trip-assistant
+- https://www.engadget.com/2017-12-09-google-maps-commute-tracking.html
+- https://www.androidauthority.com/android-transit-mode-3633735/
+- https://developer.apple.com/documentation/activitykit/displaying-live-data-with-live-activities
+- https://developer.android.com/develop/ui/views/notifications/live-update
+- https://www.androidpolice.com/nobody-is-using-live-updates
+- https://cyprus-mail.com/2026/10/14/63-per-cent-of-passengers-would-not-use-the-bus-again
+- https://domcar.com.cy/en/live/digest/the-pame-app-has-been-updated-in-cyprus/
+- Code: src/lib/trip-alerts.server.ts, mobile/lib/liveActivities.ts, mobile/widgets/NearestStopWidget.tsx, mobile/build_info.json (redesign-roam @ 1508f3f)
+
+---
