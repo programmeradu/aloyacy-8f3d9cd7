@@ -558,3 +558,50 @@ Gaps:
 - Code: src/lib/accessibility-prefs.ts, src/lib/accessibility-weights.ts, src/lib/stop-condition.server.ts, src/lib/useJourneySideEffects.ts (redesign-roam @ 1508f3f)
 
 ---
+
+## Layer 10: Privacy (location data done right)
+
+### 10.1 What the best in the world do
+
+- **Location traces identify people.** In "Unique in the Crowd", four spatio-temporal points were enough to uniquely identify 95% of 1.5 million people in a mobility dataset (de Montjoye et al., Scientific Reports 2013, PubMed 23524645). Trip origins and destinations reveal homes, workplaces, clinics and places of worship.
+- **Regulators treat location as high-risk.** The EDPB's guidelines on connected vehicles stress that location data is particularly revealing, that it should be collected only when strictly needed for the service, with the option to deactivate it, and kept no longer than necessary (EDPB Guidelines 01/2020, version 2.0).
+- **Consent for device access.** Under ePrivacy Directive Article 5(3), reading or storing information on a user's device needs consent unless strictly necessary for the service the user asked for; GDPR then governs the processing (earlier-run finding; DLA Piper data protection guide for Cyprus summarises the national framework).
+- **Products.** Transit says GO shares the vehicle's position "anonymously" and crowdsourcing is "100% opt-in, just like Waze" (help.transitapp.com/article/93; blog.transitapp.com, 2019). Android's Transit mode asks users to turn on Timeline and "Allow all the time" location explicitly, with setup screens explaining why (Android Authority, Jan 2026). Apple's Declarative Web Push is designed partly so push does not rely on JavaScript that conflicts with tracking prevention (webkit.org/blog/16535).
+
+### 10.2 Cyprus reality and data
+
+- Cyprus implements GDPR through Law 125(I)/2018 and the Commissioner for Personal Data Protection supervises it (DLA Piper, Cyprus).
+- Cyprus is small: a home-to-work trace in a village or small suburb identifies a person even faster than in a big city, so aggregation thresholds must be higher than in large-city products (inference from the de Montjoye result and Cyprus's population size; no Cyprus-specific study found).
+
+### 10.3 Aloya today, and its gaps
+
+- Good: the planned trip, not live coordinates, is what reaches the server for alerts (active_trips holds stop IDs, times and legs; src/lib/trip-sync.functions.ts lines 17 to 33), and the row is deleted when the rider ends the trip (trip-sync.functions.ts line 72). Accessibility preferences are cached locally and synced only to the user's own settings (src/lib/accessibility-prefs.ts).
+- Good: crowdsourced on-board positions are accepted only from riders who tapped "I'm on board" and only for the active trip (src/routes/api/public/rider-fix.ts header), and rider_vehicle_fixes rows are purged after 2 days (supabase/migrations/20260914000000_permanent_db_retention_and_upsert.sql lines 178 to 181). They are not streamed to the R2 data lake, which receives only rt_snapshots and vehicle_pings (src/lib/lake.server.ts callers) and archived observed_arrivals (src/routes/api/public/hooks/archive-lake.ts). This corrects the earlier run's note that no retention job existed.
+- Gaps:
+  - No retention for abandoned trips: an active_trips row that is never explicitly ended (app closed, phone lost) has no time-to-live purge in the migrations checked.
+  - The device ID is a persistent identifier sent with trips and rider fixes (deviceId in the trip-sync and rider-fix schemas); there is no rotation.
+  - Layer 1's proposal adds rider state to the server. Done carelessly it would turn Aloya into a location tracker. It must be designed so the server never needs raw coordinates.
+  - The privacy page exists (src/routes/privacy.tsx) but no separate consent for crowdsourcing or for background location was found, and no record of a data protection impact assessment.
+
+### 10.4 Improvements
+
+1. **Compute on the device, send states (M, very high).** The phone turns GPS into rider_state, a rounded distance to the next stop (50 m steps) and an ETA. Raw coordinates never leave the device for alerts. Only riders who opt in to crowdsourcing send on-board positions, and only while on board.
+2. **Time-to-live on everything trip-related (S, high).** Purge active_trips rows 2 hours after the final planned arrival, purge the alert ledger with the trip, and keep rider_vehicle_fixes at 2 days or less. Add an automatic test that fails if a new table holding device-linked location has no purge.
+3. **Rotating identifiers (S, high).** Use a per-trip random ID for server-side trip state and push routing, separate from the long-lived device ID, and a separate rotating ID for crowdsourced fixes so one device's rides cannot be linked across days.
+4. **Separate, plain consents (S, high).** Three switches, each off until chosen: "Use my location during trips" (needed for smart alerts), "Share my bus's position while I ride to improve times for everyone" (crowdsourcing), "Learn my usual trips" (commute learning, layer 1 step 8, stored on device). Native background location only with "while using" plus the platform indicator, never "always", unless the rider turns on commute alerts.
+5. **Aggregate before analysis (M, medium).** Any travel-pattern statistic (for partners or the ministry) is aggregated by stop pair and hour with a minimum count before release, and never includes trip ends finer than the stop.
+6. **DPIA and records (M, medium).** Write a data protection impact assessment for live location features and crowdsourcing, list processors (Supabase, Cloudflare, push services), and publish retention periods on the privacy page.
+7. **Delete my data (S, medium).** One button that removes device-linked rows (active trip, settings, stop reports, fixes) and revokes push subscriptions.
+
+### 10.5 Sources
+
+- https://pubmed.ncbi.nlm.nih.gov/23524645
+- https://www.edpb.europa.eu/system/files/documents/2021-03/edpb_guidelines_202001_connected_vehicles_v2.0_adopted_en.pdf
+- https://www.dlapiperdataprotection.com/index.html?c=CY&t=law
+- https://help.transitapp.com/article/93-how-to-use-transit
+- https://blog.transitapp.com/new-zealand-finally-gets-transit-b7b9bf4c50ef/
+- https://www.androidauthority.com/android-transit-mode-3633735/
+- https://webkit.org/blog/16535/meet-declarative-web-push/
+- Code: src/lib/trip-sync.functions.ts, src/routes/api/public/rider-fix.ts, supabase/migrations/20260914000000_permanent_db_retention_and_upsert.sql, src/lib/lake.server.ts, src/routes/api/public/hooks/archive-lake.ts, src/lib/accessibility-prefs.ts, src/routes/privacy.tsx (redesign-roam @ 1508f3f)
+
+---
