@@ -15,6 +15,7 @@ import pulseNetworkBand from "@/assets/pulse-network-band.jpg";
 
 export function RoadPulseCard({
   kicker,
+  basis,
   onTimePct,
   latePct,
   earlyPct,
@@ -25,6 +26,7 @@ export function RoadPulseCard({
   t,
 }: {
   kicker?: string;
+  basis?: string;
   onTimePct: number;
   latePct: number;
   earlyPct: number;
@@ -60,12 +62,12 @@ export function RoadPulseCard({
               "linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--color-card) 40%, transparent) 55%, var(--color-card) 100%)",
           }}
         />
-        <div className="absolute left-5 right-5 top-5 flex items-start justify-between gap-3">
-          <div>
+        <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-3">
+          <div className="rounded-2xl bg-card/90 backdrop-blur-sm px-3 py-2">
             <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
               {kicker ?? t("pulse.flow.kicker")}
             </p>
-            <h2 className="mt-1 font-display text-[22px] leading-tight text-ink text-balance max-w-[10ch]">
+            <h2 className="mt-1 font-display text-[22px] leading-tight text-ink text-balance max-w-[12ch]">
               {t("pulse.flow.title")}
             </h2>
           </div>
@@ -90,9 +92,9 @@ export function RoadPulseCard({
         {hasData ? (
           <>
             <div className="flex h-2 w-full overflow-hidden rounded-full">
-              <span style={{ width: `${segments.late}%` }} className="bg-ochre" />
-              <span style={{ width: `${segments.onTime}%` }} className="bg-aegean-deep" />
-              <span style={{ width: `${segments.early}%` }} className="bg-olive" />
+              <span style={{ width: `${segments.late}%` }} className="bg-[#F2865E]" />
+              <span style={{ width: `${segments.onTime}%` }} className="bg-[#F6B83C]" />
+              <span style={{ width: `${segments.early}%` }} className="bg-[#C9C9C4]" />
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
               <PulseLeg color="ochre" label={t("pulse.flow.late")} pct={latePct} />
@@ -142,9 +144,10 @@ export function RoadPulseCard({
 
         {hasData && (
           <p className="mt-4 text-[12px] leading-snug text-ink-soft">
-            {observations === 1
-              ? t("pulse.flow.basedOnOne")
-              : t("pulse.flow.basedOnMany", { n: observations.toLocaleString() })}
+            {basis ??
+              (observations === 1
+                ? t("pulse.flow.basedOnOne")
+                : t("pulse.flow.basedOnMany", { n: observations.toLocaleString() }))}
           </p>
         )}
       </div>
@@ -162,7 +165,7 @@ function PulseLeg({
   pct: number;
 }) {
   const cls =
-    color === "ochre" ? "text-ochre" : color === "olive" ? "text-olive" : "text-aegean-deep";
+    color === "ochre" ? "text-[#C8542C]" : color === "olive" ? "text-ink-soft" : "text-ink";
   return (
     <div className="flex flex-col gap-0.5">
       <span className="font-eyebrow text-[9px] uppercase tracking-[0.18em] text-ink-soft">

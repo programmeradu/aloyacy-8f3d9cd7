@@ -2835,3 +2835,51 @@ html.r-has-resume .r-now-more {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
+
+/* Pulse round 4b: city status as one row of chips, darker ochre labels */
+.r-nn-cities {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 14px -20px 0;
+  padding: 0 20px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 28px), transparent);
+}
+.r-nn-cities::-webkit-scrollbar {
+  display: none;
+}
+.r-nn-city {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px 0 12px;
+  border-radius: 999px;
+}
+.r-nn-cityname {
+  font-size: 13px;
+  overflow: visible;
+}
+.r-nn-cityval {
+  margin-top: 0;
+}
+.r-nn-cityval b {
+  font-size: 14px;
+  line-height: 1;
+}
+.r-nn-cityval em {
+  display: none;
+}
+.r-nn-spark svg {
+  margin: 6px 0 2px;
+}
+.r-pulse-tilebus {
+  right: -6px;
+  bottom: 12px;
+}
+.roam .r-legacy.r-pulse .text-ochre {
+  color: #a8690f !important;
+}

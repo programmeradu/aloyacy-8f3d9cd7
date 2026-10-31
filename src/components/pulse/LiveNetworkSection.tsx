@@ -27,7 +27,7 @@ function clusterVehicles(vs: LiveVehicle[]): Cluster[] {
     if (!Number.isFinite(v.lat) || !Number.isFinite(v.lng) || (v.lat === 0 && v.lng === 0)) continue;
     let hit: Cluster | null = null;
     for (const c of out) {
-      if (Math.abs(c.lat - v.lat) < 0.1 && Math.abs(c.lng - v.lng) < 0.13) {
+      if (Math.abs(c.lat - v.lat) < 0.14 && Math.abs(c.lng - v.lng) < 0.2) {
         hit = c;
         break;
       }
@@ -116,7 +116,7 @@ export function LiveNetworkSection({
         <div className="r-pulse-tile">
           <p>{r("pulse.live.buses")}</p>
           <strong>{live || "-"}</strong>
-          <VehicleImg kind="bus" width={112} className="r-pulse-tilebus" />
+          <VehicleImg kind="bus" width={104} className="r-pulse-tilebus" />
         </div>
         <div className="r-pulse-tile">
           <p>{r("pulse.live.onTime")}</p>

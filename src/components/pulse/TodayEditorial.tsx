@@ -106,10 +106,10 @@ export function TodayEditorial({
       )}
 
       {/* Verdict */}
-      <div className="relative mt-6 overflow-hidden rounded-[26px] bg-aegean-deep/[0.04] ring-1 ring-aegean-deep/15 px-6 py-5">
+      <div className="relative mt-6 overflow-hidden rounded-[26px] bg-card px-5 py-5">
         <span
           aria-hidden
-          className="absolute -top-3 left-4 font-display text-[72px] leading-none text-aegean-deep/15 select-none"
+          className="absolute -top-3 left-4 font-display text-[72px] leading-none text-[#F6B83C]/40 select-none"
         >
           “
         </span>

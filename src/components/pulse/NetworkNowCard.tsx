@@ -102,7 +102,7 @@ function Spark({ buckets, nowHour }: { buckets: HourBucket[]; nowHour: number | 
     .map((b) => ({ h: b.hour, m: b.meanDelaySec / 60 }));
   if (pts.length < 3) return null;
   const W = 320;
-  const H = 44;
+  const H = 34;
   const h0 = pts[0].h;
   const h1 = Math.max(pts[pts.length - 1].h, h0 + 1);
   const lo = Math.min(-1, ...pts.map((p) => p.m));
@@ -161,13 +161,6 @@ function Texture() {
         <path d="M-10 344 C 100 318, 240 370, 380 318" />
         <path d="M160 -10 C 172 90, 140 200, 180 450" />
       </g>
-      <path
-        d="M-10 262 C 92 238, 204 292, 380 240"
-        fill="none"
-        stroke="rgba(246,184,60,.12)"
-        strokeWidth="1.2"
-        strokeDasharray="3 6"
-      />
     </svg>
   );
 }
