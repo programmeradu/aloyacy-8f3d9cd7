@@ -129,7 +129,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
   const rideNo = Math.max(1, live.rideOrdinal);
 
   return (
-    <div className="roam r-page">
+    <div className="roam r-page r-ml-live">
       <div className="r-col">
         <OfflineBanner />
         <div className="r-hero-map r-mapwrap" style={{ height: 420 }}>
@@ -612,7 +612,15 @@ function NextChange({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <JLinePill leg={ch.to} size="sm" />
         <span className="text-[14px] r-tnum">
-          {r("jl.catchLine", { line: ch.to.routeShort, t: clock(ch.to.board.departureUnix) })}
+          {r("jl.catchLine", {
+            line: ch.to.routeShort,
+            // At the change, follow the live time of the connecting bus when the feed has it.
+            t: clock(
+              atChange && live.nextBoardSource === "live"
+                ? now + live.secsToNextBoard
+                : ch.to.board.departureUnix,
+            ),
+          })}
         </span>
       </div>
     </section>

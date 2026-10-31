@@ -4325,3 +4325,12 @@ a.r-today-rowtitle {
 .r-jl-change-sub {
   padding-left: 44px;
 }
+
+/* live trip with changes: legacy eyebrows in sentence case like the rest of the sheet */
+.roam.r-ml-live .r-legacy .uppercase {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  font-family: var(--r-font) !important;
+}
