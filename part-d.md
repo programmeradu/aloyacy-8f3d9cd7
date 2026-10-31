@@ -243,3 +243,52 @@ Shared facts used in several layers:
 - Code: src/lib/truth-api.server.ts, src/routes/api/public/partners/apply.ts, src/lib/reliability.functions.ts, src/lib/eta-backtest.server.ts, src/lib/lake.server.ts, COMMERCIAL.md
 
 ---
+
+## Layer 36. Heat and weather routing
+
+### 36.1 What the best in the world do
+- Arizona State University's Cool Routes (published June 2026) updates hourly with weather forecasts and uses building and tree data to compute mean radiant temperature along each street; in Phoenix this can exceed 150°F in full sun and fall below 100°F in shade. In tests it found a cooler alternative for 70% of trips and cut the heat load by about 4.5 degrees on average without adding much distance; it is open source and designed to support walking, cycling and transit (ASU News, 10 Jun 2026; Planetizen, 16 Jun 2026).
+- Barcelona Metropolitan Area launched a web tool in July 2026 that scores routes out of 100 for "coolness" and walkability using temperature, shade, pavement heat, slope and pavement width, and shows climate shelters (Diari de Catalunya, 14 Jul 2026). Its predecessor, Cool Walks, offered a direct, a shady and a "vampire mode" route that avoids the sun, plus drinking fountains (The Guardian, 23 Jun 2021).
+- Google Maps code strings found in November 2025 ("Shade", "Sun", "%s in sun") point to sun and shade labels on walking routes (Android Authority, 6 Nov 2025). A Dubai study found the shadiest path to metro stations was on average only 1.3% longer than the shortest, with 8.8% less sun exposure (Computers, Environment and Urban Systems, Dec 2025).
+
+### 36.2 The reality in Cyprus and the data available
+- Heat is a mobility barrier for months a year. In July 2026 Nicosia exceeded 43°C on 11 days, with 43.2°C at Athalassa on 23 July and a monthly mean of 38.6°C there (Cyprus Mail, 6 Aug 2026). On 13 Aug 2025 a red warning for 45°C inland came with a ban on outdoor work from 11:00 to 17:00 (Cyprus Mail, 13 Aug 2025). Cyprus Institute research links high day and night temperatures to more deaths and hospital admissions (Cyprus Mail, 22 Jun 2026).
+- Stops make it worse: 32% of Nicosia stops examined had no shelter and 22% more had neither shelter nor seating (Audit Office, Cyprus Mail, 14 Oct 2026), and some lines run hourly, so a missed bus can mean an hour in the sun.
+- Data available and checked on 31 Oct 2026:
+  - The Department of Meteorology publishes raw 10-minute readings from 55 automatic weather stations (temperature, humidity, wind, radiation at some sites) and a text file of Net Effective Temperature for 7 stations, both refreshed in near real time (dom.org.cy/AWS/ALL_STATIONS_average.html; dom.org.cy/AWS/AWS_NET.txt; read at 19:40 local time).
+  - MeteoAlarm publishes Cyprus warnings as a CAP Atom feed under CC BY 4.0 equivalent terms (feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-cyprus; empty when read, as no warnings were active).
+  - Open-Meteo's free API is for non-commercial use only, limited to 10,000 calls a day and 300,000 a month, with no uptime guarantee; commercial use needs a paid plan or self-hosting the open-source server (Open-Meteo pricing page).
+  - Shade inputs: CyNAP and Mapillary give stops, crossings and detected street furniture (Layer 31); the rider-reported stop conditions in Aloya include has_shelter.
+
+### 36.3 Aloya today
+- Corrected and extended from the seed: Aloya has more weather data than the seed said. `open-meteo.server.ts` fetches current conditions only (temperature, apparent temperature, weather code, wind, day or night). But Pulse also ingests Open-Meteo air quality per zone (hooks/pulse-air.ts, PM2.5, PM10, ozone, NO2, European AQI), scrapes the Met Department warnings page through Firecrawl into pulse_signals (hooks/pulse-met-warnings.ts), serves a dust advisory with covered-wait advice (/api/public/dust-advisory, DustAdvisoryBanner.tsx on the trips page), and adds a heat clause to the crowd hint at 33°C or more (CrowdHint.tsx).
+- The router ignores all of it: raptor, plan-score and multileg-rank read no weather, no shade and no shelter. has_shelter is collected but used only for stop SEO text (stop-seo.ts).
+- Licence and cost risk: Aloya is a commercial product calling Open-Meteo's free endpoint, which its terms reserve for non-commercial use. Firecrawl scraping of the warnings page costs money and breaks when the page changes, while MeteoAlarm offers the same warnings as a structured feed.
+
+### 36.4 Improvements
+1. **Heat-aware walk and wait cost in the planner.** When the feels-like temperature at the stop is 35°C or more (hourly forecast for the trip time), multiply walking minutes in the sun by a penalty (for example 1.3) and waiting minutes at a stop without a confirmed shelter by a larger one (for example 1.5). The planner will then prefer a sheltered stop a little further away, a more frequent line, or a short scooter leg. Tune the factors with riders. Effort M. Impact high: this is Samuel's "better stop a few blocks away" logic, applied to heat.
+2. **Hourly forecast, not just "now".** Add hourly apparent_temperature, uv_index and precipitation_probability for the trip window, and the wait-time forecast at the transfer stop. Effort S. Impact high.
+3. **Official sources first.** Use the Met Department's 10-minute station data for "measured now" (55 stations) and its Net Effective Temperature file for heat stress; use MeteoAlarm CAP for warnings and retire the Firecrawl scrape. Effort S. Impact: accuracy, lower cost, fewer breakages.
+4. **Fix the weather licence.** Either buy an Open-Meteo commercial plan, self-host Open-Meteo (open source), or switch forecast calls to a source whose terms allow commercial use; cache per 1 km grid per hour so call volume stays small. Effort S. Impact: removes a legal risk.
+5. **Red-warning mode.** When an orange or red heat warning is active: banner on Home and in trips, routing that avoids long sunny walks between 11:00 and 17:00, "leave later" suggestions when the bus is frequent, and a check that the rider will not wait more than about 5 minutes in the sun. Effort M. Impact high for older riders and workers.
+6. **Shelter map from three sources.** Combine rider has_shelter reports, Mapillary bench and street-light detections and, once published, the Public Works Department stop inventory (which records shelter type). Show "shade at stop: yes / no / unknown" on stop cards. Effort M. Impact medium to high.
+7. **Dust and rain.** Use PM10 above the stop to advise covered waits (already partly built) and treat heavy rain the same way as heat in the wait penalty, since unsheltered stops are exposed to both. Effort S. Impact medium.
+8. **Shade-aware walking legs (later).** Port the Cool Routes approach (open-source) using building footprints and sun position for the trip hour; start with Nicosia's centre and university areas. Effort L. Impact medium.
+
+### 36.5 Sources
+- ASU News, Cool Routes (10 Jun 2026): https://news.asu.edu/20260610-environment-and-sustainability-new-cool-routes-app-maps-shadiest-routes-your-walk
+- Planetizen, Cool Routes (16 Jun 2026): https://www.planetizen.com/news/2026/06/137813-cool-routes-app-plots-shady-walks-arid-arizona
+- Diari de Catalunya, AMB cool walking routes (14 Jul 2026): https://diaricatalunya.cat/en/barcelones/general/new-app-to-find-the-coolest-walking-routes-in-barcelona
+- The Guardian, Cool Walks Barcelona (23 Jun 2021): https://www.theguardian.com/environment/2021/jun/23/cool-walks-app-maps-shady-spots-barcelona
+- Android Authority, Google Maps sun and shade strings (6 Nov 2025): https://www.androidauthority.com/google-maps-sun-shade-apk-teardown-3613515/
+- Shade-oriented pathfinding, Dubai (Dec 2025): https://www.sciencedirect.com/science/article/pii/S0198971525000900
+- Cyprus Mail, July 2026 temperatures (6 Aug 2026): https://cyprus-mail.com/2026/08/06/july-not-a-record-month-for-temperatures-despite-heatwave
+- Cyprus Mail, red warning 45C (13 Aug 2025): https://cyprus-mail.com/2025/08/13/red-weather-warning-issued-for-high-temperatures
+- Cyprus Mail, heat and health (22 Jun 2026): https://cyprus-mail.com/2026/06/22/why-cyprus-extreme-heat-is-more-dangerous-than-you-think
+- Cyprus Mail, Audit Office (14 Oct 2026): https://cyprus-mail.com/2026/10/14/63-per-cent-of-passengers-would-not-use-the-bus-again
+- Department of Meteorology AWS data: https://www.dom.org.cy/AWS/ALL_STATIONS_average.html ; Net Effective Temperature: https://www.dom.org.cy/AWS/AWS_NET.txt
+- MeteoAlarm Cyprus feed: https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-cyprus
+- Open-Meteo pricing and terms: https://open-meteo.com/en/pricing
+- Code: src/lib/open-meteo.server.ts, src/lib/weather.functions.ts, src/routes/api/public/hooks/pulse-air.ts, src/routes/api/public/hooks/pulse-met-warnings.ts, src/routes/api/public/dust-advisory.ts, src/components/DustAdvisoryBanner.tsx, src/components/CrowdHint.tsx, packages/core/src/stop-condition.ts, src/lib/stop-seo.ts, src/lib/raptor.server.ts, packages/core/src/plan-score.ts
+
+---
