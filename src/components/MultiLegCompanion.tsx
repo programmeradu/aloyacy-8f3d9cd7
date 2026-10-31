@@ -454,6 +454,10 @@ function LiveLegNow({ live, itin }: { live: MultiLegLive; itin: NonNullable<Acti
   const atChange =
     live.phase === "walking-to-transfer" || live.phase === "waiting-for-connection";
   const firstRide = itin.legs.find((l): l is RideLeg => l.kind === "ride") ?? null;
+  // While walking to or waiting for a bus the phase headline already carries
+  // the countdown, and at a change the next change card does: only show this
+  // card on board, or as the first bus before live guidance starts.
+  if (!riding && live.active) return null;
   const leg: RideLeg | null = riding
     ? live.currentRideLeg
     : atChange
