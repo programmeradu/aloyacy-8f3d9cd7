@@ -20,6 +20,7 @@ export function localDateForUnix(unix: number): string {
 }
 void todayLocalDate;
 import { planRaptor, type RaptorDiagnostics } from "./raptor.server";
+import { rebaseToLeave } from "./raptor-plan";
 import { fetchRealtime } from "./gtfs-rt.server";
 import { refineAllItineraries } from "./walk-refine.server";
 import type { Itinerary } from "./itinerary-types";
@@ -193,7 +194,11 @@ export async function planMultiLegScheduled(
   // dropped here, not surfaced to the rider.
   const tRef0 = Date.now();
   const beforeCount = itineraries.length;
-  const refinedItineraries = await refineAllItineraries(itineraries);
+  // Re-base on the moment the rider sets off only after the walks are
+  // verified: refinement checks each walk against the search departure, and a
+  // departure already pulled up to "first boarding minus the estimated walk"
+  // left no slack, so every option was dropped as a missed bus.
+  const refinedItineraries = (await refineAllItineraries(itineraries)).map(rebaseToLeave);
   const walkRefineMs = Date.now() - tRef0;
   const walkLegsVerified = refinedItineraries.reduce(
     (acc, it) => acc + it.legs.filter((l) => l.kind === "walk" && l.verified).length,

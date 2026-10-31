@@ -18,7 +18,7 @@ import type {
   StopTripRow,
 } from "./schedule-types";
 import { serviceDateToUnix } from "./schedule-types";
-import { planRaptor } from "./raptor-plan";
+import { planRaptor, rebaseToLeave } from "./raptor-plan";
 import type { Itinerary } from "./itinerary-types";
 import { cyParts } from "@aloya/core/cy-time";
 import { airportFor } from "./plan-airports";
@@ -235,6 +235,7 @@ export async function planScheduledOnClient(
       // The coach is an extra option; the bus results stand without it.
     }
   }
+  itineraries = itineraries.map(rebaseToLeave);
   for (const it of itineraries) it.source = "estimated";
   return {
     itineraries,

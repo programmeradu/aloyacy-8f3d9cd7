@@ -467,9 +467,11 @@ export async function planRaptor(
   diag.candidateItineraries = itineraries.length;
 
   return {
-    itineraries: selectRaptorItineraries(itineraries, TOP_K_RESULTS, { airport: snappedTo.airport }).map(
-      rebaseToLeave,
-    ),
+    // Re-based on when the rider leaves by the callers (rebaseToLeave), after
+    // the Worker's walk refinement: a re-based departure has no slack left,
+    // so a verified access walk a minute longer than the estimate would
+    // otherwise drop every option ("missed the bus").
+    itineraries: selectRaptorItineraries(itineraries, TOP_K_RESULTS, { airport: snappedTo.airport }),
     diagnostics: diag,
   };
 }
