@@ -200,7 +200,12 @@ export function ChangeBlock({ ch, dark = false }: { ch: ChangeInfo; dark?: boole
           <Icon name="arrows-left-right" size={16} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="r-jl-change-k">{r("jl.change")}</span>
+          <span className="r-jl-change-k r-tnum">
+            {r("jl.changeTimes", {
+              a: clock(ch.from.alight.arrivalUnix),
+              b: clock(ch.to.board.departureUnix),
+            })}
+          </span>
           <span className="r-jl-change-t">
             {r("jl.changeAt", { name: cleanName(ch.to.board.name) })}
           </span>
@@ -243,6 +248,14 @@ function RideSegment({
   const [open, setOpen] = useState(false);
   const c = legColor(leg);
   const via = leg.via ?? [];
+  // Show stop times only when they sit in order between board and alight
+  // (a live-adjusted board time can disagree with the timetable calls).
+  const viaTimed = via.every(
+    (v, i) =>
+      v.arrivalUnix >= leg.board.departureUnix &&
+      v.arrivalUnix <= leg.alight.arrivalUnix &&
+      (i === 0 || v.arrivalUnix >= via[i - 1].arrivalUnix),
+  );
   const n = leg.stopCount;
   const rideSec = leg.alight.arrivalUnix - leg.board.departureUnix;
   const style = { "--lc": c } as CSSProperties;
@@ -291,7 +304,7 @@ function RideSegment({
       {open
         ? via.map((v, i) => (
             <li key={i} className={`r-jl-row is-via is-${state}`} style={style}>
-              <span className="r-jl-time r-tnum">{clock(v.arrivalUnix)}</span>
+              <span className="r-jl-time r-tnum">{viaTimed ? clock(v.arrivalUnix) : ""}</span>
               <span className={`r-jl-rail${pale ? " is-pale" : ""}`}>
                 <span className="r-jl-dot is-small" />
               </span>

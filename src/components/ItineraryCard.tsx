@@ -12,6 +12,7 @@ import {
   LegChain,
   LegsTimeline,
 } from "@/components/roam/journey/JourneyParts";
+import { shortName } from "@/components/roam/journey/journey-model";
 
 type T = (key: never, vars?: Record<string, string | number>) => string;
 function rationaleToCopy(tag: RationaleTag, t: T): string {
@@ -53,12 +54,7 @@ function fmtTime(unix: number) {
 // Card end labels: first part of a stop name ("A, B" or "A - B" becomes "A"),
 // without the platform word GTFS adds to paired stops ("Solomos Square
 // Alighting" reads "Solomos Square").
-const short = (s: string) =>
-  s
-    .split(",")[0]
-    .split(" - ")[0]
-    .replace(/\s+(Alighting|Boarding|Arrivals|Departures)$/i, "")
-    .trim();
+const short = (s: string) => shortName(s);
 
 export function ItineraryCard({
   itinerary,
@@ -134,7 +130,10 @@ export function ItineraryCard({
               itinerary.totalWalkMeters >= 1000
                 ? t("itin.kmWalk", { km: (itinerary.totalWalkMeters / 1000).toFixed(1) })
                 : t("itin.metersWalk", { m: Math.round(itinerary.totalWalkMeters) }),
-            ].join(", ")}
+            ]
+              .join(", ")
+              // keep numbers with their units on one line
+              .replace(/(\d) (m|km|min)\b/g, "$1\u00a0$2")}
           </p>
         </div>
         <span className="r-conf shrink-0 pt-1" style={{ color: mute }}>
