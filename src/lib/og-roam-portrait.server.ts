@@ -72,16 +72,16 @@ function label(s: string, fill: string = R.mute, size = 22): Block {
 function title(s: string, start = 62, min = 42): Block {
   const t = plain(s);
   let size = start;
-  let lines = wrap(t, size, TW, 2, 800);
+  let lines = wrap(t, size, TW - 24, 2, 800);
   while (size > min && lines.some((l) => l.endsWith("\u2026"))) {
     size -= 2;
-    lines = wrap(t, size, TW, 2, 800);
+    lines = wrap(t, size, TW - 24, 2, 800);
   }
-  if (lines.some((l) => l.endsWith("\u2026"))) lines = wrap(t, size, TW, 4, 800);
+  if (lines.some((l) => l.endsWith("\u2026"))) lines = wrap(t, size, TW - 24, 4, 800);
   // A little smaller beats one short word alone on the second line.
   if (lines.length === 2) {
     for (let k = size - 2; k >= Math.max(min, size - 8); k -= 2) {
-      const alt = wrap(t, k, TW, 1, 800);
+      const alt = wrap(t, k, TW - 24, 1, 800);
       if (alt.length === 1 && !alt[0].endsWith("\u2026")) {
         lines = alt;
         size = k;
@@ -242,7 +242,7 @@ export function stopPortrait(
   blocks.push(gap(30), linkBlock(o.link));
   return compose(blocks, (top) => {
     const a = mapArea(top);
-    const v = at(s, o.mpp ?? 3.2);
+    const v = at(s, o.mpp ?? 4.2);
     const tipY = a.cy + 40;
     const proj = projector(v, a.cx, tipY);
     const feat = routeIds
