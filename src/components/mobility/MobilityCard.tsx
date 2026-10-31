@@ -21,9 +21,9 @@ const LOGO: Record<Exclude<Provider, "taxi">, { src: string; bg: string; alt: st
   bolt: { src: "/brands/bolt.png", bg: "#2a9c64", alt: "Bolt" },
   nextbike: { src: "/brands/nextbike.png", bg: "#0046d7", alt: "Nextbike" },
   kapnos: { src: "/brands/kapnos-mark.png", bg: "#ffffff", alt: "Kapnos Airport Shuttle" },
-  // No official Nicosia park and ride logo exists (CPT's Pame Express has no
-  // published mark), so this is an illustrated car-in-a-bay pictogram. Never a letter.
-  parkride: { src: "/brands/park-and-ride.svg", bg: "#2a6ce3", alt: "Park and ride" },
+  // Official Pame Express logo (CPT's Nicosia park and ride), vector paths taken
+  // unchanged from CPT's own leaflet on publictransport.com.cy, on its navy panel.
+  parkride: { src: "/brands/pame-express.svg", bg: "#00427A", alt: "Pame Express park and ride" },
 };
 
 /** Display-safe place name: no spaced dashes, no en or em dashes. */
