@@ -48,18 +48,34 @@ export async function readRegion(
   return { text: (data?.text ?? "").trim(), conf: Math.round(data?.confidence ?? 0) };
 }
 
-type Detector = { detect: (src: CanvasImageSource) => Promise<{ rawValue: string }[]> };
-let qrP: Promise<Detector | null> | null = null;
+type Detector = {
+  detect: (src: CanvasImageSource) => Promise<{ rawValue: string; format?: string }[]>;
+};
+let codesP: Promise<Detector | null> | null = null;
 
-/** Native BarcodeDetector where it exists, else the zxing-wasm ponyfill. */
-export function getQr(): Promise<Detector | null> {
-  if (!qrP) {
-    qrP = (async () => {
-      const Native = (globalThis as unknown as { BarcodeDetector?: new (o: unknown) => Detector })
-        .BarcodeDetector;
+/**
+ * Barcodes on a Motion card: the vertical 1D barcode on the back carries the
+ * UID (Code 128 or ITF on the cards seen so far; EAN and Code 39 as spares).
+ * QR stays as an optional fallback for other card prints. Native
+ * BarcodeDetector where it exists, else the zxing-wasm ponyfill.
+ */
+const FORMATS = ["code_128", "itf", "ean_13", "code_39", "codabar", "qr_code"];
+
+export function getCodes(): Promise<Detector | null> {
+  if (!codesP) {
+    codesP = (async () => {
+      const Native = (
+        globalThis as unknown as {
+          BarcodeDetector?: (new (o: unknown) => Detector) & {
+            getSupportedFormats?: () => Promise<string[]>;
+          };
+        }
+      ).BarcodeDetector;
       if (Native) {
         try {
-          return new Native({ formats: ["qr_code"] });
+          const ok = (await Native.getSupportedFormats?.()) ?? FORMATS;
+          const formats = FORMATS.filter((f) => ok.includes(f));
+          if (formats.some((f) => f !== "qr_code")) return new Native({ formats });
         } catch {
           /* fall through to the ponyfill */
         }
@@ -69,8 +85,8 @@ export function getQr(): Promise<Detector | null> {
         locateFile: (path: string, prefix: string) =>
           path.endsWith(".wasm") ? "/ocr/zxing_reader.wasm" : prefix + path,
       });
-      return new mod.BarcodeDetector({ formats: ["qr_code"] }) as unknown as Detector;
+      return new mod.BarcodeDetector({ formats: FORMATS as never }) as unknown as Detector;
     })().catch(() => null);
   }
-  return qrP;
+  return codesP;
 }

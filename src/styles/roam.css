@@ -2217,6 +2217,14 @@ html.r-has-resume .r-now-more {
   border-radius: 8px;
   padding: 1px 7px;
 }
+.r-scan-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 12px;
+}
+.r-scan-pair .r-scan-field {
+  min-width: 0;
+}
 .r-scan-tick {
   width: 32px;
   height: 32px;

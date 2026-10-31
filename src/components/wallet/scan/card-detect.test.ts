@@ -4,6 +4,7 @@ import { PNG } from "pngjs";
 import { describe, expect, it } from "vitest";
 import {
   detectCard,
+  enhanceText,
   sharpness,
   toGray,
   warpQuad,
@@ -11,7 +12,16 @@ import {
   type Gray,
   type Rect,
 } from "./card-detect";
-import { maskDigits, uidFromQr, validDate, validName, validUid } from "./fields";
+import {
+  maskDigits,
+  uidFromBarcode,
+  uidFromLine,
+  uidFromQr,
+  validCategory,
+  validDate,
+  validName,
+  validUid,
+} from "./fields";
 
 function load(name: string) {
   const png = PNG.sync.read(readFileSync(join(__dirname, "__fixtures__", name)));
@@ -68,6 +78,38 @@ describe("card detection", () => {
       expect(Math.abs(det!.ratio - 1.586), f).toBeLessThan(0.15);
     }
   });
+  // Photos of a real Motion card held in a hand over a sherpa throw and a
+  // tartan blanket, low light (half size, holder photo pixelated out). The
+  // back has a bold text block and a coloured band that must not count as
+  // a stripe through the card. The guide may sit a little off the card.
+  it("finds a real Motion card held in hand, front and back", () => {
+    const guides: Record<string, Rect> = {
+      "real_front.png": { x: 80, y: 140, w: 381, h: 240 },
+      "real_back.png": { x: 55, y: 119, w: 407, h: 257 },
+    };
+    for (const [f, g0] of Object.entries(guides)) {
+      const img = load(f);
+      for (const dx of [-15, 0, 15])
+        for (const dy of [-12, 0, 12])
+          for (const sc of [0.95, 1, 1.05]) {
+            const g = {
+              x: g0.x + dx + (g0.w * (1 - sc)) / 2,
+              y: g0.y + dy + (g0.h * (1 - sc)) / 2,
+              w: g0.w * sc,
+              h: g0.h * sc,
+            };
+            const w = work(img, g);
+            const det = detectCard(w.gray, w.guide);
+            expect(det, `${f} ${dx},${dy} x${sc}`).not.toBeNull();
+            expect(Math.abs(det!.ratio - 1.586), f).toBeLessThan(0.15);
+          }
+      const w = work(img, g0);
+      const det = detectCard(w.gray, w.guide)!;
+      const q = det.quad.map((p) => ({ x: p.x / w.k + w.rx, y: p.y / w.k + w.ry })) as never;
+      const flat = toGray(warpQuad(img, q, 1000, 631), 1000, 631);
+      expect(whiteShare(flat), f).toBeGreaterThan(0.28);
+    }
+  });
   // Samuel's real bug: the old scanner read "SST SY SUIS" off a blanket. No
   // fabric on its own may ever form a card, wherever the guide sits on it.
   it("never finds a card in plaid, tartan, tilted stripes or knit alone", () => {
@@ -91,6 +133,18 @@ describe("card detection", () => {
   });
 });
 
+describe("text prep", () => {
+  it("turns faint grey print on white into black on white", () => {
+    const W = 40;
+    const H = 10;
+    const d = new Uint8ClampedArray(W * H).fill(228);
+    for (let x = 10; x < 30; x++) for (let y = 3; y < 7; y++) d[y * W + x] = 196;
+    const out = enhanceText({ data: d, width: W, height: H });
+    expect(out[5 * W + 20]).toBe(0);
+    expect(out[0]).toBe(255);
+  });
+});
+
 describe("field validation", () => {
   it("rejects texture noise and accepts real names", () => {
     expect(validName("SST SY SUIS")).toBeNull();
@@ -98,17 +152,37 @@ describe("field validation", () => {
     expect(validName("MOTION BUS CARD")).toBeNull();
     expect(validName("ELENI")).toBeNull();
   });
+  it("accepts the real card's initial and hyphenated surname", () => {
+    expect(validName("S ADU-BEREKORANG")).toBe("S ADU-BEREKORANG");
+    expect(validName("s adu - berekorang")).toBe("S ADU-BEREKORANG");
+    expect(validName("A B")).toBeNull();
+    expect(validName("ADU-BRK")).toBeNull();
+    expect(validName("S T SST")).toBeNull();
+  });
+  it("reads the category box", () => {
+    expect(validCategory("18+ Standard")).toBe("18+ Standard");
+    expect(validCategory("18 + Stqndard Standard")).toBe("18+ Standard");
+    expect(validCategory("Student")).toBe("Student");
+    expect(validCategory("ssss")).toBeNull();
+  });
   it("accepts only plausible future dates", () => {
     const now = new Date("2026-10-30");
     expect(validDate("07/05/2036", now)).toBe("07/05/2036");
     expect(validDate("31/02/2030", now)).toBeNull();
     expect(validDate("01/01/2020", now)).toBeNull();
     expect(validDate("01/01/2050", now)).toBeNull();
+    // A faint 0 read as 9 is repaired only when the date is impossible as read.
+    expect(validDate("07/95/2036", now)).toBe("07/05/2036");
+    expect(validDate("07/45/2036", now)).toBeNull();
   });
   it("reads UIDs and QR payloads", () => {
     expect(validUid("4112 3456 7890 12")).toBe("41123456789012");
     expect(validUid("12345")).toBeNull();
     expect(uidFromQr("MOTION:41123456789012")).toBe("41123456789012");
+    expect(uidFromLine("UID: 11294169825993 12")).toBe("1129416982599312");
+    expect(uidFromLine("ID 11294169825993")).toBe("11294169825993");
+    expect(uidFromBarcode("1129416982599312")).toBe("1129416982599312");
+    expect(uidFromBarcode("12345")).toBeNull();
   });
   it("masks all but the last four digits", () => {
     expect(maskDigits("4112 3456 7890 12")).toBe(

@@ -225,7 +225,24 @@ export function quadArea(q: Quad) {
   return Math.abs(s) / 2;
 }
 
-export type Detection = { quad: Quad; ratio: number; fill: number; strength: number };
+export type Detection = {
+  quad: Quad;
+  ratio: number;
+  fill: number;
+  strength: number;
+  /** Largest corner angle away from 90 degrees. */
+  skew: number;
+};
+
+/**
+ * Rank of a passing outline. A card held up to the camera is close to a true
+ * rectangle of ID-1 shape, so a square, well shaped outline beats a skewed one
+ * built from a print line or a finger with a slightly stronger edge.
+ */
+function rank(d: Detection) {
+  const shape = 1 - Math.abs(d.ratio - ID1_RATIO) / ID1_RATIO / 0.24;
+  return d.strength * (1 - d.skew / 18) * shape;
+}
 
 /**
  * Find the card outline near `guide` (the card-shaped frame, in g's pixels).
@@ -276,7 +293,7 @@ export function detectCard(g: Gray, guide: Rect, band = 0.22): Detection | null 
         for (const right of rights) {
           if (Math.abs(left.a - right.a) > 0.05) continue;
           const d = quadFrom(g, guide, top, bottom, left, right);
-          if (d && (!best || d.strength > best.strength)) best = d;
+          if (d && (!best || rank(d) > rank(best))) best = d;
         }
     }
   return best;
@@ -296,9 +313,11 @@ function quadFrom(
     intersect(bottom, right),
     intersect(bottom, left),
   ];
+  let skew = 0;
   for (let i = 0; i < 4; i++) {
     const ang = angleAt(quad[(i + 3) % 4], quad[i], quad[(i + 1) % 4]);
     if (ang < 72 || ang > 108) return null;
+    skew = Math.max(skew, Math.abs(ang - 90));
   }
   const wTop = Math.hypot(quad[1].x - quad[0].x, quad[1].y - quad[0].y);
   const wBot = Math.hypot(quad[2].x - quad[3].x, quad[2].y - quad[3].y);
@@ -325,7 +344,7 @@ function quadFrom(
   if (stripesCross(g, quad)) return null;
   if (lineThrough(g, quad)) return null;
   const strength = (top.strength + bottom.strength + left.strength + right.strength) / 4;
-  return { quad, ratio, fill, strength };
+  return { quad, ratio, fill, strength, skew };
 }
 
 /** Grey value at (u, v) of the quad's own grid; u, v may lie outside 0..1. */
@@ -473,6 +492,10 @@ function lineThrough(g: Gray, q: Quad): boolean {
   if (!(xMax > xMin && yMax > yMin)) return false;
   const w = xMax - xMin;
   const h = yMax - yMin;
+  // Print on the card (a bold text block, the coloured band on the back of a
+  // Motion card) can form a straight step inside the outline too. The
+  // difference: print stops at the card's edges, a fabric stripe runs on past
+  // them. So a through line only counts when it continues outside the card.
   const H = edgeCandidates(
     g,
     true,
@@ -481,11 +504,13 @@ function lineThrough(g: Gray, q: Quad): boolean {
     Math.round(xMin + w * 0.04),
     Math.round(xMax - w * 0.04),
     0,
-    1,
+    3,
     TUNE.thrSup,
     TUNE.thrThird,
   );
-  if (H.length) return true;
+  const x0 = Math.min(q[0].x, q[3].x);
+  const x1 = Math.max(q[1].x, q[2].x);
+  if (H.some((l) => runsOn(g, true, l, x0, x1))) return true;
   const V = edgeCandidates(
     g,
     false,
@@ -494,11 +519,13 @@ function lineThrough(g: Gray, q: Quad): boolean {
     Math.round(yMin + h * 0.06),
     Math.round(yMax - h * 0.06),
     0,
-    1,
+    3,
     TUNE.thrSup,
     TUNE.thrThird,
   );
-  return V.length > 0;
+  const y0 = Math.min(q[0].y, q[1].y);
+  const y1 = Math.max(q[2].y, q[3].y);
+  return V.some((l) => runsOn(g, false, l, y0, y1));
 }
 
 /** Largest corner movement between two quads, as a fraction of `scale`. */
@@ -609,4 +636,67 @@ export function warpQuad(
     }
   }
   return out;
+}
+
+// ---------------------------------------------------------------- text prep
+
+/**
+ * Prepare a crop of faint thermal print for OCR: stretch the contrast between
+ * the 2nd and 98th percentile, then split ink from card with Otsu's threshold.
+ * Returns black text on white (0 / 255). A crop with no real ink in it (a
+ * flat range) is only stretched, so card texture never turns into letters.
+ */
+export function enhanceText(g: Gray): Uint8ClampedArray {
+  const { data } = g;
+  const n = data.length;
+  const out = new Uint8ClampedArray(n);
+  if (!n) return out;
+  const hist = new Uint32Array(256);
+  for (let i = 0; i < n; i++) hist[data[i]]++;
+  const pct = (p: number) => {
+    let acc = 0;
+    for (let v = 0; v < 256; v++) {
+      acc += hist[v];
+      if (acc >= n * p) return v;
+    }
+    return 255;
+  };
+  const lo = pct(0.02);
+  const hi = pct(0.98);
+  const span = Math.max(1, hi - lo);
+  for (let i = 0; i < n; i++) out[i] = ((data[i] - lo) * 255) / span;
+  if (hi - lo < 28) return out;
+  // Otsu on the stretched values.
+  const h2 = new Uint32Array(256);
+  for (let i = 0; i < n; i++) h2[out[i]]++;
+  let sumAll = 0;
+  for (let v = 0; v < 256; v++) sumAll += v * h2[v];
+  let wB = 0;
+  let sumB = 0;
+  let best = -1;
+  let thr = 128;
+  for (let t = 0; t < 256; t++) {
+    wB += h2[t];
+    if (!wB) continue;
+    const wF = n - wB;
+    if (!wF) break;
+    sumB += t * h2[t];
+    const mB = sumB / wB;
+    const mF = (sumAll - sumB) / wF;
+    const between = wB * wF * (mB - mF) * (mB - mF);
+    if (between > best) {
+      best = between;
+      thr = t;
+    }
+  }
+  for (let i = 0; i < n; i++) out[i] = out[i] <= thr ? 0 : 255;
+  return out;
+}
+
+/** Card width in source pixels (mean of the top and bottom edges). */
+export function quadWidth(q: Quad) {
+  return (
+    (Math.hypot(q[1].x - q[0].x, q[1].y - q[0].y) + Math.hypot(q[2].x - q[3].x, q[2].y - q[3].y)) /
+    2
+  );
 }

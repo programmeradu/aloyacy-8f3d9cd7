@@ -3,13 +3,26 @@
 // Every ~120 ms: crop the area around the on-screen guide from the video,
 // detect the card outline (card-detect.ts). Only when a card-shaped outline
 // holds still for 3 frames do we take a full-resolution still, warp it flat,
-// check it is sharp, glare-free and mostly white (a Motion card), then decode
-// the QR and OCR fixed regions. Values are voted across stills (fields.ts).
+// check it is sharp and mostly white (a Motion card), then read fixed regions.
+// Values are voted across stills (fields.ts).
+//
+// The real Motion card (tuned on photos of one, Oct 2026): the front has no
+// QR; it carries the name as initial + surname in faint grey thermal print,
+// a green category box ("18+ Standard") and "Valid until" with the date. The
+// back has the UID printed bold after "UID:" and the same number as a
+// vertical 1D barcode at the right edge. So: front step (name, category,
+// date), then a flip step (UID from the barcode, else OCR of the UID line).
+//
+// Privacy: frames live only in memory canvases that are reused every frame.
+// The holder photo area is painted over on the flattened front before any
+// reading, and no image is ever stored, uploaded or logged.
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   detectCard,
   glareShare,
   quadDrift,
+  enhanceText,
+  quadWidth,
   sharpness,
   toGray,
   warpQuad,
@@ -17,8 +30,18 @@ import {
   type Quad,
   type Rect,
 } from "./card-detect";
-import { Voter, uidFromQr, validDate, validName, validUid, type FieldKey } from "./fields";
-import { disposeOcr, getOcr, getQr, readRegion } from "./engines";
+import {
+  Voter,
+  uidFromBarcode,
+  uidFromLine,
+  uidFromQr,
+  validCategory,
+  validDate,
+  validName,
+  type FieldKey,
+  type FieldSource,
+} from "./fields";
+import { disposeOcr, getCodes, getOcr, readRegion } from "./engines";
 
 export type Side = "front" | "back";
 export type Phase =
@@ -29,11 +52,12 @@ export type Phase =
   | "blurry"
   | "glare"
   | "notcard"
+  | "flip"
   | "done"
   | "error";
 
 export type Fields = Partial<
-  Record<FieldKey, { value: string; conf: number; source: "qr" | "ocr" }>
+  Record<FieldKey, { value: string; conf: number; source: FieldSource }>
 >;
 
 const WORK_W = 360;
@@ -41,23 +65,25 @@ const OUT_W = 1000;
 const OUT_H = Math.round(OUT_W / 1.586);
 const STABLE_FRAMES = 3;
 
-/** Regions on the flattened card (fractions of width/height). */
+/** Regions on the flattened card (fractions of width/height), from the real card. */
 const ROI = {
-  name: { x: 0.03, y: 0.32, w: 0.58, h: 0.13 },
-  date: { x: 0.3, y: 0.63, w: 0.32, h: 0.13 },
-  qr: { x: 0.55, y: 0.08, w: 0.43, h: 0.74 },
-  uid: { x: 0.03, y: 0.45, w: 0.94, h: 0.52 },
+  name: { x: 0.18, y: 0.39, w: 0.44, h: 0.072 },
+  category: { x: 0.29, y: 0.455, w: 0.33, h: 0.11 },
+  date: { x: 0.41, y: 0.643, w: 0.195, h: 0.072 },
+  /** Holder photo: painted over before anything reads the front. */
+  photo: { x: 0.6, y: 0.17, w: 0.37, h: 0.62 },
+  uid: { x: 0.4, y: 0.75, w: 0.57, h: 0.12 },
+  /** Vertical 1D barcode at the right edge of the back. */
+  barcode: { x: 0.83, y: 0.26, w: 0.16, h: 0.52 },
 };
+type Roi = { x: number; y: number; w: number; h: number };
 
-function crop(
-  src: HTMLCanvasElement,
-  r: { x: number; y: number; w: number; h: number },
-  scale = 2,
-) {
+/** Grey crop of a region, scaled up; `enhance` adds the thermal print prep. */
+function crop(src: HTMLCanvasElement, r: Roi, scale = 2, enhance = false) {
   const c = document.createElement("canvas");
   c.width = Math.round(src.width * r.w * scale);
   c.height = Math.round(src.height * r.h * scale);
-  const ctx = c.getContext("2d")!;
+  const ctx = c.getContext("2d", { willReadFrequently: true })!;
   ctx.imageSmoothingQuality = "high";
   ctx.filter = "grayscale(1) contrast(1.35)";
   ctx.drawImage(
@@ -71,6 +97,31 @@ function crop(
     c.width,
     c.height,
   );
+  ctx.filter = "none";
+  if (enhance) {
+    const img = ctx.getImageData(0, 0, c.width, c.height);
+    const g = toGray(img.data, c.width, c.height);
+    const t = enhanceText(g);
+    for (let i = 0, j = 0; j < t.length; i += 4, j++) {
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = t[j];
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  return c;
+}
+
+/** The vertical barcode turned upright (bars standing) for the detector. */
+function uprightBarcode(src: HTMLCanvasElement) {
+  const r = ROI.barcode;
+  const w = Math.round(src.width * r.w);
+  const h = Math.round(src.height * r.h);
+  const c = document.createElement("canvas");
+  c.width = h * 2;
+  c.height = w * 2;
+  const ctx = c.getContext("2d")!;
+  ctx.translate(c.width / 2, c.height / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.drawImage(src, src.width * r.x, src.height * r.y, w, h, -h, -w, h * 2, w * 2);
   return c;
 }
 
@@ -89,6 +140,7 @@ export function useCardScanner(opts: {
   const stable = useRef<{ quad: Quad; n: number } | null>(null);
   const attempts = useRef(0);
   const lockedOnce = useRef(false);
+  const flipUntil = useRef(0);
 
   const [side, setSideState] = useState<Side>("front");
   const [phase, setPhase] = useState<Phase>("starting");
@@ -161,7 +213,7 @@ export function useCardScanner(opts: {
         setPhase("searching");
         // Warm the engines while the rider lines the card up.
         void getOcr().catch(() => {});
-        void getQr();
+        void getCodes();
       } catch (e) {
         setPhase("error");
         setError(e instanceof Error ? e.message : "Camera unavailable");
@@ -260,6 +312,12 @@ export function useCardScanner(opts: {
         const px = warpQuad(src, q, OUT_W, OUT_H);
         const fctx = flat.getContext("2d")!;
         fctx.putImageData(new ImageData(px, OUT_W, OUT_H), 0, 0);
+        if (sideRef.current === "front") {
+          // The holder photo never reaches any reader.
+          const r = ROI.photo;
+          fctx.fillStyle = "#fff";
+          fctx.fillRect(OUT_W * r.x, OUT_H * r.y, OUT_W * r.w, OUT_H * r.h);
+        }
         const small = toGray(px, OUT_W, OUT_H);
         if (whiteShare(small) < 0.28) {
           setPhase("notcard");
@@ -269,7 +327,11 @@ export function useCardScanner(opts: {
         // panel, a cream face under bright light) clips on most phone cameras.
         // So read anyway, and only ask for a tilt when a glary frame read nothing.
         const glary = glareShare(small) > 0.05;
-        if (sharpness(small) < 40) {
+        // The flat card is 1000 px wide; a card seen smaller than that is
+        // upscaled and reads softer, so the bar drops with its real size.
+        const native = quadWidth(q);
+        const minSharp = 40 * Math.min(1, Math.pow(native / 700, 1.5));
+        if (sharpness(small) < Math.max(12, minSharp)) {
           setPhase("blurry");
           return;
         }
@@ -286,11 +348,13 @@ export function useCardScanner(opts: {
       }
     };
 
-    const phaseDone = () => !!voter.current.accepted.number && sideDone("front");
+    const phaseDone = () =>
+      (!!voter.current.accepted.number && sideDone("front")) || flipUntil.current > Date.now();
 
     const sideDone = (sd: Side) => {
       const a = voter.current.accepted;
       if (sd === "back") return !!a.number;
+      // Category is a bonus: name and date are what the front is for.
       return (
         (!!a.holder && !!a.validUntil) || (attempts.current >= 10 && (!!a.holder || !!a.validUntil))
       );
@@ -298,48 +362,83 @@ export function useCardScanner(opts: {
 
     const publish = () => setFields({ ...voter.current.accepted });
 
+    const vote = (key: FieldKey, v: string | null, conf: number) => {
+      if (v && voter.current.add(key, v, conf)) buzz(12);
+    };
+
     async function readSide(card: HTMLCanvasElement) {
       const vt = voter.current;
       if (sideRef.current === "front") {
-        // QR first: exact when present.
-        if (!vt.accepted.number) {
-          const det = await getQr();
-          const hits = det ? await det.detect(crop(card, ROI.qr, 1)).catch(() => []) : [];
-          const uid = hits.map((h) => uidFromQr(h.rawValue)).find(Boolean);
-          if (uid) {
-            vt.acceptQr(uid);
-            buzz([12, 40, 12]);
-            publish();
+        // Optional: a QR on other card prints is exact when present.
+        if (!vt.accepted.number && attempts.current % 3 === 1) {
+          const det = await getCodes();
+          const hits = det ? await det.detect(card).catch(() => []) : [];
+          const uid = hits
+            .filter((h) => !h.format || h.format === "qr_code")
+            .map((h) => uidFromQr(h.rawValue))
+            .find(Boolean);
+          if (uid) vt.acceptExact(uid, "qr");
+        }
+        // Faint thermal print: read the plain crop and the thresholded one.
+        for (const enh of [true, false]) {
+          if (!vt.accepted.holder) {
+            const r = await readRegion(crop(card, ROI.name, 2, enh), {
+              whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ '-",
+              psm: "7",
+            });
+            vote("holder", validName(r.text), r.conf);
+          }
+          if (!vt.accepted.validUntil) {
+            const r = await readRegion(crop(card, ROI.date, 2, enh), {
+              whitelist: "0123456789/",
+              psm: "7",
+            });
+            vote("validUntil", validDate(r.text), r.conf);
           }
         }
-        if (!vt.accepted.holder) {
-          const r = await readRegion(crop(card, ROI.name), {
-            whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ '-",
+        if (!vt.accepted.category) {
+          const r = await readRegion(crop(card, ROI.category, 2), {
+            whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+ ",
             psm: "7",
           });
-          const n = validName(r.text);
-          if (n && vt.add("holder", n, r.conf)) buzz(12);
-        }
-        if (!vt.accepted.validUntil) {
-          const r = await readRegion(crop(card, ROI.date), { whitelist: "0123456789/", psm: "7" });
-          const d = validDate(r.text);
-          if (d && vt.add("validUntil", d, r.conf)) buzz(12);
+          vote("category", validCategory(r.text), r.conf);
         }
         publish();
         if (sideDone("front")) {
           buzz([20, 60, 20]);
-          if (!vt.accepted.number) setSide("back");
-          else setPhase("done");
+          if (!vt.accepted.number) {
+            setSide("back");
+            // Give the rider a moment to turn the card before reading again.
+            flipUntil.current = Date.now() + 1600;
+            setPhase("flip");
+          } else setPhase("done");
         }
       } else {
-        const r = await readRegion(crop(card, ROI.uid, 1.6), {
-          whitelist: "0123456789 ",
-          psm: "11",
-        });
-        const u = validUid(r.text);
-        if (u && vt.add("number", u, r.conf)) buzz([20, 60, 20]);
+        // The barcode is exact; the printed UID line is the fallback.
+        const det = await getCodes();
+        if (det) {
+          for (const src of [uprightBarcode(card), card]) {
+            const hits = await det.detect(src).catch(() => []);
+            const uid = hits.map((h) => uidFromBarcode(h.rawValue)).find(Boolean);
+            if (uid) {
+              vt.acceptExact(uid, "barcode");
+              break;
+            }
+          }
+        }
+        for (const enh of [false, true]) {
+          if (vt.accepted.number) break;
+          const r = await readRegion(crop(card, ROI.uid, 1.6, enh), {
+            whitelist: "0123456789UID: ",
+            psm: "7",
+          });
+          vote("number", uidFromLine(r.text), r.conf);
+        }
         publish();
-        if (sideDone("back")) setPhase("done");
+        if (sideDone("back")) {
+          buzz([20, 60, 20]);
+          setPhase("done");
+        }
       }
     }
 
