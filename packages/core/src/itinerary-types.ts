@@ -28,6 +28,21 @@ export type RideLeg = {
   stopCount: number;
   /** Best-known delay at board time, in seconds. 0 for scheduled-only. */
   delaySec: number;
+  /**
+   * The stops the bus calls at between board and alight, in order (board and
+   * alight excluded), with their timetable times. Optional: older plans,
+   * Kapnos and some live legs leave it out.
+   */
+  via?: ViaStop[];
+};
+
+export type ViaStop = {
+  stopId: string;
+  name: string;
+  lat: number;
+  lng: number;
+  /** Timetable (or live) arrival at this stop. */
+  arrivalUnix: number;
 };
 
 export type WalkLeg = {

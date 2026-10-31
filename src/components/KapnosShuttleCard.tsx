@@ -5,6 +5,7 @@
 // plan the city bus first or last mile instead of saying "take a bus or taxi".
 // Sentence case, no eyebrows, no middle dots, no em or en dashes.
 
+import { LegChain } from "@/components/roam/journey/JourneyParts";
 import { useI18n } from "@/lib/i18n";
 import type { KapnosSuggestion } from "@/lib/kapnos.functions";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
@@ -69,15 +70,7 @@ function MiniItinerary({ itin }: { itin: Itinerary }) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-wrap items-center gap-1.5">
-        {rides.map((r, i) => (
-          <span key={`${r.tripId}-${i}`} className="inline-flex items-center gap-1.5">
-            {i > 0 ? <Icon name="caret-right" size={12} className={MUTE} /> : null}
-            <span className="inline-flex h-6 items-center gap-1 rounded-full bg-white px-2 text-[12px] font-semibold text-[#171717] [font-variant-numeric:tabular-nums]">
-              <Icon name="bus" size={13} />
-              {r.routeShort}
-            </span>
-          </span>
-        ))}
+        <LegChain itinerary={itin} white />
         <span className={`text-[12px] ${MUTE} [font-variant-numeric:tabular-nums]`}>
           {t("kapnos.miniMeta", {
             m: fmtMin(itin.totalDurationSec),

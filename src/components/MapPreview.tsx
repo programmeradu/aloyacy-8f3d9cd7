@@ -21,9 +21,9 @@ import { useMapFullscreen } from "@/components/map/useMapFullscreen";
 import { useStaticLayer } from "@/components/map/useStaticLayer";
 import { useTripPaths } from "@/components/map/useTripPaths";
 import { UserHereOverlay } from "@/components/map/UserHereOverlay";
-import type { MapMarker } from "@/components/map/types";
+import type { MapMarker, MapSegment } from "@/components/map/types";
 
-export type { MapMarker };
+export type { MapMarker, MapSegment };
 
 type Props = {
   height?: string;
@@ -32,6 +32,10 @@ type Props = {
   spanKm?: number;
   /** Encoded polyline (precision 5 polyline algorithm). */
   polyline?: string;
+  /** Per-leg lines (rides in their line colour, walks dotted). */
+  segments?: MapSegment[];
+  /** Padding used when fitting the view to the content. */
+  fitPadding?: number | { top: number; bottom: number; left: number; right: number };
   markers?: MapMarker[];
   /** If true, overlays realtime bus vehicles. Defaults to true. */
   liveVehicles?: boolean;
@@ -89,6 +93,8 @@ export function MapPreview({
   center = NICOSIA_CENTER,
   spanKm = 8,
   polyline,
+  segments,
+  fitPadding,
   markers,
   liveVehicles = true,
   focusTripId,
@@ -180,7 +186,10 @@ export function MapPreview({
   useEffect(() => {
     const m = mapRef.current;
     if (!m) return;
-    const hasContent = (polyline && polyline.length > 0) || (markers && markers.length > 0);
+    const hasContent =
+      (polyline && polyline.length > 0) ||
+      (segments && segments.length > 0) ||
+      (markers && markers.length > 0);
     if (fitToContent ?? hasContent) return;
     m.jumpTo({
       center: [center.lng, center.lat],
@@ -188,12 +197,14 @@ export function MapPreview({
     });
     // center.lat/lng are depended on individually so a new object identity from
     // the parent does not re-pan the map on every render.
-  }, [center.lat, center.lng, spanKm, polyline, markers, fitToContent, mapReady]);
+  }, [center.lat, center.lng, spanKm, polyline, segments, markers, fitToContent, mapReady]);
 
   const layerRef = useStaticLayer({
     api: mapReady ? api : null,
     mapRef,
     polyline,
+    segments,
+    fitPadding,
     markers,
     fitToContent,
     suppressClustering: focused || restricted,

@@ -3,7 +3,7 @@ import type mapboxgl from "mapbox-gl";
 import { decodePolyline } from "@aloya/core/shapes";
 import { markerStyle } from "@/components/map/mapSymbols";
 import { whenStyleReady } from "@/components/map/mapReady";
-import type { MapMarker } from "@/components/map/types";
+import type { MapMarker, MapSegment } from "@/components/map/types";
 import type { MapboxApi } from "@/lib/useMapbox";
 
 /** Below this many stops, clustering hides more than it helps. */
@@ -13,7 +13,11 @@ const FIT_PADDING = 40;
 export const STOPS_SOURCE = "aloya-stops";
 const ROUTE_SOURCE = "aloya-route";
 const ANCHOR_SOURCE = "aloya-anchors";
+const SEG_SOURCE = "aloya-segments";
 const LAYERS = [
+  "aloya-seg-walk",
+  "aloya-seg-ride",
+  "aloya-seg-casing",
   "aloya-route-line",
   "aloya-route-casing",
   "aloya-clusters",
@@ -32,6 +36,8 @@ type Options = {
   api: MapboxApi | null | undefined;
   mapRef: React.RefObject<mapboxgl.Map | null>;
   polyline?: string;
+  segments?: MapSegment[];
+  fitPadding?: number | { top: number; bottom: number; left: number; right: number };
   markers?: MapMarker[];
   fitToContent?: boolean;
   /** Single-route or single-trip view: never fold stops into clusters. */
@@ -40,7 +46,7 @@ type Options = {
 
 function clear(map: mapboxgl.Map) {
   for (const id of LAYERS) if (map.getLayer(id)) map.removeLayer(id);
-  for (const id of [ROUTE_SOURCE, STOPS_SOURCE, ANCHOR_SOURCE])
+  for (const id of [ROUTE_SOURCE, STOPS_SOURCE, ANCHOR_SOURCE, SEG_SOURCE])
     if (map.getSource(id)) map.removeSource(id);
 }
 
@@ -53,6 +59,8 @@ export function useStaticLayer({
   api,
   mapRef,
   polyline,
+  segments,
+  fitPadding,
   markers,
   fitToContent,
   suppressClustering,
@@ -106,6 +114,61 @@ export function useStaticLayer({
             bounds.extend([p.lng, p.lat]);
             hasBounds = true;
           });
+        }
+      }
+
+      if (segments && segments.length) {
+        const feats: GeoJSON.Feature<GeoJSON.LineString>[] = segments
+          .filter((sg) => sg.coords.length >= 2)
+          .map((sg) => ({
+            type: "Feature",
+            properties: { kind: sg.kind, color: sg.color },
+            geometry: { type: "LineString", coordinates: sg.coords.map((p) => [p.lng, p.lat]) },
+          }));
+        if (feats.length) {
+          m.addSource(SEG_SOURCE, {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: feats },
+          });
+          m.addLayer({
+            id: "aloya-seg-casing",
+            type: "line",
+            source: SEG_SOURCE,
+            filter: ["==", ["get", "kind"], "ride"],
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: {
+              "line-color": "#ffffff",
+              "line-width": ["interpolate", ["linear"], ["zoom"], 9, 5, 14, 10, 17, 14],
+            },
+          });
+          m.addLayer({
+            id: "aloya-seg-ride",
+            type: "line",
+            source: SEG_SOURCE,
+            filter: ["==", ["get", "kind"], "ride"],
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: {
+              "line-color": ["get", "color"],
+              "line-width": ["interpolate", ["linear"], ["zoom"], 9, 3, 14, 6.5, 17, 10],
+            },
+          });
+          m.addLayer({
+            id: "aloya-seg-walk",
+            type: "line",
+            source: SEG_SOURCE,
+            filter: ["==", ["get", "kind"], "walk"],
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: {
+              "line-color": "#ffffff",
+              "line-width": ["interpolate", ["linear"], ["zoom"], 10, 2.5, 15, 4.5],
+              "line-dasharray": [0.1, 2],
+            },
+          });
+          for (const f of feats)
+            for (const c of f.geometry.coordinates) {
+              bounds.extend(c as [number, number]);
+              hasBounds = true;
+            }
         }
       }
 
@@ -237,11 +300,11 @@ export function useStaticLayer({
 
       const shouldFit = fitToContent ?? hasBounds;
       if (shouldFit && hasBounds && !bounds.isEmpty()) {
-        m.fitBounds(bounds, { padding: FIT_PADDING, maxZoom: 16, duration: 0 });
+        m.fitBounds(bounds, { padding: fitPadding ?? FIT_PADDING, maxZoom: 16, duration: 0 });
       }
     });
     // markers is compared by value: parents rebuild the array every render.
-  }, [api, polyline, JSON.stringify(markers), fitToContent, suppressClustering]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [api, polyline, JSON.stringify(segments ?? null), JSON.stringify(fitPadding ?? null), JSON.stringify(markers), fitToContent, suppressClustering]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return layerRef;
 }

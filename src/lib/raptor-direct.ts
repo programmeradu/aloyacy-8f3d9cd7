@@ -189,6 +189,20 @@ export function buildDirectRaptorItineraries(input: {
           },
           stopCount: alightRow[3] - boardRow[3],
           delaySec: 0,
+          via: tripRows.slice(boardIdx + 1, alight.idx).flatMap((r) => {
+            const s = stops[r[0]];
+            return s
+              ? [
+                  {
+                    stopId: r[0],
+                    name: s.name,
+                    lat: s.lat,
+                    lng: s.lng,
+                    arrivalUnix: serviceDateToUnix(date, r[2]),
+                  },
+                ]
+              : [];
+          }),
         });
         legs.push({
           kind: "walk",

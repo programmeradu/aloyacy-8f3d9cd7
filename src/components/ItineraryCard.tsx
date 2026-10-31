@@ -6,6 +6,12 @@ import { useMemo, useState } from "react";
 import type { Itinerary, RationaleTag, RideLeg } from "@/lib/itinerary-types";
 import { useRoamI18n } from "@/lib/roam-i18n";
 import { Icon } from "@/components/roam/Icon";
+import {
+  ChangeList,
+  LegBar,
+  LegChain,
+  LegsTimeline,
+} from "@/components/roam/journey/JourneyParts";
 
 type T = (key: never, vars?: Record<string, string | number>) => string;
 function rationaleToCopy(tag: RationaleTag, t: T): string {
@@ -120,37 +126,7 @@ export function ItineraryCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {rides.map((r, i) => (
-              <span key={i} className="inline-flex items-center gap-1.5">
-                {i > 0 ? <Icon name="caret-right" size={13} style={{ color: mute }} /> : null}
-                <span
-                  className="r-pill r-tnum"
-                  style={{
-                    height: 28,
-                    background: i === 0 && dark ? "var(--r-y)" : pillBg,
-                    color: i === 0 && dark ? "var(--r-ink)" : pillFg,
-                  }}
-                >
-                  {r.routeId.startsWith("kapnos:") ? (
-                    // Real Kapnos Airport Shuttle mark (same file as the provider tile).
-                    <img
-                      src="/brands/kapnos-mark.png"
-                      alt=""
-                      aria-hidden="true"
-                      width={18}
-                      height={18}
-                      className="shrink-0 rounded-[5px] bg-white"
-                      style={{ width: 18, height: 18, objectFit: "contain" }}
-                    />
-                  ) : (
-                    <Icon name="bus" size={16} />
-                  )}
-                  {r.routeShort}
-                </span>
-              </span>
-            ))}
-          </div>
+          <LegChain itinerary={itinerary} dark={dark} />
           <p className="mt-2.5 text-[14px] leading-snug" style={{ color: mute }}>
             {[
               sourceLabel,
@@ -178,39 +154,39 @@ export function ItineraryCard({
           {fmtTime(itinerary.arrivalUnix)}
         </span>
       </div>
-      <div className="r-tl-line mt-2" style={{ height: 22 }} aria-hidden="true">
-        <span className="ln" style={dark ? undefined : { background: "#cfcfca" }} />
-        <span className="e" style={{ left: 0 }} />
-        <span className="e" style={{ right: 0 }} />
-        {rides.length > 0 ? (
-          <span
-            className="absolute left-1/2 top-1/2 flex size-[26px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full"
-            style={{
-              background: dark ? "var(--r-char)" : "#fff",
-              color: dark ? "#fff" : "var(--r-ink)",
-              boxShadow: `0 0 0 1.6px ${dark ? "var(--r-y)" : "#cfcfca"}`,
-            }}
-          >
-            <Icon name="bus" size={14} />
-          </span>
-        ) : null}
-      </div>
+      {rides.length > 1 ? (
+        <div className="mt-2">
+          <LegBar itinerary={itinerary} dark={dark} />
+        </div>
+      ) : (
+        <div className="r-tl-line mt-2" style={{ height: 22 }} aria-hidden="true">
+          <span className="ln" style={dark ? undefined : { background: "#cfcfca" }} />
+          <span className="e" style={{ left: 0 }} />
+          <span className="e" style={{ right: 0 }} />
+          {rides.length > 0 ? (
+            <span
+              className="absolute left-1/2 top-1/2 flex size-[26px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full"
+              style={{
+                background: dark ? "var(--r-char)" : "#fff",
+                color: dark ? "#fff" : "var(--r-ink)",
+                boxShadow: `0 0 0 1.6px ${dark ? "var(--r-y)" : "#cfcfca"}`,
+              }}
+            >
+              <Icon name="bus" size={14} />
+            </span>
+          ) : null}
+        </div>
+      )}
       <div className="mt-2 flex items-start justify-between gap-2 text-[14px] leading-[18px]">
-        <span className="line-clamp-2 min-w-0 flex-1 break-words">
+        <span className="min-w-0 flex-1 break-words">
           {short(firstRide?.board.name ?? "")}
         </span>
-        {rides.length > 1 ? (
-          <span
-            className="r-dpill shrink-0"
-            style={dark ? undefined : { background: "var(--r-pill)", color: "var(--r-ink)" }}
-          >
-            {rt("go.legs", { n: rides.length })}
-          </span>
-        ) : null}
-        <span className="line-clamp-2 min-w-0 flex-1 break-words text-right">
+        <span className="min-w-0 flex-1 break-words text-right">
           {short(lastRide?.alight.name ?? "")}
         </span>
       </div>
+
+      {rides.length > 1 ? <ChangeList itinerary={itinerary} dark={dark} /> : null}
 
       {itinerary.rationale && itinerary.rationale.length > 0 ? (
         <p
@@ -229,48 +205,9 @@ export function ItineraryCard({
       ) : null}
 
       {expanded ? (
-        <ol
-          className="mt-3 ml-1.5 space-y-3 border-l pl-4"
-          style={{ borderColor: dark ? "#444" : "var(--r-line)" }}
-        >
-          {itinerary.legs.map((leg, i) => (
-            <li key={i} className="text-[14px] leading-snug">
-              {leg.kind === "ride" ? (
-                <div>
-                  <p>
-                    <span className="mr-2 font-semibold r-tnum">{leg.routeShort}</span>
-                    {short(leg.board.name)}
-                    <span style={{ color: mute }}> → </span>
-                    {short(leg.alight.name)}
-                  </p>
-                  <p className="mt-1 text-[13px] r-tnum" style={{ color: mute }}>
-                    {fmtTime(leg.board.departureUnix)} → {fmtTime(leg.alight.arrivalUnix)},{" "}
-                    {t("itin.stops", { n: leg.stopCount })}
-                    {leg.live ? `, ${rt("conf.live")}` : ""}
-                  </p>
-                </div>
-              ) : leg.kind === "walk" ? (
-                <p>
-                  <span className="mr-2 font-semibold r-tnum">
-                    {t("itin.walk")} {fmtMin(leg.durationSec)}
-                  </span>
-                  <span style={{ color: mute }}>
-                    {short(leg.from.name)} → {short(leg.to.name)}
-                  </span>
-                </p>
-              ) : (
-                <p>
-                  <span className="mr-2 font-semibold r-tnum">
-                    {t("itin.wait")} {fmtMin(leg.durationSec)}
-                  </span>
-                  <span style={{ color: mute }}>
-                    {t("itin.at")} {short(leg.name)}
-                  </span>
-                </p>
-              )}
-            </li>
-          ))}
-        </ol>
+        <div className="mt-4">
+          <LegsTimeline itinerary={itinerary} dark={dark} />
+        </div>
       ) : null}
 
       <div className="mt-4 flex items-center gap-2">

@@ -122,6 +122,23 @@ export function reconstruct(
         });
       }
       const stopCount = label.alightSeq - label.boardSeq;
+      const via = tripSt
+        .filter((r) => r[3] > label.boardSeq && r[3] < label.alightSeq)
+        .sort((a, b) => a[3] - b[3])
+        .flatMap((r) => {
+          const s = stops[r[0]];
+          return s
+            ? [
+                {
+                  stopId: r[0],
+                  name: s.name,
+                  lat: s.lat,
+                  lng: s.lng,
+                  arrivalUnix: serviceDateToUnix(schedule.date, r[2]),
+                },
+              ]
+            : [];
+        });
       legs.push({
         kind: "ride",
         routeId: label.routeId,
@@ -145,6 +162,7 @@ export function reconstruct(
         },
         stopCount,
         delaySec: 0,
+        via,
       });
     } else if (label.kind === "walk") {
       const a = stops[prev.stopId];

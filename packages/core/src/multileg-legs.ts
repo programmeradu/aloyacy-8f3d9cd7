@@ -287,6 +287,12 @@ export function buildRideLeg(
     },
     stopCount: alightIdx - boardIdx,
     delaySec: board.delaySec,
+    via: trip.stops.slice(boardIdx + 1, alightIdx).flatMap((st) => {
+      const s = stopById.get(st.stopId);
+      return s
+        ? [{ stopId: s.id, name: s.name, lat: s.lat, lng: s.lng, arrivalUnix: st.arrivalUnix }]
+        : [];
+    }),
   };
 }
 

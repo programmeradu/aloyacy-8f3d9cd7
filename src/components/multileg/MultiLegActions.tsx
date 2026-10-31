@@ -1,8 +1,9 @@
-// The action HUD under the hero: the one thing the rider can do right now,
-// which changes with the live phase of the journey.
+// The action under the live leg cards (Roam): the one thing the rider can do
+// right now, which changes with the live phase of the journey.
 
+import type { ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { IconArrowUpRight, IconBus, IconPin } from "@/components/Icons";
+import { Icon } from "@/components/roam/Icon";
 import { useI18n } from "@/lib/i18n";
 import { clearActiveTrip, type ActiveTrip } from "@/lib/trip-store";
 import {
@@ -12,6 +13,39 @@ import {
 } from "@/lib/useMultiLegJourney";
 import { startLiveTracking } from "@/lib/useJourney";
 import { requestCompassPermission } from "@/lib/useCompass";
+
+const BTN =
+  "mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full text-[15px] font-semibold active:scale-[0.98] motion-reduce:active:scale-100 transition-transform";
+
+function Card({
+  tone = "white",
+  kicker,
+  title,
+  body,
+  children,
+}: {
+  tone?: "white" | "yellow";
+  kicker?: string;
+  title?: string;
+  body?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <section
+      className="rounded-[24px] px-[18px] py-4"
+      style={
+        tone === "yellow"
+          ? { background: "var(--r-y-soft)", boxShadow: "0 0 0 1.5px var(--r-y)" }
+          : { background: "#fff", boxShadow: "0 0 0 1px var(--r-line)" }
+      }
+    >
+      {kicker ? <p className="r-lbl">{kicker}</p> : null}
+      {title ? <p className="mt-1 text-[20px] font-medium leading-tight">{title}</p> : null}
+      {body ? <p className="mt-1.5 text-[14px] leading-snug text-[var(--r-ink2)]">{body}</p> : null}
+      {children}
+    </section>
+  );
+}
 
 export function MultiLegActions({
   live,
@@ -26,75 +60,62 @@ export function MultiLegActions({
   const navigate = useNavigate();
   if (!live.active) {
     return (
-      <section className="px-6 animate-rise" style={{ animationDelay: "100ms" }}>
-        <div className="rounded-[28px] bg-aegean-soft/40 ring-1 ring-aegean/20 p-5">
-          <p className="text-[12px] text-aegean-deep">
-            {t("hud.liveGuidance")}
-          </p>
-          <p className="mt-2 font-display text-[26px] leading-tight text-ink">
-            {t("ml.act.startTitle", { name: active.to.label })}
-          </p>
-          <p className="mt-2 text-[13px] text-ink-soft">{t("ml.act.startBody")}</p>
-          <button
-            type="button"
-            onClick={() => {
-              // Start immediately so the UI flips into live mode even if
-              // the compass permission prompt stalls or the user dismisses
-              // it. Compass is an enhancement, not a gate.
-              startLiveTracking();
-              void requestCompassPermission().catch(() => {});
-            }}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone active:scale-[0.98] transition"
-          >
-            {t("ml.act.startCta")}
-            <IconArrowUpRight className="size-3.5" />
-          </button>
-        </div>
-      </section>
+      <Card
+        kicker={t("hud.liveGuidance")}
+        title={t("ml.act.startTitle", { name: active.to.label })}
+        body={t("ml.act.startBody")}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            // Start immediately so the UI flips into live mode even if
+            // the compass permission prompt stalls or the user dismisses
+            // it. Compass is an enhancement, not a gate.
+            startLiveTracking();
+            void requestCompassPermission().catch(() => {});
+          }}
+          className={BTN}
+          style={{ background: "var(--r-y)", color: "var(--r-ink)" }}
+        >
+          {t("ml.act.startCta")}
+          <Icon name="arrow-up-right" size={16} />
+        </button>
+      </Card>
     );
   }
 
   if (live.phase === "waiting-to-board") {
     return (
-      <section className="px-6 animate-rise">
-        <div className="rounded-[28px] bg-card ring-1 ring-line p-5">
-          <p className="text-[12px] text-aegean-deep">
-            {t("ml.act.onBoardQ", { code: live.currentRideLeg?.routeShort ?? "" })}
-          </p>
-          <p className="mt-2 text-[13px] text-ink-soft">
-            {t("ml.act.onBoardBody", { name: live.currentRideLeg?.alight.name ?? "" })}
-          </p>
-          <button
-            onClick={() => multiLegConfirmOnBoard()}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
-          >
-            {t("ml.act.onBoardCta")}
-            <IconBus className="size-3.5" />
-          </button>
-        </div>
-      </section>
+      <Card
+        kicker={t("ml.act.onBoardQ", { code: live.currentRideLeg?.routeShort ?? "" })}
+        body={t("ml.act.onBoardBody", { name: live.currentRideLeg?.alight.name ?? "" })}
+      >
+        <button
+          type="button"
+          onClick={() => multiLegConfirmOnBoard()}
+          className={BTN}
+          style={{ background: "var(--r-char)", color: "#fff" }}
+        >
+          {t("ml.act.onBoardCta")}
+          <Icon name="bus" size={16} />
+        </button>
+      </Card>
     );
   }
 
   if (live.phase === "alight-soon") {
     return (
-      <section className="px-6 animate-rise">
-        <div className="rounded-[28px] bg-ochre-soft ring-1 ring-ochre/40 p-5">
-          <p className="text-[12px] text-ochre">
-            {t("ml.act.pressStop")}
-          </p>
-          <p className="mt-2 font-display text-[26px] leading-tight text-ink">
-            {live.currentRideLeg?.alight.name}
-          </p>
-          <button
-            onClick={onImOff}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
-          >
-            {t("ml.act.imOff")}
-            <IconPin className="size-3.5" />
-          </button>
-        </div>
-      </section>
+      <Card tone="yellow" kicker={t("ml.act.pressStop")} title={live.currentRideLeg?.alight.name}>
+        <button
+          type="button"
+          onClick={onImOff}
+          className={BTN}
+          style={{ background: "var(--r-char)", color: "#fff" }}
+        >
+          {t("ml.act.imOff")}
+          <Icon name="map-pin-simple" size={16} />
+        </button>
+      </Card>
     );
   }
 
@@ -104,61 +125,47 @@ export function MultiLegActions({
       Math.round((live.currentLeg?.kind === "walk" ? live.currentLeg.durationSec : 0) / 60),
     );
     return (
-      <section className="px-6 animate-rise">
-        <div className="rounded-[28px] bg-card ring-1 ring-line p-5">
-          <p className="text-[12px] text-olive">
-            {t("ml.act.finalLabel", { m: walkMin })}
-          </p>
-          <p className="mt-2 font-display text-[22px] leading-tight text-ink">
-            {t("ml.act.finalTitle", { name: active.to.label })}
-          </p>
-          <p className="mt-2 text-[13px] text-ink-soft">{t("ml.act.finalBody")}</p>
-          <button
-            onClick={() => multiLegMarkArrived()}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
-          >
-            {t("ml.act.imHere")}
-            <IconPin className="size-3.5" />
-          </button>
-        </div>
-      </section>
+      <Card
+        kicker={t("ml.act.finalLabel", { m: walkMin })}
+        title={t("ml.act.finalTitle", { name: active.to.label })}
+        body={t("ml.act.finalBody")}
+      >
+        <button
+          type="button"
+          onClick={() => multiLegMarkArrived()}
+          className={BTN}
+          style={{ background: "var(--r-char)", color: "#fff" }}
+        >
+          {t("ml.act.imHere")}
+          <Icon name="map-pin-simple" size={16} />
+        </button>
+      </Card>
     );
   }
 
   if (live.phase === "arrived") {
     return (
-      <section className="px-6 animate-rise">
-        <div className="rounded-[28px] bg-olive-soft ring-1 ring-olive/30 p-5">
-          <p className="text-[12px] text-olive">
-            {t("hud.arrived.label")}
-          </p>
-          <p className="mt-2 font-display text-[26px] leading-tight text-ink">
-            {t("hud.arrived.title", { name: active.to.label })}
-          </p>
-          <button
-            onClick={() => {
-              clearActiveTrip();
-              void navigate({ to: "/" });
-            }}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-[13px] text-limestone"
-          >
-            {t("hud.arrived.done")}
-          </button>
-        </div>
-      </section>
+      <Card kicker={t("hud.arrived.label")} title={t("hud.arrived.title", { name: active.to.label })}>
+        <button
+          type="button"
+          onClick={() => {
+            clearActiveTrip();
+            void navigate({ to: "/" });
+          }}
+          className={BTN}
+          style={{ background: "var(--r-char)", color: "#fff" }}
+        >
+          {t("hud.arrived.done")}
+        </button>
+      </Card>
     );
   }
 
-  // Other phases: just show a calm "we've got you" pill.
+  // Other phases: a calm "we've got you" line.
   return (
-    <section className="px-6 animate-rise">
-      <div className="flex items-center gap-3 rounded-full bg-card ring-1 ring-line px-5 py-3 text-[12px] text-ink-soft">
-        <span className="relative flex size-2">
-          <span className="absolute inline-flex size-full animate-ping rounded-full bg-aegean-deep/50 opacity-60" />
-          <span className="relative inline-flex size-2 rounded-full bg-aegean-deep" />
-        </span>
-        <span>{t("ml.tracking")}</span>
-      </div>
-    </section>
+    <p className="r-pill r-pill--w" style={{ height: 40, padding: "0 16px" }}>
+      <span className="r-dot r-live-pulse" />
+      {t("ml.tracking")}
+    </p>
   );
 }

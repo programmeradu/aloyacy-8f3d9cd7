@@ -3813,3 +3813,491 @@ a.r-today-rowtitle {
   flex: 1;
   padding: 14px 16px 16px;
 }
+
+/* ---- Journeys with changes (m37): leg pills, leg bar, change blocks, itinerary timeline ---- */
+.r-jl-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 11px 0 5px;
+  border-radius: 999px;
+  background: var(--r-pill);
+  color: var(--r-ink);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.r-jl-pill.is-dark {
+  background: #3b3b3b;
+  color: #fff;
+}
+.r-jl-logo {
+  display: block;
+  flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: contain;
+  outline: 1px solid rgba(0, 0, 0, 0.08);
+  outline-offset: -1px;
+}
+.r-jl-glyph {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.r-jl-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.r-jl-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--r-mute);
+}
+.r-jl-chain.is-dark .r-jl-link {
+  color: var(--r-onchar-mute);
+}
+.r-jl-bar {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 14px;
+}
+.r-jl-seg {
+  position: relative;
+  height: 8px;
+  min-width: 6px;
+  border-radius: 4px;
+  flex-basis: 0;
+}
+.r-jl-seg.is-ride {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.r-jl-seg.is-walk {
+  background-image: radial-gradient(circle, #a9a9a4 1.5px, transparent 1.8px);
+  background-size: 6px 8px;
+  background-repeat: repeat-x;
+  background-position: left center;
+}
+.r-jl-bar.is-dark .r-jl-seg.is-walk {
+  background-image: radial-gradient(circle, #8a8a86 1.5px, transparent 1.8px);
+}
+.r-jl-seg.is-wait {
+  background: #e3e3de;
+}
+.r-jl-bar.is-dark .r-jl-seg.is-wait {
+  background: #464646;
+}
+.r-jl-node {
+  position: absolute;
+  left: -9px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 2.5px var(--r-ink);
+  z-index: 1;
+}
+.r-jl-bar.is-dark .r-jl-node {
+  background: var(--r-char);
+  box-shadow: 0 0 0 2.5px #fff;
+}
+.r-jl-changes {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.r-jl-changes li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.r-jl-changes-ic {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--r-pill);
+  color: var(--r-ink);
+}
+.r-jl-changes.is-dark .r-jl-changes-ic {
+  background: #3b3b3b;
+  color: #fff;
+}
+.r-jl-changes-t {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.r-jl-changes-s {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--r-mute);
+}
+.r-jl-changes.is-dark .r-jl-changes-s {
+  color: var(--r-onchar-mute);
+}
+
+.r-jl {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.r-jl-row {
+  display: grid;
+  grid-template-columns: 42px 22px minmax(0, 1fr);
+  column-gap: 12px;
+  position: relative;
+}
+.r-jl-time {
+  padding-top: 9px;
+  font-size: 13px;
+  color: var(--r-mute);
+  white-space: nowrap;
+}
+.r-jl-rail {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+.r-jl-rail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 5px;
+  margin-left: -2.5px;
+  background: var(--lc, #c9c9c4);
+}
+.r-jl-rail.is-pale::before {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+.r-jl-rail.is-top::before {
+  top: 16px;
+  border-radius: 3px 3px 0 0;
+}
+.r-jl-rail.is-bottom::before {
+  bottom: auto;
+  height: 16px;
+  border-radius: 0 0 3px 3px;
+}
+.r-jl-rail.is-walk::before {
+  width: 0;
+  margin-left: -1.5px;
+  background: none;
+  border-left: 3px dotted #b2b2ad;
+  box-shadow: none;
+}
+.r-jl-dot {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+.r-jl-dot.is-big {
+  width: 18px;
+  height: 18px;
+  margin-top: 7px;
+  background: #fff;
+  box-shadow: inset 0 0 0 4.5px var(--lc, var(--r-ink));
+}
+.r-jl-dot.is-small {
+  width: 9px;
+  height: 9px;
+  margin-top: 8px;
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--lc, var(--r-ink));
+}
+.r-jl-dot.is-end {
+  width: 14px;
+  height: 14px;
+  margin-top: 9px;
+  background: var(--r-ink);
+  box-shadow: 0 0 0 3px #fff;
+}
+.r-jl-dot.is-dest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-top: 4px;
+  background: var(--r-ink);
+  color: #fff;
+  box-shadow: 0 0 0 3px #fff;
+}
+.r-jl-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 7px 0 10px;
+}
+.r-jl-k {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--r-mute);
+}
+.r-jl-name {
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--r-ink);
+  overflow-wrap: anywhere;
+}
+.r-jl-row.is-stop .r-jl-body {
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+}
+.r-jl-row.is-now .r-jl-name {
+  font-weight: 600;
+}
+.r-jl-row.is-done .r-jl-body,
+.r-jl-row.is-done .r-jl-time {
+  opacity: 0.5;
+}
+.r-jl-walk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--r-ink2);
+}
+.r-jl-row.is-walkrow .r-jl-body {
+  padding: 4px 0 6px;
+}
+.r-jl-ridecard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 2px 0 8px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: #f4f4f1;
+}
+.r-jl-towards {
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--r-ink2);
+  overflow-wrap: anywhere;
+}
+.r-jl-stopsbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--r-ink);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px var(--r-line);
+}
+.r-jl-stopsline {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--r-ink2);
+}
+.r-jl-row.is-via .r-jl-time {
+  padding-top: 4px;
+  font-size: 12px;
+}
+.r-jl-row.is-via .r-jl-body {
+  padding: 3px 0 5px;
+}
+.r-jl-row.is-via .r-jl-dot.is-small {
+  margin-top: 7px;
+}
+.r-jl-vianame {
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--r-ink2);
+  overflow-wrap: anywhere;
+}
+.r-jl-change {
+  margin: 6px 0 12px;
+  padding: 14px;
+  border-radius: 20px;
+  background: #f3f3f0;
+}
+.r-jl-change-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.r-jl-change-ic {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--r-ink);
+  color: #fff;
+}
+.r-jl-change-k {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--r-mute);
+}
+.r-jl-change-t {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.r-jl-change-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.r-jl-fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+.r-jl-change-sub {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--r-mute);
+}
+/* charcoal (recommended) card */
+.r-jl.is-dark .r-jl-name,
+.r-jl.is-dark .r-jl-change-t {
+  color: #fff;
+}
+.r-jl.is-dark .r-jl-time,
+.r-jl.is-dark .r-jl-k,
+.r-jl.is-dark .r-jl-change-k,
+.r-jl.is-dark .r-jl-change-sub {
+  color: var(--r-onchar-mute);
+}
+.r-jl.is-dark .r-jl-walk,
+.r-jl.is-dark .r-jl-towards,
+.r-jl.is-dark .r-jl-vianame,
+.r-jl.is-dark .r-jl-stopsline {
+  color: #e2e2de;
+}
+.r-jl.is-dark .r-jl-ridecard,
+.r-jl-change.is-dark {
+  background: #333;
+}
+.r-jl.is-dark .r-jl-stopsbtn,
+.r-jl-change.is-dark .r-jl-fact {
+  background: #262626;
+  color: #fff;
+  box-shadow: 0 0 0 1px #444;
+}
+.r-jl-change.is-dark .r-jl-change-ic {
+  background: #fff;
+  color: var(--r-ink);
+}
+.r-jl.is-dark .r-jl-dot.is-big,
+.r-jl.is-dark .r-jl-dot.is-small {
+  background: var(--r-char);
+}
+.r-jl.is-dark .r-jl-dot.is-end,
+.r-jl.is-dark .r-jl-dot.is-dest {
+  background: #fff;
+  color: var(--r-ink);
+  box-shadow: 0 0 0 3px var(--r-char);
+}
+.r-jl.is-dark .r-jl-rail.is-walk::before {
+  border-left-color: #6a6a66;
+}
+/* change and board pins on maps */
+.r-jl-mappin {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px 0 7px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--r-ink);
+  font-family: var(--r-font);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow:
+    0 0 0 1.5px var(--r-ink),
+    0 6px 16px rgba(0, 0, 0, 0.28);
+}
+.r-jl-mappin.is-board {
+  box-shadow:
+    0 0 0 2px var(--r-y),
+    0 6px 16px rgba(0, 0, 0, 0.28);
+}
+/* live trip: current leg and next change */
+.r-jl-now {
+  margin-top: 20px;
+  padding: 18px;
+}
+.r-jl-big {
+  font-size: 52px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-weight: 400;
+}
+.r-jl-progress {
+  display: flex;
+  gap: 4px;
+  margin-top: 14px;
+}
+.r-jl-progress span {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #474747;
+}
+.r-jl-progress span.is-on {
+  background: var(--r-y);
+}
+.r-jl-next {
+  margin-top: 12px;
+  padding: 16px 18px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--r-line);
+}
+.r-jl-next.is-hot {
+  background: var(--r-y-soft);
+  box-shadow: 0 0 0 1.5px var(--r-y);
+}
+.r-jl-chain.is-white .r-jl-pill {
+  background: #fff;
+}

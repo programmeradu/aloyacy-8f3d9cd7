@@ -12,6 +12,9 @@ import { useI18n } from "@/lib/i18n";
 import { distanceKm, getRoute, getStop } from "@/lib/gtfs";
 import { clearActiveTrip, type ActiveTrip } from "@/lib/trip-store";
 import type { useSingleLegView } from "@/lib/useSingleLegView";
+import type { Itinerary } from "@/lib/itinerary-types";
+import { LegBar, LegChain, LegsTimeline } from "@/components/roam/journey/JourneyParts";
+import { fmtDist, fmtDur, journeyParts } from "@/components/roam/journey/journey-model";
 
 export type BusView = NonNullable<ReturnType<typeof useSingleLegView>["view"]>["bus"];
 
@@ -151,6 +154,107 @@ export function TripComplete({ active, bus }: { active: ActiveTrip; bus: BusView
             </span>
           ) : null}
         </div>
+      </section>
+
+      <div className="mt-4 flex gap-2">
+        <button
+          type="button"
+          onClick={done}
+          className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-[var(--r-char)] text-[15px] font-semibold text-white"
+        >
+          {t("hud.arrived.done")}
+        </button>
+        <Link
+          to="/trips"
+          onClick={() => clearActiveTrip()}
+          className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-white text-[15px] font-semibold"
+        >
+          {t("trip.planNew")}
+        </Link>
+      </div>
+    </RoamPage>
+  );
+}
+
+/** Trip complete for a journey with changes: chain of lines, totals, the full timeline. */
+export function MultiTripComplete({
+  active,
+  itinerary,
+}: {
+  active: ActiveTrip;
+  itinerary: Itinerary;
+}) {
+  const { t, locale } = useI18n();
+  const { r } = useRoamI18n();
+  const navigate = useNavigate();
+  const parts = journeyParts(itinerary);
+  const date = new Intl.DateTimeFormat(locale === "el" ? "el-GR" : "en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    timeZone: "Asia/Nicosia",
+  }).format(new Date(itinerary.arrivalUnix * 1000));
+  const done = () => {
+    clearActiveTrip();
+    navigate({ to: "/" });
+  };
+  const stat = (label: string, value: string) => (
+    <div className="min-w-0">
+      <p className="text-[12px]" style={{ color: "var(--r-onchar-mute)" }}>
+        {label}
+      </p>
+      <p className="mt-1 text-[22px] leading-tight r-tnum">{value}</p>
+    </div>
+  );
+  return (
+    <RoamPage
+      title={r("done.yourTrip")}
+      left={<BackButton label={r("back")} variant="light" fallback="/" />}
+      right={<span />}
+      tabs={false}
+      fade={false}
+    >
+      <NotchCard
+        fill="#262626"
+        radius={28}
+        shadow="drop-shadow(0 18px 30px rgba(0,0,0,.22))"
+        className="r-rise text-white"
+        notches={[{ edge: "bottom", cx: 0, center: true, width: 120, depth: 22 }]}
+      >
+        <div className="px-5 pt-5 pb-9">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="r-t1" style={{ color: "#fff" }}>
+                {r("done.title")}
+              </h1>
+              <p className="r-lbl mt-1.5" style={{ color: "var(--r-onchar-mute)" }}>
+                {r("jl.doneSub", { date, n: parts.rides.length })}
+              </p>
+            </div>
+            <span
+              className="flex size-11 shrink-0 items-center justify-center rounded-full"
+              style={{ background: "var(--r-y)", color: "var(--r-ink)" }}
+              aria-hidden="true"
+            >
+              <Icon name="check" size={22} />
+            </span>
+          </div>
+          <div className="mt-5">
+            <LegChain itinerary={itinerary} dark />
+          </div>
+          <div className="mt-5">
+            <LegBar itinerary={itinerary} dark />
+          </div>
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            {stat(r("jl.statTime"), fmtDur(itinerary.totalDurationSec))}
+            {stat(r("jl.statChanges"), String(itinerary.transfers))}
+            {stat(r("jl.statWalk"), fmtDist(parts.walkMeters))}
+          </div>
+        </div>
+      </NotchCard>
+
+      <section className="r-card mt-4 r-rise" style={{ padding: "14px 16px 6px", animationDelay: "80ms" }}>
+        <LegsTimeline itinerary={itinerary} destLabel={active.to.label} />
       </section>
 
       <div className="mt-4 flex gap-2">
