@@ -986,7 +986,9 @@ button.r-row:active {
 }
 .r-now-bottom {
   margin-top: auto;
-  padding: 0 16px calc(var(--r-safe-bottom) + 118px);
+  /* --r-install-h: the install card docked above the tab bar, when shown. */
+  padding: 0 16px calc(var(--r-safe-bottom) + 118px + var(--r-install-h, 0px));
+  transition: padding-bottom 0.25s ease;
 }
 .r-now-pills {
   display: flex;

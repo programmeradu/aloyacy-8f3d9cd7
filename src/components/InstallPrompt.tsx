@@ -5,7 +5,7 @@
 // Hidden in the installed app, while any modal sheet is open, and for 14 days
 // after the rider closes it.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 
 const DISMISS_KEY = "aloya:install-prompt:dismissed-at";
@@ -102,6 +102,7 @@ export function InstallPrompt() {
   const [covered, setCovered] = useState(false);
   const [clear, setClear] = useState<number | null>(null);
   const [ios, setIos] = useState(false);
+  const cardRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -156,6 +157,29 @@ export function InstallPrompt() {
     };
   }, [open]);
 
+  // Docked content above the tab bar (the Now card) makes room for the card
+  // instead of being covered by it: publish the card's height as a CSS var.
+  useEffect(() => {
+    const root = document.documentElement;
+    const el = cardRef.current;
+    if (!open || covered || !el) {
+      root.style.removeProperty("--r-install-h");
+      return;
+    }
+    const set = () =>
+      root.style.setProperty(
+        "--r-install-h",
+        `${Math.round(el.getBoundingClientRect().height) + 12}px`,
+      );
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty("--r-install-h");
+    };
+  }, [open, covered]);
+
   const close = () => {
     try {
       localStorage.setItem(DISMISS_KEY, String(Date.now()));
@@ -194,7 +218,7 @@ export function InstallPrompt() {
 
   return (
     <div className="roam-root r-install-wrap" style={{ bottom }}>
-      <section className="r-install r-rise" role="region" aria-label={c.region}>
+      <section ref={cardRef} className="r-install r-rise" role="region" aria-label={c.region}>
         <div className="r-install-top">
           <img className="r-install-icon" src="/icon-192.png" alt="" width={44} height={44} />
           <div className="r-install-text">
