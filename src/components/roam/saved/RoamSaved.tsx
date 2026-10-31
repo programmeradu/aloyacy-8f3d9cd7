@@ -309,10 +309,10 @@ function PinnedCard({
             type="button"
             className="r-pill r-pill--lg"
             aria-label={r("sv.removeAria", { place: title })}
+            title={r("sv.remove")}
             onClick={onRemove}
           >
             <Icon name="trash" />
-            {r("sv.remove")}
           </button>
         ) : null}
       </div>
