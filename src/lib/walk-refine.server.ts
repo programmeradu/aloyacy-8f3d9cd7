@@ -64,7 +64,10 @@ async function refineWalk(walk: WalkLeg): Promise<WalkLeg> {
   }
 }
 
-export async function refineItineraryWalks(it: Itinerary): Promise<Itinerary | null> {
+export async function refineItineraryWalks(
+  it: Itinerary,
+  misses?: Array<{ ride: number; overrunSec: number }>,
+): Promise<Itinerary | null> {
   const refined: Leg[] = await Promise.all(
     it.legs.map((leg) => (leg.kind === "walk" ? refineWalk(leg) : Promise.resolve(leg))),
   );
@@ -80,7 +83,11 @@ export async function refineItineraryWalks(it: Itinerary): Promise<Itinerary | n
       totalWalk += leg.distanceMeters;
       out.push(leg);
     } else if (leg.kind === "ride") {
-      if (cursor > leg.board.departureUnix) return null; // missed the bus
+      if (cursor > leg.board.departureUnix) {
+        // Missed the bus: the verified walk is longer than the estimate.
+        misses?.push({ ride: out.filter((l) => l.kind === "ride").length, overrunSec: cursor - leg.board.departureUnix });
+        return null;
+      }
       cursor = leg.alight.arrivalUnix;
       out.push(leg);
     } else if (leg.kind === "wait") {
@@ -118,7 +125,10 @@ export async function refineItineraryWalks(it: Itinerary): Promise<Itinerary | n
   };
 }
 
-export async function refineAllItineraries(its: Itinerary[]): Promise<Itinerary[]> {
-  const refined = await Promise.all(its.map((it) => refineItineraryWalks(it)));
+export async function refineAllItineraries(
+  its: Itinerary[],
+  misses?: Array<{ ride: number; overrunSec: number }>,
+): Promise<Itinerary[]> {
+  const refined = await Promise.all(its.map((it) => refineItineraryWalks(it, misses)));
   return refined.filter((it): it is Itinerary => it !== null).sort((a, b) => a.score - b.score);
 }

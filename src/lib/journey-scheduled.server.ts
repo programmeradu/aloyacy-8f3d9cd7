@@ -41,6 +41,9 @@ export type ScheduledDiagnostics = RaptorDiagnostics & {
   itinerariesDroppedAfterRefine: number;
   /** Kapnos coach options added on airport trips. */
   kapnosCount?: number;
+  /** "later": every option missed its bus on verified walks, searched again from later. */
+  refineRetry?: "none" | "later" | "unverified";
+  walkMisses?: Array<{ ride: number; overrunSec: number }>;
   /** Set when the 4h "leave now" window was empty and we widened to 24h. */
   widenedHorizon?: boolean;
   /** Set when nothing ran again today and results come from the next service day. */
@@ -220,7 +223,36 @@ export async function planMultiLegScheduled(
   // verified: refinement checks each walk against the search departure, and a
   // departure already pulled up to "first boarding minus the estimated walk"
   // left no slack, so every option was dropped as a missed bus.
-  const refinedItineraries = (await refineAllItineraries(itineraries)).map(rebaseToLeave);
+  const misses: Array<{ ride: number; overrunSec: number }> = [];
+  let refinedItineraries = await refineAllItineraries(itineraries, misses);
+  let refineRetry: "none" | "later" | "unverified" = "none";
+  if (refinedItineraries.length === 0 && itineraries.length > 0) {
+    // Every option needed a walk the verified route says is longer than the
+    // estimate, so its bus would be gone. Search again from a little later
+    // (the slack covers the longest overrun) so the next catchable buses
+    // come back, and verify those.
+    const slack = Math.min(30 * 60, Math.max(5 * 60, ...misses.map((m) => m.overrunSec + 120)));
+    try {
+      const again = await planRaptor(schedule, from, to, searchDepartureUnix + slack, {
+        searchHorizonSec: 24 * 3600,
+        maxJourneySec: rolledToNextDay ? 30 * 3600 : 6 * 3600,
+        accessibilityPrefs: opts?.accessibilityPrefs,
+      });
+      if (again.itineraries.length > 0) {
+        refinedItineraries = await refineAllItineraries(again.itineraries, misses);
+        refineRetry = "later";
+      }
+    } catch (err) {
+      log.warn("refine retry failed", { reason: (err as Error).message });
+    }
+    // Never turn a corridor with buses into "no route": the timetable
+    // options stand with their estimated walks (what the browser shows).
+    if (refinedItineraries.length === 0) {
+      refinedItineraries = itineraries;
+      refineRetry = "unverified";
+    }
+  }
+  refinedItineraries = refinedItineraries.map(rebaseToLeave);
   const walkRefineMs = Date.now() - tRef0;
   const walkLegsVerified = refinedItineraries.reduce(
     (acc, it) => acc + it.legs.filter((l) => l.kind === "walk" && l.verified).length,
@@ -241,6 +273,8 @@ export async function planMultiLegScheduled(
       walkLegsVerified,
       itinerariesDroppedAfterRefine,
       kapnosCount,
+      refineRetry,
+      walkMisses: misses.slice(0, 8),
       widenedHorizon,
       rolledToNextDay,
       serviceDate: searchDate,
