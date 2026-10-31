@@ -3017,3 +3017,15 @@ html.r-has-resume .r-now-more {
     transition: none;
   }
 }
+
+/* Pulse round 4d: city chips fade inside the card edge, whole bus in its tile */
+.r-nn-cities {
+  margin: 14px 0 0;
+  padding: 0;
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 32px), transparent);
+}
+.r-pulse-tilebus {
+  right: 10px;
+  bottom: 14px;
+}

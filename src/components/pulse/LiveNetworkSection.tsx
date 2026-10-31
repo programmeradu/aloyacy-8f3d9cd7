@@ -116,7 +116,7 @@ export function LiveNetworkSection({
         <div className="r-pulse-tile">
           <p>{r("pulse.live.buses")}</p>
           <strong>{live || "-"}</strong>
-          <VehicleImg kind="bus" width={104} className="r-pulse-tilebus" />
+          <VehicleImg kind="bus" width={96} className="r-pulse-tilebus" />
         </div>
         <div className="r-pulse-tile">
           <p>{r("pulse.live.onTime")}</p>

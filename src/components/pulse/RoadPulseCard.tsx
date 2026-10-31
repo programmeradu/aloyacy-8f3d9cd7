@@ -67,7 +67,7 @@ export function RoadPulseCard({
             <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
               {kicker ?? t("pulse.flow.kicker")}
             </p>
-            <h2 className="mt-1 font-display text-[22px] leading-tight text-ink text-balance max-w-[12ch]">
+            <h2 className="mt-1 font-display text-[22px] leading-tight text-ink text-balance max-w-[17ch]">
               {t("pulse.flow.title")}
             </h2>
           </div>
