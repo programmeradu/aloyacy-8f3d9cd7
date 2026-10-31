@@ -150,3 +150,50 @@ Shared facts used in several layers:
 - Code: src/lib/ai-planner.functions.ts, packages/core/src/nl-intent.ts, src/components/nl/useNLPlanner.ts, src/components/roam/search/RoamSearchSheet.tsx, src/routes/api/public/parse-trip-intent.ts, src/lib/nl-suggestions.functions.ts, src/lib/mcp/index.ts, src/lib/speech.ts, packages/core/src/cy-time.ts
 
 ---
+
+## Layer 34. Feed anomaly and quality
+
+### 34.1 What the best in the world do
+- MobilityData maintains the canonical GTFS Schedule validator (Apache 2.0; web, desktop, command line and Docker). It produces HTML and JSON reports and is acceptance-tested against the feeds in the Mobility Database, so rule changes do not suddenly break valid feeds. Projects built on it run it daily against 2,400+ public feeds and turn notices into plain-language grades, or expose results as Prometheus metrics (MobilityData gtfs-validator README).
+- France's national access point publishes, per resource, an hourly availability check, a daily conformity check and a freshness indicator, with history, so anyone can see a feed's track record (doc.transport.data.gouv.fr, Indicateurs de qualité).
+- Independent Cyprus developers already do this for themselves: BusCyprus runs a GTFS-RT proxy between the source and its OneBusAway server so that, when a rider says "the bus never came", it can tell within minutes whether the feed said so or the app did, and keeps scripts that diff GTFS-RT against the static bundle (NAYEE, The open transit stack behind BusCyprus, 11 Oct 2026).
+
+### 34.2 The reality in Cyprus and the data available
+- GPS problems are known and public. At the first Cyprus Transport Hackathon (17 Jan 2026, co-organised by the Ministry of Transport, KIOS and others), the winning team said bus GPS "teleports", sometimes into neighbouring countries, mostly because of regional GPS jamming and local effects near embassies and bases, and that the location service sometimes delivers nothing, so "you see zero buses on a map ... even the government one". They estimated the loss at "less than 1 per cent throughout the year and all routes" but said it "significantly ruins the experience". Their fix predicts positions from about 30 parameters (route, stop, speed, weather, traffic, Cyprus calendar) only when GPS disappears. They also said uptake of volunteer solutions by the Ministry has been slow (Cyprus Mail, 20 Jan 2026).
+- Stop data is being fixed at the source. The Public Works Department put out a €420,000 tender to inventory about 9,000 stops (about 5,300 on regular routes and 3,700 school stops that are not yet in the system), recording coordinates to within 30 cm, shelter type, name and number, display status, crossing, traffic light and bike parking, with monthly GIS updates over an eight-year contract (Cyprus FAQ, 23 Oct 2026, citing the tender documents). The Audit Office had found app stop positions 85 to 135 m off (Cyprus Mail, 14 Oct 2026).
+- My live checks on 31 Oct 2026:
+  - Real-time (19:45 Nicosia): 166 vehicles, positions a median 45 s old, 268 trip updates, 0 service alerts, 0 occupancy (see the shared facts at the top of this part). The feed carries no service alerts at all, so detours and cancellations reach riders only through operator web pages.
+  - Static GTFS from motionbuscard.org.cy, all seven feeds regenerated at 05:31 on 31 Oct (feed_version stamps such as NPT20261031053139). Every feed uses calendar_dates.txt only. Six feeds list service dates up to 24 to 29 Jan 2027, but **EMEL (Limassol) lists only seven days, 31 Oct to 6 Nov 2026**, although its feed_info.txt claims a feed_end_date of 28 Jan 2027. So any Limassol trip planned for 7 Nov or later finds no buses, and the metadata hides it.
+  - wheelchair_boarding is blank for every stop in every feed (889 OSYPA, 446 OSEA, 123 Intercity, 1,401 EMEL, 1,778 NPT, 1,040 LPT, 23 Pame Express).
+  - translations.txt carries Greek only (NPT: 21,224 Greek rows); no other language.
+  - Fares in the feeds: NPT and LPT have €2.70 and €0.70 fares; OSYPA and EMEL list €2 (EMEL also a €0 fare); Intercity has 6,227 fare rows. These matter for Layer 37.
+
+### 34.3 Aloya today
+- Already strong, and better than any other Cyprus app I found: agency-aware ghost-trip tagging (ghost-trips.ts, urban 180 s, Intercity 300 s, rider sightings override stale pings); feed-delta.server.ts pairs feed pings with rider GPS to measure feed error in metres and seconds; eta-backtest.server.ts scores logged predictions nightly into eta_accuracy and keeps inferred arrivals separate; device reputation weights rider fixes; ping-gap stats; skip-rate reports.
+- scripts/validate-gtfs-snapshot.mjs checks real-time snapshots (Cyprus bounding box, integer delays, sane timestamps) but no workflow runs it, and nothing runs the MobilityData static validator.
+- Schedule ingest runs nightly at 03:00 UTC (cron-schedule.ts NIGHTLY_JOBS, ingest-schedule). Motion's files were stamped 05:31, which I read as Cyprus time (03:31 UTC). If that reading is right, Aloya always ingests the previous day's files, and with EMEL's seven-day window Limassol has only six days of trips in Aloya. The checked-in shards in public/data/schedule/by-date run only to 20261027; the live ingest may write elsewhere, so check what production serves.
+- Nothing checks the service-date horizon per feed, so the EMEL seven-day window would go unnoticed.
+- The bounding box in validate-gtfs-snapshot.mjs (lat 34.5 to 35.7, lng 32.2 to 34.6) would catch buses "in neighbouring countries" but not a bus that jumps 3 km inside Cyprus; geo-fusion and rider-physics handle some of that at display time.
+
+### 34.4 Improvements
+1. **Nightly feed health job.** After ingest: run the MobilityData validator (Docker image ghcr.io/mobilitydata/gtfs-validator) on all seven feeds; record errors and warnings per feed; compute the service-date horizon per feed (last date with trips) and alert when it is under 14 days; compare feed_end_date with the real last service date. Store results in D1 and show them on an internal page. Effort M. Impact high: the EMEL seven-day window is exactly what this catches.
+2. **Move ingest after Motion publishes.** Run it at 04:15 UTC (after the 05:31 Cyprus-time stamp), and retry at 06:00 UTC if the feed_version did not change. Effort S. Impact medium.
+3. **Real-time health per operator, every minute.** Track feed age, vehicles reporting versus trips scheduled now, share of trips with a vehicle, positions outside Cyprus, jumps faster than a bus can drive (for example over 120 km/h between pings), and frozen vehicles (same position for 10 minutes while the trip is "moving"). When an operator degrades, switch the UI for that operator to "scheduled times" with a clear banner, instead of showing bad live data. Effort M. Impact high for trust.
+4. **Use the bus stop inventory.** When the Public Works Department publishes the 30 cm stop survey (monthly GIS updates), ingest it and replace feed coordinates where the gap exceeds 20 m; until then, use rider-confirmed stop positions (stop-condition reports) to flag stops whose feed position looks wrong. Effort M. Impact high for walking times and "better stop nearby" routing.
+5. **Gap filling, honestly labelled.** When a vehicle stops reporting mid-trip, predict its position from the last ping, the shape, historical speed for that segment and hour (Aloya already logs pings to the R2 data lake), and show it as "estimated" with a dotted icon. This is the hackathon idea, run inside Aloya. Effort M. Impact medium.
+6. **Bias correction only where it is proven.** eta-backtest.server.ts already measures whether Aloya's ETA beats the operator's. Add per route and hour corrections only where the nightly backtest shows a gain over 30 days, and remove them automatically when they stop helping. Effort M. Impact medium to high.
+7. **Report problems back.** Send the Ministry and Motion a short weekly email or report: validator errors, horizon warnings, offline periods, worst stops by position error. This builds the relationship that the hackathon team said is missing, and leads into the B2G product (Layer 35). Effort S. Impact high strategically.
+8. **Accessibility data gap.** Since wheelchair_boarding is empty everywhere, collect step-free status through the existing stop-condition flow and publish it back as open data. Effort S on top of existing code. Impact medium.
+
+### 34.5 Sources
+- MobilityData gtfs-validator: https://github.com/MobilityData/gtfs-validator
+- transport.data.gouv.fr quality indicators: https://doc.transport.data.gouv.fr/outils/outils-disponibles-sur-le-pan/indicateurs-de-qualite
+- NAYEE, The open transit stack behind BusCyprus (11 Oct 2026): https://nayee.net/blog/the-open-transit-stack-behind-buscyprus
+- Cyprus Mail, Transport Hackathon (20 Jan 2026): https://cyprus-mail.com/2026/01/20/ai-driven-approach-to-bus-tracking-takes-first-prize-at-cyprus-transport-hackathon
+- Cyprus FAQ, 9,000 bus stops inventory tender (23 Oct 2026): https://www.cyprus-faq.com/en/south/news/kipr-inventarizaciya-9000-avtobusnyh-ostanovok/
+- Cyprus Mail, Audit Office report (14 Oct 2026): https://cyprus-mail.com/2026/10/14/63-per-cent-of-passengers-would-not-use-the-bus-again
+- Static GTFS downloads, 31 Oct 2026: https://www.motionbuscard.org.cy/opendata/downloadfile?file=GTFS%5C6_google_transit.zip&rel=True (and feeds 2, 4, 5, 9, 10, 11)
+- Live GTFS-RT decode, 31 Oct 2026 17:45 UTC: http://20.19.98.194:8328/Api/api/gtfs-realtime
+- Code: src/lib/ghost-trips.ts, src/lib/feed-delta.server.ts, src/lib/eta-backtest.server.ts, scripts/validate-gtfs-snapshot.mjs, scripts/ingest-schedule.ts, src/lib/cron-schedule.ts, workers/pulse-cron/wrangler.jsonc, public/data/schedule/by-date
+
+---
