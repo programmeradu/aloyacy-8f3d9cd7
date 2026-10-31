@@ -370,7 +370,7 @@ Own decode of the Cyprus GTFS-RT feed, 31 Oct 2026 19:43 EET: http://20.19.98.19
 - All routes are route_type 3 (bus).
 - The GTFS-RT snapshot (layer 13) had no Service Alerts, no occupancy and no uncertainty.
 - Feeds are re-published every few months with a roughly three-month validity window, so apps must refresh promptly.
-- **Calendar coverage defect (found while analysing layer 19):** feed_info says every feed is valid from 31 Oct 2026 to 28 Jan 2027, but the Limassol EMEL feed (6) only lists service dates from 31 Oct to 6 Nov 2026 (7 dates), Paphos OSYPA (2) lists 71 dates and Pame Express (11) 65, while the others list 91. Unless EMEL republishes, any planner reading feed 6 will show no Limassol buses from 7 Nov 2026. This is exactly what an automated validator in CI should catch (improvement 4).
+- **Calendar coverage defect (found while analysing layer 19):** feed_info says every feed is valid from 31 Oct 2026 to 28 Jan 2027, but the Limassol EMEL feed (6) only lists service dates from 31 Oct to 6 Nov 2026 (7 dates), Paphos OSYPA (2) lists 71 dates and Pame Express (11) 65, while the others list 91. Aloya already defends against this: packages/core/src/schedule-calendar.ts projects a short-calendar feed forward by weekday (a Saturday shard reuses the latest published Saturday) and records which feeds were projected. Other consumers that read feed 6 naively will show no Limassol buses from 7 Nov 2026. An automated validator in CI (improvement 4) should still alert the team and the publisher.
 
 **GBFS.** Nextbike publishes an official GBFS v2 feed for Cyprus (`nextbike_cy`, CC0, feed contact gbfs@nextbike.net, ttl 60 s) with station_information, station_status, free_bike_status, vehicle_types, system_hours, system_regions and pricing plans. [7] Bolt publishes no public GBFS for Cyprus; only the static zone list on the NAP.
 
@@ -646,11 +646,11 @@ So the long tail of villages, especially in Paphos district, has one or two buse
   1. No DRT legs: the Limassol on-demand service and the CPT DRT pilot are invisible.
   2. No explicit night mode: no "last bus home" warnings before the evening, no night-safe walking preference, no comparison of "wait 50 minutes or taxi for €12".
   3. Rural first and last mile is walking only (layer 11), although a 2 to 3 km cycle or a short taxi to the main road is often the realistic answer.
-  4. The empty-weekend Limassol data would make Aloya say there are no buses, unless the shard builder detects a short calendar.
+  4. Calendar projection exists (schedule-calendar.ts projects short-calendar feeds forward by weekday, which covers the Limassol case), but the rider is not told clearly when a city's times are projected rather than published.
 
 ### 19.4 Improvements
 
-1. **Feed sanity guard for calendars.** In the shard builder, compare each feed's listed service dates with feed_info and the previous feed; if a feed covers fewer than 14 future days, keep the last good calendar pattern for that weekday (marked "timetable not yet confirmed") and alert the team. Prevents "no buses in Limassol" from 7 Nov 2026. Effort S. Impact Very high (immediate).
+1. **Surface and alert on projected calendars.** Aloya already projects short calendars by weekday (schedule-calendar.ts). Add a visible note on affected results ("Limassol times projected from last week's timetable") and an automatic alert to the team and to motionbuscard@gmail.com when a feed covers fewer than 14 future days. Effort S. Impact High (trust and data quality).
 2. **"Last bus home" reminders.** From the rider's saved home and current location, compute the last workable departure each evening and notify 30 and 10 minutes before it (opt-in), with the taxi estimate as the fallback. Effort S. Impact High.
 3. **Night mode in planning.** After 21:00, raise the walking penalty on unlit or isolated paths (OSM `lit=*`, main roads preferred), prefer stops with shelters (crowd data), and show "wait 50 min" against "taxi about €X now" honestly. Effort M. Impact High for women, students and shift workers.
 4. **DRT as a planner leg.** Model WeeDrive (Limassol) and any CPT DRT as GTFS-Flex style zones with booking links; start with a static zone polygon and service hours, entered by hand with the operators' agreement, and show "book on-demand bus" options inside itineraries. Effort M. Impact Medium to High.
@@ -672,5 +672,76 @@ So the long tail of villages, especially in Paphos district, has one or two buse
 [7] Cyprus Public Transport, research and innovation projects. https://www.publictransport.com.cy/innovation/research-innovation
 [8] IÖW / Policy Mix 4 Mobility posts, 21 Sep 2026. https://mastodon.social/@ioew/117308945275930518 ; https://www.linkedin.com/posts/ioew-berlin_bikesharing-learningfromlimassol-activity-7507759450531807232-CrpR
 Own analysis of GTFS feeds 2, 4, 5, 6, 9 and 10 (version 20261031) for 3, 7 and 8 Nov 2026.
+
+---
+## Layer 20. Personalisation and learned routines
+
+### 20.1 What the best in the world do
+
+- **Learning routines from traces.** Liao, Patterson, Fox and Kautz (Artificial Intelligence, 2007) built a hierarchical Markov model that learns a person's daily movements, frequent mode-change places (bus stops, car parks) and destinations from raw GPS, and detects novel behaviour or errors such as boarding the wrong bus; their "Opportunity Knocks" prototype used it to guide people. [1]
+- **Learning preferences from choices.** Chidlovskii (CEUR 1392) converted travellers' actual trips into pairwise preferences and learned a ranking function that re-ranks a planner's top results, improving relevance in Nancy and Adelaide. [2] The Tor Vergata personal traveller advisor keeps an individual utility function per traveller and updates it from revealed choices. [3] Lathia et al. used fare-card data to personalise trip time estimates, beating both a non-personalised baseline and published times. [4]
+- **Present trade-offs, not hidden weights.** Recent multimodal planning work notes that consumer planners expose only limited preference controls and rarely surface the trade-offs (walking tolerance, transfer aversion, time against cost) to users. [5]
+- **Privacy.** Location histories are personal data under the GDPR; keeping raw traces on the device and storing only coarse, consented patterns on the server is the defensible design, and MMTIS explicitly says NAP data must not include personal data. [6]
+
+### 20.2 The reality in Cyprus
+
+- Aloya's audience mixes residents commuting on sparse lines, students, visitors and newcomers. With most stops served every 30 minutes or worse (layer 12), the value of knowing someone's routine is high: a reminder five minutes early is the difference between catching the bus and waiting half an hour.
+- No Cyprus operator offers personalised information today; the motion bus card is a fare card, and its data is not public.
+
+### 20.3 Aloya today, and the gaps
+
+What exists:
+
+- commute-learner.functions.ts records each completed multi-leg trip as (origin cell, destination cell, day of week, 30-minute bucket) on a grid of about 150 m (0.0015 degrees), stored in D1 `commute_patterns` with labels and counts, so the home screen can offer "Your usual 8 AM to work".
+- saved_places, accessibility preferences (accessibility-prefs.ts, stored locally), arrive-by promises, and today-rhythm notes per weekday and city.
+- The "learning rescore" in planMultiLeg is network-wide (learned delays, runtimes), not personal.
+
+The gaps:
+
+1. **Routine is used for a card, not for planning.** It does not pre-compute tomorrow's commute, watch it overnight, or warn before the rider leaves.
+2. **No personal preference model.** Walking tolerance, willingness to cycle or scoot, transfer aversion and risk preference (layers 12, 13) are the same for everyone, apart from accessibility settings.
+3. **No learning from choices.** Which option the rider picks from the list, and which suggestions they ignore, is not fed back.
+4. **No departure-time habits.** The rider's usual leave time is known roughly but not used for "leave in 4 minutes" nudges or for choosing the better stop at that time.
+5. **Privacy design is implicit.** Server-side patterns exist; there is no visible "what Aloya knows about my routine" screen with delete controls.
+
+### 20.4 Improvements
+
+1. **Routine autopilot.** For each confirmed routine (at least 3 trips in the same cell pair and bucket over 3 weeks), pre-plan the next occurrence the evening before and again 30 minutes before, applying layers 12, 13 and 16 (better stop, p90 arrival, connection score), and send one push: "Leave 07:42 for the 22 at Makariou, arrive by 08:20 (9 in 10)". Effort M. Impact Very high.
+2. **Personal preference vector.** Store per rider: walking metres they accept, cycling and scooter willingness, transfer penalty, risk percentile, heat sensitivity. Initialise from three onboarding questions with sensible defaults, then update from choices (improvement 3). Feed it into plan-score.ts weights. Effort M. Impact High.
+3. **Learn from choices, simply.** Log which itinerary the rider starts out of those shown and fit a small per-user logistic adjustment on features already computed (minutes, changes, walk metres, wheels minutes, P(make)), as Chidlovskii's re-ranking does. Run it on the device to keep data local; sync only the few weights. Effort M. Impact High.
+4. **Leave-now nudges tied to live data.** For a routine trip, track the actual bus position from GTFS-RT and send "leave now" when walk time plus a 2-minute margin equals the predicted arrival at the stop. Effort S. Impact High.
+5. **Routine-aware better stop.** When the routine stop is sparse at the rider's usual time but a better stop is within their learned tolerance, suggest a permanent switch: "Your 08:05 departure is often late; the stop 6 minutes away has 3 lines towards your work." Effort S. Impact High.
+6. **Habit-based micromobility.** If a rider repeatedly cycles a first mile, pre-check Nextbike stock at their usual station before their usual time and warn if empty. Effort S. Impact Medium.
+7. **Privacy-first architecture.** Keep raw location traces on the device only; send coarse patterns (cell pair, weekday mask, half-hour bucket) with explicit consent; provide a "My routines" screen with pause, edit and delete, and a data export. Document it in the privacy notice. Effort S to M. Impact High (trust, GDPR).
+8. **Car-free coaching, gently.** For riders who also use the park and ride or taxi options, show a monthly summary: trips by bus, bike and scooter, money saved against driving and parking, and one concrete suggestion to replace a regular car trip. This supports the goal of less car dependence (bonus part F). Effort S. Impact Medium to High.
+9. **Shared household or caregiver routines.** Let a parent follow a child's school routine with consent, using the same live trip phases (ties to the family use of the Limassol on-demand bus, layer 19). Effort M. Impact Medium.
+10. **Measure personalisation honestly.** A/B test routine autopilot and personal weights against defaults on the share of trips started on time, missed connections and app-reported satisfaction; keep the change only if it wins. Effort S. Impact Medium.
+
+### 20.5 Sources
+
+[1] Liao, Patterson, Fox, Kautz, "Learning and inferring transportation routines", Artificial Intelligence, 2007. https://www.cs.virginia.edu/~rmw7my/papers/learning-transport-routines-journal.pdf
+[2] Chidlovskii, "Improved Trip Planning by Learning from Travelers' Choices", CEUR Workshop Proceedings 1392. https://ceur-ws.org/Vol-1392/paper-03.pdf
+[3] "Individual utility-based path suggestions in transit trip planners", IET Intelligent Transport Systems. https://digital-library.theiet.org/doi/pdf/10.1049/iet-its.2015.0138?download=true
+[4] Lathia, Capra, Magliocchetti et al., "Individuals among commuters: Building personalised transport information services from fare collection systems". https://nlathia.github.io/papers/lathia_PMC12.pdf
+[5] "OPENPATH: A Supervisor-Specialist Agent System for Personalized, Accessible, and Multi-stop Urban Trip Planning", arXiv 2606.07486. https://arxiv.org/pdf/2606.07486
+[6] Delegated Regulation (EU) 2024/490, Articles 4(6) and 5(7) (no personal data via NAPs). https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R0490
+Code read: src/lib/commute-learner.functions.ts, migrations-d1 (commute_patterns), src/lib/accessibility-prefs.ts, packages/core/src/today-rhythm.ts.
+
+---
+
+## Part B summary: top 10 improvements across layers 11 to 20
+
+Ranked by impact on getting more trips onto public transport in Cyprus, then by effort.
+
+1. **Continuous en-route re-optimisation (layers 11, 13, 16).** The server builds an "envelope" of connections that could still beat the plan; the phone re-runs a small Connection Scan whenever GTFS-RT updates and just before every stop. At each phase it checks: a better stop or scooter before boarding; "get off here for line X" on the first bus; alternative transfer points while approaching the change; first-arriving line or bike during the wait; the remaining legs after it. Published results (IJCAI 2025) show full dynamic replanning saves 10.6 to 30.2 minutes on the 20% to 66% of trips it changes. Effort L. Impact Very high.
+2. **Bike, scooter and ride legs inside itineraries (layer 11).** New `cycle`, `scoot` and first or last mile `ride_hail` leg kinds and an MCR-style micromobility phase in RAPTOR, using Nextbike's official GBFS and the 255 CyNAP Bolt zones. Effort M. Impact Very high.
+3. **"Go to a better stop" with an explicit contrast card (layer 12).** Frequency-aware candidate selection, multi-mode access and the generalised-cost rule; in Nicosia about one served stop in three has a much more frequent stop within 800 m. Effort S to M. Impact Very high.
+4. **Connection probability and risk-adjusted ranking (layers 13, 16).** Empirical delay percentiles from Aloya's own arrival_truth, P(make it) per change, expected arrival including the fallback, "9 in 10 by" times and early warnings minutes ahead instead of a 60-second alarm. Effort M. Impact Very high.
+5. **Fix the airport flights pulse and add flight-aware trips (layer 18).** The current OpenSky arrival and departure calls only return previous-day data, so airport pages can say "quiet" wrongly; switch to a FIDS source and add flight-number based leave-by and arrival planning. Effort S then M. Impact High.
+6. **Routine autopilot with leave-now nudges (layer 20).** Pre-plan each learned commute, watch it overnight and send one well-timed push using the better-stop, p90 and connection logic. Effort M. Impact Very high.
+7. **MOTIS 2 as a second engine in shadow mode (layer 14).** Self-host on a free or very cheap server with Cyprus OSM, GTFS, GTFS-RT and GBFS, compare with Aloya's planner, fall back gracefully, and keep Aloya's ranking on top. Effort M. Impact High.
+8. **Data quality and standards hygiene (layer 15).** CI validation of each GTFS release (it would have flagged the Limassol feed's 7-day calendar), derived stop groups and a transfers overlay, SIRI-ET fallback, the official Nextbike GBFS, and honest attribution in Aloya's own GBFS. Effort S. Impact High.
+9. **Targeted park and ride as a real leg (layer 17).** Ingest the 9 official P&R sites and 651 car parks from CyNAP, offer P&R only to riders who would otherwise drive the whole way, and show the money comparison with driving and parking in town. Effort S to M. Impact High for car-dependent commuters.
+10. **Night and rural safety net (layer 19).** "Last bus home" reminders, night-safe walking, honest wait-or-taxi comparisons, village day cards, first-mile bike or taxi to trunk roads in thin areas such as Paphos district (33% of its served stops have four or fewer departures a day), and DRT legs for the Limassol on-demand bus once agreed. Effort S to M. Impact High.
 
 ---
