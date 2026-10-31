@@ -1,3 +1,66 @@
+# Part D: Data and AI (Layers 31 to 40)
+
+Written 31 Oct 2026 for the Aloya 50-layer research book. Code references are to repo programmeradu/aloyacy-8f3d9cd7, branch redesign-roam, read at commit 56dab8f (31 Oct 2026). Live data checks (the national GTFS-RT feed and the CyNAP open endpoints) were run from the sandbox on 31 Oct 2026. Built from the first-run seed (part-d-seed.md), then re-checked against the code and deepened; where the code check changed a seed claim, the section says so.
+
+Layers: 31 Open datasets, 32 Crowding, 33 AI assistant, 34 Feed anomaly and quality, 35 B2B/B2G analytics, 36 Heat and weather routing, 37 Cost, time and carbon comparison, 38 Safety, 39 Offline, 40 Multilingual.
+
+Shared facts used in several layers:
+- Live GTFS-RT read, 31 Oct 2026 17:45 UTC (19:45 Nicosia), from the direct feed Aloya uses (gtfs-rt.server.ts line 32): header 7 s old, GTFS-RT 2.0, 166 vehicles, all with trip_id, speed and bearing; vehicle timestamps a median 45 s old; 268 trip updates carrying 4,670 stop-time updates, all with a delay value; 0 service alerts; 0 occupancy values. 136 of the 166 vehicles' trips had a trip update; 132 trip updates had no vehicle (these may include trips that had not started).
+- Audit Office special report on Nicosia buses (published 14 Oct 2026; fieldwork Nov to Dec 2025, 110 staff riding as ordinary passengers): 63% would not choose the bus again; 55% of stops had no route information; 32% had no shelter and another 22% had neither shelter nor seating; app and website stop positions were 85 to 135 m off in some cases; some lines run hourly or two-hourly; six of nine test journeys needed two buses; no card payment on board; car owners do not automatically save money by switching (Cyprus Mail, 14 Oct 2026).
+
+---
+
+## Layer 31. Open datasets
+
+### 31.1 What the best in the world do
+- Transport for London treats its data as a public product: over 17,000 developers have registered, its Unified API powers over 600 travel apps in the UK, and over 42% of Londoners use apps powered by its data. Deloitte estimated the benefit at up to £130m a year (TfL, Open data policy). The Unified API exposes AirQuality, BikePoint, Journey, Line, Occupancy, Road, StopPoint and Vehicle in one place (TfL Unified API portal), and its general tier allows 500 requests a minute per key (TfL API FAQ).
+- France's national access point, transport.data.gouv.fr, validates every dataset and publishes three daily indicators per resource: availability (checked hourly), conformity (no blocking error in the validation report) and freshness. It runs the MobilityData GTFS validator and shows error counts on each feed page; the SNCF GTFS-RT trip-updates feed, for example, showed 100% availability and 567 validation errors when read (doc.transport.data.gouv.fr, Indicateurs de qualité; SNCF dataset page; Nouveautés).
+- Norway's Entur combines the national access point, a national journey planner (OpenTripPlanner) and open APIs, so any developer can build on the same data the national app uses (Entur, Transport Ticketing Global 2025 presentation).
+- EU law is pushing the same way. Delegated Regulation (EU) 2024/490 amends the MMTIS rules so dynamic data must flow through national access points: estimated departure and arrival times and disruptions on the TEN-T network by December 2025; shared-vehicle availability and parking by December 2026; all data EU-wide by December 2028 (EUR-Lex 2024/490; doc.transport.data.gouv.fr, Dates limites de publication).
+
+### 31.2 The reality in Cyprus and the data available
+- The Cyprus National Access Point (CyNAP, traffic4cyprus.org.cy) is run by the Public Works Department and built by KIOS (University of Cyprus). It lists 42 datasets, all under CC-BY-4.0, from 7 providers: Public Works Department (35), Waze (2), Bolt, the Electrical and Mechanical Services department (EV chargers), the Department of Lands and Surveys (road network), Elovate and Nextbike (traffic4cyprus.org.cy/dataset, pages 1 to 3).
+- Public transport: static GTFS for EMEL (Limassol), OSYPA (Paphos), OSEA (Famagusta), NPT (Nicosia), LPT (Larnaca), Intercity and Pame Express, refreshed "up to every 3 months"; GTFS-RT and SIRI real-time feeds refreshed "up to 1 min" (CyNAP dataset pages). data.gov.cy mirrors the GTFS, a stops CSV and route shapefiles (data.gov.cy dataset 1069).
+- Infrastructure layers on CyNAP: bus lanes, bus stops, bus stations, bus routes, cycleways, bicycle racks, bike-share stations, pedestrian crossings, traffic signals, parking areas, park and ride, Low Speed Emission Zones and their entrances, speed limits, road gradients per 100 m, tunnels, bridges, CCTV, traffic detectors, Bluetooth sensors, Waze traffic and Waze alerts (CyNAP dataset list).
+- I tested the open endpoint pattern Aloya already uses (`https://fixcyprus.cy/gnosis/open/api/nap/datasets/<name>/`) on 31 Oct 2026. Without any login these returned DATEX II v3 XML: bus_lanes (26 lane segments), cycleways (48 segments), pedestrian_crossings (384 points), bicycle_racks (28 sites), parking_areas (651 facilities), waze_alerts (241 live items) and bus_stations (16). park_and_ride, nextbike, lez and trafficevents returned 404 under those names, so their slugs differ. 384 pedestrian crossings for the whole island means that dataset only covers part of the network (Public Works Department roads).
+- The traffic platform behind CyNAP had 120 road sensors in Nicosia, on interurban roads and at port and airport accesses, with expansion to about 500 planned using EU cohesion and recovery funds (Interoperable Europe, Cyprus 2025 supporting document). The 2025 ITS progress report says the OMNIA-MISTIC platform publishes 17 APIs to the NAP (EC, Cyprus ITS progress report 2025).
+- Other public sources: the Department of Labour Inspection runs 9 air-quality stations with an hourly JSON API for current readings and a historical range API (data.gov.cy; airquality.dli.mlsi.gov.cy); data.gov.cy holds about 1,957 datasets, including annual traffic counts per road section with a bus column, and road-accident statistics (data.gov.cy home page and traffic census datasets). Mapillary's API exposes detected point features including street lights, benches, bike racks, crosswalks and pedestrian traffic lights (Mapillary API, Points).
+
+### 31.3 Aloya today
+- Already used: Motion GTFS from motionbuscard.org.cy (scripts/ingest-schedule.ts); the GTFS-RT relay worker; CyNAP Bolt stations and EV chargers through the open gnosis API (bolt-scooter.functions.ts, ev-chargers.functions.ts); CyNAP DATEX traffic incidents through an env-configured URL (hooks/pulse-traffic.ts, whose comment assumes the feed is registration-gated); Nextbike; JCC; Kapnos; OpenSky; Cruisemapper; Open-Meteo (forecast, air quality, marine); the Met Department warnings page via Firecrawl; and the Mapillary Graph API for street view (streetview.ts).
+- Not used: bus lanes, cycleways, pedestrian crossings, bicycle racks, parking areas, park and ride, bus stations, LEZ, traffic signals, gradients, Waze alerts, the official DLI air-quality API, the traffic census, and Mapillary detected features.
+- Licence gap: the live basemap is Esri World Imagery, and src/lib/basemap.ts itself says this is "NOT licensed for production use without an Esri/ArcGIS agreement". That is a legal risk on a public product.
+- Attribution gap: CyNAP data is CC-BY-4.0, which requires attribution. There is per-map attribution (MapAttribution) but no single data-sources page.
+- Openness gap: Aloya consumes open data but publishes little back. It has an MCP server with four tools (src/lib/mcp: search_stops, get_stop_arrivals, watch_stop_arrivals, plan_trip) and several /api/public routes, but no documented public API, no feed of its own corrected arrivals, and no data licence.
+
+### 31.4 Improvements
+1. **CyNAP layer ingest.** A nightly cron fetches bus_lanes, cycleways, pedestrian_crossings, bicycle_racks, parking_areas and bus_stations, parses DATEX II v3 with the fast-xml-parser already used in pulse-traffic.ts, and stores GeoJSON in D1 or R2. Uses: cycle legs prefer cycleways, walking legs cross at real crossings, park and ride picks known car parks, and racks are shown at the end of a bike leg. Effort M. Impact high, because it feeds mixed-mode trips and the "better stop nearby" logic.
+2. **Waze alerts in the replanner.** The open waze_alerts feed (241 live items at test time) gives accidents, closures and jams with coordinates. Match alerts within about 50 m of a bus shape ahead of a live trip and raise "accident on your route" before the bus is late. Effort M. Impact high. Re-test the "registration-gated" assumption in pulse-traffic.ts at the same time, because the gnosis open endpoints worked without registration.
+3. **Swap the basemap to a licensed source** (Mapbox Satellite on the existing token, or MapTiler, both already options in basemap.ts). Effort S. Impact: removes a legal risk.
+4. **Official air quality.** Read the DLI hourly API (9 stations) next to Open-Meteo air quality. Use the station for "measured now" and Open-Meteo for "forecast", and label which is which. Effort S. Impact medium (dust days, see Layer 36).
+5. **Mapillary features for stops.** For each stop, query object--bench, object--street-light and object--trash-can within 25 m, store counts, and use them to seed the existing stop-condition attributes (seating, lighting) as "detected, not confirmed" until a rider confirms. Effort M. Impact medium for night safety (Layer 38) and heat (Layer 36).
+6. **Traffic census for honest car comparisons.** Use the data.gov.cy annual traffic counts by road section to show where buses share roads with the heaviest car traffic. This feeds the bus-lane case in the B2G pack (Layer 35). Effort S. Impact medium.
+7. **A /data page.** List every source, its licence (CC-BY-4.0 for CyNAP), its refresh rate and when Aloya last read it successfully. This meets the attribution duty and builds trust. Effort S. Impact medium.
+8. **Aloya as a publisher.** Document the MCP server and the /api/public routes as a partner API with keys and rate limits. Later, publish Aloya's corrected arrivals as GTFS-RT so others can integrate Aloya, which matches the "open for others to integrate" vision. Effort L. Impact high, strategically.
+9. **Get ahead of the MMTIS deadlines.** Shared-vehicle availability and parking are due through NAPs by December 2026 (2024/490). Offer the Public Works Department help with GBFS for Nextbike and Bolt and with parking occupancy, and build the readers now so Aloya is first to use them. Effort S to watch, M to integrate. Impact high.
+
+### 31.5 Sources
+- TfL, Open data policy: https://tfl.gov.uk/info-for/open-data-users/open-data-policy
+- TfL Unified API portal: https://tops.tfl.gov.uk/ ; API FAQ: https://api-portal.tfl.gov.uk/faq
+- transport.data.gouv.fr quality indicators: https://doc.transport.data.gouv.fr/outils/outils-disponibles-sur-le-pan/indicateurs-de-qualite ; SNCF dataset: https://transport.data.gouv.fr/datasets/horaires-sncf?locale=fr ; Nouveautés: https://transport.data.gouv.fr/nouveautes?locale=fr ; deadlines: https://doc.transport.data.gouv.fr/le-point-d-acces-national/cadre-juridique/dates-limites-de-publication
+- Entur presentation, TTG 2025: https://cdn.asp.events/CLIENT_CL_Conf_BDA05934_5056_B731_4C9EEBBE0C2416C2/sites/transport-ticketing-globa/media/2025-presentations/12.40-2025-TTG-Building-a-Nationwide-Multimodal-Ticketing-Platform.pdf
+- Delegated Regulation (EU) 2024/490: https://eur-lex.europa.eu/eli/reg_del/2024/490/oj/eng
+- CyNAP dataset list: https://www.traffic4cyprus.org.cy/dataset (pages 1 to 3); GTFS-RT dataset: https://traffic4cyprus.org.cy/en/dataset/publictransportrealtime_gtfs_rt ; static: https://traffic4cyprus.org.cy/en/dataset/publictransportstatic
+- Live endpoint test, 31 Oct 2026: https://fixcyprus.cy/gnosis/open/api/nap/datasets/bus_lanes/ (and cycleways, pedestrian_crossings, bicycle_racks, parking_areas, waze_alerts, bus_stations)
+- Interoperable Europe, Cyprus 2025: https://interoperable-europe.ec.europa.eu/sites/default/files/custom-page/attachment/2026-06/iopeu-monitoring_2025-supporting-document_cyprus_final.pdf
+- EC, Cyprus ITS progress report 2025: https://transport.ec.europa.eu/document/download/af766a37-f7ef-48fe-8d35-59ed45f699e6_en?filename=cy_its_progress_report_2025.pdf
+- data.gov.cy: https://www.data.gov.cy/en ; dataset 1069: https://data.gov.cy/en/dataset/1069 ; DLI current air API: https://data.gov.cy/el/dataset/trehoyses-metriseis-atmosfairikon-rypon-api ; traffic census: https://data.gov.cy/el/dataset/etisia-apografi-kykloforias-motorways
+- Cyprus Air Quality: https://www.airquality.dli.mlsi.gov.cy/
+- Mapillary points: https://www.mapillary.com/developer/api-documentation/points
+- Code: src/lib/basemap.ts, src/routes/api/public/hooks/pulse-traffic.ts, src/lib/bolt-scooter.functions.ts, src/lib/ev-chargers.functions.ts, src/routes/api/public/streetview.ts, src/lib/mcp/index.ts, scripts/ingest-schedule.ts
+
+---
+
 
 ## Layer 32. Crowding
 
