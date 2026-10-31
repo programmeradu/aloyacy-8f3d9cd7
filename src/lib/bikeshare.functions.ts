@@ -25,6 +25,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { distanceM } from "./geo";
 import { createLogger } from "./logger";
+import { nextbikeStationLink } from "@/lib/mobility-links";
 
 const log = createLogger("bikeshare");
 
@@ -173,6 +174,8 @@ export type BikeShareSuggestion = {
   reason: "faster" | "no-bus-only";
   cityName: string;
   webDeepLink: string;
+  /** nextbike app link for the pickup station (opens the app, web fallback). */
+  appDeepLink: string;
   mapsDeepLink: string;
 };
 
@@ -258,6 +261,10 @@ export const suggestBikeShare = createServerFn({ method: "POST" })
       reason,
       cityName: pickup.cityName,
       webDeepLink: cityMeta?.web ?? "https://www.nextbike.com.cy/en/",
+      appDeepLink: nextbikeStationLink(
+        pickup.uid,
+        cityMeta?.web ?? "https://www.nextbike.com.cy/en/",
+      ),
       mapsDeepLink: `https://www.google.com/maps/dir/?api=1&origin=${pickup.lat},${pickup.lng}&destination=${dropoff.lat},${dropoff.lng}&travelmode=bicycling`,
     };
   });

@@ -8,7 +8,7 @@
 import { useI18n } from "@/lib/i18n";
 import type { KapnosSuggestion } from "@/lib/kapnos.functions";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
-import kapnosLogo from "@/assets/kapnos-logo.png.asset.json";
+import { ProviderTile } from "@/components/mobility/MobilityCard";
 
 const WALKABLE_M = 1_200;
 
@@ -118,24 +118,20 @@ export function KapnosShuttleCard({
 
   return (
     <article className="rounded-[24px] bg-card ring-1 ring-line p-4 flex flex-col gap-3 animate-rise">
-      {/* Header: operator logo + route code */}
-      <header className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <img
-            src={kapnosLogo.url}
-            alt="Kapnos Airport Shuttle"
-            className="h-7 w-7 rounded-md object-contain bg-white ring-1 ring-line/60 p-0.5"
-            loading="lazy"
-          />
-          <div className="min-w-0">
-            <p className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep leading-tight">
-              {t("kapnos.eyebrow")}
-            </p>
-            <p className="font-display text-[15px] leading-tight text-ink truncate">
-              {prettyRoute(suggestion.routeName)}
-            </p>
-          </div>
+      {/* Provider row, same pattern as the Go mobility cards */}
+      <header className="flex min-w-0 items-center gap-3">
+        <ProviderTile provider="kapnos" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[16px] font-semibold leading-5 text-[#171717]">
+            Kapnos Airport Shuttle
+          </p>
+          <p className="truncate text-[13px] leading-[18px] text-[var(--r-mute,#6f6f6a)]">
+            {prettyRoute(suggestion.routeName)}
+          </p>
         </div>
+        <span className="inline-flex h-7 shrink-0 items-center whitespace-nowrap rounded-full bg-[var(--r-pill,#eeeeea)] px-2.5 text-[12px] font-medium text-[#171717] [font-variant-numeric:tabular-nums]">
+          {t("kapnos.fromPrice", { price: next.priceFrom })}
+        </span>
       </header>
 
       {/* Headline summary line — next coach, condensed */}

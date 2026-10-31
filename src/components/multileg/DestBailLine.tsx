@@ -1,6 +1,8 @@
 import type { DictKey } from "@/lib/i18n";
 import type { DestBail } from "@aloya/core/dest-bail";
 import { cyClock } from "@aloya/core/cy-time";
+import { cleanPlace, ProviderTile } from "@/components/mobility/MobilityCard";
+import { boltAppLink } from "@/lib/mobility-links";
 
 export function DestBailLine({
   action,
@@ -13,7 +15,7 @@ export function DestBailLine({
   switch (action.kind) {
     case "walk":
       line = t("ml.destBail.walk", {
-        dest: action.destLabel,
+        dest: cleanPlace(action.destLabel),
         min: action.walkMin,
         route: action.routeShort,
       });
@@ -63,13 +65,13 @@ export function DestBailLine({
         line =
           action.waitMin <= 0
             ? t("ml.destBail.taxiDoorDue", {
-                dest: action.destLabel,
+                dest: cleanPlace(action.destLabel),
                 drive: action.driveMin,
                 price: action.priceFrom,
                 route: action.routeShort,
               })
             : t("ml.destBail.taxiDoor", {
-                dest: action.destLabel,
+                dest: cleanPlace(action.destLabel),
                 drive: action.driveMin,
                 price: action.priceFrom,
                 route: action.routeShort,
@@ -82,6 +84,29 @@ export function DestBailLine({
         });
       }
       break;
+  }
+  if (action.kind === "boltScooter") {
+    // Same provider pattern as the Go cards: real logo tile, one tap opens Bolt.
+    return (
+      <a
+        href={boltAppLink("scooter")}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 flex items-center gap-3 rounded-[18px] bg-[var(--r-pill,#eeeeea)] p-2.5 pr-3.5 text-[13px] leading-snug text-[#171717]"
+      >
+        <ProviderTile provider="bolt" size={32} />
+        <span className="min-w-0 flex-1">{line}</span>
+        <i className="ph ph-arrow-up-right shrink-0 text-[16px]" aria-hidden />
+      </a>
+    );
+  }
+  if (action.kind === "taxi") {
+    return (
+      <p className="mt-3 flex items-center gap-3 rounded-[18px] bg-[var(--r-pill,#eeeeea)] p-2.5 pr-3.5 text-[13px] leading-snug text-[#171717]">
+        <ProviderTile provider="taxi" size={32} />
+        <span className="min-w-0 flex-1">{line}</span>
+      </p>
+    );
   }
   return <p className="mt-2 text-[13px] leading-snug text-ink-soft">{line}</p>;
 }

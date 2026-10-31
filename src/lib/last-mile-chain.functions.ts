@@ -22,6 +22,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { drivingRoute } from "./maps.server";
 import { distanceM } from "./geo";
+import { boltAppLink } from "@/lib/mobility-links";
 import {
   TAXI_DISPATCHER_TEL,
   taxiNightAt,
@@ -99,16 +100,10 @@ function chooseTrigger(
   return null;
 }
 
-function boltLink(from: { lat: number; lng: number }, to: { lat: number; lng: number }): string {
-  // Bolt's universal "request a ride" link. Falls back to the website
-  // when the app isn't installed.
-  const params = new URLSearchParams({
-    "pickup[latitude]": String(from.lat),
-    "pickup[longitude]": String(from.lng),
-    "destination[latitude]": String(to.lat),
-    "destination[longitude]": String(to.lng),
-  });
-  return `https://bolt.eu/o/${from.lat},${from.lng}/?${params.toString()}`;
+function boltLink(): string {
+  // Bolt's OneLink universal link (see mobility-links.ts). Opens the Bolt
+  // app when installed, the App Store / Play Store otherwise.
+  return boltAppLink("ride");
 }
 
 function mapsLink(from: { lat: number; lng: number }, to: { lat: number; lng: number }): string {
@@ -145,7 +140,7 @@ export const suggestLastMileChain = createServerFn({ method: "POST" })
       isNightRate: quote.night,
       fromName: data.alight.name ?? "",
       toName: data.destination.name ?? "",
-      boltDeepLink: boltLink(data.alight, data.destination),
+      boltDeepLink: boltLink(),
       mapsDeepLink: mapsLink(data.alight, data.destination),
       telDispatcher: TAXI_DISPATCHER_TEL,
     };

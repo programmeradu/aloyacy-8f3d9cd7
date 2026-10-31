@@ -119,7 +119,7 @@ describe("suggestLastMileChain", () => {
       destination: FAR_DEST,
     });
     expect(out?.trigger).toBe("long-walk");
-    expect(out?.boltDeepLink).toContain("bolt.eu");
+    expect(out?.boltDeepLink).toContain("bolt.onelink.me/UdR6/");
     expect(out?.mapsDeepLink).toContain("google.com/maps");
     expect(out?.telDispatcher).toBe("+35777777474");
   });

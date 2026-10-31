@@ -25,6 +25,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { distanceM } from "./geo";
 import { createLogger } from "./logger";
+import { boltAppLink } from "@/lib/mobility-links";
 
 const log = createLogger("bolt-scooter");
 
@@ -238,9 +239,9 @@ export const suggestBoltScooter = createServerFn({ method: "POST" })
       return null;
     }
 
-    // Bolt universal link — opens the scooter tab in-app, falls back to
-    // the marketing page in browsers without the app installed.
-    const appDeepLink = `https://bolt.eu/en-cy/scooters/`;
+    // Bolt OneLink universal link: opens the Bolt app (scooters live in the
+    // rider app) when installed, the store otherwise.
+    const appDeepLink = boltAppLink("scooter");
     const mapsDeepLink = `https://www.google.com/maps/dir/?api=1&origin=${pickup.lat},${pickup.lng}&destination=${dropoff.lat},${dropoff.lng}&travelmode=bicycling`;
 
     return {
