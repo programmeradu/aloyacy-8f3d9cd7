@@ -10,6 +10,29 @@ When a trip is started at home, Aloya's server sends alerts that assume the ride
 
 ---
 
+## Part A top 10 (in build order)
+
+1. **Hotfix the home-start bug (S).** Stop clock-only "Board now", "Pick up the pace" and "Still on BUS X?" from the server; remove the no-GPS auto-advance and the "at-stop" alerts for transfer walks and waits; keep alerts_sent across re-uploads; one tag scheme for phone and server (layers 1, 4, 7b).
+2. **Rider state, not coordinates (M).** The phone sends unknown, walking, at stop, on board or missed, plus rounded distance and walking ETA; the server asks "Are you at the stop yet?" when the state is unknown (layers 1, 10).
+3. **One leave decision shared by phone and server (M).** Walking time at the rider's pace against the bus's corrected arrival and its early edge, with states relax, get ready, leave now, run, you'll miss it plus the next option: "You're 10 min away, the bus is 5 min away" (layer 1).
+4. **Personal walking pace (S then M).** A pace and mobility profile now, learned pace on the device next; four hard-coded 1.35 m/s constants become one shared default (layers 2, 9).
+5. **Honest live data in every alert (S then M).** Ghost and stale rules applied to all alerts, every time labelled live, estimated or timetable, uncertainty bands from Aloya's own backtest, Benchmark-compatible accuracy page (layer 5).
+6. **Server push replanning (L).** Detect a miss anywhere (home, walking, stop), re-plan on the two IJCAI triggers, one-tap replan from the notification, CPT detour announcements ingested (layer 6).
+7. **Phase-by-phase transfers with connection probability and mid-trip micromobility (L).** "Safe, tight, likely to miss", "get off one stop early and walk or scoot to a faster line", within Cyprus e-scooter law and Bolt's station model (layer 7b).
+8. **Get-off alerts by stop count on the server (S).** Port Aloya's own alight-countdown to the server, only after the rider is confirmed on board, with missed-stop recovery (layer 7).
+9. **One alert ledger and four tiers (M).** Caps, update in place with Topic and tag, TTL on every push, per-tier user control (layer 4).
+10. **Native companion (L).** Fix the Expo build, background location only during trips, real Live Activity and Android Live Update, Wake Lock and Declarative Web Push on the web meanwhile; privacy by design throughout (layers 3, 8, 10).
+
+## Corrections to earlier runs found while re-checking
+
+- Code line numbers re-checked at 1508f3f; the multi-leg auto-advance is at multileg-journey.ts lines 347 to 353 and the transfer "at-stop" emits at lines 409 to 430.
+- Retention does exist for crowdsourced rider fixes (purged after 2 days, not sent to the data lake); the remaining gap is abandoned active_trips rows with no time-to-live.
+- The Intercity GTFS feed now lists 740 trips (not 799) and 123 stops, all with wheelchair access unknown (GTFS Scorecard, 31 Oct 2026).
+- The over-80s walking speed figure (0.94 to 0.97 m/s) and the Ulm step-versus-GPS error figures could not be verified against an open source and are not used; verified figures from FHWA, Asher et al. 2012 and JMIR 2025 are used instead.
+- The European Accessibility Act covers bus apps fully for intercity services, but for urban, suburban and regional transport only self-service terminals are in scope (Article 2(2)(c)).
+
+---
+
 ## Layer 1: Location-aware departure alerts ("leave now" that knows where you are)
 
 ### 1.1 What the best in the world do
