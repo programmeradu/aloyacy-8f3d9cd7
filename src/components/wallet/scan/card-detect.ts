@@ -241,7 +241,11 @@ export type Detection = {
  */
 function rank(d: Detection) {
   const shape = 1 - Math.abs(d.ratio - ID1_RATIO) / ID1_RATIO / 0.24;
-  return d.strength * (1 - d.skew / 18) * shape;
+  // The rider lines the card up with the guide, so an outline that fills it
+  // beats a smaller box drawn by print inside the card (a text block, the
+  // barcode on the back).
+  const fit = Math.min(1, d.fill / 0.9) ** 2;
+  return d.strength * (1 - d.skew / 18) * shape * fit;
 }
 
 /**
