@@ -40,7 +40,19 @@ export function PulseLiveSection({ bundle, locale }: { bundle: PulseLiveBundle; 
     bundle.fixtures?.count ||
     bundle.traffic?.count;
 
-  if (!hasAny) return null;
+  // Only what will actually draw: the heading never stands alone.
+  const hasVisible =
+    (bundle.metWarnings?.count ?? 0) > 0 ||
+    (bundle.news?.count ?? 0) > 0 ||
+    (!!bundle.marine && bundle.focus.coastal) ||
+    bundle.flights.length > 0 ||
+    (bundle.cruises?.count ?? 0) > 0 ||
+    (!!bundle.air && shouldShowAir(bundle.air)) ||
+    (bundle.traffic?.count ?? 0) > 0 ||
+    (bundle.fixtures?.count ?? 0) > 0 ||
+    (bundle.events?.count ?? 0) > 0;
+
+  if (!hasAny || !hasVisible) return null;
 
   return (
     <section className="r-pulse-island animate-rise" style={{ animationDelay: "200ms" }}>

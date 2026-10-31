@@ -3335,3 +3335,14 @@ html.r-has-resume .r-now-more {
     transition: none;
   }
 }
+
+/* Pulse round 5b: city chips wrap onto a second row instead of fading at the card edge */
+.r-nn-cities {
+  flex-wrap: wrap;
+  overflow: visible;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.r-nn-city {
+  height: 34px;
+}
