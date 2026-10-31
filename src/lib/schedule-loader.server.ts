@@ -48,7 +48,15 @@ const SHARD_TTL_MS = 60 * 60 * 1000; // 1h
 type AssetsBinding = { fetch: (req: Request) => Promise<Response> };
 type R2ObjectBodyLike = { json<T>(): Promise<T> };
 type R2BucketLike = { get: (key: string) => Promise<R2ObjectBodyLike | null> };
-type ScheduleEnv = { ASSETS?: AssetsBinding; SCHEDULE?: R2BucketLike; DATA_LAKE?: R2BucketLike };
+type ScheduleEnv = {
+  ASSETS?: AssetsBinding;
+  SCHEDULE?: R2BucketLike;
+  DATA_LAKE?: R2BucketLike;
+  /** "off" skips loading timetable shards on the Worker (Workers Free: parsing a
+   *  ~7 MB day shard + trips.json blows the 10 ms CPU limit, error 1102, and the
+   *  killed isolate takes concurrent page requests down with it). */
+  SCHEDULE_ON_WORKER?: string;
+};
 
 /** Worker bindings: `cloudflare:workers` env first (works outside a request,
  *  e.g. in scheduled()), then the env server.ts stashes on every fetch. */
@@ -159,6 +167,10 @@ const _missingShards = new Map<string, number>();
 const MISS_TTL_MS = 5 * 60_000;
 
 export async function loadShard(date: string): Promise<DateShard> {
+  const env0 = await scheduleEnv();
+  if (env0.SCHEDULE_ON_WORKER === "off") {
+    throw new Error(`schedule shard ${date} → 404 (SCHEDULE_ON_WORKER=off)`);
+  }
   const cached = _shards.get(date);
   if (cached && Date.now() - cached.loadedAt < SHARD_TTL_MS) return cached;
 
