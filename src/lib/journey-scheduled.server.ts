@@ -147,21 +147,25 @@ export async function planMultiLegScheduled(
   // terminals) with the buses, as the browser planner does, so the mobile app
   // and any /api/public/plan caller see it too.
   let kapnosCount = 0;
-  if (airportFor(to) || airportFor(from)) {
+  const kapnosAt = async (depart: number): Promise<Itinerary[]> => {
+    if (!airportFor(to) && !airportFor(from)) return [];
     try {
       const { buildKapnosAirportRoutes } = await import("./kapnos.functions");
       const { planKapnosItineraries } = await import("./kapnos-itinerary");
       const routes = await withTimeout(buildKapnosAirportRoutes(), 3_000, []);
-      if (routes.length > 0) {
-        const coach = await planKapnosItineraries(schedule, from, to, searchDepartureUnix, routes, {
-          accessibilityPrefs: opts?.accessibilityPrefs,
-        });
-        kapnosCount = coach.length;
-        itineraries = [...itineraries, ...coach];
-      }
+      if (routes.length === 0) return [];
+      return await planKapnosItineraries(schedule, from, to, depart, routes, {
+        accessibilityPrefs: opts?.accessibilityPrefs,
+      });
     } catch (err) {
       log.warn("kapnos options skipped", { reason: (err as Error).message });
+      return [];
     }
+  };
+  {
+    const coach = await kapnosAt(searchDepartureUnix);
+    kapnosCount = coach.length;
+    itineraries = [...itineraries, ...coach];
   }
   const raptorMs = Date.now() - tRap0;
 
@@ -246,8 +250,10 @@ export async function planMultiLegScheduled(
           maxJourneySec: rolledToNextDay ? 30 * 3600 : 6 * 3600,
           accessibilityPrefs: opts?.accessibilityPrefs,
         });
-        if (again.itineraries.length === 0) break;
-        refinedItineraries = await refineAllItineraries(again.itineraries, misses);
+        const coach = await kapnosAt(searchDepartureUnix + slack);
+        const pool = [...again.itineraries, ...coach];
+        if (pool.length === 0) break;
+        refinedItineraries = await refineAllItineraries(pool, misses);
         if (refinedItineraries.length > 0) refineRetry = "later";
       } catch (err) {
         log.warn("refine retry failed", { reason: (err as Error).message });
