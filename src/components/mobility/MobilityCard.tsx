@@ -89,12 +89,14 @@ export function MobilityStats({ stats }: { stats: MobilityStat[] }) {
   return (
     <dl
       className="grid overflow-hidden rounded-[18px] bg-[var(--r-pill,#eeeeea)]"
-      style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))` }}
+      // auto tracks: each column is at least its content, spare width shared out,
+      // so a long fare range never spills out of its tile.
+      style={{ gridTemplateColumns: `repeat(${stats.length}, auto)` }}
     >
       {stats.map((s, i) => (
         <div
           key={s.label}
-          className={`flex min-w-0 flex-col-reverse gap-1 px-3 py-2.5 ${
+          className={`flex min-w-0 flex-col-reverse gap-1 px-2.5 py-2.5 min-[380px]:px-3 ${
             i > 0 ? "border-l border-white" : ""
           }`}
         >

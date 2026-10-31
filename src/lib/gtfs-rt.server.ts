@@ -82,6 +82,8 @@ export type LiveArrival = {
   tripId: string;
   arrivalUnix: number;
   delaySec: number;
+  /** GTFS stop_sequence when the feed sends it (0 = the trip's first stop). */
+  seq?: number;
 };
 
 export type RiderConfirmedTrip = {
@@ -200,6 +202,9 @@ async function fetchUpstream(): Promise<{
           tripId: String(tu.trip?.tripId ?? ""),
           arrivalUnix: Number(t),
           delaySec: stu.arrival?.delay ?? stu.departure?.delay ?? 0,
+          ...(Object.prototype.hasOwnProperty.call(stu, "stopSequence") && stu.stopSequence != null
+            ? { seq: Number(stu.stopSequence) }
+            : {}),
         });
       }
     }

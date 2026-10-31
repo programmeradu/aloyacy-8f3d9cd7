@@ -14,6 +14,7 @@ import type { Translate } from "@/components/pulse/TodayEditorial";
 import pulseNetworkBand from "@/assets/pulse-network-band.jpg";
 
 export function RoadPulseCard({
+  kicker,
   onTimePct,
   latePct,
   earlyPct,
@@ -23,6 +24,7 @@ export function RoadPulseCard({
   nowHour,
   t,
 }: {
+  kicker?: string;
   onTimePct: number;
   latePct: number;
   earlyPct: number;
@@ -61,7 +63,7 @@ export function RoadPulseCard({
         <div className="absolute left-5 right-5 top-5 flex items-start justify-between gap-3">
           <div>
             <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-              {t("pulse.flow.kicker")}
+              {kicker ?? t("pulse.flow.kicker")}
             </p>
             <h2 className="mt-1 font-display text-[22px] leading-tight text-ink text-balance max-w-[10ch]">
               {t("pulse.flow.title")}

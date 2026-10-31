@@ -1,3 +1,4 @@
+import type { CityNow } from "./network-now";
 // Aggregates the learned delay statistics into a network-wide "Pulse":
 // on-time percentage, hottest and coldest routes, reliability scoreboard.
 // Read-only, public. Safe to expose without auth.
@@ -196,106 +197,55 @@ async function buildPulseFromRealtime(): Promise<PulseSnapshot> {
 }
 
 // ---------------------------------------------------------------------------
-// Live pulse — last 60 minutes of observed snapshots.
-// Honest, strict "on time" definition: |delay| < 90s. Counts unique
-// (trip_id, stop_id) pairs so a bus pinged 5 times near a stop counts once.
+// Live pulse: the same Network now numbers the Pulse page shows, computed by
+// computeNetworkNow (src/lib/network-now.ts) from the live GTFS-RT snapshot.
+// On time = 1 min early to 5 min late, buses with a live position that have
+// left their first stop, one reading per bus at its next stop.
 // ---------------------------------------------------------------------------
 
 export type LivePulse = {
   generatedAt: number;
-  windowMinutes: number;
-  observations: number; // unique trip×stop events in the window
-  onTimePct: number; // % with |delay| < 90s
-  earlyPct: number; // delay < -90s
-  latePct: number; // delay > 90s
+  windowMinutes: number; // 0: a live reading, not a window
+  observations: number; // buses counted
+  onTimePct: number;
+  earlyPct: number;
+  latePct: number;
   medianDelaySec: number;
+  liveBuses?: number;
+  avgDelaySec?: number;
+  delayedCount?: number;
+  cities?: CityNow[];
 };
 
 export const getLivePulse = createServerFn({ method: "GET" })
   .inputValidator((input?: unknown) => z.void().optional().parse(input))
   .handler(async () => {
-  const [{ supabaseAdmin }] = await Promise.all([import("@/integrations/supabase/client.server")]);
-  const WINDOW_MIN = 60;
-  const sinceIso = new Date(Date.now() - WINDOW_MIN * 60_000).toISOString();
-  const PAGE = 1000;
-  const HARD_CAP = 50_000;
-
-  type Row = { trip_id: string; stop_id: string; delay_sec: number; captured_at: string };
-  const rows: Row[] = [];
-  for (let from = 0; from < HARD_CAP; from += PAGE) {
-    const { data, error } = await supabaseAdmin
-      .from("rt_snapshots")
-      .select("trip_id, stop_id, delay_sec, captured_at")
-      .gte("captured_at", sinceIso)
-      .order("captured_at", { ascending: false })
-      .range(from, from + PAGE - 1);
-    if (error) break;
-    if (!data || data.length === 0) break;
-    rows.push(...(data as Row[]));
-    if (data.length < PAGE) break;
-  }
-
-  // Deduplicate: keep the latest snapshot per (trip_id, stop_id).
-  // rows are already ordered newest-first per page; first wins.
-  const latest = new Map<string, number>();
-  for (const r of rows) {
-    const key = `${r.trip_id}|${r.stop_id}`;
-    if (!latest.has(key)) latest.set(key, r.delay_sec);
-  }
-
-  const delays = [...latest.values()];
-  if (delays.length === 0) {
-    // No ingested snapshots (cron-less deploy, or the ingest is behind): read
-    // the live GTFS-RT feed directly and take each running trip's next stop.
+    const [{ fetchRealtime }, { getRoute }, { computeNetworkNow }] = await Promise.all([
+      import("./gtfs-rt.server"),
+      import("./gtfs"),
+      import("./network-now"),
+    ]);
+    let snap: Awaited<ReturnType<typeof fetchRealtime>> | null = null;
     try {
-      const { fetchRealtime } = await import("./gtfs-rt.server");
-      const snap = await fetchRealtime();
-      const nowSec = Math.floor(Date.now() / 1000);
-      const nextByTrip = new Map<string, { t: number; d: number }>();
-      for (const a of snap.arrivals ?? []) {
-        if (!a.tripId || !Number.isFinite(a.arrivalUnix) || a.arrivalUnix < nowSec - 120) continue;
-        const cur = nextByTrip.get(a.tripId);
-        if (!cur || a.arrivalUnix < cur.t) nextByTrip.set(a.tripId, { t: a.arrivalUnix, d: a.delaySec ?? 0 });
-      }
-      for (const v of nextByTrip.values()) delays.push(v.d);
+      snap = await fetchRealtime();
     } catch {
-      // feed unreachable: fall through to the empty state
+      snap = null;
     }
-  }
-  if (delays.length === 0) {
+    const n = computeNetworkNow(snap, (id) => getRoute(id)?.agency);
     return {
-      generatedAt: Math.floor(Date.now() / 1000),
-      windowMinutes: WINDOW_MIN,
-      observations: 0,
-      onTimePct: 0,
-      earlyPct: 0,
-      latePct: 0,
-      medianDelaySec: 0,
+      generatedAt: n.fetchedAt,
+      windowMinutes: 0,
+      observations: n.tracked,
+      onTimePct: n.onTimePct,
+      earlyPct: n.earlyPct,
+      latePct: n.latePct,
+      medianDelaySec: n.medianDelaySec,
+      liveBuses: n.liveBuses,
+      avgDelaySec: n.avgDelaySec,
+      delayedCount: n.late,
+      cities: n.cities,
     } satisfies LivePulse;
-  }
-
-  let onTime = 0;
-  let early = 0;
-  let late = 0;
-  for (const d of delays) {
-    if (d > 90) late++;
-    else if (d < -90) early++;
-    else onTime++;
-  }
-  const sorted = [...delays].sort((a, b) => a - b);
-  const median = sorted[Math.floor(sorted.length / 2)];
-
-  const n = delays.length;
-  return {
-    generatedAt: Math.floor(Date.now() / 1000),
-    windowMinutes: WINDOW_MIN,
-    observations: n,
-    onTimePct: Math.round((onTime / n) * 100),
-    earlyPct: Math.round((early / n) * 100),
-    latePct: Math.round((late / n) * 100),
-    medianDelaySec: Math.round(median),
-  } satisfies LivePulse;
-});
+  });
 
 // ---------------------------------------------------------------------------
 // Hourly strip — last 24 hours of mean delay bucketed by clock hour.

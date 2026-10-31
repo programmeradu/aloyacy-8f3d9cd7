@@ -1,49 +1,129 @@
-// Live map + fleet stats, moved here from the old Explore home when Explore
-// became the Sky Clock glass home (no map on home). Same data as before:
-// the realtime snapshot (`useRealtime`).
-
+// Live network: the island map with every tracked bus grouped by area (count
+// bubbles, so 226 buses read as 226 and not two stray icons), plus the live bus
+// count and the on-time share. Numbers come from useNetworkNow, the same source
+// as the Network now card.
 import { useMemo } from "react";
 import { MapPreview } from "@/components/MapPreview";
-import { QuickStat } from "@/components/home/QuickStat";
-import { useRealtime } from "@/lib/useRealtime";
-import { useI18n } from "@/lib/i18n";
-import statBus from "@/assets/stat-bus.png";
-import statDial from "@/assets/stat-dial.png";
+import type { DomPin } from "@/components/map/useDomPins";
+import type { MapMarker } from "@/components/map/types";
+import type { LiveVehicle } from "@/lib/gtfs-rt.server";
+import type { NetworkNow } from "@/lib/network-now";
+import { useRoamI18n } from "@/lib/roam-i18n";
+import { VehicleImg } from "@/components/roam/bits";
 
-export function LiveNetworkSection() {
-  const { t } = useI18n();
-  const { data: rt } = useRealtime();
-  const liveCount = rt?.vehicles.length ?? 0;
-  const onTimePct = useMemo(() => {
-    if (!rt) return null;
-    const sampled = rt.arrivals.slice(0, 400);
-    if (!sampled.length) return null;
-    const ok = sampled.filter((a) => Math.abs(a.delaySec) <= 120).length;
-    return Math.round((ok / sampled.length) * 100);
-  }, [rt]);
+const CYPRUS_CENTER = { lat: 34.92, lng: 33.18 };
+// Where the buses run (Polis to Protaras, Paphos to Nicosia). Fixed, so the map
+// does not refit on every 20 s refresh.
+const ISLAND_BOUNDS: MapMarker[] = [
+  { lat: 34.62, lng: 32.3, kind: "bounds" },
+  { lat: 35.22, lng: 34.06, kind: "bounds" },
+];
+
+type Cluster = { lat: number; lng: number; n: number; sl: number; sg: number };
+
+function clusterVehicles(vs: LiveVehicle[]): Cluster[] {
+  const out: Cluster[] = [];
+  for (const v of vs) {
+    if (!Number.isFinite(v.lat) || !Number.isFinite(v.lng) || (v.lat === 0 && v.lng === 0)) continue;
+    let hit: Cluster | null = null;
+    for (const c of out) {
+      if (Math.abs(c.lat - v.lat) < 0.1 && Math.abs(c.lng - v.lng) < 0.13) {
+        hit = c;
+        break;
+      }
+    }
+    if (hit) {
+      hit.n++;
+      hit.sl += v.lat;
+      hit.sg += v.lng;
+      hit.lat = hit.sl / hit.n;
+      hit.lng = hit.sg / hit.n;
+    } else {
+      out.push({ lat: v.lat, lng: v.lng, n: 1, sl: v.lat, sg: v.lng });
+    }
+  }
+  return out.sort((a, b) => b.n - a.n);
+}
+
+function MiniRing({ pct }: { pct: number }) {
+  const R = 15;
+  const C = 2 * Math.PI * R;
+  const v = Math.max(0, Math.min(100, pct));
+  return (
+    <svg className="r-mini-ring" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r={R} fill="none" stroke="#EEEEEA" strokeWidth="5" />
+      <circle
+        cx="20"
+        cy="20"
+        r={R}
+        fill="none"
+        stroke="#F6B83C"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeDasharray={`${(v / 100) * C} ${C}`}
+        transform="rotate(-90 20 20)"
+      />
+    </svg>
+  );
+}
+
+export function LiveNetworkSection({
+  now,
+  vehicles,
+}: {
+  now: NetworkNow | null;
+  vehicles: LiveVehicle[];
+}) {
+  const { r } = useRoamI18n();
+  const pins = useMemo<DomPin[]>(
+    () =>
+      clusterVehicles(vehicles).map((c, i) => ({
+        id: `clu-${i}`,
+        lat: c.lat,
+        lng: c.lng,
+        anchor: "center" as const,
+        priority: c.n,
+        node:
+          c.n === 1 ? (
+            <span className="r-clu r-clu--one" aria-hidden="true" />
+          ) : (
+            <span className={`r-clu${c.n >= 10 ? " r-clu--lg" : ""}`}>{c.n}</span>
+          ),
+      })),
+    [vehicles],
+  );
+  const live = now?.liveBuses ?? 0;
+  const rated = !!now && now.tracked > 0;
 
   return (
-    <section className="px-6 mt-8 animate-rise" style={{ animationDelay: "100ms" }}>
-      <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-        {t("sky.network.kicker")}
-      </p>
-      <h2 className="font-display text-3xl mt-1 mb-4 text-ink">{t("sky.network.title")}</h2>
-      <MapPreview hideLiveBadge placeName="Cyprus" />
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <QuickStat
-          label={t("home.liveBuses")}
-          value={liveCount ? String(liveCount) : "-"}
-          tone="aegean"
-          vignette={statBus}
-          vignetteClass="right-1 bottom-1 w-[40%] opacity-[0.7] rotate-[-3deg]"
-        />
-        <QuickStat
-          label={t("home.onTime")}
-          value={onTimePct !== null ? `${onTimePct}%` : "-"}
-          tone="olive"
-          vignette={statDial}
-          vignetteClass="right-1 bottom-1 w-[36%] opacity-[0.6]"
-        />
+    <section className="animate-rise" style={{ animationDelay: "100ms" }}>
+      <h2 className="r-pulse-h">
+        <span>{r("pulse.live.title")}</span>
+        {live ? <small>{r("pulse.nn.live", { n: live })}</small> : null}
+      </h2>
+      <MapPreview
+        height="h-56"
+        center={CYPRUS_CENTER}
+        spanKm={160}
+        markers={ISLAND_BOUNDS}
+        fitToContent
+        liveVehicles={false}
+        hideLiveBadge
+        pins={pins}
+        declutterPx={30}
+      />
+      <div className="r-pulse-tiles">
+        <div className="r-pulse-tile">
+          <p>{r("pulse.live.buses")}</p>
+          <strong>{live || "-"}</strong>
+          <VehicleImg kind="bus" width={112} className="r-pulse-tilebus" />
+        </div>
+        <div className="r-pulse-tile">
+          <p>{r("pulse.live.onTime")}</p>
+          <strong>{rated ? `${now!.onTimePct}%` : "-"}</strong>
+          {rated ? <p className="r-pulse-tilesub">{r("pulse.live.delayedN", { n: now!.late })}</p> : null}
+          <MiniRing pct={rated ? now!.onTimePct : 0} />
+        </div>
       </div>
     </section>
   );

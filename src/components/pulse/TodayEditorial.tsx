@@ -1,6 +1,7 @@
 // Cyprus Today — the editorial hero, the contextual tiles, the verdict pull
 // quote, the local/tourist fact and the Greek word of the day.
 
+import { kickerCase } from "@/lib/kicker-case";
 import { briefingDateLabel } from "@aloya/core/greek-word-motif";
 import { TodayTileGlyph } from "@/components/TodayTileGlyph";
 import { GreekWordGlyph } from "@/components/pulse/GreekWordGlyph";
@@ -47,13 +48,11 @@ export function TodayEditorial({
   const niceDate = briefingDateLabel(briefing.date, weekday, locale);
 
   return (
-    <section className="px-6 pt-3 animate-rise">
-      <p className="font-eyebrow text-[10px] uppercase tracking-[0.24em] text-ink-soft">
-        {t("today.kicker")}
-      </p>
+    <section className="animate-rise">
+      <h2 className="r-pulse-h r-pulse-h--first">{t("today.kicker")}</h2>
 
       {/* Hero card */}
-      <article className="relative mt-3 overflow-hidden rounded-[34px] bg-card ring-1 ring-line">
+      <article className="relative overflow-hidden rounded-[28px] bg-card ring-1 ring-line r-pulse-story">
         <div className="relative aspect-[16/10] w-full overflow-hidden">
           <img
             src={hero}
@@ -87,20 +86,17 @@ export function TodayEditorial({
           </div>
         </div>
 
-        <div className="relative px-6 pt-4 pb-6">
-          <h2 className="font-display text-[30px] leading-[1.05] text-ink text-balance">
+        <div className="relative px-5 pt-2 pb-5">
+          <h2 className="font-display text-[28px] leading-[1.1] text-ink text-balance">
             {headline}
           </h2>
-          <p className="mt-3 text-[14.5px] leading-relaxed text-ink-soft text-pretty">{lede}</p>
+          <p className="mt-2 text-[15px] leading-[1.45] text-ink-soft text-pretty">{lede}</p>
         </div>
       </article>
 
       {/* Tiles */}
       {briefing.tiles.length > 0 && (
-        <div className="mt-6">
-          <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft mb-3">
-            {t("today.tiles.kicker")}
-          </p>
+        <div className=""><h2 className="r-pulse-h">{t("today.tiles.kicker")}</h2>
           <div className="grid gap-3">
             {briefing.tiles.map((tile, i) => (
               <TodayTileCard key={i} tile={tile} isEl={isEl} />
@@ -222,7 +218,7 @@ function TodayTileCard({ tile, isEl }: { tile: TodayBriefing["tiles"][number]; i
 
       <div className="relative p-5 pr-24">
         <p className={`font-eyebrow text-[9.5px] uppercase tracking-[0.24em] ${accentText}`}>
-          {isEl ? tile.kickerEl : tile.kicker}
+          {kickerCase(isEl ? tile.kickerEl : tile.kicker)}
         </p>
         <h3 className="mt-1.5 font-display text-[17px] leading-tight text-ink text-balance break-soft">
           {isEl ? tile.titleEl : tile.title}

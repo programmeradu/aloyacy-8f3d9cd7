@@ -1,9 +1,17 @@
-// C3 — name the lines with rider phones. Silent when we have none.
-// A list, not a map: three dots on Cyprus would look like coverage.
-
-import { RouteChip } from "@/components/RouteChip";
+// C3: name the lines with rider phones (or the busy lines nobody can see yet).
+// Silent when we have none. A list, not a map: three dots on Cyprus would look
+// like coverage. One chip per line (the feed lists each direction and variant
+// as its own route), marked with the line's own colour from the timetable.
+import type { CSSProperties } from "react";
 import type { CrowdEyesRoute } from "@/lib/crowd-coverage.server";
 import type { Translate } from "@/components/pulse/TodayEditorial";
+import { getRoute } from "@/lib/gtfs";
+
+function lineColour(routeId: string): string {
+  const c = (getRoute(routeId)?.color ?? "").replace(/^#/, "");
+  if (!/^[0-9a-fA-F]{6}$/.test(c) || /^f{6}$/i.test(c)) return "#8F8F8A";
+  return `#${c}`;
+}
 
 export function CrowdEyesCard({
   routes,
@@ -14,26 +22,34 @@ export function CrowdEyesCard({
   t: Translate;
   kind?: "watching" | "seed";
 }) {
-  if (routes.length === 0) return null;
+  const seen = new Set<string>();
+  const lines: CrowdEyesRoute[] = [];
+  for (const r of routes) {
+    const key = `${getRoute(r.routeId)?.agency ?? ""}|${r.short}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    lines.push(r);
+  }
+  if (lines.length === 0) return null;
   const kicker = kind === "seed" ? t("pulse.seed.kicker") : t("pulse.eyes.kicker");
   const title = kind === "seed" ? t("pulse.seed.title") : t("pulse.eyes.title");
   const lede = kind === "seed" ? t("pulse.seed.lede") : t("pulse.eyes.lede");
 
   return (
-    <article className="rounded-[28px] bg-card ring-1 ring-line px-5 py-5">
-      <p className="font-eyebrow text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+    <article className="r-pulse-card" data-kind={kind}>
+      <p className="r-pulse-kick">
+        <i aria-hidden="true" />
         {kicker}
       </p>
-      <h2 className="mt-1 font-display text-[22px] leading-tight text-ink text-balance max-w-[16ch]">
-        {title}
-      </h2>
-      <p className="mt-2 text-[13.5px] leading-snug text-ink-soft max-w-[36ch]">
-        {lede}
-      </p>
-      <ul className="mt-4 flex flex-wrap gap-2">
-        {routes.map((r) => (
+      <h3 className="r-pulse-title">{title}</h3>
+      <p className="r-pulse-lede">{lede}</p>
+      <ul className="r-pulse-lines">
+        {lines.map((r) => (
           <li key={r.routeId}>
-            <RouteChip code={r.short} tone={r.tone} />
+            <span className="r-opchip" style={{ "--op": lineColour(r.routeId) } as CSSProperties}>
+              <i aria-hidden="true" />
+              {r.short}
+            </span>
           </li>
         ))}
       </ul>
