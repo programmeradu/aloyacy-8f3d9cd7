@@ -9,7 +9,7 @@ Conventions: every number below comes from the cited source. Where something is 
 ## Layer 41. Competitor teardown and gap matrix
 
 ### 1) What the best in the world do
-- Citymapper: GO mode with step by step guidance, get-off alerts that work offline, a Lock Screen Live Activity, and live ETA sharing by link that recipients open on the mobile web without the app. Citymapper made its Club features free in version 11 and kept an ad-free tier. Via acquired Citymapper in 2023. Sources: citymapper.com/news/867, Citymapper store listings.
+- Citymapper: GO mode with step by step guidance, get-off alerts that work offline, a Lock Screen Live Activity, and live ETA sharing by link that recipients open on the mobile web without the app. Citymapper made its Club features free in version 11 and kept an ad-free tier. Via later acquired Citymapper. Sources: citymapper.com/news/867, Citymapper store listings.
 - Transit (Montreal): GO crowdsourcing, where riders who tap GO share their bus position with riders downstream at 1 to 2 seconds latency instead of the roughly 15 seconds of a typical transponder; Share Trip launched 1 Sept 2026 with automatic stop on arrival; Royale subscription (USD 24.99 per year or 4.99 per month) that more than 150 agencies sponsor for all their riders. Sources: blog.transitapp.com/autogo, nowtoronto.com (2 Sept 2026), transitapp.com/en/features/share-live-trips.
 - Moovit: 1.5 billion users in 112 countries; covers Cyprus (NPT, EMEL, OSYPA, Intercity, Kapnos) with live directions and get-off notifications; Moovit+ (2023) paywalls SafeRide trip sharing, Compare Routes, Arrival Updates and Live Location; sells white-label MaaS and analytics to governments. Sources: moovit.com press releases (31 Jul 2023, 22 Nov 2023), moovitapp.com Nicosia pages.
 - Google Maps: CPT told the Audit Office on 15 Oct 2026 that all CPT routes are on Google Maps; EMEL live ETAs went live early 2026 and intercity was added on 11 Mar 2026 (from earlier research in this session).
@@ -444,7 +444,8 @@ Example: dead GPS.
 | 42 | Scooter in middle of trip | Offers bus, scooter, bus chain when faster | R |
 | 43 | Nextbike dock empty | Excludes or warns | R |
 | 44 | Better stop across the road with more frequent line | Suggested with walk time | G R |
-| 45 | Trip in progress, app backgrounded and resumed | Restores state | C || 46 | End trip | Clears banner on all tabs | - |
+| 45 | Trip in progress, app backgrounded and resumed | Restores state | C |
+| 46 | End trip | Clears banner on all tabs | - |
 | 47 | Start second trip while one active | Asks to replace | - |
 | 48 | Alight alert two stops before | Fires once at the right stop | G C R |
 | 49 | Alight alert offline | Still fires from cached stop list | G O |
