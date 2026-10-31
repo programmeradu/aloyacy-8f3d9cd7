@@ -391,3 +391,63 @@ Gaps:
 - Code: packages/core/src/alight-countdown.ts, src/components/journey/AlightCountdownCard.tsx, src/lib/useJourneySideEffects.ts, public/sw.js, src/routes/api/public/trip-alerts.ts, src/lib/wrong-stop-reroute.ts (redesign-roam @ 1508f3f)
 
 ---
+
+## Layer 7b: Phase-by-phase in-trip re-optimisation across transfers (with micromobility in the middle)
+
+Samuel's addendum: the app must be intelligent at every phase of a multi-stop trip (before boarding, on the first bus, approaching the transfer, during it and after it) and keep re-optimising for faster or new buses, alternatives and micromobility in the middle of the trip.
+
+### 7b.1 What the best in the world do
+
+- **Replan at every stop, push the change.** IJCAI 2025 (Monash) formalises exactly this: replan just before each stop, because that is the only moment a rider can act; the plan changes only when the current journey is delayed or a delayed trip becomes catchable; a server-built envelope lets the phone replan in a fraction of a second. Dynamic replanning saved 5 to 30 minutes per affected journey versus static plans, and a large share of the savings came from replanning when the current plan was not delayed at all (synthetic delays; ijcai.org/proceedings/2025/0937).
+- **Multimodal plans mixing modes mid-trip.** Citymapper's "Mixed routes" combine public transport with bikes and e-scooters, and with taxis (citymapper.com/news/2589). Transit compares "bikeshare + rail or bus + metro" and "multiple modes in one trip (bus + bike or scooter + metro)" (Google Play listings). OpenTripPlanner supports bike and scooter rental legs inside transit itineraries, fed by GBFS (docs.opentripplanner.org, RouteRequest).
+- **Phase-aware guidance.** Citymapper's Live Activity shows each stage (walk, wait, ride, transfer) with live departures so the rider knows whether to hurry (citymapper.com/news/2553).
+
+### 7b.2 Cyprus reality and data
+
+- Transfers are common and fragile: in six of nine Audit Office travel scenarios the journey needed two buses (Cyprus Mail, 14 Oct 2026), and some routes run only every one to two hours.
+- Micromobility supply: Bolt e-scooters in Nicosia, parked at fixed municipal stations published on CyNAP (traffic4cyprus.org.cy dataset "bolt"; no live vehicle feed). Bolt told parliament in September 2026 it is the only licensed operator in Nicosia (Politis, 10 Sep 2026, as summarised by the ScootRadar project). Bolt applies a fleet-wide 20 km/h limit and geofenced zones (Cyprus Mail, 1 Sep 2026). Nicosia plans more than 100 designated scooter parking spaces and more 30 km/h zones (Cyprus Mail, 27 Aug and 10 Sep 2026). Electra rents e-bikes (16+) and e-scooters (18+, driving licence) in Nicosia, Larnaca and Limassol from 0.15 euro per minute (electra.space).
+- Legal limits that routing must respect: since April 2026 e-scooters are allowed only from age 17, on cycle paths and lanes, signed shared areas and streets with a 30 km/h limit, not on pavements or faster roads except to cross; maximum 25 km/h (Cyprus Mail, 10 Sep 2026; Cyprus Inform guide; Law 106(I)/2026 on cylaw.org).
+
+### 7b.3 Aloya today, and its gaps
+
+- A clear phase model exists: idle, walking-to-board, waiting-to-board, riding, alight-soon, walking-to-transfer, waiting-for-connection, missed-connection, walking-to-destination, arrived (packages/core/src/multileg-journey.ts lines 13 to 23). The latest commit (1508f3f) makes the "next change" card follow the connecting bus's live time at the change.
+- src/lib/reliability.functions.ts models delay as a normal distribution and estimates a probability (line 4), a building block for connection probability.
+- Bolt scooter suggestions exist but only as a whole-trip alternative: src/lib/bolt-scooter.functions.ts suggests "scoot it" only when both trip ends are near official zones and the trip is 0.8 to 4 km, and honestly refuses to claim live scooter counts. Bike-share and GBFS endpoints exist (src/routes/api/public/bike-share.ts, gbfs). No scooter or bike leg is offered inside a transit itinerary, for example scooting from the first bus to a faster second line.
+- The phase machine has the transfer bug from the opening paragraph: with no GPS fix it advances the transfer walk after planned time plus 120 s and the wait 30 s before departure (lines 347 to 353), then sends "at-stop" alerts (lines 409 to 430), so a rider still on the first bus can be told "You're at <transfer stop>".
+- Phase logic runs only in the foreground on the phone; the server knows nothing about phases.
+
+### 7b.4 Improvements
+
+1. **Phase-specific jobs, one rule each (M, very high).**
+   - Before boarding: layer 1 leave decision; watch for a better first bus from another nearby stop (layer 6's other-stop ask) and offer it once.
+   - On the first bus: compute connection probability for the planned transfer (below) every minute; if it falls below a threshold, compute alternatives now while there are still choices (get off earlier, stay on to a later transfer point, different second line).
+   - Approaching the transfer (2 to 3 stops before): one Tier 1 decision if the plan changed: "Change of plan: get off at <stop> one stop early and walk 3 min to BUS 22, it's 6 min faster." Otherwise a quiet confirmation.
+   - During the transfer: walking guidance to the right side of the road, live countdown for the connecting bus, run or relax using layer 1's states.
+   - After the transfer: confirm on board the second bus, then get-off logic (layer 7).
+2. **Connection probability (M, high).** P(make it) = P(arrival at transfer stop + walk at learned pace + margin is earlier than connecting departure), using the uncertainty bands from layer 5 for both buses. Show it simply: "Safe", "Tight", "Likely to miss". Use it in planning too, preferring a slightly later but safe connection on hourly routes.
+3. **Envelope replanning at every stop (L, very high).** Implement IJCAI's push approach on top of Aloya's RAPTOR: on trip start the server builds the envelope; the phone (or the server for locked phones) replans at each stop and triggers only on the two conditions IJCAI identifies.
+4. **Micromobility as a mid-trip leg (L, high).** Add rental scooter and e-bike legs to RAPTOR footpaths: from any stop within a short walk of a Bolt station (Nicosia) or an Electra zone, to any station near another stop, with travel time from street-network distance on permitted streets (30 km/h roads, cycle paths) at a conservative speed under the 20 km/h Bolt cap, plus unlock and parking time. Restrict by age (17+ for e-scooters, 18+ with licence for Electra scooters, 16+ Electra e-bikes) using a profile setting. Keep the existing honesty rule: never claim live vehicle counts without a live feed, and deep-link to the operator app.
+5. **"Better stop nearby" mid-trip (M, high).** When on the first bus, also consider getting off before the planned transfer and walking, scooting or taking a short taxi to a stop served by a more frequent or faster line. Suggest only if it saves at least 3 minutes or rescues a likely-missed connection (threshold to be tuned with data; it is the earlier run's proposed rule).
+6. **Fix the transfer bug first (S, very high).** No auto-advance without a fix, no "at-stop" alert for transfer walks or waits unless the rider is actually within the stop radius (multileg-journey.ts lines 347 to 353 and 409 to 430).
+7. **Server knows the phase (M, high).** Send the phase with rider_state (layer 1 step 2) so the locked-phone server path can act per phase.
+8. **Learn transfer walking times (M, medium).** Record actual transfer walk durations per stop pair (anonymised, aggregated) to replace estimates, especially where stops sit on opposite sides of busy roads.
+
+### 7b.5 Sources
+
+- https://www.ijcai.org/proceedings/2025/0937.pdf
+- https://citymapper.com/news/2589/
+- https://citymapper.com/news/2553/citymapper-introduces-ios-lock-screen-navigation
+- https://play.google.com/store/apps/details?id=com.thetransitapp.droid
+- https://docs.opentripplanner.org/en/latest/RouteRequest/
+- https://cyprus-mail.com/2026/10/14/63-per-cent-of-passengers-would-not-use-the-bus-again
+- https://www.traffic4cyprus.org.cy/dataset/bolt
+- https://github.com/plhery/ScootRadar/blob/main/docs/cypriot-scooter-feeds.md
+- https://cyprus-mail.com/2026/09/01/bolt-unconcerned-over-new-e-scooter-regulations
+- https://cyprus-mail.com/2026/08/27/e-scooter-offences-could-bring-90-day-impoundment
+- https://cyprus-mail.com/2026/09/10/e-scooter-injuries-rise-as-citations-reach-5000-this-year
+- https://www.kiprinform.com/en/articles/e-scooters-in-cyprus/
+- https://cylaw.org/nomoi/arith/2026_1_106.pdf
+- https://electra.space/
+- Code: packages/core/src/multileg-journey.ts, src/lib/reliability.functions.ts, src/lib/bolt-scooter.functions.ts, src/routes/api/public/bike-share.ts (redesign-roam @ 1508f3f)
+
+---
