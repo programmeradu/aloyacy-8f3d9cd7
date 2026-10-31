@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RoamPage } from "@/components/roam/RoamPage";
 import { useRoamI18n } from "@/lib/roam-i18n";
 import { PulseLiveSection } from "@/components/PulseLiveSection";
-import { RoadPulseCard } from "@/components/pulse/RoadPulseCard";
 import { CrowdEyesCard } from "@/components/pulse/CrowdEyesCard";
 import { TodayEditorial } from "@/components/pulse/TodayEditorial";
 import { usePulseData } from "@/components/pulse/usePulseData";
@@ -64,21 +63,6 @@ function Pulse() {
       />
       <div className="r-legacy r-pulse">
         {today && <TodayEditorial briefing={today} locale={locale} t={t} />}
-
-        <section className="mt-4 animate-rise" style={{ animationDelay: "120ms" }}>
-          <RoadPulseCard
-            kicker={r("pulse.nn.rightNow")}
-            basis={r("pulse.nn.basis", { n: net?.tracked ?? 0 })}
-            onTimePct={net?.onTimePct ?? 0}
-            latePct={net?.latePct ?? 0}
-            earlyPct={net?.earlyPct ?? 0}
-            observations={net?.tracked ?? 0}
-            medianSec={net?.medianDelaySec ?? 0}
-            buckets={hourly?.buckets ?? []}
-            nowHour={hourly?.nowHour ?? new Date().getHours()}
-            t={t}
-          />
-        </section>
 
         <LiveNetworkSection now={net} vehicles={vehicles} />
 
