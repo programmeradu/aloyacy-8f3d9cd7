@@ -41,7 +41,49 @@ function clusterVehicles(vs: LiveVehicle[]): Cluster[] {
       out.push({ lat: v.lat, lng: v.lng, n: 1, sl: v.lat, sg: v.lng });
     }
   }
-  return out.sort((a, b) => b.n - a.n);
+  return mergeOverlaps(out).sort((a, b) => b.n - a.n);
+}
+
+// Rough screen scale of the fixed island view (about 200 px per degree of
+// longitude on a phone, latitude stretched by Mercator at 35 N). Good enough to
+// keep bubbles apart without reading the live map.
+const PX_PER_LNG = 196;
+const PX_PER_LAT = 240;
+const bubble = (n: number) => (n === 1 ? 14 : n >= 10 ? 50 : 34);
+
+/**
+ * Merge any two clusters whose bubbles would touch, until none do. No bubble is
+ * ever hidden for overlapping (the map does not declutter these pins), so the
+ * numbers on the map always add up to the live count.
+ */
+function mergeOverlaps(list: Cluster[]): Cluster[] {
+  const cs = list.map((c) => ({ ...c }));
+  for (;;) {
+    let bi = -1;
+    let bj = -1;
+    let worst = 0;
+    for (let i = 0; i < cs.length; i++) {
+      for (let j = i + 1; j < cs.length; j++) {
+        const dx = (cs[i].lng - cs[j].lng) * PX_PER_LNG;
+        const dy = (cs[i].lat - cs[j].lat) * PX_PER_LAT;
+        const need = (bubble(cs[i].n) + bubble(cs[j].n)) / 2 + 6;
+        const over = need - Math.hypot(dx, dy);
+        if (over > worst) {
+          worst = over;
+          bi = i;
+          bj = j;
+        }
+      }
+    }
+    if (bi < 0) return cs;
+    const a = cs[bi];
+    const b = cs[bj];
+    const n = a.n + b.n;
+    const sl = a.sl + b.sl;
+    const sg = a.sg + b.sg;
+    cs[bi] = { n, sl, sg, lat: sl / n, lng: sg / n };
+    cs.splice(bj, 1);
+  }
 }
 
 function MiniRing({ pct }: { pct: number }) {
@@ -74,9 +116,14 @@ export function LiveNetworkSection({
   vehicles: LiveVehicle[];
 }) {
   const { r } = useRoamI18n();
+  const live = now?.liveBuses ?? 0;
+  const rated = !!now && now.tracked > 0;
+  // Same list as the count: the bubbles always add up to the live figure.
+  const onMap = vehicles.length;
+  const clustered = useMemo(() => clusterVehicles(vehicles), [vehicles]);
   const pins = useMemo<DomPin[]>(
     () =>
-      clusterVehicles(vehicles).map((c, i) => ({
+      clustered.map((c, i) => ({
         id: `clu-${i}`,
         lat: c.lat,
         lng: c.lng,
@@ -89,12 +136,8 @@ export function LiveNetworkSection({
             <span className={`r-clu${c.n >= 10 ? " r-clu--lg" : ""}`}>{c.n}</span>
           ),
       })),
-    [vehicles],
+    [clustered],
   );
-  const live = now?.liveBuses ?? 0;
-  const rated = !!now && now.tracked > 0;
-  // Same list as the count: the bubbles always add up to the live figure.
-  const onMap = vehicles.length;
 
   return (
     <section className="animate-rise" style={{ animationDelay: "100ms" }}>
@@ -111,10 +154,10 @@ export function LiveNetworkSection({
         liveVehicles={false}
         hideLiveBadge
         pins={pins}
-        declutterPx={30}
+        declutterPx={0}
       />
       <span hidden data-metric="map-sum">
-        {onMap}
+        {clustered.reduce((t, c) => t + c.n, 0)}/{onMap}
       </span>
       <div className="r-pulse-tiles">
         <div className="r-pulse-tile">
