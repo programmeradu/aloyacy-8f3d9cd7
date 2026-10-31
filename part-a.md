@@ -95,7 +95,7 @@ When a trip is started at home, Aloya's server sends alerts that assume the ride
 
 ### 2.4 Improvements
 
-1. **Pace profile in settings (S, high).** Options: Brisk (1.5 m/s), Normal (1.3 m/s), Relaxed (1.0 m/s), Slow or with a walking aid (0.8 m/s), Wheelchair (1.1 m/s, step-free routing). Figures follow FHWA and Asher et al. Pass the chosen speed into RAPTOR (raptor-core.ts walkMetersPerSec) and scale Google durations by (Google implied speed / user speed).
+1. **Pace profile in settings (S, high).** Options: Brisk (1.5 m/s), Normal (1.3 m/s), Relaxed (1.0 m/s), Slow or with a walking aid (0.8 m/s), Wheelchair (1.1 m/s, step-free routing). The slow, walking-aid and wheelchair figures follow FHWA and Asher et al.; the brisk and normal figures are proposed defaults to be replaced by learned pace (step 2). Pass the chosen speed into RAPTOR (raptor-core.ts walkMetersPerSec) and scale Google durations by (Google implied speed / user speed).
 2. **Learned pace, on the device (M, high).** During any walk leg with good GPS (horizontal accuracy under 20 m, straight segments over 100 m), compute speed from distance over time, reject stops at crossings (speed under 0.3 m/s), and keep an exponentially weighted personal median plus a "brisk" 85th percentile. Where available use the step counter (Android Activity Recognition and step sensor; iOS CMPedometer in a native wrapper) to calibrate stride as AutoGait does, which is steadier than GPS (JMIR 2025 shows GPS noise). Store only the two numbers, on the device.
 3. **Two speeds in every decision (S, high).** Layer 1's leave logic uses normal pace for "leave now" and brisk pace for "run, you can still make it", never assuming the rider will run unless the gap is small.
 4. **Context factors (M, medium).** Apply a heat factor (slower above a temperature threshold, from a weather API), a night factor, and a luggage or pram toggle for the trip. Calibrate the factors from learned data rather than inventing them.
@@ -118,5 +118,56 @@ When a trip is started at home, Aloya's server sends alerts that assume the ride
 - Code: packages/core/src/geo.ts, packages/core/src/multileg-legs.ts, packages/core/src/raptor-core.ts, src/lib/walk-links.server.ts, src/lib/walk-refine.server.ts (redesign-roam @ 1508f3f)
 
 Note: the first run cited an Ulm University step-versus-GPS speed figure (1.0 to 1.1 km/h versus 1.1 to 2.4 km/h). Its source is a 2021 master's thesis behind a registered-user wall (dbis.eprints.uni-ulm.de/id/eprint/2067), which could not be opened to verify, so the figure is not used here.
+
+---
+
+## Layer 3: PWA background location and what the phone allows
+
+### 3.1 What the best in the world do
+
+- Transit, Citymapper and Google Maps are native apps. Their trip companions keep working with the screen off because native apps can hold background location during an active navigation session and show a persistent lock-screen surface: Live Activities on iOS and Live Notifications or Live Updates on Android (help.transitapp.com/article/549; citymapper.com/news/2553; androidpolice.com, Aug 2026).
+- Android's coming Transit mode requires "Allow all the time" precise background location for Google Maps to send updates while the user is at home or work (Android Authority, 20 Jan 2026). The leaders accept the permission cost because location-aware alerts are impossible without it.
+- Platform limits that shape every design:
+  - **iOS web apps.** Web Push works from iOS 16.4 only for web apps installed to the Home Screen; Declarative Web Push from iOS 18.4 (installed web apps, no service worker needed); Screen Wake Lock from 16.4, and from 18.4 in installed web apps; Background Sync, Periodic Background Sync and Background Fetch are not supported; the Vibration API is not supported (firt.dev iOS PWA compatibility, updated 13 Oct 2026). WebKit requires every push to show a visible notification and revokes the subscription if a service worker fails to show one, so silent pushes to wake the app for a location check are not possible (webkit.org/blog/16535).
+  - **Android Chrome.** Web Push works in the browser and installed apps; geolocation is available to pages in the foreground only. There is no web API for background location on either platform.
+  - **Native.** iOS Live Activities can stay active for up to 8 hours (Apple ActivityKit documentation). iOS monitors at most 20 regions per app for geofencing; Android allows up to 100 active geofences per app (Android geofencing documentation). Android 16 introduced Live Updates with ProgressStyle notifications for journeys (developer.android.com, live-update).
+
+### 3.2 Cyprus reality and data
+
+- Cyprus riders use both iPhone and Android; no reliable published split for Cyprus was found, so Aloya must design for both.
+- CPT's own Pame app is native (Google Play listing app.meep.cyprus.pame, rating 3.1 from 539 reviews in the listing seen), so riders who install an app for buses already accept native permissions.
+- On sparse routes a rider may wait 20 to 60 minutes with the phone in a pocket. Any alert that needs the app open fails exactly when it matters.
+
+### 3.3 Aloya today, and its gaps
+
+- The live trip engine runs in the browser (src/lib/useGeoWatch.ts and src/lib/useFusedFix.ts use navigator.geolocation.watchPosition), so it stops when the tab is backgrounded or the screen locks.
+- No Screen Wake Lock use was found in src, mobile or packages, so even a rider who keeps the app open can have the screen sleep and the watch stop.
+- src/lib/useJourneySideEffects.ts lines 122, 124 and 162 call navigator.vibrate for "ring the bell" and "stop coming up" pulses. The Vibration API is not supported on iOS (firt.dev), so iPhone riders get no haptic cue.
+- public/sw.js shows push notifications and relays text to an open window for speech (lines 140 to 170), so spoken alerts only work if a window is open.
+- The Expo app has a real background-location task for group trips only (mobile/lib/groupBackgroundLocation.ts) and a stub Live Activity bridge: mobile/lib/liveActivities.ts startLiveActivity logs and returns the fixed string "activity-session-id" without calling ActivityKit. The last EAS Android build in mobile/build_info.json errored.
+
+### 3.4 Improvements
+
+1. **Design for "no background location" on the web (S, very high).** Treat the server as the only thing that runs while the phone sleeps, and give it only safe, state-aware alerts (layer 1 steps 1 and 2). When the web app is closed, rider_state decays to unknown after 3 minutes and the server must ask, not assume.
+2. **Screen Wake Lock during active legs (S, high).** Request navigator.wakeLock.request("screen") while walking to a stop and during the last 3 stops before getting off, release it otherwise, and re-request on visibilitychange. Works in iOS 18.4+ installed web apps and Chromium.
+3. **Declarative Web Push payloads (S, medium).** Send the standard JSON ("web_push": 8030 with a notification object and navigate URL) so notifications still show on iOS 18.4+ even if Intelligent Tracking Prevention removes the service worker. Keep the service worker as an optional enhancer.
+4. **iPhone haptics fallback (S, medium).** Where navigator.vibrate is missing, use a short audio cue plus speech (Web Speech Synthesis is supported on iOS) when the app is open, and set notification sound for get-off alerts.
+5. **Install prompt with honest value (S, medium).** iOS web push needs Home Screen installation. Show a one-time explainer at the first trip start on iPhone: "Add Aloya to your Home Screen to get leave-now and get-off alerts."
+6. **Native shell for background trips (L, very high).** Fix the Expo build first, then reuse the group-trip TaskManager pattern for solo trips: start background location only between trip start and trip end, distance filter about 25 m when walking and 100 m when riding, foreground service notification on Android, "while using" plus the blue indicator on iOS. Compute rider state on the device and send only the state (layer 10). A commercial plugin such as transistorsoft's background geolocation is an option if Expo's task proves unreliable.
+7. **Geofences instead of continuous GPS (M, high).** In the native app, register geofences around the board stop (radius about 60 m), transfer stops and the stop before the alighting stop. Respect the 20-region iOS limit by registering only the next two or three.
+8. **Real Live Activity and Android Live Update (M, high).** Replace the stub with an Expo module calling ActivityKit (one activity per trip, ended at arrival, within the 8-hour limit) and an Android ProgressStyle Live Update. See layer 8.
+
+### 3.5 Sources
+
+- https://firt.dev/notes/pwa-ios
+- https://webkit.org/blog/16535/meet-declarative-web-push/
+- https://developer.apple.com/documentation/activitykit/displaying-live-data-with-live-activities
+- https://developer.android.com/develop/ui/views/notifications/live-update
+- https://developer.android.com/develop/sensors-and-location/location/geofencing
+- https://www.androidpolice.com/nobody-is-using-live-updates
+- https://www.androidauthority.com/android-transit-mode-3633735/
+- https://help.transitapp.com/article/549-how-to-use-go
+- https://play.google.com/store/apps/details?id=app.meep.cyprus.pame
+- Code: src/lib/useGeoWatch.ts, src/lib/useFusedFix.ts, src/lib/useJourneySideEffects.ts, public/sw.js, mobile/lib/groupBackgroundLocation.ts, mobile/lib/liveActivities.ts, mobile/build_info.json (redesign-roam @ 1508f3f)
 
 ---
