@@ -73,6 +73,9 @@ const NEAR_DEST_KM = 1.0;
 const TRIPS_PER_ROUTE = 2;
 /** GTFS feed of the island-wide intercity coaches. */
 const INTERCITY_FEED_ID = 5;
+/** Window and count deciding that the nearby stops have "no service left". */
+const NEAR_SERVICE_WINDOW_SEC = 2 * 3600;
+const MIN_NEAR_DEPARTURES = 3;
 
 
 export type RaptorDiagnostics = {
@@ -116,13 +119,9 @@ export async function planRaptor(
   to = snappedTo.point;
   from = snappedFrom.point;
   const tripKm = distanceKm(from, to);
-  // Cross-city trips may walk further to reach a stop with a route the nearer
-  // stops lack (an intercity, typically); the final rank prices the walk.
-  const accessKm = snappedFrom.airport
-    ? AIRPORT_TERMINAL_RADIUS_KM
-    : tripKm > LONG_TRIP_KM
-      ? LONG_ACCESS_WALK_KM
-      : MAX_ACCESS_WALK_KM;
+  // Stops up to LONG_ACCESS_WALK_KM are looked at; which of the far ones are
+  // admitted is decided below (intercity coach, or nothing nearer runs).
+  const accessKm = snappedFrom.airport ? AIRPORT_TERMINAL_RADIUS_KM : LONG_ACCESS_WALK_KM;
   const diag: RaptorDiagnostics = {
     date,
     scheduleStopsLoaded: Object.keys(stops).length,
@@ -187,12 +186,30 @@ export async function planRaptor(
     destPick = pickDest(MAX_DIRECT_EGRESS_WALK_KM);
   }
 
-  // Past the normal access radius, only a stop with an intercity coach is
-  // worth the walk; a town bus there is better reached by the local feeder.
+  // Past the normal access radius a stop is worth the walk when it has an
+  // intercity coach (cross-city trips), or when the nearer stops have next to
+  // no service left in the window: a village whose only line has stopped for
+  // the day still has the main road 2.5 km away. Otherwise a town bus there is
+  // better reached by the local feeder, so it stays out of the search.
   const servesIntercity = (id: string) =>
     routesAtStop(id).some((r) => schedule.routes[r]?.feedId === INTERCITY_FEED_ID);
+  const departuresSoon = (id: string, distKm: number): number => {
+    const rows = stopTrips[id];
+    if (!rows) return 0;
+    const fromSec = unixToServiceSec(date, departureUnix + walkSecFromMeters(distKm * 1000));
+    const toSec = fromSec + Math.min(SEARCH_HORIZON_SEC, NEAR_SERVICE_WINDOW_SEC);
+    let n = 0;
+    for (const row of rows) if (row[1] >= fromSec && row[1] <= toSec) n++;
+    return n;
+  };
+  let nearService = 0;
+  for (const c of originPick.candidates) {
+    if (c.distKm <= MAX_ACCESS_WALK_KM) nearService += departuresSoon(c.id, c.distKm);
+  }
+  const widenAccess = nearService < MIN_NEAR_DEPARTURES;
+  const longTrip = tripKm > LONG_TRIP_KM;
   const origins = originPick.candidates.filter(
-    (c) => c.distKm <= MAX_ACCESS_WALK_KM || servesIntercity(c.id),
+    (c) => c.distKm <= MAX_ACCESS_WALK_KM || widenAccess || (longTrip && servesIntercity(c.id)),
   );
   // One destination set for every option. Nothing gets a wider walking radius
   // because of how many changes it has.
