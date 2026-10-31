@@ -365,7 +365,13 @@ function pathD(pts: { x: number; y: number }[]): string {
  * The aerial base: canvas grey, every route in view drawn as a pale road with
  * a soft edge (the network itself reads as the street map), faint stop dots.
  */
-export function baseMap(proj: Proj, shapes: Shapes | null, v: View): string {
+export function baseMap(
+  proj: Proj,
+  shapes: Shapes | null,
+  v: View,
+  size: { w: number; h: number } = { w: W, h: H },
+): string {
+  const { w: W, h: H } = size;
   const inView = (p: { x: number; y: number }) =>
     p.x > -200 && p.x < W + 200 && p.y > -200 && p.y < H + 200;
   const roads: string[] = [];
@@ -602,8 +608,10 @@ function ensureWasm(): Promise<void> {
 /** Render a Roam card SVG to PNG bytes. */
 export async function renderPng(svg: string): Promise<Uint8Array> {
   await ensureWasm();
+  // Portrait cards declare their own pixel width on the root <svg>.
+  const declared = /<svg[^>]*\swidth="(\d+)"/.exec(svg);
   const resvg = new Resvg(svg, {
-    fitTo: { mode: "width", value: W },
+    fitTo: { mode: "width", value: declared ? Number(declared[1]) : W },
     background: R.canvas,
     font: {
       fontBuffers: fonts(),

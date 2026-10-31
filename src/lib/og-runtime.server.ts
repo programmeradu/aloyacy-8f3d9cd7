@@ -144,3 +144,33 @@ export async function ogRender(
     return ogAsset(request, fallback, 600);
   }
 }
+
+/**
+ * Draw a card without caching it: the in-app share picture with live numbers
+ * (next bus in N min) changes every minute, so it is drawn per request.
+ */
+export async function ogDraw(
+  request: Request,
+  draw: (shapes: Shapes | null) => string | null | Promise<string | null>,
+  fallback: string[],
+): Promise<Response> {
+  try {
+    const shapes = await ogShapes();
+    const svg = await draw(shapes);
+    if (!svg) return ogAsset(request, fallback, 60);
+    const png = await renderPng(svg);
+    return new Response(png as BlobPart, {
+      headers: {
+        "Content-Type": "image/png",
+        "Content-Length": String(png.byteLength),
+        "Cache-Control": "private, max-age=30",
+        "Access-Control-Allow-Origin": "*",
+        "X-Content-Type-Options": "nosniff",
+        "X-OG": "drawn-live",
+      },
+    });
+  } catch (err) {
+    console.warn(`og: live draw failed: ${String((err as Error)?.message ?? err)}`);
+    return ogAsset(request, fallback, 60);
+  }
+}
