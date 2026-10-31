@@ -15,7 +15,7 @@ export const trip: Record<keyof typeof tripEn, string> = {
   "trip.walkToStopH": "Περπάτημα στη στάση",
   "trip.walkToDestH": "Περπάτημα στον προορισμό",
   "trip.walkToName": "Περπάτημα προς {name}",
-  "trip.walkMeters": "{m} λεπ · {d} μ",
+  "trip.walkMeters": "{m} λεπ, {d} μ",
   "trip.boardBusPrefix": "Επιβίβαση",
   "trip.boardBusName": "ΛΕΩΦ {code}",
   "trip.alightAt": "Αποβίβαση στη {name}",
@@ -48,7 +48,7 @@ export const trip: Record<keyof typeof tripEn, string> = {
   "trip.sub.alightSoon": "Πατήστε το κουμπί. Μετά {m} λεπ με τα πόδια προς {name}.",
   "trip.sub.arrived": "Είστε {m} λεπ από {name}. Προσέξτε τον δρόμο.",
   "trip.alight.press": "Πατήστε το κουμπί στάσης τώρα",
-  "trip.alight.getReady": "Ετοιμαστείτε · {m} λεπ",
+  "trip.alight.getReady": "Ετοιμαστείτε, {m} λεπ",
   "trip.alight.body.now":
     "Πατήστε το κουμπί, πηγαίνετε προς τις πόρτες. Θα σας καθοδηγήσουμε βήμα-βήμα προς {name} μόλις κατέβετε.",
   "trip.alight.body.soon":

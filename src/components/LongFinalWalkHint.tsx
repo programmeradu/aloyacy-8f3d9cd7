@@ -70,7 +70,7 @@ export function LongFinalWalkHint({
   return (
     <section className="px-6 mt-3 animate-rise">
       <article className="rounded-[26px] bg-ochre-soft/55 ring-1 ring-ochre/30 px-5 py-4">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+        <p className="text-[12px] text-ochre">
           {t("lfw.kicker")}
         </p>
         <h3 className="mt-1.5 font-display text-[22px] leading-[1.15] text-ink text-balance">

@@ -15,7 +15,7 @@ export function AtStopCard({ trip, live }: { trip: ActiveTrip; live: LiveJourney
   return (
     <section className="px-6 animate-rise space-y-3">
       <div className="rounded-[28px] bg-olive-soft/40 ring-1 ring-olive/25 p-5">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive">
+        <p className="text-[12px] text-olive">
           {t("hud.atStop.label")}
         </p>
         <p className="mt-2 font-display text-[26px] leading-tight text-ink">

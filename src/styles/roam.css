@@ -1567,6 +1567,27 @@ body[style*="overflow: hidden"] .r-app-scroll {
   pointer-events: none;
   background: linear-gradient(var(--r-canvas), rgba(217, 217, 213, 0));
 }
+/* Go: the pinned header is opaque and lifts with a soft shadow once the
+   results scroll, instead of a fade band. The band washed over the dark trip
+   card, slicing its rounded top and leaving half a line of text showing. */
+.r-page.r-page--go > .r-col > .r-head::after {
+  content: none;
+}
+@supports (animation-timeline: scroll()) {
+  .r-page.r-page--go > .r-col > .r-head {
+    animation: r-go-head-lift linear both;
+    animation-timeline: scroll(nearest block);
+    animation-range: 0 40px;
+  }
+  @keyframes r-go-head-lift {
+    from {
+      box-shadow: 0 10px 18px -18px rgba(23, 23, 23, 0);
+    }
+    to {
+      box-shadow: 0 10px 18px -12px rgba(23, 23, 23, 0.22);
+    }
+  }
+}
 /* Resume trip dock: content on every tab clears it as well as the tab bar. */
 html.r-has-resume .r-body,
 html.r-has-resume .r-now-more {

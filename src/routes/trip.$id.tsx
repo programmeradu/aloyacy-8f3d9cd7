@@ -211,10 +211,10 @@ function SingleLegCompanion({
           <header className="r-hero-head">
             <BackButton label={r("back")} fallback="/trips" />
             <div className="min-w-0 flex-1 r-scrim-text">
-              <p className="r-hero-title truncate">
+              <p className="r-hero-title r-clamp2">
                 {r("trip.lineTitle", { line: bus.routeShort })}
               </p>
-              <p className="r-hero-sub truncate">{active.to.label}</p>
+              <p className="r-hero-sub r-clamp2">{active.to.label}</p>
             </div>
             <button
               type="button"
@@ -347,7 +347,7 @@ function SingleLegCompanion({
                       {walkingPhase === "to-stop" ? t("trip.walkToStopH") : t("trip.walkToDestH")}
                     </h2>
                     <span className="r-lbl r-tnum">
-                      {Math.round(directions.durationSec / 60)} {t("common.minUnit")} ·{" "}
+                      {Math.round(directions.durationSec / 60)} {t("common.minUnit")},{" "}
                       {directions.distanceMeters >= 1000
                         ? `${(directions.distanceMeters / 1000).toFixed(1)} km`
                         : `${Math.round(directions.distanceMeters)} m`}

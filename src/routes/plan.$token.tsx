@@ -208,10 +208,10 @@ function PlanView({ plan }: { plan: PlanShare }) {
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 py-6">
       <header className="flex items-baseline justify-between">
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-ink-soft">
+        <p className="text-[12px] font-semibold text-ink-soft">
           Trip plan
         </p>
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
+        <p className="text-[12px] font-semibold text-ink-soft">
           {isPast
             ? "past"
             : plan.transfers === 0
@@ -238,7 +238,7 @@ function PlanView({ plan }: { plan: PlanShare }) {
           <span className="font-display text-[46px] font-semibold leading-none tabular-nums text-ink">
             {fmtTime(plan.departure_unix)}
           </span>
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
+          <span className="text-[12px] font-semibold text-ink-soft">
             depart
           </span>
         </div>
@@ -262,7 +262,7 @@ function PlanView({ plan }: { plan: PlanShare }) {
 
       {/* Route summary */}
       <section className="rounded-[28px] bg-card p-5 ring-1 ring-line">
-        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
+        <p className="text-[12px] font-semibold text-ink-soft">
           The ride
         </p>
         <div className="mt-3 space-y-3">
@@ -273,7 +273,7 @@ function PlanView({ plan }: { plan: PlanShare }) {
 
         <div className="mt-5 flex items-baseline justify-between border-t border-line pt-4">
           <div>
-            <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
+            <p className="text-[12px] font-semibold text-ink-soft">
               Arrive
             </p>
             <p className="mt-1 font-display text-[22px] font-semibold text-ink tabular-nums">
@@ -281,7 +281,7 @@ function PlanView({ plan }: { plan: PlanShare }) {
             </p>
           </div>
           <div className="text-right">
-            <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
+            <p className="text-[12px] font-semibold text-ink-soft">
               Total
             </p>
             <p className="mt-1 font-display text-[22px] font-semibold text-ink tabular-nums">
@@ -335,7 +335,7 @@ function PlanView({ plan }: { plan: PlanShare }) {
       </div>
 
       <footer className="mt-4 flex flex-col items-center gap-2 py-4">
-        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.24em] text-ink-soft">
+        <p className="text-[12px] font-semibold text-ink-soft">
           Shared via Aloya
         </p>
         <a
@@ -365,8 +365,8 @@ function LegRow({ leg }: { leg: Leg }) {
             {leg.alight?.name?.split(",")[0] ?? ""}
           </p>
           <p className="mt-0.5 font-sans text-[12px] font-semibold text-ink-soft tabular-nums">
-            {dep} · {arr}
-            {typeof leg.stopCount === "number" ? ` · ${leg.stopCount} stops` : ""}
+            {dep} → {arr}
+            {typeof leg.stopCount === "number" ? `, ${leg.stopCount} stops` : ""}
           </p>
         </div>
       </div>
@@ -375,7 +375,7 @@ function LegRow({ leg }: { leg: Leg }) {
   if (leg.kind === "walk") {
     return (
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 inline-flex min-w-[44px] items-center justify-center rounded-lg bg-limestone-soft px-2 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-ink">
+        <span className="mt-0.5 inline-flex min-w-[44px] items-center justify-center rounded-lg bg-limestone-soft px-2 py-1 text-[12px] font-semibold text-ink">
           Walk
         </span>
         <div className="min-w-0 flex-1">
@@ -393,7 +393,7 @@ function LegRow({ leg }: { leg: Leg }) {
   }
   return (
     <div className="flex items-start gap-3">
-      <span className="mt-0.5 inline-flex min-w-[44px] items-center justify-center rounded-lg bg-limestone-soft px-2 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-ink-soft">
+      <span className="mt-0.5 inline-flex min-w-[44px] items-center justify-center rounded-lg bg-limestone-soft px-2 py-1 text-[12px] font-semibold text-ink-soft">
         Wait
       </span>
       <div className="min-w-0 flex-1">
@@ -415,7 +415,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 function Placeholder({ title, body }: { title: string; body?: string }) {
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-ink-soft">
+      <p className="text-[12px] font-semibold text-ink-soft">
         Aloya
       </p>
       <h1 className="font-display text-[24px] font-semibold text-ink">{title}</h1>

@@ -190,13 +190,13 @@ export function WatchTogetherButton({
           </span>
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-display text-[14.5px] font-semibold leading-tight">
+          <span className="block line-clamp-2 font-display text-[14.5px] font-semibold leading-tight">
             {sameDest
-              ? `Group trip live · ${existing.code}`
+              ? `Group trip live, ${existing.code}`
               : `You're in ${existing.code} → ${existing.destination_label}`}
           </span>
-          <span className="mt-0.5 block truncate font-sans text-[11.5px] font-medium text-limestone/80">
-            Tap to open the live map · {peopleLabel}
+          <span className="mt-0.5 block line-clamp-2 font-sans text-[11.5px] font-medium text-limestone/80">
+            Tap to open the live map, {peopleLabel}
           </span>
         </span>
         <span className="font-display text-lg text-limestone/80 transition-transform group-hover:translate-x-0.5">
@@ -214,10 +214,10 @@ export function WatchTogetherButton({
           className="inline-flex items-center justify-center gap-2 rounded-full bg-aegean-deep px-4 py-2 font-sans text-[13px] font-semibold text-limestone ring-1 ring-aegean-deep transition-opacity hover:opacity-90"
         >
           <PulseDot />
-          Open live group · {shared.code}
+          Open live group, {shared.code}
         </a>
-        <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft break-all">
-          Link copied · {shared.url.replace(/^https?:\/\//, "")}
+        <p className="px-1 text-[12px] font-semibold text-ink-soft break-all">
+          Link copied, {shared.url.replace(/^https?:\/\//, "")}
         </p>
       </div>
     );
@@ -246,7 +246,7 @@ export function WatchTogetherButton({
             Watch together, live
           </span>
           <span className="mt-0.5 block font-sans text-[11.5px] font-medium text-ink-soft">
-            Invite friends · one map, real ETAs, no account
+            Invite friends: one map, real ETAs, no account
           </span>
         </span>
         <span className="font-display text-lg text-ink-soft transition-transform group-hover:translate-x-0.5">
@@ -258,7 +258,7 @@ export function WatchTogetherButton({
 
   return (
     <div className="w-full rounded-2xl bg-card p-4 ring-1 ring-line">
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
+      <p className="text-[12px] font-semibold text-ink-soft">
         Start a live group trip
       </p>
       <p className="mt-1 font-sans text-[12px] font-medium text-ink-soft">
@@ -280,7 +280,7 @@ export function WatchTogetherButton({
           type="button"
           onClick={onCreate}
           disabled={busy}
-          className="rounded-xl bg-ink px-4 py-2 font-sans text-[12px] font-semibold uppercase tracking-[0.14em] text-limestone transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="rounded-xl bg-ink px-4 py-2 font-sans text-[12px] font-semibold text-limestone transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {busy ? "Starting…" : "Create"}
         </button>

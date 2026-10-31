@@ -47,7 +47,7 @@ export function MissedBusCard({ trip }: { trip: ActiveTrip }) {
   return (
     <section className="px-6 animate-rise">
       <div className="rounded-[28px] bg-ochre-soft ring-1 ring-ochre/40 p-5">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+        <p className="text-[12px] text-ochre">
           {t("hud.missed.label")}
         </p>
         <p className="mt-2 font-display text-[26px] leading-tight text-ink">

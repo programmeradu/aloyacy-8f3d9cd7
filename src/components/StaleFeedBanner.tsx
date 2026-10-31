@@ -38,7 +38,7 @@ export function StaleFeedBanner({ variant }: { variant: Variant }) {
   return (
     <section className="px-6 animate-rise">
       <div className={`rounded-[24px] ring-1 px-5 py-4 ${c.tone}`}>
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em]">{t(c.label)}</p>
+        <p className="text-[12px]">{t(c.label)}</p>
         <p className="mt-1 text-[12.5px] leading-relaxed text-ink-soft">{t(c.detail)}</p>
       </div>
     </section>

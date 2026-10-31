@@ -20,7 +20,7 @@ export function StartCard({ trip }: { trip: ActiveTrip }) {
             height={720}
           />
           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink/55 to-transparent" />
-          <p className="absolute left-5 top-5 font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-limestone">
+          <p className="absolute left-5 top-5 font-sans text-[12px] font-semibold text-limestone">
             {t("hud.liveGuidance")}
           </p>
         </div>

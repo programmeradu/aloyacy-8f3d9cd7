@@ -1,5 +1,5 @@
 // Shared Roam layout for every last-mile and micro-mobility card on Go
-// (Bolt ride, Bolt scooter, Nextbike, taxi). One white soft card:
+// (Bolt ride, Bolt scooter, Nextbike, Kapnos, taxi, park and ride). One white soft card:
 //   provider row (real logo tile, name, mode, quiet aside)
 //   headline
 //   one row of compact stats that never wraps at 360 to 430px
@@ -15,9 +15,9 @@
 import type { ReactNode } from "react";
 import { Icon } from "@/components/roam/Icon";
 
-export type Provider = "bolt" | "nextbike" | "kapnos" | "taxi";
+export type Provider = "bolt" | "nextbike" | "kapnos" | "taxi" | "parkride";
 
-const LOGO: Record<Exclude<Provider, "taxi">, { src: string; bg: string; alt: string }> = {
+const LOGO: Record<Exclude<Provider, "taxi" | "parkride">, { src: string; bg: string; alt: string }> = {
   bolt: { src: "/brands/bolt.png", bg: "#2a9c64", alt: "Bolt" },
   nextbike: { src: "/brands/nextbike.png", bg: "#0046d7", alt: "Nextbike" },
   kapnos: { src: "/brands/kapnos-mark.png", bg: "#ffffff", alt: "Kapnos Airport Shuttle" },
@@ -35,6 +35,18 @@ export function cleanPlace(name: string | null | undefined): string {
 }
 
 export function ProviderTile({ provider, size = 40 }: { provider: Provider; size?: number }) {
+  if (provider === "parkride") {
+    // Parking sign blue with a bold P, the mark drivers already read.
+    return (
+      <span
+        className="inline-flex shrink-0 items-center justify-center rounded-[12px] bg-[#1f5fd6] font-bold leading-none text-white"
+        style={{ width: size, height: size, fontSize: Math.round(size * 0.55) }}
+        aria-hidden
+      >
+        P
+      </span>
+    );
+  }
   if (provider === "taxi") {
     return (
       <span

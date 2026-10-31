@@ -101,7 +101,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
         >
           <IconArrowLeft className="size-4" />
         </Link>
-        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+        <span className="text-[12px] text-ink-soft">
           {t("ml.rideOfN", {
             label:
               itin.transfers === 1 ? t("ml.changesOne") : t("ml.changesN", { n: itin.transfers }),
@@ -232,7 +232,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
       {live.active && live.rerouteHint?.kind === "switch-boarding" && (
         <section className="px-6 mt-3 animate-rise">
           <div className="rounded-[22px] bg-aegean-soft/50 ring-1 ring-aegean/30 px-4 py-3">
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
+            <p className="text-[12px] text-aegean-deep">
               {t("ml.boardingAdjusted")}
             </p>
             <p className="mt-1 text-[13px] text-ink">
@@ -244,7 +244,7 @@ export function MultiLegCompanion({ active }: { active: ActiveTrip }) {
       {live.active && live.rerouteHint?.kind === "offer-replan" && (
         <section className="px-6 mt-3 animate-rise">
           <div className="rounded-[22px] bg-ochre-soft/60 ring-1 ring-ochre/30 px-4 py-3">
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+            <p className="text-[12px] text-ochre">
               {t("ml.differentStop")}
             </p>
             <p className="mt-1 text-[13px] text-ink">{live.rerouteHint.reason}</p>

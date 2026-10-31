@@ -28,7 +28,7 @@ export function MultiLegActions({
     return (
       <section className="px-6 animate-rise" style={{ animationDelay: "100ms" }}>
         <div className="rounded-[28px] bg-aegean-soft/40 ring-1 ring-aegean/20 p-5">
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
+          <p className="text-[12px] text-aegean-deep">
             {t("hud.liveGuidance")}
           </p>
           <p className="mt-2 font-display text-[26px] leading-tight text-ink">
@@ -58,7 +58,7 @@ export function MultiLegActions({
     return (
       <section className="px-6 animate-rise">
         <div className="rounded-[28px] bg-card ring-1 ring-line p-5">
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-aegean-deep">
+          <p className="text-[12px] text-aegean-deep">
             {t("ml.act.onBoardQ", { code: live.currentRideLeg?.routeShort ?? "" })}
           </p>
           <p className="mt-2 text-[13px] text-ink-soft">
@@ -80,7 +80,7 @@ export function MultiLegActions({
     return (
       <section className="px-6 animate-rise">
         <div className="rounded-[28px] bg-ochre-soft ring-1 ring-ochre/40 p-5">
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+          <p className="text-[12px] text-ochre">
             {t("ml.act.pressStop")}
           </p>
           <p className="mt-2 font-display text-[26px] leading-tight text-ink">
@@ -106,7 +106,7 @@ export function MultiLegActions({
     return (
       <section className="px-6 animate-rise">
         <div className="rounded-[28px] bg-card ring-1 ring-line p-5">
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive">
+          <p className="text-[12px] text-olive">
             {t("ml.act.finalLabel", { m: walkMin })}
           </p>
           <p className="mt-2 font-display text-[22px] leading-tight text-ink">
@@ -129,7 +129,7 @@ export function MultiLegActions({
     return (
       <section className="px-6 animate-rise">
         <div className="rounded-[28px] bg-olive-soft ring-1 ring-olive/30 p-5">
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive">
+          <p className="text-[12px] text-olive">
             {t("hud.arrived.label")}
           </p>
           <p className="mt-2 font-display text-[26px] leading-tight text-ink">

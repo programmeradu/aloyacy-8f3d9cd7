@@ -96,7 +96,7 @@ export function ArrivalPromiseCommit({
           className="h-32 w-full object-cover object-right sm:h-40"
         />
         <div className="p-5 sm:p-6">
-          <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-ink-soft">
+          <p className="text-[12px] font-semibold text-ink-soft">
             Arrival promise
           </p>
           <h2 className="mt-2 font-display text-[20px] leading-tight font-bold text-ink">
@@ -169,7 +169,7 @@ export function ArrivalPromiseWatchList() {
 
   return (
     <section className="space-y-3">
-      <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-ink-soft">
+      <p className="text-[12px] font-semibold text-ink-soft">
         {promises.length === 1 ? "Arrival you asked us to hold" : "Arrivals you asked us to hold"}
       </p>
       {promises.map((p) => (
@@ -241,11 +241,11 @@ function PromiseRow({ promise }: { promise: ArrivalPromiseRow }) {
           </h3>
           <p className="mt-1 font-sans text-[13px] font-medium text-ink-soft">
             from {promise.origin_label}
-            {routes.length > 0 ? ` · BUS ${routes.join(" → ")}` : ""}
+            {routes.length > 0 ? `, bus ${routes.join(" → ")}` : ""}
           </p>
         </div>
         <span
-          className={`shrink-0 rounded-full px-3 py-1.5 font-mono text-[10.5px] font-bold uppercase tracking-[0.12em] ${
+          className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold ${
             missed
               ? "bg-ochre text-limestone"
               : leaveNow
@@ -292,7 +292,7 @@ function PromiseRow({ promise }: { promise: ArrivalPromiseRow }) {
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="mt-4 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-aegean"
+            className="mt-4 text-[12px] font-semibold text-aegean"
           >
             {expanded ? "Hide departure options" : `Show ${ladder.length} departure options`}
           </button>

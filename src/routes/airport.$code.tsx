@@ -79,7 +79,7 @@ function AirportNotFoundState() {
   return (
     <AppShell>
       <div className="px-6 pt-10">
-        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-aegean-deep">
+        <p className="text-[12px] text-aegean-deep">
           Not in Cyprus
         </p>
         <h1 className="mt-3 font-display text-[34px] leading-tight text-ink">
@@ -209,7 +209,7 @@ function AirportView({
         >
           <IconArrowLeft className="size-4" />
         </Link>
-        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+        <span className="text-[12px] text-ink-soft">
           {t("airport.kicker", { code: airport.iata })}
         </span>
         <button
@@ -225,7 +225,7 @@ function AirportView({
       <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
         <h1 className="font-display text-[40px] leading-[1.05] text-ink">{airportName}</h1>
         <p className="mt-2 text-[13px] text-ink-soft">
-          {c.serviceLabel} · {airport.lat.toFixed(4)}, {airport.lng.toFixed(4)}
+          {c.serviceLabel}, {airport.lat.toFixed(4)}, {airport.lng.toFixed(4)}
         </p>
       </header>
 

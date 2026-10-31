@@ -38,8 +38,8 @@ export function WalkGuidance({
     <section className={className ?? "mt-6 px-6 animate-rise"}>
       <div className="flex items-end justify-between mb-3">
         <h2 className="font-display text-2xl text-ink">{title}</h2>
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-          {Math.round(directions.durationSec / 60)} {t("common.minShort")} ·{" "}
+        <span className="text-[12px] text-ink-soft">
+          {Math.round(directions.durationSec / 60)} {t("common.minShort")},{" "}
           {directions.distanceMeters >= 1000
             ? `${(directions.distanceMeters / 1000).toFixed(1)} km`
             : `${Math.round(directions.distanceMeters)} m`}
@@ -127,24 +127,24 @@ export function TurnStep({
         )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
         <div className="absolute left-3 top-3 flex items-center gap-2">
-          <span className="rounded-full bg-white/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
+          <span className="rounded-full bg-white/90 px-2.5 py-1 text-[12px] text-ink">
             {index.toString().padStart(2, "0")}
           </span>
-          <span className="rounded-full bg-ink/85 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-limestone">
+          <span className="rounded-full bg-ink/85 px-2.5 py-1 text-[12px] text-limestone">
             {maneuverLabel}
           </span>
         </div>
-        <div className="absolute bottom-3 right-3 rounded-full bg-white/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
+        <div className="absolute bottom-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[12px] text-ink">
           {dist}
         </div>
         {canOpenViewer && (
-          <span className="absolute bottom-3 left-3 rounded-full bg-aegean px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-limestone opacity-0 transition group-hover:opacity-100">
+          <span className="absolute bottom-3 left-3 rounded-full bg-aegean px-2.5 py-1 text-[12px] text-limestone opacity-0 transition group-hover:opacity-100">
             {t("walk.tapToLook")}
           </span>
         )}
       </button>
       <div className="flex items-start gap-3 p-4">
-        <span className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+        <span className="mt-0.5 text-[12px] text-ink-soft">
           {last ? t("walk.arrive") : t("walk.then")}
         </span>
         <p className="flex-1 font-display text-lg leading-snug text-ink">{instruction}</p>

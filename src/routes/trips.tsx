@@ -236,6 +236,7 @@ function Plan() {
 
   return (
     <RoamPage
+      className="r-page--go"
       compact={showResults}
       title={showResults ? destination!.label : r("go.title")}
       sub={showResults ? r("go.fromPlace", { place: origin!.label }) : undefined}
@@ -409,6 +410,7 @@ function Plan() {
                 <ParkAndRideCard
                   suggestion={extras.parkAndRide}
                   origin={{ lat: origin.lat, lng: origin.lng }}
+                  destination={{ lat: destination.lat, lng: destination.lng }}
                 />
               )}
               {extras.bikeShare && <BikeShareCard suggestion={extras.bikeShare} />}

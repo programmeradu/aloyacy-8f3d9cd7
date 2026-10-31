@@ -37,7 +37,8 @@ export function PhaseLabel({ phase, delaySec }: { phase: SingleLegPhase; delaySe
         : t("trip.delay.onTime");
   return (
     <p className={`font-sans text-[12px] font-semibold tracking-tight ${tone}`}>
-      {txt} <span className="text-ink-soft/80 font-medium tabular-nums">· {delay}</span>
+      {txt}
+      <span className="text-ink-soft/80 font-medium tabular-nums">, {delay}</span>
     </p>
   );
 }
@@ -62,7 +63,7 @@ export function PhaseHeadline({
   const { t } = useI18n();
   const base = "mt-2 font-display text-[40px] leading-[1.04] text-ink text-balance";
   const unit = (
-    <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">
+    <span className="ml-1 text-[12px] text-ink-soft">
       {t("common.minUnit")}
     </span>
   );

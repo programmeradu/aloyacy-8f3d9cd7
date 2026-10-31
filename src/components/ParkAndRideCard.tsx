@@ -1,10 +1,12 @@
-// Wave 2.3 — Park & Ride card surfaced on /trips above the bus-only
-// itinerary list when a hub interception genuinely helps.
-//
-// Editorial tone, no icons, no bullet dots: numerals carry the story.
+// Park and ride on Go results, in the shared Roam mobility layout
+// (mobility/MobilityCard.tsx): parking tile row with a small "faster" pill,
+// the headline, the full bus line, one stats row that never wraps, driving
+// directions as the primary button with a bus pill beside it, and a quiet
+// footnote. Sentence case, no eyebrows, no middle dots, no em or en dashes.
 
 import { useI18n } from "@/lib/i18n";
 import type { ParkAndRideSuggestion } from "@/lib/park-and-ride.functions";
+import { cleanPlace, MobilityCard, type MobilityAction } from "@/components/mobility/MobilityCard";
 
 function fmtMin(sec: number): number {
   return Math.max(1, Math.round(sec / 60));
@@ -14,12 +16,25 @@ function fmtKm(m: number): string {
   return (m / 1000).toFixed(m >= 10_000 ? 0 : 1);
 }
 
+/** "Strovolos City Hall" becomes "Strovolos": enough words to name the place. */
+function shortPlace(name: string): string {
+  const words = cleanPlace(name).split(/[\s,]+/).filter(Boolean);
+  let out = "";
+  for (const w of words) {
+    out = out ? `${out} ${w}` : w;
+    if (out.length >= 8) break;
+  }
+  return out;
+}
+
 export function ParkAndRideCard({
   suggestion,
   origin,
+  destination,
 }: {
   suggestion: ParkAndRideSuggestion;
   origin: { lat: number; lng: number };
+  destination?: { lat: number; lng: number };
 }) {
   const { t } = useI18n();
 
@@ -27,176 +42,118 @@ export function ParkAndRideCard({
   const busMin = fmtMin(suggestion.bus.durationSec);
   const totalMin = fmtMin(suggestion.totalSec);
   const driveKm = fmtKm(suggestion.driveMeters);
+  const board = cleanPlace(suggestion.bus.boardName);
+  const route = suggestion.bus.firstRoute;
 
-  const eyebrow =
-    suggestion.reason === "faster"
-      ? t("pnr.eyebrowFaster", { m: fmtMin(suggestion.savingsSec) })
+  const aside =
+    suggestion.reason === "faster" || suggestion.reason === "traffic-jam"
+      ? t("pnr.asideFaster", { m: fmtMin(suggestion.savingsSec) })
       : suggestion.reason === "comfort"
-        ? t("pnr.eyebrowComfort")
-        : suggestion.reason === "traffic-jam"
-          ? t("pnr.eyebrowTraffic", { m: fmtMin(suggestion.savingsSec) })
-          : t("pnr.eyebrowOnly");
+        ? t("pnr.asideComfort")
+        : t("pnr.asideOnly");
 
-  const mapsHref = `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${suggestion.hub.lat},${suggestion.hub.lng}&travelmode=driving`;
+  const driveHref = `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${suggestion.hub.lat},${suggestion.hub.lng}&travelmode=driving`;
+  const secondary: MobilityAction[] = destination
+    ? [
+        {
+          href: `https://www.google.com/maps/dir/?api=1&origin=${suggestion.hub.lat},${suggestion.hub.lng}&destination=${destination.lat},${destination.lng}&travelmode=transit`,
+          label: t("pnr.busFrom", { stop: shortPlace(board) }),
+          icon: "bus",
+          external: true,
+        },
+      ]
+    : [];
 
-  // Live-traffic "why" line — only when the direct drive is genuinely worse
-  // than free-flow. Numerals carry the story; no icons.
+  // Live-traffic "why" line, only when the direct drive is genuinely worse
+  // than free flow.
   const lt = suggestion.liveTraffic;
   const showWhy = lt?.notable === true;
-  const trafficPct = lt ? Math.round(lt.severity * 100) : 0;
-  const trafficDelayMin = lt ? fmtMin(lt.delaySec) : 0;
-  const directDriveMin = lt ? fmtMin(lt.directDriveSec) : 0;
+
+  const ev = suggestion.hub.ev;
+  const note = [suggestion.hub.note, t("pnr.liveNote")].filter(Boolean).join(" ");
 
   return (
-    <article className="rounded-[28px] bg-card ring-1 ring-line p-5 flex flex-col gap-4 animate-rise">
-      <header className="flex items-baseline justify-between gap-3">
-        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-aegean-deep">
-          {eyebrow}
-        </p>
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
-          {t("pnr.totalShort", { m: totalMin })}
-        </p>
-      </header>
-
-      <h3 className="font-display text-[22px] leading-[1.15] text-ink text-balance">
-        {t("pnr.title", { hub: suggestion.hub.label })}
-      </h3>
-
-      {showWhy && (
-        <section className="rounded-2xl bg-ochre-soft/40 ring-1 ring-ochre/30 p-3.5 flex flex-col gap-1">
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre-deep">
+    <MobilityCard
+      provider="parkride"
+      name={t("pnr.name")}
+      mode={t("pnr.mode")}
+      aside={aside}
+      headline={t("pnr.title", { hub: cleanPlace(suggestion.hub.label) })}
+      sub={
+        route
+          ? t("pnr.sub", { route, stop: board })
+          : t("pnr.subNoRoute", { stop: board })
+      }
+      stats={[
+        { label: t("pnr.statDrive", { km: driveKm }), value: driveMin, unit: t("common.minUnit") },
+        {
+          label: route ? t("pnr.statBus", { route }) : t("pnr.busLabel"),
+          value: busMin,
+          unit: t("common.minUnit"),
+        },
+        { label: t("pnr.statTotal"), value: totalMin, unit: t("common.minUnit") },
+      ]}
+      primary={{ href: driveHref, label: t("pnr.openDrive"), icon: "car", external: true }}
+      secondary={secondary}
+      note={note}
+    >
+      {showWhy && lt ? (
+        <section className="flex flex-col gap-1 rounded-[18px] bg-[#fbf0d6] px-3.5 py-3">
+          <p className="text-[13px] font-medium leading-[18px] text-[#171717]">
             {t("pnr.whyLabel")}
           </p>
-          <p className="font-display text-[15px] leading-snug text-ink text-balance">
+          <p className="text-[14px] leading-[1.35] text-[#171717]">
             {t("pnr.whyTrafficLine", {
-              delay: trafficDelayMin,
-              pct: trafficPct,
-              direct: directDriveMin,
+              delay: fmtMin(lt.delaySec),
+              pct: Math.round(lt.severity * 100),
+              direct: fmtMin(lt.directDriveSec),
             })}
           </p>
         </section>
-      )}
+      ) : null}
 
-      <dl className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-limestone-soft/60 p-3">
-          <dt className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-ink-soft">
-            {t("pnr.driveLabel")}
-          </dt>
-          <dd className="mt-1 font-display text-[26px] leading-none text-ink tabular-nums">
-            {driveMin}
-            <span className="ml-1 font-sans text-[12px] font-medium text-ink-soft">
-              {t("common.minUnit")}
-            </span>
-          </dd>
-          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
-            {t("pnr.driveSub", { km: driveKm })}
-          </p>
-        </div>
-        <div className="rounded-2xl bg-aegean-soft/40 p-3">
-          <dt className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep">
-            {t("pnr.busLabel")}
-          </dt>
-          <dd className="mt-1 font-display text-[26px] leading-none text-ink tabular-nums">
-            {busMin}
-            <span className="ml-1 font-sans text-[12px] font-medium text-ink-soft">
-              {t("common.minUnit")}
-            </span>
-          </dd>
-          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft truncate">
-            {suggestion.bus.firstRoute
-              ? t("pnr.busSubRoute", {
-                  route: suggestion.bus.firstRoute,
-                  stop: suggestion.bus.boardName,
-                })
-              : t("pnr.busSubNoRoute", { stop: suggestion.bus.boardName })}
-          </p>
-        </div>
-      </dl>
+      {ev ? <EvRow ev={ev} /> : null}
+    </MobilityCard>
+  );
+}
 
-      {suggestion.hub.note && (
-        <p className="text-[13px] leading-relaxed text-ink-soft">{suggestion.hub.note}</p>
-      )}
+function EvRow({ ev }: { ev: NonNullable<ParkAndRideSuggestion["hub"]["ev"]> }) {
+  const { t } = useI18n();
+  const live = ev.live;
+  // Prefer the live feed count when it exceeds our curated number (the feed
+  // sometimes reports newly added bays first).
+  const total = Math.max(ev.count, live?.total ?? 0);
+  const kw = Math.max(ev.kwMax, live?.kwMax ?? 0);
+  const kind = t(live?.kind === "dc" || ev.kind === "dc" ? "pnr.evKindDc" : "pnr.evKindAc");
+  const network = live?.operator ?? ev.network;
 
-      {suggestion.hub.ev &&
-        (() => {
-          const ev = suggestion.hub.ev;
-          const live = ev.live;
-          // Total to display: prefer live feed count when it exceeds our
-          // curated number (feed sometimes reports newly-added bays first).
-          const totalDisplay = Math.max(ev.count, live?.total ?? 0);
-          const kwDisplay = Math.max(ev.kwMax, live?.kwMax ?? 0);
-          const kindDisplay = live?.kind === "dc" || ev.kind === "dc" ? "dc" : "ac";
-          const networkDisplay = live?.operator ?? ev.network;
+  let fresh: string;
+  const ageSec = live?.updatedUnix
+    ? Math.max(0, Math.floor(Date.now() / 1000) - live.updatedUnix)
+    : null;
+  if (ageSec != null && ageSec <= 90) fresh = t("pnr.evFreshJust");
+  else if (ageSec != null && ageSec <= 3600)
+    fresh = t("pnr.evFreshMin", { m: Math.round(ageSec / 60) });
+  else if (live && live.available === null) fresh = t("pnr.evNoLive");
+  else fresh = t("pnr.evHint");
 
-          // Freshness copy — "just now" ≤ 90 s, "N min ago" ≤ 60 min,
-          // otherwise fall back to the "live status unavailable" line.
-          let freshness: { key: "pnr.evFreshJust" | "pnr.evFreshMin" | null; m: number } = {
-            key: null,
-            m: 0,
-          };
-          if (live?.updatedUnix) {
-            const ageSec = Math.max(0, Math.floor(Date.now() / 1000) - live.updatedUnix);
-            if (ageSec <= 90) freshness = { key: "pnr.evFreshJust", m: 0 };
-            else if (ageSec <= 60 * 60)
-              freshness = { key: "pnr.evFreshMin", m: Math.round(ageSec / 60) };
-          }
-
-          return (
-            <section className="rounded-2xl bg-olive-soft/40 ring-1 ring-olive/30 p-3.5 flex flex-col gap-1.5">
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-olive-deep">
-                  {t("pnr.evLabel")}
-                </p>
-                {live && (
-                  <span className="inline-flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.2em] text-olive-deep">
-                    <span className="h-1.5 w-1.5 rounded-full bg-olive-deep animate-pulse" />
-                    {t("pnr.evLiveBadge")}
-                  </span>
-                )}
-              </div>
-
-              {live && live.available !== null ? (
-                <p className="font-display text-[17px] leading-snug text-ink text-balance">
-                  {t("pnr.evLiveAvailable", {
-                    free: live.available,
-                    total: totalDisplay,
-                    kw: kwDisplay,
-                    kind: t(kindDisplay === "dc" ? "pnr.evKindDc" : "pnr.evKindAc"),
-                    network: networkDisplay,
-                  })}
-                </p>
-              ) : (
-                <p className="font-display text-[15px] leading-snug text-ink text-balance">
-                  {t("pnr.evLine", {
-                    count: totalDisplay,
-                    kw: kwDisplay,
-                    kind: t(kindDisplay === "dc" ? "pnr.evKindDc" : "pnr.evKindAc"),
-                    network: networkDisplay,
-                  })}
-                </p>
-              )}
-
-              <p className="font-sans text-[12px] leading-snug text-ink-soft">
-                {freshness.key === "pnr.evFreshJust"
-                  ? t("pnr.evFreshJust")
-                  : freshness.key === "pnr.evFreshMin"
-                    ? t("pnr.evFreshMin", { m: freshness.m })
-                    : live && live.available === null
-                      ? t("pnr.evNoLive")
-                      : t("pnr.evHint")}
-              </p>
-            </section>
-          );
-        })()}
-
-      <a
-        href={mapsHref}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="self-start rounded-full bg-ink px-4 py-2.5 font-sans text-[13px] font-semibold text-limestone transition-colors hover:bg-aegean-deep"
-      >
-        {t("pnr.openDrive")}
-      </a>
-    </article>
+  return (
+    <section className="flex flex-col gap-1 rounded-[18px] bg-[var(--r-pill,#eeeeea)] px-3.5 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[13px] font-medium leading-[18px] text-[#171717]">{t("pnr.evLabel")}</p>
+        {live ? (
+          <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#2a7a4f]">
+            <span className="size-1.5 rounded-full bg-[#2a9c64] animate-pulse" aria-hidden />
+            {t("pnr.evLiveBadge")}
+          </span>
+        ) : null}
+      </div>
+      <p className="text-[14px] leading-[1.35] text-[#171717]">
+        {live && live.available !== null
+          ? t("pnr.evLiveAvailable", { free: live.available, total, kw, kind, network })
+          : t("pnr.evLine", { count: total, kw, kind, network })}
+      </p>
+      <p className="text-[12px] leading-4 text-[var(--r-mute,#6f6f6a)]">{fresh}</p>
+    </section>
   );
 }

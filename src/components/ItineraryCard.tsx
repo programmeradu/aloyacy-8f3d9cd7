@@ -44,8 +44,15 @@ function fmtTime(unix: number) {
     timeZone: "Asia/Nicosia",
   });
 }
-// Card end labels: first part of a stop name ("A, B" or "A - B" becomes "A").
-const short = (s: string) => s.split(",")[0].split(" - ")[0];
+// Card end labels: first part of a stop name ("A, B" or "A - B" becomes "A"),
+// without the platform word GTFS adds to paired stops ("Solomos Square
+// Alighting" reads "Solomos Square").
+const short = (s: string) =>
+  s
+    .split(",")[0]
+    .split(" - ")[0]
+    .replace(/\s+(Alighting|Boarding|Arrivals|Departures)$/i, "")
+    .trim();
 
 export function ItineraryCard({
   itinerary,
@@ -132,8 +139,11 @@ export function ItineraryCard({
             ))}
           </div>
           <p className="mt-2.5 text-[14px] leading-snug" style={{ color: mute }}>
-            {sourceLabel} · {changes} ·{" "}
-            {t("itin.metersWalk", { m: Math.round(itinerary.totalWalkMeters) })}
+            {[
+              sourceLabel,
+              changes,
+              t("itin.metersWalk", { m: Math.round(itinerary.totalWalkMeters) }),
+            ].join(", ")}
           </p>
         </div>
         <span className="r-conf shrink-0 pt-1" style={{ color: mute }}>
@@ -170,8 +180,10 @@ export function ItineraryCard({
           </span>
         ) : null}
       </div>
-      <div className="mt-2 flex items-center justify-between gap-2 text-[14px]">
-        <span className="min-w-0 flex-1 truncate">{short(firstRide?.board.name ?? "")}</span>
+      <div className="mt-2 flex items-start justify-between gap-2 text-[14px] leading-[18px]">
+        <span className="line-clamp-2 min-w-0 flex-1 break-words">
+          {short(firstRide?.board.name ?? "")}
+        </span>
         {rides.length > 1 ? (
           <span
             className="r-dpill shrink-0"
@@ -180,7 +192,7 @@ export function ItineraryCard({
             {rt("go.legs", { n: rides.length })}
           </span>
         ) : null}
-        <span className="min-w-0 flex-1 truncate text-right">
+        <span className="line-clamp-2 min-w-0 flex-1 break-words text-right">
           {short(lastRide?.alight.name ?? "")}
         </span>
       </div>
@@ -193,7 +205,10 @@ export function ItineraryCard({
           <Icon name="sparkle" size={15} style={{ color: "var(--r-y)", marginTop: 1 }} />
           <span>
             <span className="sr-only">{t("rationale.eyebrow")}: </span>
-            {itinerary.rationale.map((tag) => rationaleToCopy(tag, t as T)).join(" · ")}
+            {itinerary.rationale
+              .map((tag) => rationaleToCopy(tag, t as T))
+              .map((s, i) => (i === 0 ? s : s.charAt(0).toLocaleLowerCase() + s.slice(1)))
+              .join(", ")}
           </span>
         </p>
       ) : null}
@@ -214,9 +229,9 @@ export function ItineraryCard({
                     {short(leg.alight.name)}
                   </p>
                   <p className="mt-1 text-[13px] r-tnum" style={{ color: mute }}>
-                    {fmtTime(leg.board.departureUnix)} → {fmtTime(leg.alight.arrivalUnix)} ·{" "}
+                    {fmtTime(leg.board.departureUnix)} → {fmtTime(leg.alight.arrivalUnix)},{" "}
                     {t("itin.stops", { n: leg.stopCount })}
-                    {leg.live ? ` · ${rt("conf.live")}` : ""}
+                    {leg.live ? `, ${rt("conf.live")}` : ""}
                   </p>
                 </div>
               ) : leg.kind === "walk" ? (

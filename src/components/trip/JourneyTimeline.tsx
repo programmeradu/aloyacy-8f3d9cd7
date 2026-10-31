@@ -100,7 +100,7 @@ export function JourneyTimeline({
               <span className="text-aegean-deep">
                 {t("trip.boardBusName", { code: bus.routeShort })}
               </span>{" "}
-              · {bus.routeLong}
+              , {bus.routeLong}
             </>
           }
           sub={t("trip.alightAt", { name: bus.alight.name })}
@@ -145,7 +145,7 @@ export function AlightAlert({
         }`}
       >
         <div className="flex items-center justify-between">
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+          <p className="text-[12px] text-ochre">
             {imminent
               ? t("trip.alight.press")
               : t("trip.alight.getReady", { m: Math.max(0, minToAlight) })}

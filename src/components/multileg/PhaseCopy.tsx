@@ -91,8 +91,9 @@ export function PhaseLabel({ live, itin }: { live: MultiLegLive; itin: Itinerary
           ? t("ml.detail.mixed")
           : t("ml.detail.scheduled");
   return (
-    <p className={`font-mono text-[10px] uppercase tracking-[0.24em] ${tone}`}>
-      {text} <span className="text-ink-soft"> · {detail}</span>
+    <p className={`text-[12px] ${tone}`}>
+      {text}
+      <span className="text-ink-soft">, {detail}</span>
     </p>
   );
 }
@@ -122,7 +123,7 @@ export function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itiner
         <span className="text-aegean-deep">
           {Math.max(0, Math.round(live.secsToCurrentBoard / 60))}
         </span>
-        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">
+        <span className="ml-1 text-[12px] text-ink-soft">
           {t("common.minUnit")}
         </span>
         <br />
@@ -145,7 +146,7 @@ export function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itiner
         <span className="text-aegean-deep">
           {Math.max(0, Math.round(live.secsToCurrentAlight / 60))}
         </span>
-        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">
+        <span className="ml-1 text-[12px] text-ink-soft">
           {t("common.minUnit")}
         </span>
         <br />
@@ -187,7 +188,7 @@ export function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itiner
         <span className={live.nextBoardLate ? "text-ochre" : "text-aegean-deep"}>
           {Math.max(0, Math.round(live.secsToNextBoard / 60))}
         </span>
-        <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">
+        <span className="ml-1 text-[12px] text-ink-soft">
           {t("common.minUnit")}
         </span>
         <br />
@@ -228,7 +229,7 @@ export function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itiner
     <h1 className={base}>
       {t("ml.hl.doorToDoor")}{" "}
       <span className="text-aegean-deep">{Math.round(itin.totalDurationSec / 60)}</span>
-      <span className="ml-1 font-mono text-[12px] uppercase tracking-[0.18em] text-ink-soft">
+      <span className="ml-1 text-[12px] text-ink-soft">
         {t("common.minUnit")}
       </span>
       <br />

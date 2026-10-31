@@ -15,6 +15,7 @@ export function RoamPage({
   fade = true,
   tabs = true,
   compact = false,
+  className,
 }: {
   title?: ReactNode;
   sub?: ReactNode;
@@ -25,9 +26,11 @@ export function RoamPage({
   tabs?: boolean;
   /** Results style header: small sub line above a 22px title (concept 05). */
   compact?: boolean;
+  /** Extra page class, e.g. r-page--go for the Go header treatment. */
+  className?: string;
 }) {
   return (
-    <div className="roam r-page">
+    <div className={className ? `roam r-page ${className}` : "roam r-page"}>
       <div className="r-col">
         <OfflineBanner />
         <header className="r-head">

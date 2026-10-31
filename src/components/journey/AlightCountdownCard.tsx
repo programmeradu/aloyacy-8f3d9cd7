@@ -103,20 +103,20 @@ export function AlightCountdownCard({
         <div className="flex items-baseline justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <p
-              className={`font-mono text-[10px] uppercase tracking-[0.22em] ${
+              className={`text-[12px] ${
                 urgent ? "text-ochre" : "text-aegean-deep"
               }`}
             >
               {t("hud.riding.label", { code: bus.routeShort })}
             </p>
             {!isOnline && (
-              <span className="font-mono text-[8.5px] uppercase tracking-wider text-amber-800 dark:text-amber-200 bg-amber-100/90 dark:bg-amber-900/40 px-1.5 py-0.5 rounded">
+              <span className="text-[12px] text-amber-800 dark:text-amber-200 bg-amber-100/90 dark:bg-amber-900/40 px-1.5 py-0.5 rounded">
                 Satellite GPS
               </span>
             )}
           </div>
           {eta > 0 && (
-            <p className="shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+            <p className="shrink-0 text-[12px] text-ink-soft">
               {fmtMinutes(eta)}
             </p>
           )}
@@ -158,7 +158,7 @@ export function AlightCountdownCard({
 
         {cd.upcoming.length > 0 && (
           <div className="mt-4">
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+            <p className="text-[12px] text-ink-soft">
               {t("hud.alight.remaining")}
             </p>
             <ol
@@ -190,7 +190,7 @@ export function AlightCountdownCard({
                     >
                       {s.name}
                       {isTarget && (
-                        <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ochre">
+                        <span className="ml-2 text-[12px] text-ochre">
                           {t("hud.alight.yourStop")}
                         </span>
                       )}

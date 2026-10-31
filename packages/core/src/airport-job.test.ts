@@ -78,7 +78,7 @@ describe("airport way copy", () => {
       coachLines: [coach("Nicosia", "14:20", 12, { price: "€8" })],
       cityBus: { routeShort: "425", etaMin: 6 },
     });
-    expect(coachJobLine(job.nextCoach!)).toBe("Coach to Nicosia at 14:20 · 12 seats, from €8.");
+    expect(coachJobLine(job.nextCoach!)).toBe("Coach to Nicosia at 14:20, 12 seats, from €8.");
     expect(cityBusJobLine(job.cityBus!)).toBe("Bus 425 in 6 min. Tap Motion €2.00.");
     expect(formatEur(BOARDING_PAY.urban.motionEur, true)).toBe("€2.00");
     expect(TAXI_JOB_LINE).toBe(

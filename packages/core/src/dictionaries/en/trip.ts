@@ -13,7 +13,7 @@ export const trip = {
   "trip.walkToStopH": "Walk to the stop",
   "trip.walkToDestH": "Walk to destination",
   "trip.walkToName": "Walk to {name}",
-  "trip.walkMeters": "{m} min · {d} m",
+  "trip.walkMeters": "{m} min, {d} m",
   "trip.boardBusPrefix": "Board",
   "trip.boardBusName": "BUS {code}",
   "trip.alightAt": "Alight at {name}",
@@ -45,7 +45,7 @@ export const trip = {
   "trip.sub.alightSoon": "Pull the cord now. Then {m} min on foot to {name}.",
   "trip.sub.arrived": "You're {m} min from {name}. Mind the path.",
   "trip.alight.press": "Press the stop button now",
-  "trip.alight.getReady": "Get ready · {m} min",
+  "trip.alight.getReady": "Get ready, {m} min",
   "trip.alight.body.now":
     "Pull the cord, head to the doors. We'll guide you turn-by-turn to {name} once you're off.",
   "trip.alight.body.soon":

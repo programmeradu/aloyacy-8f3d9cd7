@@ -18,7 +18,14 @@ export const intercity: Record<keyof typeof intercityEn, string> = {
   "kapnos.timetableCta": "Πλήρες δρομολόγιο",
   "kapnos.disclaimer": "Η διαθεσιμότητα και η κράτηση γίνονται από την Kapnos",
   "kapnos.fromPrice": "από {price}",
-  "kapnos.coachLeg": "Λεωφορείο Kapnos · {m} λεπτά χωρίς στάσεις",
+  "kapnos.coachLeg": "Λεωφορείο Kapnos, {m} λεπτά χωρίς στάσεις",
+  "kapnos.headline": "Πούλμαν στις {depart}, εκεί στις {arrive}",
+  "kapnos.statRide": "Χωρίς στάσεις",
+  "kapnos.statWalk": "Ως τη στάση",
+  "kapnos.statFare": "Εισιτήριο από",
+  "kapnos.boardMeta": "Επιβίβαση εδώ, {walk} από εσάς",
+  "kapnos.alightMeta": "Αποβίβαση εδώ, {walk} από τον προορισμό σας",
+  "kapnos.miniMeta": "{m} λεπτά, {walk} περπάτημα",
   "kapnos.firstMile.title": "Διαδρομή με αστικό προς {stop}",
   "kapnos.firstMile.loading": "Σχεδιάζουμε τη διαδρομή σας προς τη στάση…",
   "kapnos.firstMile.none":
@@ -31,7 +38,7 @@ export const intercity: Record<keyof typeof intercityEn, string> = {
     "Δεν βρέθηκε απευθείας αστικό από τη στάση, προτείνουμε ταξί ή ride-share.",
   "kapnos.lastMile.openPlan": "Πλήρης διαδρομή από τη στάση",
   "kapnos.lastMile.tapHint": "Πατήστε για αναλυτικές οδηγίες",
-  "kapnos.moreLabel": "Περισσότερες αναχωρήσεις & κράτηση",
+  "kapnos.moreLabel": "Περισσότερες αναχωρήσεις και κράτηση",
 
   "traffic.eyebrow": "Ζωντανές οδικές ειδοποιήσεις",
   "traffic.headlineOne": "1 συμβάν στη διαδρομή σας",
@@ -67,7 +74,7 @@ export const intercity: Record<keyof typeof intercityEn, string> = {
   "intercity.loading": "Διαβάζουμε το εβδομαδιαίο μοτίβο…",
   "intercity.learning": "Μαθαίνουμε ακόμα αυτή τη γραμμή",
   "intercity.learningSub":
-    "Τα μοτίβα εμφανίζονται μετά από αρκετά καταγεγραμμένα δρομολόγια · {n} μέχρι τώρα.",
+    "Τα μοτίβα εμφανίζονται μετά από αρκετά καταγεγραμμένα δρομολόγια, {n} μέχρι τώρα.",
   "intercity.samples": "{n} καταγεγραμμένα δρομολόγια",
   "intercity.runs": "{n} δρομολόγια",
   "intercity.weekday": "Δευ, Παρ",

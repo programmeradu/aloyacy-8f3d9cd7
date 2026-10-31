@@ -1,94 +1,89 @@
-// Wave 3 — Traffic alerts on the rider's plan.
-//
-// Editorial ribbon that surfaces only when the CyNAP incident feed shows
-// something intersecting the plan (see traffic-alerts.functions.ts).
-// Calm palette (ochre-lit for medium, aegean-deep for high) — never
-// alarmist, never generic. If no alerts are relevant we render nothing.
+// Live road alerts on the rider's plan, in the shared Roam card layout
+// (mobility/MobilityCard.tsx): icon tile row with a severity pill, headline,
+// one row per alert, quiet footnote. Surfaces only when the CyNAP incident
+// feed shows something intersecting the plan (traffic-alerts.functions.ts).
+// Sentence case, no eyebrows, no middle dots, no em or en dashes.
 
 import { useI18n } from "@/lib/i18n";
 import type { ItineraryTrafficReport } from "@/lib/traffic-alerts.functions";
+import { Icon } from "@/components/roam/Icon";
+
+const MUTE = "text-[var(--r-mute,#6f6f6a)]";
 
 function freshnessLabel(observedAt: string, isEl: boolean): string {
   const min = Math.max(0, Math.round((Date.now() - Date.parse(observedAt)) / 60_000));
   if (min < 1) return isEl ? "μόλις τώρα" : "just now";
-  if (min < 60) return isEl ? `πριν ${min} λεπ.` : `${min} min ago`;
+  if (min < 60) return isEl ? `πριν ${min} λεπτά` : `${min} min ago`;
   const h = Math.floor(min / 60);
-  return isEl ? `πριν ${h} ώ.` : `${h} h ago`;
+  return isEl ? `πριν ${h} ώρες` : `${h} h ago`;
 }
 
 function distanceLabel(m: number, isEl: boolean): string {
-  if (m < 100) return isEl ? "στη διαδρομή" : "on your route";
-  if (m < 950) return isEl ? `${m} μ. μακριά` : `${m} m away`;
-  return isEl ? `${(m / 1000).toFixed(1)} χλμ. μακριά` : `${(m / 1000).toFixed(1)} km away`;
+  if (m < 100) return isEl ? "Στη διαδρομή" : "On your route";
+  if (m < 950) return isEl ? `${m} μ μακριά` : `${m} m away`;
+  return isEl ? `${(m / 1000).toFixed(1)} χλμ μακριά` : `${(m / 1000).toFixed(1)} km away`;
 }
 
 export function TrafficAlertsCard({ report }: { report: ItineraryTrafficReport }) {
   const { t, locale } = useI18n();
   const isEl = locale === "el";
 
-  const accent =
+  const tile =
     report.highest === "high"
-      ? "bg-aegean-deep text-white"
+      ? "bg-[#171717] text-white"
       : report.highest === "medium"
-        ? "bg-ochre-sun text-ink"
-        : "bg-olive/15 text-olive-deep";
+        ? "bg-[var(--r-y,#f6b83c)] text-[#171717]"
+        : "bg-[var(--r-pill,#eeeeea)] text-[#171717]";
 
   return (
-    <article className="rounded-[24px] bg-card ring-1 ring-line p-4 flex flex-col gap-3 animate-rise">
-      <header className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep leading-tight">
-            {t("traffic.eyebrow")}
-          </p>
-          <h3 className="font-display text-[17px] leading-tight text-ink">
-            {report.alerts.length === 1
-              ? t("traffic.headlineOne")
-              : t("traffic.headlineMany", { n: report.alerts.length })}
-          </h3>
-        </div>
+    <article className="r-mob animate-rise flex flex-col gap-3.5 rounded-[26px] bg-white px-[18px] pb-[18px] pt-4 text-[#171717]">
+      <header className="flex min-w-0 items-center gap-3">
         <span
-          className={`font-mono text-[10px] uppercase tracking-[0.18em] tabular-nums shrink-0 rounded-full px-2.5 py-1 ${accent}`}
+          className={`inline-flex size-10 shrink-0 items-center justify-center rounded-[12px] ${tile}`}
+          aria-hidden
         >
+          <Icon name="traffic-cone" size={22} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[16px] font-semibold leading-5">{t("traffic.eyebrow")}</p>
+          <p className={`text-[13px] leading-[18px] ${MUTE}`}>
+            {t("traffic.updated", { when: freshnessLabel(report.observedAt, isEl) })}
+          </p>
+        </div>
+        <span className="inline-flex h-7 shrink-0 items-center whitespace-nowrap rounded-full bg-[var(--r-pill,#eeeeea)] px-2.5 text-[12px] font-medium">
           {t(`traffic.sev.${report.highest}`)}
         </span>
       </header>
 
-      <ol className="flex flex-col gap-2.5">
-        {report.alerts.map((a, i) => {
-          const num = String(i + 1).padStart(2, "0");
-          return (
-            <li
-              key={a.id}
-              className="grid grid-cols-[auto_1fr_auto] gap-3 items-start rounded-2xl bg-limestone-warm/60 ring-1 ring-line/60 px-3 py-2.5"
-            >
-              <span className="font-mono text-[10px] tabular-nums text-ink-soft tracking-[0.14em] pt-0.5">
-                {num}
-              </span>
-              <div className="min-w-0">
-                <p className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-ink-soft leading-tight mb-0.5">
-                  {t(`traffic.kind.${a.kind}`)}
-                  {a.road ? ` · ${a.road}` : ""}
-                </p>
-                <p className="font-sans text-[13.5px] leading-snug text-ink break-words">
-                  {a.headline}
-                </p>
-              </div>
-              <span className="font-mono text-[10px] uppercase tracking-[0.16em] tabular-nums text-ink-soft shrink-0 pt-0.5">
+      <h3 className="text-balance text-[21px] font-medium leading-[1.2] tracking-[-0.015em]">
+        {report.alerts.length === 1
+          ? t("traffic.headlineOne")
+          : t("traffic.headlineMany", { n: report.alerts.length })}
+      </h3>
+
+      <ul className="flex flex-col">
+        {report.alerts.map((a, i) => (
+          <li
+            key={a.id}
+            className={`flex min-w-0 flex-col gap-0.5 py-2.5 ${
+              i > 0 ? "border-t border-[var(--r-line,#e7e7e3)]" : ""
+            }`}
+          >
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="min-w-0 text-[14px] font-medium leading-5">
+                {t(`traffic.kind.${a.kind}`)}
+                {a.road ? `, ${a.road}` : ""}
+              </p>
+              <span className={`shrink-0 whitespace-nowrap text-[12px] ${MUTE} [font-variant-numeric:tabular-nums]`}>
                 {distanceLabel(a.distanceFromPathM, isEl)}
               </span>
-            </li>
-          );
-        })}
-      </ol>
+            </div>
+            <p className={`break-words text-[13px] leading-[1.35] ${MUTE}`}>{a.headline}</p>
+          </li>
+        ))}
+      </ul>
 
-      <footer className="flex items-center justify-between gap-3 pt-1">
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-          {t("traffic.source")}
-        </span>
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
-          {t("traffic.updated", { when: freshnessLabel(report.observedAt, isEl) })}
-        </span>
-      </footer>
+      <p className={`text-[12px] leading-4 ${MUTE}`}>{t("traffic.source")}</p>
     </article>
   );
 }

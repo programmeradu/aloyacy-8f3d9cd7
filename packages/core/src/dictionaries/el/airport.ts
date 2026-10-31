@@ -7,10 +7,10 @@ export const airport: Record<keyof typeof airportEn, string> = {
   "airport.kicker": "Αεροδρόμιο {code}",
   "airport.howToLeave": "Πώς φεύγετε",
   "airport.howToLeaveTo": "Πώς φεύγετε για {dest}",
-  "airport.coach": "Υπεραστικό προς {city} στις {depart} · {detail}.",
+  "airport.coach": "Υπεραστικό προς {city} στις {depart}, {detail}.",
   "airport.coachDoor":
-    "Υπεραστικό προς {city} στις {depart} · {fare}, {wait} λεπ. αναμονή, {walk} λεπ. περπάτημα.",
-  "airport.coachDoorNoWalk": "Υπεραστικό προς {city} στις {depart} · {fare}, {wait} λεπ. αναμονή.",
+    "Υπεραστικό προς {city} στις {depart}, {fare}, {wait} λεπ. αναμονή, {walk} λεπ. περπάτημα.",
+  "airport.coachDoorNoWalk": "Υπεραστικό προς {city} στις {depart}, {fare}, {wait} λεπ. αναμονή.",
   "airport.cityBus": "Λεωφορείο {route} σε {min} λεπ. Motion {fare}.",
   "airport.cityBusNow": "Λεωφορείο {route} τώρα. Motion {fare}.",
   "airport.cityBusDoor":

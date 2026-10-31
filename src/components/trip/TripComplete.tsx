@@ -103,7 +103,7 @@ export function TripComplete({ active, bus }: { active: ActiveTrip; bus: BusView
                 {r("done.title")}
               </h1>
               <p className="r-lbl mt-1.5" style={{ color: "var(--r-onchar-mute)" }}>
-                {date} · {route?.short ? `${t("stop.routeKicker")} ${route.short}` : bus.routeShort}
+                {date}, {route?.short ? `${t("stop.routeKicker")} ${route.short}` : bus.routeShort}
               </p>
             </div>
             <span

@@ -100,7 +100,7 @@ export const alerts: Record<keyof typeof alertsEn, string> = {
   "reliability.stopEyebrow": "Σε αυτή τη στάση",
   "reliability.stopHeadline": "Στην ώρα {pct}%",
   "reliability.stopLearning": "Μαθαίνουμε αυτή τη στάση",
-  "reliability.stopSub": "{n} παρατηρήσεις · μ.ό. {sec}″",
+  "reliability.stopSub": "{n} παρατηρήσεις, μ.ό. {sec}″",
   "reliability.onTime": "στην ώρα",
   "reliability.summaryLearning": "Μαθαίνουμε ακόμη αυτή τη γραμμή",
   "reliability.summaryOnTime": "Συνήθως στην ώρα του",

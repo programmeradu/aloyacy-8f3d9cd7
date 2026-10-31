@@ -12,7 +12,7 @@ export function HurryBanner({ urgent, live }: { urgent: boolean; live: LiveJourn
         }`}
       >
         <div className="flex items-center justify-between">
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ochre">
+          <p className="text-[12px] text-ochre">
             {urgent ? t("hud.hurry.urgentTitle") : t("hud.hurry.softTitle")}
           </p>
           {urgent && (

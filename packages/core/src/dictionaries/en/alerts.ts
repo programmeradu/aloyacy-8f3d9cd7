@@ -36,7 +36,7 @@ export const alerts = {
   "eta.opShort": "op {m} min",
 
   "sighting.kicker": "Can you see this bus?",
-  "sighting.cta": "Confirm · I see it now",
+  "sighting.cta": "Confirm, I see it now",
   "sighting.help":
     "Tap if the bus is at the stop. Your tap upgrades it from 'no GPS' for everyone else.",
   "sighting.help.seed":
@@ -46,7 +46,7 @@ export const alerts = {
   "sighting.thanksDetail":
     "Other riders will see this trip as confirmed for the next minute or so.",
   "sighting.onboard.kicker": "You're the only eyes on Bus {code}",
-  "sighting.onboard.cta": "Yes · I'm on it",
+  "sighting.onboard.cta": "Yes, I'm on it",
   "sighting.onboard.help":
     "The operator has no GPS on this bus. Your tap is what people at the next stops see.",
   "sighting.onboard.help.seed":
@@ -98,7 +98,7 @@ export const alerts = {
   "reliability.stopEyebrow": "At this stop",
   "reliability.stopHeadline": "On time {pct}%",
   "reliability.stopLearning": "Learning this stop",
-  "reliability.stopSub": "{n} observations · avg {sec}s",
+  "reliability.stopSub": "{n} observations, avg {sec}s",
   "reliability.onTime": "on time",
   "reliability.summaryLearning": "Still learning this line",
   "reliability.summaryOnTime": "Usually runs on time",

@@ -36,7 +36,7 @@ export const multileg: Record<keyof typeof multilegEn, string> = {
   "ml.hl.atNameDot": "στη {name}.",
   "ml.hl.stepOff": "Κατεβείτε",
   "ml.hl.next": "επόμενη",
-  "ml.hl.walkForBus": "για λεωφορείο {code} · {min}.",
+  "ml.hl.walkForBus": "για λεωφορείο {code}, {min}.",
   "ml.hl.finalStretch": "Τελική απόσταση",
   "ml.hl.minOnFoot": "{m} λεπ με τα πόδια.",
   "ml.hl.youreThere": "Είστε",
@@ -67,7 +67,7 @@ export const multileg: Record<keyof typeof multilegEn, string> = {
   "ml.act.onBoardCta": "Είμαι μέσα",
   "ml.act.pressStop": "Πατήστε το κουμπί στάσης τώρα",
   "ml.act.imOff": "Κατέβηκα",
-  "ml.act.finalLabel": "Τελική απόσταση · {m} λεπ με τα πόδια",
+  "ml.act.finalLabel": "Τελική απόσταση, {m} λεπ με τα πόδια",
   "ml.act.finalTitle": "Περπάτημα προς {name}.",
   "ml.act.finalBody":
     "Θα κλείσουμε αυτόματα τη διαδρομή όταν φτάσετε, ή πατήστε όταν είστε στην πόρτα.",
@@ -79,8 +79,8 @@ export const multileg: Record<keyof typeof multilegEn, string> = {
   "ml.timeline.boardPrefix": "Επιβίβαση",
   "ml.timeline.walkTo": "Περπατήστε προς",
   "ml.timeline.waitAt": "Αναμονή στη {name}",
-  "ml.timeline.rideSub": "{from} → {to} · {dep} · {arr} · {n} στάσεις",
-  "ml.timeline.walkSub": "{min} · {d} μ",
+  "ml.timeline.rideSub": "{from} → {to}, {dep}, {arr}, {n} στάσεις",
+  "ml.timeline.walkSub": "{min}, {d} μ",
   "ml.timeline.waitSub": "{min} στη στάση",
   "ml.destBail.walk":
     "Περπάτημα προς {dest} σε {min} λεπ. Το λεωφορείο {route} δεν είναι στον χάρτη.",

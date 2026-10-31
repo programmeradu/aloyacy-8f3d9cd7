@@ -1,20 +1,28 @@
-// Wave 3 — Kapnos Airport Shuttle suggestion card.
-//
-// Compact, expandable layout. Branded with the operator's own mark so
-// riders recognise the service immediately. When the coach stop isn't a
-// reasonable walk, we plan the city-bus first/last mile for them instead
-// of telling them to "take a city bus or taxi".
+// Kapnos Airport Shuttle on Go results, in the shared Roam mobility layout
+// (mobility/MobilityCard.tsx): logo row, next coach headline, one stats row
+// that never wraps, board and get off rows, first and last mile plans, then
+// the timetable and booking. When the coach stop is not a reasonable walk we
+// plan the city bus first or last mile instead of saying "take a bus or taxi".
+// Sentence case, no eyebrows, no middle dots, no em or en dashes.
 
 import { useI18n } from "@/lib/i18n";
 import type { KapnosSuggestion } from "@/lib/kapnos.functions";
 import type { Itinerary, RideLeg, WalkLeg } from "@/lib/itinerary-types";
-import { ProviderTile } from "@/components/mobility/MobilityCard";
+import { cleanPlace, MobilityStats, ProviderTile } from "@/components/mobility/MobilityCard";
+import { Icon } from "@/components/roam/Icon";
 
 const WALKABLE_M = 1_200;
+const MUTE = "text-[var(--r-mute,#6f6f6a)]";
+const PILL = "bg-[var(--r-pill,#eeeeea)]";
+
+function walkParts(m: number): { value: string; unit: string } {
+  if (m < 950) return { value: String(Math.round(m / 10) * 10), unit: "m" };
+  return { value: (m / 1000).toFixed(1), unit: "km" };
+}
 
 function fmtWalk(m: number): string {
-  if (m < 950) return `${Math.round(m / 10) * 10} m`;
-  return `${(m / 1000).toFixed(1)} km`;
+  const p = walkParts(m);
+  return `${p.value} ${p.unit}`;
 }
 
 function fmtTime(s: string): string {
@@ -37,19 +45,14 @@ function fmtDateChip(s: string, locale: string): string {
   if (today === date) return "";
   const [tY, tM, tD] = today.split("-").map((n) => parseInt(n, 10));
   const diffDays = Math.round((Date.UTC(Y, M - 1, D) - Date.UTC(tY, tM - 1, tD)) / 86_400_000);
-  if (diffDays === 1) return locale === "el" ? "αύριο" : "tomorrow";
+  if (diffDays === 1) return locale === "el" ? "Αύριο" : "Tomorrow";
   return new Intl.DateTimeFormat(locale === "el" ? "el-CY" : "en-GB", {
     day: "numeric",
     month: "short",
   }).format(new Date(Date.UTC(Y, M - 1, D)));
 }
 
-/** Strip "(CO1) " / "(A01) " stop-code prefixes for tighter display. */
-function shortStop(name: string): string {
-  return name.replace(/^\([A-Z0-9]+\)\s*/i, "").trim();
-}
-
-/** Convert the route name "NICOSIA > LARNACA" → "Nicosia → Larnaca". */
+/** Convert the route name "NICOSIA > LARNACA" to "Nicosia → Larnaca". */
 function prettyRoute(name: string): string {
   return name
     .split(/\s*>\s*/)
@@ -58,34 +61,87 @@ function prettyRoute(name: string): string {
 }
 
 function MiniItinerary({ itin }: { itin: Itinerary }) {
+  const { t } = useI18n();
   const rides = itin.legs.filter((l): l is RideLeg => l.kind === "ride");
-  const totalMin = fmtMin(itin.totalDurationSec);
-  const walkM = Math.round(itin.totalWalkMeters);
+  const walk = itin.legs.find((l): l is WalkLeg => l.kind === "walk");
+  const from = rides.length > 0 ? rides[0].board.name : walk?.from.name;
+  const to = rides.length > 0 ? rides[rides.length - 1].alight.name : walk?.to.name;
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         {rides.map((r, i) => (
-          <span
-            key={`${r.tripId}-${i}`}
-            className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-aegean-deep tabular-nums"
-          >
-            {r.routeShort}
-            {i < rides.length - 1 ? <span className="ml-2 text-ink-soft">→</span> : null}
+          <span key={`${r.tripId}-${i}`} className="inline-flex items-center gap-1.5">
+            {i > 0 ? <Icon name="caret-right" size={12} className={MUTE} /> : null}
+            <span className="inline-flex h-6 items-center gap-1 rounded-full bg-white px-2 text-[12px] font-semibold text-[#171717] [font-variant-numeric:tabular-nums]">
+              <Icon name="bus" size={13} />
+              {r.routeShort}
+            </span>
           </span>
         ))}
-        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft tabular-nums">
-          · {totalMin} min · {fmtWalk(walkM)}
+        <span className={`text-[12px] ${MUTE} [font-variant-numeric:tabular-nums]`}>
+          {t("kapnos.miniMeta", {
+            m: fmtMin(itin.totalDurationSec),
+            walk: fmtWalk(Math.round(itin.totalWalkMeters)),
+          })}
         </span>
       </div>
-      <p className="font-sans text-[12px] leading-snug text-ink-soft">
-        {rides.length > 0
-          ? `${shortStop(rides[0].board.name)} → ${shortStop(rides[rides.length - 1].alight.name)}`
-          : (() => {
-              const w = itin.legs.find((l): l is WalkLeg => l.kind === "walk");
-              return w ? `${shortStop(w.from.name)} → ${shortStop(w.to.name)}` : "";
-            })()}
-      </p>
+      {from && to ? (
+        <p className="text-[13px] leading-[1.35] text-[#171717]">
+          {cleanPlace(from)} → {cleanPlace(to)}
+        </p>
+      ) : null}
     </div>
+  );
+}
+
+function MilePlan({
+  title,
+  loading,
+  loadingLabel,
+  plan,
+  openLabel,
+  onOpen,
+  none,
+}: {
+  title: string;
+  loading?: boolean;
+  loadingLabel: string;
+  plan?: Itinerary | null;
+  openLabel: string;
+  onOpen?: () => void;
+  none: string;
+}) {
+  return (
+    <details className={`group rounded-[18px] ${PILL} px-3.5 py-3`}>
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[14px] font-medium leading-5 text-[#171717] [&::-webkit-details-marker]:hidden">
+        <span className="min-w-0">{title}</span>
+        <Icon name="caret-down" size={15} className="shrink-0 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="mt-2.5">
+        {loading ? (
+          <p className={`text-[13px] leading-[1.35] ${MUTE}`}>{loadingLabel}</p>
+        ) : plan ? (
+          onOpen ? (
+            <button
+              type="button"
+              onClick={onOpen}
+              className="w-full text-left focus-visible:outline-none"
+              aria-label={openLabel}
+            >
+              <MiniItinerary itin={plan} />
+              <span className="mt-2 inline-flex items-center gap-1 text-[13px] font-semibold text-[#171717]">
+                {openLabel}
+                <Icon name="arrow-up-right" size={14} />
+              </span>
+            </button>
+          ) : (
+            <MiniItinerary itin={plan} />
+          )
+        ) : (
+          <p className={`text-[13px] leading-[1.35] ${MUTE}`}>{none}</p>
+        )}
+      </div>
+    </details>
   );
 }
 
@@ -109,182 +165,97 @@ export function KapnosShuttleCard({
   const { t, locale } = useI18n();
   const rideMin = fmtMin(suggestion.rideSec);
   const next = suggestion.departures[0];
-  const nextDepart = fmtTime(next.departLocal);
-  const nextArrive = fmtTime(next.arriveLocal);
   const dayChip = fmtDateChip(next.departLocal, locale);
+  const pickup = cleanPlace(suggestion.pickup.name);
+  const dropoff = cleanPlace(suggestion.dropoff.name);
+  const walk = walkParts(suggestion.pickup.distanceM);
 
   const pickupFar = suggestion.pickup.distanceM > WALKABLE_M;
   const dropoffFar = suggestion.dropoff.distanceM > WALKABLE_M;
 
   return (
-    <article className="rounded-[24px] bg-card ring-1 ring-line p-4 flex flex-col gap-3 animate-rise">
-      {/* Provider row, same pattern as the Go mobility cards */}
+    <article className="r-mob animate-rise flex flex-col gap-3.5 rounded-[26px] bg-white px-[18px] pb-[18px] pt-4 text-[#171717]">
       <header className="flex min-w-0 items-center gap-3">
         <ProviderTile provider="kapnos" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[16px] font-semibold leading-5 text-[#171717]">
-            Kapnos Airport Shuttle
-          </p>
-          <p className="truncate text-[13px] leading-[18px] text-[var(--r-mute,#6f6f6a)]">
-            {prettyRoute(suggestion.routeName)}
-          </p>
+          <p className="text-[16px] font-semibold leading-5">Kapnos Airport Shuttle</p>
+          <p className={`text-[13px] leading-[18px] ${MUTE}`}>{prettyRoute(suggestion.routeName)}</p>
         </div>
-        <span className="inline-flex h-7 shrink-0 items-center whitespace-nowrap rounded-full bg-[var(--r-pill,#eeeeea)] px-2.5 text-[12px] font-medium text-[#171717] [font-variant-numeric:tabular-nums]">
-          {t("kapnos.fromPrice", { price: next.priceFrom })}
-        </span>
+        {dayChip ? (
+          <span className={`inline-flex h-7 shrink-0 items-center whitespace-nowrap rounded-full ${PILL} px-2.5 text-[12px] font-medium`}>
+            {dayChip}
+          </span>
+        ) : null}
       </header>
 
-      {/* Headline summary line — next coach, condensed */}
-      <div className="rounded-2xl bg-aegean-soft/40 px-3.5 py-2.5 flex items-baseline justify-between gap-3 flex-wrap">
-        <div className="flex items-baseline gap-2 min-w-0">
-          <span className="font-display text-[18px] text-ink tabular-nums">{nextDepart}</span>
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">→</span>
-          <span className="font-display text-[18px] text-ink tabular-nums">{nextArrive}</span>
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
-            {rideMin} min
-          </span>
-          {dayChip ? (
-            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ochre-deep">
-              {dayChip}
-            </span>
-          ) : null}
-        </div>
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
-          {t("kapnos.fromPrice", { price: next.priceFrom })}
-        </span>
-      </div>
+      <h3 className="text-balance text-[21px] font-medium leading-[1.2] tracking-[-0.015em]">
+        {t("kapnos.headline", {
+          depart: fmtTime(next.departLocal),
+          arrive: fmtTime(next.arriveLocal),
+        })}
+      </h3>
 
-      {/* Compact 3-step rail: pickup · ride · dropoff */}
-      <ol className="flex flex-col gap-1.5">
-        <li className="flex items-baseline gap-2.5 min-w-0">
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-ochre-deep tabular-nums shrink-0 w-5">
-            01
-          </span>
-          <span className="font-sans text-[13px] text-ink truncate flex-1">
-            {shortStop(suggestion.pickup.name)}
-          </span>
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft tabular-nums shrink-0">
-            {fmtWalk(suggestion.pickup.distanceM)}
-          </span>
-        </li>
-        <li className="flex items-baseline gap-2.5 min-w-0">
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep tabular-nums shrink-0 w-5">
-            02
-          </span>
-          <span className="font-sans text-[13px] text-ink-soft truncate flex-1">
-            {t("kapnos.coachLeg", { m: rideMin })}
-          </span>
-        </li>
-        <li className="flex items-baseline gap-2.5 min-w-0">
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-ochre-deep tabular-nums shrink-0 w-5">
-            03
-          </span>
-          <span className="font-sans text-[13px] text-ink truncate flex-1">
-            {shortStop(suggestion.dropoff.name)}
-          </span>
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft tabular-nums shrink-0">
-            {fmtWalk(suggestion.dropoff.distanceM)}
-          </span>
-        </li>
-      </ol>
+      <MobilityStats
+        stats={[
+          { label: t("kapnos.statRide"), value: rideMin, unit: "min" },
+          { label: t("kapnos.statWalk"), value: walk.value, unit: walk.unit },
+          { label: t("kapnos.statFare"), value: next.priceFrom },
+        ]}
+      />
 
-      {/* First-mile plan: only when the rider isn't already at the coach stop */}
+      <ul className="flex flex-col">
+        <li className="flex min-w-0 items-start gap-3 py-2">
+          <span className="mt-1.5 inline-block size-2 shrink-0 rounded-full bg-[var(--r-y,#f6b83c)]" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <p className="break-words text-[14px] font-medium leading-5">{pickup}</p>
+            <p className={`text-[12px] leading-4 ${MUTE}`}>
+              {t("kapnos.boardMeta", { walk: fmtWalk(suggestion.pickup.distanceM) })}
+            </p>
+          </div>
+        </li>
+        <li className="flex min-w-0 items-start gap-3 border-t border-[var(--r-line,#e7e7e3)] py-2">
+          <span className="mt-1.5 inline-block size-2 shrink-0 rounded-full bg-[#171717]" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <p className="break-words text-[14px] font-medium leading-5">{dropoff}</p>
+            <p className={`text-[12px] leading-4 ${MUTE}`}>
+              {t("kapnos.alightMeta", { walk: fmtWalk(suggestion.dropoff.distanceM) })}
+            </p>
+          </div>
+        </li>
+      </ul>
+
       {pickupFar ? (
-        <details className="group rounded-2xl ring-1 ring-line/60 px-3.5 py-2.5 [&[open]>summary>span.chev]:rotate-180">
-          <summary className="flex items-center justify-between gap-3 cursor-pointer list-none">
-            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
-              {t("kapnos.firstMile.title", {
-                stop: shortStop(suggestion.pickup.name),
-              })}
-            </span>
-            <span className="chev font-mono text-[10px] text-ink-soft transition-transform">▾</span>
-          </summary>
-          <div className="mt-2.5">
-            {firstMileLoading ? (
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
-                {t("kapnos.firstMile.loading")}
-              </p>
-            ) : firstMile ? (
-              onPlanFirstMile ? (
-                <button
-                  type="button"
-                  onClick={onPlanFirstMile}
-                  className="group/btn w-full text-left rounded-xl -m-1 p-1 transition-colors hover:bg-aegean-soft/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aegean/40"
-                  aria-label={t("kapnos.firstMile.openPlan")}
-                >
-                  <MiniItinerary itin={firstMile} />
-                  <p className="mt-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-aegean-deep">
-                    {t("kapnos.firstMile.openPlan")} →
-                  </p>
-                </button>
-              ) : (
-                <MiniItinerary itin={firstMile} />
-              )
-            ) : (
-              <div>
-                <p className="font-sans text-[12px] text-ink-soft leading-snug">
-                  {t("kapnos.firstMile.none")}
-                </p>
-              </div>
-            )}
-          </div>
-        </details>
+        <MilePlan
+          title={t("kapnos.firstMile.title", { stop: pickup })}
+          loading={firstMileLoading}
+          loadingLabel={t("kapnos.firstMile.loading")}
+          plan={firstMile}
+          openLabel={t("kapnos.firstMile.openPlan")}
+          onOpen={onPlanFirstMile}
+          none={t("kapnos.firstMile.none")}
+        />
       ) : null}
 
-      {/* Last-mile plan from airport-side coach stop */}
       {dropoffFar ? (
-        <details className="group rounded-2xl ring-1 ring-line/60 px-3.5 py-2.5 [&[open]>summary>span.chev]:rotate-180">
-          <summary className="flex items-center justify-between gap-3 cursor-pointer list-none">
-            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
-              {t("kapnos.lastMile.title", {
-                stop: shortStop(suggestion.dropoff.name),
-              })}
-            </span>
-            <span className="chev font-mono text-[10px] text-ink-soft transition-transform">▾</span>
-          </summary>
-          <div className="mt-2.5">
-            {lastMileLoading ? (
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
-                {t("kapnos.lastMile.loading")}
-              </p>
-            ) : lastMile ? (
-              onPlanLastMile ? (
-                <button
-                  type="button"
-                  onClick={onPlanLastMile}
-                  className="group/btn w-full text-left rounded-xl -m-1 p-1 transition-colors hover:bg-aegean-soft/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aegean/40"
-                  aria-label={t("kapnos.lastMile.openPlan")}
-                >
-                  <MiniItinerary itin={lastMile} />
-                  <p className="mt-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-aegean-deep">
-                    {t("kapnos.lastMile.openPlan")} →
-                  </p>
-                </button>
-              ) : (
-                <MiniItinerary itin={lastMile} />
-              )
-            ) : (
-              <div>
-                <p className="font-sans text-[12px] text-ink-soft leading-snug">
-                  {t("kapnos.lastMile.none")}
-                </p>
-              </div>
-            )}
-          </div>
-        </details>
+        <MilePlan
+          title={t("kapnos.lastMile.title", { stop: dropoff })}
+          loading={lastMileLoading}
+          loadingLabel={t("kapnos.lastMile.loading")}
+          plan={lastMile}
+          openLabel={t("kapnos.lastMile.openPlan")}
+          onOpen={onPlanLastMile}
+          none={t("kapnos.lastMile.none")}
+        />
       ) : null}
 
-      {/* Collapsed: full timetable + book CTAs + disclaimer */}
-      <details className="group [&[open]>summary>span.chev]:rotate-180">
-        <summary className="flex items-center justify-between gap-3 cursor-pointer list-none rounded-2xl bg-limestone-soft/60 px-3.5 py-2.5">
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
-            {t("kapnos.moreLabel")}
-          </span>
-          <span className="chev font-mono text-[10px] text-ink-soft transition-transform">▾</span>
+      <details className="group">
+        <summary className={`flex cursor-pointer list-none items-center justify-between gap-3 rounded-[18px] ${PILL} px-3.5 py-3 text-[14px] font-medium leading-5 [&::-webkit-details-marker]:hidden`}>
+          <span className="min-w-0">{t("kapnos.moreLabel")}</span>
+          <Icon name="caret-down" size={15} className="shrink-0 transition-transform group-open:rotate-180" />
         </summary>
         <div className="mt-3 flex flex-col gap-3">
-          <ul className="flex flex-col rounded-2xl ring-1 ring-line/60 divide-y divide-line/40">
-            {suggestion.departures.map((d) => {
+          <ul className="flex flex-col">
+            {suggestion.departures.map((d, i) => {
               const chip = fmtDateChip(d.departLocal, locale);
               const known = d.seatsAvailable != null;
               const seatsLow = known && d.seatsAvailable! > 0 && d.seatsAvailable! <= 8;
@@ -292,24 +263,22 @@ export function KapnosShuttleCard({
               return (
                 <li
                   key={`${d.tripId}-${d.departLocal}-${d.arriveLocal}`}
-                  className="flex items-baseline justify-between gap-3 px-3 py-2"
+                  className={`flex items-baseline justify-between gap-3 py-2 ${
+                    i > 0 ? "border-t border-[var(--r-line,#e7e7e3)]" : ""
+                  }`}
                 >
-                  <div className="flex items-baseline gap-2 min-w-0">
-                    <span className="font-display text-[14px] text-ink tabular-nums">
+                  <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                    <span className="text-[15px] font-medium [font-variant-numeric:tabular-nums]">
                       {fmtTime(d.departLocal)}
                     </span>
-                    <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft tabular-nums">
+                    <span className={`text-[12px] ${MUTE} [font-variant-numeric:tabular-nums]`}>
                       {t("kapnos.arrivesAt", { time: fmtTime(d.arriveLocal) })}
                     </span>
-                    {chip ? (
-                      <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ochre-deep">
-                        {chip}
-                      </span>
-                    ) : null}
+                    {chip ? <span className="text-[12px] font-medium text-[#9a6b12]">{chip}</span> : null}
                   </div>
                   <span
-                    className={`font-mono text-[9.5px] uppercase tracking-[0.18em] tabular-nums ${
-                      sold ? "text-red-700" : seatsLow ? "text-ochre-deep" : "text-ink-soft"
+                    className={`shrink-0 text-[12px] font-medium [font-variant-numeric:tabular-nums] ${
+                      sold ? "text-red-700" : seatsLow ? "text-[#9a6b12]" : MUTE
                     }`}
                   >
                     {sold
@@ -322,29 +291,30 @@ export function KapnosShuttleCard({
               );
             })}
           </ul>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-2">
             <a
               href={suggestion.bookingUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-full bg-ink px-4 py-2 font-sans text-[12.5px] font-semibold text-limestone transition-colors hover:bg-ochre-deep"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#171717] px-5 text-[15px] font-semibold text-white transition-transform active:scale-[0.98]"
             >
               {t("kapnos.bookCta")}
+              <Icon name="arrow-up-right" size={17} />
             </a>
             <a
               href={suggestion.routeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-full bg-card ring-1 ring-line px-4 py-2 font-sans text-[12.5px] font-semibold text-ink transition-colors hover:ring-aegean/40"
+              className={`inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-full ${PILL} px-3 text-[14px] font-medium text-[#171717] transition-transform active:scale-[0.98]`}
             >
+              <Icon name="calendar-blank" size={16} />
               {t("kapnos.timetableCta")}
             </a>
           </div>
-          <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft/70">
-            {t("kapnos.disclaimer")}
-          </p>
         </div>
       </details>
+
+      <p className={`text-[12px] leading-4 ${MUTE}`}>{t("kapnos.disclaimer")}</p>
     </article>
   );
 }

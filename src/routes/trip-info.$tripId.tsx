@@ -125,7 +125,7 @@ function TripInfo() {
         >
           <IconArrowLeft className="size-4" />
         </Link>
-        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+        <span className="text-[12px] text-ink-soft">
           {t("tripInfo.live")}
         </span>
         <span className="size-10" />
@@ -143,7 +143,7 @@ function TripInfo() {
           <header className="px-6 pb-5 animate-rise" style={{ animationDelay: "60ms" }}>
             <div className="flex items-center gap-3">
               <RouteChip code={trip.route?.short ?? "?"} tone={routeTone(trip.routeId)} />
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+              <span className="text-[12px] text-ink-soft">
                 {trip.vehicle?.label
                   ? t("tripInfo.busLabel", { label: trip.vehicle.label })
                   : t("tripInfo.live")}
@@ -230,7 +230,7 @@ function TripInfo() {
           <section className="mt-8 px-6 animate-rise" style={{ animationDelay: "200ms" }}>
             <div className="flex items-end justify-between mb-3">
               <h2 className="font-display text-2xl text-ink">{t("tripInfo.allStops")}</h2>
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+              <span className="text-[12px] text-ink-soft">
                 {t("tripInfo.liveScheduled")}
               </span>
             </div>
@@ -267,7 +267,7 @@ function TripInfo() {
                         {s.meta?.name ?? t("tripInfo.stopFallback", { id: s.stopId })}
                       </p>
 
-                      <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                      <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-soft">
                         {s.next && <IconBus className="size-3 text-ochre" />}
                         {s.meta?.code
                           ? t("tripInfo.stopCode", { code: s.meta.code })
@@ -285,7 +285,7 @@ function TripInfo() {
                         {fmtClock(s.arrivalUnix)}
                       </p>
                       {Math.abs(s.delaySec) > 60 && (
-                        <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft">
+                        <p className="mt-1 text-[12px] text-ink-soft">
                           {s.delaySec > 0
                             ? `+${Math.round(s.delaySec / 60)}m`
                             : `${Math.round(s.delaySec / 60)}m`}
