@@ -8,7 +8,10 @@
   "assets": { "directory": "../dist/client", "binding": "ASSETS" },
   "send_email": [{ "name": "SEND_EMAIL" }],
   "d1_databases": [{ "binding": "DB", "database_name": "aloya-db", "database_id": "bd792d63-9772-4bda-a06c-9579465cf409", "migrations_dir": "../migrations-d1" }],
-  "vars": { "CUSTOM_SUPABASE_URL": "", "SCHEDULE_ON_WORKER": "off" },
+  "vars": { "CUSTOM_SUPABASE_URL": "", "SCHEDULE_ON_WORKER": "on" },
+  // Workers Paid (verified 2026-10-31): timetable planning runs on the Worker
+  // again; a day shard parse plus RAPTOR needs far more than the Free 10 ms.
+  "limits": { "cpu_ms": 30000 },
   "workers_dev": true,
   "keep_vars": true
 }
