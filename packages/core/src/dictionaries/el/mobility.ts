@@ -18,6 +18,7 @@ export const mobility: Record<keyof typeof mobilityEn, string> = {
   "pnr.name": "Στάθμευση και λεωφορείο",
   "pnr.mode": "Οδήγηση, στάθμευση, μετά λεωφορείο",
   "pnr.asideFaster": "{m} λεπτά πιο γρήγορα",
+  "pnr.asideFasterH": "{h} ώρ. {m} λεπ. πιο γρήγορα",
   "pnr.asideComfort": "Λιγότερο περπάτημα",
   "pnr.asideOnly": "Καλύτερο εδώ",
   "pnr.statDrive": "Οδήγηση, {km} χλμ",

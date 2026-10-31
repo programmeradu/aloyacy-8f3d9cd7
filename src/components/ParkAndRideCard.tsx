@@ -45,9 +45,12 @@ export function ParkAndRideCard({
   const board = cleanPlace(suggestion.bus.boardName);
   const route = suggestion.bus.firstRoute;
 
+  const saved = fmtMin(suggestion.savingsSec);
   const aside =
     suggestion.reason === "faster" || suggestion.reason === "traffic-jam"
-      ? t("pnr.asideFaster", { m: fmtMin(suggestion.savingsSec) })
+      ? saved >= 60
+        ? t("pnr.asideFasterH", { h: Math.floor(saved / 60), m: saved % 60 })
+        : t("pnr.asideFaster", { m: saved })
       : suggestion.reason === "comfort"
         ? t("pnr.asideComfort")
         : t("pnr.asideOnly");
@@ -57,7 +60,7 @@ export function ParkAndRideCard({
     ? [
         {
           href: `https://www.google.com/maps/dir/?api=1&origin=${suggestion.hub.lat},${suggestion.hub.lng}&destination=${destination.lat},${destination.lng}&travelmode=transit`,
-          label: t("pnr.busFrom", { stop: shortPlace(board) }),
+          label: t("pnr.busFrom", { stop: board.length <= 22 ? board : shortPlace(board) }),
           icon: "bus",
           external: true,
         },

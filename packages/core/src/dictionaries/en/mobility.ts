@@ -16,6 +16,7 @@ export const mobility = {
   "pnr.name": "Park and ride",
   "pnr.mode": "Drive, park, then bus",
   "pnr.asideFaster": "{m} min faster",
+  "pnr.asideFasterH": "{h} h {m} min faster",
   "pnr.asideComfort": "Shorter walk",
   "pnr.asideOnly": "Best here",
   "pnr.statDrive": "Drive, {km} km",
