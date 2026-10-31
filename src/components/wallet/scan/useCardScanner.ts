@@ -67,7 +67,7 @@ const STABLE_FRAMES = 3;
 
 /** Regions on the flattened card (fractions of width/height), from the real card. */
 const ROI = {
-  name: { x: 0.18, y: 0.39, w: 0.44, h: 0.072 },
+  name: { x: 0.14, y: 0.385, w: 0.5, h: 0.08 },
   category: { x: 0.29, y: 0.455, w: 0.33, h: 0.11 },
   date: { x: 0.41, y: 0.643, w: 0.195, h: 0.072 },
   /** Holder photo: painted over before anything reads the front. */
@@ -379,22 +379,25 @@ export function useCardScanner(opts: {
             .find(Boolean);
           if (uid) vt.acceptExact(uid, "qr");
         }
-        // Faint thermal print: read the plain crop and the thresholded one.
-        for (const enh of [true, false]) {
-          if (!vt.accepted.holder) {
-            const r = await readRegion(crop(card, ROI.name, 2, enh), {
-              whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ '-",
-              psm: "7",
-            });
-            vote("holder", validName(r.text), r.conf);
-          }
-          if (!vt.accepted.validUntil) {
-            const r = await readRegion(crop(card, ROI.date, 2, enh), {
-              whitelist: "0123456789/",
-              psm: "7",
-            });
-            vote("validUntil", validDate(r.text), r.conf);
-          }
+        // Faint thermal print. Each field is read twice per frame in ways
+        // that fail differently (plain and thresholded for the name, two
+        // scales for the date, whose thin strokes break when thresholded),
+        // so one frame where both agree is enough and noise never agrees.
+        for (const enh of [false, true]) {
+          if (vt.accepted.holder) break;
+          const r = await readRegion(crop(card, ROI.name, 2, enh), {
+            whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ '-",
+            psm: "7",
+          });
+          vote("holder", validName(r.text), r.conf);
+        }
+        for (const sc of [1, 1.5]) {
+          if (vt.accepted.validUntil) break;
+          const r = await readRegion(crop(card, ROI.date, sc), {
+            whitelist: "0123456789/",
+            psm: "7",
+          });
+          vote("validUntil", validDate(r.text), r.conf);
         }
         if (!vt.accepted.category) {
           const r = await readRegion(crop(card, ROI.category, 2), {
@@ -426,9 +429,10 @@ export function useCardScanner(opts: {
             }
           }
         }
-        for (const enh of [false, true]) {
+        // Two scales of the bold UID line; they agree on a clean read.
+        for (const sc of [1, 3]) {
           if (vt.accepted.number) break;
-          const r = await readRegion(crop(card, ROI.uid, 1.6, enh), {
+          const r = await readRegion(crop(card, ROI.uid, sc), {
             whitelist: "0123456789UID: ",
             psm: "7",
           });

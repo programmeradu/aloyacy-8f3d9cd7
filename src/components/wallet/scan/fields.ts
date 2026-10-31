@@ -38,6 +38,9 @@ export function validName(raw: string): string | null {
     .split(" ")
     .map((w) => w.replace(/^[-']+|[-']+$/g, ""))
     .filter((w) => w.length >= 1 && !CARD_WORDS.has(w));
+  // A lone hyphenated surname (the initial lost to a faint print) still counts.
+  if (words.length === 1 && /^[A-Z\u0386-\u03AB]{3,}(-[A-Z\u0386-\u03AB]{3,})+$/.test(words[0]))
+    return words[0].split("-").every((p) => /[AEIOUYΑΕΗΙΟΥΩΆΈΉΊΌΎΏ]/.test(p)) ? words[0] : null;
   if (words.length < 2 || words.length > 4) return null;
   // Initials (one letter) may only lead, and a real word must follow them.
   let i = 0;

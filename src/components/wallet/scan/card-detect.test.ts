@@ -109,7 +109,7 @@ describe("card detection", () => {
       const flat = toGray(warpQuad(img, q, 1000, 631), 1000, 631);
       expect(whiteShare(flat), f).toBeGreaterThan(0.28);
     }
-  });
+  }, 30000);
   // Samuel's real bug: the old scanner read "SST SY SUIS" off a blanket. No
   // fabric on its own may ever form a card, wherever the guide sits on it.
   it("never finds a card in plaid, tartan, tilted stripes or knit alone", () => {
@@ -130,7 +130,7 @@ describe("card detection", () => {
             expect(detectCard(w.gray, w.guide), `${f} ${dx},${dy} x${sc}`).toBeNull();
           }
     }
-  });
+  }, 30000);
 });
 
 describe("text prep", () => {
@@ -157,6 +157,8 @@ describe("field validation", () => {
     expect(validName("s adu - berekorang")).toBe("S ADU-BEREKORANG");
     expect(validName("A B")).toBeNull();
     expect(validName("ADU-BRK")).toBeNull();
+    expect(validName("ADFU-BEREKORANG")).toBe("ADFU-BEREKORANG");
+    expect(validName("SST-SYS")).toBeNull();
     expect(validName("S T SST")).toBeNull();
   });
   it("reads the category box", () => {

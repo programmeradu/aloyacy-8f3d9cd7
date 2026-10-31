@@ -287,11 +287,12 @@ export function detectCard(g: Gray, guide: Rect, band = 0.22): Detection | null 
   let best: Detection | null = null;
   for (const top of tops)
     for (const bottom of bottoms) {
-      // Opposite card edges are near parallel (the phone is roughly flat).
-      if (Math.abs(top.a - bottom.a) > 0.05) continue;
+      // Opposite card edges are near parallel (the phone is roughly flat; a
+      // handheld card leans a few degrees, so allow about 4.5 degrees).
+      if (Math.abs(top.a - bottom.a) > 0.08) continue;
       for (const left of lefts)
         for (const right of rights) {
-          if (Math.abs(left.a - right.a) > 0.05) continue;
+          if (Math.abs(left.a - right.a) > 0.08) continue;
           const d = quadFrom(g, guide, top, bottom, left, right);
           if (d && (!best || rank(d) > rank(best))) best = d;
         }
@@ -324,7 +325,7 @@ function quadFrom(
   const hL = Math.hypot(quad[3].x - quad[0].x, quad[3].y - quad[0].y);
   const hR = Math.hypot(quad[2].x - quad[1].x, quad[2].y - quad[1].y);
   const ratio = (wTop + wBot) / (hL + hR);
-  if (Math.abs(ratio - ID1_RATIO) / ID1_RATIO > 0.12) return null;
+  if (Math.abs(ratio - ID1_RATIO) / ID1_RATIO > 0.09) return null;
   const fill = quadArea(quad) / (guide.w * guide.h);
   if (fill < 0.55 || fill > 1.6) return null;
   // Card edges stop at the card's corners; stripes in a texture run on.
