@@ -49,6 +49,32 @@ export function classifyDelay(sec: number): DelayClass {
   return "onTime";
 }
 
+type SnapVehicle = Snap["vehicles"][number];
+
+/** A bus with a usable position on the island. */
+export function hasPosition(v: { lat: number; lng: number }): boolean {
+  return Number.isFinite(v.lat) && Number.isFinite(v.lng) && !(v.lat === 0 && v.lng === 0);
+}
+
+/**
+ * The live buses every Pulse surface counts: one per trip (or vehicle id when
+ * the feed has no trip), only those with a real position. The map draws exactly
+ * this list and the "N live" figures are its length, so they cannot disagree.
+ */
+export function uniqueLiveVehicles<V extends SnapVehicle>(
+  vehicles: readonly V[] | null | undefined,
+): V[] {
+  const seen = new Set<string>();
+  const out: V[] = [];
+  for (const v of vehicles ?? []) {
+    const key = v.tripId || v.id;
+    if (!key || seen.has(key) || !hasPosition(v)) continue;
+    seen.add(key);
+    out.push(v);
+  }
+  return out;
+}
+
 const pct = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 100) : 0);
 
 export function computeNetworkNow(
@@ -58,11 +84,8 @@ export function computeNetworkNow(
   const now = snap?.fetchedAt || Math.floor(Date.now() / 1000);
   const liveTrips = new Map<string, string>();
   const liveByCity = new Map<string, number>();
-  const seen = new Set<string>();
-  for (const v of snap?.vehicles ?? []) {
-    const key = v.tripId || v.id;
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
+  const live = uniqueLiveVehicles(snap?.vehicles);
+  for (const v of live) {
     if (v.tripId) liveTrips.set(v.tripId, v.routeId);
     const a = agencyOf(v.routeId);
     if (a) liveByCity.set(a, (liveByCity.get(a) ?? 0) + 1);
@@ -119,7 +142,7 @@ export function computeNetworkNow(
 
   return {
     fetchedAt: now,
-    liveBuses: seen.size,
+    liveBuses: live.length,
     tracked: n,
     onTime,
     early,

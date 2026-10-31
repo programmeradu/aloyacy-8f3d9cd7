@@ -13,20 +13,37 @@ function lineColour(routeId: string): string {
   return `#${c}`;
 }
 
+/** A line label as riders say it: numbers as they are, capitals in sentence case. */
+export function lineLabel(short: string): string {
+  const s = (short ?? "").trim();
+  const letters = s.replace(/[^\p{L}]/gu, "");
+  if (letters.length < 3 || letters !== letters.toLocaleUpperCase()) return s;
+  const low = s.toLocaleLowerCase();
+  return low.charAt(0).toLocaleUpperCase() + low.slice(1);
+}
+
+/** Dedupe key for a line chip: the label a rider reads. */
+export function lineKey(short: string): string {
+  return lineLabel(short).toLocaleLowerCase().replace(/\s+/g, "");
+}
+
 export function CrowdEyesCard({
   routes,
   t,
   kind = "watching",
+  exclude,
 }: {
   routes: CrowdEyesRoute[];
   t: Translate;
   kind?: "watching" | "seed";
+  /** Line keys already shown in another card. */
+  exclude?: ReadonlySet<string>;
 }) {
-  const seen = new Set<string>();
+  const seen = new Set<string>(exclude ?? []);
   const lines: CrowdEyesRoute[] = [];
   for (const r of routes) {
-    const key = `${getRoute(r.routeId)?.agency ?? ""}|${r.short}`;
-    if (seen.has(key)) continue;
+    const key = lineKey(r.short);
+    if (!key || seen.has(key)) continue;
     seen.add(key);
     lines.push(r);
   }
@@ -48,7 +65,7 @@ export function CrowdEyesCard({
           <li key={r.routeId}>
             <span className="r-opchip" style={{ "--op": lineColour(r.routeId) } as CSSProperties}>
               <i aria-hidden="true" />
-              {r.short}
+              {lineLabel(r.short)}
             </span>
           </li>
         ))}

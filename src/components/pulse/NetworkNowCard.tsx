@@ -141,7 +141,14 @@ function Spark({ buckets, nowHour }: { buckets: HourBucket[]; nowHour: number | 
         <path d={area} fill="url(#r-nn-area)" />
         <path d={d} fill="none" stroke="#F6B83C" strokeWidth="2" strokeLinecap="round" />
         <circle cx={last[0]} cy={last[1]} r="7" fill="#F6B83C" fillOpacity=".22" />
-        <circle cx={last[0]} cy={last[1]} r="3.4" fill="#F6B83C" stroke="#232322" strokeWidth="1.5" />
+        <circle
+          cx={last[0]}
+          cy={last[1]}
+          r="3.4"
+          fill="#F6B83C"
+          stroke="#232322"
+          strokeWidth="1.5"
+        />
       </svg>
       <div className="r-nn-axis">
         <span>{pad(h0)}</span>
@@ -153,7 +160,12 @@ function Spark({ buckets, nowHour }: { buckets: HourBucket[]; nowHour: number | 
 
 function Texture() {
   return (
-    <svg className="r-nn-tex" viewBox="0 0 360 440" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <svg
+      className="r-nn-tex"
+      viewBox="0 0 360 440"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+    >
       <g fill="none" stroke="rgba(255,255,255,.045)" strokeWidth="1">
         <path d="M-10 70 C 80 44, 170 96, 380 52" />
         <path d="M-10 182 C 120 160, 220 222, 380 170" />
@@ -200,7 +212,14 @@ function Chevron({ open }: { open: boolean }) {
   return (
     <span className="r-nn-chev" data-open={open ? "true" : "false"} aria-hidden="true">
       <svg width="14" height="14" viewBox="0 0 14 14">
-        <path d="M3 5.2 7 9l4-3.8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M3 5.2 7 9l4-3.8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </span>
   );
@@ -256,6 +275,7 @@ export function NetworkNowCard({
       <button
         type="button"
         className="r-nn-top r-nn-btn"
+        data-netnow-toggle=""
         onClick={toggle}
         aria-expanded={open}
         aria-label={open ? r("pulse.nn.collapse") : r("pulse.nn.expand")}
@@ -263,7 +283,7 @@ export function NetworkNowCard({
         <span className="r-nn-lbl">{r("pulse.networkNow")}</span>
         <span className="r-nn-topr">
           {ready ? (
-            <span className="r-nn-live">
+            <span className="r-nn-live" data-metric="nn-live">
               <i aria-hidden="true" />
               {r("pulse.nn.live", { n: now!.liveBuses })}
             </span>
@@ -287,6 +307,9 @@ export function NetworkNowCard({
                 tabIndex={open ? -1 : 0}
                 aria-label={r("pulse.nn.expand")}
               >
+                <span data-metric="nn-sum-ontime" hidden>
+                  {now.onTimePct}
+                </span>
                 <SumRing pct={now.onTimePct} rated={rated} />
                 <span className="r-nn-sumbody">
                   <span className="r-nn-sumlbl">{r("pulse.nn.onTimeNow")}</span>

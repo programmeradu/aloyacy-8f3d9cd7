@@ -24,7 +24,6 @@ type Cluster = { lat: number; lng: number; n: number; sl: number; sg: number };
 function clusterVehicles(vs: LiveVehicle[]): Cluster[] {
   const out: Cluster[] = [];
   for (const v of vs) {
-    if (!Number.isFinite(v.lat) || !Number.isFinite(v.lng) || (v.lat === 0 && v.lng === 0)) continue;
     let hit: Cluster | null = null;
     for (const c of out) {
       if (Math.abs(c.lat - v.lat) < 0.14 && Math.abs(c.lng - v.lng) < 0.2) {
@@ -94,12 +93,14 @@ export function LiveNetworkSection({
   );
   const live = now?.liveBuses ?? 0;
   const rated = !!now && now.tracked > 0;
+  // Same list as the count: the bubbles always add up to the live figure.
+  const onMap = vehicles.length;
 
   return (
     <section className="animate-rise" style={{ animationDelay: "100ms" }}>
       <h2 className="r-pulse-h">
         <span>{r("pulse.live.title")}</span>
-        {live ? <small>{r("pulse.nn.live", { n: live })}</small> : null}
+        {live ? <small data-metric="map-head-live">{r("pulse.nn.live", { n: live })}</small> : null}
       </h2>
       <MapPreview
         height="h-56"
@@ -112,16 +113,21 @@ export function LiveNetworkSection({
         pins={pins}
         declutterPx={30}
       />
+      <span hidden data-metric="map-sum">
+        {onMap}
+      </span>
       <div className="r-pulse-tiles">
         <div className="r-pulse-tile">
           <p>{r("pulse.live.buses")}</p>
-          <strong>{live || "-"}</strong>
+          <strong data-metric="tile-live">{live || "-"}</strong>
           <VehicleImg kind="bus" width={96} className="r-pulse-tilebus" />
         </div>
         <div className="r-pulse-tile">
           <p>{r("pulse.live.onTime")}</p>
-          <strong>{rated ? `${now!.onTimePct}%` : "-"}</strong>
-          {rated ? <p className="r-pulse-tilesub">{r("pulse.live.delayedN", { n: now!.late })}</p> : null}
+          <strong data-metric="tile-ontime">{rated ? `${now!.onTimePct}%` : "-"}</strong>
+          {rated ? (
+            <p className="r-pulse-tilesub">{r("pulse.live.delayedN", { n: now!.late })}</p>
+          ) : null}
           <MiniRing pct={rated ? now!.onTimePct : 0} />
         </div>
       </div>

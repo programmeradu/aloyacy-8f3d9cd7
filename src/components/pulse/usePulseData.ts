@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getLivePulse, getPulseHourStrip } from "@/lib/pulse.functions";
+import { getPulseHourStrip } from "@/lib/pulse.functions";
 import { getCrowdEyes } from "@/lib/crowd-coverage.server";
 import { getPulseLive } from "@/lib/pulse-live.functions";
 import { getTodayBriefing } from "@/lib/today.functions";
@@ -39,7 +39,6 @@ function useCoarseCoords() {
 
 export function usePulseData() {
   const todayFn = useServerFn(getTodayBriefing);
-  const liveFn = useServerFn(getLivePulse);
   const hourFn = useServerFn(getPulseHourStrip);
   const eyesFn = useServerFn(getCrowdEyes);
   const pulseLiveFn = useServerFn(getPulseLive);
@@ -64,13 +63,6 @@ export function usePulseData() {
     queryFn: () => todayFn({ data: briefingInput }),
     refetchInterval: 10 * 60_000,
     staleTime: 9 * 60_000,
-  });
-
-  const { data: live } = useQuery({
-    queryKey: ["pulse-live"],
-    queryFn: () => liveFn(),
-    refetchInterval: 60_000,
-    staleTime: 30_000,
   });
 
   const { data: hourly } = useQuery({
@@ -99,5 +91,5 @@ export function usePulseData() {
     staleTime: 4 * 60_000,
   });
 
-  return { today, live, hourly, crowdEyes, liveSignals };
+  return { today, hourly, crowdEyes, liveSignals };
 }

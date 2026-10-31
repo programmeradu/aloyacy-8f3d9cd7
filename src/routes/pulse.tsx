@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RoamPage } from "@/components/roam/RoamPage";
 import { useRoamI18n } from "@/lib/roam-i18n";
 import { PulseLiveSection } from "@/components/PulseLiveSection";
-import { CrowdEyesCard } from "@/components/pulse/CrowdEyesCard";
+import { CrowdEyesCard, lineKey } from "@/components/pulse/CrowdEyesCard";
+import { useMemo } from "react";
 import { TodayEditorial } from "@/components/pulse/TodayEditorial";
 import { usePulseData } from "@/components/pulse/usePulseData";
 import { LiveNetworkSection } from "@/components/pulse/LiveNetworkSection";
@@ -47,6 +48,10 @@ function Pulse() {
   const { today, hourly, crowdEyes, liveSignals } = usePulseData();
   // One source for every on-time number on this page.
   const { now: net, vehicles } = useNetworkNow();
+  const watchedKeys = useMemo(
+    () => new Set((crowdEyes?.routes ?? []).map((x) => lineKey(x.short))),
+    [crowdEyes?.routes],
+  );
   const dateLine = new Intl.DateTimeFormat(locale === "el" ? "el-GR" : "en-GB", {
     weekday: "long",
     day: "numeric",
@@ -56,25 +61,21 @@ function Pulse() {
 
   return (
     <RoamPage title={r("pulse.title")} sub={dateLine}>
-      <NetworkNowCard
-        now={net}
-        buckets={hourly?.buckets ?? []}
-        nowHour={hourly?.nowHour ?? null}
-      />
+      <NetworkNowCard now={net} buckets={hourly?.buckets ?? []} nowHour={hourly?.nowHour ?? null} />
       <div className="r-legacy r-pulse">
         {today && <TodayEditorial briefing={today} locale={locale} t={t} />}
 
         <LiveNetworkSection now={net} vehicles={vehicles} />
 
         {crowdEyes && crowdEyes.routes.length > 0 && (
-          <section className="mt-4 animate-rise" style={{ animationDelay: "160ms" }}>
+          <section className="r-pulse-crowd animate-rise" style={{ animationDelay: "160ms" }}>
             <CrowdEyesCard routes={crowdEyes.routes} t={t} />
           </section>
         )}
 
         {crowdEyes && crowdEyes.seeds.length > 0 && (
-          <section className="mt-4 animate-rise" style={{ animationDelay: "180ms" }}>
-            <CrowdEyesCard kind="seed" routes={crowdEyes.seeds} t={t} />
+          <section className="r-pulse-crowd animate-rise" style={{ animationDelay: "180ms" }}>
+            <CrowdEyesCard kind="seed" routes={crowdEyes.seeds} t={t} exclude={watchedKeys} />
           </section>
         )}
 

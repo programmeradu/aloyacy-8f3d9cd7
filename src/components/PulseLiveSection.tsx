@@ -9,6 +9,7 @@
 // - Painterly assets, generous negative space, large numerals.
 
 import type { PulseLiveBundle } from "@/lib/pulse-live.functions";
+import { useRoamI18n } from "@/lib/roam-i18n";
 import { shouldShowAir, type Locale } from "./pulse-live/shared";
 import {
   AirCard,
@@ -23,6 +24,7 @@ import { EventsStrip } from "./pulse-live/EventsStrip";
 import { TrafficCard } from "./pulse-live/TrafficCard";
 
 export function PulseLiveSection({ bundle, locale }: { bundle: PulseLiveBundle; locale: Locale }) {
+  const { r } = useRoamI18n();
   const isEl = locale === "el";
   const focusLabel = isEl ? bundle.focus.labelEl : bundle.focus.label;
 
@@ -41,7 +43,10 @@ export function PulseLiveSection({ bundle, locale }: { bundle: PulseLiveBundle; 
   if (!hasAny) return null;
 
   return (
-    <section className="px-6 mt-10 animate-rise" style={{ animationDelay: "200ms" }}>
+    <section className="r-pulse-island animate-rise" style={{ animationDelay: "200ms" }}>
+      <h2 className="r-pulse-h">
+        <span>{r("pulse.island.title")}</span>
+      </h2>
       {bundle.metWarnings && bundle.metWarnings.count > 0 && (
         <MetWarningCard payload={bundle.metWarnings} isEl={isEl} />
       )}
@@ -50,7 +55,7 @@ export function PulseLiveSection({ bundle, locale }: { bundle: PulseLiveBundle; 
         <NewsRotatorCard payload={bundle.news} isEl={isEl} />
       )}
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         {bundle.marine && bundle.focus.coastal && (
           <SeaCard payload={bundle.marine} city={focusLabel} isEl={isEl} />
         )}
