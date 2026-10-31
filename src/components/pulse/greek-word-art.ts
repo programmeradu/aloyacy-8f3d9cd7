@@ -1,7 +1,7 @@
 // Painted art and a recorded clip for each Greek word of the day.
 // Art: hand-painted squares in the Cyprus today style (src/assets/wotd), one
 // per word in src/data/cyprus-greek-words.json. Audio: a real native speaker
-// recording (Wikimedia Commons or Mozilla Common Voice) in /audio/greek, credited in
+// recording (Wikimedia Commons, Mozilla Common Voice or the public-domain FSI Greek Basic Course) in /audio/greek, credited in
 // src/data/greek-voice-credits.json. A word without one has no audio, never a
 // synthetic voice.
 

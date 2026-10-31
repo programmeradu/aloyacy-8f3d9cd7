@@ -108,5 +108,15 @@
     "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
     "source": "https://commonvoice.mozilla.org/el/datasets",
     "changes": "Trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
+  },
+  {
+    "slug": "pame",
+    "word": "Πάμε!",
+    "file": "FSI Greek Basic Course, Vol. 1, Unit 06 (1:31)",
+    "author": "U.S. Foreign Service Institute (native-speaker drill)",
+    "licence": "Public domain (U.S. Government work)",
+    "licenceUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+    "source": "https://archive.org/details/FSIGreekBasicCourseVolume1Unit25",
+    "changes": "Cut the isolated build-up word at 1:30.9 of Unit 06, trimmed silence, normalised loudness, converted to 64 kbps mono MP3"
   }
 ]
