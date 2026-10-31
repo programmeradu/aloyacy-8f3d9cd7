@@ -166,6 +166,93 @@ function dropAddedTail(its: Itinerary[]): Itinerary[] {
   });
 }
 
+const isCoachIt = (it: Itinerary) => it.legs.some((l) => l.kind === "ride" && l.routeId.startsWith("kapnos:"));
+/** Route id without the feed namespace: the live planner says "4050041", the timetable "9:4050041". */
+const normRoute = (id: string) => id.replace(/^\d+:/, "");
+const normStop = (id: string) => id.replace(/^\d+:/, "");
+function rideKey(it: Itinerary): string {
+  return it.legs
+    .filter((l): l is RideLeg => l.kind === "ride")
+    .map((r) => `${normRoute(r.routeId)}|${normStop(r.board.stopId)}|${normStop(r.alight.stopId)}`)
+    .join("→");
+}
+function firstBoard(it: Itinerary): number {
+  const r = it.legs.find((l): l is RideLeg => l.kind === "ride");
+  return r ? r.board.departureUnix : it.departureUnix;
+}
+const routeSeq = (it: Itinerary) =>
+  it.legs.filter((l): l is RideLeg => l.kind === "ride").map((r) => normRoute(r.routeId)).join(">");
+
+/**
+ * Two options that ride the same lines and catch the same first bus (within
+ * 5 min) are one option to the rider, even when they change at different
+ * stops or one came from the live planner. Keep the better ranked one.
+ */
+function dropNearDuplicates(sorted: Itinerary[]): Itinerary[] {
+  const out: Itinerary[] = [];
+  for (const it of sorted) {
+    const seq = routeSeq(it);
+    const fb = firstBoard(it);
+    if (out.some((o) => routeSeq(o) === seq && Math.abs(firstBoard(o) - fb) <= 5 * 60)) continue;
+    out.push(it);
+  }
+  return out;
+}
+
+const LATER_WINDOW_SEC = 3 * 3600;
+const WANT_OPTIONS = 3;
+
+async function laterDepartures(
+  data: z.infer<typeof InputSchema>,
+  kept: Itinerary[],
+  nowSec: number,
+  destAirport: ReturnType<typeof airportFor>,
+): Promise<Itinerary[]> {
+  const buses = kept.filter((it) => !isCoachIt(it));
+  if (buses.length === 0 || buses.length >= WANT_OPTIONS) return [];
+  const best = buses[0];
+  const bestTravel = travelSec(best);
+  const minTransfers = Math.min(...buses.map((b) => b.transfers));
+  const firstLeave = Math.min(...buses.map((b) => b.departureUnix));
+  const added: Itinerary[] = [];
+  const all = () => [...kept, ...added];
+  for (let pass = 0; pass < 2 && buses.length + added.length < WANT_OPTIONS; pass++) {
+    const start = Math.max(nowSec, ...all().filter((x) => !isCoachIt(x)).map(firstBoard)) + 60;
+    if (start > firstLeave + LATER_WINDOW_SEC) break;
+    const res = await planMultiLegScheduled(data.from, data.to, {
+      departureUnix: start,
+      accessibilityPrefs: {
+        requireSafeCrossing: data.a11y?.stepFree ?? false,
+        requireWheelchair: data.a11y?.lowFloor ?? false,
+      },
+    });
+    if (res.diagnostics.rolledToNextDay) break;
+    const cands = res.itineraries
+      .filter((it) => !isCoachIt(it))
+      .filter((it) => it.departureUnix <= firstLeave + LATER_WINDOW_SEC)
+      .filter((it) => firstBoard(it) >= start - 60)
+      .filter((it) => it.transfers <= minTransfers + 1)
+      .filter((it) => travelSec(it) <= bestTravel * 1.5 + 20 * 60)
+      .filter((it) =>
+        destAirport ? !stopsShortOfAirport(it, destAirport) : egressMeters(it.legs) <= NEAR_EGRESS_M,
+      )
+      .sort((a, b) => a.arrivalUnix - b.arrivalUnix || a.transfers - b.transfers);
+    let took = false;
+    for (const it of cands) {
+      if (buses.length + added.length >= WANT_OPTIONS) break;
+      const seq = routeSeq(it);
+      const fb = firstBoard(it);
+      if (all().some((o) => rideKey(o) === rideKey(it) && Math.abs(firstBoard(o) - fb) <= 5 * 60)) continue;
+      if (all().some((o) => routeSeq(o) === seq && Math.abs(firstBoard(o) - fb) <= 10 * 60)) continue;
+      added.push(it);
+      took = true;
+      break; // one per pass: the next pass searches after this departure
+    }
+    if (!took) break;
+  }
+  return added;
+}
+
 export const planMultiLeg = createServerFn({ method: "POST" })
   .inputValidator((input) => InputSchema.parse(input))
   .handler(async ({ data }): Promise<MultiLegResult> => {
@@ -309,7 +396,9 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     const dropped = { tooLong: 0, arriveBy: 0, departAt: 0 };
     const tooLong: Itinerary[] = [];
     for (const it of merged) {
-      if (travelSec(it) > MAX_TOTAL_JOURNEY_SEC) {
+      // The coach's own timetable sets the wait at its stop; one coach option
+      // is kept and ranked below, so the bus-marathon cap does not apply.
+      if (!isCoachIt(it) && travelSec(it) > MAX_TOTAL_JOURNEY_SEC) {
         dropped.tooLong++;
         tooLong.push(it);
         continue;
@@ -324,8 +413,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
         dropped.departAt++;
         continue;
       }
-      const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
-      const key = rides.map((r) => `${r.routeId}|${r.board.stopId}|${r.alight.stopId}`).join("→");
+      const key = rideKey(it);
       const existing = dedup.get(key);
       if (
         !existing ||
@@ -344,8 +432,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     if (dedup.size === 0 && tooLong.length > 0) {
       const rescued = [...tooLong].sort((a, b) => travelSec(a) - travelSec(b)).slice(0, TOP_K);
       for (const it of rescued) {
-        const rides = it.legs.filter((l): l is RideLeg => l.kind === "ride");
-        const key = rides.map((r) => `${r.routeId}|${r.board.stopId}|${r.alight.stopId}`).join("→");
+        const key = rideKey(it);
         if (!dedup.has(key)) dedup.set(key, it);
       }
     }
@@ -414,6 +501,29 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     }
 
     kept.sort((a, b) => a.score - b.score);
+    kept = dropNearDuplicates(kept);
+
+    // Aim for three distinct options. When the network only produced one or
+    // two (a village with a bus an hour), add the next departures of the
+    // same trip from the timetable, but never junk: no extra change, not much
+    // longer, leaving within three hours of the first option.
+    let laterAdded = 0;
+    if (mode !== "live" && !data.arriveByUnix) {
+      try {
+        const extra = await withTimeout(
+          laterDepartures(data, kept, nowSec, destAirport),
+          9_000,
+          [] as Itinerary[],
+        );
+        for (const it of extra) {
+          it.score = it.arrivalUnix - nowSec + rankPenaltySec(it, { airportShort: stopsShortOfAirport(it, destAirport) });
+        }
+        laterAdded = extra.length;
+        kept = [...kept, ...extra].sort((a, b) => a.score - b.score);
+      } catch (err) {
+        log.warn("later departures skipped", { err: (err as Error).message });
+      }
+    }
     const top = kept.slice(0, TOP_K);
 
     // Wave 2.2 — accessibility weighting on the top set. Kerb stops already
@@ -447,6 +557,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
             afterDedup,
 
             prunedMediocre,
+            laterAdded,
             finalCount: top.length,
           }
         : undefined,
