@@ -17,10 +17,13 @@ import { Icon } from "@/components/roam/Icon";
 
 export type Provider = "bolt" | "nextbike" | "kapnos" | "taxi" | "parkride";
 
-const LOGO: Record<Exclude<Provider, "taxi" | "parkride">, { src: string; bg: string; alt: string }> = {
+const LOGO: Record<Exclude<Provider, "taxi">, { src: string; bg: string; alt: string }> = {
   bolt: { src: "/brands/bolt.png", bg: "#2a9c64", alt: "Bolt" },
   nextbike: { src: "/brands/nextbike.png", bg: "#0046d7", alt: "Nextbike" },
   kapnos: { src: "/brands/kapnos-mark.png", bg: "#ffffff", alt: "Kapnos Airport Shuttle" },
+  // No official Nicosia park and ride logo exists (CPT's Pame Express has no
+  // published mark), so this is an illustrated car-in-a-bay pictogram. Never a letter.
+  parkride: { src: "/brands/park-and-ride.svg", bg: "#2a6ce3", alt: "Park and ride" },
 };
 
 /** Display-safe place name: no spaced dashes, no en or em dashes. */
@@ -35,18 +38,6 @@ export function cleanPlace(name: string | null | undefined): string {
 }
 
 export function ProviderTile({ provider, size = 40 }: { provider: Provider; size?: number }) {
-  if (provider === "parkride") {
-    // Parking sign blue with a bold P, the mark drivers already read.
-    return (
-      <span
-        className="inline-flex shrink-0 items-center justify-center rounded-[12px] bg-[#1f5fd6] font-bold leading-none text-white"
-        style={{ width: size, height: size, fontSize: Math.round(size * 0.55) }}
-        aria-hidden
-      >
-        P
-      </span>
-    );
-  }
   if (provider === "taxi") {
     return (
       <span

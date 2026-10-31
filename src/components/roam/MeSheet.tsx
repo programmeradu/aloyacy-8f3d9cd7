@@ -12,8 +12,7 @@ import { useRoamI18n, type RoamKey } from "@/lib/roam-i18n";
 import { Sheet } from "./Sheet";
 import { Icon } from "./Icon";
 import { useMeSheetState } from "./me-store";
-import { Avatar } from "./Avatar";
-import { initialsOf } from "./initials";
+import { Avatar, photoOf } from "./Avatar";
 
 type View = "list" | "alerts" | "offline" | "a11y" | "legal";
 
@@ -119,7 +118,7 @@ export function MeSheet() {
       {active === "list" ? (
         <div>
           <div className="flex items-center gap-4 pt-1 pb-5">
-            <Avatar initials={initialsOf(isPermanent ? name : "")} size={56} dark />
+            <Avatar photo={isPermanent ? photoOf(user) : null} size={56} dark />
             <div className="min-w-0">
               <div className="text-[24px] font-medium leading-tight truncate">{name}</div>
               <div className="r-lbl mt-1">{r("me.sub")}</div>

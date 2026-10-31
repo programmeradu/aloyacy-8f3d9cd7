@@ -1,32 +1,51 @@
-// Avatar disc: initials when we know a name, otherwise a person glyph.
+// Avatar disc: the rider's own photo when their account has one, otherwise a
+// neutral person pictogram. Never initials or letter tiles.
 import { Icon } from "./Icon";
 import { openMeSheet } from "./me-store";
 import { useAuth } from "@/lib/useAuth";
 import { useRoamI18n } from "@/lib/roam-i18n";
-import { initialsOf } from "./initials";
+
+type MaybeUser = { user_metadata?: Record<string, unknown> | null } | null | undefined;
+
+/** Profile photo url from the auth provider (Google sets avatar_url or picture). */
+export function photoOf(user: MaybeUser): string | null {
+  const m = user?.user_metadata ?? null;
+  const url = (m?.avatar_url ?? m?.picture) as unknown;
+  return typeof url === "string" && url.startsWith("https://") ? url : null;
+}
 
 export function Avatar({
-  initials,
+  photo,
   size = 44,
   dark,
 }: {
-  initials: string;
+  photo?: string | null;
   size?: number;
   dark?: boolean;
 }) {
   return (
     <span
       aria-hidden="true"
-      className="inline-flex items-center justify-center rounded-full flex-none font-semibold"
+      className="inline-flex items-center justify-center overflow-hidden rounded-full flex-none"
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.34,
         background: dark ? "var(--r-char)" : "#fff",
         color: dark ? "#fff" : "var(--r-ink)",
       }}
     >
-      {initials || <Icon name="user" size={size * 0.45} />}
+      {photo ? (
+        <img
+          src={photo}
+          alt=""
+          width={size}
+          height={size}
+          referrerPolicy="no-referrer"
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <Icon name="user" size={size * 0.45} />
+      )}
     </span>
   );
 }
@@ -35,10 +54,7 @@ export function Avatar({
 export function AvatarButton({ variant = "light" }: { variant?: "frost" | "light" }) {
   const { user, isPermanent } = useAuth();
   const { r } = useRoamI18n();
-  const name = isPermanent
-    ? ((user?.user_metadata?.name as string | undefined) ?? user?.email?.split("@")[0] ?? "")
-    : "";
-  const ini = initialsOf(name);
+  const photo = isPermanent ? photoOf(user) : null;
   return (
     <button
       type="button"
@@ -46,7 +62,18 @@ export function AvatarButton({ variant = "light" }: { variant?: "frost" | "light
       aria-label={r("me.open")}
       onClick={() => openMeSheet()}
     >
-      {ini || <Icon name="user" size={20} />}
+      {photo ? (
+        <img
+          src={photo}
+          alt=""
+          width={44}
+          height={44}
+          referrerPolicy="no-referrer"
+          className="h-full w-full rounded-full object-cover"
+        />
+      ) : (
+        <Icon name="user" size={20} />
+      )}
     </button>
   );
 }
