@@ -10,6 +10,8 @@ import { PulseDot } from "./chrome";
 import { inferMode, speedBetween } from "@aloya/core/group-mode";
 import { distanceM } from "@aloya/core/geo";
 import { useRealtime } from "@/lib/useRealtime";
+import { useI18n } from "@/lib/i18n";
+import { RoamShareSheet, currentOrigin, shareCardUrl } from "@/components/RoamShareSheet";
 
 export function LiveShareCard({
   group,
@@ -92,30 +94,27 @@ export function LiveShareCard({
     }
   }, [leave, memberToken, group.code, onLeft]);
 
-  const onShare = useCallback(async () => {
-    const url = `${window.location.origin}/group/${group.code}`;
-    const payload = {
-      title: `Aloya group trip to ${group.destination_label}`,
-      text: `Join me, we'll see each other converge on ${group.destination_label}.`,
-      url,
-    };
-    try {
-      if (typeof navigator !== "undefined" && "share" in navigator) {
-        await navigator.share(payload);
-        return;
-      }
-    } catch {
-      /* sheet dismissed — fall back to the clipboard */
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch {
-      /* ignore */
-    }
-  }, [group.code, group.destination_label]);
+  const { t, locale } = useI18n();
+  const [shareOpen, setShareOpen] = useState(false);
+  const onShare = useCallback(() => setShareOpen(true), []);
 
   return (
     <div className="rounded-3xl bg-card p-5 ring-1 ring-line">
+      <RoamShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={t("share.group.title")}
+        imageUrl={
+          shareOpen ? shareCardUrl(`/api/public/og/group/${encodeURIComponent(group.code)}`) : null
+        }
+        shareUrl={`${currentOrigin()}/group/${group.code}`}
+        shareText={
+          locale === "el"
+            ? `Έλα στο ομαδικό ταξίδι για ${group.destination_label} στο Aloya. Θα βλέπουμε ο ένας τον άλλον να φτάνει.`
+            : `Join my group trip to ${group.destination_label} on Aloya. We'll see each other arrive.`
+        }
+        fileName={`aloya-group-${group.code}`}
+      />
       <div className="flex items-center gap-2">
         <PulseDot />
         <p className="text-[13px] font-medium text-ink-soft">You're sharing live</p>

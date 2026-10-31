@@ -49,6 +49,7 @@ import { getIntercityInsights } from "@/lib/intercity-intel.functions";
 import { routeHead } from "@/lib/route-page";
 import { loadRouteSampleCount } from "@/lib/route-index.server";
 import { useI18n } from "@/lib/i18n";
+import { RoamShareSheet, currentOrigin, shareCardUrl } from "@/components/RoamShareSheet";
 import {
   useStarredRoutes,
   toggleStarredRoute,
@@ -211,17 +212,27 @@ function RoutePage() {
   });
   const area = areaLabel(resolveAgency({ agency: route?.agency, id: routeId }), r);
   const liveCount = board?.vehicles.length ?? 0;
-  const onShare = () => {
-    const url = typeof window !== "undefined" ? window.location.href : "";
-    if (typeof navigator !== "undefined" && navigator.share) {
-      navigator.share({ title: `${lineShort} ${dest}`, url }).catch(() => {});
-    } else {
-      void navigator.clipboard?.writeText(url);
-    }
-  };
+  const { t: tShare, locale: shareLocale } = useI18n();
+  const [shareOpen, setShareOpen] = useState(false);
+  const onShare = () => setShareOpen(true);
 
   return (
     <div className="roam r-page">
+      <RoamShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={tShare("share.line.title")}
+        imageUrl={
+          shareOpen ? shareCardUrl(`/api/public/og/line/${encodeURIComponent(routeId)}`) : null
+        }
+        shareUrl={`${currentOrigin()}/route/${routeId}`}
+        shareText={
+          shareLocale === "el"
+            ? `Λεωφορείο ${lineShort}${dest ? ` προς ${dest}` : ""}\nΖωντανά λεωφορεία στο Aloya`
+            : `Bus ${lineShort}${dest ? ` to ${dest}` : ""}\nLive buses on Aloya`
+        }
+        fileName={`aloya-line-${lineShort}`}
+      />
       <div className="r-col">
         <OfflineBanner />
         <RouteHero

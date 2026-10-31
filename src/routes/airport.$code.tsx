@@ -330,12 +330,20 @@ function AirportView({
                   .map((r) => [r.id, { short: r.short }]),
               ).values(),
             ),
-            nextEtaMin: departures[0]?.eta.etaMin ?? null,
-            nextHeadsign: departures[0]
-              ? getHeadsignSync(departures[0].tripId, departures[0].routeId)
+            next: departures[0]
+              ? {
+                  routeId: departures[0].routeId,
+                  routeShort: getRoute(departures[0].routeId)?.short ?? departures[0].routeId,
+                  etaMin: departures[0].eta.etaMin,
+                  arrivalUnix: departures[0].arrivalUnix,
+                  headsign: getHeadsignSync(departures[0].tripId, departures[0].routeId) ?? null,
+                }
               : null,
+            airport: (String(airport.code).toLowerCase() === "pfo" ? "pfo" : "lca") as
+              | "lca"
+              | "pfo",
             locale,
-            url: `${BASE}/airport/${airport.code}`,
+            path: `/airport/${airport.code}`,
           }}
         />
       )}

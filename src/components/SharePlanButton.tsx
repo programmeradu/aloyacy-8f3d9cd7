@@ -7,7 +7,7 @@ import { useState } from "react";
 import type { Itinerary } from "@/lib/itinerary-types";
 import { useI18n } from "@/lib/i18n";
 import { PlanShareSheet } from "@/components/PlanShareSheet";
-import type { PlanCardCtx } from "@/lib/shareCard";
+import type { PlanCardCtx } from "@/components/PlanShareSheet";
 
 type Point = { lat: number; lng: number; label: string };
 
