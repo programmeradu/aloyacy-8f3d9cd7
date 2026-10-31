@@ -23,6 +23,7 @@ import {
   quadDrift,
   enhanceText,
   quadWidth,
+  thinInk,
   sharpness,
   toGray,
   warpQuad,
@@ -78,8 +79,13 @@ const ROI = {
 };
 type Roi = { x: number; y: number; w: number; h: number };
 
-/** Grey crop of a region, scaled up; `enhance` adds the thermal print prep. */
-function crop(src: HTMLCanvasElement, r: Roi, scale = 2, enhance = false) {
+type Prep = "plain" | "binary" | "thin";
+
+/**
+ * Grey crop of a region, scaled up. "binary" splits ink from card (contrast
+ * stretch + Otsu), "thin" thins faint ink by a pixel; both for thermal print.
+ */
+function crop(src: HTMLCanvasElement, r: Roi, scale = 2, prep: Prep = "plain") {
   const c = document.createElement("canvas");
   c.width = Math.round(src.width * r.w * scale);
   c.height = Math.round(src.height * r.h * scale);
@@ -98,10 +104,10 @@ function crop(src: HTMLCanvasElement, r: Roi, scale = 2, enhance = false) {
     c.height,
   );
   ctx.filter = "none";
-  if (enhance) {
+  if (prep !== "plain") {
     const img = ctx.getImageData(0, 0, c.width, c.height);
     const g = toGray(img.data, c.width, c.height);
-    const t = enhanceText(g);
+    const t = prep === "binary" ? enhanceText(g) : thinInk(g);
     for (let i = 0, j = 0; j < t.length; i += 4, j++) {
       img.data[i] = img.data[i + 1] = img.data[i + 2] = t[j];
     }
@@ -380,27 +386,28 @@ export function useCardScanner(opts: {
           if (uid) vt.acceptExact(uid, "qr");
         }
         // Faint thermal print. Each field is read twice per frame in ways
-        // that fail differently (plain and thresholded for the name, two
-        // scales for the date, whose thin strokes break when thresholded),
-        // so one frame where both agree is enough and noise never agrees.
-        for (const enh of [false, true]) {
+        // that fail differently, so one frame where both agree is enough and
+        // noise never agrees: the name plain and thresholded, the date
+        // thinned at two scales (a faint 5 reads as 8 or 9 until thinned).
+        for (const prep of ["plain", "binary"] as const) {
           if (vt.accepted.holder) break;
-          const r = await readRegion(crop(card, ROI.name, 2, enh), {
+          const r = await readRegion(crop(card, ROI.name, 2, prep), {
             whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ '-",
             psm: "7",
           });
           vote("holder", validName(r.text), r.conf);
         }
-        for (const sc of [1, 1.5]) {
+        for (const sc of [1.5, 2]) {
           if (vt.accepted.validUntil) break;
-          const r = await readRegion(crop(card, ROI.date, sc), {
+          const r = await readRegion(crop(card, ROI.date, sc, "thin"), {
             whitelist: "0123456789/",
             psm: "7",
           });
           vote("validUntil", validDate(r.text), r.conf);
         }
-        if (!vt.accepted.category) {
-          const r = await readRegion(crop(card, ROI.category, 2), {
+        for (const sc of [2, 1.5]) {
+          if (vt.accepted.category) break;
+          const r = await readRegion(crop(card, ROI.category, sc), {
             whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+ ",
             psm: "7",
           });
@@ -429,10 +436,13 @@ export function useCardScanner(opts: {
             }
           }
         }
-        // Two scales of the bold UID line; they agree on a clean read.
-        for (const sc of [1, 3]) {
+        // The bold UID line read plain and thinned; they agree on a clean read.
+        for (const [sc, prep] of [
+          [1, "plain"],
+          [1.5, "thin"],
+        ] as const) {
           if (vt.accepted.number) break;
-          const r = await readRegion(crop(card, ROI.uid, sc), {
+          const r = await readRegion(crop(card, ROI.uid, sc, prep), {
             whitelist: "0123456789UID: ",
             psm: "7",
           });

@@ -694,6 +694,29 @@ export function enhanceText(g: Gray): Uint8ClampedArray {
   return out;
 }
 
+/**
+ * Thin the ink of faint print by one pixel (3 x 3 max filter, lighter wins).
+ * A faint thermal 5 bleeds into an 8 or a 9 for the OCR; thinned, it reads
+ * as a 5 again. Bold print survives it untouched.
+ */
+export function thinInk(g: Gray): Uint8ClampedArray {
+  const { data, width: W, height: H } = g;
+  const out = new Uint8ClampedArray(W * H);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      let m = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const yy = Math.min(H - 1, Math.max(0, y + dy));
+        for (let dx = -1; dx <= 1; dx++) {
+          const v = data[yy * W + Math.min(W - 1, Math.max(0, x + dx))];
+          if (v > m) m = v;
+        }
+      }
+      out[y * W + x] = m;
+    }
+  return out;
+}
+
 /** Card width in source pixels (mean of the top and bottom edges). */
 export function quadWidth(q: Quad) {
   return (

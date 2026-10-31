@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   detectCard,
   enhanceText,
+  thinInk,
   sharpness,
   toGray,
   warpQuad,
@@ -142,6 +143,14 @@ describe("text prep", () => {
     const out = enhanceText({ data: d, width: W, height: H });
     expect(out[5 * W + 20]).toBe(0);
     expect(out[0]).toBe(255);
+  });
+  it("thins faint ink by a pixel", () => {
+    const W = 9;
+    const d = new Uint8ClampedArray(W * W).fill(230);
+    for (let y = 2; y < 7; y++) for (let x = 3; x < 6; x++) d[y * W + x] = 120;
+    const out = thinInk({ data: d, width: W, height: W });
+    expect(out[4 * W + 4]).toBe(120);
+    expect(out[4 * W + 3]).toBe(230);
   });
 });
 
