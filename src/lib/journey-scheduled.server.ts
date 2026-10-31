@@ -43,7 +43,7 @@ export type ScheduledDiagnostics = RaptorDiagnostics & {
   kapnosCount?: number;
   /** "later": every option missed its bus on verified walks, searched again from later. */
   refineRetry?: "none" | "later" | "unverified";
-  walkMisses?: Array<{ ride: number; overrunSec: number }>;
+  walkMisses?: Array<{ ride: number; overrunSec: number; extraSec: number }>;
   /** Set when the 4h "leave now" window was empty and we widened to 24h. */
   widenedHorizon?: boolean;
   /** Set when nothing ran again today and results come from the next service day. */
@@ -227,8 +227,8 @@ export async function planMultiLegScheduled(
   // verified: refinement checks each walk against the search departure, and a
   // departure already pulled up to "first boarding minus the estimated walk"
   // left no slack, so every option was dropped as a missed bus.
-  const misses: Array<{ ride: number; overrunSec: number }> = [];
-  const missLog: Array<{ ride: number; overrunSec: number }> = [];
+  const misses: Array<{ ride: number; overrunSec: number; extraSec: number }> = [];
+  const missLog: Array<{ ride: number; overrunSec: number; extraSec: number }> = [];
   let refinedItineraries = await refineAllItineraries(itineraries, misses);
   let refineRetry: "none" | "later" | "unverified" = "none";
   if (refinedItineraries.length === 0 && itineraries.length > 0) {
@@ -241,8 +241,11 @@ export async function planMultiLegScheduled(
     for (let pass = 0; pass < 3 && refinedItineraries.length === 0; pass++) {
       const seen = misses.splice(0);
       missLog.push(...seen);
-      const over = seen.length > 0 ? Math.max(...seen.map((m) => m.overrunSec)) : 5 * 60;
-      slack += over + 120;
+      // Shift by how much longer the verified walks are than the estimate,
+      // from the original start; RAPTOR then only offers buses the rider
+      // can really reach. Never the same shift twice.
+      const extra = seen.length > 0 ? Math.max(...seen.map((m) => m.extraSec)) : 0;
+      slack = Math.max(slack + 5 * 60, extra + 120);
       if (slack > 45 * 60) break;
       try {
         const again = await planRaptor(schedule, from, to, searchDepartureUnix + slack, {
@@ -274,7 +277,7 @@ export async function planMultiLegScheduled(
   if (kapnosCount > 0 && !refinedItineraries.some(hasCoach)) {
     let slackK = 0;
     for (let pass = 0; pass < 2; pass++) {
-      const seen: Array<{ ride: number; overrunSec: number }> = [];
+      const seen: Array<{ ride: number; overrunSec: number; extraSec: number }> = [];
       slackK += 6 * 60 + (pass === 0 ? 0 : 6 * 60);
       const coach = await kapnosAt(searchDepartureUnix + slackK);
       if (coach.length === 0) break;
