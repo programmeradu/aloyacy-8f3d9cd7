@@ -231,14 +231,16 @@ export async function planMultiLegScheduled(
   const missLog: Array<{ ride: number; overrunSec: number; extraSec: number }> = [];
   let refinedItineraries = await refineAllItineraries(itineraries, misses);
   let refineRetry: "none" | "later" | "unverified" = "none";
-  if (refinedItineraries.length === 0 && itineraries.length > 0) {
+  if (refinedItineraries.length < itineraries.length) {
+    const firstPass = refinedItineraries;
+    let found: Itinerary[] = [];
     // Every option needed a walk the verified route says is longer than the
     // estimate, so its bus would be gone. Search again from a little later
     // (the slack covers the longest overrun) so the next catchable buses
     // come back, and verify those.
     // Up to three passes, each adding the longest overrun it saw.
     let slack = 0;
-    for (let pass = 0; pass < 3 && refinedItineraries.length === 0; pass++) {
+    for (let pass = 0; pass < 3 && found.length === 0; pass++) {
       const seen = misses.splice(0);
       missLog.push(...seen);
       // Shift by how much longer the verified walks are than the estimate,
@@ -256,14 +258,15 @@ export async function planMultiLegScheduled(
         const coach = await kapnosAt(searchDepartureUnix + slack);
         const pool = [...again.itineraries, ...coach];
         if (pool.length === 0) break;
-        refinedItineraries = await refineAllItineraries(pool, misses);
-        if (refinedItineraries.length > 0) refineRetry = "later";
+        found = await refineAllItineraries(pool, misses);
+        if (found.length > 0) refineRetry = "later";
       } catch (err) {
         log.warn("refine retry failed", { reason: (err as Error).message });
         break;
       }
     }
     missLog.push(...misses.splice(0));
+    refinedItineraries = [...firstPass, ...found];
     // Never turn a corridor with buses into "no route": the timetable
     // options stand with their estimated walks (what the browser shows).
     if (refinedItineraries.length === 0) {

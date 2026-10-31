@@ -484,7 +484,7 @@ function unixToServiceSec(date: string, unix: number): number {
 }
 
 /** A wait longer than this before the first bus is not part of the trip. */
-const LEAVE_REBASE_WAIT_SEC = 30 * 60;
+const LEAVE_REBASE_WAIT_SEC = 8 * 60;
 
 /**
  * An itinerary starts when the rider has to set off, not when they asked.
