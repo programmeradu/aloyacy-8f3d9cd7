@@ -458,3 +458,20 @@ Official fares, checked on 31 Oct 2026:
 - Code: src/lib/i18n.ts, packages/core/src/dictionaries, src/lib/roam-i18n.ts, src/routes/__root.tsx, src/lib/email-templates/_layout.tsx, scripts/ingest-schedule.ts, src/lib/speech.ts
 
 ---
+
+## Part D top 10 (ranked by impact for riders and for Aloya, then by effort)
+
+1. **Fix fares per operator before 5 Nov 2026 (L37).** `boarding-pay.ts` applies the Nicosia and Larnaca table to all five urban operators, so Limassol and Paphos riders see wrong cash and night prices, and EMEL's cash single becomes €2.50 (e-wallet €2.00) and night €4.00 on 5 Nov. Intercity in the feed ranges €4 to €10, not "€5 to €8, cash only". Also update taxi constants to the official €3.80 / €0.95 day and €4.80 / €1.10 night tariff, and correct the aloya.cy "90 minutes" transfer copy to CPT's 60 minutes. Effort S.
+2. **Nightly feed health job (L34).** Run the MobilityData validator, check each feed's real service-date horizon (EMEL lists only 31 Oct to 6 Nov while claiming 28 Jan 2027), move ingest after Motion's 05:31 publish, and switch an operator to "scheduled times" when its live data degrades. Effort M.
+3. **AI assistant: correct time zone, cheaper providers, quota guard, then tools (L33).** Use Asia/Nicosia rules for the target date (Cyprus is UTC+2 since 25 Oct), put Groq and Workers AI gpt-oss-20b ahead of Gemini, rate-limit and cache the public parse endpoint, then build a tool-calling companion where every number comes from Aloya's own tools. Effort S, then L.
+4. **Safety sheet and safe sharing (L38).** One tap to 112, 1460 and 1440; share-live-trip in the web app with auto-end on arrival and an "arrived safely" message; discreet incident reports that feed a weekly summary to operators. Effort S to M.
+5. **Heat-aware planning on official data (L36).** Add a sun-walk and unsheltered-wait penalty at feels-like 35°C or more, use the Met Department's 55 stations and MeteoAlarm CAP instead of scraping, and fix the Open-Meteo licence (free tier is non-commercial). Effort S to M.
+6. **Use the Greek names already in the feed and fix `lang` (L40).** Ingest translations.txt (Greek stop names and headsigns), set `<html lang>` per locale, merge the two i18n systems, then add Russian, Arabic, Hebrew and Turkish with RTL. Effort S, then M per language.
+7. **Offline trip planning (L39).** Run raptor-core in a Web Worker on cached shards (about 8 MB a week), add a licensed vector basemap with an offline pack, auto-download on Wi-Fi, and a tourist pack for the 45% of visitors on non-EU phone plans. Google Maps gives no transit directions offline. Effort M.
+8. **Crowding from riders (L32).** Remove or revive the dead `route_load_estimates` pipeline, add a one-tap seats/standing/packed report, parse GTFS-RT occupancy for the day Motion adds it, and use crowding in replanning. Effort S to M.
+9. **Operator report card and a funded first customer (L35).** Turn the existing backtest, reliability and feed-delta data into a quarterly report card; prepare a bid for RIF "AI in Government: New Challenges" (expected Q4 2026); measure bus delay at signals for the Public Works Department. Correct the seed: the 15-junction tender is about €41,900, not €41.9 million; the 125-junction bus-priority system (€7.1 million) is held up in court. Effort M.
+10. **Open data intake and a /data page (L31).** Ingest CyNAP layers (bus lanes, cycleways, crossings, racks), Waze alerts and Mapillary street furniture; publish a /data attribution page; offer to help the Public Works Department meet the December 2026 MMTIS deadlines. Effort S to M.
+
+Corrections to the seed made in this part: the AI time zone is not hard-coded (it uses the phone's offset, which is still wrong for visitors and across clock changes); the smart-lights tender is €41,900, not €41.9 million; Aloya already has more weather data (air quality, warnings, dust advisory) than the seed said, but none of it reaches the router; share-ETA exists only in the native mobile app; the language order puts resident languages (Russian, Arabic) before Hebrew.
+
+---
