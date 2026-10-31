@@ -381,3 +381,39 @@ Official fares, checked on 31 Oct 2026:
 - Code: mobile/components/ShareEtaButton.tsx, mobile/lib/useShareEta.ts, src/routes/api/public/eta-share.ts, src/routes/eta.$token.tsx, supabase/migrations/20260701161832_7824e729-e27b-42e5-8c86-354b101592f4.sql, packages/core/src/stop-condition.ts
 
 ---
+
+## Layer 39. Offline
+
+### 39.1 What the best in the world do
+- Google Maps lets riders download map areas, but its own help page says: "When you're offline, transit, bicycling, or walking directions are unavailable" (Google Maps Help, Download areas and navigate offline). Offline areas auto-update on Wi-Fi when they are within 15 days of expiry. So the biggest map app gives bus riders nothing offline, which is a real gap.
+- Good offline transit practice is: timetables stored on the phone, a planner that runs on the phone, a vector map of the area, and a clear label that times are "scheduled" rather than live. Open, single-file vector maps (Protomaps PMTiles built from OpenStreetMap) let an app ship a whole city or country map as one static file served from its own storage (Protomaps documentation).
+
+### 39.2 The reality in Cyprus and the data available
+- The two biggest visitor groups are on non-EU phone plans. In 2025 the UK supplied 31.8% of Cyprus's 4.53 million tourists and Israel 13.0% (CYSTAT, Tourism Statistics 2025, 4 May 2026). Neither is covered by EU "Roam like at home", so many visitors keep mobile data off and rely on hotel or café Wi-Fi.
+- Signal gaps: rural and mountain bus routes (Troodos, Tillyria, Akamas edges) and indoor stations lose signal; I did not find a public Cyprus coverage dataset to quantify this, so treat it as an assumption to test with rider reports.
+- Data needed offline is small. Aloya's own shards (public/data/schedule): the base files (feeds, routes, services, stops, trips) are about 330 KB gzipped, and one day of stop-times plus stop-trips is about 1.14 MB gzipped (20261027 shard: 658 KB + 481 KB). A week of all-Cyprus timetables is therefore roughly 8 MB.
+
+### 39.3 Aloya today
+- Already good: `src/lib/offline-schedules.ts` pre-downloads the base files and N upcoming day shards into the `aloya-schedule-v1` Cache Storage bucket and IndexedDB (`offline-timetable-db.ts`); `public/sw.js` (198 lines) serves schedules cache-first, keeps the schedule cache across app updates, uses stale-while-revalidate for assets, network-first for navigation, and falls back to `offline.html`. `OfflineBanner` appears across the app and `OfflineSchedulesCard` in the Me sheet lets riders manage downloads.
+- Gaps:
+  - The planner runs only on the server. `packages/core/src/raptor-core.ts` is pure TypeScript with tests, but it is called only from `src/lib/raptor.server.ts`, so offline riders can see timetables but cannot plan a trip.
+  - No offline map. The basemap is Esri World Imagery raster tiles, which `src/lib/basemap.ts` itself says is "NOT licensed for production use without an Esri/ArcGIS agreement", and there are no stored tiles, so offline the map is blank.
+  - Downloads are manual; there is no auto-refresh on Wi-Fi and no warning when the stored days run out.
+  - Offline answers are not labelled as scheduled-only in the trip views.
+
+### 39.4 Improvements
+1. **Run RAPTOR in the browser when offline.** Load raptor-core in a Web Worker with the cached shards; when the network fails or the rider turns on "offline mode", plan on the phone and mark results "scheduled times, no live data". Effort M (the core is already pure and tested). Impact high: no major app does offline transit planning in Cyprus.
+2. **Licensed vector basemap with an offline pack.** Replace Esri imagery in production with a licensed source (the code already lists Mapbox Satellite or MapTiler), and add an OpenStreetMap vector basemap as a PMTiles file per district (or all Cyprus) for offline use, with ODbL attribution. Effort M. Impact high: it fixes a licence risk and gives offline maps.
+3. **Auto-download on Wi-Fi.** When the rider is on Wi-Fi and charging (where the platform allows), refresh the next 7 days of shards (about 8 MB) and the map pack monthly; show "offline ready until Thu 6 Nov". Effort S. Impact high for tourists.
+4. **Tourist pack.** For visitors arriving by air: a one-tap "Download Cyprus for my trip" sheet at first launch with trip dates, airport bus routes and fares (Layer 37), and the emergency numbers (Layer 38). Effort S. Impact high for 45% of visitors on non-EU plans.
+5. **Honest degraded states.** Offline: show scheduled times with a grey "scheduled" tag; stale live data (over 2 minutes): show "last seen 3 min ago"; feed outage (Layer 34): switch that operator to scheduled. Effort S. Impact medium to high for trust.
+6. **Queue actions offline.** Store stop-condition reports, crowding taps (Layer 32) and safety reports (Layer 38) locally and send them when back online, with time and place recorded at the moment of the report. Effort S. Impact medium.
+7. **Watch the EMEL horizon.** Because Limassol's feed carries only seven days (Layer 34), offline Limassol riders may hold fewer days than other districts; show the real last date per district. Effort S. Impact medium.
+
+### 39.5 Sources
+- Google Maps Help, Download areas and navigate offline: https://support.google.com/maps/answer/6291838
+- Protomaps documentation (PMTiles basemaps): https://docs.protomaps.com/
+- CYSTAT, Tourism Statistics 2025 (4 May 2026): https://www.gov.cy/en/economy-and-finance/tourism-statistics-2025 ; press release PDF: https://library.cystat.gov.cy/NEW/Tourism%20Statistics-2025-EN-040526.pdf
+- Code: src/lib/offline-schedules.ts, src/lib/offline-timetable-db.ts, public/sw.js, src/components/OfflineBanner.tsx, OfflineSchedulesCard, packages/core/src/raptor-core.ts, src/lib/raptor.server.ts, src/lib/basemap.ts, public/data/schedule (file sizes read at HEAD 56dab8f)
+
+---
