@@ -1,0 +1,24 @@
+name: Nightly timetable refresh (rider app, new Cloudflare account)
+
+# The workers.dev deploy has no Worker cron and no R2, so the GTFS timetable
+# shards are rebuilt inside .github/workflows/deploy-newacct.yml on the
+# redesign-roam branch. Scheduled workflows only run from the default branch,
+# so this one just re-dispatches that deploy every night (Cyprus ~00:20 winter,
+# ~01:20 summer), keeping "yesterday + 14 days" of timetables live.
+
+on:
+  schedule:
+    - cron: "20 22 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch deploy-newacct on redesign-roam
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-newacct.yml --ref redesign-roam -R "${{ github.repository }}"
