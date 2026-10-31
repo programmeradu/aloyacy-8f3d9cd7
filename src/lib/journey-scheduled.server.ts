@@ -21,6 +21,8 @@ export function localDateForUnix(unix: number): string {
 void todayLocalDate;
 import { planRaptor, type RaptorDiagnostics } from "./raptor.server";
 import { rebaseToLeave } from "./raptor-plan";
+import { airportFor } from "./plan-airports";
+import { withTimeout } from "./server-cache";
 import { fetchRealtime } from "./gtfs-rt.server";
 import { refineAllItineraries } from "./walk-refine.server";
 import type { Itinerary } from "./itinerary-types";
@@ -37,6 +39,8 @@ export type ScheduledDiagnostics = RaptorDiagnostics & {
   walkRefineMs: number;
   walkLegsVerified: number;
   itinerariesDroppedAfterRefine: number;
+  /** Kapnos coach options added on airport trips. */
+  kapnosCount?: number;
   /** Set when the 4h "leave now" window was empty and we widened to 24h. */
   widenedHorizon?: boolean;
   /** Set when nothing ran again today and results come from the next service day. */
@@ -136,8 +140,26 @@ export async function planMultiLegScheduled(
       }
     }
   }
-  void schedule;
-  void searchDepartureUnix;
+  // Airport trips rank the Kapnos coach (Nicosia/Limassol/Larnaca to the
+  // terminals) with the buses, as the browser planner does, so the mobile app
+  // and any /api/public/plan caller see it too.
+  let kapnosCount = 0;
+  if (airportFor(to) || airportFor(from)) {
+    try {
+      const { buildKapnosAirportRoutes } = await import("./kapnos.functions");
+      const { planKapnosItineraries } = await import("./kapnos-itinerary");
+      const routes = await withTimeout(buildKapnosAirportRoutes(), 3_000, []);
+      if (routes.length > 0) {
+        const coach = await planKapnosItineraries(schedule, from, to, searchDepartureUnix, routes, {
+          accessibilityPrefs: opts?.accessibilityPrefs,
+        });
+        kapnosCount = coach.length;
+        itineraries = [...itineraries, ...coach];
+      }
+    } catch (err) {
+      log.warn("kapnos options skipped", { reason: (err as Error).message });
+    }
+  }
   const raptorMs = Date.now() - tRap0;
 
   // ---- Realtime overlay --------------------------------------------------
@@ -218,6 +240,7 @@ export async function planMultiLegScheduled(
       walkRefineMs,
       walkLegsVerified,
       itinerariesDroppedAfterRefine,
+      kapnosCount,
       widenedHorizon,
       rolledToNextDay,
       serviceDate: searchDate,

@@ -390,7 +390,16 @@ export function cyprusLocalToUnix(local: string): number {
 }
 
 export const getKapnosAirportRoutes = createServerFn({ method: "GET" }).handler(
-  async (): Promise<KapnosClientRoute[]> => {
+  async (): Promise<KapnosClientRoute[]> => buildKapnosAirportRoutes(),
+);
+
+/**
+ * Kapnos airport routes with their upcoming departures, in the shape the
+ * planner ranks. Shared by the browser (through getKapnosAirportRoutes) and
+ * the Worker planner behind /api/public/plan.
+ */
+export async function buildKapnosAirportRoutes(): Promise<KapnosClientRoute[]> {
+  {
     const routes = await fetchKapnosRoutes();
     const nowSec = Math.floor(Date.now() / 1000);
     const out: KapnosClientRoute[] = [];
@@ -422,5 +431,5 @@ export const getKapnosAirportRoutes = createServerFn({ method: "GET" }).handler(
       });
     }
     return out;
-  },
-);
+  }
+}
