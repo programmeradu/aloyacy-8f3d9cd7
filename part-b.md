@@ -370,6 +370,7 @@ Own decode of the Cyprus GTFS-RT feed, 31 Oct 2026 19:43 EET: http://20.19.98.19
 - All routes are route_type 3 (bus).
 - The GTFS-RT snapshot (layer 13) had no Service Alerts, no occupancy and no uncertainty.
 - Feeds are re-published every few months with a roughly three-month validity window, so apps must refresh promptly.
+- **Calendar coverage defect (found while analysing layer 19):** feed_info says every feed is valid from 31 Oct 2026 to 28 Jan 2027, but the Limassol EMEL feed (6) only lists service dates from 31 Oct to 6 Nov 2026 (7 dates), Paphos OSYPA (2) lists 71 dates and Pame Express (11) 65, while the others list 91. Unless EMEL republishes, any planner reading feed 6 will show no Limassol buses from 7 Nov 2026. This is exactly what an automated validator in CI should catch (improvement 4).
 
 **GBFS.** Nextbike publishes an official GBFS v2 feed for Cyprus (`nextbike_cy`, CC0, feed contact gbfs@nextbike.net, ttl 60 s) with station_information, station_status, free_bike_status, vehicle_types, system_hours, system_regions and pricing plans. [7] Bolt publishes no public GBFS for Cyprus; only the static zone list on the NAP.
 
@@ -596,5 +597,80 @@ So the corridors are hourly at best, and Nicosia to Paphos has six or seven dire
 [7] Cyprus Mail, "Cyprus-Greece ferry bookings open", 22 Apr 2026. https://cyprus-mail.com/2026/04/22/cyprus-greece-ferry-bookings-open ; newscyprus.eu fares and boarding times https://www.newscyprus.eu/en/news/parom-kipr-greciia-kakovy-raspisanie-i-rascenki-na-bilety-v-2026-godu
 [8] Politis, "Limassol-Piraeus Ferry Faces Uncertain Future Without State Subsidy", 7 Aug 2026. https://en.politis.com.cy/news/economy/1024668/limassol-piraeus-ferry-faces-uncertain-future-without-state-subsidy
 Own analysis of GTFS feeds 2, 5 and 10 (version 20261031) for 3 Nov 2026.
+
+---
+## Layer 19. Night, rural and demand-responsive transport
+
+### 19.1 What the best in the world do
+
+- **Demand-responsive transport (DRT) in planners.** GTFS Flex (published by MobilityData as part of the GTFS family) describes zones, booking rules and pick-up windows, so planners can route "book a ride from your village to the main road stop" as a leg. OpenTripPlanner supports Flex routing in its sandbox and MOTIS 2 ingests GTFS-Flex feeds. [1][2][3] Academic work integrates non-scheduled lines into fast transit routing (layer 11, ref 9).
+- **Where DRT works.** The EU Urban Mobility Observatory's 2025 case study says DRT fits rural, suburban and peripheral areas with low demand and should be embedded in SUMPs, integrated with ticketing and digital routing information, and co-designed with users. [4] The Interreg "Rural Mobility" project (2024 to 2027) targets on-demand buses and MaaS for the 129 million EU citizens in sparsely populated areas. [5]
+- **Night travel.** Good practice is honest last-departure information, guaranteed fallbacks (taxi or DRT), and safer walking routes after dark; the Dutch walking-distance study (layer 12) found street lighting is second only to frequency in how far people will walk to a stop.
+
+### 19.2 The reality in Cyprus
+
+Own analysis of the official GTFS (feeds of 31 Oct 2026), counting every scheduled departure at every stop:
+
+| Day | Stop departures in total | 21:00 to 23:00 | 23:00 to 05:00 | Stops with any departure 23:00 to 05:00 |
+|---|---|---|---|---|
+| Tuesday 3 Nov 2026 | 161,419 | 9,547 (5.9%) | 4,670 (2.9%) | 1,199 |
+| Saturday 7 Nov 2026 (Limassol data missing, see note) | 91,095 | 6,680 (7.3%) | 5,727 (6.3%) | 1,359 |
+| Sunday 8 Nov 2026 (Limassol data missing) | 79,170 | 5,753 (7.3%) | 3,525 (4.5%) | 726 |
+
+Note: the Limassol EMEL feed only contains service dates from 31 Oct to 6 Nov 2026, although its feed_info claims validity to 28 Jan 2027 (layer 15). Weekend figures therefore exclude Limassol.
+
+Rural and thin service on a weekday (Tuesday 3 Nov 2026), served stops with four or fewer departures in the whole day:
+
+- Paphos (OSYPA): 295 of 889 served stops (33%).
+- Limassol (EMEL): 216 of 1,390.
+- Larnaca (LPT): 181 of 998.
+- Nicosia (NPT): 52 of 1,769.
+- Famagusta (OSEA): 4 of 446.
+- Intercity: 28 of 123.
+
+So the long tail of villages, especially in Paphos district, has one or two buses each way per day.
+
+**Existing DRT in Cyprus.**
+
+- Cyprus Public Transport (operator of NPT and LPT) started a Demand Responsive Transport pilot in July 2023 aimed at people with disabilities, and lists DRT among its innovation concepts. [6][7]
+- Limassol has an on-demand service (WeeDrive), described by the EU-funded Policy Mix 4 Mobility team in September 2026 as "successfully established primarily for children and families". [8]
+- Neither appears in the official GTFS (no Flex files) or on the NAP.
+
+**Night fallbacks.** Aloya already encodes the regulated taxi tariff with a higher night rate (€1.05 per km at night against €0.85 by day, €3.42 flag fall, €5 minimum).
+
+### 19.3 Aloya today, and the gaps
+
+- The planner widens the access radius to 3 km when nearby stops have fewer than 3 departures in the next 2 hours, and extends the search horizon to 24 hours and then the next day, so rural riders do get an answer such as "first bus tomorrow 06:10".
+- headway-chance.ts handles the "no vehicle visible" case; last-mile-chain.functions.ts offers a taxi for the final leg; useShortcutDetector suggests walking near the end.
+- Gaps:
+  1. No DRT legs: the Limassol on-demand service and the CPT DRT pilot are invisible.
+  2. No explicit night mode: no "last bus home" warnings before the evening, no night-safe walking preference, no comparison of "wait 50 minutes or taxi for €12".
+  3. Rural first and last mile is walking only (layer 11), although a 2 to 3 km cycle or a short taxi to the main road is often the realistic answer.
+  4. The empty-weekend Limassol data would make Aloya say there are no buses, unless the shard builder detects a short calendar.
+
+### 19.4 Improvements
+
+1. **Feed sanity guard for calendars.** In the shard builder, compare each feed's listed service dates with feed_info and the previous feed; if a feed covers fewer than 14 future days, keep the last good calendar pattern for that weekday (marked "timetable not yet confirmed") and alert the team. Prevents "no buses in Limassol" from 7 Nov 2026. Effort S. Impact Very high (immediate).
+2. **"Last bus home" reminders.** From the rider's saved home and current location, compute the last workable departure each evening and notify 30 and 10 minutes before it (opt-in), with the taxi estimate as the fallback. Effort S. Impact High.
+3. **Night mode in planning.** After 21:00, raise the walking penalty on unlit or isolated paths (OSM `lit=*`, main roads preferred), prefer stops with shelters (crowd data), and show "wait 50 min" against "taxi about €X now" honestly. Effort M. Impact High for women, students and shift workers.
+4. **DRT as a planner leg.** Model WeeDrive (Limassol) and any CPT DRT as GTFS-Flex style zones with booking links; start with a static zone polygon and service hours, entered by hand with the operators' agreement, and show "book on-demand bus" options inside itineraries. Effort M. Impact Medium to High.
+5. **Rural first mile: cycle or short taxi to the trunk road.** For origins where the nearest stop has four or fewer daily departures, test "taxi or bike 2 to 4 km to the intercity or trunk stop" options (layer 11 legs), and show them when they save at least 30 minutes. Effort S once legs exist. Impact High in Paphos district.
+6. **Shared taxi matching (later).** Where several Aloya riders request similar late-night or rural trips, suggest sharing a regulated taxi; start as a simple "others going your way" list without payment handling. Effort M. Impact Medium.
+7. **Evidence pack for the Ministry and districts.** Use the stop-level analysis above plus Aloya's own unmet searches ("no option" results by village and hour) to argue for DRT zones in thin areas, especially Paphos villages. Effort S. Impact High (systemic, supports the bonus part F on car dependence).
+8. **Village timetable cards.** For stops with four or fewer daily departures, show the full day on one card ("06:10, 13:40, 17:20") instead of "next bus" only, because riders plan their day around them. Effort S. Impact Medium.
+9. **School and family trips.** Since the Limassol on-demand bus is used mainly by children and families, add a "family" or "school run" profile that surfaces it and safer walking routes. Effort S. Impact Medium.
+10. **Night punctuality learning.** Track late-evening reliability separately (delay_stats already has hour of day) and widen buffers for the last services, because missing the last bus has the highest cost. Effort S. Impact Medium.
+
+### 19.5 Sources
+
+[1] GTFS Flex (MobilityData). https://gtfs.org/community/extensions/flex/
+[2] OpenTripPlanner Flex Routing sandbox. https://docs.opentripplanner.org/en/latest/sandbox/Flex/
+[3] MOTIS README (GTFS-Flex input). https://github.com/motis-project/motis
+[4] EU Urban Mobility Observatory, "Strategic planning for Demand Responsive Transport: Insights from European projects", 28 Nov 2025. https://urban-mobility-observatory.transport.ec.europa.eu/strategic-planning-demand-responsive-transport-insights-european-projects_en
+[5] Interreg Europe, Rural Mobility. https://www.interregeurope.eu/rural-mobility
+[6] Cyprus Public Transport, "CPT at a Glance". https://www.publictransport.com.cy/whoweare/cpt-at-a-glance
+[7] Cyprus Public Transport, research and innovation projects. https://www.publictransport.com.cy/innovation/research-innovation
+[8] IÖW / Policy Mix 4 Mobility posts, 21 Sep 2026. https://mastodon.social/@ioew/117308945275930518 ; https://www.linkedin.com/posts/ioew-berlin_bikesharing-learningfromlimassol-activity-7507759450531807232-CrpR
+Own analysis of GTFS feeds 2, 4, 5, 6, 9 and 10 (version 20261031) for 3, 7 and 8 Nov 2026.
 
 ---
