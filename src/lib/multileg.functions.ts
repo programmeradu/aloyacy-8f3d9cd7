@@ -382,6 +382,11 @@ export const planMultiLeg = createServerFn({ method: "POST" })
       800,
       0,
     );
+    // Every option is ranked on the same footing: when it gets the rider
+    // there. Scores carried in from the planners were measured from different
+    // search bases (a retry from later, tomorrow's first bus, the browser's
+    // re-based departure), so they are not comparable with each other.
+    for (const it of kept) it.score = it.arrivalUnix - nowSec;
     if (skips >= 3) {
       const bias = Math.min(skips * 90, 360);
       for (const it of kept) {

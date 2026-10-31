@@ -278,7 +278,8 @@ export async function planMultiLegScheduled(
     let slackK = 0;
     for (let pass = 0; pass < 2; pass++) {
       const seen: Array<{ ride: number; overrunSec: number; extraSec: number }> = [];
-      slackK += 6 * 60 + (pass === 0 ? 0 : 6 * 60);
+      const extra = Math.max(0, ...missLog.map((m) => m.extraSec));
+      slackK = Math.max(slackK + 6 * 60, extra + 120);
       const coach = await kapnosAt(searchDepartureUnix + slackK);
       if (coach.length === 0) break;
       const ok = await refineAllItineraries(coach, seen);
@@ -287,7 +288,6 @@ export async function planMultiLegScheduled(
         refinedItineraries = [...refinedItineraries, ...ok];
         break;
       }
-      slackK += Math.max(0, ...seen.map((m) => m.overrunSec));
     }
   }
   refinedItineraries = refinedItineraries.map(rebaseToLeave);
