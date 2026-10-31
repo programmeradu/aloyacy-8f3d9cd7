@@ -205,10 +205,54 @@ export const planMultiLeg = createServerFn({ method: "POST" })
         : Promise.resolve(null);
     let noScheduleAvailable = false;
     let requestedDate: string | undefined;
+    const serverScheduled = (): Promise<SchedR> =>
+      planMultiLegScheduled(data.from, data.to, {
+        departureUnix: departureUnix ?? undefined,
+        explicitTime: !!(data.departAtUnix || data.arriveByUnix),
+        date: data.arriveByUnix ? localDateForUnix(data.arriveByUnix) : undefined,
+        accessibilityPrefs: {
+          requireSafeCrossing: data.a11y?.stepFree ?? false,
+          requireWheelchair: data.a11y?.lowFloor ?? false,
+        },
+      }).catch((e: unknown) => {
+        if (e instanceof NoScheduleAvailableError) {
+          noScheduleAvailable = true;
+          requestedDate = e.date;
+          log.warn("no schedule shard", { date: e.date });
+          return null;
+        }
+        schedFailed = true;
+        log.warn("scheduled planner failed", { err: (e as Error).message });
+        return null;
+      });
     const schedPromise: Promise<SchedR> =
       (mode === "scheduled" || mode === "both") && data.clientScheduled
         ? (async (): Promise<SchedR> => {
-            const its = sanitizeClientItineraries(data.clientScheduled);
+            let its = sanitizeClientItineraries(data.clientScheduled);
+            // The browser plans with estimated walks. Verify them here (the
+            // Worker has the walking routes): an option whose verified walk
+            // misses its bus is dropped, and when that leaves nothing, the
+            // Worker plans the trip itself with verified walks.
+            let verified: "yes" | "timeout" | "server" = "yes";
+            if (its.length > 0) {
+              const { refineAllItineraries } = await import("./walk-refine.server");
+              const { rebaseToLeave } = await import("./raptor-plan");
+              const base = departureUnix ?? nowSec;
+              const fromBase = its.map((it) => ({ ...it, departureUnix: Math.min(it.departureUnix, base) }));
+              const checked = await withTimeout(refineAllItineraries(fromBase), 4_000, null);
+              if (checked === null) verified = "timeout";
+              else if (checked.length > 0) its = checked.map(rebaseToLeave);
+              else {
+                const server = await serverScheduled();
+                if (server && server.itineraries.length > 0) {
+                  return {
+                    ...server,
+                    diagnostics: { ...server.diagnostics, reasons: [...(server.diagnostics.reasons ?? []), "browser options missed their buses on verified walks; planned on the Worker"] },
+                  };
+                }
+                verified = "server";
+              }
+            }
             const ov = await withTimeout(overlayLiveOnScheduled(its), 2_500, {
               liveArrivalCount: 0,
               legsOverlaid: 0,
@@ -218,36 +262,12 @@ export const planMultiLeg = createServerFn({ method: "POST" })
               diagnostics: {
                 ...ov,
                 serviceDate: data.clientServiceDate,
-                reasons: ["planned in the browser from the static timetable shard"],
+                reasons: [`planned in the browser from the static timetable shard (walks verified: ${verified})`],
               } as unknown as ScheduledDiagnostics,
             };
           })()
         : mode === "scheduled" || mode === "both"
-        ? planMultiLegScheduled(
-            data.from,
-            data.to,
-            departureUnix
-              ? {
-                  departureUnix,
-                  explicitTime: !!(data.departAtUnix || data.arriveByUnix),
-                  date: data.arriveByUnix ? localDateForUnix(data.arriveByUnix) : undefined,
-                  accessibilityPrefs: {
-                    requireSafeCrossing: data.a11y?.stepFree ?? false,
-                    requireWheelchair: data.a11y?.lowFloor ?? false,
-                  },
-                }
-              : undefined,
-          ).catch((e: unknown) => {
-            if (e instanceof NoScheduleAvailableError) {
-              noScheduleAvailable = true;
-              requestedDate = e.date;
-              log.warn("no schedule shard", { date: e.date });
-              return null;
-            }
-            schedFailed = true;
-            log.warn("scheduled planner failed", { err: (e as Error).message });
-            return null;
-          })
+        ? serverScheduled()
         : Promise.resolve(null);
 
     const [liveResult, schedResult] = await Promise.all([livePromise, schedPromise]);
