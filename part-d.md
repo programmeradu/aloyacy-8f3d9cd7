@@ -417,3 +417,44 @@ Official fares, checked on 31 Oct 2026:
 - Code: src/lib/offline-schedules.ts, src/lib/offline-timetable-db.ts, public/sw.js, src/components/OfflineBanner.tsx, OfflineSchedulesCard, packages/core/src/raptor-core.ts, src/lib/raptor.server.ts, src/lib/basemap.ts, public/data/schedule (file sizes read at HEAD 56dab8f)
 
 ---
+
+## Layer 40. Multilingual
+
+### 40.1 What the best in the world do
+- GTFS has a standard file for this, translations.txt, which lets a feed carry stop names, route names and headsigns in other languages, so apps can show official local names without guessing (GTFS Schedule reference, translations.txt).
+- Leading apps localise the interface widely, keep official place names as published, and add the local-script name beside a translated one so riders can match signs. Right-to-left (RTL) languages need mirrored layouts, not just translated strings (W3C, Structural markup and right-to-left text in HTML).
+- Machine translation plus native review is now the normal way small teams ship many languages; the check that matters is a native speaker on transit-specific words (stop, transfer, validator, night fare).
+
+### 40.2 The reality in Cyprus and the data available
+- Greek and Turkish are the official languages of the Republic of Cyprus. Language spoken best, 2021 census (government-controlled area, 923,381 people): Greek 733,732; English 44,482; Russian 21,642; Arabic 19,663; Romanian 18,691; Bulgarian 14,678; Indian languages 8,370; Filipino 7,554; Sinhala 6,060 (CYSTAT census table 1891616, as compiled on Wikipedia, Demographics of Cyprus). 22.1% of residents were not Cypriot citizens; foreign citizens were 40.0% of Paphos district and 21.7% of Limassol district (CYSTAT, Census 2021 final results, 9 Aug 2024).
+- Visitors: in 2025 the UK supplied 31.8% of 4.53 million tourists, Israel 13.0%, Poland 8.2%, Germany 6.1%, Greece 3.9% and Sweden 3.4% (CYSTAT, Tourism Statistics 2025).
+- The feeds already carry Greek: the Nicosia feed's translations.txt has 1,761 Greek stop names, 1,765 stop descriptions, 17,513 trip headsigns and 185 route names (for example stop 1, "Πλατεία Διονυσίου Σολωμού"), while the main stops.txt names are in Latin script (my read of feed 9, 31 Oct 2026). Translations are Greek only.
+- On buses, the stop inventory tender will check whether displays and voice announcements work in Greek and English (Cyprus FAQ, 23 Oct 2026), so other languages will exist only in apps.
+
+### 40.3 Aloya today
+- Two separate i18n systems: `src/lib/i18n.ts` (Locale = "en" | "el") with `packages/core/src/dictionaries` (en and el, about 1,390 keys), and `src/lib/roam-i18n.ts` (828 lines) for the Roam redesign. Two systems mean strings get missed and translations drift.
+- Only English and Greek. No RTL support: the only `dir` attribute in the code is `dir="ltr"` in the email layout, and the root document always declares `<html lang="en">` (src/routes/__root.tsx), even in Greek, which confuses screen readers and browser translation.
+- The schedule ingest does not read translations.txt (no reference in scripts/ingest-schedule.ts), so a Greek-language rider still sees Latin-script stop names and headsigns although the feed has the Greek ones.
+- Speech output exists (speech.ts) and could speak in the chosen language.
+- The AI parser (Layer 33) already accepts free text in any language the model knows, which is a quick win for languages the UI does not yet support.
+
+### 40.4 Improvements
+1. **Use the feed's Greek names.** Ingest translations.txt and show Greek stop names, headsigns and route names when the UI is Greek, with the Latin name beneath for matching signs. Effort S. Impact high: it is official data already published.
+2. **Set `lang` and `dir` correctly.** Set `<html lang>` from the active locale on every page; add `dir="rtl"` for RTL locales; use CSS logical properties (margin-inline-start and so on) so layouts mirror. Effort S for lang, M for RTL readiness. Impact: accessibility now, RTL later.
+3. **Merge the two i18n systems** into one dictionary with key coverage tests (a CI check that fails when a key is missing in any shipped language). Effort M. Impact high for quality.
+4. **Language order, by evidence:** Russian (third language spoken by residents, large Limassol community), Arabic (fourth, RTL), Hebrew (13% of tourists, RTL; shares RTL work with Arabic), Turkish (official language of the Republic), then Romanian, Bulgarian and Polish (residents and the third tourist market). Revised from the seed, which put Hebrew first; residents ride daily, tourists for a week. Effort M per language after the merge. Impact high.
+5. **Translation process.** Machine translation for the first draft, a native reviewer per language for transit terms and tone, a glossary (Motion card, e-wallet, night fare, request stop), and official stop names never translated, only transliterated beside the Greek. Effort S per language. Impact: quality.
+6. **Ask in any language, answer in theirs.** Let the AI assistant reply in the language the rider wrote in, using tool results for every fact (Layer 33), even before the UI supports that language. Effort S. Impact medium to high for visitors.
+7. **Spoken guidance in the chosen language.** Use speech synthesis voices for the active locale for "next stop" and "get off now", with Greek stop names read from the feed. Effort S. Impact medium, larger for visually impaired riders.
+
+### 40.5 Sources
+- GTFS Schedule reference, translations.txt: https://gtfs.org/documentation/schedule/reference/#translationstxt
+- W3C, Structural markup and right-to-left text in HTML: https://www.w3.org/International/questions/qa-html-dir
+- CYSTAT, Census 2021 final results (9 Aug 2024): https://www.gov.cy/en/economy-and-finance/census-of-population-and-housing-2021-final-results
+- CYSTAT census table, population by language spoken best (1891616): https://cystatdb.cystat.gov.cy/pxweb/en/8.CYSTAT-DB/8.CYSTAT-DB__Population__Census%20of%20Population%20and%20Housing%202021__Population__Population%20-%20Language%2C%20Religion%2C%20Ethnic%20Religious%20Group/1891616G.px/ (figures as compiled at https://en.wikipedia.org/wiki/Demographics_of_Cyprus)
+- CYSTAT, Tourism Statistics 2025 (4 May 2026): https://www.gov.cy/en/economy-and-finance/tourism-statistics-2025
+- Cyprus FAQ, bus stop inventory tender (23 Oct 2026): https://www.cyprus-faq.com/en/south/news/kipr-inventarizaciya-9000-avtobusnyh-ostanovok/
+- Nicosia GTFS feed 9, translations.txt (31 Oct 2026): https://www.motionbuscard.org.cy/opendata/downloadfile?file=GTFS%5C9_google_transit.zip&rel=True
+- Code: src/lib/i18n.ts, packages/core/src/dictionaries, src/lib/roam-i18n.ts, src/routes/__root.tsx, src/lib/email-templates/_layout.tsx, scripts/ingest-schedule.ts, src/lib/speech.ts
+
+---
