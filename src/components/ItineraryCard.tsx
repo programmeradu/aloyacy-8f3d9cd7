@@ -107,7 +107,7 @@ export function ItineraryCard({
     itinerary.transfers === 0
       ? t("itin.boardAtPrefix") + " " + short(firstRide?.board.name ?? "")
       : itinerary.transfers === 1
-        ? t("itin.oneChange")
+        ? rt("jl.changes1")
         : t("itin.changes", { n: itinerary.transfers });
 
   const walkText =
@@ -128,6 +128,12 @@ export function ItineraryCard({
       ]
     : [sourceLabel, changes, walkText];
   const mute = dark ? "var(--r-onchar-mute)" : "var(--r-mute)";
+  const badge = (
+    <span className="r-conf shrink-0" style={{ color: mute }}>
+      {reliability.live ? <span className="r-dot" /> : <span className="r-ring" />}
+      {reliability.text.charAt(0).toLocaleUpperCase() + reliability.text.slice(1)}
+    </span>
+  );
   const pillBg = dark ? "#3b3b3b" : "var(--r-pill)";
   const pillFg = dark ? "#fff" : "var(--r-ink)";
 
@@ -139,7 +145,14 @@ export function ItineraryCard({
         boxShadow: dark ? "0 18px 40px -24px rgba(0,0,0,.6)" : undefined,
       }}
     >
-      <LegChain itinerary={itinerary} dark={dark} />
+      {/* Up to two rides the reliability sits beside the chain; longer
+          chains take the whole row and it moves to the summary line. */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <LegChain itinerary={itinerary} dark={dark} />
+        </div>
+        {!compact ? badge : null}
+      </div>
       <div className="mt-2.5 flex items-start justify-between gap-3">
         <p className="min-w-0 flex-1 text-[14px] leading-snug" style={{ color: mute }}>
           {summary
@@ -147,10 +160,7 @@ export function ItineraryCard({
             // keep numbers with their units on one line
             .replace(/(\d) (m|km|min)\b/g, "$1\u00a0$2")}
         </p>
-        <span className="r-conf shrink-0" style={{ color: mute }}>
-          {reliability.live ? <span className="r-dot" /> : <span className="r-ring" />}
-          {reliability.text}
-        </span>
+        {compact ? badge : null}
       </div>
 
       <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-baseline gap-3 r-tnum">
