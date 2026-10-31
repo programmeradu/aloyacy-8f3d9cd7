@@ -1,8 +1,11 @@
-// Football fixtures strip — today's kick-offs with venue and city.
+// Football: the next kick-offs, one list card. Times on the island clock,
+// "Today" and "Tomorrow" in words, nothing truncated.
 
 import type { PulseLiveBundle } from "@/lib/pulse-live.functions";
 
-/* ────────────── Football fixtures strip ────────────────────────────── */
+const TZ = "Asia/Nicosia";
+const ymd = (d: Date) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
 
 export function FixturesStrip({
   payload,
@@ -13,37 +16,44 @@ export function FixturesStrip({
 }) {
   const next = payload.fixtures.slice(0, 3);
   if (next.length === 0) return null;
+  const loc = isEl ? "el-GR" : "en-GB";
+  const today = ymd(new Date());
+  const tomorrow = ymd(new Date(Date.now() + 86_400_000));
+  const dayLabel = (k: Date) => {
+    const d = ymd(k);
+    if (d === today) return isEl ? "Σήμερα" : "Today";
+    if (d === tomorrow) return isEl ? "Αύριο" : "Tomorrow";
+    return k.toLocaleDateString(loc, { weekday: "short", day: "numeric", month: "short", timeZone: TZ });
+  };
   return (
-    <section className="mt-6">
-      <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-ink-soft mb-2">
-        {isEl ? "Επόμενοι αγώνες · Α' Κατηγορία" : "Next up · Cyprus First Division"}
-      </p>
-      <ul className="grid gap-2">
+    <section className="r-pulse-sec r-fx animate-rise" data-card="fixtures">
+      <h2 className="r-pulse-h">
+        <span>{isEl ? "Ποδόσφαιρο" : "Football"}</span>
+        <small>{isEl ? "Α΄ Κατηγορία" : "Cyprus First Division"}</small>
+      </h2>
+      <ul className="r-today-list">
         {next.map((f, i) => {
           const k = f.kickoff ? new Date(f.kickoff) : null;
-          const when = k
-            ? `${k.toLocaleDateString(isEl ? "el-GR" : "en-GB", { weekday: "short", day: "numeric", month: "short" })}  ${k.toLocaleTimeString(isEl ? "el-GR" : "en-GB", { hour: "2-digit", minute: "2-digit" })}`
-            : isEl
-              ? "ώρα ΤBA"
-              : "time TBA";
+          const ok = k && !Number.isNaN(k.getTime());
+          const place = [f.venue, f.city].filter(Boolean).join(", ");
           return (
-            <li
-              key={i}
-              className="rounded-[18px] bg-card ring-1 ring-line px-4 py-3 flex items-center gap-3"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="font-sans font-semibold text-[14px] text-ink truncate">
-                  {f.home} <span className="text-ink-soft font-medium">vs</span> {f.away}
-                </p>
-                {(f.venue || f.city) && (
-                  <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.18em] text-ink-soft truncate">
-                    {[f.venue, f.city].filter(Boolean).join(" · ")}
-                  </p>
+            <li key={i} className="r-today-row r-fx-row">
+              <span className="r-today-rowtxt">
+                <span className="r-today-rowtitle">
+                  {f.home} <span className="r-fx-v">{isEl ? "vs" : "v"}</span> {f.away}
+                </span>
+                {place ? <span className="r-today-rowsub">{place}</span> : null}
+              </span>
+              <span className="r-fx-when">
+                {ok && k ? (
+                  <>
+                    <b>{k.toLocaleTimeString(loc, { hour: "2-digit", minute: "2-digit", timeZone: TZ })}</b>
+                    <span>{dayLabel(k)}</span>
+                  </>
+                ) : (
+                  <span>{isEl ? "Ώρα σύντομα" : "Time to follow"}</span>
                 )}
-              </div>
-              <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.18em] text-ochre tabular-nums whitespace-nowrap">
-                {when}
-              </p>
+              </span>
             </li>
           );
         })}

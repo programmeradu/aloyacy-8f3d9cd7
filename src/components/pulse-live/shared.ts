@@ -22,3 +22,13 @@ export function shouldShowAir(p: NonNullable<AirPayload>): boolean {
   if (p.dustAlert) return true;
   return p.band === "moderate" || p.band === "poor" || p.band === "very-poor";
 }
+
+/** Feed copy in Roam's voice: spaced dashes and middle dots become commas. */
+export function tidy(s: string | null | undefined): string {
+  return (s ?? "")
+    .replace(/\s*[·•]\s*/g, ", ")
+    .replace(/\s+[–—-]\s+/g, ", ")
+    .replace(/\s*›\s*/g, ", ")
+    .replace(/,\s*,/g, ",")
+    .trim();
+}

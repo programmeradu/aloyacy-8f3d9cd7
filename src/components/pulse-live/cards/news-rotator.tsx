@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { PulseLiveBundle } from "@/lib/pulse-live.functions";
-import { relativeAgo } from "../shared";
+import { relativeAgo, tidy } from "../shared";
 import pulseNewsImg from "@/assets/pulse-news-kafenion.jpg";
 
 /* News rotator: cycles fresh island headlines, Roam card with an inset painting */
@@ -26,7 +26,7 @@ export function NewsRotatorCard({
   const ago = relativeAgo(cur.publishedAt, isEl);
 
   return (
-    <article className="r-news">
+    <article className="r-news" data-card="news">
       <div className="r-news-art">
         <img src={pulseNewsImg} alt="" aria-hidden="true" loading="lazy" decoding="async" />
       </div>
@@ -35,7 +35,7 @@ export function NewsRotatorCard({
           <b>{cur.source}</b>
           <span>{ago}</span>
         </span>
-        <span className="r-news-title">{cur.title}</span>
+        <span className="r-news-title">{tidy(cur.title)}</span>
       </a>
       {items.length > 1 && (
         <div className="r-news-dots" aria-hidden="true">

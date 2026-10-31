@@ -3346,3 +3346,450 @@ html.r-has-resume .r-now-more {
 .r-nn-city {
   height: 34px;
 }
+
+
+/* Pulse round 6 (m30): a widget board (hero, pair, list in turn), the painted
+   Greek word of the day, and Roam cards for the rarer live signals */
+@font-face {
+  font-family: "Roam Greek Serif";
+  src: url(/fonts/roam/literata-greek-500.woff2) format("woff2");
+  font-weight: 500;
+  font-display: swap;
+  unicode-range: U+0370-03FF, U+1F00-1FFF;
+}
+@font-face {
+  font-family: "Roam Greek Serif";
+  src: url(/fonts/roam/literata-latin-500.woff2) format("woff2");
+  font-weight: 500;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2018-201F, U+2026;
+}
+.r-pulse-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.r-pulse-crowdset {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+/* Greek word and Did you know: two half cards, painted art on top, equal height */
+.r-today-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  align-items: stretch;
+}
+.r-today-pair .r-today-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+}
+.r-pair-art {
+  position: relative;
+  margin: 6px 6px 0;
+  aspect-ratio: 4 / 3;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--r-y-soft);
+}
+.r-pair-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+.r-pair-speak {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+}
+.roam .r-pair-speak button {
+  width: 40px !important;
+  height: 40px !important;
+  background: #fff !important;
+  color: var(--r-ink) !important;
+  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.4);
+  --tw-ring-color: rgba(246, 184, 60, 0.7) !important;
+}
+.r-pair-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 14px 16px;
+}
+.roam .r-legacy .r-greek-word {
+  display: block;
+  margin-top: 2px;
+  font-family: "Roam Greek Serif", "Manrope Greek", Georgia, serif;
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1.12;
+  letter-spacing: 0;
+  color: var(--r-ink);
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+.roam .r-legacy .r-greek-word[data-size="m"] {
+  font-size: 27px;
+}
+.roam .r-legacy .r-greek-word[data-size="l"] {
+  font-size: 23px;
+}
+.roam .r-legacy .r-greek-word[data-size="xl"] {
+  font-size: 21px;
+}
+.r-greek-say {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--r-mute);
+}
+.r-greek-say b {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--r-ink);
+}
+.r-greek-meaning {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--r-mute);
+  text-wrap: pretty;
+}
+.r-fact-txt {
+  margin-top: 2px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+  color: var(--r-ink);
+  text-wrap: pretty;
+}
+
+/* Painted thumbnails in list rows (match, festival, cruise, events) */
+.r-today-ico--art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.r-ev-thumb {
+  width: 56px;
+  height: 56px;
+}
+.r-ev .r-today-rowtxt,
+.r-fx .r-today-rowtxt {
+  flex: 1;
+}
+.r-ev-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.r-ev-when {
+  flex: none;
+  font-size: 12px;
+  color: var(--r-mute);
+}
+a.r-today-rowtitle {
+  color: var(--r-ink);
+  text-decoration: none;
+}
+.r-fx-row {
+  align-items: center;
+}
+.r-fx-v {
+  font-weight: 400;
+  color: var(--r-mute);
+}
+.r-fx-when {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+}
+.r-fx-when b {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--r-ink);
+  font-variant-numeric: tabular-nums;
+}
+.r-fx-when span {
+  font-size: 12px;
+  color: var(--r-mute);
+}
+
+/* Live signal cards */
+.r-pc {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 10px 24px -18px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+}
+.r-pc-art {
+  position: relative;
+  margin: 8px 8px 0;
+  aspect-ratio: 16 / 9;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--r-y-soft);
+}
+.r-pc--half .r-pc-art {
+  margin: 6px 6px 0;
+  aspect-ratio: 4 / 3;
+}
+.r-pc-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+.r-pc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 18px 18px;
+  min-width: 0;
+}
+.r-pc--half .r-pc-body {
+  gap: 4px;
+  padding: 12px 14px 16px;
+}
+.r-pc-kick {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--r-mute);
+}
+.r-pc-big {
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--r-ink);
+  font-variant-numeric: tabular-nums;
+}
+.r-pc--half .r-pc-big {
+  font-size: 24px;
+}
+.r-pc-big[data-tone="warm"] {
+  color: #a8690f;
+}
+.r-pc-big small {
+  margin-left: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--r-mute);
+}
+.r-pc-sub {
+  font-size: 13px;
+  color: var(--r-mute);
+}
+.r-pc-sub b {
+  font-weight: 600;
+  color: var(--r-ink);
+  font-variant-numeric: tabular-nums;
+}
+.r-pc-text {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--r-mute);
+  text-wrap: pretty;
+}
+.r-pc--half .r-pc-text {
+  font-size: 13px;
+  line-height: 1.4;
+}
+.r-pc-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 2px;
+}
+.r-pc-stat {
+  display: flex;
+  flex-direction: column;
+}
+.r-pc-stat b {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--r-ink);
+  font-variant-numeric: tabular-nums;
+}
+.r-pc-stat--lg b {
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.r-pc-stat span {
+  font-size: 12px;
+  color: var(--r-mute);
+}
+.r-pc-tag {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: var(--r-y-soft);
+  color: #8a5a0c;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.r-pc-tag[data-tone="ink"] {
+  background: #efefeb;
+  color: var(--r-ink);
+}
+.r-pc-note {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: var(--r-y-soft);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--r-ink);
+  text-wrap: pretty;
+}
+.r-pc-rows {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.r-pc-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid #efefeb;
+}
+.r-pc-row:last-child {
+  padding-bottom: 0;
+}
+.r-pc-row b {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--r-ink);
+  overflow-wrap: anywhere;
+}
+.r-pc-row > span {
+  flex: none;
+  font-size: 13px;
+  color: var(--r-mute);
+  font-variant-numeric: tabular-nums;
+}
+.r-pc-row > .r-tr-line {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--r-ink2);
+  font-variant-numeric: normal;
+}
+.r-pc-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-items: stretch;
+}
+.r-pc-pair[data-n="1"] > *,
+.r-pc-pair[data-n="3"] > :last-child {
+  grid-column: 1 / -1;
+}
+.r-pc-pair[data-n="1"] .r-pc-art,
+.r-pc-pair[data-n="3"] > :last-child .r-pc-art {
+  margin: 8px 8px 0;
+  aspect-ratio: 16 / 9;
+}
+
+/* Weather warning: a tinted note card */
+.r-warn {
+  background: #fff4dc;
+  box-shadow: none;
+}
+.r-warn[data-level="orange"] {
+  background: #ffe8cc;
+}
+.r-warn[data-level="red"] {
+  background: #fde2da;
+}
+.r-warn .r-pc-kick {
+  color: #8a5a0c;
+}
+.r-warn[data-level="red"] .r-pc-kick {
+  color: #9c2f14;
+}
+.r-warn-title {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--r-ink);
+  text-wrap: pretty;
+}
+
+/* Traffic: thumbnail, headline and severity, then plain lines */
+.r-tr-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.r-tr-thumb {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--r-y-soft);
+}
+.r-tr-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.r-tr-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.r-tr-title {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--r-ink);
+  text-wrap: pretty;
+}
+.r-tr-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--r-mute);
+}
+.r-tr-rows {
+  margin-top: 8px;
+}

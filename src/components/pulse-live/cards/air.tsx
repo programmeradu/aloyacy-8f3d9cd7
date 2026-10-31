@@ -1,6 +1,13 @@
 import type { PulseLiveBundle } from "@/lib/pulse-live.functions";
+import { tidy } from "../shared";
+import pulseAirImg from "@/assets/pulse-air.webp";
 
-/* ────────────── Air quality — only when notable ───────────────────── */
+/* Air quality: only shown when notable (moderate or worse, or Saharan dust) */
+
+const BAND = {
+  en: { good: "Good", fair: "Fair", moderate: "Moderate", poor: "Poor", "very-poor": "Very poor" },
+  el: { good: "Καλή", fair: "Μέτρια", moderate: "Αυξημένη", poor: "Κακή", "very-poor": "Πολύ κακή" },
+} as const;
 
 export function AirCard({
   payload,
@@ -11,61 +18,29 @@ export function AirCard({
   city: string;
   isEl: boolean;
 }) {
-  const tone = payload.band === "very-poor" || payload.band === "poor" ? "text-ochre" : "text-ink";
-  const bandLabel = (() => {
-    if (isEl) {
-      switch (payload.band) {
-        case "good":
-          return "Καλή";
-        case "fair":
-          return "Μέτρια";
-        case "moderate":
-          return "Αυξημένη";
-        case "poor":
-          return "Κακή";
-        case "very-poor":
-          return "Πολύ κακή";
-        default:
-          return "-";
-      }
-    }
-    switch (payload.band) {
-      case "good":
-        return "Good";
-      case "fair":
-        return "Fair";
-      case "moderate":
-        return "Moderate";
-      case "poor":
-        return "Poor";
-      case "very-poor":
-        return "Very poor";
-      default:
-        return "-";
-    }
-  })();
+  const band = payload.band ? BAND[isEl ? "el" : "en"][payload.band] : isEl ? "Σκόνη" : "Dusty";
+  const warm = payload.band === "poor" || payload.band === "very-poor";
   return (
-    <article className="relative overflow-hidden rounded-[24px] bg-card ring-1 ring-line px-5 py-5">
-      <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep">
-        {isEl ? "Αέρας · " : "Air · "}
-        {city}
-      </p>
-      <div className="mt-1 flex items-baseline gap-3">
-        <span className={`font-display text-[28px] leading-none tracking-[-0.02em] ${tone}`}>
-          {bandLabel}
+    <article className="r-pc r-pc--half" data-card="air">
+      <div className="r-pc-art">
+        <img src={pulseAirImg} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+      </div>
+      <div className="r-pc-body">
+        <span className="r-pc-kick">{isEl ? `Αέρας, ${city}` : `Air in ${city}`}</span>
+        <span className="r-pc-big" data-tone={warm ? "warm" : undefined}>
+          {band}
         </span>
         {payload.europeanAqi != null && (
-          <span className="font-eyebrow text-[10px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
-            AQI {Math.round(payload.europeanAqi)}
+          <span className="r-pc-sub">
+            {isEl ? "Δείκτης ποιότητας " : "Air quality index "}
+            <b>{Math.round(payload.europeanAqi)}</b>
           </span>
         )}
+        {payload.summary ? <p className="r-pc-text">{tidy(payload.summary)}</p> : null}
+        {payload.dustAlert && (
+          <span className="r-pc-tag">{isEl ? "Σκόνη από τη Σαχάρα" : "Saharan dust"}</span>
+        )}
       </div>
-      <p className="mt-2 text-[13px] leading-snug text-ink-soft text-pretty">{payload.summary}</p>
-      {payload.dustAlert && (
-        <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-ochre/10 ring-1 ring-ochre/30 px-3 py-1 font-eyebrow text-[9.5px] uppercase tracking-[0.2em] text-ochre">
-          {isEl ? "Σκόνη από τη Σαχάρα" : "Saharan dust"}
-        </p>
-      )}
     </article>
   );
 }

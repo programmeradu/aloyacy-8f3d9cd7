@@ -1,6 +1,12 @@
 import type { PulseLiveBundle } from "@/lib/pulse-live.functions";
+import { tidy } from "../shared";
 
-/* ────────────── Met warnings — only render when active ─────────────── */
+/* Weather warnings: only rendered while one is active */
+
+const LEVEL = {
+  en: { red: "Red", orange: "Orange", yellow: "Yellow" },
+  el: { red: "Κόκκινη", orange: "Πορτοκαλί", yellow: "Κίτρινη" },
+} as const;
 
 export function MetWarningCard({
   payload,
@@ -11,32 +17,21 @@ export function MetWarningCard({
 }) {
   const w = payload.warnings[0];
   if (!w) return null;
-  const accent =
-    w.level === "red"
-      ? "bg-ochre/15 ring-ochre/40 text-ochre"
-      : w.level === "orange"
-        ? "bg-ochre/10 ring-ochre/30 text-ochre"
-        : "bg-aegean-deep/8 ring-aegean-deep/25 text-aegean-deep";
-  const levelLabel = isEl
-    ? w.level === "red"
-      ? "Κόκκινη"
-      : w.level === "orange"
-        ? "Πορτοκαλί"
-        : "Κίτρινη"
-    : w.level;
+  const level = LEVEL[isEl ? "el" : "en"][w.level] ?? "";
+  const more = payload.count - 1;
   return (
-    <article className={`relative overflow-hidden rounded-[22px] ring-1 px-5 py-4 mb-4 ${accent}`}>
-      <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.24em] mb-1.5">
-        {(isEl ? "Προειδοποίηση Καιρού · " : "Weather warning · ") + levelLabel}
-      </p>
-      <h3 className="font-display text-[17px] leading-tight text-ink text-balance">
-        {w.summary || `${w.kind} · ${w.area}`}
-      </h3>
-      {payload.count > 1 && (
-        <p className="mt-2 font-eyebrow text-[9.5px] uppercase tracking-[0.2em] text-ink-soft tabular-nums">
-          +{payload.count - 1} {isEl ? "ακόμη ενεργές" : "more active"}
-        </p>
-      )}
+    <article className="r-pc r-warn" data-level={w.level} data-card="warning">
+      <div className="r-pc-body">
+        <span className="r-pc-kick">
+          {isEl ? `${level} προειδοποίηση καιρού` : `${level} weather warning`}
+        </span>
+        <h3 className="r-warn-title">{tidy(w.summary) || `${w.kind}, ${w.area}`}</h3>
+        {more > 0 && (
+          <p className="r-pc-text">
+            {isEl ? `Ακόμη ${more} ενεργές` : `${more} more active`}
+          </p>
+        )}
+      </div>
     </article>
   );
 }

@@ -1,15 +1,11 @@
-// Pulse — live signals section
-// Renders every fresh `pulse_signals` row the API gives us, gracefully omitting
-// any signal that's missing. Tiles are zone-aware: the sea card only appears
-// for coastal zones, cruises only when there's a ship calling at Limassol, etc.
-//
-// Editorial rules (project memory):
-// - Bricolage Grotesque display, Geist sans body. No thin weights.
-// - No emoji, no decorative bullets, no generic Lucide icons.
-// - Painterly assets, generous negative space, large numerals.
+// Pulse live signals, split into the pieces the Pulse board places apart:
+// warnings and traffic join On the island right now, news, events and football
+// sit together, and the rarer signals (cruise, sea, flights, air) come last.
+// Each piece renders nothing when its signal is missing, so no heading stands
+// alone. Sentence case, no letter-spaced labels, no dashes or middle dots.
 
+import type { ReactNode } from "react";
 import type { PulseLiveBundle } from "@/lib/pulse-live.functions";
-import { useRoamI18n } from "@/lib/roam-i18n";
 import { shouldShowAir, type Locale } from "./pulse-live/shared";
 import {
   AirCard,
@@ -23,74 +19,81 @@ import { FixturesStrip } from "./pulse-live/FixturesStrip";
 import { EventsStrip } from "./pulse-live/EventsStrip";
 import { TrafficCard } from "./pulse-live/TrafficCard";
 
-export function PulseLiveSection({ bundle, locale }: { bundle: PulseLiveBundle; locale: Locale }) {
-  const { r } = useRoamI18n();
+type Props = { bundle: PulseLiveBundle; locale: Locale };
+
+export const hasWarnings = (b: PulseLiveBundle) =>
+  (b.metWarnings?.count ?? 0) > 0 && !!b.metWarnings?.warnings[0];
+export const hasTraffic = (b: PulseLiveBundle) =>
+  (b.traffic?.count ?? 0) > 0 && !!b.traffic?.incidents[0];
+
+export function PulseWarnings({ bundle, locale }: Props) {
+  if (!bundle.metWarnings || !hasWarnings(bundle)) return null;
+  return <MetWarningCard payload={bundle.metWarnings} isEl={locale === "el"} />;
+}
+
+export function PulseTraffic({ bundle, locale }: Props) {
+  if (!bundle.traffic || !hasTraffic(bundle)) return null;
   const isEl = locale === "el";
-  const focusLabel = isEl ? bundle.focus.labelEl : bundle.focus.label;
-
-  // Decide what to render — nothing if absolutely no signals are fresh.
-  const hasAny =
-    bundle.news ||
-    bundle.marine ||
-    bundle.air ||
-    bundle.metWarnings?.count ||
-    bundle.cruises?.count ||
-    bundle.flights.length > 0 ||
-    bundle.events?.count ||
-    bundle.fixtures?.count ||
-    bundle.traffic?.count;
-
-  // Only what will actually draw: the heading never stands alone.
-  const hasVisible =
-    (bundle.metWarnings?.count ?? 0) > 0 ||
-    (bundle.news?.count ?? 0) > 0 ||
-    (!!bundle.marine && bundle.focus.coastal) ||
-    bundle.flights.length > 0 ||
-    (bundle.cruises?.count ?? 0) > 0 ||
-    (!!bundle.air && shouldShowAir(bundle.air)) ||
-    (bundle.traffic?.count ?? 0) > 0 ||
-    (bundle.fixtures?.count ?? 0) > 0 ||
-    (bundle.events?.count ?? 0) > 0;
-
-  if (!hasAny || !hasVisible) return null;
-
   return (
-    <section className="r-pulse-island animate-rise" style={{ animationDelay: "200ms" }}>
-      <h2 className="r-pulse-h">
-        <span>{r("pulse.island.title")}</span>
-      </h2>
-      {bundle.metWarnings && bundle.metWarnings.count > 0 && (
-        <MetWarningCard payload={bundle.metWarnings} isEl={isEl} />
+    <TrafficCard
+      payload={bundle.traffic}
+      city={isEl ? bundle.focus.labelEl : bundle.focus.label}
+      isEl={isEl}
+    />
+  );
+}
+
+/** News, then what is on today, then football. */
+export function PulseHappening({ bundle, locale }: Props) {
+  const isEl = locale === "el";
+  const news = bundle.news && bundle.news.count > 0 ? bundle.news : null;
+  return (
+    <>
+      {news && (
+        <section className="r-pulse-sec animate-rise">
+          <h2 className="r-pulse-h">
+            <span>{isEl ? "Στις ειδήσεις" : "In the news"}</span>
+          </h2>
+          <NewsRotatorCard payload={news} isEl={isEl} />
+        </section>
       )}
-
-      {bundle.news && bundle.news.count > 0 && (
-        <NewsRotatorCard payload={bundle.news} isEl={isEl} />
-      )}
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        {bundle.marine && bundle.focus.coastal && (
-          <SeaCard payload={bundle.marine} city={focusLabel} isEl={isEl} />
-        )}
-        {bundle.flights.length > 0 && <SkyCard payloads={bundle.flights} isEl={isEl} />}
-        {bundle.cruises && bundle.cruises.count > 0 && (
-          <CruiseCard payload={bundle.cruises} isEl={isEl} />
-        )}
-        {bundle.air && shouldShowAir(bundle.air) && (
-          <AirCard payload={bundle.air} city={focusLabel} isEl={isEl} />
-        )}
-      </div>
-
-      {bundle.traffic && bundle.traffic.count > 0 && (
-        <TrafficCard payload={bundle.traffic} city={focusLabel} isEl={isEl} />
-      )}
-
-      {bundle.fixtures && bundle.fixtures.count > 0 && (
-        <FixturesStrip payload={bundle.fixtures} isEl={isEl} />
-      )}
-
       {bundle.events && bundle.events.count > 0 && (
         <EventsStrip payload={bundle.events} isEl={isEl} />
       )}
+      {bundle.fixtures && bundle.fixtures.count > 0 && (
+        <FixturesStrip payload={bundle.fixtures} isEl={isEl} />
+      )}
+    </>
+  );
+}
+
+/** The rarer signals: the cruise card full width, then sea, flights and air as halves. */
+export function PulseRare({ bundle, locale }: Props) {
+  const isEl = locale === "el";
+  const city = isEl ? bundle.focus.labelEl : bundle.focus.label;
+  const halves: ReactNode[] = [];
+  if (bundle.marine && bundle.focus.coastal)
+    halves.push(<SeaCard key="sea" payload={bundle.marine} city={city} isEl={isEl} />);
+  if (bundle.flights.length > 0)
+    halves.push(<SkyCard key="sky" payloads={bundle.flights} isEl={isEl} />);
+  if (bundle.air && shouldShowAir(bundle.air))
+    halves.push(<AirCard key="air" payload={bundle.air} city={city} isEl={isEl} />);
+  const cruise = bundle.cruises && bundle.cruises.count > 0 ? bundle.cruises : null;
+  if (!cruise && halves.length === 0) return null;
+
+  return (
+    <section className="r-pulse-sec animate-rise">
+      <h2 className="r-pulse-h">
+        <span>{isEl ? "Θάλασσα, ουρανός και αέρας" : "Sea, sky and air"}</span>
+      </h2>
+      <div className="r-pulse-stack">
+        {cruise && <CruiseCard payload={cruise} isEl={isEl} />}
+        {halves.length > 0 && (
+          <div className="r-pc-pair" data-n={halves.length}>
+            {halves}
+          </div>
+        )}
+      </div>
     </section>
   );
 }

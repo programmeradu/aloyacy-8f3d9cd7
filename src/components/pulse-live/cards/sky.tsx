@@ -1,7 +1,9 @@
 import type { PulseLiveBundle } from "@/lib/pulse-live.functions";
 import pulseSkyImg from "@/assets/pulse-sky-card.jpg";
 
-/* ────────────── Sky — combined airport movements ───────────────────── */
+/* Flights: arrivals and departures in the next hour at Larnaca and Paphos */
+
+const CITY_EL: Record<string, string> = { Larnaca: "Λάρνακα", Paphos: "Πάφος" };
 
 export function SkyCard({
   payloads,
@@ -12,61 +14,35 @@ export function SkyCard({
 }) {
   const arr = payloads.reduce((s, p) => s + p.arrivalsNext60, 0);
   const dep = payloads.reduce((s, p) => s + p.departuresNext60, 0);
-  const cities = payloads.map((p) => p.city).join(" + ");
-
+  const cities = payloads.map((p) => (isEl ? (CITY_EL[p.city] ?? p.city) : p.city));
+  const where = cities.join(isEl ? " και " : " and ");
+  const many = cities.length > 1;
+  const line =
+    arr + dep === 0
+      ? isEl
+        ? "Ήσυχη ώρα στα αεροδρόμια."
+        : "A quiet hour at the airports."
+      : isEl
+        ? `${many ? "Αεροδρόμια" : "Αεροδρόμιο"} ${where}. Περισσότερος κόσμος στα λεωφορεία του αεροδρομίου.`
+        : `${where} ${many ? "airports" : "airport"}. Expect busier airport buses.`;
   return (
-    <article className="relative overflow-hidden rounded-[24px] bg-card ring-1 ring-line">
-      <div className="relative aspect-[16/9] w-full overflow-hidden">
-        <img
-          src={pulseSkyImg}
-          alt=""
-          aria-hidden
-          loading="lazy"
-          width={1600}
-          height={896}
-          className="absolute inset-0 h-full w-full object-cover select-none"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--color-card) 40%, transparent) 60%, var(--color-card) 100%)",
-          }}
-        />
+    <article className="r-pc r-pc--half" data-card="sky">
+      <div className="r-pc-art">
+        <img src={pulseSkyImg} alt="" aria-hidden="true" loading="lazy" decoding="async" />
       </div>
-      <div className="relative px-5 pt-3 pb-5">
-        <p className="font-eyebrow text-[9.5px] uppercase tracking-[0.22em] text-aegean-deep">
-          {isEl ? "Ουρανός · " : "Sky · "}
-          {cities}
-        </p>
-        <div className="mt-1 flex items-end gap-5">
-          <div>
-            <div className="font-display text-[30px] leading-none text-ink tabular-nums tracking-[-0.02em]">
-              {arr}
-            </div>
-            <p className="mt-1 font-eyebrow text-[9.5px] uppercase tracking-[0.2em] text-ink-soft">
-              {isEl ? "Αφίξεις / ώρα" : "Arrivals / 1h"}
-            </p>
-          </div>
-          <div>
-            <div className="font-display text-[30px] leading-none text-ochre tabular-nums tracking-[-0.02em]">
-              {dep}
-            </div>
-            <p className="mt-1 font-eyebrow text-[9.5px] uppercase tracking-[0.2em] text-ink-soft">
-              {isEl ? "Αναχωρήσεις / ώρα" : "Departures / 1h"}
-            </p>
-          </div>
+      <div className="r-pc-body">
+        <span className="r-pc-kick">{isEl ? "Πτήσεις την επόμενη ώρα" : "Flights next hour"}</span>
+        <div className="r-pc-stats">
+          <span className="r-pc-stat r-pc-stat--lg">
+            <b>{arr}</b>
+            <span>{isEl ? "αφίξεις" : "arrivals"}</span>
+          </span>
+          <span className="r-pc-stat r-pc-stat--lg">
+            <b>{dep}</b>
+            <span>{isEl ? "αναχωρήσεις" : "departures"}</span>
+          </span>
         </div>
-        <p className="mt-3 text-[13px] leading-snug text-ink-soft text-pretty">
-          {arr + dep === 0
-            ? isEl
-              ? "Ήρεμη επόμενη ώρα στους ουρανούς."
-              : "Quiet skies in the next hour."
-            : isEl
-              ? "Επόμενη ώρα, επιπλέον αιτήματα ταξί και Bus 425 / Express."
-              : "Expect extra demand on airport shuttles and taxi ranks."}
-        </p>
+        <p className="r-pc-text">{line}</p>
       </div>
     </article>
   );

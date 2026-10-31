@@ -1,10 +1,10 @@
-// Tap-to-hear Greek pronunciation. Uses ElevenLabs via /api/public/tts for a
-// high-quality neural voice; falls back to browser speechSynthesis only if the
-// network call fails, so the button is never a dead end offline.
+// Tap-to-hear Greek pronunciation. Plays the word's recorded clip when there is
+// one (src), then tries /api/public/tts, then the browser's own Greek voice,
+// so the button is never a dead end.
 
 import { useEffect, useRef, useState } from "react";
 
-export function SpeakGreekButton({ text }: { text: string }) {
+export function SpeakGreekButton({ text, src }: { text: string; src?: string | null }) {
   const [speaking, setSpeaking] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cacheRef = useRef<Map<string, string>>(new Map());
@@ -39,9 +39,26 @@ export function SpeakGreekButton({ text }: { text: string }) {
     }
   };
 
+  const playUrl = async (url: string) => {
+    audioRef.current?.pause();
+    const audio = new Audio(url);
+    audioRef.current = audio;
+    audio.onended = () => setSpeaking(false);
+    audio.onerror = () => setSpeaking(false);
+    await audio.play();
+  };
+
   const speak = async () => {
+    setSpeaking(true);
+    if (src) {
+      try {
+        await playUrl(src);
+        return;
+      } catch {
+        // fall through to the speech endpoint
+      }
+    }
     try {
-      setSpeaking(true);
       let url = cacheRef.current.get(text);
       if (!url) {
         const res = await fetch("/api/public/tts", {
@@ -55,12 +72,7 @@ export function SpeakGreekButton({ text }: { text: string }) {
         url = URL.createObjectURL(blob);
         cacheRef.current.set(text, url);
       }
-      audioRef.current?.pause();
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      audio.onended = () => setSpeaking(false);
-      audio.onerror = () => setSpeaking(false);
-      await audio.play();
+      await playUrl(url);
     } catch {
       fallback();
     }
@@ -71,6 +83,8 @@ export function SpeakGreekButton({ text }: { text: string }) {
       type="button"
       onClick={speak}
       aria-label={`Hear ${text} pronounced`}
+      title={`Hear ${text}`}
+      data-speaking={speaking ? "true" : "false"}
       className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-olive/12 text-olive transition-all hover:bg-olive/20 active:scale-95 ${
         speaking ? "ring-2 ring-olive/40" : ""
       }`}
