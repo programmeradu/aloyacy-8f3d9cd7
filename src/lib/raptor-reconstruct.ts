@@ -5,8 +5,8 @@
 // access walk, waits, rides, interchange walks and the final walk to the
 // door — so the scheduled planner emits the same shape as the live one.
 
-import type { LoadedSchedule, ScheduleStop } from "./schedule-loader.server";
-import { serviceDateToUnix } from "./schedule-loader.server";
+import type { LoadedSchedule, ScheduleStop } from "./schedule-types";
+import { serviceDateToUnix } from "./schedule-types";
 import type { Itinerary, Leg } from "./itinerary-types";
 import { finalise, walkMetersOnStreet, walkSecFromMeters } from "@aloya/core/raptor-core";
 import type { PlanContext } from "@aloya/core/raptor-core";

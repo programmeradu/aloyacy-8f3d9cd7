@@ -4,8 +4,8 @@ import type {
   ScheduleStop,
   StopTimeRow,
   StopTripRow,
-} from "./schedule-loader.server";
-import { serviceDateToUnix } from "./schedule-loader.server";
+} from "./schedule-types";
+import { serviceDateToUnix } from "./schedule-types";
 import { pruneDominated } from "@aloya/core/multileg-search";
 import {
   finalise,

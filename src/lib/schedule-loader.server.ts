@@ -13,25 +13,18 @@
 // entirely on the Worker.
 
 import { getRequest } from "@tanstack/react-start/server";
-import { cyParts, cyWallToMs } from "@aloya/core/cy-time";
+import { cyParts } from "@aloya/core/cy-time";
 
-export type ScheduleStop = { name: string; lat: number; lng: number; feedId: number };
-export type ScheduleRoute = {
-  short: string;
-  long: string;
-  color: string;
-  feedId: number;
-  type: number;
-};
-export type ScheduleTrip = {
-  routeId: string;
-  serviceId: string;
-  direction: 0 | 1;
-  headsign: string;
-  feedId: number;
-};
-export type StopTimeRow = [string, number, number, number]; // [stopId, depSec, arrSec, seq]
-export type StopTripRow = [string, number, string]; // [tripId, depSec, routeId]
+import type {
+  ScheduleStop,
+  ScheduleRoute,
+  ScheduleTrip,
+  StopTimeRow,
+  StopTripRow,
+  LoadedSchedule,
+} from "./schedule-types";
+export type { ScheduleStop, ScheduleRoute, ScheduleTrip, StopTimeRow, StopTripRow, LoadedSchedule };
+export { serviceDateToUnix } from "./schedule-types";
 
 type DateShard = {
   stopTrips: Record<string, StopTripRow[]>;
@@ -201,14 +194,6 @@ export async function loadShard(date: string): Promise<DateShard> {
   return shard;
 }
 
-export type LoadedSchedule = {
-  date: string;
-  stops: Record<string, ScheduleStop>;
-  routes: Record<string, ScheduleRoute>;
-  trips: Record<string, ScheduleTrip>;
-  stopTrips: Record<string, StopTripRow[]>;
-  stopTimes: Record<string, StopTimeRow[]>;
-};
 
 export async function loadScheduleForDate(date: string): Promise<LoadedSchedule> {
   const [stops, routes, trips, shard] = await Promise.all([
@@ -220,16 +205,3 @@ export async function loadScheduleForDate(date: string): Promise<LoadedSchedule>
   return { date, stops, routes, trips, stopTrips: shard.stopTrips, stopTimes: shard.stopTimes };
 }
 
-/** Convert HH:MM:SS-since-service-midnight + service date → unix seconds.
- *  GTFS values may exceed 86400 (post-midnight on same operating day). */
-export function serviceDateToUnix(date: string, secSinceMidnight: number): number {
-  // date is YYYYMMDD in Cyprus local time. GTFS times count from "noon minus
-  // 12h" of the service day, which keeps DST changeover days exact. The
-  // offset is DST-aware (UTC+2 winter, UTC+3 summer): a fixed +3 put every
-  // winter departure an hour early.
-  const y = Number(date.slice(0, 4));
-  const m = Number(date.slice(4, 6));
-  const d = Number(date.slice(6, 8));
-  const midnightMs = cyWallToMs(y, m, d, 12, 0) - 12 * 3600 * 1000;
-  return Math.floor(midnightMs / 1000) + secSinceMidnight;
-}

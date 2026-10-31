@@ -23,6 +23,7 @@ import { collectItineraryStopIds, filterLowFloorItineraries } from "@aloya/core/
 import { createLogger } from "./logger";
 import { filterDominated } from "@aloya/core/plan-score";
 import { withTimeout } from "./server-cache";
+import { overlayLiveOnScheduled, sanitizeClientItineraries } from "./schedule-overlay.server";
 
 const log = createLogger("multileg");
 
@@ -52,6 +53,11 @@ const InputSchema = z.object({
   arriveByUnix: z.number().int().positive().optional(),
   /** Wave 2.2 — accessibility. Ranking nudge plus D1 step-free filter. */
   a11y: A11ySchema,
+  /** Timetable itineraries the browser planned from the static shards
+   *  (schedule-client.ts). When present the Worker skips its own timetable
+   *  search, which Workers Free cannot afford (10 ms CPU). */
+  clientScheduled: z.array(z.unknown()).max(40).optional(),
+  clientServiceDate: z.string().regex(/^\d{8}$/).optional(),
 });
 
 export type MultiLegResult = {
@@ -173,7 +179,23 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     let noScheduleAvailable = false;
     let requestedDate: string | undefined;
     const schedPromise: Promise<SchedR> =
-      mode === "scheduled" || mode === "both"
+      (mode === "scheduled" || mode === "both") && data.clientScheduled
+        ? (async (): Promise<SchedR> => {
+            const its = sanitizeClientItineraries(data.clientScheduled);
+            const ov = await withTimeout(overlayLiveOnScheduled(its), 2_500, {
+              liveArrivalCount: 0,
+              legsOverlaid: 0,
+            });
+            return {
+              itineraries: its,
+              diagnostics: {
+                ...ov,
+                serviceDate: data.clientServiceDate,
+                reasons: ["planned in the browser from the static timetable shard"],
+              } as unknown as ScheduledDiagnostics,
+            };
+          })()
+        : mode === "scheduled" || mode === "both"
         ? planMultiLegScheduled(
             data.from,
             data.to,
