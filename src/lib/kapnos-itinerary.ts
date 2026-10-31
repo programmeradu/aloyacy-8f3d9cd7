@@ -18,7 +18,7 @@ import { finalise, walkMetersOnStreet, walkSecFromMeters } from "@aloya/core/rap
 import { rankPenaltySec } from "@aloya/core/plan-score";
 import type { AccessibilityPrefs } from "@aloya/core/raptor-core";
 import { airportFor, kmBetween, snapToAirport, type Airport } from "./plan-airports";
-import { planRaptor } from "./raptor-plan";
+import { planRaptor, rebaseToLeave } from "./raptor-plan";
 
 export type KapnosClientStop = {
   id: string;
@@ -115,7 +115,7 @@ function done(legs: Leg[], departureUnix: number, tripId: string): Itinerary {
   it.id = `kapnos-${tripId}-${departureUnix}`;
   it.source = "estimated";
   it.score += rankPenaltySec(it);
-  return it;
+  return rebaseToLeave(it);
 }
 
 function nearestAirportSide(stops: KapnosClientStop[], airport: Airport): KapnosClientStop | null {
