@@ -14,6 +14,7 @@ import payload from "@/assets/og-roam-fonts.json";
 import routeSeqData from "@/data/route_sequences.json";
 import routeStopsData from "@/data/route_stops.json";
 import { ROUTES, STOPS, getRoute, getStop, type StaticStop } from "@/lib/gtfs";
+import { ALOYA_LOGO_PNG_B64 } from "@/lib/og-logo";
 
 export const W = 1200;
 export const H = 630;
@@ -49,6 +50,7 @@ export function esc(s: string): string {
 export function plain(s: string): string {
   return String(s ?? "")
     .replace(/\s*[\u2013\u2014]\s*/g, ", ")
+    .replace(/\s+-\s+/g, ", ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -119,9 +121,9 @@ export function text(
 
 /** Route long names read "A - B - C": where it runs, first to last. */
 export function runsBetween(long: string): { from: string; to: string } {
-  const parts = plain(long)
+  const parts = String(long ?? "")
     .split(/\s+-\s+/)
-    .map((p) => p.trim())
+    .map((p) => plain(p))
     .filter(Boolean);
   if (parts.length >= 2) return { from: parts[0], to: parts[parts.length - 1] };
   return { from: parts[0] ?? long, to: "" };
@@ -132,8 +134,44 @@ export function runsBetween(long: string): { from: string; to: string } {
 export type LatLng = { lat: number; lng: number };
 export type Shapes = Record<string, { shapes?: Record<string, string> }>;
 
-const ROUTE_SEQ = routeSeqData as Record<string, string[]>;
-const ROUTE_STOPS = routeStopsData as Record<string, string[]>;
+let ROUTE_SEQ = routeSeqData as Record<string, string[]>;
+let ROUTE_STOPS = routeStopsData as Record<string, string[]>;
+
+/**
+ * Swap in the whole-island network read from the raw GTFS feeds
+ * (scripts/og-gtfs.ts at build time, og/network.json at run time). The
+ * bundled data covers Nicosia and the intercity lines only.
+ */
+export function setOgNetwork(net: {
+  seq: Record<string, string[]>;
+  routeStops: Record<string, string[]>;
+}): void {
+  ROUTE_SEQ = { ...ROUTE_SEQ, ...net.seq };
+  ROUTE_STOPS = { ...ROUTE_STOPS, ...net.routeStops };
+  STOP_LINES = null;
+  PATHS.clear();
+}
+
+/** The line's own colour from the feed, as #rrggbb (ink when the feed has none). */
+export function routeColor(routeId: string | undefined): string {
+  const c = routeId ? getRoute(routeId)?.color : undefined;
+  return c && /^[0-9a-f]{6}$/i.test(c) ? `#${c.toLowerCase()}` : R.ink;
+}
+
+function lum(hex: string): number {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const x = v / 255;
+    return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+
+/** Ink or white, whichever reads better on a line colour. */
+export function onColor(hex: string): string {
+  const l = lum(hex);
+  return 1.05 / (l + 0.05) >= (l + 0.05) / (lum(R.ink) + 0.05) ? R.white : R.ink;
+}
 
 /** Decode a Google encoded polyline (precision 5). */
 export function decodePolyline(str: string): LatLng[] {
@@ -160,8 +198,40 @@ export function decodePolyline(str: string): LatLng[] {
   return out;
 }
 
-/** Real paths for a route: GTFS road shapes, else the ordered stops. */
+type CachedPaths = { paths: LatLng[][]; box: [number, number, number, number] | null };
+const PATHS = new Map<string, CachedPaths>();
+let PATHS_FOR: Shapes | null = null;
+
+function cachedPaths(routeId: string, shapes: Shapes | null): CachedPaths {
+  if (PATHS_FOR !== shapes) {
+    PATHS.clear();
+    PATHS_FOR = shapes;
+  }
+  let c = PATHS.get(routeId);
+  if (!c) {
+    const paths = computePaths(routeId, shapes);
+    let box: CachedPaths["box"] = null;
+    for (const p of paths)
+      for (const q of p) {
+        if (!box) box = [q.lat, q.lng, q.lat, q.lng];
+        else {
+          if (q.lat < box[0]) box[0] = q.lat;
+          if (q.lng < box[1]) box[1] = q.lng;
+          if (q.lat > box[2]) box[2] = q.lat;
+          if (q.lng > box[3]) box[3] = q.lng;
+        }
+      }
+    PATHS.set(routeId, (c = { paths, box }));
+  }
+  return c;
+}
+
+/** Real paths for a route (cached per isolate): GTFS road shapes, else the ordered stops. */
 export function routePaths(routeId: string, shapes: Shapes | null): LatLng[][] {
+  return cachedPaths(routeId, shapes).paths;
+}
+
+function computePaths(routeId: string, shapes: Shapes | null): LatLng[][] {
   const enc = shapes?.[routeId]?.shapes;
   if (enc) {
     const paths = Object.values(enc)
@@ -189,18 +259,29 @@ export function routeStopList(routeId: string): StaticStop[] {
 
 let STOP_LINES: Map<string, Set<string>> | null = null;
 /** Line numbers serving a stop, sorted naturally, and their route ids. */
-export function linesAtStop(stopId: string): { codes: string[]; routeIds: string[] } {
+export function linesAtStop(
+  stopId: string,
+  agency?: string,
+): { codes: string[]; routeIds: string[] } {
   if (!STOP_LINES) {
     STOP_LINES = new Map();
     for (const [rid, ids] of Object.entries(ROUTE_STOPS)) {
+      const ag = getRoute(rid)?.agency ?? "";
       for (const id of ids) {
-        let s = STOP_LINES.get(id);
-        if (!s) STOP_LINES.set(id, (s = new Set()));
-        s.add(rid);
+        // Stop ids repeat across the city feeds: key by agency too.
+        for (const k of [`${ag}:${id}`, id]) {
+          let s = STOP_LINES.get(k);
+          if (!s) STOP_LINES.set(k, (s = new Set()));
+          s.add(rid);
+        }
       }
     }
   }
-  const routeIds = [...(STOP_LINES.get(stopId) ?? [])];
+  const routeIds = [
+    ...((agency ? STOP_LINES.get(`${agency}:${stopId}`) : undefined) ??
+      STOP_LINES.get(stopId) ??
+      []),
+  ];
   const codes = [...new Set(routeIds.map((r) => getRoute(r)?.short || r))].sort((a, b) =>
     a.localeCompare(b, "en", { numeric: true }),
   );
@@ -288,8 +369,25 @@ export function baseMap(proj: Proj, shapes: Shapes | null, v: View): string {
   const inView = (p: { x: number; y: number }) =>
     p.x > -200 && p.x < W + 200 && p.y > -200 && p.y < H + 200;
   const roads: string[] = [];
+  // View bounds in degrees, with a margin, to skip routes far off the card.
+  const kx = 111320 * Math.cos((v.lat * Math.PI) / 180);
+  const dLng = ((W + 400) * v.mpp) / kx;
+  const dLat = ((H + 400) * v.mpp) / 110540;
+  const seen = new Set<string>();
   for (const r of ROUTES) {
-    for (const path of routePaths(r.id, shapes)) {
+    if (seen.has(r.id)) continue;
+    seen.add(r.id);
+    const c = cachedPaths(r.id, shapes);
+    const b = c.box;
+    if (
+      !b ||
+      b[2] < v.lat - dLat ||
+      b[0] > v.lat + dLat ||
+      b[3] < v.lng - dLng ||
+      b[1] > v.lng + dLng
+    )
+      continue;
+    for (const path of c.paths) {
       const pts = path.map(proj);
       if (!pts.some(inView)) continue;
       roads.push(pathD(pts));
@@ -317,18 +415,22 @@ export function featuredRoute(
   paths: LatLng[][],
   stops: LatLng[],
   rings = true,
+  color: string = R.ink,
 ): string {
   const d = paths.map((p) => pathD(p.map(proj))).join("");
+  // Pale feed colours (light green, yellow) get ink rings so stops still read.
+  const ringInk = lum(color) > 0.45 ? R.ink : color;
   const ring = rings
     ? stops
         .map((s) => {
           const p = proj(s);
-          return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.5" fill="${R.white}" stroke="${R.ink}" stroke-width="3"/>`;
+          return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.5" fill="${R.white}" stroke="${ringInk}" stroke-width="3"/>`;
         })
         .join("")
     : "";
-  return `<path d="${d}" fill="none" stroke="${R.white}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="${d}" fill="none" stroke="${R.ink}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>${ring}`;
+  return `<path d="${d}" fill="none" stroke="#000" stroke-opacity="0.16" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="${d}" fill="none" stroke="${R.white}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="${d}" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>${ring}`;
 }
 
 /** Simple front-view bus glyph centred on (x, y). */
@@ -373,12 +475,13 @@ export function endPin(x: number, y: number): string {
 
 // ------------------------------------------------------------------ card chrome
 
-/** Aloya mark: yellow rounded square with the A, then the wordmark. */
+/** Aloya brand: the real app icon (public/icon-512.png), then the wordmark. */
 export function brand(x: number, y: number): string {
   return `<g transform="translate(${x} ${y})">
-<rect width="44" height="44" rx="14" fill="${R.y}"/>
-${text(22, 32, "A", { size: 28, weight: 800, fill: R.ink, anchor: "middle" })}
-${text(58, 32, "Aloya", { size: 30, weight: 800, fill: R.ink, track: -0.4 })}
+<clipPath id="aloya-logo-clip"><rect width="48" height="48" rx="13"/></clipPath>
+<rect x="-1" y="-1" width="50" height="50" rx="14" fill="#000" opacity="0.06"/>
+<image href="data:image/png;base64,${ALOYA_LOGO_PNG_B64}" x="0" y="0" width="48" height="48" clip-path="url(#aloya-logo-clip)" preserveAspectRatio="xMidYMid slice"/>
+${text(62, 35, "Aloya", { size: 31, weight: 800, fill: R.ink, track: -0.4 })}
 </g>`;
 }
 
@@ -388,9 +491,9 @@ export function panel(x: number, y: number, w: number, h: number): string {
 <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="40" fill="${R.white}"/>`;
 }
 
-/** Eyebrow label, the app's tracked small caps. */
+/** Eyebrow label, sentence case (Roam copy rule: no shouting caps). */
 export function eyebrow(x: number, y: number, s: string, fill: string = R.mute): string {
-  return text(x, y, plain(s).toUpperCase(), { size: 18, weight: 600, fill, track: 1.6 });
+  return text(x, y, plain(s), { size: 21, weight: 700, fill, track: 0.2 });
 }
 
 /** A filled pill with centred text; returns the svg and its width. */
@@ -419,7 +522,13 @@ export function pill(
 }
 
 /** Line-number pills in one row; the rest collapse into "+N". */
-export function pillRow(x: number, y: number, codes: string[], maxW: number): string {
+export function pillRow(
+  x: number,
+  y: number,
+  codes: string[],
+  maxW: number,
+  colors: (string | undefined)[] = [],
+): string {
   const opt = { size: 22, h: 44, padX: 16 };
   const gap = 10;
   const widths = codes.map((c) => pill(0, 0, c, opt).w);
@@ -434,7 +543,8 @@ export function pillRow(x: number, y: number, codes: string[], maxW: number): st
   let cx = x;
   let out = "";
   for (let i = 0; i < fit; i++) {
-    out += pill(cx, y, codes[i], { ...opt, fill: R.ink, color: R.white }).svg;
+    const f = colors[i] ?? R.ink;
+    out += pill(cx, y, codes[i], { ...opt, fill: f, color: onColor(f) }).svg;
     cx += widths[i] + gap;
   }
   if (fit < codes.length)

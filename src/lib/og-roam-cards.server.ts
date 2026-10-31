@@ -2,7 +2,7 @@
 // string for og-roam.server.ts to rasterise. Inputs are real data only; when
 // something is unknown the card says less rather than guessing.
 
-import { getRoute, getStop } from "@/lib/gtfs";
+import { ROUTES, getRoute, getStop } from "@/lib/gtfs";
 import {
   H,
   NETWORK,
@@ -18,8 +18,10 @@ import {
   panel,
   pill,
   pillRow,
+  onColor,
   plain,
   projector,
+  routeColor,
   routePaths,
   routeStopList,
   runsBetween,
@@ -125,16 +127,31 @@ export function defaultCard(shapes: Shapes | null): string {
 
 // ------------------------------------------------------------------ stop
 
+/** One colour per line number: the first route found with that number. */
+function lineColours(routeIds: string[]): Map<string, string> {
+  const m = new Map<string, string>();
+  for (const rid of routeIds) {
+    const r = getRoute(rid);
+    if (r && !m.has(r.short)) m.set(r.short, routeColor(rid));
+  }
+  return m;
+}
+
 export function stopCard(stopId: string | null, shapes: Shapes | null): string {
   const s = stopId ? getStop(stopId) : undefined;
   if (!s) return defaultCard(shapes);
-  const { codes, routeIds } = linesAtStop(s.id);
+  const { codes, routeIds } = linesAtStop(s.id, s.agency);
   const v = at(s, 3.4);
   const proj = projector(v, MAP_CX, MAP_CY);
-  const feat = routeIds.slice(0, 8).flatMap((rid) => routePaths(rid, shapes));
   const c = proj(s);
-  const map =
-    baseMap(proj, shapes, v) + featuredRoute(proj, feat, [], false) + stopMarker(c.x, c.y, 68);
+  // Each line through the stop in its own feed colour.
+  const feat = routeIds
+    .slice(0, 8)
+    .reverse()
+    .map((rid) => featuredRoute(proj, routePaths(rid, shapes), [], false, routeColor(rid)))
+    .join("");
+  const map = baseMap(proj, shapes, v) + feat + stopMarker(c.x, c.y, 68);
+  const colorOf = lineColours(routeIds);
   const t = titleBlock(PY + 206, s.name, 58, 3);
   let y = t.bottom + 58;
   const n = codes.length;
@@ -149,7 +166,7 @@ export function stopCard(stopId: string | null, shapes: Shapes | null): string {
     },
   );
   y += 26;
-  const pills = n ? pillRow(IN, y, codes, TW) : "";
+  const pills = n ? pillRow(IN, y, codes, TW, codes.map((x) => colorOf.get(x))) : "";
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, s.code ? `Bus stop ${s.code}` : "Bus stop")}${t.svg}${sub}${pills}${footer("Live arrivals on Aloya")}`;
   return frame(map, card);
 }
@@ -170,7 +187,8 @@ function lineMap(routeId: string, shapes: Shapes | null) {
   const first = stops[0];
   const last = stops[stops.length - 1];
   let svg =
-    baseMap(proj, shapes, v) + featuredRoute(proj, paths, stops.length <= 70 ? stops : [], true);
+    baseMap(proj, shapes, v) +
+    featuredRoute(proj, paths, stops.length <= 70 ? stops : [], true, routeColor(routeId));
   if (first) {
     const p = proj(first);
     svg += endPin(p.x, p.y);
@@ -182,18 +200,31 @@ function lineMap(routeId: string, shapes: Shapes | null) {
   return { svg, stops };
 }
 
-export function lineCard(routeId: string | null, shapes: Shapes | null, kicker?: string): string {
+export type TripOg = {
+  /** Departure from the first stop, "HH:MM" (Cyprus time). */
+  depart?: string | null;
+  from?: string | null;
+  to?: string | null;
+};
+
+export function lineCard(
+  routeId: string | null,
+  shapes: Shapes | null,
+  kicker?: string,
+  trip?: TripOg,
+): string {
   const r = routeId ? getRoute(routeId) : undefined;
   if (!r) return defaultCard(shapes);
   const m = lineMap(r.id, shapes);
   if (!m) return defaultCard(shapes);
   // Names from the first and last stops (the feed's long names are cut short).
   const names = runsBetween(r.long);
-  const from = m.stops[0]?.name ?? names.from;
-  const to = m.stops.length > 1 ? m.stops[m.stops.length - 1].name : names.to;
+  const from = trip?.from || m.stops[0]?.name || names.from;
+  const to = trip?.to || (m.stops.length > 1 ? m.stops[m.stops.length - 1].name : names.to);
+  const lc = routeColor(r.id);
   const code = pill(IN, PY + 172, r.short, {
-    fill: R.y,
-    color: R.ink,
+    fill: lc,
+    color: onColor(lc),
     size: 44,
     h: 76,
     padX: 26,
@@ -204,23 +235,33 @@ export function lineCard(routeId: string | null, shapes: Shapes | null, kicker?:
   const fromSvg = to
     ? text(IN, y, wrap(`From ${from}`, 26, TW, 1, 600)[0], { size: 26, weight: 600, fill: R.ink2 })
     : "";
-  const stat = m.stops.length
-    ? pill(IN + code.w + 14, PY + 188, `${m.stops.length} stops`, {
-        fill: R.pill,
+  // A trip shows when it leaves (yellow, the Roam accent); a line its stop count.
+  const stat = trip?.depart
+    ? pill(IN + code.w + 14, PY + 188, `Leaves ${trip.depart}`, {
+        fill: R.y,
         color: R.ink,
         size: 22,
         h: 44,
         padX: 18,
+        weight: 800,
       }).svg
-    : "";
+    : m.stops.length
+      ? pill(IN + code.w + 14, PY + 188, `${m.stops.length} stops`, {
+          fill: R.pill,
+          color: R.ink,
+          size: 22,
+          h: 44,
+          padX: 18,
+        }).svg
+      : "";
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, kicker ?? "Bus line")}${code.svg}${eyebrow(IN, PY + 290, "Towards")}${t.svg}${fromSvg}${stat}${footer(kicker ? "Follow along live on Aloya" : "Live buses on Aloya")}`;
   return frame(m.svg, card);
 }
 
 // ------------------------------------------------------------------ trip
 
-export function tripCard(routeId: string | null, shapes: Shapes | null): string {
-  if (routeId && getRoute(routeId)) return lineCard(routeId, shapes, "Live trip");
+export function tripCard(routeId: string | null, shapes: Shapes | null, trip?: TripOg): string {
+  if (routeId && getRoute(routeId)) return lineCard(routeId, shapes, "Live trip", trip);
   const v = at(SOLOMOS, 4.2);
   const proj = projector(v, MAP_CX, MAP_CY);
   const c = proj(SOLOMOS);
@@ -375,7 +416,13 @@ export function planCard(plan: PlanOg, shapes: Shapes | null): string {
           if (seg.length > 1) break;
         }
       }
-      map += featuredRoute(proj, [seg.length > 1 ? seg : [l.from, l.to]], [l.from, l.to], true);
+      map += featuredRoute(
+        proj,
+        [seg.length > 1 ? seg : [l.from, l.to]],
+        [l.from, l.to],
+        true,
+        routeColor(l.routeId),
+      );
     }
     const o = proj(legPts[0]);
     const d = proj(legPts[legPts.length - 1]);
@@ -423,7 +470,7 @@ export function planCard(plan: PlanOg, shapes: Shapes | null): string {
     p.transfers ? `${p.transfers} ${p.transfers === 1 ? "change" : "changes"}` : "Direct",
   ]
     .filter(Boolean)
-    .join(" \u00b7 ");
+    .join(", ");
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, wrap(kicker, 18, TW, 1, 600)[0])}${eyebrow(IN, PY + 186, "Going to", R.ink2)}${t.svg}${fromSvg}${tiles}${footer(foot)}`;
   return frame(map, card);
 }
@@ -457,5 +504,131 @@ export function genericPlanCard(shapes: Shapes | null): string {
     "Open it to see each leg, the lines to take and when you get in.",
   );
   const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, "Shared trip plan")}${t.svg}${p.svg}${footer("aloya.cy")}`;
+  return frame(map, card);
+}
+
+// ------------------------------------------------------------------ pages
+
+function centreCard(
+  p0: LatLng,
+  mpp: number,
+  kick: string,
+  title: string,
+  body: string,
+  foot: string,
+  shapes: Shapes | null,
+): string {
+  const v = at(p0, mpp);
+  const proj = projector(v, MAP_CX, MAP_CY);
+  const c = proj(p0);
+  const map = baseMap(proj, shapes, v) + stopMarker(c.x, c.y, 60);
+  const t = titleBlock(PY + 206, title, 60, 2);
+  const p = paragraph(t.bottom + 54, body);
+  const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, kick)}${t.svg}${p.svg}${footer(foot)}`;
+  return frame(map, card);
+}
+
+/** /lines: the whole island, every line in its own colour. */
+export function networkCard(shapes: Shapes | null): string {
+  // Paphos to Ayia Napa fills the map half of the card.
+  const v: View = { lat: 34.9, lng: 33.3, mpp: 395 };
+  const proj = projector(v, MAP_CX + 10, MAP_CY);
+  let map = `<rect width="${W}" height="${H}" fill="${R.canvas}"/>`;
+  const done = new Set<string>();
+  for (const r of ROUTES) {
+    if (done.has(r.id)) continue;
+    done.add(r.id);
+    const d = routePaths(r.id, shapes)
+      .map((p) =>
+        p
+          .map(proj)
+          .map((q, i) => `${i ? "L" : "M"}${q.x.toFixed(1)} ${q.y.toFixed(1)}`)
+          .join(""),
+      )
+      .join("");
+    if (d)
+      map += `<path d="${d}" fill="none" stroke="${routeColor(r.id)}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.9"/>`;
+  }
+  const t = titleBlock(PY + 206, "Every bus line in Cyprus", 60, 2);
+  const p = paragraph(
+    t.bottom + 54,
+    "Nicosia, Limassol, Larnaca, Paphos, Famagusta and intercity, live.",
+  );
+  const y = p.bottom + 32;
+  const a = pill(IN, y, `${NETWORK.lines} lines`, { fill: R.y, color: R.ink });
+  const b = pill(IN + a.w + 12, y, `${NETWORK.stops.toLocaleString("en-GB")} stops`, {
+    fill: R.pill,
+    color: R.ink,
+  });
+  const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, "Bus lines")}${t.svg}${p.svg}${a.svg}${b.svg}${footer("Live buses on Aloya")}`;
+  return frame(map, card);
+}
+
+export const pulseCard = (shapes: Shapes | null) =>
+  centreCard(
+    SOLOMOS,
+    9,
+    "Cyprus today",
+    "How the island is moving today",
+    "Weather, the buses right now, live sightings and a Greek word of the day.",
+    "Daily on Aloya",
+    shapes,
+  );
+
+export const passCard = (shapes: Shapes | null) =>
+  centreCard(
+    SOLOMOS,
+    5,
+    "Motion pass",
+    "Your bus pass, always with you",
+    "Balance, top ups and a scan ready Motion card in one place.",
+    "aloya.cy",
+    shapes,
+  );
+
+export const savedCard = (shapes: Shapes | null) =>
+  centreCard(
+    SOLOMOS,
+    5,
+    "Saved",
+    "Your places, one tap away",
+    "Home, work and the stops you use most, with live buses for each.",
+    "aloya.cy",
+    shapes,
+  );
+
+export const plannerCard = (shapes: Shapes | null) =>
+  centreCard(
+    SOLOMOS,
+    6,
+    "Plan a trip",
+    "Door to door across Cyprus",
+    "Live buses, walking and changes in one calm view.",
+    "aloya.cy",
+    shapes,
+  );
+
+/** /airport/:code: the airport stop with the lines that serve it. */
+export function airportCard(code: string, stopId: string, shapes: Shapes | null): string {
+  const s = getStop(stopId);
+  if (!s) return defaultCard(shapes);
+  const name = code.toLowerCase() === "pfo" ? "Paphos Airport" : "Larnaca Airport";
+  const { codes, routeIds } = linesAtStop(s.id, s.agency);
+  const v = at(s, 9);
+  const proj = projector(v, MAP_CX, MAP_CY);
+  const c = proj(s);
+  const feat = routeIds
+    .slice(0, 10)
+    .reverse()
+    .map((rid) => featuredRoute(proj, routePaths(rid, shapes), [], false, routeColor(rid)))
+    .join("");
+  const map = baseMap(proj, shapes, v) + feat + stopMarker(c.x, c.y, 68);
+  const t = titleBlock(PY + 206, `${name} by bus`, 58, 2);
+  let y = t.bottom + 58;
+  const sub = text(IN, y, "Coaches and town buses, live", { size: 28, weight: 600, fill: R.ink2 });
+  y += 26;
+  const colorOf = lineColours(routeIds);
+  const pills = codes.length ? pillRow(IN, y, codes, TW, codes.map((x) => colorOf.get(x))) : "";
+  const card = `${brand(IN, PY + 44)}${eyebrow(IN, PY + 150, `Airport ${code.toUpperCase()}`)}${t.svg}${sub}${pills}${footer("Live departures on Aloya")}`;
   return frame(map, card);
 }

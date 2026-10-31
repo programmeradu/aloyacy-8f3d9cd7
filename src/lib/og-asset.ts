@@ -14,6 +14,11 @@ export function tripShard(id: string): number {
 
 export const SAFE_ID = /^[A-Za-z0-9_-]{1,32}$/;
 
+/** 0.05 degree grid cell name for the og/near/<cell>.json stop lists. */
+export function nearCell(lat: number, lng: number): string {
+  return `${Math.floor(lat * 20)}_${Math.floor(lng * 20)}`;
+}
+
 type Assets = { fetch: (r: Request) => Promise<Response> };
 
 async function assets(): Promise<Assets | null> {
@@ -64,11 +69,11 @@ export async function ogAsset(
     const res = await fetchAsset(p, origin);
     if (!res) continue;
     const type = res.headers.get("content-type") || "";
-    if (!type.includes("image/png")) continue;
+    if (!type.startsWith("image/")) continue;
     return new Response(res.body, {
       status: 200,
       headers: {
-        "Content-Type": "image/png",
+        "Content-Type": type,
         "Cache-Control": `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=600`,
         "Access-Control-Allow-Origin": "*",
         "X-Content-Type-Options": "nosniff",
@@ -78,15 +83,25 @@ export async function ogAsset(
   return new Response("Not found", { status: 404 });
 }
 
-/** Route id for a GTFS trip id, from the sharded build-time index. */
-export async function routeForTrip(request: Request, tripId: string): Promise<string | null> {
+export type TripInfo = { routeId: string; depart: string; from: string; to: string; short: string };
+
+/** Line, first departure and end stops of a GTFS trip, from the sharded build-time index. */
+export async function tripInfo(request: Request, tripId: string): Promise<TripInfo | null> {
   if (!SAFE_ID.test(tripId)) return null;
   const res = await fetchAsset(`/og/trips/${tripShard(tripId)}.json`, new URL(request.url).origin);
   if (!res) return null;
   try {
-    const map = (await res.json()) as Record<string, string>;
-    return map[tripId] ?? null;
+    const map = (await res.json()) as Record<string, string | string[]>;
+    const v = map[tripId];
+    if (!v) return null;
+    if (typeof v === "string") return { routeId: v, depart: "", from: "", to: "", short: "" };
+    return { routeId: v[0], depart: v[1] ?? "", from: v[2] ?? "", to: v[3] ?? "", short: v[4] ?? "" };
   } catch {
     return null;
   }
+}
+
+/** Route id for a GTFS trip id, from the sharded build-time index. */
+export async function routeForTrip(request: Request, tripId: string): Promise<string | null> {
+  return (await tripInfo(request, tripId))?.routeId ?? null;
 }

@@ -1,20 +1,16 @@
-// Pre-render every Roam share card at build time into dist/client/og/.
+// Build-time share card assets, written into dist/client/og/.
 //
-// Why: on the Workers free plan a request gets ~10 ms of CPU, and drawing a
-// 1200 x 630 map card with resvg takes hundreds. Rendering on request tripped
-// error 1102 and took the whole worker down for a while. So CI (plenty of CPU)
-// draws the cards once per deploy and the /api/public/og/* endpoints only hand
-// back the matching static file.
+// Cards are drawn per link at run time by the Worker (Workers Paid, see
+// src/lib/og-runtime.server.ts) and cached. This script only writes what the
+// Worker reads and the fallbacks it serves if drawing ever fails:
 //
-//   og/default.png            home and generic pages
-//   og/stop/<stopId>.png      every stop in the static GTFS
-//   og/line/<routeId>.png     every route
-//   og/trip.png group.png plan.png   generic cards for things that only
-//                             exist at run time (a rider's trip, a group, a plan)
-//   og/trips/<shard>.json     GTFS trip id -> route id, sharded so the worker
-//                             parses a few KB, never the whole index
+//   og/network.json            whole island geometry (all city feeds) for run time drawing
+//   og/trips/<shard>.json      GTFS trip id -> [routeId, "HH:MM", from, to, line number]
+//   og/near/<i>_<j>.json       stops per 0.05 degree cell, for "nearest stop"
+//   og/default.png lines.png pulse.png pass.png saved.png planner.png
+//   og/trip.png group.png plan.png airport/<code>.png   static fallbacks
 //
-// Run: node dist-scripts/og-prerender.mjs [outDir] [--limit N]
+// Run: node .og-prerender.mjs [outDir] [--shard i/n]
 // (bundled with esbuild in CI; see .github/workflows/deploy-newacct.yml)
 
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
@@ -23,80 +19,110 @@ import { createRequire } from "node:module";
 import { initWasm } from "@resvg/resvg-wasm";
 import sharp from "sharp";
 import {
+  airportCard,
   defaultCard,
-  stopCard,
-  lineCard,
   tripCard,
   genericGroupCard,
   genericPlanCard,
+  networkCard,
+  pulseCard,
+  passCard,
+  savedCard,
+  plannerCard,
 } from "@/lib/og-roam-cards.server";
-import { renderPng, type Shapes } from "@/lib/og-roam.server";
-import { ROUTES, STOPS } from "@/lib/gtfs";
-import { tripShard, TRIP_SHARDS } from "@/lib/og-asset";
+import { renderPng, setOgNetwork, type Shapes } from "@/lib/og-roam.server";
+import { ROUTES, STOPS, getRoute, getStop } from "@/lib/gtfs";
+import { tripShard, TRIP_SHARDS, nearCell } from "@/lib/og-asset";
+import { loadOgNetwork } from "./og-gtfs";
 
 const args = process.argv.slice(2);
 const out = args.find((a) => !a.startsWith("--")) ?? "dist/client/og";
-const li = args.indexOf("--limit");
-const limit = li >= 0 ? Number(args[li + 1]) : Infinity;
-// --shard i/n: this process draws every n-th card starting at i (CI runs n in parallel).
 const si = args.indexOf("--shard");
 const [shard, shards] = si >= 0 ? args[si + 1].split("/").map(Number) : [0, 1];
 const mine = (k: number) => k % shards === shard;
 
+export const AIRPORT_STOPS: Record<string, string> = { lca: "6117", pfo: "1813" };
+
 async function main() {
   const require = createRequire(import.meta.url);
-  const wasmPath = require.resolve("@resvg/resvg-wasm/index_bg.wasm");
-  await initWasm(readFileSync(wasmPath));
+  await initWasm(readFileSync(require.resolve("@resvg/resvg-wasm/index_bg.wasm")));
   (globalThis as { __aloya_resvg_ready?: Promise<void> }).__aloya_resvg_ready = Promise.resolve();
 
   const shapes = JSON.parse(readFileSync("public/gtfs-shapes.json", "utf8")) as Shapes &
     Record<string, { trips?: Record<string, unknown> }>;
+  const routeIds = [...new Set(ROUTES.map((r) => r.id))].filter((id) =>
+    /^[A-Za-z0-9_-]{1,32}$/.test(id),
+  );
+  let net: ReturnType<typeof loadOgNetwork> | null = null;
+  try {
+    net = loadOgNetwork(new Set(routeIds));
+    for (const [rid, v] of Object.entries(net.shapes))
+      if (!shapes[rid]?.shapes) shapes[rid] = { ...(shapes[rid] ?? {}), shapes: v.shapes };
+    setOgNetwork(net);
+  } catch (e) {
+    console.warn(`og: island network unavailable, Nicosia data only: ${(e as Error).message}`);
+  }
 
   let n = 0;
-  let bytes = 0;
-  const t0 = Date.now();
-  const put = async (rel: string, svg: string) => {
-    // Palette PNG: ~3x smaller than resvg's truecolour output, same look on a
-    // flat-colour card. Thousands of stop cards ship with every deploy.
-    const png = await sharp(await renderPng(svg))
+  let k = 0;
+  const job = async (rel: string, draw: () => string) => {
+    if (!mine(k++)) return;
+    const png = await sharp(await renderPng(draw()))
       .png({ palette: true, quality: 90, colours: 192, effort: 7, compressionLevel: 9 })
       .toBuffer();
     const f = join(out, rel);
     mkdirSync(dirname(f), { recursive: true });
     writeFileSync(f, png);
     n++;
-    bytes += png.byteLength;
-    if (n % 250 === 0) console.log(`og: ${n} cards, ${(bytes / 1e6).toFixed(1)} MB, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
-  };
-
-  let k = 0;
-  const job = async (rel: string, draw: () => string) => {
-    if (mine(k++)) await put(rel, draw());
   };
   await job("default.png", () => defaultCard(shapes));
   await job("trip.png", () => tripCard(null, shapes));
   await job("group.png", () => genericGroupCard(shapes));
   await job("plan.png", () => genericPlanCard(shapes));
+  await job("lines.png", () => networkCard(shapes));
+  await job("pulse.png", () => pulseCard(shapes));
+  await job("pass.png", () => passCard(shapes));
+  await job("saved.png", () => savedCard(shapes));
+  await job("planner.png", () => plannerCard(shapes));
+  for (const [code, stop] of Object.entries(AIRPORT_STOPS))
+    await job(`airport/${code}.png`, () => airportCard(code, stop, shapes));
 
-  const routeIds = [...new Set(ROUTES.map((r) => r.id))].filter((id) => /^[A-Za-z0-9_-]{1,32}$/.test(id));
-  for (const id of routeIds.slice(0, limit)) await job(`line/${id}.png`, () => lineCard(id, shapes));
-
-  const stopIds = [...new Set(STOPS.map((s) => s.id))].filter((id) => /^[A-Za-z0-9_-]{1,32}$/.test(id));
-  for (const id of stopIds.slice(0, limit)) await job(`stop/${id}.png`, () => stopCard(id, shapes));
-
-  // Trip id -> route id, sharded (written by shard 0 only).
   if (shard !== 0) {
-    console.log(`og: shard ${shard}/${shards} done, ${n} cards, ${(bytes / 1e6).toFixed(1)} MB, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+    console.log(`og: shard ${shard}/${shards} done, ${n} cards`);
     return;
   }
-  const index: Record<string, string>[] = Array.from({ length: TRIP_SHARDS }, () => ({}));
-  for (const [rid, v] of Object.entries(shapes)) {
-    for (const tid of Object.keys(v.trips ?? {})) index[tripShard(tid)][tid] = rid;
-  }
+
+  // Trip id -> [route id, first departure, first stop, last stop, line number].
+  const index: Record<string, string[]>[] = Array.from({ length: TRIP_SHARDS }, () => ({}));
+  const nameOf = (id: string, rid: string) => getStop(id, getRoute(rid)?.agency)?.name ?? "";
+  if (net)
+    for (const [tid, [rid, dep, a, b]] of Object.entries(net.trips))
+      index[tripShard(tid)][tid] = [rid, dep, nameOf(a, rid), nameOf(b, rid), getRoute(rid)?.short ?? ""];
+  for (const [rid, v] of Object.entries(shapes))
+    for (const tid of Object.keys(v.trips ?? {}))
+      if (!index[tripShard(tid)][tid])
+        index[tripShard(tid)][tid] = [rid, "", "", "", getRoute(rid)?.short ?? ""];
   mkdirSync(join(out, "trips"), { recursive: true });
   index.forEach((s, i) => writeFileSync(join(out, "trips", `${i}.json`), JSON.stringify(s)));
 
-  console.log(`og: done, ${n} cards, ${(bytes / 1e6).toFixed(1)} MB, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+  // Stops by cell. The card for a stop id is the first stop with that id.
+  const cells = new Map<string, [string, number, number][]>();
+  for (const s of STOPS) {
+    if (getStop(s.id) !== s || !/^[A-Za-z0-9_-]{1,32}$/.test(s.id)) continue;
+    const c = nearCell(s.lat, s.lng);
+    let a = cells.get(c);
+    if (!a) cells.set(c, (a = []));
+    a.push([s.id, Number(s.lat.toFixed(5)), Number(s.lng.toFixed(5))]);
+  }
+  mkdirSync(join(out, "near"), { recursive: true });
+  for (const [c, a] of cells) writeFileSync(join(out, "near", `${c}.json`), JSON.stringify(a));
+
+  if (net) {
+    const body = JSON.stringify({ shapes: net.shapes, seq: net.seq, routeStops: net.routeStops });
+    writeFileSync(join(out, "network.json"), body);
+    console.log(`og: network.json ${(body.length / 1e6).toFixed(2)} MB`);
+  }
+  console.log(`og: done, ${n} fallback cards, ${cells.size} near cells`);
 }
 
 main().catch((e) => {
