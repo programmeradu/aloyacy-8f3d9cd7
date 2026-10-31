@@ -40,6 +40,16 @@ jobs:
         continue-on-error: true
         working-directory: deploy
         run: npx -y wrangler@4.105.0 d1 migrations apply aloya-db --remote -c wrangler.newacct.jsonc
+      - name: Seed demo group ROAM42 when missing or expired
+        continue-on-error: true
+        working-directory: deploy
+        run: |
+          W="npx -y wrangler@4.105.0 d1 execute aloya-db --remote -c wrangler.newacct.jsonc"
+          N=$($W --json --command "SELECT count(*) AS n FROM trip_groups WHERE code='ROAM42' AND expires_at > strftime('%Y-%m-%dT%H:%M:%fZ','now')" \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{console.log(JSON.parse(s)[0].results[0].n)}catch(e){console.log('?')}})")
+          echo "ROAM42 active groups: $N"
+          if [ "$N" = "0" ]; then $W --file seed/roam42.sql; fi
+          $W --json --command "SELECT g.code, count(m.id) AS members FROM trip_groups g LEFT JOIN trip_group_members m ON m.group_id = g.id WHERE g.code='ROAM42' GROUP BY g.code"
       - name: Deploy
         working-directory: deploy
         run: npx -y wrangler@4.105.0 deploy -c wrangler.newacct.jsonc
