@@ -2,6 +2,8 @@
 // with the yellow dot timeline, the rest are white cards. Same data and
 // controls as before: leaves in / at, total time, arrival, line ribbon,
 // reliability, "why this option", walk distance, expandable legs, Start.
+// Trips with two or more changes show a compact card: chain on one row,
+// times, leg bar and one summary line; the change rows sit in Show details.
 import { useMemo, useState } from "react";
 import type { Itinerary, RationaleTag, RideLeg } from "@/lib/itinerary-types";
 import { useRoamI18n } from "@/lib/roam-i18n";
@@ -12,7 +14,7 @@ import {
   LegChain,
   LegsTimeline,
 } from "@/components/roam/journey/JourneyParts";
-import { shortName } from "@/components/roam/journey/journey-model";
+import { journeyParts, mins, shortName } from "@/components/roam/journey/journey-model";
 
 type T = (key: never, vars?: Record<string, string | number>) => string;
 function rationaleToCopy(tag: RationaleTag, t: T): string {
@@ -108,6 +110,23 @@ export function ItineraryCard({
         ? t("itin.oneChange")
         : t("itin.changes", { n: itinerary.transfers });
 
+  const walkText =
+    itinerary.totalWalkMeters >= 1000
+      ? t("itin.kmWalk", { km: (itinerary.totalWalkMeters / 1000).toFixed(1) })
+      : t("itin.metersWalk", { m: Math.round(itinerary.totalWalkMeters) });
+  // Trips with two or more changes keep the card compact: the per-change
+  // rows live in Show details, and one short line sums the changes up.
+  const compact = rides.length >= 3;
+  const parts = useMemo(() => journeyParts(itinerary), [itinerary]);
+  const longestWait = parts.changes.reduce((m, c) => Math.max(m, c.waitSec), 0);
+  const summary = compact
+    ? [
+        ...(itinerary.source === "live" ? [sourceLabel] : []),
+        rt("jl.changesN", { n: itinerary.transfers }),
+        walkText,
+        ...(longestWait >= 60 ? [rt("jl.longestWait", { m: mins(longestWait) })] : []),
+      ]
+    : [sourceLabel, changes, walkText];
   const mute = dark ? "var(--r-onchar-mute)" : "var(--r-mute)";
   const pillBg = dark ? "#3b3b3b" : "var(--r-pill)";
   const pillFg = dark ? "#fff" : "var(--r-ink)";
@@ -120,23 +139,15 @@ export function ItineraryCard({
         boxShadow: dark ? "0 18px 40px -24px rgba(0,0,0,.6)" : undefined,
       }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <LegChain itinerary={itinerary} dark={dark} />
-          <p className="mt-2.5 text-[14px] leading-snug" style={{ color: mute }}>
-            {[
-              sourceLabel,
-              changes,
-              itinerary.totalWalkMeters >= 1000
-                ? t("itin.kmWalk", { km: (itinerary.totalWalkMeters / 1000).toFixed(1) })
-                : t("itin.metersWalk", { m: Math.round(itinerary.totalWalkMeters) }),
-            ]
-              .join(", ")
-              // keep numbers with their units on one line
-              .replace(/(\d) (m|km|min)\b/g, "$1\u00a0$2")}
-          </p>
-        </div>
-        <span className="r-conf shrink-0 pt-1" style={{ color: mute }}>
+      <LegChain itinerary={itinerary} dark={dark} />
+      <div className="mt-2.5 flex items-start justify-between gap-3">
+        <p className="min-w-0 flex-1 text-[14px] leading-snug" style={{ color: mute }}>
+          {summary
+            .join(", ")
+            // keep numbers with their units on one line
+            .replace(/(\d) (m|km|min)\b/g, "$1\u00a0$2")}
+        </p>
+        <span className="r-conf shrink-0" style={{ color: mute }}>
           {reliability.live ? <span className="r-dot" /> : <span className="r-ring" />}
           {reliability.text}
         </span>
@@ -185,7 +196,7 @@ export function ItineraryCard({
         </span>
       </div>
 
-      {rides.length > 1 ? <ChangeList itinerary={itinerary} dark={dark} /> : null}
+      {rides.length === 2 ? <ChangeList itinerary={itinerary} dark={dark} /> : null}
 
       {itinerary.rationale && itinerary.rationale.length > 0 ? (
         <p
@@ -193,9 +204,9 @@ export function ItineraryCard({
           style={{ color: dark ? "#e8e8e4" : "var(--r-ink2)" }}
         >
           <Icon name="sparkle" size={15} style={{ color: "var(--r-y)", marginTop: 1 }} />
-          <span>
+          <span className={compact ? "min-w-0 truncate" : undefined}>
             <span className="sr-only">{t("rationale.eyebrow")}: </span>
-            {itinerary.rationale
+            {(compact ? itinerary.rationale.slice(0, 1) : itinerary.rationale)
               .map((tag) => rationaleToCopy(tag, t as T))
               .map((s, i) => (i === 0 ? s : s.charAt(0).toLocaleLowerCase() + s.slice(1)))
               .join(", ")}
