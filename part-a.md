@@ -221,3 +221,60 @@ Note: the first run cited an Ulm University step-versus-GPS speed figure (1.0 to
 - Code: src/lib/trip-alerts.server.ts, src/lib/push.functions.ts, src/lib/notify.server.ts, src/lib/trip-sync.functions.ts, workers/pulse-cron/src/jobs.ts, packages/core/src/multileg-journey.ts (redesign-roam @ 1508f3f)
 
 ---
+
+## Layer 5: Live bus reliability (ghost buses, stale data and honest ETAs)
+
+### 5.1 What the best in the world do
+
+- **Measure accuracy the way riders feel it.** The Transit ETA Accuracy Benchmark (based on an IBI Group method) buckets predictions by how far away the vehicle is and uses asymmetric thresholds because early arrivals are worse than late ones: 0 to 3 min away, accurate if the bus arrives no more than 30 s early or 1.5 min late; 3 to 6 min, 1 min early to 2.5 min late; 6 to 10 min, 1 min early to 3.5 min late; 10 to 15 min, 1.5 min early to 4.5 min late. Overall accuracy is the straight average of the four buckets (github.com/TransitApp/ETA-Accuracy-Benchmark).
+- **Detect ghost and zombie buses.** Swiftly describes "ghost" buses (predicted but not running) and "zombie" buses (vehicles reporting but not actually in service) and filters them by checking whether a scheduled trip has a matched, moving vehicle near its start (goswift.ly blog, "Banish ghost and zombie buses").
+- **Crowdsource where agency data is weak.** Transit's GO shares the rider's vehicle position anonymously while riding; in places without predictions, such as the Vancouver SkyTrain example, rider data fills the gap (help.transitapp.com/article/91).
+- **Correct the feed, do not just display it.** Transit advertises an in-house ETA prediction engine on top of agency data and crowdsourcing (Google Play listing). A Kalman filter or similar state estimator over successive vehicle positions and stop arrivals is the standard way to smooth noisy positions and estimate delay propagation (earlier-run finding; general method).
+
+### 5.2 Cyprus reality and data
+
+- One national GTFS-RT feed from the Public Works Department via CyNAP, "estimate timetables ... derived from the telematics system", update frequency "up to 1 min", CC BY 4.0 (traffic4cyprus.org.cy). The earlier run found it publishes trip updates and vehicle positions but no service alerts or cancellations.
+- The feed has outages; BusCyprus falls back to timetables and attributes outages to provider issues, maintenance, connectivity or on-vehicle GPS equipment (buscyprus.app/gtfs-rt-info).
+- The Intercity GTFS feed scores 69.8/100 (grade D) on GTFS Scorecard on 31 Oct 2026, with 83 validator errors (foreign key violations), 60 routes, 740 trips and 123 stops, and "Realtime not yet published" for that operator's feed record (gtfsscorecard.org).
+- Wrong information costs riders: the Audit Office found conflicting timetables, route numbers and stop locations across the operator's website and apps (Politis English, 14 Oct 2026). CPT says the new website and Pame app now share one database and all routes are on Google Maps (CPT response, 15 Oct 2026, via AlphaNews and Cyprus Mail).
+
+### 5.3 Aloya today, and its gaps
+
+Aloya is ahead of most local apps here:
+- Ghost tagging with agency-aware cutoffs: a trip with an arrival in the next 30 minutes but no vehicle position fresher than 180 s (urban) or 300 s (Intercity) is downgraded from live (src/lib/gtfs-rt.server.ts lines 104 to 113, src/lib/ghost-trips.ts), with learned thresholds in src/lib/threshold-cache.server.ts.
+- Crowdsourced positions from riders who tapped "I'm on board", scored by a physics check and ignored below 0.25 (src/routes/api/public/rider-fix.ts header).
+- A prediction backtest with horizon buckets (0 to 2, 2 to 5, 5 to 10, 10 to 20, 20+ min) that keeps rider-inferred arrivals out of headline numbers (packages/core/src/eta-backtest.ts), plus route and stop reliability endpoints.
+
+Gaps:
+- The alert server ignores all of that for the most important alerts. trip-alerts.ts (lines 51 to 70) loads arrivals, ghost IDs and staleness, but uses ghost or stale status only for "still on board" (line 121). "Board soon", "Pick up the pace" and "Board now" use the raw feed arrival even for a ghost trip, and silently fall back to the scheduled time when the feed is missing (line 84), without telling the rider the time is a timetable guess.
+- No uncertainty band: alerts treat a predicted time as exact. The Benchmark shows the early edge is what makes riders miss buses.
+- The backtest buckets do not match the industry Benchmark buckets, so Aloya cannot quote a comparable accuracy figure.
+- The client staleness threshold is 60 s (src/lib/useRealtime.ts line 13) while the server ghost cutoff is 180 s; the two surfaces can label the same bus differently.
+
+### 5.4 Improvements
+
+1. **Use ghost and stale rules in every alert (S, very high).** In trip-alerts.ts, if the board trip is in ghostTripIds or the feed is stale, never send "Board now" or "Pick up the pace"; send at most "BUS X has no live position. Timetable says 08:14." and include the next live alternative.
+2. **Label every time (S, high).** Three labels in app and notification text: Live (fresh vehicle position), Estimated (feed prediction without a fresh position, or crowdsourced), Timetable. Never show a timetable time in the same style as a live one.
+3. **Uncertainty band per prediction (M, very high).** From the backtest table, compute per route, horizon and time of day the 10th and 90th percentile of (actual minus predicted). Expose earliest-likely and latest-likely times. Leave-now logic (layer 1) uses the earliest-likely time; "you can relax" uses the latest-likely.
+4. **Adopt the Benchmark buckets (S, medium).** Add 0 to 3, 3 to 6, 6 to 10, 10 to 15 minute buckets with the asymmetric thresholds alongside the existing ones, and publish an honest accuracy page per route. This is also useful evidence for CPT and the ministry.
+5. **Correction layer (M, high).** A per-trip state estimator (Kalman filter over distance along shape and speed) using feed positions, rider fixes and segment travel-time history by hour, producing the corrected arrival and its variance. Start with segment medians by hour before any learned model.
+6. **Cancellation inference (M, high).** If a scheduled trip has no matched vehicle within a set window around its departure from the first stop, and the previous trip's vehicle is not on a layover, mark it "likely not running" and replan riders onto alternatives (layer 6). Learn the window from history rather than fixing it.
+7. **One freshness classifier shared by client and server (S, medium).** Move the thresholds into packages/core so app labels and alert decisions always agree.
+8. **Feed outage mode (S, medium).** When the national feed is down, show a banner, switch all alerts to timetable-based wording with wider buffers, and lean on crowdsourced positions where present.
+9. **Report data faults upstream (S, medium).** Feed GTFS Scorecard findings and Aloya's own stop-location corrections to the Public Works Department and CPT through the CyNAP contact (cynap@pwd.mcw.gov.cy).
+
+### 5.5 Sources
+
+- https://github.com/TransitApp/ETA-Accuracy-Benchmark
+- https://www.goswift.ly/blog/banish-ghost-and-zombie-buses
+- https://help.transitapp.com/article/91-what-is-go-crowdsourcing
+- https://play.google.com/store/apps/details?id=com.thetransitapp.droid
+- https://traffic4cyprus.org.cy/en/dataset/publictransportrealtime_gtfs_rt
+- https://buscyprus.app/gtfs-rt-info
+- https://gtfsscorecard.org/agency/intercity-buses-cyprus/
+- https://en.politis.com.cy/news/cy-news/1051591/bus-report-exposes-why-commuters-are-turning-away-from-public-transport
+- https://en.alphanews.live/cyprus/the-service-is-not-in-crisis-cpts-response-to-the-audit-offices-findings-on-buses/
+- https://cyprus-mail.com/2026/10/15/cyprus-public-transport-dismisses-audit-report-says-it-has-already-moved-on
+- Code: src/routes/api/public/trip-alerts.ts, src/lib/gtfs-rt.server.ts, src/lib/ghost-trips.ts, src/lib/threshold-cache.server.ts, src/routes/api/public/rider-fix.ts, packages/core/src/eta-backtest.ts, src/lib/useRealtime.ts (redesign-roam @ 1508f3f)
+
+---
