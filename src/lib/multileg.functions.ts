@@ -144,6 +144,28 @@ function pruneAirportTransferNoise(itineraries: Itinerary[]): Itinerary[] {
   return kept;
 }
 
+/**
+ * An option that rides exactly what another option rides and then adds more
+ * buses is only worth showing when the extra buses get the rider there at
+ * least 5 min sooner. Otherwise it is the same trip with a change bolted on
+ * (a 0 min hop to skip a short walk).
+ */
+function dropAddedTail(its: Itinerary[]): Itinerary[] {
+  const sig = (it: Itinerary) =>
+    it.legs.filter((l): l is RideLeg => l.kind === "ride").map((r) => `${r.routeId}|${r.board.stopId}`);
+  const sigs = its.map(sig);
+  return its.filter((x, i) => {
+    const sx = sigs[i];
+    return !its.some((y, j) => {
+      if (j === i) return false;
+      const sy = sigs[j];
+      if (sy.length === 0 || sy.length >= sx.length) return false;
+      for (let k = 0; k < sy.length; k++) if (sy[k] !== sx[k]) return false;
+      return x.arrivalUnix > y.arrivalUnix - 5 * 60;
+    });
+  });
+}
+
 export const planMultiLeg = createServerFn({ method: "POST" })
   .inputValidator((input) => InputSchema.parse(input))
   .handler(async ({ data }): Promise<MultiLegResult> => {
@@ -328,7 +350,7 @@ export const planMultiLeg = createServerFn({ method: "POST" })
     // Only its best departure is kept, and it is ranked like everything else.
     const isCoach = (it: Itinerary) => it.legs.some((l) => l.kind === "ride" && l.routeId.startsWith("kapnos:"));
     const coach = pool.filter(isCoach).sort((a, b) => a.score - b.score).slice(0, 1);
-    let kept = [...filterDominated(pool.filter((it) => !isCoach(it))), ...coach];
+    let kept = dropAddedTail([...filterDominated(pool.filter((it) => !isCoach(it))), ...coach]);
     const prunedMediocre = afterDedup - kept.length;
 
     // Learning loop: penalise transfer itineraries when riders have

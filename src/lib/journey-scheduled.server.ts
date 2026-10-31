@@ -268,6 +268,25 @@ export async function planMultiLegScheduled(
       refineRetry = "unverified";
     }
   }
+  // The coach is its own option on airport trips: when its feeder walk ran
+  // long and no coach option survived, plan the coach again from later.
+  const hasCoach = (it: Itinerary) => it.legs.some((l) => l.kind === "ride" && l.routeId.startsWith("kapnos:"));
+  if (kapnosCount > 0 && !refinedItineraries.some(hasCoach)) {
+    let slackK = 0;
+    for (let pass = 0; pass < 2; pass++) {
+      const seen: Array<{ ride: number; overrunSec: number }> = [];
+      slackK += 6 * 60 + (pass === 0 ? 0 : 6 * 60);
+      const coach = await kapnosAt(searchDepartureUnix + slackK);
+      if (coach.length === 0) break;
+      const ok = await refineAllItineraries(coach, seen);
+      missLog.push(...seen);
+      if (ok.length > 0) {
+        refinedItineraries = [...refinedItineraries, ...ok];
+        break;
+      }
+      slackK += Math.max(0, ...seen.map((m) => m.overrunSec));
+    }
+  }
   refinedItineraries = refinedItineraries.map(rebaseToLeave);
   const walkRefineMs = Date.now() - tRef0;
   const walkLegsVerified = refinedItineraries.reduce(
