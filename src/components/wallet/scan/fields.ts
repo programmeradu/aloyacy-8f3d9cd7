@@ -98,10 +98,9 @@ export function validDate(raw: string, now = new Date()): string | null {
 
 /** Card UID: 14 to 16 digits (separators ignored). */
 export function validUid(raw: string): string | null {
-  const runs = raw.replace(/[\s-]/g, "").match(/\d{14,16}/g);
-  if (!runs) return null;
-  const exact = runs.find((r) => r.length >= 14 && r.length <= 16);
-  return exact ?? null;
+  // A run longer than 16 digits is a misread (a doubled digit), never a UID.
+  const runs = raw.replace(/[\s-]/g, "").match(/\d+/g);
+  return runs?.find((r) => r.length >= 14 && r.length <= 16) ?? null;
 }
 
 /** The UID from the back of the card: the digits after "UID:" when OCR found the label. */

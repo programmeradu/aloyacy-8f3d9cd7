@@ -189,6 +189,7 @@ describe("field validation", () => {
   it("reads UIDs and QR payloads", () => {
     expect(validUid("4112 3456 7890 12")).toBe("41123456789012");
     expect(validUid("12345")).toBeNull();
+    expect(uidFromLine("UID: 11294169862599312")).toBeNull();
     expect(uidFromQr("MOTION:41123456789012")).toBe("41123456789012");
     expect(uidFromLine("UID: 11294169825993 12")).toBe("1129416982599312");
     expect(uidFromLine("ID 11294169825993")).toBe("11294169825993");
