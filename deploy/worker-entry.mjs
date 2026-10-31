@@ -35,6 +35,21 @@ const tripShard = (id) => {
 };
 const AIRPORT_STOP = { lca: "6117", pfo: "1813" };
 const PAGE_CARD = { "/lines": "lines", "/pulse": "pulse", "/wallet": "pass", "/saved": "saved", "/trips": "planner", "/el": "default", "/green-line": "default", "/welcome": "default", "/": "default" };
+// Share copy for the app's own pages (og and twitter alike; the tab title is left alone).
+const PAGE_COPY = {
+  "/lines": ["Every bus line in Cyprus | Aloya", "Nicosia, Limassol, Larnaca, Paphos, Famagusta and intercity lines, with live buses on each."],
+  "/pulse": ["Cyprus today | Aloya", "How the island is moving today: weather, the buses right now, live sightings and a Greek word of the day."],
+  "/wallet": ["Motion pass | Aloya", "Balance, top ups and a scan ready Motion card, always with you."],
+  "/saved": ["Saved places | Aloya", "Home, work and the stops you use most, with live buses for each."],
+  "/trips": ["Plan a trip | Aloya", "Door to door across Cyprus. Live buses, walking and changes in one calm view."],
+  "/green-line": ["The Green Line | Aloya", "Aloya runs the Republic of Cyprus bus network. What we know about crossing at Ledra, and what we do not."],
+  "/el": ["Aloya | Λεωφορεία Κύπρου, ζωντανά", "Ζωντανές αφίξεις, σχέδια διαδρομής και ομαδικά ταξίδια σε κάθε γραμμή λεωφορείου στην Κύπρο."],
+};
+const AIRPORT_COPY = {
+  lca: ["Larnaca Airport by bus | Aloya", "Live coach and town bus departures from Larnaca Airport, with the lines to Nicosia, Limassol, Larnaca, Ayia Napa and Protaras."],
+  pfo: ["Paphos Airport by bus | Aloya", "Live coach and town bus departures from Paphos Airport, with the lines to Paphos, Limassol and Nicosia."],
+};
+const isHere = (s) => /^(your|current|my) location$/i.test(String(s ?? "").trim());
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const tidy = (s) => String(s ?? "").replace(/\s+-\s+/g, ", ").replace(/\s*[\u2013\u2014]\s*/g, ", ").replace(/\s+/g, " ").trim();
 const cy = (unix, o) => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Nicosia", ...o }).format(new Date(unix * 1000));
@@ -60,7 +75,7 @@ async function shareMeta(url, env) {
     const changes = r.transfers ? `${r.transfers} ${r.transfers === 1 ? "change" : "changes"}` : "direct";
     return {
       title: `${bus ? `Bus ${bus} to ${dest}` : `Trip to ${dest}`}${t} | Aloya`,
-      desc: `From ${tidy(r.origin_label)} to ${dest}. ${r.departure_unix ? `Leave ${hm(r.departure_unix)} ${day(r.departure_unix)}, ` : ""}${r.arrival_unix ? `arrive ${hm(r.arrival_unix)}, ` : ""}${r.total_duration_sec ? `${Math.round(r.total_duration_sec / 60)} min, ` : ""}${changes}.${r.creator_name ? ` Shared by ${tidy(r.creator_name)}.` : ""}`,
+      desc: `${isHere(r.origin_label) ? "" : `From ${tidy(r.origin_label)} to ${dest}. `}${r.departure_unix ? `Leave ${hm(r.departure_unix)} ${day(r.departure_unix)}, ` : ""}${r.arrival_unix ? `arrive ${hm(r.arrival_unix)}, ` : ""}${r.total_duration_sec ? `${Math.round(r.total_duration_sec / 60)} min, ` : ""}${changes}.${r.creator_name ? ` Shared by ${tidy(r.creator_name)}.` : ""}`,
       image: `${o}/api/public/og/plan/${m[1]}`,
     };
   }
@@ -104,10 +119,13 @@ async function shareMeta(url, env) {
   }
   if ((m = p.match(/^\/airport\/(lca|pfo)$/i))) {
     const c = m[1].toLowerCase();
-    return { image: `${o}/api/public/og/stop/${AIRPORT_STOP[c]}?airport=${c}` };
+    return { image: `${o}/api/public/og/stop/${AIRPORT_STOP[c]}?airport=${c}`, title: AIRPORT_COPY[c][0], desc: AIRPORT_COPY[c][1], keepTab: true };
   }
-  if (/^\/route\/[A-Za-z0-9_-]{1,32}$/.test(p)) return { dedash: true };
-  if (PAGE_CARD[p]) return { image: `${o}/api/public/og/default${PAGE_CARD[p] === "default" ? "" : `?p=${PAGE_CARD[p]}`}`, keepImage: p === "/" || p === "/welcome" };
+  if (/^\/(?:route|stop)\/[A-Za-z0-9_-]{1,32}$/.test(p)) return { dedash: true };
+  if (PAGE_CARD[p]) {
+    const copy = PAGE_COPY[p] || [];
+    return { image: `${o}/api/public/og/default${PAGE_CARD[p] === "default" ? "" : `?p=${PAGE_CARD[p]}`}`, keepImage: p === "/" || p === "/welcome", title: copy[0], desc: copy[1], keepTab: true };
+  }
   return null;
 }
 
@@ -135,12 +153,15 @@ function rewrite(res, m) {
       },
     });
   }
-  if (m.title) rw = rw.on("title", { element(e) { e.setInnerContent(m.title); } });
+  if (m.title && !m.keepTab) rw = rw.on("title", { element(e) { e.setInnerContent(m.title); } });
   if (m.dedash)
-    rw = rw.on('meta[name="description"], meta[property="og:description"], meta[name="twitter:description"], meta[property="og:title"], meta[name="twitter:title"]', {
+    rw = rw.on('title, meta[name="description"], meta[property="og:description"], meta[name="twitter:description"], meta[property="og:title"], meta[name="twitter:title"]', {
       element(e) {
         const c = e.getAttribute("content");
         if (c) e.setAttribute("content", tidy(c));
+      },
+      text(t) {
+        if (t.text && / - /.test(t.text)) t.replace(esc(tidy(t.text)), { html: true });
       },
     });
   rw = rw.on("head", {
