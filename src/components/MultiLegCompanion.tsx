@@ -468,7 +468,6 @@ function LiveLegNow({ live, itin }: { live: MultiLegLive; itin: NonNullable<Acti
   if (riding) {
     const left = stopsLeft(leg, now, live.fusedCurrentVehicle);
     const calls = rideCalls(leg).length - 1;
-    const minLeft = Math.max(0, Math.round(live.secsToCurrentAlight / 60));
     return (
       <section className="r-jc r-jl-now">
         <div className="flex flex-wrap items-center gap-2">
@@ -477,30 +476,19 @@ function LiveLegNow({ live, itin }: { live: MultiLegLive; itin: NonNullable<Acti
             {r("jl.towards", { dest: towards(leg) })}
           </span>
         </div>
-        <p className="mt-4 text-[14px]" style={{ color: "var(--r-onchar-mute)" }}>
-          {left === 1 ? r("jl.getOffNext") : r("jl.getOffIn")}
-        </p>
-        <div className="mt-1 flex items-end justify-between gap-3">
-          {left != null && left > 1 ? (
-            <p className="r-tnum">
-              <span className="r-jl-big">{left}</span>
-              <span className="ml-2 text-[18px]">{r("jl.stopsUnit")}</span>
-            </p>
-          ) : left == null ? (
-            <p className="r-tnum">
-              <span className="r-jl-big">{minLeft}</span>
-              <span className="ml-2 text-[18px]">{r("jl.minUnit")}</span>
-            </p>
-          ) : (
-            <span />
-          )}
-          {left != null ? (
-            <span className="r-pill r-tnum" style={{ background: "#3b3b3b", color: "#fff" }}>
-              <Icon name="clock" size={15} />
-              {r("jl.minShort", { m: minLeft })}
-            </span>
-          ) : null}
-        </div>
+        {/* The headline above already counts down the minutes; the card
+            counts stops, so the minutes are not shown twice. */}
+        {left != null ? (
+          <p className="mt-4 text-[14px]" style={{ color: "var(--r-onchar-mute)" }}>
+            {left === 1 ? r("jl.getOffNext") : r("jl.getOffIn")}
+          </p>
+        ) : null}
+        {left != null && left > 1 ? (
+          <p className="mt-1 r-tnum">
+            <span className="r-jl-big">{left}</span>
+            <span className="ml-2 text-[18px]">{r("jl.stopsUnit")}</span>
+          </p>
+        ) : null}
         {left != null && calls > 1 ? (
           <div className="r-jl-progress" aria-hidden="true">
             {Array.from({ length: Math.min(calls, 24) }, (_, i) => {

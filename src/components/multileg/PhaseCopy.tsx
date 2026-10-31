@@ -9,6 +9,8 @@ import { destBailForWait, destBailWithHeadway, type DestBail } from "@aloya/core
 import { cyClock } from "@aloya/core/cy-time";
 import { useHeadwayHint } from "@/lib/useHeadwayHint";
 import { useI18n, type DictKey } from "@/lib/i18n";
+import { useRoamI18n } from "@/lib/roam-i18n";
+import { cleanName, fmtDist, journeyParts } from "@/components/roam/journey/journey-model";
 import type { Itinerary, RideLeg } from "@/lib/itinerary-types";
 import type { MultiLegLive } from "@/lib/useMultiLegJourney";
 import { useQuery } from "@tanstack/react-query";
@@ -100,6 +102,7 @@ export function PhaseLabel({ live, itin }: { live: MultiLegLive; itin: Itinerary
 
 export function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itinerary }) {
   const { t } = useI18n();
+  const { r } = useRoamI18n();
   const base = "mt-2 font-display text-[36px] leading-[1.05] text-ink text-balance";
   if (live.phase === "walking-to-board" && live.currentRideLeg) {
     return (
@@ -134,11 +137,10 @@ export function PhaseHeadline({ live, itin }: { live: MultiLegLive; itin: Itiner
     );
   }
   if (live.phase === "riding" && live.currentRideLeg) {
+    // With a change ahead the line below names the get-off stop and the walk
+    // to the next bus's stop, so the headline only says which bus is next.
     const tail = live.nextRideLeg
-      ? t("ml.hl.atNameThenChange", {
-          name: live.currentRideLeg.alight.name,
-          code: live.nextRideLeg.routeShort,
-        })
+      ? r("jl.thenBus", { code: live.nextRideLeg.routeShort })
       : t("ml.hl.atNameDot", { name: live.currentRideLeg.alight.name });
     return (
       <h1 className={base}>
@@ -252,6 +254,30 @@ export function PhaseSub({
   dest?: { lat: number; lng: number };
 }) {
   const { t } = useI18n();
+  const { r } = useRoamI18n();
+  // The bus you get off and the next one can leave from different stops:
+  // name both, with the walk between them.
+  const ch =
+    live.currentRideLeg && live.nextRideLeg
+      ? journeyParts(itin).changes.find(
+          (c) =>
+            c.from.tripId === live.currentRideLeg?.tripId &&
+            c.to.tripId === live.nextRideLeg?.tripId,
+        )
+      : undefined;
+  const changeLine = live.nextRideLeg
+    ? ch && !(ch.sameStop || ch.walkMeters < 25)
+      ? r("jl.offWalkTo", {
+          from: cleanName(ch.from.alight.name),
+          d: fmtDist(ch.walkMeters),
+          to: cleanName(ch.to.board.name),
+          code: live.nextRideLeg.routeShort,
+        })
+      : r("jl.offSameStop", {
+          from: cleanName(live.currentRideLeg?.alight.name ?? ""),
+          code: live.nextRideLeg.routeShort,
+        })
+    : "";
   const changesLabel =
     itin.transfers === 1 ? t("ml.changesOne") : t("ml.changesN", { n: itin.transfers });
   const text =
@@ -263,10 +289,7 @@ export function PhaseSub({
           ? t("ml.sub.waitBoard")
           : live.phase === "riding"
             ? live.nextRideLeg
-              ? t("ml.sub.ridingChange", {
-                  code: live.nextRideLeg.routeShort,
-                  name: live.currentRideLeg?.alight.name ?? "",
-                })
+              ? changeLine
               : t("ml.sub.ridingSit")
             : live.phase === "alight-soon"
               ? live.nextRideLeg
