@@ -49,9 +49,13 @@ export const getPlace = createServerFn({ method: "POST" })
   .handler(async ({ data }) => resolvePlace(data.placeId));
 
 export const reverseLookup = createServerFn({ method: "POST" })
-  .inputValidator((input) => z.object({ lat: z.number(), lng: z.number() }).parse(input))
+  .inputValidator((input) =>
+    z
+      .object({ lat: z.number(), lng: z.number(), language: z.enum(["en", "el"]).optional() })
+      .parse(input),
+  )
   .handler(async ({ data }) => ({
-    address: await reverseGeocode(data.lat, data.lng),
+    address: await reverseGeocode(data.lat, data.lng, data.language),
   }));
 
 export const getWalkingDirections = createServerFn({ method: "POST" })

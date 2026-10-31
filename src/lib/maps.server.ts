@@ -145,9 +145,14 @@ export async function resolvePlace(placeId: string): Promise<ResolvedPlace> {
   return featureToPlace(f);
 }
 
-export async function reverseGeocode(lat: number, lng: number): Promise<string> {
+export async function reverseGeocode(
+  lat: number,
+  lng: number,
+  language?: "en" | "el",
+): Promise<string> {
+  const lang = language ? `&language=${language}` : "";
   const res = await mapboxFetch(
-    `/search/geocode/v6/reverse?longitude=${lng}&latitude=${lat}&types=address,street&limit=1`,
+    `/search/geocode/v6/reverse?longitude=${lng}&latitude=${lat}&types=address,street&limit=1${lang}`,
   );
   if (!res.ok) throw new Error(`reverse ${res.status}`);
   const json = (await res.json()) as { features?: GeoFeature[] };

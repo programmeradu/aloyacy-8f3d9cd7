@@ -26,6 +26,8 @@ export type TripSeed = {
   setDestination: (p: Point | null) => void;
   setActive: (a: "from" | "to" | null) => void;
   setTimeIntent: (t: TimeIntent | null) => void;
+  /** The rider refused location: pickup stays empty, the locate button stays. */
+  geoDenied: boolean;
 };
 
 export function useTripSeed(): TripSeed {
@@ -33,6 +35,7 @@ export function useTripSeed(): TripSeed {
   const [destination, setDestination] = useState<Point | null>(null);
   const [active, setActive] = useState<"from" | "to" | null>(null);
   const [timeIntent, setTimeIntent] = useState<TimeIntent | null>(null);
+  const [geoDenied, setGeoDenied] = useState(false);
 
   // The device-location origin reads "Your location" in the rider's language.
   // A reverse-geocoded street came back in Greek even in English, and the
@@ -154,8 +157,13 @@ export function useTripSeed(): TripSeed {
         }
         void applyFix(latitude, longitude);
       },
-      () => {
+      (err) => {
         window.clearTimeout(fallbackTimer);
+        // Denied: leave pickup empty rather than pretend they are downtown.
+        if (err?.code === 1) {
+          if (!cancelled) setGeoDenied(true);
+          return;
+        }
         fallbackToCentre();
       },
       { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
@@ -177,5 +185,6 @@ export function useTripSeed(): TripSeed {
     setDestination,
     setActive,
     setTimeIntent,
+    geoDenied,
   };
 }

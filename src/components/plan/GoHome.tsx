@@ -5,6 +5,7 @@ import { Icon } from "@/components/roam/Icon";
 import { NotchCard } from "@/components/roam/NotchCard";
 import { FrostButton } from "@/components/roam/FrostButton";
 import { FieldRow } from "./PlanPieces";
+import { useHereAddress } from "./useHereAddress";
 import { useRoamI18n } from "@/lib/roam-i18n";
 import { useRecents, useSavedPlaces } from "@/lib/trip-store";
 import type { AccessibilityPrefs } from "@/lib/accessibility-prefs";
@@ -152,6 +153,9 @@ export function GoFromTo({
   setActive,
   setOrigin,
   setDestination,
+  onLocate,
+  locating,
+  geoDenied,
 }: {
   origin: Point | null;
   destination: Point | null;
@@ -159,8 +163,13 @@ export function GoFromTo({
   setActive: (a: "from" | "to" | null) => void;
   setOrigin: (p: Point | null) => void;
   setDestination: (p: Point | null) => void;
+  onLocate?: () => void;
+  locating?: boolean;
+  geoDenied?: boolean;
 }) {
   const { r } = useRoamI18n();
+  const here = origin && origin.label === r("go.yourLocation") ? origin : null;
+  const hereStreet = useHereAddress(here);
   return (
     <section className="r-rise">
       <NotchCard
@@ -194,6 +203,11 @@ export function GoFromTo({
             active={active === "from"}
             onActivate={() => setActive("from")}
             onClear={() => setOrigin(null)}
+            sub={here ? hereStreet : null}
+            emptyText={geoDenied ? r("go.choose") : undefined}
+            onLocate={onLocate}
+            locating={locating}
+            locateLabel={r("go.pkLocate")}
           />
           <div className="r-hair mx-3 ml-10" />
           <FieldRow

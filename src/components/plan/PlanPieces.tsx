@@ -89,6 +89,11 @@ export function FieldRow({
   active,
   onActivate,
   onClear,
+  sub,
+  emptyText,
+  onLocate,
+  locating,
+  locateLabel,
 }: {
   role: "from" | "to";
   label: string;
@@ -96,6 +101,12 @@ export function FieldRow({
   active: boolean;
   onActivate: () => void;
   onClear: () => void;
+  /** Second line under the place, e.g. the street for "Your location". */
+  sub?: string | null;
+  emptyText?: string;
+  onLocate?: () => void;
+  locating?: boolean;
+  locateLabel?: string;
 }) {
   const { t } = useI18n();
   return (
@@ -117,9 +128,31 @@ export function FieldRow({
         <span
           className={`mt-0.5 block truncate text-[16px] ${point ? "font-medium text-[var(--r-ink)]" : "text-[var(--r-mute)]"}`}
         >
-          {point?.label ?? (role === "from" ? t("trips.detecting") : t("trips.searchPlaceholder"))}
+          {point?.label ??
+            emptyText ??
+            (role === "from" ? t("trips.detecting") : t("trips.searchPlaceholder"))}
         </span>
+        {point && sub && (
+          <span className="mt-0.5 block truncate text-[12px] text-[var(--r-mute)]">{sub}</span>
+        )}
       </button>
+      {onLocate && (
+        <button
+          type="button"
+          onClick={onLocate}
+          disabled={locating}
+          aria-busy={locating}
+          aria-label={locateLabel}
+          title={locateLabel}
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-[var(--r-ink)] ring-1 ring-black/10 disabled:opacity-70"
+        >
+          <i
+            className={`ph ${locating ? "ph-circle-notch animate-spin" : "ph-crosshair"}`}
+            style={{ fontSize: 18 }}
+            aria-hidden="true"
+          />
+        </button>
+      )}
       {point && (
         <button
           type="button"

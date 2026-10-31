@@ -48,6 +48,7 @@ import {
   useTripPlanQuery,
 } from "@/components/plan/tripPlanQuery";
 import { useOnlineStatus } from "@/lib/useOnlineStatus";
+import { locateHere } from "@/lib/here";
 
 export const Route = createFileRoute("/trips")({
   head: () => ({
@@ -100,7 +101,26 @@ function Plan() {
     setDestination,
     setActive,
     setTimeIntent,
+    geoDenied,
   } = useTripSeed();
+
+  // One tap on the From field's locate button: pickup becomes the rider's
+  // live position and the plan reruns off the new origin.
+  const [locating, setLocating] = useState(false);
+  const [locIssue, setLocIssue] = useState<"denied" | "failed" | null>(null);
+  async function locateOrigin() {
+    if (locating) return;
+    setLocating(true);
+    setLocIssue(null);
+    const res = await locateHere();
+    setLocating(false);
+    if (res.ok) {
+      setOrigin({ lat: res.lat, lng: res.lng, label: r("go.yourLocation") });
+      if (active === "from") setActive(destination ? null : "to");
+    } else {
+      setLocIssue(res.denied ? "denied" : "failed");
+    }
+  }
 
   const { session } = useAuth();
   const fetchSuggestions = useServerFn(getTripSuggestions);
@@ -246,7 +266,15 @@ function Plan() {
           setActive={setActive}
           setOrigin={setOrigin}
           setDestination={setDestination}
+          onLocate={locateOrigin}
+          locating={locating}
+          geoDenied={geoDenied || locIssue === "denied"}
         />
+      )}
+      {!showResults && locIssue && (
+        <p role="alert" className="r-lbl mt-3 px-2">
+          {r(locIssue === "denied" ? "go.pkDenied" : "go.pkFail")}
+        </p>
       )}
 
       <TimeIntentChip

@@ -13,6 +13,9 @@ import {
 import { autocompletePlaces, getPlace } from "@/lib/maps.functions";
 import { useRecents, useSavedPlaces } from "@/lib/trip-store";
 import { useI18n } from "@/lib/i18n";
+import { useRoamI18n } from "@/lib/roam-i18n";
+import { geoPermission, locateHere, readCachedHere } from "@/lib/here";
+import { useHereAddress } from "./useHereAddress";
 import type { Point } from "@/lib/plan-types";
 
 export function PlacesPickerSheet({
@@ -40,6 +43,21 @@ export function PlacesPickerSheet({
   }, [open]);
 
   if (!open || typeof document === "undefined") return null;
+  return <SheetBody role={role} bias={bias} onClose={onClose} onPick={onPick} />;
+}
+
+function SheetBody({
+  role,
+  bias,
+  onClose,
+  onPick,
+}: {
+  role: "from" | "to";
+  bias: { lat: number; lng: number };
+  onClose: () => void;
+  onPick: (p: Point, role: "from" | "to") => void;
+}) {
+  const { r } = useRoamI18n();
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex flex-col">
@@ -54,8 +72,8 @@ export function PlacesPickerSheet({
       <div className="relative mt-auto w-full rounded-t-[28px] bg-limestone ring-1 ring-line shadow-[0_-12px_40px_-12px_rgba(20,30,40,0.25)] min-h-[72vh] max-h-[92vh] flex flex-col animate-slide-up">
         <div className="flex items-center justify-between px-5 pt-4 pb-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-              {role === "from" ? "Set pickup" : "Set destination"}
+            <span className="text-[15px] font-semibold text-ink">
+              {role === "from" ? r("go.pkSetPickup") : r("go.pkSetDest")}
             </span>
           </div>
           <button
@@ -159,7 +177,10 @@ function PlacesPickerContent({
         )}
       </div>
       {query.trim().length < 2 ? (
-        <QuickPicks role={role} onChoose={(p) => onPick(p, role)} />
+        <>
+          <HereRow onChoose={(p) => onPick(p, role)} />
+          <QuickPicks role={role} onChoose={(p) => onPick(p, role)} />
+        </>
       ) : (
         suggestions.length > 0 && (
           <ul className="divide-y divide-line">
@@ -194,6 +215,90 @@ function PlacesPickerContent({
   );
 }
 
+// "Use my current location": resolves the street ahead of the tap when
+// permission is already granted, spins while locating, and says plainly when
+// location is off.
+function HereRow({ onChoose }: { onChoose: (p: Point) => void }) {
+  const { r } = useRoamI18n();
+  const [fix, setFix] = useState<{ lat: number; lng: number } | null>(() => readCachedHere());
+  const [fresh, setFresh] = useState(false);
+  const [state, setState] = useState<"idle" | "locating" | "denied" | "failed">("idle");
+  const street = useHereAddress(fix);
+
+  useEffect(() => {
+    let off = false;
+    void geoPermission().then((p) => {
+      if (off) return;
+      if (p === "denied") {
+        setState("denied");
+        return;
+      }
+      if (p !== "granted") return;
+      void locateHere().then((res) => {
+        if (off || !res.ok) return;
+        setFix({ lat: res.lat, lng: res.lng });
+        setFresh(true);
+      });
+    });
+    return () => {
+      off = true;
+    };
+  }, []);
+
+  async function use() {
+    if (state === "locating") return;
+    if (fix && fresh) {
+      onChoose({ lat: fix.lat, lng: fix.lng, label: r("go.yourLocation") });
+      return;
+    }
+    setState("locating");
+    const res = await locateHere();
+    if (res.ok) {
+      setState("idle");
+      onChoose({ lat: res.lat, lng: res.lng, label: r("go.yourLocation") });
+    } else {
+      setState(res.denied ? "denied" : "failed");
+    }
+  }
+
+  const sub =
+    state === "locating"
+      ? r("go.pkLocating")
+      : state === "denied"
+        ? r("go.pkDenied")
+        : state === "failed"
+          ? r("go.pkFail")
+          : (street ?? r("go.pkHereSub"));
+
+  return (
+    <div className="border-t border-line">
+      <button
+        type="button"
+        onClick={use}
+        aria-busy={state === "locating"}
+        className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-limestone-soft"
+      >
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-aegean-soft/60 text-aegean-deep">
+          <i
+            className={`ph ${state === "locating" ? "ph-circle-notch animate-spin" : "ph-crosshair"}`}
+            style={{ fontSize: 18 }}
+            aria-hidden="true"
+          />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[14px] font-medium text-ink">{r("go.pkUseHere")}</span>
+          <span
+            className={`block text-[12px] ${state === "denied" || state === "failed" ? "text-ink" : "truncate text-ink-soft"}`}
+            role={state === "denied" || state === "failed" ? "alert" : undefined}
+          >
+            {sub}
+          </span>
+        </span>
+      </button>
+    </div>
+  );
+}
+
 // Contextual glyph for a saved place based on its user-chosen label.
 function labelGlyph(label: string) {
   const l = label.trim().toLowerCase();
@@ -205,6 +310,7 @@ function labelGlyph(label: string) {
 
 function QuickPicks({ role, onChoose }: { role: "from" | "to"; onChoose: (p: Point) => void }) {
   const { t } = useI18n();
+  const { r } = useRoamI18n();
   const saved = useSavedPlaces();
   const recents = useRecents();
   if (saved.length === 0 && recents.length === 0) return null;
@@ -212,10 +318,7 @@ function QuickPicks({ role, onChoose }: { role: "from" | "to"; onChoose: (p: Poi
     <div className="border-t border-line p-4 space-y-4">
       {saved.length > 0 && (
         <div>
-          <div className="mb-2 flex items-center gap-2 text-ink-soft">
-            <IconPin className="size-3.5" strokeWidth={1.4} />
-            <span className="h-px flex-1 bg-line" />
-          </div>
+          <div className="mb-2 text-[12px] font-medium text-ink-soft">{r("go.pkSaved")}</div>
           <div className="flex flex-wrap gap-2">
             {saved.map((p) => {
               const Glyph = labelGlyph(p.label);
