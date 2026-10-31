@@ -498,3 +498,63 @@ Samuel's addendum: the app must be intelligent at every phase of a multi-stop tr
 - Code: src/lib/trip-alerts.server.ts, mobile/lib/liveActivities.ts, mobile/widgets/NearestStopWidget.tsx, mobile/build_info.json (redesign-roam @ 1508f3f)
 
 ---
+
+## Layer 9: Accessibility (blind and low-vision riders, wheelchair users, older riders, cognitive load)
+
+### 9.1 What the best in the world do
+
+- **Voice-first companions.** Citymapper's voice instructions cover walking, cycling, scooting and transit so the phone can stay in a pocket (citymapper.com/news/2395). Transit's GO gives audible instructions when sound is enabled (University of Iowa Cambus guide to Transit).
+- **Accessibility as data.** GTFS defines wheelchair_boarding per stop, wheelchair_accessible per trip and tts_stop_name for the spoken form of a stop name; GTFS Scorecard grades feeds on these and on route colour contrast (gtfsscorecard.org).
+- **Walking speed for real people.** FHWA recommends 0.9 m/s for less capable older pedestrians, and measured means of 0.6 to 1.1 m/s for people using walkers, canes or wheelchairs (FHWA-HRT-05-099); 84% of men and 93% of women aged 65+ in England walk slower than 1.2 m/s (Asher et al. 2012).
+- **The law.** The European Accessibility Act (Directive (EU) 2019/882) applies to services provided to consumers after 28 June 2025. For air, bus, rail and waterborne passenger transport it covers websites, mobile apps, e-ticketing and real-time travel information, but for urban, suburban and regional transport only interactive self-service terminals are in scope (EAA Article 2(2)(c)). Intercity bus apps and any e-commerce or ticketing in Aloya are therefore the parts most clearly covered; urban journey planning is less clearly covered but is still expected practice. The harmonised standard is EN 301 549, which references WCAG 2.1 AA (earlier-run finding).
+
+### 9.2 Cyprus reality and data
+
+- Intercity GTFS: 123 of 123 stops have unknown wheelchair boarding and 740 of 740 trips have unknown wheelchair accessibility; 46 stop names use abbreviations a screen reader may mispronounce with no tts_stop_name (for example "Archiep. Makariou III Ave."); 8 route badges fall below 4.5:1 colour contrast (GTFS Scorecard, 31 Oct 2026).
+- Blind riders: the Pancyprian Organisation of the Blind reports that stop announcements are often not used or switched off (Paphos), that a blind person at a stop cannot tell which route is arriving, that most crossings lack audible signals or have them switched off, and that silent e-scooters are a hazard (Cyprus Mail, Nov 2024; Nea Kypros, Oct 2025; CYPRUS FAQ, Oct 2026). Unsafe old buses for blind students were reported on 21 Oct 2026 (Sigmalive).
+- New smart bus stops include an audible signal for approaching buses (land.cy, Mar 2025), and the ministry says all stops will be upgraded by 2028 (CYPRUS FAQ, 15 Oct 2026).
+- The Audit Office's accessibility review included the Cyprus Paraplegic Organisation (Economy Today, 14 Oct 2026).
+
+### 9.3 Aloya today, and its gaps
+
+Good foundations:
+- Accessibility-weighted routing (src/lib/accessibility-prefs.ts): step-free, prefer shade, low floor and a soft cap on total walking, used as ranking weights not hard filters, synced across devices, with an honesty rule to expose only toggles whose effect is delivered.
+- Crowdsourced stop conditions including wheelchair_access (src/lib/stop-condition.server.ts), feeding both routing and stop pages.
+- Some live regions and reduced-motion handling exist (aria-live in 7 files, one reduced-motion check).
+
+Gaps:
+- No walking-pace or mobility-aid profile; all timing assumes 1.35 m/s (layer 2), which is wrong for exactly the riders the step-free setting serves.
+- Haptic cues fail on iPhone web; spoken cues need an open window (layer 3).
+- No "which bus is mine" announcement at the stop.
+- Stop names are read as published, so abbreviations reach screen readers unexpanded.
+- No published accessibility statement or WCAG 2.1 AA audit was found.
+
+### 9.4 Improvements
+
+1. **Mobility profile (S, very high).** Combine layer 2's pace profile with the existing step-free and walking-cap settings into one "How do you get around?" screen: walking aid, wheelchair, pram, slow walker, blind or low vision, prefer fewer changes.
+2. **Blind and low-vision mode (M, very high).** Voice for every phase (leave, at stop, boarding, stops remaining, press now), the "which bus is mine" announcement using live data at the stop, large high-contrast trip card, and every control labelled for VoiceOver and TalkBack. Test with members of the Pancyprian Organisation of the Blind.
+3. **Spoken stop names (S, high).** Maintain an expansion table (Archiep. to Archiepiskopou, Ave. to Avenue, Ag. to Agios or Agia) and Greek pronunciations, used for speech and aria labels; offer it to the operators as tts_stop_name.
+4. **Fill accessibility data (M, high).** Crowdsource stop step-free status, shelter, seat, kerb height and audible signal, verify with photos (Aloya already has stop-photo and stop-condition endpoints), and publish the result as open data that CPT could merge into GTFS.
+5. **Plain step mode (S, medium).** One instruction per screen, big type, no map unless asked, for riders with cognitive load or low digital confidence.
+6. **Vehicle accessibility feedback (S, medium).** After each trip, an optional one-tap question for riders who use the mobility profile: "Was the ramp working? Were stops announced?" Aggregate per route for advocacy and for the ministry's contract monitoring.
+7. **WCAG 2.1 AA audit and accessibility statement (M, medium).** Audit against EN 301 549 and publish a statement with a feedback route, which also prepares Aloya for any ticketing or intercity features that fall clearly under the EAA.
+8. **Route badge contrast (S, low).** Pick the text colour automatically for 4.5:1 contrast rather than using feed colours as given.
+
+### 9.5 Sources
+
+- https://citymapper.com/news/2395/citymapper-in-your-ear
+- https://transportation.uiowa.edu/cambus/transit
+- https://gtfsscorecard.org/agency/intercity-buses-cyprus/
+- https://www.fhwa.dot.gov/publications/research/safety/pedbike/05085/chapt8.cfm
+- https://doi.org/10.1093/ageing/afs076
+- https://europeanaccessibilityact2025.com/art-2-eaa/
+- https://cyprus-mail.com/2024/11/14/people-with-disabilities-humiliated-when-using-buses
+- https://neakypros.com.cy/index.php/news/121938
+- https://cyprus-faq.com/en/south/news/nezryachie-kipr-trotuary-samokaty-perekhody/
+- https://en.sigmalive.com/complaints-over-unsafe-buses-transporting-blind-students-to-nicosia
+- https://land.cy/article/new-smart-bus-stops-designed-for-convenience-or-controversy
+- https://cyprus-faq.com/en/south/news/kipr-ministr-tsolaki-cpt-otvet-auditoram-avtobusy-nikosii
+- https://economytoday.sigmalive.com/ey-gia-leoforeia-l/sias-lanthasmena-oraria-alaloym-pliroforisis-ki-alles-adynamies/
+- Code: src/lib/accessibility-prefs.ts, src/lib/accessibility-weights.ts, src/lib/stop-condition.server.ts, src/lib/useJourneySideEffects.ts (redesign-roam @ 1508f3f)
+
+---
