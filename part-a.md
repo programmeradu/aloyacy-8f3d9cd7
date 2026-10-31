@@ -70,3 +70,53 @@ When a trip is started at home, Aloya's server sends alerts that assume the ride
 - Code: src/routes/api/public/trip-alerts.ts, src/lib/trip-alerts.server.ts, src/lib/trip-store.ts, src/lib/trip-sync.functions.ts, packages/core/src/multileg-journey.ts, packages/core/src/journey-live.ts, mobile/lib/groupBackgroundLocation.ts, mobile/build_info.json (redesign-roam @ 1508f3f)
 
 ---
+
+## Layer 2: Walking pace (a personal, learned walking speed)
+
+### 2.1 What the best in the world do
+
+- **Citymapper** offers two walking route types, "Fast" (most direct) and "Main roads" (simpler, can be safer), switchable mid-route, with automatic rerouting (citymapper.com/news/2266). Citymapper's routing settings also include "Walk Less" for heat or rain (citymapper.com/news/2589).
+- **OpenTripPlanner**, the open-source planner many agencies use, exposes walking speed and walk reluctance as per-request parameters, so a planner can be personalised without changing the network (docs.opentripplanner.org, RouteRequest).
+- **Research on measuring a person's pace on a phone.** AutoGait (KAIST, 2010) calibrates an individual's stride length against step frequency using short stretches of GPS-tracked straight walking, then estimates speed from steps alone when GPS is poor (ic.kaist.ac.kr, Cho et al. 2010). A 2025 JMIR study of 99 older adults found smartphone GPS walking speed read 0.18 m/s lower on average than an ankle-band accelerometer, with 95% limits of agreement from minus 0.49 to plus 0.13 m/s, so GPS alone is noisy for pace (formative.jmir.org/2025/1/e73722). A deep-learning smartphone method reached a root mean square error of 0.16 m/s on a treadmill (arXiv 1805.03368).
+- **How fast people really walk.** US signal design assumes 1.2 m/s, and FHWA guidance recommends 0.9 m/s for less capable older pedestrians; measured means are 0.8 m/s with a cane or crutch, 0.6 m/s with a walker and 1.1 m/s for wheelchair users (FHWA-HRT-05-099, lesson 8). In England, adults aged 65 and over walked at a mean 0.9 m/s (men) and 0.8 m/s (women), and 84% of men and 93% of women walked slower than 1.2 m/s (Asher et al., Age and Ageing 2012).
+
+### 2.2 Cyprus reality and data
+
+- Nicosia's summer heat, kerbs without dropped crossings and pavements blocked by parked cars slow walkers; the Audit Office's accessibility review was done with a representative of the Cyprus Paraplegic Organisation (Economy Today, 14 Oct 2026), and found 32% of stops with no shelter and 22% with neither seat nor shelter (Cyprus Mail, 14 Oct 2026). Shade and heat matter for pace and willingness to walk.
+- The population that most needs accurate walking time (older riders, people with mobility aids) is the population that standard 1.2 to 1.4 m/s assumptions serve worst (FHWA; Asher et al.).
+- OpenStreetMap is the open source for footways and crossings in Cyprus; Google's walking directions are already used by Aloya (below). No Cyprus-specific pedestrian speed study was found.
+
+### 2.3 Aloya today, and its gaps
+
+- One fixed pace everywhere: WALK_M_PER_S = 1.35 in packages/core/src/geo.ts line 29 and packages/core/src/multileg-legs.ts line 38, walkMetersPerSec 1.35 in packages/core/src/raptor-core.ts line 55, and WALK_PACE_MPS = 1.35 in src/lib/walk-links.server.ts line 39 (commented "a calm Mediterranean walk"). Straight-line distance is multiplied by a 1.35 detour factor.
+- After RAPTOR, walk legs are replaced with Google walking durations (src/lib/walk-refine.server.ts), which is good for distance and path but still assumes Google's generic pace, not the rider's.
+- No user setting for walking pace or mobility aid was found, and no learning from the rider's actual walks.
+- 1.35 m/s is about 50% faster than the mean measured for English adults over 65 (0.8 to 0.9 m/s). For an older rider a planned 6-minute walk can take about 9 minutes, which is exactly the "you'll make it" that turns into a missed hourly bus.
+
+### 2.4 Improvements
+
+1. **Pace profile in settings (S, high).** Options: Brisk (1.5 m/s), Normal (1.3 m/s), Relaxed (1.0 m/s), Slow or with a walking aid (0.8 m/s), Wheelchair (1.1 m/s, step-free routing). Figures follow FHWA and Asher et al. Pass the chosen speed into RAPTOR (raptor-core.ts walkMetersPerSec) and scale Google durations by (Google implied speed / user speed).
+2. **Learned pace, on the device (M, high).** During any walk leg with good GPS (horizontal accuracy under 20 m, straight segments over 100 m), compute speed from distance over time, reject stops at crossings (speed under 0.3 m/s), and keep an exponentially weighted personal median plus a "brisk" 85th percentile. Where available use the step counter (Android Activity Recognition and step sensor; iOS CMPedometer in a native wrapper) to calibrate stride as AutoGait does, which is steadier than GPS (JMIR 2025 shows GPS noise). Store only the two numbers, on the device.
+3. **Two speeds in every decision (S, high).** Layer 1's leave logic uses normal pace for "leave now" and brisk pace for "run, you can still make it", never assuming the rider will run unless the gap is small.
+4. **Context factors (M, medium).** Apply a heat factor (slower above a temperature threshold, from a weather API), a night factor, and a luggage or pram toggle for the trip. Calibrate the factors from learned data rather than inventing them.
+5. **Crossing and kerb penalties (M, medium).** Add a fixed time per signalised crossing and per missing dropped kerb from OpenStreetMap tags (crossing=traffic_signals, kerb=raised), weighted more for the Slow and Wheelchair profiles. FHWA notes older pedestrians take longer to start crossing (2.5 s versus 1.9 s mean start-up).
+6. **Show the assumption (S, medium).** On every walk leg show "7 min at your pace" and let the rider tap to change pace for this trip.
+7. **Fix the comment and constants (S, low).** Make 1.35 a single shared default in packages/core instead of four copies, so the profile change applies everywhere.
+
+### 2.5 Sources
+
+- https://citymapper.com/news/2266/turn-by-turn-directions-for-walking
+- https://citymapper.com/news/2589/
+- https://docs.opentripplanner.org/en/latest/RouteRequest/
+- https://ic.kaist.ac.kr/publications/papers/cho2010autogait.pdf
+- https://formative.jmir.org/2025/1/e73722
+- https://arxiv.org/pdf/1805.03368
+- https://www.fhwa.dot.gov/publications/research/safety/pedbike/05085/chapt8.cfm
+- https://doi.org/10.1093/ageing/afs076
+- https://economytoday.sigmalive.com/ey-gia-leoforeia-l/sias-lanthasmena-oraria-alaloym-pliroforisis-ki-alles-adynamies/
+- https://cyprus-mail.com/2026/10/14/63-per-cent-of-passengers-would-not-use-the-bus-again
+- Code: packages/core/src/geo.ts, packages/core/src/multileg-legs.ts, packages/core/src/raptor-core.ts, src/lib/walk-links.server.ts, src/lib/walk-refine.server.ts (redesign-roam @ 1508f3f)
+
+Note: the first run cited an Ulm University step-versus-GPS speed figure (1.0 to 1.1 km/h versus 1.1 to 2.4 km/h). Its source is a 2021 master's thesis behind a registered-user wall (dbis.eprints.uni-ulm.de/id/eprint/2067), which could not be opened to verify, so the figure is not used here.
+
+---
