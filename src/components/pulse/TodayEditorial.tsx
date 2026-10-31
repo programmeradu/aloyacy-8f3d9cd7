@@ -112,11 +112,11 @@ export function TodayPair({ briefing, locale, t }: Props) {
             width={320}
             height={320}
           />
-          {voice ? (
-            <span className="r-pair-speak">
-              <SpeakGreekButton text={w.el} src={voice} />
-            </span>
-          ) : null}
+          {/* Recorded clip first; without one the phone's own voice speaks.
+              The button hides itself when neither is possible. */}
+          <span className="r-pair-speak">
+            <SpeakGreekButton text={w.el} src={voice} />
+          </span>
         </div>
         <div className="r-pair-body">
           <span className="r-today-kick">{sentence(t("today.greek.kicker"))}</span>

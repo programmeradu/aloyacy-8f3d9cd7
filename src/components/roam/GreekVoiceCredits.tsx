@@ -1,6 +1,7 @@
 // Credits for the Greek word of the day recordings: real people from
 // Wikimedia Commons, Mozilla Common Voice (CC0) and the public-domain FSI Greek Basic Course. CC BY-SA and CC BY need the author, licence and source
 // named, so every clip is listed here with a link to its original file.
+// Words without a recording use the phone's built-in voice and need no credit.
 import credits from "@/data/greek-voice-credits.json";
 import { useRoamI18n } from "@/lib/roam-i18n";
 
