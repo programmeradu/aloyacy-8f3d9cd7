@@ -127,7 +127,15 @@ export function MapPreview({
   // construction then throws: try again shortly, then show a retry fallback.
   const [glError, setGlError] = useState(false);
   const [glTry, setGlTry] = useState(0);
+  // Bumped by "Try again" so a retry always starts a fresh attempt, whatever
+  // glTry happens to be; `retrying` keeps the button busy until it settles.
+  const [retryNonce, setRetryNonce] = useState(0);
+  const [retrying, setRetrying] = useState(false);
   const error = loadError || glError;
+  // A library load that fails again ends the retry.
+  useEffect(() => {
+    if (loadError) setRetrying(false);
+  }, [loadError]);
   const { data: rt } = useRealtime();
   const { t } = useI18n();
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -140,6 +148,9 @@ export function MapPreview({
   // Initialize map once the Mapbox library is loaded.
   useEffect(() => {
     if (!api || !hostRef.current || mapRef.current) return;
+    // A failed construction leaves its canvas and controls in the container,
+    // and Mapbox will not build a working map on top of them: start clean.
+    hostRef.current.replaceChildren();
     let m: mapboxgl.Map;
     try {
       m = new api.Map({
@@ -160,9 +171,11 @@ export function MapPreview({
         return () => window.clearTimeout(id);
       }
       setGlError(true);
+      setRetrying(false);
       return;
     }
     setGlError(false);
+    setRetrying(false);
     if (!isAerial()) m.addControl(new api.AttributionControl({ compact: true }), "top-left");
     m.touchZoomRotate.disableRotation();
     if (!isAerial()) m.on("style.load", () => applyAloyaTint(m));
@@ -178,7 +191,7 @@ export function MapPreview({
       m.remove();
       mapRef.current = null;
     };
-  }, [api, glTry]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [api, glTry, retryNonce]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { expanded, fallbackOverlay, wrapperRef, toggleFullscreen } = useMapFullscreen(api, mapRef);
 
@@ -271,11 +284,21 @@ export function MapPreview({
           <p className="text-[15px] font-medium text-white/85">{t("map.unavailable")}</p>
           <button
             type="button"
-            className="r-pill r-pill--k"
+            className="r-pill r-pill--k disabled:opacity-60"
+            disabled={retrying}
+            aria-busy={retrying}
             onClick={() => {
+              setRetrying(true);
+              if (loadError) {
+                // Library or chunk failed: load it again; the map builds when it arrives.
+                retryLoad();
+                return;
+              }
+              // Construction failed: fresh attempt now, with the same two quick
+              // retries as the first load before the panel comes back.
               setGlError(false);
-              if (loadError) retryLoad();
-              else setGlTry((n) => (n >= 2 ? 0 : n + 1));
+              setGlTry(0);
+              setRetryNonce((n) => n + 1);
             }}
           >
             {t("map.retry")}
