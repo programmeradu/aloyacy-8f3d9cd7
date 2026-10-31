@@ -30,6 +30,7 @@ export function cleanPlace(name: string | null | undefined): string {
     .replace(/\s+[-\u2010-\u2015]+\s+/g, ", ")
     .replace(/[\u2013\u2014\u2015]/g, " ")
     .replace(/\s{2,}/g, " ")
+    .replace(/\.\s*,/g, ",")
     .trim();
 }
 
