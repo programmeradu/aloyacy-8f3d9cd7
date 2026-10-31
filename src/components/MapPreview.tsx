@@ -22,8 +22,6 @@ import { useStaticLayer } from "@/components/map/useStaticLayer";
 import { useTripPaths } from "@/components/map/useTripPaths";
 import { UserHereOverlay } from "@/components/map/UserHereOverlay";
 import type { MapMarker, MapSegment } from "@/components/map/types";
-import { TileFallbackMap } from "@/components/map/TileFallbackMap";
-import { hasWebGL2 } from "@/lib/webgl";
 
 export type { MapMarker, MapSegment };
 
@@ -124,22 +122,12 @@ export function MapPreview({
   useEffect(() => setHydrated(true), []);
 
   const { api, error: loadError, retry: retryLoad } = useMapbox();
-  // WebGL can be missing (old devices, blocked GPU, WebGL turned off, GPU-less
-  // desktops) or briefly unavailable (iOS Safari frees the previous screen's
-  // map context a moment late). Map construction then throws: try again
-  // shortly. When WebGL is missing outright, or construction still fails
-  // after the retries, draw the lite map (aerial tiles as images, no WebGL)
-  // instead of an error panel: retrying can never help there.
-  const [noGl, setNoGl] = useState(false);
-  useEffect(() => {
-    if (!hasWebGL2()) setNoGl(true);
-  }, []);
+  // WebGL can be missing (old devices, blocked GPU) or briefly unavailable
+  // (iOS Safari frees the previous screen's map context a moment late). Map
+  // construction then throws: try again shortly, then show a retry fallback.
   const [glError, setGlError] = useState(false);
   const [glTry, setGlTry] = useState(0);
-  // A library chunk that failed to load also gets the lite map, plus a retry
-  // that reloads the library and swaps the full map in when it arrives.
-  const lite = hydrated && (noGl || glError || !!loadError);
-  const error = lite;
+  const error = loadError || glError;
   const { data: rt } = useRealtime();
   const { t } = useI18n();
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -151,9 +139,7 @@ export function MapPreview({
 
   // Initialize map once the Mapbox library is loaded.
   useEffect(() => {
-    if (!api || !hostRef.current || mapRef.current || noGl) return;
-    // A failed construction leaves its canvas and controls behind; start clean.
-    hostRef.current.replaceChildren();
+    if (!api || !hostRef.current || mapRef.current) return;
     let m: mapboxgl.Map;
     try {
       m = new api.Map({
@@ -192,7 +178,7 @@ export function MapPreview({
       m.remove();
       mapRef.current = null;
     };
-  }, [api, glTry, noGl]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [api, glTry]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { expanded, fallbackOverlay, wrapperRef, toggleFullscreen } = useMapFullscreen(api, mapRef);
 
@@ -280,32 +266,24 @@ export function MapPreview({
     >
       {/* Inline position: mapbox-gl adds .mapboxgl-map { position: relative }. */}
       <div ref={hostRef} className="absolute inset-0" style={{ position: "absolute", inset: 0 }} />
-      {lite && (
-        <TileFallbackMap
-          center={center}
-          spanKm={spanKm}
-          polyline={polyline}
-          segments={segments}
-          markers={markers}
-          fitPadding={fitPadding}
-          fitToContent={fitToContent}
-          pins={pins}
-          declutterPx={declutterPx}
-          vehicles={liveVehicles ? vehicles : undefined}
-          userLocation={userLocation}
-        />
+      {error && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+          <p className="text-[15px] font-medium text-white/85">{t("map.unavailable")}</p>
+          <button
+            type="button"
+            className="r-pill r-pill--k"
+            onClick={() => {
+              setGlError(false);
+              if (loadError) retryLoad();
+              else setGlTry((n) => (n >= 2 ? 0 : n + 1));
+            }}
+          >
+            {t("map.retry")}
+          </button>
+        </div>
       )}
-      {lite && !!loadError && loadError !== "missing mapbox token" && !noGl && !glError && (
-        <button
-          type="button"
-          className="r-pill r-pill--k absolute left-1/2 top-3 z-10 -translate-x-1/2"
-          onClick={() => retryLoad()}
-        >
-          {t("map.retry")}
-        </button>
-      )}
-      {!lite && pinPortals}
-      {attribution && (isAerial() || lite) ? (
+      {pinPortals}
+      {attribution && isAerial() && !error ? (
         <MapAttribution bottom={attribBottom} top={attribTop} />
       ) : null}
       {liveVehicles && !hideLiveBadge && !bare && (
