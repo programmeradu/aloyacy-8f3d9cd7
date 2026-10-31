@@ -196,7 +196,22 @@ function dropNearDuplicates(sorted: Itinerary[]): Itinerary[] {
     if (out.some((o) => routeSeq(o) === seq && Math.abs(firstBoard(o) - fb) <= 5 * 60)) continue;
     out.push(it);
   }
-  return out;
+  // Same last bus, same arrival: the one that lets the rider leave later wins
+  // (16:45 and 16:54 starts that both meet the 19:15 bus are one option),
+  // unless it adds a change or much more walking.
+  const lastRide = (it: Itinerary) => [...it.legs].reverse().find((l): l is RideLeg => l.kind === "ride");
+  return out.filter((it) => {
+    const lr = lastRide(it);
+    if (!lr || isCoachIt(it)) return true;
+    return !out.some((o) => {
+      if (o === it) return false;
+      const lo = lastRide(o);
+      if (!lo || normRoute(lo.routeId) !== normRoute(lr.routeId)) return false;
+      if (Math.abs(lo.alight.arrivalUnix - lr.alight.arrivalUnix) > 60) return false;
+      if (o.transfers > it.transfers || o.totalWalkMeters > it.totalWalkMeters + 300) return false;
+      return o.departureUnix > it.departureUnix + 60;
+    });
+  });
 }
 
 const LATER_WINDOW_SEC = 3 * 3600;
@@ -244,6 +259,7 @@ async function laterDepartures(
       const fb = firstBoard(it);
       if (all().some((o) => rideKey(o) === rideKey(it) && Math.abs(firstBoard(o) - fb) <= 5 * 60)) continue;
       if (all().some((o) => routeSeq(o) === seq && Math.abs(firstBoard(o) - fb) <= 10 * 60)) continue;
+      if (all().some((o) => Math.abs(o.arrivalUnix - it.arrivalUnix) <= 120 && !isCoachIt(o))) continue;
       added.push(it);
       took = true;
       break; // one per pass: the next pass searches after this departure
