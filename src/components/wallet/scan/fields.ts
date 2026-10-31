@@ -139,7 +139,9 @@ export class Voter {
 
   constructor(
     private rules: Record<FieldKey, { need: number; minConf: number }> = {
-      number: { need: 2, minConf: 55 },
+      // Digit lines score low on Tesseract's confidence even when right; the
+      // 14 to 16 digit shape and two agreeing reads carry the weight here.
+      number: { need: 2, minConf: 20 },
       holder: { need: 2, minConf: 65 },
       category: { need: 2, minConf: 50 },
       validUntil: { need: 2, minConf: 55 },

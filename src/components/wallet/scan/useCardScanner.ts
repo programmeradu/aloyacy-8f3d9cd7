@@ -436,10 +436,14 @@ export function useCardScanner(opts: {
             }
           }
         }
-        // The bold UID line read plain and thinned; they agree on a clean read.
+        // The bold UID line read four ways (plain and thinned, three scales).
+        // OCR slips differ between them, so a value two reads agree on is
+        // the printed one; a doubled digit (17 digits) is thrown away.
         for (const [sc, prep] of [
-          [1, "plain"],
           [1.5, "thin"],
+          [1, "plain"],
+          [2, "thin"],
+          [1.5, "plain"],
         ] as const) {
           if (vt.accepted.number) break;
           const r = await readRegion(crop(card, ROI.uid, sc, prep), {
