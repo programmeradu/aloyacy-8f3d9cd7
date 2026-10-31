@@ -401,6 +401,10 @@ const en = {
   "jl.statTime": "Door to door",
   "jl.statChanges": "Changes",
   "jl.statWalk": "Walking",
+  "jl.longestWait": "longest wait {m} min",
+  "jl.offWalkTo": "Get off at {from}, walk {d} to {to} for bus {code}.",
+  "jl.offSameStop": "Get off at {from} and catch bus {code} at the same stop.",
+  "jl.thenBus": "then bus {code}.",
 } as const;
 
 export type RoamKey = keyof typeof en;
@@ -804,6 +808,10 @@ const el: Record<RoamKey, string> = {
   "jl.statTime": "Από πόρτα σε πόρτα",
   "jl.statChanges": "Αλλαγές",
   "jl.statWalk": "Περπάτημα",
+  "jl.longestWait": "μεγαλύτερη αναμονή {m} λ.",
+  "jl.offWalkTo": "Κατεβείτε στη στάση {from}, περπατήστε {d} ως τη στάση {to} για το λεωφορείο {code}.",
+  "jl.offSameStop": "Κατεβείτε στη στάση {from} και πάρτε το λεωφορείο {code} από την ίδια στάση.",
+  "jl.thenBus": "μετά λεωφορείο {code}.",
 };
 
 const dicts = { en: en as Record<RoamKey, string>, el };

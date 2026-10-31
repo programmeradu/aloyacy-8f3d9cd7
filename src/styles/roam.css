@@ -3846,11 +3846,42 @@ a.r-today-rowtitle {
   justify-content: center;
   border-radius: 50%;
 }
+/* Chain of line pills: one row that never wraps. Each link is glued to the
+   pill after it (.r-jl-unit) so a separator is never left on its own. */
+.r-jl-chainbox {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
 .r-jl-chain {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 6px;
+  width: max-content;
+}
+.r-jl-chain.is-sm,
+.r-jl-chain.is-xs {
+  gap: 4px;
+}
+.r-jl-unit {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.r-jl-chain.is-sm .r-jl-unit,
+.r-jl-chain.is-xs .r-jl-unit {
+  gap: 4px;
+}
+.r-jl-chain .r-jl-pill.is-sm {
+  gap: 5px;
+  padding: 0 9px 0 4px;
+}
+.r-jl-pill.is-xs {
+  gap: 4px;
+  padding: 0 8px 0 3px;
 }
 .r-jl-link {
   display: inline-flex;

@@ -2,7 +2,7 @@
 // operator logo or the bus glyph on the line colour), the leg pill chain,
 // the proportional leg bar, the change list, the full itinerary timeline
 // with expandable stops, and the change pin for maps.
-import { Fragment, useState, type CSSProperties } from "react";
+import { Fragment, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import type { Itinerary, RideLeg } from "@/lib/itinerary-types";
 import { Icon } from "@/components/roam/Icon";
 import { useRoamI18n } from "@/lib/roam-i18n";
@@ -65,21 +65,43 @@ export function JLinePill({
 }: {
   leg: RideLike;
   dark?: boolean;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
 }) {
-  const h = size === "lg" ? 34 : size === "sm" ? 26 : 30;
+  const h = size === "lg" ? 34 : size === "sm" ? 26 : size === "xs" ? 22 : 30;
+  const fs = size === "lg" ? 16 : size === "sm" ? 13 : size === "xs" ? 12 : 14;
+  const mark = size === "lg" ? 24 : size === "sm" ? 18 : size === "xs" ? 16 : 20;
   return (
     <span
-      className={`r-jl-pill r-tnum${dark ? " is-dark" : ""}`}
-      style={{ height: h, fontSize: size === "lg" ? 16 : size === "sm" ? 13 : 14 }}
+      className={`r-jl-pill r-tnum${dark ? " is-dark" : ""} is-${size}`}
+      style={{ height: h, fontSize: fs }}
     >
-      <LegMark leg={leg} size={size === "lg" ? 24 : size === "sm" ? 18 : 20} />
+      <LegMark leg={leg} size={mark} />
       <span>{leg.routeShort}</span>
     </span>
   );
 }
 
-/** Pills for every ride with the walk or wait between them. */
+// Fit levels for the chain, tried in order until it sits on one row: pill
+// size and whether a walk link carries its minutes.
+type ChainLevel = { size: "md" | "sm" | "xs"; walkText: boolean };
+const LEVELS_FEW: ChainLevel[] = [
+  { size: "md", walkText: true },
+  { size: "md", walkText: false },
+  { size: "sm", walkText: false },
+  { size: "xs", walkText: false },
+];
+// Four or more rides start compact, walk links as a small icon only.
+const LEVELS_MANY: ChainLevel[] = [
+  { size: "sm", walkText: false },
+  { size: "xs", walkText: false },
+];
+
+/**
+ * Pills for every ride with the walk or wait between them, always on one
+ * row. Each link is glued to the pill after it, so a separator is never
+ * left on its own; when the row is too narrow the pills step down in size,
+ * and as a last resort the whole row is scaled down. It never wraps.
+ */
 export function LegChain({
   itinerary,
   dark = false,
@@ -92,28 +114,83 @@ export function LegChain({
 }) {
   const { r } = useRoamI18n();
   const p = journeyParts(itinerary);
+  const levels = p.rides.length >= 4 ? LEVELS_MANY : LEVELS_FEW;
+  const boxRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const fitWidth = useRef(0);
+  const [lvl, setLvl] = useState(0);
+  const [scale, setScale] = useState(1);
+  const [width, setWidth] = useState(0);
+  const level = levels[Math.min(lvl, levels.length - 1)];
+
+  // Track the space the chain has; a new width starts the fit again.
+  useLayoutEffect(() => {
+    const box = boxRef.current;
+    if (!box || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setWidth(Math.round(box.clientWidth)));
+    ro.observe(box);
+    setWidth(Math.round(box.clientWidth));
+    return () => ro.disconnect();
+  }, []);
+  useLayoutEffect(() => {
+    const box = boxRef.current;
+    const row = rowRef.current;
+    if (!box || !row || width === 0) return;
+    if (width !== fitWidth.current) {
+      fitWidth.current = width;
+      if (lvl !== 0 || scale !== 1) {
+        setLvl(0);
+        setScale(1);
+        return;
+      }
+    }
+    if (scale !== 1) return;
+    const need = row.scrollWidth;
+    const have = box.clientWidth;
+    if (need <= have + 0.5) return;
+    if (lvl < levels.length - 1) setLvl(lvl + 1);
+    else setScale(Math.max(0.6, Math.floor((have / need) * 100) / 100));
+  }, [lvl, scale, width, levels]);
+
   return (
-    <div className={`r-jl-chain${dark ? " is-dark" : ""}${white ? " is-white" : ""}`}>
-      {p.rides.map((ride, i) => {
-        const ch: ChangeInfo | undefined = i > 0 ? p.changes[i - 1] : undefined;
-        return (
-          <Fragment key={i}>
-            {ch ? (
-              <span className="r-jl-link">
-                {ch.sameStop || ch.walkMeters < 25 ? (
-                  <Icon name="caret-right" size={13} />
-                ) : (
-                  <>
-                    <Icon name="person-simple-walk" size={14} />
-                    <span className="r-tnum">{r("jl.minShort", { m: mins(ch.walkSec) })}</span>
-                  </>
-                )}
-              </span>
-            ) : null}
-            <JLinePill leg={ride} dark={dark} />
-          </Fragment>
-        );
-      })}
+    <div ref={boxRef} className="r-jl-chainbox">
+      <div
+        ref={rowRef}
+        className={`r-jl-chain${dark ? " is-dark" : ""}${white ? " is-white" : ""} is-${level.size}`}
+        style={scale < 1 ? { zoom: scale } : undefined}
+      >
+        {p.rides.map((ride, i) => {
+          const ch: ChangeInfo | undefined = i > 0 ? p.changes[i - 1] : undefined;
+          const walk = !!ch && !(ch.sameStop || ch.walkMeters < 25);
+          return (
+            <span key={i} className="r-jl-unit">
+              {ch ? (
+                <span
+                  className="r-jl-link"
+                  role={walk && !level.walkText ? "img" : undefined}
+                  aria-label={
+                    walk && !level.walkText
+                      ? r("jl.walkFact", { d: fmtDist(ch.walkMeters), m: mins(ch.walkSec) })
+                      : undefined
+                  }
+                >
+                  {!walk ? (
+                    <Icon name="caret-right" size={level.size === "md" ? 13 : 12} />
+                  ) : (
+                    <>
+                      <Icon name="person-simple-walk" size={level.size === "md" ? 14 : 13} />
+                      {level.walkText ? (
+                        <span className="r-tnum">{r("jl.minShort", { m: mins(ch.walkSec) })}</span>
+                      ) : null}
+                    </>
+                  )}
+                </span>
+              ) : null}
+              <JLinePill leg={ride} dark={dark} size={level.size} />
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -235,6 +312,38 @@ export function ChangeBlock({ ch, dark = false }: { ch: ChangeInfo; dark?: boole
   );
 }
 
+/**
+ * Clock time for each intermediate stop, from the timetable. When the times
+ * already sit in order between board and alight they show as they are. When
+ * a live board time moved the ride (the bus runs late or early), the
+ * timetable times are fitted into the live board..alight window so every
+ * stop keeps its own time and the list still reads in order. A stop with no
+ * timetable time stays blank.
+ */
+export function viaClock(leg: RideLeg): (string | null)[] {
+  const via = leg.via ?? [];
+  const b = leg.board.departureUnix;
+  const a = leg.alight.arrivalUnix;
+  const ok = (t: number) => Number.isFinite(t) && t > 0;
+  const raw = via.map((v) => v.arrivalUnix);
+  const inOrder = raw.every((t, i) => ok(t) && t >= b && t <= a && (i === 0 || t >= raw[i - 1]));
+  if (inOrder) return raw.map((t) => clock(t));
+  const known = raw.filter(ok);
+  if (known.length === 0 || a <= b) return raw.map(() => null);
+  // Timetable window: the scheduled board time (live board minus the known
+  // delay) to the later of the last call and the scheduled alight time.
+  const lo = Math.min(b - (leg.delaySec || 0), ...known);
+  const hi = Math.max(a - (leg.delaySec || 0), ...known, lo + 60);
+  let prev = b;
+  return raw.map((t) => {
+    if (!ok(t)) return null;
+    const f = Math.min(1, Math.max(0, (t - lo) / (hi - lo)));
+    const v = Math.max(prev, Math.round(b + f * (a - b)));
+    prev = v;
+    return clock(v);
+  });
+}
+
 function RideSegment({
   leg,
   state,
@@ -248,14 +357,7 @@ function RideSegment({
   const [open, setOpen] = useState(false);
   const c = legColor(leg);
   const via = leg.via ?? [];
-  // Show stop times only when they sit in order between board and alight
-  // (a live-adjusted board time can disagree with the timetable calls).
-  const viaTimed = via.every(
-    (v, i) =>
-      v.arrivalUnix >= leg.board.departureUnix &&
-      v.arrivalUnix <= leg.alight.arrivalUnix &&
-      (i === 0 || v.arrivalUnix >= via[i - 1].arrivalUnix),
-  );
+  const viaTimes = viaClock(leg);
   const n = leg.stopCount;
   const rideSec = leg.alight.arrivalUnix - leg.board.departureUnix;
   const style = { "--lc": c } as CSSProperties;
@@ -304,7 +406,7 @@ function RideSegment({
       {open
         ? via.map((v, i) => (
             <li key={i} className={`r-jl-row is-via is-${state}`} style={style}>
-              <span className="r-jl-time r-tnum">{viaTimed ? clock(v.arrivalUnix) : ""}</span>
+              <span className="r-jl-time r-tnum">{viaTimes[i] ?? ""}</span>
               <span className={`r-jl-rail${pale ? " is-pale" : ""}`}>
                 <span className="r-jl-dot is-small" />
               </span>
