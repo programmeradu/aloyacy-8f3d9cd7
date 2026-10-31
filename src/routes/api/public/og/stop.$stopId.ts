@@ -5,6 +5,45 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SAFE_ID } from "@/lib/og-asset";
 import { ogRender } from "@/lib/og-runtime.server";
 import { airportCard, defaultCard, stopCard } from "@/lib/og-roam-cards.server";
+import { ogDraw } from "@/lib/og-runtime.server";
+import { stopPortrait } from "@/lib/og-roam-portrait.server";
+import {
+  cardLink,
+  noCard,
+  portraitKey,
+  readNextBus,
+  wantsPortrait,
+} from "@/lib/og-portrait.server";
+
+/** The 4:5 picture the in-app share sheet sends, with the live next bus when given. */
+function portrait(request: Request, id: string, airport: string | null): Promise<Response> {
+  const q = new URL(request.url).searchParams;
+  const a = q.get("a");
+  const agency = a && SAFE_ID.test(a) ? a : undefined;
+  const isAirport = airport === "lca" || airport === "pfo";
+  const o = {
+    link: cardLink(request, isAirport ? `/airport/${airport}` : `/stop/${id}`),
+    agency,
+    next: readNextBus(request),
+    ...(isAirport
+      ? {
+          name: `${airport === "pfo" ? "Paphos" : "Larnaca"} Airport by bus`,
+          kicker: `Airport ${String(airport).toUpperCase()}`,
+          mpp: 8,
+        }
+      : {}),
+  };
+  if (!SAFE_ID.test(id)) return ogDraw(request, () => null, ["/og/default.png"]);
+  // Live numbers change every minute: draw those per request, cache the rest.
+  if (o.next) return ogDraw(request, (s) => stopPortrait(id, s, o), ["/og/default.png"]);
+  return ogRender(
+    request,
+    portraitKey(request, `${isAirport ? `airport/${airport}` : "stop"}/${agency ?? "-"}/${id}`),
+    86400,
+    (s) => stopPortrait(id, s, o) ?? noCard(),
+    ["/og/default.png"],
+  );
+}
 
 export const Route = createFileRoute("/api/public/og/stop/$stopId")({
   server: {
@@ -12,6 +51,7 @@ export const Route = createFileRoute("/api/public/og/stop/$stopId")({
       GET: async ({ request, params }) => {
         const id = params.stopId ?? "";
         const airport = new URL(request.url).searchParams.get("airport");
+        if (wantsPortrait(request)) return portrait(request, id, airport);
         if (airport === "lca" || airport === "pfo")
           return ogRender(
             request,

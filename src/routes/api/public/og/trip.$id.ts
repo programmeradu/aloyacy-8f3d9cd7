@@ -6,6 +6,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SAFE_ID, tripInfo } from "@/lib/og-asset";
 import { ogRender } from "@/lib/og-runtime.server";
 import { tripCard } from "@/lib/og-roam-cards.server";
+import { tripPortrait } from "@/lib/og-roam-portrait.server";
+import { cardLink, noCard, portraitKey, wantsPortrait } from "@/lib/og-portrait.server";
 
 export const Route = createFileRoute("/api/public/og/trip/$id")({
   server: {
@@ -16,6 +18,18 @@ export const Route = createFileRoute("/api/public/og/trip/$id")({
         const info = SAFE_ID.test(id) ? await tripInfo(request, id) : null;
         const routeId = r && SAFE_ID.test(r) ? r : (info?.routeId ?? null);
         const key = info ? `trip/${id}` : routeId ? `trip/r/${routeId}` : "page/trip";
+        if (wantsPortrait(request))
+          return ogRender(
+            request,
+            portraitKey(request, key),
+            86400,
+            (s) =>
+              tripPortrait(routeId, s, {
+                link: cardLink(request, `/trip/${id}`),
+                trip: info ? { depart: info.depart, from: info.from, to: info.to } : undefined,
+              }) ?? noCard(),
+            ["/og/trip.png"],
+          );
         return ogRender(
           request,
           key,

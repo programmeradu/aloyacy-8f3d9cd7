@@ -217,9 +217,16 @@ ${big ? text(IN + TW - 26, y + 84, big, { size: 50, weight: 800, fill: R.ink, an
 export function stopPortrait(
   stopId: string,
   shapes: Shapes | null,
-  o: { link: string; next?: NextBus | null; name?: string; kicker?: string; mpp?: number },
+  o: {
+    link: string;
+    next?: NextBus | null;
+    name?: string;
+    kicker?: string;
+    mpp?: number;
+    agency?: string;
+  },
 ): string | null {
-  const s = getStop(stopId);
+  const s = getStop(stopId, o.agency) ?? getStop(stopId);
   if (!s) return null;
   const { codes, routeIds } = linesAtStop(s.id, s.agency);
   const colorOf = lineColours(routeIds);

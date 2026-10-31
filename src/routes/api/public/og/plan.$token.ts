@@ -5,6 +5,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getD1 } from "@/lib/db";
 import { ogRender, cyDay, cyTime } from "@/lib/og-runtime.server";
 import { genericPlanCard, planCard, type PlanLegOg } from "@/lib/og-roam-cards.server";
+import { planPortrait } from "@/lib/og-roam-portrait.server";
+import { cardLink, portraitKey, wantsPortrait } from "@/lib/og-portrait.server";
 
 type Row = {
   creator_name: string | null;
@@ -72,6 +74,25 @@ export const Route = createFileRoute("/api/public/og/plan/$token")({
             alight: l.alight,
           };
         });
+        const og = {
+          origin: r.origin_label,
+          destination: r.destination_label,
+          creator: r.creator_name,
+          depart: r.departure_unix ? cyTime(r.departure_unix) : null,
+          arrive: r.arrival_unix ? cyTime(r.arrival_unix) : null,
+          day: r.departure_unix ? cyDay(r.departure_unix) : null,
+          duration: r.total_duration_sec ? `${Math.round(r.total_duration_sec / 60)} min` : null,
+          transfers: r.transfers ?? 0,
+          legs: mapped,
+        };
+        if (wantsPortrait(request))
+          return ogRender(
+            request,
+            portraitKey(request, `plan/${token}`),
+            86400,
+            (s) => planPortrait(og, s, { link: cardLink(request, `/plan/${token}`) }),
+            ["/og/plan.png"],
+          );
         return ogRender(
           request,
           `plan/${token}`,

@@ -5,6 +5,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getD1 } from "@/lib/db";
 import { ogRender } from "@/lib/og-runtime.server";
 import { genericGroupCard, groupCard } from "@/lib/og-roam-cards.server";
+import { groupPortrait } from "@/lib/og-roam-portrait.server";
+import { cardLink, portraitKey, wantsPortrait } from "@/lib/og-portrait.server";
 
 type Row = {
   code: string;
@@ -42,6 +44,27 @@ export const Route = createFileRoute("/api/public/og/group/$code")({
         if (!row) return ogRender(request, "page/group", 604800, genericGroupCard, ["/og/group.png"]);
         const r = row;
         const slot = Math.floor(Date.now() / 300_000);
+        if (wantsPortrait(request))
+          return ogRender(
+            request,
+            portraitKey(request, `group/${code}/${slot}`),
+            300,
+            (s) =>
+              groupPortrait(
+                {
+                  code: r.code,
+                  destination: r.destination_label,
+                  host: r.created_by_name,
+                  members: Number(r.members) || 0,
+                  arrived: Number(r.arrived) || 0,
+                  nextEta: r.next_eta != null ? Number(r.next_eta) : null,
+                  place: { lat: r.destination_lat, lng: r.destination_lng },
+                },
+                s,
+                { link: cardLink(request, `/group/${code}`) },
+              ),
+            ["/og/group.png"],
+          );
         return ogRender(
           request,
           `group/${code}/${slot}`,
