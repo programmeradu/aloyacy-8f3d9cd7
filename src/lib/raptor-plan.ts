@@ -467,7 +467,9 @@ export async function planRaptor(
   diag.candidateItineraries = itineraries.length;
 
   return {
-    itineraries: selectRaptorItineraries(itineraries, TOP_K_RESULTS, { airport: snappedTo.airport }),
+    itineraries: selectRaptorItineraries(itineraries, TOP_K_RESULTS, { airport: snappedTo.airport }).map(
+      rebaseToLeave,
+    ),
     diagnostics: diag,
   };
 }
@@ -477,4 +479,37 @@ export async function planRaptor(
 function unixToServiceSec(date: string, unix: number): number {
   const midnight = serviceDateToUnix(date, 0);
   return unix - midnight;
+}
+
+/** A wait longer than this before the first bus is not part of the trip. */
+const LEAVE_REBASE_WAIT_SEC = 30 * 60;
+
+/**
+ * An itinerary starts when the rider has to set off, not when they asked.
+ * The search runs from the requested time, or from service-day midnight when
+ * it rolls over to tomorrow's first departures, and every option carried that
+ * base as its departure: "Leaves 00:00", a nine-hour "duration" that was
+ * mostly the night, and comparisons (park and ride "8 h faster") built on it.
+ * When the wait before the first bus is long, the itinerary is re-based on
+ * the moment the rider leaves: first boarding minus the walk to the stop. The
+ * score is left as is, so an option that needs a long wait still ranks below
+ * one that goes sooner.
+ */
+export function rebaseToLeave(it: Itinerary): Itinerary {
+  const firstRide = it.legs.findIndex((l) => l.kind === "ride");
+  if (firstRide < 0) return it;
+  const ride = it.legs[firstRide] as Extract<Leg, { kind: "ride" }>;
+  let walkSec = 0;
+  for (let k = 0; k < firstRide; k++) {
+    const l = it.legs[k];
+    if (l.kind === "walk") walkSec += l.durationSec;
+  }
+  const leave = ride.board.departureUnix - walkSec;
+  if (leave - it.departureUnix <= LEAVE_REBASE_WAIT_SEC) return it;
+  return {
+    ...it,
+    legs: it.legs.filter((l, k) => !(k < firstRide && l.kind === "wait")),
+    departureUnix: leave,
+    totalDurationSec: it.arrivalUnix - leave,
+  };
 }
